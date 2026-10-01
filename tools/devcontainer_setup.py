@@ -38,6 +38,8 @@ _PROJECTS = (
     (_TOOLING_PROJECT, ("--frozen", "--no-default-groups")),
 )
 _SUBPROCESS_TIMEOUT_SECONDS = 1800
+_SHEBANG_READ_LIMIT = 512
+_VENV_INTERPRETER_SUFFIX = "/.venv/bin/python"
 
 
 class DevcontainerSetupError(RuntimeError):
@@ -52,21 +54,13 @@ def default_kit_root() -> Path:
 def container_host_profile_id(repo_root: Path, platform_id: str) -> str:
     """Return the one reviewed container host profile qualified for this platform."""
 
-    from tools.check_tooling_artifact_policy import (
-        PROFILES_PATH,
-        evaluate_tooling_artifact_policy,
-    )
-    from tools.policy.common import load_bounded_json_object
     from tools.tooling_artifact_policy_common import (
-        MAX_JSON_BYTES,
+        PROFILES_PATH,
         normalize_platform_id,
+        read_tooling_document,
     )
 
-    failures = evaluate_tooling_artifact_policy(repo_root)
-    if failures:
-        rendered = "\n".join(item.render() for item in failures)
-        raise DevcontainerSetupError(f"the development artifact policy is invalid:\n{rendered}")
-    profiles = load_bounded_json_object(repo_root, PROFILES_PATH, max_bytes=MAX_JSON_BYTES)
+    profiles = read_tooling_document(repo_root, PROFILES_PATH)
     matches = [
         str(host["host_profile_id"])
         for host in profiles.get("host_profiles", [])
@@ -129,9 +123,9 @@ def prepare_kit(host_profile_id: str, kit_root: Path) -> dict[str, str]:
             else:
                 missing.append(artifact_id)
         if missing:
-            bootstrap_profile.fetch_offline_kit_payloads(host_profile_id, staging, missing)
-        bootstrap_profile.install_offline_uv_payload(host_profile_id, staging, uv_id)
-        python = bootstrap_profile.install_offline_python_payload(host_profile_id, staging, python_id)
+            bootstrap_profile.fetch_bootstrap_payloads(host_profile_id, staging, missing)
+        bootstrap_profile.install_uv_payload(host_profile_id, staging, uv_id)
+        python = bootstrap_profile.install_python_payload(host_profile_id, staging, python_id)
         (staging / "python" / PYTHON_LINK_NAME).symlink_to(Path(python["path"]).name, target_is_directory=True)
         previous = kit_root.with_name(f".{kit_root.name}-previous")
         shutil.rmtree(previous, ignore_errors=True)
@@ -166,6 +160,33 @@ def _run(argv: Sequence[str], repo_root: Path, environment: Mapping[str, str]) -
         raise DevcontainerSetupError(f"`{' '.join(argv)}` failed with exit code {completed.returncode}")
 
 
+def environment_is_relocated(venv: Path) -> bool:
+    """Report whether a virtual environment's console scripts name another path.
+
+    A checkout carries its environments, and their console scripts record the
+    absolute path of the environment that built them. Mounting one checkout at a
+    second path therefore leaves scripts that cannot start. `uv sync` reports such
+    an environment as already satisfying the lock, so setup finds and discards it.
+    """
+
+    expected = f"#!{venv / 'bin' / 'python'}"
+    try:
+        entries = sorted((venv / "bin").iterdir())
+    except OSError:
+        return False
+    for script in entries:
+        if script.is_symlink() or not script.is_file():
+            continue
+        try:
+            with script.open("rb") as handle:
+                shebang = handle.readline(_SHEBANG_READ_LIMIT).decode("utf-8", "replace").strip()
+        except OSError:
+            continue
+        if shebang.endswith(_VENV_INTERPRETER_SUFFIX) and shebang != expected:
+            return True
+    return False
+
+
 def sync_projects(repo_root: Path, kit_root: Path) -> None:
     uv = kit_root / "bin" / "uv"
     environment = {
@@ -174,6 +195,9 @@ def sync_projects(repo_root: Path, kit_root: Path) -> None:
         "UV_PYTHON_DOWNLOADS": "never",
     }
     for project, options in _PROJECTS:
+        venv = repo_root / project / ".venv"
+        if environment_is_relocated(venv):
+            shutil.rmtree(venv)
         _run([str(uv), "sync", "--project", project, *options], repo_root, environment)
 
 
@@ -199,7 +223,7 @@ def install_generic_tools(repo_root: Path, kit_root: Path) -> None:
 
 
 def install_git_hooks(repo_root: Path, kit_root: Path) -> str:
-    """Install the repository's pre-commit and pre-push hooks unless the checkout cannot hold them."""
+    """Install configured hooks unless the checkout cannot hold them."""
 
     git_dir = subprocess.run(  # noqa: S603 - fixed argv
         ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
@@ -255,7 +279,7 @@ def setup(repo_root: Path = REPO_ROOT, *, kit_root: Path | None = None) -> None:
     )
     hooks = _step("Installing git hooks", lambda: install_git_hooks(repo_root, kit_root))
     print(
-        f"Ready. Git hooks: {hooks}. Run `nox -l` to list checks; `nox -s verify-changed` before pushing.",
+        f"Ready. Git hooks: {hooks}. Run `nox -l` for optional checks; full verification runs in CI/CD.",
         flush=True,
     )
 

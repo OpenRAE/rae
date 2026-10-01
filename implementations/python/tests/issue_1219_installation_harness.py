@@ -334,7 +334,7 @@ def main() -> int:
         "installation_policy": installation.INSTALLATION_POLICY_ID,
         "platform": platform.platform(),
         "python": platform.python_version(),
-        "filesystem": installation._filesystem_type(root),
+        "filesystem": "not-classified",
         "filelock": version("filelock"),
         "cold_processes": 32,
         "warm_clients": 100,
@@ -354,7 +354,7 @@ def main() -> int:
         "elapsed_seconds": {name: round(elapsed, 3) for name, elapsed in cases.items()},
         "limitations": [
             "This local harness does not claim the distinct-principal T06 execution case.",
-            "Service, proof, OCI, export, and broader T05/T07/T16 cases remain downstream scope.",
+            "This harness exercises private CLI installation, not artifact services or full environment export.",
         ],
     }
     encoded = json.dumps(evidence, sort_keys=True)

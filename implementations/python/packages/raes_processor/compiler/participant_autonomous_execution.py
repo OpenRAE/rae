@@ -20,6 +20,7 @@ from .addresses import (
     _section_ref_name,
 )
 from .alias_index import _runtime_addressable_ref_index, _runtime_addresses_for_refs
+from .participant_temporal import compile_participant_temporal_bindings
 from .support import _address, _dump
 
 
@@ -380,6 +381,14 @@ def _compile_autonomous_execution(
         ),
         target_addresses=target_addresses,
         execution_bindings=execution_bindings,
+        temporal_bindings=compile_participant_temporal_bindings(scenario, action_refs),
+        observation_boundary_evidence_refs=tuple(
+            scenario.observation_boundaries[
+                _section_ref_name(
+                    policy.observation_boundary_ref, "observation_boundaries", scenario.observation_boundaries
+                )
+            ].evidence_refs
+        ),
         observation_boundary_address=_observation_boundary_address(
             _section_ref_name(
                 policy.observation_boundary_ref,

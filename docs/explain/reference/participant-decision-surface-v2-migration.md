@@ -40,7 +40,10 @@ For each participant choice:
 9. Accept a selection only when it binds surface id, decision epoch, canonical
    participant-view digest, and delivery ref.
 10. At admission, re-resolve the derivation anchor, delivery record, apparatus,
-    and existing participant-action constraints before writing behavior.
+    and existing participant-action constraints before writing behavior. Pass
+    the authenticated caller identity and, for governed ingress, the caller's
+    crossing evidence to the v2 admission method. The selection and delivery
+    record do not supply either authority or ingress evidence.
 
 The reference entry points are:
 

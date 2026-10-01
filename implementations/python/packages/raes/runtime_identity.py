@@ -9,8 +9,9 @@ surface; nothing here is implicitly compiled into an account placement.
 
 from enum import Enum
 
-from pydantic import Field, ValidationInfo, field_validator, model_validator
+from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_filesystem import flagged_raw_value_schema
 from raes.runtime_vocabulary import GovernedVocabulary
 
 from ._base import (
@@ -152,6 +153,10 @@ class RuntimeSudoRule(SDLModel):
     descriptive evidence; ``command_redacted`` marks a rule whose command
     scope was withheld because it carried sensitive arguments.
     """
+
+    model_config = ConfigDict(
+        json_schema_extra=flagged_raw_value_schema(flag_field="command_redacted", raw_field="commands", array=True)
+    )
 
     principal: str
     principal_kind: GovernedVocabulary[RuntimeSudoPrincipalKind] = RuntimeSudoPrincipalKind.USER

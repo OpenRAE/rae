@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 3
 created_at: 2026-07-15T05:45:06.805688Z
-updated_at: 2026-07-18T14:33:41.000394Z
+updated_at: 2026-09-20T00:00:00Z
 ---
 
 # SEM-230 — Participant Information-Flow And Control Semantics
@@ -21,6 +21,17 @@ Existing participant action, observation, visibility, runtime, and behavioral-re
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#971` (Independent single-operation formal model construction)
+
+- DOCUMENTS → DOCUMENTATION `docs/research/participant-bisimulation/model-construction.md` (Construction boundary and source derivation)
+
+- TESTS → TEST `implementations/python/tests/test_issue_971_crossing_models.py` (Complete single-operation transition, retry and atomicity construction tests)
+
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/abstract.py` (Issue #971 single-operation formal model construction only; no equivalence or runtime-realization result)
+
+- DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1013` (Compose the existing SEM-230 authority in SEM-234 without changing its runtime contract)
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/cross-backend-participant-control.md` (Revisioned mixed-composition compatibility boundary)
+- TESTS → TEST `implementations/python/tests/test_sem_234_mixed_composition.py` (Bounded composition with incumbent SEM-230 authority)
 - TESTS → TEST `implementations/python/tests/test_sem_233_flow_control_contracts.py` (SEM-230 portable information-flow contract tests)
 - IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-flow-control-relation-v1.json` (SEM-230 portable participant flow-control relation schema)
 - IMPLEMENTS → GITHUB_ISSUE `1002` (Issue #1002 portable flow-control contracts)
@@ -49,3 +60,7 @@ Existing participant action, observation, visibility, runtime, and behavioral-re
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api_participant_retrieval.py` (Audience-bound participant retrieval API adapter)
 - TESTS → TEST `implementations/python/tests/test_public_docs_policy.py` (Executable participant-control public guide claim example)
 - DOCUMENTS → DOCUMENTATION `docs/public/participant-control.md` (Participant input and output control guide)
+
+- IMPLEMENTS → GITHUB_ISSUE `1070` (Modular participant-control semantic publication)
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/modular-participant-control.md` (Reuses participant projection and exact-cut relation boundaries)
+- TESTS → TEST `implementations/python/tests/test_sem_235_modular_control.py` (Incumbent projection for supervisor-only injects)

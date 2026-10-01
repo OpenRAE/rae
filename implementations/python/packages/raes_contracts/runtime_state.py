@@ -11,6 +11,7 @@ from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts._snapshot_updates import _snapshot_updates, _validate_snapshot_update_keys
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.diagnostics import Diagnostic, Severity, portable_diagnostic_payload
+from raes_contracts.materialization import MaterializationSubmission, require_materialization_records
 from raes_contracts.operation_lifecycle import (
     OperationAdmissionContext,
     OperationKind,
@@ -29,6 +30,7 @@ from raes_contracts.versions import OPERATION_SCHEMA_VERSION, RUNTIME_SNAPSHOT_S
 if TYPE_CHECKING:
     from raes_contracts.artifact_requirements import ArtifactSatisfactionDisclosureModel
     from raes_contracts.contracts import RealizationEnvelopeIdentityModel
+    from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
     from raes_contracts.contracts.time_model import TimeRuntimeStateModel
     from raes_contracts.domain_profiles import DomainProfileBindingModel
 
@@ -92,7 +94,11 @@ class RuntimeSnapshot:
     participant_behavior_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     participant_control_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     participant_crossing_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
+    participant_control_evaluation_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
+    mixed_composition_states: dict[str, dict[str, Any]] = field(default_factory=dict)
+    mixed_composition_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     information_state_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
+    participant_outcome_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     participant_autonomous_execution_states: dict[str, dict[str, Any]] = field(default_factory=dict)
     participant_execution_services: dict[str, dict[str, Any]] = field(default_factory=dict)
     participant_resource_budget_states: dict[str, dict[str, Any]] = field(default_factory=dict)
@@ -107,10 +113,30 @@ class RuntimeSnapshot:
     # concerns recorded across this snapshot's result / history surfaces.
     realization_provenance: tuple[RealizationProvenanceEntry, ...] = ()
     realization_observations: tuple[RealizationObservationDisclosure, ...] = ()
+    materialization_attestations: tuple[MaterializationArchiveRecord, ...] = ()
     realization_envelope: RealizationEnvelopeIdentityModel | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        from .mixed_runtime_history import iter_mixed_runtime_snapshot_violations
+        from .participant_control_evaluation_history import (
+            iter_participant_control_evaluation_snapshot_violations,
+        )
+        from .participant_outcome_history import require_outcome_history
+
+        require_outcome_history(self.participant_outcome_history, self.participant_behavior_history)
+        evaluation_violations = iter_participant_control_evaluation_snapshot_violations(
+            self.participant_control_evaluation_history
+        )
+        if evaluation_violations:
+            raise ValueError(evaluation_violations[0][1])
+
+        violations = list(
+            iter_mixed_runtime_snapshot_violations(self.mixed_composition_states, self.mixed_composition_history)
+        )
+        if violations:
+            raise ValueError(violations[0][1])
+        require_materialization_records(self.materialization_attestations)
         for map_key, entry in self.entries.items():
             require_compiled_address(map_key, field_name="snapshot map key")
             if map_key != entry.address:
@@ -181,9 +207,14 @@ class ApplyResult:
     details: dict[str, Any] = field(default_factory=dict)
     # Transient verification input. Snapshot/store/API codecs never serialize it.
     operational_realization_observations: tuple[RealizationObservationDisclosure, ...] = ()
+    materialization_attestation: MaterializationSubmission | None = None
 
     def __post_init__(self) -> None:
-        _validate_changed_addresses(self.changed_addresses)
+        validate_changed_addresses(self.changed_addresses)
+        if self.materialization_attestation is not None and not isinstance(
+            self.materialization_attestation, MaterializationSubmission
+        ):
+            raise TypeError("materialization attestation requires a typed SDL submission")
         if not isinstance(self.operational_realization_observations, tuple) or any(
             not isinstance(item, RealizationObservationDisclosure) for item in self.operational_realization_observations
         ):
@@ -232,7 +263,7 @@ class OperationStatus:
         else:
             diagnostics = require_operation_terminal_diagnostics(self.state, diagnostics)
         object.__setattr__(self, "diagnostics", diagnostics)
-        _validate_changed_addresses(self.changed_addresses)
+        validate_changed_addresses(self.changed_addresses)
 
 
 def _portable_operation_diagnostics(diagnostics: list[Diagnostic]) -> list[Diagnostic]:
@@ -248,7 +279,7 @@ def _portable_operation_diagnostics(diagnostics: list[Diagnostic]) -> list[Diagn
     ]
 
 
-def _validate_changed_addresses(addresses: list[str]) -> None:
+def validate_changed_addresses(addresses: list[str]) -> None:
     for address in addresses:
         require_compiled_address(address, field_name="changed address")
     if len(addresses) != len(set(addresses)):
@@ -276,6 +307,7 @@ __all__ = (
     "RealizationProvenanceEntry",
     "RuntimeSnapshot",
     "RuntimeSnapshotEnvelope",
+    "validate_changed_addresses",
     "SnapshotEntry",
     "is_operation_transition_allowed",
     "operation_terminal_diagnostic",

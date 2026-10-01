@@ -1,30 +1,9 @@
 #!/usr/bin/env python3
-"""Governed acquisition of the live-runner input closure.
+"""Verify the small live-runner bootstrap and guest-disk handoff.
 
-The AWS smoke and guest-certification scripts under ``tools/real-daemon/`` used
-to acquire their inputs ad hoc on the remote instance: an unpinned CirrOS
-download whose failure was swallowed (``curl ... || true``), a pipe-to-shell uv
-bootstrap (``curl ... | sh``) and an unfrozen ``libvirt-python`` install. Issue
-#1222 replaces that with a single admitted closure selected/verified *locally*
-against the reviewed lock and pre-seeded to the instance (see
-``docs/decisions/package-artifacts/`` and the issue #1222 preflight note).
-
-This module owns the CirrOS guest-disk selection. It is the sole runtime
-lock-selection consumer of ``cirros-guest-disk`` declared in
-``implementations/tooling/selector-bindings.json``; the selection call below
-uses the reviewed literal dimensions the policy gate discovers. ``uv`` and
-CPython are bootstrap-class payloads acquired through
-``tools/bootstrap_profile.py`` (their kit verification already binds the lock
-digests). ``libvirt-python`` and its build backend are pinned by exact version
-and hash in ``tools/real-daemon/live-runner-python.txt`` (Python-closure
-authority, not the generic artifact lock); every file in that closure is fetched
-and verified here so the runners can install it fully offline.
-
-The command produces a private staging directory holding the verified inputs and
-a ``live-runner-inputs-manifest.json`` the shell scripts read to pre-seed and to
-re-verify the transferred bytes on the instance. No AWS API, custom transport or
-acquisition retry/redirect/TLS/framing code is introduced; acquisition reuses the
-maintained-curl client.
+The connected AWS smokes retain exact VM owner/name and archive hashes, while
+the remote host installs Python dependencies online from hash-pinned native
+requirements. This helper does not stage a complete disconnected environment.
 """
 
 from __future__ import annotations
@@ -42,7 +21,6 @@ from tools.maintained_client_acquisition import acquire_locked_bytes
 from tools.tool_versions import (
     CIRROS_GUEST_DISK_VERSION,
     LIVE_RUNNER_CPYTHON_ARTIFACT,
-    LIVE_RUNNER_NATIVE_SNAPSHOT,
     LIVE_RUNNER_UBUNTU_IMAGE_NAME,
     LIVE_RUNNER_UBUNTU_IMAGE_OWNER,
 )
@@ -61,12 +39,6 @@ CIRROS_ARTIFACT_ID = "cirros-guest-disk"
 CIRROS_STAGED_NAME = "cirros.img"
 
 LIBVIRT_PYTHON_REQUIREMENTS = REPO_ROOT / "tools" / "real-daemon" / "live-runner-python.txt"
-# Reviewed manifest (data, not an inline tuple) for the offline libvirt-python
-# build closure. Every sha256 here MUST equal the corresponding pin in
-# live-runner-python.txt; test_issue_1222 asserts the equality so they cannot
-# drift.
-PYTHON_CLOSURE_MANIFEST = REPO_ROOT / "tools" / "real-daemon" / "live-runner-python-closure.json"
-WHEELHOUSE_DIR = "wheelhouse"
 MANIFEST_NAME = "live-runner-inputs-manifest.json"
 
 
@@ -77,38 +49,6 @@ class _RawPin:
     path: str
     sha256: str
     size: int
-
-
-@dataclass(frozen=True)
-class _ClosureFile:
-    name: str
-    version: str
-    filename: str
-    url: str
-    sha256: str
-    size: int
-
-
-def _load_python_closure() -> tuple[_ClosureFile, ...]:
-    """Load the reviewed offline build-closure manifest, fail-closed."""
-
-    document = json.loads(PYTHON_CLOSURE_MANIFEST.read_text(encoding="utf-8"))
-    files = document.get("files")
-    if not isinstance(files, list) or not files:
-        raise RuntimeError("live-runner python closure manifest must list at least one file")
-    closure: list[_ClosureFile] = []
-    for entry in files:
-        closure.append(
-            _ClosureFile(
-                name=str(entry["name"]),
-                version=str(entry["version"]),
-                filename=str(entry["filename"]),
-                url=str(entry["url"]),
-                sha256=str(entry["sha256"]),
-                size=int(entry["size"]),
-            )
-        )
-    return tuple(closure)
 
 
 def _sha256_file(path: Path) -> str:
@@ -172,26 +112,12 @@ def acquire_cirros_guest_disk(
         expected=_RawPin(path=raw.path, sha256=raw.sha256, size=raw.size),
         local_input=local_input,
     )
-    return _admit_bytes(data, expected_sha256=installed.sha256, expected_size=installed.size, target=target)
-
-
-def stage_python_closure(stage_dir: Path) -> dict[str, object]:
-    """Fetch and verify the offline libvirt-python build closure into a wheelhouse."""
-
-    wheelhouse = stage_dir / WHEELHOUSE_DIR
-    wheelhouse.mkdir(mode=0o700, parents=True, exist_ok=True)
-    staged: list[dict[str, object]] = []
-    for entry in _load_python_closure():
-        data = acquire_locked_bytes(
-            artifact_id=f"live-runner-python:{entry.name}",
-            source_url=entry.url,
-            expected=_RawPin(path=entry.filename, sha256=entry.sha256, size=entry.size),
-        )
-        _admit_bytes(data, expected_sha256=entry.sha256, expected_size=entry.size, target=wheelhouse / entry.filename)
-        staged.append(
-            {"name": entry.name, "version": entry.version, "filename": entry.filename, "sha256": entry.sha256}
-        )
-    return {"dir": WHEELHOUSE_DIR, "files": staged}
+    return _admit_bytes(
+        data,
+        expected_sha256=installed.sha256,
+        expected_size=installed.size,
+        target=target,
+    )
 
 
 def _libvirt_python_pin() -> dict[str, str]:
@@ -201,22 +127,18 @@ def _libvirt_python_pin() -> dict[str, str]:
         stripped = line.strip()
         if not stripped.startswith("libvirt-python=="):
             continue
-        match = re.match(r"^libvirt-python==(?P<version>\S+)\s+--hash=sha256:(?P<sha>[0-9a-f]{64})", stripped)
+        match = re.match(
+            r"^libvirt-python==(?P<version>\S+)\s+--hash=sha256:(?P<sha>[0-9a-f]{64})",
+            stripped,
+        )
         if match is None:
             break
-        return {"name": "libvirt-python", "version": match.group("version"), "sha256": match.group("sha")}
+        return {
+            "name": "libvirt-python",
+            "version": match.group("version"),
+            "sha256": match.group("sha"),
+        }
     raise RuntimeError("live-runner libvirt-python pin must fix an exact version and sha256 hash")
-
-
-def requirements_hashes() -> dict[str, str]:
-    """Return the name->sha256 map declared in the pip requirements file."""
-
-    hashes: dict[str, str] = {}
-    for line in LIBVIRT_PYTHON_REQUIREMENTS.read_text(encoding="utf-8").splitlines():
-        match = re.match(r"^(?P<name>[A-Za-z0-9._-]+)==\S+\s+--hash=sha256:(?P<sha>[0-9a-f]{64})", line.strip())
-        if match is not None:
-            hashes[match.group("name").lower()] = match.group("sha")
-    return hashes
 
 
 def stage_live_runner_inputs(
@@ -229,14 +151,14 @@ def stage_live_runner_inputs(
     """Stage the verified live-runner closure and write its manifest.
 
     Returns the manifest path. The staging directory must live under the
-    repository (the offline-kit fetch admits payloads through the fixed
+    repository (the bootstrap payload fetch admits payloads through the fixed
     repository cache chain) and holds the verified linux-x86_64 uv payload, the
-    offline libvirt-python build wheelhouse, the CirrOS guest disk (smoke only),
+    CPython interpreter, the CirrOS guest disk (smoke only),
     and the manifest the shell scripts read to pre-seed the instance and
     re-verify the transferred bytes.
     """
 
-    from tools.bootstrap_profile import fetch_offline_kit_payloads
+    from tools.bootstrap_profile import fetch_bootstrap_payloads
 
     # Canonicalize then validate the (untrusted, CLI-supplied) staging path
     # before any filesystem action, to prevent path injection: resolve symlinks
@@ -257,14 +179,12 @@ def stage_live_runner_inputs(
     # execution-bound rather than relying on the host's ambient python3.
     payloads = {
         str(entry["artifact_id"]): entry
-        for entry in fetch_offline_kit_payloads(
+        for entry in fetch_bootstrap_payloads(
             LIVE_RUNNER_HOST_PROFILE_ID, stage_dir, [LIVE_RUNNER_CPYTHON_ARTIFACT, "uv"]
         )
     }
     uv_payload = payloads["uv"]
     cpython_payload = payloads[LIVE_RUNNER_CPYTHON_ARTIFACT]
-
-    closure = stage_python_closure(stage_dir)
 
     manifest: dict[str, object] = {
         "schema": "raes.live-runner-inputs/v1",
@@ -272,7 +192,6 @@ def stage_live_runner_inputs(
             "owner": LIVE_RUNNER_UBUNTU_IMAGE_OWNER,
             "name": LIVE_RUNNER_UBUNTU_IMAGE_NAME,
         },
-        "native_repository_snapshot": LIVE_RUNNER_NATIVE_SNAPSHOT,
         "cpython": {
             "artifact_id": LIVE_RUNNER_CPYTHON_ARTIFACT,
             "platform_id": GUEST_PLATFORM_ID,
@@ -288,7 +207,6 @@ def stage_live_runner_inputs(
             "size": int(uv_payload["size"]),
         },
         "libvirt_python": _libvirt_python_pin(),
-        "python_closure": closure,
         "requirements_file": str(LIBVIRT_PYTHON_REQUIREMENTS.relative_to(repo_root)),
     }
 
@@ -330,7 +248,7 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
         "--no-cirros",
         dest="include_cirros",
         action="store_false",
-        help="stage only uv and the libvirt-python closure (guest-certified run builds its own appliance)",
+        help="stage only uv and Python (guest-certified run builds its own appliance)",
     )
     return parser.parse_args(argv)
 

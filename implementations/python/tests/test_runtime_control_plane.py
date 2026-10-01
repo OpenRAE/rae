@@ -44,6 +44,8 @@ from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_store import ControlPlaneOperationRecord
 from raes_runtime.registry import RuntimeTarget
 
+pytestmark = pytest.mark.control_plane_conformance
+
 
 def _scenario(yaml_str: str):
     return parse_sdl(textwrap.dedent(yaml_str))
@@ -86,7 +88,7 @@ observation_boundaries:
     latency_profile: terminal observation emitted after state transition commit
 agents:
   red-agent:
-    entity: red-team
+    affiliations: [red-team]
     actions: [scan]
     observation_boundaries: [red-view]
 """
@@ -633,7 +635,7 @@ entities:
   blue: {role: blue}
 objectives:
   validate:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
 workflows:
   response:

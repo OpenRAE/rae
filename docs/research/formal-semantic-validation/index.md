@@ -123,11 +123,127 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   [`analysis-v15.json`](analysis-v15.json) to progressive semantic revision
   support. Fresh replay records two complete compiler digest changes, with
   identical bounded outcomes and explicit deviations from release 15.0.0.
-- [`bundles/retest-v16.json`](bundles/retest-v16.json) is current release 17.0.0.
+- [`bundles/retest-v16.json`](bundles/retest-v16.json) preserves release 17.0.0.
   It binds [`execution-snapshot-v16.json`](execution-snapshot-v16.json) and
   [`analysis-v16.json`](analysis-v16.json) to unconstrained realization-evidence
   source semantics. Fresh replay retains every bounded outcome and records the
   two changed compiler digests as explicit deviations from release 16.0.0.
+- [`bundles/retest-v17.json`](bundles/retest-v17.json) is prior release 18.0.0.
+  It binds [`execution-snapshot-v17.json`](execution-snapshot-v17.json) and
+  [`analysis-v17.json`](analysis-v17.json) to EXP-732 provenance validation.
+  Fresh production and participant replay retains the release-17 outcomes and
+  result digests with no deviations. The dedicated provenance regression suite
+  does not promote this retained corpus to universal provenance assurance.
+- [`bundles/retest-v18.json`](bundles/retest-v18.json) preserves release 19.0.0.
+  It binds [`execution-snapshot-v18.json`](execution-snapshot-v18.json) and
+  [`analysis-v18.json`](analysis-v18.json) to the combined materialization-attestation
+  and EXP-732 provenance implementation. Fresh replay records compiled-representation
+  deviations from release 18.0.0 with unchanged outcomes. The retained corpus does
+  not establish native backend attestation fidelity or new experimental observations.
+- [`bundles/retest-v19.json`](bundles/retest-v19.json) preserves release 20.0.0.
+  It binds [`execution-snapshot-v19.json`](execution-snapshot-v19.json) and
+  [`analysis-v19.json`](analysis-v19.json) to capture-proof authority integrated
+  with apparatus provenance and materialization attestations. Fresh replay
+  retains release-19 outcomes and digests without expanding claim limits.
+  Earlier issue-1237 captures remain byte-exact in feature commits
+  `2b21b5c88fc60c4545a302f4071cf8b781f04fe3` (release 18) and
+  `c75805c56330d402a52bd7a578785bb343bf3c30` (release 19), while the incoming
+  published captures above retain their original bytes.
+- [`bundles/retest-v20.json`](bundles/retest-v20.json) preserves release 21.0.0.
+  It binds [`execution-snapshot-v20.json`](execution-snapshot-v20.json) and
+  [`analysis-v20.json`](analysis-v20.json) to the capture-dimension helper
+  refactor. Fresh replay retains release-20 outcomes and digests with no new
+  claim class; all previously published captures remain unchanged.
+- [`bundles/retest-v21.json`](bundles/retest-v21.json) preserves release 22.0.0.
+  It binds [`execution-snapshot-v21.json`](execution-snapshot-v21.json) and
+  [`analysis-v21.json`](analysis-v21.json) to the integrated capture-proof,
+  capture-dimension, and EXP-731 refinement implementation. Fresh replay
+  retains release-21 outcomes and digests without expanding the formal claim
+  set; every earlier release remains byte-exact.
+- [`bundles/retest-v22.json`](bundles/retest-v22.json) preserves release 23.0.0.
+  It binds [`execution-snapshot-v22.json`](execution-snapshot-v22.json) and
+  [`analysis-v22.json`](analysis-v22.json) to open-by-default augmentation scope
+  integrated with EXP-731 evidence refinements. Production and participant
+  replay retain the registered outcomes and claim limits; two compiled
+  representation digests change. This corpus does not establish native backend
+  scope enforcement. The earlier issue-1242 capture remains byte-exact in commit
+  `1ab0580525136667bbc713d3c2f4a7820bab08da`, with its manifest outside the
+  active index at `historical-artifacts/issue-1242-pre-refinement-sync-release-v21.json`.
+  That manifest's paths and hashes describe files at the named commit, not the
+  current checkout; incoming published captures retain their exact bytes.
+- [`bundles/retest-v23.json`](bundles/retest-v23.json) preserves release 24.0.0.
+  It binds [`execution-snapshot-v23.json`](execution-snapshot-v23.json) and
+  [`analysis-v23.json`](analysis-v23.json) to the maintainability refactor of
+  augmentation admission. Fresh production and participant replay retains
+  release-23 outcomes and compiled digests, with no new deviations or claims.
+  All previously published captures remain unchanged.
+- [`bundles/retest-v24.json`](bundles/retest-v24.json) preserves release 25.0.0.
+  It binds [`execution-snapshot-v24.json`](execution-snapshot-v24.json) and
+  [`analysis-v24.json`](analysis-v24.json) to the tightened composition type
+  annotations. Fresh production and participant replay retains release-24
+  outcomes, digests, and claim limits. Earlier captures remain byte-exact.
+- [`bundles/retest-v25.json`](bundles/retest-v25.json) preserves release 26.0.0.
+  It binds [`execution-snapshot-v25.json`](execution-snapshot-v25.json) and
+  [`analysis-v25.json`](analysis-v25.json) to the merged ACT-612 participant
+  relationships and augmentation scope implementation. Fresh replay retains
+  bounded outcomes and claim limits; earlier captures remain byte-exact.
+- [`bundles/retest-v26.json`](bundles/retest-v26.json) preserves release 27.0.0.
+  It binds [`execution-snapshot-v26.json`](execution-snapshot-v26.json) and
+  [`analysis-v26.json`](analysis-v26.json) to authoring-adapter conformance on
+  the merged participant-relationship and augmentation source tree. Fresh
+  replay retains bounded outcomes and claim limits without qualifying an
+  adapter transport.
+- [`bundles/retest-v27.json`](bundles/retest-v27.json) preserves release 28.0.0.
+  It binds [`execution-snapshot-v27.json`](execution-snapshot-v27.json) and
+  [`analysis-v27.json`](analysis-v27.json) to issue #1299 partial runtime
+  listener admission on the integrated authoring-adapter source tree. Fresh
+  replay retains release-27 outcomes, digests, and claim limits; endpoint
+  completeness, backend admission, and adapter transport behavior remain
+  outside this corpus's claims.
+- [`bundles/retest-v28.json`](bundles/retest-v28.json) preserves release 29.0.0.
+  It binds [`execution-snapshot-v28.json`](execution-snapshot-v28.json) and
+  [`analysis-v28.json`](analysis-v28.json) to the issue #1223 reviewed OCI
+  mirror and pre-seed admission boundary; that work does not participate in this
+  corpus, so replay retains release-28 outcomes with no new claim class.
+- [`bundles/retest-v29.json`](bundles/retest-v29.json) preserves release 30.0.0.
+  It binds [`execution-snapshot-v29.json`](execution-snapshot-v29.json) and
+  [`analysis-v29.json`](analysis-v29.json) to issue #1297's portable
+  service-manager contract. Fresh production and participant replay retains
+  bounded outcomes and claim limits without claiming live manager execution.
+- [`bundles/retest-v30.json`](bundles/retest-v30.json) preserves release 31.0.0.
+  It binds [`execution-snapshot-v30.json`](execution-snapshot-v30.json) and
+  [`analysis-v30.json`](analysis-v30.json) to API-404 startup reconciliation
+  and its operational recovery-observation contract. Fresh replay retains
+  bounded outcomes and claim limits without claiming live crash recovery,
+  provider-effect classification, or EXP-715 experiment observation.
+- [`bundles/retest-v31.json`](bundles/retest-v31.json) preserves release 32.0.0.
+  It binds [`execution-snapshot-v31.json`](execution-snapshot-v31.json) and
+  [`analysis-v31.json`](analysis-v31.json) to API-404 CP-5 single-owner store
+  admission, immutable target/run scope, and provider shutdown ordering. Fresh
+  replay retains bounded outcomes and claim limits without claiming that this
+  corpus executes process contention, SQLite lifecycle ordering, or crash
+  recovery.
+- [`bundles/retest-v32.json`](bundles/retest-v32.json) preserves release 33.0.0.
+  It binds [`execution-snapshot-v32.json`](execution-snapshot-v32.json) and
+  [`analysis-v32.json`](analysis-v32.json) to issue #1015 mixed and staged trial
+  admission. Fresh replay retains bounded outcomes and claim limits without
+  claiming that this corpus executes a mixed-backend trial realization.
+- [`bundles/retest-v33.json`](bundles/retest-v33.json) preserves release 34.0.0.
+  It binds [`execution-snapshot-v33.json`](execution-snapshot-v33.json) and
+  [`analysis-v33.json`](analysis-v33.json) to issue #1186 runtime maintenance,
+  health, and audit source. Replay retains the formal corpus outcomes without
+  claiming that it exercises those operator paths.
+- [`bundles/retest-v34.json`](bundles/retest-v34.json) preserves release 35.0.0.
+  It binds [`execution-snapshot-v34.json`](execution-snapshot-v34.json) and
+  [`analysis-v34.json`](analysis-v34.json) to issue #1187 control-plane
+  conformance and exception-redaction source. Fresh production and participant
+  replay retains the prior outcomes and claim limits. Crash/profile conformance
+  remains evidence from its dedicated suite, not a new claim in this corpus.
+- [`bundles/retest-v35.json`](bundles/retest-v35.json) preserves release 36.0.0.
+  It binds [`execution-snapshot-v35.json`](execution-snapshot-v35.json) and
+  [`analysis-v35.json`](analysis-v35.json) to issue #1189 runtime profile
+  declarations. Fresh replay retains prior outcomes and claim limits; profile
+  composition is verified by its dedicated runtime tests, not this corpus.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -172,18 +288,68 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 17.0.0, rejects unsupported future
+Release 37.0.0 is retained in
+[`bundles/retest-v36.json`](bundles/retest-v36.json), binding
+[`execution-snapshot-v36.json`](execution-snapshot-v36.json) and
+[`analysis-v36.json`](analysis-v36.json) to issue #1072's contract source.
+The bounded replay does not execute control providers or establish runtime
+effect realization; the retained claim limits remain unchanged.
+
+Release 38.0.0 is retained in
+[`bundles/retest-v37.json`](bundles/retest-v37.json), binding
+[`execution-snapshot-v37.json`](execution-snapshot-v37.json) and
+[`analysis-v37.json`](analysis-v37.json) to the participant-control validator
+refactor. The corpus and claim limits remain unchanged.
+
+Release 39.0.0 is retained in
+[`bundles/retest-v38.json`](bundles/retest-v38.json), binding
+[`execution-snapshot-v38.json`](execution-snapshot-v38.json) and
+[`analysis-v38.json`](analysis-v38.json) to issue #1016 mixed-runtime
+coordination. The bounded replay does not establish backend-native mixed
+realization, multi-controller coordination, information-flow control, or
+equivalence; the retained claim limits remain unchanged.
+
+Release 40.0.0 is retained in
+[`bundles/retest-v39.json`](bundles/retest-v39.json), binding
+[`execution-snapshot-v39.json`](execution-snapshot-v39.json) and
+[`analysis-v39.json`](analysis-v39.json) to issue #610's reconciliation
+demonstration harness. Fresh replay retains prior outcomes and claim limits;
+planner reconciliation is verified by its dedicated processor and CLI tests,
+not this corpus.
+
+Release 41.0.0 is retained in
+[`bundles/retest-v40.json`](bundles/retest-v40.json), binding
+[`execution-snapshot-v40.json`](execution-snapshot-v40.json) and
+[`analysis-v40.json`](analysis-v40.json) to issue #1069's modular
+participant-control runtime orchestration. Replay retains the prior outcomes
+and claim limits; participant-control orchestration is verified by its own
+runtime tests, not by this language corpus.
+
+Current release 42.0.0 is retained in
+[`bundles/retest-v41.json`](bundles/retest-v41.json), binding
+[`execution-snapshot-v41.json`](execution-snapshot-v41.json) and
+[`analysis-v41.json`](analysis-v41.json) to issue #1338's participant identity
+and objective assignment model. Corpus revision 4 uses explicit, separately
+versioned successors for the two objective fixtures. Their original bytes and
+all historical captures remain unchanged. Fresh replay preserves control
+outcomes and claim limits, recording the positive successor's changed result
+digest; the dangling-reference diagnostic remains identical.
+It establishes no autonomy threshold, authority grant, or realized attribution.
+
+Current validation requires explicit release 67.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
 code. Only the current release supports a current-code claim.
 
-The two JSON files in [`historical-artifacts/`](historical-artifacts/) preserve
-original baseline bytes recovered from Git revision
-`106b195e3dc0048a647e845876e8eaefe08e3d1b`. They remain immutable recovery
-material; the current release-10 linkage is described above. Validation admits
-an archived copy only through the independently pinned archive record and an
-exact requested digest, without network access or historical capture rewriting.
+The archived JSON pairs in [`historical-artifacts/`](historical-artifacts/)
+preserve original baseline bytes recovered from Git revisions
+`106b195e3dc0048a647e845876e8eaefe08e3d1b` and
+`803257b2d9d3a4808295f47dd6fecd697aa9e558`. The latter retains the exact
+release-32 baseline selected by the now-historical release-33 snapshot.
+Validation admits an archived copy only through its independently pinned
+record and exact requested digest, without network access or historical
+capture rewriting.
 
 The current capture's `source_state` records a base Git commit, the modified
 checkout state, and a deterministic digest of all reference-package Python
@@ -211,6 +377,12 @@ release. Neither branch's historical observation is relabeled as a merged-tree
 observation.
 
 ## Bounded conclusions
+
+Issue #1237's pre-synchronization capture remains in feature commit
+`2d402e4ae922b59d399dbfc336cc2856d153c44a`. It is not selected as current
+evidence. Synchronization preserves the incoming release-17 bytes and records
+the combined source in release 18. Neither branch's earlier observation is
+relabeled as evidence for the merged tree.
 
 The satisfiable witness and subset-minimal unsatisfiable core establish results
 only for the declared finite-domain theory, translation, source, and pinned Z3
@@ -243,3 +415,158 @@ records. It freezes their progressive-profile shapes for historical admission,
 replays the same controls against current code, and records only the two
 compiler representation digest changes caused by the realization-evidence
 source correction. No outcome or preregistered claim strength changes.
+
+## Participant relationship replay
+
+Release 26.0.0 records a fresh replay after ACT-612 participant relationship
+authoring and the merged augmentation scope implementation.
+[`execution-snapshot-v25.json`](execution-snapshot-v25.json) binds the current
+source digest; [`analysis-v25.json`](analysis-v25.json) retains the protocol’s
+bounded classifications and claim limits. Prior captures retain their exact
+bytes. These retained controls do not establish realized coordination,
+delegation, cooperation, competition, or supervision.
+
+## Participant-local outcome source replay
+
+Release 43.0.0 records issue #218 in
+[`execution-snapshot-v42.json`](execution-snapshot-v42.json) and
+[`analysis-v42.json`](analysis-v42.json). The retained controls are replayed
+against the participant-local outcome implementation. Prior outcomes and claim
+limits remain unchanged; ACT-618 behavior is verified by its dedicated runtime
+tests. Earlier captures retain their original bytes.
+
+Release 44.0.0 records the outcome implementation after maintainability
+refactoring in [`execution-snapshot-v43.json`](execution-snapshot-v43.json) and
+[`analysis-v43.json`](analysis-v43.json). Fresh replay retains the same bounded
+outcomes and claim limits; it does not add a new semantic claim.
+
+Release 45.0.0 records the merged participant identity and local
+outcome implementation in [`execution-snapshot-v44.json`](execution-snapshot-v44.json)
+and [`analysis-v44.json`](analysis-v44.json). The two pre-merge issue #218
+captures retain their observations and source identities in v42 and v43; only
+their release numbers, paths, and corresponding digest joins were reconciled
+with the independently published issue #1338 capture. The combined capture
+uses the issue #1338 baseline and preserves the same bounded claim limits.
+
+Release 46.0.0 records issue #1357's governed v2 decision admission in
+[`execution-snapshot-v45.json`](execution-snapshot-v45.json) and
+[`analysis-v45.json`](analysis-v45.json). Its original bytes and source identity
+are retained. Crossing authorization is exercised by dedicated runtime tests,
+outside this formal corpus.
+
+Release 47.0.0 records issue #1358's egress outcome implementation and governed
+projection replay refactor in [`execution-snapshot-v46.json`](execution-snapshot-v46.json)
+and [`analysis-v46.json`](analysis-v46.json). The earlier issue #1358 capture,
+which collided with the independently published release 46.0.0, remains in
+feature commit `c54060dd591f4c09dda49be7a5b04fde83efe02e` rather than the
+release index. Its observations are not relabeled as combined-source evidence.
+
+Release 48.0.0 replays the retained controls against the merged source
+in [`execution-snapshot-v47.json`](execution-snapshot-v47.json) and
+[`analysis-v47.json`](analysis-v47.json). It retains the issue #1338 baseline,
+bounded claims, and unsupported classes. Final egress denial and governed
+admission are verified by dedicated runtime regressions.
+
+## Backend operation contract source replay
+
+Release 49.0.0 binds issue #1360 to fresh source evidence in
+[`execution-snapshot-v48.json`](execution-snapshot-v48.json) and
+[`analysis-v48.json`](analysis-v48.json). The retained offline cases preserve
+their classifications and claim limits. Backend supervision contracts have
+dedicated contract tests; this capture makes no live backend recovery claim.
+Earlier published captures retain their exact bytes.
+
+Release 50.0.0 binds the reference-backend opt-in correction to
+[`execution-snapshot-v49.json`](execution-snapshot-v49.json) and
+[`analysis-v49.json`](analysis-v49.json). The retained claims and
+classifications are unchanged.
+
+Release 51.0.0 binds the operation validator maintainability changes to
+[`execution-snapshot-v50.json`](execution-snapshot-v50.json) and
+[`analysis-v50.json`](analysis-v50.json). The retained claims and
+classifications are unchanged.
+
+Release 52.0.0 replays the retained controls on the merged source in
+[`execution-snapshot-v51.json`](execution-snapshot-v51.json) and
+[`analysis-v51.json`](analysis-v51.json). Earlier captures retain their source identities.
+
+Release 53.0.0 replays the retained controls on the source combining issue
+#1360 backend-operation contracts with issue #1358 denied-egress handling in
+[`execution-snapshot-v52.json`](execution-snapshot-v52.json) and
+[`analysis-v52.json`](analysis-v52.json). Earlier captures retain their source identities.
+
+Release 54.0.0 replays the retained formal controls against issue #1355's mixed
+mapping, time, and handoff implementation in
+[`execution-snapshot-v53.json`](execution-snapshot-v53.json) and
+[`analysis-v53.json`](analysis-v53.json). Mixed runtime effects and recovery
+remain covered by dedicated runtime tests, outside this formal corpus.
+
+Release 55.0.0 is recorded in
+[`execution-snapshot-v54.json`](execution-snapshot-v54.json) and
+[`analysis-v54.json`](analysis-v54.json). It replays the retained formal cases
+after issue #1389 admitted the exact participant inject delivery address as a
+temporal subject. Outcomes and bounded claim limits remain unchanged.
+
+Release 56.0.0 replays the retained controls on the source that adds issue
+#1361 trial execution-authority admission, in
+[`execution-snapshot-v55.json`](execution-snapshot-v55.json) and
+[`analysis-v55.json`](analysis-v55.json). Earlier captures retain their source identities.
+
+Release 57.0.0 replays those formal cases against the API-424 v2 contract
+refactor in [`execution-snapshot-v56.json`](execution-snapshot-v56.json) and
+[`analysis-v56.json`](analysis-v56.json). Outcomes and bounded claims remain
+unchanged; provider installation and effect realization are outside this corpus.
+
+Release 58.0.0 replays those formal cases against the API-424 contract
+quality-gate refactor in [`execution-snapshot-v57.json`](execution-snapshot-v57.json)
+and [`analysis-v57.json`](analysis-v57.json). Outcomes and bounded claims remain
+unchanged; provider installation and effect realization are outside this corpus.
+
+Release 59.0.0 replays the retained cases against the merged issue #1361 and
+API-424 source in [`execution-snapshot-v58.json`](execution-snapshot-v58.json)
+and [`analysis-v58.json`](analysis-v58.json). Outcomes and bounded claims remain
+unchanged; provider installation and effect realization are outside this corpus.
+
+Release 60.0.0 replays the retained cases after issue #1400 reverted the trial
+execution-authority admission from #1361. It binds the post-revert API-424 source
+in [`execution-snapshot-v59.json`](execution-snapshot-v59.json) and
+[`analysis-v59.json`](analysis-v59.json). Earlier captures retain their source
+identities; this release makes no provider installation or realization claim.
+
+Releases 61.0.0 and 62.0.0 preserve the two issue #971 captures previously
+numbered 56.0.0 and 57.0.0 on its feature branch. Their source identities,
+execution identifiers, observations, and claim limits are retained in
+[execution-snapshot-v61.json](execution-snapshot-v61.json) and
+[execution-snapshot-v62.json](execution-snapshot-v62.json). The second capture's
+baseline now points to the relocated first capture. The integrated releases
+56.0.0–60.0.0 retain their original artifacts.
+
+Release 63.0.0 replays the retained cases against the merged issue #971 crossing
+models and API-424 control contracts in
+[execution-snapshot-v63.json](execution-snapshot-v63.json) and
+[analysis-v63.json](analysis-v63.json). Outcomes and bounded claim limits remain
+unchanged. This is construction evidence, with no participant-crossing
+equivalence or runtime-realization claim.
+
+Release 64.0.0 repeats the retained cases after the locked PyJWT dependency
+upgrade to 2.14.0 in [execution-snapshot-v64.json](execution-snapshot-v64.json)
+and [analysis-v64.json](analysis-v64.json). Outcomes and claim limits remain
+unchanged.
+
+Release 65.0.0 is recorded in
+[`execution-snapshot-v65.json`](execution-snapshot-v65.json) and
+[`analysis-v65.json`](analysis-v65.json). It replays the retained formal cases
+after issue #1359 enforced the administrative-only runtime control-plane
+boundary. Outcomes and bounded claim limits remain unchanged.
+
+Release 66.0.0 repeats the retained cases after the locked PyJWT dependency
+upgrade to 2.15.1 and the urllib3 upgrade to 2.8.0 in
+[`execution-snapshot-v66.json`](execution-snapshot-v66.json) and
+[`analysis-v66.json`](analysis-v66.json). Outcomes and claim limits remain
+unchanged.
+
+Release 67.0.0 replays the retained formal cases after issue #1401 began
+rejecting required evidence whose declared media type the output registry
+cannot prove, in [`execution-snapshot-v67.json`](execution-snapshot-v67.json)
+and [`analysis-v67.json`](analysis-v67.json). Outcomes and claim limits remain
+unchanged.

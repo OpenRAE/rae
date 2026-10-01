@@ -4,7 +4,7 @@
   "title": "RAES development admission policy",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "policy_revision", "policies", "denied_digests"],
+  "required": ["schema_version", "policy_revision", "policies", "denied_digests", "release_producers"],
   "properties": {
     "schema_version": {"const": "raes-development-admission-policy/v1"},
     "policy_revision": {"type": "string", "format": "date"},
@@ -17,12 +17,31 @@
         "required": ["policy_id", "subject", "status", "accepted_evidence", "reviewer_roles"],
         "properties": {
           "policy_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
-          "subject": {"enum": ["artifact", "action", "source-snapshot", "oci-image"]},
+          "subject": {"enum": ["artifact", "action", "source-snapshot", "oci-image", "release-artifact"]},
           "status": {"enum": ["active", "retired"]},
           "accepted_evidence": {
             "type": "array", "minItems": 1, "uniqueItems": true,
             "items": {"type": "string", "minLength": 1}
           },
+          "reviewer_roles": {
+            "type": "array", "minItems": 1, "uniqueItems": true,
+            "items": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "release_producers": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["producer_id", "issuer", "repository", "workflow_ref", "signer_workflow", "reviewer_roles"],
+        "properties": {
+          "producer_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+          "issuer": {"type": "string", "pattern": "^https://"},
+          "repository": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*$"},
+          "workflow_ref": {"type": "string", "minLength": 1},
+          "signer_workflow": {"type": "string", "minLength": 1},
           "reviewer_roles": {
             "type": "array", "minItems": 1, "uniqueItems": true,
             "items": {"type": "string", "minLength": 1}

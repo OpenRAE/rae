@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""Render the reviewed development-container build plan from policy authority.
-
-The image configuration owns no version, digest, package, or platform fact. Every
-value below is resolved from the development artifact lock and the reviewed host
-profile through the existing fail-before-acquisition policy gate, so a Dockerfile
-or dev-container edit can never become a second authority.
-"""
+"""Render only locked image identity for the native Docker build."""
 
 from __future__ import annotations
 
@@ -54,11 +48,6 @@ def build_plan(  # NOSONAR -- explicit closed-response checks keep the plan fail
     )
     if len(selection.raw_manifest) != 1 or not selection.release.startswith(_DIGEST_PREFIX):
         raise RuntimeError("development base image selection must pin one index and one platform manifest")
-    snapshot = host.get("native_repository_snapshot")
-    user = host.get("development_user")
-    if not isinstance(snapshot, str) or not isinstance(user, dict):
-        raise RuntimeError("container host profile must declare a package snapshot and development user")
-    packages = {*host["offline_kit"]["host_prerequisite_package_ids"], *host.get("development_package_ids", [])}
     return {
         "host_profile_id": host_profile_id,
         "platform_id": platform_id,
@@ -66,10 +55,6 @@ def build_plan(  # NOSONAR -- explicit closed-response checks keep the plan fail
         "base_image_reference": f"{registry_reference}@{_DIGEST_PREFIX}{selection.raw_manifest[0].sha256}",
         "base_image_index_digest": selection.release,
         "base_image_digest": f"{_DIGEST_PREFIX}{selection.raw_manifest[0].sha256}",
-        "native_repository_snapshot": snapshot,
-        "package_ids": sorted(packages),
-        "development_user": {"name": user["name"], "uid": user["uid"], "gid": user["gid"]},
-        "policy_sha256": host_selection["policy_sha256"],
     }
 
 

@@ -31,7 +31,13 @@ def execution_service_state(
         item for item in time_model.progression_policies if item.address == policy.progression_policy_address
     )
     constraints = tuple(
-        asdict(item) for item in time_model.constraints if item.address in policy.temporal_constraint_addresses
+        asdict(item)
+        for item in time_model.constraints
+        if item.address
+        in {
+            *policy.temporal_constraint_addresses,
+            *(binding.constraint_address for binding in policy.temporal_bindings),
+        }
     )
     return ParticipantExecutionServiceStateModel(
         execution_scope_ref=policy.address,

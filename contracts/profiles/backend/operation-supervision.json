@@ -1,0 +1,11 @@
+{
+  "schema_version": "backend-profile/v1",
+  "profile": "operation-supervision",
+  "required_contracts": [
+    "backend-manifest-v2",
+    "backend-operation-request-v1",
+    "backend-operation-capabilities-v1",
+    "backend-operation-control-v1",
+    "backend-operation-response-v1"
+  ]
+}

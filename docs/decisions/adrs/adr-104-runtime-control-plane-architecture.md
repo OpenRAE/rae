@@ -61,7 +61,9 @@ must not silently promise the strongest one.
 
 ### 1. The control plane is a contract with profiled implementations
 
-`RuntimeControlPlane` names a portable contract — operation submission,
+RAE is the shared product runtime that drives backends through execution;
+concrete backend realization does not require a separate scenario runtime per
+backend. `RuntimeControlPlane` names a portable contract — operation submission,
 idempotent receipts, snapshot access, participant transitions, audit — that
 conforming implementations provide under declared operating profiles. RAES
 ships reference implementations; it does not define one universal deployment
@@ -106,7 +108,8 @@ rather than inferring success or absence.
 ### 4. Operations are durable work with atomic terminal commits
 
 An operation's lifecycle is recorded before its effects: the claim that an
-operation is running is durable before the backend is invoked, and the
+operation is running is authoritative before the backend is invoked (durable
+in P1/P2, in-process ordering only in P0), and the
 terminal transition commits the resulting snapshot, the terminal operation
 record, and an actor-bound audit event in one store transaction, extending the
 pattern participant transitions already use to every operation. This applies
@@ -115,11 +118,18 @@ reconciliation, rejected and pre-computed operation records, participant
 actions, and participant crossings; none may retain an independent persistence
 workflow. After process loss, startup reconciliation classifies each
 non-terminal operation as
-effect-absent (safe to fail closed), effect-applied (state is advanced from
-observation), or indeterminate — an explicit terminal outcome with a stable
+effect-absent (safe to fail closed only when no late effect remains possible),
+effect-applied (state is advanced from validated observation), or indeterminate
+— an explicit terminal outcome with a stable
 diagnostic that requires operator or embedder action. Interrupted work is
-never replayed automatically, and retained idempotency claims keep client
+never replayed automatically by recovery, and retained idempotency claims keep client
 retries from blindly re-invoking the backend.
+
+Known partial effects require validated residual state and the admitted outcome
+contract; unknown effects or unproved cessation are indeterminate. An exception,
+cancel acknowledgement or retained predecessor snapshot proves no effect
+absence. The supervision supplement in section 10 defines these distinctions
+without adding persisted operation states or changing published carriers here.
 
 ### 5. Concurrency control is ownership-first
 
@@ -128,8 +138,13 @@ store lease. Snapshot commits carry a revision and commit by
 compare-and-swap, so a stale writer fails closed instead of overwriting.
 Idempotency keys are unique claims scoped by store, immutable actor, and
 operation kind in the authoritative store, not cache entries. Within a
-process, one mutation authority serializes every control-plane mutation path;
+process, one mutation authority serializes every control-plane state mutation;
 path-local participant locks and the HTTP adapter lock remain subordinate.
+Under section 10's design, external execution retains a conflicting-effect
+reservation while releasing the short state permit needed by supervision.
+This requires implementation; the current logical permit still spans external
+calls. A deadline cannot release that reservation on the assumption that a
+worker has stopped, and revision CAS does not fence external effects.
 `RuntimeManager` is a separate direct-execution facade and does not coordinate
 with a control plane aimed at the same backend. Across processes, admission is
 the lease, not advisory locking.
@@ -146,6 +161,12 @@ coordination providers implement the store, lease, and clock contracts; the
 control plane owns operation bookkeeping, receipts, snapshots, transitions,
 and audit.
 
+The P1 offline store-maintenance command is a narrow operator exception to
+ADR-036's CLI import boundary: `raes_cli` may call only the closed public
+`raes_runtime.control_plane_store_maintenance` interface for scope-bound
+check, backup, and restore. No other CLI-to-runtime import is authorized;
+SQLite validation, migration, and publication stay within the runtime owner.
+
 ### 7. Identity, authorization, and isolation
 
 P0 and P1 trust the embedding process to authenticate its caller, but the
@@ -157,6 +178,8 @@ binds the actor's role and subject scope to the selected target and any
 participant or operation reference before core mutation or receipt disclosure.
 
 The accepted operation persists the resulting actor and authorization scope.
+An independently authorized supervisor records its own actor and scoped request
+without replacing that original context or gaining wider effect authority.
 All later status, retry, reconciliation, resolution, and audit paths use that
 immutable context. A duplicate idempotency claim can return a receipt only to
 the same authorized actor and scope. A successful or failed terminal mutation
@@ -171,6 +194,26 @@ and authored `deployment_tenants` are scenario topology rather than API
 tenants. Multitenancy, cross-target stores, cross-run scheduling, and shared
 authorization namespaces are P3 nonclaims requiring a future ADR and explicit
 coordination, fencing, cache-coherence, and tenant-isolation contracts.
+
+Participant-facing clients use a trusted host application, local or
+organizational, which embeds P0/P1 SDK calls or uses the optional P2 HTTP
+adapter. For SDK use, no RAES HTTP credential exists: direct Python methods
+have no P2 role gate, `get_snapshot()` returns the full snapshot without a
+caller identity, and the host keeps the control-plane object and store private.
+For P2, deployment-configured bearer tokens or verified proxy identities are
+privileged: an identity allowed to retrieve a governed participant projection
+can also read the full snapshot, so a participant/audience binding does not
+make that P2 identity safe to delegate. The host binds its caller to the
+selected target/run, participant, exact episode, audience and operation, and
+releases only a permitted projection after the API-423/RUN-319 crossing.
+Participant-facing deployments require a configured crossing resolver; the
+current legacy projection path without one can still return a view but has no
+crossing assurance. Raw control-plane outputs stay inside the trusted host.
+An organizational host owns organizational authentication and entitlement; a
+local host applies its own caller boundary. Authentication principals do not
+add SDL participants or roles. The accepted route, authority, and deployment
+matrix is the
+[issue #1356 trust-boundary decision](../issue-1356-control-plane-participant-access-preflight.md).
 
 ### 8. Disposition of the incumbent surfaces
 
@@ -187,6 +230,76 @@ reconciliation classification above instead of a blanket
 interrupted-to-failed conversion. The full disposition table, including
 every store module and test surface, lives in the design set's requirement
 disposition.
+
+### 9. Profile declarations separate guarantees from provider facts
+
+The runtime package owns one immutable, typed declaration for the P0--P3
+profile vocabulary, guarantees, nonclaims, scope, actor boundary, and required
+composition capabilities. It is in-process composition metadata, not a new
+portable DTO, persisted record, backend manifest block, or HTTP discovery
+document. P3 remains queryable only as an unavailable future coordination seam:
+it has no guarantees and cannot be selected.
+
+Stores and adapters declare the facts they provide; they do not declare that
+they *are* a profile. The composition boundary validates those facts against
+the selected profile before lease acquisition, store inspection, route
+registration, or backend work. Missing capabilities fail construction with
+stable, value-free identifiers. A richer provider does not silently strengthen
+the selected profile, and a deficient provider never causes fallback to a
+weaker profile. Existing store-shape checks, target-manifest validation, lease
+admission, and HTTP security validation remain the authorities for their own
+layers rather than being copied into the profile catalog.
+
+P0 and P1 are core library compositions. P2 is the reference HTTP composition
+over a successfully admitted P1 core; only the HTTP composition may claim P2's
+authenticated actor boundary. Backend recovery observation remains the
+optional capability already declared by the target manifest and paired with a
+validated recovery observer. P1 and P2 require startup reconciliation, but
+absence of backend observation support resolves unknown effects to
+`INDETERMINATE`; it is not a reason to downgrade or reject an otherwise valid
+composition.
+
+That composition rule does not admit an operation whose authored requirements
+demand provable interruption, recovery or continuation that the backend cannot
+establish. Capability, current willingness and observed satisfaction remain
+distinct; required guarantees cannot be silently weakened.
+
+Profile interrogation is an embedder API. It does not add an unauthenticated
+profile endpoint, a health signal, capability negotiation, or deployment
+configuration. TLS, proxy header stripping, secret loading, worker count,
+filesystem permissions, process supervision, and backup policy remain
+deployment responsibilities. The detailed CP-10 boundary is recorded in the
+[issue #1189 preflight](../issue-1189-control-plane-profile-declaration-preflight.md).
+
+### 10. Supervision and subsequent work obey admitted requirements
+
+The [operation supervision supplement](../../../specs/formal/runtime-control-plane/supervision.md)
+defines the state, effect and evidence boundaries for issue #1348. It is
+design authority, not a claim that the existing runtime supports interruption,
+bounded drain or checkpoint resumption. The
+[decision and requirement dispositions](../issue-1348-operation-lifecycle.md)
+identify the current carrier and implementation gaps.
+
+Stopping admission, requesting interruption, backend acceptance/refusal,
+established cessation and terminal publication are separate facts. A bounded
+supervision route must reach the same state authority during blocked external
+work and saturated effect queues. All callbacks, including recovery observation,
+have stage-specific operational budgets distinct from authored semantic time.
+Uncertain external effects retain quarantine; uncertain store acknowledgements
+use readback and poisoned readiness. Neither a timeout nor process loss permits
+overlapping effects. Late evidence uses linked resolution without rewriting a
+terminal parent; administrative snapshot acceptance is not cessation evidence.
+
+Durability authorizes none of retry, resumption, termination or a new trial.
+Use existing workflow and time semantics, SCE-007 attempt/retry/cleanup controls,
+and EXP-706/SCE-002 trial identity and allocation. A new attempt under an admitted
+entry is distinct from a new trial; continuation needs an established compatible
+boundary. Required clean-state, interruption or continuity evidence cannot be
+replaced by a successful control receipt. Before invocation, an unsupported or
+refused guarantee prevents admission; after invocation, classify known failure
+or indeterminacy and its validity consequences without a weaker fallback.
+Physical-OT protection remains a selectable future concern, not a universal
+execution requirement or certification claim.
 
 ## Alternatives Considered
 
@@ -238,3 +351,8 @@ demonstrated its lost-update and partial-state failures.
 | Date | Commit/PR | Summary |
 |---|---|---|
 | 2026-09-03 | #1151 | Reclassified the stateful control-plane design as FM3 and added the abstract lifecycle, actor-bound audit, authorization, idempotency, and target/run isolation invariants required before implementation. |
+| 2026-09-19 | #1186 | Permitted the operator CLI to call only the closed public P1 offline-maintenance interface while keeping runtime validation and publication ownership intact. |
+| 2026-09-20 | #1189 | Made profile declarations runtime-owned composition metadata, separated provider facts from guarantees, and fixed P2 and recovery-observation boundaries. |
+| 2026-09-22 | #1348 | Defined shared-runtime supervision, effect reservations, evidence-based settlement and authored recovery choices while preserving profile and implementation nonclaims. |
+| 2026-09-24 | #1356 | Bound participant clients to an organizational backend and kept privileged P2 credentials and raw control-plane outputs inside that boundary. |
+| 2026-09-25 | #1356 follow-up | Clarified SDK method access, optional P2 identity scope, host policy, and the legacy no-resolver projection gap. |

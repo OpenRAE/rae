@@ -29,6 +29,7 @@ from .participant_runtime import (
     ParticipantOutcomeInterpretationRecordModel,
     ParticipantTemporalRuntimeContextModel,
 )
+from .participant_temporal import ParticipantTemporalAssessmentModel
 
 
 class ParticipantOutcomeReportSourceModel(ContractModel):
@@ -116,6 +117,9 @@ class ParticipantHistoryViewBehaviorEventModel(ContractModel):
     attribution_edges: list[ParticipantAttributionEdgeModel] = Field(default_factory=list)
     outcome_interpretations: list[ParticipantOutcomeInterpretationRecordModel] = Field(default_factory=list)
     temporal_contexts: list[ParticipantTemporalRuntimeContextModel] = Field(default_factory=list)
+    temporal_assessments: list[ParticipantTemporalAssessmentModel] = Field(
+        default_factory=list, exclude_if=lambda value: not value
+    )
     activity_provenance: ParticipantActivityOccurrenceProvenanceModel | None = None
     details: ParticipantObservationDetailsModel = Field(default_factory=ParticipantObservationDetailsModel)
 

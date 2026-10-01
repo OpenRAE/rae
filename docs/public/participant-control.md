@@ -1,5 +1,8 @@
 # Control participant input and output
 
+For task/effect attainment independent of evaluation and reward, see
+[participant-local outcome reporting](https://github.com/OpenRAE/rae/blob/dev/docs/explain/reference/participant-local-outcomes.md).
+
 Use participant control to set three things. Set what may cross a participant
 boundary. Set who may direct the participant. Set what proof a run retains.
 This guide explains the shipped RAES model. It serves five reader roles. It
@@ -14,6 +17,28 @@ and the
 They own the rules. Follow them if this guide seems to differ.
 
 ## Keep four planes separate
+
+For backend authors, the
+[modular provider contract reference](https://github.com/OpenRAE/rae/blob/dev/docs/explain/reference/modular-participant-control-contracts.md)
+describes closed profile selections, typed results and requested effects, and
+how the reference runtime orchestrates them. Publishing these contracts does
+not install a provider or execute its requests. The runtime invokes only
+providers an operator constructed and bound to the admitted selection. It
+commits the composed decision before any backend effect or delivery. It
+dispatches an admitted effect only through the RAES operation that already owns
+it. An effect acts for the principal whose operation admitted it, never for the
+caller that later requests its dispatch.
+
+API-424 now also publishes v2 selection/evaluation contracts and
+`ParticipantControlProviderV2` for per-crossing applicability and typed
+dependency inputs. Those contracts keep the complete admitted apparatus
+separate from the slots applicable at one state cut, require profile-owned
+coverage and explicit input support, and separate parent decisions from
+effect prerequisites. They require exact protocol/schema negotiation and a
+trusted operator resolver. The current reference runtime and retained v1
+history continue to use provider/v1; v2 publication alone does not activate
+v2 scheduling, state commit or effect dispatch. See the
+[migration rules](https://github.com/OpenRAE/rae/blob/dev/docs/migration/control-applicability-and-evaluation.md).
 
 | Plane | What it contains | What it does not imply |
 | --- | --- | --- |
@@ -32,7 +57,7 @@ decision, change, release, delivery attempt, delivery, observation, and audit.
 Each stage refers to an existing carrier. It does not copy the carrier payload
 into a generic participant message.
 
-## Mixed simulation and emulation are DRAFT
+## Mixed simulation and emulation semantics
 
 Issue #813 and ADR-102 define the design boundary for using the same
 participant-control intent in:
@@ -40,8 +65,9 @@ participant-control intent in:
 - simulation or emulation/operation as alternative realizations; and
 - simulation and emulation/operation together in one admitted trial.
 
-SEM-234 and ASR-537 are DRAFT. The design does not mean current RAES runtimes
-can execute a mixed trial.
+Issue #1013 publishes SEM-234's revisioned semantic definition and finite
+admission/phase examples. ASR-537's realization demonstration remains DRAFT.
+This does not mean current RAES runtimes can execute a mixed trial.
 
 Portable SDL stays backend-neutral. Future admitted trial intent will allocate
 stable participant-runtime, controlled-scope, action-family,
@@ -49,6 +75,12 @@ observation-source, and crossing refs to exact apparatus components. Every
 component edge must state its adapter, authority, action/observation mapping,
 participant/audience policy, clock/order mapping, support strength, loss,
 failure behavior, and evidence.
+
+These are admitted apparatus obligations. They do not require authors to
+specify internal installation recipes. Open materialization scopes retain
+their delegated choices, exact constraints stay binding, and abstract models
+can be complete. Reporting, experimental collection, retention and export are
+independently requested; precise scenario detail does not imply telemetry.
 
 Keep these separate:
 
@@ -80,8 +112,8 @@ mappings, policy, clocks, and failure behavior were admitted before execution.
 Neither kind erases prior delivery or participant knowledge.
 
 Do not treat a shared adapter, passing conformance probe, paired backend run,
-or successful transfer trial as backend equivalence. The implementation and
-evidence work is tracked by issues #1013 through #1019. See the
+or successful transfer trial as backend equivalence. The contract, runtime and
+evidence work is tracked by issues #1014 through #1019. See the
 [issue #813 design record](https://github.com/OpenRAE/rae/issues/813).
 
 ## Choose the route for your role
@@ -99,7 +131,10 @@ observation boundary. Reuse the action, control, or inject carrier.
 - Use `participant_inject_deliveries` when an existing orchestration inject is
   addressed to a participant. Retain its inject identity. Retain its
   event/script/story identity. Bind an observation boundary. Name each needed
-  delivery, order, evidence, or control reference.
+  delivery, order, evidence, or control reference. A temporal constraint bound
+  to the delivery compiles to that delivery's `participant.*` address; it
+  constrains the authored occurrence and does not prove dispatch, delivery, or
+  observation.
 - Do not infer a participant addressee from an environment inject. Do not put
   policy text, hidden answers, credentials, or raw evidence in a participant
   carrier.
@@ -161,6 +196,11 @@ Legacy API-408 status, context, and history retrieval remains available when
 no crossing resolver is set. That legacy mode is not governed egress. With a
 resolver, the HTTP adapter binds the audience before lookup. It resolves
 trusted evidence. It commits crossing facts before it writes the view.
+If the final flow-sink check refuses release, retrieval returns no view and
+the same atomic write records a failed operation and denied audit. Earlier
+crossing decisions remain in history as evidence of work performed; they do
+not mean the view was delivered. Retrying the same request returns the denied
+outcome, including after the local store is reopened.
 
 Use the
 [participant-control migration guide](https://github.com/OpenRAE/rae/blob/dev/docs/migration/participant-information-flow-control.md)

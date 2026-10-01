@@ -38,6 +38,7 @@ _WORKING_TREE_POLICY_STAGES: tuple[tuple[str, str], ...] = (
     ("policy / behavioral relation claims", "tools/check_behavioral_relation_claims.py"),
     ("policy / agent guidance profile", "tools/check_agent_guidance.py"),
     ("policy / example library catalog", "tools/check_example_library.py"),
+    ("policy / published schema coverage", "tools/check_schema_coverage.py"),
     ("policy / project positioning", "tools/check_project_positioning.py"),
     ("policy / identity cutover", "tools/check_identity_cutover.py"),
 )
@@ -121,6 +122,9 @@ def _run_hygiene(
 
 
 def _run_policy(session: nox.Session, reporter: SessionReporter, *args: str) -> None:
+    from tools.nox_support.runner import _requirement_aware_policy_args
+
+    args = tuple(_requirement_aware_policy_args(*args))
     _sync_project(session)
     reporter.run(
         "policy / development artifact lock",

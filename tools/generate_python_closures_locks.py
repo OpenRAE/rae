@@ -7,24 +7,62 @@ from collections import defaultdict, deque
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-from packaging.markers import Marker, default_environment
+from packaging.markers import Marker
+
+# Reviewed target platforms and the operating-system marker fields each implies.
+# `platform_machine` matches the wheel-tag architecture `_platform_tags` selects,
+# so marker resolution and wheel selection cannot disagree about one target.
+_TARGET_PLATFORMS: Mapping[str, Mapping[str, str]] = {
+    "x86_64-unknown-linux-gnu": {
+        "os_name": "posix",
+        "platform_machine": "x86_64",
+        "platform_system": "Linux",
+        "sys_platform": "linux",
+    },
+    "aarch64-unknown-linux-gnu": {
+        "os_name": "posix",
+        "platform_machine": "aarch64",
+        "platform_system": "Linux",
+        "sys_platform": "linux",
+    },
+    "aarch64-apple-darwin": {
+        "os_name": "posix",
+        "platform_machine": "arm64",
+        "platform_system": "Darwin",
+        "sys_platform": "darwin",
+    },
+}
 
 
-def target_environment(python_version: str, platform: str) -> dict[str, str]:
-    environment = default_environment()
-    major, minor = python_version.split(".")
-    machine = "aarch64" if platform.startswith("aarch64") else "x86_64"
-    environment.update(
-        {
-            "implementation_name": "cpython",
-            "platform_machine": machine,
-            "platform_python_implementation": "CPython",
-            "python_full_version": f"{major}.{minor}.0",
-            "python_version": python_version,
-            "sys_platform": "darwin" if platform.endswith("apple-darwin") else "linux",
-        }
-    )
-    return environment
+def target_environment(python_version: str, platform: str, *, full_version: str) -> dict[str, str]:
+    """Bind the complete PEP 508 marker environment of one reviewed target.
+
+    Every field is derived from the reviewed target rather than from the host
+    running the generator, so a projection resolves identically wherever it is
+    produced. `platform_release` and `platform_version` describe a running
+    kernel, which a target has no reviewed value for; they are bound to the
+    empty string rather than leaking the generator host's kernel into a
+    cross-target projection.
+    """
+
+    target = _TARGET_PLATFORMS.get(platform)
+    if target is None:
+        raise ValueError(f"unsupported reviewed target platform {platform!r}")
+    if not full_version.startswith(f"{python_version}."):
+        raise ValueError(f"full version {full_version!r} is not in the {python_version!r} series")
+    return {
+        "implementation_name": "cpython",
+        "implementation_version": full_version,
+        "os_name": target["os_name"],
+        "platform_machine": target["platform_machine"],
+        "platform_python_implementation": "CPython",
+        "platform_release": "",
+        "platform_system": target["platform_system"],
+        "platform_version": "",
+        "python_full_version": full_version,
+        "python_version": python_version,
+        "sys_platform": target["sys_platform"],
+    }
 
 
 def _matches(marker: object, environment: Mapping[str, str]) -> bool:

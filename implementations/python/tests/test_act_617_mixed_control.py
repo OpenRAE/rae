@@ -110,11 +110,11 @@ def _scenario_yaml(*, mode: str = "mixed-control", include_declaration: bool = T
             role: blue
         agents:
           red-agent:
-            entity: red-team
+            affiliations: [red-team]
             authority_anchors: [entities.red-team]
             operating_scope: [nodes.web]
           supervisor-agent:
-            entity: blue-team
+            affiliations: [blue-team]
             authority_anchors: [entities.blue-team]
             operating_scope: [nodes.web]
         behavior_specifications:

@@ -37,6 +37,7 @@ from ..semantics.realization import (
     resolve_apparatus_realization_defaults,
 )
 from .manifest_validation import _validate_manifest
+from .materialization import planned_materialization_source
 from .operations import (
     _build_evaluation_plan,
     _build_operations,
@@ -382,6 +383,34 @@ def plan(
             run_id=run_id,
             instantiation_id=instantiation_id,
         ),
+    )
+
+    if model.materialization_description is not None:
+        provisioning = replace(provisioning, purpose="inspection")
+        orchestration = replace(orchestration, purpose="inspection")
+        evaluation = replace(evaluation, purpose="inspection")
+    source, source_diagnostics = planned_materialization_source(model, manifest, scope)
+    diagnostics.extend(source_diagnostics)
+    scope_required = (
+        model.realization_instance is not None and model.realization_instance.augmentation_scope is not None
+    )
+    provisioning = replace(
+        provisioning,
+        materialization_source=source,
+        augmentation_scope_required=scope_required,
+        diagnostics=[*provisioning.diagnostics, *source_diagnostics],
+    )
+    orchestration = replace(
+        orchestration,
+        materialization_source=source,
+        augmentation_scope_required=scope_required,
+        diagnostics=[*orchestration.diagnostics, *source_diagnostics],
+    )
+    evaluation = replace(
+        evaluation,
+        materialization_source=source,
+        augmentation_scope_required=scope_required,
+        diagnostics=[*evaluation.diagnostics, *source_diagnostics],
     )
 
     return ExecutionPlan(

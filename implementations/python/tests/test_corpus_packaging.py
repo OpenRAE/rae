@@ -206,6 +206,15 @@ def test_corpus_discoverable_via_importlib_resources_from_installed_wheel(instal
         "import json\n"
         "from raes_contracts.corpus import corpus_root, corpus_family_root\n"
         "from raes_contracts.provenance import load_sdl_lineage_ledger, sdl_lineage_ledger_path\n"
+        "from raes_contracts.evidence_output_validation import evidence_output_registrations, resolve_evidence_output_contract\n"
+        "evidence_fixtures = {\n"
+        "  'experiment-evidence-record-v1': 'experiment-core/experiment-evidence-record-v1/valid/reference.json',\n"
+        "  'participant-behavior-history-event-stream-v1': 'control-plane/participant-behavior-history-event-stream-v1/valid/terminal-observation.json',\n"
+        "}\n"
+        "assert set(evidence_output_registrations()) == set(evidence_fixtures)\n"
+        "for contract_id, fixture_path in evidence_fixtures.items():\n"
+        "  document = json.loads((corpus_family_root('fixtures') / fixture_path).read_text())\n"
+        "  resolve_evidence_output_contract(contract_id).validate(document)\n"
         "root = corpus_root()\n"
         "print(json.dumps({\n"
         "  'root': str(root),\n"
@@ -239,6 +248,20 @@ def test_corpus_discoverable_via_importlib_resources_from_installed_wheel(instal
     assert payload["schemas_dir"] is True
     assert payload["lineage_file"] == "sdl-lineage-ledger-v2.json"
     assert "sdl-field:semantic_revision" in payload["lineage_subjects"]
+
+
+@requires_uv
+def test_authoring_vectors_execute_from_installed_wheel(installed_python: Path, tmp_path: Path):
+    script = (
+        "from raes_conformance.authoring_adapters import load_authoring_vectors, reference_authoring_output, compare_authoring_paths\n"
+        "vectors = load_authoring_vectors()\n"
+        "assert len(vectors) == 7\n"
+        "for vector in vectors:\n"
+        "    output = reference_authoring_output(vector)\n"
+        "    assert compare_authoring_paths(vector, output, output).report.conformant\n"
+    )
+    result = _run([str(installed_python), "-c", script], cwd=tmp_path, env=_sanitized_runtime_env(tmp_path))
+    assert result.returncode == 0, f"installed authoring conformance failed:\n{result.stdout}\n{result.stderr}"
 
 
 @requires_uv
@@ -277,3 +300,26 @@ def test_sdl_semantic_validation_loads_corpus_from_installed_wheel(installed_pyt
     )
     assert result.returncode == 0, f"semantic-validation load failed:\n{result.stdout}\n{result.stderr}"
     assert int(result.stdout.strip()) > 0
+
+
+@requires_uv
+def test_modular_control_contracts_from_independent_install(installed_python: Path, tmp_path: Path):
+    script = """
+from raes_backend_protocols.protocols import ParticipantControlProvider
+from raes_backend_protocols.participant_control_admission import resolve_participant_control_support
+from raes_contracts.contracts import parse_participant_control_evaluation, load_teaching_influence_profile, schema_bundle
+from raes_contracts.corpus import corpus_family_root
+from raes_conformance.conformance.validators import validate_contract_payload
+from jsonschema import Draft202012Validator
+root = corpus_family_root('fixtures')
+assert 'site-packages' in str(root)
+source = (root / 'participant-runtime/participant-control-evaluation-v1/valid/teaching-inject.json').read_bytes()
+record = parse_participant_control_evaluation(source)
+Draft202012Validator(schema_bundle()['participant-control-evaluation-v1']).validate(record.model_dump(mode='json'))
+assert validate_contract_payload('participant-control-evaluation-v1', record.model_dump(mode='json'))[0].code == 'conformance.semantic-context-required'
+assert load_teaching_influence_profile().release == 'none'
+assert not getattr(ParticipantControlProvider, '_is_runtime_protocol', False)
+assert callable(resolve_participant_control_support)
+"""
+    result = _run([str(installed_python), "-c", script], cwd=tmp_path, env=_sanitized_runtime_env(tmp_path))
+    assert result.returncode == 0, result.stderr

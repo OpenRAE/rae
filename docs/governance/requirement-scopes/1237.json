@@ -1,0 +1,248 @@
+{
+  "schema_version": "requirement-scope/v1",
+  "issue_number": 1237,
+  "primary_requirement_uid": "EXP-708",
+  "requirement_uids": [
+    "EXP-708",
+    "EXP-715",
+    "GOV-913",
+    "SEM-218",
+    "ASR-519"
+  ],
+  "bindings": {
+    "implementations/python/tests/test_exp_732_evidence_provenance.py": [
+      "EXP-708"
+    ],
+    "implementations/python/tests/test_reference_backend_provisioner.py": [
+      "SEM-218"
+    ],
+    "implementations/python/tests/test_issue_1212_observation_demand.py": [
+      "SEM-218"
+    ],
+    "docs/requirements/SEM-218/requirement.md": [
+      "SEM-218"
+    ],
+    "docs/requirements/ASR-519/requirement.md": [
+      "ASR-519"
+    ],
+    "implementations/python/packages/raes_processor/semantics/realization.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_processor/semantics/realization_compute_substrate.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_contracts/realization_operational_observation.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_conformance/_realization_validation.py": [
+      "ASR-519"
+    ],
+    "implementations/python/tests/test_issue_1237_source_sufficiency.py": [
+      "SEM-218"
+    ],
+    "implementations/python/tests/test_realization_honesty_conformance.py": [
+      "ASR-519"
+    ],
+    "implementations/python/tests/test_corpus_packaging.py": [
+      "GOV-913"
+    ],
+    ".github/workflows/canonical-verification.yml": [
+      "GOV-913"
+    ],
+    "Makefile": [
+      "GOV-913"
+    ],
+    "docs/decisions/issue-1237-capture-proof-authority-preflight.md": [
+      "EXP-708"
+    ],
+    "docs/governance/requirement-scopes/1237.json": [
+      "GOV-913"
+    ],
+    "docs/governance/requirement-scopes/README.md": [
+      "GOV-913"
+    ],
+    "docs/migration/required-capture-admission.md": [
+      "EXP-708"
+    ],
+    "docs/requirements/ASR-530/requirement.md": [
+      "EXP-708"
+    ],
+    "docs/requirements/DSL-124/requirement.md": [
+      "EXP-715"
+    ],
+    "docs/requirements/EXP-708/requirement.md": [
+      "EXP-708"
+    ],
+    "docs/requirements/EXP-715/requirement.md": [
+      "EXP-715"
+    ],
+    "docs/requirements/GOV-913/requirement.md": [
+      "GOV-913"
+    ],
+    "docs/research/formal-semantic-validation/archive-contracts/README.md": [
+      "EXP-708"
+    ],
+    "docs/research/formal-semantic-validation/index.md": [
+      "EXP-708"
+    ],
+    "docs/research/specification-coverage/historical-artifacts/issue-1237-pre-sync-release-v15.json": [
+      "EXP-708"
+    ],
+    "docs/research/specification-coverage/index.md": [
+      "EXP-708"
+    ],
+    "implementations/python/packages/raes_backend_protocols/observation_capture.py": [
+      "EXP-715"
+    ],
+    "implementations/python/packages/raes_backend_protocols/observation_manifest.py": [
+      "EXP-715"
+    ],
+    "implementations/python/packages/raes_contracts/_evidence_content_validation.py": [
+      "EXP-708"
+    ],
+    "implementations/python/packages/raes_contracts/capture_dimensions.py": [
+      "EXP-715"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/experiment_analysis.py": [
+      "EXP-708"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/experiment_conditions.py": [
+      "EXP-708"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/experiment_run.py": [
+      "EXP-708"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/experiment_study_run_validation.py": [
+      "EXP-708"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/observation_capture.py": [
+      "EXP-715"
+    ],
+    "implementations/python/packages/raes_contracts/evidence_output_validation.py": [
+      "EXP-708"
+    ],
+    "implementations/python/packages/raes_contracts/evidence_proof.py": [
+      "EXP-708"
+    ],
+    "implementations/python/packages/raes_contracts/evidence_satisfaction.py": [
+      "EXP-708"
+    ],
+    "implementations/python/packages/raes_processor/capture_admission.py": [
+      "EXP-715"
+    ],
+    "implementations/python/tests/test_formal_semantic_validation.py": [
+      "EXP-708"
+    ],
+    "implementations/python/tests/test_issue_1237_capture_dimensions.py": [
+      "EXP-715"
+    ],
+    "implementations/python/tests/test_issue_1237_capture_ingress.py": [
+      "EXP-715"
+    ],
+    "implementations/python/tests/test_issue_1237_evidence_proof.py": [
+      "EXP-708"
+    ],
+    "implementations/python/tests/test_issue_1237_governance.py": [
+      "EXP-708"
+    ],
+    "implementations/python/tests/test_issue_1237_output_registry.py": [
+      "EXP-708"
+    ],
+    "implementations/python/tests/test_issue_1237_requirement_scope.py": [
+      "GOV-913"
+    ],
+    "implementations/python/tests/test_issue_989_versioned_evidence.py": [
+      "EXP-708"
+    ],
+    "implementations/python/tests/test_repo_policy_tools.py": [
+      "GOV-913"
+    ],
+    "implementations/python/tests/test_specification_coverage.py": [
+      "EXP-708"
+    ],
+    "implementations/python/tests/test_tooling_artifact_policy.py": [
+      "GOV-913"
+    ],
+    "tools/check_requirement_governance.py": [
+      "GOV-913"
+    ],
+    "tools/check_specification_coverage.py": [
+      "EXP-708"
+    ],
+    "tools/formal_semantic_validation/_archival_shape.py": [
+      "EXP-708"
+    ],
+    "tools/formal_semantic_validation/_baseline.py": [
+      "EXP-708"
+    ],
+    "tools/formal_semantic_validation/_loading.py": [
+      "EXP-708"
+    ],
+    "tools/formal_semantic_validation/_releases.py": [
+      "EXP-708"
+    ],
+    "tools/formal_semantic_validation/_retest.py": [
+      "EXP-708"
+    ],
+    "tools/formal_semantic_validation/_types.py": [
+      "EXP-708"
+    ],
+    "tools/nox_support/policy_lanes.py": [
+      "GOV-913"
+    ],
+    "tools/nox_support/runner.py": [
+      "GOV-913"
+    ],
+    "tools/policy/requirement_order.yaml": [
+      "EXP-708"
+    ],
+    "tools/policy/requirement_scope.py": [
+      "GOV-913"
+    ],
+    "tools/requirement_context.py": [
+      "GOV-913"
+    ],
+    "docs/research/specification-coverage/historical-artifacts/issue-1237-pre-provenance-sync-release-v16.json": [
+      "EXP-708"
+    ],
+    "docs/research/formal-semantic-validation/analysis-v19.json": [
+      "EXP-708"
+    ],
+    "docs/research/formal-semantic-validation/bundles/retest-v19.json": [
+      "EXP-708"
+    ],
+    "docs/research/formal-semantic-validation/execution-snapshot-v19.json": [
+      "EXP-708"
+    ],
+    "docs/research/specification-coverage/analysis-v18.json": [
+      "EXP-708"
+    ],
+    "docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1237-v18.json": [
+      "EXP-708"
+    ],
+    "docs/research/specification-coverage/execution-snapshot-v18.json": [
+      "EXP-708"
+    ],
+    "docs/research/specification-coverage/historical-artifacts/issue-1237-pre-materialization-sync-release-v17.json": [
+      "EXP-708"
+    ],
+    "docs/research/formal-semantic-validation/analysis-v20.json": [
+      "EXP-708"
+    ],
+    "docs/research/formal-semantic-validation/bundles/retest-v20.json": [
+      "EXP-708"
+    ],
+    "docs/research/formal-semantic-validation/execution-snapshot-v20.json": [
+      "EXP-708"
+    ],
+    "docs/research/specification-coverage/analysis-v19.json": [
+      "EXP-708"
+    ],
+    "docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1237-v19.json": [
+      "EXP-708"
+    ],
+    "docs/research/specification-coverage/execution-snapshot-v19.json": [
+      "EXP-708"
+    ]
+  }
+}

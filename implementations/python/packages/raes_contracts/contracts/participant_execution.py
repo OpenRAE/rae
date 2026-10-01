@@ -51,10 +51,13 @@ class ParticipantExecutionBindingModel(ContractModel):
     max_in_flight: int = Field(ge=1)
     timeout_seconds: int = Field(ge=1)
     max_retries: int = Field(ge=0)
+    temporal_contract_digests: tuple[PrefixedDigestString, ...] = Field(
+        default=(), max_length=256, exclude_if=lambda value: not value
+    )
 
     @model_validator(mode="after")
     def _validate_unique_refs(self) -> ParticipantExecutionBindingModel:
-        for field_name in ("target_addresses", "constraint_refs", "evidence_refs"):
+        for field_name in ("target_addresses", "constraint_refs", "evidence_refs", "temporal_contract_digests"):
             values = getattr(self, field_name)
             if len(values) != len(set(values)):
                 raise ValueError(f"{field_name} must contain unique values")

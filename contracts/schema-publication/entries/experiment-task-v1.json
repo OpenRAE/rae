@@ -1,10 +1,10 @@
 {
+  "content_hash": "a86406cca05a5a6c3ef8e1119dd99a4dfbe5311782be340622ca2dbd4a72de1c",
   "contract_id": "experiment-task-v1",
-  "schema_path": "contracts/schemas/experiment-core/experiment-task-v1.json",
-  "stability": "draft",
-  "content_hash": "868baac40f1b278a3fa854b11ec87ed74f765ffb241913ca3b11cf4c3bf1907e",
   "last_change": {
-    "summary": "Added the scoped observation-demand task carrier for issue #1212.",
-    "content_hash": "868baac40f1b278a3fa854b11ec87ed74f765ffb241913ca3b11cf4c3bf1907e"
-  }
+    "content_hash": "a86406cca05a5a6c3ef8e1119dd99a4dfbe5311782be340622ca2dbd4a72de1c",
+    "summary": "Add typed task evidence-requirement relations and distinct materialization-attestation references (#341, #1241)."
+  },
+  "schema_path": "contracts/schemas/experiment-core/experiment-task-v1.json",
+  "stability": "draft"
 }

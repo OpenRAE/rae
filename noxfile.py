@@ -16,7 +16,7 @@ import nox
 
 nox.options.default_venv_backend = "none"
 nox.options.reuse_existing_virtualenvs = True
-nox.options.sessions = ["verify"]
+nox.options.sessions = ["verify-fast-feedback"]
 
 REPO_ROOT = Path(__file__).resolve().parent
 import sys
@@ -27,7 +27,12 @@ if str(REPO_ROOT) not in sys.path:
 from tools.nox_support.compatibility_lanes import _run_python_compatibility
 from tools.nox_support.config import (
     CONTRACT_TRIGGER_PREFIXES,
+    COVERAGE_REDUCE_DIR_ENV,
     FULL_TEST_TRIGGER_PREFIXES,
+    SHARD_COUNT_ENV,
+    SHARD_INDEX_ENV,
+    SHARD_MANIFEST_ENV,
+    SHARD_SOURCE_SHA_ENV,
     TARGETED_POLICY_TESTS,
     TOOLING_TEST_TRIGGER_PREFIXES,
     VERIFY_COVERAGE_FILE_ENV,
@@ -42,6 +47,7 @@ from tools.nox_support.policy_lanes import (
 )
 from tools.nox_support.graph import (
     _run_changed_verification,
+    _run_fast_feedback,
     _run_parallel_verification,
 )
 from tools.nox_support.runner import (
@@ -53,12 +59,14 @@ from tools.nox_support.runner import (
 )
 from tools.nox_support.test_lanes import (
     _run_installation_qualification,
+    _run_coverage_reduce,
     _run_docker_integration_tests,
     _run_docs,
     _run_docs_linkcheck,
     _run_fuzz,
     _run_integration_tests,
     _run_osv_scan,
+    _run_shard_tests,
     _run_tests,
 )
 
@@ -275,7 +283,7 @@ def hook_pre_commit(session: nox.Session) -> None:
         elif _paths_trigger(changed, FULL_TEST_TRIGGER_PREFIXES):
             reporter.skip(
                 "tests / pytest",
-                "no directly changed test module; full regression runs at pre-push and completion",
+                "no directly changed test module; select relevant tests explicitly; full regression runs in CI/CD",
             )
         elif _paths_trigger(changed, TOOLING_TEST_TRIGGER_PREFIXES):
             reporter.run(
@@ -301,9 +309,21 @@ def hook_pre_push(session: nox.Session) -> None:
         reporter.summary()
 
 
+@nox.session(name="verify-fast-feedback")
+def verify_fast_feedback(session: nox.Session) -> None:
+    """Advisory early-feedback lane (#935): static/lint/policy plus directly
+    changed pytest modules. Never the merge gate; the full-suite shards are."""
+
+    reporter = SessionReporter(session, "verify-fast-feedback")
+    try:
+        _run_fast_feedback(session, reporter, list(session.posargs))
+    finally:
+        reporter.summary()
+
+
 @nox.session(name="verify-changed")
 def verify_changed(session: nox.Session) -> None:
-    """Run the fail-closed local gate selected from changes since the upstream ref."""
+    """Run targeted local feedback from the branch diff; never fall back to the full suite."""
 
     reporter = SessionReporter(session, "verify-changed")
     try:
@@ -317,6 +337,21 @@ def _required_coverage_file() -> Path:
     if not value:
         raise RuntimeError(f"{VERIFY_COVERAGE_FILE_ENV} is required for an orchestrated coverage lane")
     return Path(value)
+
+
+def _required_env(name: str) -> str:
+    value = os.environ.get(name)
+    if not value:
+        raise RuntimeError(f"{name} is required for this shard-orchestrated session")
+    return value
+
+
+def _required_env_int(name: str) -> int:
+    value = _required_env(name)
+    try:
+        return int(value)
+    except ValueError as exc:
+        raise RuntimeError(f"{name} must be an integer, got {value!r}") from exc
 
 
 @nox.session(name="verify-static-lane")
@@ -375,8 +410,54 @@ def verify_integration_lane(session: nox.Session) -> None:
         reporter.summary()
 
 
+@nox.session(name="verify-shard")
+def verify_shard(session: nox.Session) -> None:
+    """Run one deterministic CI shard of the default-marker suite (#935).
+
+    Requires RAES_SHARD_COUNT, RAES_SHARD_INDEX, RAES_VERIFY_COVERAGE_FILE, and
+    RAES_SHARD_MANIFEST. Reproduce a failed CI shard locally by exporting the same
+    four values the failing job logged and re-running this session.
+    """
+
+    reporter = SessionReporter(session, "verify-shard")
+    try:
+        _run_shard_tests(
+            session,
+            reporter,
+            _required_coverage_file(),
+            shard_count=_required_env_int(SHARD_COUNT_ENV),
+            shard_index=_required_env_int(SHARD_INDEX_ENV),
+            manifest_path=Path(_required_env(SHARD_MANIFEST_ENV)),
+            source_sha=os.environ.get(SHARD_SOURCE_SHA_ENV, ""),
+        )
+    finally:
+        reporter.summary()
+
+
+@nox.session(name="verify-coverage-reduce")
+def verify_coverage_reduce(session: nox.Session) -> None:
+    """Prove shard completeness and combine shard + integration coverage (#935).
+
+    Requires RAES_COVERAGE_REDUCE_DIR (holding every producer's ``.coverage.*``
+    data file and ``shard-*.json`` manifest) and RAES_SHARD_COUNT.
+    """
+
+    reporter = SessionReporter(session, "verify-coverage-reduce")
+    try:
+        _run_coverage_reduce(
+            session,
+            reporter,
+            Path(_required_env(COVERAGE_REDUCE_DIR_ENV)),
+            shard_count=_required_env_int(SHARD_COUNT_ENV),
+            source_sha=os.environ.get(SHARD_SOURCE_SHA_ENV, ""),
+        )
+    finally:
+        reporter.summary()
+
+
 @nox.session
 def verify(session: nox.Session) -> None:
+    """Full verification graph for CI/CD; local work uses targeted feedback."""
     reporter = SessionReporter(session, "verify")
     try:
         _run_parallel_verification(session, reporter, include_policy=True)
@@ -386,10 +467,10 @@ def verify(session: nox.Session) -> None:
 
 @nox.session(name="verify-completion")
 def verify_completion(session: nox.Session) -> None:
-    """Run the completion graph whose Ground Control pair runs policy next."""
+    """Run targeted local completion feedback; full completion verification belongs to CI/CD."""
 
     reporter = SessionReporter(session, "verify-completion")
     try:
-        _run_parallel_verification(session, reporter, include_policy=False)
+        _run_fast_feedback(session, reporter, list(session.posargs))
     finally:
         reporter.summary()

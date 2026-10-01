@@ -27,7 +27,7 @@ body:
       role: blue
   agents:
     operator:
-      entity: blue-team
+      affiliations: [blue-team]
   propositions:
     app-healthy:
       description: The governed app-healthy observation is true for the addressed scenario subject.
@@ -63,7 +63,7 @@ body:
       loss_disclosure: required
   objectives:
     verify-app-health:
-      agent: operator
+      assigned_participant: operator
       targets: [nodes.app.services.https]
       success:
         assertions: [app-healthy]

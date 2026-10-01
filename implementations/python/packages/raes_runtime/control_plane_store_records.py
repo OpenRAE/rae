@@ -10,6 +10,7 @@ from raes_contracts.contracts.base import ContractModel, Rfc3339DateTimeString
 from raes_contracts.diagnostics import Diagnostic, DiagnosticModel, portable_diagnostic_payload
 from raes_contracts.runtime_state import OperationReceipt, OperationStatus
 
+from .control_plane_audit import require_audit_event_fields
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
 
 
@@ -40,6 +41,7 @@ class _OperationRecordModel(ContractModel):
     result_payload: dict[str, Any] | None
     decision_history_heads: dict[str, str | None]
     result_history_heads: dict[str, str | None]
+    legacy_request_commitment: bool = False
 
     @model_validator(mode="after")
     def _validate_shared_carrier_identity(self) -> _OperationRecordModel:
@@ -71,6 +73,19 @@ class _AuditEventModel(ContractModel):
     reason: str
     details: dict[str, Any]
 
+    @model_validator(mode="after")
+    def _validate_bounded_fields(self) -> _AuditEventModel:
+        require_audit_event_fields(
+            timestamp=self.timestamp,
+            action=self.action,
+            identity=self.identity,
+            target=self.target,
+            operation_id=self.operation_id,
+            reason=self.reason,
+            details=self.details,
+        )
+        return self
+
 
 def _record_payload(record: ControlPlaneOperationRecord) -> dict[str, Any]:
     return {
@@ -99,6 +114,7 @@ def _record_payload(record: ControlPlaneOperationRecord) -> dict[str, Any]:
         "result_payload": record.result_payload,
         "decision_history_heads": dict(record.decision_history_heads),
         "result_history_heads": dict(record.result_history_heads),
+        "legacy_request_commitment": record.legacy_request_commitment,
     }
 
 
@@ -132,6 +148,7 @@ def _record_from_payload(payload: dict[str, Any]) -> ControlPlaneOperationRecord
         result_payload=carrier.result_payload,
         decision_history_heads=dict(carrier.decision_history_heads),
         result_history_heads=dict(carrier.result_history_heads),
+        legacy_request_commitment=carrier.legacy_request_commitment,
     )
 
 

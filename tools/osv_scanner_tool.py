@@ -43,7 +43,6 @@ def ensure_osv_scanner(
     version: str = OSV_SCANNER_VERSION,
     local_input: Path | None = None,
     installation_root: Path | None = None,
-    immutable_seed_root: Path | None = None,
 ) -> Path:
     from tools.tooling_policy_gate import (
         host_platform_id,
@@ -72,7 +71,6 @@ def ensure_osv_scanner(
         materialize=installation.materialize_direct,
         legacy_path=osv_scanner_binary_path(repo_root, version=version),
         installation_root=installation_root,
-        immutable_seed_root=immutable_seed_root,
     )
 
 

@@ -33,7 +33,13 @@ SNAPSHOT_CARRIER_OWNERS = {
     "participant_behavior_history": "participant",
     "participant_control_history": "participant",
     "participant_crossing_history": "participant",
+    # RUN-320 control state: the runtime composes and commits it, and a
+    # participant backend result may never add, drop or rewrite a record.
+    "participant_control_evaluation_history": "runtime",
+    "mixed_composition_states": "runtime",
+    "mixed_composition_history": "runtime",
     "information_state_history": "participant",
+    "participant_outcome_history": "control_plane",
     "participant_autonomous_execution_states": "participant",
     "participant_execution_services": "participant",
     "participant_resource_budget_states": "runtime",
@@ -45,6 +51,7 @@ SNAPSHOT_CARRIER_OWNERS = {
     "time_management_contexts": "participant",
 }
 SNAPSHOT_VALUE_OWNERS = {
+    "materialization_attestations": "runtime",
     "time_model_state": "time",
     "realization_provenance": "runtime",
     "realization_observations": "observation",

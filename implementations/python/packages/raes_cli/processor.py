@@ -27,6 +27,8 @@ from raes_contracts.plan_projection import (
     orchestration_plan_model,
     provisioning_plan_model,
 )
+from raes_contracts.planning import ChangeAction
+from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.exploit_path import (
     ANALYSIS_PROFILE as EXPLOIT_PATH_ANALYSIS_PROFILE,
 )
@@ -36,6 +38,14 @@ from raes_processor.exploit_path import (
 )
 from raes_processor.manifest import reference_processor_manifest_payload
 from raes_processor.models import ExecutionPlan
+from raes_processor.reconciliation_demonstration import (
+    PLANNED_STATE_PROJECTION,
+    ReconciliationDemonstration,
+    ReconciliationStatus,
+    ScenarioVersion,
+    ScenarioVersionRejected,
+    reconcile_scenario_versions,
+)
 from raes_processor.reference import run_reference_processor
 from raes_processor.satisfiability import (
     ANALYSIS_PROFILE,
@@ -194,6 +204,118 @@ def plan(
     payload = _execution_plan_payload(result.execution_plan)
     typer.echo(json.dumps(payload, indent=2, sort_keys=True))
     if not result.execution_plan.is_valid:
+        raise typer.Exit(code=1)
+
+
+def _snapshot_summary(snapshot: RuntimeSnapshot) -> dict[str, Any]:
+    """Summarize projected state by identity and dependency, never by payload.
+
+    Resource payloads carry authored credentials and content, and the
+    reconciliation question is answered without them. Profile bindings are
+    reported by binding id for the same reason -- a binding's ``value`` is
+    arbitrary profile data.
+    """
+
+    entries = sorted(
+        (
+            {
+                "address": entry.address,
+                "domain": entry.domain.value,
+                "resource_type": entry.resource_type,
+                "ordering_dependencies": list(entry.ordering_dependencies),
+                "refresh_dependencies": list(entry.refresh_dependencies),
+                "profile_binding_ids": sorted(binding.binding_id for binding in entry.profile_bindings),
+            }
+            for entry in snapshot.entries.values()
+        ),
+        key=lambda entry: entry["address"],
+    )
+    return {"entry_count": len(entries), "entries": entries}
+
+
+def _reconciliation_payload(demonstration: ReconciliationDemonstration) -> dict[str, Any]:
+    baseline_snapshot = demonstration.baseline_snapshot
+    counts = demonstration.action_counts
+    candidate_rejected_before_planning = demonstration.status is ReconciliationStatus.BASELINE_REJECTED
+    return {
+        "status": demonstration.status.value,
+        "snapshot_kind": PLANNED_STATE_PROJECTION,
+        "baseline": {
+            "scenario_name": demonstration.baseline_scenario_name,
+            "diagnostics": [diagnostic_payload(diagnostic) for diagnostic in demonstration.baseline_diagnostics],
+            "snapshot": None if baseline_snapshot is None else _snapshot_summary(baseline_snapshot),
+        },
+        "candidate": (
+            None
+            if candidate_rejected_before_planning
+            else {
+                "scenario_name": demonstration.candidate_scenario_name,
+                "diagnostics": [diagnostic_payload(diagnostic) for diagnostic in demonstration.candidate_diagnostics],
+            }
+        ),
+        # Null rather than four zeroes when nothing was reconciled, so a
+        # rejected baseline cannot be misread as "no changes".
+        "actions": None if counts is None else {action.value: counts[action] for action in ChangeAction},
+        "operations": (
+            None
+            if demonstration.operations is None
+            else [
+                {
+                    "domain": operation.domain.value,
+                    "address": operation.address,
+                    "resource_type": operation.resource_type,
+                    "action": operation.action.value,
+                }
+                for operation in demonstration.operations
+            ]
+        ),
+    }
+
+
+@app.command("reconcile")
+def reconcile(
+    baseline: Path = typer.Argument(..., exists=True, readable=True, help="Baseline SDL scenario version."),
+    candidate: Path = typer.Argument(..., exists=True, readable=True, help="Modified SDL scenario version."),
+    manifest_path: Path | None = typer.Option(
+        None,
+        "--manifest",
+        exists=True,
+        readable=True,
+        help="Backend-manifest-v2 JSON to plan both versions against (defaults to the reference dry-run manifest).",
+    ),
+    output_format: PlanOutputFormat = typer.Option(
+        ...,
+        "--format",
+        help="Output format for the reconciliation report.",
+    ),
+) -> None:
+    """Show how the planner reconciles one scenario version against another.
+
+    Plans ``BASELINE``, projects its planned state into a synthetic snapshot,
+    plans ``CANDIDATE`` against that snapshot, and reports every resulting
+    ``create``/``update``/``delete``/``unchanged`` action. Both versions are
+    planned against the same manifest, so the reported delta reflects the
+    authored difference rather than a change of target.
+
+    The projected snapshot is assumed state, not backend readback or proof of
+    realization; the report summarizes resource identity and dependencies and
+    deliberately omits resource payloads. This is a read-only dry run: it does
+    not apply, provision, or start anything. A rejected version yields a
+    non-zero exit status.
+    """
+
+    # Only JSON is supported today; the enum reserves the seam for future formats.
+    del output_format
+    backend_manifest = _load_backend_manifest(manifest_path)
+    try:
+        demonstration = reconcile_scenario_versions(baseline, candidate, backend_manifest)
+    except ScenarioVersionRejected as exc:
+        source = baseline if exc.version is ScenarioVersion.BASELINE else candidate
+        typer.echo(_sdl_error_summary(source, exc.cause), err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(json.dumps(_reconciliation_payload(demonstration), indent=2, sort_keys=True))
+    if demonstration.status is not ReconciliationStatus.RECONCILED:
         raise typer.Exit(code=1)
 
 

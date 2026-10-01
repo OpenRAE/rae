@@ -17,7 +17,7 @@ from typing import Any
 from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
 
 from ._errors import SDLParseDiagnostic, SDLSourcePosition, SDLSourceRange
-from ._identifiers import is_portable_identifier
+from ._identifiers import QualifiedName, is_portable_identifier
 from ._mapping_scopes import PROFILE_JSON_FIELDS, MappingScope, is_literal_map_field, normalize_field_key
 from ._source_identifier_paths import is_declaration_key_path, is_scalar_identifier_path
 from ._source_profile import SDLMigrationPolicy
@@ -64,6 +64,7 @@ class _MappingAnalyzer:
         migration_policy: SDLMigrationPolicy,
         path: Path | None,
         source_ranges: dict[str, SDLSourceRange] | None = None,
+        materialized: bool = False,
     ) -> None:
         self.diagnostics: list[SDLParseDiagnostic] = []
         self._migration_policy = migration_policy
@@ -72,6 +73,7 @@ class _MappingAnalyzer:
         self._diagnostic_keys: set[tuple[Any, ...]] = set()
         self._walked: set[tuple[int, MappingScope]] = set()
         self._source_ranges = source_ranges
+        self._materialized = materialized
 
     def analyze(
         self,
@@ -233,13 +235,26 @@ class _MappingAnalyzer:
         suppress_field_migration: bool,
     ) -> None:
         if is_declaration_key_path(tokens) and not suppress_field_migration:
-            self._validate_identifier_node(key_node, pointer_tokens=child_tokens)
-            if tokens == ["nodes"] and len(authored) > 35:
-                self._add_identifier_diagnostic(key_node, pointer_tokens=child_tokens, node_limit=True)
+            self._validate_declaration_identifier(key_node, authored, tokens, child_tokens)
         if child_tokens == ["name"]:
             self._validate_identifier_node(value_node, pointer_tokens=child_tokens)
         if is_scalar_identifier_path(child_tokens):
             self._validate_identifier_node(value_node, pointer_tokens=child_tokens)
+
+    def _validate_declaration_identifier(
+        self, key_node: Node, authored: str, tokens: list[str], child_tokens: list[str]
+    ) -> None:
+        qualified = self._materialized and len(tokens) == 1
+        if qualified:
+            try:
+                QualifiedName.parse(authored)
+            except ValueError:
+                self._add_identifier_diagnostic(key_node, pointer_tokens=child_tokens)
+        else:
+            self._validate_identifier_node(key_node, pointer_tokens=child_tokens)
+        local_name = authored.rsplit(".", 1)[-1] if qualified else authored
+        if tokens == ["nodes"] and len(local_name) > 35:
+            self._add_identifier_diagnostic(key_node, pointer_tokens=child_tokens, node_limit=True)
 
     def _validate_identifier_node(self, node: Node, *, pointer_tokens: list[str]) -> None:
         if not isinstance(node, ScalarNode) or node.tag != _STRING_TAG or not is_portable_identifier(node.value):

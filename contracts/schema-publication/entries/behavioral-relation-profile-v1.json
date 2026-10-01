@@ -2,9 +2,9 @@
   "contract_id": "behavioral-relation-profile-v1",
   "schema_path": "contracts/schemas/profiles/behavioral-relation-profile-v1.json",
   "stability": "draft",
-  "content_hash": "b718945e218c75749b7377902e67854ea01c23d4e52e89e504b4c3d4b2d1e4d1",
+  "content_hash": "a1cfddabde6cb363e4514808b31110631a4e147bd9e83fe262f4a9763dcd5aa1",
   "last_change": {
-    "summary": "Added the abstract theorem-carrier variant, encoded carrier joins, and rebound the schema namespace to OpenRAE for issue #963.",
-    "content_hash": "b718945e218c75749b7377902e67854ea01c23d4e52e89e504b4c3d4b2d1e4d1"
+    "summary": "Add the closed single-operation DPBB profile variant, complete domains and both carrier identities; preserve opacity profiles (issue #971).",
+    "content_hash": "a1cfddabde6cb363e4514808b31110631a4e147bd9e83fe262f4a9763dcd5aa1"
   }
 }

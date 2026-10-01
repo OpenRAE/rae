@@ -15,6 +15,7 @@ from ._references import (
     _interaction_references_for_action_contracts,
     _observation_boundary_references_for_agent,
     _visibility_issues_for_observation_boundaries,
+    select_participants,
 )
 from ._tool_affordance import _tool_affordance_reference_issues
 from ._types import (
@@ -70,11 +71,9 @@ def _behavior_specification_issues(
     for spec_name, behavior_spec in behavior_specifications.items():
         if getattr(behavior_spec, "autonomous_execution", None) is None:
             continue
-        participant_names = {
-            str(ref)
-            for ref in getattr(behavior_spec, "participant_refs", []) or []
-            if str(ref) in reference_context.participant_names
-        }
+        participant_names = select_participants(
+            behavior_spec, reference_context.participant_names, reference_context.participant_roles_by_agent
+        )
         for participant_name in sorted(participant_names):
             prior_owner = autonomous_owner_by_participant.setdefault(participant_name, str(spec_name))
             if prior_owner != str(spec_name):

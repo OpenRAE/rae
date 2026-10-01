@@ -19,14 +19,14 @@ from ..control_plane_api_models import (
     _ParticipantTerminateBody,
 )
 from ..participant_control_intents import ParticipantControlIntent
-from ._auth import _MutatingIdentity, _ReadIdentity
+from ._auth import _AdministrativeMutationIdentity, _AdministrativeReadIdentity
 from ._offload import _control_plane_calls
 from ._responses import (
     _BAD_REQUEST_CONFLICT_RESPONSES,
     _CONFLICT_RESPONSES,
     _NOT_FOUND_RESPONSES,
+    _conflict_detail,
     _receipt_response,
-    _record_operation_receipt_audit,
     _set_snapshot_revision_header,
 )
 
@@ -42,7 +42,7 @@ def _register_participant_execution_routes(
     async def control_participant_execution(
         execution_scope_ref: str,
         request: Request,
-        identity: _MutatingIdentity,
+        identity: _AdministrativeMutationIdentity,
         body: _ParticipantExecutionControlBody,
     ) -> OperationReceiptModel:
         calls = _control_plane_calls(request)
@@ -60,15 +60,7 @@ def _register_participant_execution_routes(
                 identity=identity,
             )
         except ValueError as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
-        _record_operation_receipt_audit(
-            calls,
-            control_plane,
-            action=f"participant_execution_{body.action}",
-            identity=identity.identity,
-            target=str(request.url.path),
-            receipt=receipt,
-        )
+            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
         return _receipt_response(receipt)
 
     @app.get(
@@ -79,7 +71,7 @@ def _register_participant_execution_routes(
         execution_scope_ref: str,
         request: Request,
         response: Response,
-        identity: _ReadIdentity,
+        identity: _AdministrativeReadIdentity,
     ) -> ParticipantExecutionServiceStateModel:
         calls = _control_plane_calls(request)
         try:
@@ -88,13 +80,13 @@ def _register_participant_execution_routes(
                 lambda: control_plane.participant_execution_state(execution_scope_ref),
             )
         except ValueError as exc:
-            raise HTTPException(status_code=404, detail=str(exc)) from exc
+            raise HTTPException(status_code=404, detail="participant execution not found") from exc
         await calls.run(
             control_plane.record_audit,
             action="get_participant_execution_state",
             identity=identity.identity,
             allowed=True,
-            target=str(request.url.path),
+            target=control_plane._target_scope,
         )
         _set_snapshot_revision_header(response, revision)
         return state
@@ -120,7 +112,7 @@ def _register_participant_control_routes(
         participant_address: str,
         request: Request,
         body: ParticipantControlIntent,
-        identity: _MutatingIdentity,
+        identity: _AdministrativeMutationIdentity,
     ) -> OperationReceiptModel:
         calls = _control_plane_calls(request)
         try:
@@ -137,7 +129,7 @@ def _register_participant_control_routes(
                 action="record_participant_control",
                 identity=identity.identity,
                 allowed=False,
-                target=participant_address,
+                target=control_plane._target_scope,
                 reason="forbidden-subject",
             )
             raise HTTPException(status_code=403, detail="forbidden") from exc
@@ -160,7 +152,7 @@ def _register_participant_episode_start_routes(
     async def initialize_participant_episode(
         participant_address: str,
         request: Request,
-        identity: _MutatingIdentity,
+        identity: _AdministrativeMutationIdentity,
         body: _ParticipantInitializeBody | None = None,
     ) -> OperationReceiptModel:
         payload = body or _ParticipantInitializeBody()
@@ -174,15 +166,7 @@ def _register_participant_episode_start_routes(
                 identity=identity,
             )
         except ValueError as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
-        _record_operation_receipt_audit(
-            calls,
-            control_plane,
-            action="initialize_participant_episode",
-            identity=identity.identity,
-            target=str(request.url.path),
-            receipt=receipt,
-        )
+            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
         return _receipt_response(receipt)
 
     @app.post(
@@ -192,7 +176,7 @@ def _register_participant_episode_start_routes(
     async def reset_participant_episode(
         participant_address: str,
         request: Request,
-        identity: _MutatingIdentity,
+        identity: _AdministrativeMutationIdentity,
         body: _ParticipantResetBody | None = None,
     ) -> OperationReceiptModel:
         payload = body or _ParticipantResetBody()
@@ -207,15 +191,7 @@ def _register_participant_episode_start_routes(
                 identity=identity,
             )
         except ValueError as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
-        _record_operation_receipt_audit(
-            calls,
-            control_plane,
-            action="reset_participant_episode",
-            identity=identity.identity,
-            target=str(request.url.path),
-            receipt=receipt,
-        )
+            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
         return _receipt_response(receipt)
 
 
@@ -230,7 +206,7 @@ def _register_participant_episode_end_routes(
     async def restart_participant_episode(
         participant_address: str,
         request: Request,
-        identity: _MutatingIdentity,
+        identity: _AdministrativeMutationIdentity,
         body: _ParticipantRestartBody | None = None,
     ) -> OperationReceiptModel:
         payload = body or _ParticipantRestartBody()
@@ -245,15 +221,7 @@ def _register_participant_episode_end_routes(
                 identity=identity,
             )
         except ValueError as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
-        _record_operation_receipt_audit(
-            calls,
-            control_plane,
-            action="restart_participant_episode",
-            identity=identity.identity,
-            target=str(request.url.path),
-            receipt=receipt,
-        )
+            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
         return _receipt_response(receipt)
 
     @app.post(
@@ -263,7 +231,7 @@ def _register_participant_episode_end_routes(
     async def terminate_participant_episode(
         participant_address: str,
         request: Request,
-        identity: _MutatingIdentity,
+        identity: _AdministrativeMutationIdentity,
         body: _ParticipantTerminateBody | None = None,
     ) -> OperationReceiptModel:
         payload = body or _ParticipantTerminateBody()
@@ -271,7 +239,7 @@ def _register_participant_episode_end_routes(
         try:
             terminal_reason = ParticipantEpisodeTerminalReason(payload.terminal_reason)
         except ValueError as exc:
-            raise HTTPException(status_code=400, detail=f"invalid terminal_reason: {exc}") from exc
+            raise HTTPException(status_code=400, detail="invalid terminal_reason") from exc
         try:
             receipt = await calls.mutate(
                 control_plane.terminate_participant_episode,
@@ -282,13 +250,5 @@ def _register_participant_episode_end_routes(
                 identity=identity,
             )
         except ValueError as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
-        _record_operation_receipt_audit(
-            calls,
-            control_plane,
-            action="terminate_participant_episode",
-            identity=identity.identity,
-            target=str(request.url.path),
-            receipt=receipt,
-        )
+            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
         return _receipt_response(receipt)

@@ -302,7 +302,7 @@ def test_each_collection_member_must_pass_the_owning_slot_semantics() -> None:
     payload["assertions"] = {"blue-present": {"proposition": "blue-present", "role": "postcondition"}}
     payload["objectives"] = {
         "self-dependent": {
-            "entity": "blue",
+            "owner": "blue",
             "success": {"assertions": ["blue-present"]},
         }
     }

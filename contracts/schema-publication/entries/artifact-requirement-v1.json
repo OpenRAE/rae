@@ -1,10 +1,10 @@
 {
+  "content_hash": "a0bbfb4ec59b959ba22be81cbd29d1bb3356e1388362ce75d57ac965a5a6ffcc",
   "contract_id": "artifact-requirement-v1",
-  "schema_path": "contracts/schemas/artifact-requirements/artifact-requirement-v1.json",
-  "stability": "draft",
-  "content_hash": "ef600afede410ece2c5a2e53d6ef0deefa26b5ce11ea72f10479b962a66794e3",
   "last_change": {
-    "summary": "Preserve governed private runtime identities and close finite operation string branches for issue #1206.",
-    "content_hash": "ef600afede410ece2c5a2e53d6ef0deefa26b5ce11ea72f10479b962a66794e3"
-  }
+    "content_hash": "a0bbfb4ec59b959ba22be81cbd29d1bb3356e1388362ce75d57ac965a5a6ffcc",
+    "summary": "Publish model-enforced omission rules for redacted runtime/image values and commands, and expected-absent filesystem facts (#1241 review)."
+  },
+  "schema_path": "contracts/schemas/artifact-requirements/artifact-requirement-v1.json",
+  "stability": "draft"
 }

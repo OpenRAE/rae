@@ -1,9 +1,9 @@
 {
-  "content_hash": "89a83bed919e2279627e7e574693a623ccfb70d7be8f1de43803a6af325c9e56",
+  "content_hash": "a54f1d52cc08499c8ad50fc230c16f88f46da75a493c593c9faf8f463e4afd1f",
   "contract_id": "backend-manifest-v2",
   "last_change": {
-    "content_hash": "89a83bed919e2279627e7e574693a623ccfb70d7be8f1de43803a6af325c9e56",
-    "summary": "Added the random_value generated-artifact generator with a typed recipe (alphabet/length/entropy/format), a regeneration_scope (per_run/per_instantiation/once), content text_from and proposition expected_from deferred references, plus provisioner regeneration-scope and content_text delivery capabilities and the evaluator deferred-expected-comparison capability for issue #1276."
+    "summary": "Retain participant-control v2 declarations after reverting operation-supervision guarantees (#1365, #1400).",
+    "content_hash": "a54f1d52cc08499c8ad50fc230c16f88f46da75a493c593c9faf8f463e4afd1f"
   },
   "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
   "stability": "draft"

@@ -7,10 +7,11 @@ This document is the issue #74 formal design artifact for:
 - `RUN-307` - Shared Operational State Model
 - `RUN-308` - Concurrent Participant Execution
 
-It is a design artifact, not an implementation artifact. It establishes the
-runtime model that later per-UID implementation issues must realize in
-contracts, processor/runtime helpers, backend capability declarations,
-conformance checks, and tests.
+It is the normative design artifact for the participant-runtime family. Its
+original design status does not mean the family is wholly unimplemented:
+bounded per-UID slices now exist in contracts, processor/runtime helpers,
+backend capability declarations, conformance checks, and tests. The remaining
+boundaries below state what those slices do not establish.
 
 Enum blocks use formal names. Implementation schemas should publish a single
 wire spelling and document the mapping; the intended wire spelling is lowercase
@@ -18,7 +19,8 @@ snake_case unless an existing RAES contract family requires a different style.
 
 ## Current Sufficiency Finding
 
-The existing implementation is not sufficient for `RUN-305` through `RUN-308`.
+The existing implementation provides bounded `RUN-305` through `RUN-308`
+slices, but is not sufficient for the complete participant-runtime family.
 
 What exists:
 
@@ -40,28 +42,25 @@ What exists:
   exposure-policy evidence for participant implementations used in a run.
 - Backend manifests can declare participant runtime roles, behavior features,
   interaction features, and required evidence contracts.
+- The bounded RUN-305 runtime state/history slice has contract, schema,
+  semantic-validator, runtime-adapter, control-plane, and focused integration
+  coverage in `test_run_305_participant_runtime_state_history.py`.
+- `test_participant_runtime_invariants.py` is separately a closed, test-local
+  oracle for selected formal trace predicates; it is not production runtime
+  enforcement evidence.
 
 What is missing:
 
-- no joint participant runtime model that binds episode state, behavior
-  history, shared operational state, and concurrent execution;
-- no formal statement that the `RUN-306` lifecycle is observable boundary
-  semantics rather than a participant-internal planner loop;
-- no versioned shared operational state envelope with revision, digest,
-  visibility projection, conflict policy, provenance, and markings;
-- no abstract state machine for action lifecycle, observation, operation, and
-  shared-state commits;
-- no concurrency model that prevents implicit last-writer-wins or timestamp-only
-  ordering claims;
-- no information-state semantics for noisy, lossy, stochastic, or redacted
-  observations;
-- no full benchmark/runtime provenance surface sufficient for reproducibility
-  claims beyond the participant implementation manifest/provenance contracts;
-- no per-UID design coverage for `RUN-305`, `RUN-306`, `RUN-307`, and
-  `RUN-308`.
+- no complete cross-backend runtime realization, interoperability, or
+  conformance proof spanning the full RUN-305 through RUN-308 family;
+- no deployed-backend proof that elevates bounded contracts and probes into
+  universal concurrency, information-state, benchmark, or reproducibility
+  guarantees; or
+- no basis to infer mixed-backend delivery from the open #1013 through #1019
+  work.
 
-The repository is therefore at design coverage after this artifact, not
-implementation coverage.
+The repository is therefore at partial implementation coverage, not complete
+family or deployed-backend conformance coverage.
 
 ## Source Alignment And Design Constraints
 

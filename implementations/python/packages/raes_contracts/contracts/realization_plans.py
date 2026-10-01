@@ -13,6 +13,7 @@ from ..artifact_requirements import ArtifactSatisfactionDisclosureModel
 from ..bounded_domains import DomainDescriptor
 from ..compute_substrate import validate_compute_substrate_constraint, validate_planned_substrate_targets
 from ..domain_profiles import DomainProfileBindingModel
+from ..materialization import require_materialization_records
 from ..observation_demand import EffectiveObservationDemand
 from ..planning import (
     RealizationAuthorityMode,
@@ -33,6 +34,8 @@ from .execution_state import (
     WorkflowExecutionStateModel,
     WorkflowHistoryEventModel,
 )
+from .materialization_attestation import MaterializationArchiveRecord, MaterializationPlanModel
+from .mixed_runtime import MixedCompositionRuntimeEventModel, MixedCompositionRuntimeStateModel
 from .operating_systems import ObservedOperatingSystemIdentityModel
 from .participant_control import ParticipantControlOccurrenceModel
 from .participant_crossing import ParticipantCrossingOccurrenceModel
@@ -43,6 +46,7 @@ from .participant_envelopes import (
 )
 from .participant_execution import ParticipantExecutionServiceStateModel
 from .participant_information_state import ParticipantInformationStateRecordModel
+from .participant_outcomes import ParticipantOutcomeReportV2Model
 from .participant_resource_budgets import (
     ParticipantResourceBudgetEventModel,
     ParticipantResourceBudgetStateModel,
@@ -55,6 +59,7 @@ from .participant_runtime import (
     ParticipantEpisodeStateModel,
 )
 from .realization_observation_validation import validate_realization_observation_disclosure
+from .snapshot_budget_validation import validate_execution_service_budget_projection
 from .snapshot_entry import SnapshotEntryModel as SnapshotEntryModel
 from .time_model import TimeRuntimeStateModel
 
@@ -248,7 +253,7 @@ class ResolvedRealizationAuthorityModel(ContractModel):
             raise ValueError("apparatus realization default must resolve open or closed")
 
 
-class ProvisioningPlanModel(ContractModel):
+class ProvisioningPlanModel(MaterializationPlanModel):
     operations: list[PlanOperationModel] = Field(default_factory=list)
     diagnostics: list[dict[str, Any]] = Field(default_factory=list)
     realization_authority: list[ResolvedRealizationAuthorityModel]
@@ -281,7 +286,7 @@ class ProvisioningPlanModel(ContractModel):
         return self
 
 
-class OrchestrationPlanModel(ContractModel):
+class OrchestrationPlanModel(MaterializationPlanModel):
     operations: list[PlanOperationModel] = Field(default_factory=list)
     startup_order: list[CompiledAddress] = Field(default_factory=list)
     diagnostics: list[dict[str, Any]] = Field(default_factory=list)
@@ -295,7 +300,7 @@ class OrchestrationPlanModel(ContractModel):
         return self
 
 
-class EvaluationPlanModel(ContractModel):
+class EvaluationPlanModel(MaterializationPlanModel):
     operations: list[PlanOperationModel] = Field(default_factory=list)
     startup_order: list[CompiledAddress] = Field(default_factory=list)
     diagnostics: list[dict[str, Any]] = Field(default_factory=list)
@@ -368,38 +373,6 @@ def _require_embedded_map_keys(
             raise ValueError(message)
 
 
-def _validate_execution_service_budget_projection(
-    services: Mapping[str, ParticipantExecutionServiceStateModel],
-    budget_states: Mapping[str, ParticipantResourceBudgetStateModel],
-) -> None:
-    budget_refs = set(budget_states)
-    for service in services.values():
-        missing = sorted(set(service.resource_budget_state_refs) - budget_refs)
-        if missing:
-            raise ValueError(
-                "Participant execution service references missing resource-budget states: " + ", ".join(missing)
-            )
-        concurrency = [
-            budget_states[budget_ref]
-            for budget_ref in service.resource_budget_state_refs
-            if budget_states[budget_ref].resource_kind == "concurrent_actions"
-        ]
-        if not concurrency:
-            continue
-        if len(concurrency) != 1:
-            raise ValueError(
-                "Participant execution service must reference exactly one authoritative concurrency budget"
-            )
-        authoritative = concurrency[0]
-        projection = (service.capacity, service.reserved, service.in_flight)
-        authority = (authoritative.limit, authoritative.reserved, authoritative.current_use)
-        if projection != authority:
-            raise ValueError(
-                "Participant execution service concurrency projection must "
-                "equal its authoritative resource-budget state"
-            )
-
-
 class RuntimeSnapshotEnvelopeModel(ContractModel):
     """Published envelope for a live runtime snapshot.
 
@@ -427,7 +400,15 @@ class RuntimeSnapshotEnvelopeModel(ContractModel):
     participant_behavior_history: dict[str, list[ParticipantBehaviorHistoryEventModel]] = Field(default_factory=dict)
     participant_control_history: dict[str, list[ParticipantControlOccurrenceModel]] = Field(default_factory=dict)
     participant_crossing_history: dict[str, list[ParticipantCrossingOccurrenceModel]] = Field(default_factory=dict)
+    # The published participant-control-evaluation-v1 schema is the authority for
+    # each retained record (RuntimeSnapshot validates every one against it); the
+    # snapshot envelope carries them like other linked records rather than
+    # embedding a second normative copy of that contract.
+    participant_control_evaluation_history: dict[str, list[dict[str, Any]]] = Field(default_factory=dict)
+    mixed_composition_states: dict[str, MixedCompositionRuntimeStateModel] = Field(default_factory=dict)
+    mixed_composition_history: dict[str, list[MixedCompositionRuntimeEventModel]] = Field(default_factory=dict)
     information_state_history: dict[str, list[ParticipantInformationStateRecordModel]] = Field(default_factory=dict)
+    participant_outcome_history: dict[str, list[ParticipantOutcomeReportV2Model]] = Field(default_factory=dict)
     participant_autonomous_execution_states: dict[str, ParticipantAutonomousExecutionStateModel] = Field(
         default_factory=dict
     )
@@ -442,11 +423,28 @@ class RuntimeSnapshotEnvelopeModel(ContractModel):
     time_model_state: TimeRuntimeStateModel | None = None
     realization_provenance: list[RealizationProvenanceEntryModel] = Field(default_factory=list)
     realization_observations: list[RealizationObservationDisclosureModel] = Field(default_factory=list)
+    materialization_attestations: list[MaterializationArchiveRecord] = Field(default_factory=list, max_length=4096)
     realization_envelope: RealizationEnvelopeIdentityModel | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def _validate_entry_addresses(self) -> RuntimeSnapshotEnvelopeModel:
+        from ..mixed_runtime_history import iter_mixed_runtime_snapshot_violations
+        from ..participant_temporal import require_participant_temporal_history
+
+        require_participant_temporal_history(self)
+
+        if list(
+            iter_mixed_runtime_snapshot_violations(
+                {key: value.model_dump(mode="json") for key, value in self.mixed_composition_states.items()},
+                {
+                    key: [event.model_dump(mode="json") for event in events]
+                    for key, events in self.mixed_composition_history.items()
+                },
+            )
+        ):
+            raise ValueError("Mixed composition state and history are inconsistent")
+        require_materialization_records(tuple(self.materialization_attestations))
         _require_embedded_map_keys(
             self.entries,
             "address",
@@ -485,7 +483,10 @@ class RuntimeSnapshotEnvelopeModel(ContractModel):
         for participant_address, records in self.information_state_history.items():
             if any(record.participant_address != participant_address for record in records):
                 raise ValueError("Information-state history map key must equal embedded participant_address")
-        _validate_execution_service_budget_projection(
+        from ..participant_outcome_history import require_outcome_envelope
+
+        require_outcome_envelope(self)
+        validate_execution_service_budget_projection(
             self.participant_execution_services,
             self.participant_resource_budget_states,
         )

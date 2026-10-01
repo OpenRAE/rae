@@ -1,0 +1,279 @@
+{
+  "allocations": {
+    "allocation.action": {
+      "action_authority_ref": "authority:action",
+      "allocation_id": "allocation.action",
+      "controller_ref": "controller:operator",
+      "feature_requirements": [
+        {
+          "allowed_downgrade_level": null,
+          "downgrade_policy_ref": null,
+          "downgrade_provenance_ref": null,
+          "feature": "participant_ingress_admission",
+          "required_level": "exact"
+        }
+      ],
+      "participant_identity_ref": "participant:alice",
+      "phase_ids": [
+        "phase.main"
+      ],
+      "provider_component_id": "sim",
+      "routing_ref": "route:portable",
+      "target_address": "actions.alice.inspect",
+      "target_kind": "action-family"
+    },
+    "allocation.crossing": {
+      "action_authority_ref": "authority:action",
+      "allocation_id": "allocation.crossing",
+      "controller_ref": "controller:operator",
+      "feature_requirements": [
+        {
+          "allowed_downgrade_level": null,
+          "downgrade_policy_ref": null,
+          "downgrade_provenance_ref": null,
+          "feature": "participant_ingress_admission",
+          "required_level": "exact"
+        }
+      ],
+      "participant_identity_ref": "participant:alice",
+      "phase_ids": [
+        "phase.main"
+      ],
+      "provider_component_id": "emu",
+      "routing_ref": "route:portable",
+      "target_address": "crossings.alice.status",
+      "target_kind": "crossing"
+    },
+    "allocation.observation": {
+      "action_authority_ref": "authority:action",
+      "allocation_id": "allocation.observation",
+      "controller_ref": "controller:operator",
+      "feature_requirements": [
+        {
+          "allowed_downgrade_level": null,
+          "downgrade_policy_ref": null,
+          "downgrade_provenance_ref": null,
+          "feature": "participant_ingress_admission",
+          "required_level": "exact"
+        }
+      ],
+      "participant_identity_ref": "participant:alice",
+      "phase_ids": [
+        "phase.main"
+      ],
+      "provider_component_id": "emu",
+      "routing_ref": "route:portable",
+      "target_address": "observations.target.status",
+      "target_kind": "observation-source"
+    },
+    "allocation.participant": {
+      "action_authority_ref": "authority:action",
+      "allocation_id": "allocation.participant",
+      "controller_ref": "controller:operator",
+      "feature_requirements": [
+        {
+          "allowed_downgrade_level": null,
+          "downgrade_policy_ref": null,
+          "downgrade_provenance_ref": null,
+          "feature": "participant_ingress_admission",
+          "required_level": "exact"
+        }
+      ],
+      "participant_identity_ref": "participant:alice",
+      "phase_ids": [
+        "phase.main"
+      ],
+      "provider_component_id": "sim",
+      "routing_ref": "route:portable",
+      "target_address": "participants.alice",
+      "target_kind": "participant"
+    },
+    "allocation.scope": {
+      "action_authority_ref": "authority:action",
+      "allocation_id": "allocation.scope",
+      "controller_ref": "controller:operator",
+      "feature_requirements": [
+        {
+          "allowed_downgrade_level": null,
+          "downgrade_policy_ref": null,
+          "downgrade_provenance_ref": null,
+          "feature": "participant_ingress_admission",
+          "required_level": "exact"
+        }
+      ],
+      "participant_identity_ref": "participant:alice",
+      "phase_ids": [
+        "phase.main"
+      ],
+      "provider_component_id": "emu",
+      "routing_ref": "route:portable",
+      "target_address": "nodes.target",
+      "target_kind": "controlled-scope"
+    }
+  },
+  "components": {
+    "emu": {
+      "apparatus_identity_ref": "apparatus:emu",
+      "component_id": "emu",
+      "manifest_ref": {
+        "ref_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "ref_id": "emu",
+        "ref_kind": "manifest",
+        "ref_path": null,
+        "ref_version": "backend-manifest/v2",
+        "subject_ref": {
+          "ref_digest": null,
+          "ref_id": "emu",
+          "ref_kind": "backend",
+          "ref_path": null,
+          "ref_version": "1"
+        }
+      },
+      "native_ownership_ref": "native-ownership:emu",
+      "realization_envelope": {
+        "configuration_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "contract_id": "realization-envelope-v1",
+        "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "envelope_id": "envelope:emu",
+        "schema_version": "realization-envelope/v1"
+      },
+      "realization_form": "simulation"
+    },
+    "sim": {
+      "apparatus_identity_ref": "apparatus:sim",
+      "component_id": "sim",
+      "manifest_ref": {
+        "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "ref_id": "sim",
+        "ref_kind": "manifest",
+        "ref_path": null,
+        "ref_version": "backend-manifest/v2",
+        "subject_ref": {
+          "ref_digest": null,
+          "ref_id": "sim",
+          "ref_kind": "backend",
+          "ref_path": null,
+          "ref_version": "1"
+        }
+      },
+      "native_ownership_ref": "native-ownership:sim",
+      "realization_envelope": {
+        "configuration_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "contract_id": "realization-envelope-v1",
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "envelope_id": "envelope:sim",
+        "schema_version": "realization-envelope/v1"
+      },
+      "realization_form": "simulation"
+    }
+  },
+  "composition_mode": "simultaneous-mixed",
+  "contract_id": "mixed-participant-composition-profile-v1",
+  "control_loop_posture": "closed-loop",
+  "edges": {
+    "edge.sim-to-emu": {
+      "audience_scope_ref": "audience:alice",
+      "authority_ref": "authority:edge",
+      "controller_ref": "controller:operator",
+      "crossing_scope_address": "crossings.alice.status",
+      "crossing_subject": {
+        "contract_id": "participant-observation-envelope-v1",
+        "episode_id": "episode:1",
+        "participant_address": "participants.alice",
+        "subject_digest": null,
+        "subject_kind": "participant-observation",
+        "subject_ref": "observation:status",
+        "subject_revision": "7"
+      },
+      "disclosure_authority_ref": "authority:disclosure",
+      "edge_id": "edge.sim-to-emu",
+      "evidence_bindings": [
+        {
+          "evidence_ref": "evidence:edge-realization",
+          "obligation_ref": "obligation:edge-realization"
+        }
+      ],
+      "failure_behavior": {
+        "disposition": "fail-profile",
+        "failure_ref": "failure:edge"
+      },
+      "mapping_loss": {
+        "affected_ref": "observation:status",
+        "basis_ref": "mapping:basis",
+        "kind": "semantics_approximated",
+        "limitation_ref": "limitation:mapping"
+      },
+      "native_ownership_ref": "native-ownership:sim",
+      "phase_ids": [
+        "phase.main"
+      ],
+      "policy": {
+        "decision_cut_ref": "cut:7",
+        "effective_order": 7,
+        "policy_decision_ref": "decision:7",
+        "policy_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "policy_id": "policy:crossing",
+        "policy_revision": "3",
+        "valid_from_order": 1,
+        "valid_until_order": 9
+      },
+      "routing_ref": "route:portable",
+      "source_component_id": "sim",
+      "target_component_id": "emu",
+      "time_binding": {
+        "mapping_address": "time.mappings.sim-to-emu",
+        "ordering_basis": "partial_order",
+        "source_clock_address": "time.clocks.sim",
+        "target_clock_address": "time.clocks.emu",
+        "temporal_coupling": "bounded-asynchronous",
+        "time_model_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "time_model_ref": "time-model:composition"
+      }
+    }
+  },
+  "federation_membership": "pre-admitted-staged",
+  "initial_phase_id": "phase.main",
+  "nested_profile_refs": {},
+  "phase_order": [
+    "phase.main"
+  ],
+  "phases": {
+    "phase.main": {
+      "active_allocation_ids": [
+        "allocation.participant",
+        "allocation.scope",
+        "allocation.action",
+        "allocation.observation",
+        "allocation.crossing"
+      ],
+      "active_component_ids": [
+        "sim",
+        "emu"
+      ],
+      "active_edge_ids": [
+        "edge.sim-to-emu"
+      ],
+      "evidence_bindings": [
+        {
+          "evidence_ref": "evidence:phase-realization",
+          "obligation_ref": "obligation:phase-realization"
+        }
+      ],
+      "phase_id": "phase.main"
+    }
+  },
+  "profile_digest": "sha256:67feaacb36f64745fbd50a8013d3db93f83e24122f86c33699feffe9b383b86a",
+  "profile_id": "profile:mixed",
+  "profile_revision": "mixed-cross-backend-participant-control-v1@rev1",
+  "scenario_snapshot_ref": {
+    "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "ref_id": "scenario:authored",
+    "ref_kind": "scenario-snapshot",
+    "ref_path": null,
+    "ref_version": "1"
+  },
+  "schema_version": "mixed-participant-composition-profile/v1",
+  "semantic_revision": "sem-234/rev1",
+  "transitions": {},
+  "world_assumption": "bounded-open-world"
+}

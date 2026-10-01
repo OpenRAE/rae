@@ -25,6 +25,8 @@ class TrialCompilationLimitsModel(ContractModel):
     max_bindings_per_entry: PositiveInteger = 256
     max_draws_per_entry: PositiveInteger = 256
     max_diagnostics: PositiveInteger = 128
+    max_mixed_profiles: PositiveInteger = 256
+    max_mixed_context_work: PositiveInteger = 1_000_000
     max_plan_bytes: PositiveInteger = 32 * 1024 * 1024
 
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from raes_contracts.capture_dimensions import capture_offer_fields
 from raes_contracts.contracts import ObservationCapabilitiesModel
 
 from .capabilities import ObservationCapabilities
@@ -43,33 +44,7 @@ def observation_from_model(model: ObservationCapabilitiesModel | None) -> Observ
         supports_redaction=model.supports_redaction,
         supports_loss_disclosure=model.supports_loss_disclosure,
         supports_chain_of_custody=model.supports_chain_of_custody,
-        capture_offers=tuple(
-            ObservationCaptureOffer(
-                offer_id=offer.offer_id,
-                offer_version=offer.offer_version,
-                output_contract=offer.output_contract,
-                field_selectors=tuple(offer.field_selectors),
-                artifact_roles=frozenset(offer.artifact_roles),
-                media_types=frozenset(offer.media_types),
-                capture_kind=offer.capture_kind,
-                source_classes=frozenset(offer.source_classes),
-                source_refs=frozenset(offer.source_refs),
-                scopes=frozenset(offer.scopes),
-                scope_refs=frozenset(offer.scope_refs),
-                channel_kinds=frozenset(offer.channel_kinds),
-                channel_refs=frozenset(offer.channel_refs),
-                window_kinds=frozenset(offer.window_kinds),
-                integrity_modes=frozenset(offer.integrity_modes),
-                sensitivity=offer.sensitivity,
-                availability=offer.availability,
-                fidelity=offer.fidelity,
-                disclosure=offer.disclosure,
-                retention_policy_refs=frozenset(offer.retention_policy_refs),
-                export_policy=offer.export_policy,
-                redaction_policy=offer.redaction_policy,
-            )
-            for offer in model.capture_offers
-        ),
+        capture_offers=tuple(ObservationCaptureOffer(**capture_offer_fields(offer)) for offer in model.capture_offers),
         constraints=dict(model.constraints),
     )
 

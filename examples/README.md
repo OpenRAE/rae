@@ -24,11 +24,45 @@ backends, and evidence requirements.
 | [`scenarios/initial-service-state.sdl.yaml`](scenarios/initial-service-state.sdl.yaml) | Provider-neutral service-owned initial content | Disk-backed semantic validation of exact service binding, operation requirements, readback evidence, and participant projection | No current backend claims the `service-content-v1` materialization profile |
 | [`scenarios/techvault-bounded-native.sdl.yaml`](scenarios/techvault-bounded-native.sdl.yaml) | Bounded TechVault libvirt VM/network substrate with explicit resources and network policy | Native driver exactness/readback tests and opt-in real-libvirt cleanup certification | Deliberately excludes guest images, placements, services, ACLs, readiness, applications, and SOC claims |
 | [`scenarios/cross-backend-minimal.sdl.yaml`](scenarios/cross-backend-minimal.sdl.yaml) | Smallest scenario resolving inside more than one provisioning backend's realization envelope | Hermetic admission and apply on the reference in-process and recording-libvirt configurations, with resource correspondence and different bound substrate disclosures asserted | Does not exercise an OCI runtime or live libvirt/QEMU daemon and makes no infrastructure-equivalence or fidelity claim |
+| [`scenarios/reconciliation-demo-v1.sdl.yaml`](scenarios/reconciliation-demo-v1.sdl.yaml) | Baseline version of the reconciliation demonstration pair | Planner reconciliation across scenario versions, exercised end to end through `raes processor reconcile` | Plans only; the projected snapshot is assumed state, never backend readback or proof of realization |
+| [`scenarios/reconciliation-demo-v2.sdl.yaml`](scenarios/reconciliation-demo-v2.sdl.yaml) | Modified version that creates, updates, deletes, and leaves resources unchanged in one plan | Exact `create`/`update`/`delete`/`unchanged` outcomes across provisioning, orchestration, and evaluation | Same limits as the baseline; the pair demonstrates planner behavior, not a deployable environment |
 
 The corpus tests are in
 [`../implementations/python/tests/test_scenarios.py`](../implementations/python/tests/test_scenarios.py),
 with the focused cross-backend checks in
-[`../implementations/python/tests/test_cross_backend_minimal_scenario.py`](../implementations/python/tests/test_cross_backend_minimal_scenario.py).
+[`../implementations/python/tests/test_cross_backend_minimal_scenario.py`](../implementations/python/tests/test_cross_backend_minimal_scenario.py)
+and the reconciliation-pair checks in
+[`../implementations/python/tests/test_reconciliation_demonstration.py`](../implementations/python/tests/test_reconciliation_demonstration.py).
+
+## Reconciliation Demonstration
+
+The `reconciliation-demo-v1` / `reconciliation-demo-v2` pair makes the
+processor's reconciliation behavior directly observable. From the repository
+root:
+
+```shell
+uv run --project implementations/python --frozen raes processor reconcile \
+  examples/scenarios/reconciliation-demo-v1.sdl.yaml \
+  examples/scenarios/reconciliation-demo-v2.sdl.yaml \
+  --format json
+```
+
+The command plans v1 against the reference dry-run manifest, projects that
+plan into a snapshot, plans v2 against the snapshot, and prints every
+resulting action. Against the baseline's planned state, v2 creates
+`provision.node.cache`, updates `provision.node.database`, deletes
+`provision.node.retired`, and leaves the rest unchanged.
+`evaluation.condition.database.health` also updates even though its own
+payload is unchanged, because it refresh-depends on the database node -- the
+case a payload comparison gets wrong.
+
+Both files are import-free and declare nothing that regenerates per run or per
+instantiation, so the demonstration is offline and deterministic. The projected
+snapshot is synthetic assumed state: it is not backend readback, a durable
+checkpoint, or evidence that anything was realized, and the command applies,
+provisions, and starts nothing. The report summarizes resource identity and
+dependencies and deliberately omits resource payloads, which can carry authored
+credentials and content.
 
 ## Template And Pattern Library
 

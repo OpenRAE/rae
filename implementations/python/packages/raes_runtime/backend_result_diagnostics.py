@@ -31,10 +31,11 @@ __all__ = [
 
 
 def _backend_call_failed(address: str, exc: Exception) -> Diagnostic:
+    del exc
     return _failure_diagnostic(
         "runtime.backend-call-failed",
         address,
-        f"Backend method '{address}' did not complete ({type(exc).__name__}).",
+        "Backend method did not complete.",
     )
 
 

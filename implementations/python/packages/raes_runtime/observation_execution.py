@@ -258,12 +258,12 @@ def _execute_admitted_plan_observation(
             address=_OBSERVATION_ADDRESS,
             message="Observation runtime did not satisfy the admitted selector contract.",
         )
-    except Exception as exc:
+    except Exception:
         return None, Diagnostic(
             code="observation.runtime-adapter-failed",
             domain="runtime",
             address=_OBSERVATION_ADDRESS,
-            message=f"Observation runtime adapter did not complete ({type(exc).__name__}).",
+            message="Observation runtime adapter did not complete.",
         )
     return execution, None
 

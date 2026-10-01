@@ -4,6 +4,22 @@ Date: 2026-08-11
 
 Issue: #1092. Requirement: API-404.
 
+> **Superseded recovery guidance:** ADR-104 and the issue #1179 startup
+> reconciliation preflight supersede this note's original blanket
+> interrupted-to-`FAILED` conversion and store-owned
+> `reconcile_interrupted_records()` compatibility workflow. The durability,
+> transaction, codec, filesystem, and lease decisions below remain in force;
+> current recovery must preserve non-terminal claims until the runtime-owned
+> CP-3 classifier can observe and atomically commit `FAILED`/`CANCELLED`,
+> `SUCCEEDED`, or `INDETERMINATE` with its actor-bound audit.
+>
+> **Superseded ownership guidance:** ADR-104 CP-5 and the issue #1183 store
+> ownership lease preflight supersede this note's constructor-time provider
+> access and allowance for independent unleased maintenance/read instances.
+> Durable provider schema, migration, metadata, and state access now requires
+> the exclusive lease and immutable target/run scope admission. Shutdown closes
+> the provider before releasing that lease.
+
 ## Decision
 
 `LocalControlPlaneStore` remains the single-host reference persistence owner,

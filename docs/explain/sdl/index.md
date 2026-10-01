@@ -163,6 +163,7 @@ accounts:
 - [Testing](testing.md) — How to run unit tests, stress tests, and fuzz tests
 - [Complex Scenario Designs](complex-scenarios.md) — Up-front design briefs for large example exercises
 - [Runtime Architecture](runtime-architecture.md) — SDL-native compiler, composite plans, and runtime targets
+- [Control-Plane Recovery Operations](control-plane-operations.md) — Health, shutdown, recovery classification, local backup/restore, and upgrade procedures
 
 ## Usage
 

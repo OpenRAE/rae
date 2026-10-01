@@ -311,6 +311,22 @@ def test_positive_probe_enforces_declared_daemon_or_guest_strength(
 
 
 @pytest.mark.parametrize(
+    "required,actual",
+    [
+        (ObservationStrength.DAEMON_OBSERVED, ObservationStrength.GUEST_OBSERVED),
+        (ObservationStrength.GUEST_OBSERVED, ObservationStrength.DAEMON_OBSERVED),
+        (ObservationStrength.DRIVER_REPORTED, ObservationStrength.DAEMON_OBSERVED),
+    ],
+)
+def test_conformance_rejects_different_source_even_when_formerly_ranked_stronger(required, actual):
+    report = _run(_ScriptedHarness(observation_strength=actual), envelope=_constructive_envelope(strength=required))
+    assert not report.passed
+    assert "conformance.observation-strength-insufficient" in {
+        diagnostic.code for case in report.cases for diagnostic in case.diagnostics
+    }
+
+
+@pytest.mark.parametrize(
     ("fault", "code"),
     [
         ("missing-operation", "conformance.operation-accounting-incomplete"),

@@ -2,7 +2,17 @@
 
 from __future__ import annotations
 
+from .participant_relationships import PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS
+
 REFERENCE_COMPLETION_TARGETS = {
+    **{
+        ("relationships", field): section
+        for field, section in PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS.items()
+        if section != "named"
+    },
+    ("relationships", "authority_basis_refs"): "any",
+    ("relationships", "scope_refs"): "targetable",
+    ("relationships", "control_specification_ref"): "behavior_specifications",
     ("nodes", "features"): "features",
     ("nodes", "conditions"): "conditions",
     ("nodes", "injects"): "injects",
@@ -36,7 +46,7 @@ REFERENCE_COMPLETION_TARGETS = {
     ("relationships", "target"): "targetable",
     ("relationships", "controller_refs"): "nodes",
     ("relationships", "mutable_state_refs"): "persistent_volumes",
-    ("agents", "entity"): "entities",
+    ("agents", "affiliations"): "entities",
     ("agents", "starting_accounts"): "accounts",
     ("agents", "starting_assertions"): "assertions",
     ("agents", "target_ref"): "nodes",
@@ -71,8 +81,9 @@ REFERENCE_COMPLETION_TARGETS = {
     ("time_progression_policies", "clock_ref"): "clocks",
     ("temporal_constraints", "clock_ref"): "clocks",
     ("temporal_constraints", "subject_refs"): "targetable",
-    ("objectives", "agent"): "agents",
-    ("objectives", "entity"): "entities",
+    ("objectives", "assigned_participant"): "agents",
+    ("objectives", "owner"): "entities",
+    ("objectives", "actions"): "action_contracts",
     ("objectives", "targets"): "targetable",
     ("objectives", "depends_on"): "objectives",
     ("objectives", "assertions"): "assertions",
@@ -91,6 +102,7 @@ REFERENCE_COMPLETION_TARGETS = {
 }
 
 SECTION_FIELD_COMPLETIONS = {
+    "augmentation_scope": ("default", "scopes"),
     "realization": ("default", "scopes"),
     "nodes": (
         "type",
@@ -146,6 +158,7 @@ SECTION_FIELD_COMPLETIONS = {
     "deployment_cells": ("tenant_ref", "node_refs", "cross_tenant_isolation"),
     "relationships": (
         "type",
+        "participant",
         "source",
         "target",
         "properties",
@@ -157,7 +170,8 @@ SECTION_FIELD_COMPLETIONS = {
         "shared_service",
     ),
     "agents": (
-        "entity",
+        "affiliations",
+        "role",
         "actions",
         "starting_accounts",
         "starting_assertions",
@@ -242,7 +256,7 @@ SECTION_FIELD_COMPLETIONS = {
         "cadence_ticks",
         "description",
     ),
-    "objectives": ("agent", "entity", "actions", "targets", "success", "window", "depends_on"),
+    "objectives": ("assigned_participant", "owner", "actions", "targets", "success", "window", "depends_on"),
     "workflows": ("start", "steps"),
     "variables": ("type", "default", "required", "allowed_values", "description"),
     "variation_points": (

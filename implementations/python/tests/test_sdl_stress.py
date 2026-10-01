@@ -1122,10 +1122,38 @@ entities:
       analyst: {name: SOC Analyst}
   green-team: {name: Normal Users, role: Green}
 
+action_contracts:
+  discover-remote-systems: &cage-action
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: abstract CAGE action intent
+    realization_profile: abstract
+    fidelity_claim: intent only, no concrete exploitation or observation realization
+    preconditions:
+      - {precondition_id: authorized, precondition_class: authority, description: independently authorized action}
+    effects:
+      - {effect_id: intent, effect_class: intended_effect, description: declared action intent, target_refs: [nodes.enterprise0]}
+    failure_classes: [authority_denied, unknown]
+  discover-network-services: *cage-action
+  exploit-remote-service: *cage-action
+  eternal-blue: *cage-action
+  ssh-brute-force: *cage-action
+  privilege-escalate: *cage-action
+  impact: *cage-action
+  monitor: *cage-action
+  analyse: *cage-action
+  remove: *cage-action
+  restore: *cage-action
+  decoy-apache: *cage-action
+  decoy-sshd: *cage-action
+  normal-browsing: *cage-action
+  email-check: *cage-action
+  file-access: *cage-action
+
 agents:
   red-agent:
-    entity: red-team
-    actions: [DiscoverRemoteSystems, DiscoverNetworkServices, ExploitRemoteService, EternalBlue, SSHBruteForce, PrivilegeEscalate, Impact]
+    affiliations: [red-team]
+    actions: [discover-remote-systems, discover-network-services, exploit-remote-service, eternal-blue, ssh-brute-force, privilege-escalate, impact]
     starting_accounts: [phished-user]
     initial_knowledge:
       hosts: [user0]
@@ -1133,8 +1161,8 @@ agents:
     allowed_subnets: [user-net, enterprise-net]
 
   blue-agent:
-    entity: blue-team.analyst
-    actions: [Monitor, Analyse, Remove, Restore, DecoyApache, DecoySSHD]
+    affiliations: [blue-team.analyst]
+    actions: [monitor, analyse, remove, restore, decoy-apache, decoy-sshd]
     starting_accounts: [soc-admin]
     initial_knowledge:
       hosts: [defender, enterprise0, enterprise1, user0, user1]
@@ -1142,8 +1170,8 @@ agents:
     allowed_subnets: [user-net, enterprise-net, op-net]
 
   green-agent:
-    entity: green-team
-    actions: [NormalBrowsing, EmailCheck, FileAccess]
+    affiliations: [green-team]
+    actions: [normal-browsing, email-check, file-access]
     starting_accounts: [green-user]
     allowed_subnets: [user-net]
     description: "Simulates normal user behavior"
@@ -1174,8 +1202,8 @@ stories:
 
 objectives:
   red-establish-foothold:
-    agent: red-agent
-    actions: [DiscoverRemoteSystems, ExploitRemoteService, EternalBlue]
+    assigned_participant: red-agent
+    actions: [discover-remote-systems, exploit-remote-service, eternal-blue]
     targets: [enterprise0]
     success:
       assertions: [enterprise0-compromised]
@@ -1185,8 +1213,8 @@ objectives:
       events: [phishing-wave]
 
   blue-detect-and-report:
-    agent: blue-agent
-    actions: [Monitor, Analyse]
+    assigned_participant: blue-agent
+    actions: [monitor, analyse]
     targets: [enterprise0, velociraptor]
     success:
       assertions: [enterprise0-detected]
@@ -1413,7 +1441,7 @@ stories:
 
 objectives:
   preserve-federated-auth:
-    entity: blue-team
+    owner: blue-team
     targets: [adfs-service, child-trusts-parent]
     success:
       assertions: [federation-service-up]

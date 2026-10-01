@@ -7,6 +7,12 @@ from typing import TYPE_CHECKING, Protocol
 from raes_contracts.contracts import (
     ParticipantTemporalRuntimeContextModel,
 )
+from raes_contracts.contracts.participant_control_composition import ParticipantControlRequestModel
+from raes_contracts.contracts.participant_control_invocation import (
+    ControlInvocationV2Model,
+    ControlMechanismResultV2Model,
+)
+from raes_contracts.contracts.participant_control_results import ControlMechanismResultModel
 from raes_contracts.contracts.participant_execution import (
     ParticipantExecutionControlRequestModel,
     ParticipantExecutionServiceStateModel,
@@ -26,6 +32,28 @@ from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 if TYPE_CHECKING:
     from raes_contracts.contracts.time_model import TimeModelDeclarationModel, TimeRuntimeStateModel
+
+
+class ParticipantControlProvider(Protocol):
+    """Operator-bound API-424 resolver, explicitly negotiated as provider/v1.
+
+    Resolve immutable admitted inputs without world effects. Returned state is
+    speculative until the runtime's atomic commit. Structural method presence
+    does not establish installation, capability, authority or realization.
+    """
+
+    def resolve(self, request: ParticipantControlRequestModel) -> tuple[ControlMechanismResultModel, ...]: ...
+
+
+class ParticipantControlProviderV2(Protocol):
+    """Separately negotiated provider/v2 over one detached slot/stage input.
+
+    The invocation supplies exact content-bound predecessor and scoped-state
+    references. An installed backend resolves only its admitted projection;
+    method presence alone proves no capability, authority or realization.
+    """
+
+    def resolve_stage(self, invocation: ControlInvocationV2Model) -> tuple[ControlMechanismResultV2Model, ...]: ...
 
 
 class Provisioner(Protocol):

@@ -2,9 +2,9 @@
   "contract_id": "participant-execution-binding-v1",
   "schema_path": "contracts/schemas/participant-runtime/participant-execution-binding-v1.json",
   "stability": "draft",
-  "content_hash": "19ce843b0a2dd666954abc2cad2b23ef76ad800bce4bc95d156c49b6f7424671",
+  "content_hash": "a58d81f90d3fec4e9b8e52671101642a1669e08c2d26ed220c60e8918267d746",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "19ce843b0a2dd666954abc2cad2b23ef76ad800bce4bc95d156c49b6f7424671"
+    "summary": "Add opt-in bounded shared-time guarantees and typed numeric authoring; keep backend execution capabilities conditional (#216).",
+    "content_hash": "a58d81f90d3fec4e9b8e52671101642a1669e08c2d26ed220c60e8918267d746"
   }
 }

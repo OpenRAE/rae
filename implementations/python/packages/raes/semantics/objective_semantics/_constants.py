@@ -14,6 +14,8 @@ from ..objectives import ObjectiveDependencyRole
 _BOTH_ROLES = (ObjectiveDependencyRole.ORDERING, ObjectiveDependencyRole.REFRESH)
 OBJECTIVE_SUCCESS_DEPENDENCY_ROLES: tuple[ObjectiveDependencyRole, ...] = _BOTH_ROLES
 OBJECTIVE_DEPENDENCY_DEPENDENCY_ROLES: tuple[ObjectiveDependencyRole, ...] = _BOTH_ROLES
-OBJECTIVE_ACTOR_DEPENDENCY_ROLES: tuple[ObjectiveDependencyRole, ...] = ()
+OBJECTIVE_OWNER_DEPENDENCY_ROLES: tuple[ObjectiveDependencyRole, ...] = ()
+OBJECTIVE_ASSIGNMENT_DEPENDENCY_ROLES: tuple[ObjectiveDependencyRole, ...] = ()
+OBJECTIVE_ACTION_CONSTRAINT_DEPENDENCY_ROLES: tuple[ObjectiveDependencyRole, ...] = ()
 OBJECTIVE_TARGET_DEPENDENCY_ROLES: tuple[ObjectiveDependencyRole, ...] = ()
 OBJECTIVE_WINDOW_DEPENDENCY_ROLES: tuple[ObjectiveDependencyRole, ...] = (ObjectiveDependencyRole.REFRESH,)

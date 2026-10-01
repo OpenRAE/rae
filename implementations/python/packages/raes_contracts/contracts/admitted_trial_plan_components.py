@@ -49,11 +49,20 @@ class AdmittedTrialPlanProfilesModel(ContractModel):
     """
 
     coordinate_profile: Literal["trial-coordinate-v1"]
-    entry_identity_profile: Literal["trial-entry-identity-v1"]
-    run_identity_profile: Literal["archival-run-identity-v1"]
+    entry_identity_profile: Literal[
+        "trial-entry-identity-v1",
+        "trial-entry-identity-mixed-composition-v1",
+    ]
+    run_identity_profile: Literal[
+        "archival-run-identity-v1",
+        "archival-run-identity-mixed-composition-v1",
+    ]
     canonicalization_profile: Literal["jcs-sha256-v1"]
     integrity_profile: Literal["acyclic-digest-chain-v1"]
-    compiler_profile: Literal["trial-compiler-v1"]
+    compiler_profile: Literal[
+        "trial-compiler-v1",
+        "trial-compiler-mixed-composition-v1",
+    ]
     selection_policy_profile: Literal["experiment-selection-v1"]
     random_stream_profile: Literal["blake3-xof-v1"]
     execution_control_profile: Literal["attempt-control-v1"]
@@ -91,6 +100,10 @@ class AdmittedTrialPlanInputRefsModel(ContractModel):
     binding_descriptor_set_ref: ExperimentReferenceModel | None = None
     study_ref: ExperimentReferenceModel | None = None
     associated_artifact_set_ref: ExperimentReferenceModel | None = None
+    mixed_composition_profile_refs: list[ExperimentReferenceModel] = Field(
+        default_factory=list,
+        json_schema_extra={"uniqueItems": True},
+    )
 
     @model_validator(mode="after")
     def _validate_input_refs(self) -> AdmittedTrialPlanInputRefsModel:
@@ -106,7 +119,26 @@ class AdmittedTrialPlanInputRefsModel(ContractModel):
             _require_ref(self.study_ref, "study", digest=False, field="study_ref")
         if self.associated_artifact_set_ref is not None:
             _require_ref(self.associated_artifact_set_ref, "other", digest=True, field="associated_artifact_set_ref")
+        profile_keys: set[tuple[str, str | None]] = set()
+        for reference in self.mixed_composition_profile_refs:
+            _require_ref(reference, "profile", digest=True, field="mixed_composition_profile_refs")
+            if reference.ref_path is not None:
+                raise ValueError("mixed composition profile references must not carry host paths")
+            key = (reference.ref_id, reference.ref_version)
+            if key in profile_keys:
+                raise ValueError("mixed_composition_profile_refs must identify unique profiles")
+            profile_keys.add(key)
         return self
+
+    @model_serializer(mode="wrap")
+    def _serialize_optional_profile_refs(
+        self,
+        handler: SerializerFunctionWrapHandler,
+    ) -> dict[str, object]:
+        payload = handler(self)
+        if not self.mixed_composition_profile_refs:
+            payload.pop("mixed_composition_profile_refs", None)
+        return payload
 
 
 class AdmittedSelectionRecordModel(ContractModel):
@@ -139,6 +171,22 @@ class AdmittedParticipantManifestReferenceModel(ContractModel):
     manifest_digest: PrefixedDigestString
 
 
+def _validate_participant_manifest_refs(
+    references: list[AdmittedParticipantManifestReferenceModel],
+) -> None:
+    participant_keys = [
+        (
+            reference.participant_address,
+            reference.implementation_name,
+            reference.implementation_version,
+            reference.manifest_version,
+        )
+        for reference in references
+    ]
+    if len(participant_keys) != len(set(participant_keys)):
+        raise ValueError("apparatus participant_manifest_refs must identify unique participant manifests")
+
+
 class AdmittedApparatusBindingModel(ContractModel):
     """Pre-run apparatus selection intent pinned by manifest and realization envelope.
 
@@ -162,17 +210,46 @@ class AdmittedApparatusBindingModel(ContractModel):
                     "admitted apparatus manifest references must be digest-pinned to a concrete "
                     "processor/backend manifest payload; id/version-only references are not sealable"
                 )
-        participant_keys = [
-            (
-                reference.participant_address,
-                reference.implementation_name,
-                reference.implementation_version,
-                reference.manifest_version,
-            )
-            for reference in self.participant_manifest_refs
-        ]
-        if len(participant_keys) != len(set(participant_keys)):
-            raise ValueError("apparatus participant_manifest_refs must identify unique participant manifests")
+        _validate_participant_manifest_refs(self.participant_manifest_refs)
+        return self
+
+    @model_serializer(mode="wrap")
+    def _serialize_optional_participant_manifest_refs(
+        self,
+        handler: SerializerFunctionWrapHandler,
+    ) -> dict[str, object]:
+        payload = handler(self)
+        if not self.participant_manifest_refs:
+            payload.pop("participant_manifest_refs", None)
+        return payload
+
+
+class AdmittedTrialSourceReferenceModel(ContractModel):
+    """Exact immediate-source join for a linked realization change."""
+
+    plan_id: NonEmptyString
+    plan_digest: PrefixedDigestString
+    plan_entry_id: NonEmptyString
+    entry_digest: PrefixedDigestString
+    run_id: NonEmptyString
+
+
+class AdmittedMixedCompositionBindingModel(ContractModel):
+    """Exact composition-profile realization selected for one trial entry."""
+
+    realization_kind: Literal["mixed-composition"] = "mixed-composition"
+    profile_ref: ExperimentReferenceModel
+    participant_manifest_refs: list[AdmittedParticipantManifestReferenceModel] = Field(default_factory=list)
+    source_trial: AdmittedTrialSourceReferenceModel | None = None
+
+    @model_validator(mode="after")
+    def _validate_profile_ref(self) -> AdmittedMixedCompositionBindingModel:
+        _require_ref(self.profile_ref, "profile", digest=True, field="profile_ref")
+        if self.profile_ref.ref_version is None:
+            raise ValueError("mixed composition profile references must pin a revision")
+        if self.profile_ref.ref_path is not None:
+            raise ValueError("mixed composition profile references must not carry host paths")
+        _validate_participant_manifest_refs(self.participant_manifest_refs)
         return self
 
     @model_serializer(mode="wrap")
@@ -230,6 +307,7 @@ class AdmittedTrialPlanAdmissionModel(ContractModel):
 
 __all__ = [
     "AdmittedApparatusBindingModel",
+    "AdmittedMixedCompositionBindingModel",
     "AdmittedBindingModel",
     "AdmittedExecutionControlModel",
     "AdmittedInstantiationProvenanceModel",
@@ -237,6 +315,7 @@ __all__ = [
     "AdmittedTrialPlanAdmissionModel",
     "AdmittedTrialPlanInputRefsModel",
     "AdmittedTrialPlanProfilesModel",
+    "AdmittedTrialSourceReferenceModel",
     "BindingOrigin",
     "ExperimentScenarioFamilyReferenceModel",
     "SelectionPolicyKind",

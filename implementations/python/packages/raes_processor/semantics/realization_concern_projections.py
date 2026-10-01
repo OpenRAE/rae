@@ -376,7 +376,7 @@ def project_service_listeners(value: object, observed: bool = False) -> object:
         listener_id = record.get("service_listener_id")
         if not isinstance(listener_id, str) or not listener_id:
             raise ValueError("service listeners require a service_listener_id")
-        normalized = RuntimeServiceListener.model_validate(record).model_dump(mode="json")
+        normalized = RuntimeServiceListener.model_validate(record).model_dump(mode="json", exclude_unset=True)
         listener = {
             key: normalized[key]
             for key in (
@@ -392,6 +392,7 @@ def project_service_listeners(value: object, observed: bool = False) -> object:
                 "process_ref",
                 "process_name",
             )
+            if key in normalized
         }
         projected.append(listener)
     return sorted(projected, key=lambda item: str(item["service_listener_id"]))

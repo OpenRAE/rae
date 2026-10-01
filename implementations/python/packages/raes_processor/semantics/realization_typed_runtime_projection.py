@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Any
 
-from pydantic import TypeAdapter
+from pydantic import BaseModel, TypeAdapter
 from raes_contracts.canonical import canonical_json_digest
 
 from .realization_concern_observations import (
@@ -22,6 +22,20 @@ _SENSITIVE_FIELD_CLASSIFICATIONS = {
     "values": ("value_classification",),
     "bind_source": ("bind_source_sensitivity",),
 }
+_SERVICE_MANAGER_SYSTEMD_FIELDS = frozenset(
+    {
+        "unit_type",
+        "load_state",
+        "active_state",
+        "sub_state",
+        "enabled_state",
+        "result",
+        "exit_code",
+        "status_text",
+        "main_pid",
+        "exec_start",
+    }
+)
 
 
 def _sensitive_classification(record: Mapping[str, Any], raw_field: str) -> tuple[str, object] | None:
@@ -129,6 +143,33 @@ def _project_sensitive_field(
 
 def _record_sort_key(record: Mapping[str, Any]) -> tuple[str, str]:
     return _runtime_local_identity(record) or "", canonical_json_digest(dict(record))
+
+
+def _service_manager_source_fields(value: object) -> frozenset[str]:
+    if isinstance(value, BaseModel):
+        return frozenset(value.model_fields_set)
+    if isinstance(value, Mapping):
+        return frozenset(value)
+    return frozenset()
+
+
+def _preserve_service_manager_presence(normalized: object, source: object) -> object:
+    """Drop model defaults that were not supplied to a service-manager row."""
+
+    if not isinstance(normalized, list) or not isinstance(source, Sequence):
+        return normalized
+    projected: list[object] = []
+    for record, original in zip(normalized, source, strict=True):
+        if not isinstance(record, Mapping):
+            projected.append(record)
+            continue
+        supplied = _service_manager_source_fields(original)
+        item = {key: item_value for key, item_value in record.items() if key in supplied}
+        manager = item.get("manager_kind")
+        if manager not in (None, "systemd") and not (isinstance(manager, str) and manager.startswith("${")):
+            item = {key: item_value for key, item_value in item.items() if key not in _SERVICE_MANAGER_SYSTEMD_FIELDS}
+        projected.append(item)
+    return projected
 
 
 def _project_runtime_mapping(
@@ -257,6 +298,8 @@ def _project_with_options(
 
     _require_observation_mode(observed)
     normalized = validate_typed_runtime_observation(value, adapter=adapter)
+    if concern_kind == "runtime-service-manager-units":
+        normalized = _preserve_service_manager_presence(normalized, value)
     projected = _project_typed_runtime_value(
         normalized,
         concern_kind=concern_kind,

@@ -42,6 +42,7 @@ from raes_runtime.control_plane_mutation import (
     mutation_entry,
     mutation_probe,
 )
+from raes_runtime.control_plane_recovery import IndeterminateResolutionDisposition
 from raes_runtime.control_plane_store import (
     AuditEvent,
     ControlPlaneOperationRecord,
@@ -52,6 +53,8 @@ from raes_runtime.control_plane_store_local import LocalControlPlaneStore
 from raes_runtime.control_plane_store_records import _audit_event_from_payload
 from raes_runtime.manager import RuntimeManager
 from raes_runtime.participant_crossing_egress import ParticipantViewSerialization, serialize_participant_view
+
+pytestmark = pytest.mark.control_plane_conformance
 
 
 def _context() -> OperationAdmissionContext:
@@ -406,7 +409,9 @@ def test_cancelled_http_mutation_retains_reservation_until_worker_exits(
 def store(request: pytest.FixtureRequest, tmp_path: Path) -> InMemoryControlPlaneStore | LocalControlPlaneStore:
     if request.param == "memory":
         return InMemoryControlPlaneStore()
-    return LocalControlPlaneStore(tmp_path / "control-plane")
+    local_store = LocalControlPlaneStore(tmp_path / "control-plane")
+    local_store.admit_runtime(target_scope="target:stub", run_scope="run:issue-1181")
+    return local_store
 
 
 @pytest.mark.parametrize(
@@ -578,16 +583,18 @@ def test_runtime_rejects_store_without_complete_atomic_mutation_capability() -> 
         RuntimeControlPlane(target, store=legacy_store)  # type: ignore[arg-type]
 
 
-def test_restart_preserves_running_claim_for_governed_recovery() -> None:
+def test_restart_terminalizes_running_claim_through_governed_recovery() -> None:
     store = InMemoryControlPlaneStore()
     running = _running_record("interrupted-operation")
     store.claim_record(running)
 
-    control_plane = RuntimeControlPlane(create_stub_target(), store=store)
+    control_plane = RuntimeControlPlane(create_stub_target(), store=store, run_scope="run:issue-1181")
 
-    assert store.load_records()[running.receipt.operation_id] == running
-    assert control_plane.get_operation(running.receipt.operation_id) == running.status
-    assert store.read_audit() == []
+    recovered = store.load_records()[running.receipt.operation_id]
+    assert recovered.status.state is OperationState.INDETERMINATE
+    assert control_plane.get_operation(running.receipt.operation_id) == recovered.status
+    assert store.find_by_idempotency(running.idempotency_key) == recovered
+    assert [event.reason for event in store.read_audit()] == ["operation-indeterminate"]
     assert not hasattr(store, "reconcile_interrupted_records")
 
 
@@ -601,6 +608,7 @@ def test_mutating_control_plane_entries_declare_their_operation_kind() -> None:
         "initialize_participant_episode",
         "reconcile_workflow_timeouts",
         "record_participant_control",
+        "resolve_indeterminate_operation",
         "reset_participant_episode",
         "restart_participant_episode",
         "submit_evaluation",
@@ -678,6 +686,25 @@ def test_accepted_workflow_cancellation_reaches_the_shared_authority() -> None:
     )
 
 
+def test_accepted_indeterminate_resolution_reaches_the_shared_authority() -> None:
+    store = InMemoryControlPlaneStore()
+    parent = _running_record("indeterminate-parent-1181")
+    store.claim_record(parent)
+    control_plane = RuntimeControlPlane(create_stub_target(), store=store, run_scope="run:issue-1181")
+    assert store.load_records()[parent.receipt.operation_id].status.state is OperationState.INDETERMINATE
+
+    _assert_requests_mutation_reservation(
+        control_plane,
+        lambda: control_plane.resolve_indeterminate_operation(
+            parent.receipt.operation_id,
+            disposition=IndeterminateResolutionDisposition.ACCEPT_CURRENT_SNAPSHOT,
+            idempotency_key="resolution-1181",
+            identity=identity(),
+        ),
+        OperationKind.INDETERMINATE_RESOLUTION,
+    )
+
+
 def test_accepted_participant_action_and_control_entries_reach_the_shared_authority() -> None:
     control_plane = RuntimeControlPlane(create_stub_target())
 
@@ -752,9 +779,19 @@ def test_accepted_participant_execution_entry_reaches_the_shared_authority() -> 
         def control_execution(self, *_args: object) -> object:
             raise AssertionError("the admission probe must stop before backend execution")
 
-    target = create_stub_target()
+    from implementations.python.tests.test_dsl_437_benign_participant_execution import (
+        _autonomous_manifest,
+        _compiled,
+        _NativeParticipantRuntime,
+    )
+
+    runtime_model, _policy = _compiled()
     control_plane = RuntimeControlPlane(
-        replace(target, participant_runtime=ExecutionControlRuntime(target.participant_runtime)),  # type: ignore[arg-type]
+        replace(
+            create_stub_target(),
+            manifest=_autonomous_manifest(runtime_model),
+            participant_runtime=ExecutionControlRuntime(_NativeParticipantRuntime()),  # type: ignore[arg-type]
+        )
     )
     request = ParticipantExecutionControlRequestModel(
         execution_scope_ref="participant.execution.issue-1181",

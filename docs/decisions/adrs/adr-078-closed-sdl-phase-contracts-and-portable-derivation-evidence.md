@@ -48,6 +48,7 @@ NormalizedAuthoring = C + {module, imports, variables}
 ExpandedAuthoring   = C + {variables, expansion_provenance}
 Instantiated        = C + {instantiation_provenance}
 Snapshot            = {profile, scenario: Instantiated}
+Materialized        = C + {materialization_provenance}
 ```
 
 The sets are exact. A field not shown for a phase is forbidden, including an
@@ -66,7 +67,9 @@ type.
 resolver-produced trust context and exists only between composition and final
 instantiation. The two public derived contracts are
 `instantiated-scenario-v1` and
-`instantiated-scenario-snapshot-v1`.
+`instantiated-scenario-snapshot-v1`. The descriptive public phase added by
+#1241 is `materialized-scenario-v1`; it shares the common scenario vocabulary
+but has no authoring or instantiation machinery.
 
 ### 2. Make phase transitions partial and fail closed
 
@@ -195,6 +198,27 @@ not a second raw parameter map.
 
 ## Lineage And Limits
 
+### Post-materialization description amendment (#1241)
+
+`MaterializedScenario` is accepted by the ordinary bounded SDL parser and
+semantic validator, including qualified source identities. Its shared compiler
+and planner produce inspection-only plans. No implicit transition turns it into
+executable author intent. Required materialization provenance binds the source,
+producer/configuration, plan, operation and predecessor; exact member differences
+and instance bindings describe additions and changes without forging source
+instantiation history. `raes-sdl-materialized/v1` is its separate canonical
+profile. The original realization-authority and prepared-membership gates remain
+binding; disclosure cannot excuse a violation.
+
+Negotiated successful materialization includes even no-additions descriptions.
+Runtime admission preserves a typed result and protected immutable SDL bytes in
+the existing run archive. The distinct `materialization-attestation` reference
+never replaces the run's original `scenario_snapshot_ref`. File publication
+precedes durable references; a failure retains cleanup inventory and does not
+authorize replay. This is safe operational provenance, not an implicit request
+for observation, evidence capture or participant access. The normative details
+are in [materialization-attestation.md](../../../specs/sdl/materialization-attestation.md).
+
 The separation of operations by object state is informed by Strom and Yemini's
 [typestate](https://doi.org/10.1109/TSE.1986.6312929) work. ACES adopts the
 design lesson of distinct state-indexed operation surfaces, not its compile-time
@@ -262,3 +286,4 @@ The FM2 evidence consists of:
 | Date | Commit/PR | Summary |
 |------|-----------|---------|
 | 2026-07-12 | #724 | Clarified that required instantiation provenance remains validated artifact identity metadata but is excluded from realization-envelope child-dimension enumeration. |
+| 2026-09-14 | #1241 | Added the closed descriptive materialized SDL phase, execution-bound provenance and distinct protected archival identity without changing original realization authority. |

@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Callable, Collection
+from collections.abc import Callable
 
+from ..evidence_proof import ValidatedRunEvidence
 from .base import _canonical_digest
 from .experiment_apparatus import ExperimentApparatusComponentModel
 from .experiment_artifacts import (
@@ -150,10 +151,14 @@ _CONDITION_REFERENCE_HANDLERS_BY_REF_KIND: dict[
 def _run_satisfies_condition_reference(
     run: ExperimentRunModel,
     requirement: ExperimentReferenceModel,
-    validated_evidence_refs: Collection[ExperimentReferenceModel],
+    validated_evidence: ValidatedRunEvidence | None,
 ) -> bool:
     if requirement.ref_kind == "evidence":
-        return _reference_in_collection(list(validated_evidence_refs), requirement)
+        if validated_evidence is None:
+            return False
+        if not isinstance(validated_evidence, ValidatedRunEvidence):
+            raise ValueError("condition matching requires a validated evidence proof")
+        return validated_evidence.satisfies(run, requirement)
     handler = _CONDITION_REFERENCE_HANDLERS_BY_REF_KIND.get(
         requirement.ref_kind, _condition_reference_matches_default_refs
     )
@@ -213,13 +218,13 @@ def _condition_assignment_run_criteria_signature(
 def _run_satisfies_condition_assignment(
     run: ExperimentRunModel,
     assignment: ExperimentConditionAssignmentModel,
-    validated_evidence_refs: Collection[ExperimentReferenceModel] = (),
+    validated_evidence: ValidatedRunEvidence | None = None,
 ) -> list[str]:
     missing: list[str] = []
     missing.extend(
         _format_reference(reference)
         for reference in assignment.required_refs
-        if not _run_satisfies_condition_reference(run, reference, validated_evidence_refs)
+        if not _run_satisfies_condition_reference(run, reference, validated_evidence)
     )
     run_parameters = [*run.parameter_set, *run.apparatus_context.configuration_parameters]
     missing.extend(

@@ -65,6 +65,23 @@ with participant-neutral authority.
 
 ## Decision
 
+### Amendment: IFC profile variability and publication (#1354)
+
+[ADR-114](adr-114-ifc-profile-variability-and-publication.md) and
+[IFC-01–IFC-07](../../../specs/formal/participant-semantics/ifc-profile-variability.md)
+separate authored owner/guarantee requirements, published profile meaning and
+backend realization. Governed finite publication remains the extension route;
+no new owner syntax, policy interpreter or plugin facility is introduced.
+Independent obligations, conservative propagation, per-obligation release
+authority and immutable provenance remain mandatory. CA-04 governs admission;
+losing an admitted guarantee blocks the affected release. The published v1
+vocabulary and non-exact-support rejection remain unchanged.
+
+The amendment's [migration contract](../../migration/ifc-profile-variability.md)
+preserves historical profile/release interpretation and requires explicit
+consumer support before owner-aware or revised bounded-support claims. This
+semantic publication does not implement those consumers or certify a backend.
+
 ### 1. Add two DRAFT owners
 
 SEM-233, **Adversarial Participant Boundary Information-Flow Control**,
@@ -287,6 +304,9 @@ evidence records retain their own dates and scope.
 | Date | Commit/PR | Summary |
 | --- | --- | --- |
 | 2026-09-06 | #1068 | Clarify modular composition, governed effects and the declared-world boundary under ADR-108 while preserving the security profile and runtime interpreter non-goal. |
+| 2026-09-23 | #1354 | Define IFC profile variability, requirement-relative support, per-obligation release and immutable migration under ADR-114. |
+| 2026-09-24 | #1383 | Rebind the #1354 publication reference to ADR-114 after ADR-113 was assigned to #1350; semantics are unchanged. |
+
 
 ## References
 

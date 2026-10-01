@@ -87,27 +87,20 @@ def _flagged(failures, marker: str) -> bool:
     return any(f.rule_id == marker or needle in f.render().lower() for f in failures)
 
 
-# (case id, mutated coverage note, marker the checker must flag)
+# (case id, mutated coverage note, markers the checker must flag)
 _NOTE_DEFECT_CASES = [
     ("section-missing", _GOOD_NOTE.replace("## Coverage Model", "## Something Else"), "coverage model"),
-    ("status-unknown", _GOOD_NOTE.replace("| active |", "| done |"), "done"),
-    ("status-unknown-rule", _GOOD_NOTE.replace("| active |", "| done |"), "coverage-status"),
-    ("phase-unknown", _GOOD_NOTE.replace("validation, compilation, planning", "validation, deployment"), "deployment"),
+    ("status-unknown", _GOOD_NOTE.replace("| active |", "| done |"), ("done", "coverage-status")),
     (
-        "phase-unknown-rule",
+        "phase-unknown",
         _GOOD_NOTE.replace("validation, compilation, planning", "validation, deployment"),
-        "coverage-phase",
+        ("deployment", "coverage-phase"),
     ),
     ("owner-bad-uid", _GOOD_NOTE.replace("| SEM-202 |", "| sem-202 |"), "sem-202"),
     (
         "artifact-missing",
         _GOOD_NOTE.replace("`specs/formal/objectives/README.md`", "`specs/formal/objectives/nope.md`"),
-        "nope.md",
-    ),
-    (
-        "artifact-missing-rule",
-        _GOOD_NOTE.replace("`specs/formal/objectives/README.md`", "`specs/formal/objectives/nope.md`"),
-        "coverage-artifact-missing",
+        ("nope.md", "coverage-artifact-missing"),
     ),
     (
         "artifact-unsupported",
@@ -156,11 +149,12 @@ _NOTE_DEFECT_CASES = [
 
 
 @pytest.mark.parametrize(
-    ("note_body", "marker"), [(n, m) for _, n, m in _NOTE_DEFECT_CASES], ids=[c for c, _, _ in _NOTE_DEFECT_CASES]
+    ("note_body", "markers"), [(n, m) for _, n, m in _NOTE_DEFECT_CASES], ids=[c for c, _, _ in _NOTE_DEFECT_CASES]
 )
-def test_note_defect_is_flagged(tmp_path: Path, note_body: str, marker: str) -> None:
+def test_note_defect_is_flagged(tmp_path: Path, note_body: str, markers: str | tuple[str, ...]) -> None:
     failures = evaluate_semantic_coverage(_seed_repo(tmp_path, note_body))
-    assert _flagged(failures, marker)
+    for marker in (markers,) if isinstance(markers, str) else markers:
+        assert _flagged(failures, marker), marker
 
 
 # (case id, ADR-016 body — or None to omit the file entirely, expected rule id)

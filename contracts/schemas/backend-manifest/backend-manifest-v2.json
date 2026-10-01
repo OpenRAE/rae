@@ -219,6 +219,17 @@
         "provisioner": {
           "$ref": "#/$defs/ProvisionerCapabilitiesModel"
         },
+        "recovery_observation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecoveryObservationCapabilitiesModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "time": {
           "anyOf": [
             {
@@ -1532,6 +1543,23 @@
       "title": "OperatingSystemCompatibilityModel",
       "type": "object"
     },
+    "OperationKind": {
+      "description": "Closed kinds of work admitted by the runtime control plane.",
+      "enum": [
+        "provisioning",
+        "orchestration",
+        "evaluation",
+        "workflow-cancellation",
+        "workflow-timeout-reconciliation",
+        "participant-action",
+        "participant-control",
+        "participant-crossing",
+        "composition-phase",
+        "indeterminate-resolution"
+      ],
+      "title": "OperationKind",
+      "type": "string"
+    },
     "OrchestratorCapabilitiesModel": {
       "additionalProperties": false,
       "allOf": [
@@ -1719,6 +1747,17 @@
           "title": "Target Addresses",
           "type": "array"
         },
+        "temporal_contract_digests": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Temporal Contract Digests",
+          "type": "array"
+        },
         "timeout_seconds": {
           "minimum": 1,
           "title": "Timeout Seconds",
@@ -1792,6 +1831,7 @@
                   "participant_final_sink_mediation",
                   "participant_ingress_admission",
                   "participant_intervention",
+                  "participant_modular_control",
                   "participant_monitor_topology",
                   "participant_predicate_opacity",
                   "participant_processing_role_trust",
@@ -1835,6 +1875,7 @@
                   "participant_final_sink_mediation",
                   "participant_ingress_admission",
                   "participant_intervention",
+                  "participant_modular_control",
                   "participant_monitor_topology",
                   "participant_predicate_opacity",
                   "participant_processing_role_trust",
@@ -1874,6 +1915,7 @@
                   "participant_final_sink_mediation",
                   "participant_ingress_admission",
                   "participant_intervention",
+                  "participant_modular_control",
                   "participant_monitor_topology",
                   "participant_predicate_opacity",
                   "participant_processing_role_trust",
@@ -2367,7 +2409,7 @@
         "max_autonomous_retries_per_occurrence": {
           "anyOf": [
             {
-              "minimum": 1,
+              "minimum": 0,
               "type": "integer"
             },
             {
@@ -2380,7 +2422,7 @@
         "max_concurrent_actions": {
           "anyOf": [
             {
-              "minimum": 2,
+              "minimum": 1,
               "type": "integer"
             },
             {
@@ -2503,7 +2545,6 @@
             "minLength": 1,
             "type": "string"
           },
-          "minItems": 1,
           "title": "Supported Behavior Features",
           "type": "array",
           "uniqueItems": true
@@ -2529,7 +2570,6 @@
             "minLength": 1,
             "type": "string"
           },
-          "minItems": 1,
           "title": "Supported Interaction Features",
           "type": "array",
           "uniqueItems": true
@@ -2539,7 +2579,6 @@
             "minLength": 1,
             "type": "string"
           },
-          "minItems": 1,
           "title": "Supported Participant Roles",
           "type": "array",
           "uniqueItems": true
@@ -3148,6 +3187,32 @@
       "title": "RealizationVerificationScope",
       "type": "string"
     },
+    "RecoveryObservationCapabilitiesModel": {
+      "additionalProperties": false,
+      "description": "Operational crash-recovery observation support declaration.",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "supported_operation_kinds": {
+          "items": {
+            "$ref": "#/$defs/OperationKind"
+          },
+          "minItems": 1,
+          "title": "Supported Operation Kinds",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "name",
+        "supported_operation_kinds"
+      ],
+      "title": "RecoveryObservationCapabilitiesModel",
+      "type": "object"
+    },
     "TimeCapabilitiesModel": {
       "additionalProperties": false,
       "description": "Backend support for the API-421 portable shared-time contract family.",
@@ -3527,6 +3592,12 @@
     "supported_contract_versions": {
       "items": {
         "enum": [
+          "backend-operation-request-v1",
+          "backend-operation-capabilities-v1",
+          "backend-operation-control-v1",
+          "backend-operation-response-v1",
+          "backend-materialization-attestation-v1",
+          "backend-augmentation-scope-v1",
           "plan-realization-profiles-v1",
           "backend-realization-preparation-v1",
           "backend-manifest-v2",
@@ -3555,6 +3626,10 @@
           "participant-resource-budget-state-v1",
           "participant-resource-budget-event-v1",
           "participant-control-occurrence-v1",
+          "participant-control-selection-v1",
+          "participant-control-evaluation-v1",
+          "participant-control-selection-v2",
+          "participant-control-evaluation-v2",
           "participant-crossing-occurrence-v1",
           "participant-flow-control-relation-v1",
           "participant-lifecycle-event-v1",

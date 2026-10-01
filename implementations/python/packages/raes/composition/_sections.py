@@ -17,6 +17,7 @@ from .._identifiers import QualifiedName
 from .._module_symbols import FORWARDING_AGENTS_SECTION
 from .._module_symbols import HASHMAP_SECTIONS as _HASHMAP_SECTIONS
 from ..entities import flatten_entities
+from ..participant_relationships import PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS
 from ..scenario import ModuleDescriptor, ScenarioContent
 from ._references import (
     _maybe_rename,
@@ -224,19 +225,45 @@ def _rewrite_observation_boundaries(
     for boundary in payload.get("observation_boundaries", {}).values():
         if not isinstance(boundary, dict):
             continue
-        for field_name in ("observable_refs", "hidden_refs", "evidence_refs"):
-            boundary[field_name] = [
-                tool_affordance_refs.get(ref, _maybe_rename(ref, symbols["named"]))
-                for ref in boundary.get(field_name, [])
-            ]
-        for field_name in ("view_rules", "view_transitions"):
-            for item in boundary.get(field_name, []):
-                if isinstance(item, dict) and isinstance(item.get("information_ref"), str):
-                    information_ref = item["information_ref"]
-                    item["information_ref"] = tool_affordance_refs.get(
-                        information_ref,
-                        _maybe_rename(information_ref, symbols["named"]),
-                    )
+        _rewrite_boundary_reference_fields(boundary, symbols, tool_affordance_refs)
+        _rewrite_boundary_view_items(boundary, symbols, tool_affordance_refs)
+
+
+def _rewrite_boundary_reference_fields(
+    boundary: dict[str, Any],
+    symbols: dict[str, dict[str, str] | set[str]],
+    tool_affordance_refs: Mapping[str, str],
+) -> None:
+    for field_name in ("observable_refs", "hidden_refs", "evidence_refs"):
+        boundary[field_name] = [
+            tool_affordance_refs.get(ref, _maybe_rename(ref, symbols["named"])) for ref in boundary.get(field_name, [])
+        ]
+
+
+def _rewrite_boundary_view_items(
+    boundary: dict[str, Any],
+    symbols: dict[str, dict[str, str] | set[str]],
+    tool_affordance_refs: Mapping[str, str],
+) -> None:
+    for field_name in ("view_rules", "view_transitions"):
+        for item in boundary.get(field_name, []):
+            if isinstance(item, dict):
+                _rewrite_boundary_view_item(item, symbols, tool_affordance_refs)
+
+
+def _rewrite_boundary_view_item(
+    item: dict[str, Any],
+    symbols: dict[str, dict[str, str] | set[str]],
+    tool_affordance_refs: Mapping[str, str],
+) -> None:
+    if "evidence_refs" in item:
+        item["evidence_refs"] = [_maybe_rename(ref, symbols["named"]) for ref in item["evidence_refs"]]
+    information_ref = item.get("information_ref")
+    if isinstance(information_ref, str):
+        item["information_ref"] = tool_affordance_refs.get(
+            information_ref,
+            _maybe_rename(information_ref, symbols["named"]),
+        )
 
 
 def _rewrite_service_materialization(
@@ -389,6 +416,27 @@ def _rewrite_deployment_sections(
         cell["node_refs"] = [_maybe_rename(name, symbols["nodes"]) for name in cell.get("node_refs", [])]
 
 
+def _rewrite_participant_relationship(
+    participant: object,
+    symbols: dict[str, dict[str, str] | set[str]],
+) -> None:
+    if not isinstance(participant, dict):
+        return
+    for field, section in PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS.items():
+        participant[field] = [
+            _maybe_rename(ref, symbols["named"])
+            if section == "named"
+            else _rewrite_section_ref(ref, section, symbols[section])
+            for ref in participant.get(field, [])
+        ]
+    if participant.get("control_specification_ref"):
+        participant["control_specification_ref"] = _rewrite_section_ref(
+            participant["control_specification_ref"],
+            "behavior_specifications",
+            symbols["behavior_specifications"],
+        )
+
+
 def _rewrite_relationship_sections(
     payload: dict[str, Any],
     symbols: dict[str, dict[str, str] | set[str]],
@@ -400,6 +448,7 @@ def _rewrite_relationship_sections(
             relationship["source"] = _maybe_rename(str(relationship["source"]), symbols["named"])
         if relationship.get("target"):
             relationship["target"] = _maybe_rename(str(relationship["target"]), symbols["named"])
+        _rewrite_participant_relationship(relationship.get("participant"), symbols)
         domain_join = relationship.get("domain_join")
         if isinstance(domain_join, dict):
             domain_join["controller_refs"] = [

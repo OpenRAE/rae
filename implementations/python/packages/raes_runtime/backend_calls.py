@@ -7,6 +7,7 @@ from dataclasses import dataclass, is_dataclass
 from pydantic import BaseModel
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.materialization import MaterializationArchive
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 from .backend_account_credentials import (
@@ -14,10 +15,12 @@ from .backend_account_credentials import (
     value_free_backend_diagnostics,
 )
 from .backend_apply_results import _finalize_backend_apply
+from .backend_augmentation import compose_augmentation_invocation, prepare_augmentation_invocation
 from .backend_call_contracts import (
     _materialize_diagnostics,
 )
 from .backend_input_contracts import backend_input_violation
+from .backend_materialization import finalize_materialization, materialization_precondition
 from .backend_preparation import prepare_backend_invocation
 from .backend_realization_authority import (
     _apply_authority_diagnostics,
@@ -38,6 +41,7 @@ class _BackendCallContext:
     operation_id: str | None = None
     information_state_context_resolver: ParticipantInformationStateContextResolver | None = None
     service_dependencies: tuple[object, ...] = ()
+    materialization_archive: MaterializationArchive | None = None
 
 
 def _call_backend_diagnostics(
@@ -75,15 +79,25 @@ def _prepared_backend_result(
     args, realization, diagnostics = prepare_backend_invocation(method, args, baseline_snapshot, realization)
     if args is None:
         return ApplyResult(False, baseline_snapshot, diagnostics=diagnostics)
-    result = _invoke_backend_apply(
-        method,
-        args,
-        address=address,
-        snapshot=snapshot,
-        baseline_snapshot=baseline_snapshot,
-        realization=deepcopy(realization),
-        call=call,
+    realization, scope_diagnostics = prepare_augmentation_invocation(method, baseline_snapshot, realization)
+    diagnostics = [*diagnostics, *scope_diagnostics]
+    if scope_diagnostics:
+        return ApplyResult(False, baseline_snapshot, diagnostics=diagnostics)
+    realization, composition_diagnostics = compose_augmentation_invocation(
+        realization, baseline_snapshot, call.materialization_archive
     )
+    if composition_diagnostics:
+        result = ApplyResult(False, baseline_snapshot, diagnostics=composition_diagnostics)
+    else:
+        result = _invoke_backend_apply(
+            method,
+            args,
+            address=address,
+            snapshot=snapshot,
+            baseline_snapshot=baseline_snapshot,
+            realization=deepcopy(realization),
+            call=call,
+        )
     result.diagnostics = [*diagnostics, *result.diagnostics]
     return result
 
@@ -105,18 +119,22 @@ def _call_backend_apply(
         return _failed_apply_result(snapshot, _backend_contract_invalid(address, invalid))
     args, realization_context = _bind_submitted_plan(args, realization_context, call_context.operation_id)
     baseline_snapshot = deepcopy(snapshot)
+    if invalid := materialization_precondition(realization_context, call_context.materialization_archive):
+        return _failed_apply_result(baseline_snapshot, _backend_contract_invalid(address, invalid))
     authority_diagnostics = _apply_authority_diagnostics(realization_context, address)
     if authority_diagnostics:
-        return ApplyResult(success=False, snapshot=baseline_snapshot, diagnostics=authority_diagnostics)
-    return _prepared_backend_result(
-        method,
-        args,
-        address=address,
-        snapshot=snapshot,
-        baseline_snapshot=baseline_snapshot,
-        realization=realization_context,
-        call=call_context,
-    )
+        result = ApplyResult(success=False, snapshot=baseline_snapshot, diagnostics=authority_diagnostics)
+    else:
+        result = _prepared_backend_result(
+            method,
+            args,
+            address=address,
+            snapshot=snapshot,
+            baseline_snapshot=baseline_snapshot,
+            realization=realization_context,
+            call=call_context,
+        )
+    return result
 
 
 def _invoke_backend_apply(
@@ -162,13 +180,14 @@ def _validated_backend_result(
     """Finalize a backend result, refusing anything that cannot be validated."""
 
     try:
-        return _finalize_backend_apply(
+        accepted = _finalize_backend_apply(
             result,
             address=address,
             baseline_snapshot=baseline_snapshot,
             realization=realization,
             information_state_context_resolver=call.information_state_context_resolver,
         )
+        return finalize_materialization(result, accepted, realization, baseline_snapshot, call.materialization_archive)
     except Exception:
         return _failed_apply_result(
             baseline_snapshot,

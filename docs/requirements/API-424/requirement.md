@@ -1,12 +1,12 @@
 ---
 id: API-424
 title: "Participant-Control Provider, Composition and Effect Contracts"
-status: DRAFT
+status: ACTIVE
 type: INTERFACE
 priority: MUST
 wave: 4
 created_at: 2026-09-06T00:00:00Z
-updated_at: 2026-09-06T00:00:00Z
+updated_at: 2026-09-22T00:00:00Z
 ---
 
 # API-424 — Participant-Control Provider, Composition and Effect Contracts
@@ -26,6 +26,19 @@ selection, open label/effect/metadata maps and backend-private state shall not
 be portable request authority. Backend declarations and effective support shall
 remain distinct from installed providers and realized effects.
 
+Revised contracts shall bind the complete admitted apparatus separately from
+exact-cut obligation coverage and applicable invocations; represent proven
+inapplicability and unresolved coverage explicitly; and carry typed immutable
+predecessor results into identified slot/stage invocations. Results shall bind
+those inputs and scoped state versions. Contracts shall distinguish false
+triggers from missing mandatory results, required input closure from advisory
+decision authority, and required support constraints from declared strength.
+Parent decisions, effect targets, execution prerequisites and independent
+consequences shall be separate, with deny/withhold invariant across phases.
+Version/protocol negotiation and historical readers shall preserve original
+decisions, claims, identities and consumed budgets under CA-01–CA-09 and the
+migration contract below.
+
 ## Rationale
 
 API-409/423 own incumbent operations and API-407/420 own capability/manifests.
@@ -35,14 +48,127 @@ SEM-233 resolver hook. This is a protocol boundary, not a plugin host.
 
 ## Fulfillment boundary
 
-DRAFT through #1068. #1072 follows #1070 and must publish schemas, publication
-ledger records, protocol compatibility, valid/invalid fixtures and contextual
-validators. No current schema or importable provider protocol is changed by
-this requirement record.
+#1072 publishes the closed selection, evaluation and teaching-profile schemas,
+publication records, structural provider protocol, valid/invalid and contextual
+fixtures, and trusted-context validators against #1070's sem-235/rev1.
+ACTIVE records that revision-1 publication.
+Contract validity does not install a provider or execute an effect.
+
+## Contract amendment and evidence boundary
+
+[ADR-111](../../decisions/adrs/adr-111-control-applicability-and-effect-decisions.md)
+and [CA-01–CA-09](../../../specs/formal/participant-semantics/control-applicability-and-evaluation.md)
+define the #1352 contract amendment. ACTIVE records the accepted contract,
+not proof that the new clauses are implemented in the published v1 schemas or
+provider/v1. Existing code, schema and test links retain their original scope;
+the new model is bounded design evidence. The
+[migration contract](../../migration/control-applicability-and-evaluation.md)
+requires explicit coordinated producer/protocol/reader adoption and preserves
+legacy history without inventing new coverage or realization evidence.
 
 ## Traceability
+- IMPLEMENTS → GITHUB_ISSUE `1365` (Publish applicable-provider and dependency-evaluation contracts)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_applicability.py` (Complete admitted apparatus, profile obligations and exact-cut subset)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_invocation.py` (Typed predecessor and scoped-state inputs with result binding)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_support_v2.py` (Requirement-relative support assessment)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_decisions_v2.py` (Unscheduled parent decisions and typed effect prerequisites)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_composition_v2.py` (Mandatory composition and effect admission)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_evaluation_v2.py` (Scoped state and atomic commit boundary)
+- IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-control-selection-v2.json` (Published v2 apparatus selection)
+- IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-control-evaluation-v2.json` (Published v2 exact-cut evaluation)
+- IMPLEMENTS → CONFIG `contracts/schema-publication/entries/participant-control-selection-v2.json` (Selection publication ledger)
+- IMPLEMENTS → CONFIG `contracts/schema-publication/entries/participant-control-evaluation-v2.json` (Evaluation publication ledger)
+- TESTS → TEST `implementations/python/tests/test_issue_1365_applicable_contracts.py` (Disjoint sinks, dependency chain, optional failure, support, effects, commit and publication)
+- IMPLEMENTS → GITHUB_ISSUE `1352` (Provider-input, applicability and effect contract decision)
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/control-applicability-and-evaluation.md` (Required revised contract meaning; not new schema publication)
+- IMPLEMENTS → DOCUMENTATION `docs/migration/control-applicability-and-evaluation.md` (Producer/reader and retained-history contract)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/adrs/adr-111-control-applicability-and-effect-decisions.md` (Accepted-on-merge decision)
+- DOCUMENTS → DOCUMENTATION `docs/research/control-applicability/cases.md` (Worked cases and evidence limits)
+- TESTS → TEST `implementations/python/tests/test_issue_1352_governance.py` (Real ownership and scope consumer)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/analysis-v37.json` (Public-facade preservation and retained evidence after validator refactoring)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/bundles/retest-v37.json` (Public-facade preservation and retained evidence after validator refactoring)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/execution-snapshot-v37.json` (Public-facade preservation and retained evidence after validator refactoring)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/analysis-v37.json` (Public-facade preservation and retained evidence after validator refactoring)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1072-v37.json` (Public-facade preservation and retained evidence after validator refactoring)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/execution-snapshot-v37.json` (Public-facade preservation and retained evidence after validator refactoring)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_candidate_synthesis_facade.py` (Public-facade preservation and retained evidence after validator refactoring)
+- TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (Current contract-source capture retains rejection of stale artifact digests)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/index.md` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/index.md` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- TESTS → TEST `implementations/python/tests/test_specification_coverage.py` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- IMPLEMENTS → CODE_FILE `tools/check_specification_coverage.py` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- IMPLEMENTS → CODE_FILE `tools/formal_semantic_validation/_baseline.py` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- IMPLEMENTS → CODE_FILE `tools/formal_semantic_validation/_loading.py` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- IMPLEMENTS → CODE_FILE `tools/formal_semantic_validation/_releases.py` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- IMPLEMENTS → CODE_FILE `tools/formal_semantic_validation/_retest.py` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/analysis-v36.json` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/bundles/retest-v36.json` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/execution-snapshot-v36.json` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/analysis-v36.json` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1072-v36.json` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/execution-snapshot-v36.json` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_effect_composition.py` (Order-independent compatibility and prior logical-claim accounting)
+- TESTS → TEST `implementations/python/tests/test_api_424_review_regressions.py` (Lifecycle ordering, exhausted-budget replay and duplicate-identity permutations)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/participant_flow_policy_profiles.py` (Bounded file reads for the consumed incumbent profile)
+
+- IMPLEMENTS → CONFIG `contracts/schema-publication/entries/backend-manifest-v2.json`
+- IMPLEMENTS → CONFIG `contracts/schema-publication/entries/backend-profile-v1.json`
+- IMPLEMENTS → CONFIG `contracts/schema-publication/entries/participant-control-evaluation-v1.json`
+- IMPLEMENTS → CONFIG `contracts/schema-publication/entries/participant-control-selection-v1.json`
+- IMPLEMENTS → CONFIG `contracts/schema-publication/entries/participant-control-teaching-profile-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/backend-manifest/backend-manifest-v2.json`
+- IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-control-evaluation-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-control-selection-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-control-teaching-profile-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/profiles/backend-profile-v1.json`
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1072-api-407-feature-support-preflight.md`
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1072-api-409-control-effect-bindings-preflight.md`
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1072-api-424-provider-contracts-preflight.md`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/observability_plane_semantics.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/participant_control_admission.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/protocols.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/conformance/validators.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/__init__.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_exports.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_participant_control_exports.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/bundle_runtime.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_composition.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_coordinates.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_effects.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_profiles.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_resolution.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_results.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_selection.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/json_ingress.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/manifest_authority.py`
+- TESTS → TEST `implementations/python/tests/participant_control_contract_fixtures.py`
+- TESTS → TEST `implementations/python/tests/test_api_424_capability_admission.py`
+- TESTS → TEST `implementations/python/tests/test_api_424_composition_boundaries.py`
+- TESTS → TEST `implementations/python/tests/test_api_424_control_effects.py`
+- TESTS → TEST `implementations/python/tests/test_api_424_control_resolution.py`
+- TESTS → TEST `implementations/python/tests/test_api_424_governance.py`
+- TESTS → TEST `implementations/python/tests/test_api_424_participant_control_contracts.py`
+- TESTS → TEST `implementations/python/tests/test_api_424_publication.py`
+- TESTS → TEST `implementations/python/tests/test_api_424_security_profile.py`
+- TESTS → TEST `implementations/python/tests/test_corpus_packaging.py`
+- TESTS → TEST `implementations/python/tests/test_json_ingress.py`
+- IMPLEMENTS → CODE_FILE `tools/generate_contract_schemas.py`
+- IMPLEMENTS → CONFIG `tools/policy/requirement_order.yaml`
+- IMPLEMENTS → CONFIG `docs/governance/requirement-scopes/1072.json`
+- IMPLEMENTS → CONFIG `contracts/concept-authority/controlled-vocabularies-v1.json`
+- IMPLEMENTS → DOCUMENTATION `docs/explain/reference/modular-participant-control-contracts.md`
+- DOCUMENTS → DOCUMENTATION `docs/public/participant-control.md`
 
 - DOCUMENTS → GITHUB_ISSUE `https://github.com/OpenRAE/rae/issues/1068` (Architecture)
 - DOCUMENTS → GITHUB_ISSUE `https://github.com/OpenRAE/rae/issues/1072` (Contract publication)
 - DOCUMENTS → ADR `docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md` (ADR-108)
 - DOCUMENTS → DOCUMENTATION `docs/research/modular-participant-control/composition.md` (PC-01 through PC-03 and PC-07 through PC-15)
+- IMPLEMENTS → GITHUB_ISSUE `1069` (Public composition derivation consumed by the RUN-320 runtime)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_composition.py` (Public derivation of the canonical composition record)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_effect_composition.py` (Effect blockers shared by derivation and validation)
+- TESTS → TEST `implementations/python/tests/test_api_424_composition_derivation.py` (Derived compositions always satisfy the published validator)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_coordinates.py` (Exact-cut subject coordinate expresses a digest-only crossing subject)
+- IMPLEMENTS → CONFIG `contracts/schemas/participant-runtime/participant-control-evaluation-v1.json` (Published evaluation schema for the exact-cut coordinates)

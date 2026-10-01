@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-04-05T15:37:12.514093Z
-updated_at: 2026-04-11T02:26:15.170014Z
+updated_at: 2026-09-18T00:00:00Z
 ---
 
 # GOV-922 — Controlled Vocabularies And Enumerations
@@ -108,3 +108,23 @@ A mature interoperability surface needs stable portable terms where comparison m
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/operating_system_capability_domains.py` (Governed identity propagation and owning field normalization)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/satisfiability/_translation.py` (Governed identity propagation and owning field normalization)
 - TESTS → TEST `implementations/python/tests/test_issue_1206_review_regressions.py` (Private identity, alias, and finite semantic consumer regressions)
+- IMPLEMENTS → GITHUB_ISSUE `959` (Audit controlled identity vocabularies and their surrounding runtime contracts)
+- DOCUMENTS → DOCUMENTATION `docs/research/language-extensibility/product-semantics-audit.md` (Current family dispositions, evidence, migration ownership and prevention)
+- DOCUMENTS → DOCUMENTATION `docs/research/language-extensibility/product-semantics-fields.md` (Field-level semantic ownership across runtime families)
+- DOCUMENTS → DOCUMENTATION `docs/explain/reference/issue-959-product-shaped-semantics-preflight.md` (Audit architecture boundaries)
+- TESTS → TEST `implementations/python/tests/test_issue_959_audit_coverage.py` (Registry-derived audit field coverage and negative mutations)
+- IMPLEMENTS → GITHUB_ISSUE `1298` (Extensible HTTP wire-method identity)
+- DOCUMENTS → DOCUMENTATION `docs/explain/reference/issue-1298-http-method-identity-preflight.md` (HTTP method identity architecture boundary)
+- DOCUMENTS → ADR `docs/decisions/adrs/adr-026-application-http-surface-inventory.md` (Application HTTP surface identity decision)
+- IMPLEMENTS → SCHEMA `contracts/schemas/sdl/materialized-scenario-v1.json` (Published HTTP method identity validation)
+- TESTS → TEST `implementations/python/tests/test_issue_1298_http_method_identity.py` (HTTP method token, alias, preservation, and schema conformance)
+- IMPLEMENTS → GITHUB_ISSUE `1211` (Integrated progressive specification conformance and recurrence prevention)
+- DOCUMENTS → DOCUMENTATION `docs/explain/reference/issue-1211-progressive-conformance-preflight.md` (Integrated conformance architecture boundary)
+- TESTS → TEST `implementations/python/tests/test_issue_1211_progressive_conformance.py` (Private, partial, bounded, and lifecycle conformance anchors)
+- TESTS → TEST `implementations/python/tests/fixtures/progressive-conformance.yaml` (Inspectable five-Linux private-extension authoring fixture)
+- DOCUMENTS → DOCUMENTATION `docs/research/language-extensibility/progressive-conformance-evidence.md` (Integrated acceptance and external journey evidence map)
+- TESTS → TEST `implementations/python/tests/test_sdl_models.py` (SDL runtime application validation regression coverage)
+- IMPLEMENTS → CODE_FILE `tools/check_specification_coverage.py` (Admit the immutable evidence refresh accompanying the audit's documentation correction)
+- TESTS → TEST `implementations/python/tests/test_specification_coverage.py` (Current evidence revision, retained history and exact artifact-digest regression checks)
+- TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (Reject stale documentation digests and missing evidence history after the audit capture refresh)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/execution-snapshot-v20.json` (Fresh evidence for corrected runtime guidance without changing coverage claims)

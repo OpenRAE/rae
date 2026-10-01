@@ -98,6 +98,11 @@ def _runtime_owned_violation(
     )
     checks = (
         (
+            not snapshot_values_equal(actual.materialization_attestations, previous.materialization_attestations),
+            "runtime.snapshot.materialization-attestations",
+            "Backend changed runtime-owned materialization archive references.",
+        ),
+        (
             not snapshot_values_equal(actual.metadata, previous.metadata),
             "runtime.snapshot.metadata",
             "Backend changed runtime-owned snapshot metadata.",

@@ -61,6 +61,16 @@ here come from mature workflow and distributed-runtime systems:
 
 ## Package Boundary
 
+RAE is the shared product runtime driving the backends; backend ownership of
+concrete realization does not imply a separate scenario runtime per backend.
+The [operation supervision decision](../../decisions/issue-1348-operation-lifecycle.md)
+defines how authored guarantees, contextual refusal, cancellation and recovery
+compose. It preserves the current profile matrix while explicitly identifying
+implementation gaps: current external calls and drain are not generally bounded,
+and durability does not imply interruption or resumability. Operational budgets
+remain independent of authored semantic clocks; future physical-OT protections
+are selected only when the authored requirements demand them.
+
 ```text
 raes                -> parse + instantiate + SDL-language semantics
 raes_processor          -> compile + plan + support/contract semantics
@@ -75,6 +85,13 @@ and the pre-commit gate runs the same architecture-as-code check against
 staged changes.
 
 ## Runtime Stages
+
+Negotiated backends also return a distinct descriptive SDL phase after
+materialization hooks. The runtime admits it against the original source,
+execution and complete scoped inventory, then publishes protected SDL bytes
+before persisting archive references. This does not replace realization
+authority, evidence acquisition or the original scenario snapshot. See
+[materialization attestations](../reference/materialization-attestations.md).
 
 ### 1. Instantiate + Compile
 
@@ -107,6 +124,15 @@ It separates reusable definitions from bound runtime instances:
 - `node.injects` -> optional node-scoped inject bindings layered on top of top-level inject resources
 - `nodes` + `infrastructure` -> deployable network/node resources
 - orchestration and objective sections -> resolved runtime programs and graph nodes
+
+These compiled declarations and installed plans do not establish live inject
+execution. [ADR-112](../../decisions/adrs/adr-112-external-inject-triggering-and-execution.md)
+defines the accepted [external occurrence contract](../../../specs/sdl/external-injects.md):
+the shared runtime admits and drives an exact authored binding, and the backend
+supplies per-target effect evidence. Participant disclosure, delivery and
+observation remain separately authorized facts. Current bound/queued receipts
+retain their original meaning; executable support requires the coordinated
+[adoption boundary](external-inject-compatibility.md).
 
 The output is a `RuntimeModel` with canonical addresses for every runtime-owned
 object.
@@ -176,6 +202,14 @@ Reconciliation actions are explicit:
 - `UPDATE`
 - `DELETE`
 - `UNCHANGED`
+
+`raes processor reconcile <v1> <v2> --format json` makes this directly
+observable: it plans `v1`, projects that plan into a snapshot, plans `v2`
+against the snapshot, and reports every resulting action. The worked pair is
+[`examples/scenarios/reconciliation-demo-v1.sdl.yaml`](../../../examples/scenarios/reconciliation-demo-v1.sdl.yaml)
+and its `-v2` counterpart. The projected snapshot is synthetic assumed state
+for inspection, not backend readback, a durable checkpoint, or evidence of
+realization; durable snapshots belong to the runtime control-plane stores.
 
 Runtime resources carry two dependency sets:
 
@@ -495,9 +529,12 @@ writes. A stale writer therefore changes none of them. An exact retry of an
 already committed terminal operation returns the durable state without
 incrementing its revision. A backend claim is stored before execution, and its
 resulting snapshot and terminal operation record commit in one transaction.
-Startup marks an orphaned non-terminal record `FAILED` with
-an explicit indeterminate-outcome diagnostic and never replays it; retaining
-the idempotency claim prevents a retry from blindly repeating backend effects.
+Startup classifies each orphaned non-terminal record without replay: a known
+absent effect becomes `FAILED` or `CANCELLED`, a validated observed effect
+becomes `SUCCEEDED`, and an outcome that cannot be established becomes
+`INDETERMINATE`. Retaining the idempotency claim prevents a retry from blindly
+repeating backend effects, and resolving an indeterminate outcome creates a
+linked operation instead of rewriting the original.
 On first use, legacy JSON state is imported without deleting its source and is
 copied to a timestamped backup. Payload digests and SQLite integrity checks
 detect accidental durable-state corruption. Owned POSIX store directories are
@@ -546,6 +583,12 @@ releases authority. Run one ASGI worker with reload disabled. This is a
 single-host reference boundary, not a distributed queue, replication, or
 multi-host availability claim.
 
+The reference provider's operator procedures, including value-free health
+probes, shutdown ordering, recovery classification, and lease-admitted local
+store check/backup/restore commands, are documented in the
+[Control-Plane Recovery Operations runbook](control-plane-operations.md).
+Database restore does not establish equivalent external backend state.
+
 Bearer and verified-proxy authentication require the same exact target binding.
 An identity with no target, and an explicitly supplied bearer that is unknown,
 revoked, or scoped to another target, is rejected; a rejected bearer never
@@ -569,6 +612,76 @@ count, so an unauthenticated rejection flood cannot consume the default AnyIO
 workers required by authenticated reads; excess audit records are dropped with
 an operational warning.
 
+## Control-plane operating profiles
+
+An embedder selects a profile explicitly through the typed
+`raes_runtime.ControlPlaneProfile` API. `profile_declaration()` returns the
+canonical immutable declaration for any of P0–P3, including the guarantees,
+nonclaims, required capability identifiers, target/run scope, and actor
+boundary. A selected profile fails construction if the store or composition
+cannot supply its required facts; it never falls back to a weaker profile.
+Existing callers that omit selection continue to work, but their compositions
+make no named profile claim.
+
+| Profile | Guarantee identifiers | Nonclaim identifiers |
+| --- | --- | --- |
+| P0 | in-process-safety, actor-scoped-idempotency, target-run-isolation, revision-cas, atomic-audit | durability, restart-recovery, multi-owner, high-availability, multitenancy |
+| P1 | in-process-safety, actor-scoped-idempotency, target-run-isolation, revision-cas, atomic-audit, durable-state, retained-idempotency, lease-admission, startup-reconciliation | multi-owner, high-availability, exactly-once-effects, multitenancy |
+| P2 | in-process-safety, actor-scoped-idempotency, target-run-isolation, revision-cas, atomic-audit, durable-state, retained-idempotency, lease-admission, startup-reconciliation, authenticated-transport, actor-bound-disclosure, owner-serialized-mutation, revision-carrying-reads | multi-worker, tls-proxy-deployment, high-availability, exactly-once-effects, multitenancy |
+| P3 | none | future-coordination |
+
+P0 uses an in-memory store for one target and one run, with an actor supplied
+by the trusted embedding process. Its audit and idempotency guarantees last
+only as long as that process. P1 uses a transactional local store, one
+process-bound owner lease, revision checks, atomic terminal audit, and startup
+classification of interrupted operations. A backend recovery observer is
+optional: when an effect cannot be established, the operation becomes
+`INDETERMINATE` without automatic replay. P2 is the reference HTTP adapter
+over an explicitly selected P1 core. It derives the actor from authenticated
+HTTP identity and keeps P1's one-target, one-run scope. A bare core cannot
+claim P2, and P3 is inspectable but unavailable pending a future coordination
+decision.
+
+For an in-process P0 composition, pass `profile=ControlPlaneProfile.P0` to
+`RuntimeControlPlane`. For a durable local P1 composition, pass a
+`LocalControlPlaneStore` and `profile=ControlPlaneProfile.P1`; construction
+admits its owner lease. To serve that
+core, pass `profile=ControlPlaneProfile.P2` to `create_control_plane_app()`;
+the app exposes the same canonical declaration to its embedder through
+`app.state.control_plane_profile`. Store providers declare facts through
+`ControlPlaneStoreCapabilities`; they do not name or choose a profile.
+
+The library owns operation bookkeeping, receipts, snapshots, participant
+transitions, audit, and profile admission. The embedding application owns its
+target/run selection, process lifecycle, actor source for P0/P1, and upgrade
+sequence. P2 deployment owns TLS termination, trusted-proxy header stripping,
+secret loading, worker configuration, service credentials, process supervision,
+and backup policy. Profile metadata is in-process discovery, not a health
+signal, HTTP discovery endpoint, availability promise, or tenant-multiplexing
+contract.
+
+Participant clients access a trusted host application, which may embed P0/P1
+as an SDK or use the optional P2 HTTP adapter. The host keeps the SDK
+control-plane object or P2 identity private and binds each caller to one
+target/run, participant, exact episode, audience and operation before releasing
+a governed API-408 view. SDK calls have no HTTP role gate; a P2 identity with
+read access to participant views can also read the full snapshot. Neither
+path authenticates the host's end user or turns a legacy view without a
+configured crossing resolver into governed participant output. An
+organizational host owns organizational identity and policy; a local host
+applies its own caller boundary. The accepted
+[route and deployment boundary](../../decisions/issue-1356-control-plane-participant-access-preflight.md)
+also covers operation readback, histories, errors, caches and events.
+
+Every served P2 route declares exactly one transport authority: public probe,
+administrative read, administrative mutation or operator resolution.
+`create_control_plane_app()` refuses a route with none or several, and exposes
+the `(method, path)` inventory as `app.state.control_plane_route_authority`.
+Participant, audience, controller and operation-actor checks follow in the
+core. Every response carries `Cache-Control: no-store`. The
+[deployment guide](../../public/guides/control-plane.md) covers the host's
+duties.
+
 ## Current Scope
 
 The current runtime scope includes:
@@ -584,3 +697,13 @@ The current runtime scope includes:
 Real Docker/cloud/simulation backends are outside this repository's current
 implementation surface. Such backends would have to consume and satisfy these
 contracts.
+
+## Optional backend operation contracts
+
+The [operation-supervision family](../../../specs/formal/runtime-contracts/backend-operation-supervision.md)
+publishes the portable backend boundary for the accepted supervision design.
+It separates capability, willingness, acknowledgement, progress, control
+dispositions and scoped effect evidence. RAE retains native result validation
+and atomic terminal publication. The [migration guide](../reference/backend-operation-supervision.md)
+explains the additive profile and the limits of legacy conversions. These
+contracts do not enable a new RuntimeTarget provider or change P0–P3 guarantees.

@@ -90,7 +90,7 @@ def test_native_editorial_description_still_has_no_semantic_effect():
 
 def test_unsupported_owner_projection_cannot_claim_compatibility():
     data = json.loads((ROOT / "contracts/profiles/semantic-comparison/reference-v1.json").read_text())
-    data["owner_projection_versions"][ArtifactKind.STUDY.value] = "2"
+    data["owner_projection_versions"][ArtifactKind.MODULE.value] = "2"
     with pytest.raises(ValueError):
         SemanticComparisonProfileModel.model_validate(data)
 

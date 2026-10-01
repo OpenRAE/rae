@@ -27,6 +27,7 @@
           "enum": [
             "scenario",
             "scenario-snapshot",
+            "materialization-attestation",
             "task",
             "authoring-input",
             "apparatus-context",
@@ -112,6 +113,7 @@
             "protocol",
             "metric-definition",
             "scenario-snapshot",
+            "materialization-attestation",
             "manifest",
             "apparatus-evidence",
             "observation",
@@ -349,7 +351,8 @@
               "ref_kind": {
                 "enum": [
                   "scenario",
-                  "scenario-snapshot"
+                  "scenario-snapshot",
+                  "materialization-attestation"
                 ]
               }
             }

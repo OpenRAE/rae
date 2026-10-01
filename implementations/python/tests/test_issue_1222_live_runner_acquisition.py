@@ -108,8 +108,7 @@ def test_live_runner_host_profile_is_qualified_and_least_privilege() -> None:
     host = _live_runner_host()
     assert host["host_security_control_changes"] == "prohibited"
     assert host["proof_support"] == "unsupported"
-    # The native package closure is bound to an immutable snapshot archive.
-    assert host["native_repository_snapshot"] == "20260901T000000Z"
+    assert host["native_repository_identity"] == "ubuntu:noble:signed-archive"
     # cpython-3.14 is the declared bootstrap interpreter (execution-bound).
     assert "cpython-3.14" in set(host["bootstrap_payload_ids"])
     required = set(host["required_capability_ids"])
@@ -117,7 +116,7 @@ def test_live_runner_host_profile_is_qualified_and_least_privilege() -> None:
     # TCG is used, so KVM is optional, not required.
     assert "kvm-access" not in required
     assert "kvm-access" in set(host["optional_capability_ids"])
-    packages = set(host["offline_kit"]["host_prerequisite_package_ids"])
+    packages = set(host["host_prerequisite_package_ids"])
     assert {"qemu-system-x86", "libvirt-daemon-system", "libvirt-dev", "genisoimage"} <= packages
     assert {"build-essential", "python3-dev", "pkg-config"} <= packages  # native build prerequisites
 
@@ -125,7 +124,7 @@ def test_live_runner_host_profile_is_qualified_and_least_privilege() -> None:
 def test_scripts_install_only_reviewed_host_profile_packages() -> None:
     """The apt install list in each runner is a subset of the reviewed profile set."""
 
-    declared = set(_live_runner_host()["offline_kit"]["host_prerequisite_package_ids"])
+    declared = set(_live_runner_host()["host_prerequisite_package_ids"])
     for script in (SMOKE_SCRIPT, GUEST_SCRIPT):
         text = script.read_text(encoding="utf-8")
         match = re.search(r"apt-get install -y ([^\n]+)", text)
@@ -141,28 +140,8 @@ def test_scripts_install_only_reviewed_host_profile_packages() -> None:
 # --------------------------------------------------------------------------- #
 
 
-def test_inventory_row_i13_is_locked_to_the_admitted_authorities() -> None:
-    coverage = _load_json("implementations/tooling/inventory-coverage.json")
-    row = next(r for r in coverage["rows"] if r["inventory_id"] == "I13")
-    assert row["disposition"] == "locked"
-    assert "implementations/tooling/artifacts.lock.json" in row["authority_refs"]
-    assert "tools/real-daemon/live_runner_inputs.py" in row["authority_refs"]
-
-
-def test_live_runner_scripts_are_governed_acquisition_paths() -> None:
-    coverage = _load_json("implementations/tooling/inventory-coverage.json")
-    by_path = {p["path"]: p for p in coverage["acquisition_paths"]}
-    for script in ("tools/real-daemon/run_aws_smoke.sh", "tools/real-daemon/run_aws_guest_certify.sh"):
-        assert by_path[script]["disposition"] == "governed"
-        assert by_path[script]["inventory_id"] == "I13"
-        # exactly the one offline hash-pinned libvirt-python install site remains.
-        assert by_path[script]["site_count"] == 1
-
-
 def test_cirros_runtime_selection_is_declared_for_its_only_consumer() -> None:
     bindings = _load_json("implementations/tooling/selector-bindings.json")
-    runtime = {s["artifact_id"]: s["consumers"] for s in bindings["runtime_selections"]}
-    assert runtime["cirros-guest-disk"] == ["tools/real-daemon/live_runner_inputs.py"]
     version_binding = next(b for b in bindings["bindings"] if b["artifact_id"] == "cirros-guest-disk")
     assert version_binding["consumers"][0]["path"] == "tools/tool_versions.py"
 
@@ -189,17 +168,14 @@ def test_libvirt_python_pin_rejects_an_unpinned_requirement(tmp_path: Path) -> N
         module._libvirt_python_pin()
 
 
-def test_build_closure_includes_the_backend_and_matches_the_requirements() -> None:
+def test_requirements_pin_the_native_binding_and_its_build_backend() -> None:
     """The fetch authority and install authority for the offline closure cannot drift."""
 
-    module = _live_runner_inputs()
-    requirement_hashes = module.requirements_hashes()
-    # libvirt-python is sdist-only, so its build backend must also be admitted.
-    assert {"libvirt-python", "setuptools", "wheel"} <= set(requirement_hashes)
-    # The closure is a reviewed manifest (data file), not an inline tuple.
-    closure_hashes = {entry.name.lower(): entry.sha256 for entry in module._load_python_closure()}
-    assert closure_hashes == requirement_hashes, "wheelhouse manifest hashes must equal the pip --require-hashes pins"
-    assert module.PYTHON_CLOSURE_MANIFEST.is_file(), "the closure must live in a reviewed manifest file"
+    text = _live_runner_inputs().LIBVIRT_PYTHON_REQUIREMENTS.read_text()
+    lines = [line for line in text.splitlines() if line and not line.startswith("#")]
+    pins = [re.fullmatch(r"([A-Za-z0-9._-]+)==[^ ]+ --hash=sha256:[0-9a-f]{64}", line) for line in lines]
+    assert all(pins)
+    assert {pin.group(1) for pin in pins} == {"libvirt-python", "setuptools", "wheel"}
 
 
 # --------------------------------------------------------------------------- #
@@ -284,29 +260,27 @@ def test_scripts_authenticate_the_host_key_before_connecting(script: Path) -> No
 
 
 @pytest.mark.parametrize("script", [SMOKE_SCRIPT, GUEST_SCRIPT], ids=["smoke", "guest-certify"])
-def test_scripts_are_frozen_offline_and_require_explicit_reviewed_inputs(script: Path) -> None:
+def test_scripts_are_frozen_hash_pinned_and_require_explicit_inputs(script: Path) -> None:
     code = _script_code(script)
     assert "set -euo pipefail" in code
     assert "sync --frozen" in code, "uv sync must be frozen"
     assert "--require-hashes" in code, "libvirt-python install must be hash-pinned"
-    assert "--offline" in code, "libvirt-python must install from the offline closure"
-    assert "--no-index" in code, "libvirt-python must install from the offline closure"
+    assert "--build-constraints" in code
+    assert "--default-index https://pypi.org/simple" in code
     assert "SSH_INGRESS_CIDR" in code, "ingress CIDR must be explicit"
     assert "THIRD_PARTY_NOTICES.md" in code, "the mandatory packaging input must be in the source handoff"
 
 
 @pytest.mark.parametrize("script", [SMOKE_SCRIPT, GUEST_SCRIPT], ids=["smoke", "guest-certify"])
-def test_scripts_execution_bind_image_snapshot_and_interpreter(script: Path) -> None:
+def test_scripts_execution_bind_image_and_interpreter(script: Path) -> None:
     """Image, native packages and interpreter are bound to reviewed authorities, not floated/ambient."""
 
     code = _script_code(script)
     # Image resolved by exact reviewed Canonical name + owner, never "newest".
     assert "Name=name,Values=$IMAGE_NAME" in code, "the AMI must resolve by exact reviewed image name"
     assert "sort_by(Images" not in code, "must not float to the newest AMI"
-    # Native packages install from the immutable snapshot archive.
-    assert "snapshot.ubuntu.com/ubuntu/$NATIVE_SNAPSHOT" in code, (
-        "native packages must install from the pinned snapshot"
-    )
+    assert "snapshot.ubuntu.com" not in code
+    assert "Check-Valid-Until" not in code
     # The declared cpython-3.14 interpreter is used and validated, not system python3.
     assert "cpython.tar.gz" in code, "the declared interpreter must be pre-seeded"
     assert "Python 3.14" in code, "the pre-seeded interpreter version must be validated"
@@ -317,7 +291,6 @@ def test_reviewed_bindings_are_declared_in_tool_versions() -> None:
     text = (REPO_ROOT / "tools" / "tool_versions.py").read_text(encoding="utf-8")
     assert 'LIVE_RUNNER_UBUNTU_IMAGE_OWNER = "099720109477"' in text
     assert "ubuntu-noble-24.04-amd64-server-" in text, "the reviewed image name serial must be pinned"
-    assert 'LIVE_RUNNER_NATIVE_SNAPSHOT = "20260901T000000Z"' in text
 
 
 def test_smoke_verifies_the_pinned_cirros_identity() -> None:
@@ -379,30 +352,6 @@ def test_verify_object_identity_fails_closed(tmp_path: Path) -> None:
         module.verify_object_identity(link, expected_sha256=digest, expected_size=len(b"guest-bytes"))
 
 
-def test_stage_python_closure_writes_verified_wheelhouse(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    module = _live_runner_inputs()
-    blobs = {"libvirt-python": b"lp", "setuptools": b"st", "wheel": b"wl"}
-    fake_closure = tuple(
-        module._ClosureFile(
-            name=name,
-            version="1",
-            filename=f"{name}.bin",
-            url="https://example/pkg",
-            sha256=hashlib.sha256(data).hexdigest(),
-            size=len(data),
-        )
-        for name, data in blobs.items()
-    )
-    monkeypatch.setattr(module, "_load_python_closure", lambda: fake_closure)
-    monkeypatch.setattr(module, "acquire_locked_bytes", lambda **kw: blobs[kw["artifact_id"].split(":")[-1]])
-
-    result = module.stage_python_closure(tmp_path)
-    assert result["dir"] == "wheelhouse"
-    assert {f["name"] for f in result["files"]} == set(blobs)
-    for name, data in blobs.items():
-        assert (tmp_path / "wheelhouse" / f"{name}.bin").read_bytes() == data
-
-
 def test_stage_live_runner_inputs_manifest_matches_the_shell_contract(monkeypatch: pytest.MonkeyPatch) -> None:
     """The manifest carries every key the scripts' read_nested/read_top helpers consume."""
 
@@ -418,8 +367,7 @@ def test_stage_live_runner_inputs_manifest_matches_the_shell_contract(monkeypatc
             out.append({"artifact_id": aid, "path": rel, "sha256": "0" * 64, "size": 1})
         return out
 
-    monkeypatch.setattr("tools.bootstrap_profile.fetch_offline_kit_payloads", fake_fetch)
-    monkeypatch.setattr(module, "stage_python_closure", lambda _sd: {"dir": "wheelhouse", "files": []})
+    monkeypatch.setattr("tools.bootstrap_profile.fetch_bootstrap_payloads", fake_fetch)
 
     def fake_cirros(target: Path, local_input=None):
         target.write_bytes(b"img")
@@ -436,11 +384,11 @@ def test_stage_live_runner_inputs_manifest_matches_the_shell_contract(monkeypatc
         # exactly the keys the shell read_nested/read_top helpers dereference:
         assert manifest["base_image"]["owner"]
         assert manifest["base_image"]["name"]
-        assert manifest["native_repository_snapshot"]
+        assert "native_repository_snapshot" not in manifest
         assert manifest["cpython"]["staged_path"]
         assert manifest["uv"]["staged_path"]
         assert manifest["libvirt_python"]["name"] == "libvirt-python"
-        assert manifest["python_closure"]["dir"] == "wheelhouse"
+        assert "python_closure" not in manifest
         assert manifest["cirros_guest_disk"]["sha256"]
         assert manifest["cirros_guest_disk"]["size"]
 

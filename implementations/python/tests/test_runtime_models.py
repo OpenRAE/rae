@@ -508,7 +508,7 @@ assertions:
   pre-health: {proposition: health, role: precondition, polarity: positive}
 objectives:
   initial:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
     window:
       stories: [main]
@@ -606,7 +606,7 @@ entities:
   blue: {role: blue}
 objectives:
   initial:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
     window:
       workflows: [flow]
@@ -671,7 +671,7 @@ conditions:
   health: {command: /bin/true, interval: 15}
 objectives:
   initial:
-    entity: blue
+    owner: blue
     success:
       assertions: [missing-assertion]
     window:
@@ -739,10 +739,10 @@ entities:
   blue: {role: blue}
 objectives:
   attempt:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
   recover:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
 workflows:
   retry:
@@ -818,13 +818,13 @@ entities:
   blue: {role: blue}
 objectives:
   left:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
   right:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
   recover:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
 workflows:
   flow:
@@ -936,7 +936,7 @@ entities:
     role: blue
 objectives:
   validate:
-    entity: blue
+    owner: blue
     success:
       assertions: [health]
 workflows:
@@ -1000,7 +1000,7 @@ imports:
                       blue: {role: blue}
                     objectives:
                       validate:
-                        entity: blue
+                        owner: blue
                         success: {assertions: [health]}
                     workflows:
                       child:
@@ -1073,7 +1073,7 @@ imports:
                       blue: {role: blue}
                     objectives:
                       validate:
-                        entity: blue
+                        owner: blue
                         success: {assertions: [health]}
                     workflows:
                       rollback:

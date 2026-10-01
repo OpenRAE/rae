@@ -43,6 +43,7 @@ from ._source_profile import (
 )
 from ._source_validation import _raise_source_limit
 from ._yaml_loader import load_sdl_yaml
+from .materialization import MaterializedScenario
 from .scenario import ExpandedScenario, Scenario
 from .validator import SemanticValidator
 
@@ -337,7 +338,7 @@ def parse_sdl(
     source_format: str = SDL_SOURCE_FORMAT,
     migration_policy: SDLMigrationPolicy | str = SDLMigrationPolicy.REJECT,
     limits: SDLParserLimits = DEFAULT_PARSER_LIMITS,
-) -> Scenario | ExpandedScenario:
+) -> Scenario | ExpandedScenario | MaterializedScenario:
     """Parse SDL YAML into a normalized or expanded authoring object.
 
     Handles SDL documents with ``name`` at the top level. Runs
@@ -374,7 +375,9 @@ def parse_sdl(
         source_ranges=source_ranges,
     )
     _reject_removed_scoring_sections(data, path=path)
-    if data.get("imports"):
+    if "materialization_provenance" in data:
+        scenario_cls = MaterializedScenario
+    elif data.get("imports"):
         if path is None:
             raise SDLParseError(
                 "SDL imports require file-backed parsing via parse_sdl_file()",
@@ -405,7 +408,7 @@ def parse_sdl(
     scenario._set_source_diagnostics(source_diagnostics)
 
     # Semantic validation
-    if not skip_semantic_validation:
+    if not skip_semantic_validation or isinstance(scenario, MaterializedScenario):
         validator = SemanticValidator(scenario)
         try:
             validator.validate()
@@ -420,7 +423,7 @@ def parse_sdl(
     return scenario
 
 
-def parse_sdl_file(path: Path, **kwargs: Any) -> Scenario | ExpandedScenario:
+def parse_sdl_file(path: Path, **kwargs: Any) -> Scenario | ExpandedScenario | MaterializedScenario:
     """Parse an SDL file into a normalized or expanded authoring object.
 
     Convenience wrapper around ``parse_sdl()`` that reads from a file.

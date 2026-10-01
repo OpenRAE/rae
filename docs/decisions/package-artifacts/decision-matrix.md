@@ -1,5 +1,25 @@
 # Package and artifact management decision matrix
 
+## Current selection — #1313
+
+The project selects maintained native clients with reviewed Git input identity,
+private local/GitHub-runner caches, frozen Python environments and native
+workflow configuration. It does not select an enterprise repository manager,
+promotion/revocation service, disconnected distribution, independent-copy
+backup, retention/GC service or an operations qualification program.
+Earlier comparisons of those alternatives remain historical analysis.
+
+Ordinary release output identity, useful SBOM/provenance and same-byte recovery
+remain in scope. Optional container configuration is native; signed moving OS
+repositories are permitted without claiming reproducible images or new tested
+platforms. MAINTAINERS.md, not disjoint role labels, defines accountability.
+
+## Historical design — superseded where inconsistent
+
+The remainder records the earlier design. It is not current acceptance policy;
+the #1313 ADR amendments and current scope above take precedence.
+
+
 ## Evaluation method
 
 The criteria come from #1168 and the [repository inventory](inventory.md).

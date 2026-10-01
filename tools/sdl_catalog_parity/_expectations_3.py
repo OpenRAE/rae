@@ -183,12 +183,17 @@ EXPECTATIONS_PART_3: dict[str, tuple[str, str, str, str]] = {
         _ORDER_POINT_SCOPE,
         _VARIATION_VALIDATOR,
     ),
-    "objectives.*.agent": ("agents", _SEMANTIC, _DANGLING, _OBJECTIVE_SEMANTICS),
-    "objectives.*.entity": ("entities", _SEMANTIC, _DANGLING, _OBJECTIVE_SEMANTICS),
-    "objectives.*.actions[]": (
-        "derived:agent_actions",
+    "objectives.*.assigned_participant": (
+        "agents",
         _SEMANTIC,
-        "fatal outside the bound agent action contracts",
+        _DANGLING,
+        _OBJECTIVE_SEMANTICS,
+    ),
+    "objectives.*.owner": ("entities", _SEMANTIC, _DANGLING, _OBJECTIVE_SEMANTICS),
+    "objectives.*.actions[]": (
+        "action_contracts",
+        _SEMANTIC,
+        "fatal undeclared contract or outside assigned participant actions",
         _OBJECTIVE_SEMANTICS,
     ),
     "objectives.*.targets[]": (

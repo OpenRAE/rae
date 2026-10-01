@@ -9,6 +9,7 @@ from raes.participant_temporal_semantics import (
     ParticipantTemporalState,
     ParticipantTimeDomain,
 )
+from raes_contracts.contracts.participant_temporal import ParticipantTemporalExecutionContextModel
 
 from .behavior_resources import (
     _optional_payload_string,
@@ -59,6 +60,7 @@ class ParticipantTemporalRuntimeContext:
     backend_disclosure_refs: tuple[str, ...] = ()
     reset_boundary: str | None = None
     replay_boundary: str | None = None
+    shared_time: ParticipantTemporalExecutionContextModel | None = None
 
     @classmethod
     def from_payload(cls, payload: Mapping[str, Any]) -> "ParticipantTemporalRuntimeContext":
@@ -89,6 +91,9 @@ class ParticipantTemporalRuntimeContext:
             ),
             reset_boundary=_optional_payload_string(payload, "reset_boundary"),
             replay_boundary=_optional_payload_string(payload, "replay_boundary"),
+            shared_time=ParticipantTemporalExecutionContextModel.model_validate(payload["shared_time"])
+            if payload.get("shared_time") is not None
+            else None,
         )
 
     def to_payload(self) -> dict[str, Any]:
@@ -101,9 +106,16 @@ class ParticipantTemporalRuntimeContext:
             "backend_disclosure_refs": list(self.backend_disclosure_refs),
             "reset_boundary": self.reset_boundary,
             "replay_boundary": self.replay_boundary,
+            **(
+                {"shared_time": self.shared_time.model_dump(mode="json", exclude_none=True, exclude_defaults=True)}
+                if self.shared_time is not None
+                else {}
+            ),
         }
 
     def __post_init__(self) -> None:
+        if self.shared_time is not None and not isinstance(self.shared_time, ParticipantTemporalExecutionContextModel):
+            raise TypeError("shared_time must be a typed temporal execution context")
         _validate_required_string(
             self.temporal_contract_id,
             "participant temporal temporal_contract_id must be a non-empty string",

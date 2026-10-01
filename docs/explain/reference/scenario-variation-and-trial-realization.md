@@ -5,10 +5,12 @@ to archival experiment provenance. It applies ADR-084 to the package and
 artifact boundaries already established by ADR-036, ADR-053, ADR-055, ADR-065,
 ADR-068, ADR-074, and ADR-078.
 
-Issue #652 is design-only. Names in the contract sketches are conceptual unless
-ADR-084 says otherwise; follow-on issues publish the actual models and schemas.
-The semantic boundaries, identities, phase order, and failure behavior are
-binding and are not left for each implementation issue to rediscover.
+Issue #652 supplied this normative design. Follow-on work has since published
+the SCE-002 family/selection, admitted-plan, trial-compilation, realization,
+and runtime-fact contract surfaces, together with focused tests. Names in this
+reference remain conceptual unless a published contract or implementation binds
+them. The semantic boundaries, identities, phase order, and failure behavior
+remain binding and are not left for each implementation issue to rediscover.
 
 ## Scope And Claims
 
@@ -25,10 +27,11 @@ The design covers:
 - linkage to the existing experiment run, study, apparatus, evidence, and
   lineage records.
 
-The reference does not add a generator, sampler, trial compiler, scheduler,
-persistence service, API, scenario pack, or adaptive policy. Follow-on issue
-#791 implements the typed run-local fact contract and in-process binding plane
-described below; the remaining conceptual sketches retain their issue-owned
+The reference itself does not add a generator, sampler, trial compiler,
+scheduler, persistence service, API, scenario pack, or adaptive policy. The
+delivered follow-on slices include the typed run-local fact contract and
+in-process binding plane, deterministic trial compilation, and sealed-entry
+realization; remaining conceptual sketches retain their explicit
 implementation boundaries.
 It does not guarantee identical backend behavior, artifact availability,
 reconstruction of hidden state, or exact replay from a seed alone.
@@ -471,6 +474,33 @@ It does not contain queue state, worker assignment, mutable status, live
 snapshots, backend-private objects, raw evidence, secret values, environment
 dumps, or result summaries.
 
+### Mixed-composition admission
+
+An entry has one closed realization binding. Legacy entries retain the exact
+single-realizer apparatus binding and `trial-compiler-v1` identity bytes. A
+composition-bound entry instead names one digest-pinned
+`mixed-participant-composition-profile-v1` input and uses the governed
+`trial-compiler-mixed-composition-v1` identity domain. Every canonical trial
+coordinate has exactly one explicit assignment; apparatus availability,
+scheduler placement, retry state, map order, and ambient configuration cannot
+select or replace it.
+
+Before sealing, the compiler recomputes the provenance-free selected-scenario
+snapshot for that coordinate and resolves the profile through the existing
+trusted composition context. Admission checks exact component manifests and
+envelopes, provider-local API-407 feature support, allocation effect coverage,
+authority and policy joins, clocks and mappings, evidence, bounded nested
+profiles, and all-phase cleanup/isolation resources. One failed coordinate or
+component rejects the complete plan. The profile remains the sole owner of its
+finite phase schedule; the batch scheduler still schedules whole trial entries
+only.
+
+A linked alternative realization carries one exact already-sealed source
+plan/entry/run tuple. The source must bind the same authoring input, task,
+scenario family, and admitted selected snapshot, while the target receives new
+plan, entry, run, and digest identities. The compiler never fetches or walks an
+unbounded lineage graph.
+
 ### Failure taxonomy
 
 At minimum, implementations distinguish:
@@ -745,6 +775,12 @@ envelope, then calls the ordinary SDL selector and runtime compiler/planner.
 Its public processor-plan projections are digest-bound as provisioning,
 orchestration, and evaluation references; the internal execution plan is not
 a portable authority.
+
+That bridge deliberately rejects composition-bound entries before backend
+selection. Mixed runtime coordination, phase transition commits, provider
+handoff, and live dispatch belong to the separately versioned runtime
+coordination boundary; admission does not silently choose a component or claim
+that mixed execution occurred.
 
 The instantiated scenario carries the plan, entry, coordinate, selected
 members, and parameter-binding lineage without copying protected runtime fact

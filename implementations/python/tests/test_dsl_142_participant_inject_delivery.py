@@ -14,6 +14,7 @@ from raes.instantiate import instantiate_scenario
 from raes.parser import parse_sdl, parse_sdl_file
 from raes_contracts.contracts import schema_bundle
 from raes_processor.compiler import compile_runtime_model
+from raes_processor.compiler.time_model import time_model_contract_model
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 BINDING_REF = "behavior_specifications.red-briefing.participant_inject_deliveries.briefing"
@@ -105,7 +106,7 @@ def _scenario_yaml() -> str:
                 disclosure_rule: disclosures.briefing.v1
         agents:
           red-agent:
-            entity: red-team
+            affiliations: [red-team]
             observation_boundaries: [red-view]
         behavior_specifications:
           red-briefing:
@@ -163,6 +164,16 @@ def test_participant_inject_delivery_parses_and_compiles_typed_metadata() -> Non
     assert compiled.temporal_constraint_addresses == ("time.constraint.briefing-window",)
     assert compiled.evidence_requirement_addresses == ("sdl.evidence-requirements.briefing-delivery-evidence",)
     assert INJECT_ADDRESS in compiled.refresh_dependencies
+
+
+def test_participant_inject_delivery_is_a_valid_temporal_subject() -> None:
+    model = compile_runtime_model(parse_sdl(_scenario_yaml()))
+
+    declaration = time_model_contract_model(model.time_model)
+
+    assert declaration is not None
+    constraint = declaration.temporal_constraints["time.constraint.briefing-window"]
+    assert constraint.subject_addresses == [BINDING_ADDRESS]
 
 
 def test_compiler_preserves_inject_identity_without_copying_hidden_content() -> None:
@@ -329,15 +340,15 @@ def _external_direction_yaml() -> str:
             "  red-team:\n    role: red\n  blue-team:\n    role: blue\n",
         )
         .replace(
-            "  red-agent:\n    entity: red-team\n    observation_boundaries: [red-view]\n",
+            "  red-agent:\n    affiliations: [red-team]\n    observation_boundaries: [red-view]\n",
             (
                 "  red-agent:\n"
-                "    entity: red-team\n"
+                "    affiliations: [red-team]\n"
                 "    authority_anchors: [entities.red-team]\n"
                 "    operating_scope: [nodes.web]\n"
                 "    observation_boundaries: [red-view]\n"
                 "  supervisor-agent:\n"
-                "    entity: blue-team\n"
+                "    affiliations: [blue-team]\n"
                 "    authority_anchors: [entities.blue-team]\n"
                 "    operating_scope: [nodes.web]\n"
             ),

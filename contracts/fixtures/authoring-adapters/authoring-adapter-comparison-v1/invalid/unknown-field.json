@@ -1,0 +1,50 @@
+{
+  "artifact_relation": "equivalent",
+  "case_id": "strict-source",
+  "diagnostic_relation": "equivalent",
+  "left": {
+    "artifact_coordinate": {
+      "artifact_kind": "scenario",
+      "canonical_digest": "sha256:5fcc24aef66b0505b7d5230749f9f9ae4f0b01c58eeefee75156c1d1cd600ae8",
+      "canonical_identity": "scenario:adapter-fixture",
+      "canonicalization_profile": "raes-canonical-sdl/v2",
+      "exact_representation": null,
+      "lifecycle_phase": "normalized-authoring",
+      "scenario_id": "adapter-fixture",
+      "scenario_version": "*",
+      "source_profile": "sdl-normalized-authoring/v1"
+    },
+    "canonical_artifact_digest": "sha256:9cba4d8a0ee0b9839d2ece7695e6f26712e38208b47b5c58b264c89ea683845b",
+    "diagnostics_digest": "sha256:e3cbb2edde823c8e994bfc23531ba75ccefa16e546a0d710f5713e3819222108",
+    "outcome": "success",
+    "transformation_digest": null
+  },
+  "left_matches_expected": true,
+  "left_path": "left",
+  "provenance_relation": "not-applicable",
+  "reason_codes": [],
+  "right": {
+    "artifact_coordinate": {
+      "artifact_kind": "scenario",
+      "canonical_digest": "sha256:5fcc24aef66b0505b7d5230749f9f9ae4f0b01c58eeefee75156c1d1cd600ae8",
+      "canonical_identity": "scenario:adapter-fixture",
+      "canonicalization_profile": "raes-canonical-sdl/v2",
+      "exact_representation": null,
+      "lifecycle_phase": "normalized-authoring",
+      "scenario_id": "adapter-fixture",
+      "scenario_version": "*",
+      "source_profile": "sdl-normalized-authoring/v1"
+    },
+    "canonical_artifact_digest": "sha256:9cba4d8a0ee0b9839d2ece7695e6f26712e38208b47b5c58b264c89ea683845b",
+    "diagnostics_digest": "sha256:e3cbb2edde823c8e994bfc23531ba75ccefa16e546a0d710f5713e3819222108",
+    "outcome": "success",
+    "transformation_digest": null
+  },
+  "right_matches_expected": true,
+  "right_path": "right",
+  "schema_version": "authoring-adapter-comparison/v1",
+  "semantic_relation": "equivalent",
+  "semantic_result_digest": "sha256:28b092e7fee12323035a34da59a3ab7ff65d2c3628e785d2b511c251641dc431",
+  "unexpected": true,
+  "vector_digest": "sha256:f3c9ec31761da485ea2c41da44dd338dd471f766ae1ffe48f033ddfc0c772b98"
+}

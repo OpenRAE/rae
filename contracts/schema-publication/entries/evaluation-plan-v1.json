@@ -1,9 +1,9 @@
 {
-  "content_hash": "3d9a9f2676a4896441a61a72d1cba1c139dfbd93e603df864ec1c7233b646fd8",
+  "content_hash": "cf76df1286058ff5dd35f44cdcbcac91d0cd45178b5006f70f509fd25948003b",
   "contract_id": "evaluation-plan-v1",
   "last_change": {
-    "content_hash": "3d9a9f2676a4896441a61a72d1cba1c139dfbd93e603df864ec1c7233b646fd8",
-    "summary": "Carry value-free run_id and instantiation_id scope identity through the published plan model for issue #1276."
+    "content_hash": "cf76df1286058ff5dd35f44cdcbcac91d0cd45178b5006f70f509fd25948003b",
+    "summary": "Bind explicit augmentation-scope negotiation to the canonical phase plan independently of diagnostics (#1242)."
   },
   "schema_path": "contracts/schemas/plans/evaluation-plan-v1.json",
   "stability": "draft"

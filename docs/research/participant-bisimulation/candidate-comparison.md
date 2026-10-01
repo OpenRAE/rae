@@ -1,5 +1,8 @@
 # Participant Bisimulation Candidate Comparison
 
+Historical #811 assessment. ADR-100’s #971 amendment selects the
+[executable rev2 target](theorem-selection.md) for downstream work.
+
 Date: 2026-07-29
 
 Every candidate is evaluated against the same minimum surface: explicit state

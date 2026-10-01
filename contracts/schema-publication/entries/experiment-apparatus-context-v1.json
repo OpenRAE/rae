@@ -1,10 +1,10 @@
 {
+  "content_hash": "dd0d9b5f6a2439275d85e42bcd344870099f23ed42bb008fd845d52301fa1635",
   "contract_id": "experiment-apparatus-context-v1",
-  "schema_path": "contracts/schemas/experiment-core/experiment-apparatus-context-v1.json",
-  "stability": "draft",
-  "content_hash": "0e985b9cf8984e472f988be384c2d2c10aa8c999221a11624bc0cce25dbee47b",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "0e985b9cf8984e472f988be384c2d2c10aa8c999221a11624bc0cce25dbee47b"
-  }
+    "content_hash": "dd0d9b5f6a2439275d85e42bcd344870099f23ed42bb008fd845d52301fa1635",
+    "summary": "Add the distinct materialization-attestation reference kind to portable artifact joins; it never replaces the original scenario-snapshot identity (#1241)."
+  },
+  "schema_path": "contracts/schemas/experiment-core/experiment-apparatus-context-v1.json",
+  "stability": "draft"
 }

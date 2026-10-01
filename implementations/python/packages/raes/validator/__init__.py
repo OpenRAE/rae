@@ -12,6 +12,7 @@ from ._evidence_requirements import _EvidenceRequirementsMixin
 from ._mixed_control import _MixedControlMixin
 from ._nodes_infra_network import _NodesInfraNetworkMixin
 from ._participant_inject_deliveries import _ParticipantInjectDeliveriesMixin
+from ._participant_relationships import _ParticipantRelationshipsMixin
 from ._participant_tool_affordances import _ParticipantToolAffordancesMixin
 from ._propositions import _PropositionsMixin
 from ._relationships import _RelationshipsMixin
@@ -47,6 +48,7 @@ class SemanticValidator(
     _RelationshipsProxyMixin,
     _MixedControlMixin,
     _ParticipantInjectDeliveriesMixin,
+    _ParticipantRelationshipsMixin,
     _ParticipantToolAffordancesMixin,
     _ServiceMaterializationMixin,
     _AccountsMixin,

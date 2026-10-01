@@ -51,9 +51,15 @@ EXPECTED_SUPPORTED_CONTRACT_VERSIONS_V2 = [
     for contract_id in BACKEND_SUPPORTED_CONTRACT_IDS
     if contract_id
     not in {
+        "backend-operation-request-v1",
+        "backend-operation-capabilities-v1",
+        "backend-operation-control-v1",
+        "backend-operation-response-v1",
         "experiment-binding-descriptors-v1",
         "realization-envelope-v1",
         "backend-realization-preparation-v1",
+        "backend-materialization-attestation-v1",
+        "backend-augmentation-scope-v1",
         "plan-realization-profiles-v1",
     }
 ]

@@ -1,0 +1,90 @@
+{
+  "$defs": {
+    "AugmentationEffect": {
+      "additionalProperties": false,
+      "description": "Explain an existing materialization difference, never duplicate world values.",
+      "properties": {
+        "affected_scopes": {
+          "items": {
+            "maxLength": 4096,
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Affected Scopes",
+          "type": "array"
+        },
+        "field_pointer": {
+          "maxLength": 4096,
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Field Pointer",
+          "type": "string"
+        },
+        "requirement_refs": {
+          "items": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "pattern": "^(?:backend-operational|/(?:[^~]|~[01])*)$",
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Requirement Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "field_pointer",
+        "requirement_refs",
+        "affected_scopes"
+      ],
+      "title": "AugmentationEffect",
+      "type": "object"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/backend-augmentation-scope-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Read-only complete prospective common SDL content, not an attestation.",
+  "properties": {
+    "binding_digest": {
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "title": "Binding Digest",
+      "type": "string"
+    },
+    "content": {
+      "maxLength": 1048576,
+      "minLength": 1,
+      "title": "Content",
+      "type": "string"
+    },
+    "contract_id": {
+      "const": "backend-augmentation-scope-v1",
+      "default": "backend-augmentation-scope-v1",
+      "title": "Contract Id",
+      "type": "string"
+    },
+    "coverage_profile": {
+      "const": "raes-materialization-effects/v1",
+      "default": "raes-materialization-effects/v1",
+      "title": "Coverage Profile",
+      "type": "string"
+    },
+    "effects": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/AugmentationEffect"
+      },
+      "maxItems": 4096,
+      "title": "Effects",
+      "type": "array"
+    }
+  },
+  "required": [
+    "binding_digest",
+    "content"
+  ],
+  "title": "AugmentationPreparation",
+  "type": "object"
+}

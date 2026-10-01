@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import platform
 import re
 import shutil
@@ -12,7 +13,12 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
-from tools.tooling_installed_tree import SHA256_PATTERN, LockedInstalledTree, locked_installed_tree
+from tools.tooling_installed_tree import (
+    SHA256_PATTERN,
+    LockedInstalledTree,
+    locked_installed_tree,
+)
+from tools.tooling_oci_selection import LockedOciGraph, locked_oci_graph
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 _VALIDATOR_TIMEOUT_SECONDS = 180
@@ -44,6 +50,10 @@ class LockedArtifactSelection:
     installed_identity: tuple[tuple[str, str], ...] = ()
     locator_refs: tuple[str, ...] = ()
     installed_tree: LockedInstalledTree | None = None
+    oci_graph: LockedOciGraph | None = None
+    # The logical asset the reviewed release digest lives in. For an OCI image
+    # that is the registry repository; `repository` stays the project's own URL.
+    asset: str = ""
 
 
 def _is_portable_manifest_path(path: str) -> bool:
@@ -165,6 +175,18 @@ def _current_interpreter_validator_command(policy_root: Path) -> list[str]:
     return [str(validator_python), str(validator)]
 
 
+def _validator_environment() -> dict[str, str]:
+    """Pass process essentials, never ambient credentials or Python overrides."""
+    environment = {key: os.environ[key] for key in ("HOME", "PATH", "TMPDIR", "UV_CACHE_DIR") if key in os.environ}
+    environment.update(
+        LC_ALL="C",
+        LANG="C",
+        UV_PYTHON_DOWNLOADS="never",
+        UV_DEFAULT_INDEX="https://pypi.org/simple",
+    )
+    return environment
+
+
 def _validator_stdout(
     validator_command: list[str],
     *,
@@ -187,6 +209,8 @@ def _validator_stdout(
                 profile_id,
             ],
             cwd=REPO_ROOT,
+            env=_validator_environment(),
+            stdin=subprocess.DEVNULL,
             text=True,
             capture_output=True,
             check=False,
@@ -197,8 +221,7 @@ def _validator_stdout(
             "development artifact policy failed before acquisition: the frozen project validator could not complete"
         ) from exc
     if proc.returncode != 0:
-        details = proc.stderr.strip() or "the frozen project validator rejected the selection"
-        raise RuntimeError(f"development artifact policy failed before acquisition:\n{details}")
+        raise RuntimeError("development artifact policy failed before acquisition: selection rejected") from None
     return proc.stdout
 
 
@@ -207,6 +230,8 @@ def _validator_host_stdout(validator_command: list[str], *, host_profile_id: str
         proc = subprocess.run(
             [*validator_command, "--select-host-profile", host_profile_id],
             cwd=REPO_ROOT,
+            env=_validator_environment(),
+            stdin=subprocess.DEVNULL,
             text=True,
             capture_output=True,
             check=False,
@@ -217,8 +242,7 @@ def _validator_host_stdout(validator_command: list[str], *, host_profile_id: str
             "development artifact policy failed before acquisition: the frozen project validator could not complete"
         ) from exc
     if proc.returncode != 0:
-        details = proc.stderr.strip() or "the frozen project validator rejected the host selection"
-        raise RuntimeError(f"development artifact policy failed before acquisition:\n{details}")
+        raise RuntimeError("development artifact policy failed before acquisition: selection rejected") from None
     return proc.stdout
 
 
@@ -266,8 +290,10 @@ def _selection_from_document(  # NOSONAR -- closed-schema validation is intentio
         if artifact_class == "oci-image":
             installed_identity = _locked_installed_identity(platform["installed_identity"])
             installed_manifest: tuple[LockedManifestEntry, ...] = ()
+            oci_graph = locked_oci_graph(platform.get("oci_graph"))
         else:
             installed_identity = ()
+            oci_graph = None
             installed_values = platform["installed_manifest"]
             if not isinstance(installed_values, list):
                 raise TypeError
@@ -287,6 +313,8 @@ def _selection_from_document(  # NOSONAR -- closed-schema validation is intentio
             installed_identity=installed_identity,
             locator_refs=tuple(locator_refs),
             installed_tree=locked_installed_tree(platform.get("installed_tree")),
+            oci_graph=oci_graph,
+            asset=source["asset"],
         )
         selected_profile_ids = platform["profile_ids"]
     except (KeyError, TypeError) as exc:
@@ -314,6 +342,7 @@ def _selection_is_valid(
         selection.platform_id,
         selection.repository,
         selection.release,
+        selection.asset,
         selection.artifact_class,
         *selection.source_urls,
         *selection.policy_refs,

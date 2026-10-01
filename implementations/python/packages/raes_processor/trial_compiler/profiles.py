@@ -18,20 +18,25 @@ from raes_contracts.contracts.trial_coordinate_order import (
 )
 
 IDENTITY_DOMAIN: Final = "raes-trial-compiler-identity-v1"
+MIXED_IDENTITY_DOMAIN: Final = "raes-trial-compiler-mixed-composition-identity-v1"
 RANDOM_STREAM_PROFILE_ID: Final = "blake3-xof-v1"
 RANDOM_STREAM_PROFILE_VERSION: Final = RANDOM_STREAM_PROFILE_SCHEMA_VERSION
 
 
-def admitted_profiles() -> AdmittedTrialPlanProfilesModel:
+def admitted_profiles(*, mixed_composition: bool = False) -> AdmittedTrialPlanProfilesModel:
     """Return the single exact profile set implemented by this compiler."""
 
     return AdmittedTrialPlanProfilesModel(
         coordinate_profile="trial-coordinate-v1",
-        entry_identity_profile="trial-entry-identity-v1",
-        run_identity_profile="archival-run-identity-v1",
+        entry_identity_profile=(
+            "trial-entry-identity-mixed-composition-v1" if mixed_composition else "trial-entry-identity-v1"
+        ),
+        run_identity_profile=(
+            "archival-run-identity-mixed-composition-v1" if mixed_composition else "archival-run-identity-v1"
+        ),
         canonicalization_profile="jcs-sha256-v1",
         integrity_profile="acyclic-digest-chain-v1",
-        compiler_profile="trial-compiler-v1",
+        compiler_profile=("trial-compiler-mixed-composition-v1" if mixed_composition else "trial-compiler-v1"),
         selection_policy_profile="experiment-selection-v1",
         random_stream_profile=RANDOM_STREAM_PROFILE_ID,
         execution_control_profile="attempt-control-v1",
@@ -54,11 +59,17 @@ def coordinate_projection(coordinate: TrialCoordinateModel) -> dict[str, str]:
     return coordinate.model_dump(mode="json", exclude_none=True)
 
 
-def derive_identity(kind: str, projection: object) -> str:
+def realization_assignment_key(coordinate: TrialCoordinateModel) -> str:
+    """Return the stable key used for an exact coordinate realization assignment."""
+
+    return canonical_json_bytes(coordinate_projection(coordinate)).decode("utf-8")
+
+
+def derive_identity(kind: str, projection: object, *, mixed_composition: bool = False) -> str:
     """Derive one domain-separated JCS/SHA-256 portable identity."""
 
     material = {
-        "domain": IDENTITY_DOMAIN,
+        "domain": MIXED_IDENTITY_DOMAIN if mixed_composition else IDENTITY_DOMAIN,
         "kind": kind,
         "projection": projection,
     }
@@ -73,6 +84,7 @@ __all__ = [
     "derive_identity",
     "RANDOM_STREAM_PROFILE_ID",
     "RANDOM_STREAM_PROFILE_VERSION",
+    "realization_assignment_key",
     "replicate_id",
     "replicate_ordinal",
 ]

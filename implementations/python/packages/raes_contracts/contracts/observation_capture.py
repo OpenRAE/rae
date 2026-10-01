@@ -9,6 +9,8 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ..capture_dimensions import CAPTURE_SET_FIELDS
+from ..evidence_output_validation import validate_evidence_output_offer
 from .base import ContractModel, NonEmptyString
 from .validators import _validate_unique_string_values
 
@@ -41,19 +43,7 @@ class ObservationCaptureOfferModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_capture_offer(self) -> ObservationCaptureOfferModel:
-        for field_name in (
-            "artifact_roles",
-            "media_types",
-            "source_classes",
-            "source_refs",
-            "scopes",
-            "scope_refs",
-            "channel_kinds",
-            "channel_refs",
-            "window_kinds",
-            "integrity_modes",
-            "retention_policy_refs",
-        ):
+        for field_name in CAPTURE_SET_FIELDS:
             _validate_unique_string_values(field_name, getattr(self, field_name))
         if len(self.field_selectors) != len(set(self.field_selectors)):
             raise ValueError("field_selectors must not contain duplicate values")
@@ -65,6 +55,7 @@ class ObservationCaptureOfferModel(ContractModel):
             raise ValueError("capture offer scope_refs must name exact authored targets")
         if (self.disclosure == "full") != (self.redaction_policy is None):
             raise ValueError("redacted or withheld capture offers require exactly one redaction_policy")
+        validate_evidence_output_offer(self.output_contract, self.media_types)
         return self
 
     @classmethod

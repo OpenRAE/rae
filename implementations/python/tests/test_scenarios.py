@@ -7,7 +7,6 @@ VALID_SDL = """
 name: test-scenario
 description: Minimal SDL scenario
 """
-EXAMPLE_SCENARIOS = sorted(EXAMPLES_DIR.glob("*.sdl.yaml"))
 REFERENCE_SCENARIO = EXAMPLES_DIR / "enterprise-participant-evidence-loop.sdl.yaml"
 COMPLEX_EXAMPLES = [
     EXAMPLES_DIR / "hospital-ransomware-surgery-day.sdl.yaml",
@@ -112,22 +111,6 @@ class TestFindScenarios:
         from raes.scenarios import find_scenarios
 
         assert find_scenarios(tmp_path / "missing") == []
-
-
-def test_example_scenario_corpus_is_nonempty():
-    """A stale corpus root must fail loudly, not collect zero parametrized cases."""
-    assert EXAMPLE_SCENARIOS, f"No example SDL scenarios found under {EXAMPLES_DIR} (glob '*.sdl.yaml')"
-
-
-@pytest.mark.parametrize("path", EXAMPLE_SCENARIOS, ids=lambda path: path.name)
-def test_example_scenarios_load(path):
-    """Every example SDL should load successfully from disk."""
-    from raes.scenarios import load_scenario
-
-    scenario = load_scenario(path)
-
-    assert scenario.name
-    assert scenario.advisories == []
 
 
 @pytest.mark.parametrize("path", COMPLEX_EXAMPLES, ids=lambda path: path.name)

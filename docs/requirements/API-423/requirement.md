@@ -21,6 +21,31 @@ API-406 and API-409 provide adjacent carriers, but no common contract records th
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#971` (Independent single-operation formal model construction)
+
+- DOCUMENTS → DOCUMENTATION `docs/research/participant-bisimulation/model-construction.md` (Construction boundary and source derivation)
+
+- TESTS → TEST `implementations/python/tests/test_issue_971_crossing_models.py` (Complete single-operation transition, retry and atomicity construction tests)
+
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/concrete.py` (Issue #971 single-operation formal model construction only; no equivalence or runtime-realization result)
+
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1016` (Bind mixed-runtime dispatch to exact participant crossing facts)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_result_contracts.py` (Append-only composition evidence validation across backend results)
+- TESTS → TEST `implementations/python/tests/test_issue_1016_mixed_runtime_coordination.py` (Crossing, policy, delivery, observation, weakening, and failure evidence witnesses)
+- IMPLEMENTS → GITHUB_ISSUE `1072` (Modular crossing, inject and evidence bindings)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_resolution.py` (Exact incumbent crossing and inject-delivery joins)
+- TESTS → TEST `implementations/python/tests/test_api_424_control_resolution.py` (Trusted crossing and delivery context rejection)
+- TESTS → TEST `implementations/python/tests/test_api_424_security_profile.py` (SEM-233 sink and API-423 carrier compatibility)
+
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1014` (Bind composition edges to participant crossing policy and evidence authority)
+- IMPLEMENTS → SPEC `contracts/schemas/plans/mixed-participant-composition-profile-v1.json` (Typed crossing subject, policy, loss, and evidence bindings)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition.py` (Typed composition-edge crossing contract carriers)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition_validation.py` (Closed active-edge endpoint and phase-membership validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition_resolution.py` (Exact crossing scope, audience, policy, loss, and evidence joins)
+- TESTS → TEST `implementations/python/tests/test_issue_1014_mixed_composition_contracts.py` (Crossing policy, evidence, mapping, and stale-reference rejection tests)
+- DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1013` (Compose the existing API-423 authority in SEM-234 without changing its runtime contract)
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/cross-backend-participant-control.md` (Revisioned mixed-composition compatibility boundary)
+- TESTS → TEST `implementations/python/tests/test_sem_234_mixed_composition.py` (Bounded composition with incumbent API-423 authority)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_flow_control_validation.py` (API-423 final-sink flow-control validation)
 - TESTS → TEST `implementations/python/tests/test_sem_233_flow_control_contracts.py` (API-423 final-sink flow-control tests)
 - IMPLEMENTS → GITHUB_ISSUE `1002` (Issue #1002 portable flow-control contracts)

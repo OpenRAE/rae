@@ -11,6 +11,7 @@ from pathlib import Path
 import nox
 
 from tools.nox_support.config import (
+    DEFAULT_SUITE_EXPRESSION,
     DOCS_BUILD_ROOT,
     INSTALLATION_QUALIFICATION_HARNESSES,
     OSV_LOCKFILE_PATH,
@@ -20,6 +21,7 @@ from tools.nox_support.config import (
     PUBLIC_DOCS_EXAMPLE_TESTS,
     PUBLIC_DOCS_ROOT,
     REPO_ROOT,
+    SHARD_PLUGIN,
 )
 from tools.nox_support.runner import (
     SessionReporter,
@@ -35,6 +37,7 @@ from tools.osv_scanner_tool import (
     ensure_osv_scanner,
     run_osv_scanner,
 )
+from tools.pytest_shard import read_manifest, verify_shard_partition
 from tools.vale_tool import ensure_vale
 
 
@@ -88,6 +91,121 @@ def _run_integration_tests(
             append_coverage=append_coverage,
             finalize_coverage=finalize_coverage,
         ),
+    )
+
+
+def _run_shard_tests(
+    session: nox.Session,
+    reporter: SessionReporter,
+    coverage_file: Path,
+    *,
+    shard_count: int,
+    shard_index: int,
+    manifest_path: Path,
+    source_sha: str,
+) -> None:
+    """Run one deterministic shard of the default-marker suite, emitting a manifest.
+
+    The partition plugin lives in the repo-root ``tools`` package; export the repo
+    root so ``-p`` resolves before the ini ``pythonpath`` is applied. xdist still
+    parallelizes within the shard but never partitions across jobs.
+    """
+
+    args = [
+        "-q",
+        "-p",
+        SHARD_PLUGIN,
+        "--shard-count",
+        str(shard_count),
+        "--shard-index",
+        str(shard_index),
+        "--shard-manifest",
+        str(manifest_path),
+        "--shard-source-sha",
+        source_sha,
+        "--shard-suite-expression",
+        DEFAULT_SUITE_EXPRESSION,
+    ]
+    reporter.run(
+        f"tests / shard {shard_index} of {shard_count}",
+        lambda: _run_pytest(
+            session,
+            *args,
+            coverage_file=coverage_file,
+            finalize_coverage=False,
+            parallel=True,
+            extra_env={"PYTHONPATH": str(REPO_ROOT)},
+        ),
+        detail="deterministic sha256 node-id partition :: xdist within shard",
+    )
+
+
+def _collect_canonical_nodeids(session: nox.Session) -> list[str]:
+    """Freshly collect the canonical default-marker suite node ids."""
+
+    with session.chdir(PROJECT_ROOT):
+        output = session.run(
+            "uv",
+            "run",
+            "--frozen",
+            "python",
+            "-m",
+            "pytest",
+            "--collect-only",
+            "-q",
+            "--no-header",
+            external=True,
+            silent=True,
+        )
+    nodeids = [line.strip() for line in (output or "").splitlines() if "::" in line]
+    if not nodeids:
+        raise RuntimeError("canonical collection returned no node ids")
+    return nodeids
+
+
+def _run_coverage_reduce(
+    session: nox.Session,
+    reporter: SessionReporter,
+    reduce_dir: Path,
+    *,
+    shard_count: int,
+    source_sha: str,
+) -> None:
+    """Prove shard completeness, then combine shard + integration coverage once.
+
+    ``reduce_dir`` holds every producer's ``.coverage.*`` data file and the
+    ``shard-*.json`` manifests. The completeness proof runs before any combine so
+    a missing, failed, or stale shard fails closed instead of yielding a partial
+    report.
+    """
+
+    _sync_project(session)
+    manifests = [read_manifest(path) for path in sorted(reduce_dir.glob("shard-*.json"))]
+    if not manifests:
+        raise RuntimeError(f"no shard manifests found under {reduce_dir}")
+    canonical = _collect_canonical_nodeids(session)
+    reporter.run(
+        "coverage / shard completeness proof",
+        lambda: verify_shard_partition(
+            manifests,
+            canonical,
+            shard_count=shard_count,
+            source_sha=source_sha or None,
+        ),
+        detail=f"{len(manifests)} shards :: {len(canonical)} canonical node ids",
+    )
+
+    coverage_env = {"COVERAGE_FILE": str(reduce_dir / ".coverage")}
+
+    def _combine_and_report() -> None:
+        with session.chdir(PROJECT_ROOT):
+            _run(session, "uv", "run", "--frozen", "coverage", "combine", "--keep", str(reduce_dir), env=coverage_env)
+            _write_and_check_coverage(session, coverage_env)
+
+    reporter.run(
+        "coverage / combined shard and integration report",
+        _combine_and_report,
+        detail="coverage combine :: xml + json :: 90% line floor",
     )
 
 

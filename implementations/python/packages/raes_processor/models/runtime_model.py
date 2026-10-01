@@ -3,6 +3,7 @@
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from raes.materialization import MaterializedScenario
 from raes.scenario import InstantiatedScenario
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.addressing import require_compiled_address
@@ -55,8 +56,9 @@ from .time_model import CompiledTimeModel
 class ObjectiveRuntime(ResolvedResource):
     """Resolved objective node."""
 
-    actor_type: str = ""
-    actor_name: str = ""
+    owner_name: str = ""
+    assigned_participant_name: str = ""
+    assigned_participant_address: str = ""
     success_addresses: tuple[str, ...] = ()
     objective_dependencies: tuple[str, ...] = ()
     window_story_addresses: tuple[str, ...] = ()
@@ -155,6 +157,7 @@ class RuntimeModel:
     # portable ProvisioningPlan authority collection.
     realization_authority: tuple[CompiledRealizationAuthority, ...] = ()
     realization_instance: InstantiatedScenario | None = None
+    materialization_description: MaterializedScenario | None = None
     observation_demands: tuple[EffectiveObservationDemand, ...] = ()
     profile_authority: PlanProfileAuthority | None = None
 

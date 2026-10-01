@@ -16,37 +16,73 @@ verification graph to pass for the exact commit named by the release (GOV-928).
 1. Feature PRs **squash-merge** (into `dev`, then promoted to `main`) with a
    Conventional Commit **PR title** — the squashed commit is what release-please
    reads. The required `title-guard` check enforces the shape.
-2. On every push to `main`, `.github/workflows/release-please.yml` maintains a
-   **release PR** titled `chore(main): release X.Y.Z` that bumps the version and
-   regenerates `CHANGELOG.md` from the commits since the last release.
+2. On a push to `main` containing a releasable Conventional Commit,
+   `.github/workflows/release-please.yml` maintains a **release PR** titled
+   `chore(main): release X.Y.Z` that bumps the version and regenerates
+   `CHANGELOG.md` from the commits since the last release. Documentation and
+   maintenance-only pushes do not create a release PR.
 3. **Merge that release PR.** Release Please tags `vX.Y.Z`, creates a **draft**
    GitHub Release, and returns the commit SHA that it tagged. Forced tag creation
    keeps draft releases discoverable by Release Please. The release workflow
    requires that tag and SHA to match and that the commit belong to `main`.
 4. The workflow invokes `.github/workflows/canonical-verification.yml` for that
-   exact SHA. This is the same proof-bearing `nox -s verify` gate used by CI.
-   It does not poll branch status or accept a check from another commit.
+   exact SHA. This is the same proof-bearing, exact-commit verification graph
+   used by CI: the same nox test, coverage, policy, contract, and proof lanes,
+   now distributed across concurrent jobs, with the same 90% coverage floor. The
+   release caller leaves the SonarCloud quality gate disabled. It does not poll
+   branch status or accept a check from another commit.
 5. A separate read-only job checks out that SHA and must complete the RUN-314
-   reference-backend tests against a real container runtime. Release-required
-   mode fails when the runtime or digest-pinned reviewed image is unavailable,
-   when pytest collects zero tests, or when any selected test skips. The
-   ordinary PR/local Docker lane remains optional.
+   reference-backend tests against a real container runtime. Before the lane
+   runs, the native runtime pulls the pinned platform manifest from the public
+   registry. The lane verifies daemon OS, architecture, and uncompressed layer
+   identities against `implementations/tooling/artifacts.lock.json`.
+   Release-required mode fails when the runtime or reviewed image is unavailable,
+   its identity differs, pytest collects zero tests, or any selected test skips.
+   Retired mirror/pre-seed environment switches are rejected. The ordinary
+   PR/local Docker lane remains optional.
 6. A read-only job checks out the verified SHA, builds the corpus-bundled wheel
    and sdist, checks the corpus in both archives, installs each exact artifact in
    its own fresh environment, and runs `raes conformance backend --profile
    provisioning-only` outside the checkout.
-7. Only those tested distributions cross into the `pypi` environment. After any
-   environment approval and artifact download, the job freshly revalidates the
-   Release object id, draft state, exact tag ref, and fully dereferenced commit
-   SHA immediately before its pinned OIDC publisher runs. A separate GitHub-only
-   job performs the same identity checks again, attaches the artifacts, and
-   re-reads the Release identity after attachment before making the exact
-   numeric Release id public. Keeping these jobs separate means a failed
-   attachment/finalization can be retried without attempting a second PyPI
-   upload. If the public-finalization response was lost after GitHub applied
-   it, the retry accepts the already-public Release only after downloading and
-   byte-comparing both attached distributions and rechecking the id, tag, and
-   commit SHA.
+7. An admission job downloads those distributions and their evidence, runs the
+   full evidence admission, and checks that the admitted wheel and sdist
+   filenames correspond to the resolved tag version. Because it is the last job
+   permitted to run repository code, it is the trust bridge: on success it
+   exports only four validated scalars — the wheel and sdist basenames and
+   their SHA-256 digests — as job outputs. A refused release exports nothing.
+8. Only those tested distributions cross into the `pypi` environment. Each
+   publisher independently downloads the artifact, requires exactly the two
+   admitted filenames, and rehashes the bytes against the admitted digests
+   immediately before its destination operation. Neither publisher checks out
+   or executes repository source, so publication credentials never coexist
+   with candidate code in the same job; the identity checks they need are made
+   over the API.
+9. Each destination is then reconciled independently — this is deliberately
+   not a transaction:
+   - **PyPI.** The workflow queries the release's JSON API before uploading.
+     PyPI reports a SHA-256 for every file it stores, so an "already exists"
+     answer is never taken as proof of byte identity. Every expected file
+     already present with matching bytes means there is nothing to upload; a
+     missing file leaves that upload pending; a same-name file with different
+     bytes fails the run. An unreachable or unexpected API response fails
+     rather than being read as "not published".
+   - **GitHub.** The job revalidates the Release object id, draft state, exact
+     tag ref, and fully dereferenced commit SHA, then reconciles every asset
+     it writes — both distributions and the retained evidence — one at a time.
+     GitHub publishes no server-side asset digest, so presence comes from the
+     Release's asset listing and identity from a byte comparison. Exactly three
+     outcomes are allowed: matching existing bytes (already published),
+     confirmed absence (upload, then read the stored bytes back and compare),
+     or failure. An asset listing or download that does not succeed is never
+     read as absence, so a transient API error cannot become an overwrite, and
+     nothing is ever overwritten. The Release identity is re-read after
+     attachment before the numeric Release id is made public.
+
+   Keeping these jobs separate means a failed attachment or finalization is
+   retried without attempting a second PyPI upload. If the public-finalization
+   response was lost after GitHub applied it, the retry accepts the
+   already-public Release only after downloading and byte-comparing both
+   attached distributions and rechecking the id, tag, and commit SHA.
 
 GitHub exposes draft Releases only to push-capable identities. Consequently,
 the release-resolution job and the pre-PyPI revalidation job each need
@@ -57,8 +93,9 @@ for attachment and publication. Checkouts in either write-scoped job must not
 persist the elevated credential, and the permission correction must not
 introduce a PAT or long-lived publication secret.
 
-Nothing is hand-run, and feature PRs never touch `CHANGELOG.md` (release-please
-owns it) — no fragment collisions.
+The maintainer authorizes a release by merging its Release Please PR; artifact
+building and publication are automated afterward. Feature PRs never touch
+`CHANGELOG.md` (release-please owns it), so there are no fragment collisions.
 
 ## Version rubric (PR-title type → bump)
 
@@ -67,15 +104,21 @@ owns it) — no fragment collisions.
 | `feat` | yes | minor |
 | `fix`, `perf` | yes | patch |
 | `feat!` / `fix!` / `BREAKING CHANGE:` footer | yes | major (pre-1.0 demoted to minor) |
-| `docs`, `chore`, `refactor`, `test`, `ci`, `build` | no | — |
+| `docs`, `style`, `chore`, `refactor`, `test`, `ci`, `build` | no | — |
 
+The Python Release Please strategy normally includes `docs` in visible release
+notes. `release-please-config.json` explicitly hides that section alongside
+maintenance types, so a documentation-only change does not produce release
+notes and therefore does not propose a release. A later `feat:`, `fix:`, or
+`perf:` can still produce a release and include those changes in its history.
 Use `feat:`/`fix:` for consumer-visible changes so release-please cuts a release.
 
 ## Configuration
 
 - `release-please-config.json` — package at repo root (so `CHANGELOG.md` stays at
-  the root), `release-type: python`, `package-name: raes`. The actual version
-  literal lives in a dedicated RAES package file and is bumped via `extra-files`
+  the root), `release-type: python`, `package-name: raes`, and explicit
+  changelog-section visibility. The actual version literal lives in a dedicated
+  RAES package file and is bumped via `extra-files`
   (`implementations/python/packages/raes/_version.py`).
 - `.release-please-manifest.json` — the version source of truth: `{".": "X.Y.Z"}`.
 - `implementations/python/packages/raes/_version.py` — build version source
@@ -88,6 +131,67 @@ Use `feat:`/`fix:` for consumer-visible changes so release-please cuts a release
   checks out and binds itself to that value.
 - `release-please-config.json` creates releases as drafts and forces the tag to
   exist immediately. Only the gated GitHub publication job removes draft state.
+
+## Release evidence: SBOM, build inventory, and provenance
+
+Every release produces evidence bound to the exact bytes it publishes (#1226):
+
+- **Runtime SBOMs** in CycloneDX 1.6, one for the wheel and one for the sdist.
+  Each names the distribution's runtime dependency closure with its dependency
+  edges, and binds the SHA-256 of the artifact it describes.
+- **A build/tool/native input inventory**, recorded separately from runtime
+  dependencies. It carries the interpreter and closure profile, the build
+  backend, the reviewed tool inputs, the pinned actions, and the lock and policy
+  hashes, along with the repository, source commit, producer workflow, run id,
+  and run attempt.
+- **A release evidence index** binding the published subject set and every
+  evidence document by size and digest.
+
+The runtime SBOM is **not** a dump of the smoke environment. That environment
+installs the full projected requirements and then the candidate with
+`--no-deps`, so it also holds the published `dev` and `docs` extras — reading it
+back would file Sphinx and pytest as runtime dependencies of `raes`. The closure
+is instead reconciled from three independent sources: the built wheel's own
+`Requires-Dist` metadata, the reviewed lock, and the observed installation. Any
+disagreement fails the release rather than silently dropping a dependency edge.
+
+The wheel, the original sdist, and the wheel rebuilt from that sdist are three
+distinct subjects. The sdist SBOM binds the original `.tar.gz`; the rebuilt
+wheel is recorded as a derived test subject and never stands in for either
+published artifact.
+
+### How it is signed and admitted
+
+Signing runs in its own `attest-release` job through
+`actions/attest-build-provenance`. That job checks out nothing, holds no PyPI
+environment and no `contents: write`, and measures the bytes it received before
+signing them — so an attestation credential cannot authorize publication.
+
+A separate `admit-release` job then verifies each subject with
+`gh attestation verify`, pinned to the issuer, repository, and signer workflow
+recorded in `implementations/tooling/admission-policy.json`. Those approved
+identities come from reviewed policy, never from the bundle being verified. Both
+publishers depend on that job, so absent or rejected evidence blocks the handoff
+instead of being an optional report. A cryptographically valid signature over
+the wrong repository, workflow, run, attempt, or subject is a rejection.
+
+### Where it is retained
+
+The evidence is attached to the GitHub Release beside the wheel and sdist, and
+read back and digest-compared after upload. It is therefore available as a
+Release asset after the seven-day Actions artifact retry window; no enterprise
+retention service or separate copy is a prerequisite for public publication.
+
+### Verifying a release as a consumer
+
+```console
+$ gh attestation verify raes-1.2.3-py3-none-any.whl \
+    --repo OpenRAE/rae \
+    --signer-workflow OpenRAE/rae/.github/workflows/release-please.yml
+```
+
+Download the SBOM and build inventory from the same Release to inspect the
+recorded dependency closure and build inputs.
 
 ## Release bookkeeping does not re-run checks
 
@@ -130,50 +234,89 @@ must not grant itself permission to rewrite live organization rulesets. This
 ruleset remains a maintainer-owned external control and a release-readiness
 requirement.
 
-## Manual recovery publish
+## Recovering a partial publication
 
-`workflow_dispatch` accepts an existing GitHub Release tag when a prior upload
-needs to be retried. The tag must be stable SemVer (`vX.Y.Z`), resolve to a
-commit reachable from `main`, and have a policy base. The workflow resolves it
-once to a full SHA and runs the same canonical verification, build, corpus
-checks, exact wheel and sdist installation/conformance smokes, and OIDC
-publication chain. PyPI upload and GitHub attachment are separate jobs, so use
-GitHub's **re-run failed jobs** operation if attachment or finalization fails
-after PyPI succeeds.
-For a draft created by an older run that failed before PyPI publication, invoke
-the current workflow from the default branch with that existing tag rather than
-re-running the stale workflow definition. This preserves the bound tag, commit,
-and numeric Release identity while applying the current publication gates.
+Publication is two independently reconciled destinations, so a run that
+published to PyPI and then failed on GitHub is a normal, recoverable state. The
+governing rule is that recovery republishes **the original tested bytes** and
+never rebuilds a new artifact under an existing version.
+
+**Start here: re-run the failed jobs on the original run.** In the Actions UI,
+open the release run and use **re-run failed jobs**. This reuses that run's own
+distribution and evidence artifacts, so `build-release` does not run again and
+the bytes are the ones that were admitted. The publishers reconcile each
+destination and complete only what is outstanding:
+
+| Observed state | What the re-run does |
+| --- | --- |
+| PyPI published, GitHub not attached | Skips the PyPI upload (digests already match) and attaches/finalizes GitHub. |
+| PyPI partially uploaded | Uploads only the missing file; the present one is verified byte-identical first. |
+| GitHub asset or evidence already attached | Leaves it in place after a byte comparison. |
+| Outcome uncertain (lost API response) | Queries each destination and compares bytes before doing anything. |
+| Destination query itself fails | Stops. An unavailable answer is never read as "not published". |
+| Same version, different bytes at a destination | Fails visibly. See below. |
+
+Actions artifacts are retained for **seven days**. Within that window the
+re-run is the whole procedure.
+
+**If the artifacts have aged out.** The distribution artifact is the only
+source of publishable bytes; no publisher can rebuild. When the download fails,
+that failure *is* the diagnosis: stop. Do not dispatch a fresh run to recreate
+the version — a rebuild is not guaranteed to reproduce the published bytes, and
+replacing an already-published version silently is exactly what this design
+forbids. Cut a new patch release through the normal reviewed process instead.
+The release evidence itself outlives the artifact window, because it is
+attached to the durable GitHub Release.
+
+**A same-version digest mismatch is an incident, not a retry.** If PyPI or the
+Release already stores a file under an expected name with different bytes, the
+run fails and says so. Do not overwrite it, move the tag, or rebuild. Establish
+where the divergent bytes came from, then publish a new version.
+
+### Dispatching the workflow for an existing tag
+
+`workflow_dispatch` accepts an existing stable-SemVer tag (`vX.Y.Z`) that
+resolves to a commit reachable from `main` and has a policy base. The workflow
+resolves it once to a full SHA and runs the whole graph — canonical
+verification, the required real-container lane, build, corpus checks, the exact
+wheel and sdist installation/conformance smokes, evidence admission, and the
+OIDC publication chain.
+
+Use this for a draft created by an older run that failed **before** PyPI
+publication: it preserves the bound tag, commit, and numeric Release identity
+while applying the current publication gates, rather than re-running a stale
+workflow definition. Never use manual dispatch for a version already on PyPI:
+it rebuilds instead of reusing the original admitted artifacts, even if the
+resulting bytes happen to match. Re-run failed jobs on the original run while
+its artifacts remain available; otherwise stop and cut a new patch release.
 Manual dispatch is not a verification bypass and never builds from the current
 branch head.
 
-## First release
+## Verify PyPI trusted publishing and release controls
 
-`main` starts at `0.18.0` (the manifest/pyproject baseline; the historical
-changelog through `0.18.0` is preserved in `CHANGELOG.md`). The first `feat:`/
-`fix:` merged to `main` after adoption produces a release PR bumping from
-`0.18.0`; merging it publishes the first PyPI artifact.
+Before merging a Release Please PR, the maintainer checks the existing PyPI
+project's *Publishing* settings for this exact Trusted Publisher tuple:
 
-## PyPI trusted publishing (one-time, maintainer)
+- PyPI project: `raes`
+- Owner/repository: `OpenRAE/rae`
+- Workflow: `release-please.yml`
+- Environment: `pypi`
 
-Register a **pending** trusted publisher on PyPI before the first upload (no
-token stored):
+The GitHub `pypi` environment must allow deployments only from `main`. Its
+publisher job alone receives that environment and `id-token: write`; it also
+has job-scoped `contents: write` solely so its post-approval identity check can
+see the still-draft GitHub Release. Resolution, canonical verification,
+distribution installation, GitHub attachment, and CLI execution cannot mint
+the PyPI publishing credential. The workflow uses short-lived OIDC rather than
+a stored PyPI API token. A successful historical publish attestation can prove
+which identity published that file, but does not prove that private publisher
+settings or account tokens remain unchanged today.
 
-- PyPI → *Your projects* → *Publishing* → *Add a pending publisher* → GitHub
-- PyPI Project Name: `raes`
-- Owner: `OpenRAE`  ·  Repository: `rae`
-- **Workflow name: `release-please.yml`**  ·  Environment name: `pypi`
-
-> If you previously registered the publisher against `release.yml`, update it to
-> `release-please.yml` (or add a second pending publisher) — the workflow filename
-> must match or only the PyPI publish step 403s.
-
-The `pypi` environment and `id-token: write` permission exist only on the PyPI
-upload job. That job also has job-scoped `contents: write` solely so its
-post-approval identity check can see the still-draft GitHub Release. Configure
-the environment's deployment branch policy for `main`. Resolution, canonical
-verification, distribution installation, GitHub attachment, and CLI execution
-cannot mint the PyPI publishing credential.
+Check the protected `main` and `dev` merge policies and the `v*` tag rule before
+authorizing a release. This is a single-maintainer decision; do not require a
+fictional second approver or deputy. Preserve the separation of machine
+permissions between verification, signing, PyPI publication, and GitHub
+finalization.
 
 ## Pinning from a downstream backend
 

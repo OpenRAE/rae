@@ -10,6 +10,7 @@ evidence; permitted operations fold safe SEM-233 references into the audit.
 
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -27,6 +28,7 @@ from participant_crossing_fixtures import (
 from raes_contracts.contracts import ParticipantFlowFinalDisposition as Disposition
 from raes_contracts.contracts import ParticipantFlowSinkKind
 from raes_contracts.runtime_state import OperationState, OperationStatus
+from raes_runtime import participant_crossing_egress
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_store import InMemoryControlPlaneStore, LocalControlPlaneStore
 from raes_runtime.participant_control_intents import ParticipantHandoffControlIntent
@@ -35,6 +37,7 @@ from sem233_flow_sink_fixtures import (
     Sem233FlowSinkResolver,
     deny_resolver,
     permit_resolver,
+    sem233_plane,
 )
 
 _SECRET = "secret flow-sink policy detail must not leak"
@@ -105,7 +108,7 @@ def _no_secret_leak(plane: RuntimeControlPlane, receipt: object) -> bool:
 def test_permitted_ingress_calls_backend_once_and_records_sem233() -> None:
     target = policy_capable_target()
     counter = _instrument_backend(target)
-    plane = action_plane(permit_resolver(), target=target)
+    plane = sem233_plane(permit_resolver(), target=target)
 
     receipt = admit(plane, idempotency_key="permit-ingress")
 
@@ -120,7 +123,7 @@ def test_permitted_ingress_calls_backend_once_and_records_sem233() -> None:
 
 
 def test_permitted_egress_returns_view_with_sem233_reference() -> None:
-    plane = action_plane(permit_resolver(), target=_egress_target())
+    plane = sem233_plane(permit_resolver(), target=_egress_target())
 
     view = _status_view(plane, idempotency_key="permit-egress")
 
@@ -161,7 +164,7 @@ def test_permitted_control_ingress_applies_transition_with_sem233_reference() ->
 def test_non_permit_ingress_never_dispatches_backend(toggles: FlowSinkToggles) -> None:
     target = policy_capable_target()
     counter = _instrument_backend(target)
-    plane = action_plane(deny_resolver(toggles), target=target)
+    plane = sem233_plane(deny_resolver(toggles), target=target)
 
     receipt = admit(plane, idempotency_key="deny-ingress")
 
@@ -177,15 +180,106 @@ def test_non_permit_ingress_never_dispatches_backend(toggles: FlowSinkToggles) -
 
 @pytest.mark.parametrize("toggles", _NON_PERMIT_TOGGLES)
 def test_non_permit_egress_raises_and_serializes_nothing(toggles: FlowSinkToggles) -> None:
-    plane = action_plane(deny_resolver(toggles), target=_egress_target())
+    plane = sem233_plane(deny_resolver(toggles), target=_egress_target())
 
     with pytest.raises(PermissionError, match="not permitted"):
         _status_view(plane, idempotency_key="deny-egress")
 
-    stages = [item["occurrence"]["stage"] for item in plane.snapshot.participant_crossing_history[PARTICIPANT]]
+    history = plane.snapshot.participant_crossing_history[PARTICIPANT]
+    stages = [item["occurrence"]["stage"] for item in history]
+    assert "decided" in stages
     assert "delivered" not in stages
-    assert plane.audit_log()[-1].reason == "flow-sink-denied"
-    assert _no_secret_leak(plane, plane.audit_log()[-1])
+    assert "observed" not in stages
+    audit = plane.audit_log()[-1]
+    assert audit.reason == "flow-sink-denied"
+    assert audit.allowed is False
+    status = _operation_status(plane, audit.operation_id)
+    assert status.state is OperationState.FAILED
+    assert {item.code for item in status.diagnostics} == {
+        "runtime.participant-flow-sink-denied",
+        "runtime.control-plane.operation-failed",
+    }
+    assert plane._store.load_records()[audit.operation_id].result_payload is None
+    assert _no_secret_leak(plane, audit)
+
+
+def test_denied_egress_replay_keeps_the_same_failed_operation() -> None:
+    plane = sem233_plane(
+        deny_resolver(FlowSinkToggles(capability_disposition=Disposition.DENY)),
+        target=_egress_target(),
+    )
+
+    with pytest.raises(PermissionError, match="not permitted"):
+        _status_view(plane, idempotency_key="deny-egress-replay")
+    audit = plane.audit_log()[-1]
+    audits = plane.audit_log()
+    history = plane.snapshot.participant_crossing_history[PARTICIPANT]
+
+    with pytest.raises(PermissionError, match="not permitted"):
+        _status_view(plane, idempotency_key="deny-egress-replay")
+
+    assert plane.audit_log() == audits
+    assert plane.snapshot.participant_crossing_history[PARTICIPANT] == history
+    assert _operation_status(plane, audit.operation_id).state is OperationState.FAILED
+
+
+def test_claim_race_cannot_release_payload_from_denied_incumbent(monkeypatch: pytest.MonkeyPatch) -> None:
+    permitted = sem233_plane(permit_resolver(), target=_egress_target())
+    payload = _status_view(permitted, idempotency_key="permitted-source").model_dump(mode="json")
+    resolver = deny_resolver(FlowSinkToggles(capability_disposition=Disposition.DENY))
+    plane = sem233_plane(resolver, target=_egress_target())
+    with pytest.raises(PermissionError, match="not permitted"):
+        _status_view(plane, idempotency_key="racing-egress")
+    operation_id = plane.audit_log()[-1].operation_id
+    incumbent = plane._store.load_records()[operation_id]
+    resolver.toggles = FlowSinkToggles()
+
+    # Model another writer winning the claim after this call prepared a permit.
+    # Even an incumbent with a stray legacy payload cannot authorize release.
+    monkeypatch.setattr(participant_crossing_egress, "commit_prepared_crossing", lambda *_args: incumbent.receipt)
+    original_load = plane._store.load_records
+    monkeypatch.setattr(
+        plane._store,
+        "load_records",
+        lambda: {**original_load(), operation_id: replace(incumbent, result_payload=payload)},
+    )
+
+    with pytest.raises(PermissionError, match="not permitted"):
+        _status_view(plane, idempotency_key="racing-egress")
+
+
+def test_denied_egress_remains_failed_after_local_store_reopen(tmp_path: Path) -> None:
+    store_path = tmp_path / "denied-egress"
+    resolver = deny_resolver(FlowSinkToggles(capability_disposition=Disposition.DENY))
+    first = sem233_plane(
+        resolver,
+        target=_egress_target(),
+        store=LocalControlPlaneStore(store_path),
+    )
+    with pytest.raises(PermissionError, match="not permitted"):
+        _status_view(first, idempotency_key="denied-egress-reopen")
+    audit = first.audit_log()[-1]
+    audits = first.audit_log()
+    history = first.snapshot.participant_crossing_history[PARTICIPANT]
+    first.close()
+
+    reopened_resolver = deny_resolver(FlowSinkToggles(capability_disposition=Disposition.DENY))
+    reopened_resolver.subjects = list(resolver.subjects)
+    reopened_resolver.evidence_refs = set(resolver.evidence_refs)
+    reopened = RuntimeControlPlane(
+        _egress_target(),
+        store=LocalControlPlaneStore(store_path),
+        crossing_policy_resolver=reopened_resolver,
+    )
+    try:
+        with pytest.raises(PermissionError, match="not permitted"):
+            _status_view(reopened, idempotency_key="denied-egress-reopen")
+        assert _operation_status(reopened, audit.operation_id).state is OperationState.FAILED
+        assert reopened.audit_log() == audits
+        assert reopened.snapshot.participant_crossing_history[PARTICIPANT] == history
+        assert reopened._store.load_records()[audit.operation_id].result_payload is None
+    finally:
+        reopened.close()
 
 
 @pytest.mark.parametrize("toggles", _NON_PERMIT_TOGGLES)
@@ -224,7 +318,7 @@ def test_permit_bound_to_a_different_sink_kind_is_denied() -> None:
     target = policy_capable_target()
     counter = _instrument_backend(target)
     resolver = deny_resolver(FlowSinkToggles(relation_sink_kind=ParticipantFlowSinkKind.PARTICIPANT_OUTPUT))
-    plane = action_plane(resolver, target=target)
+    plane = sem233_plane(resolver, target=target)
 
     receipt = admit(plane, idempotency_key="wrong-sink-kind")
 
@@ -251,7 +345,7 @@ def test_secure_default_requires_flow_sink_resolver_capability() -> None:
 def test_idempotent_replay_returns_stored_receipt_without_second_backend_call() -> None:
     target = policy_capable_target()
     counter = _instrument_backend(target)
-    plane = action_plane(permit_resolver(), target=target)
+    plane = sem233_plane(permit_resolver(), target=target)
 
     first = admit(plane, idempotency_key="replay")
     retry = admit(plane, idempotency_key="replay")
@@ -262,7 +356,7 @@ def test_idempotent_replay_returns_stored_receipt_without_second_backend_call() 
 
 
 def test_replay_after_state_cut_advance_is_rejected() -> None:
-    plane = action_plane(permit_resolver())
+    plane = sem233_plane(permit_resolver())
 
     admit(plane, idempotency_key="cut-bound")
     admit(
@@ -271,7 +365,7 @@ def test_replay_after_state_cut_advance_is_rejected() -> None:
         idempotency_key="later",
     )
 
-    with pytest.raises(ValueError, match="state cut advanced"):
+    with pytest.raises(ValueError, match="idempotency claim conflicts with the original request"):
         admit(plane, idempotency_key="cut-bound")
 
 
@@ -282,10 +376,10 @@ def test_replay_after_state_cut_advance_is_rejected() -> None:
     "make_store", [lambda _p: InMemoryControlPlaneStore(), lambda p: LocalControlPlaneStore(p / "cp")]
 )
 def test_permit_and_denial_hold_across_both_stores(make_store, tmp_path: Path) -> None:
-    permit_plane = action_plane(permit_resolver(), store=make_store(tmp_path / "permit"))
+    permit_plane = sem233_plane(permit_resolver(), store=make_store(tmp_path / "permit"))
     assert admit(permit_plane, idempotency_key="store-permit").accepted is True
 
-    deny_plane = action_plane(
+    deny_plane = sem233_plane(
         deny_resolver(FlowSinkToggles(capability_disposition=Disposition.DENY)),
         store=make_store(tmp_path / "deny"),
     )
@@ -298,7 +392,7 @@ def test_permit_and_denial_hold_across_both_stores(make_store, tmp_path: Path) -
 def test_local_store_restart_revalidates_and_replays_idempotently(tmp_path: Path) -> None:
     store_path = tmp_path / "control-plane"
     resolver = permit_resolver()
-    first = action_plane(resolver, store=LocalControlPlaneStore(store_path))
+    first = sem233_plane(resolver, store=LocalControlPlaneStore(store_path))
     receipt = admit(first, idempotency_key="restart")
     first.close()
 
@@ -339,10 +433,25 @@ class _FailingCommitStore(InMemoryControlPlaneStore):
         raise RuntimeError("injected atomic write failure")
 
 
+def test_denied_egress_commit_failure_writes_no_terminal_audit_or_history() -> None:
+    plane = sem233_plane(
+        deny_resolver(FlowSinkToggles(capability_disposition=Disposition.DENY)),
+        target=_egress_target(),
+        store=_FailingCommitStore(),
+    )
+    prior_audits = plane.audit_log()
+
+    with pytest.raises(RuntimeError, match="atomic write failure"):
+        _status_view(plane, idempotency_key="denied-egress-atomic")
+
+    assert plane._store.read_audit() == prior_audits
+    assert plane._store.load_snapshot().participant_crossing_history == {}
+
+
 def test_commit_before_effect_failing_store_never_dispatches_backend() -> None:
     target = policy_capable_target()
     counter = _instrument_backend(target)
-    plane = action_plane(permit_resolver(), store=_FailingCommitStore(), target=target)
+    plane = sem233_plane(permit_resolver(), store=_FailingCommitStore(), target=target)
 
     with pytest.raises(RuntimeError, match="atomic write failure"):
         admit(plane, idempotency_key="failing")

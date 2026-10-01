@@ -1,4 +1,11 @@
-"""HTTP routes for API-408 participant retrieval views."""
+"""HTTP routes for API-408 participant retrieval views.
+
+These are administrative reads (issue #1356/#1359): the host's service identity
+is admitted by the shared read authority. With a crossing resolver, a view also
+requires one exact participant/audience binding and a committed API-423
+crossing. Without a resolver, the legacy view is an administrative projection
+that a host must not release to a participant.
+"""
 
 from __future__ import annotations
 
@@ -15,6 +22,7 @@ from raes_contracts.contracts import (
 from raes_contracts.runtime_state import OperationKind
 
 from .control_plane import RuntimeControlPlane
+from .control_plane_api._auth import _AdministrativeReadIdentity
 from .control_plane_api._offload import _control_plane_calls
 from .control_plane_api._responses import _set_snapshot_revision_header
 from .control_plane_security import ControlPlaneIdentity, ParticipantAudienceSubjectBinding
@@ -26,13 +34,6 @@ _GOVERNED_VIEW_RESPONSES = {
     409: {"description": "Participant projection conflict"},
 }
 _ViewT = TypeVar("_ViewT")
-
-
-def _read_identity_dependency(request: Request) -> ControlPlaneIdentity:
-    return request.app.state.control_plane_api_auth.read_identity(request)
-
-
-_ReadIdentity = Annotated[ControlPlaneIdentity, Depends(_read_identity_dependency)]
 
 
 @dataclass(frozen=True)
@@ -74,14 +75,31 @@ async def _resolved_governed_view(
 
     audience_binding = _require_governed_audience_candidate(control_plane, identity, participant_address)
     calls = _control_plane_calls(request)
-    projection = await calls.mutate(
-        _governed_view,
-        lambda: control_plane._project_snapshot_read(
-            lambda: resolution.resolve(audience_binding, request.headers.get("idempotency-key", "")),
-            mutation_kind=OperationKind.PARTICIPANT_CROSSING,
-        ),
-    )
-    view, revision = projection
+    idempotency_key = request.headers.get("idempotency-key", "")
+    if audience_binding is None:
+        # No crossing-policy resolver governs this participant: the projection
+        # records no crossing evidence, so it is a side-effect-free read. Serve it
+        # on the non-contending run() path from one authoritative state cut so it
+        # never waits on backend mutation latency (ADR-104 §2 P2; issue-1188
+        # preflight "only the legacy/pure projection path may bypass mutation
+        # admission").
+        view, revision = await calls.run(
+            _governed_view,
+            lambda: control_plane._project_snapshot_read(
+                lambda: resolution.resolve(audience_binding, idempotency_key),
+            ),
+        )
+    else:
+        # Governed egress must commit its RUN-319 crossing occurrence before the
+        # view is disclosed, so it stays a read-shaped mutation on the one
+        # mutation authority with revision/history-head checks.
+        view, revision = await calls.mutate(
+            _governed_view,
+            lambda: control_plane._project_snapshot_read(
+                lambda: resolution.resolve(audience_binding, idempotency_key),
+                mutation_kind=OperationKind.PARTICIPANT_CROSSING,
+            ),
+        )
     if view is None:
         raise HTTPException(status_code=404, detail=resolution.not_found_detail)
     await calls.run(
@@ -89,7 +107,7 @@ async def _resolved_governed_view(
         action=resolution.action,
         identity=identity.identity,
         allowed=True,
-        target=str(request.url.path),
+        target=control_plane._target_scope,
     )
     _set_snapshot_revision_header(response, revision)
     return view
@@ -107,7 +125,7 @@ def register_participant_retrieval_routes(
         participant_address: str,
         request: Request,
         response: Response,
-        identity: _ReadIdentity,
+        identity: _AdministrativeReadIdentity,
     ) -> ParticipantStatusViewModel:
         return await _resolved_governed_view(
             control_plane,
@@ -117,7 +135,7 @@ def register_participant_retrieval_routes(
             participant_address,
             _GovernedViewResolution(
                 action="get_participant_status_view",
-                not_found_detail=f"Unknown participant: {participant_address}",
+                not_found_detail="participant not found",
                 resolve=lambda audience_binding, idempotency_key: control_plane.get_participant_status_view(
                     participant_address,
                     identity=identity,
@@ -136,7 +154,7 @@ def register_participant_retrieval_routes(
         episode_id: str,
         request: Request,
         response: Response,
-        identity: _ReadIdentity,
+        identity: _AdministrativeReadIdentity,
     ) -> ParticipantHistoryViewModel:
         return await _resolved_governed_view(
             control_plane,
@@ -146,7 +164,7 @@ def register_participant_retrieval_routes(
             participant_address,
             _GovernedViewResolution(
                 action="get_participant_history_view",
-                not_found_detail=f"Unknown participant episode: {participant_address}/{episode_id}",
+                not_found_detail="participant episode not found",
                 resolve=lambda audience_binding, idempotency_key: control_plane.get_participant_history_view(
                     participant_address,
                     episode_id,
@@ -165,7 +183,7 @@ def register_participant_retrieval_routes(
         participant_address: str,
         request: Request,
         response: Response,
-        identity: _ReadIdentity,
+        identity: _AdministrativeReadIdentity,
         query: _ContextQuery,
     ) -> ParticipantContextViewModel:
         return await _resolved_governed_view(
@@ -176,7 +194,7 @@ def register_participant_retrieval_routes(
             participant_address,
             _GovernedViewResolution(
                 action="get_participant_context_view",
-                not_found_detail=f"Unknown participant: {participant_address}",
+                not_found_detail="participant not found",
                 resolve=lambda audience_binding, idempotency_key: control_plane.get_participant_context_view(
                     participant_address,
                     view_ref=query.view_ref,

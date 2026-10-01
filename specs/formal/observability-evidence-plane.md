@@ -250,7 +250,7 @@ augmentation and realized-form behavior.
 | RUN-316 operational apparatus observability has a portable run carrier | `BACKEND_SUPPORTED_CONTRACT_IDS`, `OBSERVATION_CAPABILITY_REQUIRED_CONTRACTS`, reference/stub observation manifests | `test_backend_manifest_v2_declares_observation_capability_dimensions`, `test_fixture_suite_exercises_experiment_run_observability_semantics` | yes |
 | API-419 augmentation reports name affected carriers | `_augmentation_conformance_diagnostics()` requires `affected_refs` and portable `carrier_refs` | `test_observability_evidence_conformance_requires_affected_refs`; fixture `augmentation-without-affected-refs.json` | yes |
 | ASR-525 conformance validates experiment-run semantics | `_MODEL_VALIDATORS["experiment-run-v1"]`, `_semantic_diagnostics()` | `test_fixture_suite_exercises_experiment_run_observability_semantics` | yes |
-| EXP-731 run-scoped capture refinements preserve authored requirements | `_run_refinement_conformance_diagnostics()` requires `authored_ref` for capture-window and measurement-channel disclosures | `test_observability_evidence_conformance_requires_authored_ref_for_run_refinement` | yes |
+| EXP-731 partial realized-form regression guard | `_run_refinement_conformance_diagnostics()` requires `authored_ref` for capture-window and measurement-channel disclosures but does not establish prospective refinement lineage | `test_observability_evidence_conformance_requires_authored_ref_for_run_refinement` | yes |
 | EXP-732 augmentation and refinements remain evidence-traced | experiment run model traced evidence refs plus conformance evidence-ref checks | `test_observability_evidence_conformance_accepts_traced_augmentation`, `test_observability_evidence_conformance_requires_authored_ref_for_run_refinement` | yes |
 
 ## Conformance Corpus (#340 / ASR-525)
@@ -277,6 +277,43 @@ boundary. The legacy evidence-bearing run archive keeps its selected contract
 requirements; its reference evidence is not a default for all executions.
 This corpus checks declared artifacts, not undisclosed live instrumentation or
 actual capture, task satisfaction, or participant visibility projection.
+
+## Implementation Coverage (#341 / Evidence Requirement Refinement)
+
+`ExperimentEvidenceRequirementRelationModel` supplies the missing prospective
+lineage for EXP-731. The existing task, run-plan, archival run, and study
+carriers reuse the same closed relation shape. Each relation identifies an exact
+scope authority, immutable scenario snapshot, canonical authored declaration,
+and materialized capture-specification requirement. `refine` relations name only
+dimensions with a governed monotone comparator; unknown or non-monotone changes
+fail closed. `extend` relations keep the added obligation separately identified.
+
+`validate_evidence_requirement_relations()` resolves the exact caller-supplied
+artifacts without rewriting either input. The processor's
+`compile_scoped_evidence_requirement_demands()` then concatenates the incumbent
+SDL and capture-spec demand projections so admission evaluates every base and
+scoped obligation independently. Empty relation collections retain open scope:
+they do not require an author to declare backend recipes, captured specimens,
+retention/export policy, or other unmentioned implementation detail.
+The authoritative trial compiler supplies both task and run-plan relations to
+that function against the immutable expanded scenario. Trial realization
+revalidates the same relation set from the digest-bound authoring inputs before
+processor planning. Authoritative archival run and study validators also
+resolve every carried relation against exact caller-supplied scenario and
+capture-specification artifacts. Version-2 task, run, and study owner
+projections include the relation set, while revision 1 retains its historical
+meaning and is not accepted for current relation-bearing carrier schemas.
+
+| Invariant / matrix row | Realizing artifact | Test |
+| --- | --- | --- |
+| EXP-731 relations cover task, run-plan/run, and study scopes | `ExperimentEvidenceRequirementRelationModel` plus carrier ownership validation | `test_relation_is_reused_by_task_run_plan_run_and_study_carriers` |
+| Authored scenario meaning remains immutable and exactly identified | `validate_evidence_requirement_relations()` canonical scenario and declaration resolution | `test_refinement_resolves_exact_lineage_and_preserves_the_authored_scenario`, `test_refinement_rejects_changed_scenario_identity_and_wrong_authority` |
+| Refinements preserve named base dimensions and strengthen at least one | dimension-keyed fail-closed comparators | `test_refinement_fails_closed_when_a_declared_dimension_is_not_monotone` |
+| Artifact-role alternatives cannot broaden accepted evidence | alternative-set comparator aligned with evidence satisfaction | `test_artifact_role_refinement_rejects_an_added_alternative` |
+| Extensions preserve open scope while composing obligations conjunctively | `compile_scoped_evidence_requirement_demands()` | `test_extension_compiles_base_and_scoped_demands_conjunctively_without_filling_open_detail` |
+| Relation changes are visible to governed task, run, and study comparison | relation-aware version-2 owner projections | `test_semantic_comparison_detects_relation_changes` |
+| Trial compilation and realization enforce authoritative relations | relation-aware compiler and processor-planning paths | `test_trial_compiler_rejects_invalid_authoritative_relations`, `test_trial_realization_revalidates_relations_against_the_authoring_scenario` |
+| Archival run and study validation resolves relation lineage and monotonicity | `validate_experiment_run_against_task()`, `validate_experiment_study_against_tasks_and_runs()` | `test_authoritative_archival_run_validation_resolves_relation_artifacts`, `test_authoritative_archival_study_validation_resolves_relation_artifacts` |
 
 ## Implementation Coverage (#1212 / Scoped Observation Demand)
 

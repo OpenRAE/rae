@@ -36,6 +36,16 @@ WORKFLOW_STATE_SCHEMA_VERSION = "workflow-step-state/v1"
 WORKFLOW_CANCELLATION_REQUEST_SCHEMA_VERSION = "workflow-cancellation-request/v1"
 RUNTIME_SNAPSHOT_SCHEMA_VERSION = "runtime-snapshot/v1"
 OPERATION_SCHEMA_VERSION = "runtime-operation/v1"
+BACKEND_OPERATION_REQUEST_SCHEMA_VERSION = "backend-operation-request/v1"
+BACKEND_OPERATION_CAPABILITIES_SCHEMA_VERSION = "backend-operation-capabilities/v1"
+BACKEND_OPERATION_CONTROL_SCHEMA_VERSION = "backend-operation-control/v1"
+BACKEND_OPERATION_RESPONSE_SCHEMA_VERSION = "backend-operation-response/v1"
+BACKEND_OPERATION_CONTRACT_IDS = (
+    "backend-operation-request-v1",
+    "backend-operation-capabilities-v1",
+    "backend-operation-control-v1",
+    "backend-operation-response-v1",
+)
 EVALUATION_STATE_SCHEMA_VERSION = "evaluation-result-state/v1"
 PROPOSITION_TRUTH_RESULT_SCHEMA_VERSION = "proposition-truth-result/v1"
 SDL_LINEAGE_LEDGER_SCHEMA_VERSION = "sdl-lineage-ledger/v1"
@@ -70,6 +80,7 @@ ASSOCIATED_ARTIFACT_MANIFEST_SCHEMA_VERSION = "associated-artifact-manifest/v1"
 RANDOM_STREAM_PROFILE_SCHEMA_VERSION = "random-stream-profile/v1"
 RANDOM_STREAM_VECTOR_SCHEMA_VERSION = "random-stream-vector/v1"
 ADMITTED_TRIAL_PLAN_SCHEMA_VERSION = "admitted-trial-plan/v1"
+MIXED_PARTICIPANT_COMPOSITION_PROFILE_SCHEMA_VERSION = "mixed-participant-composition-profile/v1"
 TRIAL_CLEANUP_PLAN_SCHEMA_VERSION = "trial-cleanup-plan/v1"
 TRIAL_CLEANUP_RECEIPT_SCHEMA_VERSION = "trial-cleanup-receipt/v1"
 SCHEDULER_ISOLATION_PROOF_SCHEMA_VERSION = "scheduler-isolation-proof/v1"

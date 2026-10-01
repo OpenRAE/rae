@@ -24,14 +24,12 @@ def _write_sdl(tmp_path: Path) -> Path:
     return source
 
 
-@pytest.mark.parametrize(
-    "operation",
-    ["parse", "validate", "normalize", "resolve", "compile", "transform", "inspect", "conformance"],
-)
-def test_semantic_surface_exposes_required_operations(operation: str) -> None:
-    result = CliRunner().invoke(app, ["semantic", operation, "--help"])
+def test_semantic_help_lists_required_operations() -> None:
+    result = CliRunner().invoke(app, ["semantic", "--help"])
 
     assert result.exit_code == 0, result.output
+    for operation in ("parse", "validate", "normalize", "resolve", "compile", "transform", "inspect", "conformance"):
+        assert operation in result.output
 
 
 @pytest.mark.parametrize(

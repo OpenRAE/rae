@@ -51,7 +51,7 @@ def _scenario(*, access: str = "") -> str:
             role: blue
         agents:
           blue-participant:
-            entity: blue-team
+            affiliations: [blue-team]
             starting_accounts: [operator]
         """
     )
@@ -203,7 +203,7 @@ def test_same_target_channel_is_valid_for_different_participants() -> None:
         textwrap.dedent(
             """
             peer-participant:
-              entity: blue-team
+              affiliations: [blue-team]
               starting_accounts: [operator]
               interactive_access:
                 peer-shell: {target_ref: workstation, channel: ssh, account_ref: operator}
@@ -291,7 +291,7 @@ def test_module_composition_rewrites_bare_and_qualified_access_refs(tmp_path: Pa
               team: {role: blue}
             agents:
               operator:
-                entity: team
+                affiliations: [team]
                 starting_accounts: [login]
                 interactive_access:
                   shell: {target_ref: vm, channel: ssh, account_ref: login}

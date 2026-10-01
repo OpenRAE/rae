@@ -89,7 +89,12 @@ AUTONOMOUS_PARTICIPANT_ISSUE_RENDERERS = {
     "participant.autonomous-non-evaluated-objective-authority": (
         lambda i: (
             f"Behavior specification '{i.spec_name}' non-evaluated participant "
-            f"'{i.participant_name}' cannot be an objective actor"
+            f"'{i.participant_name}' cannot be assigned an objective"
+        )
+    ),
+    "participant.autonomous-objective-not-assigned": (
+        lambda i: (
+            f"Behavior specification '{i.spec_name}' objective '{i.ref}' must be assigned to a selected participant"
         )
     ),
     "participant.autonomous-non-evaluated-authority-widening": (

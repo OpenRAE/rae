@@ -100,7 +100,8 @@ to match `contracts/schemas/sdl/sdl-authoring-input-v1.json`.
 These rules describe `sdl-authoring-input-v1`. Derived phase contracts add
 their own required members: an instantiated scenario requires
 `instantiation_provenance`, and an instantiated snapshot requires both
-`profile` and `scenario` (§7).
+`profile` and `scenario` (§7). A materialized description requires
+`materialization_provenance` rather than instantiation provenance.
 
 ## 4. Structural closure (fail-closed)
 
@@ -209,13 +210,13 @@ more portable namespace segments followed by one portable local id, rendered
 with `.` separators. The reserved `__private` namespace segment may be generated
 for non-exported module declarations but is invalid author input. Qualified
 names are bounded to 2048 characters. Raw and normalized authoring objects admit
-local ids only; expanded and instantiated objects may carry generated qualified
+local ids only; expanded, instantiated and materialized objects may carry generated qualified
 top-level identities. Nested owner-local ids, including node runtime-family ids,
 remain local.
 
 ## 7. Document phases and schema boundaries
 
-SDL has one source presentation followed by four distinct data forms. Their
+SDL has one source presentation and distinct authoring, instantiated and descriptive data forms. Their
 object shapes are closed independently; a field absent from a phase is
 forbidden rather than represented by an empty compatibility shell.
 
@@ -226,6 +227,7 @@ forbidden rather than represented by an empty compatibility shell.
 | Expanded authoring | executable sections; `name`; root `variables`; typed `expansion_provenance` | `module`, `imports`, `realization` | internal trusted representation |
 | Instantiated | executable sections; `name`; required `instantiation_provenance` | `module`, `imports`, `realization`, `variables`, any `${…}` token | `instantiated-scenario-v1` |
 | Canonical instantiated snapshot | required `profile` and admitted `scenario` | all authoring machinery at the envelope; the nested scenario obeys the instantiated row | `instantiated-scenario-snapshot-v1` |
+| Materialized description | common scenario sections; `name`; required `materialization_provenance` | all authoring machinery, `instantiation_provenance`, any `${…}` token | `materialized-scenario-v1` |
 
 The **normalized authoring object** exists after safe source construction,
 canonical field recognition, shorthand expansion, enum/scalar typing, and
@@ -265,6 +267,14 @@ the runtime-layering boundary of
 [ADR-036](../../docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md):
 delivery-level realisation remains downstream of the author-facing realization
 designation and is out of scope for the authoring model.
+
+The **materialized description** reports the full world after backend hooks,
+including in-world additions and changes. It uses ordinary SDL parsing,
+validation, formatting, compilation and planning, with inspection-only plans.
+Its source/execution bindings, native member origins, instance identities and
+distinct `raes-sdl-materialized/v1` canonical identity follow
+[materialization-attestation.md](materialization-attestation.md). Reading it
+does not import, instantiate, execute, authorize additions or acquire evidence.
 
 ## 8. Canonical semantic identity
 

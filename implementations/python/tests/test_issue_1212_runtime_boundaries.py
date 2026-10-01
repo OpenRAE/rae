@@ -256,9 +256,9 @@ conditions:
                 "x-raes-client-identity": "backend-service",
             },
         )
-    assert response.status_code == 403
-    assert cp.snapshot == baseline
-    assert not any(address.startswith("evaluation.") for address in cp.snapshot.entries)
+        assert response.status_code == 403
+        assert cp.snapshot == baseline
+        assert not any(address.startswith("evaluation.") for address in cp.snapshot.entries)
 
 
 @pytest.mark.parametrize("owner", ["manager", "control-plane"])

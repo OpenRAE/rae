@@ -67,6 +67,17 @@
       "title": "Target Addresses",
       "type": "array"
     },
+    "temporal_contract_digests": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+        "type": "string"
+      },
+      "maxItems": 256,
+      "title": "Temporal Contract Digests",
+      "type": "array"
+    },
     "timeout_seconds": {
       "minimum": 1,
       "title": "Timeout Seconds",

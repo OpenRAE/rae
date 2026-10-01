@@ -1,0 +1,43 @@
+{
+  "schema_version": "backend-operation-control/v1",
+  "binding": {
+    "operation_id": "operation-1",
+    "invocation_id": "invocation-1",
+    "attempt_id": "attempt-1",
+    "worker_id": "worker-1",
+    "deployment_id": "deployment-1",
+    "owner_generation": 1,
+    "execution_generation": 1,
+    "backend_id": "backend-1",
+    "baseline_revision": "revision-1",
+    "context": {
+      "actor_id": "author-1",
+      "authorization_scope": [
+        "role:operator"
+      ],
+      "target_scope": "target-1",
+      "run_scope": "run-1",
+      "operation_kind": "provisioning",
+      "request_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "parent_operation_id": null
+    },
+    "effect_scope": {
+      "kind": "target-run",
+      "addresses": [],
+      "independence": null
+    }
+  },
+  "request_digest": "sha256:3182586fa3572b311637fe36d00e2bfb0ba5e1ba680dcd05aed5784bd8c79d5b",
+  "control_id": "control-1",
+  "actor_id": "supervisor-1",
+  "authorization_scope": [
+    "role:operator"
+  ],
+  "action": "reconcile",
+  "budget": {
+    "origin_id": "budget-1",
+    "started_at": "2026-09-24T00:00:00Z",
+    "limit_ms": 1000,
+    "remaining_ms": 900
+  }
+}

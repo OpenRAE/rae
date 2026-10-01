@@ -1,0 +1,11 @@
+{
+  "canonicalization_profile": "raes-sdl-semantic/v2",
+  "diagnostic_profile": "authoring-diagnostic-semantics/v1",
+  "max_cases": 32,
+  "max_diagnostics": 64,
+  "max_source_bytes": 65536,
+  "migration_policy": "reject",
+  "profile_id": "raes-authoring-adapter-conformance/v1",
+  "semantic_profile_digest": "sha256:6c854fccb0a982dff1bb122ba75d795a3f2a28474c0cd7be0022137830fc7830",
+  "source_profile": "sdl-yaml/v1"
+}

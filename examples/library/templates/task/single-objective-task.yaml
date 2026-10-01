@@ -26,7 +26,7 @@ body:
       role: blue
   agents:
     task-agent:
-      entity: participant
+      affiliations: [participant]
   propositions:
     task-complete:
       description: The governed task-complete observation is true for the addressed scenario subject.
@@ -62,7 +62,7 @@ body:
       loss_disclosure: required
   objectives:
     complete-service-check-task:
-      agent: task-agent
+      assigned_participant: task-agent
       targets: [nodes.target.services.ssh]
       success:
         assertions: [task-complete]

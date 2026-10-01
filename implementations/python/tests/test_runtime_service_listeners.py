@@ -193,9 +193,13 @@ def test_runtime_service_listener_rejects_network_local_socket_scope() -> None:
         )
 
 
-def test_unix_listener_requires_socket_path_and_no_port() -> None:
-    with pytest.raises(ValidationError, match="Unix listeners require socket_path"):
-        RuntimeServiceListener(service_listener_id="unix", protocol="unix", address_family="unix")
+def test_partial_unix_listener_permits_missing_path_but_rejects_network_fields() -> None:
+    partial = RuntimeServiceListener(service_listener_id="unix", protocol="unix", address_family="unix")
+    assert partial.model_dump(mode="json", exclude_unset=True) == {
+        "service_listener_id": "unix",
+        "protocol": "unix",
+        "address_family": "unix",
+    }
 
     with pytest.raises(ValidationError, match="Unix listeners must not set port"):
         RuntimeServiceListener(
@@ -204,6 +208,19 @@ def test_unix_listener_requires_socket_path_and_no_port() -> None:
             address_family="unix",
             socket_path="/run/app.sock",
             port=1,
+        )
+
+    with pytest.raises(ValidationError, match="Unix listeners must not set bind_interface"):
+        RuntimeServiceListener(service_listener_id="unix", protocol="unix", bind_interface="lo")
+
+
+def test_listener_rejects_mixed_supplied_unix_and_network_shapes() -> None:
+    with pytest.raises(ValidationError, match="must not combine Unix socket and network endpoint fields"):
+        RuntimeServiceListener(
+            service_listener_id="ambiguous",
+            protocol="unknown",
+            socket_path="/run/app.sock",
+            port=80,
         )
 
 

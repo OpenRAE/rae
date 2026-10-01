@@ -2,7 +2,9 @@
 
 from dataclasses import dataclass, field
 
+from pydantic import TypeAdapter
 from raes_contracts.addressing import require_compiled_address
+from raes_contracts.contracts.participant_execution import ParticipantExecutionBindingModel
 from raes_contracts.controlled_vocabularies import validate_controlled_vocabulary_scope_values
 from raes_contracts.manifest_authority import (
     PARTICIPANT_RUNTIME_BEHAVIOR_FEATURE_SCOPE,
@@ -131,6 +133,7 @@ class ParticipantExecutionBinding:
     max_in_flight: int
     timeout_seconds: int
     max_retries: int
+    temporal_contract_digests: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         for field_name in (
@@ -167,6 +170,10 @@ class ParticipantExecutionBinding:
                 raise ValueError(f"ParticipantExecutionBinding.{field_name} must be positive")
         if self.max_retries < 0:
             raise ValueError("ParticipantExecutionBinding.max_retries must be non-negative")
+        digest_field = ParticipantExecutionBindingModel.model_fields["temporal_contract_digests"]
+        digests = TypeAdapter(digest_field.rebuild_annotation()).validate_python(self.temporal_contract_digests)
+        _validate_unique_non_empty_strings("ParticipantExecutionBinding.temporal_contract_digests", digests)
+        object.__setattr__(self, "temporal_contract_digests", digests)
 
 
 @dataclass(frozen=True)
@@ -221,8 +228,6 @@ class ParticipantRuntimeCapabilities:
             ("supported_behavior_features", self.supported_behavior_features),
             ("supported_interaction_features", self.supported_interaction_features),
         ):
-            if not values:
-                raise ValueError(f"ParticipantRuntimeCapabilities.{field_name} must not be empty")
             if any(not value.strip() for value in values):
                 raise ValueError(f"ParticipantRuntimeCapabilities.{field_name} must not contain empty strings")
         validate_controlled_vocabulary_scope_values(
@@ -299,8 +304,9 @@ class ParticipantRuntimeCapabilities:
         self._validate_autonomous_addresses()
         self._validate_execution_control()
         for label, value in self._autonomous_limits():
-            if value is None or value < 1:
-                raise ValueError(f"autonomous execution requires positive {label}")
+            minimum = 0 if label == "max_autonomous_retries_per_occurrence" else 1
+            if value is None or value < minimum:
+                raise ValueError(f"autonomous execution requires {label} >= {minimum}")
 
     def _validate_activity_profiles(self) -> None:
         if {
@@ -323,21 +329,18 @@ class ParticipantRuntimeCapabilities:
         self._validate_execution_bindings()
 
     def _validate_execution_control_actions(self) -> None:
-        if not self.supports_execution_control:
-            raise ValueError("autonomous execution requires execution control support")
-        missing_actions = PARTICIPANT_EXECUTION_CONTROL_ACTIONS - self.supported_execution_control_actions
-        if missing_actions:
-            raise ValueError("execution control is missing required actions: " + ", ".join(sorted(missing_actions)))
+        if self.supports_execution_control != bool(self.supported_execution_control_actions):
+            raise ValueError("execution control support flag and supported actions must agree")
         unknown_actions = self.supported_execution_control_actions - PARTICIPANT_EXECUTION_CONTROL_ACTIONS
         if unknown_actions:
             raise ValueError("unsupported execution control actions: " + ", ".join(sorted(unknown_actions)))
 
     def _validate_execution_capacity(self) -> None:
-        if not self.supports_bounded_concurrency:
-            raise ValueError("autonomous execution requires bounded concurrency support")
-        if self.max_execution_services is None or self.max_execution_services < 1:
-            raise ValueError("autonomous execution requires positive max_execution_services")
-        if self.max_concurrent_actions is None or self.max_concurrent_actions < 2:
+        if self.supports_execution_control and (self.max_execution_services is None or self.max_execution_services < 1):
+            raise ValueError("execution control requires positive max_execution_services")
+        if self.max_concurrent_actions is None or self.max_concurrent_actions < 1:
+            raise ValueError("autonomous execution requires positive max_concurrent_actions")
+        if self.supports_bounded_concurrency and self.max_concurrent_actions < 2:
             raise ValueError("bounded concurrency requires max_concurrent_actions of at least 2")
 
     def _validate_execution_bindings(self) -> None:

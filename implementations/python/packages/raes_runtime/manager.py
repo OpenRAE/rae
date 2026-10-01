@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
 
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
+from raes_contracts.augmentation_preparation import AugmentationPreparation
 from raes_contracts.contracts import (
     ExperimentStochasticControlModel,
     ParticipantInformationStateContextResolver,
 )
 from raes_contracts.contracts.time_model import TimeModelDeclarationModel
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.materialization import MaterializationArchive, MaterializationSubmission
 from raes_contracts.planning import PlanScope, RuntimeDomain
 from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
@@ -23,12 +25,14 @@ from .apply_failure import maybe_synthesize_failure, rollback_services
 from .backend_calls import _BackendCallContext, _call_backend_apply, _call_backend_diagnostics, _RealizationApplyContext
 from .backend_observation_calls import _apply_runtime_plan_with_observation, _RuntimePlanApplyRequest
 from .diagnostics import _failure_diagnostic, _has_error_diagnostic
+from .manager_augmentation import prepare_execution_augmentation
 from .manager_destroy import _DestroyPhaseMixin
-from .manager_plan_admission import runtime_plan_precondition_diagnostics
+from .manager_plan_admission import reference_participant_driver_diagnostics, runtime_plan_precondition_diagnostics
 from .participant_activity import resolve_participant_activity_controls
 from .participant_execution_control import RuntimeParticipantExecutionMixin
 from .participant_information_state_validation import require_participant_information_state_snapshot
 from .registry import RuntimeTarget as _RuntimeTarget
+from .registry import RuntimeTargetComponents as _RuntimeTargetComponents
 from .registry import _validate_runtime_target_shape
 from .time_control import RuntimeTimeControlMixin
 
@@ -47,6 +51,8 @@ class _RuntimeApplyState:
     details: dict[str, object]
     started_evaluator: bool = False
     failure: ApplyResult | None = None
+    materialization_attestation: MaterializationSubmission | None = None
+    augmentation_previews: dict[RuntimeDomain, AugmentationPreparation] = field(default_factory=dict)
 
 
 class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
@@ -59,19 +65,24 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
         initial_snapshot: RuntimeSnapshot | None = None,
         stochastic_controls: Iterable[ExperimentStochasticControlModel] = (),
         information_state_context_resolver: ParticipantInformationStateContextResolver | None = None,
+        materialization_archive: MaterializationArchive | None = None,
     ) -> None:
         _validate_runtime_target_shape(
             manifest=target.manifest,
-            provisioner=target.provisioner,
-            orchestrator=target.orchestrator,
-            evaluator=target.evaluator,
-            participant_runtime=target.participant_runtime,
-            time_runtime=target.time_runtime,
-            observation_runtime=target.observation_runtime,
+            components=_RuntimeTargetComponents(
+                provisioner=target.provisioner,
+                orchestrator=target.orchestrator,
+                evaluator=target.evaluator,
+                participant_runtime=target.participant_runtime,
+                time_runtime=target.time_runtime,
+                observation_runtime=target.observation_runtime,
+                recovery_observer=target.recovery_observer,
+            ),
         )
         self._target = target
         self._snapshot = initial_snapshot if initial_snapshot is not None else RuntimeSnapshot()
         self._information_state_context_resolver = information_state_context_resolver
+        self._materialization_archive = materialization_archive
         require_participant_information_state_snapshot(self._snapshot, information_state_context_resolver)
         self._participant_activity_controls = resolve_participant_activity_controls(stochastic_controls)
         self._time_declaration: TimeModelDeclarationModel | None = None
@@ -103,13 +114,16 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
             run_id=run_scope.run_id if run_scope is not None else None,
             instantiation_id=run_scope.instantiation_id if run_scope is not None else None,
         )
-        return plan(
+        execution_plan = plan(
             model,
             self._target.manifest,
             effective_snapshot,
             scope=scope,
             artifact_availability=artifact_availability,
             profile_context=getattr(self._target.provisioner, "domain_profile_context", None),
+        )
+        return replace(
+            execution_plan, diagnostics=[*execution_plan.diagnostics, *reference_participant_driver_diagnostics(model)]
         )
 
     def apply(self, execution_plan: ExecutionPlan) -> ApplyResult:
@@ -123,11 +137,22 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
         if precondition_failure is not None:
             return precondition_failure
 
+        return self._apply_prepared_execution(execution_plan, diagnostics)
+
+    def _apply_prepared_execution(self, execution_plan: ExecutionPlan, diagnostics: list[Diagnostic]) -> ApplyResult:
+        execution_plan, previews, scope_diagnostics = prepare_execution_augmentation(
+            execution_plan, self._target, self._snapshot, self._materialization_archive
+        )
+        diagnostics.extend(scope_diagnostics)
+        if _has_error_diagnostic(scope_diagnostics):
+            return ApplyResult(success=False, snapshot=self._snapshot, diagnostics=diagnostics)
+
         state = _RuntimeApplyState(
             working_snapshot=execution_plan.base_snapshot,
             diagnostics=diagnostics,
             changed_addresses=[],
             details={},
+            augmentation_previews=previews,
         )
         self._run_apply_phases(execution_plan, state)
         if state.failure is None:
@@ -184,6 +209,7 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
             execution_plan.provisioning,
             state.working_snapshot,
             request=_RuntimePlanApplyRequest(
+                materialization_archive=self._materialization_archive,
                 address="runtime.apply.provisioning",
                 execute_observation=execution_plan.observation_owner is RuntimeDomain.PROVISIONING,
                 realization=_RealizationApplyContext(
@@ -191,6 +217,7 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
                     plan=execution_plan.provisioning,
                     manifest=execution_plan.manifest,
                     artifact_availability=execution_plan.artifact_availability,
+                    expected_augmentation=state.augmentation_previews.get(RuntimeDomain.PROVISIONING),
                 ),
                 information_state_context_resolver=self._information_state_context_resolver,
             ),
@@ -218,8 +245,13 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
                 execution_plan.evaluation,
                 state.working_snapshot,
                 request=_RuntimePlanApplyRequest(
+                    materialization_archive=self._materialization_archive,
                     address=_APPLY_EVALUATOR_ADDRESS,
                     execute_observation=execution_plan.observation_owner is RuntimeDomain.EVALUATION,
+                    realization=_RealizationApplyContext(
+                        manifest=execution_plan.manifest,
+                        expected_augmentation=state.augmentation_previews.get(RuntimeDomain.EVALUATION),
+                    ),
                     information_state_context_resolver=self._information_state_context_resolver,
                 ),
             )
@@ -254,8 +286,13 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
                 execution_plan.orchestration,
                 state.working_snapshot,
                 request=_RuntimePlanApplyRequest(
+                    materialization_archive=self._materialization_archive,
                     address=_APPLY_ORCHESTRATOR_ADDRESS,
                     execute_observation=execution_plan.observation_owner is RuntimeDomain.ORCHESTRATION,
+                    realization=_RealizationApplyContext(
+                        manifest=execution_plan.manifest,
+                        expected_augmentation=state.augmentation_previews.get(RuntimeDomain.ORCHESTRATION),
+                    ),
                     information_state_context_resolver=self._information_state_context_resolver,
                 ),
             )
@@ -285,6 +322,8 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
 
     @staticmethod
     def _record_phase_result(state: _RuntimeApplyState, result: ApplyResult) -> None:
+        if result.materialization_attestation is not None:
+            state.materialization_attestation = result.materialization_attestation
         state.diagnostics.extend(result.diagnostics)
         state.changed_addresses.extend(result.changed_addresses)
         state.working_snapshot = result.snapshot

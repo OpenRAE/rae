@@ -17,6 +17,7 @@ from tools.formal_semantic_validation._replay import (
 )
 from tools.formal_semantic_validation._retest_header import _validate_retest_header
 from tools.formal_semantic_validation._retest_participants import (
+    _retained_fixture_paths,
     _validate_retest_participant_observations,
 )
 from tools.formal_semantic_validation._shape import (
@@ -35,6 +36,8 @@ from tools.formal_semantic_validation._types import (
     EvidenceRelease,
 )
 from tools.policy.common import PolicyFailure
+
+_SOURCE_STATE_REVISIONS = frozenset(f"{revision}.0.0" for revision in range(4, 68))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -63,27 +66,7 @@ def _validate_retest_snapshot(
     if not _closed_object(
         snapshot,
         _SNAPSHOT_V2_KEYS
-        | (
-            {"source_state"}
-            if release.manifest.get("revision")
-            in {
-                "4.0.0",
-                "5.0.0",
-                "6.0.0",
-                "7.0.0",
-                "8.0.0",
-                "9.0.0",
-                "10.0.0",
-                "11.0.0",
-                "12.0.0",
-                "13.0.0",
-                "14.0.0",
-                "15.0.0",
-                "16.0.0",
-                "17.0.0",
-            }
-            else set()
-        ),
+        | ({"source_state"} if release.manifest.get("revision") in _SOURCE_STATE_REVISIONS else set()),
         rule_id="formal-validation-snapshot-shape",
         label="retest snapshot",
         failures=failures,
@@ -100,22 +83,7 @@ def _validate_retest_snapshot(
     expected_release_paths = _retest_observation_failures(
         scope, (release_artifacts_by_path, commands_by_id), failures, path
     )
-    if release.manifest.get("revision") in {
-        "4.0.0",
-        "5.0.0",
-        "6.0.0",
-        "7.0.0",
-        "8.0.0",
-        "9.0.0",
-        "10.0.0",
-        "11.0.0",
-        "12.0.0",
-        "13.0.0",
-        "14.0.0",
-        "15.0.0",
-        "16.0.0",
-        "17.0.0",
-    }:
+    if release.manifest.get("revision") in _SOURCE_STATE_REVISIONS:
         expected_release_paths.update(_retained_fixture_paths(cases_by_id))
     _validate_release_selection(scope, command_ids, expected_release_paths, failures, path)
     _validate_retest_participant_observations(protocol, snapshot, failures, path)
@@ -154,17 +122,6 @@ def _validate_release_selection(
                 scope.release.manifest_path,
             )
         )
-
-
-def _retained_fixture_paths(
-    cases_by_id: Mapping[str, Mapping[str, object]],
-) -> set[str]:
-    return {
-        value
-        for case in cases_by_id.values()
-        for value in (case.get("fixture_path"), case.get("comparison_fixture_path"))
-        if isinstance(value, str)
-    }
 
 
 def _retest_observation_failures(

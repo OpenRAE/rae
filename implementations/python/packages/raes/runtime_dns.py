@@ -14,8 +14,9 @@ than the portable SDL model.
 
 import ipaddress
 
-from pydantic import Field, ValidationInfo, field_validator, model_validator
+from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_filesystem import redacted_raw_value_schema
 from raes.runtime_vocabulary import GovernedVocabulary
 
 from ._base import SDLModel, is_variable_ref
@@ -228,6 +229,14 @@ class DnsDynamicUpdatePolicy(SDLModel):
 
 class DnsRuntimeSetting(SDLModel):
     """Bounded DNS runtime setting with provenance and redaction."""
+
+    model_config = ConfigDict(
+        json_schema_extra=redacted_raw_value_schema(
+            sensitivity_field="value_classification",
+            raw_field="value",
+            raw_value_schema={"type": "string", "minLength": 1},
+        )
+    )
 
     name: str
     value: str = ""

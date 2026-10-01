@@ -1,10 +1,10 @@
 {
+  "content_hash": "f0cea5aae8070729c4cb17af063606943b3736a71380734b0886a751e228d548",
   "contract_id": "associated-artifact-manifest-v1",
-  "schema_path": "contracts/schemas/associated-artifacts/associated-artifact-manifest-v1.json",
-  "stability": "draft",
-  "content_hash": "f5f2eadf2be4c50c10764c180cebfd2ce12ff1cbc87ac20788e9c0604a57234b",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "f5f2eadf2be4c50c10764c180cebfd2ce12ff1cbc87ac20788e9c0604a57234b"
-  }
+    "content_hash": "f0cea5aae8070729c4cb17af063606943b3736a71380734b0886a751e228d548",
+    "summary": "Add the distinct materialization-attestation reference kind to portable artifact joins; it never replaces the original scenario-snapshot identity (#1241)."
+  },
+  "schema_path": "contracts/schemas/associated-artifacts/associated-artifact-manifest-v1.json",
+  "stability": "draft"
 }

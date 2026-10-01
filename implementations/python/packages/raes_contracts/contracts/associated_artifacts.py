@@ -36,7 +36,7 @@ class AssociatedArtifactManifestModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_associated_artifact_manifest(self) -> AssociatedArtifactManifestModel:
-        scenario_kinds = {"scenario", "scenario-snapshot"}
+        scenario_kinds = {"scenario", "scenario-snapshot", "materialization-attestation"}
         parent_is_scenario = self.parent_ref.ref_kind in scenario_kinds
         if (self.scope == "scenario") != parent_is_scenario:
             raise ValueError("associated-artifact scope and parent kind must agree")
@@ -99,7 +99,9 @@ class AssociatedArtifactManifestModel(ContractModel):
                         "properties": {
                             "parent_ref": {
                                 "properties": {
-                                    "ref_kind": {"enum": ["scenario", "scenario-snapshot"]},
+                                    "ref_kind": {
+                                        "enum": ["scenario", "scenario-snapshot", "materialization-attestation"]
+                                    },
                                 }
                             }
                         }

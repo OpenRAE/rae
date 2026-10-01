@@ -1,7 +1,7 @@
 """Agent models — role-neutral participants in the scenario.
 
-Adapted from CybORG's Agents section. An agent has a role (from
-entities), available actions, initial authenticated access (via
+Adapted from CybORG's Agents section. An agent has a role, optional
+organizational affiliations, available actions, initial authenticated access (via
 accounts), initial knowledge of the environment, and network
 scope constraints.
 
@@ -10,20 +10,22 @@ the agent executes. Framework bindings (Gymnasium, PettingZoo)
 are a deployment-layer concern.
 
 The ``Agent`` model is the SDL-authoring surface for declarative
-participant framing (ACT-601, ADR-020). Identity binds to a declared
-``entities`` entry, role reuses ``entities.role``, starting conditions
+participant framing (ACT-601, ADR-020). Its declaration key is its identity.
+An explicit role takes precedence over single-affiliation role inheritance; starting conditions
 combine ``starting_accounts``/``initial_knowledge``/``starting_assertions``,
 authority anchors point at declared SDL elements, and operating scope
 combines ``allowed_subnets`` with the broader ``operating_scope`` list.
 """
 
+from collections.abc import Mapping
 from enum import Enum
 
 from pydantic import Field, field_validator, model_validator
 from raes_contracts.domain_profiles import DomainProfileBindingModel
 
-from ._base import SDLModel, WholeFieldVariableReference
+from ._base import SDLModel, WholeFieldVariableReference, is_variable_ref, parse_enum_or_var
 from ._identifiers import PortableIdentifier
+from .entities import Entity, ExerciseRole
 from .profile_selections import parse_profile_or_enum
 
 
@@ -74,8 +76,8 @@ class Agent(SDLModel):
 
     Agents reference existing scenario elements:
 
-    - ``entity`` links to the entities section (team/role) and supplies
-      identity and role per ADR-020
+    - ``affiliations`` links to entities without conferring identity or authority
+    - ``role`` explicitly selects an exercise role, overriding inherited role
     - ``starting_accounts`` links to the accounts section
     - ``allowed_subnets`` links to infrastructure entries
     - ``initial_knowledge`` references nodes and infrastructure
@@ -100,7 +102,8 @@ class Agent(SDLModel):
     experiment/evaluator plane (ADR-055/064/069).
     """
 
-    entity: str = ""
+    affiliations: list[str] = Field(default_factory=list)
+    role: ExerciseRole | WholeFieldVariableReference | None = None
     description: str = ""
     actions: list[str] = Field(default_factory=list)
     starting_accounts: list[str] = Field(default_factory=list)
@@ -115,18 +118,32 @@ class Agent(SDLModel):
         json_schema_extra={"additionalProperties": False},
     )
 
+    @field_validator("role", mode="before")
+    @classmethod
+    def normalize_role(cls, value: object) -> object:
+        return parse_enum_or_var(value, ExerciseRole, field_name="role")
+
+    def effective_role(self, entities: Mapping[str, Entity]) -> str | None:
+        """Resolve explicit role, then exactly one affiliation; never pick a team."""
+        role = self.role
+        if role is None and len(self.affiliations) == 1:
+            affiliation = self.affiliations[0]
+            if is_variable_ref(affiliation):
+                return affiliation
+            role = getattr(entities.get(affiliation), "role", None)
+        return str(getattr(role, "value", role)) if role is not None else None
+
     @model_validator(mode="before")
     @classmethod
     def reject_legacy_starting_conditions(cls, value: object) -> object:
+        if isinstance(value, dict) and "entity" in value:
+            raise ValueError(
+                "agent.entity was replaced by affiliations; use migrate_participant_identity "
+                "(docs/migration/participant-identity.md)"
+            )
         if isinstance(value, dict) and "starting_conditions" in value:
             raise ValueError(
                 "agent starting_conditions cannot state backend-neutral truth; "
                 "reference precondition assertions via starting_assertions"
             )
         return value
-
-    @model_validator(mode="after")
-    def validate_required_entity(self) -> "Agent":
-        if not self.entity:
-            raise ValueError("Agent requires 'entity'")
-        return self

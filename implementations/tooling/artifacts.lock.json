@@ -744,6 +744,65 @@
       ]
     },
     {
+      "artifact_id": "release-test-alpine",
+      "artifact_class": "oci-image",
+      "version": "3.20.10",
+      "support_level": "blocking",
+      "owner": "Backend",
+      "consumers": ["reference-backend-test", "release"],
+      "trust_root_refs": ["docker-official-images-index-digest"],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {"spdx": "NOASSERTION", "redistribution": "not-applicable", "review_ref": "issue-1223"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "issue-1223-oci-mirror-preseed-review"},
+      "policy_refs": ["oci-graph-v1"],
+      "source": {
+        "repository": "https://github.com/alpinelinux/docker-alpine",
+        "release": "sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc",
+        "asset": "docker.io/library/alpine",
+        "locator_refs": ["docker-official-images-registry"]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": ["https://registry-1.docker.io/v2/library/alpine/manifests/sha256:c64c687cbea9300178b30c95835354e34c4e4febc4badfe27102879de0483b5e"],
+          "raw_manifest": [{"path": "alpine-3.20.10-linux-amd64-manifest.json", "sha256": "c64c687cbea9300178b30c95835354e34c4e4febc4badfe27102879de0483b5e", "size": 1023}],
+          "installed_identity": {"implementation": "OCI image", "version": "3.20.10", "abi": "oci-manifest-v1", "target": "linux-x86_64"},
+          "oci_graph": {
+            "index": {"digest": "sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc", "size": 9226},
+            "manifest": {"digest": "sha256:c64c687cbea9300178b30c95835354e34c4e4febc4badfe27102879de0483b5e", "size": 1023},
+            "config": {"digest": "sha256:bf8527eb54c3680e728d5b4b383a8ba730d72dae7236fbc8dff97ed6b224a731", "size": 612},
+            "layers": [{"digest": "sha256:25f1d6b1951ac8eb3740558fe94cb83d377bdadf95fd9f98b50d2e1b96130471", "size": 3630321}],
+            "diff_ids": ["sha256:08bc4e534116aa76b16015484b82eac51f9a593416feae9296c8a2d4bb7aa4a2"],
+            "architecture": "amd64",
+            "os": "linux"
+          },
+          "dependencies": [],
+          "profile_ids": ["public-linux-x86_64"],
+          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
+        },
+        {
+          "platform_id": "linux-arm64",
+          "source_urls": ["https://registry-1.docker.io/v2/library/alpine/manifests/sha256:45e09956dc667c5eff3583c9d94830261fb1ca0be10a0a7db36266edf5de9e1d"],
+          "raw_manifest": [{"path": "alpine-3.20.10-linux-arm64-manifest.json", "sha256": "45e09956dc667c5eff3583c9d94830261fb1ca0be10a0a7db36266edf5de9e1d", "size": 1026}],
+          "installed_identity": {"implementation": "OCI image", "version": "3.20.10", "abi": "oci-manifest-v1", "target": "linux-arm64"},
+          "oci_graph": {
+            "index": {"digest": "sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc", "size": 9226},
+            "manifest": {"digest": "sha256:45e09956dc667c5eff3583c9d94830261fb1ca0be10a0a7db36266edf5de9e1d", "size": 1026},
+            "config": {"digest": "sha256:ab3fe4defd29ba6231229a4d41440ac8bde8218e85870e53876277faa24b35c4", "size": 628},
+            "layers": [{"digest": "sha256:3f26bc2dec0b515f1c2818f6e13a8f1da1f88179a008445d4e587233386bff78", "size": 4092319}],
+            "diff_ids": ["sha256:88b4fba61c4c714a2fc173ddf7e9324a257304696830bf41ad28ecc58c11c95f"],
+            "architecture": "arm64",
+            "os": "linux",
+            "variant": "v8"
+          },
+          "dependencies": [],
+          "profile_ids": ["public-linux-arm64"],
+          "host_profile_ids": ["public-linux-arm64"]
+        }
+      ]
+    },
+    {
       "artifact_id": "cirros-guest-disk",
       "artifact_class": "vm-base-image",
       "version": "0.6.2",

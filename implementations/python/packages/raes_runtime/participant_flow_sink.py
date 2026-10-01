@@ -12,16 +12,16 @@ This module delegates every semantic join to
 ``validate_participant_flow_control_resolved_context`` and reuses the RUN-319
 expected-head state cut. It introduces no store, policy engine, audit channel,
 exception hierarchy, serializer, or generic dispatcher, and it never
-re-implements a validator. SEM-233 enforcement is opt-in per resolver
-capability: a resolver that does not expose ``resolve_flow_sink_decision``
-leaves every legacy API-423 path unchanged.
+re-implements a validator. SEM-233 enforcement is selected explicitly through
+``enforce_final_sink_flow_control``; a control plane that does not select it
+leaves every legacy API-423 path unchanged (PC-15).
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, replace
-from typing import cast
+from typing import Protocol, cast
 
 from raes_contracts.contracts import (
     ParticipantFlowControlRelationModel,
@@ -38,7 +38,27 @@ from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
 from .participant_crossing_action import combined_crossing_audit
 from .participant_crossing_commit import commit_prepared_crossing, participant_crossing_permitted
 from .participant_crossing_mediation import PreparedParticipantCrossing
-from .participant_crossing_state_cut import expected_participant_history_heads
+from .participant_crossing_state_cut import participant_history_head_refs
+
+
+class ParticipantFlowSinkResolver(Protocol):
+    """The explicitly selected legacy SEM-233 final-sink adapter (PC-15).
+
+    RUN-320 replaced method-presence discovery: a resolver participates in
+    final-sink enforcement because the operator selected it through
+    ``enforce_final_sink_flow_control``, not because it happens to expose this
+    method. Structural presence establishes no capability or authority.
+    """
+
+    def resolve_flow_sink_decision(
+        self,
+        *,
+        snapshot: object,
+        intent: object,
+        crossing: object,
+        sink_kind: object,
+        expected_history_head_refs: tuple[str, ...],
+    ) -> object: ...
 
 
 @dataclass(frozen=True)
@@ -64,11 +84,7 @@ class ParticipantFlowSinkDecision:
 def flow_sink_history_head_refs(control_plane: object, participant_address: str) -> tuple[str, ...]:
     """Render the live RUN-319 state cut into canonical sorted history-head refs."""
 
-    heads = expected_participant_history_heads(control_plane._snapshot, participant_address)
-    refs = tuple(sorted({f"{key}={value if value is not None else 'none'}" for key, value in heads.items()}))
-    if not refs:
-        raise ValueError("participant flow-sink state cut resolved no history heads")
-    return refs
+    return participant_history_head_refs(control_plane._snapshot, participant_address)
 
 
 def _denied(disposition: ParticipantFlowFinalDisposition, reason_code: str) -> ParticipantFlowSinkDecision:
@@ -118,12 +134,13 @@ def resolve_participant_flow_sink_decision(
     permission.
     """
 
-    resolver = getattr(control_plane, "_crossing_policy_resolver", None)
+    resolver = getattr(control_plane, "_flow_sink_resolver", None)
+    if resolver is None:
+        # No legacy adapter was selected; the caller runs the API-423-only path.
+        return None
     hook = getattr(resolver, "resolve_flow_sink_decision", None)
     if not callable(hook):
-        if getattr(control_plane, "_enforce_final_sink_flow_control", False):
-            return _denied(ParticipantFlowFinalDisposition.UNRESOLVED, "flow-sink-enforcement-required")
-        return None
+        return _denied(ParticipantFlowFinalDisposition.UNRESOLVED, "flow-sink-enforcement-required")
     return _resolved_flow_sink_decision(control_plane, crossing, hook, sink_kind)
 
 
@@ -320,6 +337,7 @@ def early_crossing_receipt(
 
 
 __all__ = (
+    "ParticipantFlowSinkResolver",
     "ParticipantFlowSinkDecision",
     "ParticipantFlowSinkResolution",
     "apply_flow_sink_details",

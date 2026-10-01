@@ -317,7 +317,7 @@ entities:
 objectives:
   keep-web-alive:
     description: Keep the web application available
-    entity: blue-team
+    owner: blue-team
     success:
       assertions: [web-alive]
 

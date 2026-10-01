@@ -1,0 +1,265 @@
+{
+  "diagnostics": [],
+  "frame": {
+    "binding": {
+      "binding_set_digest": "sha256:6e531b2dde790abed7e45d5ae5509407102c41e956d4ad9197b5001c4b5d99a4",
+      "binding_set_id": "portable-scheme-examples",
+      "binding_set_version": "1.0.0",
+      "schema_version": "external-concept-bindings/v1"
+    },
+    "configuration": {
+      "coordinate_digest": "sha256:cb463988d91c28f52b32a37cd1cbb6f9063e8256a250c68cb926c4cba3a94d3d",
+      "coordinate_id": "native-subject-configuration-scope/v1",
+      "coordinate_version": "1",
+      "cut_ref": "native-subject-artifact",
+      "posture": "applicable"
+    },
+    "evidence_boundary": {
+      "boundary_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "boundary_id": "internal-evidence",
+      "boundary_revision": "1",
+      "clock_authority": "run-clock",
+      "evaluation_cut_ref": "evidence-cut-1",
+      "freshness_policy_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "freshness_policy_id": "exact-cut-no-ambient-clock",
+      "freshness_policy_revision": "1",
+      "time_domain": "logical"
+    },
+    "perspective": {
+      "applicable_cut_ref": null,
+      "audience_ref": null,
+      "episode_id": null,
+      "participant_address": null,
+      "party_ref": "authors.reference",
+      "perspective_kind": "author",
+      "projection_policy_digest": null,
+      "projection_policy_id": null,
+      "projection_policy_revision": null
+    },
+    "predicate_profile": {
+      "adapter_digest": "sha256:004320f89a2b1e98f410d22da593ebb9246e21d1051522ab5e5e41f8e4a59fa1",
+      "adapter_id": "declared-owner-adapter",
+      "adapter_version": "1",
+      "allow_approximate_bindings": true,
+      "allow_lossy_bindings": true,
+      "configuration_axis": "applicable",
+      "predicate_id": "declared",
+      "producer_contract_id": "sdl-authoring-input-v1",
+      "profile_digest": "sha256:a399f706c10c4129e299cb6a54d8f7d0b5cea8013729c3cde318a86831185d30",
+      "profile_id": "semantic-projection-declared-approximate-lossy/v1",
+      "profile_version": "1",
+      "state_axis": "not-applicable",
+      "transformations_axis": "forbidden"
+    },
+    "quantifier": {
+      "kind": "existential",
+      "quantified_unit": "distinct-native-subjects",
+      "threshold": null
+    },
+    "scheme": {
+      "authority": "MITRE ATT&CK",
+      "included_concept_ids": [
+        "TA0002"
+      ],
+      "revision": "v19.1",
+      "scheme_id": "mitre-attack-enterprise-tactics",
+      "source_digest": "sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3"
+    },
+    "state": {
+      "basis_ref": "declared-state-not-applicable",
+      "posture": "not-applicable"
+    },
+    "subject_scope": {
+      "artifact_digests": [
+        "sha256:a22d5d994e8bd4c4634a884f0f1be2e395c96a5b8efe3ed25e79e8d8847a99ff"
+      ],
+      "complete": true,
+      "lifecycle_phase": "normalized-authoring",
+      "owning_contract_id": "sdl-authoring-input-v1",
+      "subject_kind": "node"
+    },
+    "transformations": []
+  },
+  "frame_digest": "sha256:edb18329d2551a8d60006b23b0b38d31ea107f3e83cb7cc22ea9bd059dbe80f7",
+  "rows": [
+    {
+      "bindings": [],
+      "classification": "excluded",
+      "concept_id": "TA0001",
+      "reason_codes": [
+        "outside-explicit-inclusion-set"
+      ],
+      "witnesses": []
+    },
+    {
+      "bindings": [
+        {
+          "approximation_posture": "approximate",
+          "binding_id": "attack-execution",
+          "confidence_posture": "high",
+          "limitations": [
+            "The assertion does not claim that the node executes every technique associated with the tactic."
+          ],
+          "loss_details": [
+            "A RAES node is not itself an ATT&CK tactic; the binding records contextual relevance only."
+          ],
+          "relationship_kind": "related-to",
+          "resolution_outcome": "resolved-current",
+          "review_status": "accepted",
+          "semantic_effect": "annotates"
+        }
+      ],
+      "classification": "witness",
+      "concept_id": "TA0002",
+      "reason_codes": [],
+      "witnesses": [
+        {
+          "evidence_digests": [
+            "sha256:a22d5d994e8bd4c4634a884f0f1be2e395c96a5b8efe3ed25e79e8d8847a99ff"
+          ],
+          "native_result_digest": "sha256:a22d5d994e8bd4c4634a884f0f1be2e395c96a5b8efe3ed25e79e8d8847a99ff",
+          "native_result_id": "nodes.web",
+          "predicate_profile_digest": "sha256:a399f706c10c4129e299cb6a54d8f7d0b5cea8013729c3cde318a86831185d30",
+          "producer_contract_id": "sdl-authoring-input-v1",
+          "subject": {
+            "artifact_digest": "sha256:a22d5d994e8bd4c4634a884f0f1be2e395c96a5b8efe3ed25e79e8d8847a99ff",
+            "canonical_ref": "nodes.web",
+            "lifecycle_phase": "normalized-authoring",
+            "owning_contract_id": "sdl-authoring-input-v1",
+            "subject_kind": "node"
+          }
+        }
+      ]
+    },
+    {
+      "bindings": [],
+      "classification": "excluded",
+      "concept_id": "TA0003",
+      "reason_codes": [
+        "outside-explicit-inclusion-set"
+      ],
+      "witnesses": []
+    },
+    {
+      "bindings": [],
+      "classification": "excluded",
+      "concept_id": "TA0004",
+      "reason_codes": [
+        "outside-explicit-inclusion-set"
+      ],
+      "witnesses": []
+    },
+    {
+      "bindings": [],
+      "classification": "excluded",
+      "concept_id": "TA0005",
+      "reason_codes": [
+        "outside-explicit-inclusion-set"
+      ],
+      "witnesses": []
+    },
+    {
+      "bindings": [],
+      "classification": "excluded",
+      "concept_id": "TA0006",
+      "reason_codes": [
+        "outside-explicit-inclusion-set"
+      ],
+      "witnesses": []
+    },
+    {
+      "bindings": [],
+      "classification": "excluded",
+      "concept_id": "TA0007",
+      "reason_codes": [
+        "outside-explicit-inclusion-set"
+      ],
+      "witnesses": []
+    },
+    {
+      "bindings": [],
+      "classification": "excluded",
+      "concept_id": "TA0008",
+      "reason_codes": [
+        "outside-explicit-inclusion-set"
+      ],
+      "witnesses": []
+    },
+    {
+      "bindings": [],
+      "classification": "excluded",
+      "concept_id": "TA0009",
+      "reason_codes": [
+        "outside-explicit-inclusion-set"
+      ],
+      "witnesses": []
+    },
+    {
+      "bindings": [],
+      "classification": "excluded",
+      "concept_id": "TA0010",
+      "reason_codes": [
+        "outside-explicit-inclusion-set"
+      ],
+      "witnesses": []
+    },
+    {
+      "bindings": [],
+      "classification": "excluded",
+      "concept_id": "TA0011",
+      "reason_codes": [
+        "outside-explicit-inclusion-set"
+      ],
+      "witnesses": []
+    },
+    {
+      "bindings": [],
+      "classification": "excluded",
+      "concept_id": "TA0040",
+      "reason_codes": [
+        "outside-explicit-inclusion-set"
+      ],
+      "witnesses": []
+    },
+    {
+      "bindings": [],
+      "classification": "excluded",
+      "concept_id": "TA0042",
+      "reason_codes": [
+        "outside-explicit-inclusion-set"
+      ],
+      "witnesses": []
+    },
+    {
+      "bindings": [],
+      "classification": "excluded",
+      "concept_id": "TA0043",
+      "reason_codes": [
+        "outside-explicit-inclusion-set"
+      ],
+      "witnesses": []
+    },
+    {
+      "bindings": [],
+      "classification": "excluded",
+      "concept_id": "TA0112",
+      "reason_codes": [
+        "outside-explicit-inclusion-set"
+      ],
+      "witnesses": []
+    }
+  ],
+  "schema_version": "semantic-projection-report/v1",
+  "summary": {
+    "ambiguous_count": 0,
+    "excluded_count": 14,
+    "frame_digest": "sha256:edb18329d2551a8d60006b23b0b38d31ea107f3e83cb7cc22ea9bd059dbe80f7",
+    "gap_count": 0,
+    "included_denominator": 1,
+    "predicate_id": "declared",
+    "predicate_profile_digest": "sha256:a399f706c10c4129e299cb6a54d8f7d0b5cea8013729c3cde318a86831185d30",
+    "qualified_fraction": "declared:1/1@sha256:edb18329d2551a8d60006b23b0b38d31ea107f3e83cb7cc22ea9bd059dbe80f7",
+    "unknown_count": 0,
+    "witness_count": 1
+  }
+}

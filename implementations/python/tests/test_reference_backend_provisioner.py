@@ -83,7 +83,7 @@ def test_apply_via_control_plane_records_entries_and_drives_driver():
 
 
 @pytest.mark.parametrize("collect", [False, True])
-def test_native_collection_is_selected_before_driver_readback_and_never_persisted(collect):
+def test_inprocess_collection_is_selected_but_driver_reports_cannot_supply_native_readback(collect):
     class Driver(InProcessDriver):
         def realize(self, **kwargs):
             result = super().realize(**kwargs)
@@ -104,10 +104,13 @@ def test_native_collection_is_selected_before_driver_readback_and_never_persiste
             address="provision.node.web",
         )
     result = target.provisioner.apply(planned, RuntimeSnapshot())
-    assert result.success
+    assert result.success is not collect
     assert calls == ([("provision.node.web",)] if collect else [])
     assert result.snapshot.realization_observations == ()
-    assert bool(result.operational_realization_observations) == collect
+    assert result.operational_realization_observations == ()
+    assert "provision.node.web" in result.snapshot.entries
+    if collect:
+        assert "reference-backend.driver.compute-substrate-unobserved" in {item.code for item in result.diagnostics}
 
 
 def test_apply_handles_delete_and_unchanged():
@@ -165,7 +168,7 @@ def test_unchanged_op_keeps_entry_without_driver_realize():
     assert tuple(op for op in driver.recorded_ops if op.verb == "realize") == realizes_before
 
 
-def test_unchanged_compute_uses_non_retained_operational_readback() -> None:
+def test_unchanged_inprocess_compute_rejects_non_authoritative_readback() -> None:
     observe_calls: list[tuple[str, ...]] = []
 
     class _ObservationRecordingDriver(InProcessDriver):
@@ -195,7 +198,11 @@ def test_unchanged_compute_uses_non_retained_operational_readback() -> None:
     _register_provisioning_plan(upgraded, target, unchanged_plan)
     receipt = upgraded.submit_provisioning(unchanged_plan)
 
-    assert upgraded.get_operation(receipt.operation_id).state.value == "succeeded"
+    assert upgraded.get_operation(receipt.operation_id).state.value == "failed"
+    assert "provision.node.web" in upgraded.snapshot.entries
+    assert "reference-backend.driver.compute-substrate-unobserved" in {
+        item.code for item in upgraded.get_operation(receipt.operation_id).diagnostics
+    }
     assert upgraded.snapshot.realization_observations == ()
     assert tuple(op for op in driver.recorded_ops if op.verb == "realize") == realizes_before
     assert len(observe_calls) == observes_before + 1

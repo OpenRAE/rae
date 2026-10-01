@@ -4,12 +4,15 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
+from typing import Any
 
 from .._canonical import canonical_json_digest
 from .admitted_trial_plan import AdmittedTrialEntryModel, AdmittedTrialPlanModel
 from .experiment_analysis import validate_experiment_study_against_tasks_and_runs
 from .experiment_apparatus import ExperimentTaskModel
-from .experiment_run import ExperimentRunEvidenceInputs, ExperimentRunModel
+from .experiment_capture import ExperimentCaptureSpecModel
+from .experiment_run import ExperimentRunModel
+from .experiment_run_evidence_validation import ExperimentRunEvidenceInputs
 from .experiment_spec import ExperimentStudyModel
 from .trial_cleanup import TrialCleanupReceiptModel, validate_trial_cleanup_receipt
 from .trial_provenance import TrialRunProvenanceModel
@@ -237,6 +240,8 @@ def validate_admitted_trial_study(
     runs: list[ExperimentRunModel],
     *,
     evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None = None,
+    relation_scenarios: Mapping[str, Any] | None = None,
+    relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None = None,
 ) -> None:
     """Join admitted coordinates and archival runs to the existing study authority."""
 
@@ -245,6 +250,8 @@ def validate_admitted_trial_study(
         tasks,
         runs,
         evidence_by_run=evidence_by_run,
+        relation_scenarios=relation_scenarios,
+        relation_capture_specs=relation_capture_specs,
     )
     _validate_study_identity(plan, study)
     _validate_study_run_membership(study, runs)

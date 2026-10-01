@@ -11,6 +11,8 @@ exposed, and it disposes of those surfaces explicitly.
 - [Architecture preflight](../../decisions/issue-1151-runtime-control-plane-architecture-preflight.md)
 - [ADR-104](../../decisions/adrs/adr-104-runtime-control-plane-architecture.md)
 - [CP-2 unified-mutation preflight](../../decisions/issue-1181-unified-control-plane-mutations-preflight.md)
+- [CP-3 startup-reconciliation preflight](../../decisions/issue-1179-startup-reconciliation-preflight.md)
+- [CP-5 store-ownership lease preflight](../../decisions/issue-1183-store-ownership-lease-preflight.md)
 - [Current-state assessment](current-state-assessment.md)
 - [Composition architecture](composition-architecture.md)
 - [Requirement and surface disposition](requirement-disposition.md)
@@ -28,3 +30,8 @@ distributed or highly available topology. Profile P3 (coordinated
 multi-process ownership) is recorded as a seam and an explicit nonclaim; no
 consistency, coordination, or recovery guarantee named in this set is
 claimable before its implementation issue lands with tests.
+
+The subsequent [execution architecture selection (#1350)](../execution-architecture/README.md)
+reuses Temporal/PostgreSQL for distributed execution while preserving local
+profiles, authored failure/retry policy and RAE's semantic responsibilities.
+It does not enable P3 or certify the distributed implementation.

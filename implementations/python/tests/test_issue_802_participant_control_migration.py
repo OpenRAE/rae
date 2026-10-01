@@ -286,7 +286,9 @@ def test_runtime_snapshot_fixture_preserves_incumbent_history_without_claim_prom
     RuntimeSnapshotEnvelopeModel.model_validate(before)
     RuntimeSnapshotEnvelopeModel.model_validate(after)
     (tmp_path / "snapshot.json").write_text(json.dumps(before), encoding="utf-8")
-    legacy_snapshot = LocalControlPlaneStore(tmp_path).load_snapshot()
+    store = LocalControlPlaneStore(tmp_path)
+    lease = store.admit_runtime(target_scope="target:stub", run_scope="run:default")
+    legacy_snapshot = store.load_snapshot()
     backups = list(tmp_path.glob("legacy-json-backup-*/snapshot.json"))
     assert len(backups) == 1
     assert json.loads(backups[0].read_text(encoding="utf-8")) == before
@@ -298,6 +300,8 @@ def test_runtime_snapshot_fixture_preserves_incumbent_history_without_claim_prom
     assert legacy_snapshot.participant_behavior_history == before["participant_behavior_history"]
     assert after["participant_behavior_history"] == before["participant_behavior_history"]
     assert "policy-noninterference" not in json.dumps(after)
+    store.close()
+    lease.close()
 
 
 def test_backend_manifest_fixture_pair_uses_existing_feature_strength_adapter() -> None:

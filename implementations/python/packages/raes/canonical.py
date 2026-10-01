@@ -14,9 +14,12 @@ from pydantic import ConfigDict, model_validator
 from ._base import SDLModel
 from ._errors import SDLParseError
 from ._source_profile import SDL_CANONICAL_PROFILE
+from .materialization import MaterializedScenario, admit_materialized_scenario
 from .scenario import ExpandedScenario, InstantiatedScenario, Scenario
 
 INSTANTIATED_SNAPSHOT_PROFILE = "raes-sdl-instantiated-snapshot/v2"
+MATERIALIZED_SDL_PROFILE = "raes-sdl-materialized/v1"
+_SHA256_PREFIX = "sha256:"
 _LEGACY_SNAPSHOT_PROJECTION_REVISION = "instantiated-snapshot-v1/node-architecture-default"
 
 
@@ -34,8 +37,8 @@ class SDLCanonicalDigest:
 
 def canonical_sdl_bytes(scenario: Scenario | ExpandedScenario) -> bytes:
     """Return RFC 8785 bytes for one validated, post-expansion authoring scenario."""
-    if isinstance(scenario, InstantiatedScenario):
-        raise SDLParseError("Canonical SDL semantic identity requires an authoring scenario, not an instantiated one")
+    if not isinstance(scenario, (Scenario, ExpandedScenario)):
+        raise SDLParseError("Canonical SDL semantic identity requires an authoring scenario")
     if not scenario.semantic_validated:
         raise SDLParseError("Canonical SDL semantic identity requires successful semantic validation")
 
@@ -65,7 +68,32 @@ def canonical_sdl_digest(scenario: Scenario | ExpandedScenario) -> SDLCanonicalD
     return SDLCanonicalDigest(
         profile=SDL_CANONICAL_PROFILE,
         algorithm="sha256",
-        value=f"sha256:{digest}",
+        value=f"{_SHA256_PREFIX}{digest}",
+    )
+
+
+def canonical_materialized_sdl_bytes(scenario: MaterializedScenario) -> bytes:
+    """Return a descriptive identity without reusing an input snapshot profile."""
+    if not isinstance(scenario, MaterializedScenario) or not scenario.semantic_validated:
+        raise SDLParseError("Materialized SDL identity requires a validated materialization description")
+    scenario = admit_materialized_scenario(scenario)
+    try:
+        return rfc8785.dumps(
+            {
+                "profile": MATERIALIZED_SDL_PROFILE,
+                "scenario": scenario.model_dump(mode="json", by_alias=True, exclude_unset=True),
+            }
+        )
+    except rfc8785.CanonicalizationError as exc:
+        raise SDLParseError("Materialized SDL canonicalization failed") from exc
+
+
+def canonical_materialized_sdl_digest(scenario: MaterializedScenario) -> SDLCanonicalDigest:
+    """Return the separately profiled identity of a materialization description."""
+    return SDLCanonicalDigest(
+        profile=MATERIALIZED_SDL_PROFILE,
+        algorithm="sha256",
+        value=_SHA256_PREFIX + hashlib.sha256(canonical_materialized_sdl_bytes(scenario)).hexdigest(),
     )
 
 
@@ -186,7 +214,7 @@ def migrate_legacy_instantiated_snapshot_join(
     if not changed:
         return value, submitted_digest, False
     try:
-        raw_digest = "sha256:" + hashlib.sha256(rfc8785.dumps(value)).hexdigest()
+        raw_digest = _SHA256_PREFIX + hashlib.sha256(rfc8785.dumps(value)).hexdigest()
     except rfc8785.CanonicalizationError as exc:
         raise ValueError(f"legacy instantiated snapshot canonicalization failed: {exc}") from exc
     if not isinstance(value, Mapping):
@@ -213,7 +241,7 @@ def _legacy_instantiated_snapshot_projection_digest(value: Mapping[str, object])
         payload = rfc8785.dumps(projected)
     except rfc8785.CanonicalizationError as exc:
         raise ValueError(f"legacy snapshot projection {_LEGACY_SNAPSHOT_PROJECTION_REVISION} failed: {exc}") from exc
-    return "sha256:" + hashlib.sha256(payload).hexdigest()
+    return _SHA256_PREFIX + hashlib.sha256(payload).hexdigest()
 
 
 def _pointer_token(value: str) -> str:
@@ -248,5 +276,5 @@ def canonical_instantiated_sdl_digest(scenario: InstantiatedScenario) -> SDLCano
     return SDLCanonicalDigest(
         profile=INSTANTIATED_SNAPSHOT_PROFILE,
         algorithm="sha256",
-        value=f"sha256:{digest}",
+        value=f"{_SHA256_PREFIX}{digest}",
     )

@@ -1,0 +1,49 @@
+name: progressive-conformance
+realization:
+  default: closed
+  scopes:
+    - field_pointer: /nodes/private/runtime/applications/0/routes/0
+      posture: open
+nodes:
+  debian:
+    type: compute
+    os: linux
+    os_distribution: debian
+    os_version: "12"
+  fedora:
+    type: compute
+    os: linux
+    os_distribution: x-fedoraproject:fedora
+    os_version: "42"
+  kali:
+    type: compute
+    os: linux
+    os_distribution: x-kali:kali
+    os_version: "2025.1"
+    runtime:
+      software_components:
+        - component_id: nmap
+          name: nmap
+          version: "7.95"
+  private:
+    type: compute
+    os: linux
+    os_distribution: x-acme:research-linux
+    os_version: "1.0"
+    services:
+      - name: documents
+        port: 8080
+    runtime:
+      applications:
+        - application_id: private-documents
+          service: documents
+          protocol: http
+          routes:
+            - route_id: collection
+              path: /documents
+              methods: [PROPFIND, PrivateQuery, privateQuery]
+  ubuntu:
+    type: compute
+    os: linux
+    os_distribution: ubuntu
+    os_version: "24.04"

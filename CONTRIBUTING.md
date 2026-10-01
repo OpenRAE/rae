@@ -50,13 +50,10 @@ Changing these migration pins is an explicit, reviewable workflow trust change.
 
 ## Set up the repository
 
-The fastest start is the
-[development container](docs/explain/development-container.md): open the
-repository in VS Code with the Dev Containers extension, or create a GitHub
-Codespace, and setup runs by itself. It is an x86_64 image; on Apple silicon,
-Docker Desktop runs it under emulation. The container cannot run the Isabelle
-proof lane, so continuous integration runs the full `verify` gate for container
-users.
+An optional [development container](docs/explain/development-container.md)
+provides automated setup for the reviewed x86_64 image. The guide labels each
+start route verified or unverified, and records the evidence behind those
+labels. The container cannot run the Isabelle proof lane; CI runs that gate.
 
 To set up natively instead:
 
@@ -70,8 +67,8 @@ The host profile also requires Git, trusted CA roots, SHA-256 tooling, GH CLI
 when GitHub operations are used, and curl 8.4.0 or newer with verified
 unknown-length size enforcement. An older client is a hard failure for generic
 artifact acquisition. Provision native prerequisites from the reviewed host
-image or repository snapshot; the offline payload kit supplies exact Python,
-uv, and generic-tool objects after those prerequisites are present. Do not pipe
+image or signed package repositories. Connected setup acquires exact Python,
+uv and generic-tool inputs against their reviewed identities. Do not pipe
 a remote installer into a shell.
 
 Install the separate locked project and verification-tool environments:
@@ -82,6 +79,12 @@ cd rae
 uv sync --project implementations/python --all-extras --frozen
 uv sync --project implementations/tooling/python --frozen --no-default-groups
 ```
+
+Specialized TLS acquisition fixtures use the tooling `acquisition-tests`
+dependency group; ordinary tooling sync does not need it. The existing Intel
+Mac restriction is not lifted by that separation: patched runtime dependencies
+and actual target smoke evidence are still required. No vulnerable dependency
+downgrade or untested support is implied.
 
 The [developer documentation index](docs/README.md) links to architecture,
 research, migration, release, and workflow records that are not part of the
@@ -104,7 +107,12 @@ hosted reader guide.
 
 ## Run the checks
 
-The full repository gate is:
+Commit hooks run file-scoped hygiene and secrets checks: whitespace, final
+newlines, YAML/JSON syntax, file size, conflict markers, private keys, and
+Gitleaks. No pre-push check is configured. Full tests, policy, contracts,
+lint, proof, and documentation validation remain required in CI/CD.
+
+The full repository gate is available locally when needed:
 
 ```shell
 uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify
@@ -152,21 +160,22 @@ Run the change-aware local gate while iterating:
 uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify-changed
 ```
 
-It selects from status-aware changes against the branch's upstream ref and
-fails closed to the full local gate when classification is uncertain. The
-pre-push hook uses this lane. It does not weaken `verify`, which remains the
-unconditional pull-request gate.
+It runs changed-file checks and directly changed test modules against the
+branch's upstream ref. Uncertain classification never triggers a full local
+suite. Select relevant test modules or cases explicitly for source-only changes.
+Full test, integration, fuzz and completion suites run in CI/CD only. The
+unconditional `verify` graph remains a CI/CD entry point.
 
 Useful narrower sessions:
 
 ```shell
-uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s tests
+uv run --project implementations/python --frozen pytest implementations/python/tests/test_runtime_models.py -q
 uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s docs
 uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -l
 ```
 
-Run the full gate before requesting review for language, contract, generated
-artifact, or shared runtime changes.
+Run targeted checks for the changes you make. CI/CD runs the full gate before
+merge, including language, contract, generated-artifact, and shared-runtime checks.
 
 ## Let Release Please write the changelog
 

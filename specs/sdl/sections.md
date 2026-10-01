@@ -68,6 +68,7 @@ machinery is not retained as an empty compatibility field. "References" is
 | `outcome_interpretation_rules` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [participant model](../formal/participant-semantics/README.md) |
 | `behavior_specifications` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [behavior specifications](../formal/participant-behavior-model/README.md) |
 | `evidence_requirements` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [observability and evidence](observability-and-evidence.md) |
+| `augmentation_scope` | section | mapping | normalized, expanded, instantiated | optional; default null | none | none | [augmentation scope](augmentation-scope.md) |
 | `time_domains` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | none | [shared time model](../formal/time-model/README.md) |
 | `clocks` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [shared time model](../formal/time-model/README.md) |
 | `time_domain_mappings` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [shared time model](../formal/time-model/README.md) |
@@ -78,7 +79,13 @@ machinery is not retained as an empty compatibility field. "References" is
 | `variables` | section | map | normalized, expanded | optional; default empty map | `map_key` | none | [variables and instantiation](variables-and-instantiation.md) |
 | `variation_points` | section | map | normalized, expanded | optional; default empty map | `map_key` | catalogued | [scenario-family variation points](variation-points.md) |
 
-<!-- sdl-catalog-summary top-level=44 metadata-composition=7 sections=37 maps=36 lists=1 -->
+The absent/null `augmentation_scope` carrier means **open**, not closed. Authors
+explicitly opt into restrictions; requiring advance authorization of every backend
+addition would impose a large, unexpected authoring burden. The policy also
+survives into materialized descriptions, where its addresses retain their
+original-source meaning. See [augmentation scope](augmentation-scope.md).
+
+<!-- sdl-catalog-summary top-level=45 metadata-composition=7 sections=38 maps=36 lists=1 -->
 
 The section set therefore has two authoring shapes: maps keyed by stable
 user-defined identifiers and the scenario-level `forwarding_agents` list, whose
@@ -113,6 +120,14 @@ they occupy different positions in the document.
 
 ## Narrative chain
 
+[External inject triggering](external-injects.md) defines the accepted
+occurrence/admission/outcome amendment for existing inject authoring. An
+environment and ordinary injects need no declared participants. Plan
+installation, queued status and participant delivery do not prove world-effect
+execution. This semantic decision introduces no parser fields or wire schema;
+its [compatibility contract](../../docs/explain/sdl/external-inject-compatibility.md)
+governs explicit executable adoption.
+
 One reference chain runs through the catalog and is called out because its
 ordering is normative (resolution and failure semantics in
 [`references.md`](references.md)):
@@ -133,6 +148,16 @@ Their order must satisfy the named temporal constraints, and their control
 evidence must be covered by the named evidence requirements. An inject without
 that binding remains ordinary orchestration input; `injects.*.environment`
 never implies participant delivery.
+
+This field-level description is the currently published fixed-coordinate form.
+[ADR-110's normative amendment](../formal/participant-semantics/reusable-mixed-control.md#mc-09--participant-directed-injects)
+separates reusable edge constraints from exact control-application/delivery
+joins, uses acting-source authority, independently pins control/disclosure
+policies and keeps order distinct from shared time. It preserves ordinary
+injects and disclosure-only bindings. The
+[migration contract](../../docs/migration/reusable-mixed-control.md) defines
+explicit adoption and retains the old form's historical interpretation; the
+amendment does not introduce parser fields by this prose alone.
 
 `propositions` state typed claims; `assertions` use them as preconditions,
 invariants, or postconditions. Objective success composes invariant or

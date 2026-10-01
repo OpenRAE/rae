@@ -682,7 +682,7 @@ def test_runtime_snapshot_behavior_visibility_validation_is_participant_local():
     def _participant_payload(boundary_address: str) -> dict[str, object]:
         return {
             "participant_name": "agent",
-            "entity_name": "team",
+            "affiliation_names": ["team"],
             "action_contract_addresses": [action_address],
             "observation_boundary_addresses": [boundary_address],
             "interpretation_mode": "role-neutral-projection",
@@ -785,7 +785,7 @@ def test_runtime_snapshot_behavior_history_rejects_outer_key_participant_mismatc
     def _participant_payload() -> dict[str, object]:
         return {
             "participant_name": "red-agent",
-            "entity_name": "red-team",
+            "affiliation_names": ["red-team"],
             "action_contract_addresses": [action_address],
             "observation_boundary_addresses": [boundary_address],
             "interpretation_mode": "role-neutral-projection",
@@ -1316,7 +1316,7 @@ assertions:
 entities:
   blue: {{role: blue}}
 objectives:
-  validate: {{entity: blue, success: {{assertions: [health]}}}}
+  validate: {{owner: blue, success: {{assertions: [health]}}}}
 workflows:
   response:
     start: run

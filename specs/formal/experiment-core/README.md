@@ -162,6 +162,30 @@ mandatory observation combined with backend mutation without a compensating
 owner. Nonretained backend-selected descriptions are immediate manager results,
 not archival evidence or recoverable control-plane bodies.
 
+Task, prospective run-plan, archival run, and study carriers may declare
+`evidence_requirement_relations`. Each relation is a typed `refine` or `extend`
+link from an exact task/run/study authority and immutable scenario snapshot to a
+canonical `evidence_requirements.<qualified-symbol>` declaration and an exact
+capture-specification requirement. The relationship preserves both obligations;
+it never serializes an overwritten effective requirement. Cross-artifact
+validation resolves only caller-supplied scenarios and capture specifications,
+and refinements fail closed unless every named dimension preserves the authored
+value and at least one has a governed monotone strengthening. Extensions and
+refinements therefore add independent capture demands to admission. Omitted
+relations add no capture detail and leave permitted realization choices to the
+backend. The authoritative trial compiler combines task and prospective
+run-plan relations, validates them against the immutable expanded scenario,
+and admits their capture specifications together with each selected scenario's
+base demands. Trial realization repeats that relation-aware compilation from
+the plan's digest-bound task, authoring input, scenario family, and capture
+specifications before processor planning. Authoritative archival run validation
+resolves task and run relations from the supplied evidence scenarios and
+capture specifications; authoritative study validation similarly resolves its
+own relations from explicit caller-supplied scenario and capture artifacts.
+The current comparison profile uses relation-aware task, run, and study owner
+projections so changing only an evidence obligation is a structural and
+semantic change.
+
 For EXP-706, one trial is one archival run record. Repeated runs of the same
 task are represented by multiple run records with distinct `run_id` values, a
 shared `task_ref`, and a compatible `scenario_snapshot_ref`. A repeated run
@@ -174,11 +198,12 @@ summaries must identify the metric, carry a value, and link to evidence. Every
 result-summary evidence reference must resolve to an artifact id in the same
 run's `evidence_artifacts` set. Cross-artifact task/run validation also checks
 that run apparatus satisfies task apparatus constraints, that run result metric
-ids are declared by the task evaluation protocol, and that concrete run
-evidence artifacts satisfy the task and metric evidence requirements, either by
-artifact id or by an artifact `satisfies_refs` entry. If a task or metric
-evidence requirement carries digest or path metadata, the matching run artifact
-MUST satisfy those fields with its concrete checksum and URI/path.
+ids are declared by the task evaluation protocol, and that task and metric
+evidence requirements resolve through capture requirements and evidence records
+to emitted artifact bytes. Artifact ids and `satisfies_refs` entries alone do
+not prove satisfaction. If a task or metric evidence requirement carries digest
+or path metadata, the validated binding MUST satisfy those fields with its
+concrete checksum and URI/path.
 
 ### Run Traceability
 
@@ -202,6 +227,48 @@ derived measures, claim/report artifacts, disclosures, and lineage refs are
 available for review. It does not guarantee executable replay, artifact
 dereference, hidden backend-state reconstruction, or derived-result
 recomputation.
+
+### Evidence Source And Augmentation Provenance
+
+EXP-732 uses the existing run as the archival join point. Preserve the authored
+SDL carrier at a pinned revision as well as the instantiated scenario snapshot;
+retain the capture specification and its requirement ids alongside the raw
+evidence records. A reference to a mutable authoring file cannot reconstruct
+historical intent. Capture-specification bindings remain explicit; unresolved
+SDL capture references fail admission rather than implying a generated binding.
+
+The portable chain has three distinct parts:
+
+- Authored intent: the retained scenario source/snapshot and capture
+  specification state what evidence was required. A record's
+  `capture_spec_ref` and `capture_requirement_ref` identify that obligation.
+- Realized sources: run `traceability.evidence_record_refs` identify the records
+  whose `source_refs`, capture window, content reference, and redaction/loss
+  disclosures describe capture. The admitted measurement channel must resolve
+  in the run apparatus and agree with a record source. A supplied
+  `apparatus_context_ref` must match that apparatus; omission remains valid
+  because the run already embeds it.
+- Augmentation: run `augmentation_disclosures` retain processor/backend
+  identity, purpose, carriers, affected refs, visibility, and observer effects.
+  The declared producer must resolve to a matching apparatus component.
+  Operational-only augmentation remains disclosed even when its purpose and
+  classifications do not require supporting captured evidence.
+
+`validate_experiment_run_against_task()` uses content-backed evidence inputs to
+check these execution and apparatus joins, together with the existing content
+proof. Run/apparatus and augmentation-producer references may omit a version;
+when supplied it must match. Digest/path qualifiers on those references cannot
+be verified from the supplied in-memory identities and are rejected. The
+separate content references retain checksums and locators for byte validation.
+Consumers also run `observability_evidence_conformance_diagnostics()` for
+portable affected-carrier and purpose-dependent evidence requirements.
+
+These checks preserve and validate the declared provenance chain; they do not
+collect evidence, retain external artifacts, resolve authored SDL into capture
+specifications, or attest every additional source or augmentation side effect.
+Archival callers must retain the referenced immutable artifacts. Unsupported,
+partial, or withheld capture stays disclosed without claiming satisfaction.
+The validator never dereferences locators or reads host paths.
 
 ### Realized Form Disclosure
 
@@ -340,7 +407,8 @@ produce. It binds:
 - a run plan: optional stochastic controls, an episode control (turn order,
   logical step count, termination), either a condition `allocation` plan or a
   scalar `target_run_count`, a closed keyed selection-policy registry,
-  red-variant selections keyed by variant id, and an optional clock intent;
+  red-variant selections keyed by variant id, optional run-scoped evidence
+  requirement relations, and an optional clock intent;
 - study factors keyed by factor id;
 - capture-specification references, validity notes, and supporting artifacts.
 

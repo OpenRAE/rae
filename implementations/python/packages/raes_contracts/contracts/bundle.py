@@ -7,9 +7,12 @@ from functools import cache
 from typing import Any
 
 from raes.canonical import InstantiatedScenarioSnapshot
+from raes.materialization import MaterializedScenario
 from raes.scenario import InstantiatedScenario, Scenario
 
 from raes_contracts.artifact_requirements import ArtifactRequirementContractModel
+from raes_contracts.augmentation_preparation import AugmentationPreparation
+from raes_contracts.materialization import MaterializationSubmission
 from raes_contracts.observation_demand import ObservationDemandDocument
 
 from . import semantic_profiles, semantic_projection
@@ -39,6 +42,8 @@ from .experiment_run import ExperimentRunModel
 from .experiment_spec import ExperimentSpecModel, ExperimentStudyModel
 from .external_concept_bindings import ExternalConceptBindingDocumentModel
 from .manifests import ProcessorManifestV2Model
+from .materialization_attestation import MaterializationArchiveRecord, attach_materialization_invariants
+from .mixed_composition import MixedParticipantCompositionProfileModel
 from .participant_flow_control import (
     ParticipantBoundaryFlowPolicyProfileModel,
 )
@@ -70,10 +75,12 @@ from .schema_constraints import (
     _raes_semantic_invariant_profile_schema_for_bundle,
     _validate_raes_semantic_invariant_annotations,
 )
+from .schema_factoring import factor_shared_schema
 from .schema_invariants import (
     _add_raes_invariant,
     _attach_experiment_datetime_invariants,
     _attach_initial_service_state_invariants,
+    _attach_participant_temporal_invariants,
     _attach_raes_semantic_profile,
     _attach_stateful_resource_invariants,
 )
@@ -130,6 +137,7 @@ def _experiment_schema_bundle() -> dict[str, dict[str, Any]]:
         "experiment-study-v1": ExperimentStudyModel.model_json_schema(),
         "experiment-task-v1": ExperimentTaskModel.model_json_schema(),
         "admitted-trial-plan-v1": AdmittedTrialPlanModel.model_json_schema(),
+        "mixed-participant-composition-profile-v1": MixedParticipantCompositionProfileModel.model_json_schema(),
         "trial-cleanup-plan-v1": TrialCleanupPlanModel.model_json_schema(),
         "trial-cleanup-receipt-v1": TrialCleanupReceiptModel.model_json_schema(),
         "scheduler-isolation-proof-v1": SchedulerIsolationProofModel.model_json_schema(),
@@ -158,6 +166,11 @@ def _experiment_schema_bundle() -> dict[str, dict[str, Any]]:
 
 
 def _core_schema_bundle() -> dict[str, dict[str, Any]]:
+    from raes_contracts.authoring_adapters import (
+        AuthoringAdapterComparisonModel,
+        AuthoringAdapterProfileModel,
+        AuthoringAdapterVectorModel,
+    )
     from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
     from raes_contracts.realization_structure import RealizationConstraintDocument
     from raes_contracts.semantic_comparison import SemanticComparisonRequestModel, SemanticComparisonResultModel
@@ -181,6 +194,10 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
         "sdl-authoring-input-v1": Scenario.model_json_schema(),
         "sdl-semantic-migration-context-v1": SDLSemanticMigrationContext.model_json_schema(),
         "instantiated-scenario-v1": InstantiatedScenario.model_json_schema(),
+        "materialized-scenario-v1": MaterializedScenario.model_json_schema(),
+        "backend-materialization-attestation-v1": MaterializationSubmission.model_json_schema(),
+        "backend-augmentation-scope-v1": AugmentationPreparation.model_json_schema(),
+        "materialization-archive-record-v1": MaterializationArchiveRecord.model_json_schema(),
         "instantiated-scenario-snapshot-v1": InstantiatedScenarioSnapshot.model_json_schema(),
         "scenario-instantiation-request-v1": InstantiationRequestModel.model_json_schema(),
         "artifact-requirement-v1": ArtifactRequirementContractModel.model_json_schema(),
@@ -188,6 +205,9 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
         **transformation_schema_bundle(),
         "semantic-comparison-request-v1": SemanticComparisonRequestModel.model_json_schema(),
         "semantic-comparison-result-v1": SemanticComparisonResultModel.model_json_schema(),
+        "authoring-adapter-profile-v1": AuthoringAdapterProfileModel.model_json_schema(),
+        "authoring-adapter-vector-v1": AuthoringAdapterVectorModel.model_json_schema(),
+        "authoring-adapter-comparison-v1": AuthoringAdapterComparisonModel.model_json_schema(),
         "exploit-path-analysis-evidence-v1": ExploitPathAnalysisEvidenceModel.model_json_schema(),
         "scenario-satisfiability-evidence-v1": ScenarioSatisfiabilityEvidenceModel.model_json_schema(),
         "backend-manifest-v2": BackendManifestV2Model.model_json_schema(),
@@ -237,6 +257,22 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
     """Build the immutable-in-practice template used by :func:`schema_bundle`."""
 
     bundle = _raw_schema_bundle()
+    _add_raes_invariant(
+        bundle["sdl-authoring-input-v1"],
+        "required-evidence-media-type-provable",
+        "Every declared required evidence media type must have a registered content-proof path; an explicit "
+        "output_contract must support every declared type.",
+        validator="raes.evidence_requirements.EvidenceRequirement._validate_capture_intent",
+        inputs=[{"contract_id": "sdl-authoring-input-v1", "instance_path": "#/evidence_requirements"}],
+    )
+    _add_raes_invariant(
+        bundle["experiment-capture-spec-v1"],
+        "capture-media-type-provable",
+        "Every required media type must have a registered content-proof path and be supported by its "
+        "declared output_contract.",
+        validator="raes_contracts.contracts.ExperimentCaptureRequirementModel._validate_capture_requirement",
+        inputs=[{"contract_id": "experiment-capture-spec-v1", "instance_path": "#/capture_requirements"}],
+    )
     _add_raes_invariant(
         bundle["behavioral-relations-v1"],
         "behavioral-relations-reference-resolution",
@@ -420,11 +456,13 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         ],
     )
     for contract_id, json_schema in bundle.items():
+        attach_materialization_invariants(contract_id, json_schema)
         _attach_sdl_identifier_constraints(contract_id, json_schema)
         _attach_instantiation_invariants(contract_id, json_schema)
         _attach_experiment_datetime_invariants(contract_id, json_schema)
         _attach_stateful_resource_invariants(contract_id, json_schema)
         _attach_initial_service_state_invariants(contract_id, json_schema)
+        _attach_participant_temporal_invariants(contract_id, json_schema)
         _attach_json_schema_metadata(contract_id, json_schema)
         _attach_compiled_address_map_constraints(contract_id, json_schema)
         _attach_plan_identity_constraints(contract_id, json_schema)
@@ -436,6 +474,7 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
             json_schema=json_schema,
             known_contract_ids=known_contract_ids,
         )
+    bundle["materialized-scenario-v1"] = factor_shared_schema(bundle["materialized-scenario-v1"])
     return bundle
 
 

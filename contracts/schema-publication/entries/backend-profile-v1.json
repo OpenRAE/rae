@@ -1,10 +1,10 @@
 {
+  "content_hash": "b51c39ee482a49608a96ce3bdc66f587a2cdff9daf5b8c872a079dd920d88f56",
   "contract_id": "backend-profile-v1",
-  "schema_path": "contracts/schemas/profiles/backend-profile-v1.json",
-  "stability": "draft",
-  "content_hash": "28ba85defc5b36001e92781783a386ff1533b74329b6308fa5fce59e574fdc36",
   "last_change": {
-    "summary": "Negotiated read-only backend preparation and optional plan-level profile support for issue #1204.",
-    "content_hash": "28ba85defc5b36001e92781783a386ff1533b74329b6308fa5fce59e574fdc36"
-  }
+    "summary": "Allow exact declarations of participant-control v2 selection and evaluation contracts (#1365).",
+    "content_hash": "b51c39ee482a49608a96ce3bdc66f587a2cdff9daf5b8c872a079dd920d88f56"
+  },
+  "schema_path": "contracts/schemas/profiles/backend-profile-v1.json",
+  "stability": "draft"
 }

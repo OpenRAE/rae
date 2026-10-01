@@ -23,6 +23,7 @@ from raes_contracts.contracts import (
     ParticipantRuntimeCapabilitiesModel,
     RealizationObservationCapabilityModel,
     RealizationSupportDeclarationModel,
+    RecoveryObservationCapabilitiesModel,
     TimeCapabilitiesModel,
 )
 from raes_contracts.manifest_authority import BACKEND_SUPPORTED_CONTRACT_IDS
@@ -37,6 +38,7 @@ from .capabilities import (
     OrchestratorCapabilities,
     ParticipantFeatureSupport,
     ParticipantRuntimeCapabilities,
+    RecoveryObservationCapabilities,
     TimeCapabilities,
 )
 from .observation_manifest import observation_capability_payload, observation_from_model
@@ -239,6 +241,17 @@ def backend_manifest_v2_model(manifest: BackendManifest) -> BackendManifestV2Mod
                 if manifest.time is not None
                 else None
             ),
+            "recovery_observation": (
+                RecoveryObservationCapabilitiesModel(
+                    name=manifest.recovery_observation.name,
+                    supported_operation_kinds=sorted(
+                        manifest.recovery_observation.supported_operation_kinds,
+                        key=lambda kind: kind.value,
+                    ),
+                ).model_dump(mode="json")
+                if manifest.recovery_observation is not None
+                else None
+            ),
         },
     )
 
@@ -251,6 +264,8 @@ def backend_manifest_payload(manifest: BackendManifest) -> dict[str, Any]:
         payload.pop("realization_envelope", None)
     if payload["capabilities"].get("time") is None:
         payload["capabilities"].pop("time", None)
+    if payload["capabilities"].get("recovery_observation") is None:
+        payload["capabilities"].pop("recovery_observation", None)
     return payload
 
 
@@ -388,6 +403,17 @@ def _time_from_model(model: TimeCapabilitiesModel | None) -> TimeCapabilities | 
     )
 
 
+def _recovery_observation_from_model(
+    model: RecoveryObservationCapabilitiesModel | None,
+) -> RecoveryObservationCapabilities | None:
+    if model is None:
+        return None
+    return RecoveryObservationCapabilities(
+        name=model.name,
+        supported_operation_kinds=frozenset(model.supported_operation_kinds),
+    )
+
+
 def _capability_set_from_model(model: BackendCapabilitiesV2Model) -> BackendCapabilitySet:
     return BackendCapabilitySet(
         provisioner=provisioner_from_model(model.provisioner),
@@ -397,6 +423,7 @@ def _capability_set_from_model(model: BackendCapabilitiesV2Model) -> BackendCapa
         observation=observation_from_model(model.observation),
         cleanup=_cleanup_from_model(model.cleanup),
         time=_time_from_model(model.time),
+        recovery_observation=_recovery_observation_from_model(model.recovery_observation),
     )
 
 

@@ -15,20 +15,27 @@ never escape the archive directory.
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import json
 import os
 import re
+import stat
 import tempfile
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+from uuid import uuid4
+
+if TYPE_CHECKING:
+    from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
+    from raes_contracts.materialization import MaterializationSubmission
 
 RUN_ID_LABEL_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
 
 
 def is_valid_run_id_label(run_id: str) -> bool:
     """Return True when ``run_id`` is a safe, containment-validated filesystem label."""
-    return bool(RUN_ID_LABEL_PATTERN.match(run_id))
+    return bool(RUN_ID_LABEL_PATTERN.fullmatch(run_id))
 
 
 def portable_artifact_ref(path: Path) -> str:
@@ -74,3 +81,147 @@ def atomic_write_json_artifact(path: Path, payload: Mapping[str, Any]) -> None:
         with contextlib.suppress(OSError):
             os.unlink(tmp_name)
         raise
+
+
+def _materialization_record_path(record: MaterializationArchiveRecord) -> Path:
+    relative = Path(record.reference.ref_path)
+    expected = Path("runs") / record.run_id / "attestations" / f"{record.reference.ref_id}.sdl"
+    if (
+        not is_valid_run_id_label(record.run_id)
+        or not is_valid_run_id_label(record.reference.ref_id)
+        or relative != expected
+        or relative.parts[:3] != ("runs", record.run_id, "attestations")
+        or any(component in {".", ".."} for component in relative.parts)
+        or len(relative.parts) != 4
+    ):
+        raise ValueError("invalid materialization archive path")
+    return relative
+
+
+class RunMaterializationArchive:
+    """Publish admitted SDL through the run archive's protected byte boundary.
+
+    Publication precedes the caller's durable reference commit. An identical
+    retry is safe; a conflicting identity is never overwritten. This is not a
+    transaction with an operation store and never retries materialization.
+    """
+
+    def __init__(self, output_dir: Path) -> None:
+        self.output_dir = Path(output_dir)
+
+    def read(self, record: MaterializationArchiveRecord) -> MaterializationSubmission:
+        """Resolve only protected, bounded bytes named by a validated archive record."""
+        from raes_contracts.materialization import (
+            MATERIALIZATION_MAX_BYTES,
+            MaterializationSubmission,
+            require_materialization_records,
+        )
+
+        require_materialization_records((record,))
+        relative = _materialization_record_path(record)
+        directory = os.open(self.output_dir, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            for component in relative.parts[:-1]:
+                child = os.open(component, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory)
+                os.close(directory)
+                directory = child
+            descriptor = os.open(relative.name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
+            with os.fdopen(descriptor, "rb") as handle:
+                info = os.fstat(handle.fileno())
+                if (
+                    not stat.S_ISREG(info.st_mode)
+                    or stat.S_IMODE(info.st_mode) != 0o600
+                    or info.st_size > MATERIALIZATION_MAX_BYTES
+                ):
+                    raise ValueError("materialization archive is not a bounded protected regular file")
+                data = handle.read(MATERIALIZATION_MAX_BYTES + 1)
+        finally:
+            os.close(directory)
+        if (
+            len(data) != record.artifact.size_bytes
+            or hashlib.sha256(data).hexdigest() != record.artifact.checksum.value
+        ):
+            raise ValueError("materialization archive bytes do not match the retained record")
+        return MaterializationSubmission(sdl=data.decode("utf-8"))
+
+    def publish(self, content: str) -> MaterializationArchiveRecord:
+        from raes.canonical import canonical_materialized_sdl_digest
+        from raes.formatting import render_sdl_source
+        from raes.materialization import MaterializedScenario
+        from raes.parser import parse_sdl
+        from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
+
+        try:
+            scenario = parse_sdl(content)
+            if not isinstance(scenario, MaterializedScenario):
+                raise ValueError("not a materialization description")
+            provenance = scenario.materialization_provenance
+            if not is_valid_run_id_label(provenance.run_id):
+                raise ValueError("unsafe run identity")
+            data = render_sdl_source(scenario).content.encode("utf-8")
+        except Exception:
+            raise ValueError("materialization archive requires valid bounded SDL and safe identities") from None
+        relative = Path("runs") / provenance.run_id / "attestations" / f"{provenance.attestation_id}.sdl"
+        record = MaterializationArchiveRecord.model_validate(
+            {
+                "reference": {
+                    "ref_id": provenance.attestation_id,
+                    "ref_digest": canonical_materialized_sdl_digest(scenario).value,
+                    "ref_path": relative.as_posix(),
+                },
+                "artifact": {
+                    "artifact_id": provenance.attestation_id,
+                    "role": "materialization-attestation",
+                    "media_type": "application/vnd.raes.sdl+yaml",
+                    "uri": "urn:sha256:" + hashlib.sha256(data).hexdigest(),
+                    "checksum": {"algorithm": "sha256", "value": hashlib.sha256(data).hexdigest()},
+                    "size_bytes": len(data),
+                    "created_at": provenance.recorded_at.isoformat(),
+                    "source": provenance.producer.name,
+                    "sensitivity": "restricted",
+                },
+                "run_id": provenance.run_id,
+                "operation_id": provenance.operation_id,
+            }
+        )
+        self.output_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+        directory = os.open(self.output_dir, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            for component in relative.parts[:-1]:
+                with contextlib.suppress(FileExistsError):
+                    os.mkdir(component, mode=0o700, dir_fd=directory)
+                child = os.open(component, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory)
+                os.close(directory)
+                directory = child
+            _publish_immutable_bytes(directory, relative.name, data)
+        finally:
+            os.close(directory)
+        return record
+
+
+def _verify_immutable_bytes(directory: int, name: str, data: bytes) -> None:
+    descriptor = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
+    with os.fdopen(descriptor, "rb") as handle:
+        info = os.fstat(handle.fileno())
+        if not stat.S_ISREG(info.st_mode) or stat.S_IMODE(info.st_mode) != 0o600:
+            raise ValueError("materialization archive artifact is not a protected regular file")
+        if info.st_size != len(data) or handle.read(len(data) + 1) != data:
+            raise ValueError("materialization archive identity already binds different bytes")
+
+
+def _publish_immutable_bytes(directory: int, name: str, data: bytes) -> None:
+    temporary = f".attestation-{uuid4().hex}.tmp"
+    descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600, dir_fd=directory)
+    try:
+        with os.fdopen(descriptor, "wb") as handle:
+            handle.write(data)
+            handle.flush()
+            os.fsync(handle.fileno())
+        try:
+            os.link(temporary, name, src_dir_fd=directory, dst_dir_fd=directory, follow_symlinks=False)
+        except FileExistsError:
+            _verify_immutable_bytes(directory, name, data)
+        os.fsync(directory)
+        _verify_immutable_bytes(directory, name, data)
+    finally:
+        os.unlink(temporary, dir_fd=directory)

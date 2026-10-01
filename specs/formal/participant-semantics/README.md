@@ -1,5 +1,25 @@
 # Participant Semantics Formal Design
 
+Issue #1354 and ADR-114 publish [IFC profile variability and publication](ifc-profile-variability.md).
+The amendment separates authored requirements, exact profile expressibility
+and evidenced realization, preserving this document's original revision and
+implementation boundary. It adds no registered owner-aware profile or runtime
+support; its migration contract governs future adoption.
+
+Issue #1352 and ADR-111 publish the
+[control applicability and evaluation amendment](control-applicability-and-evaluation.md)
+for SEM-235/API-424. Its bounded model tests the semantic decision; the linked
+migration contract preserves the published v1 and runtime-adoption boundary.
+
+The [ACT-618 local outcome extension](local-outcomes.md) defines role-neutral
+categories and evolving participant-local state within the SEM-215 family.
+
+Issue #1351 and ADR-110 publish the
+[reusable mixed-control policy/occurrence contract](reusable-mixed-control.md)
+for ACT-617, API-409, RUN-310 and DSL-142. Its finite model is design evidence;
+the contract states the fixed-coordinate implementation and historical-reader
+boundary explicitly.
+
 This document is the issue #71 formal design artifact for:
 
 - `SEM-208` - Participant Behavior Semantics
@@ -17,14 +37,26 @@ This document is the issue #71 formal design artifact for:
 - `SEM-232` - Proof-Bearing Participant-Crossing Bisimulation
 - `SEM-233` - Adversarial Participant Boundary Information-Flow Control
 - `SEM-234` - Mixed Cross-Backend Participant-Control Composition
+- `SEM-235` - Modular Participant Control and Extensible Dynamic IFC Semantics
 - `ASR-536` - Intentional-Subversion Participant Control Evaluation
 - `ASR-537` - Cross-Backend Participant-Control Realization And Transfer Evidence
 - `DSL-437` - Benign Participant Autonomous Execution
 
-It is a design artifact, not an implementation artifact. It establishes the
-semantic model that later child implementation issues must realize in SDL
-models, semantic helpers, compiler/runtime contracts, evidence/provenance
-contracts, and tests.
+It is the normative design artifact for the participant-semantics family. Its
+original design status does not mean the family is wholly unimplemented:
+delivered slices now bind parts of the model into SDL models, semantic helpers,
+compiler/runtime contracts, evidence/provenance contracts, and focused tests.
+The remaining boundaries below state what those slices do not establish.
+
+Issue #1070 publishes [`sem-235/rev1`](modular-participant-control.md) under
+ADR-108: separately revisioned IFC domains, typed mechanism composition and
+independently governed effects. The teaching-influence/rev1 semantic profile
+and unchanged SEM-233 security profile have bounded symbolic witnesses.
+Publication preserves SEM-230 projection and SEM-233 security meanings;
+API-424 contracts, RUN-320 orchestration and ASR-538 conformance retain their
+separate fulfillment boundaries. The
+[verification record](../../../docs/research/modular-participant-control/semantic-verification.md)
+states exact coverage and assumptions.
 
 Issue #119 and ADR-083 extend the original issue #71 design with the joint
 `SEM-219`, `SEM-220`, and `SEM-226` decision-surface model. Their executable
@@ -66,7 +98,10 @@ runtime enforcement, backend realization, monitor-honesty, covert-channel, or
 adversarial-robustness result.
 
 Issue #813 and ADR-102 add the SEM-234 mixed-composition and ASR-537
-realization/transfer-evidence design. Their normative profiles are in
+realization/transfer-evidence design. Issue #1013 publishes `sem-234/rev1`
+with bounded executable admission and transition witnesses, aligned with
+ADR-105's delegated choices and independent observation demand.
+Their normative profiles are in
 [`cross-backend-participant-control.md`](cross-backend-participant-control.md).
 The design supports both alternative simulation/emulation realization and
 simultaneous mixed realization, plus linked inter-trial and finite
@@ -84,7 +119,8 @@ readback. It adds no parallel actor or private time semantics.
 
 ## Current Sufficiency Finding
 
-The existing implementation is not sufficient for `SEM-208` through `SEM-215`.
+The existing implementation provides bounded `SEM-208` through `SEM-215`
+slices, but is not sufficient for the complete participant-semantics family.
 
 What exists:
 
@@ -98,25 +134,28 @@ What exists:
 - Objective, workflow, assessment, planner, runtime-result, and semantic-profile
   surfaces already provide patterns for shared semantic helpers and contract
   boundaries.
+- Focused SEM-208 and SEM-211 action/observation semantics are exercised by
+  `test_sem_208_participant_behavior.py` and
+  `test_sem_211_participant_action_semantics.py`; the abstract invariant model
+  has bounded oracle coverage in
+  `test_participant_semantics_invariant_oracle.py`.
+- #1013 publishes bounded `sem-234/rev1` admission and transition witnesses;
+  `test_sem_234_mixed_composition.py` is bounded semantic evidence, not a
+  deployed mixed-runtime conformance result.
 
 What is missing:
 
-- no normative participant action contract beyond action names
-- no observation model that distinguishes world truth from participant-visible
-  projection
-- no visibility, discovery, concealment, disclosure, or inference semantics
-- no precondition/effect/side-effect/failure taxonomy for participant actions
-- no joint-action model for coordination, contention, interference, or
-  shared-state change among participants
-- no temporal participant behavior model for cadence, dwell, deadlines,
-  latency, schedule, or time-windowed action interpretation
-- no evidence-labeled causality and attribution model connecting participant
-  actions to state changes, detections, alerts, or downstream outcomes
-- no participant-local outcome interpretation layer relating action/episode
-  outcomes to objectives, workflows, evaluations, rewards, and evidence
+- no complete cross-backend runtime realization or conformance proof for the
+  semantic family
+- no deployed-backend proof that extends the bounded oracle or mixed-composition
+  witnesses to interoperability, transfer, noninterference, or equivalence
+- no claim that inherited delegation, complete abstract models, one-choice
+  admission, independent observation demand, or the #1212 policy correction
+  has shipped merely because related design or research material exists
 
-The repository therefore remains at `partial` participant-semantics coverage
-where runtime implementation slices are incomplete. Issue #487 adds
+The repository therefore remains at `partial` participant-semantics coverage:
+delivered runtime and semantic slices remain incomplete for the full family.
+Issue #487 adds
 `implementations/python/tests/test_participant_semantics_invariant_oracle.py`
 as the executable FM-2 assurance artifact for the abstract model invariants
 `I1` through `I18`: it is implementation evidence for the published invariant

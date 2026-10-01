@@ -219,7 +219,7 @@ def _dispatch_concurrent_results(
     # is potentially side-effecting. A raised/cancelled call or an unpairable
     # result collection must settle those action ids instead of restoring them.
     try:
-        raw_results = prepared.batch_method(requests, prepared.dispatch_snapshot, len(requests))
+        raw_results = prepared.batch_method(deepcopy(requests), prepared.dispatch_snapshot, len(requests))
         # Consume at most one result beyond the declared count. This freezes a
         # mutable/generator response and cannot hang on an unbounded iterable.
         results = tuple(islice(iter(raw_results), len(requests) + 1))

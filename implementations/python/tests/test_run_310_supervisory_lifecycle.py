@@ -54,6 +54,8 @@ from raes_runtime.participant_result_contracts import (
 )
 from starlette.testclient import TestClient
 
+pytestmark = pytest.mark.control_plane_conformance
+
 
 def _control_event(event_id: str, *, revision: int = 1) -> dict[str, object]:
     return {
@@ -303,6 +305,8 @@ def test_control_history_round_trips_through_control_plane_store(
     store = (
         InMemoryControlPlaneStore() if store_kind == "memory" else LocalControlPlaneStore(tmp_path / "control-plane")
     )
+    if isinstance(store, LocalControlPlaneStore):
+        store.admit_runtime(target_scope="target:stub", run_scope="run:test")
     snapshot = RuntimeSnapshot(
         participant_control_history={"participant.behavior.red-agent": [_control_event("control-event-1")]}
     )
@@ -344,6 +348,8 @@ def test_atomic_control_transition_commit_checks_head_and_persists_all_outputs(
     store = (
         InMemoryControlPlaneStore() if store_kind == "memory" else LocalControlPlaneStore(tmp_path / "control-plane")
     )
+    if isinstance(store, LocalControlPlaneStore):
+        store.admit_runtime(target_scope="target:stub", run_scope="run:test")
     event = _control_event("control-event-1")
     snapshot = RuntimeSnapshot(participant_control_history={"participant.behavior.red-agent": [event]})
     record = _operation_record()
@@ -364,7 +370,14 @@ def test_atomic_control_transition_commit_checks_head_and_persists_all_outputs(
         expected_revision=store.load_snapshot_state().revision,
     )
 
-    restarted = store if store_kind == "memory" else LocalControlPlaneStore(tmp_path / "control-plane")
+    if isinstance(store, LocalControlPlaneStore):
+        store.close()
+        assert store._active_runtime_lease is not None
+        store._active_runtime_lease.close()
+        restarted = LocalControlPlaneStore(tmp_path / "control-plane")
+        restarted.admit_runtime(target_scope="target:stub", run_scope="run:test")
+    else:
+        restarted = store
     assert restarted.load_snapshot().participant_control_history == snapshot.participant_control_history
     assert restarted.load_records()[record.receipt.operation_id] == record
     assert restarted.find_by_idempotency(record.idempotency_key) == record
@@ -541,7 +554,7 @@ def test_supervisory_control_is_subject_bound_idempotent_and_state_revision_boun
 
     changed = intent.model_copy(update={"proposal_id": "proposal-2"})
     changed_identity = _identity()
-    with pytest.raises(ValueError, match="different semantics"):
+    with pytest.raises(ValueError, match="idempotency claim conflicts with the original request"):
         control_plane.record_participant_control(
             _PARTICIPANT,
             changed,
@@ -869,7 +882,9 @@ def test_failed_atomic_control_commit_exposes_no_partial_transition(
         )
 
     assert not control_plane.snapshot.participant_control_history
+    control_plane.close()
     restarted = LocalControlPlaneStore(tmp_path / "control-plane")
+    restarted.admit_runtime(target_scope="target:stub", run_scope="run:default")
     assert not restarted.load_snapshot().participant_control_history
     assert not restarted.load_records()
     assert not restarted.read_audit()
@@ -932,13 +947,14 @@ def test_supervisory_http_route_is_closed_subject_bound_and_idempotent() -> None
             },
             headers={**headers, "idempotency-key": "key-3"},
         )
+        history = control_plane.snapshot.participant_control_history
 
     assert first.status_code == 200
     assert retry.status_code == 200
     assert retry.json()["operation_id"] == first.json()["operation_id"]
     assert smuggled.status_code == 422
     assert invalid_target.status_code == 422
-    assert len(control_plane.snapshot.participant_control_history[_PARTICIPANT]) == 1
+    assert len(history[_PARTICIPANT]) == 1
 
 
 def test_supervisory_http_route_rejects_unbound_subject_without_occurrence() -> None:
@@ -959,8 +975,9 @@ def test_supervisory_http_route_rejects_unbound_subject_without_occurrence() -> 
             json=_proposal_body(),
             headers={"authorization": "Bearer operator-token"},
         )
+        history = control_plane.snapshot.participant_control_history
 
     assert known.status_code == 403
     assert unknown.status_code == 403
     assert known.json() == unknown.json() == {"detail": "forbidden"}
-    assert not control_plane.snapshot.participant_control_history
+    assert not history

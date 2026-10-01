@@ -21,6 +21,9 @@ themselves normative specifications or ADRs.
   - Architecture guardrails for `ASR-502` backend conformance work
 - [normative-artifact-authority.md](normative-artifact-authority.md)
   - Architecture guardrails for `ASR-517` normative authority-boundary work
+- [published-schema-coverage.md](published-schema-coverage.md)
+  - The `ASR-501` rule requiring every published schema to carry corpus,
+    formal, or declared coverage evidence
 - [assessment-semantics.md](assessment-semantics.md)
   - Architecture guardrails for `SEM-206` assessment semantics work
 - [objective-semantics.md](objective-semantics.md)

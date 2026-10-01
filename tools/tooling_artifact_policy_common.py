@@ -16,17 +16,13 @@ TOOLING_ROOT = "implementations/tooling"
 ARTIFACT_LOCK_PATH = f"{TOOLING_ROOT}/artifacts.lock.json"
 PROFILES_PATH = f"{TOOLING_ROOT}/profiles/development-profiles.json"
 ADMISSION_POLICY_PATH = f"{TOOLING_ROOT}/admission-policy.json"
-ACTIONS_POLICY_PATH = f"{TOOLING_ROOT}/actions-policy.json"
 SELECTOR_BINDINGS_PATH = f"{TOOLING_ROOT}/selector-bindings.json"
-INVENTORY_COVERAGE_PATH = f"{TOOLING_ROOT}/inventory-coverage.json"
 
 POLICY_SCHEMAS = {
     ARTIFACT_LOCK_PATH: f"{TOOLING_ROOT}/schemas/artifact-lock.schema.json",
     PROFILES_PATH: f"{TOOLING_ROOT}/schemas/profiles.schema.json",
     ADMISSION_POLICY_PATH: f"{TOOLING_ROOT}/schemas/admission-policy.schema.json",
-    ACTIONS_POLICY_PATH: f"{TOOLING_ROOT}/schemas/actions-policy.schema.json",
     SELECTOR_BINDINGS_PATH: f"{TOOLING_ROOT}/schemas/selector-bindings.schema.json",
-    INVENTORY_COVERAGE_PATH: f"{TOOLING_ROOT}/schemas/inventory-coverage.schema.json",
 }
 MAX_JSON_BYTES = 2 * 1024 * 1024
 MAX_SCANNED_FILE_BYTES = 2 * 1024 * 1024
@@ -141,6 +137,34 @@ def load_documents(
     return documents, failures
 
 
+def read_tooling_document(repo_root: Path, path: str) -> dict[str, Any]:
+    """Read one bounded, duplicate-free authority without following symlinks."""
+
+    try:
+        if not is_regular_repo_file(repo_root, path):
+            raise ValueError
+        return load_bounded_json_object(repo_root, path, max_bytes=MAX_JSON_BYTES)
+    except (OSError, ValueError, RecursionError):
+        raise ValueError("tooling authority is missing, unsafe, or malformed") from None
+
+
+def validate_tooling_record(
+    repo_root: Path,
+    document: Mapping[str, Any],
+    policy_path: str,
+    *,
+    definition: str | None = None,
+) -> None:
+    """Reuse an authority's schema for a document or a selected record."""
+
+    schema_path = POLICY_SCHEMAS[policy_path]
+    schema = read_tooling_document(repo_root, schema_path)
+    if definition is not None:
+        schema = {"$ref": f"#/$defs/{definition}", "$defs": schema.get("$defs", {})}
+    if _schema_failures(document, schema, policy_path, schema_path):
+        raise ValueError("selected tooling authority has an invalid shape")
+
+
 def _schema_failures(
     document: Mapping[str, Any],
     schema: Mapping[str, Any],
@@ -161,8 +185,7 @@ def _schema_failures(
     return [
         failure(
             "tooling-schema",
-            "schema validation failed at "
-            f"{'.'.join(str(part) for part in error.absolute_path) or '<root>'}: {error.message}",
+            f"schema validation failed at {'.'.join(str(part) for part in error.absolute_path) or '<root>'}",
             policy_path,
         )
         for error in sorted(validator.iter_errors(document), key=lambda item: list(item.absolute_path))

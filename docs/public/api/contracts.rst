@@ -59,3 +59,21 @@ compatibility, decision-surface modes, tool-affordance expectations, and
 constraints. The provenance record preserves the participant implementation,
 selected manifest, selected configuration reference, participant contract
 versions, and decision-surface exposure policy used in a run.
+
+Backend operation supervision
+-----------------------------
+
+The optional backend protocol reports evidence for one admitted invocation.
+The shared runtime retains authorization, scenario execution and terminal state.
+
+.. automodule:: raes_contracts.contracts.backend_operation
+   :members:
+
+.. automodule:: raes_contracts.contracts.backend_operation_response
+   :members:
+
+.. automodule:: raes_contracts.contracts.backend_operation_validation
+   :members:
+
+.. automodule:: raes_backend_protocols.operation_supervision
+   :members:

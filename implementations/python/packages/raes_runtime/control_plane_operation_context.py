@@ -21,6 +21,19 @@ from raes_contracts.plan_projection import (
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
 from raes_contracts.runtime_state import RuntimeSnapshot
 
+_MAX_CONTEXT_LENGTH = 256
+
+
+def runtime_target_scope(target_name: object) -> str:
+    """Return the validated target authority used by runtime admission."""
+
+    if not isinstance(target_name, str) or not target_name:
+        raise ValueError("runtime target name must be a non-empty string")
+    target_scope = f"target:{target_name}"
+    if len(target_scope) > _MAX_CONTEXT_LENGTH:
+        raise ValueError("runtime target name exceeds the operation-context scope bound")
+    return target_scope
+
 
 def operation_admission_context(
     control_plane: object,
@@ -34,14 +47,16 @@ def operation_admission_context(
 ) -> OperationAdmissionContext:
     """Bind one validated request to immutable value-free operation authority."""
 
-    actor_id, authorization_scope = _actor_scope(identity)
-    target = getattr(getattr(control_plane, "_target", None), "name", None)
-    if not isinstance(target, str) or not target:
-        raise ValueError("operation admission requires a non-empty target scope")
-    resolved_run_scope = run_scope or _request_run_scope(request) or "run:default"
+    actor_id, authorization_scope = operation_actor_scope(identity)
+    target_scope = runtime_target_scope(getattr(getattr(control_plane, "_target", None), "name", None))
+    admitted_run_scope = getattr(control_plane, "_run_scope", "run:default")
+    requested_run_scope = run_scope or _request_run_scope(request)
+    if requested_run_scope is not None and requested_run_scope != admitted_run_scope:
+        raise ValueError("operation run scope does not match the admitted control-plane store scope")
+    resolved_run_scope = admitted_run_scope
     commitment = canonical_json_digest(
         {
-            "operation_kind": kind.value,
+            "domain": _commitment_domain(kind, "request-commitment"),
             "request": _value_free_request_payload(request),
             "base_snapshot": _value_free_snapshot_payload(base_snapshot),
         }
@@ -49,7 +64,7 @@ def operation_admission_context(
     return OperationAdmissionContext(
         actor_id=actor_id,
         authorization_scope=authorization_scope,
-        target_scope=f"target:{target}",
+        target_scope=target_scope,
         run_scope=resolved_run_scope,
         operation_kind=kind,
         request_commitment=commitment,
@@ -67,11 +82,32 @@ def operation_idempotency_fingerprint(
 
     return canonical_json_digest(
         {
-            "operation_kind": kind.value,
+            "domain": _commitment_domain(kind, "exact-retry-proof"),
             "request": _exact_request_payload(request),
             "base_snapshot": _exact_snapshot_payload(base_snapshot),
         }
     )
+
+
+def legacy_operation_request_commitment(
+    *,
+    kind: OperationKind,
+    request: object,
+    base_snapshot: RuntimeSnapshot | None = None,
+) -> str:
+    """Return the pre-v4 value-free commitment for migrated replay only."""
+
+    return canonical_json_digest(
+        {
+            "operation_kind": kind.value,
+            "request": _value_free_request_payload(request),
+            "base_snapshot": _value_free_snapshot_payload(base_snapshot),
+        }
+    )
+
+
+def _commitment_domain(kind: OperationKind, purpose: str) -> str:
+    return f"raes.runtime.control-plane.{kind.value}.{purpose}/v1"
 
 
 def operation_requires_ephemeral_retry_proof(
@@ -86,7 +122,9 @@ def operation_requires_ephemeral_retry_proof(
     ) != _exact_snapshot_payload(base_snapshot)
 
 
-def _actor_scope(identity: object | None) -> tuple[str, tuple[str, ...]]:
+def operation_actor_scope(identity: object | None) -> tuple[str, tuple[str, ...]]:
+    """Return the immutable actor and authorization scope for a typed identity."""
+
     if identity is None:
         return "embedded-process", ("process:trusted-embedder",)
     actor = getattr(identity, "identity", identity if isinstance(identity, str) else None)
@@ -188,6 +226,8 @@ def _json_value(value: object) -> JsonValue:
 
 __all__ = (
     "operation_admission_context",
+    "operation_actor_scope",
     "operation_idempotency_fingerprint",
     "operation_requires_ephemeral_retry_proof",
+    "runtime_target_scope",
 )

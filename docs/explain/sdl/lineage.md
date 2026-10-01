@@ -302,8 +302,12 @@ The `runtime.service_listeners` surface is issue #431's response to an
 observed gap in APTL's MISP container inventory. It is not a replacement for
 authored services, host-published port bindings, protocol-specific runtime
 inventories, or scanner output. It is the bounded node-scoped place for generic
-observed listener facts: bind endpoint, port, transport, address family,
-listener scope, owner, readiness evidence, and provenance.
+known listener facts: bind endpoint, port, transport, address family, listener
+scope, owner, readiness evidence, and provenance. These facts need not arrive
+as a complete endpoint tuple. RAES preserves omission, explicit empty values,
+open vocabulary values, and private exact values rather than converting them
+into wildcard binds or inferred observations; an operation that needs a usable
+endpoint owns the later completeness check.
 
 RAES relies on prior work in four ways:
 
@@ -461,11 +465,12 @@ The `runtime.datastore_services` surface is the SCN-010 (DSL-132) response to a
 gap for the participant-observable logical state of *non-relational* datastores
 — the search cluster, wide-column store, and key-value store that the
 irreducibly-relational `runtime.database_services` cannot shape. Its defining
-addition is the open `data_model` discriminator paired with a
-`require_profile_for_data_model` guard that makes each data model's defining
-geometry (search shard/replica counts, wide-column replication, key-value
-persistence, and bounded search-index mapping manifests) executable rather than
-optional. Search-index mappings and templates are captured as bounded manifests
+addition is a typed logical-state inventory with optional geometry, replication,
+persistence and bounded mapping manifests. Issue #1207 removed the historical
+`require_profile_for_data_model` completeness guard: the motivating deployment
+does not make those details compulsory in every valid description. Supplied
+structural contradictions and references remain checked; selected operations
+have their own admission requirements. Search-index mappings and templates are captured as bounded manifests
 with counts, summaries, digests, refs, and evidence pointers rather than as raw
 backend JSON bodies.
 
@@ -595,9 +600,10 @@ gap for the participant-observable agent-side shipping state — the
 the intel-sync co-process — that the SIEM/security-monitoring *manager*
 (`runtime.security_monitoring_managers`) and the detection-engine *consumer*
 (`runtime.network_detection_engines`) provably cannot shape. Its defining
-addition is the open `agent_kind` discriminator paired with a
-`require_profile_for_agent_kind` guard that makes each member's defining shipping
-profile executable rather than optional.
+addition is a typed source/transform/target inventory. Issue #1207 removed the
+historical `require_profile_for_agent_kind` guard: `agent_kind` does not require
+a particular deployment recipe, and composed or partial pipelines are valid.
+Supplied references and protection rules remain binding.
 
 RAES relies on prior work in four ways:
 
@@ -623,8 +629,9 @@ RAES relies on prior work in four ways:
   [SP 800-150](https://csrc.nist.gov/publications/detail/sp/800-150/final), Bianco's
   [Pyramid of Pain](https://detect-respond.blogspot.com/2013/03/the-pyramid-of-pain.html),
   and MITRE [ATT&CK](https://attack.mitre.org/) frame the `ioc_to_rule`
-  intel-sync transform — the API-pull-to-rule-reload shape — that the
-  `content_sync` profile makes executable.
+  intel-sync transform and its motivating API-pull-to-rule-reload shape. That
+  recipe is one optional configuration, not the meaning of every `content_sync`
+  application or proof that synchronization executed.
 - **Forwarder implementation lineage:** Elastic
   [Beats](https://www.elastic.co/beats/) and the
   [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/) show the
@@ -642,8 +649,10 @@ through a control interface — a SOAR orchestrator or analyzer engine holding
 `docker.sock` read-write. `RuntimeControlInterface` types the docker.sock *shell*
 but carries no field for what the holder is authorized to *do*; this surface adds
 the spawn contract (engine, scope, spawn templates, lifecycle policy, realized
-children) referencing that shell, paired with a `require_profile_for_privilege_class`
-guard that makes the host-root privilege-escalation fact executable.
+children) referencing that shell. Issue #1207 removed the historical
+`require_profile_for_privilege_class` completeness guard and Docker-socket
+filename test. Partial interface knowledge is valid; actual selected privileged
+operations still require independent authorization and supported access.
 
 RAES relies on prior work in four ways:
 
@@ -667,7 +676,9 @@ RAES relies on prior work in four ways:
   privilege escalation, and MITRE ATT&CK
   [T1610](https://attack.mitre.org/techniques/T1610/) (Deploy Container) and
   [T1611](https://attack.mitre.org/techniques/T1611/) (Escape to Host) anchor the
-  adversary relevance the `host_root_equivalent` profile makes executable.
+  adversary relevance of a declared `host_root_equivalent` posture. Neither
+  that declaration nor a socket path proves effective privilege or authorizes
+  execution.
 - **Engine API lineage:** The
   [Docker Engine API](https://docs.docker.com/engine/api/) shows the spawn /
   lifecycle surface (container create/start/stop, image references) RAES records
@@ -894,6 +905,15 @@ which dynamic queue/log/config details remain evidence or bounded settings.
   noninterference, or opacity from this design. Runtime realization and
   backend conformance remain separate axes; noninterference and opacity
   require their own profile-matching preservation theorem.
+- Issue #1351 and ADR-110 define the
+  [reusable mixed-control amendment](../../../specs/formal/participant-semantics/reusable-mixed-control.md)
+  across ACT-617/API-409/RUN-310/DSL-142, with a
+  [producer/reader migration contract](../../migration/reusable-mixed-control.md)
+  and [bounded design evidence](../../research/reusable-mixed-control/cases.md).
+  The delivery descriptions for those four requirements below identify the
+  existing fixed-coordinate implementation. Their schemas/tests do not prove
+  reusable occurrence support. The amendment reuses existing workflow, time
+  and participant-control distinctions; it adds no external derivation claim.
 - ACT-617 applies the already adopted SEM-230/ADR-085 control and ordering
   lineage to authored mixed-control behavior without introducing another
   external derivation. The exact RAES mapping is
@@ -993,9 +1013,10 @@ which dynamic queue/log/config details remain evidence or bounded settings.
   threat-model extensions. Issue #813 and ADR-102 now define the mixed
   cross-backend composition extension. It supports both alternative
   simulation/emulation realization and simultaneous mixed realization, plus
-  linked inter-trial and finite pre-admitted within-run changes. SEM-234 and
-  ASR-537 remain DRAFT; #1013 through #1019 own semantic, contract, trial,
-  runtime, backend, demonstration, and claims work. Revision 1 keeps one
+  linked inter-trial and finite pre-admitted within-run changes. #1013 publishes
+  SEM-234's `sem-234/rev1` definition and bounded finite witnesses; ASR-537
+  remains DRAFT. #1014 through #1019 own contract, trial, runtime, backend,
+  demonstration, and claims work. Revision 1 keeps one
   acting controller and rejects lease, simultaneous scoped-owner, and
   joint/fused-control claims. Issue #810 defines opacity and
   supervisor-visibility architecture only; #961 delivers its bounded checker,
@@ -1528,6 +1549,13 @@ apparatus components. Every composition edge binds authority, mapping,
 participant/audience policy, clock/order, support strength, loss, failure, and
 evidence.
 
+Issue #1013 publishes the SEM-234 semantic definition and finite admission/phase
+witnesses. Its [worked cases](../reference/mixed-participant-composition.md)
+retain these source dispositions and compose ADR-105: backend-owned choices
+are not mandatory authored detail, a supported witness is not universal
+coverage, and requested observations are independent of scenario precision.
+This adds no source API or wire compatibility and no runtime realization claim.
+
 CybORG's published simulation-to-emulation experiment reports 139 successful
 evaluations out of 210 and includes simulation-only observation failures.
 CyGIL reports one bounded 50-of-50 emulation evaluation while retaining
@@ -1673,3 +1701,36 @@ conformance through those generic declarations.
   establish runtime enforcement, backend realization, intentional-subversion
   robustness, model alignment, monitor honesty, private-reasoning safety, or
   control of undeclared covert channels.
+
+## Modular participant-control semantics (SEM-235)
+
+Issue #1070 publishes `sem-235/rev1` under ADR-108 at the accepted #1068
+revision `ebb70a34b8e7d1cc8964c443841ae57e12ed1014`.
+[The formal authority](../../../specs/formal/participant-semantics/modular-participant-control.md)
+uses separately identified closed IFC domains and typed mechanism composition.
+The [concept placement](../../../specs/concept-authority/participant-control.md)
+reuses incumbent families and keeps profile, mechanism, policy, effect and claim
+identities distinct.
+
+The existing Myers–Liskov decentralized-label and Flume lineage contributes
+conservative joins and explicit release privilege. The primary sources were
+rechecked on 2026-09-20:
+[Myers–Liskov, sections 2–4](https://www.cs.cornell.edu/andru/papers/sp98/paper.html)
+and [Flume, abstract and introduction](https://pdos.csail.mit.edu/papers/flume-sosp07.pdf).
+The new claim in the current lineage ledger records their exact semantic
+boundaries; it preserves historical SEM-230/233 claims and source records.
+
+The accepted [mechanism assessment](../../research/modular-participant-control/assessment.md)
+also distinguishes runtime editing, shields and policy composition.
+[Shield Synthesis](https://arxiv.org/abs/1501.02573) and
+[Carter's composition thesis](https://digitalcommons.usf.edu/etd/4006/)
+were rechecked at their abstracts on 2026-09-20: they motivate explicit
+correction and composition boundaries, without supplying a proof for RAES.
+
+The non-security teaching-influence powerset, deterministic mandatory/advisory
+conjunction, independently admitted injects, retry identity and causal budgets
+are RAES design choices. They neither broaden SEM-233's confidentiality/integrity
+product nor claim that every mechanism is IFC. The
+[finite witnesses](../../research/modular-participant-control/semantic-verification.md)
+are bounded semantic falsification, not an installed provider, runtime,
+conformance result, universal noninterference theorem or backend-integrity proof.

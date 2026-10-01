@@ -11,6 +11,12 @@ from tools.formal_semantic_validation._baseline import _validate_baseline_drift
 from tools.formal_semantic_validation._bundle import validate_bundle
 from tools.formal_semantic_validation._corpus import _validate_corpus
 from tools.formal_semantic_validation._protocol import _validate_protocol
+from tools.formal_semantic_validation._release_revisions import (
+    _HISTORICAL_RETEST_REVISIONS,
+    _RETEST_BASELINE_REVISIONS,
+    _SOURCE_BOUND_RETEST_REVISIONS,
+    _SUPPORTED_RETEST_REVISIONS,
+)
 from tools.formal_semantic_validation._retest import (
     _RetestScope,
     _validate_retest_snapshot,
@@ -31,6 +37,7 @@ from tools.formal_semantic_validation._types import (
     _RELEASE_MANIFEST_KEYS,
     _RETAINED_CASE_TEXT_REPLACEMENTS,
     _SHA256_RE,
+    PARTICIPANT_IDENTITY_FIXTURE_SUCCESSORS,
     EvidenceRelease,
 )
 from tools.policy.common import PolicyFailure, load_bounded_json_object, safe_repo_path
@@ -153,7 +160,7 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
                 release.corpus,
                 release.snapshot,
                 release.analysis,
-                replay_current=manifest.get("revision") == "17.0.0",
+                replay_current=manifest.get("revision") == "67.0.0",
             )
         )
     else:
@@ -216,27 +223,71 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
     return failures
 
 
-_HISTORICAL_RETEST_REVISIONS = frozenset(
-    {
-        "3.0.0",
-        "4.0.0",
-        "5.0.0",
-        "6.0.0",
-        "7.0.0",
-        "8.0.0",
-        "9.0.0",
-        "10.0.0",
-        "11.0.0",
-        "12.0.0",
-        "13.0.0",
-        "14.0.0",
-        "15.0.0",
-        "16.0.0",
-    }
-)
-
-_SUPPORTED_RETEST_REVISIONS = _HISTORICAL_RETEST_REVISIONS | {"17.0.0"}
-_SOURCE_BOUND_RETEST_REVISIONS = _SUPPORTED_RETEST_REVISIONS - {"3.0.0"}
+def _expected_corpus_revision(release_revision: object) -> str:
+    expected_corpus_revision = (
+        "3.0.0"
+        if release_revision
+        in {
+            "16.0.0",
+            "17.0.0",
+            "18.0.0",
+            "19.0.0",
+            "20.0.0",
+            "21.0.0",
+            "22.0.0",
+            "23.0.0",
+            "24.0.0",
+            "25.0.0",
+            "26.0.0",
+            "27.0.0",
+            "28.0.0",
+            "29.0.0",
+            "30.0.0",
+            "31.0.0",
+            "32.0.0",
+            "33.0.0",
+            "34.0.0",
+            "35.0.0",
+            "36.0.0",
+            "37.0.0",
+            "38.0.0",
+            "39.0.0",
+            "40.0.0",
+            "41.0.0",
+            "42.0.0",
+            "43.0.0",
+            "44.0.0",
+        }
+        else "2.0.0"
+    )
+    if release_revision in {
+        "42.0.0",
+        "45.0.0",
+        "46.0.0",
+        "47.0.0",
+        "48.0.0",
+        "49.0.0",
+        "50.0.0",
+        "51.0.0",
+        "52.0.0",
+        "53.0.0",
+        "54.0.0",
+        "55.0.0",
+        "56.0.0",
+        "57.0.0",
+        "58.0.0",
+        "59.0.0",
+        "60.0.0",
+        "61.0.0",
+        "62.0.0",
+        "63.0.0",
+        "64.0.0",
+        "65.0.0",
+        "66.0.0",
+        "67.0.0",
+    }:
+        expected_corpus_revision = "4.0.0"
+    return expected_corpus_revision
 
 
 def validate_retest_bundle(
@@ -261,7 +312,7 @@ def validate_retest_bundle(
         return [
             _failure(
                 "formal-validation-current-replay-required",
-                "only releases 3.0.0 through 16.0.0 can use integrated historical validation",
+                "only releases 3.0.0 through 66.0.0 can use integrated historical validation",
                 snapshot_path,
             )
         ]
@@ -273,7 +324,7 @@ def validate_retest_bundle(
                 release.manifest_path,
             )
         )
-    expected_corpus_revision = "3.0.0" if release_revision in {"16.0.0", "17.0.0"} else "2.0.0"
+    expected_corpus_revision = _expected_corpus_revision(release_revision)
     if protocol.get("revision") != "2.0.0" or corpus.get("revision") != expected_corpus_revision:
         failures.append(
             _failure(
@@ -295,7 +346,7 @@ def validate_retest_bundle(
         )
     _validate_protocol(repo_root, protocol, failures, protocol_path)
     cases_by_id = _validate_corpus(repo_root, protocol, corpus, failures, corpus_path)
-    historical_cases = _retained_historical_cases(repo_root, cases_by_id, failures, corpus_path)
+    historical_cases = _retained_historical_cases(repo_root, cases_by_id, failures, corpus_path, corpus.get("revision"))
     _validate_retest_snapshot(
         _RetestScope(
             repo_root=repo_root,
@@ -335,22 +386,7 @@ def _current_retest_source_failures(
             )
         )
     baseline = snapshot.get("baseline")
-    expected_baseline = {
-        "4.0.0": "3.0.0",
-        "5.0.0": "4.0.0",
-        "6.0.0": "5.0.0",
-        "7.0.0": "6.0.0",
-        "8.0.0": "7.0.0",
-        "9.0.0": "8.0.0",
-        "10.0.0": "9.0.0",
-        "11.0.0": "10.0.0",
-        "12.0.0": "11.0.0",
-        "13.0.0": "12.0.0",
-        "14.0.0": "13.0.0",
-        "15.0.0": "14.0.0",
-        "16.0.0": "15.0.0",
-        "17.0.0": "16.0.0",
-    }[release_revision]
+    expected_baseline = _RETEST_BASELINE_REVISIONS[release_revision]
     if not isinstance(baseline, Mapping) or baseline.get("release_revision") != expected_baseline:
         failures.append(
             _failure(
@@ -366,6 +402,7 @@ def _retained_historical_cases(
     cases_by_id: Mapping[str, Mapping[str, object]],
     failures: list[PolicyFailure],
     corpus_path: str,
+    corpus_revision: object = None,
 ) -> dict[object, Mapping[str, object]]:
     try:
         historical_corpus = load_bounded_json_object(
@@ -389,6 +426,11 @@ def _retained_historical_cases(
         cases_by_id.get(str(case_id))
         == {
             **case,
+            "fixture_path": (
+                PARTICIPANT_IDENTITY_FIXTURE_SUCCESSORS.get(case.get("fixture_path"), case.get("fixture_path"))
+                if corpus_revision == "4.0.0"
+                else case.get("fixture_path")
+            ),
             "limitation": _RETAINED_CASE_TEXT_REPLACEMENTS.get(
                 str(case.get("limitation")),
                 case.get("limitation"),
@@ -401,7 +443,7 @@ def _retained_historical_cases(
             _failure(
                 "formal-validation-historical-retention",
                 "the v2 corpus must retain every v1 case semantically unchanged, "
-                "allowing only the governed identity wording",
+                "allowing only governed wording and the explicit corpus-v4 participant-identity successors",
                 corpus_path,
             )
         )

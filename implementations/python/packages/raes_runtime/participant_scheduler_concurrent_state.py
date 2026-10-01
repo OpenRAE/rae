@@ -24,8 +24,8 @@ _MISSING = object()
 # serial scheduler commits that complete validated result.  Concurrent commit
 # therefore needs an explicit owner for every RuntimeSnapshot field: silently
 # ignoring a newly added field would make serial and concurrent execution mean
-# different things.  Scheduler state and execution-service accounting are the
-# only protected fields; a native result must carry their reserved predecessor
+# different things. Shared time, scheduler state and execution-service accounting
+# are runtime-owned; a native result must carry their reserved predecessor
 # unchanged and the serialized scheduler applies their deltas itself.
 _PROTECTED_SCHEDULER_FIELDS = frozenset(_PROTECTED_SCHEDULER_SNAPSHOT_FIELDS)
 _BACKEND_MAPPING_FIELDS = (
@@ -52,7 +52,6 @@ _BACKEND_MAPPING_FIELDS = (
     "metadata",
 )
 _BACKEND_VALUE_FIELDS = (
-    "time_model_state",
     "realization_provenance",
     "realization_observations",
     "realization_envelope",

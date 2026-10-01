@@ -30,7 +30,7 @@ body:
       role: blue
   agents:
     operator:
-      entity: blue-team
+      affiliations: [blue-team]
   propositions:
     patch-applied:
       description: The governed patch-applied observation is true for the addressed scenario subject.
@@ -83,12 +83,12 @@ body:
       loss_disclosure: required
   objectives:
     apply-patch:
-      agent: operator
+      assigned_participant: operator
       targets: [nodes.service]
       success:
         assertions: [patch-applied]
     verify-service:
-      agent: operator
+      assigned_participant: operator
       targets: [nodes.service.services.https]
       success:
         assertions: [service-verified]

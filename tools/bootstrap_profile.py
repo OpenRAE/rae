@@ -9,13 +9,11 @@ it never evaluates policy data as shell input and never implements HTTP.
 from __future__ import annotations
 
 import argparse
-import datetime as dt
 import hashlib
 import json
 import os
 import platform as runtime_platform
 import re
-import shutil
 import stat
 import subprocess
 import sys
@@ -23,23 +21,18 @@ import sysconfig
 import tarfile
 import tempfile
 from collections.abc import Sequence
-from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
 from tools import maintained_client_acquisition
 from tools.tooling_policy_gate import (
-    LockedArtifactSelection,
-    safe_tooling_cache_parent,
+    load_tooling_host_profile_selection_with_current_interpreter as load_tooling_host_profile_selection,
 )
 from tools.tooling_policy_gate import (
-    load_tooling_host_profile_selection_with_current_interpreter as load_tooling_host_profile_selection,
+    safe_tooling_cache_parent,
 )
 
 PROBE_TIMEOUT_SECONDS = 15
 MAX_PROBE_OUTPUT_BYTES = 8192
-MAX_CASE_RESULT_BYTES = 65536
-MAX_OFFLINE_MANIFEST_BYTES = 32 * 1024 * 1024
-_CASE_IDS = {"T01", "T02", "T03", "T08", "T12"}
 _MINIMUM_CURL = (8, 4, 0)
 _OBSERVED_VERSION_RE = re.compile(r"(\d{1,10})[.](\d{1,10})(?:[.](\d{1,10}))?")
 _PROBE_ENV = {"LC_ALL": "C", "LANG": "C", "PATH": "/usr/bin:/bin"}
@@ -51,21 +44,6 @@ _GENERIC_TOOL_HOST_PROFILES = {
 }
 curl_qualification_argv = maintained_client_acquisition.curl_transfer_argv
 curl_version_is_supported = maintained_client_acquisition.curl_version_is_supported
-
-
-@dataclass(frozen=True)
-class QualificationEvidenceOptions:
-    """Optional sources used to build a qualification evidence record."""
-
-    offline_kit_root: Path | None = None
-    offline_kit_archive_path: Path | None = None
-    offline_kit_manifest_sha256: str | None = None
-    generic_selections: Sequence[tuple[str, Path, tuple[str, ...], str]] | None = None
-    limitations: Sequence[str] = ()
-    slice_evidence_paths: Sequence[Path] = ()
-
-
-_DEFAULT_QUALIFICATION_EVIDENCE_OPTIONS = QualificationEvidenceOptions()
 
 
 def run_curl_qualification(  # NOSONAR -- explicit fail-closed outcomes are part of the qualification record.
@@ -279,18 +257,17 @@ def _native_client_results(  # NOSONAR -- audited capability map is intentionall
 
 
 def native_setup_plan(host: dict[str, object]) -> dict[str, object]:
-    """Return the reviewed prerequisites while refusing mutable native installation."""
+    """Return the reviewed prerequisites without running package-manager commands."""
 
-    offline_kit = host["offline_kit"]
     return {
         "host_profile_id": host["host_profile_id"],
         "native_family": host["native_family"],
         "native_repository_identity": host["native_repository_identity"],
         "trust_root_refs": host["trust_root_refs"],
-        "host_prerequisite_package_ids": offline_kit["host_prerequisite_package_ids"],
-        "host_trust_root_refs": offline_kit["host_trust_root_refs"],
+        "host_prerequisite_package_ids": host["host_prerequisite_package_ids"],
+        "host_trust_root_refs": host["trust_root_refs"],
         "outcome": "not-run",
-        "reason_code": "immutable-native-closure-required",
+        "reason_code": "operator-installs-native-prerequisites",
     }
 
 
@@ -387,132 +364,6 @@ def _default_generic_tool_selections(
     )
 
 
-def _offline_generic_tool_selections(
-    kit_root: Path,
-    runtime_root: Path,
-    platform_id: str,
-    artifacts: dict[str, dict[str, object]],
-) -> tuple[tuple[str, Path, tuple[str, ...], str], ...]:
-    """Copy verified immutable kit seeds into one private runtime tree."""
-
-    from tools import verified_tool_installation as installation
-
-    version_args = {
-        "conftest": ("--version",),
-        "gitleaks": ("version",),
-        "osv-scanner": ("--version",),
-        "vale": ("--version",),
-    }
-    selections: list[tuple[str, Path, tuple[str, ...], str]] = []
-    for artifact_id, args in version_args.items():
-        artifact = artifacts[artifact_id]
-        platform = artifact["platform"]
-        if platform["platform_id"] != platform_id:
-            raise ValueError(f"offline {artifact_id} does not match the selected platform")
-        try:
-            selection = _generic_locked_selection(artifact, profile_id="offline-kit")
-            path = installation.ensure_verified_installation(
-                runtime_root,
-                selection,
-                acquire=_offline_acquisition_disabled,
-                materialize=installation.materialize_direct,
-                installation_root=runtime_root / "installations",
-                immutable_seed_root=kit_root / ".cache" / "raes-sdl" / "tooling" / "installations",
-            )
-        except (KeyError, TypeError, ValueError, RuntimeError) as exc:
-            raise ValueError(f"offline {artifact_id} seed differs from the lock") from exc
-        selections.append((artifact_id, path, args, artifact["version"]))
-    return tuple(selections)
-
-
-def _offline_acquisition_disabled() -> bytes:
-    raise RuntimeError("offline acquisition disabled")
-
-
-def _generic_locked_selection(artifact: dict[str, object], *, profile_id: str) -> LockedArtifactSelection:
-    """Build the shared installer DTO from one validated host selection."""
-
-    from tools.tooling_policy_gate import LockedManifestEntry
-
-    platform = artifact["platform"]
-    source = artifact["source"]
-
-    def entries(values: object) -> tuple[LockedManifestEntry, ...]:
-        if not isinstance(values, list):
-            raise ValueError("generic tool manifest is invalid")
-        return tuple(
-            LockedManifestEntry(
-                path=entry["path"],
-                sha256=entry["sha256"],
-                size=entry["size"],
-                executable=entry.get("executable", False),
-            )
-            for entry in values
-        )
-
-    return LockedArtifactSelection(
-        artifact_id=artifact["artifact_id"],
-        artifact_class=artifact["artifact_class"],
-        version=artifact["version"],
-        profile_id=profile_id,
-        platform_id=platform["platform_id"],
-        policy_refs=tuple(artifact["policy_refs"]),
-        repository=source["repository"],
-        release=source["release"],
-        source_urls=tuple(platform["source_urls"]),
-        raw_manifest=entries(platform["raw_manifest"]),
-        installed_manifest=entries(platform["installed_manifest"]),
-    )
-
-
-def export_immutable_tool_seeds(host_profile_id: str, source_root: Path, destination_root: Path) -> None:
-    """Export only exact installed generic-tool trees as an immutable seed set."""
-
-    from tools import verified_tool_installation as installation
-
-    _host, artifacts, _policy_sha256 = _load_host_selection(host_profile_id)
-    generic_ids = ("conftest", "gitleaks", "osv-scanner", "vale")
-    if destination_root.exists() or destination_root.is_symlink():
-        raise ValueError("immutable tool seed destination must be new")
-    # The destination is the operator-selected output of this export command and must be new.
-    destination_root.mkdir(parents=True, mode=0o700)  # NOSONAR
-    try:
-        for artifact_id in generic_ids:
-            selection = _generic_locked_selection(artifacts[artifact_id], profile_id="offline-kit")
-            source_tree = installation.installation_tree_path(source_root, selection)
-            installation._validate_tree(source_tree, selection.installed_manifest, mode="installed")
-            destination_tree = installation.installation_tree_path(destination_root, selection)
-            destination_tree.parent.mkdir(parents=True, mode=0o700)
-            shutil.copytree(source_tree, destination_tree, symlinks=False)
-        paths = sorted(destination_root.rglob("*"), key=lambda path: len(path.parts), reverse=True)
-        for path in paths:
-            mode = path.lstat().st_mode
-            if stat.S_ISLNK(mode):
-                raise ValueError("immutable tool seed export retained a symbolic link")
-            if stat.S_ISREG(mode):
-                path.chmod(0o500 if mode & 0o111 else 0o400)
-                descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
-                try:
-                    os.fsync(descriptor)
-                finally:
-                    os.close(descriptor)
-            elif stat.S_ISDIR(mode):
-                path.chmod(0o500)
-                installation._fsync_directory(path)
-            else:
-                raise ValueError("immutable tool seed export contains an unsupported entry")
-        destination_root.chmod(0o500)
-        installation._fsync_directory(destination_root)
-        installation._fsync_directory(destination_root.parent)
-        for artifact_id in generic_ids:
-            selection = _generic_locked_selection(artifacts[artifact_id], profile_id="offline-kit")
-            seed_tree = installation.installation_tree_path(destination_root, selection)
-            installation._assert_immutable_seed_chain(destination_root, seed_tree)
-            installation._validate_tree(seed_tree, selection.installed_manifest, mode="seed")
-    except (KeyError, OSError, RuntimeError, TypeError, ValueError) as exc:
-        raise ValueError("immutable tool seed export failed exact verification") from exc
-
-
 def qualify_generic_tools(
     *,
     selections: Sequence[tuple[str, Path, tuple[str, ...], str]] | None = None,
@@ -591,37 +442,46 @@ def _transfer_budget(
     return maintained_client_acquisition.GENERIC_TRANSFER_BUDGET
 
 
-def fetch_offline_kit_payloads(  # NOSONAR -- explicit validation branches keep acquisition fail-closed.
+def fetch_bootstrap_payloads(  # NOSONAR -- explicit validation branches keep acquisition fail-closed.
     host_profile_id: str,
     kit_root: Path,
     artifact_ids: Sequence[str],
+    *,
+    locator_ref: str | None = None,
 ) -> list[dict[str, object]]:
     """Fetch exact raw payloads with the qualified native curl client."""
 
     if not kit_root.is_dir() or kit_root.is_symlink():
-        raise ValueError("offline kit root must be a regular directory")
+        raise ValueError("bootstrap root must be a regular directory")
     host, artifacts, _ = _load_host_selection(host_profile_id)
     requested = sorted(set(artifact_ids))
-    if not requested or not set(requested) <= set(host["offline_kit"]["artifact_ids"]):
-        raise ValueError("offline kit fetch must select reviewed payload ids")
+    if not requested or not set(requested) <= set(host["bootstrap_payload_ids"]):
+        raise ValueError("bootstrap fetch must select reviewed payload ids")
+    if locator_ref is not None and len(requested) != 1:
+        raise ValueError("bootstrap locator selection requires exactly one artifact")
     results: list[dict[str, object]] = []
     for artifact_id in requested:
         artifact = artifacts[artifact_id]
         platform = artifact["platform"]
         raw_manifest = platform["raw_manifest"]
-        # Approved same-byte locators are ordered; the kit uses the primary one.
-        # A different locator is an explicit operator choice, never a failover loop.
+        # A different approved locator is explicit, never an automatic failover.
         source_urls = platform["source_urls"]
         if len(raw_manifest) != 1 or not source_urls:
-            raise ValueError("offline kit fetch requires one exact source object per payload")
+            raise ValueError("bootstrap fetch requires one exact source object per payload")
+        source_url = source_urls[0]
+        if locator_ref is not None:
+            locator_refs = artifact["source"]["locator_refs"]
+            if locator_ref not in locator_refs or len(locator_refs) != len(source_urls):
+                raise ValueError("bootstrap locator is not approved by the reviewed lock")
+            source_url = source_urls[locator_refs.index(locator_ref)]
         expected = raw_manifest[0]
         target = kit_root / "archives" / artifact_id / expected["path"]
         safe_tooling_cache_parent(kit_root, target, artifact_id=artifact_id)
         if target.exists() or target.is_symlink():
-            raise ValueError(f"offline kit {artifact_id} raw target already exists")
+            raise ValueError(f"bootstrap {artifact_id} raw target already exists")
         transfer = run_curl_qualification(
             _SYSTEM_CURL,
-            source_urls[0],
+            source_url,
             target,
             ca_cert=None,
             max_bytes=expected["size"],
@@ -635,7 +495,7 @@ def fetch_offline_kit_payloads(  # NOSONAR -- explicit validation branches keep 
             or _sha256(target) != expected["sha256"]
         ):
             target.unlink(missing_ok=True)
-            raise ValueError(f"offline kit {artifact_id} raw payload failed exact verification")
+            raise ValueError(f"bootstrap {artifact_id} raw payload failed exact verification")
         results.append(
             {
                 "artifact_id": artifact_id,
@@ -647,58 +507,7 @@ def fetch_offline_kit_payloads(  # NOSONAR -- explicit validation branches keep 
     return results
 
 
-def _offline_kit_entries(kit_root: Path) -> list[dict[str, object]]:
-    """Measure every offline-kit entry without following links."""
-
-    if not kit_root.is_dir() or kit_root.is_symlink():
-        raise ValueError("offline kit root must be a regular directory")
-    entries: list[dict[str, object]] = []
-    for path in sorted(kit_root.rglob("*")):
-        relative = path.relative_to(kit_root).as_posix()
-        if relative == "offline-kit-manifest.json":
-            continue
-        mode = path.lstat().st_mode
-        if stat.S_ISDIR(mode):
-            continue
-        if stat.S_ISLNK(mode):
-            target = os.readlink(path)
-            try:
-                (path.parent / target).resolve().relative_to(kit_root.resolve())
-            except ValueError as exc:
-                raise ValueError("offline kit contains an escaping symbolic link") from exc
-            entries.append({"path": relative, "kind": "symlink", "target": target})
-        elif stat.S_ISREG(mode):
-            entries.append(
-                {
-                    "path": relative,
-                    "kind": "file",
-                    "sha256": _sha256(path),
-                    "size": path.stat().st_size,
-                }
-            )
-        else:
-            raise ValueError("offline kit contains an unsupported filesystem entry")
-    if not entries:
-        raise ValueError("offline kit is empty")
-    return entries
-
-
-def copy_relocatable_tree(source_root: Path, destination_root: Path) -> None:
-    """Copy a payload tree while materializing host-bound symbolic links."""
-
-    source_root = source_root.resolve(strict=True)
-    if not source_root.is_dir() or destination_root.exists() or destination_root.is_symlink():
-        raise ValueError("relocatable payload copy requires a directory and a new destination")
-    try:
-        shutil.copytree(source_root, destination_root, symlinks=False, ignore_dangling_symlinks=True)
-    except OSError as exc:
-        raise ValueError("relocatable payload links could not be materialized") from exc
-    for path in sorted(destination_root.rglob("*")):
-        if path.is_symlink():
-            raise ValueError("relocatable payload copy retained a symbolic link")
-
-
-def install_offline_python_payload(  # NOSONAR -- archive validation is intentionally explicit and auditable.
+def install_python_payload(  # NOSONAR -- archive validation is intentionally explicit and auditable.
     host_profile_id: str, kit_root: Path, python_artifact_id: str
 ) -> dict[str, str]:
     """Verify and extract one locked relocatable CPython payload."""
@@ -706,10 +515,10 @@ def install_offline_python_payload(  # NOSONAR -- archive validation is intentio
     _host, artifacts, _policy_sha256 = _load_host_selection(host_profile_id)
     artifact = artifacts.get(python_artifact_id)
     if artifact is None:
-        raise ValueError("offline kit Python payload is not selected by the host profile")
+        raise ValueError("bootstrap Python payload is not selected by the host profile")
     raw_manifest = artifact["platform"]["raw_manifest"]
     if not isinstance(raw_manifest, list) or len(raw_manifest) != 1:
-        raise ValueError("offline kit Python payload must have exactly one raw archive")
+        raise ValueError("bootstrap Python payload must have exactly one raw archive")
     raw = raw_manifest[0]
     archive = kit_root / "archives" / python_artifact_id / raw["path"]
     if (
@@ -718,10 +527,10 @@ def install_offline_python_payload(  # NOSONAR -- archive validation is intentio
         or archive.stat().st_size != raw["size"]
         or _sha256(archive) != raw["sha256"]
     ):
-        raise ValueError("offline kit Python archive differs from the validated lock")
+        raise ValueError("bootstrap Python archive differs from the validated lock")
     destination = kit_root / "python" / f"cpython-{artifact['version']}"
     if destination.exists() or destination.is_symlink():
-        raise ValueError("offline kit Python destination must be new")
+        raise ValueError("bootstrap Python destination must be new")
     destination.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix=".python-extract-", dir=kit_root) as temporary_dir:
         temporary_root = Path(temporary_dir)
@@ -729,13 +538,13 @@ def install_offline_python_payload(  # NOSONAR -- archive validation is intentio
             with tarfile.open(archive, mode="r:gz") as bundle:
                 members = bundle.getmembers()
                 if not members or any(PurePosixPath(member.name).parts[:1] != ("python",) for member in members):
-                    raise ValueError("offline kit Python archive has an unexpected root")
+                    raise ValueError("bootstrap Python archive has an unexpected root")
                 bundle.extractall(temporary_root, filter="data")
         except (OSError, tarfile.TarError) as exc:
-            raise ValueError("offline kit Python archive could not be extracted safely") from exc
+            raise ValueError("bootstrap Python archive could not be extracted safely") from exc
         extracted = temporary_root / "python"
         if not extracted.is_dir() or extracted.is_symlink():
-            raise ValueError("offline kit Python archive omits its payload root")
+            raise ValueError("bootstrap Python archive omits its payload root")
         extracted.rename(destination)
     return {
         "artifact_id": python_artifact_id,
@@ -743,12 +552,12 @@ def install_offline_python_payload(  # NOSONAR -- archive validation is intentio
     }
 
 
-def install_offline_uv_payload(  # NOSONAR -- archive validation is intentionally explicit and auditable.
+def install_uv_payload(  # NOSONAR -- archive validation is intentionally explicit and auditable.
     host_profile_id: str, kit_root: Path, uv_artifact_id: str
 ) -> dict[str, str]:
     """Verify and extract the locked uv client from an imported payload kit.
 
-    The offline and container bootstrap paths have no host-supplied uv to copy,
+    The CI and container bootstrap paths have no host-supplied uv to copy,
     so the reviewed raw archive is the only admitted source of the client that
     later runs the frozen validator.
     """
@@ -756,10 +565,10 @@ def install_offline_uv_payload(  # NOSONAR -- archive validation is intentionall
     _host, artifacts, _policy_sha256 = _load_host_selection(host_profile_id)
     artifact = artifacts.get(uv_artifact_id)
     if artifact is None:
-        raise ValueError("offline kit uv payload is not selected by the host profile")
+        raise ValueError("bootstrap uv payload is not selected by the host profile")
     raw_manifest = artifact["platform"]["raw_manifest"]
     if not isinstance(raw_manifest, list) or len(raw_manifest) != 1:
-        raise ValueError("offline kit uv payload must have exactly one raw archive")
+        raise ValueError("bootstrap uv payload must have exactly one raw archive")
     raw = raw_manifest[0]
     archive = kit_root / "archives" / uv_artifact_id / raw["path"]
     if (
@@ -768,7 +577,7 @@ def install_offline_uv_payload(  # NOSONAR -- archive validation is intentionall
         or archive.stat().st_size != raw["size"]
         or _sha256(archive) != raw["sha256"]
     ):
-        raise ValueError("offline kit uv archive differs from the validated lock")
+        raise ValueError("bootstrap uv archive differs from the validated lock")
     destination = kit_root / "bin"
     destination.mkdir(parents=True, exist_ok=True)
     installed: list[str] = []
@@ -779,18 +588,18 @@ def install_offline_uv_payload(  # NOSONAR -- archive validation is intentionall
                 members = bundle.getmembers()
                 roots = {PurePosixPath(member.name).parts[:1] for member in members}
                 if not members or len(roots) != 1 or any(not (member.isfile() or member.isdir()) for member in members):
-                    raise ValueError("offline kit uv archive has an unexpected shape")
+                    raise ValueError("bootstrap uv archive has an unexpected shape")
                 bundle.extractall(temporary_root, filter="data")
         except (OSError, tarfile.TarError) as exc:
-            raise ValueError("offline kit uv archive could not be extracted safely") from exc
+            raise ValueError("bootstrap uv archive could not be extracted safely") from exc
         extracted = temporary_root / next(iter(roots))[0]
         for name in ("uv", "uvx"):
             source = extracted / name
             target = destination / name
             if not source.is_file() or source.is_symlink():
-                raise ValueError(f"offline kit uv archive omits its {name} client")
+                raise ValueError(f"bootstrap uv archive omits its {name} client")
             if target.exists() or target.is_symlink():
-                raise ValueError(f"offline kit uv destination {name} must be new")
+                raise ValueError(f"bootstrap uv destination {name} must be new")
             source.rename(target)
             target.chmod(target.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
             installed.append(target.relative_to(kit_root).as_posix())
@@ -798,222 +607,6 @@ def install_offline_uv_payload(  # NOSONAR -- archive validation is intentionall
         "artifact_id": uv_artifact_id,
         "path": installed[0],
         "extra_path": installed[1],
-    }
-
-
-def build_offline_kit_manifest(
-    host_profile_id: str,
-    kit_root: Path,
-    *,
-    python_artifact_id: str,
-) -> dict[str, object]:
-    """Bind an installed payload closure to the validated host policy."""
-
-    host, artifacts, policy_sha256 = _load_host_selection(host_profile_id)
-    offline_kit = host["offline_kit"]
-    expected_ids = set(offline_kit["artifact_ids"])
-    required_ids = {python_artifact_id, "uv"}
-    if not required_ids <= expected_ids or not expected_ids <= artifacts.keys():
-        raise ValueError("offline kit payload closure does not match the validated host selection")
-    entries = _offline_kit_entries(kit_root)
-    installed_payload_bindings: list[dict[str, object]] = []
-    for artifact_id, prefix in ((python_artifact_id, "python/"), ("uv", "bin/uv")):
-        installed_entries = [
-            entry for entry in entries if entry["path"] == prefix or str(entry["path"]).startswith(prefix)
-        ]
-        if not installed_entries:
-            raise ValueError(f"offline kit omits the installed {artifact_id} payload")
-        installed_payload_bindings.append(
-            {
-                "artifact_id": artifact_id,
-                "version": artifacts[artifact_id]["version"],
-                "source_raw_manifest": artifacts[artifact_id]["platform"]["raw_manifest"],
-                "installed_entries": installed_entries,
-            }
-        )
-    return {
-        "schema_version": "raes-offline-bootstrap-kit/v1",
-        "kit_id": offline_kit["kit_id"],
-        "host_profile_id": host_profile_id,
-        "platform_id": host["platform_id"],
-        "policy_sha256": policy_sha256,
-        "python_artifact_id": python_artifact_id,
-        "artifact_ids": sorted(expected_ids),
-        "host_prerequisite_package_ids": sorted(offline_kit["host_prerequisite_package_ids"]),
-        "installed_payload_bindings": installed_payload_bindings,
-        "entries": entries,
-    }
-
-
-def _load_offline_kit_manifest(path: Path) -> dict[str, object]:
-    if not path.is_file() or path.is_symlink() or path.stat().st_size > MAX_OFFLINE_MANIFEST_BYTES:
-        raise ValueError("offline kit manifest must be a bounded regular file")
-
-    def reject_duplicates(pairs: list[tuple[str, object]]) -> dict[str, object]:
-        result: dict[str, object] = {}
-        for key, value in pairs:
-            if key in result:
-                raise ValueError("offline kit manifest contains a duplicate key")
-            result[key] = value
-        return result
-
-    try:
-        value = json.loads(
-            path.read_text(encoding="utf-8"),  # NOSONAR -- bounded non-symlink file checked above.
-            object_pairs_hook=reject_duplicates,
-        )
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-        raise ValueError("offline kit manifest is invalid") from exc
-    if not isinstance(value, dict):
-        raise ValueError("offline kit manifest is invalid")
-    return value
-
-
-def verify_offline_kit(  # NOSONAR -- explicit payload checks preserve the auditable fail-closed sequence.
-    host_profile_id: str,
-    kit_root: Path,
-    *,
-    python_artifact_id: str,
-    trusted_manifest_sha256: str,
-) -> dict[str, object]:
-    """Verify and execute the imported uv, Python, and generic-tool closure."""
-
-    manifest_path = kit_root / "offline-kit-manifest.json"
-    if re.fullmatch(r"[0-9a-f]{64}", trusted_manifest_sha256) is None:
-        raise ValueError("offline kit requires an exact trusted manifest digest")
-    if not manifest_path.is_file() or manifest_path.is_symlink() or _sha256(manifest_path) != trusted_manifest_sha256:
-        raise ValueError("offline kit manifest differs from the externally trusted digest")
-    manifest = _load_offline_kit_manifest(manifest_path)
-    expected = build_offline_kit_manifest(host_profile_id, kit_root, python_artifact_id=python_artifact_id)
-    if manifest != expected:
-        raise ValueError("offline kit contents differ from the bound manifest")
-    host, artifacts, _ = _load_host_selection(host_profile_id)
-    for artifact_id in manifest["artifact_ids"]:
-        platform = artifacts[artifact_id]["platform"]
-        for raw in platform["raw_manifest"]:
-            raw_path = kit_root / "archives" / artifact_id / raw["path"]
-            if (
-                not raw_path.is_file()
-                or raw_path.is_symlink()
-                or raw_path.stat().st_size != raw["size"]
-                or _sha256(raw_path) != raw["sha256"]
-            ):
-                raise ValueError(f"offline kit {artifact_id} raw payload differs from the lock")
-    uv_result = inspect_executable(
-        "uv",
-        kit_root / "bin" / "uv",
-        ("--version",),
-        expected_version=f"uv {artifacts['uv']['version']}",
-    )
-    expected_uv_identity = artifacts["uv"]["platform"]["installed_identity"]
-    observed_uv_identity = _observed_uv_identity(artifacts["uv"]["version"])
-    uv_identity_passed = uv_result["outcome"] == "passed" and observed_uv_identity == expected_uv_identity
-    if not uv_identity_passed:
-        uv_result = {
-            "capability_id": "uv",
-            "outcome": "failed",
-            "reason_code": "payload-identity-mismatch",
-        }
-    python_version = artifacts[python_artifact_id]["version"]
-    feature = ".".join(python_version.split(".")[:2])
-    python_candidates = sorted((kit_root / "python").glob(f"*/bin/python{feature}"))
-    if len(python_candidates) != 1:
-        raise ValueError("offline kit must contain exactly one selected Python executable")
-    try:
-        python_candidates[0].resolve().relative_to(kit_root.resolve())
-    except ValueError as exc:
-        raise ValueError("offline kit Python executable escapes the kit") from exc
-    if not python_candidates[0].is_file():
-        raise ValueError("offline kit selected Python executable is unavailable")
-    try:
-        python_probe = subprocess.run(
-            [
-                str(python_candidates[0]),
-                "-c",
-                "import json,platform,sys,sysconfig; "
-                "print(json.dumps([platform.python_implementation(),platform.python_version(),"
-                "bool(sysconfig.get_config_var('Py_GIL_DISABLED')),platform.system(),platform.machine(),"
-                "sys.executable,sys.prefix]))",
-            ],
-            stdin=subprocess.DEVNULL,
-            text=True,
-            capture_output=True,
-            check=False,
-            timeout=PROBE_TIMEOUT_SECONDS,
-            env=dict(_PROBE_ENV),
-        )
-    except (OSError, subprocess.SubprocessError):
-        python_probe = None
-    try:
-        python_identity = json.loads(python_probe.stdout) if python_probe is not None else []
-        observed_python_identity = {
-            "implementation": python_identity[0],
-            "version": python_identity[1],
-            "abi": f"cp{python_identity[1].split('.')[0]}{python_identity[1].split('.')[1]}"
-            f"{'t' if python_identity[2] else ''}",
-            "target": _runtime_target(python_identity[3], python_identity[4]),
-        }
-        executable_identity = Path(python_identity[5]).resolve()
-        prefix_identity = Path(python_identity[6]).resolve()
-        executable_identity.relative_to(kit_root.resolve())
-        prefix_identity.relative_to(kit_root.resolve())
-        python_passed = (
-            python_probe.returncode == 0
-            and observed_python_identity == artifacts[python_artifact_id]["platform"]["installed_identity"]
-        )
-    except (AttributeError, IndexError, TypeError, ValueError):
-        observed_python_identity = {
-            "implementation": "unobserved",
-            "version": "unobserved",
-            "abi": "unobserved",
-            "target": "unobserved",
-        }
-        python_passed = False
-    generic_ids = {"conftest", "gitleaks", "osv-scanner", "vale"} & set(manifest["artifact_ids"])
-    if generic_ids and generic_ids != {"conftest", "gitleaks", "osv-scanner", "vale"}:
-        raise ValueError("offline kit must contain either all four generic tools or none")
-    if generic_ids:
-        with tempfile.TemporaryDirectory(
-            prefix=".raes-offline-tool-runtime-",
-            dir=kit_root.parent,
-        ) as runtime_directory:
-            runtime_root = Path(runtime_directory)
-            generic = qualify_generic_tools(
-                selections=_offline_generic_tool_selections(
-                    kit_root,
-                    runtime_root,
-                    host["platform_id"],
-                    artifacts,
-                )
-            )
-    else:
-        generic = {"outcome": "not-run", "results": []}
-    native_closure = _proof_native_closure_result(host)
-    outcome = (
-        "passed"
-        if uv_identity_passed
-        and python_passed
-        and generic["outcome"] in {"passed", "not-run"}
-        and native_closure["outcome"] in {"passed", "not-run"}
-        else "failed"
-    )
-    return {
-        "outcome": outcome,
-        "kit_id": manifest["kit_id"],
-        "proof_native_closure": native_closure,
-        "manifest_sha256": trusted_manifest_sha256,
-        "python": {
-            "outcome": "passed" if python_passed else "failed",
-            "expected_installed_identity": artifacts[python_artifact_id]["platform"]["installed_identity"],
-            "observed_installed_identity": observed_python_identity,
-        },
-        "uv": uv_result,
-        "uv_identity": {
-            "outcome": "passed" if uv_identity_passed else "failed",
-            "expected_installed_identity": expected_uv_identity,
-            "observed_installed_identity": observed_uv_identity,
-        },
-        "generic_tools": generic,
     }
 
 
@@ -1132,406 +725,8 @@ def _observed_uv_identity(version: str) -> dict[str, str]:
     }
 
 
-def record_case_result(
-    repo_root: Path,
-    test_case_id: str,
-    implementation_revision: str,
-    harness_path: str,
-    artifact_ids: Sequence[str],
-) -> dict[str, object]:
-    """Bind a passed case to the exact local harness and implementation revision."""
-
-    if test_case_id not in _CASE_IDS or re.fullmatch(r"[0-9a-f]{40}", implementation_revision) is None:
-        raise ValueError("case result identity is invalid")
-    if not all(isinstance(value, str) and re.fullmatch(r"[a-z0-9][a-z0-9._-]*", value) for value in artifact_ids):
-        raise ValueError("case result artifact identity is invalid")
-    if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/-]{0,255}", harness_path) is None or ".." in Path(harness_path).parts:
-        raise ValueError("case harness must be a bounded repository-relative path")
-    harness = repo_root / harness_path
-    if not harness.is_file() or harness.is_symlink():
-        raise ValueError("case harness is unavailable")
-    return {
-        "test_case_id": test_case_id,
-        "outcome": "passed",
-        "implementation_revision": implementation_revision,
-        "harness_path": harness_path,
-        "harness_sha256": _sha256(harness),
-        "artifact_ids": sorted(set(artifact_ids)),
-    }
-
-
-def _load_case_results(  # NOSONAR -- each closed-shape evidence field is validated explicitly.
-    repo_root: Path,
-    paths: Sequence[Path],
-    implementation_revision: str,
-) -> list[dict[str, object]]:
-    results: list[dict[str, object]] = []
-    seen: set[str] = set()
-    for path in paths:
-        if not path.is_file() or path.is_symlink() or path.stat().st_size > MAX_CASE_RESULT_BYTES:
-            raise ValueError("case result must be a bounded regular file")
-        try:
-            result = json.loads(path.read_text(encoding="utf-8"))  # NOSONAR -- bounded non-symlink file checked above.
-        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-            raise ValueError("case result is invalid") from exc
-        if not isinstance(result, dict) or set(result) != {
-            "test_case_id",
-            "outcome",
-            "implementation_revision",
-            "harness_path",
-            "harness_sha256",
-            "artifact_ids",
-        }:
-            raise ValueError("case result has an invalid closed shape")
-        case_id = result["test_case_id"]
-        harness_path = result["harness_path"]
-        artifact_ids = result["artifact_ids"]
-        if (
-            case_id not in _CASE_IDS
-            or case_id in seen
-            or result["outcome"] != "passed"
-            or result["implementation_revision"] != implementation_revision
-            or not isinstance(harness_path, str)
-            or not isinstance(artifact_ids, list)
-            or not all(
-                isinstance(value, str) and re.fullmatch(r"[a-z0-9][a-z0-9._-]*", value) for value in artifact_ids
-            )
-            or record_case_result(
-                repo_root,
-                case_id,
-                implementation_revision,
-                harness_path,
-                artifact_ids,
-            )
-            != result
-        ):
-            raise ValueError("case result does not match its harness or revision")
-        seen.add(case_id)
-        results.append(result)
-    if not results:
-        raise ValueError("at least one passed case result is required")
-    return results
-
-
 # Local qualification harnesses and the canonical case each slice belongs to.
 # A slice is bound evidence for part of a case; it never becomes a passed case.
-_SLICE_HARNESSES: dict[str, tuple[str, dict[str, str]]] = {
-    "issue-1219-local-installation-qualification/v1": (
-        "implementations/python/tests/issue_1219_installation_harness.py",
-        {
-            "cold-convergence": "T05",
-            "crash-recovery": "T05",
-            "live-publisher-exclusion": "T05",
-            "bounded-lock-timeout": "T05",
-            "unsafe-lock-rejection": "T06",
-            "warm-validation": "T07",
-            "quota-failure-recovery": "T07",
-        },
-    ),
-    "issue-1220-proof-input-qualification/v1": (
-        "implementations/python/tests/issue_1220_proof_input_harness.py",
-        {
-            "T05-cold-convergence": "T05",
-            "T05-warm-validation": "T05",
-            "T05-crash-recovery": "T05",
-            "T05-live-publisher-exclusion": "T05",
-            "T05-bounded-lock-timeout": "T05",
-            "T05-quota-failure-recovery": "T05",
-            "T05-real-cold-convergence": "T05",
-            "T05-real-crash-recovery": "T05",
-            "T05-real-live-publisher-exclusion": "T05",
-            "T11-egress-denied-admission": "T11",
-            "T13-corrupt-local-input": "T13",
-            "T13-malicious-archive": "T13",
-            "T13-missing-native-closure": "T13",
-        },
-    ),
-}
-_REASON_CODE_RE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
-
-
-def _slice_identity(case_mapping: dict[str, str], slice_name: object) -> tuple[str, str]:
-    """Return the closed canonical case and slice id a registered harness implements."""
-
-    canonical = case_mapping.get(slice_name) if isinstance(slice_name, str) else None
-    if canonical is None:
-        raise ValueError("slice evidence names a slice outside its harness")
-    slice_id = slice_name if slice_name.startswith(f"{canonical}-") else f"{canonical}-{slice_name}"
-    return canonical, slice_id
-
-
-def _load_slice_results(  # NOSONAR -- each closed-shape evidence field is validated explicitly.
-    repo_root: Path,
-    paths: Sequence[Path],
-) -> list[dict[str, object]]:
-    """Bind local harness slice outcomes to the exact harness bytes in this checkout."""
-
-    results: list[dict[str, object]] = []
-    seen: set[str] = set()
-    for path in paths:
-        if not path.is_file() or path.is_symlink() or path.stat().st_size > MAX_CASE_RESULT_BYTES:
-            raise ValueError("slice evidence must be a bounded regular file")
-        try:
-            document = json.loads(path.read_text(encoding="utf-8"))  # NOSONAR -- bounded non-symlink file.
-        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-            raise ValueError("slice evidence is invalid") from exc
-        if not isinstance(document, dict) or document.get("schema") not in _SLICE_HARNESSES:
-            raise ValueError("slice evidence comes from an unknown harness")
-        harness_path, case_mapping = _SLICE_HARNESSES[document["schema"]]
-        coverage = document.get("coverage")
-        passed = document.get("passed_cases")
-        not_run = document.get("not_run_cases", {})
-        elapsed = document.get("elapsed_seconds")
-        if (
-            not isinstance(coverage, dict)
-            or coverage.get("canonical_outcome_recorded") is not False
-            or not isinstance(passed, list)
-            or not passed
-            or not isinstance(not_run, dict)
-            or not isinstance(elapsed, dict)
-            or set(passed) & set(not_run)
-            or set(elapsed) != set(passed)
-        ):
-            raise ValueError("slice evidence has an invalid closed shape")
-        harness_sha256 = _sha256(repo_root / harness_path)
-        for slice_name in [*passed, *not_run]:
-            canonical, slice_id = _slice_identity(case_mapping, slice_name)
-            if slice_id in seen:
-                raise ValueError("slice evidence repeats a slice")
-            seen.add(slice_id)
-            result: dict[str, object] = {
-                "slice_id": slice_id,
-                "canonical_case_id": canonical,
-                "harness_path": harness_path,
-                "harness_sha256": harness_sha256,
-            }
-            if slice_name in not_run:
-                reason = not_run[slice_name]
-                if not isinstance(reason, str) or _REASON_CODE_RE.fullmatch(reason) is None:
-                    raise ValueError("slice evidence has an invalid not-run reason")
-                result.update(outcome="not-run", reason_code=reason)
-            else:
-                seconds = elapsed[slice_name]
-                if not isinstance(seconds, int | float) or isinstance(seconds, bool) or seconds < 0:
-                    raise ValueError("slice evidence has an invalid duration")
-                result.update(outcome="passed", elapsed_seconds=round(float(seconds), 3))
-            results.append(result)
-    return sorted(results, key=lambda item: str(item["slice_id"]))
-
-
-def _payload_measurement(artifact_id: str, *, restored_kit: bool) -> str:
-    if restored_kit:
-        return "offline-kit-manifest-verified-and-executed"
-    measurements = {
-        "conftest": "installed-manifest-verified-and-executed",
-        "gitleaks": "installed-manifest-verified-and-executed",
-        "osv-scanner": "installed-manifest-verified-and-executed",
-        "vale": "installed-manifest-verified-and-executed",
-        "isabelle": "case-harness-verified",
-    }
-    return measurements.get(artifact_id, "installed-identity-observed")
-
-
-def build_qualification_evidence(  # NOSONAR -- closed-schema evidence checks remain explicit for auditability.
-    repo_root: Path,
-    host_profile_id: str,
-    implementation_revision: str,
-    evidence_location: str,
-    *,
-    python_artifact_id: str,
-    case_result_paths: Sequence[Path],
-    options: QualificationEvidenceOptions = _DEFAULT_QUALIFICATION_EVIDENCE_OPTIONS,
-) -> dict[str, object]:
-    """Execute maintained clients and build a bounded, credential-free evidence record."""
-
-    if re.fullmatch(r"[0-9a-f]{40}", implementation_revision) is None:
-        raise ValueError("implementation revision must be an exact commit SHA")
-    if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}", evidence_location) is None:
-        raise ValueError("evidence location must be a bounded public identifier")
-    if any(not isinstance(value, str) or not value or len(value) > 500 for value in options.limitations):
-        raise ValueError("qualification limitations must be bounded non-empty strings")
-    host, artifacts, policy_sha256 = _load_host_selection(host_profile_id)
-    case_results = _load_case_results(repo_root, case_result_paths, implementation_revision)
-    slice_results = _load_slice_results(repo_root, options.slice_evidence_paths)
-    passed_case_ids = {result["test_case_id"] for result in case_results}
-    if options.offline_kit_root is None:
-        if (
-            options.offline_kit_archive_path is not None
-            or options.offline_kit_manifest_sha256 is not None
-            or "T12" in passed_case_ids
-        ):
-            raise ValueError("T12 and offline-kit evidence require a verified restored kit")
-        offline_kit_result = None
-    else:
-        if options.offline_kit_archive_path is None or options.offline_kit_manifest_sha256 is None:
-            raise ValueError("restored offline-kit evidence requires its exact archive and trusted manifest digest")
-        offline_kit_result = verify_offline_kit(
-            host_profile_id,
-            options.offline_kit_root,
-            python_artifact_id=python_artifact_id,
-            trusted_manifest_sha256=options.offline_kit_manifest_sha256,
-        )
-        if offline_kit_result["outcome"] != "passed":
-            raise ValueError("restored offline kit did not pass exact verification")
-    measured_artifact_ids = {artifact_id for result in case_results for artifact_id in result["artifact_ids"]}
-    if not measured_artifact_ids <= artifacts.keys() or python_artifact_id not in measured_artifact_ids:
-        raise ValueError("case results name payloads outside the validated host selection")
-    if python_artifact_id not in host["bootstrap_payload_ids"] or not python_artifact_id.startswith("cpython-"):
-        raise ValueError("Python evidence must select a CPython payload admitted by the host profile")
-    expected_python_identity = artifacts[python_artifact_id]["platform"]["installed_identity"]
-    expected_uv_identity = artifacts["uv"]["platform"]["installed_identity"]
-    if offline_kit_result is not None:
-        observed_python_identity = offline_kit_result["python"]["observed_installed_identity"]
-        python_identity_passed = offline_kit_result["python"]["outcome"] == "passed"
-        observed_uv_identity = offline_kit_result["uv_identity"]["observed_installed_identity"]
-        uv_result = offline_kit_result["uv"]
-    else:
-        observed_python_identity = observe_current_python_identity()
-        python_identity_passed = observed_python_identity == expected_python_identity
-        observed_uv_identity = _observed_uv_identity(artifacts["uv"]["version"])
-        if uv_path := shutil.which("uv"):
-            uv_result = inspect_executable(
-                "uv",
-                Path(uv_path),
-                ("--version",),
-                expected_version=f"uv {artifacts['uv']['version']}",
-            )
-        else:
-            uv_result = {
-                "capability_id": "uv",
-                "outcome": "failed",
-                "reason_code": "native-client-unavailable",
-            }
-        if observed_uv_identity != expected_uv_identity:
-            uv_result = {
-                "capability_id": "uv",
-                "outcome": "failed",
-                "reason_code": "payload-identity-mismatch",
-            }
-    payloads: list[dict[str, object]] = []
-    for artifact_id in sorted(measured_artifact_ids):
-        artifact = artifacts[artifact_id]
-        platform = artifact["platform"]
-        if platform["platform_id"] != host["platform_id"] or (
-            platform.get("host_profile_ids") and host_profile_id not in platform["host_profile_ids"]
-        ):
-            raise ValueError(f"host profile must select exactly one {artifact_id} payload")
-        payload_evidence: dict[str, object] = {
-            "artifact_id": artifact_id,
-            "version": artifact["version"],
-            "support_level": artifact.get("support_level", "blocking"),
-            "platform_id": platform["platform_id"],
-            "distribution_id": platform.get("distribution_id", "portable"),
-            "expected_raw_manifest": platform["raw_manifest"],
-            "measurement": _payload_measurement(artifact_id, restored_kit=offline_kit_result is not None),
-        }
-        if "installed_identity" in platform:
-            payload_evidence["expected_installed_identity"] = platform["installed_identity"]
-            if artifact_id == python_artifact_id:
-                payload_evidence["observed_installed_identity"] = observed_python_identity
-            elif artifact_id == "uv":
-                payload_evidence["observed_installed_identity"] = observed_uv_identity
-        if "installed_manifest" in platform:
-            payload_evidence["installed_manifest"] = platform["installed_manifest"]
-        payloads.append(payload_evidence)
-    generic_artifact_ids = {"conftest", "gitleaks", "osv-scanner", "vale"}
-    measured_generic_ids = measured_artifact_ids & generic_artifact_ids
-    if measured_generic_ids and measured_generic_ids != generic_artifact_ids:
-        raise ValueError("generic-tool evidence must measure the complete four-tool platform set")
-    if measured_generic_ids:
-        generic = (
-            offline_kit_result["generic_tools"]
-            if offline_kit_result is not None
-            else qualify_generic_tools(selections=options.generic_selections)
-        )
-    else:
-        generic = {"outcome": "not-run", "results": []}
-    proof_required = host["proof_support"] == "linux-x86_64-required"
-    observed_base, observed_repository, host_identity_results = observe_host_identity(host)
-    capabilities: list[dict[str, str]] = [
-        {
-            "capability_id": "cpython",
-            "outcome": "passed" if python_identity_passed else "failed",
-            "version": observed_python_identity["version"],
-            "expected_version": expected_python_identity["version"],
-            "observed_identity": json.dumps(observed_python_identity, sort_keys=True, separators=(",", ":")),
-            **({} if python_identity_passed else {"reason_code": "payload-identity-mismatch"}),
-        },
-        {
-            "capability_id": "native-proof",
-            "outcome": "passed" if proof_required and "T01" in passed_case_ids else "unsupported",
-            "observed_identity": "case:T01" if proof_required and "T01" in passed_case_ids else host["platform_id"],
-            "reason_code": "bound-proof-harness"
-            if proof_required and "T01" in passed_case_ids
-            else "proof-requires-linux-x86_64",
-        },
-    ]
-    capabilities.extend(host_identity_results)
-    if measured_generic_ids:
-        capabilities.extend(generic["results"])
-    capabilities.extend(_native_client_results(host))
-    if offline_kit_result is not None:
-        capabilities.append(
-            {
-                "capability_id": "offline-kit",
-                "outcome": "passed",
-                "observed_identity": f"manifest:{offline_kit_result['manifest_sha256']}",
-            }
-        )
-    capabilities.append(uv_result)
-    for capability in capabilities:
-        capability.setdefault(
-            "observed_identity",
-            f"{capability['capability_id']}:{capability.get('version', capability['outcome'])}",
-        )
-    outcome = (
-        "passed"
-        if (generic["outcome"] == "passed" or not measured_generic_ids)
-        and uv_result["outcome"] == "passed"
-        and python_identity_passed
-        and all(item["outcome"] == "passed" for item in capabilities if item["outcome"] != "unsupported")
-        else "failed"
-    )
-    record: dict[str, object] = {
-        "evidence_id": (
-            f"{host_profile_id}-{python_artifact_id}-"
-            f"{'-'.join(sorted(passed_case_ids)).lower()}-{implementation_revision[:12]}"
-        ),
-        "host_profile_id": host_profile_id,
-        "platform_id": host["platform_id"],
-        "implementation_revision": implementation_revision,
-        "observed_at": dt.datetime.now(dt.UTC).isoformat().replace("+00:00", "Z"),
-        "test_case_ids": sorted(result["test_case_id"] for result in case_results),
-        "context": "restored-offline-kit" if options.offline_kit_root is not None else "public-runner",
-        "base_image_identity": observed_base,
-        "declared_base_image_identity": host["base_image_identity"],
-        "observed_runner_image": _safe_runner_image(),
-        "native_repository_identity": observed_repository,
-        "policy_sha256": policy_sha256,
-        "harness_sha256": _sha256(Path(__file__)),
-        "evidence_location": evidence_location,
-        "payload_results": payloads,
-        "capability_results": capabilities,
-        "case_results": case_results,
-        "outcome": outcome,
-    }
-    if slice_results:
-        record["slice_results"] = slice_results
-    if options.limitations:
-        record["limitations"] = sorted(set(options.limitations))
-    if options.offline_kit_archive_path is not None:
-        if not options.offline_kit_archive_path.is_file() or options.offline_kit_archive_path.is_symlink():
-            raise ValueError("offline kit archive must be a regular file")
-        record["offline_kit_evidence"] = {
-            "path": options.offline_kit_archive_path.name,
-            "sha256": _sha256(options.offline_kit_archive_path),
-            "size": options.offline_kit_archive_path.stat().st_size,
-        }
-    encoded = json.dumps(record, sort_keys=True, separators=(",", ":")).encode()
-    record["evidence_sha256"] = hashlib.sha256(encoded).hexdigest()
-    return record
-
-
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="operation", required=True)
@@ -1541,55 +736,19 @@ def _parse_args() -> argparse.Namespace:
     inspect.add_argument("host_profile_id")
     generic = subparsers.add_parser("generic-tools", help="execute the four locked generic tools")
     generic.add_argument("--local-input-root", type=Path)
-    evidence = subparsers.add_parser("qualification-evidence", help="execute tools and emit host-bound evidence")
-    evidence.add_argument("host_profile_id")
-    evidence.add_argument("implementation_revision")
-    evidence.add_argument("evidence_location")
-    evidence.add_argument("--python-artifact-id", required=True)
-    evidence.add_argument("--case-result", action="append", type=Path, required=True)
-    evidence.add_argument("--offline-kit-root", type=Path)
-    evidence.add_argument("--offline-kit", type=Path)
-    evidence.add_argument("--offline-kit-manifest-sha256")
-    evidence.add_argument("--limitation", action="append", default=[])
-    evidence.add_argument("--slice-evidence", action="append", type=Path, default=[])
-    case = subparsers.add_parser("record-case", help="bind a passed case to its exact harness")
-    case.add_argument("test_case_id", choices=sorted(_CASE_IDS))
-    case.add_argument("implementation_revision")
-    case.add_argument("harness_path")
-    case.add_argument("--artifact-id", action="append", default=[])
-    kit_fetch = subparsers.add_parser("offline-kit-fetch", help="fetch exact raw payloads with native curl")
+    kit_fetch = subparsers.add_parser("fetch-inputs", help="fetch exact raw payloads with native curl")
     kit_fetch.add_argument("host_profile_id")
     kit_fetch.add_argument("kit_root", type=Path)
     kit_fetch.add_argument("--artifact-id", action="append", required=True)
-    kit_manifest = subparsers.add_parser("offline-kit-manifest", help="measure a target-specific payload kit")
-    kit_manifest.add_argument("host_profile_id")
-    kit_manifest.add_argument("kit_root", type=Path)
-    kit_manifest.add_argument("--python-artifact-id", required=True)
-    kit_digest = subparsers.add_parser("offline-kit-manifest-digest", help="hash a producer-authenticated manifest")
-    kit_digest.add_argument("manifest_path", type=Path)
-    kit_copy = subparsers.add_parser("offline-kit-copy-tree", help="copy and relocate an installed payload tree")
-    kit_copy.add_argument("source_root", type=Path)
-    kit_copy.add_argument("destination_root", type=Path)
-    kit_tool_seeds = subparsers.add_parser(
-        "offline-kit-export-tool-seeds",
-        help="export exact generic-tool trees as immutable seeds",
-    )
-    kit_tool_seeds.add_argument("host_profile_id")
-    kit_tool_seeds.add_argument("source_root", type=Path)
-    kit_tool_seeds.add_argument("destination_root", type=Path)
-    kit_python = subparsers.add_parser("offline-kit-install-python", help="verify and extract locked CPython")
+    kit_fetch.add_argument("--locator-ref", help="approved same-byte locator for one selected artifact")
+    kit_python = subparsers.add_parser("install-python", help="verify and extract locked CPython")
     kit_python.add_argument("host_profile_id")
     kit_python.add_argument("kit_root", type=Path)
     kit_python.add_argument("--python-artifact-id", required=True)
-    kit_uv = subparsers.add_parser("offline-kit-install-uv", help="verify and extract the locked uv client")
+    kit_uv = subparsers.add_parser("install-uv", help="verify and extract the locked uv client")
     kit_uv.add_argument("host_profile_id")
     kit_uv.add_argument("kit_root", type=Path)
     kit_uv.add_argument("--uv-artifact-id", required=True)
-    kit_verify = subparsers.add_parser("offline-kit-verify", help="verify and execute an imported payload kit")
-    kit_verify.add_argument("host_profile_id")
-    kit_verify.add_argument("kit_root", type=Path)
-    kit_verify.add_argument("--python-artifact-id", required=True)
-    kit_verify.add_argument("--trusted-manifest-sha256", required=True)
     proof = subparsers.add_parser("proof-support", help="report the native proof support classification")
     proof.add_argument("platform_id")
     return parser.parse_args()
@@ -1614,89 +773,32 @@ def main() -> int:  # NOSONAR -- CLI dispatch keeps operation exit semantics exp
         )
         print(json.dumps(result, sort_keys=True))
         return 0 if result["outcome"] == "passed" else 1
-    elif args.operation == "qualification-evidence":
-        result = build_qualification_evidence(
-            Path.cwd(),
-            args.host_profile_id,
-            args.implementation_revision,
-            args.evidence_location,
-            python_artifact_id=args.python_artifact_id,
-            case_result_paths=args.case_result,
-            options=QualificationEvidenceOptions(
-                offline_kit_root=args.offline_kit_root,
-                offline_kit_archive_path=args.offline_kit,
-                offline_kit_manifest_sha256=args.offline_kit_manifest_sha256,
-                limitations=args.limitation,
-                slice_evidence_paths=args.slice_evidence,
-            ),
-        )
-        print(json.dumps(result, sort_keys=True))
-        return 0 if result["outcome"] == "passed" else 1
-    elif args.operation == "record-case":
+    elif args.operation == "fetch-inputs":
         print(
             json.dumps(
-                record_case_result(
-                    Path.cwd(),
-                    args.test_case_id,
-                    args.implementation_revision,
-                    args.harness_path,
-                    args.artifact_id,
-                ),
-                sort_keys=True,
-            )
-        )
-    elif args.operation == "offline-kit-manifest":
-        print(
-            json.dumps(
-                build_offline_kit_manifest(
-                    args.host_profile_id,
-                    args.kit_root,
-                    python_artifact_id=args.python_artifact_id,
-                ),
-                sort_keys=True,
-            )
-        )
-    elif args.operation == "offline-kit-fetch":
-        print(
-            json.dumps(
-                fetch_offline_kit_payloads(
+                fetch_bootstrap_payloads(
                     args.host_profile_id,
                     args.kit_root,
                     args.artifact_id,
+                    locator_ref=args.locator_ref,
                 ),
                 sort_keys=True,
             )
         )
-    elif args.operation == "offline-kit-manifest-digest":
-        _load_offline_kit_manifest(args.manifest_path)
-        print(_sha256(args.manifest_path))
-    elif args.operation == "offline-kit-copy-tree":
-        copy_relocatable_tree(args.source_root, args.destination_root)
-    elif args.operation == "offline-kit-export-tool-seeds":
-        export_immutable_tool_seeds(args.host_profile_id, args.source_root, args.destination_root)
-    elif args.operation == "offline-kit-install-python":
+    elif args.operation == "install-python":
         print(
             json.dumps(
-                install_offline_python_payload(args.host_profile_id, args.kit_root, args.python_artifact_id),
+                install_python_payload(args.host_profile_id, args.kit_root, args.python_artifact_id),
                 sort_keys=True,
             )
         )
-    elif args.operation == "offline-kit-install-uv":
+    elif args.operation == "install-uv":
         print(
             json.dumps(
-                install_offline_uv_payload(args.host_profile_id, args.kit_root, args.uv_artifact_id),
+                install_uv_payload(args.host_profile_id, args.kit_root, args.uv_artifact_id),
                 sort_keys=True,
             )
         )
-    elif args.operation == "offline-kit-verify":
-        result = verify_offline_kit(
-            args.host_profile_id,
-            args.kit_root,
-            python_artifact_id=args.python_artifact_id,
-            trusted_manifest_sha256=args.trusted_manifest_sha256,
-        )
-        print(json.dumps(result, sort_keys=True))
-        return 0 if result["outcome"] == "passed" else 1
     else:
         print(
             json.dumps(

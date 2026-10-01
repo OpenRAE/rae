@@ -1,0 +1,202 @@
+{
+  "candidate_canonical_digest": "sha256:1d5f9c8107b2c1b84f404a24dbcf1260676fbb5cd94cfca7da5a04be6139c1af",
+  "candidate_exact_digest": "sha256:3f0bcf7442f8fa4a2ed66f528060795c8795334249a32c81c20cedab13df152a",
+  "construct_traces": [
+    {
+      "contributions": [
+        {
+          "kind": "imported-assertion",
+          "ref_id": "source-web"
+        },
+        {
+          "kind": "inferred-structure",
+          "ref_id": "concept-node-emission"
+        },
+        {
+          "kind": "author-decision",
+          "ref_id": "emit-web-node"
+        }
+      ],
+      "target_ref": "nodes.web"
+    }
+  ],
+  "disposition": "success",
+  "input": {
+    "assertions": [
+      {
+        "assertion_id": "source-web",
+        "concept": {
+          "authority": "nist",
+          "concept_id": "PR.PS",
+          "revision": "2026.08",
+          "scheme_id": "cybersecurity-framework",
+          "source_digest": "sha256:6726a748573bdf5191bd83272a445f5d29733f734b456f15b5fc1758ec842385",
+          "source_locator": null
+        },
+        "kind": "concept"
+      }
+    ],
+    "assumptions": [],
+    "decisions": [
+      {
+        "actor_kind": "author",
+        "actor_ref": "author:reviewer",
+        "assertion_ids": [
+          "source-web"
+        ],
+        "basis": "The source concept is intentionally authored as one compute node.",
+        "decision_id": "emit-web-node",
+        "node_type": "compute",
+        "target_ref": "nodes.web"
+      }
+    ],
+    "input_id": "external-web-candidate",
+    "input_version": "1",
+    "policy_digest": "sha256:dccbffb1e4c3b11d60e74056a893cdcfdf806131344aee59f0885cf82ac466b1",
+    "schema_version": "sdl-candidate-synthesis-input/v1",
+    "source": {
+      "adapter": {
+        "digest": "sha256:8eb5c09e5b98eec83296f423f14fd6ffc233fb6b8f93c4b8aa3645427c267c7c",
+        "profile_id": "source-adapter/v1",
+        "version": "1"
+      },
+      "assertion_format": "json-catalog/1",
+      "assertion_set_digest": "sha256:794c75d55b30d48c980b0f7bd4635bbfe48a30981ed0eb54f5c9a23544b51641",
+      "authority": "nist",
+      "content_digest": "sha256:6726a748573bdf5191bd83272a445f5d29733f734b456f15b5fc1758ec842385",
+      "extraction_query": {
+        "digest": "sha256:a4a158ed33cd097cde9812d2f4410088f25d30a7f2ba18f42ee980234561af05",
+        "profile_id": "source-query/v1",
+        "version": "1"
+      },
+      "information_flow_policy_refs": [
+        {
+          "digest": "sha256:9ede0d688cb912b68a5e46af5e16ee620433d53d50192ecd601c67e0aaed0db4",
+          "profile_id": "source-information-flow/v1",
+          "version": "1"
+        }
+      ],
+      "revision": "2026.08",
+      "scheme_id": "cybersecurity-framework",
+      "source_id": "external-knowledge"
+    },
+    "target": {
+      "scenario_id": "external-web",
+      "scenario_version": "1.0.0"
+    },
+    "transformation_profile": {
+      "digest": "sha256:6d5a5d8faa996e0a0783f4b9c32ad8217571cb18bc5ce8ca3e359c547e0d642b",
+      "profile_id": "concept-nodes/v1",
+      "version": "1"
+    }
+  },
+  "input_digest": "sha256:d11fe09ef96b76d7b6b3d4420588670600eee5dcec4eabdcb2585391915204e3",
+  "input_id": "external-web-candidate",
+  "profile": {
+    "all_or_none": true,
+    "canonicalization_profile": "raes-sdl-canonical/v1",
+    "default_ids": [],
+    "deterministic_order": "sorted-target-ref/v1",
+    "imports_allowed": false,
+    "limits": {
+      "max_assertions": 4096,
+      "max_assumptions": 1024,
+      "max_decisions": 1024,
+      "max_node_identifier_length": 35
+    },
+    "profile_digest": "sha256:6d5a5d8faa996e0a0783f4b9c32ad8217571cb18bc5ce8ca3e359c547e0d642b",
+    "profile_id": "concept-nodes/v1",
+    "profile_version": "1",
+    "refusal_reason_codes": [
+      "ambiguous-ordering",
+      "missing-native-semantics",
+      "stale-input",
+      "transformation-profile-unavailable",
+      "unresolved-parameterization",
+      "unsupported-relation"
+    ],
+    "rendering_profile": "sdl-yaml/v1",
+    "rule_ids": [
+      "concept-node-emission"
+    ],
+    "schema_version": "sdl-candidate-synthesis-profile/v1",
+    "semantic_validation_required": true,
+    "source_profile": "sdl-candidate-synthesis-input/v1",
+    "supported_assertion_kinds": [
+      "concept"
+    ],
+    "supported_node_types": [
+      "compute",
+      "switch"
+    ],
+    "target_profile": "sdl-authoring-input/v1"
+  },
+  "record_id": "external-web-candidate-record",
+  "schema_version": "sdl-candidate-synthesis-record/v1",
+  "transformation_report": {
+    "affected_identities": [
+      "nodes.web"
+    ],
+    "artifact_kind": "sdl-authoring",
+    "canonicalization_profile": "raes-sdl-semantic/v2",
+    "derivation_digest": "sha256:d94d90e648b51cde5992cb7c2fc526ae71f288b8ec02bf6d8549a56136bb0e02",
+    "diagnostics": [],
+    "identity_map": [],
+    "losses": [],
+    "operation_profile": "concept-nodes/v1",
+    "policy_digest": "sha256:dccbffb1e4c3b11d60e74056a893cdcfdf806131344aee59f0885cf82ac466b1",
+    "postconditions": [
+      {
+        "check_id": "candidate-reparsed",
+        "diagnostic_codes": [],
+        "outcome": "passed"
+      },
+      {
+        "check_id": "candidate-semantic-valid",
+        "diagnostic_codes": [],
+        "outcome": "passed"
+      }
+    ],
+    "preconditions": [
+      {
+        "check_id": "assertions-current",
+        "diagnostic_codes": [],
+        "outcome": "passed"
+      },
+      {
+        "check_id": "decisions-complete",
+        "diagnostic_codes": [],
+        "outcome": "passed"
+      },
+      {
+        "check_id": "source-admitted",
+        "diagnostic_codes": [],
+        "outcome": "passed"
+      },
+      {
+        "check_id": "transformation-profile-supported",
+        "diagnostic_codes": [],
+        "outcome": "passed"
+      }
+    ],
+    "preservation": {
+      "evidence_digests": [
+        "sha256:1d5f9c8107b2c1b84f404a24dbcf1260676fbb5cd94cfca7da5a04be6139c1af",
+        "sha256:3f0bcf7442f8fa4a2ed66f528060795c8795334249a32c81c20cedab13df152a",
+        "sha256:d11fe09ef96b76d7b6b3d4420588670600eee5dcec4eabdcb2585391915204e3"
+      ],
+      "limitations": [
+        "Synthesis admission does not establish source equivalence, instantiation, compilation, or execution."
+      ],
+      "outcome": "verified",
+      "profile": "source-neutral-candidate-provenance/v1"
+    },
+    "schema_version": "artifact-transformation-report/v1",
+    "source_digest": "sha256:d11fe09ef96b76d7b6b3d4420588670600eee5dcec4eabdcb2585391915204e3",
+    "source_profile": "sdl-candidate-synthesis-input/v1",
+    "status": "success",
+    "target_digest": "sha256:1d5f9c8107b2c1b84f404a24dbcf1260676fbb5cd94cfca7da5a04be6139c1af",
+    "target_profile": "sdl-authoring-input/v1"
+  },
+  "unresolved_choices": []
+}

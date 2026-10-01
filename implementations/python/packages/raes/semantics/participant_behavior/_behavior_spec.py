@@ -138,6 +138,9 @@ def _behavior_specification_reference_issues(
     )
     issues: list[ParticipantBehaviorIssue] = []
     for refs, known_names, code in reference_sets:
+        if code == "participant.behavior-spec-role-unbound" and any(is_unresolved(role) for role in known_names):
+            # Instantiation repeats role binding after participant parameters resolve.
+            continue
         issues.extend(
             _behavior_specification_named_ref_issues(
                 spec_name=spec_name,

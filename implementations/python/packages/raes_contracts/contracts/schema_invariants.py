@@ -131,6 +131,7 @@ def _attach_experiment_datetime_invariants(contract_id: str, json_schema: dict[s
 def _attach_stateful_resource_invariants(contract_id: str, json_schema: dict[str, Any]) -> None:
     if contract_id not in {
         "sdl-authoring-input-v1",
+        "materialized-scenario-v1",
         "instantiated-scenario-v1",
         "instantiated-scenario-snapshot-v1",
     }:
@@ -188,6 +189,7 @@ def _add_carrier_validation_basis_disclosure_invariant(
 def _attach_initial_service_state_invariants(contract_id: str, json_schema: dict[str, Any]) -> None:
     if contract_id not in {
         "sdl-authoring-input-v1",
+        "materialized-scenario-v1",
         "instantiated-scenario-v1",
         "instantiated-scenario-snapshot-v1",
         "scenario-satisfiability-evidence-v1",
@@ -201,6 +203,46 @@ def _attach_initial_service_state_invariants(contract_id: str, json_schema: dict
         validator="raes.validator.SemanticValidator._verify_service_materialization",
         inputs=[{"contract_id": contract_id, "instance_path": "#"}],
     )
+
+
+def _attach_participant_temporal_invariants(contract_id: str, json_schema: dict[str, Any]) -> None:
+    if contract_id in _SDL_IDENTIFIER_CONTRACT_IDS:
+        _add_raes_invariant(
+            json_schema,
+            "participant-shared-time-source-bindings",
+            (
+                "Explicit temporal bindings must resolve the action's shared clock, constraint and selected event. "
+                "Dwell conditions require authorized observation boundaries and observable support and evidence. "
+                "Numeric parameters are revalidated after binding."
+            ),
+            validator="raes.semantics.participant_temporal_bindings.participant_temporal_binding_errors",
+            inputs=[{"contract_id": contract_id, "instance_path": "#"}],
+        )
+    if "ParticipantTemporalBindingModel" in json_schema.get("$defs", {}):
+        _add_raes_invariant(
+            json_schema,
+            "participant-shared-time-binding-shape",
+            (
+                "Deadline bindings require event evidence; dwell requires continuous coverage of a nonempty interval, "
+                "a condition and an observation boundary. Bounds are segment-relative and the selected event is "
+                "declared."
+            ),
+            validator="raes_contracts.contracts.participant_temporal.ParticipantTemporalBindingModel",
+            inputs=[{"contract_id": contract_id, "instance_path": "#"}],
+        )
+    if contract_id == "runtime-snapshot-v1":
+        _add_raes_invariant(
+            json_schema,
+            "participant-shared-time-history-consistency",
+            (
+                "Temporal contexts must remain identical across an attempt; terminal assessments must match their "
+                "evidence and authoritative clock history. Every proof must match an exact bound context and "
+                "observation boundary, "
+                "without duplicates or extra proofs."
+            ),
+            validator="raes_contracts.participant_temporal.require_participant_temporal_history",
+            inputs=[{"contract_id": contract_id, "instance_path": "#"}],
+        )
 
 
 def _validate_reported_value_status(
@@ -255,6 +297,7 @@ _SDL_AUTHORING_CONTRACT_ID = "sdl-authoring-input-v1"
 _SDL_IDENTIFIER_CONTRACT_IDS = frozenset(
     {
         _SDL_AUTHORING_CONTRACT_ID,
+        "materialized-scenario-v1",
         _INSTANTIATION_INVARIANT_CONTRACT_ID,
         _INSTANTIATED_SNAPSHOT_CONTRACT_ID,
     }

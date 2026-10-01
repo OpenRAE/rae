@@ -87,81 +87,27 @@ def _realization_disclosures(
 
 
 def _snapshot_from_envelope(payload: dict[str, Any]) -> RuntimeSnapshot:
+    """Preserve every wire carrier, restoring only the native typed fields."""
+    from dataclasses import fields
+
+    from raes_contracts.runtime_state import RealizationProvenanceEntry
+
     validated = RuntimeSnapshotEnvelopeModel.model_validate(payload)
-    return RuntimeSnapshot(
+    carriers = validated.model_dump(mode="json", exclude={"schema_version"})
+    carriers.update(
         entries=_snapshot_entries(validated),
-        orchestration_results={
-            address: result.model_dump(mode="json") for address, result in validated.orchestration_results.items()
-        },
-        orchestration_history={
-            address: [event.model_dump(mode="json") for event in history]
-            for address, history in validated.orchestration_history.items()
-        },
-        evaluation_results={
-            address: result.model_dump(mode="json") for address, result in validated.evaluation_results.items()
-        },
-        evaluation_history={
-            address: [event.model_dump(mode="json") for event in history]
-            for address, history in validated.evaluation_history.items()
-        },
-        participant_episode_results={
-            participant_address: result.model_dump(mode="json")
-            for participant_address, result in validated.participant_episode_results.items()
-        },
-        participant_episode_history={
-            participant_address: [event.model_dump(mode="json") for event in history]
-            for participant_address, history in validated.participant_episode_history.items()
-        },
-        participant_episode_closure_records={
-            participant_address: [dict(record) for record in records]
-            for participant_address, records in validated.participant_episode_closure_records.items()
-        },
-        participant_behavior_history={
-            participant_address: [event.model_dump(mode="json") for event in history]
-            for participant_address, history in validated.participant_behavior_history.items()
-        },
-        information_state_history={
-            participant_address: [record.model_dump(mode="json") for record in history]
-            for participant_address, history in validated.information_state_history.items()
-        },
-        participant_autonomous_execution_states={
-            state_address: state.model_dump(mode="json")
-            for state_address, state in validated.participant_autonomous_execution_states.items()
-        },
-        participant_execution_services={
-            scope: state.model_dump(mode="json") for scope, state in validated.participant_execution_services.items()
-        },
-        participant_resource_budget_states={
-            state_ref: state.model_dump(mode="json")
-            for state_ref, state in validated.participant_resource_budget_states.items()
-        },
-        participant_resource_pool_states={
-            pool_state_ref: state.model_dump(mode="json")
-            for pool_state_ref, state in validated.participant_resource_pool_states.items()
-        },
-        participant_resource_budget_events={
-            event_id: event.model_dump(mode="json")
-            for event_id, event in validated.participant_resource_budget_events.items()
-        },
-        shared_state_records={
-            state_address: record.model_dump(mode="json")
-            for state_address, record in validated.shared_state_records.items()
-        },
-        shared_state_history={
-            state_address: [record.model_dump(mode="json") for record in records]
-            for state_address, records in validated.shared_state_history.items()
-        },
-        joint_action_records={
-            record_id: record.model_dump(mode="json") for record_id, record in validated.joint_action_records.items()
-        },
-        time_management_contexts={
-            context_id: context.model_dump(mode="json")
-            for context_id, context in validated.time_management_contexts.items()
-        },
         time_model_state=validated.time_model_state,
+        materialization_attestations=tuple(validated.materialization_attestations),
+        realization_envelope=validated.realization_envelope,
         realization_observations=_realization_disclosures(validated),
-        metadata=dict(validated.metadata),
+        realization_provenance=tuple(
+            RealizationProvenanceEntry(
+                **{field.name: getattr(entry, field.name) for field in fields(RealizationProvenanceEntry)}
+            )
+            for entry in validated.realization_provenance
+        ),
     )
+    return RuntimeSnapshot(**carriers)
 
 
 def _participant_episode_snapshot_diagnostics(

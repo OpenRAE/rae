@@ -1,9 +1,9 @@
 {
-  "content_hash": "f4dc01e67eb06d5c91d21d2904fadf8a8f5633ade3886a590135d679eefc031c",
+  "content_hash": "0e33ddd6438399e6b032ac275c7eed50c80634db84e415b17fac56836a652c57",
   "contract_id": "instantiated-scenario-v1",
   "last_change": {
-    "content_hash": "f4dc01e67eb06d5c91d21d2904fadf8a8f5633ade3886a590135d679eefc031c",
-    "summary": "Reconcile the #1210 progressive semantic cutover (explicit revision, migration decisions, and canonical authoring/snapshot profiles) with the #1276 StringPredicate expected/expected_from XOR invariant and random-value/scope/binding fields."
+    "summary": "Add participant-local outcomes and identity assignment alongside opt-in bounded shared-time guarantees.",
+    "content_hash": "0e33ddd6438399e6b032ac275c7eed50c80634db84e415b17fac56836a652c57"
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
   "stability": "draft"

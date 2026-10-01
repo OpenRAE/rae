@@ -96,6 +96,56 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
         "15.0.0",
         "16.0.0",
         "17.0.0",
+        "18.0.0",
+        "19.0.0",
+        "20.0.0",
+        "21.0.0",
+        "22.0.0",
+        "23.0.0",
+        "24.0.0",
+        "25.0.0",
+        "26.0.0",
+        "27.0.0",
+        "28.0.0",
+        "29.0.0",
+        "30.0.0",
+        "31.0.0",
+        "32.0.0",
+        "33.0.0",
+        "34.0.0",
+        "35.0.0",
+        "36.0.0",
+        "37.0.0",
+        "38.0.0",
+        "39.0.0",
+        "40.0.0",
+        "41.0.0",
+        "42.0.0",
+        "43.0.0",
+        "44.0.0",
+        "45.0.0",
+        "46.0.0",
+        "47.0.0",
+        "48.0.0",
+        "49.0.0",
+        "50.0.0",
+        "51.0.0",
+        "52.0.0",
+        "53.0.0",
+        "54.0.0",
+        "55.0.0",
+        "56.0.0",
+        "57.0.0",
+        "58.0.0",
+        "59.0.0",
+        "60.0.0",
+        "61.0.0",
+        "62.0.0",
+        "63.0.0",
+        "64.0.0",
+        "65.0.0",
+        "66.0.0",
+        "67.0.0",
     ]
     assert all(validate_release_bundle(REPO_ROOT, release) == [] for release in releases)
 
@@ -104,10 +154,20 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
 def test_current_retest_bundle_is_coherent_and_clean() -> None:
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
 
-    assert release.manifest["revision"] == "17.0.0"
+    assert release.manifest["revision"] == "67.0.0"
     assert protocol["revision"] == "2.0.0"
-    assert corpus["revision"] == "3.0.0"
-    assert snapshot["baseline"]["release_revision"] == "16.0.0"
+    assert corpus["revision"] == "4.0.0"
+    assert snapshot["baseline"]["release_revision"] == "66.0.0"
+    assert snapshot["deviations"] == []
+    assert validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis) == []
+
+
+def test_materialization_capture_preserves_recorded_digest_deviations() -> None:
+    release = next(
+        item for item in copy_bundle(load_release_bundles, REPO_ROOT) if item.manifest["revision"] == "19.0.0"
+    )
+    snapshot = release.snapshot
+    assert snapshot["baseline"]["release_revision"] == "18.0.0"
     assert {item["case_id"] for item in snapshot["deviations"]} == {
         "compile-repeatability-control",
         "compile-non-vacuity-control",
@@ -116,7 +176,6 @@ def test_current_retest_bundle_is_coherent_and_clean() -> None:
     assert all(
         item["baseline"]["actual_outcome"] == item["retest"]["actual_outcome"] for item in snapshot["deviations"]
     )
-    assert validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis) == []
 
 
 def test_current_analysis_evidence_selects_its_release_corpus() -> None:
@@ -374,7 +433,6 @@ def test_historical_gate_rejects_substitution_with_current_evidence(
         item for item in copy_bundle(load_release_bundles, REPO_ROOT) if item.manifest["revision"] == "3.0.0"
     )
     protocol, corpus, snapshot, analysis = release.protocol, release.corpus, release.snapshot, release.analysis
-    case = next(item for item in corpus["cases"] if item["case_id"] == case_id)
     observation = next(item for item in snapshot["observations"] if item["case_id"] == case_id)
     evidence_path = observation["evidence_artifact_path"]
     _, _, _, current_snapshot, _ = copy_bundle(load_retest_bundle, REPO_ROOT)
@@ -809,3 +867,21 @@ def test_satisfiability_gate_rejects_mutated_execution_snapshot() -> None:
     failures = validate_satisfiability_analysis(REPO_ROOT, manifest, snapshot, analysis)
 
     assert "formal-satisfiability-snapshot-drift" in _rule_ids(failures)
+
+
+@pytest.mark.integration
+def test_current_retest_analysis_pins_its_own_execution_snapshot() -> None:
+    """The published analysis must name the snapshot its bundle selects.
+
+    An analysis that still points at the preceding replay publishes that older
+    execution as its pinned evidence, so the release's provenance chain no
+    longer reaches the snapshot it actually shipped.
+    """
+
+    release, _protocol, _corpus, _snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
+
+    selected_snapshot = release.manifest["snapshot_path"]
+    evidence = analysis["claim"]["evidence_artifacts"]
+    snapshots = [item for item in evidence if "execution-snapshot-" in item]
+
+    assert snapshots == [selected_snapshot]

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 from collections.abc import Mapping
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +25,12 @@ from tools.tooling_artifact_policy_common import (
     policy_join_failures,
     string_set,
     walk_forbidden_keys,
+)
+from tools.tooling_artifact_policy_oci import (
+    GRAPH_EVIDENCE,
+    artifact_graph_failures,
+    declares_graph,
+    platform_graph_failures,
 )
 from tools.verified_tree_archive import MAX_TREE_EXPANDED_BYTES, MAX_TREE_MEMBERS
 from tools.verified_tree_validation import MAX_TREE_RAW_BYTES
@@ -133,7 +140,7 @@ def _artifact_metadata_failures(artifact_id: str, artifact: Mapping[str, Any]) -
     return failures
 
 
-def _artifact_policy_failures(
+def _artifact_policy_failures(  # NOSONAR -- the class-to-evidence map is deliberately explicit.
     artifact_id: str,
     artifact: Mapping[str, Any],
     policies: Mapping[str, Mapping[str, Any]],
@@ -155,6 +162,8 @@ def _artifact_policy_failures(
     elif artifact_class == "oci-image":
         subjects = {"oci-image"}
         evidence = {"oci-index-digest", "reviewed-consumer-reference"}
+        if declares_graph(artifact):
+            evidence.add(GRAPH_EVIDENCE)
     if as_mapping(artifact.get("authenticity")).get("status") == "absent-reviewed":
         evidence.add("absent-signature-review")
     return policy_join_failures(
@@ -402,21 +411,6 @@ def _host_profile_failures(  # NOSONAR -- explicit branches identify each policy
 ) -> list[PolicyFailure]:
     failures: list[PolicyFailure] = []
     hosts: dict[str, Mapping[str, Any]] = {}
-    evidence: dict[str, Mapping[str, Any]] = {}
-    for value in as_list(document.get("qualification_records")):
-        record = as_mapping(value)
-        evidence_id = record.get("evidence_id")
-        if not isinstance(evidence_id, str):
-            continue
-        if evidence_id in evidence:
-            failures.append(
-                failure(
-                    "tooling-host-evidence-duplicate",
-                    "duplicate host qualification record",
-                    PROFILES_PATH,
-                )
-            )
-        evidence[evidence_id] = record
     for value in as_list(document.get("host_profiles")):
         host = as_mapping(value)
         host_id = host.get("host_profile_id")
@@ -433,7 +427,7 @@ def _host_profile_failures(  # NOSONAR -- explicit branches identify each policy
         hosts[host_id] = host
         payload_ids = string_set(host.get("bootstrap_payload_ids"))
         missing_artifacts = payload_ids - artifacts.keys()
-        missing_artifacts.update(string_set(as_mapping(host.get("offline_kit")).get("artifact_ids")) - artifacts.keys())
+
         if missing_artifacts:
             failures.append(
                 failure(
@@ -508,50 +502,14 @@ def _host_profile_failures(  # NOSONAR -- explicit branches identify each policy
                 )
             )
         required_closure = PROOF_HOST_NATIVE_CLOSURE.get(str(host.get("native_family")))
-        closure_packages = string_set(as_mapping(host.get("offline_kit")).get("host_prerequisite_package_ids"))
+        closure_packages = string_set(host.get("host_prerequisite_package_ids"))
         if proof_support == "linux-x86_64-required" and (
             required_closure is None or required_closure - closure_packages
         ):
             failures.append(
                 failure(
                     "tooling-host-proof-closure",
-                    f"{host_id} offline kit omits the Bubblewrap, fontconfig, font, or locale providers",
-                    PROFILES_PATH,
-                )
-            )
-        for evidence_id in string_set(host.get("qualification_record_ids")):
-            record = evidence.get(evidence_id)
-            if record is None or record.get("host_profile_id") != host_id:
-                failures.append(
-                    failure(
-                        "tooling-host-evidence-reference",
-                        f"{host_id} references mismatched evidence",
-                        PROFILES_PATH,
-                    )
-                )
-    for evidence_id, record in evidence.items():
-        if record.get("host_profile_id") not in hosts:
-            failures.append(
-                failure(
-                    "tooling-host-evidence-host",
-                    f"{evidence_id} names an unknown host profile",
-                    PROFILES_PATH,
-                )
-            )
-            continue
-        host = hosts[str(record["host_profile_id"])]
-        if (
-            str(host.get("base_image_identity", "")).startswith("github-hosted-runner:")
-            and record.get("outcome") == "passed"
-            and (
-                not str(record.get("base_image_identity", "")).startswith("github-runner:")
-                or not str(record.get("native_repository_identity", "")).startswith("github-runner-package-set:")
-            )
-        ):
-            failures.append(
-                failure(
-                    "tooling-host-evidence-observation",
-                    f"{evidence_id} passed without exact observed hosted-runner identities",
+                    f"{host_id} native prerequisites omit the Bubblewrap, fontconfig, font, or locale providers",
                     PROFILES_PATH,
                 )
             )
@@ -559,12 +517,13 @@ def _host_profile_failures(  # NOSONAR -- explicit branches identify each policy
     return failures
 
 
-def _platform_failures(
+def _platform_failures(  # NOSONAR -- each platform join is an independently reportable policy failure.
     repo_root: Path,
     artifact_id: str,
     artifact: Mapping[str, Any],
     platform: Mapping[str, Any],
     profiles: Mapping[str, Mapping[str, Any]],
+    policies: Mapping[str, Mapping[str, Any]],
     denied_digests: set[str],
 ) -> list[PolicyFailure]:
     failures = _source_url_failures(artifact_id, platform)
@@ -601,6 +560,7 @@ def _platform_failures(
             denied_digests,
         )
     )
+    failures.extend(platform_graph_failures(artifact_id, artifact, platform, policies, denied_digests))
     return failures
 
 
@@ -660,16 +620,24 @@ def _has_dependency_cycle(known_artifacts: set[str], dependency_graph: Mapping[s
     return any(visit(artifact_id) for artifact_id in sorted(known_artifacts))
 
 
+@dataclass
+class _LockScan:
+    """Authority documents and the cross-artifact state a lock walk accumulates."""
+
+    profiles: Mapping[str, Mapping[str, Any]]
+    policies: Mapping[str, Mapping[str, Any]]
+    denied_digests: set[str]
+    identities: set[tuple[str, str, str]]
+    dependency_graph: dict[str, set[str]]
+
+
 def _artifact_platform_failures(
     repo_root: Path,
     artifact_id: str,
     artifact: Mapping[str, Any],
-    profiles: Mapping[str, Mapping[str, Any]],
-    denied_digests: set[str],
-    identities: set[tuple[str, str, str]],
-    dependency_graph: dict[str, set[str]],
+    scan: _LockScan,
 ) -> list[PolicyFailure]:
-    failures: list[PolicyFailure] = []
+    failures: list[PolicyFailure] = artifact_graph_failures(artifact_id, as_list(artifact.get("platforms")))
     for platform_value in as_list(artifact.get("platforms")):
         platform = as_mapping(platform_value)
         platform_id = platform.get("platform_id")
@@ -681,7 +649,7 @@ def _artifact_platform_failures(
             normalize_platform_id(platform_id),
             distribution_id if isinstance(distribution_id, str) else "",
         )
-        if identity in identities:
+        if identity in scan.identities:
             failures.append(
                 failure(
                     "tooling-artifact-identity-duplicate",
@@ -689,9 +657,19 @@ def _artifact_platform_failures(
                     ARTIFACT_LOCK_PATH,
                 )
             )
-        identities.add(identity)
-        dependency_graph[artifact_id].update(string_set(platform.get("dependencies")))
-        failures.extend(_platform_failures(repo_root, artifact_id, artifact, platform, profiles, denied_digests))
+        scan.identities.add(identity)
+        scan.dependency_graph[artifact_id].update(string_set(platform.get("dependencies")))
+        failures.extend(
+            _platform_failures(
+                repo_root,
+                artifact_id,
+                artifact,
+                platform,
+                scan.profiles,
+                scan.policies,
+                scan.denied_digests,
+            )
+        )
     return failures
 
 
@@ -737,10 +715,7 @@ def artifact_failures(repo_root: Path, documents: Mapping[str, dict[str, Any]]) 
                 repo_root,
                 artifact_id,
                 artifact,
-                profiles,
-                denied_digests,
-                identities,
-                dependency_graph,
+                _LockScan(profiles, policies, denied_digests, identities, dependency_graph),
             )
         )
     known_artifacts = set(artifact_ids)

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -13,17 +12,12 @@ from tools.tooling_artifact_policy_common import (
     PROFILES_PATH,
     failure,
     is_regular_repo_file,
+    read_tooling_document,
 )
 
 PYTHON_PROJECT_LOCK_PATH = "implementations/python/uv.lock"
 PYTHON_TOOL_LOCK_PATH = "implementations/tooling/python/uv.lock"
-_EXPECTED_CONTEXT_IDS = frozenset(
-    {
-        "python-public",
-        "python-enterprise-mirror-only",
-        "python-offline",
-    }
-)
+_EXPECTED_CONTEXT_IDS = frozenset({"python-public"})
 _PROJECT_SCOPED_PURPOSES = frozenset({"wheel-smoke", "sdist-smoke", "compatibility", "docs"})
 _PROJECTION_SIZE_LIMIT = 2 * 1024 * 1024
 
@@ -42,38 +36,17 @@ def _context_set_failures(context_ids: Sequence[str]) -> list[PolicyFailure]:
     ]
 
 
-def _maps_complete_namespace(context: Mapping[str, Any]) -> bool:
-    """Report whether a mirror-only context maps everything to one credentialed mirror."""
-
-    mappings = context.get("namespace_mapping", [])
-    return bool(
-        context.get("credential_refs", [])
-        and len(mappings) == 1
-        and isinstance(mappings[0], Mapping)
-        and mappings[0].get("namespace") == "*"
-        and mappings[0].get("locator_ref") == context.get("locator_ref")
-    )
-
-
 def _context_failures(contexts: Sequence[Mapping[str, Any]]) -> list[PolicyFailure]:
     """Validate credential, mirror, and fallback policy for each context."""
 
     failures: list[PolicyFailure] = []
     for context in contexts:
         mode = context.get("mode")
-        if mode in {"public", "offline"} and context.get("credential_refs", []):
+        if mode != "public" or context.get("credential_refs", []):
             failures.append(
                 failure(
                     "tooling-python-credentials",
-                    "public and offline Python contexts must be credential-free",
-                    PROFILES_PATH,
-                )
-            )
-        if mode == "mirror-only" and not _maps_complete_namespace(context):
-            failures.append(
-                failure(
-                    "tooling-python-mirror",
-                    "mirror-only Python context must map the complete namespace to one credential-referenced mirror",
+                    "Python acquisition must use the credential-free public context",
                     PROFILES_PATH,
                 )
             )
@@ -189,7 +162,7 @@ def _projection_drift_failures(
     """Require one readable projection to be bound to its profile and lock."""
 
     try:
-        manifest = json.loads((repo_root / manifest_path).read_text(encoding="utf-8"))
+        manifest = read_tooling_document(repo_root, manifest_path)
         requirements = (repo_root / requirements_path).read_bytes()
     except (OSError, ValueError):
         return [

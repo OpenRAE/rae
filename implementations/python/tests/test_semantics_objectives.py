@@ -11,13 +11,15 @@ from hypothesis import strategies as st
 from raes.parser import parse_sdl_file
 from raes.semantics.assessment import AssessmentResourceKind
 from raes.semantics.objective_semantics import (
-    OBJECTIVE_ACTOR_DEPENDENCY_ROLES,
+    OBJECTIVE_ASSIGNMENT_DEPENDENCY_ROLES,
     OBJECTIVE_DEPENDENCY_DEPENDENCY_ROLES,
+    OBJECTIVE_OWNER_DEPENDENCY_ROLES,
     OBJECTIVE_SUCCESS_DEPENDENCY_ROLES,
     OBJECTIVE_TARGET_DEPENDENCY_ROLES,
     OBJECTIVE_WINDOW_DEPENDENCY_ROLES,
     AssessmentResourceCatalog,
     ObjectiveReferenceKind,
+    ObjectiveRelationCatalog,
     WindowResourceCatalog,
     analyze_objective_semantics,
     partition_objective_dependencies,
@@ -116,7 +118,7 @@ events:
   {prefix}kickoff: {{}}
 objectives:
   {prefix}observe:
-    entity: {prefix}blue
+    owner: {prefix}blue
     success:
       assertions: [{prefix}health]
     window:
@@ -413,10 +415,12 @@ def _window(*, stories=None, scripts=None, events=None, workflows=None, steps=No
     )
 
 
-def _objective(*, agent="", entity="", actions=None, targets=None, success=None, window=None, depends_on=None):
+def _objective(
+    *, assigned_participant="", owner="", actions=None, targets=None, success=None, window=None, depends_on=None
+):
     return SimpleNamespace(
-        agent=agent,
-        entity=entity,
+        assigned_participant=assigned_participant,
+        owner=owner,
         actions=list(actions or []),
         targets=list(targets or []),
         success=success if success is not None else _success(assertions=["health"]),
@@ -451,8 +455,11 @@ def _analyze(objectives, **overrides):
     sections = {key: overrides.pop(key, default) for key, default in section_defaults.items()}
     kwargs: dict = {
         "objectives_by_name": objectives,
-        "agents_by_name": {},
-        "entity_names": set(),
+        "relation_resources": ObjectiveRelationCatalog(
+            agents=overrides.pop("agents_by_name", {}),
+            entity_names=overrides.pop("entity_names", set()),
+            action_contracts=overrides.pop("action_contracts", {"Scan": object(), "Persist": object()}),
+        ),
         "assessment_resources": AssessmentResourceCatalog(
             assertions=sections["assertions_by_name"],
         ),
@@ -472,9 +479,9 @@ class TestObjectiveSemantics:
     def test_well_formed_objectives_normalize_references_and_dependencies(self) -> None:
         analysis = _analyze(
             {
-                "base": _objective(entity="blue", success=_success(assertions=["c1"])),
+                "base": _objective(owner="blue", success=_success(assertions=["c1"])),
                 "follow": _objective(
-                    agent="red",
+                    assigned_participant="red",
                     actions=["Scan"],
                     targets=["nodes.web"],
                     success=_success(assertions=["c2"]),
@@ -491,8 +498,10 @@ class TestObjectiveSemantics:
 
         assert not analysis.has_issues
 
-        actor_names = {ref.canonical_name for ref in analysis.references_of_kind(ObjectiveReferenceKind.ACTOR)}
-        assert actor_names == {"entities.blue", "red"}
+        assert {ref.canonical_name for ref in analysis.references_of_kind(ObjectiveReferenceKind.ASSIGNMENT)} == {"red"}
+        assert {ref.canonical_name for ref in analysis.references_of_kind(ObjectiveReferenceKind.OWNER)} == {
+            "entities.blue"
+        }
         assert {ref.canonical_name for ref in analysis.references_of_kind(ObjectiveReferenceKind.TARGET)} == {
             "nodes.web"
         }
@@ -521,7 +530,7 @@ class TestObjectiveSemantics:
         for ref in analysis.references_of_kind(ObjectiveReferenceKind.WINDOW):
             assert ObjectiveDependencyRole.REFRESH in ref.dependency_roles
             assert ObjectiveDependencyRole.ORDERING not in ref.dependency_roles
-        for kind in (ObjectiveReferenceKind.ACTOR, ObjectiveReferenceKind.TARGET):
+        for kind in (ObjectiveReferenceKind.ASSIGNMENT, ObjectiveReferenceKind.OWNER, ObjectiveReferenceKind.TARGET):
             for ref in analysis.references_of_kind(kind):
                 assert ref.dependency_roles == ()
 
@@ -534,20 +543,20 @@ class TestObjectiveSemantics:
     def test_undeclared_actor_references_are_reported(self) -> None:
         analysis = _analyze(
             {
-                "a": _objective(agent="ghost"),
-                "b": _objective(entity="ghost-team"),
+                "a": _objective(assigned_participant="ghost"),
+                "b": _objective(owner="ghost-team"),
             },
             agents_by_name={"red": _agent()},
             entity_names={"blue"},
             assertions_by_name={"health": object()},
         )
         codes = {issue.code for issue in analysis.issues}
-        assert "objective.actor-agent-undeclared" in codes
-        assert "objective.actor-entity-undeclared" in codes
+        assert "objective.assignment-undeclared" in codes
+        assert "objective.owner-undeclared" in codes
 
     def test_agent_action_must_be_declared(self) -> None:
         analysis = _analyze(
-            {"a": _objective(agent="red", actions=["Persist"])},
+            {"a": _objective(assigned_participant="red", actions=["Persist"])},
             agents_by_name={"red": _agent("Scan")},
             assertions_by_name={"health": object()},
         )
@@ -557,7 +566,7 @@ class TestObjectiveSemantics:
 
     def test_unresolvable_target_is_reported(self) -> None:
         analysis = _analyze(
-            {"a": _objective(entity="blue", targets=["ghost"])},
+            {"a": _objective(owner="blue", targets=["ghost"])},
             entity_names={"blue"},
             assertions_by_name={"health": object()},
         )
@@ -565,7 +574,7 @@ class TestObjectiveSemantics:
 
     def test_ambiguous_target_is_reported_with_sorted_candidates(self) -> None:
         analysis = _analyze(
-            {"a": _objective(entity="blue", targets=["web"])},
+            {"a": _objective(owner="blue", targets=["web"])},
             entity_names={"blue"},
             assertions_by_name={"health": object()},
             targetable_name_index={"web": {"nodes.web", "features.web"}},
@@ -578,7 +587,7 @@ class TestObjectiveSemantics:
         analysis = _analyze(
             {
                 "a": _objective(
-                    entity="blue",
+                    owner="blue",
                     success=_success(assertions=["c?"]),
                 )
             },
@@ -591,7 +600,7 @@ class TestObjectiveSemantics:
         analysis = _analyze(
             {
                 "a": _objective(
-                    entity="blue",
+                    owner="blue",
                     success=_success(assertions=["health"]),
                     window=_window(scripts=["s1"], events=["evt"]),
                 )
@@ -605,7 +614,7 @@ class TestObjectiveSemantics:
 
     def test_undeclared_dependency_is_reported(self) -> None:
         analysis = _analyze(
-            {"a": _objective(entity="blue", depends_on=["ghost"])},
+            {"a": _objective(owner="blue", depends_on=["ghost"])},
             entity_names={"blue"},
             assertions_by_name={"health": object()},
         )
@@ -614,8 +623,8 @@ class TestObjectiveSemantics:
     def test_dependency_cycle_is_reported_once_globally(self) -> None:
         analysis = _analyze(
             {
-                "a": _objective(entity="blue", depends_on=["b"]),
-                "b": _objective(entity="blue", depends_on=["a"]),
+                "a": _objective(owner="blue", depends_on=["b"]),
+                "b": _objective(owner="blue", depends_on=["a"]),
             },
             entity_names={"blue"},
             assertions_by_name={"health": object()},
@@ -628,7 +637,7 @@ class TestObjectiveSemantics:
         analysis = _analyze(
             {
                 "a": _objective(
-                    agent="${actor}",
+                    assigned_participant="${actor}",
                     actions=["${act}"],
                     targets=["${tgt}"],
                     success=_success(assertions=["${m}"]),
@@ -678,7 +687,8 @@ class TestObjectiveDependencyPartition:
         assert OBJECTIVE_WINDOW_DEPENDENCY_ROLES == (ObjectiveDependencyRole.REFRESH,)
         # Actor and target references are normalized for fail-closed validation
         # but the compiler does not propagate ordering or refresh through them.
-        assert OBJECTIVE_ACTOR_DEPENDENCY_ROLES == ()
+        assert OBJECTIVE_ASSIGNMENT_DEPENDENCY_ROLES == ()
+        assert OBJECTIVE_OWNER_DEPENDENCY_ROLES == ()
         assert OBJECTIVE_TARGET_DEPENDENCY_ROLES == ()
 
     def test_partition_emits_each_category_under_default_roles(self) -> None:

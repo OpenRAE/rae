@@ -5,6 +5,14 @@ This inventory separates confirmed mechanisms, affected domain families, retaine
 closed sets, existing fixes, and follow-up checks. It is not a claim that every
 field in an affected family is defective.
 
+The [2026-09-16 product-semantics audit](product-semantics-audit.md) supplies
+issue #959's current family dispositions, specimen/lineage trace, reproduced
+counterexamples, focused correction issues and prevention checklist. Its
+[field ledger](product-semantics-fields.md) classifies all recursively reachable
+fields of the 17 registered families plus service-manager units. Read that
+supplement for current status; the baseline findings and #1206 implementation
+record below retain their original dates and claim boundaries.
+
 The 2026-09-05 [design-intent clarification](design-intent.md) applies to every
 row: representability is not mandatory authoring or collection; open scopes
 delegate descendants; exact children stay binding; abstract models need no

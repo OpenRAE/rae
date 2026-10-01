@@ -215,9 +215,8 @@ def _rewrite_agent(
     agent: dict[str, Any],
     symbols: dict[str, dict[str, str] | set[str]],
 ) -> None:
-    if agent.get("entity"):
-        agent["entity"] = _maybe_rename(str(agent["entity"]), symbols["entities"])
     for field_name, symbol_key in (
+        ("affiliations", "entities"),
         ("starting_accounts", "accounts"),
         ("actions", "action_contracts"),
         ("observation_boundaries", "observation_boundaries"),
@@ -240,6 +239,40 @@ def _rewrite_agent_sections(
             _rewrite_agent(agent, symbols)
 
 
+def _rewrite_autonomous_execution(
+    policy: dict[str, Any],
+    symbols: dict[str, dict[str, str] | set[str]],
+) -> None:
+    """Rewrite scenario-owned references, not candidate or external identities."""
+
+    for field_name, section in (
+        ("clock_ref", "clocks"),
+        ("progression_policy_ref", "time_progression_policies"),
+        ("observation_boundary_ref", "observation_boundaries"),
+    ):
+        if policy.get(field_name):
+            policy[field_name] = _rewrite_section_ref(policy[field_name], section, symbols[section])
+    for field_name, section in (
+        ("action_order", "action_contracts"),
+        ("temporal_constraint_refs", "temporal_constraints"),
+        ("work_window_refs", "temporal_constraints"),
+        ("pause_window_refs", "temporal_constraints"),
+    ):
+        if field_name in policy:
+            policy[field_name] = [_rewrite_section_ref(ref, section, symbols[section]) for ref in policy[field_name]]
+    for candidate in policy.get("action_candidates", {}).values():
+        if isinstance(candidate, dict) and candidate.get("action_ref"):
+            candidate["action_ref"] = _rewrite_section_ref(
+                candidate["action_ref"], "action_contracts", symbols["action_contracts"]
+            )
+    authority = policy.get("evaluation_authority")
+    if isinstance(authority, dict) and "objective_refs" in authority:
+        authority["objective_refs"] = [
+            _rewrite_section_ref(ref, "objectives", symbols["objectives"]) for ref in authority["objective_refs"]
+        ]
+    _rewrite_participant_resource_budget(policy.get("resource_budget"), symbols)
+
+
 def _rewrite_behavior_specification(
     behavior_spec: dict[str, Any],
     symbols: dict[str, dict[str, str] | set[str]],
@@ -256,7 +289,7 @@ def _rewrite_behavior_specification(
         ]
     autonomous_execution = behavior_spec.get("autonomous_execution")
     if isinstance(autonomous_execution, dict):
-        _rewrite_participant_resource_budget(autonomous_execution.get("resource_budget"), symbols)
+        _rewrite_autonomous_execution(autonomous_execution, symbols)
     _rewrite_mixed_control(behavior_spec.get("mixed_control"), symbols)
     for binding in behavior_spec.get("tool_affordances", {}).values():
         if isinstance(binding, dict):
@@ -270,9 +303,99 @@ def _rewrite_behavior_sections(
     payload: dict[str, Any],
     symbols: dict[str, dict[str, str] | set[str]],
 ) -> None:
+    for rule in payload.get("outcome_interpretation_rules", {}).values():
+        if isinstance(rule, dict):
+            _rewrite_outcome_rule(rule, symbols)
+    _rewrite_action_interactions(payload.get("action_contracts", {}), symbols)
     for behavior_spec in payload.get("behavior_specifications", {}).values():
         if isinstance(behavior_spec, dict):
             _rewrite_behavior_specification(behavior_spec, symbols)
     for requirement in payload.get("evidence_requirements", {}).values():
         if isinstance(requirement, dict):
             _rewrite_evidence_requirement(requirement, symbols)
+
+
+def _rewrite_outcome_rule(rule: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
+    """Preserve rule-local criterion IDs while rewriting cross-section sources."""
+    sections = {
+        "participant_action_outcome": "action_contracts",
+        "objective_result": "objectives",
+        "workflow_result": "workflows",
+    }
+    for field, layer_field in (("source_bindings", "source_layer"), ("target_bindings", "target_layer")):
+        for binding in rule.get(field, []):
+            if not isinstance(binding, dict):
+                continue
+            section = sections.get(binding.get(layer_field))
+            if section is not None:
+                binding["ref"] = _maybe_rename(binding["ref"], symbols[section])
+            _rewrite_binding_evidence_refs(binding, symbols)
+    rule["evidence_refs"] = [_maybe_rename(ref, symbols["named"]) for ref in rule.get("evidence_refs", [])]
+
+
+def _rewrite_action_interactions(actions: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
+    for action in actions.values():
+        if not isinstance(action, dict):
+            continue
+        _rewrite_temporal_contract_bindings(action, symbols)
+        _rewrite_action_evidence_references(action, symbols)
+        _rewrite_action_interaction_references(action, symbols)
+
+
+def _rewrite_temporal_contract_bindings(action: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
+    for temporal in action.get("temporal_contracts", []):
+        binding = temporal.get("shared_time_binding") if isinstance(temporal, dict) else None
+        if isinstance(binding, dict):
+            _rewrite_temporal_binding_references(binding, symbols)
+
+
+def _rewrite_temporal_binding_references(
+    binding: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]
+) -> None:
+    for field, section in (
+        ("clock_ref", "clocks"),
+        ("constraint_ref", "temporal_constraints"),
+        ("observation_boundary_ref", "observation_boundaries"),
+    ):
+        if field in binding:
+            binding[field] = _rewrite_section_ref(binding[field], section, symbols[section])
+
+
+def _rewrite_action_evidence_references(action: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
+    for field_name, reference_fields in (
+        ("preconditions", ("support_refs", "evidence_refs")),
+        ("effects", ("target_refs", "evidence_refs")),
+    ):
+        for item in action.get(field_name, []):
+            if isinstance(item, dict):
+                _rewrite_named_references(item, reference_fields, symbols)
+
+
+def _rewrite_named_references(
+    item: dict[str, Any],
+    reference_fields: tuple[str, ...],
+    symbols: dict[str, dict[str, str] | set[str]],
+) -> None:
+    for reference_field in reference_fields:
+        if reference_field in item:
+            item[reference_field] = [_maybe_rename(ref, symbols["named"]) for ref in item[reference_field]]
+
+
+def _rewrite_action_interaction_references(
+    action: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]
+) -> None:
+    for interaction in action.get("interactions", []):
+        if isinstance(interaction, dict):
+            interaction["target"] = _maybe_rename(interaction["target"], symbols["named"])
+            interaction["related_actions"] = [
+                _maybe_rename(ref, symbols["action_contracts"]) for ref in interaction.get("related_actions", [])
+            ]
+            interaction["shared_state_refs"] = [
+                _maybe_rename(ref, symbols["named"]) for ref in interaction.get("shared_state_refs", [])
+            ]
+
+
+def _rewrite_binding_evidence_refs(binding: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
+    for refs in ("evidence_refs", "provenance_refs"):
+        if refs in binding:
+            binding[refs] = [_maybe_rename(ref, symbols["named"]) for ref in binding[refs]]

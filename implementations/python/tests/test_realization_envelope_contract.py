@@ -294,6 +294,7 @@ def test_manifest_plan_and_snapshot_publish_the_same_typed_identity():
 def test_local_control_plane_store_roundtrips_envelope_identity(tmp_path):
     identity = BackendRealizationEnvelopeModel.model_validate(_payload()).identity
     store = LocalControlPlaneStore(tmp_path / "store")
+    store.admit_runtime(target_scope="target:stub", run_scope="run:test")
 
     store.save_snapshot(
         RuntimeSnapshot(realization_envelope=identity),

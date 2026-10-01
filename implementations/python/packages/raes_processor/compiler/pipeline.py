@@ -4,6 +4,7 @@ from collections.abc import Mapping
 
 from raes import build_declaration_index
 from raes.instantiate import admit_instantiated_scenario, instantiate_scenario
+from raes.materialization import MaterializedScenario, admit_materialized_scenario
 from raes.scenario import ExpandedScenario, InstantiatedScenario, Scenario
 from raes.semantics.domain_topology import (
     analyze_domain_topology,
@@ -58,7 +59,7 @@ from .workflows import _compile_workflows
 
 
 def compile_scenario_runtime_model(
-    scenario: Scenario | ExpandedScenario | InstantiatedScenario,
+    scenario: Scenario | ExpandedScenario | InstantiatedScenario | MaterializedScenario,
     *,
     parameters: Mapping[str, object] | None = None,
     profile: str | None = None,
@@ -68,7 +69,7 @@ def compile_scenario_runtime_model(
 
     concrete_scenario = (
         scenario
-        if isinstance(scenario, InstantiatedScenario)
+        if isinstance(scenario, (InstantiatedScenario, MaterializedScenario))
         else instantiate_scenario(scenario, parameters=parameters, profile=profile)
     )
     return compile_runtime_model(concrete_scenario, profile_authority=profile_authority)
@@ -102,8 +103,12 @@ def _compiled_structure_parts(
         "agent_specs": agent_specs,
         "relationship_specs": relationship_specs,
         "time_model": compile_time_model(scenario),
-        "capability_constraints": _compile_capability_constraints(scenario),
-        "capture_demands": compile_scenario_capture_demands(scenario),
+        "capability_constraints": _compile_capability_constraints(scenario)
+        if isinstance(scenario, InstantiatedScenario)
+        else (),
+        "capture_demands": compile_scenario_capture_demands(scenario)
+        if isinstance(scenario, InstantiatedScenario)
+        else (),
         "networks": networks,
         "node_deployments": node_deployments,
         "feature_bindings": _compile_feature_bindings(scenario, feature_templates, diagnostics),
@@ -132,7 +137,10 @@ def _compiled_behavior_parts(
     """Compile behaviour, narrative, and realization over the compiled structure."""
 
     assertions = _compile_assertions(scenario)
-    realization_requirements, realization_authority = _compile_realization(scenario, domain_analysis)
+    descriptive = isinstance(scenario, MaterializedScenario)
+    realization_requirements, realization_authority = (
+        ((), ()) if descriptive else _compile_realization(scenario, domain_analysis)
+    )
     return {
         "assertions": assertions,
         "action_contracts": _compile_action_contracts(scenario),
@@ -151,23 +159,26 @@ def _compiled_behavior_parts(
         "workflows": _compile_workflows(scenario, assertions, diagnostics),
         "realization_requirements": realization_requirements,
         "realization_authority": realization_authority,
-        "observation_demands": compile_observation_demands(scenario, declaration_index=declaration_index),
+        "observation_demands": ()
+        if descriptive
+        else compile_observation_demands(scenario, declaration_index=declaration_index),
     }
 
 
 def compile_runtime_model(
-    scenario: Scenario | ExpandedScenario | InstantiatedScenario,
+    scenario: Scenario | ExpandedScenario | InstantiatedScenario | MaterializedScenario,
     *,
     profile_authority: PlanProfileAuthority | None = None,
 ) -> RuntimeModel:
     """Compile an SDL scenario into bound runtime objects."""
 
     authority = _admitted_profile_authority(profile_authority)
-    scenario = (
-        admit_instantiated_scenario(scenario)
-        if isinstance(scenario, InstantiatedScenario)
-        else instantiate_scenario(scenario)
-    )
+    if isinstance(scenario, MaterializedScenario):
+        scenario = admit_materialized_scenario(scenario)
+    elif isinstance(scenario, InstantiatedScenario):
+        scenario = admit_instantiated_scenario(scenario)
+    else:
+        scenario = instantiate_scenario(scenario)
     declaration_index = build_declaration_index(scenario)
     authority = compile_software_profiles(scenario, authority)
     diagnostics: list[Diagnostic] = []
@@ -189,7 +200,8 @@ def compile_runtime_model(
     return RuntimeModel(
         scenario_name=scenario.name,
         profile_authority=authority,
-        realization_instance=scenario,
+        realization_instance=scenario if isinstance(scenario, InstantiatedScenario) else None,
+        materialization_description=scenario if isinstance(scenario, MaterializedScenario) else None,
         diagnostics=diagnostics,
         **structure,
         **behavior,

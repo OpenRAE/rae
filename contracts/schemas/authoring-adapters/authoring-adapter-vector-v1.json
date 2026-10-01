@@ -1,0 +1,351 @@
+{
+  "$defs": {
+    "AuthoringContrastModel": {
+      "additionalProperties": false,
+      "description": "Fixed negative witness: one alternative emitted artifact and its dispositions.",
+      "properties": {
+        "artifact_relation": {
+          "const": "different",
+          "title": "Artifact Relation",
+          "type": "string"
+        },
+        "output_source": {
+          "maxLength": 65536,
+          "minLength": 1,
+          "title": "Output Source",
+          "type": "string"
+        },
+        "semantic_relation": {
+          "enum": [
+            "equivalent",
+            "different"
+          ],
+          "title": "Semantic Relation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "output_source",
+        "artifact_relation",
+        "semantic_relation"
+      ],
+      "title": "AuthoringContrastModel",
+      "type": "object"
+    },
+    "AuthoringObservationModel": {
+      "additionalProperties": false,
+      "description": "Derived evidence; consumers must retain the original diagnostic/report carriers.",
+      "properties": {
+        "artifact_coordinate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ScenarioCoordinateModel"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "canonical_artifact_digest": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Canonical Artifact Digest"
+        },
+        "diagnostics_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Diagnostics Digest",
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "success",
+            "refused"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "transformation_digest": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Transformation Digest"
+        }
+      },
+      "required": [
+        "outcome",
+        "artifact_coordinate",
+        "canonical_artifact_digest",
+        "diagnostics_digest",
+        "transformation_digest"
+      ],
+      "title": "AuthoringObservationModel",
+      "type": "object"
+    },
+    "AuthoringOperationModel": {
+      "additionalProperties": false,
+      "properties": {
+        "new_local_name": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "not": {
+                "pattern": "[^a-z0-9_-]"
+              },
+              "pattern": "^[a-z0-9]",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "New Local Name"
+        },
+        "profile": {
+          "enum": [
+            "validate-sdl/v1",
+            "rename-sdl-declaration/v1"
+          ],
+          "title": "Profile",
+          "type": "string"
+        },
+        "target_address": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Address"
+        }
+      },
+      "required": [
+        "profile"
+      ],
+      "title": "AuthoringOperationModel",
+      "type": "object"
+    },
+    "ExactRepresentationModel": {
+      "additionalProperties": false,
+      "description": "Digest-only evidence for one exact representation, never a host path.",
+      "properties": {
+        "byte_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Byte Digest",
+          "type": "string"
+        },
+        "media_type": {
+          "enum": [
+            "application/json",
+            "application/yaml"
+          ],
+          "title": "Media Type",
+          "type": "string"
+        },
+        "profile": {
+          "enum": [
+            "utf8-json/v1",
+            "utf8-yaml/v1"
+          ],
+          "title": "Profile",
+          "type": "string"
+        }
+      },
+      "required": [
+        "profile",
+        "media_type",
+        "byte_digest"
+      ],
+      "title": "ExactRepresentationModel",
+      "type": "object"
+    },
+    "ScenarioCoordinateModel": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_kind": {
+          "const": "scenario",
+          "default": "scenario",
+          "title": "Artifact Kind",
+          "type": "string"
+        },
+        "canonical_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Canonical Digest",
+          "type": "string"
+        },
+        "canonical_identity": {
+          "maxLength": 512,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]*$",
+          "title": "Canonical Identity",
+          "type": "string"
+        },
+        "canonicalization_profile": {
+          "maxLength": 128,
+          "pattern": "^[a-z0-9-]+/v[1-9][0-9]*$",
+          "title": "Canonicalization Profile",
+          "type": "string"
+        },
+        "exact_representation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExactRepresentationModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "lifecycle_phase": {
+          "const": "normalized-authoring",
+          "default": "normalized-authoring",
+          "title": "Lifecycle Phase",
+          "type": "string"
+        },
+        "scenario_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Scenario Id",
+          "type": "string"
+        },
+        "scenario_version": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Scenario Version",
+          "type": "string"
+        },
+        "source_profile": {
+          "const": "sdl-normalized-authoring/v1",
+          "default": "sdl-normalized-authoring/v1",
+          "title": "Source Profile",
+          "type": "string"
+        }
+      },
+      "required": [
+        "canonical_identity",
+        "canonicalization_profile",
+        "canonical_digest",
+        "scenario_id",
+        "scenario_version"
+      ],
+      "title": "ScenarioCoordinateModel",
+      "type": "object"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/authoring-adapter-vector-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "case_id": {
+      "maxLength": 128,
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "title": "Case Id",
+      "type": "string"
+    },
+    "contrast": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AuthoringContrastModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "expected": {
+      "$ref": "#/$defs/AuthoringObservationModel"
+    },
+    "input_digest": {
+      "minLength": 1,
+      "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+      "title": "Input Digest",
+      "type": "string"
+    },
+    "input_source": {
+      "maxLength": 65536,
+      "minLength": 1,
+      "title": "Input Source",
+      "type": "string"
+    },
+    "operation": {
+      "$ref": "#/$defs/AuthoringOperationModel"
+    },
+    "operation_digest": {
+      "minLength": 1,
+      "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+      "title": "Operation Digest",
+      "type": "string"
+    },
+    "profile_digest": {
+      "minLength": 1,
+      "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+      "title": "Profile Digest",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "authoring-adapter-vector/v1",
+      "default": "authoring-adapter-vector/v1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "case_id",
+    "profile_digest",
+    "input_source",
+    "input_digest",
+    "operation",
+    "operation_digest",
+    "expected"
+  ],
+  "title": "AuthoringAdapterVectorModel",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "Exact UTF-8 source and closed operation digests must match; outcomes must bind artifacts.",
+      "id": "authoring-vector-bound-inputs",
+      "inputs": [
+        {
+          "contract_id": "authoring-adapter-vector-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.authoring_adapters.AuthoringAdapterVectorModel.model_validate"
+    }
+  ],
+  "x-raes-semantic-profile": {
+    "contract_id": "authoring-adapter-vector-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
+}

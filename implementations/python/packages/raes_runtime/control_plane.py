@@ -1,15 +1,13 @@
-"""Reference async-style control plane over runtime targets.
-Expose schema-oriented runtime execution as eagerly completed operations over an async-compatible API.
-"""
+"""Reference async-style control plane over runtime targets."""
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
+from copy import deepcopy
 from threading import RLock
-from typing import TypeVar
+from typing import TypeVar, Unpack
 
-from raes_contracts.contracts import ParticipantInformationStateContextResolver
-from raes_contracts.manifest_authority import PARTICIPANT_RUNTIME_POLICY_FEATURES
+from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import (
     EvaluationPlan,
     OrchestrationPlan,
@@ -23,14 +21,15 @@ from raes_contracts.runtime_state import (
     RuntimeSnapshot,
     RuntimeSnapshotEnvelope,
 )
-from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
-from raes_processor.models import ParticipantBehaviorSpecificationRuntime
 
 from .control_plane_admission import RuntimeAdmissionMixin
+from .control_plane_composition import compose_participant_boundary
+from .control_plane_configuration import ControlPlaneConfiguration, ControlPlaneOptions
 from .control_plane_durability import RuntimeDurabilityMixin
 from .control_plane_execution import (
     OperationExecutionRequest,
     execute_operation,
+    reject_new_operation_if_admission_fails,
 )
 from .control_plane_lifecycle import RuntimeLifecycleMixin, runtime_owned, store_authoritative_state
 from .control_plane_mutation import (
@@ -40,140 +39,178 @@ from .control_plane_mutation import (
     mutation_entry,
 )
 from .control_plane_operation_context import (
+    legacy_operation_request_commitment,
+    operation_actor_scope,
     operation_admission_context,
     operation_idempotency_fingerprint,
     operation_requires_ephemeral_retry_proof,
+    runtime_target_scope,
 )
 from .control_plane_plan_authorization import RuntimePlanAuthorizationMixin
+from .control_plane_profiles import (
+    CORE_CAPABILITIES,
+    ControlPlaneProfile,
+    ControlPlaneProfileDeclaration,
+    require_profile_capabilities,
+    select_profile,
+    store_capabilities,
+)
+from .control_plane_recovery import RuntimeRecoveryMixin, reconcile_startup_operations
 from .control_plane_store import (
     AuditEvent,
     ControlPlaneOperationRecord,
     ControlPlaneStore,
+    IdempotencyClaimIdentity,
     InMemoryControlPlaneStore,
+    RuntimeAdmittedControlPlaneStore,
     SnapshotState,
+    require_operation_record_scopes,
 )
 from .control_plane_store_compatibility import adapt_control_plane_store
 from .control_plane_submission import control_plane_plan_diagnostics
 from .control_plane_workflow_control import WorkflowControlMixin
+from .mixed_runtime import MixedRuntimeMixin
+from .mixed_runtime_recovery import validate_restored_mixed_crossing_cut
 from .observation_execution import ObservationExecution
 from .observation_results import observation_execution_from_payload
 from .operational_apparatus import operational_apparatus_summary
 from .participant_control import ParticipantControlMixin
-from .participant_crossing_mediation import (
-    ParticipantCrossingPolicyResolver,
-    validate_persisted_crossing_history,
-)
 from .participant_information_state_validation import require_participant_information_state_snapshot
 from .participant_retrieval import ParticipantRetrievalMixin
 from .registry import RuntimeTarget as _RuntimeTarget
 
 _ProjectionT = TypeVar("_ProjectionT")
+_P0_SCOPE_BOUND_ERROR = "control-plane profile P0 missing capabilities: store.scope-bound"
 
 
-def _require_crossing_policy_configuration(
-    target: _RuntimeTarget,
-    resolver: ParticipantCrossingPolicyResolver | None,
-) -> None:
-    capabilities = target.manifest.participant_runtime
-    if capabilities is None:
-        return
-    enabled_policy_features = {
-        declaration.feature
-        for declaration in capabilities.feature_support
-        if declaration.feature in PARTICIPANT_RUNTIME_POLICY_FEATURES
-        and declaration.support_level != ParticipantFeatureSupportLevel.UNSUPPORTED
-    }
-    if enabled_policy_features and resolver is None:
-        features = ", ".join(sorted(enabled_policy_features))
-        raise ValueError(f"participant policy capabilities require a crossing policy resolver: {features}")
-
-
-def _require_final_sink_flow_control_configuration(
-    resolver: ParticipantCrossingPolicyResolver | None,
-    enforce_final_sink_flow_control: bool,
-) -> None:
-    """Reject a policy resolver that cannot resolve the SEM-233 final-sink permit.
-
-    Final-sink enforcement is fail-closed by default: a control plane that
-    governs participant crossings must resolve a fresh exact-cut SEM-233 permit
-    immediately before every effect. A resolver without ``resolve_flow_sink_decision``
-    cannot, so the control plane refuses to construct rather than silently
-    admitting effects with no final-sink decision. A deployment that intentionally
-    runs the legacy API-423-only path passes ``enforce_final_sink_flow_control=False``.
-    """
-
-    if not enforce_final_sink_flow_control or resolver is None:
-        return
-    if not callable(getattr(resolver, "resolve_flow_sink_decision", None)):
-        raise ValueError(
-            "participant final-sink flow-control enforcement requires the crossing policy "
-            "resolver to implement resolve_flow_sink_decision; pass "
-            "enforce_final_sink_flow_control=False to run the legacy API-423-only path"
+def _unavailable_backend_diagnostics(domain: RuntimeDomain, component: str) -> list[Diagnostic]:
+    return [
+        Diagnostic(
+            code="runtime.control-plane.rejected",
+            domain="runtime",
+            address=f"runtime.control-plane.{domain.value}",
+            message=f"Target does not provide {component}.",
         )
+    ]
+
+
+def _unavailable_backend(*_args: object, **_kwargs: object) -> object:
+    raise AssertionError("an unavailable backend cannot be invoked")
+
+
+def _prepare_control_plane_store(
+    config: ControlPlaneConfiguration,
+) -> tuple[ControlPlaneProfileDeclaration | None, ControlPlaneStore]:
+    if config.store is not None and config.initial_snapshot is not None:
+        raise ValueError("initial_snapshot cannot be combined with an explicit store")
+    declaration = select_profile(config.profile) if config.profile is not None else None
+    if declaration is not None and declaration.profile is ControlPlaneProfile.P2:
+        raise ValueError("P2 is selected by the HTTP composition over a P1 core")
+    store = config.store if config.store is not None else InMemoryControlPlaneStore(config.initial_snapshot)
+    if declaration is not None:
+        _require_selected_store_capabilities(declaration, store)
+    return declaration, store
+
+
+def _require_selected_store_capabilities(declaration: ControlPlaneProfileDeclaration, store: ControlPlaneStore) -> None:
+    require_profile_capabilities(declaration, CORE_CAPABILITIES | store_capabilities(store))
+    if declaration.profile is ControlPlaneProfile.P0 and not callable(getattr(store, "bind_scope", None)):
+        raise TypeError(_P0_SCOPE_BOUND_ERROR)
+    if declaration.profile is ControlPlaneProfile.P1 and not isinstance(store, RuntimeAdmittedControlPlaneStore):
+        raise TypeError("control-plane profile P1 missing capabilities: store.owner-lease")
 
 
 class RuntimeControlPlane(
     RuntimeLifecycleMixin,
+    RuntimeRecoveryMixin,
     RuntimePlanAuthorizationMixin,
     RuntimeDurabilityMixin,
     RuntimeAdmissionMixin,
     WorkflowControlMixin,
     ParticipantControlMixin,
     ParticipantRetrievalMixin,
+    MixedRuntimeMixin,
 ):
     """Reference control plane for async runtime submission and observation."""
 
     def __init__(
         self,
         target: _RuntimeTarget,
-        *,
-        initial_snapshot: RuntimeSnapshot | None = None,
-        store: ControlPlaneStore | None = None,
-        behavior_specifications: Mapping[str, ParticipantBehaviorSpecificationRuntime] | None = None,
-        crossing_policy_resolver: ParticipantCrossingPolicyResolver | None = None,
-        information_state_context_resolver: ParticipantInformationStateContextResolver | None = None,
-        enforce_final_sink_flow_control: bool = True,
+        **options: Unpack[ControlPlaneOptions],
     ) -> None:
+        config = ControlPlaneConfiguration(**options)
+        target_scope = runtime_target_scope(target.name)
+        declaration, selected_store = _prepare_control_plane_store(config)
+        self._profile_declaration = declaration
         self._initialize_runtime_lifecycle()
-        if store is not None and initial_snapshot is not None:
-            raise ValueError("initial_snapshot cannot be combined with an explicit store")
-        _require_crossing_policy_configuration(target, crossing_policy_resolver)
-        _require_final_sink_flow_control_configuration(crossing_policy_resolver, enforce_final_sink_flow_control)
+        self._flow_sink_resolver = compose_participant_boundary(target, config)
         self._target = target
-        self._enforce_final_sink_flow_control = enforce_final_sink_flow_control
-        self._store = store or InMemoryControlPlaneStore(initial_snapshot)
+        self._target_scope, self._run_scope = target_scope, config.run_scope
+        self._mixed_runtime = config.mixed_runtime
+        self._materialization_archive = config.materialization_archive
+        self._enforce_final_sink_flow_control = config.enforce_final_sink_flow_control
+        self._store = selected_store
         try:
             self._mutation_authority = RuntimeMutationAuthority()
             self._operation_lock = RLock()
             self._snapshot_projection_depth = 0
             self._store_commits = adapt_control_plane_store(self._store)
-            acquire_runtime_lease = getattr(self._store, "acquire_runtime_lease", None)
-            if callable(acquire_runtime_lease):
-                self._runtime_lease = acquire_runtime_lease()
-            self._snapshot_state = self._store.load_snapshot_state()
-            self._operations: dict[str, ControlPlaneOperationRecord] = self._store.load_records()
-            self._behavior_specifications = dict(behavior_specifications or {})
-            self._crossing_policy_resolver = crossing_policy_resolver
-            self._information_state_context_resolver = information_state_context_resolver
-            self._ephemeral_idempotency_fingerprints: dict[str, str] = {}
-            self._participant_control_lock = SubordinateMutationGate(self._mutation_authority)
-            self._trusted_runtime_plan_lock = RLock()
-            self._trusted_runtime_plan_digests: set[str] = set()
-            require_participant_information_state_snapshot(
-                self._snapshot,
-                information_state_context_resolver,
-            )
-            if self._snapshot.participant_crossing_history:
-                if crossing_policy_resolver is None:
-                    raise ValueError("persisted participant crossing history requires a policy resolver")
-                validate_persisted_crossing_history(self._snapshot, crossing_policy_resolver)
+            self._admit_store_owner()
+            self._restore_persisted_state(config)
+            reconcile_startup_operations(self)
+            self._runtime_ready = True
         except BaseException:
             self.close()
             raise
 
+    def _admit_store_owner(self) -> None:
+        if self._profile_declaration is not None and self._profile_declaration.profile is ControlPlaneProfile.P0:
+            scope_binder = getattr(self._store, "bind_scope", None)
+            if not callable(scope_binder):
+                raise TypeError(_P0_SCOPE_BOUND_ERROR)
+            owner = scope_binder(target_scope=self._target_scope, run_scope=self._run_scope)
+            if not callable(getattr(owner, "assert_owner", None)) or not callable(getattr(owner, "close", None)):
+                close = getattr(owner, "close", None)
+                if callable(close):
+                    close()
+                raise TypeError(_P0_SCOPE_BOUND_ERROR)
+            self._runtime_lease = owner
+        if isinstance(self._store, RuntimeAdmittedControlPlaneStore):
+            self._runtime_lease = self._store.admit_runtime(
+                target_scope=self._target_scope,
+                run_scope=self._run_scope,
+            )
+
+    def _restore_persisted_state(self, config: ControlPlaneConfiguration) -> None:
+        self._participant_outcome_model = deepcopy(config.participant_outcome_model)
+        self._snapshot_state = self._store.load_snapshot_state()
+        self._operations: dict[str, ControlPlaneOperationRecord] = self._store.load_records()
+        require_operation_record_scopes(self._operations, target_scope=self._target_scope, run_scope=self._run_scope)
+        self._behavior_specifications = dict(config.behavior_specifications or {})
+        self._crossing_policy_resolver = config.crossing_policy_resolver
+        self._information_state_context_resolver = config.information_state_context_resolver
+        self._participant_control = config.participant_control
+        self._ephemeral_idempotency_fingerprints: dict[IdempotencyClaimIdentity, str] = {}
+        self._participant_control_lock = SubordinateMutationGate(self._mutation_authority)
+        self._trusted_runtime_plan_lock = RLock()
+        self._trusted_runtime_plan_digests: set[str] = set()
+        require_participant_information_state_snapshot(self._snapshot, config.information_state_context_resolver)
+        if self._snapshot.participant_crossing_history:
+            if config.crossing_policy_resolver is None:
+                raise ValueError("persisted participant crossing history requires a policy resolver")
+            validate_restored_mixed_crossing_cut(self, config.crossing_policy_resolver)
+
     @property
     def _snapshot(self) -> RuntimeSnapshot:
         return self._snapshot_state.snapshot
+
+    @property
+    @runtime_owned
+    def profile_declaration(self) -> ControlPlaneProfileDeclaration | None:
+        """The selected core profile, or no claim for a legacy composition."""
+
+        self._assert_runtime_owner()
+        return self._profile_declaration
 
     @_snapshot.setter
     def _snapshot(self, snapshot: RuntimeSnapshot) -> None:
@@ -279,41 +316,27 @@ class RuntimeControlPlane(
             if operation_requires_ephemeral_retry_proof(request=plan, base_snapshot=base_snapshot)
             else None
         )
-        existing = self._idempotent_receipt(
+        request = OperationExecutionRequest(
+            domain=RuntimeDomain.PROVISIONING,
+            method=self._target.provisioner.apply,
+            plan=plan,
+            address="runtime.control-plane.provisioning",
+            diagnostics=[],
+            validation_method=(self._target.provisioner.validate if plan.preparation is None else None),
+            base_snapshot=base_snapshot,
             idempotency_key=idempotency_key,
             request_fingerprint=context.request_commitment,
             context=context,
-            exact_retry_fingerprint=exact_retry_fingerprint,
-        )
-        if existing is not None:
-            return existing
-        self._require_observed_base_snapshot(base_snapshot)
-        diagnostics = control_plane_plan_diagnostics(self, plan, RuntimeDomain.PROVISIONING)
-        if diagnostics:
-            return self._reject_diagnostics(
-                domain=RuntimeDomain.PROVISIONING,
-                diagnostics=diagnostics,
-                idempotency_key=idempotency_key,
-                request_fingerprint=context.request_commitment,
-                context=context,
-            )
-        return execute_operation(
-            self,
-            OperationExecutionRequest(
-                domain=RuntimeDomain.PROVISIONING,
-                method=self._target.provisioner.apply,
-                plan=plan,
-                address="runtime.control-plane.provisioning",
-                diagnostics=[],
-                validation_method=(self._target.provisioner.validate if plan.preparation is None else None),
+            legacy_request_fingerprint=legacy_operation_request_commitment(
+                kind=OperationKind.PROVISIONING,
+                request=plan,
                 base_snapshot=base_snapshot,
-                idempotency_key=idempotency_key,
-                request_fingerprint=context.request_commitment,
-                context=context,
-                exact_retry_fingerprint=exact_retry_fingerprint,
-                admission_diagnostics=lambda: control_plane_plan_diagnostics(self, plan, RuntimeDomain.PROVISIONING),
             ),
+            exact_retry_fingerprint=exact_retry_fingerprint,
+            admission_diagnostics=lambda: control_plane_plan_diagnostics(self, plan, RuntimeDomain.PROVISIONING),
         )
+        denied_or_replay = reject_new_operation_if_admission_fails(self, request)
+        return denied_or_replay or execute_operation(self, request)
 
     @runtime_owned
     @mutation_entry(OperationKind.ORCHESTRATION)
@@ -344,52 +367,31 @@ class RuntimeControlPlane(
             if operation_requires_ephemeral_retry_proof(request=plan, base_snapshot=base_snapshot)
             else None
         )
-        existing = self._idempotent_receipt(
+        orchestrator = self._target.orchestrator
+        request = OperationExecutionRequest(
+            domain=RuntimeDomain.ORCHESTRATION,
+            method=_unavailable_backend if orchestrator is None else orchestrator.start,
+            plan=plan,
+            address="runtime.control-plane.orchestration",
+            diagnostics=[],
+            base_snapshot=base_snapshot,
             idempotency_key=idempotency_key,
             request_fingerprint=context.request_commitment,
             context=context,
+            legacy_request_fingerprint=legacy_operation_request_commitment(
+                kind=OperationKind.ORCHESTRATION,
+                request=plan,
+                base_snapshot=base_snapshot,
+            ),
             exact_retry_fingerprint=exact_retry_fingerprint,
+            admission_diagnostics=(
+                (lambda: _unavailable_backend_diagnostics(RuntimeDomain.ORCHESTRATION, "an orchestrator"))
+                if orchestrator is None
+                else lambda: control_plane_plan_diagnostics(self, plan, RuntimeDomain.ORCHESTRATION)
+            ),
         )
-        if existing is not None:
-            return existing
-        self._require_observed_base_snapshot(base_snapshot)
-        if self._target.orchestrator is None:
-            receipt = self._reject_submission(
-                domain=RuntimeDomain.ORCHESTRATION,
-                message="Target does not provide an orchestrator.",
-                request_fingerprint=context.request_commitment,
-                context=context,
-            )
-        else:
-            diagnostics = control_plane_plan_diagnostics(self, plan, RuntimeDomain.ORCHESTRATION)
-            if diagnostics:
-                receipt = self._reject_diagnostics(
-                    domain=RuntimeDomain.ORCHESTRATION,
-                    diagnostics=diagnostics,
-                    idempotency_key=idempotency_key,
-                    request_fingerprint=context.request_commitment,
-                    context=context,
-                )
-            else:
-                receipt = execute_operation(
-                    self,
-                    OperationExecutionRequest(
-                        domain=RuntimeDomain.ORCHESTRATION,
-                        method=self._target.orchestrator.start,
-                        plan=plan,
-                        address="runtime.control-plane.orchestration",
-                        diagnostics=[],
-                        base_snapshot=base_snapshot,
-                        idempotency_key=idempotency_key,
-                        request_fingerprint=context.request_commitment,
-                        context=context,
-                        exact_retry_fingerprint=exact_retry_fingerprint,
-                        admission_diagnostics=lambda: control_plane_plan_diagnostics(
-                            self, plan, RuntimeDomain.ORCHESTRATION
-                        ),
-                    ),
-                )
-        return receipt
+        denied_or_replay = reject_new_operation_if_admission_fails(self, request)
+        return denied_or_replay or execute_operation(self, request)
 
     @runtime_owned
     @mutation_entry(OperationKind.EVALUATION)
@@ -420,60 +422,60 @@ class RuntimeControlPlane(
             if operation_requires_ephemeral_retry_proof(request=plan, base_snapshot=base_snapshot)
             else None
         )
-        existing = self._idempotent_receipt(
+        evaluator = self._target.evaluator
+        request = OperationExecutionRequest(
+            domain=RuntimeDomain.EVALUATION,
+            method=_unavailable_backend if evaluator is None else evaluator.start,
+            plan=plan,
+            address="runtime.control-plane.evaluation",
+            diagnostics=[],
+            base_snapshot=base_snapshot,
             idempotency_key=idempotency_key,
             request_fingerprint=context.request_commitment,
             context=context,
+            legacy_request_fingerprint=legacy_operation_request_commitment(
+                kind=OperationKind.EVALUATION,
+                request=plan,
+                base_snapshot=base_snapshot,
+            ),
             exact_retry_fingerprint=exact_retry_fingerprint,
+            admission_diagnostics=(
+                (lambda: _unavailable_backend_diagnostics(RuntimeDomain.EVALUATION, "an evaluator"))
+                if evaluator is None
+                else lambda: control_plane_plan_diagnostics(self, plan, RuntimeDomain.EVALUATION)
+            ),
         )
-        if existing is not None:
-            return existing
-        self._require_observed_base_snapshot(base_snapshot)
-        if self._target.evaluator is None:
-            receipt = self._reject_submission(
-                domain=RuntimeDomain.EVALUATION,
-                message="Target does not provide an evaluator.",
-                request_fingerprint=context.request_commitment,
-                context=context,
-            )
-        else:
-            diagnostics = control_plane_plan_diagnostics(self, plan, RuntimeDomain.EVALUATION)
-            if diagnostics:
-                receipt = self._reject_diagnostics(
-                    domain=RuntimeDomain.EVALUATION,
-                    diagnostics=diagnostics,
-                    idempotency_key=idempotency_key,
-                    request_fingerprint=context.request_commitment,
-                    context=context,
-                )
-            else:
-                receipt = execute_operation(
-                    self,
-                    OperationExecutionRequest(
-                        domain=RuntimeDomain.EVALUATION,
-                        method=self._target.evaluator.start,
-                        plan=plan,
-                        address="runtime.control-plane.evaluation",
-                        diagnostics=[],
-                        base_snapshot=base_snapshot,
-                        idempotency_key=idempotency_key,
-                        request_fingerprint=context.request_commitment,
-                        context=context,
-                        exact_retry_fingerprint=exact_retry_fingerprint,
-                        admission_diagnostics=lambda: control_plane_plan_diagnostics(
-                            self, plan, RuntimeDomain.EVALUATION
-                        ),
-                    ),
-                )
-        return receipt
+        denied_or_replay = reject_new_operation_if_admission_fails(self, request)
+        return denied_or_replay or execute_operation(self, request)
 
     @runtime_owned
-    def get_operation(self, operation_id: str) -> OperationStatus | None:
+    def get_operation(
+        self,
+        operation_id: str,
+        *,
+        identity: object | None = None,
+    ) -> OperationStatus | None:
         self._assert_runtime_owner()
         with self._operation_lock:
             self._operations = self._store.load_records()
             record = self._operations.get(operation_id)
-        return None if record is None else record.status
+        if record is None or not self._operation_read_allowed(record, identity):
+            return None
+        return record.status
+
+    def _operation_read_allowed(
+        self,
+        record: ControlPlaneOperationRecord,
+        identity: object | None,
+    ) -> bool:
+        if identity is None:
+            return True
+        target_name = getattr(identity, "target_name", None)
+        if target_name is not None and target_name != self._target.name:
+            return False
+        actor_id, authorization_scope = operation_actor_scope(identity)
+        context = record.status.context
+        return (actor_id, authorization_scope) == (context.actor_id, context.authorization_scope)
 
     @runtime_owned
     def observation_execution(self, operation_id: str) -> ObservationExecution | None:
@@ -481,6 +483,7 @@ class RuntimeControlPlane(
 
         self._assert_runtime_owner()
         with self._operation_lock:
+            self._operations = self._store.load_records()
             record = self._operations.get(operation_id)
         return observation_execution_from_payload(None if record is None else record.result_payload)
 
@@ -490,7 +493,3 @@ class RuntimeControlPlane(
         with self._operation_lock:
             self._reload_derived_state_if_unpinned()
             return RuntimeSnapshotEnvelope(snapshot=self._snapshot)
-
-    def _require_observed_base_snapshot(self, base_snapshot: RuntimeSnapshot | None) -> None:
-        if base_snapshot is not None and base_snapshot != self._snapshot:
-            raise ValueError("explicit base snapshot does not match the authoritative runtime snapshot")

@@ -16,13 +16,18 @@ _EXACT_SCHEMA_DIRECTORIES = (
         "runtime-snapshot-v1": "snapshots",
         "recursive-realization-constraint-v1": "realization-constraints",
         "backend-realization-preparation-v1": "plans",
+        "backend-materialization-attestation-v1": "plans",
+        "backend-augmentation-scope-v1": "plans",
+        "materialization-archive-record-v1": "experiment-core",
         "plan-realization-profiles-v1": "plans",
+        "mixed-participant-composition-profile-v1": "plans",
     }
     | dict.fromkeys(
         {
             "sdl-authoring-input-v1",
             "sdl-semantic-migration-context-v1",
             "instantiated-scenario-v1",
+            "materialized-scenario-v1",
             "instantiated-scenario-snapshot-v1",
             "scenario-instantiation-request-v1",
         },
@@ -54,6 +59,11 @@ _EXACT_SCHEMA_DIRECTORIES = (
             "participant-joint-action-record-v1",
             "participant-time-management-context-v1",
             "participant-control-occurrence-v1",
+            "participant-control-selection-v1",
+            "participant-control-evaluation-v1",
+            "participant-control-selection-v2",
+            "participant-control-evaluation-v2",
+            "participant-control-teaching-profile-v1",
             "participant-crossing-occurrence-v1",
             "participant-flow-control-relation-v1",
             "participant-execution-binding-v1",
@@ -64,6 +74,7 @@ _EXACT_SCHEMA_DIRECTORIES = (
             "participant-resource-budget-state-v1",
             "participant-resource-budget-event-v1",
             "participant-outcome-report-v1",
+            "participant-outcome-report-v2",
             "runtime-fact-binding-plane-v1",
         },
         "participant-runtime",
@@ -83,6 +94,7 @@ _EXACT_SCHEMA_DIRECTORIES = (
 )
 
 _PREFIX_SCHEMA_DIRECTORIES = (
+    ("authoring-adapter-", "authoring-adapters"),
     ("scenario-satisfiability-evidence-v", "satisfiability"),
     ("artifact-requirement-v", "artifact-requirements"),
     ("artifact-transformation-report-v", "artifact-transformations"),
@@ -148,10 +160,27 @@ def write_schema_bundle(schemas_dir: Path) -> None:
     for name, schema in bundle.items():
         output_path = _schema_output_path(schemas_dir, name)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(
-            json.dumps(schema, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
+        output_path.write_text(_serialize_schema(name, schema), encoding="utf-8")
+
+
+def _serialize_schema(name: str, schema: dict[str, object]) -> str:
+    """Keep large self-contained schemas readable one definition per line."""
+    if name != "materialized-scenario-v1":
+        return json.dumps(schema, indent=2, sort_keys=True) + "\n"
+
+    def compact(value: object) -> str:
+        return json.dumps(value, sort_keys=True, separators=(",", ":"))
+
+    members = []
+    for key, value in sorted(schema.items()):
+        if key == "$defs":
+            definitions = ",\n".join(
+                f"    {json.dumps(label)}: {compact(body)}" for label, body in sorted(value.items())
+            )
+            members.append(f'  "$defs": {{\n{definitions}\n  }}')
+        else:
+            members.append(f"  {json.dumps(key)}: {compact(value)}")
+    return "{\n" + ",\n".join(members) + "\n}\n"
 
 
 def main() -> None:

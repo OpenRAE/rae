@@ -1,5 +1,49 @@
 # Operations, failure behavior and acceptance
 
+## Current maintenance and acceptance — #1313
+
+The accountable owner is the single maintainer in
+[MAINTAINERS.md](../../../MAINTAINERS.md). No deputy or independent human review
+is required. Repository review and protected publication permissions remain
+distinct from job execution privileges.
+
+Connected tools fail visibly on unavailable or corrupt input; a cache hit never
+changes expected hashes. Native curl/uv/container clients own networking.
+Private installers retain extraction limits, ownership/no-follow checks,
+per-identity locks, atomic publication and crash recovery. Shared immutable
+seed import and filesystem-name allowlisting are retired. Filesystems must
+actually support the required locking, rename and synchronization primitives;
+an I/O failure is not converted to successful qualification.
+
+The proof installation still hashes the complete admitted tree on each use.
+The same user can change read-only modes or replace cached bytes, so a marker,
+mtime or mode check is not an integrity proof. The existing sandbox and
+resource limits remain. No speed improvement or stronger tamper boundary is
+claimed.
+
+Run focused installer concurrency/crash/corruption tests, selected-input
+regressions, maintained-client integration tests, frozen builds and installed
+smokes, and the affected proof/container lanes. Component CI is path-filtered
+and manually dispatchable; the canonical CI graph and coverage remain intact.
+Reports describe actual passed, failed and unavailable cases rather than
+renewing a global policy hash. Platform support needs actual tests, not a
+native-package snapshot service.
+
+Release byte identity, standard SBOM/provenance and trusted producer checks
+remain useful. The same tested bytes must reach each publisher; #1227 owns
+partial-publication recovery and retained original release outputs. #684 owns
+real publication acceptance. No new distribution service, multi-copy backup
+guarantee, status freshness service, 100-client load target, quarterly drill,
+retention/GC service, or blanket release gate is introduced.
+
+The following original operations program is history, not an active checklist.
+
+## Historical design — superseded where inconsistent
+
+The remainder records the earlier design. It is not current acceptance policy;
+the #1313 ADR amendments and current scope above take precedence.
+
+
 ## Ownership and activation
 
 This is an implementation acceptance contract. Targets below are proposed
@@ -264,6 +308,60 @@ fault-injection proxy. Test fixture protocol handling is not a production
 acquisition implementation. Maintain a few meaningful end-to-end cases against
 the actual clients; mocks of argv alone cannot prove the profile's behavior.
 
+### Issue #1226 output-bound release evidence
+
+`.github/workflows/release-please.yml` generates, signs, admits and retains the
+release evidence. `tools/release_evidence.py` is the entry point;
+`release_evidence_sbom.py` reconciles the runtime closure,
+`release_evidence_documents.py` renders the documents,
+`release_evidence_verifier.py` bounds the maintained verifier, and
+`release_evidence_admission.py` decides admission.
+
+Exact identities: CycloneDX 1.6 documents and the `raes-build-inventory/v1` and
+`raes-release-evidence/v1` records; `actions/attest-build-provenance`
+`4d101475d8b20a2381f78447822ac1eab6504dd8` (v4.2.2) over
+`actions/attest` `508db95dd578ae2727ebd6217d5ba78e4fbda05d`; verification through
+`gh attestation verify` pinned to the producer identity in
+`implementations/tooling/admission-policy.json`; closure profile
+`public-linux-x86_64-cp312-all-extras` on `public-ubuntu-24.04-x86_64`.
+Evidence binds the `tooling_policy_sha256` aggregate alongside separately named
+raw project-lock, tool-lock and build-constraint digests.
+
+- **T03**: `test_issue_1226_runtime_closure.py` drives the declared CPython
+  3.11-3.14 / ABI / extras qualification of the reconciliation. The base closure
+  is resolved independently of extras, `dev` and `docs` components are labelled
+  rather than recorded as unconditional runtime, and inconsistent metadata fails
+  instead of omitting an edge. `test_issue_1226_target_markers.py` binds each
+  reviewed target's full marker environment, so a cross-OS or patch-sensitive
+  projection no longer inherits the generator host.
+- **T04**: `test_issue_1226_release_evidence_cli.py` and
+  `test_release_workflows.py` prove the credential isolation at the real
+  boundary rather than by reading workflow YAML shape. The approved producer set
+  comes from reviewed policy, so a foreign signer cannot approve itself; the
+  build job holds no OIDC, attestation, promotion or publishing authority; and
+  the signer holds no publication identity and checks out nothing.
+- **T19**: `test_issue_1226_release_admission.py` covers missing, extra and
+  replaced wheel, sdist or SBOM, an SBOM naming a foreign subject, a substituted
+  input inventory, a sidecar swap, a run/attempt replay, a drifted policy hash,
+  a missing attestation, a foreign producer, a valid signature from the wrong
+  workflow, and malformed or oversized evidence. Each asserts a distinct stable
+  failure class and that admission refuses before any publisher obtains usable
+  output. `test_issue_1226_attestation_verifier.py` covers the verifier
+  boundary: an empty, ambiguous, malformed or oversized verdict never becomes
+  admission.
+
+Retention: the SBOMs, build inventory and evidence index are attached to the
+GitHub Release and digest-compared on readback, so they outlive the seven-day
+Actions artifact retention. Retention owner: Release. Distribution attachment
+no longer overwrites: #1227 replaced `--clobber` with per-asset reconciliation,
+so an existing asset is byte-compared and a same-name mismatch fails visibly.
+Durable admission-bundle storage (#1224) and operations qualification (#1228)
+were cancelled by the milestone scope audit and are outside this issue.
+
+This record describes implemented repository behavior. The release-time
+execution of T03/T04/T19 against a real tagged release is observed when the next
+release runs; the cases above execute in the repository verification graph.
+
 ### Issue #1217 bootstrap qualification evidence
 
 The v2 profile authority and `bootstrap-qualification.yml` bind T01, T02, T03,
@@ -298,6 +396,67 @@ evidence artifact under the exact delivery SHA.
   setup planning. It never invokes `sudo`, shell evaluation, repository/key installation,
   pipe-to-shell acquisition or host-security reconfiguration.
 
+### Issue #1223 OCI mirror and pre-seed evidence
+
+The release-test container input is reviewed lock data rather than a literal in
+a test file. `release-test-alpine` records the reviewed multi-platform index
+`sha256:d9e853e8…` once, and each required platform records the selected
+manifest, config, layer and uncompressed layer identities beneath it. The
+graph-bearing admission policy `oci-graph-v1` is the explicit opt-in: an image
+that references it must carry a complete graph on every platform, and an image
+that does not reference it may not declare one at all. Index-only inputs such
+as the Scorecard action image and the development base image keep `oci-input-v1`
+unchanged.
+
+Linux x86_64 and Linux arm64 are the required platforms for retention, mirroring
+and export. The release lane still executes on Linux x86_64 only; arm64 daemon
+execution would need evidence this repository does not have.
+
+- T10: acquisition location is a closed source class. `preseeded` performs no
+  acquisition at all, `mirror` pulls only from the explicitly configured
+  reviewed mirror, and neither falls back to the public origin on failure. A
+  mirror value carrying a scheme, credentials, query, tag or digest is refused
+  before any client runs, and a mirror endpoint never reaches argv beyond the
+  one pull, a diagnostic, or retained evidence.
+- T11/T17: `tools/oci_release_image.py export` copies every reviewed platform
+  with `skopeo copy --all --preserve-digests`, and `import` admits the exported
+  layout offline before the runtime is touched. The release job runs both before
+  the required lane, which then runs `RAES_OCI_SOURCE_CLASS=preseeded` and
+  performs no pull. Required-mode failure for a missing runtime or input, zero
+  collected tests and any skip is unchanged from #1110.
+- T13: `tools/oci_image_layout.py` re-hashes every object named by the lock from
+  the opened file. A missing platform manifest, a mutated layer byte at the
+  locked size, a layout whose entry point is not the reviewed index, a required
+  platform claiming another platform's manifest, a symlinked blob and any blob
+  outside the reviewed index's closure are each rejected with a stable reason
+  code that never echoes layout content. No network call and no execution of
+  imported content precedes that admission.
+- T07: concurrent real-container runs no longer contend for one native name.
+  Each run generates an opaque bounded namespace, the driver commits every
+  container and network name to it, and ownership is still proven by the
+  `raes.workspace`/`raes.address` labels and daemon readback rather than by a
+  name prefix. Teardown runs on the success and every failure path, removes
+  exactly the addresses the driver reports as realized, and then asks the
+  runtime whether anything still carries this run's workspace label. That last
+  check exists because forced removal is idempotent: tearing down an address
+  that was never realized reports success while the real resource leaks, which
+  is how the previous harness silently left a container behind on every
+  conformance run. A failed teardown and a surviving resource are both reported
+  failures, and the survivor query names this run's exact workspace so a
+  concurrent run's resources are never visible to it.
+- Runtime identity: the daemon readback compares the reviewed architecture, OS
+  and uncompressed layer identities. The daemon's image id is deliberately not
+  used, because it means the config digest under one storage driver and the
+  pulled manifest digest under another, while the layer identities are intrinsic
+  to the content and survive a registry pull, an offline import and either
+  driver. An integrity mismatch fails in optional and required mode alike; only
+  an availability failure may skip an optional local run.
+
+This evidence covers the OCI slices of T07, T10, T11, T13 and T17 only. It makes
+no claim about generic tool, Python, proof-runtime, promotion, signing or
+publisher controls, and no claim about registries, runtimes or architectures
+outside the qualified profile above.
+
 ### Issue #1220 proof input evidence
 
 Isabelle no longer contains repository HTTP transport, mirror loops, a shared
@@ -309,6 +468,10 @@ client with the separately qualified `large-object` budget: exact size, a
 retries, and a wall deadline that covers the retry window. The second is an
 explicit `--local-input` copied from its opened inode. An alternate approved
 same-byte mirror is an operator choice (`--locator-ref`) in a new invocation.
+The bootstrap `fetch-inputs` command accepts the same explicit locator choice
+when one artifact is selected. Canonical CI selects
+`official-isabelle-cambridge-mirror`; it still verifies the archive against the
+unchanged lock size and SHA-256 before carrying it to the proof job.
 
 `tools/verified_tree_installation.py` extends #1219's transaction to a
 multi-gigabyte tree. The lock's `installed_tree` binds the SHA-256 of the

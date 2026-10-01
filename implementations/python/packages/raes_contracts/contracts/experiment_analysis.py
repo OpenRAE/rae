@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
+from ..evidence_proof import ValidatedRunEvidence
 from .experiment_apparatus import (
     ExperimentStochasticControlModel,
     ExperimentTaskModel,
@@ -14,12 +15,12 @@ from .experiment_artifacts import (
     _experiment_reference_key,
     _format_reference,
 )
+from .experiment_capture import ExperimentCaptureSpecModel
 from .experiment_conditions import _run_satisfies_condition_assignment
+from .experiment_evidence_refinement import validate_evidence_requirement_relations_against_artifacts
 from .experiment_references import ExperimentReferenceModel
-from .experiment_run import (
-    ExperimentRunEvidenceInputs,
-    ExperimentRunModel,
-)
+from .experiment_run import ExperimentRunModel
+from .experiment_run_evidence_validation import ExperimentRunEvidenceInputs
 from .experiment_spec import ExperimentStudyModel
 from .experiment_study import (
     ExperimentRunAllocationPlanModel,
@@ -97,9 +98,7 @@ class _RunAllocationCoverageState:
     """Mutable accumulator for `_validate_study_run_allocation_coverage` classification."""
 
     grouped_run_keys: dict[str, set[tuple[str, str | None]]]
-    validated_evidence_by_run: Mapping[tuple[str, str | None], tuple[ExperimentReferenceModel, ...]] = field(
-        default_factory=dict
-    )
+    validated_evidence_by_run: Mapping[tuple[str, str | None], ValidatedRunEvidence] = field(default_factory=dict)
     condition_by_run_key: dict[tuple[str, str | None], str] = field(default_factory=dict)
     ungrouped_run_refs: list[str] = field(default_factory=list)
     unknown_groupings: list[str] = field(default_factory=list)
@@ -135,7 +134,7 @@ def _classify_eligible_run_allocation_candidate(
     state: _RunAllocationCoverageState,
 ) -> None:
     assignment = allocation.condition_assignments[grouping]
-    validated_evidence = state.validated_evidence_by_run.get(run_key, ())
+    validated_evidence = state.validated_evidence_by_run.get(run_key)
     missing_condition_inputs = _run_satisfies_condition_assignment(run, assignment, validated_evidence)
     if missing_condition_inputs:
         joined_missing_inputs = "|".join(sorted(missing_condition_inputs))
@@ -224,7 +223,7 @@ def _validate_study_run_allocation_coverage(
     study: ExperimentStudyModel,
     runs: list[ExperimentRunModel],
     evaluation_run_members: list[ExperimentStudyMembershipModel],
-    validated_evidence_by_run: Mapping[tuple[str, str | None], tuple[ExperimentReferenceModel, ...]],
+    validated_evidence_by_run: Mapping[tuple[str, str | None], ValidatedRunEvidence],
 ) -> None:
     allocation = study.run_allocation
     if allocation is None:
@@ -407,11 +406,21 @@ def _validate_experiment_study_against_tasks_and_runs(
     runs: list[ExperimentRunModel] | None = None,
     *,
     evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None,
+    relation_scenarios: Mapping[str, Any] | None,
+    relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None,
     structural_only: bool,
 ) -> None:
     """Validate study-level analysis semantics against concrete task/run artifacts."""
 
     runs = runs or []
+    if not structural_only and study.evidence_requirement_relations:
+        if relation_scenarios is None or relation_capture_specs is None:
+            raise ValueError("study evidence relation validation requires resolved scenario and capture inputs")
+        validate_evidence_requirement_relations_against_artifacts(
+            study.evidence_requirement_relations,
+            scenarios=relation_scenarios,
+            capture_specs=relation_capture_specs,
+        )
     matched_tasks = _resolve_and_validate_study_tasks(study, tasks)
     matched_runs, evaluation_run_members, matched_evaluation_runs = _resolve_and_validate_study_runs(study, runs)
     validated_evidence = validate_study_run_task_membership(
@@ -439,6 +448,8 @@ def validate_experiment_study_structure_against_tasks_and_runs(
         tasks,
         runs,
         evidence_by_run=None,
+        relation_scenarios=None,
+        relation_capture_specs=None,
         structural_only=True,
     )
 
@@ -449,6 +460,8 @@ def validate_experiment_study_against_tasks_and_runs(
     runs: list[ExperimentRunModel] | None = None,
     *,
     evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None = None,
+    relation_scenarios: Mapping[str, Any] | None = None,
+    relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None = None,
 ) -> None:
     """Validate study semantics and content-backed evidence for every claimed run."""
 
@@ -457,5 +470,7 @@ def validate_experiment_study_against_tasks_and_runs(
         tasks,
         runs,
         evidence_by_run=evidence_by_run,
+        relation_scenarios=relation_scenarios,
+        relation_capture_specs=relation_capture_specs,
         structural_only=False,
     )

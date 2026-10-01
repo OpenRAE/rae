@@ -33,8 +33,9 @@ from collections.abc import Callable, Collection, Mapping
 
 from ..objectives import ObjectiveDependencyRole, ObjectiveWindowAnalysis
 from ._analysis import (
-    _analyze_actor_binding,
+    _analyze_action_constraints,
     _analyze_dependencies,
+    _analyze_objective_relations,
     _analyze_success,
     _analyze_targets,
     _analyze_window,
@@ -44,8 +45,10 @@ from ._analysis import (
     _ordered_unique,
 )
 from ._constants import (
-    OBJECTIVE_ACTOR_DEPENDENCY_ROLES,
+    OBJECTIVE_ACTION_CONSTRAINT_DEPENDENCY_ROLES,
+    OBJECTIVE_ASSIGNMENT_DEPENDENCY_ROLES,
     OBJECTIVE_DEPENDENCY_DEPENDENCY_ROLES,
+    OBJECTIVE_OWNER_DEPENDENCY_ROLES,
     OBJECTIVE_SUCCESS_DEPENDENCY_ROLES,
     OBJECTIVE_TARGET_DEPENDENCY_ROLES,
     OBJECTIVE_WINDOW_DEPENDENCY_ROLES,
@@ -55,6 +58,7 @@ from ._types import (
     ObjectiveIssue,
     ObjectiveReference,
     ObjectiveReferenceKind,
+    ObjectiveRelationCatalog,
     ObjectiveResourceDependencies,
     ObjectiveSemanticAnalysis,
     WindowResourceCatalog,
@@ -96,8 +100,7 @@ def partition_objective_dependencies(
 def analyze_objective_semantics(
     *,
     objectives_by_name: Mapping[str, object],
-    agents_by_name: Mapping[str, object],
-    entity_names: Collection[str],
+    relation_resources: ObjectiveRelationCatalog,
     assessment_resources: AssessmentResourceCatalog,
     window_resources: WindowResourceCatalog,
     targetable_name_index: Mapping[str, Collection[str]],
@@ -105,8 +108,8 @@ def analyze_objective_semantics(
 ) -> ObjectiveSemanticAnalysis:
     """Resolve the objective reference graph and derive its shared semantics.
 
-    Inputs are the name-keyed objective and agent maps, the entity name set,
-    the bundled assessment-pipeline and timeline resource catalogs, and the
+    Inputs are the name-keyed objective map, bundled relation declarations,
+    assessment-pipeline and timeline resource catalogs, and the
     targetable named-reference index; ``is_unresolved`` (default: never) lets a
     caller skip references that are still ``${var}`` placeholders. Returns the
     normalized references, the per-objective ordering/refresh dependency names,
@@ -117,15 +120,18 @@ def analyze_objective_semantics(
     """
 
     unresolved = is_unresolved or _never_unresolved
-    entity_name_set = set(entity_names)
+    entity_name_set = set(relation_resources.entity_names)
     references: list[ObjectiveReference] = []
     issues: list[ObjectiveIssue] = []
     dependencies: list[ObjectiveResourceDependencies] = []
     window_analyses: dict[str, ObjectiveWindowAnalysis] = {}
 
     for objective_name, objective in objectives_by_name.items():
-        actor_refs, actor_issues = _analyze_actor_binding(
-            objective_name, objective, agents_by_name, entity_name_set, unresolved
+        relation_refs, relation_issues = _analyze_objective_relations(
+            objective_name, objective, relation_resources.agents, entity_name_set, unresolved
+        )
+        action_refs, action_issues = _analyze_action_constraints(
+            objective_name, objective, relation_resources.action_contracts, unresolved
         )
         target_refs, target_issues = _analyze_targets(objective_name, objective, targetable_name_index, unresolved)
         success_refs, success_issues, resolved_success = _analyze_success(
@@ -138,12 +144,14 @@ def analyze_objective_semantics(
             objective_name, objective, objectives_by_name, unresolved
         )
 
-        references.extend(actor_refs)
+        references.extend(relation_refs)
+        references.extend(action_refs)
         references.extend(target_refs)
         references.extend(success_refs)
         references.extend(window_refs)
         references.extend(dep_refs)
-        issues.extend(actor_issues)
+        issues.extend(relation_issues)
+        issues.extend(action_issues)
         issues.extend(target_issues)
         issues.extend(success_issues)
         issues.extend(window_issues)

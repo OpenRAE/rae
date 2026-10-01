@@ -5,9 +5,14 @@ model. It defines how RAES distinguishes structural, semantic, behavioral, and
 stronger validity claims, and how artifacts disclose the basis and limitations
 of those claims.
 
-The specification is a docs/spec design artifact for issue #97. It does not
-publish schemas, fixtures, Python models, validators, API endpoints, runtime
-behavior, storage, or conformance probes.
+This specification originated as the docs/spec design artifact for issue #97.
+Issue #97 itself did not publish schemas, fixtures, Python models, validators,
+API endpoints, runtime behavior, storage, or conformance probes. Follow-on
+issues #258 and #259 now provide the bounded validation-profile and
+validation-basis disclosure contracts, schemas, fixtures, models, validators,
+carrier integrations, and focused tests described in the implementation
+coverage below. Those delivered surfaces do not expand this specification's
+normative claim boundaries or make every validation claim equally strong.
 
 ## FM Classification
 
@@ -219,11 +224,18 @@ artifact. Either form preserves the same semantics.
 ## Implementation Coverage
 
 Issue #97 establishes the architecture and normative semantics for ASR-511 and
-ASR-515. Executable coverage is represented by the spawned implementation
-issues:
+ASR-515. The follow-on implementation work is now delivered:
 
-- #258: ASR-511 profile taxonomy implementation.
-- #259: ASR-515 validation-basis disclosure implementation.
+- #258 publishes the ASR-511 validation-profile taxonomy, catalog, contracts,
+  schemas, fixtures, validators, and carrier integration, with focused
+  coverage in `test_validation_profiles.py`.
+- #259 publishes the ASR-515 validation-basis disclosure contracts, schemas,
+  fixtures, models, validators, and carriers, with focused coverage in
+  `test_validation_disclosure.py`.
+
+These are bounded contract and validator surfaces. They do not turn a
+structural check into a semantic, behavioral, evidence-backed, or
+falsification-backed claim without the corresponding governed gate evidence.
 
 ### Governed scenario satisfiability
 

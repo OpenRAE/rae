@@ -12,6 +12,7 @@ from .control_plane_store import (
     AuditEvent,
     ControlPlaneOperationRecord,
     ControlPlaneStore,
+    NewClaimBlock,
     SnapshotState,
     TerminalCommitMode,
 )
@@ -58,8 +59,19 @@ class ControlPlaneStoreCommitAdapter:
             expected_revision=expected_revision,
         )
 
-    def claim_record(self, record: ControlPlaneOperationRecord) -> ControlPlaneOperationRecord:
-        return cast(AtomicControlPlaneStore, self._store).claim_record(record)
+    def claim_record(
+        self,
+        record: ControlPlaneOperationRecord,
+        *,
+        legacy_request_fingerprint: str = "",
+        new_claim_blocked: NewClaimBlock = None,
+    ) -> ControlPlaneOperationRecord:
+        options: dict[str, object] = {}
+        if legacy_request_fingerprint:
+            options["legacy_request_fingerprint"] = legacy_request_fingerprint
+        if new_claim_blocked is not None:
+            options["new_claim_blocked"] = new_claim_blocked
+        return cast(AtomicControlPlaneStore, self._store).claim_record(record, **options)
 
 
 def adapt_control_plane_store(store: object) -> ControlPlaneStoreCommitAdapter:

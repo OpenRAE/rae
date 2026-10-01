@@ -6,14 +6,14 @@ type: INTERFACE
 priority: SHOULD
 wave: 2
 created_at: 2026-04-03T06:16:04.357369Z
-updated_at: 2026-06-21T02:21:42.017233Z
+updated_at: 2026-09-24T01:59:47Z
 ---
 
 # API-407 — Participant Feature Support And Constraint Declaration
 
 ## Statement
 
-Backend manifests shall declare unsupported, constrained, or partially supported participant features without ambiguity, distinct from general realization-support and disclosure declarations that apply across concern domains.
+Backend manifests shall declare unsupported, constrained, or partially supported participant features without ambiguity, distinct from general realization-support and disclosure declarations that apply across concern domains. For admitted mixed participant control, effective provider-local support and installed mapping, bridge, time-coordination, and readback services shall be checked in context; declaration or method presence alone does not establish executable support. Authorized weaker support shall retain its constraint, loss, disclosure, and evidence limits.
 
 ## Rationale
 
@@ -21,6 +21,19 @@ Requirement inventory expansion. Participant-feature boundaries need to be expli
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_act_614_temporal_admission.py` (Optional capabilities, exact temporal offers and conditional conformance)
+
+- IMPLEMENTS → GITHUB_ISSUE `1072` (Modular provider declaration and effective support bindings)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/participant_control_admission.py` (Exact manifest adapter to incumbent feature support admission)
+- TESTS → TEST `implementations/python/tests/test_api_424_capability_admission.py` (Dishonest and unimplemented modular support rejection)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1072-api-407-feature-support-preflight.md` (Declaration, installation and effective-support guardrails)
+
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1014` (Resolve mixed-composition feature strength per provider)
+- IMPLEMENTS → SPEC `contracts/schemas/plans/mixed-participant-composition-profile-v1.json` (Closed per-allocation feature requirement and downgrade authority carrier)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition.py` (Per-allocation feature-strength and downgrade carriers)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition_validation.py` (Closed provider membership for feature-bearing allocations)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition_resolution.py` (Dependency-inverted per-provider support and downgrade authorization joins)
+- TESTS → TEST `implementations/python/tests/test_issue_1014_mixed_composition_contracts.py` (Exact, unsupported, and authorized-downgrade resolution tests)
 - TESTS → TEST `implementations/python/tests/test_issue_965_participant_opacity_backend.py` (Backend participant-opacity assurance tests)
 - IMPLEMENTS → GITHUB_ISSUE `965` (Declare and validate backend participant-opacity realization)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/participant_capabilities.py` (Participant feature-support declaration validation)
@@ -51,3 +64,18 @@ Requirement inventory expansion. Participant-feature boundaries need to be expli
 - IMPLEMENTS → GITHUB_ISSUE `801` (Declare participant I/O policy capability and realization support (API-407))
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/participant_feature_admission.py` (API-407 participant feature support admission)
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#965` (Declare and validate backend participant-opacity realization)
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1015` (Enforce provider-local feature support during mixed trial admission)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition_resolution.py` (Exact per-provider feature and downgrade resolution at trial admission)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/apparatus.py` (Per-component manifest, realization-envelope, allowlist, and capability joins)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/compiler.py` (Fail-closed composition admission through provider-local contexts)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/realization_admission.py` (Provider-local contextual and apparatus admission orchestration)
+- TESTS → TEST `implementations/python/tests/test_issue_1015_mixed_staged_trial_admission.py` (Feature, envelope, mapping, context, and apparatus drift rejection coverage)
+- IMPLEMENTS → GITHUB_ISSUE `1355` (Provider-local executable mixed-edge and timing support)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime.py` (Installed bridge and time-binding admission against the exact profile and context)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_edge.py` (Executable mapping, bridge, time, and readback support boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_edge_execution.py` (Effective mapped bridge, time grant, and readback enforcement)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_dispatch.py` (Contextual refusal and distinct supported stage evidence)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_handoff.py` (Installed staged transfer and time-service support)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_handoff_execution.py` (Effective native transfer and time-service readback enforcement)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_result.py` (Evidence-bounded outcome settlement)
+- TESTS → TEST `implementations/python/tests/test_issue_1355_mixed_mapping_time.py` (Missing support, stale time, mapped execution, and evidenced stage witnesses)

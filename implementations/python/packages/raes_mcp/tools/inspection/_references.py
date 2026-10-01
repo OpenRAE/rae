@@ -182,12 +182,10 @@ def _content_refs(scenario: Scenario) -> dict[tuple[str, str], list[str]]:
 
 
 def _agent_refs(scenario: Scenario) -> dict[tuple[str, str], list[str]]:
-    # Agents -> entity, accounts, etc.
+    # Participants -> affiliations, accounts, etc.
     refs: dict[tuple[str, str], list[str]] = {}
     for name, agent in scenario.agents.items():
-        targets: list[str] = []
-        if agent.entity:
-            targets.append(agent.entity)
+        targets: list[str] = list(agent.affiliations)
         if agent.starting_accounts:
             targets.extend(agent.starting_accounts)
         if targets:
@@ -196,14 +194,15 @@ def _agent_refs(scenario: Scenario) -> dict[tuple[str, str], list[str]]:
 
 
 def _objective_refs(scenario: Scenario) -> dict[tuple[str, str], list[str]]:
-    # Objectives -> agent/entity, targets, success refs, deps
+    # Objectives -> assignment/owner, action constraints, targets, success, deps
     refs: dict[tuple[str, str], list[str]] = {}
     for name, obj in scenario.objectives.items():
         targets: list[str] = []
-        if obj.agent:
-            targets.append(obj.agent)
-        if obj.entity:
-            targets.append(obj.entity)
+        if obj.assigned_participant:
+            targets.append(obj.assigned_participant)
+        if obj.owner:
+            targets.append(obj.owner)
+        targets.extend(obj.actions)
         if obj.targets:
             targets.extend(obj.targets)
         if obj.depends_on:

@@ -12,17 +12,40 @@ features describe *what provides auth*, and relationships describe
 
 from enum import Enum
 
-from pydantic import Field, field_validator
+from pydantic import ConfigDict, Field, field_validator, model_validator
+from pydantic.json_schema import JsonSchemaValue
 
 from ._base import SDLModel, normalize_enum_value
 from .deployment_tenancy import RelationshipCarrierPlacement, RelationshipSharedService
 from .enterprise_identity import RelationshipForestTrust, RelationshipIdentityFederation
 from .identity_domains import RelationshipDomainController, RelationshipDomainJoin
+from .participant_relationships import ParticipantRelationship
 from .runtime_application import RelationshipProxyUpstream
 from .runtime_database import RelationshipDatabaseAccess
 from .runtime_forwarding_agent import RelationshipForwardingEdge
 from .runtime_mail_service import RelationshipMailAccess
 from .runtime_platform_application import RelationshipServiceIntegration
+
+_PARTICIPANT_EDGE_FIELDS = frozenset({"type", "source", "target", "description", "participant", "properties"})
+
+
+def _participant_detail_schema(schema: JsonSchemaValue) -> None:
+    """Publish the same type/detail pairing checked by the model validator."""
+    other_details = {field: {"type": "null"} for field in schema["properties"] if field not in _PARTICIPANT_EDGE_FIELDS}
+    schema.setdefault("allOf", []).append(
+        {
+            "if": {"properties": {"type": {"const": "participant"}}, "required": ["type"]},
+            "then": {
+                "required": ["participant"],
+                "properties": {
+                    "participant": {"type": "object"},
+                    "properties": {"maxProperties": 0},
+                    **other_details,
+                },
+            },
+            "else": {"properties": {"participant": {"type": "null"}}},
+        }
+    )
 
 
 class RelationshipType(str, Enum):
@@ -41,6 +64,7 @@ class RelationshipType(str, Enum):
     DIRECTORY_FEDERATES_TO = "directory_federates_to"
     PLACED_ON_CARRIER = "placed_on_carrier"
     USES_SHARED_SERVICE = "uses_shared_service"
+    PARTICIPANT = "participant"
 
 
 class Relationship(SDLModel):
@@ -66,6 +90,8 @@ class Relationship(SDLModel):
     structurally validated and cross-referable rather than buried in prose.
     """
 
+    model_config = ConfigDict(json_schema_extra=_participant_detail_schema)
+
     type: RelationshipType
     source: str
     target: str
@@ -82,8 +108,24 @@ class Relationship(SDLModel):
     identity_federation: RelationshipIdentityFederation | None = None
     carrier_placement: RelationshipCarrierPlacement | None = None
     shared_service: RelationshipSharedService | None = None
+    participant: ParticipantRelationship | None = None
 
     @field_validator("type", mode="before")
     @classmethod
     def normalize_type(cls, v: str) -> str:
         return normalize_enum_value(v)
+
+    @model_validator(mode="after")
+    def validate_participant_detail(self) -> "Relationship":
+        if (self.type == RelationshipType.PARTICIPANT) != (self.participant is not None):
+            raise ValueError("participant relationship type and participant detail must be declared together")
+        if self.participant is not None and (
+            self.properties
+            or any(
+                getattr(self, field) is not None
+                for field in type(self).model_fields
+                if field not in _PARTICIPANT_EDGE_FIELDS
+            )
+        ):
+            raise ValueError("participant relationships cannot carry properties or another typed detail")
+        return self

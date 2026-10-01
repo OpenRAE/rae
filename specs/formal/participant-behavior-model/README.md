@@ -12,7 +12,12 @@ This document is the issue #77 formal design artifact for:
 It is governed by ADR-067. It composes the participant semantics from ADR-022
 with SDL participant framing, participant runtime records, backend-facing
 contracts, controlled vocabularies, and participant implementation provenance.
-It is a design artifact, not an implementation artifact.
+It remains the normative design artifact for the complete behavior-model
+family. That historical role does not make all implementation coverage absent:
+the delivered ACT-606 slice below provides SDL authoring, semantic validation,
+generated schema coverage, compiled runtime records, and focused tests. It
+does not establish complete ACT-602, ACT-607, or ACT-608 behavior-model
+enforcement or mixed-backend conformance.
 
 ## Current Coverage And Gap
 
@@ -577,9 +582,22 @@ The source and conformance contract is specified in
 
 ## ACT-617 - Mixed-Control Participant Operation
 
+Issue #1351 and ADR-110 amend the normative policy/application distinction in
+[`mixed-control-policy-occurrence/rev1`](../participant-semantics/reusable-mixed-control.md).
+MC-01–MC-09 define reusable permissions, explicit finite scripts, exact
+occurrences, source-controller authority, validity, replay and directed-delivery
+joins. The [migration contract](../../../docs/migration/reusable-mixed-control.md)
+preserves historical meaning and states the required reader boundary.
+
+### Legacy fixed-coordinate form
+
+The following describes the currently published SDL/compiler form and its
+retained historical interpretation. It is not evidence of executable adoption
+of the reusable amendment.
+
 A behavior specification in `mixed-control` mode carries one explicit
 `mixed_control` policy for one of its `participant_refs`. The policy is a
-closed authored state graph, not a runtime decision history:
+closed authored graph with fixed occurrence coordinates, not a runtime decision history:
 
 ```text
 MixedControl =

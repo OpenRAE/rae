@@ -61,7 +61,7 @@ _SCENARIO = dedent(
       health: {proposition: health-state, role: postcondition}
     objectives:
       validate:
-        entity: blue
+        owner: blue
         success: {assertions: [health]}
     workflows:
       response:
@@ -99,7 +99,7 @@ _PARAM_SCENARIO = dedent(
       health: {proposition: health-state, role: postcondition}
     objectives:
       validate:
-        entity: blue
+        owner: blue
         success: {assertions: [health]}
     workflows:
       response:

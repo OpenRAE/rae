@@ -4,10 +4,11 @@ Part of the SemanticValidator mixin composition; see __init__.py.
 """
 
 from ..runtime_ssh_server import SshMatchCriterionKind
+from ._runtime_listeners import _RuntimeListenersMixin
 from ._support import _NODES_PREFIX
 
 
-class _RuntimeServicesMixin:
+class _RuntimeServicesMixin(_RuntimeListenersMixin):
     def _verify_runtime_application(self) -> None:
         """Validate observed runtime application surfaces against the scenario.
 
@@ -144,101 +145,6 @@ class _RuntimeServicesMixin:
             context="upstream_target",
             field_name="target_service",
         )
-
-    def _verify_runtime_service_listeners(self) -> None:
-        """Validate observed service listeners against same-node runtime facts."""
-        for node_name, node in self._s.nodes.items():
-            runtime = getattr(node, "runtime", None)
-            if runtime is None or not runtime.service_listeners:
-                continue
-            services_by_name = self._node_services_by_name(node)
-            process_refs = self._node_runtime_process_refs(node)
-            published_ports = self._node_published_port_keys(node)
-            for listener in runtime.service_listeners:
-                label = f"Node '{node_name}' runtime service listener '{listener.service_listener_id}'"
-                service = self._resolve_owned_service_ref(
-                    node_name,
-                    getattr(listener, "service", ""),
-                    services_by_name,
-                    owner_label=label,
-                )
-                if service is not None:
-                    self._verify_listener_service_binding(label, listener, service)
-                self._verify_listener_process_ref(label, listener, process_refs)
-                self._verify_listener_published_port_refs(label, listener, published_ports)
-
-    def _verify_listener_service_binding(self, label: str, listener: object, service: object) -> None:
-        listener_port = getattr(listener, "port", None)
-        listener_protocol = self._enum_or_raw(getattr(listener, "protocol", ""))
-        service_port = getattr(service, "port", None)
-        service_protocol = getattr(service, "protocol", "")
-        if any(self._is_unresolved_var(v) for v in (listener_port, listener_protocol, service_port, service_protocol)):
-            return
-        if listener_port is None:
-            return
-        if listener_port != service_port or str(listener_protocol).lower() != str(service_protocol).lower():
-            self._err(f"{label} port/protocol must match service '{service.name}'")
-
-    @staticmethod
-    def _enum_or_raw(value: object) -> object:
-        return value.value if hasattr(value, "value") else value
-
-    def _verify_listener_process_ref(self, label: str, listener: object, process_refs: set[str]) -> None:
-        ref = getattr(listener, "process_ref", "")
-        if not ref or self._is_unresolved_var(ref):
-            return
-        if ref not in process_refs:
-            self._err(f"{label} process_ref '{ref}' does not resolve to a runtime process name or pid")
-
-    def _verify_listener_published_port_refs(
-        self,
-        label: str,
-        listener: object,
-        published_ports: set[tuple[str, int | str | None, int | str, str]],
-    ) -> None:
-        listener_port = getattr(listener, "port", None)
-        listener_protocol = self._enum_or_raw(getattr(listener, "protocol", ""))
-        for ref in getattr(listener, "published_port_refs", []):
-            values = (ref.host_ip, ref.host_port, ref.container_port, ref.protocol)
-            if any(self._is_unresolved_var(v) for v in values):
-                continue
-            if any(self._is_unresolved_var(v) for v in (listener_port, listener_protocol)):
-                continue
-            if listener_port is not None and (
-                ref.container_port != listener_port or ref.protocol != str(listener_protocol).lower()
-            ):
-                self._err(f"{label} published_port_refs entry must match listener port/protocol")
-                continue
-            if values not in published_ports:
-                self._err(f"{label} published_port_refs entry does not resolve to runtime.network.published_ports")
-
-    def _node_runtime_process_refs(self, node: object) -> set[str]:
-        runtime = getattr(node, "runtime", None)
-        if runtime is None:
-            return set()
-        refs: set[str] = set()
-        processes = [getattr(runtime, "process", None), *getattr(runtime, "processes", [])]
-        for process in processes:
-            if process is None:
-                continue
-            name = getattr(process, "name", "")
-            pid = getattr(process, "pid", None)
-            if name and not self._is_unresolved_var(name):
-                refs.add(str(name))
-            if pid is not None and not self._is_unresolved_var(pid):
-                refs.add(str(pid))
-        return refs
-
-    @staticmethod
-    def _node_published_port_keys(node: object) -> set[tuple[str, int | str | None, int | str, str]]:
-        runtime = getattr(node, "runtime", None)
-        network = getattr(runtime, "network", None) if runtime is not None else None
-        if network is None:
-            return set()
-        return {
-            (binding.host_ip, binding.host_port, binding.container_port, binding.protocol)
-            for binding in network.published_ports
-        }
 
     def _verify_route_refs(
         self,

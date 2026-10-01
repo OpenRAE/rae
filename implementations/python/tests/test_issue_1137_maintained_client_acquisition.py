@@ -316,13 +316,13 @@ def test_canonical_proof_job_consumes_same_run_locked_generic_tool_inputs() -> N
     workflow_path = REPO_ROOT / ".github/workflows/canonical-verification.yml"
     workflow = yaml.safe_load(workflow_path.read_text(encoding="utf-8"))
     prepare = workflow["jobs"]["generic-tool-local-inputs"]
-    verify = workflow["jobs"]["verify"]
+    verify = workflow["jobs"]["proof"]
     workflow_text = workflow_path.read_text(encoding="utf-8")
 
     assert prepare["runs-on"] == "ubuntu-24.04"
     assert verify["runs-on"] == "ubuntu-22.04"
     assert verify["needs"] == "generic-tool-local-inputs"
-    assert "offline-kit-fetch" in workflow_text
+    assert "fetch-inputs" in workflow_text
     assert "--artifact-id conftest" in workflow_text
     assert "--artifact-id gitleaks" in workflow_text
     assert "--artifact-id osv-scanner" in workflow_text

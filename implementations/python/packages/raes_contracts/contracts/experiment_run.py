@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from dataclasses import dataclass
-from typing import BinaryIO, Literal
+from typing import Literal
 
 from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
@@ -28,17 +26,16 @@ from .experiment_artifacts import (
     _reference_satisfies_requirement,
 )
 from .experiment_bindings import RealizedBindingProvenanceModel, _validate_realized_bindings
-from .experiment_capture import ExperimentCaptureSpecModel
 from .experiment_disclosure import ExperimentAugmentationDisclosureModel
 from .experiment_evidence import (
-    ExperimentEvidenceRecordModel,
     ExperimentRealizedFormDisclosureModel,
     ExperimentRunTraceabilityModel,
 )
-from .experiment_manifest_references import (
-    ExperimentEvidenceReferenceModel,
-    ExperimentRunEvidenceArtifactReferenceModel,
+from .experiment_evidence_refinement import (
+    ExperimentEvidenceRequirementRelationModel,
+    validate_evidence_requirement_relation_carrier,
 )
+from .experiment_manifest_references import ExperimentRunEvidenceArtifactReferenceModel
 from .experiment_references import (
     ExperimentParameterModel,
     ExperimentReferenceModel,
@@ -51,6 +48,7 @@ from .experiment_run_difficulty import (
 )
 from .experiment_run_stochastic import _validate_run_stochastic_draw_control_refs
 from .experiment_run_timing import validate_run_invalidation_status, validate_run_timing
+from .materialization_attestation import MaterializationArchiveRecord, validate_run_materializations
 from .participant_manifests import ParticipantImplementationProvenanceModel
 from .random_stream import RandomStreamDrawRecordModel
 from .schema_invariants import (
@@ -145,6 +143,7 @@ class ExperimentRunModel(ContractModel):
     traceability: ExperimentRunTraceabilityModel
     realized_form_disclosures: list[ExperimentRealizedFormDisclosureModel] = Field(default_factory=list)
     augmentation_disclosures: list[ExperimentAugmentationDisclosureModel] = Field(default_factory=list)
+    materialization_attestations: list[MaterializationArchiveRecord] = Field(default_factory=list, max_length=4096)
     evidence_artifacts: list[ExperimentArtifactRefModel] = Field(min_length=1)
     result_summaries: dict[NonEmptyString, ExperimentResultSummaryModel] = Field(min_length=1)
     deviations: list[NonEmptyString] = Field(default_factory=list)
@@ -153,6 +152,7 @@ class ExperimentRunModel(ContractModel):
     generated_refs: list[ExperimentReferenceModel] = Field(default_factory=list)
     derived_from_refs: list[ExperimentReferenceModel] = Field(default_factory=list)
     validation_basis_disclosures: list[ValidationBasisDisclosureModel] = Field(default_factory=list)
+    evidence_requirement_relations: list[ExperimentEvidenceRequirementRelationModel] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _validate_archival_run(self) -> ExperimentRunModel:
@@ -165,11 +165,20 @@ class ExperimentRunModel(ContractModel):
         _validate_run_evidence_artifact_refs(self)
         _validate_run_realized_form_disclosures(self)
         _validate_run_augmentation_disclosures(self)
+        validate_run_materializations(self)
         _validate_realized_bindings(self.realized_bindings)
         validate_trial_run_provenance_binding(
             self.trial_provenance, run_id=self.run_id, scenario_digest=self.scenario_snapshot_ref.ref_digest
         )
         validate_carrier_validation_basis_disclosures(self, subject_kind="experiment_run")
+        validate_evidence_requirement_relation_carrier(
+            self.evidence_requirement_relations,
+            scope="run",
+            authority_kind="run",
+            authority_id=self.run_id,
+            authority_version=self.run_version,
+            scenario_ref=self.scenario_snapshot_ref,
+        )
         if self.realized_time_model is not None:
             validate_realized_time_model(
                 self.realized_time_model.declared_model,
@@ -265,6 +274,13 @@ class ExperimentRunModel(ContractModel):
                 {"contract_id": "experiment-task-v1", "instance_path": "#"},
                 {"contract_id": "experiment-run-v1", "instance_path": "#"},
             ],
+        )
+        _add_raes_invariant(
+            json_schema,
+            "run-evidence-requirement-relation-owner-valid",
+            "Archived run-scoped evidence requirement relations must identify this exact run and scenario snapshot.",
+            validator=_ARCHIVAL_RUN_VALIDATOR,
+            inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#"}],
         )
         return json_schema
 
@@ -398,15 +414,6 @@ def _validate_run_metric_ids_declared(task: ExperimentTaskModel, run: Experiment
         raise ValueError(f"run result metric_id values must be declared by the task evaluation protocol: {joined}")
 
 
-@dataclass(frozen=True)
-class ExperimentRunEvidenceInputs:
-    """Immutable-reader inputs needed to prove one run's evidence claims."""
-
-    capture_specs: Mapping[str, ExperimentCaptureSpecModel]
-    evidence_records: Mapping[str, ExperimentEvidenceRecordModel]
-    artifact_readers: Mapping[str, BinaryIO]
-
-
 def validate_experiment_run_structure_against_task(task: ExperimentTaskModel, run: ExperimentRunModel) -> None:
     """Validate structural task/run invariants without claiming evidence satisfaction.
 
@@ -419,36 +426,6 @@ def validate_experiment_run_structure_against_task(task: ExperimentTaskModel, ru
     _validate_run_apparatus_constraints(task, run)
     _validate_run_metric_ids_declared(task, run)
     _validate_run_stochastic_draw_control_refs(run)
-
-
-def _task_claims_required_evidence(task: ExperimentTaskModel) -> bool:
-    return bool(task.evaluation_protocol.observation_requirements) or any(
-        metric.evidence_requirements for metric in task.evaluation_protocol.metric_definitions.values()
-    )
-
-
-def validate_experiment_run_against_task(
-    task: ExperimentTaskModel,
-    run: ExperimentRunModel,
-    *,
-    evidence: ExperimentRunEvidenceInputs | None = None,
-) -> tuple[ExperimentEvidenceReferenceModel, ...]:
-    """Validate a task/run pair, including content-backed evidence when claimed."""
-
-    validate_experiment_run_structure_against_task(task, run)
-    if not _task_claims_required_evidence(task):
-        return ()
-    if evidence is None:
-        raise ValueError("task/run validation requires content-backed evidence inputs")
-    from ..evidence_satisfaction import validate_experiment_run_evidence
-
-    return validate_experiment_run_evidence(
-        task,
-        run,
-        capture_specs=evidence.capture_specs,
-        evidence_records=evidence.evidence_records,
-        artifact_readers=evidence.artifact_readers,
-    )
 
 
 def validate_experiment_run_time_model(

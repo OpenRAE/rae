@@ -38,6 +38,10 @@ class ObservabilityEvidencePlane(str, Enum):
 # three experiment-core carriers; processor/backend operational observability is
 # carried by apparatus manifests, processor manifests, and apparatus context.
 PLANE_BY_CONTRACT_ID: dict[str, ObservabilityEvidencePlane] = {
+    "participant-control-selection-v1": ObservabilityEvidencePlane.PROCESSOR_BACKEND_OPERATIONAL,
+    "participant-control-evaluation-v1": ObservabilityEvidencePlane.PROCESSOR_BACKEND_OPERATIONAL,
+    "participant-control-selection-v2": ObservabilityEvidencePlane.PROCESSOR_BACKEND_OPERATIONAL,
+    "participant-control-evaluation-v2": ObservabilityEvidencePlane.PROCESSOR_BACKEND_OPERATIONAL,
     "experiment-capture-spec-v1": ObservabilityEvidencePlane.AUTHORED_EVIDENCE_REQUIREMENT,
     "experiment-evidence-record-v1": ObservabilityEvidencePlane.CAPTURED_EVIDENCE,
     "experiment-derived-measure-v1": ObservabilityEvidencePlane.DERIVED_ANALYSIS,
@@ -54,6 +58,10 @@ PLANE_BY_SDL_SECTION: dict[str, ObservabilityEvidencePlane] = {
 # Contracts whose ``x-raes-plane`` annotation is published as portable
 # traceability (the three experiment-core carriers that map 1:1 to a plane).
 PLANE_ANNOTATED_CONTRACT_IDS: tuple[str, ...] = (
+    "participant-control-selection-v1",
+    "participant-control-evaluation-v1",
+    "participant-control-selection-v2",
+    "participant-control-evaluation-v2",
     "experiment-capture-spec-v1",
     "experiment-evidence-record-v1",
     "experiment-derived-measure-v1",

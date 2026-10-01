@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Collection, Mapping
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -17,7 +17,9 @@ from ..objectives import (
 class ObjectiveReferenceKind(str, Enum):
     """Kinds of cross-resource reference an objective carries."""
 
-    ACTOR = "actor"
+    OWNER = "owner"
+    ASSIGNMENT = "assignment"
+    ACTION_CONSTRAINT = "action_constraint"
     TARGET = "target"
     SUCCESS = "success"
     WINDOW = "window"
@@ -96,6 +98,15 @@ class ObjectiveSemanticAnalysis:
             if dependency.name == name:
                 return dependency
         raise KeyError(name)
+
+
+@dataclass(frozen=True)
+class ObjectiveRelationCatalog:
+    """Declarations that bind objective ownership, assignment, and actions."""
+
+    agents: Mapping[str, object]
+    entity_names: Collection[str]
+    action_contracts: Mapping[str, object]
 
 
 @dataclass(frozen=True)

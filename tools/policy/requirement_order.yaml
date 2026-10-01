@@ -15,6 +15,7 @@ phases:
       - ^DSL-
   - id: runtime-control-plane
     requirements:
+      - API-402
       - API-404
   - id: api400-core
     requirements:
@@ -43,6 +44,12 @@ phases:
   - id: observability-conformance
     requirements:
       - ASR-525
+  - id: realization-honesty-conformance
+    requirements:
+      - ASR-519
+  - id: evidence-provenance
+    requirements:
+      - EXP-732
   - id: modular-control-semantics
     requirements:
       - SEM-235
@@ -68,6 +75,25 @@ phases:
       - SEM-218
     blocked_until:
       - reference-implementations
+  - id: materialization-provenance
+    requirements:
+      - SEM-225
+    blocked_until:
+      - reference-implementations
+  - id: mixed-participant-composition
+    requirements:
+      - SEM-234
+      - SCE-002
+      - API-407
+      - API-423
+    blocked_until:
+      - reference-implementations
+  - id: mixed-participant-runtime
+    requirements:
+      - RUN-310
+      - RUN-319
+    blocked_until:
+      - mixed-participant-composition
   - id: semantics-expansion
     patterns:
       - ^SEM-
@@ -80,7 +106,6 @@ phases:
     requirements:
       - API-405
       - API-406
-      - API-407
       - API-408
       - API-409
       - API-410
@@ -101,8 +126,12 @@ phases:
       - AUT-805
       - AUT-807
       - AUT-809
-      - ASR-516
       - DOC-928
+    blocked_until:
+      - gov-concept-authority
+  - id: authoring-adapter-conformance
+    requirements:
+      - ASR-516
     blocked_until:
       - gov-concept-authority
   - id: project-identity-migration
@@ -124,19 +153,140 @@ phases:
       - EXP-703
       - EXP-704
       - EXP-705
+      - EXP-731
+  - id: experiment-evidence
+    requirements:
+      - EXP-708
+      - EXP-715
+    blocked_until:
+      - experiment-core
   - id: decision-record-governance
     requirements:
       - GOV-941
   - id: reusable-asset-integrity
     requirements:
       - GOV-913
+  # Package publication is a supply-chain trust boundary in its own right and
+  # does not depend on the reusable-asset phases: the OIDC publishing path and
+  # its exact-SHA gates ship independently (#1227).
+  - id: trusted-package-publishing
+    requirements:
+      - GOV-928
   - id: semantic-migration
     requirements:
       - GOV-903
     blocked_until:
       - gov-concept-authority
+  # Published-schema evidence is a property of the normative contract surface
+  # itself, so it depends on no other phase: the coverage gate reads the
+  # publication catalog, the corpus router, and the assurance fulfillment map
+  # that already exist (#1330). No ownership list, because the gate's evidence
+  # repairs legitimately land in any contract family's corpus.
+  - id: published-schema-coverage
+    requirements:
+      - ASR-501
 
 ownership:
+  authoring-adapter-conformance:
+    - contracts/README.md
+    - contracts/fixtures/authoring-adapters
+    - contracts/fixtures/authoring-adapters-v1
+    - contracts/profiles/authoring-adapters
+    - contracts/schemas/authoring-adapters
+    - contracts/schema-publication/entries/authoring-adapter-profile-v1.json
+    - contracts/schema-publication/entries/authoring-adapter-vector-v1.json
+    - contracts/schema-publication/entries/authoring-adapter-comparison-v1.json
+    - specs/conformance/authoring-adapters.md
+    - docs/requirements/ASR-516/requirement.md
+    - docs/requirements/ASR-530/requirement.md
+    - docs/decisions/issue-1005-asr-516-authoring-adapter-semantic-consistency-preflight.md
+    - docs/explain/reference/authoring-adapter-conformance.md
+    - docs/research/formal-semantic-validation/index.md
+    - docs/research/formal-semantic-validation/bundles/retest-v21.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v21.json
+    - docs/research/formal-semantic-validation/analysis-v21.json
+    - docs/research/formal-semantic-validation/bundles/retest-v22.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v22.json
+    - docs/research/formal-semantic-validation/analysis-v22.json
+    - docs/research/formal-semantic-validation/historical-artifacts/issue-1005-pre-refinement-release-v22.json
+    - docs/research/formal-semantic-validation/historical-artifacts/issue-1005-pre-refinement-release-v23.json
+    - docs/research/specification-coverage/index.md
+    - docs/research/specification-coverage/execution-snapshot-v21.json
+    - docs/research/specification-coverage/analysis-v21.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1005-v22.json
+    - docs/research/specification-coverage/execution-snapshot-v22.json
+    - docs/research/specification-coverage/analysis-v22.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1005-v23.json
+    - docs/research/specification-coverage/execution-snapshot-v23.json
+    - docs/research/specification-coverage/analysis-v23.json
+    - docs/research/specification-coverage/historical-artifacts/issue-1005-pre-refinement-release-v21.json
+    - docs/research/specification-coverage/historical-artifacts/issue-1005-pre-sync-release-v20.json
+    - docs/research/specification-coverage/historical-artifacts/489eeab3ce682627682311581eb98af9abb9ff42a437145af266eefb71dc7fc4.json
+    - implementations/python/packages/raes_conformance/authoring_adapters.py
+    - implementations/python/packages/raes_conformance/_authoring_observations.py
+    - implementations/python/packages/raes_conformance/conformance/validators.py
+    - implementations/python/packages/raes_contracts/authoring_adapters.py
+    - implementations/python/packages/raes_contracts/contracts/bundle.py
+    - implementations/python/tests/test_authoring_adapters.py
+    - implementations/python/tests/test_authoring_adapter_governance.py
+    - implementations/python/tests/test_corpus_packaging.py
+    - implementations/python/tests/test_specification_coverage.py
+    - implementations/python/tests/test_issue_989_versioned_evidence.py
+    - implementations/python/tests/test_formal_semantic_validation.py
+    - implementations/python/tests/test_issue_989_versioned_evidence.py
+  realization-honesty-conformance:
+    - docs/requirements/ASR-519/requirement.md
+    - implementations/python/packages/raes_conformance/_realization_validation.py
+    - implementations/python/tests/test_realization_honesty_conformance.py
+  experiment-evidence:
+    - implementations/python/tests/test_exp_732_evidence_provenance.py
+    - docs/requirements/ASR-530/requirement.md
+    - docs/research/formal-semantic-validation
+    - docs/research/specification-coverage
+    - implementations/python/tests/test_formal_semantic_validation.py
+    - implementations/python/tests/test_specification_coverage.py
+    - implementations/python/tests/test_issue_989_versioned_evidence.py
+    - docs/decisions/issue-1237-capture-proof-authority-preflight.md
+    - docs/migration/required-capture-admission.md
+    - docs/requirements/DSL-124/requirement.md
+    - docs/requirements/EXP-708/requirement.md
+    - docs/requirements/EXP-715/requirement.md
+    - implementations/python/packages/raes_backend_protocols/observation_capture.py
+    - implementations/python/packages/raes_backend_protocols/observation_manifest.py
+    - implementations/python/packages/raes_contracts/_evidence_content_validation.py
+    - implementations/python/packages/raes_contracts/capture_dimensions.py
+    - implementations/python/packages/raes_contracts/evidence_output_validation.py
+    - implementations/python/packages/raes_contracts/evidence_proof.py
+    - implementations/python/packages/raes_contracts/evidence_satisfaction.py
+    - implementations/python/packages/raes_contracts/contracts/experiment_analysis.py
+    - implementations/python/packages/raes_contracts/contracts/experiment_conditions.py
+    - implementations/python/packages/raes_contracts/contracts/experiment_run.py
+    - implementations/python/packages/raes_contracts/contracts/experiment_study_run_validation.py
+    - implementations/python/packages/raes_contracts/contracts/observation_capture.py
+    - implementations/python/packages/raes_processor/capture_admission.py
+    - implementations/python/tests/test_issue_1237_capture_dimensions.py
+    - implementations/python/tests/test_issue_1237_capture_ingress.py
+    - implementations/python/tests/test_issue_1237_evidence_proof.py
+    - implementations/python/tests/test_issue_1237_governance.py
+    - implementations/python/tests/test_issue_1237_output_registry.py
+  evidence-provenance:
+    - implementations/python/packages/raes_contracts/evidence_satisfaction.py
+    - implementations/python/tests/test_exp_732_evidence_provenance.py
+    - implementations/python/tests/test_requirement_governance.py
+    - implementations/python/tests/test_specification_coverage.py
+    - implementations/python/tests/test_formal_semantic_validation.py
+    - implementations/python/tests/test_issue_989_versioned_evidence.py
+    - docs/requirements/EXP-732/requirement.md
+    - docs/research/experiment-core/issue-342-exp-732-evidence-provenance-2026-09-15.md
+    - docs/research/specification-coverage/index.md
+    - docs/research/specification-coverage/execution-snapshot-v16.json
+    - docs/research/specification-coverage/analysis-v16.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-342-v16.json
+    - docs/research/formal-semantic-validation/index.md
+    - docs/research/formal-semantic-validation/execution-snapshot-v17.json
+    - docs/research/formal-semantic-validation/analysis-v17.json
+    - docs/research/formal-semantic-validation/bundles/retest-v17.json
+    - specs/formal/experiment-core/README.md
   observability-conformance:
     - contracts/profiles/backend/observability-evidence.json
     - contracts/fixtures/experiment-core/experiment-run-v1
@@ -220,6 +370,8 @@ ownership:
     - implementations/python/tests
     - CHANGELOG.md
   sdl-language:
+    # Issue #1353 installs the delivery finalizer needed to close its requirements.
+    - .github/workflows/ground-control-phase-e.yml
     - contracts/concept-authority
     - contracts/fixtures/backend-manifest
     - contracts/fixtures/concept-authority
@@ -234,6 +386,10 @@ ownership:
     - docs/decisions/issue-805-participant-interactive-access-preflight.md
     - docs/decisions/issue-1276-per-run-random-values-preflight.md
     - docs/decisions/adrs
+    # Issue #1353 amends the canonical narrative and participant-delivery records.
+    - docs/governance/requirement-scopes/1353.json
+    - docs/requirements/DSL-111/requirement.md
+    - docs/requirements/DSL-142/requirement.md
     - docs/requirements/DSL-435
     - docs/explain/sdl
     - docs/index.md
@@ -261,6 +417,8 @@ ownership:
     - specs/formal/sdl-phases
     - specs/sdl
     - tools/check_sdl_catalog_parity.py
+    # Issue #1353 restricts the delivery finalizer to merged-PR issue writes.
+    - tools/tooling_artifact_policy_actions.py
     - tools/policy/requirement_order.yaml
     - CHANGELOG.md
   api400-core:
@@ -339,11 +497,574 @@ ownership:
     - implementations/python/uv.lock
     - implementations/tooling/python/smoke
     - implementations/tooling/profiles/development-profiles.json
-    # Delivery-guard repair retains its existing external-service inventory owner.
-    - implementations/tooling/inventory-coverage.json
     - specs/formal
     - specs/sdl
+  # SEM-225 owns common SDL/contract semantics plus the exact runtime, archive,
+  # publication and documentation surfaces used by post-materialization reports.
+  materialization-provenance:
+    - contracts/provenance/sdl-lineage-ledger-v2.json
+    - contracts/schemas/plans/backend-augmentation-scope-v1.json
+    - contracts/schema-publication/entries/backend-augmentation-scope-v1.json
+    - contracts/fixtures/plans/backend-augmentation-scope-v1/valid/reference.json
+    - contracts/fixtures/plans/backend-augmentation-scope-v1/invalid/partial-coverage.json
+    - docs/decisions/adrs/adr-066-observability-evidence-plane-separation.md
+    - docs/decisions/issue-1242-scenario-scope-preflight.md
+    - implementations/python/packages/raes_backend_protocols/augmentation.py
+    - implementations/python/packages/raes_runtime/backend_augmentation.py
+    - implementations/python/packages/raes_runtime/manager_augmentation.py
+    - specs/sdl/augmentation-scope.md
+    - specs/sdl/sections.md
+    - contracts/schemas/artifact-requirements/artifact-requirement-v1.json
+    - contracts/schema-publication/entries/artifact-requirement-v1.json
+    - contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json
+    - contracts/schema-publication/entries/scenario-satisfiability-evidence-v1.json
+    - contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json
+    - contracts/schema-publication/entries/instantiated-scenario-snapshot-v1.json
+    - contracts/schemas/sdl/instantiated-scenario-v1.json
+    - contracts/schema-publication/entries/instantiated-scenario-v1.json
+    - contracts/schemas/sdl/sdl-authoring-input-v1.json
+    - contracts/schema-publication/entries/sdl-authoring-input-v1.json
+    - contracts/fixtures/experiment-core/materialization-archive-record-v1/invalid/wrong-phase.json
+    - contracts/fixtures/experiment-core/materialization-archive-record-v1/valid/reference.json
+    - contracts/fixtures/plans/backend-materialization-attestation-v1/invalid/wrong-phase.json
+    - contracts/fixtures/plans/backend-materialization-attestation-v1/valid/reference.json
+    - contracts/fixtures/sdl/materialized-scenario-v1/invalid/wrong-phase.json
+    - contracts/fixtures/sdl/materialized-scenario-v1/valid/reference.json
+    - contracts/schema-publication/entries/admitted-trial-plan-v1.json
+    - contracts/schema-publication/entries/artifact-transformation-report-v1.json
+    - contracts/schema-publication/entries/associated-artifact-manifest-v1.json
+    - contracts/schema-publication/entries/backend-manifest-v2.json
+    - contracts/schema-publication/entries/backend-materialization-attestation-v1.json
+    - contracts/schema-publication/entries/backend-profile-v1.json
+    - contracts/schema-publication/entries/evaluation-plan-v1.json
+    - contracts/schema-publication/entries/experiment-apparatus-context-v1.json
+    - contracts/schema-publication/entries/experiment-authoring-input-v1.json
+    - contracts/schema-publication/entries/experiment-capture-spec-v1.json
+    - contracts/schema-publication/entries/experiment-derived-measure-v1.json
+    - contracts/schema-publication/entries/experiment-evidence-record-v1.json
+    - contracts/schema-publication/entries/experiment-run-v1.json
+    - contracts/schema-publication/entries/experiment-study-v1.json
+    - contracts/schema-publication/entries/experiment-task-v1.json
+    - contracts/schema-publication/entries/external-concept-bindings-v1.json
+    - contracts/schema-publication/entries/materialization-archive-record-v1.json
+    - contracts/schema-publication/entries/materialized-scenario-v1.json
+    - contracts/schema-publication/entries/orchestration-plan-v1.json
+    - contracts/schema-publication/entries/provisioning-plan-v1.json
+    - contracts/schema-publication/entries/runtime-snapshot-v1.json
+    - contracts/schema-publication/entries/sdl-candidate-synthesis-record-v1.json
+    - contracts/schemas/artifact-transformations/artifact-transformation-report-v1.json
+    - contracts/schemas/associated-artifacts/associated-artifact-manifest-v1.json
+    - contracts/schemas/backend-manifest/backend-manifest-v2.json
+    - contracts/schemas/candidate-synthesis/sdl-candidate-synthesis-record-v1.json
+    - contracts/schemas/concept-authority/external-concept-bindings-v1.json
+    - contracts/schemas/experiment-core/experiment-apparatus-context-v1.json
+    - contracts/schemas/experiment-core/experiment-authoring-input-v1.json
+    - contracts/schemas/experiment-core/experiment-capture-spec-v1.json
+    - contracts/schemas/experiment-core/experiment-derived-measure-v1.json
+    - contracts/schemas/experiment-core/experiment-evidence-record-v1.json
+    - contracts/schemas/experiment-core/experiment-run-v1.json
+    - contracts/schemas/experiment-core/experiment-study-v1.json
+    - contracts/schemas/experiment-core/experiment-task-v1.json
+    - contracts/schemas/experiment-core/materialization-archive-record-v1.json
+    - contracts/schemas/plans/admitted-trial-plan-v1.json
+    - contracts/schemas/plans/backend-materialization-attestation-v1.json
+    - contracts/schemas/plans/evaluation-plan-v1.json
+    - contracts/schemas/plans/orchestration-plan-v1.json
+    - contracts/schemas/plans/provisioning-plan-v1.json
+    - contracts/schemas/profiles/backend-profile-v1.json
+    - contracts/schemas/sdl/materialized-scenario-v1.json
+    - contracts/schemas/snapshots/runtime-snapshot-v1.json
+    - docs/decisions/adrs/adr-078-closed-sdl-phase-contracts-and-portable-derivation-evidence.md
+    - docs/decisions/adrs/adr-index.yaml
+    - docs/decisions/issue-1241-materialization-attestation-preflight.md
+    - docs/decisions/issue-1241-materialization-attestation-verification.md
+    - docs/explain/reference/materialization-attestations.md
+    - docs/explain/sdl/runtime-architecture.md
+    - docs/public/backends.md
+    - docs/requirements/SEM-225/requirement.md
+    - docs/research/formal-semantic-validation
+    - docs/research/specification-coverage
+    - implementations/python/packages/raes
+    - implementations/python/packages/raes_backend_stubs/manifest.py
+    - implementations/python/packages/raes_conformance/conformance/validators.py
+    - implementations/python/packages/raes_contracts
+    - implementations/python/packages/raes_operations/run_artifacts.py
+    - implementations/python/packages/raes_processor
+    - implementations/python/packages/raes_reference_backend/manifest.py
+    - implementations/python/packages/raes_runtime/backend_calls.py
+    - implementations/python/packages/raes_runtime/backend_effect_transitions.py
+    - implementations/python/packages/raes_runtime/backend_input_contracts.py
+    - implementations/python/packages/raes_runtime/backend_materialization.py
+    - implementations/python/packages/raes_runtime/backend_observation_calls.py
+    - implementations/python/packages/raes_runtime/backend_realization_authority.py
+    - implementations/python/packages/raes_runtime/backend_snapshot_contracts.py
+    - implementations/python/packages/raes_runtime/control_plane.py
+    - implementations/python/packages/raes_runtime/control_plane_api_models.py
+    - implementations/python/packages/raes_runtime/control_plane_configuration.py
+    - implementations/python/packages/raes_runtime/control_plane_execution.py
+    - implementations/python/packages/raes_runtime/control_plane_plan_authorization.py
+    - implementations/python/packages/raes_runtime/control_plane_store_snapshots.py
+    - implementations/python/packages/raes_runtime/manager.py
+    - implementations/python/packages/raes_runtime/manager_plan_admission.py
+    - implementations/python/packages/raes_runtime/participant_action_validation.py
+    - implementations/python/packages/raes_runtime/participant_execution_control.py
+    - implementations/python/tests
+    - specs/formal/sdl-phases/README.md
+    - specs/sdl/README.md
+    - specs/sdl/document-model.md
+    - specs/sdl/materialization-attestation.md
+    - specs/sdl/observability-and-evidence.md
+  modular-control-semantics:
+    # Issue #1354 semantic publication and bounded evidence.
+    - docs/decisions/adrs/adr-114-ifc-profile-variability-and-publication.md
+    - docs/decisions/issue-1354-ifc-profile-variability-preflight.md
+    - docs/explain/reference/modular-participant-control-contracts.md
+    - docs/governance/requirement-scopes/1354.json
+    - docs/migration/ifc-profile-variability.md
+    - docs/research/ifc-profile-variability/cases.md
+    - implementations/python/tests/ifc_profile_variability_model.py
+    - implementations/python/tests/test_issue_1354_governance.py
+    - implementations/python/tests/test_issue_1354_ifc_profile_variability.py
+    - specs/formal/participant-semantics/ifc-profile-variability.md
+    - tools/policy/historical_identity_records.json
+    - tools/policy/requirement_order.yaml
+    # Issue #1352 semantic-design publication; no expanded runtime ownership.
+    - docs/decisions/adrs/README.md
+    - docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md
+    - docs/decisions/adrs/adr-111-control-applicability-and-effect-decisions.md
+    - docs/decisions/adrs/adr-index.yaml
+    - docs/decisions/issue-1352-control-applicability-preflight.md
+    - docs/governance/requirement-scopes/1352.json
+    - docs/research/control-applicability/cases.md
+    - implementations/python/tests/control_applicability_model.py
+    - implementations/python/tests/test_issue_1352_control_applicability.py
+    - implementations/python/tests/test_issue_1352_governance.py
+    - specs/formal/participant-semantics/control-applicability-and-evaluation.md
+    # SEM-235 owns semantic publication and finite witnesses (#1070).
+    # Contracts, providers and runtime implementations have separate phases.
+    - specs/formal/participant-semantics/modular-participant-control.md
+    - specs/formal/participant-semantics/README.md
+    - specs/formal/assurance-fulfillment.yaml
+    - specs/concept-authority/participant-control.md
+    - docs/decisions/issue-1070-sem-235-architecture-preflight.md
+    - docs/explain/reference/shared-semantic-integrity.md
+    - docs/explain/sdl/lineage.md
+    - docs/research/modular-participant-control/semantic-verification.md
+    - docs/requirements/SEM-235/requirement.md
+    - docs/requirements/SEM-230/requirement.md
+    - docs/requirements/SEM-233/requirement.md
+    - contracts/provenance/sdl-lineage-ledger-v2.json
+    - implementations/python/tests/sem235_modular_control_model.py
+    - implementations/python/tests/test_sem_235_modular_control.py
+    - implementations/python/tests/test_sem_235_governance.py
+  modular-control-runtime:
+    # RUN-320 orchestrates the published API-424 contracts in the reference
+    # runtime (#1069). Contracts, semantics and conformance keep their own phases.
+    - contracts/schema-publication/entries/runtime-snapshot-v1.json
+    - contracts/schemas/snapshots/runtime-snapshot-v1.json
+    - docs/decisions/issue-1069-run-320-runtime-orchestration-preflight.md
+    - docs/explain/reference/modular-participant-control-contracts.md
+    - docs/governance/requirement-scopes/1069.json
+    - docs/public/participant-control.md
+    - docs/requirements/RUN-320/requirement.md
+    - docs/research/formal-semantic-validation/analysis-v40.json
+    - docs/research/formal-semantic-validation/bundles/retest-v40.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v40.json
+    - docs/research/formal-semantic-validation/index.md
+    - docs/research/specification-coverage/analysis-v40.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1069-v40.json
+    - docs/research/specification-coverage/execution-snapshot-v40.json
+    - docs/research/specification-coverage/index.md
+    - implementations/python/packages/raes_contracts/_snapshot_updates.py
+    - implementations/python/packages/raes_contracts/contracts/realization_plans.py
+    - implementations/python/packages/raes_contracts/participant_control_evaluation_history.py
+    - implementations/python/packages/raes_contracts/runtime_state.py
+    - implementations/python/packages/raes_runtime/backend_snapshot_contracts.py
+    - implementations/python/packages/raes_runtime/control_plane.py
+    - implementations/python/packages/raes_runtime/control_plane_api_models.py
+    - implementations/python/packages/raes_runtime/control_plane_audit.py
+    - implementations/python/packages/raes_runtime/control_plane_composition.py
+    - implementations/python/packages/raes_runtime/control_plane_configuration.py
+    - implementations/python/packages/raes_runtime/control_plane_store_history.py
+    - implementations/python/packages/raes_runtime/control_plane_store_record_migration.py
+    - implementations/python/packages/raes_runtime/control_plane_store_snapshots.py
+    - implementations/python/packages/raes_runtime/participant_action_validation.py
+    - implementations/python/packages/raes_runtime/participant_control.py
+    - implementations/python/packages/raes_runtime/participant_control_binding.py
+    - implementations/python/packages/raes_runtime/participant_control_causal_state.py
+    - implementations/python/packages/raes_runtime/participant_control_cut.py
+    - implementations/python/packages/raes_runtime/participant_control_effects.py
+    - implementations/python/packages/raes_runtime/participant_control_orchestration.py
+    - implementations/python/packages/raes_runtime/participant_control_receipts.py
+    - implementations/python/packages/raes_runtime/participant_control_records.py
+    - implementations/python/packages/raes_runtime/participant_crossing_boundary.py
+    - implementations/python/packages/raes_runtime/participant_crossing_egress.py
+    - implementations/python/packages/raes_runtime/participant_crossing_state_cut.py
+    - implementations/python/packages/raes_runtime/participant_flow_sink.py
+    - implementations/python/tests/test_issue_1092_control_plane_crash_consistency.py
+    - implementations/python/tests/test_issue_1180_snapshot_revision_cas.py
+    - implementations/python/tests/test_issue_1184_atomic_idempotency_claims.py
+    - implementations/python/tests/test_issue_1186_control_plane_recovery_operations.py
+    - implementations/python/packages/raes_runtime/participant_result_contracts.py
+    - implementations/python/tests/participant_control_runtime_fixtures.py
+    - implementations/python/tests/participant_crossing_fixtures.py
+    - implementations/python/tests/sem233_flow_sink_fixtures.py
+    - implementations/python/tests/test_issue_1003_final_sink_flow_enforcement.py
+    - implementations/python/tests/test_issue_1069_control_evaluation_authority.py
+    - implementations/python/tests/test_issue_1069_control_evaluation_carrier.py
+    - implementations/python/tests/test_issue_1069_participant_control_binding.py
+    - implementations/python/tests/test_issue_1069_participant_control_durability.py
+    - implementations/python/tests/test_issue_1069_participant_control_effects.py
+    - implementations/python/tests/test_issue_1069_participant_control_orchestration.py
+    - implementations/python/tests/test_issue_989_versioned_evidence.py
+    - implementations/python/tests/test_participant_concurrent_batch_reservations.py
+    - implementations/python/tests/test_specification_coverage.py
+    - tools/check_specification_coverage.py
+    - tools/formal_semantic_validation/_baseline.py
+    - tools/formal_semantic_validation/_loading.py
+    - tools/formal_semantic_validation/_releases.py
+    - tools/formal_semantic_validation/_retest.py
+    - tools/policy/requirement_order.yaml
+  modular-control-contracts:
+    # Issue #1352 semantic-design publication; no expanded runtime ownership.
+    - docs/migration/control-applicability-and-evaluation.md
+    - implementations/python/tests/test_issue_1352_governance.py
+    # API-424 also owns the public composition derivation RUN-320 consumes, and
+    # the exact-cut coordinates its portable validator resolves (#1069).
+    - implementations/python/packages/raes_contracts/contracts/participant_control_composition.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_effect_composition.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_coordinates.py
+    - contracts/schemas/participant-runtime/participant-control-evaluation-v1.json
+    - contracts/schema-publication/entries/participant-control-evaluation-v1.json
+    - implementations/python/tests/test_api_424_composition_derivation.py
+    - docs/research/formal-semantic-validation/analysis-v37.json
+    - docs/research/formal-semantic-validation/bundles/retest-v37.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v37.json
+    - docs/research/specification-coverage/analysis-v37.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1072-v37.json
+    - docs/research/specification-coverage/execution-snapshot-v37.json
+    - implementations/python/packages/raes_contracts/contracts/_candidate_synthesis_facade.py
+    - implementations/python/tests/test_issue_989_versioned_evidence.py
+    - docs/research/formal-semantic-validation/index.md
+    - docs/research/specification-coverage/index.md
+    - implementations/python/tests/test_formal_semantic_validation.py
+    - implementations/python/tests/test_specification_coverage.py
+    - tools/check_specification_coverage.py
+    - tools/check_json_artifacts.py
+    - tools/formal_semantic_validation/_baseline.py
+    - tools/formal_semantic_validation/_loading.py
+    - tools/formal_semantic_validation/_releases.py
+    - tools/formal_semantic_validation/_retest.py
+    - docs/research/formal-semantic-validation/analysis-v36.json
+    - docs/research/formal-semantic-validation/bundles/retest-v36.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v36.json
+    - docs/research/specification-coverage/analysis-v36.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1072-v36.json
+    - docs/research/specification-coverage/execution-snapshot-v36.json
+    - contracts/fixtures/participant-runtime/participant-control-evaluation-v1/valid/exhausted-replay.json
+    - implementations/python/packages/raes_contracts/contracts/participant_control_effect_composition.py
+    - implementations/python/packages/raes_contracts/contracts/_participant_control_exports.py
+    - implementations/python/tests/test_api_424_review_regressions.py
+    - implementations/python/packages/raes_contracts/participant_flow_policy_profiles.py
+    - contracts/fixtures/backend-manifest/backend-manifest-v2/valid/stub.json
+    - contracts/fixtures/concept-authority/controlled-vocabularies-v1/valid/reference.json
+    # API-424 publishes closed contracts, not RUN-320 orchestration (#1072).
+    - contracts/concept-authority/controlled-vocabularies-v1.json
+    - contracts/fixtures/participant-runtime/participant-control-evaluation-v1/context-invalid/dishonest.json
+    - contracts/fixtures/participant-runtime/participant-control-evaluation-v1/context-invalid/stale.json
+    - contracts/fixtures/participant-runtime/participant-control-evaluation-v1/invalid/executable-selector.json
+    - contracts/fixtures/participant-runtime/participant-control-evaluation-v1/valid/conflict.json
+    - contracts/fixtures/participant-runtime/participant-control-evaluation-v1/valid/downgrade.json
+    - contracts/fixtures/participant-runtime/participant-control-evaluation-v1/valid/teaching-inject.json
+    - contracts/fixtures/participant-runtime/participant-control-selection-v1/invalid/executable-selector.json
+    - contracts/fixtures/participant-runtime/participant-control-selection-v1/valid/teaching-inject.json
+    - contracts/fixtures/participant-runtime/participant-control-teaching-profile-v1/invalid/teaching.json
+    - contracts/fixtures/participant-runtime/participant-control-teaching-profile-v1/valid/teaching.json
+    - contracts/profiles/participant-control/teaching-influence-rev1.json
+    - contracts/schema-publication/entries/backend-manifest-v2.json
+    - contracts/schema-publication/entries/backend-profile-v1.json
+    - contracts/schema-publication/entries/participant-control-evaluation-v1.json
+    - contracts/schema-publication/entries/participant-control-selection-v1.json
+    - contracts/schema-publication/entries/participant-control-teaching-profile-v1.json
+    - contracts/schemas/backend-manifest/backend-manifest-v2.json
+    - contracts/schemas/participant-runtime/participant-control-evaluation-v1.json
+    - contracts/schemas/participant-runtime/participant-control-selection-v1.json
+    - contracts/schemas/participant-runtime/participant-control-teaching-profile-v1.json
+    - contracts/schemas/profiles/backend-profile-v1.json
+    - docs/decisions/issue-1072-api-407-feature-support-preflight.md
+    - docs/decisions/issue-1072-api-409-control-effect-bindings-preflight.md
+    - docs/decisions/issue-1072-api-424-provider-contracts-preflight.md
+    - docs/explain/reference/modular-participant-control-contracts.md
+    - docs/governance/requirement-scopes/1072.json
+    - docs/public/participant-control.md
+    - docs/requirements/API-424/requirement.md
+    - implementations/python/packages/raes/observability_plane_semantics.py
+    - implementations/python/packages/raes_backend_protocols/participant_control_admission.py
+    - implementations/python/packages/raes_backend_protocols/protocols.py
+    - implementations/python/packages/raes_conformance/conformance/validators.py
+    - implementations/python/packages/raes_contracts/contracts/__init__.py
+    - implementations/python/packages/raes_contracts/contracts/_exports.py
+    - implementations/python/packages/raes_contracts/contracts/bundle_runtime.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_composition.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_coordinates.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_effects.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_profiles.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_resolution.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_results.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_selection.py
+    - implementations/python/packages/raes_contracts/json_ingress.py
+    - implementations/python/packages/raes_contracts/manifest_authority.py
+    - implementations/python/tests/participant_control_contract_fixtures.py
+    - implementations/python/tests/test_api_424_capability_admission.py
+    - implementations/python/tests/test_api_424_composition_boundaries.py
+    - implementations/python/tests/test_api_424_control_effects.py
+    - implementations/python/tests/test_api_424_control_resolution.py
+    - implementations/python/tests/test_api_424_governance.py
+    - implementations/python/tests/test_api_424_participant_control_contracts.py
+    - implementations/python/tests/test_api_424_publication.py
+    - implementations/python/tests/test_api_424_security_profile.py
+    - implementations/python/tests/test_corpus_packaging.py
+    - implementations/python/tests/test_json_ingress.py
+    # Issue #1365 publishes the applicability amendment as separately negotiated v2 contracts.
+    - contracts/fixtures/participant-runtime/participant-control-evaluation-v2/context-invalid/missing-obligation.json
+    - contracts/fixtures/participant-runtime/participant-control-evaluation-v2/invalid/unknown-field.json
+    - contracts/fixtures/participant-runtime/participant-control-evaluation-v2/valid/dependency-chain.json
+    - contracts/fixtures/participant-runtime/participant-control-evaluation-v2/valid/later-phase-denial.json
+    - contracts/fixtures/participant-runtime/participant-control-evaluation-v2/valid/optional-failure.json
+    - contracts/fixtures/participant-runtime/participant-control-selection-v2/valid/disjoint-sinks.json
+    - contracts/schema-publication/entries/participant-control-evaluation-v2.json
+    - contracts/schema-publication/entries/participant-control-selection-v2.json
+    - contracts/schemas/participant-runtime/participant-control-evaluation-v2.json
+    - contracts/schemas/participant-runtime/participant-control-selection-v2.json
+    - docs/decisions/issue-1365-applicable-provider-contracts-preflight.md
+    - docs/governance/requirement-scopes/1365.json
+    - docs/research/formal-semantic-validation/analysis-v56.json
+    - docs/research/formal-semantic-validation/bundles/retest-v56.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v56.json
+    - docs/research/formal-semantic-validation/analysis-v57.json
+    - docs/research/formal-semantic-validation/bundles/retest-v57.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v57.json
+    - docs/research/formal-semantic-validation/analysis-v58.json
+    - docs/research/formal-semantic-validation/bundles/retest-v58.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v58.json
+    # Retain the pre-revert source capture because the API-424 release chain
+    # references it as an immutable historical baseline.
+    - docs/research/formal-semantic-validation/analysis-v55.json
+    - docs/research/formal-semantic-validation/bundles/retest-v55.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v55.json
+    - docs/research/formal-semantic-validation/analysis-v59.json
+    - docs/research/formal-semantic-validation/bundles/retest-v59.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v59.json
+    - docs/research/specification-coverage/analysis-v56.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1365-v56.json
+    - docs/research/specification-coverage/execution-snapshot-v56.json
+    - docs/research/specification-coverage/analysis-v57.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1365-v57.json
+    - docs/research/specification-coverage/execution-snapshot-v57.json
+    - docs/research/specification-coverage/analysis-v58.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1365-v58.json
+    - docs/research/specification-coverage/execution-snapshot-v58.json
+    - docs/research/specification-coverage/analysis-v55.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1361-v55.json
+    - docs/research/specification-coverage/execution-snapshot-v55.json
+    - docs/research/specification-coverage/analysis-v59.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1365-v59.json
+    - docs/research/specification-coverage/execution-snapshot-v59.json
+    - implementations/python/packages/raes_contracts/contracts/participant_control_applicability.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_composition_v2.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_decisions_v2.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_evaluation_v2.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_invocation.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_support_v2.py
+    - implementations/python/tests/test_issue_1365_applicable_contracts.py
+    - tools/formal_semantic_validation/_release_revisions.py
+    - tools/generate_contract_schemas.py
+    - tools/policy/requirement_order.yaml
+  mixed-participant-composition:
+    # SEM-234 publishes semantics and composes incumbent SCE-002 authority into
+    # portable contracts, not mixed-runtime implementation (#1013/#1014); the
+    # #1015 extends that authority through deterministic mixed/staged admission.
+    # The #1016 preflight is documented here; runtime delivery remains
+    # activation-gated.
+    - specs/formal/participant-semantics/cross-backend-participant-control.md
+    - specs/formal/runtime-contracts/participant-backend-contracts.md
+    - specs/formal/participant-semantics/README.md
+    - specs/formal/assurance-fulfillment.yaml
+    - docs/decisions/issue-1013-sem-234-mixed-participant-control-preflight.md
+    - docs/decisions/issue-1014-mixed-composition-contracts-preflight.md
+    - docs/decisions/issue-1015-mixed-staged-trial-admission-preflight.md
+    - docs/decisions/issue-1016-mixed-runtime-coordination-preflight.md
+    - docs/decisions/issue-1355-executable-mixed-mapping-time-preflight.md
+    - docs/decisions/adrs/adr-102-mixed-cross-backend-participant-control.md
+    - docs/decisions/adrs/adr-index.yaml
+    - docs/explain/reference/mixed-participant-composition.md
+    - docs/explain/reference/scenario-variation-and-trial-realization.md
+    - docs/governance/requirement-scopes/1014.json
+    - docs/governance/requirement-scopes/1016.json
+    - docs/governance/requirement-scopes/1355.json
+    - docs/research/formal-semantic-validation/bundles/retest-v31.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v31.json
+    - docs/research/formal-semantic-validation/index.md
+    - docs/research/formal-semantic-validation/analysis-v32.json
+    - docs/research/formal-semantic-validation/bundles/retest-v32.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v32.json
+    - docs/research/formal-semantic-validation/analysis-v53.json
+    - docs/research/formal-semantic-validation/bundles/retest-v53.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v53.json
+    - docs/research/formal-semantic-validation/analysis-v54.json
+    - docs/research/formal-semantic-validation/bundles/retest-v54.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v54.json
+    - docs/research/specification-coverage/analysis-v31.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1183-v31.json
+    - docs/research/specification-coverage/execution-snapshot-v31.json
+    - docs/research/specification-coverage/index.md
+    - docs/research/specification-coverage/analysis-v32.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1015-v32.json
+    - docs/research/specification-coverage/execution-snapshot-v32.json
+    - docs/research/formal-semantic-validation/analysis-v38.json
+    - docs/research/formal-semantic-validation/bundles/retest-v38.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v38.json
+    - docs/research/specification-coverage/analysis-v38.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1016-v38.json
+    - docs/research/specification-coverage/execution-snapshot-v38.json
+    - docs/research/specification-coverage/analysis-v53.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1355-v53.json
+    - docs/research/specification-coverage/execution-snapshot-v53.json
+    - docs/research/specification-coverage/analysis-v54.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1389-v54.json
+    - docs/research/specification-coverage/execution-snapshot-v54.json
+    - tools/check_json_artifacts.py
+    - tools/check_specification_coverage.py
+    - tools/formal_semantic_validation/_baseline.py
+    - tools/formal_semantic_validation/_loading.py
+    - tools/formal_semantic_validation/_releases.py
+    - tools/formal_semantic_validation/_retest.py
+    - docs/explain/sdl/lineage.md
+    - docs/public/participant-control.md
+    - docs/requirements/SEM-234/requirement.md
+    - docs/requirements/SEM-230/requirement.md
+    - docs/requirements/SCE-002/requirement.md
+    - docs/requirements/API-407/requirement.md
+    - docs/requirements/API-423/requirement.md
+    - docs/requirements/RUN-310/requirement.md
+    - docs/requirements/RUN-319/requirement.md
+    - implementations/python/tests/sem234_mixed_composition_model.py
+    - implementations/python/tests/test_sem_234_mixed_composition.py
+    - implementations/python/tests/test_sem_234_governance.py
+    - implementations/python/packages/raes_contracts/contracts/mixed_composition.py
+    - implementations/python/packages/raes_contracts/contracts/mixed_composition_validation.py
+    - implementations/python/packages/raes_contracts/contracts/mixed_composition_resolution.py
+    - implementations/python/packages/raes_contracts/contracts/mixed_runtime.py
+    - implementations/python/packages/raes_contracts/mixed_runtime_history.py
+    - implementations/python/packages/raes_contracts/_snapshot_updates.py
+    - implementations/python/packages/raes_contracts/operation_lifecycle.py
+    - implementations/python/packages/raes_contracts/runtime_state.py
+    - implementations/python/packages/raes_contracts/contracts/realization_plans.py
+    - implementations/python/packages/raes_contracts/contracts/admitted_trial_plan.py
+    - implementations/python/packages/raes_contracts/contracts/admitted_trial_plan_components.py
+    - implementations/python/packages/raes_contracts/contracts/trial_compilation.py
+    - implementations/python/packages/raes_contracts/json_ingress.py
+    - implementations/python/packages/raes_contracts/contracts/bundle.py
+    - implementations/python/packages/raes_contracts/contracts/__init__.py
+    - implementations/python/packages/raes_contracts/contracts/_exports.py
+    - implementations/python/packages/raes_contracts/contracts/_mixed_composition_exports.py
+    - implementations/python/packages/raes_contracts/versions.py
+    - implementations/python/packages/raes_conformance/conformance/validators.py
+    - implementations/python/tests/test_issue_1014_mixed_composition_contracts.py
+    - implementations/python/tests/test_issue_1014_mixed_composition_governance.py
+    - implementations/python/tests/test_issue_1015_mixed_staged_trial_admission.py
+    - implementations/python/tests/test_issue_1016_mixed_runtime_coordination.py
+    - implementations/python/tests/test_specification_coverage.py
+    - implementations/python/tests/test_formal_semantic_validation.py
+    - implementations/python/tests/test_issue_1355_mixed_mapping_time.py
+    - implementations/python/packages/raes_runtime/__init__.py
+    - implementations/python/packages/raes_runtime/backend_snapshot_contracts.py
+    - implementations/python/packages/raes_runtime/control_plane.py
+    - implementations/python/packages/raes_runtime/control_plane_configuration.py
+    - implementations/python/packages/raes_runtime/control_plane_recovery.py
+    - implementations/python/packages/raes_runtime/control_plane_resolution_records.py
+    - implementations/python/packages/raes_runtime/control_plane_store_history.py
+    - implementations/python/packages/raes_runtime/control_plane_store_snapshots.py
+    - implementations/python/packages/raes_runtime/control_plane_store.py
+    - implementations/python/packages/raes_runtime/control_plane_store_local_records.py
+    - implementations/python/packages/raes_runtime/control_plane_store_memory.py
+    - implementations/python/packages/raes_runtime/mixed_runtime.py
+    - implementations/python/packages/raes_runtime/mixed_runtime_dispatch.py
+    - implementations/python/packages/raes_runtime/mixed_runtime_edge.py
+    - implementations/python/packages/raes_runtime/mixed_runtime_edge_execution.py
+    - implementations/python/packages/raes_runtime/mixed_runtime_handoff.py
+    - implementations/python/packages/raes_runtime/mixed_runtime_handoff_execution.py
+    - implementations/python/packages/raes_runtime/mixed_runtime_phase.py
+    - implementations/python/packages/raes_runtime/mixed_runtime_recovery.py
+    - implementations/python/packages/raes_runtime/mixed_runtime_result.py
+    - implementations/python/packages/raes_runtime/mixed_runtime_lifecycle.py
+    - implementations/python/packages/raes_runtime/mixed_runtime_state.py
+    - implementations/python/packages/raes_runtime/participant_action_validation.py
+    - implementations/python/packages/raes_runtime/participant_crossing_action.py
+    - implementations/python/packages/raes_runtime/participant_control.py
+    - implementations/python/packages/raes_runtime/participant_crossing_boundary.py
+    - implementations/python/packages/raes_runtime/participant_crossing_policy.py
+    - implementations/python/packages/raes_runtime/participant_episode_control.py
+    - implementations/python/packages/raes_runtime/participant_submission_options.py
+    - implementations/python/packages/raes_runtime/participant_result_contracts.py
+    - contracts/schemas/backend-manifest/backend-manifest-v2.json
+    - contracts/schemas/control-plane/operation-receipt-v1.json
+    - contracts/schemas/control-plane/operation-status-v1.json
+    - contracts/schemas/snapshots/runtime-snapshot-v1.json
+    - contracts/schema-publication/entries/backend-manifest-v2.json
+    - contracts/schema-publication/entries/operation-receipt-v1.json
+    - contracts/schema-publication/entries/operation-status-v1.json
+    - contracts/schema-publication/entries/runtime-snapshot-v1.json
+    - implementations/python/tests/test_participant_concurrent_batch_reservations.py
+    - implementations/python/tests/test_formal_semantic_validation.py
+    - implementations/python/tests/test_specification_coverage.py
+    - implementations/python/tests/test_issue_989_versioned_evidence.py
+    - contracts/schemas/plans/mixed-participant-composition-profile-v1.json
+    - contracts/schemas/plans/admitted-trial-plan-v1.json
+    - contracts/schema-publication/entries/mixed-participant-composition-profile-v1.json
+    - contracts/schema-publication/entries/admitted-trial-plan-v1.json
+    - contracts/fixtures/plans/trial-compiler-mixed-composition-v1/identity-vectors.json
+    - contracts/fixtures/plans/mixed-participant-composition-profile-v1/valid/alternative.json
+    - contracts/fixtures/plans/mixed-participant-composition-profile-v1/valid/simultaneous-mixed.json
+    - contracts/fixtures/plans/mixed-participant-composition-profile-v1/valid/staged.json
+    - contracts/fixtures/plans/mixed-participant-composition-profile-v1/invalid/alternative-fallback-pool.json
+    - contracts/fixtures/plans/mixed-participant-composition-profile-v1/invalid/duplicate-apparatus-identity.json
+    - contracts/fixtures/plans/mixed-participant-composition-profile-v1/invalid/open-metadata.json
+    - contracts/fixtures/plans/mixed-participant-composition-profile-v1/invalid/simultaneous-single-form.json
+    - contracts/fixtures/plans/mixed-participant-composition-profile-v1/invalid/staged-unadmitted-member.json
+    - contracts/fixtures/plans/mixed-participant-composition-profile-v1/invalid/unknown-revision.json
+    - tools/generate_contract_schemas.py
+    - implementations/python/packages/raes_processor/trial_compiler/__init__.py
+    - implementations/python/packages/raes_processor/trial_compiler/apparatus.py
+    - implementations/python/packages/raes_processor/trial_compiler/compiler.py
+    - implementations/python/packages/raes_processor/trial_compiler/inputs.py
+    - implementations/python/packages/raes_processor/trial_compiler/models.py
+    - implementations/python/packages/raes_processor/trial_compiler/profiles.py
+    - implementations/python/packages/raes_processor/trial_compiler/realization_admission.py
+    - implementations/python/packages/raes_processor/trial_realization.py
+    - tools/policy/historical_identity_records.json
+    - tools/policy/requirement_order.yaml
+    - tools/verify_all.py
+    # Supporting delivery-hook regression requested during #1013 review.
+    - implementations/python/tests/test_nox_shard_wiring.py
+    - implementations/python/tests/test_issue_1238_development_container.py
+    - docs/explain/development-container.md
+  mixed-participant-runtime:
+    - docs/requirements/RUN-310/requirement.md
+    - docs/requirements/RUN-319/requirement.md
+    - implementations/python/packages/raes_runtime/mixed_runtime_lifecycle.py
+    - implementations/python/packages/raes_runtime/mixed_runtime_phase.py
+    - implementations/python/packages/raes_runtime/participant_action_validation.py
+    - implementations/python/packages/raes_runtime/participant_control.py
+    - implementations/python/packages/raes_runtime/participant_crossing_boundary.py
+    - implementations/python/packages/raes_runtime/participant_crossing_policy.py
+    - implementations/python/packages/raes_runtime/participant_episode_control.py
+    - implementations/python/packages/raes_runtime/participant_submission_options.py
+    - implementations/python/tests/test_issue_1016_mixed_runtime_coordination.py
   semantics-expansion:
+    # Issue #1354 semantic publication; formal specs/tests already belong here.
+    - docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md
+    - docs/requirements/SEM-233/requirement.md
     - contracts/schemas/sdl
     # Shared description semantics and existing evidence lifecycle owners (SEM-218).
     - contracts/schemas/experiment-core/experiment-evidence-record-v1.json
@@ -370,16 +1091,22 @@ ownership:
     - contracts/concept-authority
     - contracts/fixtures
     - contracts/schemas
+    - contracts/schema-publication
     - contracts/schema-publication-manifest.json
     - docs/decisions
     - docs/explain/reference
     - docs/explain/sdl
+    - docs/requirements
+    - docs/migration
+    - docs/research/specification-coverage
+    - docs/research/formal-semantic-validation
     - specs/formal
     - specs/sdl
     - implementations/python/packages/raes
     - implementations/python/packages/raes_processor
     - implementations/python/packages/raes_contracts
     - implementations/python/packages/raes_backend_protocols
+    - implementations/python/packages/raes_conformance
     - implementations/python/packages/raes_runtime
     - implementations/python/tests
     - tools/policy/requirement_order.yaml
@@ -477,18 +1204,40 @@ ownership:
     - implementations/python/tests
   experiment-core:
     - contracts/README.md
+    - contracts/profiles/semantic-comparison/reference-v2.json
     - contracts/schema-publication-manifest.json
+    - contracts/schema-publication/entries/experiment-authoring-input-v1.json
+    - contracts/schema-publication/entries/experiment-run-v1.json
+    - contracts/schema-publication/entries/experiment-study-v1.json
+    - contracts/schema-publication/entries/experiment-task-v1.json
     - contracts/schemas/README.md
     - contracts/schemas
     - contracts/fixtures/experiment-core
     - specs/formal/README.md
     - specs/formal/experiment-core
+    - specs/formal/observability-evidence-plane.md
     - docs/decisions/adrs
+    - docs/decisions/issue-341-exp-731-evidence-requirement-refinement-preflight.md
+    - docs/requirements/EXP-731/requirement.md
+    - docs/research/formal-semantic-validation
     - docs/research/experiment-core
+    - docs/research/specification-coverage
     - docs/index.md
     - docs/specs/formal.md
     - implementations/python/packages/raes_contracts
+    - implementations/python/packages/raes_processor/capture_admission.py
+    - implementations/python/packages/raes_processor/semantic_comparison_adapters.py
+    - implementations/python/packages/raes_processor/semantic_comparison_projections.py
+    - implementations/python/packages/raes_processor/trial_compiler/compiler.py
+    - implementations/python/packages/raes_processor/trial_realization.py
+    - implementations/python/tests/test_exp_731_archival_validation.py
+    - implementations/python/tests/test_exp_731_evidence_requirement_refinement.py
+    - implementations/python/tests/test_exp_731_trial_realization.py
+    - implementations/python/tests/test_formal_semantic_validation.py
+    - implementations/python/tests/test_issue_1210_semantic_comparison.py
+    - implementations/python/tests/test_issue_989_versioned_evidence.py
     - implementations/python/tests/test_runtime_contracts.py
+    - implementations/python/tests/test_specification_coverage.py
     - tools/generate_contract_schemas.py
     - CHANGELOG.md
 

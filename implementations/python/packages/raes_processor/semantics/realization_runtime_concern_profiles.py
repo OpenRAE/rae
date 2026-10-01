@@ -172,6 +172,7 @@ RUNTIME_CONCERN_PROFILES: tuple[RuntimeConcernProfile, ...] = (
         "service_manager_units",
         "runtime-service-manager-units",
         excluded=("sub_state", "result", "exit_code", "status_text", "main_pid"),
+        identity=("unit_id",),
     ),
     _profile("packages", "runtime-packages", identity=("manager", "name")),
     _profile("repository_state", "runtime-repository-state", excluded=("presence", "refinements")),

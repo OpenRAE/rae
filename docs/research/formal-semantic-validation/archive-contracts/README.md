@@ -29,3 +29,11 @@ It uses an empty external-reference registry and never invokes current artifact
 models, analyzers, solvers, or CLI replay for historical evidence. Shape admission
 and recorded digest agreement do not constitute semantic execution or establish
 compatibility. Current release evidence still uses current models and replay.
+
+The original `manifest-v1.json` and its narrower pre-cutover shapes remain
+independently pinned. `manifest-v2.json` supplies frozen shapes for retained
+progressive evidence records that became historical with the materialization
+capture. The gate accepts a retained record through either frozen shape
+version, then checks the complete record's immutable identity and joins.
+Current release 21.0.0 uses production APIs and CLI replay; archival admission
+never substitutes for that current-code check.

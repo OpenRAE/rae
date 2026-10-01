@@ -59,7 +59,7 @@ fixtures or schema authority.
 |------|------------|---------------|---------------------|
 | Understand the repository | `README.md`, [`docs/index.md`](../index.md), [`docs/explain/reference/canonical-reference-map.md`](reference/canonical-reference-map.md) | Read the referenced docs | The repository layout and current boundaries are understood. |
 | Understand the agentic-environment lifecycle | [`docs/explain/reference/glossary.md`](reference/glossary.md), [`docs/explain/sdl/runtime-architecture.md`](sdl/runtime-architecture.md) | Follow the authored scenario, realized environment, evidence, and conformance references | RAES system concepts are distinguished from SDL and backend behavior. |
-| Read a complete scenario | `examples/README.md`, `examples/scenarios/*.sdl.yaml` | `pytest tests/test_scenarios.py` | The checked examples load through the current parser boundary. |
+| Read a complete scenario | `examples/README.md`, `examples/scenarios/*.sdl.yaml` | `pytest tests/test_example_schema_conformance.py` | The checked examples load through the current parser boundary. |
 | Start from a reusable template or pattern | `examples/library/catalog.yaml`, `examples/library/templates/`, `examples/library/patterns/` | `python tools/check_example_library.py` | The catalog covers scenario, workflow, participant behavior, task, run, and study surfaces with parser-validated template bodies. |
 | Author a small SDL file | [`docs/explain/sdl/index.md`](sdl/index.md), [`docs/explain/sdl/sections.md`](sdl/sections.md), [`docs/explain/sdl/validation.md`](sdl/validation.md) | `parse_sdl_file()` or `load_scenario()` | The file is accepted by the current SDL model and semantic validator. |
 | Use an agent-facing authoring surface | `raes-mcp`, then `raes_tool_surface`, `raes_agent_guidance`, `raes_intended_use_profiles`, and [`docs/explain/sdl/language-service.md`](sdl/language-service.md) | `raes_agent_guidance`, `raes_intended_use_profiles`, `sdl_completions`, `sdl_apply_edit`, `sdl_diagnostics`, `sdl_format`, `sdl_references`, `sdl_validate`, `sdl_design_assessment`, `sdl_plan`, `sdl_claims_assessment` | The agent can choose an intended-use scope, inspect current RAES blockers, and help author, edit, dry-run, and qualify claims without repository-local code access. |
@@ -76,7 +76,7 @@ Use the lowest level that answers the question.
 |-------|----------|------------------|------------------|---------------------|
 | Orientation | You need to know what RAES is and is not. | README, docs index, reference map | Current repository scope and entrypoints | SDL validity, backend behavior, or experiment adequacy |
 | SDL parse and validation | You have an SDL file and need current parser feedback. | `parse_sdl_file()`, `load_scenario()`, SDL parser/model/validator tests | Structural and semantic acceptance by the reference implementation | Deployment viability or general domain completeness |
-| Example-backed authoring | You need a worked scenario to study or adapt. | `examples/scenarios/*.sdl.yaml`, `test_scenarios.py` | The example loads from disk without advisories under current tests | Suitability for another range, backend, exercise, or research design |
+| Example-backed authoring | You need a worked scenario to study or adapt. | `examples/scenarios/*.sdl.yaml`, `test_example_schema_conformance.py` | The example loads from disk without advisories under current tests | Suitability for another range, backend, exercise, or research design |
 | Template and pattern authoring | You need a reusable starting shape for a scenario, workflow, participant behavior, task, run, or study. | `examples/library/catalog.yaml`, `tools/check_example_library.py` | The cataloged template body validates as current SDL and the pattern has stable metadata | New runtime semantics or first-class task, run, or study sections |
 | Runtime and contracts | You need processor or backend integration context. | Runtime compiler/planner, contract schemas, backend profiles, conformance fixtures | Current reference-stack and contract behavior | Production backend correctness or operational reliability |
 | Specification review | You need to evaluate a semantic or authority claim. | `specs/`, ADRs, formal notes, tests | The current reasoning and normative boundary for a claim | Completed implementation when the materialized code/contracts are absent |
@@ -110,7 +110,7 @@ Run the current disk-backed example tests:
 
 ```shell
 cd implementations/python
-uv run --extra dev pytest tests/test_scenarios.py -q
+uv run --extra dev pytest tests/test_example_schema_conformance.py -q
 ```
 
 Work with SDL module imports:
@@ -133,6 +133,29 @@ the reference backend manifest and prints the resulting provisioning,
 orchestration, and evaluation plans as published-contract JSON. It does not
 apply or start anything. Pass `--manifest <backend-manifest-v2.json>` to plan
 against an explicitly supplied backend manifest.
+
+See how the planner reconciles one scenario version against another:
+
+```shell
+cd implementations/python
+uv run raes processor reconcile \
+  ../../examples/scenarios/reconciliation-demo-v1.sdl.yaml \
+  ../../examples/scenarios/reconciliation-demo-v2.sdl.yaml \
+  --format json
+```
+
+This plans the first version, projects that plan into a snapshot, plans the
+second version against the snapshot, and reports every resulting `create`,
+`update`, `delete`, and `unchanged` action across provisioning, orchestration,
+and evaluation. Both versions are planned against the same manifest, so the
+reported delta reflects the authored difference rather than a change of target.
+
+The projected snapshot is synthetic assumed state, not backend readback or
+proof that anything was realized, and this too is a read-only dry run. The
+report summarizes resource identity and dependencies; resource payloads are
+deliberately omitted because they can carry authored credentials and content. A
+rejected version exits non-zero: a rejected baseline stops before the snapshot
+is projected and reports no action counts at all, rather than reporting zeroes.
 
 Expose the agent-facing MCP tools:
 
@@ -171,7 +194,8 @@ Use the Python parser boundary or the test suite for direct validation.
 ## Current Example Use
 
 The current positive example corpus is under `examples/scenarios/`. Each file
-is real SDL and is loaded by `implementations/python/tests/test_scenarios.py`.
+is real SDL and is loaded and checked without advisories by
+`implementations/python/tests/test_example_schema_conformance.py`.
 The reusable authoring library is under `examples/library/` and indexed by
 `examples/library/catalog.yaml`.
 

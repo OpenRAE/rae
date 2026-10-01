@@ -86,6 +86,12 @@ a separately authorized linked operation and never rewrites the original.
 Verification: restart tests per classification, including the no-observation
 backend, plus authorization tests for resolution. Depends on: CP-1, CP-2.
 
+Implemented by issue #1179 with recovery observation kept independent from
+EXP-715 experiment capture/retention/export. The runtime classifies and commits
+before readiness through the existing mutation and durability authorities;
+unresolved indeterminate outcomes quarantine only their target/run until an
+operator or trusted embedder records a fresh linked administrative resolution.
+
 ### [CP-4 — Snapshot revision compare-and-swap](https://github.com/OpenRAE/rae/issues/1180)
 
 Version every snapshot commit; a writer holding a stale revision fails

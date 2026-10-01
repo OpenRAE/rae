@@ -35,7 +35,7 @@ plane (ADR-055/064/069). Declarative `conditions` remain.
 | `conditions` | `dict[str, Condition]` | Declarative health/readiness checks (command+interval or library source) |
 | `entities` | `dict[str, Entity]` | Teams, organizations, people (recursive, with exercise roles) |
 | `injects` | `dict[str, Inject]` | Actions between entities during exercises |
-| `events` | `dict[str, Event]` | Triggered actions combining conditions + injects |
+| `events` | `dict[str, Event]` | Triggered actions combining precondition assertions and injects |
 | `scripts` | `dict[str, Script]` | Timed event sequences with human-readable durations |
 | `stories` | `dict[str, Story]` | Top-level exercise orchestration grouping scripts |
 
@@ -54,7 +54,7 @@ plane (ADR-055/064/069). Declarative `conditions` remain.
 | `outcome_interpretation_rules` | `dict[str, OutcomeInterpretationRule]` | Rules connecting action observations and evidence to scenario-local outcomes | RAES participant model |
 | `behavior_specifications` | `dict[str, ParticipantBehaviorSpecification]` | Versioned aggregates over participant action, observation, outcome, authority, and mode surfaces | RAES ACT-606 |
 | `evidence_requirements` | `dict[str, EvidenceRequirement]` | Portable authored capture obligations, distinct from captured evidence | RAES DSL-124, ADR-066 |
-| `objectives` | `dict[str, Objective]` | Scenario-local objectives binding actors, targets, windows, and success (against observable `conditions`); not EXP task records | CACAO action/target/agent |
+| `objectives` | `dict[str, Objective]` | Scenario-local ownership, assignment, action constraints, targets, windows, and success assertions; not EXP task records | CACAO action/target/agent |
 | `workflows` | `dict[str, Workflow]` | Branching and parallel control graphs over declared objectives | CACAO workflow graph patterns; semantics tightened using Step Functions / Argo / SCXML style control-flow rules |
 | `variables` | `dict[str, Variable]` | Parameterization (types, defaults, substitution) | CACAO playbook_variables |
 | `variation_points` | `dict[str, VariationPoint]` | Named bounded scenario-family domains and typed targets | RAES ADR-084 |
@@ -919,11 +919,16 @@ and advisory snapshot state likewise belong in evidence. Derived severity
 counts belong in `ExperimentDerivedMeasureModel`; they do not automatically
 become native weakness facts. Authored classifications use standalone external concept bindings.
 
-`runtime.service_manager_units` records observed service-manager unit
-lifecycle state — what `systemctl` exposes from inside a realized range node.
-Each entry carries a stable RAES `unit_id`, a `manager_kind` (initially
-`systemd`, with `other` reserved), the native `unit_name` such as
-`sshd.service`, a `unit_type` (`service`/`socket`/`target`/`timer`/`path`/
+`runtime.service_manager_units` records portable unit identity plus selected
+service-manager state. Each entry carries a stable RAES `unit_id`, used as the
+key for comparison, and may carry a governed `manager_kind` and an exact native
+`unit_name`. Native names are preserved without normalization or a fabricated
+suffix, so OpenRC or private names such as `nginx` remain valid. Omitted
+manager/name leaves preserve partial knowledge and inherited open-scope
+delegation; explicit `unknown` is a knowledge state, not delegation.
+
+An explicitly selected `systemd` manager enables the existing lifecycle
+profile: a suffixed native name, `unit_type` (`service`/`socket`/`target`/`timer`/`path`/
 `mount`/`automount`/`swap`/`device`/`slice`/`scope`/`other`), and the
 participant-observable state quadruple `load_state` (loaded/not_found/masked/
 error/merged/stub/bad_setting/unknown), `active_state` (active/reloading/
@@ -940,7 +945,10 @@ a redactable `exec_start` (`command_kind` `absolute_path` / `redacted`, with
 `command_redacted` forcing an empty `command`). An optional `service` ref
 pointing at the same-node `Node.services[].name` (bare or
 `nodes.<node>.services.<name>`) ties a unit to the transport service it
-launches. This surface is observed WHAT-IS lifecycle state: it is not
+launches. Private manager identity does not authorize use of the systemd state
+fields; richer non-systemd state requires an exact admitted domain profile.
+The historical omitted-manager default remains readable, but does not become
+authored systemd intent. This surface is observed WHAT-IS state: it is not
 `Node.services` (transport bindings), not `conditions` (authored
 monitoring/readiness intent), not `runtime.processes` (live processes — a
 failed, disabled, static, or active/exited unit may have no live process),
@@ -995,16 +1003,20 @@ participate in relationships, generic reference validation, and module import
 rewriting (see
 [ADR-042](../../decisions/adrs/adr-042-network-sensor-runtime-monitoring.md)).
 
-`runtime.service_listeners` records observed in-node listener bind state:
-stable listener id, transport protocol, port or Unix socket path, bind address
-or interface, address family, listener scope, optional same-node service ref,
-optional process owner ref/name, readiness evidence, provenance, evidence refs,
-and optional typed correlations to `runtime.network.published_ports`. It is
+`runtime.service_listeners` records known in-node listener facts. A stable
+listener id is required; transport protocol, port or Unix socket path, bind
+address or interface, address family, listener scope, optional same-node
+service ref, optional process owner ref/name, readiness evidence, provenance,
+evidence refs, and typed correlations to `runtime.network.published_ports` may
+be supplied independently. Missing endpoint facts remain missing and must be
+completed or rejected by a backend operation that requires an admitted
+endpoint. The surface is
 distinct from `Node.services` (authored service identity), from
 `runtime.network.published_ports` (host publication), and from
 protocol-specific runtime inventories such as HTTP applications, DNS, mail, and
 database services. A wildcard address such as `0.0.0.0` or `::` is a wildcard
-inside the node namespace; host exposure remains a published-port fact. Fully
+inside the node namespace; a partial or wildcard description grants no access,
+and host exposure remains a published-port fact. Fully
 qualified refs such as
 `nodes.web.runtime.service_listeners.gunicorn-http-ipv4` participate in
 relationships, generic reference validation, and module import rewriting (see
@@ -1593,12 +1605,20 @@ Nested entities are referenced via dot-notation: `blue-team.alice`.
 
 ## Orchestration: Injects, Events, Scripts, Stories
 
+Entity endpoints are optional but must be paired when present; they do not
+declare participants or select physical execution targets. Ordinary injects
+and events need no participant or script/story. The accepted
+[external-trigger semantics](../../../specs/sdl/external-injects.md) bind fresh
+occurrences to admitted realizations and outcome evidence. They preserve this
+authoring syntax and distinguish world effects from optional participant
+delivery; see the [worked cases](external-inject-cases.md).
+
 ```yaml
 injects:
   phishing-email:
     source: phishing-pkg
-    from-entity: red-team
-    to-entities: [blue-team]
+    from_entity: red-team
+    to_entities: [blue-team]
 
 events:
   attack-wave:
@@ -1607,8 +1627,8 @@ events:
 
 scripts:
   main-timeline:
-    start-time: 5 min                  # OCR units: y, mon, w, d, h, m/min, s/sec, ms, us, ns
-    end-time: 2 hour
+    start_time: 5 min                  # OCR units: y, mon, w, d, h, m/min, s/sec, ms, us, ns
+    end_time: 2 hour
     speed: 1.0
     events:
       attack-wave: 30 min
@@ -1821,6 +1841,34 @@ never inferred from the SPN or node operating system. See the
 
 Typed directed edges between any named scenario elements. Adapted from STIX Relationship SROs.
 
+Participant relationships use `type: participant` with a typed `participant`
+detail. The kinds are `coordination`, `delegation`, `cooperation`, `competition`
+and `supervision`. Both endpoints name distinct agents. A sparse declaration
+is complete at its declared abstraction:
+
+```yaml
+entities:
+  researchers: {}
+agents:
+  lead: {entity: researchers}
+  peer: {entity: researchers}
+relationships:
+  shared-work:
+    type: participant
+    source: agents.lead
+    target: agents.peer
+    participant: {kind: cooperation}
+```
+
+Optional action, objective, behavior, authority, scope and observation references
+refine the declaration and are checked when supplied. Delegation and supervision
+can also reference an existing mixed-control specification. A relationship
+does not grant permissions, trigger a control handoff, disclose observations,
+or request evidence collection. Reciprocal relationships require explicit
+edges. See the {download}`participant relationship specification
+<../../../specs/sdl/participant-relationships.md>` for refinement rules and the
+boundary between declared intent and runtime occurrences.
+
 ```yaml
 relationships:
   exchange-auth:
@@ -1899,7 +1947,8 @@ operating scope.
 ```yaml
 agents:
   red-agent:
-    entity: red-team                    # identity + role (via entities.role)
+    affiliations: [red-team]            # optional organization, not identity
+    role: red                          # optional direct role override
     actions: [Scan, Exploit, Escalate]
     starting_accounts: [phished-user]   # references accounts section
     starting_assertions: [beacon-online-before-start]  # precondition assertion
@@ -1928,9 +1977,14 @@ an unbound free-text label that named a reward class running outside participant
 perception. Reward now lives in the experiment/evaluator plane (ADR-055/064/069),
 not as an authored SDL agent field.
 
-`entity` is required and must resolve to the `entities` section; the
-participant's authored identity and role both come from this binding (per
-ADR-020). `initial_knowledge.hosts` references compute node names, `subnets`
+The `agents` map key is participant identity. `affiliations` is optional and
+references distinct flattened `entities` names; shared affiliation never merges
+participants. One declaration may denote a composite autonomous subject without
+listing components. Direct `role` wins; otherwise exactly one affiliation may
+supply its entity role. Zero or multiple affiliations supply no inherited role.
+See [ADR-109](../../decisions/adrs/adr-109-participant-identity-and-objective-assignment.md)
+and the [migration guide](../../migration/participant-identity.md).
+`initial_knowledge.hosts` references compute node names, `subnets`
 references switch-backed infrastructure names, `services` references service
 names declared in `nodes.*.services`, and `accounts` references entries in the
 `accounts` section. `allowed_subnets` follows the same switch-backed
@@ -2236,7 +2290,7 @@ from the authored requirement.
 
 ## Objectives
 
-Declarative experiment semantics that bind actors, targets, timing, and success
+Declarative experiment semantics that bind ownership, assignment, targets, timing, and success
 criteria in the same SDL. Objective success composes invariant or postcondition
 assertions over backend-neutral propositions
 ([ADR-079](../../decisions/adrs/adr-079-backend-neutral-proposition-and-truth-semantics.md)).
@@ -2244,8 +2298,9 @@ assertions over backend-neutral propositions
 ```yaml
 objectives:
   red-initial-access:
-    agent: red-agent                   # or: entity: red-team
-    actions: [Scan, Exploit]           # should be declared on the agent
+    owner: red-team                    # organizational responsibility
+    assigned_participant: red-agent    # explicit pursuit assignment
+    actions: [Scan, Exploit]           # global contracts, also available to assignee
     targets:                           # any named scenario elements except variables/objectives/workflows
       - web-server
       - app-to-db
@@ -2262,13 +2317,18 @@ objectives:
       steps: [release-response.validate-release]
 
   blue-reporting:
-    entity: blue-team
+    owner: blue-team                   # valid without a participant assignment
     success:
       assertions: [web-alive-at-completion]
     depends_on: [red-initial-access]
 ```
 
-Every objective must declare exactly one actor: either `agent` or `entity`.
+Every objective must declare `owner`, `assigned_participant`, or both. Ownership
+references an entity; assignment references a participant key. Neither identifies
+who actually acted or implies a beneficiary. Every `actions` entry must name a
+declared action contract, including on unassigned objectives. When assigned,
+the actions must also be available to that participant. Shared affiliation never
+assigns an objective; unassigned organizational intent creates no runtime work.
 `success` is required and must reference at least one declared invariant or
 postcondition assertion. `targets` are optional, but when present they must
 resolve to named scenario elements. Bare target refs work when unambiguous;

@@ -1,0 +1,357 @@
+{
+  "$defs": {
+    "BackendOperationBindingModel": {
+      "additionalProperties": false,
+      "description": "Original context and invocation identity, including state-publication fences.",
+      "properties": {
+        "attempt_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "backend_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Backend Id",
+          "type": "string"
+        },
+        "baseline_revision": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Baseline Revision",
+          "type": "string"
+        },
+        "context": {
+          "$ref": "#/$defs/OperationAdmissionContext"
+        },
+        "deployment_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Deployment Id",
+          "type": "string"
+        },
+        "effect_scope": {
+          "$ref": "#/$defs/OperationEffectScopeModel"
+        },
+        "execution_generation": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Execution Generation",
+          "type": "integer"
+        },
+        "invocation_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Invocation Id",
+          "type": "string"
+        },
+        "operation_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "owner_generation": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Owner Generation",
+          "type": "integer"
+        },
+        "worker_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Worker Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation_id",
+        "invocation_id",
+        "attempt_id",
+        "worker_id",
+        "deployment_id",
+        "owner_generation",
+        "execution_generation",
+        "backend_id",
+        "baseline_revision",
+        "context"
+      ],
+      "title": "BackendOperationBindingModel",
+      "type": "object"
+    },
+    "OperationAdmissionContext": {
+      "additionalProperties": false,
+      "description": "Immutable, value-free authority and request context fixed at admission.",
+      "properties": {
+        "actor_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "authorization_scope": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Authorization Scope",
+          "type": "array"
+        },
+        "operation_kind": {
+          "$ref": "#/$defs/OperationKind"
+        },
+        "parent_operation_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Operation Id"
+        },
+        "request_commitment": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Request Commitment",
+          "type": "string"
+        },
+        "run_scope": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Run Scope",
+          "type": "string"
+        },
+        "target_scope": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Target Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "actor_id",
+        "authorization_scope",
+        "target_scope",
+        "run_scope",
+        "operation_kind",
+        "request_commitment"
+      ],
+      "title": "OperationAdmissionContext",
+      "type": "object"
+    },
+    "OperationArtifactReferenceModel": {
+      "additionalProperties": false,
+      "description": "Content-bound reference resolved through the owning admitted artifact authority.",
+      "properties": {
+        "artifact_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "contract_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*-v[0-9]+$",
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_id",
+        "artifact_id",
+        "digest"
+      ],
+      "title": "OperationArtifactReferenceModel",
+      "type": "object"
+    },
+    "OperationBudgetModel": {
+      "additionalProperties": false,
+      "description": "Remaining apparatus budget; the origin is retained across duplicate delivery.",
+      "properties": {
+        "limit_ms": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "title": "Limit Ms",
+          "type": "integer"
+        },
+        "origin_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Origin Id",
+          "type": "string"
+        },
+        "remaining_ms": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "title": "Remaining Ms",
+          "type": "integer"
+        },
+        "started_at": {
+          "format": "date-time",
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt](?:[01]\\d|2[0-3]):[0-5]\\d:(?:[0-5]\\d|60)(?:\\.\\d+)?(?:[Zz]|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$",
+          "title": "Started At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "origin_id",
+        "started_at",
+        "limit_ms",
+        "remaining_ms"
+      ],
+      "title": "OperationBudgetModel",
+      "type": "object"
+    },
+    "OperationEffectScopeModel": {
+      "additionalProperties": false,
+      "description": "Target/run exclusion is the default; narrowing needs admitted independence.",
+      "properties": {
+        "addresses": {
+          "default": [],
+          "items": {
+            "maxLength": 2048,
+            "minLength": 3,
+            "not": {
+              "pattern": "[^a-z0-9_.-]"
+            },
+            "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Addresses",
+          "type": "array"
+        },
+        "independence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OperationArtifactReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "kind": {
+          "default": "target-run",
+          "enum": [
+            "target-run",
+            "resources"
+          ],
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "title": "OperationEffectScopeModel",
+      "type": "object"
+    },
+    "OperationKind": {
+      "description": "Closed kinds of work admitted by the runtime control plane.",
+      "enum": [
+        "provisioning",
+        "orchestration",
+        "evaluation",
+        "workflow-cancellation",
+        "workflow-timeout-reconciliation",
+        "participant-action",
+        "participant-control",
+        "participant-crossing",
+        "composition-phase",
+        "indeterminate-resolution"
+      ],
+      "title": "OperationKind",
+      "type": "string"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/backend-operation-request-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Exact admitted command and requirements checked again immediately before dispatch.",
+  "properties": {
+    "binding": {
+      "$ref": "#/$defs/BackendOperationBindingModel"
+    },
+    "budget": {
+      "$ref": "#/$defs/OperationBudgetModel"
+    },
+    "command": {
+      "$ref": "#/$defs/OperationArtifactReferenceModel"
+    },
+    "required_guarantees": {
+      "default": [],
+      "items": {
+        "enum": [
+          "cancellation",
+          "effect-observation",
+          "cessation-evidence",
+          "partial-effects",
+          "external-fencing"
+        ],
+        "type": "string"
+      },
+      "maxItems": 5,
+      "title": "Required Guarantees",
+      "type": "array"
+    },
+    "requirement_refs": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/OperationArtifactReferenceModel"
+      },
+      "maxItems": 64,
+      "title": "Requirement Refs",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "backend-operation-request/v1",
+      "default": "backend-operation-request/v1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "binding",
+    "command",
+    "budget"
+  ],
+  "title": "BackendOperationRequestModel",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "Validate unique collections, calendar instants, budget bounds, scope and honest effect/outcome claims; structural validity does not prove backend truth or runtime authority.",
+      "id": "backend-operation-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "backend-operation-request-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.BackendOperationRequestModel.model_validate"
+    }
+  ],
+  "x-raes-semantic-profile": {
+    "contract_id": "backend-operation-request-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
+}

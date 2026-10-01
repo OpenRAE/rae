@@ -21,6 +21,7 @@ working records that remain visible in the repository.
 - [Research records](research/)
 - [Modular participant-control architecture and delivery graph](research/modular-participant-control/index.md)
 - [Issue 1198 language extensibility design review](research/language-extensibility/design-review.md)
+- [Issue 215 participant identity and actor/target audit](research/participant-identity/audit.md)
 - [Clarified design intent: open scopes and backend responsibility](research/language-extensibility/design-intent.md)
 - [Migration records](migration/README.md)
 - [Lessons](lessons/README.md)

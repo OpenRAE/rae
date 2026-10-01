@@ -1,10 +1,10 @@
 {
+  "content_hash": "38c41edabb9c99c963bd83e4f7869f4f80392913f6ca1ac7742cea2a5ab67687",
   "contract_id": "external-concept-bindings-v1",
-  "schema_path": "contracts/schemas/concept-authority/external-concept-bindings-v1.json",
-  "stability": "draft",
-  "content_hash": "4779c89b92f03c8a99e5a2da7580744115163550296b83992e9aa7ce86fd097e",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "4779c89b92f03c8a99e5a2da7580744115163550296b83992e9aa7ce86fd097e"
-  }
+    "content_hash": "38c41edabb9c99c963bd83e4f7869f4f80392913f6ca1ac7742cea2a5ab67687",
+    "summary": "Add the distinct materialization-attestation reference kind to portable artifact joins; it never replaces the original scenario-snapshot identity (#1241)."
+  },
+  "schema_path": "contracts/schemas/concept-authority/external-concept-bindings-v1.json",
+  "stability": "draft"
 }

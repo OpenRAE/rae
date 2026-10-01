@@ -119,7 +119,9 @@
         "workflow-timeout-reconciliation",
         "participant-action",
         "participant-control",
-        "participant-crossing"
+        "participant-crossing",
+        "composition-phase",
+        "indeterminate-resolution"
       ],
       "title": "OperationKind",
       "type": "string"

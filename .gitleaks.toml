@@ -50,3 +50,11 @@ regexes = [
 paths = [
   '''(^|/)contracts/fixtures/random-stream-vectors/.*''',
 ]
+
+[[allowlists]]
+description = "Issue #1350: exact synthetic DBOS workflow ID in the source-hashed experiment; not a credential. Other values, paths and scanner rules remain checked."
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''^dbos-r2-cancel$''']
+paths = ['''(^|/)docs/research/execution-architecture/experiments/probe_dbos\.py$''']

@@ -9,6 +9,7 @@ from raes_contracts.behavioral_relation_profiles import (
     ActiveOpacityStrategyModel,
     BehavioralRelationProfileModel,
     CoalitionOpacityObserverModel,
+    ParticipantPredicateOpacityParametersModel,
 )
 from raes_contracts.behavioral_relations import (
     BehavioralRelationCatalogModel,
@@ -101,6 +102,8 @@ def validate_admission(
 ) -> None:
     if request.analysis_profile != ANALYSIS_PROFILE:
         raise ParticipantOpacityOperationalError("unknown participant-opacity model-check profile")
+    if not isinstance(profile.parameters, ParticipantPredicateOpacityParametersModel):
+        raise ParticipantOpacityOperationalError("expected an opacity parameter profile")
     if request.catalog_digest != _catalog_digest(catalog):
         raise ParticipantOpacityOperationalError("behavioral catalog digest does not match the transition model")
     if (

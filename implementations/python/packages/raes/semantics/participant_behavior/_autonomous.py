@@ -26,20 +26,7 @@ def _autonomous_progression_issues(
 ) -> list[ParticipantBehaviorIssue]:
     policy = context.policy
     progression_mode = getattr(getattr(bindings.progression, "advancement_mode", None), "value", "")
-    clock_authority = getattr(getattr(bindings.clock, "authority_kind", None), "value", "")
     issues: list[ParticipantBehaviorIssue] = []
-    if progression_mode == "externally_paced":
-        issues.append(
-            _autonomous_issue(
-                context,
-                "participant.autonomous-progression-driver-unsupported",
-                policy.progression_policy_ref,
-            )
-        )
-    if progression_mode in {"real_time", "dilated"} and clock_authority != "runtime":
-        issues.append(
-            _autonomous_issue(context, "participant.autonomous-clock-authority-unsupported", policy.clock_ref)
-        )
     if bindings.cadence_count == 1 and bindings.cadence is not None:
         start = getattr(bindings.cadence, "start", None)
         start_tick = getattr(start, "tick", 0) if start is not None else 0
@@ -61,7 +48,10 @@ def _activity_timing_unreachable(
 ) -> bool:
     minimum_ticks = policy.timing.minimum_ticks
     maximum_ticks = policy.timing.maximum_ticks
-    return not (isinstance(step_ticks, int) and not minimum_ticks % step_ticks and not maximum_ticks % step_ticks)
+    # Source variables are checked again on the admitted instantiated scenario.
+    return isinstance(step_ticks, int) and any(
+        isinstance(bound, int) and bound % step_ticks for bound in (minimum_ticks, maximum_ticks)
+    )
 
 
 def _cadence_unreachable(bindings: _AutonomousTimeBindings, step_ticks: object) -> bool:
@@ -136,7 +126,7 @@ def _autonomous_non_evaluated_issues(
                 )
             )
         has_objective = any(
-            getattr(objective, "agent", None) == participant_name
+            getattr(objective, "assigned_participant", None) == participant_name
             for objective in context.references.objectives.values()
         )
         if has_objective:
@@ -162,7 +152,7 @@ def _autonomous_non_evaluated_issues(
     return issues
 
 
-def _autonomous_declared_authority_issues(
+def _autonomous_objective_authority_issues(
     context: _AutonomousExecutionReferenceContext,
 ) -> list[ParticipantBehaviorIssue]:
     authority = context.policy.evaluation_authority
@@ -179,6 +169,20 @@ def _autonomous_declared_authority_issues(
                     objective_ref,
                 )
             )
+        else:
+            assignment = getattr(context.references.objectives[objective_name], "assigned_participant", None)
+            if not context.is_unresolved(assignment) and assignment not in context.participants:
+                issues.append(
+                    _autonomous_issue(context, "participant.autonomous-objective-not-assigned", objective_ref)
+                )
+    return issues
+
+
+def _autonomous_declared_authority_issues(
+    context: _AutonomousExecutionReferenceContext,
+) -> list[ParticipantBehaviorIssue]:
+    authority = context.policy.evaluation_authority
+    issues = _autonomous_objective_authority_issues(context)
     unsupported_authority_refs = (
         ("proof_producer_refs", authority.proof_producer_refs),
         ("score_authority_refs", authority.score_authority_refs),

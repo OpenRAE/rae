@@ -74,10 +74,26 @@ def _snapshot_result_updates(
             "participant_crossing_history",
             snapshot.participant_crossing_history,
         ),
+        "participant_control_evaluation_history": _history_update(
+            updates,
+            "participant_control_evaluation_history",
+            snapshot.participant_control_evaluation_history,
+        ),
+        "mixed_composition_states": _mapping_update(
+            updates, "mixed_composition_states", snapshot.mixed_composition_states
+        ),
+        "mixed_composition_history": _history_update(
+            updates, "mixed_composition_history", snapshot.mixed_composition_history
+        ),
         "information_state_history": _history_update(
             updates,
             "information_state_history",
             snapshot.information_state_history,
+        ),
+        "participant_outcome_history": _history_update(
+            updates,
+            "participant_outcome_history",
+            snapshot.participant_outcome_history,
         ),
     }
 
@@ -141,6 +157,9 @@ def _snapshot_updates(
 ) -> dict[str, Any]:
     return {
         **_snapshot_result_updates(snapshot, updates),
+        "materialization_attestations": updates.get(
+            "materialization_attestations", snapshot.materialization_attestations
+        ),
         **_snapshot_participant_updates(snapshot, updates),
         "time_model_state": _time_model_state_update(
             updates,
@@ -167,6 +186,7 @@ def _snapshot_updates(
 
 
 _SNAPSHOT_UPDATE_KEYS = {
+    "materialization_attestations",
     "orchestration_results",
     "orchestration_history",
     "evaluation_results",
@@ -178,7 +198,11 @@ _SNAPSHOT_UPDATE_KEYS = {
     "participant_behavior_history",
     "participant_control_history",
     "participant_crossing_history",
+    "participant_control_evaluation_history",
+    "mixed_composition_states",
+    "mixed_composition_history",
     "information_state_history",
+    "participant_outcome_history",
     "participant_autonomous_execution_states",
     "participant_execution_services",
     "participant_resource_budget_states",

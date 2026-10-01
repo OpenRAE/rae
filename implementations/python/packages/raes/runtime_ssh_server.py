@@ -16,8 +16,9 @@ must be modeled with ``command_redacted=True``.
 
 from enum import Enum
 
-from pydantic import Field, ValidationInfo, field_validator, model_validator
+from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_filesystem import flagged_raw_value_schema, redacted_raw_value_schema
 from raes.runtime_vocabulary import GovernedVocabulary
 
 from ._base import (
@@ -126,6 +127,19 @@ class SshForcedCommand(SDLModel):
       arguments; ``command`` must be empty and ``command_redacted`` must
       be true.
     """
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                flagged_raw_value_schema(flag_field="command_redacted", raw_field="command", array=False),
+                redacted_raw_value_schema(
+                    sensitivity_field="command_kind",
+                    raw_field="command",
+                    raw_value_schema={"type": "string", "minLength": 1},
+                ),
+            ]
+        }
+    )
 
     command_kind: GovernedVocabulary[SshForcedCommandKind] = SshForcedCommandKind.ABSOLUTE_PATH
     command: str = ""

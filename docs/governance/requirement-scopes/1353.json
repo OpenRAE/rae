@@ -1,0 +1,97 @@
+{
+  "schema_version": "requirement-scope/v1",
+  "issue_number": 1353,
+  "primary_requirement_uid": "DSL-111",
+  "requirement_uids": [
+    "DSL-111",
+    "DSL-142"
+  ],
+  "bindings": {
+    ".github/workflows/ground-control-phase-e.yml": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "docs/decisions/adrs/README.md": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "docs/decisions/adrs/adr-112-external-inject-triggering-and-execution.md": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "docs/decisions/adrs/adr-index.yaml": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "docs/explain/sdl/external-inject-cases.md": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "docs/explain/sdl/external-inject-compatibility.md": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "docs/explain/sdl/issue-1353-external-inject-triggering-preflight.md": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "docs/explain/sdl/runtime-architecture.md": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "docs/explain/sdl/sections.md": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "docs/explain/sdl/validation.md": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "docs/governance/requirement-scopes/1353.json": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "docs/requirements/DSL-111/requirement.md": [
+      "DSL-111"
+    ],
+    "docs/requirements/DSL-142/requirement.md": [
+      "DSL-142"
+    ],
+    "implementations/python/tests/test_issue_1313_workflow_policy.py": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "implementations/python/tests/test_issue_1353_external_inject_design.py": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "implementations/python/tests/test_release_workflows.py": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "specs/sdl/external-injects.md": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "specs/sdl/references.md": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "specs/sdl/sections.md": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "tools/policy/historical_identity_records.json": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "tools/policy/requirement_order.yaml": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "tools/tooling_artifact_policy_actions.py": [
+      "DSL-111",
+      "DSL-142"
+    ]
+  }
+}

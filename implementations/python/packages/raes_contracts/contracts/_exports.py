@@ -1,8 +1,16 @@
 """Canonical public export manifest for the contracts facade."""
 
+from ._backend_operation_exports import BACKEND_OPERATION_EXPORTS
 from ._candidate_synthesis_exports import CANDIDATE_SYNTHESIS_EXPORTS
+from ._mixed_composition_exports import MIXED_COMPOSITION_EXPORTS
+from ._participant_control_exports import PARTICIPANT_CONTROL_EXPORTS
 
 PUBLIC_EXPORTS = [
+    *BACKEND_OPERATION_EXPORTS,
+    *PARTICIPANT_CONTROL_EXPORTS,
+    *MIXED_COMPOSITION_EXPORTS,
+    "MaterializationArchiveRecord",
+    "MaterializationAttestationReferenceModel",
     "DescriptionCoverageModel",
     "DescriptionFactModel",
     "DescriptionProvenanceModel",
@@ -51,6 +59,7 @@ PUBLIC_EXPORTS = [
     "BackendCompatibilityModel",
     "BackendManifestV2Model",
     "BackendCapabilitiesV2Model",
+    "RecoveryObservationCapabilitiesModel",
     "BehavioralClaimBindingModel",
     "BEHAVIORAL_RELATION_PROFILE_SCHEMA_VERSION",
     "BehavioralRelationId",
@@ -152,6 +161,7 @@ PUBLIC_EXPORTS = [
     "ExperimentEvidenceRecordModel",
     "ExperimentEvidenceRecordReferenceModel",
     "ExperimentEvidenceReferenceModel",
+    "ExperimentEvidenceRequirementRelationModel",
     "ExperimentEvaluationProtocolModel",
     "ExperimentInvalidationModel",
     "ExperimentManifestReferenceModel",
@@ -226,9 +236,6 @@ PUBLIC_EXPORTS = [
     "EvaluatorCapabilitiesModel",
     "EventClassificationModel",
     "InstantiationRequestModel",
-    "OPERATION_SCHEMA_VERSION",
-    "OperationReceiptModel",
-    "OperationStatusModel",
     "ObservedOperatingSystemIdentityModel",
     "ObservationCaptureOfferModel",
     "ObservationCapabilitiesModel",
@@ -336,6 +343,7 @@ PUBLIC_EXPORTS = [
     "ParticipantObservationStochasticContextModel",
     "ParticipantOutcomeInterpretationRecordModel",
     "ParticipantOutcomeReportModel",
+    "ParticipantOutcomeReportV2Model",
     "ParticipantOutcomeReportSourceModel",
     "ParticipantOutcomeReportStateRelationshipModel",
     "ParticipantOutcomeSourceRecordModel",
@@ -479,6 +487,7 @@ PUBLIC_EXPORTS = [
     "validate_experiment_study_structure_against_tasks_and_runs",
     "validate_experiment_study_archival_datetimes",
     "validate_experiment_task_archival_datetimes",
+    "validate_evidence_requirement_relations",
     "ValidationBasisDisclosureDocumentModel",
     "validate_experiment_run_time_model",
     "TimeCapabilitiesModel",

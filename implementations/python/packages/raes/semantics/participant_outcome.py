@@ -124,6 +124,7 @@ def analyze_participant_outcome_interpretations(
 
     issues: list[ParticipantOutcomeIssue] = []
     for rule_name, rule in outcome_interpretation_rules.items():
+        issues.extend(_local_effect_issues(str(rule_name), rule, action_contracts))
         for binding in getattr(rule, "source_bindings", ()) or ():
             issue = _source_ref_issue(
                 rule_name=str(rule_name),
@@ -153,3 +154,26 @@ __all__ = [
     "ParticipantOutcomeIssue",
     "analyze_participant_outcome_interpretations",
 ]
+
+
+def _local_effect_issues(
+    rule_name: str, rule: object, action_contracts: Mapping[str, object]
+) -> list[ParticipantOutcomeIssue]:
+    issues: list[ParticipantOutcomeIssue] = []
+    local = getattr(rule, "local_outcome", None)
+    if local is not None:
+        sources = {source.source_id: source for source in rule.source_bindings}
+        for criterion in local.criteria:
+            source = sources[criterion.source_id]
+            action = action_contracts.get(source.ref)
+            if action is not None and criterion.effect_id not in {effect.effect_id for effect in action.effects}:
+                issues.append(
+                    ParticipantOutcomeIssue(
+                        code="participant.outcome.local-effect-unbound",
+                        rule_name=str(rule_name),
+                        binding_id=criterion.criterion_id,
+                        ref=criterion.effect_id,
+                        layer="local_outcome_effect",
+                    )
+                )
+    return issues

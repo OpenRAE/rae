@@ -17,28 +17,25 @@ from tools.nox_support.config import (
     VERIFY_PROJECT_SYNCED_ENV,
 )
 from tools.nox_support.policy_lanes import (
-    _run_contracts,
+    _run_changed_lint,
     _run_hygiene,
-    _run_lint,
     _run_policy,
 )
 from tools.nox_support.runner import (
     SessionReporter,
     _requirement_aware_policy_args,
+    _run_pytest,
     _sync_project,
 )
 from tools.nox_support.test_lanes import (
     _finalize_parallel_coverage,
-    _run_docs,
-    _run_fuzz,
-    _run_tests,
 )
 from tools.parallel_verification import VerificationLane, run_verification_lanes
 from tools.policy.conftest_tool import ensure_conftest
 from tools.verification_plan import (
     collect_git_changes,
-    plan_for_changes,
     resolve_upstream,
+    select_changed_python_tests,
 )
 
 
@@ -198,40 +195,57 @@ def _run_parallel_verification(
         )
 
 
+def _run_fast_feedback(
+    session: nox.Session,
+    reporter: SessionReporter,
+    posargs: list[str],
+) -> None:
+    """Advisory early-feedback lane (#935): static/lint/policy for the diff plus
+    directly changed pytest modules.
+
+    This lane is never the merge gate. When no test module is directly changed it
+    records an explicit "no authoritative targeted selection" outcome and defers
+    to the full-suite shards rather than claiming the selected subset is
+    sufficient.
+    """
+
+    try:
+        base_rev: str | None = _changed_base_rev(posargs)
+        changes = collect_git_changes(REPO_ROOT, base_rev)
+    except (RuntimeError, ValueError) as exc:
+        base_rev = None
+        changes = []
+        session.log(f"fast-feedback change classification unavailable: {exc}")
+
+    # Linters and pytest consume current files, not deleted or rename-source paths.
+    changed_paths = [change.path for change in changes if change.status != "D"]
+    base_policy_args = ["--base-rev", base_rev] if base_rev is not None else []
+    policy_args = _requirement_aware_policy_args(*base_policy_args)
+    if base_rev is not None:
+        _run_hygiene(session, reporter, posargs=["--base-rev", base_rev], default_all_files=False)
+    else:
+        _run_hygiene(session, reporter, posargs=["--all-files"], default_all_files=True)
+    _run_policy(session, reporter, *policy_args)
+    _run_changed_lint(session, reporter, changed_paths)
+
+    changed_tests = select_changed_python_tests(changed_paths)
+    if changed_tests:
+        reporter.run(
+            "fast-feedback / directly changed pytest modules",
+            lambda: _run_pytest(session, *changed_tests, "-q"),
+            detail=" ".join(changed_tests),
+        )
+    else:
+        reporter.skip(
+            "fast-feedback / directly changed pytest modules",
+            "no authoritative targeted selection; the full-suite shards remain the merge gate",
+        )
+
+
 def _run_changed_verification(
     session: nox.Session,
     reporter: SessionReporter,
     posargs: list[str],
 ) -> None:
-    try:
-        base_rev = _changed_base_rev(posargs)
-        changes = collect_git_changes(REPO_ROOT, base_rev)
-        plan = plan_for_changes(changes)
-        session.log(f"change-aware verification against {base_rev}: {plan.reason}; {len(changes)} change records")
-    except (RuntimeError, ValueError) as exc:
-        base_rev = None
-        plan = plan_for_changes([])
-        session.log(f"change classification failed closed to the full local gate: {exc}")
-
-    base_policy_args = ["--base-rev", base_rev] if base_rev is not None else []
-    policy_args = _requirement_aware_policy_args(*base_policy_args)
-    _run_hygiene(session, reporter, posargs=["--all-files"], default_all_files=True)
-    _run_policy(session, reporter, *policy_args)
-    _run_lint(session, reporter)
-    if plan.contracts:
-        _run_contracts(session, reporter, *policy_args)
-    else:
-        reporter.skip("contracts / governed artifact graph", plan.reason)
-    if plan.regression:
-        with tempfile.TemporaryDirectory(prefix="raes-coverage-") as coverage_dir:
-            _run_tests(session, reporter, Path(coverage_dir) / ".coverage")
-    else:
-        reporter.skip("tests / pytest", plan.reason)
-    if plan.fuzz:
-        _run_fuzz(session, reporter)
-    else:
-        reporter.skip("tests / pytest fuzz", plan.reason)
-    if plan.docs:
-        _run_docs(session, reporter)
-    else:
-        reporter.skip("docs / sphinx-build", plan.reason)
+    """Compatibility entry point for targeted local feedback; full suites belong to CI/CD."""
+    _run_fast_feedback(session, reporter, posargs)

@@ -65,7 +65,11 @@ from tools.check_adr_immutability import (
 )
 from tools.check_generated_schemas import _extra_published_schema_paths
 from tools.check_json_artifacts import ValidationTarget, collect_validation_targets, should_run_full_validation
-from tools.check_schema_publication import schema_content_hash, validate_schema_publication_manifest
+from tools.check_schema_publication import (
+    load_schema_publication_catalog,
+    schema_content_hash,
+    validate_schema_publication_manifest,
+)
 from tools.gitleaks_tool import gitleaks_binary_path
 from tools.parallel_verification import VerificationLane, run_verification_lanes
 from tools.policy.common import PolicyFailure
@@ -170,7 +174,7 @@ def test_noxfile_owns_session_registration_and_nox_configuration() -> None:
     noxfile_tree = ast.parse(noxfile_source)
     assert 'nox.options.default_venv_backend = "none"' in noxfile_source
     assert "nox.options.reuse_existing_virtualenvs = True" in noxfile_source
-    assert 'nox.options.sessions = ["verify"]' in noxfile_source
+    assert 'nox.options.sessions = ["verify-fast-feedback"]' in noxfile_source
     for module_name in NOX_SUPPORT_MODULES:
         support_source = (REPO_ROOT / "tools" / "nox_support" / f"{module_name}.py").read_text(encoding="utf-8")
         assert "@nox.session" not in support_source
@@ -221,7 +225,10 @@ def test_noxfile_registers_the_exact_public_session_inventory() -> None:
         "verify",
         "verify-changed",
         "verify-completion",
+        "verify-coverage-reduce",
+        "verify-fast-feedback",
         "verify-integration-lane",
+        "verify-shard",
         "verify-static-lane",
         "verify-tests-lane",
     }
@@ -410,6 +417,7 @@ class ImmediateReporter:
 
 
 def test_policy_lanes_route_commands_and_report_skips(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(nox_runner, "current_requirement_branch", lambda _root: "fixture-command-routing")
     session = types.SimpleNamespace()
     reporter = ImmediateReporter()
     commands: list[tuple[str, ...]] = []
@@ -570,51 +578,34 @@ def test_parallel_graph_executes_success_and_reports_all_failures(
     )
 
 
-def test_change_selected_graph_routes_plans_and_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
-    class FakeSession:
-        def __init__(self) -> None:
-            self.messages: list[str] = []
-
-        def log(self, message: str) -> None:
-            self.messages.append(message)
-
-    session = FakeSession()
+def test_local_changed_graph_never_selects_the_full_suite(monkeypatch: pytest.MonkeyPatch) -> None:
+    session = types.SimpleNamespace(log=lambda _message: None)
     reporter = ImmediateReporter()
-    calls: list[str] = []
-    plan = types.SimpleNamespace(contracts=False, regression=False, fuzz=False, docs=False, reason="prose")
-    monkeypatch.setattr(nox_graph, "collect_git_changes", lambda *_args: [types.SimpleNamespace(path="README.md")])
-    monkeypatch.setattr(nox_graph, "plan_for_changes", lambda _changes: plan)
-    monkeypatch.setattr(nox_graph, "_requirement_aware_policy_args", lambda *args: list(args))
-    for name in ("_run_hygiene", "_run_policy", "_run_lint", "_run_contracts", "_run_tests", "_run_fuzz", "_run_docs"):
-        monkeypatch.setattr(nox_graph, name, lambda *_args, _name=name, **_kwargs: calls.append(_name))
-
-    nox_graph._run_changed_verification(session, reporter, ["--base-rev", "base"])
-    assert calls == ["_run_hygiene", "_run_policy", "_run_lint"]
-    assert {name for name, _reason in reporter.skips} == {
-        "contracts / governed artifact graph",
-        "tests / pytest",
-        "tests / pytest fuzz",
-        "docs / sphinx-build",
-    }
-
-    plan.contracts = plan.regression = plan.fuzz = plan.docs = True
-    calls.clear()
+    calls: list[object] = []
+    monkeypatch.setattr(nox_graph, "_run_fast_feedback", lambda *args: calls.append(args))
     monkeypatch.setattr(
-        nox_graph,
-        "_changed_base_rev",
-        lambda _posargs: (_ for _ in ()).throw(RuntimeError("no upstream")),
+        nox_graph, "_run_parallel_verification", lambda *_args, **_kwargs: pytest.fail("full local suite")
     )
-    nox_graph._run_changed_verification(session, ImmediateReporter(), [])
-    assert calls == [
-        "_run_hygiene",
-        "_run_policy",
-        "_run_lint",
-        "_run_contracts",
-        "_run_tests",
-        "_run_fuzz",
-        "_run_docs",
-    ]
-    assert any("failed closed" in message for message in session.messages)
+    monkeypatch.setattr(nox_graph, "collect_git_changes", lambda *_args: [])
+    for name in ("_run_hygiene", "_run_policy", "_run_lint", "_run_contracts"):
+        monkeypatch.setattr(nox_graph, name, lambda *_args, **_kwargs: None, raising=False)
+    monkeypatch.setattr(
+        nox_graph, "_run_tests", lambda *_args, **_kwargs: pytest.fail("full local suite"), raising=False
+    )
+    nox_graph._run_changed_verification(session, reporter, ["--base-rev", "base"])
+    assert calls == [(session, reporter, ["--base-rev", "base"])]
+
+
+def test_completion_uses_targeted_feedback(monkeypatch: pytest.MonkeyPatch) -> None:
+    noxfile = load_noxfile_with_fake_nox(monkeypatch)
+    calls: list[object] = []
+    monkeypatch.setattr(noxfile, "SessionReporter", lambda *_args: types.SimpleNamespace(summary=lambda: None))
+    monkeypatch.setattr(noxfile, "_run_fast_feedback", lambda *args: calls.append(args[-1]))
+    monkeypatch.setattr(
+        noxfile, "_run_parallel_verification", lambda *_args, **_kwargs: pytest.fail("full local suite")
+    )
+    noxfile.verify_completion(types.SimpleNamespace(posargs=["--base-rev", "base"]))
+    assert calls == [["--base-rev", "base"]]
 
 
 def test_graph_base_revision_and_cpu_fallbacks(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1005,7 +996,7 @@ def test_line_coverage_threshold_is_fixed_at_ninety_percent(
 
 
 @pytest.mark.integration
-def test_make_policy_skips_only_requirement_governance_without_a_uid() -> None:
+def test_make_policy_delegates_requirement_context_to_the_shared_nox_gate() -> None:
     environment = os.environ.copy()
     environment.pop("RAES_REQUIREMENT_UID", None)
     requirement_free = subprocess.run(
@@ -1026,20 +1017,20 @@ def test_make_policy_skips_only_requirement_governance_without_a_uid() -> None:
         text=True,
     ).stdout
 
-    assert requirement_free.rstrip().endswith("-- --skip-requirement")
+    assert "--skip-requirement" not in requirement_free
     assert "--skip-requirement" not in requirement_scoped
 
 
 def test_hook_policy_context_skips_only_requirement_free_branches(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("RAES_REQUIREMENT_UID", raising=False)
-    monkeypatch.setattr(nox_runner, "_git_lines", lambda *_args: ["1104-minimal-coverage-policy"])
+    monkeypatch.setattr(nox_runner, "current_requirement_branch", lambda _root: "1104-minimal-coverage-policy")
     assert nox_runner._requirement_aware_policy_args("--staged") == ["--staged", "--skip-requirement"]
 
-    monkeypatch.setattr(nox_runner, "_git_lines", lambda *_args: ["1104-ASR-505-coverage-policy"])
+    monkeypatch.setattr(nox_runner, "current_requirement_branch", lambda _root: "1104-ASR-505-coverage-policy")
     assert nox_runner._requirement_aware_policy_args("--staged") == ["--staged"]
 
     monkeypatch.setenv("RAES_REQUIREMENT_UID", "ASR-505")
-    monkeypatch.setattr(nox_runner, "_git_lines", lambda *_args: ["1104-minimal-coverage-policy"])
+    monkeypatch.setattr(nox_runner, "current_requirement_branch", lambda _root: "1104-minimal-coverage-policy")
     assert nox_runner._requirement_aware_policy_args("--staged") == ["--staged"]
 
 
@@ -2644,6 +2635,78 @@ def test_schema_publication_manifest_accepts_independent_v2_records(tmp_path: Pa
     assert validate_schema_publication_manifest(repo_root) == []
 
 
+def test_schema_publication_manifest_accepts_coverage_metadata_in_both_storage_forms(tmp_path: Path) -> None:
+    """The publication gate keeps its own scope when a record carries coverage metadata.
+
+    ``coverage`` is repository governance owned by ``check_schema_coverage.py``
+    (issue #1330). The publication manifest must neither reject it nor be taken
+    to validate it, in the legacy inline array or in the sharded v2 records.
+    """
+
+    import json
+
+    coverage = {
+        "rationale": "The contract has no standalone corpus document to route.",
+        "sources": [
+            {
+                "kind": "test",
+                "path": "implementations/python/tests/test_repo_policy_tools.py",
+                "supports": "Publication-record shape at the contract-publication phase.",
+            }
+        ],
+    }
+
+    legacy_root = tmp_path / "legacy"
+    legacy_schema = legacy_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
+    write_text(legacy_schema, _published_schema({"name": {"type": "string"}}))
+    write_schema_publication_manifest(
+        legacy_root,
+        [
+            {
+                "contract_id": "draft-contract-v1",
+                "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
+                "coverage": coverage,
+            },
+        ],
+    )
+
+    assert validate_schema_publication_manifest(legacy_root) == []
+
+    sharded_root = tmp_path / "sharded"
+    sharded_schema = sharded_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
+    write_text(sharded_schema, _published_schema({"name": {"type": "string"}}))
+    digest = schema_content_hash(sharded_schema)
+    write_text(
+        sharded_root / "contracts" / "schema-publication-manifest.json",
+        json.dumps(
+            {
+                "schema_version": "schema-publication-manifest/v2",
+                "hash_algorithm": "sha256",
+                "entries_directory": "contracts/schema-publication/entries",
+                "tombstones_directory": "contracts/schema-publication/tombstones",
+            }
+        )
+        + "\n",
+    )
+    write_text(
+        sharded_root / "contracts" / "schema-publication" / "entries" / "draft-contract-v1.json",
+        json.dumps(
+            {
+                "contract_id": "draft-contract-v1",
+                "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
+                "stability": "draft",
+                "content_hash": digest,
+                "coverage": coverage,
+            }
+        )
+        + "\n",
+    )
+    write_text(sharded_root / "contracts" / "schema-publication" / "tombstones" / "README.md", "# Empty\n")
+
+    assert validate_schema_publication_manifest(sharded_root) == []
+    assert load_schema_publication_catalog(sharded_root)["schemas"][0]["coverage"] == coverage
+
+
 def test_schema_publication_manifest_rejects_last_change_without_summary(tmp_path: Path) -> None:
     repo_root = tmp_path
     schema_path = repo_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
@@ -2717,42 +2780,6 @@ def test_schema_publication_manifest_requires_ledger_when_schema_changes(tmp_pat
 
     failures = validate_schema_publication_manifest(repo_root, base_rev="HEAD")
     assert any("contract-facing change description" in failure for failure in failures)
-
-
-def test_schema_publication_manifest_accepts_changed_schema_with_current_ledger(tmp_path: Path) -> None:
-    repo_root = tmp_path
-    schema_path = repo_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
-    write_text(schema_path, _published_schema({"name": {"type": "string"}}))
-    write_schema_publication_manifest(
-        repo_root,
-        [
-            {
-                "contract_id": "draft-contract-v1",
-                "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
-                "stability": "draft",
-            },
-        ],
-    )
-    _init_git_repo(repo_root)
-    _git_commit_all(repo_root, "base")
-
-    write_text(schema_path, _published_schema({"name": {"type": "integer"}}))
-    write_schema_publication_manifest(
-        repo_root,
-        [
-            {
-                "contract_id": "draft-contract-v1",
-                "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
-                "stability": "draft",
-                "last_change": {
-                    "summary": "Retype name to integer per contract review.",
-                    "content_hash": schema_content_hash(schema_path),
-                },
-            },
-        ],
-    )
-
-    assert validate_schema_publication_manifest(repo_root, base_rev="HEAD") == []
 
 
 def test_schema_publication_manifest_requires_ledger_for_new_schema(tmp_path: Path) -> None:

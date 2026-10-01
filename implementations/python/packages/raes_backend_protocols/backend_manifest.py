@@ -18,6 +18,7 @@ from .capabilities import (
     OrchestratorCapabilities,
     ParticipantRuntimeCapabilities,
     ProvisionerCapabilities,
+    RecoveryObservationCapabilities,
     TimeCapabilities,
 )
 
@@ -53,6 +54,7 @@ class _BackendManifestOptions(TypedDict, total=False):
     observation: ObservationCapabilities | None
     cleanup: CleanupCapabilities | None
     time: TimeCapabilities | None
+    recovery_observation: RecoveryObservationCapabilities | None
     realization_envelope: BackendRealizationEnvelopeModel | None
     domain_profile_context_digest: str | None
 
@@ -141,6 +143,10 @@ class BackendManifest:
         return self.capabilities.time
 
     @property
+    def recovery_observation(self) -> RecoveryObservationCapabilities | None:
+        return self.capabilities.recovery_observation
+
+    @property
     def has_orchestrator(self) -> bool:
         return self.orchestrator is not None
 
@@ -216,6 +222,7 @@ def _resolve_capabilities(options: _BackendManifestOptions) -> BackendCapability
         observation=options.get("observation"),
         cleanup=options.get("cleanup"),
         time=options.get("time"),
+        recovery_observation=options.get("recovery_observation"),
     )
 
 

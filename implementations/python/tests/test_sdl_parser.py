@@ -136,7 +136,7 @@ infrastructure:
 name: test
 objectives:
   ${objective_name}:
-    agent: red-agent
+    assigned_participant: red-agent
     success:
       assertions: [initial-access]
 """,
@@ -175,7 +175,7 @@ entities:
     role: Red
 agents:
   red-agent:
-    entity: red-team
+    affiliations: [red-team]
     actions: [Scan, Exploit]
 conditions:
   initial-access:
@@ -183,14 +183,14 @@ conditions:
     interval: 30
 objectives:
   initial-access:
-    agent: red-agent
+    assigned_participant: red-agent
     actions: [Scan]
     targets: [red-agent]
     success:
       assertions: [initial-access]
 """
         s = parse_sdl(sdl, skip_semantic_validation=True)
-        assert s.objectives["initial-access"].agent == "red-agent"
+        assert s.objectives["initial-access"].assigned_participant == "red-agent"
         assert s.objectives["initial-access"].success.assertions == ["initial-access"]
         assert s.advisories == []
 
@@ -214,7 +214,7 @@ assertions:
   release-ready: {proposition: release-ready, role: postcondition, polarity: positive}
 objectives:
   validate-release:
-    entity: blue-team
+    owner: blue-team
     success:
       assertions: [release-ready]
 workflows:
@@ -931,7 +931,7 @@ assertions:
   release-ready: {proposition: release-ready, role: postcondition, polarity: positive}
 objectives:
   review:
-    entity: blue-team
+    owner: blue-team
     success:
       mode: ${success_mode}
       assertions: [release-ready]
@@ -1072,9 +1072,10 @@ accounts:
 name: test
 agents:
   red-agent:
+    entity: legacy-team
     actions: [Scan]
 """,
-                "Agent requires 'entity'",
+                "agent.entity was replaced by affiliations",
             ),
         ],
     )
@@ -1112,9 +1113,7 @@ class TestSkipSemanticValidation:
     def test_structural_only(self):
         """skip_semantic_validation=True skips cross-reference checks."""
         s = parse_sdl(
-            "name: test\nentities:\n  blue:\n    role: blue\n"
-            "objectives:\n  obj:\n    entity: blue\n    success:\n"
-            "      assertions:\n        - missing-assertion",
+            "name: test\nentities:\n  blue:\n    role: blue\nobjectives:\n  obj:\n    owner: blue\n    success:\n      assertions:\n        - missing-assertion",
             skip_semantic_validation=True,
         )
         assert "obj" in s.objectives
@@ -1175,7 +1174,7 @@ entities:
     role: blue
 objectives:
   validate:
-    entity: blue
+    owner: blue
     success:
       assertions: [health]
 workflows:
@@ -1287,7 +1286,7 @@ relationships:
     target: nodes.vm
 agents:
   blue-agent:
-    entity: blue
+    affiliations: [blue]
     starting_assertions: [health]
     authority_anchors: [entities.blue, content.docs.items.playbook]
     allowed_subnets: [net]
@@ -1387,7 +1386,7 @@ relationships:
     target: vm
 agents:
   blue-agent:
-    entity: blue
+    affiliations: [blue]
     starting_assertions: [health]
     authority_anchors: [blue, blue-controls-vm]
     allowed_subnets: [net]
@@ -2317,7 +2316,7 @@ entities:
     role: red
 agents:
   red-agent:
-    entity: red-team
+    affiliations: [red-team]
     reward_calculator: some-calc
 """
         with pytest.raises(SDLParseError):
@@ -2343,7 +2342,7 @@ entities:
     role: blue
 objectives:
   obj:
-    entity: blue-team
+    owner: blue-team
     success:
       {field}: [x1]
 """
@@ -2370,7 +2369,7 @@ assertions:
   release-ready: {proposition: release-ready, role: postcondition, polarity: positive}
 objectives:
   obj:
-    entity: blue-team
+    owner: blue-team
     success:
       assertions: [release-ready]
 """

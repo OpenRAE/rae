@@ -6,9 +6,9 @@ from fastapi import FastAPI, HTTPException, Request
 from raes_contracts.contracts import OperationReceiptModel, WorkflowCancellationRequestModel
 
 from ..control_plane import RuntimeControlPlane
-from ._auth import _MutatingIdentity
+from ._auth import _AdministrativeMutationIdentity
 from ._offload import _control_plane_calls
-from ._responses import _CONFLICT_RESPONSES, _receipt_response, _record_operation_receipt_audit
+from ._responses import _CONFLICT_RESPONSES, _conflict_detail, _receipt_response
 
 
 def _register_workflow_routes(
@@ -19,7 +19,7 @@ def _register_workflow_routes(
     async def cancel_workflow(
         workflow_address: str,
         request: Request,
-        identity: _MutatingIdentity,
+        identity: _AdministrativeMutationIdentity,
         cancellation: WorkflowCancellationRequestModel | None = None,
     ) -> OperationReceiptModel:
         payload = cancellation or WorkflowCancellationRequestModel()
@@ -34,21 +34,13 @@ def _register_workflow_routes(
                 identity=identity,
             )
         except ValueError as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
-        _record_operation_receipt_audit(
-            calls,
-            control_plane,
-            action="cancel_workflow",
-            identity=identity.identity,
-            target=str(request.url.path),
-            receipt=receipt,
-        )
+            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
         return _receipt_response(receipt)
 
     @app.post("/workflows/reconcile-timeouts", responses=_CONFLICT_RESPONSES)
     async def reconcile_timeouts(
         request: Request,
-        identity: _MutatingIdentity,
+        identity: _AdministrativeMutationIdentity,
     ) -> OperationReceiptModel:
         calls = _control_plane_calls(request)
         try:
@@ -58,13 +50,5 @@ def _register_workflow_routes(
                 identity=identity,
             )
         except ValueError as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
-        _record_operation_receipt_audit(
-            calls,
-            control_plane,
-            action="reconcile_workflow_timeouts",
-            identity=identity.identity,
-            target=str(request.url.path),
-            receipt=receipt,
-        )
+            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
         return _receipt_response(receipt)

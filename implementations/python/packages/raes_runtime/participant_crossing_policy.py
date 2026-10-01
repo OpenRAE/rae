@@ -38,6 +38,83 @@ def _resolve_backend_support(
     intent: ParticipantCrossingIntent,
     resolution: ParticipantCrossingPolicyResolution,
 ) -> _BackendSupport:
+    if getattr(control_plane, "_mixed_runtime", None) is not None:
+        return _resolve_mixed_backend_support(control_plane, intent)
+    return _resolve_single_backend_support(control_plane, intent, resolution)
+
+
+def _unsupported_support(limitation: str, feature: str | None = None) -> _BackendSupport:
+    levels = () if feature is None else ((feature, ParticipantFeatureSupportLevel.UNSUPPORTED.value),)
+    return _BackendSupport(
+        gate=ParticipantCrossingGateDisposition.UNSUPPORTED,
+        posture=ParticipantCrossingBackendPosture.UNSUPPORTED,
+        limitations=(limitation,),
+        effective_levels=levels,
+    )
+
+
+def _support_from_levels(
+    levels: tuple[tuple[str, str], ...],
+    *,
+    evidence_refs: tuple[str, ...] = (),
+    limitations: tuple[str, ...] = (),
+) -> _BackendSupport:
+    weakest = min((ParticipantFeatureSupportLevel(level) for _, level in levels), key=_support_rank)
+    posture = {
+        ParticipantFeatureSupportLevel.EXACT: ParticipantCrossingBackendPosture.EXACT,
+        ParticipantFeatureSupportLevel.BOUNDED: ParticipantCrossingBackendPosture.BOUNDED,
+        ParticipantFeatureSupportLevel.DISCLOSED_WEAK: ParticipantCrossingBackendPosture.DISCLOSED_WEAK,
+        ParticipantFeatureSupportLevel.UNSUPPORTED: ParticipantCrossingBackendPosture.UNSUPPORTED,
+    }[weakest]
+    gate = (
+        ParticipantCrossingGateDisposition.PERMIT
+        if weakest is not ParticipantFeatureSupportLevel.UNSUPPORTED
+        else ParticipantCrossingGateDisposition.UNSUPPORTED
+    )
+    return _BackendSupport(
+        gate=gate,
+        posture=posture,
+        evidence_refs=evidence_refs,
+        limitations=limitations,
+        effective_levels=levels,
+    )
+
+
+def _resolve_mixed_backend_support(
+    control_plane: object,
+    intent: ParticipantCrossingIntent,
+) -> _BackendSupport:
+    from .mixed_runtime_dispatch import mixed_policy_allocation
+
+    allocation = mixed_policy_allocation(control_plane, intent)
+    if allocation is None:
+        return _unsupported_support("limitation:mixed-provider-unresolved")
+    requirements = {requirement.feature: requirement for requirement in allocation.feature_requirements}
+    levels: list[tuple[str, str]] = []
+    limitations: list[str] = []
+    evidence_refs: list[str] = []
+    for feature in _required_features(intent):
+        requirement = requirements.get(feature)
+        if requirement is None:
+            return _unsupported_support(f"limitation:{feature}:unsupported", feature)
+        level = requirement.allowed_downgrade_level or requirement.required_level
+        levels.append((feature, level.value))
+        if requirement.allowed_downgrade_level is not None:
+            limitations.append(f"limitation:{feature}:admitted-downgrade")
+            if requirement.downgrade_provenance_ref is not None:
+                evidence_refs.append(requirement.downgrade_provenance_ref)
+    return _support_from_levels(
+        tuple(levels),
+        evidence_refs=tuple(evidence_refs),
+        limitations=tuple(limitations),
+    )
+
+
+def _resolve_single_backend_support(
+    control_plane: object,
+    intent: ParticipantCrossingIntent,
+    resolution: ParticipantCrossingPolicyResolution,
+) -> _BackendSupport:
     declarations = []
     for feature in _required_features(intent):
         try:
@@ -50,37 +127,13 @@ def _resolve_backend_support(
                 downgrade_provenance_ref=resolution.downgrade_provenance_ref,
             )
         except ValueError:
-            return _BackendSupport(
-                gate=ParticipantCrossingGateDisposition.UNSUPPORTED,
-                posture=ParticipantCrossingBackendPosture.UNSUPPORTED,
-                limitations=(f"limitation:{feature}:unsupported",),
-                effective_levels=((feature, ParticipantFeatureSupportLevel.UNSUPPORTED.value),),
-            )
+            return _unsupported_support(f"limitation:{feature}:unsupported", feature)
         if declaration is not None:
             declarations.append(declaration)
     if not declarations:
-        return _BackendSupport(
-            gate=ParticipantCrossingGateDisposition.UNSUPPORTED,
-            posture=ParticipantCrossingBackendPosture.UNSUPPORTED,
-            limitations=("limitation:participant-policy-support-unresolved",),
-        )
-    weakest = min(
-        (declaration.support_level for declaration in declarations),
-        key=_support_rank,
-    )
-    posture = {
-        ParticipantFeatureSupportLevel.EXACT: ParticipantCrossingBackendPosture.EXACT,
-        ParticipantFeatureSupportLevel.BOUNDED: ParticipantCrossingBackendPosture.BOUNDED,
-        ParticipantFeatureSupportLevel.DISCLOSED_WEAK: ParticipantCrossingBackendPosture.DISCLOSED_WEAK,
-        ParticipantFeatureSupportLevel.UNSUPPORTED: ParticipantCrossingBackendPosture.UNSUPPORTED,
-    }[weakest]
-    return _BackendSupport(
-        gate=(
-            ParticipantCrossingGateDisposition.PERMIT
-            if weakest is not ParticipantFeatureSupportLevel.UNSUPPORTED
-            else ParticipantCrossingGateDisposition.UNSUPPORTED
-        ),
-        posture=posture,
+        return _unsupported_support("limitation:participant-policy-support-unresolved")
+    return _support_from_levels(
+        tuple((item.feature, item.support_level.value) for item in declarations),
         evidence_refs=tuple(dict.fromkeys(ref for item in declarations for ref in item.evidence_refs)),
         limitations=tuple(
             dict.fromkeys(
@@ -89,7 +142,6 @@ def _resolve_backend_support(
                 for ref in (*item.constraint_refs, *item.limitation_refs, *item.disclosure_refs)
             )
         ),
-        effective_levels=tuple((item.feature, item.support_level.value) for item in declarations),
     )
 
 

@@ -1,0 +1,244 @@
+{
+  "schema_version": "requirement-scope/v1",
+  "issue_number": 1365,
+  "primary_requirement_uid": "API-424",
+  "requirement_uids": [
+    "API-424"
+  ],
+  "bindings": {
+    "contracts/fixtures/backend-manifest/backend-manifest-v2/valid/stub.json": [
+      "API-424"
+    ],
+    "contracts/fixtures/participant-runtime/participant-control-evaluation-v2/context-invalid/missing-obligation.json": [
+      "API-424"
+    ],
+    "contracts/fixtures/participant-runtime/participant-control-evaluation-v2/invalid/unknown-field.json": [
+      "API-424"
+    ],
+    "contracts/fixtures/participant-runtime/participant-control-evaluation-v2/valid/dependency-chain.json": [
+      "API-424"
+    ],
+    "contracts/fixtures/participant-runtime/participant-control-evaluation-v2/valid/later-phase-denial.json": [
+      "API-424"
+    ],
+    "contracts/fixtures/participant-runtime/participant-control-evaluation-v2/valid/optional-failure.json": [
+      "API-424"
+    ],
+    "contracts/fixtures/participant-runtime/participant-control-selection-v2/valid/disjoint-sinks.json": [
+      "API-424"
+    ],
+    "contracts/schema-publication/entries/backend-manifest-v2.json": [
+      "API-424"
+    ],
+    "contracts/schema-publication/entries/backend-profile-v1.json": [
+      "API-424"
+    ],
+    "contracts/schema-publication/entries/participant-control-evaluation-v2.json": [
+      "API-424"
+    ],
+    "contracts/schema-publication/entries/participant-control-selection-v2.json": [
+      "API-424"
+    ],
+    "contracts/schemas/backend-manifest/backend-manifest-v2.json": [
+      "API-424"
+    ],
+    "contracts/schemas/participant-runtime/participant-control-evaluation-v2.json": [
+      "API-424"
+    ],
+    "contracts/schemas/participant-runtime/participant-control-selection-v2.json": [
+      "API-424"
+    ],
+    "contracts/schemas/profiles/backend-profile-v1.json": [
+      "API-424"
+    ],
+    "docs/decisions/issue-1365-applicable-provider-contracts-preflight.md": [
+      "API-424"
+    ],
+    "docs/explain/reference/modular-participant-control-contracts.md": [
+      "API-424"
+    ],
+    "docs/governance/requirement-scopes/1365.json": [
+      "API-424"
+    ],
+    "docs/migration/control-applicability-and-evaluation.md": [
+      "API-424"
+    ],
+    "docs/public/participant-control.md": [
+      "API-424"
+    ],
+    "docs/requirements/API-424/requirement.md": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/analysis-v55.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/analysis-v56.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/analysis-v57.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/analysis-v58.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/analysis-v59.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/bundles/retest-v55.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/bundles/retest-v56.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/bundles/retest-v57.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/bundles/retest-v58.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/bundles/retest-v59.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/execution-snapshot-v55.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/execution-snapshot-v56.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/execution-snapshot-v57.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/execution-snapshot-v58.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/execution-snapshot-v59.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/index.md": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/analysis-v55.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/analysis-v56.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/analysis-v57.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/analysis-v58.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/analysis-v59.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1361-v55.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1365-v56.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1365-v57.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1365-v58.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1365-v59.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/execution-snapshot-v55.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/execution-snapshot-v56.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/execution-snapshot-v57.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/execution-snapshot-v58.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/execution-snapshot-v59.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/index.md": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes/observability_plane_semantics.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_backend_protocols/protocols.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_conformance/conformance/validators.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/_participant_control_exports.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/bundle_runtime.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_applicability.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_composition_v2.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_decisions_v2.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_evaluation_v2.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_invocation.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_resolution.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_support_v2.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/manifest_authority.py": [
+      "API-424"
+    ],
+    "implementations/python/tests/test_formal_semantic_validation.py": [
+      "API-424"
+    ],
+    "implementations/python/tests/test_issue_1365_applicable_contracts.py": [
+      "API-424"
+    ],
+    "implementations/python/tests/test_issue_989_versioned_evidence.py": [
+      "API-424"
+    ],
+    "implementations/python/tests/test_specification_coverage.py": [
+      "API-424"
+    ],
+    "tools/check_specification_coverage.py": [
+      "API-424"
+    ],
+    "tools/formal_semantic_validation/_baseline.py": [
+      "API-424"
+    ],
+    "tools/formal_semantic_validation/_loading.py": [
+      "API-424"
+    ],
+    "tools/formal_semantic_validation/_release_revisions.py": [
+      "API-424"
+    ],
+    "tools/formal_semantic_validation/_releases.py": [
+      "API-424"
+    ],
+    "tools/formal_semantic_validation/_retest.py": [
+      "API-424"
+    ],
+    "tools/generate_contract_schemas.py": [
+      "API-424"
+    ],
+    "tools/policy/requirement_order.yaml": [
+      "API-424"
+    ]
+  }
+}

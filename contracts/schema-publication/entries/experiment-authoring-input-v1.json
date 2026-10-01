@@ -1,10 +1,10 @@
 {
+  "content_hash": "2c2f2353cc8b5211af2d9604c317d945264202afbe517542d63de2d475848fc3",
   "contract_id": "experiment-authoring-input-v1",
-  "schema_path": "contracts/schemas/experiment-core/experiment-authoring-input-v1.json",
-  "stability": "draft",
-  "content_hash": "622f11dec095deee90e7bf1885b71c58cc1b111a53ca6d7483b58ee1b5f54f92",
   "last_change": {
-    "summary": "Added scoped observation demand and content-validated evidence bindings for issues #1212 and #1112.",
-    "content_hash": "622f11dec095deee90e7bf1885b71c58cc1b111a53ca6d7483b58ee1b5f54f92"
-  }
+    "content_hash": "2c2f2353cc8b5211af2d9604c317d945264202afbe517542d63de2d475848fc3",
+    "summary": "Add typed prospective run evidence-requirement relations and distinct materialization-attestation references (#341, #1241)."
+  },
+  "schema_path": "contracts/schemas/experiment-core/experiment-authoring-input-v1.json",
+  "stability": "draft"
 }

@@ -160,10 +160,23 @@ accounts:
 relationships:
   web-to-db: {type: connects_to, source: app, target: pg}
 
+action_contracts:
+  scan:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: abstract scan
+    realization_profile: abstract
+    fidelity_claim: declared action only
+    preconditions:
+      - {precondition_id: authorized, precondition_class: authority, description: explicit grant}
+    effects:
+      - {effect_id: unchanged, effect_class: no_effect, description: no state change}
+    failure_classes: [authority_denied, unknown]
+
 agents:
   red-agent:
-    entity: red-team
-    actions: [Scan]
+    affiliations: [red-team]
+    actions: [scan]
     initial_knowledge:
       hosts: [web]
       subnets: [corp-net]
@@ -171,8 +184,8 @@ agents:
 
 objectives:
   red-access:
-    agent: red-agent
-    actions: [Scan]
+    assigned_participant: red-agent
+    actions: [scan]
     targets: [web]
     success: {assertions: [web-alive]}
     window: {stories: [exercise]}
@@ -810,7 +823,7 @@ class TestOperationTools:
         assert payload["status"] == "compiled"
         assert payload["runtime_model"]["domains"]["provisioning"]["nodes"] == 2
         assert payload["runtime_model"]["domains"]["evaluation"]["objectives"] == 1
-        assert payload["runtime_model"]["domains"]["participant"]["action_contracts"] == 0
+        assert payload["runtime_model"]["domains"]["participant"]["action_contracts"] == 1
 
     def test_plan_dry_run_reports_reference_manifest_and_operations(self, server):
         payload = _json_call(server, "sdl_plan", {"sdl_content": FULL_SDL})
@@ -822,7 +835,12 @@ class TestOperationTools:
         assert "dry run" in payload["claim_boundary"]
 
     def test_design_assessment_warns_about_action_names_without_contracts(self, server):
-        payload = _json_call(server, "sdl_design_assessment", {"sdl_content": FULL_SDL})
+        import yaml
+
+        source = yaml.safe_load(FULL_SDL)
+        source.pop("action_contracts")
+        source["objectives"]["red-access"].pop("actions")
+        payload = _json_call(server, "sdl_design_assessment", {"sdl_content": yaml.safe_dump(source)})
         messages = [note["message"] for note in payload["design_notes"]]
         assert any("action names without action contracts" in message for message in messages)
         assert payload["status"] == "needs_attention"

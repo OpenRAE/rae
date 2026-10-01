@@ -130,10 +130,10 @@ def _scenario(*, objective_target: str = OBSERVABILITY_REF, interaction_target: 
                 ],
             }
         },
-        agents={"blue-agent": {"entity": "blue", "actions": ["inspect-dashboard"]}},
+        agents={"blue-agent": {"affiliations": ["blue"], "actions": ["inspect-dashboard"]}},
         objectives={
             "inspect-observability": {
-                "entity": "blue",
+                "owner": "blue",
                 "actions": ["inspect-dashboard"],
                 "targets": [objective_target],
                 "success": {"assertions": ["observability-inspected"]},

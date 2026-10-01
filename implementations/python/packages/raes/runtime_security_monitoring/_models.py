@@ -1,7 +1,8 @@
 """Security-monitoring manager runtime inventory models."""
 
-from pydantic import Field, ValidationInfo, field_validator, model_validator
+from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_filesystem import redacted_raw_value_schema
 from raes.runtime_vocabulary import GovernedVocabulary
 
 from .._base import SDLModel, parse_int_or_var
@@ -230,6 +231,14 @@ class RuntimeSecurityMonitoringContentSet(SDLModel):
 
 class RuntimeSecurityMonitoringSetting(SDLModel):
     """A bounded manager setting with sensitivity classification."""
+
+    model_config = ConfigDict(
+        json_schema_extra=redacted_raw_value_schema(
+            sensitivity_field="value_classification",
+            raw_field="value",
+            raw_value_schema={"type": "string", "minLength": 1},
+        )
+    )
 
     setting_id: str
     component_ref: str = ""

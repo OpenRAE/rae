@@ -28,6 +28,8 @@ from raes_runtime.control_plane_security import (
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
 from starlette.types import Message, Receive, Scope, Send
 
+pytestmark = pytest.mark.control_plane_conformance
+
 _T = TypeVar("_T")
 
 
@@ -403,10 +405,10 @@ def test_rejection_audit_saturation_does_not_starve_real_authenticated_route(
             try:
                 assert await asyncio.to_thread(entered.wait, 2)
                 for _ in range(100):
-                    if "rejection audit queue is full" in caplog.text:
+                    if "control-plane-rejection-audit-dropped queue-full" in caplog.text:
                         break
                     await asyncio.sleep(0.01)
-                assert "rejection audit queue is full" in caplog.text
+                assert "control-plane-rejection-audit-dropped queue-full" in caplog.text
                 default_workers_in_use = to_thread.current_default_thread_limiter().borrowed_tokens
                 snapshot = await asyncio.wait_for(
                     client.get(

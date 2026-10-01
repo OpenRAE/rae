@@ -4,7 +4,7 @@
 it admits only the reviewed keys and fixed values that make the container ready
 to use: the reviewed image definition, the non-root account, one named cache
 volume, the one repository setup command, the tool path, editor customizations,
-and machine sizing. Host-side commands, extra environment, build inputs, host
+while native host sizing stays with the client. Host-side commands, extra environment, build inputs, host
 mounts, and container capabilities are refused rather than reviewed ad hoc.
 """
 
@@ -16,7 +16,12 @@ from pathlib import Path
 from typing import Any
 
 from tools.policy.common import PolicyFailure, load_bounded_json_object
-from tools.tooling_artifact_policy_common import as_list, as_mapping, failure, is_regular_repo_file
+from tools.tooling_artifact_policy_common import (
+    as_list,
+    as_mapping,
+    failure,
+    is_regular_repo_file,
+)
 
 DEVCONTAINER_CONFIG_PATH = ".devcontainer/devcontainer.json"
 MAX_CONFIG_BYTES = 64 * 1024
@@ -45,28 +50,43 @@ _KEYS = frozenset(
 _REQUIRED_KEYS = frozenset({"build", "remoteUser", "containerUser", "updateContentCommand", "remoteEnv"})
 # Keys that would run on the host, widen container privileges, or expose host state.
 _UNSAFE_RUNTIME_KEYS = frozenset(
-    {"initializeCommand", "privileged", "runArgs", "capAdd", "securityOpt", "init", "overrideCommand", "workspaceMount"}
+    {
+        "initializeCommand",
+        "privileged",
+        "runArgs",
+        "capAdd",
+        "securityOpt",
+        "init",
+        "overrideCommand",
+        "workspaceMount",
+    }
 )
 _VOLUME_SOURCE_RE = re.compile(r"^[a-z0-9][a-z0-9_.-]*(?:\$\{devcontainerId\}[a-z0-9_.-]*)?$")
 _EXTENSION_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9-]*\.[A-Za-z0-9][A-Za-z0-9-]*$")
-_SIZE_RE = re.compile(r"^[1-9]\d*gb$", re.ASCII)
 # Editor settings that inject terminal environment, shells, or commands.
 _UNSAFE_SETTING_RE = re.compile(
-    r"^terminal\.integrated\.|(?:^|\.)env(?:File)?(?:\.|$)|command|shell|args$|automationProfile", re.IGNORECASE
+    r"^terminal\.integrated\.|(?:^|\.)env(?:File)?(?:\.|$)|command|shell|args$|automationProfile",
+    re.IGNORECASE,
 )
 _SCALARS = (str, int, float, bool)
 
 
-def load_devcontainer_config(repo_root: Path) -> tuple[dict[str, Any] | None, PolicyFailure | None]:
+def load_devcontainer_config(
+    repo_root: Path,
+) -> tuple[dict[str, Any] | None, PolicyFailure | None]:
     if not is_regular_repo_file(repo_root, DEVCONTAINER_CONFIG_PATH):
         return None, failure(
-            RULE_SHAPE, "dev-container configuration could not be read safely", DEVCONTAINER_CONFIG_PATH
+            RULE_SHAPE,
+            "dev-container configuration could not be read safely",
+            DEVCONTAINER_CONFIG_PATH,
         )
     try:
         return load_bounded_json_object(repo_root, DEVCONTAINER_CONFIG_PATH, max_bytes=MAX_CONFIG_BYTES), None
     except (OSError, ValueError, RecursionError):
         return None, failure(
-            RULE_SHAPE, "dev-container configuration could not be parsed safely", DEVCONTAINER_CONFIG_PATH
+            RULE_SHAPE,
+            "dev-container configuration could not be parsed safely",
+            DEVCONTAINER_CONFIG_PATH,
         )
 
 
@@ -88,20 +108,6 @@ def _mount_admitted(mount: object, cache_root: str) -> bool:
         and parts["type"] == "volume"
         and _VOLUME_SOURCE_RE.fullmatch(parts["source"]) is not None
         and (parts["target"] == cache_root or parts["target"].startswith(f"{cache_root}/"))
-    )
-
-
-def _host_requirements_admitted(value: object) -> bool:
-    requirements = as_mapping(value)
-    return (
-        isinstance(value, Mapping)
-        and set(requirements) <= {"cpus", "memory", "storage"}
-        and all(
-            (isinstance(item, int) and not isinstance(item, bool) and item > 0)
-            if key == "cpus"
-            else (isinstance(item, str) and _SIZE_RE.fullmatch(item) is not None)
-            for key, item in requirements.items()
-        )
     )
 
 
@@ -148,7 +154,11 @@ def devcontainer_failures(document: Mapping[str, Any], user: str) -> list[Policy
             RULE_RUNTIME,
             "dev-container requests host execution, extra capabilities, or a host mount",
         ),
-        (_KEYS >= keys >= _REQUIRED_KEYS, RULE_SHAPE, "dev-container configuration departs from its reviewed key set"),
+        (
+            _KEYS >= keys >= _REQUIRED_KEYS,
+            RULE_SHAPE,
+            "dev-container configuration departs from its reviewed key set",
+        ),
         (
             _build_admitted(document.get("build")),
             RULE_SHAPE,
@@ -168,11 +178,6 @@ def devcontainer_failures(document: Mapping[str, Any], user: str) -> list[Policy
             document.get("updateRemoteUserUID", True) is True,
             RULE_SHAPE,
             "dev-container must keep the development user aligned with the checkout owner",
-        ),
-        (
-            "hostRequirements" not in document or _host_requirements_admitted(document["hostRequirements"]),
-            RULE_SHAPE,
-            "dev-container host requirements must be positive CPU, memory, and storage sizes",
         ),
         (
             "customizations" not in document or _customizations_admitted(document["customizations"]),

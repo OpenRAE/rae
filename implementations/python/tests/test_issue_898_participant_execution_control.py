@@ -643,7 +643,7 @@ def _two_green_participant_scenario(*, max_in_flight: int = 2):
     }
     payload["agents"]["participant-agent-2"] = {
         **payload["agents"]["participant-agent"],
-        "entity": "enterprise-participant-2",
+        "affiliations": ["enterprise-participant-2"],
         "description": "Second ordinary green participant.",
     }
     specification = payload["behavior_specifications"]["participant-behavior"]
@@ -776,6 +776,7 @@ def test_control_plane_exposes_authenticated_generation_bound_execution_control(
     initial_snapshot = RuntimeSnapshot(participant_execution_services={scope: _service_state().model_dump(mode="json")})
     target = replace(
         create_stub_target(),
+        manifest=_autonomous_manifest(_compiled()[0]),
         participant_runtime=_NativeParticipantRuntime(),
     )
     control_plane = RuntimeControlPlane(target, initial_snapshot=initial_snapshot)
@@ -811,7 +812,7 @@ def test_control_plane_exposes_authenticated_generation_bound_execution_control(
         )
         status = client.get(
             f"/operations/{started.json()['operation_id']}",
-            headers=auditor_headers,
+            headers=backend_headers,
         )
 
     assert unauthenticated.status_code == 401
@@ -840,6 +841,7 @@ def test_control_plane_rejects_synthetic_lifecycle_readback(report_change) -> No
     snapshot = RuntimeSnapshot(participant_execution_services={scope: _service_state().model_dump(mode="json")})
     target = replace(
         create_stub_target(),
+        manifest=_autonomous_manifest(_compiled()[0]),
         participant_runtime=_SyntheticControlRuntime(),
     )
     control_plane = RuntimeControlPlane(target, initial_snapshot=snapshot)

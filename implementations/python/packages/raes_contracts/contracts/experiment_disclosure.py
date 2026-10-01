@@ -41,6 +41,7 @@ _SEM_225_PORTABLE_CARRIER_KINDS = frozenset(
         "profile",
         "run",
         "scenario-snapshot",
+        "materialization-attestation",
     }
 )
 

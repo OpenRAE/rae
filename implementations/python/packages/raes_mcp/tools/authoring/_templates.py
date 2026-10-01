@@ -131,7 +131,7 @@ entities:
 objectives:
   keep-web-available:
     description: Keep the web application available
-    entity: blue-team
+    owner: blue-team
     success:
       assertions: [web-healthy]
 
@@ -317,10 +317,27 @@ relationships:
     properties: {protocol: tcp, port: "5432"}
 
 # --- Agents ---
+action_contracts:
+  scan: &abstract-action
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: authored action intent
+    realization_profile: abstract
+    fidelity_claim: intent only, no backend realization claim
+    preconditions:
+      - {precondition_id: authorized, precondition_class: authority, description: independently authorized action}
+    effects:
+      - effect_id: intent
+        effect_class: intended_effect
+        description: declared action intent
+        target_refs: [nodes.web-server]
+    failure_classes: [authority_denied, unknown]
+  exploit: *abstract-action
+
 agents:
   red-agent:
-    entity: red-team
-    actions: [Scan, Exploit]
+    affiliations: [red-team]
+    actions: [scan, exploit]
     initial_knowledge:
       hosts: [web-server]
       subnets: [corp-net]
@@ -329,15 +346,15 @@ agents:
 # --- Objectives ---
 objectives:
   red-access:
-    agent: red-agent
-    actions: [Scan, Exploit]
+    assigned_participant: red-agent
+    actions: [scan, exploit]
     targets: [web-server, sqli]
     success:
       assertions: [web-healthy]
     window:
       stories: [exercise]
   blue-defend:
-    entity: blue-team
+    owner: blue-team
     success:
       assertions: [web-healthy]
     depends_on: [red-access]

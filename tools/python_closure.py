@@ -23,7 +23,6 @@ from tools.python_closure_wheelhouse import (
     candidate_digest,
     operator_path,
     require_empty_destination,
-    verify_bootstrap_wheelhouse,
     verify_wheelhouse,
 )
 
@@ -150,7 +149,7 @@ def _smoke(
         environment_dir,
         wheelhouse,
     )
-    context_id = "python-offline" if offline else "python-public"
+    context_id = "python-public"
     if offline:
         if wheelhouse is None:
             raise ValueError("offline smoke requires a verified wheelhouse")
@@ -163,6 +162,8 @@ def _smoke(
             home=root / "home",
             cache_dir=root / "cache",
         )
+        if offline:
+            environment["UV_OFFLINE"] = "1"
         _run(
             [
                 "uv",
@@ -263,7 +264,6 @@ def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="operation", required=True)
     for operation in (
-        "bootstrap-wheelhouse-verify",
         "build",
         "manifest-show",
         "materialize",
@@ -283,16 +283,10 @@ def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
             child.add_argument("--offline", action="store_true")
         elif operation in {"materialize", "wheelhouse-verify"}:
             child.add_argument("--wheelhouse", type=Path, required=True)
-        elif operation == "bootstrap-wheelhouse-verify":
-            child.add_argument("--wheelhouse", type=Path, required=True)
-            child.add_argument("--manifest-snapshot", type=Path, required=True)
     return parser.parse_args(list(argv) if argv is not None else None)
 
 
 def _dispatch(args: argparse.Namespace) -> None:
-    if args.operation == "bootstrap-wheelhouse-verify":
-        verify_bootstrap_wheelhouse(REPO_ROOT, args.profile, args.wheelhouse, args.manifest_snapshot)
-        return
     profile = load_python_closure_profile(REPO_ROOT, args.profile)
     if args.operation == "build":
         _build(profile, args.source, args.out_dir, context_id=args.context)

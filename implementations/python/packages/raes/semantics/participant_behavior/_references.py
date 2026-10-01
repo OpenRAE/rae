@@ -259,15 +259,20 @@ def _tool_affordance_participants(
     behavior_spec: object,
     reference_context: _BehaviorSpecificationReferenceContext,
 ) -> set[str]:
+    return select_participants(
+        behavior_spec, reference_context.participant_names, reference_context.participant_roles_by_agent
+    )
+
+
+def select_participants(
+    behavior_spec: object,
+    participant_names: set[str],
+    participant_roles: Mapping[str, str | None],
+) -> set[str]:
+    """Select explicit participants and effective roles without affiliation inference."""
     participants = {
-        str(ref)
-        for ref in getattr(behavior_spec, "participant_refs", []) or []
-        if str(ref) in reference_context.participant_names
+        str(ref) for ref in getattr(behavior_spec, "participant_refs", []) or [] if str(ref) in participant_names
     }
     role_refs = {str(ref) for ref in getattr(behavior_spec, "participant_role_refs", []) or []}
-    participants.update(
-        participant_name
-        for participant_name, role in reference_context.participant_roles_by_agent.items()
-        if role in role_refs
-    )
+    participants.update(participant_name for participant_name, role in participant_roles.items() if role in role_refs)
     return participants

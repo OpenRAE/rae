@@ -17,7 +17,7 @@
       "binding_class": "external-service-project-key",
       "rationale": "Retains the existing service-owned Ground Control and SonarCloud project designations without treating them as current RAES product identity.",
       "occurrences": 2,
-      "content_sha256": "6fb0b6e3e9acb0eaa443abac03a13d71ef0d41536ed44ecd08bc7bf4265e00a7"
+      "content_sha256": "d0310fda7659a7b3ebd4834727adb1d20c5a522ef90ad13b13c51ce1d0763928"
     },
     {
       "path": "sonar-project.properties",
@@ -47,7 +47,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "b9c247d333752716ac919c9b718da924291659f2994c3805a66947862c6a6579"
+      "content_sha256": "93cd469a00c37e24ae0b0dca489a841876897e672aa82f130e1b2b156b47261e"
     },
     {
       "path": "docs/decisions/adrs/adr-000-use-adrs.md",
@@ -110,7 +110,7 @@
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
       "occurrences": 3,
-      "content_sha256": "9f7df79534d402a5a20743d7d33150d54315b60779f355d245110cf527f13b6e"
+      "content_sha256": "d01d21a33b0a96349d7f8e2b125f744a8a1496279090995e08c0e02adc04fe4c"
     },
     {
       "path": "docs/decisions/adrs/adr-021-falsification-first-claim-evidence-gate.md",
@@ -145,7 +145,7 @@
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
       "occurrences": 3,
-      "content_sha256": "8818f870d79498f3322fd5edb9d2269948d04079ef5fbc7238811911ab7f5373"
+      "content_sha256": "ff2126c02f616a4fb55bcc75d80c706c9be49baea6f124652b5345ee81f28d64"
     },
     {
       "path": "docs/decisions/adrs/adr-027-container-init-reaper-runtime-surface.md",
@@ -206,9 +206,9 @@
     {
       "path": "docs/decisions/adrs/adr-035-service-manager-unit-state-runtime-surface.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1297 native service-manager contract amendment.",
       "occurrences": 3,
-      "content_sha256": "a8eb4df39f8b88781fee62ce83a2d2abee3951ebbeed5dc0c544a2a929ffad06"
+      "content_sha256": "79ef7d91b9efc4e31e217a5916d1fe64f1b688b10c0bd758028b20e7f92ae66b"
     },
     {
       "path": "docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md",
@@ -257,7 +257,7 @@
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
       "occurrences": 4,
-      "content_sha256": "10e261d7027b769097ae70fc139d8d2c452b48b48146ed67d6af171f970163c6"
+      "content_sha256": "7c213f1ed7450bb5b4b1c918a5897b2ba07f940cd9c84b0d43832620dd6b0748"
     },
     {
       "path": "docs/decisions/adrs/adr-044-network-detection-engine-runtime-inventory.md",
@@ -346,9 +346,9 @@
     {
       "path": "docs/decisions/adrs/adr-066-observability-evidence-plane-separation.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1242 open-by-default augmentation-scope amendment.",
       "occurrences": 1,
-      "content_sha256": "a3f6e034b696f0254f5d1321b747d5a3cefe6df65784a5d88e1615b1eeec4749"
+      "content_sha256": "938ce2443ce7bd9e5cfa151d9740610ac23fa4338efa48c3cb022c7543bab24a"
     },
     {
       "path": "docs/decisions/adrs/adr-068-experiment-trials-replication-and-replay-claims.md",
@@ -409,9 +409,9 @@
     {
       "path": "docs/decisions/adrs/adr-078-closed-sdl-phase-contracts-and-portable-derivation-evidence.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1241 materialization-attestation amendment.",
       "occurrences": 9,
-      "content_sha256": "0266694288598416667f79ac4089fcdcd17c65e0fe2cee942b35cd468bdf9480"
+      "content_sha256": "79863d36552359aa5a238a549ba9eac9b7d058cbe0ad054db639cffdc597036a"
     },
     {
       "path": "docs/decisions/adrs/adr-079-backend-neutral-proposition-and-truth-semantics.md",
@@ -480,8 +480,8 @@
       "path": "docs/decisions/adrs/adr-092-autonomous-benign-participants-under-shared-time.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "61975da4806840eb6324bde3af893cd6425d62d99f35cfcce1128289a5685ded"
+      "occurrences": 1,
+      "content_sha256": "f7837743e16cd93631f44df5992e90daf6a5e48c270683504ea518ab21c291fc"
     },
     {
       "path": "docs/decisions/adrs/adr-093-raes-rename-and-compatibility-boundaries.md",
@@ -495,7 +495,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "894aca93e4d64a50800a184e58a691c222ac18cb870fefbfa4ccb2c64a8d9ec6"
+      "content_sha256": "d00fd5d91e9a86cde9bedfa30f71fb7af4697d557388c202c97254ae0f9d111c"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",
@@ -1783,7 +1783,7 @@
       "record_class": "lifecycle-record",
       "rationale": "Preserves the exact retired distribution identifier in its governed deprecation and removal record.",
       "occurrences": 2,
-      "content_sha256": "bdd60f63dc5e79eda516e7d37ab8a5d81dde50498d11c48a914f0710e5ebf42c"
+      "content_sha256": "7c9e576186229320cd5b96f463adfffb6a7b6958bc75d69f5c50e362ce6c09fc"
     }
   ]
 }

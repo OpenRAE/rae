@@ -957,7 +957,7 @@ def test_ordered_locator_references_must_match_source_urls(tmp_path: Path) -> No
     assert "tooling-locator-arity" in _failures(root)
 
 
-def test_proof_host_offline_kit_must_carry_the_native_proof_closure(tmp_path: Path) -> None:
+def test_proof_host_declares_native_proof_prerequisites(tmp_path: Path) -> None:
     from test_tooling_artifact_policy import PROFILES_PATH, _failures, _load, _seed_policy, _write_json
 
     root = _seed_policy(tmp_path)
@@ -965,42 +965,17 @@ def test_proof_host_offline_kit_must_carry_the_native_proof_closure(tmp_path: Pa
     host = profiles["host_profiles"][0]
     host["proof_support"] = "linux-x86_64-required"
     host["required_capability_ids"] = ["git", "bubblewrap", "fontconfig", "fonts", "locale-c-utf-8"]
-    host["offline_kit"]["host_prerequisite_package_ids"] = ["git", "bubblewrap", "fontconfig", "fonts-dejavu-core"]
+    host["host_prerequisite_package_ids"] = ["git", "bubblewrap", "fontconfig", "fonts-dejavu-core"]
     _write_json(root, PROFILES_PATH, profiles)
     assert "tooling-host-proof-closure" in _failures(root)
 
-    host["offline_kit"]["host_prerequisite_package_ids"].append("libc-bin")
+    host["host_prerequisite_package_ids"].append("libc-bin")
     _write_json(root, PROFILES_PATH, profiles)
     assert "tooling-host-proof-closure" not in _failures(root)
 
     host["native_family"] = "unreviewed-family"
     _write_json(root, PROFILES_PATH, profiles)
     assert "tooling-host-proof-closure" in _failures(root)
-
-
-@pytest.mark.parametrize(("disposition", "rejected"), [("governed", True), ("legacy-remediation", False)])
-def test_governed_acquisition_paths_cannot_keep_repository_http(
-    tmp_path: Path,
-    disposition: str,
-    rejected: bool,
-) -> None:
-    from test_tooling_artifact_policy import INVENTORY_COVERAGE_PATH, _failures, _load, _seed_policy, _write_json
-
-    root = _seed_policy(tmp_path)
-    relative_path = "tools/fetch_proof.py"
-    (root / relative_path).write_text(
-        "from urllib.request import urlopen\nurlopen('https://example.invalid/proof.tar.gz')\n",
-        encoding="utf-8",
-    )
-    coverage = _load(root, INVENTORY_COVERAGE_PATH)
-    coverage["acquisition_paths"].append(
-        {"path": relative_path, "inventory_id": "I09", "disposition": disposition, "site_count": 1}
-    )
-    _write_json(root, INVENTORY_COVERAGE_PATH, coverage)
-
-    failures = _failures(root, tracked_paths=[relative_path])
-    assert ("tooling-governed-repository-http" in failures) is rejected
-    assert "tooling-acquisition-drift" not in failures
 
 
 def test_checked_in_isabelle_authority_binds_the_reviewed_complete_tree() -> None:
@@ -1028,14 +1003,11 @@ def test_checked_in_isabelle_authority_binds_the_reviewed_complete_tree() -> Non
         expanded_bytes=2301957383,
     )
     assert len(isabelle["source"]["locator_refs"]) == len(platform["source_urls"]) == 2
-    coverage = json.loads((REPO_ROOT / "implementations/tooling/inventory-coverage.json").read_text(encoding="utf-8"))
-    dispositions = {item["path"]: item["disposition"] for item in coverage["acquisition_paths"]}
-    assert dispositions["tools/isabelle_tool.py"] == "governed"
     from tools.tooling_artifact_policy_discovery import python_scan
 
-    for path, disposition in dispositions.items():
-        if disposition == "governed" and path.endswith(".py"):
-            assert python_scan((REPO_ROOT / path).read_text(encoding="utf-8")).network_call_count == 0, path
+    # Check the actual acquisition implementation, without inventory-site counts.
+    for path in ("tools/isabelle_tool.py", "tools/maintained_client_acquisition.py"):
+        assert python_scan((REPO_ROOT / path).read_text(encoding="utf-8")).network_call_count == 0, path
     profiles = json.loads(
         (REPO_ROOT / "implementations/tooling/profiles/development-profiles.json").read_text(encoding="utf-8")
     )
@@ -1043,7 +1015,7 @@ def test_checked_in_isabelle_authority_binds_the_reviewed_complete_tree() -> Non
         item for item in profiles["host_profiles"] if item["host_profile_id"] == "proof-ubuntu-22.04-x86_64"
     )
     assert {"bubblewrap", "fontconfig", "fonts-dejavu-core", "libc-bin"} <= set(
-        proof_host["offline_kit"]["host_prerequisite_package_ids"]
+        proof_host["host_prerequisite_package_ids"]
     )
 
 
@@ -1083,7 +1055,7 @@ def test_selection_projection_rejects_invalid_tree_and_locator_shapes(
         _selection_from_document(document, "proof-linux-x86_64")
 
 
-def test_offline_kit_fetch_uses_the_primary_locator_and_large_object_budget_for_proof_archives(
+def test_bootstrap_payload_fetch_uses_the_primary_locator_and_large_object_budget_for_proof_archives(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
@@ -1091,7 +1063,7 @@ def test_offline_kit_fetch_uses_the_primary_locator_and_large_object_budget_for_
 
     payload = b"locked-proof-archive"
     selection = {
-        "host_profile": {"host_profile_id": "proof-host", "offline_kit": {"artifact_ids": ["isabelle"]}},
+        "host_profile": {"host_profile_id": "proof-host", "bootstrap_payload_ids": ["isabelle"]},
         "artifacts": [
             {
                 "artifact_id": "isabelle",
@@ -1119,7 +1091,7 @@ def test_offline_kit_fetch_uses_the_primary_locator_and_large_object_budget_for_
     kit_root = tmp_path / "kit"
     kit_root.mkdir()
 
-    result = bootstrap_profile.fetch_offline_kit_payloads("proof-host", kit_root, ("isabelle",))
+    result = bootstrap_profile.fetch_bootstrap_payloads("proof-host", kit_root, ("isabelle",))
 
     assert result[0]["path"] == "archives/isabelle/Isabelle.tar.gz"
     assert observed["url"] == PRIMARY_URL
@@ -1127,7 +1099,7 @@ def test_offline_kit_fetch_uses_the_primary_locator_and_large_object_budget_for_
     assert observed["max_bytes"] == len(payload)
 
 
-def test_offline_kit_verification_probes_the_proof_native_closure(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_bootstrap_inspection_probes_native_proof_prerequisites(monkeypatch: pytest.MonkeyPatch) -> None:
     from tools import bootstrap_profile
 
     probed: list[list[str]] = []
@@ -1525,120 +1497,6 @@ def test_non_executable_bubblewrap_placeholder_fails_before_distribution_resolut
         isabelle_tool.run_isabelle_build(tmp_path, bwrap=placeholder)
 
 
-def _proof_slice_document(**changes: object) -> dict[str, object]:
-    document: dict[str, object] = {
-        "schema": "issue-1220-proof-input-qualification/v1",
-        "passed_cases": ["T05-cold-convergence", "T13-malicious-archive"],
-        "not_run_cases": {"T11-egress-denied-admission": "bubblewrap-network-namespace-unavailable"},
-        "elapsed_seconds": {"T05-cold-convergence": 2.5, "T13-malicious-archive": 0.25},
-        "coverage": {"canonical_outcome_recorded": False},
-    }
-    document.update(changes)
-    return document
-
-
-def test_proof_slice_evidence_is_bound_to_the_exact_harness_without_canonical_cases(tmp_path: Path) -> None:
-    from tools import bootstrap_profile
-
-    evidence = tmp_path / "proof-input-qualification.json"
-    evidence.write_text(json.dumps(_proof_slice_document()), encoding="utf-8")
-
-    results = bootstrap_profile._load_slice_results(REPO_ROOT, (evidence,))
-
-    harness = "implementations/python/tests/issue_1220_proof_input_harness.py"
-    digest = hashlib.sha256((REPO_ROOT / harness).read_bytes()).hexdigest()
-    assert results == [
-        {
-            "slice_id": "T05-cold-convergence",
-            "canonical_case_id": "T05",
-            "harness_path": harness,
-            "harness_sha256": digest,
-            "outcome": "passed",
-            "elapsed_seconds": 2.5,
-        },
-        {
-            "slice_id": "T11-egress-denied-admission",
-            "canonical_case_id": "T11",
-            "harness_path": harness,
-            "harness_sha256": digest,
-            "outcome": "not-run",
-            "reason_code": "bubblewrap-network-namespace-unavailable",
-        },
-        {
-            "slice_id": "T13-malicious-archive",
-            "canonical_case_id": "T13",
-            "harness_path": harness,
-            "harness_sha256": digest,
-            "outcome": "passed",
-            "elapsed_seconds": 0.25,
-        },
-    ]
-    schema = json.loads(
-        (REPO_ROOT / "implementations/tooling/schemas/profiles.schema.json").read_text(encoding="utf-8")
-    )
-    import jsonschema
-
-    for result in results:
-        jsonschema.validate(
-            result, {"$schema": schema["$schema"], "$defs": schema["$defs"], "$ref": "#/$defs/sliceResult"}
-        )
-    assert not {"T05", "T11", "T13"} & bootstrap_profile._CASE_IDS
-
-
-@pytest.mark.parametrize(
-    ("document", "message"),
-    [
-        (_proof_slice_document(schema="issue-9999-unknown/v1"), "unknown harness"),
-        (_proof_slice_document(coverage={"canonical_outcome_recorded": True}), "closed shape"),
-        (_proof_slice_document(passed_cases=[]), "closed shape"),
-        (_proof_slice_document(elapsed_seconds={"T05-cold-convergence": 1}), "closed shape"),
-        (_proof_slice_document(passed_cases=["cold-convergence"], elapsed_seconds={"cold-convergence": 1}), "outside"),
-        (_proof_slice_document(passed_cases=["T01-forged-proof"], elapsed_seconds={"T01-forged-proof": 1}), "outside"),
-        (_proof_slice_document(not_run_cases={"T24-forged-release": "not-run"}), "outside"),
-        (_proof_slice_document(not_run_cases={"T11-egress-denied-admission": "Not A Reason"}), "not-run reason"),
-        (
-            _proof_slice_document(
-                passed_cases=["T05-cold-convergence"],
-                elapsed_seconds={"T05-cold-convergence": -1},
-                not_run_cases={},
-            ),
-            "invalid duration",
-        ),
-        (
-            {
-                "schema": "issue-1219-local-installation-qualification/v1",
-                "passed_cases": ["unmapped-case"],
-                "elapsed_seconds": {"unmapped-case": 1},
-                "coverage": {"canonical_outcome_recorded": False},
-            },
-            "outside",
-        ),
-    ],
-)
-def test_proof_slice_evidence_rejects_overclaims_and_unbound_shapes(
-    tmp_path: Path,
-    document: dict[str, object],
-    message: str,
-) -> None:
-    from tools import bootstrap_profile
-
-    evidence = tmp_path / "slices.json"
-    evidence.write_text(json.dumps(document), encoding="utf-8")
-
-    with pytest.raises(ValueError, match=message):
-        bootstrap_profile._load_slice_results(REPO_ROOT, (evidence,))
-
-
-def test_repeated_slice_evidence_is_rejected(tmp_path: Path) -> None:
-    from tools import bootstrap_profile
-
-    evidence = tmp_path / "slices.json"
-    evidence.write_text(json.dumps(_proof_slice_document()), encoding="utf-8")
-
-    with pytest.raises(ValueError, match="repeats a slice"):
-        bootstrap_profile._load_slice_results(REPO_ROOT, (evidence, evidence))
-
-
 @pytest.mark.integration
 def test_real_proof_input_qualification_harness(tmp_path: Path) -> None:
     output = tmp_path / "proof-input-qualification.json"
@@ -1729,25 +1587,6 @@ def test_proof_evidence_binds_every_prover_admission_source(tamper) -> None:
 
     with pytest.raises(ProofEvidenceError):
         validate_proof_manifest(tampered, run_prover=False)
-
-
-@pytest.mark.parametrize(
-    ("schema", "harness_module"),
-    [
-        ("issue-1219-local-installation-qualification/v1", "issue_1219_installation_harness"),
-        ("issue-1220-proof-input-qualification/v1", "issue_1220_proof_input_harness"),
-    ],
-)
-def test_slice_registry_is_closed_to_exactly_what_each_harness_emits(schema: str, harness_module: str) -> None:
-    import importlib
-
-    from tools import bootstrap_profile
-
-    harness_path, case_mapping = bootstrap_profile._SLICE_HARNESSES[schema]
-    harness = importlib.import_module(harness_module)
-
-    assert Path(harness.__file__).resolve() == (REPO_ROOT / harness_path).resolve()
-    assert set(case_mapping) == set(harness.SLICE_CASE_NAMES)
 
 
 @pytest.mark.parametrize(("system", "machine"), [("Darwin", "arm64"), ("Linux", "aarch64")])

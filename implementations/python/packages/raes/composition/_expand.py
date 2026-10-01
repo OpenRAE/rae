@@ -70,6 +70,7 @@ from ..realization_designation import (
     designation_records,
 )
 from ..scenario import ExpandedScenario, ImportDecl, ModuleDescriptor, ScenarioContent
+from ._augmentation import merge_augmentation_scope, rewrite_augmentation_scope
 from ._behavior import _behavior_reference_maps, _rewrite_agent_sections, _rewrite_behavior_sections
 from ._profiles import rewrite_profile_selections
 from ._references import _rewrite_variable_tokens
@@ -123,6 +124,7 @@ def _rewrite_payload_with_symbols(
     _rewrite_agent_sections(namespaced, symbols)
     _rewrite_behavior_sections(namespaced, symbols)
     _rewrite_terminal_sections(namespaced, symbols, tool_affordance_refs)
+    rewrite_augmentation_scope(namespaced, symbols, namespace)
 
     rewritten = _rewrite_variable_tokens(namespaced, symbols["variables"])
     if not isinstance(rewritten, dict):
@@ -163,6 +165,7 @@ def _merge_sections(
     path: Path,
 ) -> dict[str, Any]:
     merged = dict(root)
+    merge_augmentation_scope(merged, incoming)
     for section_name in _HASHMAP_SECTIONS:
         current = dict(merged.get(section_name, {}))
         additions = dict(incoming.get(section_name, {}))

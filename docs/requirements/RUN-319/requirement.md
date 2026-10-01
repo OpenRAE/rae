@@ -21,6 +21,21 @@ Current admission, retrieval, lifecycle, and persistence surfaces do not yet for
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#971` (Independent single-operation formal model construction)
+
+- DOCUMENTS → DOCUMENTATION `docs/research/participant-bisimulation/model-construction.md` (Construction boundary and source derivation)
+
+- TESTS → TEST `implementations/python/tests/test_issue_971_crossing_models.py` (Complete single-operation transition, retry and atomicity construction tests)
+
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/concrete.py` (Issue #971 single-operation formal model construction only; no equivalence or runtime-realization result)
+
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1016` (Coordinate mixed participant runtimes behind the incumbent crossing decision)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_action_validation.py` (Protect runtime-owned composition state from provider mutation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control.py` (Admit mixed participant actions without a logical provider fallback)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_crossing_boundary.py` (Commit exact provider decision before mixed-runtime effect)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_crossing_policy.py` (Resolve capability gates against the selected admitted allocation contract)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_submission_options.py` (Require mixed dispatch resolution before invoking an effect sink)
+- TESTS → TEST `implementations/python/tests/test_issue_1016_mixed_runtime_coordination.py` (Zero-call rejection and pre-effect policy-cut witnesses)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_flow_sink.py` (RUN-319 SEM-233 final-sink flow-control enforcement guard)
 - TESTS → TEST `implementations/python/tests/test_issue_1003_final_sink_flow_enforcement.py` (RUN-319 final-sink flow-control boundary enforcement tests)
 - TESTS → TEST `implementations/python/tests/sem233_flow_sink_fixtures.py` (RUN-319 live-bound SEM-233 final-sink test fixtures)
@@ -55,3 +70,7 @@ Current admission, retrieval, lifecycle, and persistence surfaces do not yet for
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_opacity_enforcement.py` (RUN-319 participant-opacity crossing enforcement)
 - TESTS → TEST `implementations/python/tests/test_issue_964_participant_opacity_runtime.py` (Issue 964 RUN-319 opacity mediation boundary tests)
 - IMPLEMENTS → GITHUB_ISSUE `964` (Enforce declared participant-opacity profiles in the reference runtime)
+- IMPLEMENTS → GITHUB_ISSUE `1069` (Modular participant control composed inside the incumbent crossing boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_crossing_state_cut.py` (Shared state-cut head rendering for both final-sink owners)
+- TESTS → TEST `implementations/python/tests/test_issue_1069_participant_control_orchestration.py` (Zero backend call and zero disclosure for every non-eligible composition)
+- TESTS → TEST `implementations/python/tests/participant_crossing_fixtures.py` (Crossing fixtures binding a modular participant-control configuration)
