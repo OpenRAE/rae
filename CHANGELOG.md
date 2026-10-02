@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [6.0.1](https://github.com/OpenRAE/rae/compare/v6.0.0...v6.0.1) (2026-10-02)
+
+
+### Bug Fixes
+
+* **release:** pass the repository root when loading the release closu… ([33f5794](https://github.com/OpenRAE/rae/commit/33f5794c57b729479c89f912a439339dd0153dc6))
+* **release:** pass the repository root when loading the release closure profile ([#1408](https://github.com/OpenRAE/rae/issues/1408)) ([c4a17de](https://github.com/OpenRAE/rae/commit/c4a17de6ec53ec641ecb1e032a8486bf06d5895a))
+
 ## [6.0.0](https://github.com/OpenRAE/rae/compare/v5.0.0...v6.0.0) (2026-10-01)
 
 
