@@ -1,11 +1,13 @@
 """Lower complete lexical policies onto existing compiled resource owners."""
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from raes.observation_scope import semantic_scope_namespace
 from raes.scenario import InstantiatedScenario
 from raes_contracts.execution_policy import EffectiveExecutionPolicy, ExecutionPolicyDocument, resolve_execution_policy
+
+from ..models.resources import DomainControllerPlacement, ResolvedResource
 
 _GROUP_SECTIONS = {
     "networks": "nodes",
@@ -35,9 +37,9 @@ def _pointer(section: str, name: str) -> str:
     return f"/{section}/{escaped}"
 
 
-def _resource_name(group: str, section: str, resource: Any) -> str:
+def _resource_name(group: str, section: str, resource: ResolvedResource) -> str:
     if group == "domain_controller_placements":
-        return resource.domain_topology.domain_id
+        return cast(DomainControllerPlacement, resource).domain_topology.domain_id
     attributes = {"content_placements": "content_name", "account_placements": "account_name"}
     name = getattr(resource, attributes.get(group, "name"))
     return (getattr(resource, "node_name", "") or name) if section == "nodes" else name
@@ -57,7 +59,7 @@ class _PolicyResolver:
             evidence_requirements=self.scenario.evidence_requirements,
         )
 
-    def binding_policy(self, group: str, pointer: str, resource: Any) -> EffectiveExecutionPolicy | None:
+    def binding_policy(self, group: str, pointer: str, resource: ResolvedResource) -> EffectiveExecutionPolicy | None:
         kind = group.removesuffix("_bindings")
         name = getattr(resource, kind + "_name")
         defined = self.resolve(_pointer(kind + "s", name))
@@ -76,7 +78,9 @@ class _PolicyResolver:
                 policies.append(effective)
         return policies
 
-    def resource_policies(self, group: str, section: str, resource: Any) -> tuple[EffectiveExecutionPolicy, ...]:
+    def resource_policies(
+        self, group: str, section: str, resource: ResolvedResource
+    ) -> tuple[EffectiveExecutionPolicy, ...]:
         name = _resource_name(group, section, resource)
         pointer = _pointer(section, name)
         effective = self.binding_policy(group, pointer, resource) if group in _BINDING_GROUPS else self.resolve(pointer)

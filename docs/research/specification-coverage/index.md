@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 68.0.0 and rejects duplicate or unsupported
+Current validation requires release 69.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -526,3 +526,8 @@ Release 68.0.0 replays the execution-policy maintainability repair in
 [`execution-snapshot-v68.json`](execution-snapshot-v68.json) and
 [`analysis-v68.json`](analysis-v68.json). Classifications and bounded claim
 limits are unchanged; the preceding release remains immutable history.
+
+Release 69.0.0 binds the compiler resource type-hint repair in
+[`execution-snapshot-v69.json`](execution-snapshot-v69.json) and
+[`analysis-v69.json`](analysis-v69.json). The retained classifications and
+bounded claim limits match the preceding immutable release.
