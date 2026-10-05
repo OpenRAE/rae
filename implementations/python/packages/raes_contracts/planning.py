@@ -1,7 +1,4 @@
-"""Native planning carriers and safe ``planned_*`` payload accessors.
-
-Accessors perform no validation; missing or inapplicable surfaces return None.
-"""
+"""Native planning carriers; safe accessors return None for missing or inapplicable surfaces without validating."""
 
 from __future__ import annotations
 

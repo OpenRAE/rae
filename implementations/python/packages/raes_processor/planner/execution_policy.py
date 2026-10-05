@@ -1,12 +1,21 @@
 """Expose requested policy unchanged and reject unsupported selected realizations."""
 
 from dataclasses import replace
+from typing import TypeVar
 
+from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.execution_policy import execution_policy_capability_gaps
+from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
+
+from ..models.runtime_model import RuntimeModel
+
+DomainPlan = TypeVar("DomainPlan", ProvisioningPlan, OrchestrationPlan, EvaluationPlan)
 
 
-def attach_execution_policies(model, manifest, domain_plan):
+def attach_execution_policies(
+    model: RuntimeModel, manifest: BackendManifest, domain_plan: DomainPlan
+) -> tuple[DomainPlan, list[Diagnostic]]:
     diagnostics = []
     operations = []
     for operation in domain_plan.operations:
@@ -25,7 +34,10 @@ def attach_execution_policies(model, manifest, domain_plan):
                         if operation.address.startswith("provision.")
                         else operation.address.split(".")[0],
                         address=operation.address,
-                        message="The selected realization cannot establish the requested execution policy; no alternative is authorized.",
+                        message=(
+                            "The selected realization cannot establish the requested execution policy; "
+                            "no alternative is authorized."
+                        ),
                     )
                 )
     return replace(

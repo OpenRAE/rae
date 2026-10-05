@@ -1,8 +1,33 @@
 """Lower complete lexical policies onto existing compiled resource owners."""
 
+from dataclasses import dataclass
+from typing import Any
+
 from raes.observation_scope import semantic_scope_namespace
 from raes.scenario import InstantiatedScenario
-from raes_contracts.execution_policy import EffectiveExecutionPolicy, resolve_execution_policy
+from raes_contracts.execution_policy import EffectiveExecutionPolicy, ExecutionPolicyDocument, resolve_execution_policy
+
+_GROUP_SECTIONS = {
+    "networks": "nodes",
+    "node_deployments": "nodes",
+    "feature_bindings": "nodes",
+    "condition_bindings": "nodes",
+    "inject_bindings": "nodes",
+    "domain_controller_placements": "identity_domains",
+    "account_placements": "accounts",
+    "content_placements": "content",
+    "generated_artifacts": "generated_artifacts",
+    "persistent_volumes": "persistent_volumes",
+    "injects": "injects",
+    "events": "events",
+    "scripts": "scripts",
+    "stories": "stories",
+    "workflows": "workflows",
+    "propositions": "propositions",
+    "assertions": "assertions",
+    "objectives": "objectives",
+}
+_BINDING_GROUPS = frozenset({"feature_bindings", "condition_bindings", "inject_bindings"})
 
 
 def _pointer(section: str, name: str) -> str:
@@ -10,91 +35,68 @@ def _pointer(section: str, name: str) -> str:
     return f"/{section}/{escaped}"
 
 
+def _resource_name(group: str, section: str, resource: Any) -> str:
+    if group == "domain_controller_placements":
+        return resource.domain_topology.domain_id
+    attributes = {"content_placements": "content_name", "account_placements": "account_name"}
+    name = getattr(resource, attributes.get(group, "name"))
+    return (getattr(resource, "node_name", "") or name) if section == "nodes" else name
+
+
+@dataclass
+class _PolicyResolver:
+    scenario: InstantiatedScenario
+    document: ExecutionPolicyDocument
+    payload: dict[str, Any]
+
+    def resolve(self, pointer: str, namespace: tuple[str, ...] | None = None) -> EffectiveExecutionPolicy | None:
+        return resolve_execution_policy(
+            self.document,
+            pointer,
+            namespace=semantic_scope_namespace(self.payload, pointer) if namespace is None else namespace,
+            evidence_requirements=self.scenario.evidence_requirements,
+        )
+
+    def binding_policy(self, group: str, pointer: str, resource: Any) -> EffectiveExecutionPolicy | None:
+        kind = group.removesuffix("_bindings")
+        name = getattr(resource, kind + "_name")
+        defined = self.resolve(_pointer(kind + "s", name))
+        occurrence = pointer + _pointer(kind + "s", name)
+        application = self.resolve(occurrence, semantic_scope_namespace(self.payload, pointer))
+        # An explicit application scope overrides the complete definition policy.
+        # An ambient caller default does not rebind it.
+        return application if application is not None and "#/nodes" in application.governing_scope else defined
+
+    def workflow_step_policies(self, name: str, pointer: str) -> list[EffectiveExecutionPolicy]:
+        policies = []
+        namespace = semantic_scope_namespace(self.payload, pointer)
+        for step_name in self.scenario.workflows[name].steps:
+            effective = self.resolve(pointer + _pointer("steps", step_name), namespace)
+            if effective is not None and "/steps" in effective.governing_scope:
+                policies.append(effective)
+        return policies
+
+    def resource_policies(self, group: str, section: str, resource: Any) -> tuple[EffectiveExecutionPolicy, ...]:
+        name = _resource_name(group, section, resource)
+        pointer = _pointer(section, name)
+        effective = self.binding_policy(group, pointer, resource) if group in _BINDING_GROUPS else self.resolve(pointer)
+        policies = [effective] if effective is not None else []
+        if section == "workflows":
+            policies.extend(self.workflow_step_policies(name, pointer))
+        return tuple(policies)
+
+
 def compile_execution_policies(
-    scenario: InstantiatedScenario, parts: dict[str, object]
+    scenario: InstantiatedScenario, parts: dict[str, Any]
 ) -> dict[str, tuple[EffectiveExecutionPolicy, ...]]:
     document = scenario.execution_policy
     if document is None:
         return {}
-    payload = scenario.model_dump(mode="python")
+    resolver = _PolicyResolver(scenario, document, scenario.model_dump(mode="python"))
     result = {}
-    # Binding occurrences use their application site. Reusable workflow
-    # definitions retain their own lexical namespace, including through calls.
-    groups = {
-        "networks": "nodes",
-        "node_deployments": "nodes",
-        "feature_bindings": "nodes",
-        "condition_bindings": "nodes",
-        "inject_bindings": "nodes",
-        "domain_controller_placements": "identity_domains",
-        "account_placements": "accounts",
-        "content_placements": "content",
-        "generated_artifacts": "generated_artifacts",
-        "persistent_volumes": "persistent_volumes",
-        "injects": "injects",
-        "events": "events",
-        "scripts": "scripts",
-        "stories": "stories",
-        "workflows": "workflows",
-        "propositions": "propositions",
-        "assertions": "assertions",
-        "objectives": "objectives",
-    }
-    for group, section in groups.items():
+    for group, section in _GROUP_SECTIONS.items():
         for address, resource in parts.get(group, {}).items():
-            name = getattr(resource, "node_name", "") if section == "nodes" else resource.name
-            name = name or resource.name
-            if group == "domain_controller_placements":
-                name = resource.domain_topology.domain_id
-            elif group == "content_placements":
-                name = resource.content_name
-            elif group == "account_placements":
-                name = resource.account_name
-            pointer = _pointer(section, name)
-            namespace = semantic_scope_namespace(payload, pointer)
-            policies = []
-            effective = resolve_execution_policy(
-                document, pointer, namespace=namespace, evidence_requirements=scenario.evidence_requirements
-            )
-            if group in {"feature_bindings", "condition_bindings", "inject_bindings"}:
-                kind = group.removesuffix("_bindings")
-                declaration = _pointer(kind + "s", getattr(resource, kind + "_name"))
-                defined = resolve_execution_policy(
-                    document,
-                    declaration,
-                    namespace=semantic_scope_namespace(payload, declaration),
-                    evidence_requirements=scenario.evidence_requirements,
-                )
-                occurrence = (
-                    pointer
-                    + "/"
-                    + kind
-                    + "s/"
-                    + getattr(resource, kind + "_name").replace("~", "~0").replace("/", "~1")
-                )
-                application = resolve_execution_policy(
-                    document, occurrence, namespace=namespace, evidence_requirements=scenario.evidence_requirements
-                )
-                # An explicit application scope overrides the complete definition
-                # policy. An ambient caller default does not rebind it.
-                effective = (
-                    application if application is not None and "#/nodes" in application.governing_scope else defined
-                )
-            if effective is not None:
-                policies.append(effective)
-            if section == "workflows":
-                for step_name in scenario.workflows[name].steps:
-                    step_pointer = (
-                        _pointer("workflows", name) + "/steps/" + step_name.replace("~", "~0").replace("/", "~1")
-                    )
-                    effective = resolve_execution_policy(
-                        document,
-                        step_pointer,
-                        namespace=namespace,
-                        evidence_requirements=scenario.evidence_requirements,
-                    )
-                    if effective is not None and "/steps" in effective.governing_scope:
-                        policies.append(effective)
+            policies = resolver.resource_policies(group, section, resource)
             if policies:
-                result[address] = tuple(policies)
+                result[address] = policies
     return result

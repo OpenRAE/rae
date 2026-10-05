@@ -1,7 +1,6 @@
 """Top-level Scenario model — the root of the SDL.
 
-The Scenario combines specification sections covering
-who (entities, accounts, agents), what (nodes, features,
+The Scenario combines sections covering who (entities, accounts, agents), what (nodes, features,
 content), when (scripts, stories, events),
 and declarative experiment semantics (objectives, conditions,
 relationships, workflows, variables). Per ADR-073 the SDL no

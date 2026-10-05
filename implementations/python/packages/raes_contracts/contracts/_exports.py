@@ -361,7 +361,6 @@ PUBLIC_EXPORTS = [
     "validate_participant_information_state_context",
     "validate_participant_information_state_resolved_context",
     "VIEW_SCOPE_PROJECTED_FIELDS",
-    "PlanOperationModel",
     "ProcessorFeature",
     "PROCESSOR_MANIFEST_V2_SCHEMA_VERSION",
     "ProcessorManifestV2Model",

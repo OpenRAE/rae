@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 68.0.0, rejects unsupported future
+Current validation requires explicit release 69.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -578,3 +578,9 @@ baseline dispositions for two compiled digests changed by the added policy
 metadata. [`analysis-v68.json`](analysis-v68.json) preserves prior outcomes and
 bounded claim limits. Live recovery, continuation, and trial allocation remain
 outside this retained corpus.
+
+Release 69.0.0 replays the execution-policy maintainability repair in
+[`execution-snapshot-v69.json`](execution-snapshot-v69.json) and
+[`analysis-v69.json`](analysis-v69.json). Outcomes and compiled digests match
+release 68.0.0, so no new baseline deviation is accepted. Historical captures,
+including the two policy-metadata digest changes in release 68.0.0, remain intact.

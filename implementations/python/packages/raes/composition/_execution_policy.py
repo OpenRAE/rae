@@ -64,17 +64,22 @@ def _rewritten_namespaces(
         if rule.scope and pointer[1] != section:
             continue
         for old, new in symbols.get(section, {}).items():
-            if len(pointer) >= 3 and old != pointer[2].replace("~1", "/").replace("~0", "~"):
-                continue
-            old_owner = tuple(old.split(".")[:-1])
-            if old_owner[: len(rule.namespace)] != rule.namespace:
-                continue
-            new_owner = tuple(new.split(".")[:-1])
-            # Visibility adds a private segment before the original lexical path.
-            # A namespace-wide rule can govern both exported and private owners.
-            depth = len(new_owner) - len(old_owner) + len(rule.namespace)
-            targets.add(new_owner[:depth])
+            owner = _renamed_owner(rule, pointer, old, new)
+            if owner is not None:
+                targets.add(owner)
     return tuple(sorted(targets)) if targets else ((*prefix, *rule.namespace),)
+
+
+def _renamed_owner(rule: ExecutionPolicyScope, pointer: list[str], old: str, new: str) -> tuple[str, ...] | None:
+    if len(pointer) >= 3 and old != pointer[2].replace("~1", "/").replace("~0", "~"):
+        return None
+    old_owner = tuple(old.split(".")[:-1])
+    if old_owner[: len(rule.namespace)] != rule.namespace:
+        return None
+    new_owner = tuple(new.split(".")[:-1])
+    # Visibility can insert a private segment before the original lexical path.
+    depth = len(new_owner) - len(old_owner) + len(rule.namespace)
+    return new_owner[:depth]
 
 
 def merge_execution_policy(root: dict[str, Any], incoming: dict[str, Any]) -> None:

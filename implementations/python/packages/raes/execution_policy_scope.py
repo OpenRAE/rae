@@ -26,10 +26,8 @@ def supported_execution_scope(pointer: str) -> bool:
     if not pointer:
         return True
     tokens = pointer.split("/")[1:]
-    if tokens[0] not in EXECUTION_SECTIONS:
-        return False
-    if len(tokens) <= 2:
-        return True
-    if tokens[0] == "workflows" and tokens[2] == "steps":
-        return len(tokens) <= 4
-    return tokens[0] == "nodes" and len(tokens) <= 4 and tokens[2] in {"features", "conditions", "injects"}
+    nested = len(tokens) > 2 and (
+        (tokens[0] == "workflows" and tokens[2] == "steps")
+        or (tokens[0] == "nodes" and tokens[2] in {"features", "conditions", "injects"})
+    )
+    return tokens[0] in EXECUTION_SECTIONS and (len(tokens) <= 2 or (nested and len(tokens) <= 4))

@@ -173,8 +173,9 @@ def test_invalid_policy_cannot_enter_sdl(policy):
     from raes import SDLParseError
 
     payload = {"name": "recovery", "execution_policy": {"default": {"policy_id": "invalid", **policy}}}
+    source = yaml.safe_dump(payload)
     with pytest.raises(SDLParseError):
-        parse_sdl(yaml.safe_dump(payload))
+        parse_sdl(source)
 
 
 def test_dangling_scope_is_rejected_safely():
@@ -241,14 +242,16 @@ execution_policy: {default: {policy_id: one-workflow-invocation, response: termi
         "evidence_refs": ["clean"],
     }
     scenario.execution_policy = ExecutionPolicyDocument(default=policy)
+    validator = SemanticValidator(scenario)
     with pytest.raises(SDLValidationError, match="cannot multiply"):
-        SemanticValidator(scenario).validate()
+        validator.validate()
     scenario.execution_policy = ExecutionPolicyDocument(
         scopes=[{"scope": "/workflows/check/steps/try", "policy": policy}]
     )
     SemanticValidator(scenario).validate()
     scoped = compile_runtime_model(scenario).execution_policies[workflow.address][0]
-    assert scoped.retry_unit == "workflow-step" and scoped.policy.retry.max_attempts == 3
+    assert scoped.retry_unit == "workflow-step"
+    assert scoped.policy.retry.max_attempts == 3
 
 
 def test_scope_order_cannot_change_effective_policy():
@@ -434,8 +437,10 @@ def test_policy_does_not_erase_an_intentional_fault_or_allocate_a_trial():
         on_exhausted="new-trial",
         fresh_trial_limit=4,
     )
-    assert policy.retry.max_attempts == 2 and policy.fresh_trial_limit == 4
-    assert policy.failure_classes == ("intentional-fault",) and policy.validity == "invalidate"
+    assert policy.retry.max_attempts == 2
+    assert policy.fresh_trial_limit == 4
+    assert policy.failure_classes == ("intentional-fault",)
+    assert policy.validity == "invalidate"
     assert execution_policy_capability_gaps(
         policy, ExecutionPolicyCapabilities(responses=["retry", "new-trial"], max_attempts=2)
     ) == ("trial-allocation-authority-required",)
@@ -449,8 +454,9 @@ def test_effective_scope_provenance_and_native_duplicate_scopes_fail_closed():
     effective = EffectiveExecutionPolicy(
         scope="/nodes/host", governing_scope="#/nodes", policy={"policy_id": "once", "response": "terminate"}
     )
+    foreign = {**effective.model_dump(), "governing_scope": "#/workflows"}
     with pytest.raises(ValidationError, match="governing scope"):
-        EffectiveExecutionPolicy.model_validate({**effective.model_dump(), "governing_scope": "#/workflows"})
+        EffectiveExecutionPolicy.model_validate(foreign)
     with pytest.raises(ValidationError, match="scopes must be unique"):
         PlanOperationModel(
             action="create",

@@ -15,6 +15,8 @@ from .observation_demand import SemanticScope
 from .realization_structure import semantic_address_contains
 
 EXECUTION_POLICY_VERSION = "execution-policy/v1"
+WORKFLOW_SCOPE_PREFIX = "/workflows/"
+WORKFLOW_STEP_SEGMENT = "/steps/"
 PolicyIdentifier = Annotated[str, Field(min_length=1, max_length=256)]
 PolicyLimit = Annotated[int, Field(strict=True, ge=1, le=9007199254740991)]
 PolicyNamespace = Annotated[str, Field(pattern=r"^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)$", max_length=64)]
@@ -74,16 +76,26 @@ class ExecutionPolicy(ContractModel):
             if len(values) != len(set(values)):
                 raise ValueError("execution policy references and classes must be unique")
         repeats = self.retry.max_attempts > 1
+        self._validate_retry_budget(repeats)
+        self._validate_repetition_conditions(repeats)
+        self._validate_recovery_choices(repeats)
+        return self
+
+    def _validate_retry_budget(self, repeats: bool) -> None:
         if (self.response == "retry") != repeats:
             raise ValueError("retry response requires multiple attempts; other responses permit one invocation")
         if repeats and (self.budget_ms is None or not self.effect_classes or not self.evidence_refs):
             raise ValueError("bounded retry requires budget, effect classes and evidence requirements")
         if repeats and self.delay_ms >= self.budget_ms:
             raise ValueError("retry delay must fit within the total budget")
+
+    def _validate_repetition_conditions(self, repeats: bool) -> None:
         if any(item != "absent" for item in self.effect_classes) and self.retry.after_effect_policy == "disallow":
             raise ValueError("after-effect repetition requires an explicit admitted posture")
         if not repeats and (self.effect_classes or self.delay_ms or self.retry.after_effect_policy != "disallow"):
             raise ValueError("non-repeating policy cannot declare repetition conditions")
+
+    def _validate_recovery_choices(self, repeats: bool) -> None:
         if (self.clock_basis == "semantic") != (self.clock_ref is not None):
             raise ValueError("semantic budget requires an authored clock reference")
         fresh = self.response == "new-trial" or self.on_exhausted == "new-trial"
@@ -93,7 +105,6 @@ class ExecutionPolicy(ContractModel):
             raise ValueError("exhaustion disposition requires bounded retry")
         if self.response in {"resume", "continue", "hold", "reconcile", "new-trial"} and not self.evidence_refs:
             raise ValueError("selected recovery response requires explicit evidence requirements")
-        return self
 
 
 class ExecutionPolicyScope(ContractModel):
@@ -145,15 +156,15 @@ class EffectiveExecutionPolicy(ContractModel):
         ExecutionPolicyScope(scope=pointer, namespace=self.namespace, policy=self.policy)
         if not semantic_address_contains(pointer, self.scope):
             raise ValueError("effective execution policy governing scope must contain its application scope")
-        expected_unit = (
-            "workflow-step" if self.scope.startswith("/workflows/") and "/steps/" in self.scope else "native-operation"
-        )
+        expected_unit = _retry_unit(self.scope)
         if self.retry_unit != expected_unit:
             raise ValueError("effective execution policy retry unit must match its native scope owner")
         return self
 
 
-def validate_effective_execution_policies(primary, scopes) -> None:
+def validate_effective_execution_policies(
+    primary: EffectiveExecutionPolicy | None, scopes: tuple[EffectiveExecutionPolicy, ...]
+) -> None:
     if primary is not None and not isinstance(primary, EffectiveExecutionPolicy):
         raise TypeError("execution policy must be a validated effective policy")
     if (
@@ -180,37 +191,41 @@ def resolve_execution_policy(
 
     if document is None:
         return None
+    rule = _selected_rule(document, scope, namespace)
+    if rule is None:
+        return None
     evidence_requirements = evidence_requirements or {}
+    if not set(rule.policy.evidence_refs) <= set(evidence_requirements):
+        raise ValueError("execution policy evidence requirements do not resolve")
+    return EffectiveExecutionPolicy(
+        scope=scope,
+        retry_unit=_retry_unit(scope),
+        namespace=rule.namespace,
+        governing_scope=".".join(rule.namespace) + "#" + (rule.scope or "/"),
+        policy=rule.policy.model_dump(),
+        evidence_requirements={ref: evidence_requirements[ref].model_dump() for ref in rule.policy.evidence_refs},
+    )
+
+
+def _retry_unit(scope: str) -> Literal["workflow-step", "native-operation"]:
+    return (
+        "workflow-step"
+        if scope.startswith(WORKFLOW_SCOPE_PREFIX) and WORKFLOW_STEP_SEGMENT in scope
+        else "native-operation"
+    )
+
+
+def _selected_rule(
+    document: ExecutionPolicyDocument, scope: str, namespace: tuple[str, ...]
+) -> ExecutionPolicyScope | None:
     matches = [
         rule
         for rule in document.scopes
         if namespace[: len(rule.namespace)] == rule.namespace and semantic_address_contains(rule.scope, scope)
     ]
     if matches:
-        rule = max(matches, key=lambda item: (len(item.namespace), len(item.scope.split("/"))))
-        if not set(rule.policy.evidence_refs) <= set(evidence_requirements):
-            raise ValueError("execution policy evidence requirements do not resolve")
-        return EffectiveExecutionPolicy(
-            scope=scope,
-            retry_unit="workflow-step"
-            if scope.startswith("/workflows/") and "/steps/" in scope
-            else "native-operation",
-            namespace=rule.namespace,
-            governing_scope=".".join(rule.namespace) + "#" + (rule.scope or "/"),
-            policy=rule.policy.model_dump(),
-            evidence_requirements={ref: evidence_requirements[ref].model_dump() for ref in rule.policy.evidence_refs},
-        )
-    if document.default is None:
-        return None
-    if not set(document.default.evidence_refs) <= set(evidence_requirements):
-        raise ValueError("execution policy evidence requirements do not resolve")
-    return EffectiveExecutionPolicy(
-        scope=scope,
-        retry_unit="workflow-step" if scope.startswith("/workflows/") and "/steps/" in scope else "native-operation",
-        governing_scope="#/",
-        policy=document.default.model_dump(),
-        evidence_requirements={ref: evidence_requirements[ref].model_dump() for ref in document.default.evidence_refs},
-    )
+        return max(matches, key=lambda item: (len(item.namespace), len(item.scope.split("/"))))
+    return ExecutionPolicyScope(policy=document.default) if document.default is not None else None
 
 
 class ExecutionPolicyCapabilities(ContractModel):
@@ -244,21 +259,34 @@ def execution_policy_capability_gaps(
     """Closed failure codes shared by planning and exact contextual admission."""
 
     policy = ExecutionPolicy.model_validate(policy.model_dump())
+    code = _required_authority_gap(policy)
+    if code is None:
+        code = _installed_support_gap(policy, support)
+    return tuple([code] if code is not None else [])
+
+
+def _required_authority_gap(policy: ExecutionPolicy) -> str | None:
     if policy.response == "resume":
-        return ("continuation-unsupported",)
-    if policy.response == "new-trial" or policy.on_exhausted == "new-trial":
-        return ("trial-allocation-authority-required",)
-    if policy.retry.after_effect_policy in {"reset", "compensate"}:
-        return ("cleanup-authority-required",)
+        code = "continuation-unsupported"
+    elif policy.response == "new-trial" or policy.on_exhausted == "new-trial":
+        code = "trial-allocation-authority-required"
+    elif policy.retry.after_effect_policy in {"reset", "compensate"}:
+        code = "cleanup-authority-required"
+    else:
+        code = None
+    return code
+
+
+def _installed_support_gap(policy: ExecutionPolicy, support: ExecutionPolicyCapabilities | None) -> str | None:
     if support is None or policy.response not in support.responses:
-        return ("response-unsupported",)
+        return "response-unsupported"
     support = ExecutionPolicyCapabilities.model_validate(support.model_dump())
     if (
         policy.retry.max_attempts > support.max_attempts
         or policy.retry.after_effect_policy not in support.after_effect_policies
     ):
-        return ("retry-unsupported",)
-    return ()
+        return "retry-unsupported"
+    return None
 
 
 OptionalExecutionPolicy = Annotated[
