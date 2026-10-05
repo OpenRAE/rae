@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 69.0.0 and rejects duplicate or unsupported
+Current validation requires release 68.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -515,19 +515,15 @@ verified by its dedicated suite in
 [`execution-snapshot-v66.json`](execution-snapshot-v66.json) and
 [`analysis-v66.json`](analysis-v66.json).
 
-Release 67.0.0 replays the retained matrix after issue #1361 carries authored
-execution and recovery requirements into native plans and backend admission.
+Release 67.0.0 repeats the retained matrix after the hatchling build-backend pin
+was upgraded to 1.32.4 in
 [`execution-snapshot-v67.json`](execution-snapshot-v67.json) and
-[`analysis-v67.json`](analysis-v67.json) preserve the classifications and claim
-limits. The policy regression suite verifies the new behavior; this retained
-matrix establishes no live recovery, continuation, or trial-allocation guarantee.
+[`analysis-v67.json`](analysis-v67.json). Classifications and claim limits
+remain unchanged.
 
-Release 68.0.0 replays the execution-policy maintainability repair in
-[`execution-snapshot-v68.json`](execution-snapshot-v68.json) and
-[`analysis-v68.json`](analysis-v68.json). Classifications and bounded claim
-limits are unchanged; the preceding release remains immutable history.
-
-Release 69.0.0 binds the compiler resource type-hint repair in
-[`execution-snapshot-v69.json`](execution-snapshot-v69.json) and
-[`analysis-v69.json`](analysis-v69.json). The retained classifications and
-bounded claim limits match the preceding immutable release.
+Release 68.0.0 replays the combined issue #1361 execution-policy and
+hatchling update in [`execution-snapshot-v68.json`](execution-snapshot-v68.json)
+and [`analysis-v68.json`](analysis-v68.json). The incoming release 67.0.0
+retains its original bytes. Pre-synchronization issue #1361 captures are
+[archived with exact digests](../execution-recovery-pre-sync-evidence/README.md).
+Retained outcomes and bounded claim limits are unchanged.

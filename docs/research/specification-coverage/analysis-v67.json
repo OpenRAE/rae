@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-1361-v67",
+  "analysis_id": "raes-standardized-specification-coverage-supply-chain-v67",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-10-05T04:10:53.400911+00:00",
+  "generated_at": "2026-10-05T05:06:15.477496+00:00",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
@@ -63,7 +63,7 @@
     "Issue #971 adds offline crossing model construction; this retained protocol establishes no crossing equivalence or runtime-realization claim.",
     "Issue #1359 control-plane route authority, participant-view scoping, and no-store HTTP boundary are covered by their dedicated HTTP-boundary suite; this retained matrix makes no new exposure or execution claim.",
     "Issue #1401 required-evidence media-type coherence is verified by its dedicated suite; this retained matrix makes no new admission or capture claim.",
-    "Issue #1361 execution and recovery requirements are verified by dedicated policy, composition, and admission tests; this retained corpus establishes no live recovery, continuation, or trial-allocation guarantee."
+    "The hatchling 1.32.4 build-backend upgrade changes packaging only; this retained matrix makes no new admission or capture claim."
   ],
   "load_bearing_results": {
     "failed": 0,
@@ -71,7 +71,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "The retained specification-coverage matrix reproduces its prior classifications against source carrying authored execution and recovery requirements; classifications and bounded claim limits are unchanged.",
+  "plain_language_outcome": "The retained specification-coverage matrix reproduces its prior classifications after upgrading the hatchling build-backend pin to 1.32.4; classifications and claim limits are unchanged.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -103,6 +103,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1361-v67",
-  "snapshot_sha256": "74785f4ca34339e1fdf4ad4c7eead539002ecc7747a99985880aad0d8e464efc"
+  "snapshot_id": "raes-standardized-specification-coverage-supply-chain-v67",
+  "snapshot_sha256": "fd6b062d92251734a70e656aaa9756b6d907231d2d994966c6d64d5d9eab47cb"
 }

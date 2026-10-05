@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-10-05T05:40:55.493648+00:00",
+  "captured_at": "2026-10-05T04:53:27.377962+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -652,7 +652,7 @@
       "surface_id": "contract-models"
     },
     {
-      "content_sha256": "d6d298174122a1eb1b6602088163fc0304c6f55cf10c63abca2476a3030c42ae",
+      "content_sha256": "c0f0ab8293f5c38e9270f0a276e27b87e4cbf9167e147a428f5303e7e7987cb4",
       "path": "implementations/python/packages/raes_processor",
       "surface_id": "processor-pipeline"
     },
@@ -686,19 +686,17 @@
     "Issue #610's reconciliation demonstration harness is covered by its dedicated processor and CLI suite, not promoted to new claims by the retained language corpus.",
     "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution.",
     "Issue #1361 execution and recovery requirements are verified by dedicated policy, composition, and admission tests; this retained corpus establishes no live recovery, continuation, or trial-allocation guarantee.",
-    "The issue #1361 maintainability repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
-    "The issue #1361 resource type-hint repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
-    "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee."
+    "The issue #1361 maintainability repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "e87b08a344642b7005baca31387a2d819a88328a",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1361-merged-v68",
+  "raes_revision": "5bcaabfce648fd3cdee48f291ea7c56d99d0093e",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1361-v68",
   "snapshot_revision": "68.0.0",
   "source_state": {
-    "base_revision": "e87b08a344642b7005baca31387a2d819a88328a",
+    "base_revision": "5bcaabfce648fd3cdee48f291ea7c56d99d0093e",
     "checkout_state": "modified",
-    "implementation_digest": "c2ba2fe02d85ac2520142e60f5dcd4d356dd8a58d1a3c01628f53462b0988349",
+    "implementation_digest": "1c906579e2cff4f1b2fc0bb374ae3772e61f4ed4de99ba2d3b6d4f0aea4e6463",
     "profile": "python-reference-source/v2"
   }
 }

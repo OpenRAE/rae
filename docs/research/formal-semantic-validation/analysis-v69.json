@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-1361-analysis-v69",
+  "analysis_id": "issue-1361-merged-analysis-v69",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -123,8 +123,8 @@
   ],
   "corpus_revision": "4.0.0",
   "evidence_status": "partial",
-  "execution_id": "issue-1361-execution-v69",
-  "generated_at": "2026-10-05T04:53:27.377962+00:00",
+  "execution_id": "issue-1361-merged-execution-v69",
+  "generated_at": "2026-10-05T05:40:55.493648+00:00",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
     "The subset-minimal unsatisfiable core is not a universal proof certificate.",
@@ -153,8 +153,10 @@
     "Issue #1359 control-plane route authority, participant-view scoping, and no-store HTTP boundary are verified by their dedicated HTTP-boundary suite and add no new formal-semantic claim to this retained corpus.",
     "Issue #1401 required-evidence media-type coherence is verified by its dedicated suite and adds no new formal-semantic claim to this retained corpus.",
     "Issue #1361 execution and recovery requirements are verified by dedicated policy, composition, and admission tests; this retained corpus establishes no live recovery, continuation, or trial-allocation guarantee.",
-    "The issue #1361 maintainability repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee."
+    "The issue #1361 maintainability repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
+    "The issue #1361 resource type-hint repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
+    "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee."
   ],
-  "plain_language_outcome": "The retained formal controls reproduce their prior outcomes and digests against the execution-policy maintainability repair; bounded claim limits are unchanged.",
+  "plain_language_outcome": "The retained formal controls reproduce their prior outcomes against the combined source. Two exact compiled digest deviations disclose execution-policy metadata against the incoming hatchling-update baseline; bounded claims are unchanged.",
   "protocol_revision": "2.0.0"
 }

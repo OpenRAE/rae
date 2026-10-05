@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-10-05T05:40:55.493648+00:00",
+  "captured_at": "2026-10-05T04:10:53.400911+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -647,17 +647,17 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "81923b0930e7f140cda10d59f7e6c17615b740f827813b431338a6a5db832f43",
+      "content_sha256": "9e32f20faf88f96b216ba0256d906f36924e4f99d6105e5e2cea58d6bc3fd4a5",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
     {
-      "content_sha256": "d6d298174122a1eb1b6602088163fc0304c6f55cf10c63abca2476a3030c42ae",
+      "content_sha256": "23a8e327378db0837011e0faba38172304c64c4fcb35648dd5d9b2582e06a611",
       "path": "implementations/python/packages/raes_processor",
       "surface_id": "processor-pipeline"
     },
     {
-      "content_sha256": "dad5f52580ffdc1a9110be65fa96ee6c8179e9541c748675873440643df5a03b",
+      "content_sha256": "ec6e16f95cd73e24d4bd46d6bd225c83df042161cfae54a99f0ede148fdf64fe",
       "path": "implementations/python/packages/raes",
       "surface_id": "sdl-pipeline"
     }
@@ -685,20 +685,17 @@
     "Issue #1016 mixed-runtime coordination is covered by its dedicated runtime suite. The retained language corpus does not execute mixed providers or establish backend-native realization, multi-controller coordination, IFC, or equivalence.",
     "Issue #610's reconciliation demonstration harness is covered by its dedicated processor and CLI suite, not promoted to new claims by the retained language corpus.",
     "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution.",
-    "Issue #1361 execution and recovery requirements are verified by dedicated policy, composition, and admission tests; this retained corpus establishes no live recovery, continuation, or trial-allocation guarantee.",
-    "The issue #1361 maintainability repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
-    "The issue #1361 resource type-hint repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
-    "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee."
+    "Issue #1361 execution and recovery requirements are verified by dedicated policy, composition, and admission tests; this retained corpus establishes no live recovery, continuation, or trial-allocation guarantee."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "e87b08a344642b7005baca31387a2d819a88328a",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1361-merged-v68",
-  "snapshot_revision": "68.0.0",
+  "raes_revision": "af78001f9bb02137c9d8ad8ad3761a37f44be3aa",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1361-v67",
+  "snapshot_revision": "67.0.0",
   "source_state": {
-    "base_revision": "e87b08a344642b7005baca31387a2d819a88328a",
+    "base_revision": "af78001f9bb02137c9d8ad8ad3761a37f44be3aa",
     "checkout_state": "modified",
-    "implementation_digest": "c2ba2fe02d85ac2520142e60f5dcd4d356dd8a58d1a3c01628f53462b0988349",
+    "implementation_digest": "8b011a0a5327448bdb6dea9869ac2d5faf48863df1c19b0981ec43b6c10bf649",
     "profile": "python-reference-source/v2"
   }
 }

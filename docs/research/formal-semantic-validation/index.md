@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 70.0.0, rejects unsupported future
+Current validation requires explicit release 69.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -571,21 +571,17 @@ cannot prove, in [`execution-snapshot-v67.json`](execution-snapshot-v67.json)
 and [`analysis-v67.json`](analysis-v67.json). Outcomes and claim limits remain
 unchanged.
 
-Release 68.0.0 replays the retained formal controls after issue #1361 carries
-authored execution and recovery requirements into native plans and admission.
-[`execution-snapshot-v68.json`](execution-snapshot-v68.json) records exact
-baseline dispositions for two compiled digests changed by the added policy
-metadata. [`analysis-v68.json`](analysis-v68.json) preserves prior outcomes and
-bounded claim limits. Live recovery, continuation, and trial allocation remain
-outside this retained corpus.
+Release 68.0.0 repeats the retained cases after the hatchling build-backend pin
+was upgraded to 1.32.4 in
+[`execution-snapshot-v68.json`](execution-snapshot-v68.json) and
+[`analysis-v68.json`](analysis-v68.json). Outcomes and claim limits remain
+unchanged.
 
-Release 69.0.0 replays the execution-policy maintainability repair in
-[`execution-snapshot-v69.json`](execution-snapshot-v69.json) and
-[`analysis-v69.json`](analysis-v69.json). Outcomes and compiled digests match
-release 68.0.0, so no new baseline deviation is accepted. Historical captures,
-including the two policy-metadata digest changes in release 68.0.0, remain intact.
-
-Release 70.0.0 replays the compiler resource type-hint repair in
-[`execution-snapshot-v70.json`](execution-snapshot-v70.json) and
-[`analysis-v70.json`](analysis-v70.json). Outcomes and compiled digests match
-release 69.0.0; no new baseline deviation or coverage claim is accepted.
+Release 69.0.0 replays the combined issue #1361 execution-policy and
+hatchling update in [`execution-snapshot-v69.json`](execution-snapshot-v69.json)
+and [`analysis-v69.json`](analysis-v69.json). The incoming release 68.0.0
+retains its original bytes. Pre-synchronization issue #1361 captures are
+[archived with exact digests](../execution-recovery-pre-sync-evidence/README.md).
+Retained outcomes and bounded claim limits are unchanged.
+Two compiled digests differ because the runtime model carries execution-policy
+metadata; their exact baseline and retest values are recorded as deviations.
