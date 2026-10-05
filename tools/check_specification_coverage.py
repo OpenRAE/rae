@@ -171,12 +171,13 @@ def _load_bundle_index(repo_root: Path) -> list[tuple[str, dict[str, object]]]:
         "64.0.0",
         "65.0.0",
         "66.0.0",
+        "67.0.0",
     }
     if (
-        dict(records)[current_path].get("revision") != "66.0.0"
+        dict(records)[current_path].get("revision") != "67.0.0"
         or {record.get("revision") for _, record in records} != supported_revisions
     ):
-        raise ValueError("coverage evidence requires the explicit current 66.0.0 release and supported history")
+        raise ValueError("coverage evidence requires the explicit current 67.0.0 release and supported history")
     return records
 
 

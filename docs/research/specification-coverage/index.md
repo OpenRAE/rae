@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 66.0.0 and rejects duplicate or unsupported
+Current validation requires release 67.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -514,3 +514,9 @@ Classifications and claim limits remain unchanged; media-type coherence is
 verified by its dedicated suite in
 [`execution-snapshot-v66.json`](execution-snapshot-v66.json) and
 [`analysis-v66.json`](analysis-v66.json).
+
+Release 67.0.0 repeats the retained matrix after the hatchling build-backend pin
+was upgraded to 1.32.4 in
+[`execution-snapshot-v67.json`](execution-snapshot-v67.json) and
+[`analysis-v67.json`](analysis-v67.json). Classifications and claim limits
+remain unchanged.
