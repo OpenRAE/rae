@@ -1,5 +1,10 @@
 # Contracts
 
+The optional [execution and recovery requirements](../specs/sdl/execution-recovery.md)
+profile carries complete authored policies and evidence definitions in native
+phase plans. [Migration guidance](../docs/explain/reference/execution-recovery-migration.md)
+explains scoped defaults, content commitments and explicit capability refusals.
+
 The optional [backend operation and supervision family](../specs/formal/runtime-contracts/backend-operation-supervision.md)
 publishes bounded requests, capability/willingness checks, correlated progress,
 cancellation dispositions and effect evidence. The

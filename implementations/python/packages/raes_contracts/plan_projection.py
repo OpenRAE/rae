@@ -49,6 +49,8 @@ __all__ = [
 
 def _plan_operation_model(operation: PlanOperation) -> PlanOperationModel:
     return PlanOperationModel(
+        execution_policy=operation.execution_policy,
+        execution_policy_scopes=operation.execution_policy_scopes,
         action=operation.action.value,
         address=operation.address,
         resource_type=operation.resource_type,

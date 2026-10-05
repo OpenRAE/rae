@@ -21,6 +21,30 @@ from tools.sdl_catalog_parity._paths import (
 )
 
 EXPECTATIONS_PART_3: dict[str, tuple[str, str, str, str]] = {
+    "execution_policy.default.clock_ref": (
+        "clocks",
+        _SEMANTIC,
+        "fatal dangling",
+        "[execution-policy validator](../../implementations/python/packages/raes/validator/_execution_policy.py)",
+    ),
+    "execution_policy.default.evidence_refs[]": (
+        "evidence_requirements",
+        _SEMANTIC,
+        "fatal dangling",
+        "[execution-policy validator](../../implementations/python/packages/raes/validator/_execution_policy.py)",
+    ),
+    "execution_policy.scopes[].policy.clock_ref": (
+        "clocks",
+        _SEMANTIC,
+        "fatal dangling",
+        "[execution-policy validator](../../implementations/python/packages/raes/validator/_execution_policy.py)",
+    ),
+    "execution_policy.scopes[].policy.evidence_refs[]": (
+        "evidence_requirements",
+        _SEMANTIC,
+        "fatal dangling",
+        "[execution-policy validator](../../implementations/python/packages/raes/validator/_execution_policy.py)",
+    ),
     "evidence_requirements.*.source_refs[]": (
         "targetable",
         _SEMANTIC,

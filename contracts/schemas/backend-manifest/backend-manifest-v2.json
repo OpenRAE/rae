@@ -1063,6 +1063,80 @@
       "title": "EvaluatorCapabilitiesModel",
       "type": "object"
     },
+    "ExecutionPolicyCapabilities": {
+      "additionalProperties": false,
+      "description": "Installed support declaration; each invocation still needs contextual willingness.",
+      "properties": {
+        "after_effect_policies": {
+          "default": [
+            "disallow"
+          ],
+          "items": {
+            "enum": [
+              "disallow",
+              "idempotent",
+              "reset",
+              "compensate"
+            ],
+            "type": "string"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "title": "After Effect Policies",
+          "type": "array"
+        },
+        "max_attempts": {
+          "default": 1,
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "title": "Max Attempts",
+          "type": "integer"
+        },
+        "responses": {
+          "items": {
+            "enum": [
+              "terminate",
+              "hold",
+              "reconcile",
+              "continue",
+              "retry",
+              "resume",
+              "new-trial"
+            ],
+            "type": "string"
+          },
+          "maxItems": 7,
+          "minItems": 1,
+          "title": "Responses",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "execution-policy/v1",
+          "default": "execution-policy/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "responses"
+      ],
+      "title": "ExecutionPolicyCapabilities",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+          "id": "execution-policy-executionpolicycapabilities",
+          "inputs": [
+            {
+              "contract_id": "backend-operation-capabilities-v1",
+              "instance_path": "#/execution_policy"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.execution_policy.ExecutionPolicyCapabilities.model_validate"
+        }
+      ]
+    },
     "GeneratedArtifactDeliveryMode": {
       "description": "Portable ways a generated-artifact output is delivered to a consumer.\n\n``mount`` is the read-only file projection declared directly on\n``generated_artifacts[].consumers[]``. ``environment`` and ``env_file`` are\nnode-owned runtime environment bindings authored on\n``nodes.<node>.runtime.environment[]`` / ``environment_files[]`` whose\ngenerated-artifact consumer projection the compiler derives. A provisioner\ndeclares each mode it can realize separately so it cannot claim mount\ndelivery while silently dropping environment or env-file injection.",
       "enum": [
@@ -3561,6 +3635,17 @@
       "default": null,
       "title": "Domain Profile Context Digest"
     },
+    "execution_policy": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExecutionPolicyCapabilities"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "identity": {
       "$ref": "#/$defs/ApparatusIdentityModel"
     },
@@ -3665,5 +3750,14 @@
     "capabilities"
   ],
   "title": "BackendManifestV2Model",
-  "type": "object"
+  "type": "object",
+  "x-raes-semantic-profile": {
+    "contract_id": "backend-manifest-v2",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
 }

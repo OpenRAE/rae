@@ -7,6 +7,7 @@ from typing import Annotated, Literal, Self
 from pydantic import ConfigDict, Field, model_validator
 
 from ..addressing import CompiledAddress
+from ..execution_policy import ExecutionPolicyCapabilities
 from ..operation_lifecycle import OperationAdmissionContext, OperationKind
 from ..versions import (
     BACKEND_OPERATION_CAPABILITIES_SCHEMA_VERSION,
@@ -108,6 +109,7 @@ class BackendOperationRequestModel(OperationContractModel):
 class BackendOperationCapabilitiesModel(OperationContractModel):
     """Installed provider declaration; neither willingness nor a conformance proof."""
 
+    execution_policy: ExecutionPolicyCapabilities | None = Field(default=None, exclude_if=lambda value: value is None)
     schema_version: Literal[BACKEND_OPERATION_CAPABILITIES_SCHEMA_VERSION] = (
         BACKEND_OPERATION_CAPABILITIES_SCHEMA_VERSION
     )

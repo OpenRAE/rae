@@ -9,6 +9,7 @@ from ._deployment_tenancy import _DeploymentTenancyMixin
 from ._domain_topology import _DomainTopologyMixin
 from ._enterprise_identity import _EnterpriseIdentityMixin
 from ._evidence_requirements import _EvidenceRequirementsMixin
+from ._execution_policy import _ExecutionPolicyMixin
 from ._mixed_control import _MixedControlMixin
 from ._nodes_infra_network import _NodesInfraNetworkMixin
 from ._participant_inject_deliveries import _ParticipantInjectDeliveriesMixin
@@ -34,6 +35,7 @@ __all__ = ["SemanticValidator"]
 
 
 class SemanticValidator(
+    _ExecutionPolicyMixin,
     _NodesInfraNetworkMixin,
     _RuntimeServicesMixin,
     _RuntimeProcessLimitsMixin,

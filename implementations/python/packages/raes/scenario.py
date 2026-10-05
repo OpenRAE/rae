@@ -16,6 +16,7 @@ from typing import ClassVar, Literal
 
 from pydantic import ConfigDict, Field, PrivateAttr, model_validator
 from raes_contracts.augmentation_scope import OptionalAugmentationScope
+from raes_contracts.execution_policy import OptionalExecutionPolicy
 
 from ._base import SDLModel
 from ._capability_binding_normalization import normalize_capability_binding
@@ -294,6 +295,7 @@ class ScenarioContent(LegacyClassificationGuard):
     outcome_interpretation_rules: dict[str, OutcomeInterpretationRule] = Field(default_factory=dict)
     behavior_specifications: dict[str, ParticipantBehaviorSpecification] = Field(default_factory=dict)
     evidence_requirements: dict[str, EvidenceRequirement] = Field(default_factory=dict)
+    execution_policy: OptionalExecutionPolicy = None
     augmentation_scope: OptionalAugmentationScope = None
     time_domains: dict[str, TimeDomain] = Field(default_factory=dict)
     clocks: dict[str, Clock] = Field(default_factory=dict)

@@ -36,6 +36,7 @@ from ..semantics.realization import (
     realization_support_diagnostics,
     resolve_apparatus_realization_defaults,
 )
+from .execution_policy import attach_execution_policies
 from .manifest_validation import _validate_manifest
 from .materialization import planned_materialization_source
 from .operations import (
@@ -384,6 +385,13 @@ def plan(
             instantiation_id=instantiation_id,
         ),
     )
+
+    provisioning, policy_diagnostics = attach_execution_policies(effective_model, manifest, provisioning)
+    diagnostics.extend(policy_diagnostics)
+    orchestration, policy_diagnostics = attach_execution_policies(effective_model, manifest, orchestration)
+    diagnostics.extend(policy_diagnostics)
+    evaluation, policy_diagnostics = attach_execution_policies(effective_model, manifest, evaluation)
+    diagnostics.extend(policy_diagnostics)
 
     if model.materialization_description is not None:
         provisioning = replace(provisioning, purpose="inspection")

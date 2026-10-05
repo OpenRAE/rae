@@ -68,6 +68,7 @@ machinery is not retained as an empty compatibility field. "References" is
 | `outcome_interpretation_rules` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [participant model](../formal/participant-semantics/README.md) |
 | `behavior_specifications` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [behavior specifications](../formal/participant-behavior-model/README.md) |
 | `evidence_requirements` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [observability and evidence](observability-and-evidence.md) |
+| `execution_policy` | section | mapping | normalized, expanded, instantiated | optional; default null | none | catalogued | [execution and recovery](execution-recovery.md) |
 | `augmentation_scope` | section | mapping | normalized, expanded, instantiated | optional; default null | none | none | [augmentation scope](augmentation-scope.md) |
 | `time_domains` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | none | [shared time model](../formal/time-model/README.md) |
 | `clocks` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [shared time model](../formal/time-model/README.md) |
@@ -85,7 +86,7 @@ addition would impose a large, unexpected authoring burden. The policy also
 survives into materialized descriptions, where its addresses retain their
 original-source meaning. See [augmentation scope](augmentation-scope.md).
 
-<!-- sdl-catalog-summary top-level=45 metadata-composition=7 sections=38 maps=36 lists=1 -->
+<!-- sdl-catalog-summary top-level=46 metadata-composition=7 sections=39 maps=36 lists=1 -->
 
 The section set therefore has two authoring shapes: maps keyed by stable
 user-defined identifiers and the scenario-level `forwarding_agents` list, whose

@@ -1,9 +1,9 @@
 {
-  "content_hash": "765e81765467f2e29b52bee8cd6daabe284c1542665c4f634c47b632b37fedb4",
+  "content_hash": "0a5b2ee3ad31c589f30def040783a934fb8855614c9030525f1a648ac27e3ce5",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "summary": "Add participant-local outcomes and identity assignment alongside opt-in bounded shared-time guarantees.",
-    "content_hash": "765e81765467f2e29b52bee8cd6daabe284c1542665c4f634c47b632b37fedb4"
+    "content_hash": "0a5b2ee3ad31c589f30def040783a934fb8855614c9030525f1a648ac27e3ce5",
+    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"
