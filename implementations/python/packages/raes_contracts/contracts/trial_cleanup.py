@@ -9,6 +9,7 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ..execution_retry import ExecutionRetryPolicyModel as ExecutionRetryPolicyModel
 from ..versions import (
     SCHEDULER_ISOLATION_PROOF_SCHEMA_VERSION,
     TRIAL_CLEANUP_PLAN_SCHEMA_VERSION,
@@ -159,29 +160,6 @@ class CleanupObligationModel(ContractModel):
             raise ValueError("required cleanup obligations require verification_probe_refs")
         if self.idempotency == "requires-compensation" and not self.compensation_refs:
             raise ValueError("requires-compensation cleanup obligations require compensation_refs")
-        return self
-
-
-class ExecutionRetryPolicyModel(ContractModel):
-    """Retry posture after an execution attempt may have produced effects."""
-
-    max_attempts: PositiveInteger
-    after_effect_policy: Literal["disallow", "idempotent", "reset", "compensate"]
-    reset_obligation_refs: list[NonEmptyString] = Field(default_factory=list, json_schema_extra={"uniqueItems": True})
-    compensation_refs: list[NonEmptyString] = Field(default_factory=list, json_schema_extra={"uniqueItems": True})
-
-    @model_validator(mode="after")
-    def _validate_policy(self) -> ExecutionRetryPolicyModel:
-        _require_unique("reset_obligation_refs", self.reset_obligation_refs)
-        _require_unique("compensation_refs", self.compensation_refs)
-        if self.after_effect_policy == "reset" and not self.reset_obligation_refs:
-            raise ValueError("reset retry policy requires reset_obligation_refs")
-        if self.after_effect_policy == "compensate" and not self.compensation_refs:
-            raise ValueError("compensate retry policy requires compensation_refs")
-        if self.after_effect_policy != "reset" and self.reset_obligation_refs:
-            raise ValueError("reset_obligation_refs are only valid for reset retry policy")
-        if self.after_effect_policy != "compensate" and self.compensation_refs:
-            raise ValueError("compensation_refs are only valid for compensate retry policy")
         return self
 
 

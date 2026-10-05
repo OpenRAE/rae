@@ -1,9 +1,9 @@
 {
-  "content_hash": "d0c968908419a064c59f7ac3b518733fdf74576b4aa49307dd22b2ae8cc93c25",
+  "content_hash": "2dd378f6b80b78ade6bcb48f2ed201c1d83e1b821a2c04dd8cb342661e45b1ce",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "summary": "Add participant-local outcomes and identity assignment alongside opt-in bounded shared-time guarantees.",
-    "content_hash": "d0c968908419a064c59f7ac3b518733fdf74576b4aa49307dd22b2ae8cc93c25"
+    "content_hash": "2dd378f6b80b78ade6bcb48f2ed201c1d83e1b821a2c04dd8cb342661e45b1ce",
+    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"

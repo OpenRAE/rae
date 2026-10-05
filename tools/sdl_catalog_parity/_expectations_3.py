@@ -20,7 +20,36 @@ from tools.sdl_catalog_parity._paths import (
     _WRONG_SLOT_CANDIDATE,
 )
 
+_EXECUTION_POLICY_VALIDATOR = (
+    "[execution-policy validator](../../implementations/python/packages/raes/validator/_execution_policy.py)"
+)
+_FATAL_DANGLING = "fatal dangling"
+
 EXPECTATIONS_PART_3: dict[str, tuple[str, str, str, str]] = {
+    "execution_policy.default.clock_ref": (
+        "clocks",
+        _SEMANTIC,
+        _FATAL_DANGLING,
+        _EXECUTION_POLICY_VALIDATOR,
+    ),
+    "execution_policy.default.evidence_refs[]": (
+        "evidence_requirements",
+        _SEMANTIC,
+        _FATAL_DANGLING,
+        _EXECUTION_POLICY_VALIDATOR,
+    ),
+    "execution_policy.scopes[].policy.clock_ref": (
+        "clocks",
+        _SEMANTIC,
+        _FATAL_DANGLING,
+        _EXECUTION_POLICY_VALIDATOR,
+    ),
+    "execution_policy.scopes[].policy.evidence_refs[]": (
+        "evidence_requirements",
+        _SEMANTIC,
+        _FATAL_DANGLING,
+        _EXECUTION_POLICY_VALIDATOR,
+    ),
     "evidence_requirements.*.source_refs[]": (
         "targetable",
         _SEMANTIC,
@@ -54,7 +83,7 @@ EXPECTATIONS_PART_3: dict[str, tuple[str, str, str, str]] = {
     "clocks.*.time_domain_ref": (
         "time_domains",
         _SEMANTIC,
-        "fatal dangling",
+        _FATAL_DANGLING,
         _TIME_MODEL_VALIDATOR,
     ),
     "time_domain_mappings.*.source_domain_ref": (
@@ -78,7 +107,7 @@ EXPECTATIONS_PART_3: dict[str, tuple[str, str, str, str]] = {
     "temporal_constraints.*.clock_ref": (
         "clocks",
         _SEMANTIC,
-        "fatal dangling",
+        _FATAL_DANGLING,
         _TIME_MODEL_VALIDATOR,
     ),
     "temporal_constraints.*.subject_refs[]": (

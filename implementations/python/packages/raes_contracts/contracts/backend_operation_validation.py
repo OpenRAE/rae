@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
 
 from ..canonical import canonical_json_digest
 from .backend_operation import (
@@ -92,6 +96,61 @@ def require_backend_operation_admission(
         raise ValueError("backend capability commitment mismatch")
     if message.disposition != "willing":
         raise ValueError("backend context refused")
+
+
+def require_backend_execution_policy_admission(
+    request: BackendOperationRequestModel,
+    capabilities: BackendOperationCapabilitiesModel,
+    response: BackendOperationResponseModel,
+    native_plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+) -> None:
+    """Validate a native plan resolved by its owner, then exact-context willingness.
+
+    The caller authenticates and authorizes separately, resolves the artifact
+    through its owning authority, and consumes the one-use effect claim. This
+    pure validator supplies none of that authority and performs no recovery.
+    """
+    from ..execution_policy import execution_policy_capability_gaps
+
+    _validate_native_plan_commitment(request, native_plan)
+    for operation in native_plan.operations:
+        for effective in (operation.execution_policy, *operation.execution_policy_scopes):
+            if effective is not None and execution_policy_capability_gaps(
+                effective.policy, capabilities.execution_policy
+            ):
+                raise ValueError("execution policy is unsupported by the installed provider")
+    require_backend_operation_admission(request, capabilities, response)
+
+
+def _validate_native_plan_commitment(
+    request: BackendOperationRequestModel, native_plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan
+) -> None:
+    from ..plan_projection import runtime_plan_digest
+    from ..planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
+
+    kinds = {ProvisioningPlan: "provisioning", OrchestrationPlan: "orchestration", EvaluationPlan: "evaluation"}
+    kind = kinds.get(type(native_plan))
+    if kind is None or request.command.contract_id != kind + "-plan-v1":
+        raise ValueError("execution policy requires its exact native plan contract")
+    if request.binding.context.operation_kind.value != kind:
+        raise ValueError("execution policy native plan kind mismatch")
+    if request.command.digest != runtime_plan_digest(native_plan):
+        raise ValueError("execution policy native plan commitment mismatch")
+    _validate_native_plan_identity(request, native_plan)
+    if native_plan.purpose != "execution" or any(diagnostic.is_error for diagnostic in native_plan.diagnostics):
+        raise ValueError("execution policy native plan is not executable")
+
+
+def _validate_native_plan_identity(
+    request: BackendOperationRequestModel, native_plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan
+) -> None:
+    if native_plan.operation_id is not None and request.command.artifact_id != native_plan.operation_id:
+        raise ValueError("execution policy native artifact identity mismatch")
+    if native_plan.operation_id is not None and request.binding.operation_id != native_plan.operation_id:
+        raise ValueError("execution policy native operation identity mismatch")
+    run_id = getattr(native_plan, "run_id", None)
+    if run_id is not None and request.binding.context.run_scope != "run:" + run_id:
+        raise ValueError("execution policy native run scope mismatch")
 
 
 def validate_backend_operation_history(

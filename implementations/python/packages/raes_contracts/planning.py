@@ -1,10 +1,4 @@
-"""Shared runtime planning contracts and safe planned-resource readers.
-
-Backend and provisioner implementations should use the named ``planned_*``
-accessors instead of traversing a :class:`PlannedResource` payload directly.
-They perform no validation or normalization and return ``None`` when a requested
-surface is missing or does not apply to the resource's domain and type.
-"""
+"""Native planning carriers; safe accessors return None for missing or inapplicable surfaces without validating."""
 
 from __future__ import annotations
 
@@ -16,11 +10,12 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from raes.explicitness import ExplicitnessProvenance
 
-from raes_contracts._planning_validation import _validate_plan_addresses, _validate_realization_authority
+from raes_contracts import _planning_validation as _validation
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.bounded_domains import DomainDescriptor
 from raes_contracts.compute_substrate import validate_compute_substrate_constraint, validate_planned_substrate_targets
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.execution_policy import EffectiveExecutionPolicy
 from raes_contracts.materialization import MaterializationSource
 from raes_contracts.observation_demand import EffectiveObservationDemand
 from raes_contracts.realization_preparation import RealizationPreparationAuthority
@@ -317,9 +312,12 @@ class PlanOperation:
     payload: dict[str, Any]
     ordering_dependencies: tuple[str, ...] = ()
     refresh_dependencies: tuple[str, ...] = ()
+    execution_policy: EffectiveExecutionPolicy | None = field(default=None, kw_only=True)
+    execution_policy_scopes: tuple[EffectiveExecutionPolicy, ...] = field(default=(), kw_only=True)
 
     def __post_init__(self) -> None:
         require_compiled_address(self.address)
+        _validation._validate_operation_policy(self)
         for dependency in (*self.ordering_dependencies, *self.refresh_dependencies):
             require_compiled_address(dependency, field_name="dependency address")
 
@@ -389,12 +387,12 @@ class ProvisioningPlan:
             raise ValueError("ProvisioningPlan operation_id must be non-empty when present")
         _validate_optional_run_id(self.run_id, owner="ProvisioningPlan run_id")
         _validate_optional_run_id(self.instantiation_id, owner="ProvisioningPlan instantiation_id")
-        _validate_plan_addresses(self.resources, self.operations, domain=RuntimeDomain.PROVISIONING)
+        _validation._validate_plan_addresses(self.resources, self.operations, domain=RuntimeDomain.PROVISIONING)
         validate_planned_substrate_targets(
             ((item.address, item.concern) for item in self.realization_constraints),
             (op.address for op in self.operations if op.action != ChangeAction.DELETE and op.resource_type == "node"),
         )
-        _validate_realization_authority(self.operations, self.realization_authority)
+        _validation._validate_realization_authority(self.operations, self.realization_authority)
 
     @property
     def actionable_operations(self) -> list[ProvisionOp]:
@@ -420,7 +418,7 @@ class OrchestrationPlan:
             raise ValueError("operation_id must be non-empty when present")
         if self.purpose not in {"execution", "inspection"}:
             raise ValueError(_INVALID_PLAN_PURPOSE)
-        _validate_plan_addresses(
+        _validation._validate_plan_addresses(
             self.resources,
             self.operations,
             self.startup_order,
@@ -455,7 +453,7 @@ class EvaluationPlan:
             raise ValueError("operation_id must be non-empty when present")
         if self.purpose not in {"execution", "inspection"}:
             raise ValueError(_INVALID_PLAN_PURPOSE)
-        _validate_plan_addresses(
+        _validation._validate_plan_addresses(
             self.resources,
             self.operations,
             self.startup_order,

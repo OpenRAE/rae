@@ -1,9 +1,9 @@
 {
-  "content_hash": "643052d648a1afd04f50e70f0127cc467bf20084156754aceec5964a78529d81",
+  "content_hash": "6db2c5bb46445d0ed8eb140e1f7f8cacb562edfe8b44f139bb0b10c86f89a596",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "643052d648a1afd04f50e70f0127cc467bf20084156754aceec5964a78529d81",
-    "summary": "Constrain required evidence media types to registered, content-provable output contracts (#1401)."
+    "content_hash": "6db2c5bb46445d0ed8eb140e1f7f8cacb562edfe8b44f139bb0b10c86f89a596",
+    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

@@ -283,7 +283,1146 @@
       "title": "DomainProfileCoordinateModel",
       "type": "object"
     },
+    "EffectiveExecutionPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_requirements": {
+          "additionalProperties": {
+            "$ref": "#/$defs/EvidenceRequirement"
+          },
+          "maxProperties": 64,
+          "propertyNames": {
+            "maxLength": 256,
+            "minLength": 1
+          },
+          "title": "Evidence Requirements",
+          "type": "object"
+        },
+        "governing_scope": {
+          "maxLength": 8192,
+          "minLength": 1,
+          "title": "Governing Scope",
+          "type": "string"
+        },
+        "namespace": {
+          "default": [],
+          "items": {
+            "maxLength": 64,
+            "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)$",
+            "type": "string"
+          },
+          "maxItems": 31,
+          "title": "Namespace",
+          "type": "array"
+        },
+        "policy": {
+          "$ref": "#/$defs/ExecutionPolicy"
+        },
+        "retry_unit": {
+          "default": "native-operation",
+          "enum": [
+            "native-operation",
+            "workflow-step"
+          ],
+          "title": "Retry Unit",
+          "type": "string"
+        },
+        "scope": {
+          "maxLength": 4096,
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scope",
+        "governing_scope",
+        "policy"
+      ],
+      "title": "EffectiveExecutionPolicy",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+          "id": "execution-policy-effectiveexecutionpolicy",
+          "inputs": [
+            {
+              "contract_id": "provisioning-plan-v1",
+              "instance_path": "#/operations"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.execution_policy.EffectiveExecutionPolicy.model_validate"
+        }
+      ]
+    },
+    "EvidenceIntegrityExpectation": {
+      "description": "Expected integrity or chain-of-custody treatment.",
+      "enum": [
+        "none",
+        "checksum",
+        "signature",
+        "chain_of_custody",
+        "timestamped",
+        "other"
+      ],
+      "title": "EvidenceIntegrityExpectation",
+      "type": "string"
+    },
+    "EvidenceLossDisclosureExpectation": {
+      "description": "Expected disclosure when capture is incomplete or lossy.",
+      "enum": [
+        "not_expected",
+        "best_effort",
+        "required",
+        "other"
+      ],
+      "title": "EvidenceLossDisclosureExpectation",
+      "type": "string"
+    },
+    "EvidenceRedactionExpectation": {
+      "description": "Expected redaction treatment for captured output.",
+      "enum": [
+        "none",
+        "redact_sensitive",
+        "redact_secrets",
+        "aggregate_only",
+        "derived_only",
+        "other"
+      ],
+      "title": "EvidenceRedactionExpectation",
+      "type": "string"
+    },
+    "EvidenceRequirement": {
+      "additionalProperties": false,
+      "description": "One authored data, evidence, or output capture requirement.\n\nThe model records capture intent only. Executable capture contracts may map\nthis to ``experiment-capture-spec-v1`` later, but captured payloads and\nproof of capture belong to experiment evidence records.",
+      "properties": {
+        "artifact_role": {
+          "default": "",
+          "title": "Artifact Role",
+          "type": "string"
+        },
+        "boundary_kind": {
+          "default": "",
+          "title": "Boundary Kind",
+          "type": "string"
+        },
+        "boundary_ref": {
+          "default": "",
+          "title": "Boundary Ref",
+          "type": "string"
+        },
+        "capture_requirement_ref": {
+          "default": "",
+          "title": "Capture Requirement Ref",
+          "type": "string"
+        },
+        "capture_spec_ref": {
+          "default": "",
+          "title": "Capture Spec Ref",
+          "type": "string"
+        },
+        "channel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceRequirementChannel"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channel"
+        },
+        "channel_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Channel Refs",
+          "type": "array"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "field_selectors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Field Selectors",
+          "type": "array"
+        },
+        "integrity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceIntegrityExpectation"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Integrity"
+        },
+        "loss_disclosure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceLossDisclosureExpectation"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Loss Disclosure"
+        },
+        "media_types": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Media Types",
+          "type": "array"
+        },
+        "notes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Notes",
+          "type": "array"
+        },
+        "observation_demand": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationDemandRule"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "output_contract": {
+          "default": "",
+          "title": "Output Contract",
+          "type": "string"
+        },
+        "redaction": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceRedactionExpectation"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Redaction"
+        },
+        "retention": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceRetentionExpectation"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Retention"
+        },
+        "scope": {
+          "default": "",
+          "title": "Scope",
+          "type": "string"
+        },
+        "scope_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Scope Refs",
+          "type": "array"
+        },
+        "sensitivity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeSensitivityClassification"
+            },
+            {
+              "pattern": "^(?:[pP][lL][aA][iI][nN]|[rR][eE][dD][aA][cC][tT][eE][dD]|[sS][eE][cC][rR][eE][tT][-_][fF][iI][xX][tT][uU][rR][eE]|[oO][pP][eE][rR][aA][tT][oO][rR][-_][sS][eE][cC][rR][eE][tT]|[uU][nN][kK][nN][oO][wW][nN]|[oO][tT][hH][eE][rR]|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$(?![\\s\\S])",
+              "type": "string"
+            }
+          ],
+          "title": "Sensitivity"
+        },
+        "source_class": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceRequirementSourceClass"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Class"
+        },
+        "source_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "trigger_ref": {
+          "default": "",
+          "title": "Trigger Ref",
+          "type": "string"
+        },
+        "window": {
+          "default": "",
+          "title": "Window",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sensitivity",
+        "redaction",
+        "integrity",
+        "retention",
+        "loss_disclosure"
+      ],
+      "title": "EvidenceRequirement",
+      "type": "object"
+    },
+    "EvidenceRequirementChannel": {
+      "description": "Capture channel or modality for an authored requirement.",
+      "enum": [
+        "packet_capture",
+        "log",
+        "trace",
+        "metric",
+        "file_artifact",
+        "screen_capture",
+        "api_response",
+        "database_record",
+        "participant_output",
+        "other"
+      ],
+      "title": "EvidenceRequirementChannel",
+      "type": "string"
+    },
+    "EvidenceRequirementSourceClass": {
+      "description": "Closed source classes for requirements without a concrete source ref.",
+      "enum": [
+        "scenario_native_observability",
+        "participant_action",
+        "participant_observation",
+        "scenario_state",
+        "processor_backend",
+        "apparatus",
+        "external",
+        "other"
+      ],
+      "title": "EvidenceRequirementSourceClass",
+      "type": "string"
+    },
+    "EvidenceRetentionExpectation": {
+      "description": "Expected retention boundary for captured output.",
+      "enum": [
+        "not_retained",
+        "run_lifetime",
+        "study_lifetime",
+        "archival",
+        "policy_defined",
+        "other"
+      ],
+      "title": "EvidenceRetentionExpectation",
+      "type": "string"
+    },
+    "ExecutionPolicy": {
+      "additionalProperties": false,
+      "description": "A complete local choice; omitted fields never inherit from another policy.",
+      "properties": {
+        "budget_ms": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Budget Ms"
+        },
+        "clock_basis": {
+          "default": "apparatus",
+          "enum": [
+            "apparatus",
+            "semantic"
+          ],
+          "title": "Clock Basis",
+          "type": "string"
+        },
+        "clock_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Clock Ref"
+        },
+        "delay_ms": {
+          "default": 0,
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Delay Ms",
+          "type": "integer"
+        },
+        "effect_classes": {
+          "default": [],
+          "items": {
+            "enum": [
+              "absent",
+              "applied",
+              "partial"
+            ],
+            "type": "string"
+          },
+          "maxItems": 3,
+          "title": "Effect Classes",
+          "type": "array"
+        },
+        "evidence_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "failure_classes": {
+          "default": [
+            "operation"
+          ],
+          "items": {
+            "enum": [
+              "delivery",
+              "backend-refusal",
+              "operation",
+              "intentional-fault",
+              "continuity",
+              "invalid-evidence"
+            ],
+            "type": "string"
+          },
+          "maxItems": 6,
+          "minItems": 1,
+          "title": "Failure Classes",
+          "type": "array"
+        },
+        "fresh_trial_limit": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fresh Trial Limit"
+        },
+        "on_exhausted": {
+          "default": "terminate",
+          "enum": [
+            "terminate",
+            "new-trial"
+          ],
+          "title": "On Exhausted",
+          "type": "string"
+        },
+        "policy_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Policy Id",
+          "type": "string"
+        },
+        "response": {
+          "enum": [
+            "terminate",
+            "hold",
+            "reconcile",
+            "continue",
+            "retry",
+            "resume",
+            "new-trial"
+          ],
+          "title": "Response",
+          "type": "string"
+        },
+        "retry": {
+          "$ref": "#/$defs/ExecutionRetryPolicyModel"
+        },
+        "revision": {
+          "default": "1",
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Revision",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "execution-policy/v1",
+          "default": "execution-policy/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "validity": {
+          "default": "preserve",
+          "enum": [
+            "preserve",
+            "qualify",
+            "invalidate"
+          ],
+          "title": "Validity",
+          "type": "string"
+        }
+      },
+      "required": [
+        "policy_id",
+        "response"
+      ],
+      "title": "ExecutionPolicy",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+          "id": "execution-policy-executionpolicy",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#/execution_policy"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.execution_policy.ExecutionPolicy.model_validate"
+        }
+      ]
+    },
+    "ExecutionRetryPolicyModel": {
+      "additionalProperties": false,
+      "description": "Retry posture after an execution attempt may have produced effects.",
+      "properties": {
+        "after_effect_policy": {
+          "enum": [
+            "disallow",
+            "idempotent",
+            "reset",
+            "compensate"
+          ],
+          "title": "After Effect Policy",
+          "type": "string"
+        },
+        "compensation_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Compensation Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "max_attempts": {
+          "minimum": 1,
+          "title": "Max Attempts",
+          "type": "integer"
+        },
+        "reset_obligation_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Reset Obligation Refs",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "max_attempts",
+        "after_effect_policy"
+      ],
+      "title": "ExecutionRetryPolicyModel",
+      "type": "object"
+    },
     "JsonValue": {},
+    "ObservationBasis": {
+      "description": "Truthful basis requested for a reportable value.",
+      "enum": [
+        "backend-selected",
+        "observed",
+        "independently-verified",
+        "operational"
+      ],
+      "title": "ObservationBasis",
+      "type": "string"
+    },
+    "ObservationDemandMode": {
+      "description": "Selection posture at a named semantic scope.",
+      "enum": [
+        "inherit",
+        "none",
+        "operational-only",
+        "selected",
+        "exhaustive"
+      ],
+      "title": "ObservationDemandMode",
+      "type": "string"
+    },
+    "ObservationDemandRule": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "properties": {
+                "mode": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "properties": {
+                "selector": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "selector"
+              ]
+            },
+            {
+              "properties": {
+                "collection": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "collection"
+              ]
+            },
+            {
+              "properties": {
+                "retention": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "retention"
+              ]
+            },
+            {
+              "properties": {
+                "export": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "export"
+              ]
+            },
+            {
+              "properties": {
+                "basis": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "basis"
+              ]
+            },
+            {
+              "properties": {
+                "redaction": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "redaction"
+              ]
+            },
+            {
+              "properties": {
+                "integrity": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "integrity"
+              ]
+            },
+            {
+              "properties": {
+                "prohibited_stages": {
+                  "minItems": 1
+                }
+              },
+              "required": [
+                "prohibited_stages"
+              ]
+            }
+          ]
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "enum": [
+                  "selected",
+                  "exhaustive"
+                ]
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "selector": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "selector"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "exhaustive"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "selector": {
+                "properties": {
+                  "coverage_profile": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "max_items": {
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "coverage_profile",
+                  "max_items"
+                ]
+              }
+            },
+            "required": [
+              "selector"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "enum": [
+                  "selected",
+                  "exhaustive"
+                ]
+              },
+              "purpose": {
+                "const": "experimental"
+              }
+            },
+            "required": [
+              "purpose",
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "integrity": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "redaction": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "redaction",
+              "integrity"
+            ]
+          }
+        }
+      ],
+      "description": "One local scoped preference or independent mandatory requirement.",
+      "properties": {
+        "authority_ref": {
+          "default": "author",
+          "minLength": 1,
+          "title": "Authority Ref",
+          "type": "string"
+        },
+        "basis": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationBasis"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "collection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationLifecycleDecision"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "export": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationLifecycleDecision"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "integrity": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Integrity"
+        },
+        "mode": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationDemandMode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "prohibited_stages": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ObservationLifecycleStage"
+          },
+          "maxItems": 3,
+          "title": "Prohibited Stages",
+          "type": "array"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ObservationPurpose"
+        },
+        "redaction": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Redaction"
+        },
+        "required": {
+          "default": false,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "retention": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationLifecycleDecision"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "rule_id": {
+          "minLength": 1,
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "scope": {
+          "maxLength": 4096,
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Scope",
+          "type": "string"
+        },
+        "selector": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationSelector"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "rule_id",
+        "scope",
+        "purpose"
+      ],
+      "title": "ObservationDemandRule",
+      "type": "object"
+    },
+    "ObservationLifecycleDecision": {
+      "description": "One local lifecycle preference or monotone prohibition.",
+      "enum": [
+        "inherit",
+        "forbid",
+        "disable",
+        "require"
+      ],
+      "title": "ObservationLifecycleDecision",
+      "type": "string"
+    },
+    "ObservationLifecycleStage": {
+      "description": "Independently governed data-lifecycle stages.",
+      "enum": [
+        "collection",
+        "retention",
+        "export"
+      ],
+      "title": "ObservationLifecycleStage",
+      "type": "string"
+    },
+    "ObservationPurpose": {
+      "description": "Authority plane for requested data use.",
+      "enum": [
+        "experimental",
+        "realization-description",
+        "operational"
+      ],
+      "title": "ObservationPurpose",
+      "type": "string"
+    },
+    "ObservationSelector": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "coverage_profile": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "coverage_profile"
+            ]
+          },
+          "then": {
+            "properties": {
+              "max_items": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "max_items"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "max_items": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "max_items"
+            ]
+          },
+          "then": {
+            "properties": {
+              "coverage_profile": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "coverage_profile"
+            ]
+          }
+        }
+      ],
+      "description": "Bounded selector over a semantic scope and one data surface.",
+      "properties": {
+        "component_refs": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Component Refs",
+          "type": "array"
+        },
+        "coverage_profile": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Coverage Profile"
+        },
+        "data_kind": {
+          "enum": [
+            "field",
+            "stream",
+            "artifact"
+          ],
+          "title": "Data Kind",
+          "type": "string"
+        },
+        "excluded_scopes": {
+          "default": [],
+          "items": {
+            "maxLength": 4096,
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Excluded Scopes",
+          "type": "array"
+        },
+        "max_items": {
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Items"
+        },
+        "names": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Names",
+          "type": "array"
+        },
+        "semantic_scope": {
+          "maxLength": 4096,
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Semantic Scope",
+          "type": "string"
+        },
+        "window_refs": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Window Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "semantic_scope",
+        "data_kind",
+        "names"
+      ],
+      "title": "ObservationSelector",
+      "type": "object"
+    },
     "PreparationOperationModel": {
       "additionalProperties": false,
       "description": "A provisioning operation selected under the original request authority.",
@@ -305,6 +1444,26 @@
           "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
           "title": "Address",
           "type": "string"
+        },
+        "execution_policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EffectiveExecutionPolicy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "execution_policy_scopes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/EffectiveExecutionPolicy"
+          },
+          "maxItems": 256,
+          "title": "Execution Policy Scopes",
+          "type": "array"
         },
         "ordering_dependencies": {
           "items": {
@@ -367,7 +1526,34 @@
         "resource_type"
       ],
       "title": "PreparationOperationModel",
-      "type": "object"
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+          "id": "execution-policy-preparationoperationmodel",
+          "inputs": [
+            {
+              "contract_id": "provisioning-plan-v1",
+              "instance_path": "#/operations"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.backend_preparation.PreparationOperationModel.model_validate"
+        }
+      ]
+    },
+    "RuntimeSensitivityClassification": {
+      "description": "Sensitivity/redaction class for observed runtime facts.",
+      "enum": [
+        "plain",
+        "redacted",
+        "secret_fixture",
+        "operator_secret",
+        "unknown",
+        "other"
+      ],
+      "title": "RuntimeSensitivityClassification",
+      "type": "string"
     },
     "Severity": {
       "description": "Diagnostic severity level.",
@@ -429,5 +1615,14 @@
     "operations"
   ],
   "title": "BackendPreparationResponseModel",
-  "type": "object"
+  "type": "object",
+  "x-raes-semantic-profile": {
+    "contract_id": "backend-realization-preparation-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
 }

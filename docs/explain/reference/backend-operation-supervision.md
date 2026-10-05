@@ -16,6 +16,13 @@ contract corpus; use `raes_contracts.corpus` to locate them in an installed whee
 
 ## Provider responsibilities
 
+Native phase commands can carry authored execution requirements. Resolve the
+exact native artifact and use `require_backend_execution_policy_admission`
+to check its policy commitment/support and request-bound willingness. See
+[execution requirement migration](execution-recovery-migration.md). Capability
+support is not authorization to repeat effects; no general continuation or
+trial allocator is introduced by this optional protocol.
+
 1. Declare all four `backend-operation-*-v1` contracts in the existing backend
    manifest. Implement the six protocol methods and return the current
    capability declaration. Use `require_operation_provider` to check the

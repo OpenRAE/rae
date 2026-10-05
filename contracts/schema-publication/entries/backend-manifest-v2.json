@@ -1,9 +1,9 @@
 {
-  "content_hash": "a54f1d52cc08499c8ad50fc230c16f88f46da75a493c593c9faf8f463e4afd1f",
+  "content_hash": "be543802e6518ee04254963a97bba5b33c9cf06715cff0a4cd107ffb6ab0316b",
   "contract_id": "backend-manifest-v2",
   "last_change": {
-    "summary": "Retain participant-control v2 declarations after reverting operation-supervision guarantees (#1365, #1400).",
-    "content_hash": "a54f1d52cc08499c8ad50fc230c16f88f46da75a493c593c9faf8f463e4afd1f"
+    "content_hash": "be543802e6518ee04254963a97bba5b33c9cf06715cff0a4cd107ffb6ab0316b",
+    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
   },
   "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
   "stability": "draft"

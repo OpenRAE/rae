@@ -15,6 +15,7 @@ from raes_backend_protocols.service_materialization import service_materializati
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
+from raes_contracts.materialization import MaterializationSource
 from raes_contracts.planning import EvaluationPlan, PlanScope, ProvisioningPlan, RuntimeDomain
 from raes_contracts.vocabulary import GeneratedArtifactKind, GeneratedArtifactRegenerationScope
 
@@ -36,6 +37,7 @@ from ..semantics.realization import (
     realization_support_diagnostics,
     resolve_apparatus_realization_defaults,
 )
+from .execution_policy import DomainPlan, attach_execution_policies
 from .manifest_validation import _validate_manifest
 from .materialization import planned_materialization_source
 from .operations import (
@@ -311,6 +313,22 @@ def _augment_provisioning(
     return provisioning, extra
 
 
+def _with_materialization_source(
+    domain_plan: DomainPlan,
+    model: RuntimeModel,
+    source: MaterializationSource | None,
+    source_diagnostics: list[Diagnostic],
+    scope_required: bool,
+) -> DomainPlan:
+    return replace(
+        domain_plan,
+        purpose="inspection" if model.materialization_description is not None else domain_plan.purpose,
+        materialization_source=source,
+        augmentation_scope_required=scope_required,
+        diagnostics=[*domain_plan.diagnostics, *source_diagnostics],
+    )
+
+
 def plan(
     model: RuntimeModel,
     manifest: BackendManifest,
@@ -385,33 +403,21 @@ def plan(
         ),
     )
 
-    if model.materialization_description is not None:
-        provisioning = replace(provisioning, purpose="inspection")
-        orchestration = replace(orchestration, purpose="inspection")
-        evaluation = replace(evaluation, purpose="inspection")
+    provisioning, policy_diagnostics = attach_execution_policies(effective_model, manifest, provisioning)
+    diagnostics.extend(policy_diagnostics)
+    orchestration, policy_diagnostics = attach_execution_policies(effective_model, manifest, orchestration)
+    diagnostics.extend(policy_diagnostics)
+    evaluation, policy_diagnostics = attach_execution_policies(effective_model, manifest, evaluation)
+    diagnostics.extend(policy_diagnostics)
+
     source, source_diagnostics = planned_materialization_source(model, manifest, scope)
     diagnostics.extend(source_diagnostics)
     scope_required = (
         model.realization_instance is not None and model.realization_instance.augmentation_scope is not None
     )
-    provisioning = replace(
-        provisioning,
-        materialization_source=source,
-        augmentation_scope_required=scope_required,
-        diagnostics=[*provisioning.diagnostics, *source_diagnostics],
-    )
-    orchestration = replace(
-        orchestration,
-        materialization_source=source,
-        augmentation_scope_required=scope_required,
-        diagnostics=[*orchestration.diagnostics, *source_diagnostics],
-    )
-    evaluation = replace(
-        evaluation,
-        materialization_source=source,
-        augmentation_scope_required=scope_required,
-        diagnostics=[*evaluation.diagnostics, *source_diagnostics],
-    )
+    provisioning = _with_materialization_source(provisioning, model, source, source_diagnostics, scope_required)
+    orchestration = _with_materialization_source(orchestration, model, source, source_diagnostics, scope_required)
+    evaluation = _with_materialization_source(evaluation, model, source, source_diagnostics, scope_required)
 
     return ExecutionPlan(
         target_name=target_name,

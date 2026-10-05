@@ -1,9 +1,9 @@
 {
-  "content_hash": "4c3d2dcd4e4f534b9981295d4b6a5ed2ef373b320cbf7366226c7a40c6af372f",
+  "content_hash": "ae2040b75554e2eb18dd2ccf5e5c5a0ca3e636263f75455ce4c3bf42281b8bd6",
   "contract_id": "orchestration-plan-v1",
   "last_change": {
-    "content_hash": "4c3d2dcd4e4f534b9981295d4b6a5ed2ef373b320cbf7366226c7a40c6af372f",
-    "summary": "Bind explicit augmentation-scope negotiation to the canonical phase plan independently of diagnostics (#1242)."
+    "content_hash": "ae2040b75554e2eb18dd2ccf5e5c5a0ca3e636263f75455ce4c3bf42281b8bd6",
+    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
   },
   "schema_path": "contracts/schemas/plans/orchestration-plan-v1.json",
   "stability": "draft"
