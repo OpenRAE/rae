@@ -153,4 +153,4 @@ This contract does not:
 - prove product-native creation time or audit history;
 - define an event sequence or replay trajectory;
 - make runtime inventory authored authority; or
-- permit a scenario pack to define materialization control semantics.
+- permit an environment pack to define materialization control semantics.
