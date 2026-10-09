@@ -33,6 +33,7 @@ from raes_contracts.planning import (
     RealizationAuthorityMode,
     RealizationResolutionSource,
     ResolvedRealizationAuthority,
+    RuntimeDomain,
     planned_realization_authority,
 )
 from raes_contracts.realization_authority import planned_realization_selection_diagnostics
@@ -402,7 +403,7 @@ def _snapshot_from_plan(plan_value: ProvisioningPlan) -> RuntimeSnapshot:
         entries={
             operation.address: SnapshotEntry(
                 address=operation.address,
-                domain="provisioning",
+                domain=RuntimeDomain.PROVISIONING,
                 resource_type=operation.resource_type,
                 payload=deepcopy(operation.payload),
             )
