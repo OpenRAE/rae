@@ -181,6 +181,17 @@ def _run_github_finalization(
     gh_stub.write_text(
         """#!/bin/sh
 set -eu
+# Like real gh, a repository-scoped call that names no repository falls back
+# to the local git checkout, which this job does not have (#1414).
+case "${1-}" in
+  api) ;;
+  *)
+    case " $* " in
+      *" --repo "*|*" --repo="*|*" -R "*) ;;
+      *) git rev-parse --show-toplevel ;;
+    esac
+    ;;
+esac
 case "${1-}:${2-}" in
   release:view)
     case "$*" in
