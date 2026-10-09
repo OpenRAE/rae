@@ -43,7 +43,10 @@ A refused reference fails semantic validation as dangling. In the fields in
 the table, the diagnostic names the purpose and the declaration that the
 reference does name, for example `Action contract 'probe' interaction[0]
 target 'assertions.done' does not reference any defined element eligible as an
-action target; it names assertions.done`. Relationship endpoints, proposition
+action target; it names assertions.done`. An inject delivery's
+`control_authority_scope_refs[]` must equal its target controller state's
+`scope_refs[]`, so the state's diagnostic refuses it, or the delivery is
+reported as disagreeing with the state. Relationship endpoints, proposition
 subjects, evidence refs, authority anchors, and the general declared and
 targetable fields keep their wording (`any defined element` or `any defined
 targetable element`) and gain the same `; it names` detail when the reference
