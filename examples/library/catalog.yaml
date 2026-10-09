@@ -9,9 +9,10 @@ description: >
   Domain-neutral RAES agentic-environment authoring library for non-normative
   examples, templates, and reusable patterns. Current examples are
   strongest in cyber; additional domains extend through their own profiles,
-  assets, backends, and evidence requirements. Template bodies use current SDL
-  so they can be parsed and semantically validated by the Python reference
-  implementation.
+  assets, backends, and evidence requirements. SDL template bodies are parsed
+  and semantically validated by the Python reference implementation, and
+  experiment templates hold experiment-authoring-input-v1 documents that its
+  experiment authoring-input loader validates.
 surfaces:
   scenario:
     summary: Complete scenario authoring from topology through objective flow.
@@ -162,6 +163,14 @@ surfaces:
         intended_user: sdl-author
         limits:
           - SDL has no first-class runs section; the template expresses a run with stories, scripts, and events, and nothing is scheduled or run.
+      - id: seeded-run-plan
+        path: examples/library/templates/run/seeded-run-plan.yaml
+        contract: experiment-authoring-input-v1
+        validation_status: validated
+        intended_user: experiment-author
+        limits:
+          - Pre-run design only; nothing runs, and it is not an experiment-run-v1 record.
+          - The loader does not resolve task_ref, and the seed is not an executable random-stream contract.
     patterns:
       - id: run-window-with-evidence
         path: examples/library/patterns/run-window-with-evidence.yaml
@@ -189,6 +198,14 @@ surfaces:
         intended_user: sdl-author
         limits:
           - SDL has no first-class studies section; graded scoring stays in the experiment/evaluator plane per ADR-073.
+      - id: two-condition-study-design
+        path: examples/library/templates/study/two-condition-study-design.yaml
+        contract: experiment-authoring-input-v1
+        validation_status: validated
+        intended_user: experiment-author
+        limits:
+          - Pre-run design only; it is not an experiment-study-v1 record and declares no analysis plan.
+          - The loader does not resolve task_ref or check condition factor levels against the declared factors.
     patterns:
       - id: observable-study-conditions
         path: examples/library/patterns/observable-study-conditions.yaml
