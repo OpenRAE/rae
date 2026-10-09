@@ -24,8 +24,36 @@ _EXECUTION_POLICY_VALIDATOR = (
     "[execution-policy validator](../../implementations/python/packages/raes/validator/_execution_policy.py)"
 )
 _FATAL_DANGLING = "fatal dangling"
+_INTERACTION_BUDGET = "behavior_specifications.*.resource_budget"
+_BUDGET_SCOPE_VALIDATOR = (
+    "[resource-budget scope validator]"
+    "(../../implementations/python/packages/raes/validator/_participant_resource_budget_scopes.py)"
+)
+_BUDGET_OWNER_VALIDATOR = (
+    "[resource-budget owner validator]"
+    "(../../implementations/python/packages/raes/validator/_participant_resource_budget_owners.py)"
+)
 
 EXPECTATIONS_PART_3: dict[str, tuple[str, str, str, str]] = {
+    f"{_INTERACTION_BUDGET}.clock_ref": (
+        "clocks",
+        _SEMANTIC,
+        _FATAL_DANGLING,
+        _BUDGET_SCOPE_VALIDATOR,
+    ),
+    f"{_INTERACTION_BUDGET}.owners.*.ref": (
+        "agents,deployment_tenants,derived:node_services",
+        _SEMANTIC,
+        "fatal outside the owning behavior specification's participants, action-target tenants, "
+        "or exact shared-service targets",
+        _BUDGET_OWNER_VALIDATOR,
+    ),
+    f"{_INTERACTION_BUDGET}.dimensions.*.tool_affordance_refs[]": (
+        "declared",
+        _SEMANTIC,
+        "fatal dangling or binding none of the owning behavior specification's actions",
+        _BUDGET_SCOPE_VALIDATOR,
+    ),
     "execution_policy.default.clock_ref": (
         "clocks",
         _SEMANTIC,

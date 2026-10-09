@@ -14,6 +14,7 @@ from ._classification_guard import LegacyClassificationGuard
 from ._identifiers import PortableIdentifier
 from .participant_execution import ParticipantAutonomousExecutionPolicy
 from .participant_inject_delivery import ParticipantInjectDelivery
+from .participant_resource_budgets import ParticipantInteractionBudget
 
 
 class ParticipantBehaviorSpecificationLifecycle(str, Enum):
@@ -330,6 +331,8 @@ class ParticipantBehaviorSpecification(LegacyClassificationGuard):
     behavior_mode: str | None = None
     autonomous_execution: ParticipantAutonomousExecutionPolicy | None = None
     mixed_control: MixedControlParticipantOperation | None = None
+    # ACT-624: an interaction budget is a first-class member of the aggregate.
+    resource_budget: ParticipantInteractionBudget | None = Field(default=None, exclude_if=lambda value: value is None)
     realization_profile_ref: str | None = None
     backend_feature_support_refs: list[str] = Field(default_factory=list)
     evidence_contract_refs: list[str] = Field(default_factory=list)
@@ -408,6 +411,7 @@ class ParticipantBehaviorSpecification(LegacyClassificationGuard):
                 self.behavior_mode,
                 self.autonomous_execution,
                 self.mixed_control,
+                self.resource_budget,
                 self.realization_profile_ref,
                 self.backend_feature_support_refs,
                 self.evidence_contract_refs,
@@ -416,4 +420,9 @@ class ParticipantBehaviorSpecification(LegacyClassificationGuard):
             )
         ):
             raise ValueError("behavior specifications must aggregate at least one behavior surface reference")
+        if self.resource_budget is not None and self.autonomous_execution is not None:
+            raise ValueError(
+                "an autonomous execution profile carries its own budget; declare it as the v3 "
+                "autonomous_execution.resource_budget instead of an aggregate resource_budget"
+            )
         return self

@@ -134,6 +134,18 @@
         {
           "constraint_refs": [],
           "disclosure_refs": [
+            "disclosure:interaction_budgets:unsupported"
+          ],
+          "evidence_refs": [],
+          "feature": "interaction_budgets",
+          "limitation_refs": [
+            "limitation:interaction_budgets:not-realized"
+          ],
+          "support_level": "unsupported"
+        },
+        {
+          "constraint_refs": [],
+          "disclosure_refs": [
             "disclosure:participant_boundary_flow_resolution:unsupported"
           ],
           "evidence_refs": [],

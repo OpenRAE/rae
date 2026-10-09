@@ -10950,6 +10950,17 @@
           "default": null,
           "title": "Realization Profile Ref"
         },
+        "resource_budget": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantInteractionBudget"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "semantic_version": {
           "not": {
             "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
@@ -11447,6 +11458,92 @@
         "story_ref"
       ],
       "title": "ParticipantInjectOccurrenceAnchor",
+      "type": "object"
+    },
+    "ParticipantInteractionBudget": {
+      "additionalProperties": false,
+      "description": "ACT-624 budget policy on a behavior specification; bounds only its declared dimensions.",
+      "properties": {
+        "clock_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Clock Ref"
+        },
+        "dimensions": {
+          "maxProperties": 4096,
+          "minProperties": 1,
+          "patternProperties": {
+            "^[a-z0-9]": {
+              "$ref": "#/$defs/ParticipantResourceBudgetDimension"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            }
+          },
+          "title": "Dimensions",
+          "type": "object"
+        },
+        "fairness": {
+          "$ref": "#/$defs/ParticipantResourceFairness"
+        },
+        "owners": {
+          "maxProperties": 1024,
+          "minProperties": 1,
+          "patternProperties": {
+            "^[a-z0-9]": {
+              "$ref": "#/$defs/ParticipantResourceOwner"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            }
+          },
+          "title": "Owners",
+          "type": "object"
+        },
+        "policy_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Policy Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "policy_id",
+        "owners",
+        "fairness",
+        "dimensions"
+      ],
+      "title": "ParticipantInteractionBudget",
       "type": "object"
     },
     "ParticipantInteractionClass": {

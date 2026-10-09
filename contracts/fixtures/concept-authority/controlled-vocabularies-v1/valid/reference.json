@@ -1087,6 +1087,10 @@
           "title": "Failure Classes",
           "description": "Backend supports portable participant failure classes."
         },
+        "interaction_budgets": {
+          "title": "Interaction Budgets",
+          "description": "Backend declares evidence-bound admission and accounting of ACT-624 interaction budgets attached to participant behavior specifications; a declaration is not proof of enforcement, configured capacity, or measured use."
+        },
         "observation_boundaries": {
           "title": "Observation Boundaries",
           "description": "Backend supports participant-visible observation boundary semantics."

@@ -24,7 +24,7 @@ def _rewrite_participant_resource_budget(
     payload: object,
     symbols: dict[str, dict[str, str] | set[str]],
 ) -> None:
-    """Rewrite kind-specific owner references in an autonomous budget policy."""
+    """Rewrite kind-specific owner references in a v3 or aggregate budget policy."""
 
     if not isinstance(payload, dict):
         return
@@ -307,6 +307,10 @@ def _rewrite_behavior_specification(
     autonomous_execution = behavior_spec.get("autonomous_execution")
     if isinstance(autonomous_execution, dict):
         _rewrite_autonomous_execution(autonomous_execution, symbols)
+    aggregate_budget = behavior_spec.get("resource_budget")
+    _rewrite_participant_resource_budget(aggregate_budget, symbols)
+    if isinstance(aggregate_budget, dict) and aggregate_budget.get("clock_ref"):
+        aggregate_budget["clock_ref"] = _rewrite_section_ref(aggregate_budget["clock_ref"], "clocks", symbols["clocks"])
     _rewrite_mixed_control(behavior_spec.get("mixed_control"), symbols)
     for binding in behavior_spec.get("tool_affordances", {}).values():
         if isinstance(binding, dict):

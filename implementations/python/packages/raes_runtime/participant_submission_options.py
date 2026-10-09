@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from raes_contracts.manifest_authority import PARTICIPANT_INTERACTION_BUDGET_FEATURE
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import OperationReceipt
@@ -52,21 +53,51 @@ class ParticipantSubmissionOptions:
         )
 
 
+def _bypasses_interaction_budget(control_plane: object, participant_address: str) -> bool:
+    """Return whether a manual action would escape an ACT-624 budget no backend realizes."""
+
+    capability = control_plane._target.manifest.participant_runtime
+    if capability is not None and PARTICIPANT_INTERACTION_BUDGET_FEATURE in capability.supported_behavior_features:
+        return False
+    return any(
+        specification.interaction_budget is not None
+        and participant_address in specification.interaction_budget.participant_addresses
+        for specification in getattr(control_plane, "_behavior_specifications", {}).values()
+    )
+
+
+def _manual_submission_refusal(
+    control_plane: object,
+    participant_behavior: ParticipantBehaviorRuntime,
+    request: ParticipantActionAdmissionRequest,
+) -> str | None:
+    refusal = None
+    if any(context.shared_time is not None for context in request.temporal_contexts) or (
+        request.action_contract_address in participant_behavior.temporally_bound_action_addresses
+    ):
+        refusal = (
+            "Explicit shared-time action bindings require the reference autonomous driver; manual submission "
+            "cannot bypass its temporal admission and evidence checks."
+        )
+    elif _bypasses_interaction_budget(control_plane, request.participant_address):
+        refusal = (
+            "Participant interaction budgets require a backend that declares interaction_budgets; manual "
+            "submission cannot bypass budget admission."
+        )
+    return refusal
+
+
 def submit_bound_participant_action(
     control_plane: object,
     participant_behavior: ParticipantBehaviorRuntime,
     request: ParticipantActionAdmissionRequest,
     options: ParticipantSubmissionOptions,
 ) -> OperationReceipt:
-    if any(context.shared_time is not None for context in request.temporal_contexts) or (
-        request.action_contract_address in participant_behavior.temporally_bound_action_addresses
-    ):
+    refusal = _manual_submission_refusal(control_plane, participant_behavior, request)
+    if refusal is not None:
         return control_plane._reject_submission(
             domain=RuntimeDomain.PARTICIPANT,
-            message=(
-                "Explicit shared-time action bindings require the reference autonomous driver; manual submission "
-                "cannot bypass its temporal admission and evidence checks."
-            ),
+            message=refusal,
             idempotency_key=options.idempotency_key,
             request_fingerprint=options.request_fingerprint,
             identity=options.identity,

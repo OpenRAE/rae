@@ -1898,6 +1898,7 @@
             "properties": {
               "feature": {
                 "enum": [
+                  "interaction_budgets",
                   "participant_boundary_flow_resolution",
                   "participant_declassification",
                   "participant_directed_inject_delivery",
@@ -1942,6 +1943,7 @@
             "properties": {
               "feature": {
                 "enum": [
+                  "interaction_budgets",
                   "participant_boundary_flow_resolution",
                   "participant_declassification",
                   "participant_directed_inject_delivery",
@@ -1982,6 +1984,7 @@
             "properties": {
               "feature": {
                 "enum": [
+                  "interaction_budgets",
                   "participant_boundary_flow_resolution",
                   "participant_declassification",
                   "participant_directed_inject_delivery",

@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Protocol
 
+from raes_contracts.manifest_authority import PARTICIPANT_INTERACTION_BUDGET_FEATURE
 from raes_contracts.resource_measure_profiles import resource_measure_supported
 
 if TYPE_CHECKING:
@@ -286,4 +287,51 @@ def participant_resource_budget_gaps(
     return state.gaps
 
 
-__all__ = ["participant_resource_budget_gaps"]
+def _count_shared_pool_limits(
+    policies: tuple[ResourceGovernedPolicy, ...],
+    budgets: ResourceBudgetCapabilities,
+    state: _AdmissionState,
+) -> None:
+    """Add v3 limits to pools an interaction budget also admits against, so shared capacity is checked once."""
+
+    for policy in policies:
+        for demand in policy.resource_demands:
+            pool = _matching_pool(demand, budgets)
+            key = None if pool is None else _pool_key(pool)
+            if key in state.aggregate_limits:
+                state.aggregate_limits[key] += demand.limit
+                if policy.resource_fairness.protected:
+                    state.aggregate_protected_limits[key] = state.aggregate_protected_limits.get(key, 0) + demand.limit
+
+
+def participant_interaction_budget_gaps(
+    manifest: BackendManifest,
+    capability: ParticipantRuntimeCapabilities | None,
+    budgets: tuple[ResourceGovernedPolicy, ...],
+    autonomous_policies: tuple[ResourceGovernedPolicy, ...] = (),
+) -> list[str]:
+    """Return gaps for ACT-624 aggregate interaction budgets.
+
+    The backend must declare ``interaction_budgets`` and admit every budget
+    exactly as a v3 budget is admitted. A pool that a v3 policy shares with an
+    interaction budget is checked against both families' limits.
+    """
+
+    if not budgets:
+        return []
+    if capability is None or PARTICIPANT_INTERACTION_BUDGET_FEATURE not in capability.supported_behavior_features:
+        return ["backend does not declare participant interaction budgets"]
+    # A manifest that declares the feature also declares resource-budget capabilities.
+    resource_budgets = capability.resource_budgets
+    state = _AdmissionState(gaps=_capability_gaps(manifest, resource_budgets))
+    for budget in budgets:
+        _assess_policy(budget, resource_budgets, state)
+    governed = tuple(
+        policy for policy in autonomous_policies if policy.profile == "participant-autonomous-execution/v3"
+    )
+    _count_shared_pool_limits(governed, resource_budgets, state)
+    state.gaps.extend(_aggregate_pool_gaps(state))
+    return state.gaps
+
+
+__all__ = ["participant_interaction_budget_gaps", "participant_resource_budget_gaps"]

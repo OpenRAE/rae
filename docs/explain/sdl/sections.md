@@ -2176,6 +2176,18 @@ separate quota map or `max_*` field. The [autonomous execution specification](..
 defines the semantics, and the [v3 migration guide](../../migration/autonomous-execution-v3.md)
 shows the YAML.
 
+Any behavior specification without an autonomous execution profile may carry
+the same budget shape as its own `resource_budget` member (ACT-624), whatever
+its `behavior_mode`. Such a budget governs every action attempt of the
+specification's participants, including those its `participant_role_refs`
+select, and bounds only the dimensions it declares. Validation rejects a
+participant that two budget-carrying behavior specifications select, so each
+attempt has one governing budget. A dimension that counts scenario time, resets
+per time segment, or uses a window needs a `clock_ref`. Its quotas stay hidden.
+A backend admits it only by declaring the `interaction_budgets` behavior
+feature with resource-budget capabilities, and the backend realizes it; the
+reference runtime does not.
+
 Compiled behavior specifications use stable
 `participant.behavior-specification.<name>` addresses and preserve dependency
 links to the participant behavior, action contract, observation boundary, and

@@ -1,11 +1,13 @@
-"""Semantic validation for DSL-121 resource-budget tool scopes and quota disclosure."""
+"""Semantic validation for resource-budget tool scopes, clocks, and quota disclosure (DSL-121, ACT-624)."""
 
 from collections.abc import Callable, Mapping
 
 from ..participant_resource_budgets import (
+    dispatched_action_contracts,
     is_resource_budget_dimension_reference,
     is_resource_budget_view_rule,
     resource_budget_dimension_reference,
+    specification_action_contracts,
     tool_affordance_action_contracts,
 )
 from ..scenario import ScenarioContent
@@ -22,10 +24,11 @@ def _value(item: object) -> str:
 def _tool_scope_errors(
     spec_name: str,
     behavior_spec: object,
-    policy: object,
     budget: object,
+    governed: tuple[tuple[str, ...], str],
     action_contracts: Mapping[str, object],
 ) -> list[str]:
+    governed_actions, governor = governed
     errors: list[str] = []
     for budget_id, dimension in budget.dimensions.items():
         for affordance_id in dimension.tool_affordance_refs:
@@ -33,11 +36,37 @@ def _tool_scope_errors(
                 f"Behavior specification '{spec_name}' resource-budget dimension '{budget_id}' "
                 f"tool_affordance_ref '{affordance_id}'"
             )
-            scope = tool_affordance_action_contracts(behavior_spec, policy, str(affordance_id), action_contracts)
+            scope = tool_affordance_action_contracts(
+                behavior_spec, str(affordance_id), governed_actions, action_contracts
+            )
             if scope is None:
                 errors.append(f"{label} does not name a tool affordance of the behavior specification")
             elif not scope:
-                errors.append(f"{label} binds no action contract the autonomous policy dispatches")
+                errors.append(f"{label} binds no action contract {governor}")
+    return errors
+
+
+def _aggregate_budget_errors(
+    spec_name: str,
+    behavior_spec: object,
+    action_contracts: Mapping[str, object],
+    clocks: Mapping[str, object],
+) -> list[str]:
+    budget = getattr(behavior_spec, "resource_budget", None)
+    if budget is None:
+        return []
+    errors = _tool_scope_errors(
+        spec_name,
+        behavior_spec,
+        budget,
+        (specification_action_contracts(behavior_spec, action_contracts), "the behavior specification declares"),
+        action_contracts,
+    )
+    if budget.clock_ref is not None and resolve_section_ref(str(budget.clock_ref), "clocks", clocks) is None:
+        errors.append(
+            f"Behavior specification '{spec_name}' resource_budget clock_ref '{budget.clock_ref}' "
+            "does not name a declared clock"
+        )
     return errors
 
 
@@ -105,15 +134,26 @@ def participant_resource_budget_scope_errors(
     behavior_specifications: Mapping[str, object],
     observation_boundaries: Mapping[str, object],
     action_contracts: Mapping[str, object],
+    clocks: Mapping[str, object],
 ) -> tuple[str, ...]:
-    """Return errors for unbound tool-use scopes and quota disclosure outside an explicit view rule."""
+    """Return errors for unbound tool scopes and clocks, and for quota disclosure outside an explicit view rule."""
 
     errors: list[str] = []
     for spec_name, behavior_spec in behavior_specifications.items():
         policy = getattr(behavior_spec, "autonomous_execution", None)
         budget = getattr(policy, "resource_budget", None)
         if budget is not None:
-            errors.extend(_tool_scope_errors(str(spec_name), behavior_spec, policy, budget, action_contracts))
+            governed_actions = dispatched_action_contracts(policy, action_contracts)
+            errors.extend(
+                _tool_scope_errors(
+                    str(spec_name),
+                    behavior_spec,
+                    budget,
+                    (governed_actions, "the autonomous policy dispatches"),
+                    action_contracts,
+                )
+            )
+        errors.extend(_aggregate_budget_errors(str(spec_name), behavior_spec, action_contracts, clocks))
     governed = _governed_budget_refs(behavior_specifications, observation_boundaries)
     for boundary_name, boundary in observation_boundaries.items():
         errors.extend(_visibility_errors(str(boundary_name), boundary, governed.get(str(boundary_name), set())))
@@ -125,21 +165,15 @@ def participant_resource_budget_errors(
     participant_roles: Mapping[str, str],
     split_node_service_ref: Callable[[str], object | None],
 ) -> tuple[str, ...]:
-    """Return the owner errors, then the tool-scope and disclosure errors, of every resource budget.
+    """Return the owner errors, then the tool-scope, clock and disclosure errors, of every resource budget.
 
     ``participant_roles`` maps each agent that has an effective role to that role.
     """
 
     return participant_resource_budget_owner_errors(
-        scenario.behavior_specifications,
-        scenario.action_contracts,
-        scenario.deployment_tenants,
-        scenario.deployment_cells,
-        scenario.relationships,
-        split_node_service_ref,
-        participant_roles=dict.fromkeys(scenario.agents) | dict(participant_roles),
+        scenario, participant_roles, split_node_service_ref
     ) + participant_resource_budget_scope_errors(
-        scenario.behavior_specifications, scenario.observation_boundaries, scenario.action_contracts
+        scenario.behavior_specifications, scenario.observation_boundaries, scenario.action_contracts, scenario.clocks
     )
 
 

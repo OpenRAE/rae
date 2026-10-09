@@ -325,8 +325,8 @@ the same addresses on the compiled runtime demand.
 
 ### DSL-121 nonclaims
 
-- Interaction budgets attach only to the v3 autonomous profile here. Budgets on
-  other participant kinds belong to ACT-624.
+- The reference runtime enforces DSL-121 dimensions only on the v3 autonomous
+  profile; it does not realize the ACT-624 aggregate budgets described below.
 - Steps, turns, and tool invocations are counted by the backend's native
   measurement vector under the declared meter. RAES checks each measurement's
   identity, kind, unit, meter, and bound, not the native count.
@@ -336,6 +336,96 @@ the same addresses on the compiled runtime demand.
   attempt. No other participant view reports quota usage.
 - The reference implementation does not publish a
   `participant-resource-budget-policy-v1` document from a compiled scenario.
+
+## ACT-624 Interaction Budgets As A First-Class Member
+
+ACT-624 makes an interaction budget a member of the participant behavior
+specification aggregate, so any participant kind can carry one, not only the
+autonomous profile. `behavior_specifications.<spec>.resource_budget` has the
+ADR-097 policy shape: owners, fairness, and dimensions. It is the same budget
+family, not a second root, and it compiles into the same canonical owner,
+demand, and fairness IR as a v3 budget.
+
+- **Attachment.** The budget governs every action attempt of every participant
+  the specification selects, for every `behavior_mode` and for a specification
+  without one. The selection is the compiler's: the `participant_refs` and
+  every participant whose effective role is one of the `participant_role_refs`.
+  A budget alone satisfies the aggregate's behavior-surface rule. A
+  specification with an autonomous execution profile declares its budget as
+  the v3 `autonomous_execution.resource_budget` instead. Validation rejects a
+  participant that more than one budget-carrying specification selects,
+  whether each budget is a v3 or an aggregate budget, so no attempt is governed
+  twice.
+- **Dimensions.** An aggregate budget bounds only the dimensions it declares;
+  unlike the v3 profile, it needs no complete resource vector. Its dimensions
+  use the DSL-121 catalog and rules, so action rate, steps, turns, logical
+  time, tokens, and tool use stay distinct kinds. A tool dimension counts the
+  actions its tool affordances bind among the specification's actions.
+- **Clock basis.** A dimension that counts scenario time, resets per time
+  segment, or uses a window counts ticks of `clock_ref`, which must name a
+  declared clock. `clock_ref` is required exactly when such a dimension exists.
+  Reset boundaries keep their SEM-223 meaning: `episode` is the governed
+  participant's ADR-013 episode, `time_segment` is a reset of `clock_ref`, and
+  `run` is the run.
+- **Owners and fairness.** The SEM-223 owner rules apply unchanged. A
+  participant-owned dimension is participant-local only when the
+  specification governs exactly one participant, counting the participants its
+  roles select (EBM-03). Validation applies the same selection to v3 budgets.
+  Fairness, priority, borrowing, reclaim, and starvation bounds stay the
+  budget's explicit ADR-097 obligations; a participant's role never implies a
+  priority.
+- **Disclosure.** An aggregate budget's quotas stay hidden. The DSL-121 view
+  rule discloses only autonomous v3 dimensions.
+
+A backend declares support in its `participant_runtime` capability root with
+the evidence-required `interaction_budgets` behavior feature, its
+`feature_support` entry, and `resource_budgets` capabilities. Declaring budget
+capabilities no longer requires autonomous execution support when the feature
+is declared. Planner admission refuses an aggregate budget unless the backend
+declares the feature, then admits each budget the way it admits a v3 budget.
+A pool that a v3 policy shares with an aggregate budget is checked against the
+limits of both.
+
+A declaration is not proof of enforcement (EBM-09). The feature declares
+support, configured pools declare capacity, budget state records availability,
+and commit events record measured use; none stands in for another.
+`participant_interaction_budget_conformance_diagnostics` reads recorded
+evidence. Each terminal attempt of a governed participant must carry the
+budget's admission: a `reserve` event on every compiled dimension, or a
+`reject` or `throttle` event on one of them. Each realized budget state must
+keep its compiled dimension's kind, unit, accounting mode, meter, limit, and
+reset. Validation lets at most one budget govern a participant. If the
+budgets given to conformance overlap anyway, it checks each attempt against
+every budget that governs the participant, and a refusal by any of them stands
+for all.
+
+The reference runtime enforces budgets through autonomous v3 policies and does
+not realize an aggregate budget itself. Its control plane refuses a manual
+action of a governed participant unless the backend declares
+`interaction_budgets`, so a manual submission cannot bypass an aggregate budget
+that nothing realizes. A declaring backend realizes the budget, and
+conformance checks the evidence it records.
+
+### ACT-624 Traceability
+
+| Obligation | Invariant | Enforcement point | Positive test | Negative test |
+| --- | --- | --- | --- | --- |
+| An interaction budget is a member of the behavior specification aggregate for every participant kind | EBM-04 | `ParticipantBehaviorSpecification.resource_budget`, `compile_participant_interaction_budget` | `test_interaction_budget_is_a_member_of_every_participant_kind_aggregate`, `test_interaction_budget_alone_satisfies_the_behavior_aggregate`, `test_aggregate_budget_projects_into_the_canonical_demand` | `test_the_autonomous_profile_cannot_also_carry_an_aggregate_budget`, `test_backend_with_autonomy_only_budget_support_refuses_the_aggregate_budget` |
+| A participant-local aggregate budget never counts another participant's use | EBM-03 | `participant_resource_budget_owner_errors` | `test_aggregate_budget_projects_into_the_canonical_demand` | `test_aggregate_budget_refs_resolve_inside_its_specification` |
+| An attempt has one governing budget | EBM-04 | `participant_resource_budget_owner_errors`, `participant_interaction_budget_conformance_diagnostics` | `test_specifications_of_different_participants_each_carry_a_budget` | `test_a_participant_is_governed_by_at_most_one_budget`, `test_each_attempt_is_checked_against_every_governing_budget` |
+| Interaction dimensions stay distinct governed kinds that planner admission checks | EBM-05 | `ParticipantInteractionBudget`, `participant_interaction_budget_gaps` | `test_aggregate_budget_bounds_only_the_dimensions_it_declares`, `test_backend_with_autonomy_only_budget_support_refuses_the_aggregate_budget` | `test_aggregate_budget_counts_ticks_on_exactly_one_declared_clock`, `test_backend_must_declare_each_interaction_kind_the_aggregate_budget_uses`, `test_shared_pool_capacity_is_admitted_across_autonomous_and_aggregate_budgets` |
+| Backend support is an evidence-bound declaration, and enforcement is checked as recorded evidence | EBM-09 | `interaction_budgets` behavior feature, planner admission, `participant_interaction_budget_conformance_diagnostics`, manual submission admission | `test_backend_declares_interaction_budgets_with_budget_capabilities`, `test_governed_attempts_must_carry_interaction_budget_admission` | `test_interaction_budget_declaration_is_complete_and_evidence_bound`, `test_planner_admits_an_aggregate_budget_only_for_a_declaring_backend`, `test_realized_evidence_cannot_contradict_the_compiled_budget`, `test_reference_control_plane_refuses_a_manual_bypass_of_an_unrealized_budget` |
+| Composition keeps an aggregate budget's refs bound | EBM-04 | composition, `participant_resource_budget_scope_errors` | `test_imported_aggregate_budget_keeps_its_clock_and_owner_refs_bound` | `test_aggregate_budget_refs_resolve_inside_its_specification` |
+
+### ACT-624 nonclaims
+
+- The reference runtime does not reserve, commit, reset, or reconcile an
+  aggregate budget. Its v3 autonomous enforcement is unchanged.
+- Conformance reads recorded evidence only. It does not check a backend's
+  native counts, and a clean result is not proof of enforcement.
+- No participant view discloses an aggregate budget's quota.
+- No fairness, throughput, isolation, or operating-system enforcement claim
+  follows from these rules.
 
 ## Bounded Action Guarantees (ACT-614)
 

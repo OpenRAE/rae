@@ -13,6 +13,7 @@ from raes_contracts.versions import WORKFLOW_STATE_SCHEMA_VERSION
 from raes_contracts.workflow import WorkflowExecutionContract, WorkflowResultContract, WorkflowStepOutcome
 
 from .participant_resources import (
+    ParticipantInteractionBudgetRuntime,
     ParticipantResourceDemandRuntime,
     ParticipantResourceFairnessRuntime,
     ParticipantResourceOwnerRuntime,
@@ -226,6 +227,7 @@ class ParticipantBehaviorSpecificationRuntime(ResolvedResource):
     authority_scope_addresses: tuple[str, ...] = ()
     behavior_mode: str = ""
     autonomous_execution: ParticipantAutonomousExecutionRuntime | None = None
+    interaction_budget: ParticipantInteractionBudgetRuntime | None = None
     mixed_control_participant_address: str = ""
     mixed_control_policy_revision: str = ""
     mixed_control_order_strategy: str = ""

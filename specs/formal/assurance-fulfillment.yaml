@@ -583,19 +583,25 @@ entries:
         path: implementations/python/tests/test_issue_308_participant_interaction_budgets.py
       - kind: typed_ir_or_contract_coverage
         path: implementations/python/packages/raes/participant_resource_budgets.py
+      # Delivered by #310 (ACT-624): the first-class interaction-budget member,
+      # its backend declaration and admission, and recorded-evidence conformance.
+      - kind: unit_tests
+        path: implementations/python/tests/test_issue_310_act_624_participant_interaction_budgets.py
+      - kind: typed_ir_or_contract_coverage
+        path: implementations/python/packages/raes_processor/models/participant_resources.py
     waived_artifacts:
       - kind: unit_tests
         date: 2026-08-02
         tracking:
           - "#307"
           - "#309"
-          - "#310"
         rationale: >-
-          Joint-design run (#122). #305 (SEM-222), #306 (SEM-223) and #308
-          (DSL-121) deliver the episode/termination, budget/exhaustion and
-          interaction-budget unit tests above; per-requirement unit tests for the
-          authored episode surface and the first-class model members remain owned
-          by the spawned implementation issues #307, #309 and #310.
+          Joint-design run (#122). #305 (SEM-222), #306 (SEM-223), #308
+          (DSL-121) and #310 (ACT-624) deliver the episode/termination,
+          budget/exhaustion, interaction-budget and first-class budget unit tests
+          above; per-requirement unit tests for the authored episode surface and
+          the first-class episode member remain owned by the spawned
+          implementation issues #307 and #309.
       - kind: typed_ir_or_contract_coverage
         date: 2026-08-02
         tracking:

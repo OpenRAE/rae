@@ -1,6 +1,6 @@
 """Canonical runtime models for participant resource governance."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from raes_contracts.contracts.participant_resource_types import ParticipantResourceKind
 
@@ -54,7 +54,33 @@ class ParticipantResourceFairnessRuntime:
     starvation_bound_ticks: int = 1
 
 
+# Profile of an ACT-624 budget on a behavior-specification aggregate; v3
+# autonomous budgets keep their policy profile.
+PARTICIPANT_INTERACTION_BUDGET_PROFILE = "participant-interaction-budget/v1"
+
+
+@dataclass(frozen=True)
+class ParticipantInteractionBudgetRuntime:
+    """ACT-624 interaction budget of one behavior-specification aggregate.
+
+    It has the resource-policy shape that ADR-097 admission and accounting
+    read, so a backend that realizes it records the existing budget state and
+    event carriers. It governs every action attempt of its participants.
+    """
+
+    address: str
+    behavior_specification_address: str
+    participant_addresses: tuple[str, ...]
+    resource_owners: tuple[ParticipantResourceOwnerRuntime, ...]
+    resource_demands: tuple[ParticipantResourceDemandRuntime, ...]
+    resource_fairness: ParticipantResourceFairnessRuntime = field(default_factory=ParticipantResourceFairnessRuntime)
+    clock_address: str = ""
+    profile: str = PARTICIPANT_INTERACTION_BUDGET_PROFILE
+
+
 __all__ = [
+    "PARTICIPANT_INTERACTION_BUDGET_PROFILE",
+    "ParticipantInteractionBudgetRuntime",
     "ParticipantResourceDemandRuntime",
     "ParticipantResourceFairnessRuntime",
     "ParticipantResourceOwnerRuntime",

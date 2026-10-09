@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from enum import Enum
+from typing import ClassVar
 
 from pydantic import Field, field_validator, model_validator
 from raes_contracts.domain_profiles import DomainProfileCoordinateModel
@@ -155,6 +156,11 @@ def disclosed_resource_budget_refs(boundary: object) -> frozenset[str]:
     )
 
 
+def _resolved_action_contracts(refs: Iterable[object], action_contracts: Mapping[str, object]) -> tuple[str, ...]:
+    resolved = (resolve_section_ref(str(ref), "action_contracts", action_contracts) for ref in refs)
+    return tuple(dict.fromkeys(key for key in resolved if key is not None))
+
+
 def dispatched_action_contracts(policy: object, action_contracts: Mapping[str, object]) -> tuple[str, ...]:
     """Return the action-contract keys an autonomous policy dispatches, in compilation order."""
 
@@ -164,32 +170,36 @@ def dispatched_action_contracts(policy: object, action_contracts: Mapping[str, o
         if candidates
         else list(getattr(policy, "action_order", ()))
     )
-    resolved = (resolve_section_ref(str(ref), "action_contracts", action_contracts) for ref in refs)
-    return tuple(dict.fromkeys(key for key in resolved if key is not None))
+    return _resolved_action_contracts(refs, action_contracts)
+
+
+def specification_action_contracts(behavior_spec: object, action_contracts: Mapping[str, object]) -> tuple[str, ...]:
+    """Return the action-contract keys a behavior specification declares for its participants."""
+
+    return _resolved_action_contracts(getattr(behavior_spec, "action_contract_refs", ()), action_contracts)
 
 
 def tool_affordance_action_contracts(
     behavior_spec: object,
-    policy: object,
     affordance_id: str,
+    governed_actions: Iterable[str],
     action_contracts: Mapping[str, object],
 ) -> tuple[str, ...] | None:
-    """Return the dispatched action contracts one tool affordance makes countable.
+    """Return the governed action contracts one tool affordance makes countable.
 
     The affordance is the authoring contract that makes an invocation of its
-    tool equal to an attempt of its action contracts (DSL-121). Only the actions
-    the policy dispatches are attempts its budget governs. ``None`` means the
-    behavior specification declares no such affordance.
+    tool equal to an attempt of its action contracts (DSL-121). Only governed
+    actions are attempts the budget counts: those an autonomous policy
+    dispatches, or those a behavior specification declares for an aggregate
+    budget (ACT-624). ``None`` means the behavior specification declares no
+    such affordance.
     """
 
     affordance = getattr(behavior_spec, "tool_affordances", {}).get(affordance_id)
     if affordance is None:
         return None
-    dispatched = dispatched_action_contracts(policy, action_contracts)
-    bound = {
-        resolve_section_ref(str(ref), "action_contracts", action_contracts) for ref in affordance.action_contract_refs
-    }
-    return tuple(key for key in dispatched if key in bound)
+    bound = set(_resolved_action_contracts(affordance.action_contract_refs, action_contracts))
+    return tuple(key for key in governed_actions if key in bound)
 
 
 def _dimension_semantics(dimension: ParticipantResourceBudgetDimension) -> tuple[object, ...]:
@@ -245,6 +255,10 @@ def _owner_identity(owner: ParticipantResourceOwner) -> tuple[ParticipantResourc
 
 
 class ParticipantResourceBudgetPolicy(SDLModel):
+    # The v3 autonomous profile governs every scheduler resource, so it must
+    # declare the complete initial ADR-097 vector.
+    _requires_complete_vector: ClassVar[bool] = True
+
     policy_id: PortableIdentifier
     owners: dict[PortableIdentifier, ParticipantResourceOwner] = Field(min_length=1, max_length=1024)
     fairness: ParticipantResourceFairness
@@ -255,16 +269,8 @@ class ParticipantResourceBudgetPolicy(SDLModel):
 
     @model_validator(mode="after")
     def _validate_policy(self) -> ParticipantResourceBudgetPolicy:
-        from raes_contracts.contracts.participant_resource_types import REQUIRED_RESOURCE_KINDS
-
-        actual_kinds = {
-            dimension.resource_kind.value
-            for dimension in self.dimensions.values()
-            if isinstance(dimension.resource_kind, ParticipantResourceKind)
-        }
-        missing = sorted(REQUIRED_RESOURCE_KINDS - actual_kinds)
-        if missing:
-            raise ValueError("resource budget requires complete resource vector: " + ", ".join(missing))
+        if self._requires_complete_vector:
+            self._validate_complete_vector()
         for budget_id, dimension in self.dimensions.items():
             if dimension.owner_ref not in self.owners:
                 raise ValueError(f"resource budget {budget_id!r} has unknown owner_ref")
@@ -293,6 +299,18 @@ class ParticipantResourceBudgetPolicy(SDLModel):
             raise ValueError("resource-budget dimensions cannot alias the same canonical resource pool")
         return self
 
+    def _validate_complete_vector(self) -> None:
+        from raes_contracts.contracts.participant_resource_types import REQUIRED_RESOURCE_KINDS
+
+        actual_kinds = {
+            dimension.resource_kind.value
+            for dimension in self.dimensions.values()
+            if isinstance(dimension.resource_kind, ParticipantResourceKind)
+        }
+        missing = sorted(REQUIRED_RESOURCE_KINDS - actual_kinds)
+        if missing:
+            raise ValueError("resource budget requires complete resource vector: " + ", ".join(missing))
+
     def _validate_parent_graph(self) -> None:
         visiting: set[str] = set()
         visited: set[str] = set()
@@ -316,7 +334,38 @@ class ParticipantResourceBudgetPolicy(SDLModel):
                 )
 
 
+def _needs_shared_clock(dimension: ParticipantResourceBudgetDimension) -> bool:
+    return (
+        dimension.resource_kind == ParticipantResourceKind.SCENARIO_TIME
+        or dimension.reset == ParticipantResourceResetMode.TIME_SEGMENT
+        or dimension.window_ticks is not None
+    )
+
+
+class ParticipantInteractionBudget(ParticipantResourceBudgetPolicy):
+    """ACT-624 budget policy on a behavior specification; bounds only its declared dimensions."""
+
+    # The ADR-097 budget policy, not a second budget family: it governs every
+    # participant its specification selects, whatever their implementation
+    # kind. Ticks, time segments, and windows are counted on ``clock_ref``.
+    _requires_complete_vector: ClassVar[bool] = False
+
+    clock_ref: str | None = Field(default=None, min_length=1)
+
+    @model_validator(mode="after")
+    def _validate_clock_basis(self) -> ParticipantInteractionBudget:
+        if any(_needs_shared_clock(dimension) for dimension in self.dimensions.values()) != (
+            self.clock_ref is not None
+        ):
+            raise ValueError(
+                "interaction budget clock_ref is required exactly when a dimension counts scenario time, "
+                "resets per time segment, or uses a window"
+            )
+        return self
+
+
 __all__ = [
+    "ParticipantInteractionBudget",
     "ParticipantResourceAccountingMode",
     "ParticipantResourceBudgetDimension",
     "ParticipantResourceBudgetPolicy",
@@ -330,5 +379,6 @@ __all__ = [
     "is_resource_budget_dimension_reference",
     "is_resource_budget_view_rule",
     "resource_budget_dimension_reference",
+    "specification_action_contracts",
     "tool_affordance_action_contracts",
 ]

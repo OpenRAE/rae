@@ -11,6 +11,7 @@ from raes_backend_protocols.capability_admission import (
     time_model_capability_gaps,
 )
 from raes_backend_protocols.domain_topology import domain_topology_plan_diagnostics
+from raes_backend_protocols.participant_resource_admission import participant_interaction_budget_gaps
 from raes_backend_protocols.service_materialization import service_materialization_plan_diagnostics
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.diagnostics import Diagnostic
@@ -87,6 +88,22 @@ def _participant_execution_diagnostics(
         )
         for gap in participant_autonomous_execution_capability_gaps(manifest, policies, model.time_model)
     ]
+    interaction_budgets = tuple(
+        specification.interaction_budget
+        for specification in specifications
+        if specification.interaction_budget is not None
+    )
+    diagnostics.extend(
+        Diagnostic(
+            code="participant.interaction-budget-unsupported",
+            domain="participant",
+            address="participant.interaction-budget",
+            message=gap,
+        )
+        for gap in participant_interaction_budget_gaps(
+            manifest, manifest.participant_runtime, interaction_budgets, policies
+        )
+    )
     for specification in specifications:
         for gap in participant_feature_support_gaps(
             manifest,

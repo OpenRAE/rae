@@ -1,9 +1,9 @@
 {
-  "content_hash": "5d6d10e02788dacb2043cb1cfab410b27acd2840a9c3f219d897a897c19e105c",
+  "content_hash": "42238a673f491edff2a408df7a9a7f8ebafc5e62b8d8abe666fee90f4abb1a79",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "5d6d10e02788dacb2043cb1cfab410b27acd2840a9c3f219d897a897c19e105c",
-    "summary": "Accept the DSL-121 interaction dimensions, tool_affordance_refs scopes for tool-use budgets, and the resource_budget view-rule class for explicit quota disclosure for issue #308."
+    "content_hash": "42238a673f491edff2a408df7a9a7f8ebafc5e62b8d8abe666fee90f4abb1a79",
+    "summary": "Carry the ACT-624 resource_budget member on behavior specifications: an ADR-097 interaction budget with an optional clock_ref, for issue #310."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

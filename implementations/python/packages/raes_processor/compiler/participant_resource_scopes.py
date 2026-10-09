@@ -9,20 +9,22 @@ from .addresses import _action_contract_address, _section_ref_name
 def tool_action_contract_addresses(
     scenario: InstantiatedScenario,
     behavior_spec: object,
-    policy: object,
+    governed_actions: tuple[str, ...],
     tool_affordance_refs: list[str],
 ) -> tuple[str, ...]:
-    """Return the dispatched action contracts a tool_invocations dimension counts.
+    """Return the governed action contracts a tool_invocations dimension counts.
 
     Validation and compilation share one scope rule, so the compiled scope is
-    exactly the set of dispatched actions the validator checked.
+    exactly the set of governed actions the validator checked.
     """
 
     addresses: set[str] = set()
     for affordance_id in tool_affordance_refs:
-        scope = tool_affordance_action_contracts(behavior_spec, policy, affordance_id, scenario.action_contracts)
+        scope = tool_affordance_action_contracts(
+            behavior_spec, affordance_id, governed_actions, scenario.action_contracts
+        )
         if not scope:
-            raise ValueError("validated tool_invocations resource budget must bind a dispatched tool action")
+            raise ValueError("validated tool_invocations resource budget must bind a governed tool action")
         addresses.update(_action_contract_address(action_name) for action_name in scope)
     return tuple(sorted(addresses))
 
