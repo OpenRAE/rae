@@ -141,7 +141,7 @@ def build_tracing_report(repo_root: Path = REPO_ROOT) -> str:
     return "\n".join(lines) + "\n"
 
 
-def _active_waivers(repo_root: Path) -> list[dict]:
+def _active_waivers(repo_root: Path) -> list[dict[str, object]]:
     exceptions_file = repo_root / "tools" / "policy" / "exceptions.yaml"
     return load_exceptions(repo_root) if exceptions_file.is_file() else []
 
