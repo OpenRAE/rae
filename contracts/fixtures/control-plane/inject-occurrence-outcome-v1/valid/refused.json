@@ -35,12 +35,11 @@
       }
     },
     "request_digest": "sha256:4be0f6a1a42f34ac1dcf4c0e759b7d931c40e938555b19ab7fbe9c89884a5f45",
-    "sequence": 1,
+    "sequence": 2,
     "message": {
-      "kind": "admission",
+      "kind": "acknowledgement",
       "disposition": "refused",
-      "capability_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-      "reason": "unsupported-contract"
+      "reason": "context-refused"
     }
   },
   "bindings": [

@@ -1,4 +1,4 @@
-"""ADR-112 inject invocation, per-binding readback and participant correlation; RAE settles."""
+"""ADR-112 inject invocation, per-binding readback and participant correlation; an adopting runtime settles."""
 
 from __future__ import annotations
 
@@ -12,7 +12,6 @@ from ..versions import INJECT_OCCURRENCE_CORRELATION_SCHEMA_VERSION, INJECT_OCCU
 from .backend_operation import BackendOperationRequestModel, OperationArtifactReferenceModel, OperationContractModel
 from .backend_operation_response import (
     BackendOperationAcknowledgementModel,
-    BackendOperationAdmissionModel,
     BackendOperationEffectsModel,
     BackendOperationOutcomeModel,
     BackendOperationResponseModel,
@@ -51,6 +50,8 @@ class InjectBindingOutcomeModel(OperationContractModel):
 def inject_occurrence_effect(bindings: tuple[InjectBindingOutcomeModel, ...]) -> InjectOccurrenceEffect:
     """Aggregate fan-out facts (EI-04); any unknown or unceased binding stays indeterminate."""
 
+    if not bindings:
+        raise ValueError("an inject effect aggregates at least one reported binding")
     if any(item.effects.effect == "unknown" or not item.effects.cessation_established for item in bindings):
         return "indeterminate"
     effects = {item.effects.effect for item in bindings}
@@ -65,11 +66,10 @@ def _backend_effect(effects: BackendOperationEffectsModel) -> InjectOccurrenceEf
     return _BACKEND_EFFECT[effects.effect] if effects.cessation_established else "indeterminate"
 
 
-def _is_refusal(message: object) -> bool:
-    return (
-        isinstance(message, BackendOperationAdmissionModel | BackendOperationAcknowledgementModel)
-        and message.disposition == "refused"
-    )
+def _is_start_refusal(message: object) -> bool:
+    """A refused start proves the invocation never began; an admission refusal precedes dispatch (EI-03)."""
+
+    return isinstance(message, BackendOperationAcknowledgementModel) and message.disposition == "refused"
 
 
 class InjectOccurrenceOutcomeModel(OperationContractModel):
@@ -93,8 +93,8 @@ class InjectOccurrenceOutcomeModel(OperationContractModel):
         message = self.response.message
         if isinstance(message, BackendOperationOutcomeModel):
             self._backend_outcome(message)
-        elif not _is_refusal(message) or self.effect != "effect-absent":
-            raise ValueError("only a refusal with proven absence or a backend outcome settles an occurrence")
+        elif not _is_start_refusal(message) or self.effect != "effect-absent":
+            raise ValueError("only a start refusal with proven absence or a backend outcome settles an occurrence")
         return self
 
     def _backend_outcome(self, message: BackendOperationOutcomeModel) -> None:
@@ -164,7 +164,7 @@ def require_inject_occurrence_invocation(
 def validate_inject_occurrence_outcome(
     occurrence: InjectOccurrenceModel, request: BackendOperationRequestModel, outcome: InjectOccurrenceOutcomeModel
 ) -> None:
-    """Join readback to the exact occurrence and invocation; RAE still validates and commits."""
+    """Join readback to the exact occurrence and invocation; an adopting runtime still validates and commits."""
 
     require_inject_occurrence_invocation(occurrence, request)
     validate_backend_operation_response(request, outcome.response)
@@ -172,6 +172,10 @@ def validate_inject_occurrence_outcome(
         raise ValueError("inject outcome names another occurrence")
     if tuple(item.binding for item in outcome.bindings) != occurrence.request.bindings:
         raise ValueError("inject outcome must report every selected binding in request order")
+    scope = request.binding.effect_scope
+    residual = {address for item in outcome.bindings for address in item.effects.residual_scope}
+    if scope.kind == "resources" and not residual <= set(scope.addresses):
+        raise ValueError("binding residual effects exceed the admitted resource scope")
 
 
 def inject_occurrence_correlation(
@@ -196,3 +200,15 @@ def inject_occurrence_correlation(
         ),
         result=message.result,
     )
+
+
+def validate_inject_occurrence_correlation(
+    occurrence: InjectOccurrenceModel,
+    request: BackendOperationRequestModel,
+    outcome: InjectOccurrenceOutcomeModel,
+    correlation: InjectOccurrenceCorrelationModel,
+) -> None:
+    """Accept a received participant join only if it equals the join recomputed from its sources."""
+
+    if correlation != inject_occurrence_correlation(occurrence, request, outcome):
+        raise ValueError("inject correlation must equal the join recomputed from its validated sources")

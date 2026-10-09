@@ -112,8 +112,9 @@ ID, the occurrence ID and the occurrence's RFC 8785 digest.
   operation and schedule slot;
 - a narrowed `resources` effect scope covers every selected binding.
 
-The check grants no dispatch. The runtime still confirms the claim, current
-authority, preconditions and backend willingness before it starts the work.
+The check grants no dispatch. A runtime that adopts these contracts (issue
+#1367) must still confirm the claim, current authority, preconditions and
+backend willingness before it starts the work.
 
 ## Readback and settlement
 
@@ -129,17 +130,29 @@ per-binding facts (EI-04):
 | Any unknown binding, or one whose cessation is not established | `indeterminate` |
 
 An applied or partial binding needs a `readback` reference, and every known
-effect needs evidence. Only a backend `outcome` or a refusal settles an
+effect needs evidence. Only a backend `outcome` or a refused start settles an
 occurrence. Acceptance, willingness, progress and control dispositions do not.
-A refusal settles only as `effect-absent`, with no-effect evidence for every
-binding. A backend outcome's own effect must agree with the aggregate, and it
-counts as `indeterminate` until cessation is established. A `succeeded`
-proposal requires `effect-applied`, so no successful no-op settles an inject.
+A refused start is the `acknowledgement` refusal from `start_operation`, which
+proves that the invocation never began. It settles only as `effect-absent`,
+with no-effect evidence for every binding. A backend outcome's own effect must
+agree with the aggregate, and it counts as `indeterminate` until cessation is
+established. A `succeeded` proposal requires `effect-applied`, so no successful
+no-op settles an inject.
+
+An `admission` refusal from `check_operation` comes before dispatch, so it is
+not readback, and an outcome that carries one is invalid. EI-03 withdraws that
+occurrence with zero dispatch and a retained claim. Under the ADR-104
+[supervision contract](../../../specs/formal/runtime-control-plane/supervision.md)
+(S3), a contextual refusal after the claim but before dispatch withdraws the
+acceptance through `CANCELLED` with a refusal diagnostic.
 
 `validate_inject_occurrence_outcome` joins the readback to the exact occurrence
-and invocation, including the response binding and request digest. RAE still
-validates native results and commits the terminal operation, snapshot and audit
-records.
+and invocation, including the response binding and request digest. When the
+invocation narrows its effect scope to `resources`, each binding's
+`residual_scope` must stay inside those addresses, as
+`validate_backend_operation_response` requires of the backend's own residual
+effects. A runtime that adopts these contracts must still validate native
+results and commit the terminal operation, snapshot and audit records.
 
 ## Participant correlation
 
@@ -150,8 +163,13 @@ A participant-directed consumer, such as a DSL-142 delivery or an API-424
 inject effect, joins those exact identities instead of an inject declaration
 or the latest narrative event (EI-05). A refused, failed, partial or
 indeterminate outcome yields no join. A correlation grants no disclosure,
-delivery or observation, so build it only from an outcome that RAE has
-validated and committed.
+delivery or observation, so build it only from an outcome that an adopting
+runtime has validated and committed.
+
+A consumer that receives a correlation checks it with
+`validate_inject_occurrence_correlation`. The check recomputes the join from
+the occurrence, invocation and outcome, and requires the received correlation
+to equal it, so a changed occurrence, outcome digest or result is refused.
 
 ## Backend declaration
 
@@ -216,8 +234,8 @@ The `scheduled-fan-out` occurrence selects two workstation instances of one
 compiled binding. Its `inject-handover` invocation narrows the effect scope to
 that binding address. The `known-partial` and `indeterminate` outcome fixtures
 show a fully known mixture and an unknown binding. On the participant-free
-occurrence, the `refused` fixture shows a refusal with proven absence, and the
-`unceased-effect` fixture shows an applied effect whose cessation is not
+occurrence, the `refused` fixture shows a refused start with proven absence,
+and the `unceased-effect` fixture shows an applied effect whose cessation is not
 established, which stays indeterminate.
 `test_issue_1366_inject_occurrence_outcomes.py` validates each outcome against
 its occurrence and invocation.

@@ -73,7 +73,7 @@
       "validator": "raes_contracts.contracts.InjectOccurrenceCorrelationModel.model_validate"
     },
     {
-      "description": "Only a successful applied world effect with a produced result yields a participant join.",
+      "description": "A received correlation equals the join recomputed from its occurrence, invocation and validated outcome; only a successful applied world effect with a produced result yields one.",
       "id": "inject-occurrence-correlation-source",
       "inputs": [
         {
@@ -87,10 +87,14 @@
         {
           "contract_id": "inject-occurrence-outcome-v1",
           "instance_path": "#"
+        },
+        {
+          "contract_id": "inject-occurrence-correlation-v1",
+          "instance_path": "#"
         }
       ],
       "level": "error",
-      "validator": "raes_contracts.contracts.inject_occurrence_correlation"
+      "validator": "raes_contracts.contracts.validate_inject_occurrence_correlation"
     }
   ],
   "x-raes-semantic-profile": {

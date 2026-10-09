@@ -30,6 +30,7 @@ from .inject_occurrence_outcome import (
     inject_occurrence_outcome_digest,
     inject_occurrence_reference,
     require_inject_occurrence_invocation,
+    validate_inject_occurrence_correlation,
     validate_inject_occurrence_outcome,
 )
 
@@ -59,6 +60,7 @@ __all__ = [
     "require_inject_occurrence_invocation",
     "require_inject_trigger_retry",
     "validate_inject_occurrence_claims",
+    "validate_inject_occurrence_correlation",
     "validate_inject_occurrence_outcome",
 ]
 
