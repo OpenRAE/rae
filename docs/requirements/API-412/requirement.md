@@ -27,3 +27,4 @@ Current state: implemented. Processor manifests now publish a processor-specific
 - DOCUMENTS → DOCUMENTATION `contracts/schemas/README.md` (Published Contract Schemas Overview)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/runtime-architecture.md` (SDL Runtime Architecture)
 - CONSTRAINS → SPEC `contracts/schemas/processor-manifest/processor-manifest-v2.json` (Processor Manifest Schema v2)
+- IMPLEMENTS → SPEC `contracts/schemas/processor-manifest/processor-manifest-v2.json` (processor-manifest-v2 published schema)

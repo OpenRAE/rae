@@ -104,3 +104,5 @@ Requirement inventory expansion. Evolution requires explicit migration and upgra
 - IMPLEMENTS → ADR `docs/decisions/adrs/adr-095-participant-decision-epoch-state-cut-and-delivery-semantics.md` (Amended current lineage authority for issue #1210)
 
 - TESTS → TEST `implementations/python/tests/test_issue_1076_compute_realization.py` (Current snapshot identity and legacy VM spelling join integrity)
+- IMPLEMENTS → SPEC `contracts/schemas/provenance/sdl-lineage-ledger-v1.json` (sdl-lineage-ledger-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/sdl/sdl-semantic-migration-context-v1.json` (sdl-semantic-migration-context-v1 published schema)

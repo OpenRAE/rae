@@ -110,7 +110,7 @@ Current state: identified gap. Honest portability requires normative semantics f
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_compatibility_downgrade_helpers.py` (Lossless recursive-to-legacy projection helpers)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/bounded_domains.py` (Nullable scalar-domain support for recursive realization constraints)
 - IMPLEMENTS → SPEC `specs/sdl/recursive-realization-constraints.md` (Normative recursive authority, collection, reference, limit, and provenance semantics)
-- IMPLEMENTS → SCHEMA `contracts/schemas/realization-constraints/recursive-realization-constraint-v1.json` (Published recursive realization constraint contract)
+- IMPLEMENTS → SPEC `contracts/schemas/realization-constraints/recursive-realization-constraint-v1.json` (Published recursive realization constraint contract)
 - TESTS → TEST `implementations/python/tests/test_issue_1203_recursive_normal_form.py` (Nested authority, presence, collections, references, limits, refinement, and abstract-model acceptance coverage)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/realization_structure.py` (Authored leaf and scoped collection lowering for mixed runtime constraints)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/realization_concern_explicitness.py` (Concern-owned leaf selection with non-authoritative aggregate support summaries)
@@ -324,3 +324,5 @@ Current state: identified gap. Honest portability requires normative semantics f
 - TESTS → TEST `implementations/python/tests/test_issue_1208_profile_boundaries.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1208_self_review.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1208_overcap.py`
+- IMPLEMENTS → SPEC `contracts/schemas/plans/backend-realization-preparation-v1.json` (backend-realization-preparation-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/plans/plan-realization-profiles-v1.json` (plan-realization-profiles-v1 published schema)

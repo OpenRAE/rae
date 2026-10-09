@@ -29,3 +29,5 @@ Requirement inventory expansion. Experiment data capture requirements are distin
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/inputs.py` (Digest-bound capture specification admission)
 - TESTS → TEST `implementations/python/tests/test_sce_002_trial_compiler.py` (Capture specification identity and backend admission tests)
 - TESTS → TEST `implementations/python/tests/test_issue_1401_media_type_coherence.py` (Required media declarations reject unprovable encodings and accept content-provable JSON encodings)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/observation-demand-v1.json` (observation-demand-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/experiment-core/experiment-capture-spec-v1.json` (experiment-capture-spec-v1 published schema)

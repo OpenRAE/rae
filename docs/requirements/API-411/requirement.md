@@ -25,3 +25,4 @@ Requirement inventory expansion. Participant-local outcomes need portable extern
 - DOCUMENTS → SPEC `specs/formal/runtime-contracts/participant-backend-contracts.md` (Participant backend-facing contracts formal design (API-411 outcome reports))
 - DOCUMENTS → SPEC `contracts/schemas/participant-runtime/participant-outcome-report-v1.json` (Generated participant outcome report schema)
 - TESTS → TEST `implementations/python/tests/test_participant_backend_contracts.py` (Participant outcome-report fixture and schema tests)
+- IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-outcome-report-v1.json` (participant-outcome-report-v1 published schema)
