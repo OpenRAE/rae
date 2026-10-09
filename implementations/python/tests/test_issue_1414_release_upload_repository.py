@@ -11,7 +11,6 @@ how the v6.0.1 GitHub Release stayed a draft after PyPI publication succeeded.
 from __future__ import annotations
 
 import re
-import shlex
 from pathlib import Path
 from typing import Any
 
@@ -22,12 +21,12 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 WORKFLOWS = REPO_ROOT / ".github" / "workflows"
 
 # ``gh api`` addresses the repository through its endpoint path, so it is out of scope.
-_REPOSITORY_SCOPED = frozenset(
-    {"attestation", "cache", "issue", "label", "pr", "release", "repo", "run", "secret", "variable", "workflow"}
+_REPOSITORY_SCOPED_GH = re.compile(
+    r"(?<![\w./-])gh\s+(attestation|cache|issue|label|pr|release|repo|run|secret|variable|workflow)\b"
 )
-_SHELL_PUNCTUATION = frozenset("();<>|&")
-_GITHUB_URL = re.compile(r"^https://github\.com/")
-_OWNER_REPO = re.compile(r"^[\w.-]+/[\w.-]+$")
+_COMMAND_TERMINATORS = ";|&)`"
+_NAMES_REPOSITORY = re.compile(r"(?:^|\s)(?:--repo(?:=|\s)|-R)|https://github\.com/")
+_OWNER_REPO_ARGUMENT = re.compile(r"\s[\w.-]+/[\w.-]+(?:\s|$)")
 _CONTINUATION = re.compile(r"\\\n\s*")
 _SAME_REPOSITORY = "${{github.repository}}"
 
@@ -38,51 +37,44 @@ def _load(path: Path) -> dict[str, Any]:
     return payload
 
 
-def _commands(line: str) -> list[list[str]]:
-    """Split one logical shell line into simple commands at control operators."""
+def _command_tail(line: str, start: int) -> str:
+    """Return the rest of the simple command that continues at ``start``, honoring quotes."""
 
-    lexer = shlex.shlex(line, posix=True, punctuation_chars=True)
-    lexer.whitespace_split = True
-    try:
-        tokens = list(lexer)
-    except ValueError:
-        tokens = line.split()
-    commands: list[list[str]] = [[]]
-    for token in tokens:
-        if set(token) <= _SHELL_PUNCTUATION:
-            commands.append([])
-        else:
-            commands[-1].append(token)
-    return [command for command in commands if command]
+    quote = ""
+    for index in range(start, len(line)):
+        character = line[index]
+        if quote:
+            quote = "" if character == quote else quote
+        elif character in "'\"":
+            quote = character
+        elif character in _COMMAND_TERMINATORS:
+            return line[start:index]
+    return line[start:]
 
 
-def _names_repository(prefix: list[str], subcommand: str, arguments: list[str]) -> bool:
-    if any(token.startswith("GH_REPO=") for token in prefix):
-        return True
-    for argument in arguments:
-        if argument in {"--repo", "-R"} or argument.startswith(("--repo=", "-R")) or _GITHUB_URL.match(argument):
-            return True
-        if subcommand == "repo" and _OWNER_REPO.match(argument):
-            return True
-    return False
+def _command_head(line: str, end: int) -> str:
+    """Return the text of the current simple command before ``end``, such as an environment prefix."""
+
+    boundary = max(line.rfind(terminator, 0, end) for terminator in (*_COMMAND_TERMINATORS, "("))
+    return line[boundary + 1 : end]
 
 
 def _unnamed_repository_calls(script: str) -> list[str]:
-    """Return the repository-scoped gh commands in ``script`` that name no repository."""
+    """Return the logical shell lines with a repository-scoped gh call that names no repository."""
 
     offending: list[str] = []
     for line in _CONTINUATION.sub(" ", script).splitlines():
         if line.lstrip().startswith("#"):
             continue
-        for command in _commands(line):
-            if "gh" not in command[:-1]:
-                continue
-            position = command.index("gh")
-            subcommand = command[position + 1]
-            if subcommand in _REPOSITORY_SCOPED and not _names_repository(
-                command[:position], subcommand, command[position + 2 :]
-            ):
-                offending.append(" ".join(command))
+        for match in _REPOSITORY_SCOPED_GH.finditer(line):
+            tail = _command_tail(line, match.end())
+            named = (
+                "GH_REPO=" in _command_head(line, match.start())
+                or _NAMES_REPOSITORY.search(tail) is not None
+                or (match.group(1) == "repo" and _OWNER_REPO_ARGUMENT.search(tail) is not None)
+            )
+            if not named:
+                offending.append(line.strip())
     return offending
 
 
@@ -124,6 +116,10 @@ def _violations(workflow: dict[str, Any], name: str) -> list[str]:
         ("gh repo clone OpenRAE/rae", False),
         ("gh pr view https://github.com/OpenRAE/rae/pull/1", False),
         ('gh release view "${tag}" --repo "${GITHUB_REPOSITORY}" --json assets --jq \'.assets[] | .name\'', False),
+        ('id="$(gh release view "${tag}" --json databaseId)"', True),
+        ('id="$(gh release view "${tag}" --repo "${GITHUB_REPOSITORY}" --json databaseId)"', False),
+        ("id=`gh release view ${tag} --json databaseId`", True),
+        ('count="${#assets[@]}"; gh release view "${tag}" --repo "${GITHUB_REPOSITORY}"', False),
     ],
 )
 def test_detector_classifies_repository_naming(script: str, offending: bool) -> None:
