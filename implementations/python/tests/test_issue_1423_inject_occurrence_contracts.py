@@ -113,7 +113,9 @@ def test_participant_free_environment_trigger_names_only_compiled_orchestration_
     request = claim.request
 
     assert not model.diagnostics
-    assert not (model.agent_specs or model.participant_behaviors or model.participant_inject_deliveries)
+    assert not model.agent_specs
+    assert not model.participant_behaviors
+    assert not model.participant_inject_deliveries
     assert request.inject in model.injects
     assert {binding.binding for binding in request.bindings} <= set(model.inject_bindings)
     assert request.inject in model.events[request.placement.event].inject_addresses
