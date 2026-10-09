@@ -227,6 +227,23 @@ selected participants' `participant.behavior.<agent>` episode addresses. It
 never initializes, resets, or ends an episode, and it claims no executable or
 runtime adoption.
 
+Episode structure is a first-class member of the behavior specification
+aggregate (ACT-623). An episode policy may be the only behavior surface a
+specification aggregates. It attaches to participants of every behavior mode.
+The autonomous execution profile cannot carry one, so episode structure never
+depends on that profile. The compiled aggregate names its member through
+`episode_policy_address`. Turns
+are ordered by the decision epoch, while the episode `sequence_number` orders
+episode instances only. The structure describes observable episodes and does
+not imply that a participant exposes an internal reasoning loop.
+
+Conformance compares recorded ADR-013 episode history with the compiled
+structure. For a governed participant, a terminal reason other than
+`interrupted` must come from an authored condition, and a recorded reset or
+restart must be one that the reset policy admits. This check reads recorded
+history only. It does not evaluate conditions or claim that a backend enforces
+the policy.
+
 ## Extending the section set
 
 A new top-level authoring section is added by: defining its model and the

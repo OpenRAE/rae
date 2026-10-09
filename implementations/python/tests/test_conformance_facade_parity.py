@@ -13,6 +13,7 @@ import raes_conformance.conformance as facade
 from raes_conformance.conformance import (
     fixture_suite,
     observability,
+    participant_episode_structure,
     profiles,
     report,
     semantics,
@@ -30,6 +31,7 @@ _PUBLIC_EXPORTS = {
     "contract_validation_strength",
     "fixtures_root",
     "observability_evidence_conformance_diagnostics",
+    "participant_episode_structure_conformance_diagnostics",
     "profile_for_manifest",
     "profiles_root",
     "required_contracts",
@@ -50,6 +52,7 @@ _PUBLIC_ORIGINS = {
     "ConformanceCaseResult": report,
     "backend_conformance_report_payload": report,
     "observability_evidence_conformance_diagnostics": observability,
+    "participant_episode_structure_conformance_diagnostics": participant_episode_structure,
     "run_fixture_suite": fixture_suite,
     "profile_for_manifest": target,
     "run_target_conformance": target,

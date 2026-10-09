@@ -2272,6 +2272,21 @@ shows the complete document. Episode execution, condition evaluation, reset
 handling, and evidence capture remain runtime surfaces; this surface claims no
 executable or runtime adoption.
 
+The episode policy is a first-class member of the behavior specification, not
+an option of one participant kind. It works the same way for autonomous,
+scripted, replayed, policy-directed, human-supervised, human-control-proxy, and
+mixed-control participants, and a specification may declare only an episode
+policy. The fixture
+`contracts/fixtures/sdl/participant-episode-policy-v1/valid/standalone-episode-structure.yaml`
+shows such a specification. The autonomous execution profile rejects an
+episode policy, so the behavior specification stays its only home.
+
+`participant_episode_structure_conformance_diagnostics()` in
+`raes_conformance.conformance` checks recorded episode history against the
+compiled policies. It reports a terminal reason that no authored condition
+produces, other than `interrupted`, and a reset or restart that the reset
+policy does not admit. It reads history only and does not evaluate conditions.
+
 For `behavior_mode: mixed-control`, authors must also provide a closed
 `mixed_control` declaration. It binds one controlled participant, explicit
 controller states, fail-closed disposition rules, and ordered control facts.

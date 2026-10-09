@@ -15,5 +15,14 @@ These fixtures exercise the DSL-120 authored participant episode surface,
   authored policy declares intent only and realized episode state belongs to
   the ADR-013 participant episode contracts.
 
-Neither fixture represents an executed episode, a reset, or an observed
+- `valid/standalone-episode-structure.yaml` (ACT-623) gives a participant a
+  behavior specification whose only behavior surface is its episode policy.
+  It must pass strict decoding and semantic validation, and the compiled
+  aggregate names `participant.episode-policy.replay-episodes`.
+- `invalid/autonomous-profile-episode-structure.yaml` (ACT-623) nests the same
+  policy inside the autonomous execution profile. Decoding must reject it,
+  because episode structure belongs to the behavior specification for every
+  participant kind and is not an autonomous-profile option.
+
+None of these fixtures represents an executed episode, a reset, or an observed
 terminal condition.

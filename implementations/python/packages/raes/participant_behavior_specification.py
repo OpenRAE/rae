@@ -415,6 +415,7 @@ class ParticipantBehaviorSpecification(LegacyClassificationGuard):
                 self.evidence_contract_refs,
                 self.tool_affordances,
                 self.participant_inject_deliveries,
+                self.episode_policy,
             )
         ):
             raise ValueError("behavior specifications must aggregate at least one behavior surface reference")

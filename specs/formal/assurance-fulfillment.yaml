@@ -576,20 +576,23 @@ entries:
         path: implementations/python/tests/test_issue_307_dsl_120_participant_episode_policy.py
       - kind: typed_ir_or_contract_coverage
         path: implementations/python/packages/raes/participant_episode_policy.py
+      # Delivered by #309 (ACT-623): the first-class episode-structure member,
+      # cross-kind attachment, and recorded-history conformance tests.
+      - kind: unit_tests
+        path: implementations/python/tests/test_issue_309_act_623_participant_episode_structure.py
     waived_artifacts:
       - kind: unit_tests
         date: 2026-08-02
         tracking:
           - "#306"
           - "#308"
-          - "#309"
           - "#310"
         rationale: >-
-          Joint-design run (#122). #305 (SEM-222) and #307 (DSL-120) deliver the
-          episode/termination and authored episode-structure unit tests above;
-          per-requirement unit tests for budget/exhaustion semantics, the
-          interaction-budget SDL surface, and the first-class model members
-          remain owned by the spawned implementation issues #306 and #308-#310.
+          Joint-design run (#122). #305 (SEM-222), #307 (DSL-120), and #309
+          (ACT-623) deliver the episode unit tests above; per-requirement unit
+          tests for budget/exhaustion semantics, the interaction-budget SDL
+          surface, and the first-class budget member remain owned by the
+          spawned implementation issues #306, #308, and #310.
       - kind: typed_ir_or_contract_coverage
         date: 2026-08-02
         tracking:

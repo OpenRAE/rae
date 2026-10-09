@@ -24,6 +24,7 @@ from .addresses import (
     _observation_boundary_address,
     _outcome_interpretation_rule_address,
     _participant_behavior_address,
+    _participant_episode_policy_address,
     _participant_inject_delivery_address,
     _section_ref_name,
     _tool_affordance_address,
@@ -360,6 +361,9 @@ def _compile_behavior_specifications(
             evidence_contract_refs=tuple(behavior_spec.evidence_contract_refs),
             tool_affordance_addresses=tool_affordance_addresses,
             participant_inject_delivery_addresses=participant_inject_delivery_addresses,
+            episode_policy_address=(
+                _participant_episode_policy_address(name) if behavior_spec.episode_policy is not None else ""
+            ),
             extension_policy=str(behavior_spec.extension_policy),
             extension_keys=tuple(sorted(behavior_spec.extensions)),
             refresh_dependencies=dependencies,
