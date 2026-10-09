@@ -167,8 +167,8 @@ not contradict these.
 
 ### Identity support and domain ownership
 
-RAE owns language semantics, portable contracts and conformance. Scenario packs
-own concrete scenario content, and backends own concrete realization and
+RAE owns language semantics, portable contracts and conformance. Environment
+packs own concrete scenario content, and backends own concrete realization and
 operations, as specified by [OpenRAE/hub#3](https://github.com/OpenRAE/hub/issues/3).
 A motivating product or backend does not define the language's universe.
 

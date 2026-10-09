@@ -144,7 +144,7 @@ integrity mechanism.
 
 ## 6. Packaging and consumer boundary
 
-Scenario-pack tooling owns filesystem layout, manifest filename, archive/OCI
+Environment-pack tooling owns filesystem layout, manifest filename, archive/OCI
 layout, traversal rules, release tiers, catalog metadata, and safe
 materialization. It MUST select a stable byte set before producing this
 manifest; a walk over a mutable live directory is not an atomic snapshot.
