@@ -26,7 +26,14 @@ def test_canonical_profile_matrix_and_unavailable_p3() -> None:
             "embedder",
             "not-applicable",
             {"in-process-safety", "actor-scoped-idempotency", "target-run-isolation", "revision-cas", "atomic-audit"},
-            {"durability", "restart-recovery", "multi-owner", "high-availability", "multitenancy"},
+            {
+                "durability",
+                "restart-recovery",
+                "multi-owner",
+                "high-availability",
+                "exactly-once-effects",
+                "multitenancy",
+            },
             {
                 "store.ephemeral",
                 "store.atomic-claims",
@@ -84,7 +91,14 @@ def test_canonical_profile_matrix_and_unavailable_p3() -> None:
                 "owner-serialized-mutation",
                 "revision-carrying-reads",
             },
-            {"multi-worker", "tls-proxy-deployment", "high-availability", "exactly-once-effects", "multitenancy"},
+            {
+                "multi-owner",
+                "multi-worker",
+                "tls-proxy-deployment",
+                "high-availability",
+                "exactly-once-effects",
+                "multitenancy",
+            },
             {
                 "store.durable",
                 "store.atomic-claims",

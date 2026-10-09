@@ -176,6 +176,15 @@ Your ASGI server and proxy own the rest of this boundary:
   not let `403` or `404` reveal whether another participant exists.
 - Keep the store directory private. Treat store backups as privileged.
 
+The adapter is one process that owns one store. It provides no high
+availability and no operation by several owners or workers. RAES does not
+guarantee that a backend effect happens exactly once, and it never replays one.
+After a crash, an operation whose effect cannot be established becomes
+`INDETERMINATE` and keeps that state. To resolve it, an operator calls
+`POST /operations/{operation_id}/resolution`. That call records a separate,
+linked operation and leaves the original unchanged. TLS and proxy correctness
+belong to your deployment.
+
 ## Add a route to the adapter
 
 Register the route inside `create_control_plane_app()`, before the adapter
