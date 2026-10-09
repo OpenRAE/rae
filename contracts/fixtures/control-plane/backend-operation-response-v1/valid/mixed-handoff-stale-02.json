@@ -1,0 +1,59 @@
+{
+  "schema_version": "backend-operation-response/v1",
+  "binding": {
+    "operation_id": "operation:mixed-handoff-stale",
+    "invocation_id": "invocation:mixed-handoff-stale",
+    "attempt_id": "attempt:1",
+    "worker_id": "worker:effects-1",
+    "deployment_id": "deployment:reference",
+    "owner_generation": 1,
+    "execution_generation": 1,
+    "backend_id": "transfer:native-ownership",
+    "baseline_revision": "revision:7",
+    "context": {
+      "actor_id": "operator:mixed",
+      "authorization_scope": [
+        "role:operator"
+      ],
+      "target_scope": "target:mixed",
+      "run_scope": "run:mixed",
+      "operation_kind": "composition-phase",
+      "request_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "parent_operation_id": null
+    },
+    "effect_scope": {
+      "kind": "target-run",
+      "addresses": [],
+      "independence": null
+    }
+  },
+  "request_digest": "sha256:07730d4dac0ef09031fce515a014fd45252ee137a1c82c0718e17d667e1fca32",
+  "sequence": 2,
+  "message": {
+    "kind": "outcome",
+    "proposed_state": "failed",
+    "effects": {
+      "effect": "absent",
+      "cessation_established": true,
+      "evidence_refs": [
+        {
+          "contract_id": "mixed-backend-stage-report-v1",
+          "artifact_id": "stage:mixed-handoff-stale:handoff",
+          "digest": "sha256:e70b0ec3158603bc995e8acc5c1bfd0b1ed4d86676cf04e896068da77684e2c7"
+        },
+        {
+          "contract_id": "mixed-backend-stage-report-v1",
+          "artifact_id": "stage:mixed-handoff-stale:owner",
+          "digest": "sha256:4c19f2857d52456d0c70e2832f9b2fc1e2109d1508978868739f84b7a0ef3459"
+        }
+      ],
+      "residual_scope": [],
+      "residual_state": null,
+      "external_fence": null
+    },
+    "satisfaction": "unsatisfied",
+    "release_gates_satisfied": false,
+    "cancellation_established": false,
+    "result": null
+  }
+}

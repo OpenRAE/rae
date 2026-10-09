@@ -180,6 +180,44 @@ physical-OT timing guarantee. Installed bindings are trusted runtime inputs
 against the sealed `sem-234/rev1` profile; this rule adds no manifest field,
 support vocabulary term, or published carrier revision.
 
+### Published mixed-backend execution contracts (issue #1371)
+
+`mixed-backend-execution-binding-v1` is the closed plain-data form of one
+installed binding for one admitted edge or component-changing transition.
+`mixed-backend-stage-report-v1` carries one time-grant, execution, delivery,
+observation, handoff, or owner-readback fact for one invocation of the
+[backend operation protocol](backend-operation-supervision.md). Rules:
+
+- A backend may list both contract IDs in `supported_contract_versions`. The
+  listing is an opt-in declaration, not effective support. It adds no feature
+  term or support level, and it does not replace the joins above.
+- Exactly one binding exists for each edge active in an admitted phase and for
+  each transition that replaces exactly one component with another. Missing,
+  foreign, duplicate, or contradictory bindings refuse the whole set, as do an
+  ungoverned edge order and any other component change.
+- An edge binding uses operation kind `participant-crossing`. Its effect owner
+  is the destination provider's action allocation for the bound address,
+  active in at least one phase of the edge. Its `compiled-identity`
+  transformation preserves the authorized action address. Its bridge
+  reference equals the edge's routing reference, and its time coordinates,
+  mapping loss, participant, audience, and evidence references equal the
+  admitted edge.
+- A handoff binding uses operation kind `composition-phase`. It names the
+  leaving and joining components and their native ownership references, and
+  its clocks and mapping resolve in the trusted time model.
+- A shared request commits to one binding through its content-bound `command`,
+  is addressed to the pinned bridge or transfer service, and uses the
+  binding's operation kind.
+- Stage reports repeat the invocation binding and request digest, report each
+  stage at most once, and follow their prerequisite stage. Execution or native
+  transfer needs an `ordered` grant and an accepted acknowledgement. A proposed
+  success or known failure must equal the state the stages establish, and
+  shared evidence cites only supplied reports.
+
+The validators are pure functions over trusted inputs resolved by the caller.
+Passing them does not prove backend truth, installation, conformance, or
+runtime adoption.
+
 ### Adversarial-control apparatus and backend support (issue #1004)
 
 The following governed `participant-runtime-behavior-features` terms let a

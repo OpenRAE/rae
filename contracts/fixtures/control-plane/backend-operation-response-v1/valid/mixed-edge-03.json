@@ -1,0 +1,63 @@
+{
+  "schema_version": "backend-operation-response/v1",
+  "binding": {
+    "operation_id": "operation:mixed-edge",
+    "invocation_id": "invocation:mixed-edge",
+    "attempt_id": "attempt:1",
+    "worker_id": "worker:effects-1",
+    "deployment_id": "deployment:reference",
+    "owner_generation": 1,
+    "execution_generation": 1,
+    "backend_id": "route:portable",
+    "baseline_revision": "revision:7",
+    "context": {
+      "actor_id": "operator:mixed",
+      "authorization_scope": [
+        "role:operator"
+      ],
+      "target_scope": "target:mixed",
+      "run_scope": "run:mixed",
+      "operation_kind": "participant-crossing",
+      "request_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "parent_operation_id": null
+    },
+    "effect_scope": {
+      "kind": "target-run",
+      "addresses": [],
+      "independence": null
+    }
+  },
+  "request_digest": "sha256:9788fd0932ced041639ec6aee18637322a4154b7b94d85325d2d6c25d18c13ff",
+  "sequence": 3,
+  "message": {
+    "kind": "outcome",
+    "proposed_state": "succeeded",
+    "effects": {
+      "effect": "complete",
+      "cessation_established": true,
+      "evidence_refs": [
+        {
+          "contract_id": "mixed-backend-stage-report-v1",
+          "artifact_id": "stage:mixed-edge:execution",
+          "digest": "sha256:da222ec570824c8d3bd026672c06fe970025e08922d80a8078b8b5917b2bda47"
+        },
+        {
+          "contract_id": "mixed-backend-stage-report-v1",
+          "artifact_id": "stage:mixed-edge:delivery",
+          "digest": "sha256:aa718ae2bdec5815cb5ff3bbd649b7e59c5befc6460e04deb4aee287567f70f1"
+        }
+      ],
+      "residual_scope": [],
+      "residual_state": null,
+      "external_fence": null
+    },
+    "satisfaction": "satisfied",
+    "release_gates_satisfied": true,
+    "cancellation_established": false,
+    "result": {
+      "contract_id": "runtime-snapshot-v1",
+      "artifact_id": "snapshot:mixed-edge",
+      "digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+    }
+  }
+}

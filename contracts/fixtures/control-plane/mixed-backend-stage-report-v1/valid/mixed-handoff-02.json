@@ -1,0 +1,43 @@
+{
+  "schema_version": "mixed-backend-stage-report/v1",
+  "binding": {
+    "operation_id": "operation:mixed-handoff",
+    "invocation_id": "invocation:mixed-handoff",
+    "attempt_id": "attempt:1",
+    "worker_id": "worker:effects-1",
+    "deployment_id": "deployment:reference",
+    "owner_generation": 1,
+    "execution_generation": 1,
+    "backend_id": "transfer:native-ownership",
+    "baseline_revision": "revision:7",
+    "context": {
+      "actor_id": "operator:mixed",
+      "authorization_scope": [
+        "role:operator"
+      ],
+      "target_scope": "target:mixed",
+      "run_scope": "run:mixed",
+      "operation_kind": "composition-phase",
+      "request_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "parent_operation_id": null
+    },
+    "effect_scope": {
+      "kind": "target-run",
+      "addresses": [],
+      "independence": null
+    }
+  },
+  "request_digest": "sha256:e688489a9b66f704822e227e9a0c25b8a4b6f6e4f072011f02ea3574e309fb3b",
+  "sequence": 2,
+  "stage": {
+    "stage": "handoff",
+    "status": "committed",
+    "predecessor_history_head": "composition:activation:initial",
+    "phase_revision": 0,
+    "order_ref": "order:handoff:mixed-handoff",
+    "evidence_refs": [
+      "evidence:native-transfer",
+      "evidence:phase-realization"
+    ]
+  }
+}
