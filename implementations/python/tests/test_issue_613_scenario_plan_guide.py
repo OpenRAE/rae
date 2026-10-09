@@ -43,7 +43,8 @@ def _block(name: str) -> str:
     assert text.count(start) == 1, f"guide block {name!r} must appear exactly once"
     fenced = text.split(start, 1)[1].split(end, 1)[0]
     opening, body = fenced.split("\n", 1)
-    assert opening.startswith("```") and body.endswith("```\n"), name
+    assert opening.startswith("```"), name
+    assert body.endswith("```\n"), name
     return body.removesuffix("```\n")
 
 
@@ -83,7 +84,8 @@ def _invoke(*args: str):
 def _run_guide_script(name: str, directory: Path, monkeypatch, capsys) -> str:
     """Run one of the guide's ``python - <<'PY'`` snippets in ``directory`` and return its output."""
     block = _block(name)
-    assert block.startswith(SCRIPT_START) and block.endswith(SCRIPT_END), name
+    assert block.startswith(SCRIPT_START), name
+    assert block.endswith(SCRIPT_END), name
     script = directory / f"{name}.py"
     script.write_text(block.removeprefix(SCRIPT_START).removesuffix(SCRIPT_END), encoding="utf-8")
     monkeypatch.chdir(directory)
