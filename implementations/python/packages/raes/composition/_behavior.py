@@ -101,7 +101,7 @@ def _rewrite_tool_affordance(
     symbols: dict[str, dict[str, str] | set[str]],
 ) -> None:
     if binding.get("tool_ref"):
-        binding["tool_ref"] = _maybe_rename(str(binding["tool_ref"]), symbols["content"])
+        binding["tool_ref"] = _maybe_rename(str(binding["tool_ref"]), symbols["named"])
     binding["action_contract_refs"] = [
         _maybe_rename(name, symbols["action_contracts"]) for name in binding.get("action_contract_refs", [])
     ]
