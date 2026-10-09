@@ -29,6 +29,7 @@ class ParticipantInformationBoundaryClass(str, Enum):
     HOLDOUT_VARIANT = "holdout_variant"
     ADJUDICATION_MATERIAL = "adjudication_material"
     ARCHIVAL_EVIDENCE = "archival_evidence"
+    RESOURCE_BUDGET = "resource_budget"
 
 
 class ParticipantViewDisposition(str, Enum):
@@ -71,6 +72,8 @@ _SENSITIVE_BOUNDARY_CLASSES = frozenset(
         ParticipantInformationBoundaryClass.CANARY,
         ParticipantInformationBoundaryClass.HOLDOUT_VARIANT,
         ParticipantInformationBoundaryClass.ADJUDICATION_MATERIAL,
+        # A participant resource-budget quota is hidden unless disclosed (SEM-223 EBM-07).
+        ParticipantInformationBoundaryClass.RESOURCE_BUDGET,
     }
 )
 

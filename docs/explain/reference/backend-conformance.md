@@ -188,9 +188,11 @@ action/concurrency bounds while dropping storage, token, image, accelerator,
 ancestor, or fairness obligations. Runtime conformance then requires typed,
 generation-fenced, policy-scoped budget state; one canonical cross-policy pool
 allocation ledger; and append-only reserve, measured commit, release, throttle,
-and reconcile events. Native commits require a complete matching measurement
-vector and evidence. Manifest support and configured capacity do not count as
-measured-realization evidence.
+reject, and reconcile events. A logical-budget shortfall is a `reject` event
+with an undispatched `resource_exhausted` attempt. A `throttle` event means only
+that a shared pool could not admit a quantity the logical budget allows. Native
+commits require a complete matching measurement vector and evidence. Manifest
+support and configured capacity do not count as measured-realization evidence.
 
 ## Gotchas And Anti-Patterns
 

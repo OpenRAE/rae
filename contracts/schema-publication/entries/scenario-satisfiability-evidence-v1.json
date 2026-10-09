@@ -1,9 +1,9 @@
 {
-  "content_hash": "0a5b2ee3ad31c589f30def040783a934fb8855614c9030525f1a648ac27e3ce5",
+  "content_hash": "42238a673f491edff2a408df7a9a7f8ebafc5e62b8d8abe666fee90f4abb1a79",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "0a5b2ee3ad31c589f30def040783a934fb8855614c9030525f1a648ac27e3ce5",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "42238a673f491edff2a408df7a9a7f8ebafc5e62b8d8abe666fee90f4abb1a79",
+    "summary": "Carry the ACT-624 resource_budget member on behavior specifications: an ADR-097 interaction budget with an optional clock_ref, for issue #310."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

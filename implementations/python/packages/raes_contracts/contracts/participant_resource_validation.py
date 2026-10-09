@@ -101,6 +101,8 @@ def _visit_demand(
             raise ValueError("resource-budget parent must use the same resource, unit, mode, and meter")
         if demand.limit > parent.limit:
             raise ValueError("resource-budget child limit cannot exceed its parent")
+        if not set(getattr(demand, "action_contract_refs", ())) <= set(getattr(parent, "action_contract_refs", ())):
+            raise ValueError("resource-budget child action_contract_refs must be within its parent's")
         _visit_demand(demands, parent_ref, visiting, visited)
     visiting.remove(budget_id)
     visited.add(budget_id)
@@ -118,6 +120,17 @@ def _validate_parent_limits(demands: Mapping[str, _Demand]) -> None:
     for parent_id, children in children_by_parent.items():
         if sum(child.limit for child in children) > demands[parent_id].limit:
             raise ValueError("resource-budget sibling limits cannot exceed their parent limit")
+
+
+def _validate_participant_parent_owners(demands: Mapping[str, _Demand]) -> None:
+    for demand in demands.values():
+        parent = demands.get(demand.parent_budget_ref or "")
+        if (
+            parent is not None
+            and parent.owner.kind == "participant"
+            and (parent.owner.kind, parent.owner.owner_ref) != (demand.owner.kind, demand.owner.owner_ref)
+        ):
+            raise ValueError("resource-budget demand cannot aggregate into a participant-owned parent of another owner")
 
 
 def validate_budget_policy(
@@ -142,6 +155,7 @@ def validate_budget_policy(
         if demand.parent_budget_ref is not None and demand.parent_budget_ref not in demands_by_id:
             raise ValueError("resource-budget demand parent must resolve in policy demands")
     _validate_parent_limits(demands_by_id)
+    _validate_participant_parent_owners(demands_by_id)
     pool_keys = [
         (
             demand.pool_ref,

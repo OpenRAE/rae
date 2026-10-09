@@ -2,9 +2,9 @@
   "contract_id": "participant-behavior-history-event-stream-v1",
   "schema_path": "contracts/schemas/control-plane/participant-behavior-history-event-stream-v1.json",
   "stability": "draft",
-  "content_hash": "6601d330f1dc4a7e11a1828bef9da515b64a40539827289a1c7deee4c90b003d",
+  "content_hash": "fb4cb89cfa27a791c101bf3435be27f73e80a33045474cb46cea13b20e4fea27",
   "last_change": {
-    "summary": "Add opt-in bounded shared-time guarantees and typed numeric authoring; keep backend execution capabilities conditional (#216).",
-    "content_hash": "6601d330f1dc4a7e11a1828bef9da515b64a40539827289a1c7deee4c90b003d"
+    "summary": "Add the DSL-121 interaction dimensions interaction_steps, interaction_turns, tool_invocations and scenario_time to the governed participant resource kind catalog for issue #308.",
+    "content_hash": "fb4cb89cfa27a791c101bf3435be27f73e80a33045474cb46cea13b20e4fea27"
   }
 }

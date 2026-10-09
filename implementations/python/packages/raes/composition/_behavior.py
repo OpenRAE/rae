@@ -11,6 +11,7 @@ from typing import Any
 
 from ..participant_behavior_specification import tool_affordance_reference
 from ..participant_inject_delivery import participant_inject_delivery_reference
+from ..participant_resource_budgets import resource_budget_dimension_reference
 from ._references import (
     _maybe_rename,
     _prefix,
@@ -23,7 +24,7 @@ def _rewrite_participant_resource_budget(
     payload: object,
     symbols: dict[str, dict[str, str] | set[str]],
 ) -> None:
-    """Rewrite kind-specific owner references in an autonomous budget policy."""
+    """Rewrite kind-specific owner references in a v3 or aggregate budget policy."""
 
     if not isinstance(payload, dict):
         return
@@ -149,6 +150,18 @@ def _rewrite_participant_inject_delivery(
     ]
 
 
+def _budget_dimension_refs(spec_name: str, namespaced_name: str, behavior_spec: dict[str, Any]) -> dict[str, str]:
+    policy = behavior_spec.get("autonomous_execution")
+    budget = policy.get("resource_budget") if isinstance(policy, dict) else None
+    dimensions = budget.get("dimensions") if isinstance(budget, dict) else None
+    return {
+        resource_budget_dimension_reference(spec_name, budget_id): resource_budget_dimension_reference(
+            namespaced_name, budget_id
+        )
+        for budget_id in (dimensions if isinstance(dimensions, dict) else {})
+    }
+
+
 def _behavior_reference_maps(
     payload: dict[str, Any],
     symbols: dict[str, dict[str, str] | set[str]],
@@ -156,6 +169,7 @@ def _behavior_reference_maps(
 ) -> tuple[dict[str, str], dict[str, str]]:
     tool_affordances: dict[str, str] = {}
     inject_deliveries: dict[str, str] = {}
+    budget_dimensions: dict[str, str] = {}
     for spec_name, behavior_spec in payload.get("behavior_specifications", {}).items():
         if not isinstance(behavior_spec, dict):
             continue
@@ -172,10 +186,13 @@ def _behavior_reference_maps(
             inject_deliveries[participant_inject_delivery_reference(spec_name, binding_id)] = (
                 participant_inject_delivery_reference(namespaced_name, binding_id)
             )
+        budget_dimensions.update(_budget_dimension_refs(spec_name, namespaced_name, behavior_spec))
     named_symbols = symbols["named"]
     if isinstance(named_symbols, dict):
         named_symbols.update(tool_affordances)
         named_symbols.update(inject_deliveries)
+        # Observation boundaries may classify a budget dimension (DSL-121 disclosure).
+        named_symbols.update(budget_dimensions)
     return tool_affordances, inject_deliveries
 
 
@@ -290,6 +307,10 @@ def _rewrite_behavior_specification(
     autonomous_execution = behavior_spec.get("autonomous_execution")
     if isinstance(autonomous_execution, dict):
         _rewrite_autonomous_execution(autonomous_execution, symbols)
+    aggregate_budget = behavior_spec.get("resource_budget")
+    _rewrite_participant_resource_budget(aggregate_budget, symbols)
+    if isinstance(aggregate_budget, dict) and aggregate_budget.get("clock_ref"):
+        aggregate_budget["clock_ref"] = _rewrite_section_ref(aggregate_budget["clock_ref"], "clocks", symbols["clocks"])
     _rewrite_mixed_control(behavior_spec.get("mixed_control"), symbols)
     for binding in behavior_spec.get("tool_affordances", {}).values():
         if isinstance(binding, dict):

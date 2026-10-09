@@ -1,9 +1,9 @@
 {
-  "content_hash": "2dd378f6b80b78ade6bcb48f2ed201c1d83e1b821a2c04dd8cb342661e45b1ce",
+  "content_hash": "3fc7812123751655254e744b7415738960dcf0355b5f5024e017570dae44bb28",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "content_hash": "2dd378f6b80b78ade6bcb48f2ed201c1d83e1b821a2c04dd8cb342661e45b1ce",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "3fc7812123751655254e744b7415738960dcf0355b5f5024e017570dae44bb28",
+    "summary": "Carry the ACT-624 resource_budget member on behavior specifications: an ADR-097 interaction budget with an optional clock_ref, for issue #310."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"

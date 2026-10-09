@@ -1,9 +1,9 @@
 {
-  "content_hash": "be543802e6518ee04254963a97bba5b33c9cf06715cff0a4cd107ffb6ab0316b",
+  "content_hash": "077b411eca09ac15b2fb70848ada595b68c6780986a12cd111621ffcaecb8951",
   "contract_id": "backend-manifest-v2",
   "last_change": {
-    "content_hash": "be543802e6518ee04254963a97bba5b33c9cf06715cff0a4cd107ffb6ab0316b",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "077b411eca09ac15b2fb70848ada595b68c6780986a12cd111621ffcaecb8951",
+    "summary": "Add the evidence-required interaction_budgets participant behavior feature to the governed feature_support vocabulary for issue #310 (ACT-624)."
   },
   "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
   "stability": "draft"

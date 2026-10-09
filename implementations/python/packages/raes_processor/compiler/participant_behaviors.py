@@ -35,6 +35,7 @@ from .alias_index import (
     _runtime_addresses_for_refs,
 )
 from .participant_autonomous_execution import _compile_autonomous_execution
+from .participant_resource_budget_projection import compile_participant_interaction_budget
 from .support import _dedupe, _dump
 
 
@@ -333,6 +334,12 @@ def _compile_behavior_specifications(
             participant_addresses=participant_addresses,
             behavior_spec=behavior_spec,
         )
+        interaction_budget = compile_participant_interaction_budget(
+            scenario,
+            spec_name=name,
+            behavior_spec=behavior_spec,
+            participant_addresses=participant_addresses,
+        )
         behavior_specifications[address] = ParticipantBehaviorSpecificationRuntime(
             address=address,
             name=name,
@@ -348,6 +355,7 @@ def _compile_behavior_specifications(
             authority_scope_addresses=authority_scope_addresses,
             behavior_mode=str(behavior_spec.behavior_mode or ""),
             autonomous_execution=autonomous_execution,
+            interaction_budget=interaction_budget,
             mixed_control_participant_address=mixed_control_participant_address,
             mixed_control_policy_revision=mixed_control_policy_revision,
             mixed_control_order_strategy=mixed_control_order_strategy,

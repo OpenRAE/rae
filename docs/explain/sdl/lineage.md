@@ -1009,6 +1009,19 @@ which dynamic queue/log/config details remain evidence or bounded settings.
   RUN-308 concurrency evidence, existing operation receipts/statuses, and
   existing time-state/provenance. It claims no wire, API, lifecycle-token, or
   behavioral compatibility with those sources.
+- DSL-121 interaction budgets extend the ADR-097 resource-budget lineage that
+  the ledger records for `behavior_specifications`. Agent and participant
+  benchmarks routinely bound steps, turns, wall or scenario time, tokens, and
+  tool use. RAES keeps each as a distinct governed dimension of the existing
+  budget vector, binds tool use to authored tool affordances, counts logical
+  time on the governed shared clock, and discloses a quota only through an
+  explicit view rule. It adopts no benchmark harness syntax, API, or limit
+  semantics and claims no compatibility with one.
+- ACT-624 attaches the same budget policy to the behavior-specification
+  aggregate of any participant kind, so benchmark-style interaction limits are
+  not tied to autonomous execution. The backend `interaction_budgets` feature
+  and the conformance diagnostics over recorded budget events are RAES-defined
+  and claim no compatibility with any benchmark harness.
 - Issues #811 and #812 define proof-bearing bisimulation and adversarial
   threat-model extensions. Issue #813 and ADR-102 now define the mixed
   cross-backend composition extension. It supports both alternative

@@ -2159,6 +2159,35 @@ availability only: visibility, apparatus support, eligibility, admission,
 realization, effects, constraints, and evidence remain on their existing
 contracts and do not follow from the binding.
 
+A `participant-autonomous-execution/v3` policy bounds participant interaction
+through its `resource_budget` dimensions. Besides the six required kinds, a
+dimension may use `interaction_steps`, `interaction_turns`, `tool_invocations`,
+or `scenario_time`; token budgets use `inference_tokens`. These are distinct
+governed kinds with fixed units, so a turn budget never counts action attempts
+and host or watchdog time is never a scenario-time quota. RAES meters
+`scenario_time` as the ticks the policy clock advances. A `tool_invocations`
+dimension must name the tool affordances it counts in `tool_affordance_refs`.
+A quota is hidden from the participant unless the policy's observation
+boundary discloses the dimension ref
+`behavior_specifications.<spec>.autonomous_execution.resource_budget.dimensions.<id>`
+through a `resource_budget` view rule. A disclosed quota is reported only in
+the observations of an attempt that the dimension rejects. There is no
+separate quota map or `max_*` field. The [autonomous execution specification](../../../specs/formal/participant-semantics/autonomous-execution.md)
+defines the semantics, and the [v3 migration guide](../../migration/autonomous-execution-v3.md)
+shows the YAML.
+
+Any behavior specification without an autonomous execution profile may carry
+the same budget shape as its own `resource_budget` member (ACT-624), whatever
+its `behavior_mode`. Such a budget governs every action attempt of the
+specification's participants, including those its `participant_role_refs`
+select, and bounds only the dimensions it declares. Validation rejects a
+participant that two budget-carrying behavior specifications select, so each
+attempt has one governing budget. A dimension that counts scenario time, resets
+per time segment, or uses a window needs a `clock_ref`. Its quotas stay hidden.
+A backend admits it only by declaring the `interaction_budgets` behavior
+feature with resource-budget capabilities, and the backend realizes it; the
+reference runtime does not.
+
 Compiled behavior specifications use stable
 `participant.behavior-specification.<name>` addresses and preserve dependency
 links to the participant behavior, action contract, observation boundary, and

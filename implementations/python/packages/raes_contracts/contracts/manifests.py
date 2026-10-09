@@ -10,6 +10,7 @@ from pydantic_core import CoreSchema
 
 from ..addressing import require_compiled_address
 from ..manifest_authority import (
+    PARTICIPANT_INTERACTION_BUDGET_FEATURE,
     PARTICIPANT_RUNTIME_EVIDENCE_REQUIRED_FEATURES,
     PROCESSOR_SUPPORTED_CONTRACT_IDS,
     PROCESSOR_SUPPORTED_SDL_VERSION_IDS,
@@ -220,6 +221,8 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
             self._validate_enabled_autonomous_configuration()
         elif self._has_any_autonomous_configuration():
             raise ValueError("autonomous execution limits require autonomous execution support")
+        if PARTICIPANT_INTERACTION_BUDGET_FEATURE in self.supported_behavior_features and self.resource_budgets is None:
+            raise ValueError("interaction_budgets requires participant resource-budget capabilities")
 
     def _validate_enabled_autonomous_configuration(self) -> None:
         if not self._has_complete_autonomous_configuration():
@@ -276,7 +279,9 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
                 self.supports_bounded_concurrency,
                 self.max_execution_services is not None,
                 self.max_concurrent_actions is not None,
-                self.resource_budgets is not None,
+                # ACT-624 interaction budgets declare budget capabilities without autonomy.
+                self.resource_budgets is not None
+                and PARTICIPANT_INTERACTION_BUDGET_FEATURE not in self.supported_behavior_features,
             )
         )
 

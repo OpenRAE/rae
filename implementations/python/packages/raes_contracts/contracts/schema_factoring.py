@@ -9,6 +9,8 @@ from typing import Any, cast
 from .schema_invariants import _SCHEMA_MAP_KEYS, _SCHEMA_SUBSCHEMA_KEYS
 
 _DEFINITIONS = "$defs"
+# Mapping-key rules repeat across SDL sections; sharing them is as lossless as any other subschema.
+_FACTORED_SUBSCHEMA_KEYS = (*_SCHEMA_SUBSCHEMA_KEYS, "propertyNames")
 
 
 def _map_children(node: dict[str, Any], transform: Callable[[object, bool], object]) -> dict[str, Any]:
@@ -16,7 +18,7 @@ def _map_children(node: dict[str, Any], transform: Callable[[object, bool], obje
     for key in _SCHEMA_MAP_KEYS:
         if isinstance(result.get(key), dict):
             result[key] = {name: transform(value, key == _DEFINITIONS) for name, value in result[key].items()}
-    for key in _SCHEMA_SUBSCHEMA_KEYS:
+    for key in _FACTORED_SUBSCHEMA_KEYS:
         value = result.get(key)
         if isinstance(value, list):
             result[key] = [transform(child, False) for child in value]

@@ -72,6 +72,83 @@ aggregate the same kind, unit, accounting mode, and meter across participant,
 tenant, shared-service, and fleet owners, but the graph must remain acyclic and
 a child cannot exceed its parent.
 
+A participant-owned budget counts one participant's use. Validation therefore
+rejects a v3 policy whose behavior specification governs more than one
+participant, because the required participant-owned `concurrent_actions`
+budget would count every governed participant's actions. The governed
+participants include every agent that `participant_role_refs` selects, not
+only the agents named in `participant_refs`. Use one behavior specification per
+participant, and keep shared counters under tenant, shared-service, or fleet
+owners. A budget of another owner cannot name a participant-owned budget as its
+parent.
+
+## Interaction Budgets
+
+A v3 vector may add interaction dimensions next to the six required kinds:
+`interaction_steps` (`steps`), `interaction_turns` (`turns`),
+`tool_invocations` (`invocations`), and `scenario_time` (`ticks`). Token budgets
+keep using `inference_tokens`. Each interaction dimension is an ordinary
+dimension with an owner, pool, meter, limit, reservation, and reset, and it
+needs a matching configured pool on the backend. The backend measures every
+interaction dimension except `scenario_time`, which RAES meters from the
+shared clock.
+
+```yaml
+      tool-calls:
+        owner_ref: participant
+        pool_ref: participant-pool
+        resource_kind: tool_invocations
+        unit: invocations
+        accounting_mode: cumulative_counter
+        meter_profile_ref: raes.tool-invocation/v1
+        limit: 5
+        reservation: 1
+        reset: episode
+        tool_affordance_refs: [portal-probe]
+      scenario-time:
+        owner_ref: participant
+        pool_ref: participant-pool
+        resource_kind: scenario_time
+        unit: ticks
+        accounting_mode: cumulative_counter
+        meter_profile_ref: raes.shared-time-ticks/v1
+        limit: 600
+        reservation: 1
+        reset: time_segment
+```
+
+A `tool_invocations` dimension names the behavior specification's tool
+affordances in `tool_affordance_refs` and reserves only for attempts of the
+dispatched action contracts they bind. A turn or step dimension's
+`reservation` is the most one action may take.
+
+A `scenario_time` dimension bounds the ticks the policy clock advances after
+its last reset (`time_segment`) or after it started (`run`). It uses the
+shared-time tick meter, so host or watchdog time is rejected. Each admitted
+attempt is charged the ticks elapsed since the last charge, including ticks
+with no attempt. Its `reservation` is the time an attempt needs left: in the
+example above, attempts stop once 600 ticks have elapsed.
+
+A quota stays hidden unless the policy's observation boundary declares the
+dimension ref in `hidden_refs` and discloses it with a `resource_budget` view
+rule:
+
+```yaml
+observation_boundaries:
+  participant-view:
+    hidden_refs:
+      - behavior_specifications.participant-behavior.autonomous_execution.resource_budget.dimensions.tool-calls
+    view_rules:
+      - information_ref: behavior_specifications.participant-behavior.autonomous_execution.resource_budget.dimensions.tool-calls
+        boundary_class: resource_budget
+        disposition: disclosed
+        visibility_basis: The participant is told its tool-budget usage when the budget refuses an attempt.
+        disclosure_rule: task-brief.tool-budget
+```
+
+A disclosed quota is reported only in the observations of an attempt that the
+dimension rejects.
+
 ## Backend Changes
 
 A backend admitting v3 extends
@@ -100,10 +177,21 @@ updated `runtime-snapshot-v1` schema. Execution-service state now includes
 against the referenced authoritative budget.
 
 Reservation is atomic across the full vector and occurs before native work.
-The native result must return one measurement per reservation with matching
-operation, generation, resource, unit, meter, and evidence; absent or
-contradictory measurements release or roll back the reservation rather than
-committing its estimate. Commit is generation-fenced and idempotent by action
-identity. A shared-time
-reset advances every state generation, clears only `time_segment` dimensions,
-and preserves persistent storage and other independently owned counters.
+The native result must return one measurement per measurement requirement
+(every reserved dimension except `scenario_time`, which RAES meters from the
+shared clock) with matching operation, generation, resource, unit, meter, and
+evidence; absent or contradictory measurements release or roll back the
+reservation rather than
+committing its estimate. Commit and release are fenced to the reservation's
+generation, idempotent by action identity, and mutually exclusive: a
+reservation settles once. A shared-time reset advances every state generation,
+clears `time_segment` dimensions and, when it reset the bound episodes,
+`episode` dimensions, and preserves persistent storage and other independently
+owned counters.
+
+When the logical budget cannot admit a reservation, the runtime records a
+`reject` event (counted in the state's `rejected` field) and a rejected
+participant attempt with the `resource_exhausted` failure class, and the
+policy's failure disposition applies. The runtime previously recorded this case
+as a `throttle` event and failed the scheduler pass. `throttle` now means only that
+a shared physical pool could not admit a quantity the logical budget allows.

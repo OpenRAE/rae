@@ -241,18 +241,18 @@ def _stub_release(revision: str, *, protocol_revision: str = "2.0.0"):
     [
         pytest.param([], "selects no v2 retest release", id="no-release"),
         pytest.param(
-            [_stub_release("67.0.0"), _stub_release("68.0.0")],
-            "must be the explicit 69.0.0 retest",
+            [_stub_release("70.0.0"), _stub_release("71.0.0")],
+            "must be the explicit 72.0.0 retest",
             id="stale-current",
         ),
         pytest.param(
-            [_stub_release("68.0.0"), _stub_release("70.0.0")],
-            "must be the explicit 69.0.0 retest",
+            [_stub_release("71.0.0"), _stub_release("73.0.0")],
+            "must be the explicit 72.0.0 retest",
             id="unsupported-future",
         ),
         pytest.param(
-            [_stub_release("69.0.0", protocol_revision="1.0.0")],
-            "must be the explicit 69.0.0 retest",
+            [_stub_release("72.0.0", protocol_revision="1.0.0")],
+            "must be the explicit 72.0.0 retest",
             id="wrong-protocol",
         ),
     ],
@@ -269,8 +269,8 @@ def test_current_formal_release_selection_is_explicit(monkeypatch, releases, mes
 def test_current_formal_release_selection_returns_the_explicit_retest(monkeypatch):
     from tools.formal_semantic_validation import _loading
 
-    current = _stub_release("69.0.0")
-    monkeypatch.setattr(_loading, "load_release_bundles", lambda _root: [_stub_release("68.0.0"), current])
+    current = _stub_release("72.0.0")
+    monkeypatch.setattr(_loading, "load_release_bundles", lambda _root: [_stub_release("71.0.0"), current])
 
     assert _loading.load_retest_bundle(ROOT)[0] is current
 
@@ -282,7 +282,7 @@ def test_latest_current_release_is_versioned_and_strict(monkeypatch):
     from tools.formal_semantic_validation._releases import validate_retest_bundle
 
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, ROOT)
-    assert release.manifest["revision"] == "69.0.0"
+    assert release.manifest["revision"] == "72.0.0"
     original = _retest.replay_case
 
     def changed_result(root, case):
@@ -335,7 +335,7 @@ def test_specification_current_capture_does_not_accept_old_artifact_digest(artif
     from tools.check_specification_coverage import load_bundle, validate_bundle
 
     manifest, protocol, snapshot, analysis = copy_bundle(load_bundle, ROOT)
-    assert manifest["revision"] == "68.0.0"
+    assert manifest["revision"] == "71.0.0"
     snapshot = deepcopy(snapshot)
     artifact = next(a for a in snapshot["artifacts"] if a["artifact_id"] == artifact_id)
     artifact["sha256"] = old_digest
@@ -573,6 +573,9 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "67.0.0",
             "68.0.0",
             "69.0.0",
+            "70.0.0",
+            "71.0.0",
+            "72.0.0",
         ]
         if family == "formal"
         else [
@@ -645,6 +648,9 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "66.0.0",
             "67.0.0",
             "68.0.0",
+            "69.0.0",
+            "70.0.0",
+            "71.0.0",
         ]
     )
     revisions.pop(-1 if removed == "current" else 0)

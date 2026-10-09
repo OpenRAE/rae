@@ -125,12 +125,19 @@ PARTICIPANT_ADVERSARIAL_CONTROL_FEATURES = frozenset(
     }
 )
 
+# ACT-624 interaction budgets on a behavior-specification aggregate. Like the
+# adversarial-control terms this is evidence-required but not a runtime policy
+# feature: a declaration states how the backend realizes budget admission and
+# accounting, and is never proof of enforcement, capacity, or measured use.
+PARTICIPANT_INTERACTION_BUDGET_FEATURE = "interaction_budgets"
+
 PARTICIPANT_RUNTIME_EVIDENCE_REQUIRED_FEATURES = frozenset(
     {
         *PARTICIPANT_RUNTIME_POLICY_FEATURES,
         "participant_predicate_opacity",
         "participant_modular_control",
         *PARTICIPANT_ADVERSARIAL_CONTROL_FEATURES,
+        PARTICIPANT_INTERACTION_BUDGET_FEATURE,
     }
 )
 
@@ -166,6 +173,16 @@ _PARTICIPANT_AUTONOMOUS_EXECUTION_CONTRACTS = frozenset(
         "operation-status-v1",
     }
 )
+_PARTICIPANT_INTERACTION_BUDGET_CONTRACTS = frozenset(
+    {
+        "participant-resource-budget-policy-v1",
+        "participant-resource-pool-capacity-v1",
+        "participant-resource-budget-state-v1",
+        "participant-resource-budget-event-v1",
+        "participant-behavior-history-event-stream-v1",
+        "runtime-snapshot-v1",
+    }
+)
 _PARTICIPANT_OPACITY_CONTRACTS = frozenset(
     {
         "operation-receipt-v1",
@@ -194,6 +211,7 @@ PARTICIPANT_RUNTIME_CAPABILITY_REQUIRED_CONTRACTS = {
         "behavior_history": _PARTICIPANT_BEHAVIOR_CONTRACTS,
         "effects": _PARTICIPANT_BEHAVIOR_CONTRACTS,
         "failure_classes": _PARTICIPANT_BEHAVIOR_CONTRACTS,
+        PARTICIPANT_INTERACTION_BUDGET_FEATURE: _PARTICIPANT_INTERACTION_BUDGET_CONTRACTS,
         "observation_boundaries": _PARTICIPANT_BEHAVIOR_CONTRACTS,
         "outcome_interpretation": _PARTICIPANT_BEHAVIOR_CONTRACTS,
         "participant_predicate_opacity": _PARTICIPANT_OPACITY_CONTRACTS,

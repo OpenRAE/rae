@@ -62,6 +62,24 @@ def test_factoring_preserves_instance_data_and_existing_definition_names():
         assert Draft202012Validator(factored).is_valid(instance) == Draft202012Validator(source).is_valid(instance)
 
 
+def test_factoring_shares_repeated_property_name_rules():
+    from raes_contracts.contracts.schema_factoring import factor_shared_schema
+
+    names = {"maxLength": 8, "pattern": "^[a-z]", "description": "Repeated mapping-key rule " * 4}
+    source = {
+        "type": "object",
+        "properties": {
+            "first": {"type": "object", "propertyNames": names},
+            "second": {"type": "object", "propertyNames": names, "maxProperties": 2},
+        },
+    }
+    factored = factor_shared_schema(source)
+    assert factored["properties"]["first"]["propertyNames"] == factored["properties"]["second"]["propertyNames"]
+    assert "$ref" in factored["properties"]["first"]["propertyNames"]
+    for instance in [{"first": {"key": 1}}, {"first": {"Key": 1}}, {"second": {"much-too-long": 1}}]:
+        assert Draft202012Validator(factored).is_valid(instance) == Draft202012Validator(source).is_valid(instance)
+
+
 @pytest.mark.parametrize("keyword", ["$id", "$anchor", "$dynamicAnchor", "$dynamicRef"])
 def test_factoring_refuses_nested_reference_scopes(keyword):
     from raes_contracts.contracts.schema_factoring import factor_shared_schema

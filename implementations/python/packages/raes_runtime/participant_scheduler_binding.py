@@ -202,6 +202,6 @@ def _bound_runtime_request(
             target_addresses=matching_bindings[0].target_addresses,
             execution_scope_ref=policy.address,
             execution_generation=service.generation,
-            resource_measurement_requirements=measurement_requirements(policy),
+            resource_measurement_requirements=measurement_requirements(policy, action_address),
         ),
     )

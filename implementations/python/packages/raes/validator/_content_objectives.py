@@ -26,7 +26,7 @@ from ..semantics.participant_outcome import (
 from ..semantics.participant_temporal_bindings import participant_temporal_binding_errors
 from ._participant_execution_renderers import AUTONOMOUS_PARTICIPANT_ISSUE_RENDERERS
 from ._participant_outcome_renderers import PARTICIPANT_OUTCOME_ISSUE_RENDERERS
-from ._participant_resource_budget_owners import participant_resource_budget_owner_errors
+from ._participant_resource_budget_scopes import participant_resource_budget_errors
 
 # Renders an objective-semantics issue (machine-readable code from
 # ``raes.semantics.objective_semantics``) into the authoring-error string
@@ -354,13 +354,14 @@ class _ContentObjectivesMixin:
     def _verify_participant_behavior(self) -> None:
         for error in participant_temporal_binding_errors(self._s):
             self._err(error)
+        participant_roles = self._participant_roles_by_agent()
         analysis = analyze_participant_behavior(
             agents_by_name=self._s.agents,
             action_contracts=self._s.action_contracts,
             observation_boundaries=self._s.observation_boundaries,
             outcome_interpretation_rules=self._s.outcome_interpretation_rules,
             behavior_specifications=self._s.behavior_specifications,
-            participant_roles_by_agent=self._participant_roles_by_agent(),
+            participant_roles_by_agent=participant_roles,
             clocks=self._s.clocks,
             time_progression_policies=self._s.time_progression_policies,
             temporal_constraints=self._s.temporal_constraints,
@@ -369,14 +370,7 @@ class _ContentObjectivesMixin:
         )
         for issue in analysis.issues:
             self._err(self._format_participant_behavior_issue(issue))
-        for error in participant_resource_budget_owner_errors(
-            self._s.behavior_specifications,
-            self._s.action_contracts,
-            self._s.deployment_tenants,
-            self._s.deployment_cells,
-            self._s.relationships,
-            self._split_node_service_ref,
-        ):
+        for error in participant_resource_budget_errors(self._s, participant_roles, self._split_node_service_ref):
             self._err(error)
         self._verify_tool_affordance_tool_refs()
         self._verify_participant_inject_deliveries()

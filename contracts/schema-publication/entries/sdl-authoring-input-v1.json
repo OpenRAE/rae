@@ -1,9 +1,9 @@
 {
-  "content_hash": "6db2c5bb46445d0ed8eb140e1f7f8cacb562edfe8b44f139bb0b10c86f89a596",
+  "content_hash": "fbfa763656b78e18404e5a79a5663695c351ffc2d533255d943d639a80cc6c0f",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "6db2c5bb46445d0ed8eb140e1f7f8cacb562edfe8b44f139bb0b10c86f89a596",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "fbfa763656b78e18404e5a79a5663695c351ffc2d533255d943d639a80cc6c0f",
+    "summary": "Accept the ACT-624 resource_budget member on behavior specifications: an ADR-097 interaction budget with an optional clock_ref and no complete-vector requirement, for issue #310."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

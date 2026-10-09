@@ -7,6 +7,7 @@ from raes_contracts.addressing import require_compiled_address
 from raes_contracts.contracts.participant_execution import ParticipantExecutionBindingModel
 from raes_contracts.controlled_vocabularies import validate_controlled_vocabulary_scope_values
 from raes_contracts.manifest_authority import (
+    PARTICIPANT_INTERACTION_BUDGET_FEATURE,
     PARTICIPANT_RUNTIME_BEHAVIOR_FEATURE_SCOPE,
     PARTICIPANT_RUNTIME_CAPABILITY_REQUIRED_CONTRACTS,
     PARTICIPANT_RUNTIME_EVIDENCE_REQUIRED_FEATURES,
@@ -287,6 +288,8 @@ class ParticipantRuntimeCapabilities:
             self._validate_enabled_autonomous_execution()
         elif self._has_autonomous_configuration():
             raise ValueError("autonomous execution limits require autonomous execution support")
+        if PARTICIPANT_INTERACTION_BUDGET_FEATURE in self.supported_behavior_features and self.resource_budgets is None:
+            raise ValueError("interaction_budgets requires participant resource-budget capabilities")
 
     def _validate_enabled_autonomous_execution(self) -> None:
         if not self.supported_autonomous_selection_strategies:
@@ -395,7 +398,9 @@ class ParticipantRuntimeCapabilities:
                 self.supports_bounded_concurrency,
                 self.max_execution_services is not None,
                 self.max_concurrent_actions is not None,
-                self.resource_budgets is not None,
+                # ACT-624 interaction budgets declare budget capabilities without autonomy.
+                self.resource_budgets is not None
+                and PARTICIPANT_INTERACTION_BUDGET_FEATURE not in self.supported_behavior_features,
                 limits_configured,
             )
         )

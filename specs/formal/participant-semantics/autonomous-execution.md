@@ -83,6 +83,9 @@ one fairness obligation, and a complete typed demand vector containing:
 - image-generation (`images`, windowed or cumulative counter); and
 - accelerator (`accelerator_milliseconds`, lease).
 
+The vector may also carry the optional DSL-121 interaction dimensions defined
+below.
+
 Each demand binds exactly one owner, logical pool, unit, accounting mode,
 meter profile, limit, reservation quantity, and reset owner. Owner kinds are
 participant, deployment tenant, shared service, and fleet. Participant,
@@ -100,6 +103,329 @@ service and budget readback cannot become independent authorities.
 V1 and v2 limits compile into the same canonical demand representation with
 `legacy_maximum` provenance. They do not acquire v3 capacity, fairness,
 isolation, or runtime-accounting requirements.
+
+## SEM-223 Budget Consumption, Exhaustion, And Limit Effects
+
+SEM-223 gives the v3 resource budget its interaction-level meaning. It follows
+the FM3 state machine in `specs/formal/participant-episode-model/README.md`
+(transitions T2 and T7 to T11). It reuses the ADR-097 budget family and the
+SEM-211 `resource` precondition class and `resource_exhausted` failure class.
+It adds no budget root, quota map, failure taxonomy, resource kind, or schema.
+
+### Semantic coordinates
+
+- **Participant scope.** Every dimension has exactly one typed owner. The
+  policy reserves one vector for every action of every participant it governs,
+  so a participant-owned dimension is participant-local only when the behavior
+  specification governs exactly one participant. The governed participants are
+  the agents named in `participant_refs` plus every agent whose effective role
+  is in `participant_role_refs`. A participant owner on a behavior
+  specification that governs several participants is rejected as a
+  policy-wide counter presented as participant-local state. Shared counters use
+  deployment-tenant, shared-service, or fleet owners. A participant-owned
+  dimension may aggregate into a parent of another owner kind, but no other
+  owner's dimension may aggregate into a participant-owned parent.
+- **Resource domain.** Kind, unit, accounting mode, and meter profile identify
+  a dimension. Dimensions that differ in any of them never aggregate through
+  the parent graph, never share a physical pool ledger, and never admit against
+  each other's configured capacity. A native measurement with a different meter
+  is untrusted, so the reservation is released rather than committed.
+- **Observation point.** Consumption is decided at the scheduler's pre-dispatch
+  admission point for one governed attempt, before the native adapter is
+  called. It is settled at that attempt's terminal native result.
+- **Consumption event.** A commit records the exact measured vector, bounded
+  by the reservation, with native evidence refs. RAES measures DSL-121 logical
+  time itself and cites the clock-history cut. Every reserve, commit,
+  release, throttle, reject, and reconcile is an append-only event fenced to
+  its execution generation.
+- **Exhaustion condition.** For dimension \(d\),
+  \(rem(d) = \min(limit, configuredCapacity) - used(d) - reserved(d)\), where
+  \(used(d)\) is cumulative committed use for counter modes and current use for
+  gauge and lease modes. The dimension is exhausted while \(rem(d) \le 0\).
+  Exhaustion is derived from budget state; no carrier stores it as a flag. A
+  committed measurement leaves the dimension open while \(rem(d) > 0\), so it
+  supports repeated reserve and commit cycles.
+- **Failure and effect class.** A reservation whose quantity exceeds
+  \(rem(d)\) on any dimension is a `reject` event and changes nothing else
+  (T10). Every dimension's logical budget is checked before any shared pool,
+  so the disposition does not depend on the order of the vector. The attempt
+  then fails through SEM-211 (T11): the scheduler records an undispatched
+  `rejected` attempt whose only precondition is the unsatisfied `resource`
+  precondition `participant-resource-budget`, with the `resource_exhausted`
+  failure class. Like the ACT-614 shared-time pre-dispatch rejection, the
+  attempt reports only the runtime-owned precondition that failed, because the
+  action's authored preconditions were never evaluated. The `reject` event and
+  the attempt commit together: if the attempt cannot be committed, the
+  scheduler keeps neither. The policy's failure disposition settles the
+  attempt: `continue` consumes it and keeps scheduling, and `stop` fails the
+  scheduler. For an action bound to shared time, the rejected attempt carries
+  no temporal assessment, so the ACT-614 rule that an unassessed guarantee
+  never authorizes a retry applies. A shared physical pool that cannot admit a
+  quantity the logical budget allows is a `throttle` event, not exhaustion, and
+  it fails the scheduler pass. Repeating a refused reservation for the same
+  operation records no second event.
+- **Terminal effects.** Exhaustion never becomes an episode terminal reason, a
+  backend error, or a workflow state by itself. Relating exhaustion to
+  truncation or interruption requires an explicit SEM-222 terminal-condition
+  transition (EBM-06). The reference runtime authors no such transition, so an
+  exhausted participant's episode keeps running.
+- **Visibility of remaining budget.** The participant learns only that a
+  resource precondition failed. The rejected attempt names no budget, pool,
+  quantity, or remaining capacity (EBM-07). Operators read budget state through
+  the runtime snapshot and its existing read authorization. The DSL-121
+  section below defines the only view rule that discloses a quota.
+- **Provenance and evidence basis.** The governed attempt and its `reject`
+  event share the action instance id. A result that claims the portable
+  `participant-resource-budget` precondition without a runtime `reject` event
+  presents a backend-local limit as a portable budget limit and is rejected
+  (EBM-09). A backend may report its own resource failure under its own
+  precondition id.
+
+### Reset scope
+
+A shared-clock reset crosses the `time_segment` boundary. It crosses the
+`episode` boundary only when every bound participant's live episode changed.
+The coordinated reset that durable validation admits for scheduler-governed
+participants always resets those episodes. Reconciliation clears only the
+dimensions whose reset owner is a crossed boundary. Dimensions with `run` or
+`reconciled` reset keep their use, so tenant, shared-service, fleet, and
+persistent storage use survive an episode reset (EBM-03). Reconciliation
+appends evidence and never deletes prior events.
+
+Settlement is fenced to the reservation's own generation. A reservation made
+before a reset can neither commit nor release after it, so pre-reset use cannot
+leak into the next generation. Each reservation settles exactly once: a commit
+after a release, or a release after a commit, is refused, and repeating the
+same settlement is idempotent.
+
+### Fail-closed checks
+
+`raes_contracts.participant_resource_exhaustion` makes these rules checkable
+over runtime snapshots. The runtime result path and published runtime-snapshot
+conformance both apply it to:
+
+- future-generation events, settlements outside their reservation's
+  generation, repeated settlements, over-measured commits, and budget states
+  whose head event is not in their own event stream;
+- applies that remove or rewrite an earlier budget event; and
+- a `reject` event without its governed attempt, a governed attempt that is
+  not a rejected `resource_exhausted` result with the unsatisfied budget
+  precondition, and a governed attempt that discloses the budget identity.
+
+### SEM-223 Traceability
+
+| Obligation | Invariant | Enforcement point | Positive test | Negative test |
+| --- | --- | --- | --- | --- |
+| Exhaustion is derived from remaining capacity and refused with a typed rejection | EBM-06 | `reserve_participant_resources` (`participant_resource_remaining`) | `test_exhaustion_is_derived_from_remaining_capacity_across_reserve_commit_cycles` | `test_logical_exhaustion_rejects_while_shared_pool_contention_throttles` |
+| Exhaustion is a controlled SEM-211 failure, never a silent terminal state | EBM-06 | scheduler pre-dispatch admission, `iter_participant_resource_exhaustion_violations` | `test_exhaustion_becomes_an_undispatched_resource_exhausted_attempt`, `test_exhaustion_under_stop_policy_fails_the_scheduler_through_the_attempt` | `test_exhaustion_cannot_bypass_controlled_failure_or_disclose_hidden_quota`, `test_published_snapshot_conformance_rejects_exhaustion_outside_sem211`, `test_rejected_attempt_failing_protocol_validation_leaves_no_reject_event` |
+| Hidden quota state is not participant-visible without a view rule | EBM-07 | rejected-attempt construction, `iter_participant_resource_exhaustion_violations` | `test_participant_visible_attempt_names_no_budget_quantity_or_identity` | `test_exhaustion_cannot_bypass_controlled_failure_or_disclose_hidden_quota` |
+| Consumption is ordered, generation-fenced, settled once, and append-only | EBM-08 | `commit_participant_resource_reservation`, `release_participant_resource_reservation`, `iter_participant_resource_budget_event_violations`, history transition check | `test_accounting_matches_the_reference_state_machine` | `test_consumption_events_fail_closed_when_stale_future_or_unordered`, `test_pre_reset_reservation_cannot_settle_into_the_next_generation`, `test_each_reservation_settles_exactly_once`, `test_runtime_refuses_a_transition_that_drops_or_rewrites_budget_history` |
+| A reset clears only use owned by a crossed boundary | EBM-03 | `reconcile_participant_resource_budgets`, shared-clock reset | `test_coordinated_reset_clears_only_episode_and_segment_owned_use`, `test_accounting_matches_the_reference_state_machine` | `test_clock_reset_without_an_episode_reset_keeps_episode_owned_use` |
+| Participant-local budgets never count other owners' use | EBM-03 | `participant_resource_budget_owner_errors`, policy parent-graph validation | `test_aggregate_counter_cannot_nest_under_a_participant_local_budget` | `test_aggregate_counter_cannot_nest_under_a_participant_local_budget`, `test_participant_owned_budget_cannot_count_several_participants` |
+| Dimensions with incompatible meters never aggregate or admit | EBM-05 | policy parent-graph validation, `participant_resource_budget_gaps` | `test_admission_is_atomic_for_complete_vector_and_exact_meters` (issue #899: the six-kind vector admits against exactly matching pools); the turn and tool-use kinds and their positive fixture belong to DSL-121 (#308) | `test_incompatible_token_meters_never_aggregate_or_admit` |
+| A backend-local limit is not a portable budget exhaustion | EBM-09 | `iter_participant_resource_exhaustion_violations` | `test_backend_local_limit_cannot_pose_as_portable_budget_exhaustion` | `test_backend_local_limit_cannot_pose_as_portable_budget_exhaustion` |
+
+### SEM-223 nonclaims
+
+- SEM-223 adds no resource kind. The DSL-121 section below adds the step,
+  turn, tool-use, and logical-scenario time dimensions, and host watchdog time
+  is never a portable scenario-time quota.
+- Authors cannot select another limit effect. The reference runtime always
+  denies the attempt with `resource_exhausted`; throttling, truncation, and
+  interruption are not selectable effects.
+- The reference runtime does not roll a `windowed_counter` window inside a
+  generation. Its use resets only at the dimension's declared reset boundary.
+- No fairness, throughput, isolation, or operating-system enforcement claim
+  follows from these rules.
+
+## DSL-121 Interaction Budgets
+
+DSL-121 lets authors bound participant interaction with the same ADR-097
+dimensions. An interaction budget compiles into the canonical demand vector
+and is admitted, reserved, committed, exhausted, and reset like any other
+dimension; RAES, not the backend, measures logical time. There is no
+interaction-budget root, quota map, or `max_*` field: the closed policy and
+behavior-specification models reject them.
+
+The governed catalog adds four optional kinds. Each has one fixed unit and the
+accounting modes that fit it:
+
+| Interaction bound | `resource_kind` | Unit | Accounting modes | Meter |
+| --- | --- | --- | --- | --- |
+| Step | `interaction_steps` | `steps` | windowed or cumulative counter | the backend's step meter |
+| Turn | `interaction_turns` | `turns` | windowed or cumulative counter | the backend's turn meter |
+| Tool use | `tool_invocations` | `invocations` | windowed or cumulative counter | the backend's tool meter, scoped by `tool_affordance_refs` |
+| Logical time | `scenario_time` | `ticks` | cumulative counter | `raes.shared-time-ticks/v1`, metered by RAES |
+
+A token budget keeps using `inference_tokens`. Steps, turns, tool invocations,
+logical time, tokens, and action attempts are distinct kinds and units, so the
+parent graph, pool identity, and admission never let one stand in for another.
+A turn is not an action attempt: one turn may span several actions, and one
+action may take several turns. As for every dimension, the `reservation` is
+the most one attempt may use, and an attempt that measures more is not
+committed. A turn budget's reservation is therefore the most turns one action
+may take.
+
+- **Tool use.** A `tool_invocations` dimension must name one or more
+  `tool_affordance_refs`, and no other kind may. Each ref names a tool
+  affordance of the same behavior specification. The affordance is the authored
+  contract that makes an invocation of its tool equivalent to an attempt of its
+  action contracts. At least one of those actions must be dispatched by the
+  policy, and the dimension counts only the dispatched ones. Any other attempt
+  reserves zero from it, which keeps the measured vector complete. A zero
+  quantity never rejects or throttles. A child tool budget's affordances must
+  be within its parent's.
+- **Logical time.** A `scenario_time` dimension bounds the elapsed logical time
+  of the policy's governed shared clock under ADR-090. Its meter must be
+  `raes.shared-time-ticks/v1`, so a host or watchdog meter is rejected. RAES
+  meters it from the clock history, and no backend reports it. Elapsed time is
+  the ticks the clock advanced since the dimension's reset boundary: the latest
+  clock reset for `time_segment`, or clock initialization for `run`. A pause
+  adds no ticks, and a jump or replay opens a segment without adding ticks.
+- **Charging logical time.** Each admitted attempt reserves the ticks that
+  elapsed since the dimension was last charged plus its `reservation`
+  allowance. It commits the elapsed ticks with the clock-history cut as
+  evidence, so ticks between attempts count. Once less than the allowance
+  remains, every attempt is rejected as `resource_exhausted` until the boundary
+  resets. An `episode` or `reconciled` reset is rejected, because an episode
+  need not begin at a shared-clock boundary.
+- **Quota disclosure.** A quota stays hidden by default. The only way to make
+  one participant-visible is a `resource_budget` view rule on the policy's
+  observation boundary whose `information_ref` is the dimension's
+  `behavior_specifications.<spec>.autonomous_execution.resource_budget.dimensions.<id>`
+  ref. The class is sensitive, so exposure requires `disposition: disclosed`
+  and a `disclosure_rule`, and the ref must also be declared in `hidden_refs`.
+  Validation rejects such a ref in `observable_refs`, under another class, in a
+  view transition, or for a dimension governed through a different boundary.
+- **Disclosed amounts.** When a disclosed dimension rejects an attempt, the
+  rejected attempt's `observations` report the dimension ref, its used amount,
+  its authored limit, what remains under that limit, and the attempt's
+  requested amount. A shared pool smaller than the limit is backend
+  configuration, so no amount reveals it. Only the policy's own rejection of
+  that attempt is read. Otherwise the attempt reports no budget at all.
+
+Composition rewrites dimension refs in observation boundaries when a module is
+imported under a namespace, and validation accepts the namespaced refs.
+Validation and compilation resolve a tool scope with one shared rule. The
+`participant-resource-budget-policy-v1` contract can carry the scope: a
+`tool_invocations` demand requires `action_contract_refs`, the canonical action
+contract addresses, and other kinds forbid it. The reference compiler records
+the same addresses on the compiled runtime demand.
+
+### DSL-121 Traceability
+
+| Obligation | Invariant | Enforcement point | Positive test | Negative test |
+| --- | --- | --- | --- | --- |
+| Interaction budgets project into the canonical ADR-097 demand | EBM-04 | `raes_processor.compiler.participant_autonomous_execution` | `test_interaction_dimensions_compile_into_the_canonical_demand` | `test_parallel_limit_fields_cannot_bypass_the_resource_family` |
+| Step, turn, tool use, logical time, and tokens stay distinct, and watchdog time is not scenario time | EBM-05 | catalog quantity semantics, policy parent-graph validation | `test_interaction_dimensions_compile_into_the_canonical_demand`, `test_backend_must_declare_each_interaction_kind_it_admits` | `test_interaction_dimensions_are_distinct_governed_kinds`, `test_scenario_time_contracts_must_meter_shared_time` |
+| Logical time is elapsed shared-clock time that RAES meters | EBM-05 | `participant_resource_scenario_time`, scheduler admission | `test_scenario_time_is_metered_from_the_shared_clock`, `test_scenario_time_elapses_only_while_the_shared_clock_advances` | `test_interaction_dimensions_are_distinct_governed_kinds` |
+| A tool-use budget binds exact tool affordances and counts only their dispatched actions | EBM-05 | `tool_affordance_action_contracts`, `participant_resource_budget_scope_errors`, `action_resource_quantities` | `test_tool_scoped_dimension_reserves_only_for_its_tool_actions`, `test_published_policy_contract_carries_the_tool_scope_and_time_basis` | `test_tool_use_budget_binds_exact_tool_affordances`, `test_only_tool_use_budgets_carry_a_tool_scope` |
+| A quota is participant-visible only through an explicit view rule | EBM-07 | `resource_budget` view rules, `disclosed_resource_budget_refs`, rejected-attempt disclosure | `test_quota_is_participant_visible_only_through_an_explicit_view_rule`, `test_quota_disclosure_compiles_onto_the_disclosed_dimension_only` | `test_quota_cannot_be_exposed_without_an_explicit_view_rule`, `test_quota_disclosure_requires_a_disclosure_rule`, `test_disclosure_reports_only_this_policys_rejection_against_the_authored_limit` |
+| The authored surface rejects unknown fields and variable-created keys, and composition keeps its refs bound | EBM-04 | closed SDL models, parser, composition, validation | `test_imported_quota_disclosure_follows_the_namespaced_behavior_specification` | `test_interaction_budget_keys_cannot_come_from_variables`, `test_parallel_limit_fields_cannot_bypass_the_resource_family`, `test_imported_quota_stays_hidden_unless_disclosed` |
+
+### DSL-121 nonclaims
+
+- The reference runtime enforces DSL-121 dimensions only on the v3 autonomous
+  profile; it does not realize the ACT-624 aggregate budgets described below.
+- Steps, turns, and tool invocations are counted by the backend's native
+  measurement vector under the declared meter. RAES checks each measurement's
+  identity, kind, unit, meter, and bound, not the native count.
+- Logical time is relative to a shared-clock reset or to the run. No
+  episode-relative logical-time budget is defined.
+- Disclosure reports the quota of a rejecting dimension in the rejected
+  attempt. No other participant view reports quota usage.
+- The reference implementation does not publish a
+  `participant-resource-budget-policy-v1` document from a compiled scenario.
+
+## ACT-624 Interaction Budgets As A First-Class Member
+
+ACT-624 makes an interaction budget a member of the participant behavior
+specification aggregate, so any participant kind can carry one, not only the
+autonomous profile. `behavior_specifications.<spec>.resource_budget` has the
+ADR-097 policy shape: owners, fairness, and dimensions. It is the same budget
+family, not a second root, and it compiles into the same canonical owner,
+demand, and fairness IR as a v3 budget.
+
+- **Attachment.** The budget governs every action attempt of every participant
+  the specification selects, for every `behavior_mode` and for a specification
+  without one. The selection is the compiler's: the `participant_refs` and
+  every participant whose effective role is one of the `participant_role_refs`.
+  A budget alone satisfies the aggregate's behavior-surface rule. A
+  specification with an autonomous execution profile declares its budget as
+  the v3 `autonomous_execution.resource_budget` instead. Validation rejects a
+  participant that more than one budget-carrying specification selects,
+  whether each budget is a v3 or an aggregate budget, so no attempt is governed
+  twice.
+- **Dimensions.** An aggregate budget bounds only the dimensions it declares;
+  unlike the v3 profile, it needs no complete resource vector. Its dimensions
+  use the DSL-121 catalog and rules, so action rate, steps, turns, logical
+  time, tokens, and tool use stay distinct kinds. A tool dimension counts the
+  actions its tool affordances bind among the specification's actions.
+- **Clock basis.** A dimension that counts scenario time, resets per time
+  segment, or uses a window counts ticks of `clock_ref`, which must name a
+  declared clock. `clock_ref` is required exactly when such a dimension exists.
+  Reset boundaries keep their SEM-223 meaning: `episode` is the governed
+  participant's ADR-013 episode, `time_segment` is a reset of `clock_ref`, and
+  `run` is the run.
+- **Owners and fairness.** The SEM-223 owner rules apply unchanged. A
+  participant-owned dimension is participant-local only when the
+  specification governs exactly one participant, counting the participants its
+  roles select (EBM-03). Validation applies the same selection to v3 budgets.
+  Fairness, priority, borrowing, reclaim, and starvation bounds stay the
+  budget's explicit ADR-097 obligations; a participant's role never implies a
+  priority.
+- **Disclosure.** An aggregate budget's quotas stay hidden. The DSL-121 view
+  rule discloses only autonomous v3 dimensions.
+
+A backend declares support in its `participant_runtime` capability root with
+the evidence-required `interaction_budgets` behavior feature, its
+`feature_support` entry, and `resource_budgets` capabilities. Declaring budget
+capabilities no longer requires autonomous execution support when the feature
+is declared. Planner admission refuses an aggregate budget unless the backend
+declares the feature, then admits each budget the way it admits a v3 budget.
+A pool that a v3 policy shares with an aggregate budget is checked against the
+limits of both.
+
+A declaration is not proof of enforcement (EBM-09). The feature declares
+support, configured pools declare capacity, budget state records availability,
+and commit events record measured use; none stands in for another.
+`participant_interaction_budget_conformance_diagnostics` reads recorded
+evidence. Each terminal attempt of a governed participant must carry the
+budget's admission: a `reserve` event on every compiled dimension, or a
+`reject` or `throttle` event on one of them. Each realized budget state must
+keep its compiled dimension's kind, unit, accounting mode, meter, limit, and
+reset. Validation lets at most one budget govern a participant. If the
+budgets given to conformance overlap anyway, it checks each attempt against
+every budget that governs the participant, and a refusal by any of them stands
+for all.
+
+The reference runtime enforces budgets through autonomous v3 policies and does
+not realize an aggregate budget itself. Its control plane refuses a manual
+action of a governed participant unless the backend declares
+`interaction_budgets`, so a manual submission cannot bypass an aggregate budget
+that nothing realizes. A declaring backend realizes the budget, and
+conformance checks the evidence it records.
+
+### ACT-624 Traceability
+
+| Obligation | Invariant | Enforcement point | Positive test | Negative test |
+| --- | --- | --- | --- | --- |
+| An interaction budget is a member of the behavior specification aggregate for every participant kind | EBM-04 | `ParticipantBehaviorSpecification.resource_budget`, `compile_participant_interaction_budget` | `test_interaction_budget_is_a_member_of_every_participant_kind_aggregate`, `test_interaction_budget_alone_satisfies_the_behavior_aggregate`, `test_aggregate_budget_projects_into_the_canonical_demand` | `test_the_autonomous_profile_cannot_also_carry_an_aggregate_budget`, `test_backend_with_autonomy_only_budget_support_refuses_the_aggregate_budget` |
+| A participant-local aggregate budget never counts another participant's use | EBM-03 | `participant_resource_budget_owner_errors` | `test_aggregate_budget_projects_into_the_canonical_demand` | `test_aggregate_budget_refs_resolve_inside_its_specification` |
+| An attempt has one governing budget | EBM-04 | `participant_resource_budget_owner_errors`, `participant_interaction_budget_conformance_diagnostics` | `test_specifications_of_different_participants_each_carry_a_budget` | `test_a_participant_is_governed_by_at_most_one_budget`, `test_each_attempt_is_checked_against_every_governing_budget` |
+| Interaction dimensions stay distinct governed kinds that planner admission checks | EBM-05 | `ParticipantInteractionBudget`, `participant_interaction_budget_gaps` | `test_aggregate_budget_bounds_only_the_dimensions_it_declares`, `test_backend_with_autonomy_only_budget_support_refuses_the_aggregate_budget` | `test_aggregate_budget_counts_ticks_on_exactly_one_declared_clock`, `test_backend_must_declare_each_interaction_kind_the_aggregate_budget_uses`, `test_shared_pool_capacity_is_admitted_across_autonomous_and_aggregate_budgets` |
+| Backend support is an evidence-bound declaration, and enforcement is checked as recorded evidence | EBM-09 | `interaction_budgets` behavior feature, planner admission, `participant_interaction_budget_conformance_diagnostics`, manual submission admission | `test_backend_declares_interaction_budgets_with_budget_capabilities`, `test_governed_attempts_must_carry_interaction_budget_admission` | `test_interaction_budget_declaration_is_complete_and_evidence_bound`, `test_planner_admits_an_aggregate_budget_only_for_a_declaring_backend`, `test_realized_evidence_cannot_contradict_the_compiled_budget`, `test_reference_control_plane_refuses_a_manual_bypass_of_an_unrealized_budget` |
+| Composition keeps an aggregate budget's refs bound | EBM-04 | composition, `participant_resource_budget_scope_errors` | `test_imported_aggregate_budget_keeps_its_clock_and_owner_refs_bound` | `test_aggregate_budget_refs_resolve_inside_its_specification` |
+
+### ACT-624 nonclaims
+
+- The reference runtime does not reserve, commit, reset, or reconcile an
+  aggregate budget. Its v3 autonomous enforcement is unchanged.
+- Conformance reads recorded evidence only. It does not check a backend's
+  native counts, and a clean result is not proof of enforcement.
+- No participant view discloses an aggregate budget's quota.
+- No fairness, throughput, isolation, or operating-system enforcement claim
+  follows from these rules.
 
 ## Bounded Action Guarantees (ACT-614)
 
@@ -360,10 +686,11 @@ explicit pacing-deviation evidence reference; it is never silently treated as
 successful timing.
 
 V3 reset reconciles outstanding reservations before advancing the execution
-generation. A `time_segment` boundary clears only dimensions owned by that
-boundary. Tenant, shared-service, fleet, and persistent storage use survive
-participant or segment reset unless their own declared reset/reconciliation
-rule applies. Execution-service resource refs name the authoritative budget
+generation. A shared-clock reset clears only dimensions owned by a boundary it
+crosses: `time_segment` always, and `episode` when it reset the bound episodes
+(see SEM-223 above). Tenant, shared-service, fleet, and persistent storage use
+survive participant or segment reset unless their own declared
+reset/reconciliation rule applies. Execution-service resource refs name the authoritative budget
 states; its concurrency capacity, reservation, and in-flight projection must
 equal the referenced concurrent-action state.
 
@@ -472,4 +799,8 @@ implementation, native adapter, targets, evidence, and readback faithfully
 materialize a scenario. V3 additionally covers canonical legacy projection,
 atomic multi-resource admission and reservation, typed runtime state/events,
 generation-fenced settlement and reset reconciliation, durable/control-plane
-projection, and cross-range isolation rejection.
+projection, and cross-range isolation rejection. SEM-223 additionally covers
+derived exhaustion, typed rejection versus throttling, undispatched
+`resource_exhausted` attempts, exactly-once settlement within the reserving
+generation, episode-boundary reconciliation, participant-local owner rules, and
+the runtime and conformance checks listed in its traceability table.

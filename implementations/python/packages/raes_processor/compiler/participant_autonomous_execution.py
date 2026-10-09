@@ -2,6 +2,7 @@
 
 from typing import Any
 
+from raes.participant_resource_budgets import dispatched_action_contracts, resource_budget_dimension_reference
 from raes.scenario import InstantiatedScenario
 
 from ..models import (
@@ -16,37 +17,13 @@ from .addresses import (
     _behavior_specification_address,
     _objective_address,
     _observation_boundary_address,
-    _resolve_node_service_ref,
     _section_ref_name,
 )
 from .alias_index import _runtime_addressable_ref_index, _runtime_addresses_for_refs
+from .participant_resource_budget_projection import ProjectedResourceBudget, project_resource_budget
+from .participant_resource_scopes import disclosed_budget_refs
 from .participant_temporal import compile_participant_temporal_bindings
 from .support import _address, _dump
-
-
-def _resource_owner_address(
-    scenario: InstantiatedScenario,
-    *,
-    kind: str,
-    ref: str,
-    participant_addresses: tuple[str, ...],
-) -> str:
-    if kind == "participant":
-        matching = tuple(address for address in participant_addresses if address.endswith(f".{ref}"))
-        if len(matching) != 1:
-            raise ValueError("participant resource owner must resolve to one policy participant")
-        address = matching[0]
-    elif kind == "deployment_tenant":
-        name = _section_ref_name(ref, "deployment_tenants", scenario.deployment_tenants)
-        address = _address("deployment", "tenant", name)
-    elif kind == "shared_service":
-        resolved = _resolve_node_service_ref(scenario, ref)
-        if resolved is None:
-            raise ValueError("shared-service resource owner must resolve to one node service")
-        address = _address("provision", "node", resolved[0], "service", resolved[1])
-    else:
-        address = ref
-    return address
 
 
 def _legacy_resource_demands(
@@ -99,66 +76,30 @@ def _legacy_resource_demands(
     return (owner,), demands, ParticipantResourceFairnessRuntime()
 
 
+def _disclosure_reference(spec_name: str, budget_id: str, disclosed: frozenset[str]) -> str | None:
+    reference = resource_budget_dimension_reference(spec_name, budget_id)
+    return reference if reference in disclosed else None
+
+
 def _compiled_resource_budget(
     scenario: InstantiatedScenario,
     policy: object,
     participant_addresses: tuple[str, ...],
-) -> tuple[
-    tuple[ParticipantResourceOwnerRuntime, ...],
-    tuple[ParticipantResourceDemandRuntime, ...],
-    ParticipantResourceFairnessRuntime,
-]:
+    *,
+    spec_name: str,
+    behavior_spec: object,
+) -> ProjectedResourceBudget:
     authored = getattr(policy, "resource_budget", None)
     if authored is None:
         return _legacy_resource_demands(policy, participant_addresses)
-    owners = tuple(
-        ParticipantResourceOwnerRuntime(
-            owner_id=str(owner_id),
-            kind=owner.kind.value,
-            address=_resource_owner_address(
-                scenario,
-                kind=owner.kind.value,
-                ref=owner.ref,
-                participant_addresses=participant_addresses,
-            ),
-        )
-        for owner_id, owner in sorted(authored.owners.items())
-    )
-    owner_by_id = {owner.owner_id: owner for owner in owners}
-    demands = tuple(
-        ParticipantResourceDemandRuntime(
-            budget_id=str(budget_id),
-            owner_id=str(dimension.owner_ref),
-            owner_kind=owner_by_id[str(dimension.owner_ref)].kind,
-            owner_address=owner_by_id[str(dimension.owner_ref)].address,
-            pool_ref=dimension.pool_ref,
-            resource_kind=getattr(dimension.resource_kind, "value", dimension.resource_kind),
-            unit=dimension.unit,
-            accounting_mode=dimension.accounting_mode.value,
-            meter_profile_ref=dimension.meter_profile_ref,
-            limit=dimension.limit,
-            reservation=dimension.reservation,
-            reset=dimension.reset.value,
-            window_ticks=dimension.window_ticks,
-            parent_budget_ref=(str(dimension.parent_budget_ref) if dimension.parent_budget_ref is not None else None),
-            evidence_refs=tuple(dimension.evidence_refs),
-        )
-        for budget_id, dimension in sorted(authored.dimensions.items())
-    )
-    fairness = authored.fairness
-    return (
-        owners,
-        demands,
-        ParticipantResourceFairnessRuntime(
-            policy=fairness.policy,
-            priority_class=fairness.priority_class,
-            weight=fairness.weight,
-            protected=fairness.protected,
-            borrowing=fairness.borrowing,
-            reclaim=fairness.reclaim,
-            max_queue_ticks=fairness.max_queue_ticks,
-            starvation_bound_ticks=fairness.starvation_bound_ticks,
-        ),
+    disclosed = disclosed_budget_refs(scenario, policy)
+    return project_resource_budget(
+        scenario,
+        authored,
+        participant_addresses,
+        behavior_spec=behavior_spec,
+        governed_actions=dispatched_action_contracts(policy, scenario.action_contracts),
+        disclosure_reference=lambda budget_id: _disclosure_reference(spec_name, budget_id, disclosed),
     )
 
 
@@ -357,6 +298,8 @@ def _compile_autonomous_execution(
         scenario,
         policy,
         participant_addresses,
+        spec_name=spec_name,
+        behavior_spec=behavior_spec,
     )
     return ParticipantAutonomousExecutionRuntime(
         address=address,
