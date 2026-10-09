@@ -6,7 +6,7 @@ type: NON_FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-05-18T04:25:47.598518Z
-updated_at: 2026-08-19T00:00:00Z
+updated_at: 2026-10-09T00:00:00Z
 ---
 
 # ASR-532 — Runtime Backend Result Integrity
@@ -190,3 +190,5 @@ requirement.
 - TESTS → TEST `implementations/python/tests/test_runtime_manager.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/profile_selections.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1208_profile_boundaries.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_scheduler_initialization.py` (Autonomous participant episode initialization invoked through the backend call gate with participant effect authority)
+- TESTS → TEST `implementations/python/tests/test_issue_1439_participant_initialize_gate.py` (Episode initialization that writes its snapshot argument or drops accepted entries is refused and commits neither change; honest initialization is admitted)
