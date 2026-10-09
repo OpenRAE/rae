@@ -90,7 +90,8 @@ each part means.
 - **Pack authors:** Use
   [OpenRAE/env-packs](https://github.com/OpenRAE/env-packs) for environment
   pack structure, templates, and authoring and validation tools. A pack carries
-  RAES SDL scenarios. RAES remains the authority for what that SDL means.
+  RAES SDL scenarios. RAES remains authoritative for the SDL, concept, and
+  reusable-asset trust-policy meanings a pack relies on.
 - **Python users:** Use the
   [Python guide](https://openrae.github.io/rae/guides/python.html) and
   [API reference](https://openrae.github.io/rae/api/).
