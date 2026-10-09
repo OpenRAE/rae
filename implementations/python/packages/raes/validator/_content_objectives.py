@@ -51,9 +51,6 @@ _OBJECTIVE_ISSUE_RENDERERS = {
             f"{eligible_element(ReferencePurpose.OBJECTIVE_SUBJECT)}"
         )
     ),
-    "objective.target-ambiguous": (
-        lambda i: f"Objective '{i.objective_name}' target '{i.ref}' is ambiguous; use one of: {', '.join(i.candidates)}"
-    ),
     "objective.success-assertion-undeclared": (
         lambda i: f"Objective '{i.objective_name}' references undefined assertion '{i.ref}' in success criteria"
     ),
@@ -465,10 +462,17 @@ class _ContentObjectivesMixin:
             is_unresolved=self._is_unresolved_var,
         )
         for issue in analysis.issues:
-            message = self._format_objective_issue(issue)
-            if issue.code == "objective.target-unresolvable":
-                message += self._ineligible_detail(issue.ref)
-            self._err(message)
+            self._err(self._objective_issue_message(issue))
+
+    def _objective_issue_message(self, issue: ObjectiveIssue) -> str:
+        """Render an objective issue, naming what the objective-subject purpose refuses."""
+
+        if issue.code == "objective.target-ambiguous":
+            choices = self._ambiguity_choices(issue.candidates, ReferencePurpose.OBJECTIVE_SUBJECT)
+            return f"Objective '{issue.objective_name}' target '{issue.ref}' is ambiguous; use one of: {choices}"
+        message = self._format_objective_issue(issue)
+        unresolvable = issue.code == "objective.target-unresolvable"
+        return f"{message}{self._ineligible_detail(issue.ref)}" if unresolvable else message
 
     @staticmethod
     def _format_objective_issue(issue: ObjectiveIssue) -> str:

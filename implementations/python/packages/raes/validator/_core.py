@@ -3,6 +3,8 @@
 Part of the SemanticValidator mixin composition; see __init__.py.
 """
 
+from collections.abc import Iterable
+
 from .._base import is_variable_ref
 from .._declarations import DeclarationIndex, build_declaration_index, operating_scope_aliases
 from .._errors import SDLValidationError
@@ -102,6 +104,15 @@ class _ValidatorCore:
         declared = sorted(self._named_ref_index().get(ref, ()))
         return f"; it names {', '.join(declared)}" if declared else ""
 
+    def _ambiguity_choices(self, candidates: Iterable[str], purpose: ReferencePurpose) -> str:
+        """List an ambiguous reference's eligible candidates, then those that *purpose* refuses."""
+
+        named = set(candidates)
+        eligible = self._require_declaration_index().eligible(named, purpose)
+        refused = sorted(named - eligible)
+        detail = f"; not eligible as {PURPOSE_LABELS[purpose]}: {', '.join(refused)}" if refused else ""
+        return f"{', '.join(sorted(eligible))}{detail}"
+
     def _operating_scope_ref_index(self) -> dict[str, set[str]]:
         """Build the alias map for ACT-601 ``Agent.operating_scope``.
 
@@ -145,7 +156,7 @@ class _ValidatorCore:
             return
 
         if len(candidates) > 1:
-            choices = ", ".join(sorted(candidates))
+            choices = self._ambiguity_choices(candidates, purpose)
             self._err(f"{owner_label} {ref_label} '{ref}' is ambiguous; use one of: {choices}")
 
     def validate(self) -> None:

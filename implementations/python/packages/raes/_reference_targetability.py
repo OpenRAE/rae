@@ -131,7 +131,9 @@ DECLARATION_CATEGORIES: Mapping[str, DeclarationCategory] = _classify(
     }
 )
 
-# Indexed only to detect canonical-address collisions; no reference field names them.
+# Indexed to detect canonical-address collisions and eligible for no purpose; the
+# fields that name node roles, workflow steps, or outcome interpretation rules
+# resolve them directly.
 UNREFERENCEABLE_KINDS = frozenset({"scenario", "node-role", "workflow-step", "outcome_interpretation_rules"})
 
 _WORLD = frozenset({_C.PARTICIPANT, _C.ORGANIZATION, _C.RESOURCE, _C.RELATIONSHIP})
