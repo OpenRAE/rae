@@ -101,7 +101,14 @@ def _rewrite_tool_affordance(
     symbols: dict[str, dict[str, str] | set[str]],
 ) -> None:
     if binding.get("tool_ref"):
-        binding["tool_ref"] = _maybe_rename(str(binding["tool_ref"]), symbols["content"])
+        tool_ref = str(binding["tool_ref"])
+        # Bare content names keep the content map, so a unit name that another
+        # section shares still binds the content. Other spellings, such as
+        # content.<name>, resolve through the named map.
+        content_symbols = symbols["content"]
+        binding["tool_ref"] = _maybe_rename(
+            tool_ref, content_symbols if tool_ref in content_symbols else symbols["named"]
+        )
     binding["action_contract_refs"] = [
         _maybe_rename(name, symbols["action_contracts"]) for name in binding.get("action_contract_refs", [])
     ]
