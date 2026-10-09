@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -67,6 +68,16 @@ LOCAL_DIRECTIVE_PATTERNS = (
     ),
     re.compile(r"\{download\}`(?:[^`<]*<)?([^>`]+)>?`", re.IGNORECASE),
 )
+# Directory names and file names that only ever hold internal records.
+INTERNAL_RECORD_DIRECTORIES = frozenset({"adrs", "decisions", "development"})
+ADR_FILENAME = re.compile(r"adr-\d{3,}-", re.IGNORECASE)
+# Markdown inline links and images, then reference-style link definitions.
+MARKDOWN_LINK_PATTERNS = (
+    re.compile(r"\]\(\s*<?([^)\s>]+)"),
+    re.compile(r"^[ \t]*\[(?!\^)[^\]\n]+\]:[ \t]*<?([^\s>]+)", re.MULTILINE),
+)
+# Sphinx copies download and image targets here, even from outside the source root.
+PUBLISHED_ASSET_DIRECTORIES = ("_downloads", "_images")
 
 
 def _public_path(repo_root: Path) -> Path | None:
@@ -226,6 +237,65 @@ def evaluate_public_sources(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
     return sorted(failures, key=lambda failure: (failure.path or "", failure.rule_id))
 
 
+def _is_internal_record(relative: Path) -> bool:
+    if INTERNAL_RECORD_DIRECTORIES.intersection(relative.parts[:-1]):
+        return True
+    return relative.suffix.casefold() in SOURCE_SUFFIXES and ADR_FILENAME.match(relative.name) is not None
+
+
+def _bounded_text(source: Path) -> str:
+    # evaluate_public_sources reports oversized or unreadable sources.
+    try:
+        if source.stat().st_size > MAX_SOURCE_BYTES:
+            return ""
+        return source.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return ""
+
+
+def _escaping_link_targets(public_root: Path, source: Path) -> list[str]:
+    text = _bounded_text(source)
+    return [
+        match.group(1)
+        for pattern in MARKDOWN_LINK_PATTERNS
+        for match in pattern.finditer(text)
+        if not _target_is_contained(public_root, source, match.group(1))
+    ]
+
+
+def evaluate_public_boundary(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
+    """Return failures for internal records under docs/public and Markdown links that escape it.
+
+    A Markdown link to a file outside the source root that is not a page passes
+    the warning-strict build: Sphinx copies the file into ``_downloads/`` and
+    publishes it. evaluate_public_sources reports a missing root.
+    """
+
+    public_root = _public_path(repo_root)
+    if public_root is None or not public_root.is_dir():
+        return []
+    failures = [
+        PolicyFailure(
+            "public-docs-internal-record",
+            "decision records and development notes must stay outside docs/public",
+            _relative(repo_root, path),
+        )
+        for path in sorted(public_root.rglob("*"))
+        if path.is_file() and _is_internal_record(path.relative_to(public_root))
+    ]
+    failures.extend(
+        PolicyFailure(
+            "public-docs-link-escape",
+            f"link target {target!r} resolves outside docs/public; link repository files by absolute URL",
+            _relative(repo_root, source),
+        )
+        for source in _source_paths(public_root)
+        if source.suffix.casefold() == ".md"
+        for target in _escaping_link_targets(public_root, source)
+    )
+    return failures
+
+
 def _search_docnames(search_index_path: Path) -> set[str]:
     if not search_index_path.is_file() or search_index_path.stat().st_size > MAX_INDEX_BYTES:
         raise ValueError("searchindex.js is missing or exceeds the inspection limit")
@@ -371,15 +441,45 @@ def evaluate_public_output(repo_root: Path, output_root: Path) -> list[PolicyFai
     return failures
 
 
+def _file_digest(path: Path) -> str:
+    with path.open("rb") as handle:
+        return hashlib.file_digest(handle, "sha256").hexdigest()
+
+
+def evaluate_published_assets(repo_root: Path, output_root: Path) -> list[PolicyFailure]:
+    """Return failures when a published download or image is not a copy of a docs/public file."""
+
+    public_root = _public_path(repo_root)
+    if public_root is None or not public_root.is_dir():
+        return []
+    resolved_output = output_root.resolve()
+    public_digests = {
+        _file_digest(path)
+        for path in public_root.rglob("*")
+        if path.is_file() and not path.is_symlink() and resolved_output not in path.resolve().parents
+    }
+    return [
+        PolicyFailure(
+            "public-docs-output-asset",
+            "published download or image has no byte-identical source beneath docs/public",
+            asset.relative_to(output_root).as_posix(),
+        )
+        for directory in PUBLISHED_ASSET_DIRECTORIES
+        for asset in sorted((output_root / directory).rglob("*"))
+        if asset.is_file() and _file_digest(asset) not in public_digests
+    ]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, help="Also validate a generated Sphinx HTML directory.")
     parser.add_argument("--json", action="store_true", help="Emit failures as JSON.")
     args = parser.parse_args()
 
-    failures = evaluate_public_sources(REPO_ROOT)
+    failures = [*evaluate_public_sources(REPO_ROOT), *evaluate_public_boundary(REPO_ROOT)]
     if not failures and args.output is not None:
         failures.extend(evaluate_public_output(REPO_ROOT, args.output))
+        failures.extend(evaluate_published_assets(REPO_ROOT, args.output))
     if args.json:
         print(failures_to_json(failures))
     else:
