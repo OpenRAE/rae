@@ -42,6 +42,7 @@ LOCAL_AFFORDANCE = f"{SPEC_ADDRESS}{LOCAL}.tool-affordance.{SHARED}"
 OPERATOR = "participant.behavior.operator"
 AUDITOR = "participant.behavior.auditor"
 IMPORTED_SCAN = "participant.action-contract.alpha.scan"
+IMPORTED_TOOLS = [f"provision.content.{namespace}.scanner-package" for namespace in NAMESPACES]
 
 
 def _rewritten(source: Path, edits: tuple[tuple[str, str], ...]) -> str:
@@ -77,6 +78,13 @@ def _access(participant) -> list[tuple[str, str, str, str]]:
     ]
 
 
+def _imported_tool_addresses(model) -> list[str]:
+    return [
+        model.tool_affordances[f"{SPEC_ADDRESS}{namespace}.{REUSABLE}.tool-affordance.network-scanner"].tool_address
+        for namespace in NAMESPACES
+    ]
+
+
 @pytest.mark.parametrize(
     ("document", "prefix"),
     [(UNIT, ""), (ROOT, "alpha."), (ROOT, "bravo.")],
@@ -103,12 +111,23 @@ def test_reusable_tool_bindings_resolve_inside_their_own_namespace(document: Pat
 def test_imported_affordance_keeps_its_own_tool_when_the_importer_declares_the_same_name(tmp_path: Path, tool_ref: str):
     model = compile_runtime_model(_parse_pair(tmp_path, unit_edits=(_tool_ref_edit("scanner-package", tool_ref),)))
 
-    bound_tools = [
-        model.tool_affordances[f"{SPEC_ADDRESS}{namespace}.{REUSABLE}.tool-affordance.network-scanner"].tool_address
-        for namespace in NAMESPACES
-    ]
-    assert bound_tools == [f"provision.content.{namespace}.scanner-package" for namespace in NAMESPACES]
+    assert _imported_tool_addresses(model) == IMPORTED_TOOLS
     assert model.tool_affordances[LOCAL_AFFORDANCE].tool_address == "provision.content.alpha.scanner-package"
+
+
+def test_bare_tool_ref_keeps_its_content_binding_when_a_private_unit_declaration_shares_the_name(tmp_path: Path):
+    """The unit alone rejects the ambiguous bare ref; composition keeps the binding it had before #298."""
+
+    shared_name = (
+        "\nbehavior_specifications:\n",
+        "\nrelationships:\n  scanner-package: {type: connects_to, source: web, target: lan}\nbehavior_specifications:\n",
+    )
+    with pytest.raises(SDLValidationError, match="tool_ref 'scanner-package' is ambiguous"):
+        parse_sdl(_rewritten(UNIT, (shared_name,)))
+
+    model = compile_runtime_model(_parse_pair(tmp_path, unit_edits=(shared_name,)))
+
+    assert _imported_tool_addresses(model) == IMPORTED_TOOLS
 
 
 @pytest.mark.parametrize(

@@ -28,8 +28,9 @@ Primary-source refresh shows that tool-using participants require an explicit au
   `contracts/schemas/sdl/sdl-authoring-input-v1.json` is closed. Validator:
   `raes/validator/_participant_tool_affordances.py` resolves `tool_ref` through
   the declaration index and requires a content declaration. Composition:
-  `raes/composition/_behavior.py` namespaces bare and section-qualified
-  `tool_ref` values with the import's symbols. Compiler:
+  `raes/composition/_behavior.py` namespaces a bare content name through the
+  import's content symbols and any other spelling, such as `content.<name>`,
+  through its named symbols. Compiler:
   `raes_processor/compiler/participant_behaviors.py` emits the resolved
   `provision.content.<name>` address.
 - Affordances: `behavior_specifications.<spec>.tool_affordances.<id>` binds
@@ -86,12 +87,13 @@ as `content.scanner-package` was not rewritten. In composition, the imported
 affordance bound the importing scenario's content of the same name, or failed
 when there was none. In rename, renaming that content was refused with
 `artifact-transformation.target-invalid`, because the ref kept the old name.
-`raes/composition/_behavior.py` now rewrites `tool_ref` through the named
-symbols, as the validator resolves it through the declaration index. The
-composed affordance binds the unit's own content, and the rename rewrites the
-ref to `content.<new-name>`. Bare refs are rewritten as before. A `tool_ref`
-that names a non-content declaration of the unit now gets the same diagnostic
-as in the standalone unit.
+`raes/composition/_behavior.py` now rewrites any `tool_ref` other than a bare
+content name through the named symbols, as the validator resolves it through
+the declaration index. The composed affordance binds the unit's own content,
+and the rename rewrites the ref to `content.<new-name>`. A bare content name
+keeps the content symbols, so it is rewritten as before, even when another
+section of the unit uses the same name. A `tool_ref` that names a non-content
+declaration of the unit now gets the same diagnostic as in the standalone unit.
 
 Residual boundaries:
 
@@ -130,7 +132,7 @@ Residual boundaries:
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/sections.md` (Tool affordance and interactive-access authoring reference)
 - DOCUMENTS → SPEC `specs/formal/participant-semantics/README.md` (SEM-219 predicates and the DSL-117 interactive-access specialization)
 - DOCUMENTS → GITHUB_ISSUE `298` (Verify participant tool authoring across composition and compilation)
-- TESTS → TEST `implementations/python/tests/test_issue_298_tool_authoring.py` (Standalone, twice-imported and local tool bindings through composition, compilation and runtime admission)
+- TESTS → TEST `implementations/python/tests/test_issue_298_tool_authoring.py` (Standalone, twice-imported and local tool bindings through composition, declaration rename, compilation and runtime admission)
 - TESTS → TEST `implementations/python/tests/fixtures/tool-authoring/scanner-toolkit.sdl.yaml` (Reusable tool unit that is also a valid standalone scenario)
 - TESTS → TEST `implementations/python/tests/fixtures/tool-authoring/operator-console.sdl.yaml` (Two namespaced imports of one tool unit and a local tool affordance)
 - TESTS → TEST `implementations/python/tests/test_sem_208_participant_behavior.py` (Single-file tool affordance parsing, validation, visibility and compilation)
