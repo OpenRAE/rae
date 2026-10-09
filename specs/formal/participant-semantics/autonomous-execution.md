@@ -101,6 +101,139 @@ V1 and v2 limits compile into the same canonical demand representation with
 `legacy_maximum` provenance. They do not acquire v3 capacity, fairness,
 isolation, or runtime-accounting requirements.
 
+## SEM-223 Budget Consumption, Exhaustion, And Limit Effects
+
+SEM-223 gives the v3 resource budget its interaction-level meaning. It follows
+the FM3 state machine in `specs/formal/participant-episode-model/README.md`
+(transitions T2 and T7 to T11). It reuses the ADR-097 budget family and the
+SEM-211 `resource` precondition class and `resource_exhausted` failure class.
+It adds no budget root, quota map, failure taxonomy, resource kind, or schema.
+
+### Semantic coordinates
+
+- **Participant scope.** Every dimension has exactly one typed owner. The
+  policy reserves one vector for every action of every participant it governs,
+  so a participant-owned dimension is participant-local only when the behavior
+  specification governs exactly one participant. The governed participants are
+  the agents named in `participant_refs` plus every agent whose effective role
+  is in `participant_role_refs`. A participant owner on a behavior
+  specification that governs several participants is rejected as a
+  policy-wide counter presented as participant-local state. Shared counters use
+  deployment-tenant, shared-service, or fleet owners. A participant-owned
+  dimension may aggregate into a parent of another owner kind, but no other
+  owner's dimension may aggregate into a participant-owned parent.
+- **Resource domain.** Kind, unit, accounting mode, and meter profile identify
+  a dimension. Dimensions that differ in any of them never aggregate through
+  the parent graph, never share a physical pool ledger, and never admit against
+  each other's configured capacity. A native measurement with a different meter
+  is untrusted, so the reservation is released rather than committed.
+- **Observation point.** Consumption is decided at the scheduler's pre-dispatch
+  admission point for one governed attempt, before the native adapter is
+  called. It is settled at that attempt's terminal native result.
+- **Consumption event.** A commit records the exact measured vector, bounded
+  by the reservation, with native evidence refs. Every reserve, commit,
+  release, throttle, reject, and reconcile is an append-only event fenced to
+  its execution generation.
+- **Exhaustion condition.** For dimension \(d\),
+  \(rem(d) = \min(limit, configuredCapacity) - used(d) - reserved(d)\), where
+  \(used(d)\) is cumulative committed use for counter modes and current use for
+  gauge and lease modes. The dimension is exhausted while \(rem(d) \le 0\).
+  Exhaustion is derived from budget state; no carrier stores it as a flag. A
+  committed measurement leaves the dimension open while \(rem(d) > 0\), so it
+  supports repeated reserve and commit cycles.
+- **Failure and effect class.** A reservation whose quantity exceeds
+  \(rem(d)\) on any dimension is a `reject` event and changes nothing else
+  (T10). Every dimension's logical budget is checked before any shared pool,
+  so the disposition does not depend on the order of the vector. The attempt
+  then fails through SEM-211 (T11): the scheduler records an undispatched
+  `rejected` attempt whose only precondition is the unsatisfied `resource`
+  precondition `participant-resource-budget`, with the `resource_exhausted`
+  failure class. Like the ACT-614 shared-time pre-dispatch rejection, the
+  attempt reports only the runtime-owned precondition that failed, because the
+  action's authored preconditions were never evaluated. The `reject` event and
+  the attempt commit together: if the attempt cannot be committed, the
+  scheduler keeps neither. The policy's failure disposition settles the
+  attempt: `continue` consumes it and keeps scheduling, and `stop` fails the
+  scheduler. For an action bound to shared time, the rejected attempt carries
+  no temporal assessment, so the ACT-614 rule that an unassessed guarantee
+  never authorizes a retry applies. A shared physical pool that cannot admit a
+  quantity the logical budget allows is a `throttle` event, not exhaustion, and
+  it fails the scheduler pass. Repeating a refused reservation for the same
+  operation records no second event.
+- **Terminal effects.** Exhaustion never becomes an episode terminal reason, a
+  backend error, or a workflow state by itself. Relating exhaustion to
+  truncation or interruption requires an explicit SEM-222 terminal-condition
+  transition (EBM-06). The reference runtime authors no such transition, so an
+  exhausted participant's episode keeps running.
+- **Visibility of remaining budget.** The participant learns only that a
+  resource precondition failed. The rejected attempt names no budget, pool,
+  quantity, or remaining capacity (EBM-07). Operators read budget state through
+  the runtime snapshot and its existing read authorization. An authored
+  participant-visible view rule belongs to the DSL-121 surface.
+- **Provenance and evidence basis.** The governed attempt and its `reject`
+  event share the action instance id. A result that claims the portable
+  `participant-resource-budget` precondition without a runtime `reject` event
+  presents a backend-local limit as a portable budget limit and is rejected
+  (EBM-09). A backend may report its own resource failure under its own
+  precondition id.
+
+### Reset scope
+
+A shared-clock reset crosses the `time_segment` boundary. It crosses the
+`episode` boundary only when every bound participant's live episode changed.
+The coordinated reset that durable validation admits for scheduler-governed
+participants always resets those episodes. Reconciliation clears only the
+dimensions whose reset owner is a crossed boundary. Dimensions with `run` or
+`reconciled` reset keep their use, so tenant, shared-service, fleet, and
+persistent storage use survive an episode reset (EBM-03). Reconciliation
+appends evidence and never deletes prior events.
+
+Settlement is fenced to the reservation's own generation. A reservation made
+before a reset can neither commit nor release after it, so pre-reset use cannot
+leak into the next generation. Each reservation settles exactly once: a commit
+after a release, or a release after a commit, is refused, and repeating the
+same settlement is idempotent.
+
+### Fail-closed checks
+
+`raes_contracts.participant_resource_exhaustion` makes these rules checkable
+over runtime snapshots. The runtime result path and published runtime-snapshot
+conformance both apply it to:
+
+- future-generation events, settlements outside their reservation's
+  generation, repeated settlements, over-measured commits, and budget states
+  whose head event is not in their own event stream;
+- applies that remove or rewrite an earlier budget event; and
+- a `reject` event without its governed attempt, a governed attempt that is
+  not a rejected `resource_exhausted` result with the unsatisfied budget
+  precondition, and a governed attempt that discloses the budget identity.
+
+### SEM-223 Traceability
+
+| Obligation | Invariant | Enforcement point | Positive test | Negative test |
+| --- | --- | --- | --- | --- |
+| Exhaustion is derived from remaining capacity and refused with a typed rejection | EBM-06 | `reserve_participant_resources` (`participant_resource_remaining`) | `test_exhaustion_is_derived_from_remaining_capacity_across_reserve_commit_cycles` | `test_logical_exhaustion_rejects_while_shared_pool_contention_throttles` |
+| Exhaustion is a controlled SEM-211 failure, never a silent terminal state | EBM-06 | scheduler pre-dispatch admission, `iter_participant_resource_exhaustion_violations` | `test_exhaustion_becomes_an_undispatched_resource_exhausted_attempt`, `test_exhaustion_under_stop_policy_fails_the_scheduler_through_the_attempt` | `test_exhaustion_cannot_bypass_controlled_failure_or_disclose_hidden_quota`, `test_published_snapshot_conformance_rejects_exhaustion_outside_sem211`, `test_rejected_attempt_failing_protocol_validation_leaves_no_reject_event` |
+| Hidden quota state is not participant-visible without a view rule | EBM-07 | rejected-attempt construction, `iter_participant_resource_exhaustion_violations` | `test_participant_visible_attempt_names_no_budget_quantity_or_identity` | `test_exhaustion_cannot_bypass_controlled_failure_or_disclose_hidden_quota` |
+| Consumption is ordered, generation-fenced, settled once, and append-only | EBM-08 | `commit_participant_resource_reservation`, `release_participant_resource_reservation`, `iter_participant_resource_budget_event_violations`, history transition check | `test_accounting_matches_the_reference_state_machine` | `test_consumption_events_fail_closed_when_stale_future_or_unordered`, `test_pre_reset_reservation_cannot_settle_into_the_next_generation`, `test_each_reservation_settles_exactly_once`, `test_runtime_refuses_a_transition_that_drops_or_rewrites_budget_history` |
+| A reset clears only use owned by a crossed boundary | EBM-03 | `reconcile_participant_resource_budgets`, shared-clock reset | `test_coordinated_reset_clears_only_episode_and_segment_owned_use`, `test_accounting_matches_the_reference_state_machine` | `test_clock_reset_without_an_episode_reset_keeps_episode_owned_use` |
+| Participant-local budgets never count other owners' use | EBM-03 | `participant_resource_budget_owner_errors`, policy parent-graph validation | `test_aggregate_counter_cannot_nest_under_a_participant_local_budget` | `test_aggregate_counter_cannot_nest_under_a_participant_local_budget`, `test_participant_owned_budget_cannot_count_several_participants` |
+| Dimensions with incompatible meters never aggregate or admit | EBM-05 | policy parent-graph validation, `participant_resource_budget_gaps` | `test_admission_is_atomic_for_complete_vector_and_exact_meters` (issue #899: the six-kind vector admits against exactly matching pools); the turn and tool-use kinds and their positive fixture belong to DSL-121 (#308) | `test_incompatible_token_meters_never_aggregate_or_admit` |
+| A backend-local limit is not a portable budget exhaustion | EBM-09 | `iter_participant_resource_exhaustion_violations` | `test_backend_local_limit_cannot_pose_as_portable_budget_exhaustion` | `test_backend_local_limit_cannot_pose_as_portable_budget_exhaustion` |
+
+### SEM-223 nonclaims
+
+- No resource kind is added. Step, turn, logical-scenario time, and tool-use
+  dimensions are DSL-121 catalog entries, and host watchdog time is never a
+  portable scenario-time quota.
+- Authors cannot select another limit effect. The reference runtime always
+  denies the attempt with `resource_exhausted`; throttling, truncation, and
+  interruption are not selectable effects.
+- The reference runtime does not roll a `windowed_counter` window inside a
+  generation. Its use resets only at the dimension's declared reset boundary.
+- No fairness, throughput, isolation, or operating-system enforcement claim
+  follows from these rules.
+
 ## Bounded Action Guarantees (ACT-614)
 
 An action temporal contract opts into `participant-shared-time/v1` through
@@ -360,10 +493,11 @@ explicit pacing-deviation evidence reference; it is never silently treated as
 successful timing.
 
 V3 reset reconciles outstanding reservations before advancing the execution
-generation. A `time_segment` boundary clears only dimensions owned by that
-boundary. Tenant, shared-service, fleet, and persistent storage use survive
-participant or segment reset unless their own declared reset/reconciliation
-rule applies. Execution-service resource refs name the authoritative budget
+generation. A shared-clock reset clears only dimensions owned by a boundary it
+crosses: `time_segment` always, and `episode` when it reset the bound episodes
+(see SEM-223 above). Tenant, shared-service, fleet, and persistent storage use
+survive participant or segment reset unless their own declared
+reset/reconciliation rule applies. Execution-service resource refs name the authoritative budget
 states; its concurrency capacity, reservation, and in-flight projection must
 equal the referenced concurrent-action state.
 
@@ -472,4 +606,8 @@ implementation, native adapter, targets, evidence, and readback faithfully
 materialize a scenario. V3 additionally covers canonical legacy projection,
 atomic multi-resource admission and reservation, typed runtime state/events,
 generation-fenced settlement and reset reconciliation, durable/control-plane
-projection, and cross-range isolation rejection.
+projection, and cross-range isolation rejection. SEM-223 additionally covers
+derived exhaustion, typed rejection versus throttling, undispatched
+`resource_exhausted` attempts, exactly-once settlement within the reserving
+generation, episode-boundary reconciliation, participant-local owner rules, and
+the runtime and conformance checks listed in its traceability table.

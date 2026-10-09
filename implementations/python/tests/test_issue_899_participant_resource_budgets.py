@@ -795,7 +795,9 @@ def test_runtime_reserve_commit_throttle_and_idempotency_are_generation_fenced(
             if payload["operation_id"] == "action-too-large"
         )
     )
-    assert event.disposition == "throttled"
+    # SEM-223 T10: the logical budget cannot admit it, so this is a rejection;
+    # shared-pool contention remains a throttle.
+    assert event.disposition == "rejected"
 
 
 def test_reset_reconciles_participant_window_without_erasing_persistent_owners() -> None:

@@ -145,6 +145,11 @@ def _validate_sibling_limits(
             raise ValueError("resource-budget sibling limits cannot exceed their parent limit")
 
 
+def _owner_identity(owner: ParticipantResourceOwner) -> tuple[ParticipantResourceOwnerKind, str]:
+    ref = owner.ref.removeprefix("agents.") if owner.kind == ParticipantResourceOwnerKind.PARTICIPANT else owner.ref
+    return owner.kind, ref
+
+
 class ParticipantResourceBudgetPolicy(SDLModel):
     policy_id: PortableIdentifier
     owners: dict[PortableIdentifier, ParticipantResourceOwner] = Field(min_length=1, max_length=1024)
@@ -172,6 +177,7 @@ class ParticipantResourceBudgetPolicy(SDLModel):
             ):
                 raise ValueError("only participant-owned resource budgets may reset with an episode")
         self._validate_parent_graph()
+        self._validate_parent_owners()
         pool_keys = [
             (
                 dimension.pool_ref,
@@ -195,6 +201,20 @@ class ParticipantResourceBudgetPolicy(SDLModel):
         for budget_id in self.dimensions:
             _visit_parent_budget(self.dimensions, str(budget_id), visiting, visited)
         _validate_sibling_limits(self.dimensions)
+
+    def _validate_parent_owners(self) -> None:
+        """Keep shared and global use out of participant-local budgets (SEM-223 EBM-03)."""
+
+        for budget_id, dimension in self.dimensions.items():
+            if dimension.parent_budget_ref is None:
+                continue
+            parent_owner = self.owners[self.dimensions[dimension.parent_budget_ref].owner_ref]
+            if parent_owner.kind == ParticipantResourceOwnerKind.PARTICIPANT and (
+                _owner_identity(self.owners[dimension.owner_ref]) != _owner_identity(parent_owner)
+            ):
+                raise ValueError(
+                    f"resource budget {budget_id!r} cannot aggregate into a participant-owned parent of another owner"
+                )
 
 
 __all__ = [

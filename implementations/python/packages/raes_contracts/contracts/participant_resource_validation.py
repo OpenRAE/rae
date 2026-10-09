@@ -120,6 +120,17 @@ def _validate_parent_limits(demands: Mapping[str, _Demand]) -> None:
             raise ValueError("resource-budget sibling limits cannot exceed their parent limit")
 
 
+def _validate_participant_parent_owners(demands: Mapping[str, _Demand]) -> None:
+    for demand in demands.values():
+        parent = demands.get(demand.parent_budget_ref or "")
+        if (
+            parent is not None
+            and parent.owner.kind == "participant"
+            and (parent.owner.kind, parent.owner.owner_ref) != (demand.owner.kind, demand.owner.owner_ref)
+        ):
+            raise ValueError("resource-budget demand cannot aggregate into a participant-owned parent of another owner")
+
+
 def validate_budget_policy(
     owners: Sequence[_Owner],
     demands: Sequence[_Demand],
@@ -142,6 +153,7 @@ def validate_budget_policy(
         if demand.parent_budget_ref is not None and demand.parent_budget_ref not in demands_by_id:
             raise ValueError("resource-budget demand parent must resolve in policy demands")
     _validate_parent_limits(demands_by_id)
+    _validate_participant_parent_owners(demands_by_id)
     pool_keys = [
         (
             demand.pool_ref,
