@@ -5,7 +5,8 @@ parsed on its own and imported twice under distinct namespaces. The importing
 scenario adds local participants and a local tool affordance over an imported
 action and tool. Each binding is checked after composition and compilation,
 broken bindings fail closed, and a declared or displayed tool neither admits
-an invocation nor records one.
+an invocation nor records one. Composition and declaration rename share one
+reference rewrite, so renaming the tool content is checked here too.
 """
 
 from __future__ import annotations
@@ -17,7 +18,13 @@ import pytest
 import yaml
 from jsonschema import Draft202012Validator
 from paths import REPO_ROOT
-from raes import SDLValidationError, parse_sdl_file
+from raes import (
+    RenameSDLDeclarationRequest,
+    SDLValidationError,
+    parse_sdl,
+    parse_sdl_file,
+    rename_sdl_declaration,
+)
 from raes_backend_stubs.stubs import create_stub_target
 from raes_processor.compiler import compile_runtime_model
 from raes_runtime.control_plane import RuntimeControlPlane
@@ -43,6 +50,12 @@ def _rewritten(source: Path, edits: tuple[tuple[str, str], ...]) -> str:
         assert text.count(authored) == 1, authored
         text = text.replace(authored, replacement)
     return text
+
+
+def _tool_ref_edit(authored: str, spelling: str) -> tuple[str, str]:
+    """Edit that respells a fixture affordance's authored tool_ref."""
+
+    return f"        tool_ref: {authored}\n", f"        tool_ref: {spelling}\n"
 
 
 def _parse_pair(tmp_path: Path, *, unit_edits=(), root_edits=()):
@@ -88,8 +101,7 @@ def test_reusable_tool_bindings_resolve_inside_their_own_namespace(document: Pat
 
 @pytest.mark.parametrize("tool_ref", ["scanner-package", "content.scanner-package"], ids=["bare", "qualified"])
 def test_imported_affordance_keeps_its_own_tool_when_the_importer_declares_the_same_name(tmp_path: Path, tool_ref: str):
-    spelling = ("        tool_ref: scanner-package\n", f"        tool_ref: {tool_ref}\n")
-    model = compile_runtime_model(_parse_pair(tmp_path, unit_edits=(spelling,)))
+    model = compile_runtime_model(_parse_pair(tmp_path, unit_edits=(_tool_ref_edit("scanner-package", tool_ref),)))
 
     bound_tools = [
         model.tool_affordances[f"{SPEC_ADDRESS}{namespace}.{REUSABLE}.tool-affordance.network-scanner"].tool_address
@@ -97,6 +109,28 @@ def test_imported_affordance_keeps_its_own_tool_when_the_importer_declares_the_s
     ]
     assert bound_tools == [f"provision.content.{namespace}.scanner-package" for namespace in NAMESPACES]
     assert model.tool_affordances[LOCAL_AFFORDANCE].tool_address == "provision.content.alpha.scanner-package"
+
+
+@pytest.mark.parametrize(
+    ("tool_ref", "renamed_ref"),
+    [("scanner-package", "scanner-kit"), ("content.scanner-package", "content.scanner-kit")],
+    ids=["bare", "qualified"],
+)
+def test_renaming_the_tool_content_rewrites_either_tool_ref_spelling(tool_ref: str, renamed_ref: str):
+    unit = parse_sdl(_rewritten(UNIT, (_tool_ref_edit("scanner-package", tool_ref),)))
+
+    result = rename_sdl_declaration(
+        unit,
+        RenameSDLDeclarationRequest(target_address="content.scanner-package", new_local_name="scanner-kit"),
+    )
+
+    assert [diagnostic.code for diagnostic in result.report.diagnostics] == []
+    assert result.succeeded
+    assert result.output.behavior_specifications[REUSABLE].tool_affordances["network-scanner"].tool_ref == renamed_ref
+    affordance = compile_runtime_model(result.output).tool_affordances[
+        f"{SPEC_ADDRESS}{REUSABLE}.tool-affordance.network-scanner"
+    ]
+    assert affordance.tool_address == "provision.content.scanner-kit"
 
 
 def test_local_affordance_binds_an_imported_action_and_tool_for_one_role():
@@ -113,22 +147,27 @@ def test_local_affordance_binds_an_imported_action_and_tool_for_one_role():
     assert _access(model.participant_behaviors[OPERATOR]) == [("console", "provision.node.alpha.web", "rdp", "")]
 
 
+@pytest.mark.parametrize("relation", ["action_contract_refs", "observation_boundary_refs"])
 @pytest.mark.parametrize(
     ("document", "spec_name", "affordance_id"),
     [(UNIT, REUSABLE, "network-scanner"), (ROOT, LOCAL, SHARED)],
     ids=["reusable", "local"],
 )
 def test_published_authoring_schema_requires_both_affordance_relations(
-    document: Path, spec_name: str, affordance_id: str
+    document: Path, spec_name: str, affordance_id: str, relation: str
 ):
     schema = Draft202012Validator(json.loads(AUTHORING_SCHEMA.read_text(encoding="utf-8")))
     payload = yaml.safe_load(document.read_text(encoding="utf-8"))
     assert not list(schema.iter_errors(payload))
 
     binding = payload["behavior_specifications"][spec_name]["tool_affordances"][affordance_id]
-    binding.pop("observation_boundary_refs")
-    assert [(list(error.path), error.validator) for error in schema.iter_errors(payload)] == [
-        (["behavior_specifications", spec_name, "tool_affordances", affordance_id], "required")
+    binding.pop(relation)
+    assert [(list(error.path), error.validator, error.message) for error in schema.iter_errors(payload)] == [
+        (
+            ["behavior_specifications", spec_name, "tool_affordances", affordance_id],
+            "required",
+            f"'{relation}' is a required property",
+        )
     ]
 
 
@@ -136,12 +175,12 @@ def test_published_authoring_schema_requires_both_affordance_relations(
     ("unit_edits", "message"),
     [
         (
-            (("        tool_ref: scanner-package\n", "        tool_ref: scanner-suite\n"),),
+            (_tool_ref_edit("scanner-package", "scanner-suite"),),
             f"Behavior specification '{{ns}}.{REUSABLE}' tool affordance 'network-scanner' "
             "tool_ref 'scanner-suite' does not reference a declared scenario content identity",
         ),
         (
-            (("        tool_ref: scanner-package\n", "        tool_ref: web\n"),),
+            (_tool_ref_edit("scanner-package", "web"),),
             f"Behavior specification '{{ns}}.{REUSABLE}' tool affordance 'network-scanner' "
             "tool_ref '{ns}.web' must resolve through the scenario-content tools-and-artifacts reference model",
         ),
@@ -176,12 +215,23 @@ def test_broken_binding_in_a_reused_unit_is_reported_once_per_namespace(
         ),
         (
             (),
-            (("        tool_ref: alpha.scanner-package\n", "        tool_ref: alpha.web\n"),),
+            (_tool_ref_edit("alpha.scanner-package", "alpha.web"),),
             [
                 _local_issue(
                     "tool_ref 'alpha.web' must resolve through the scenario-content tools-and-artifacts reference model"
                 )
             ],
+        ),
+        (
+            (
+                ("    content: [scanner-package]\n", "    content: [scanner-package, web]\n"),
+                (
+                    "content:\n  scanner-package:\n",
+                    "content:\n  web: {type: file, target: web, path: /opt/raes/tools/web}\n  scanner-package:\n",
+                ),
+            ),
+            (_tool_ref_edit("alpha.scanner-package", "alpha.web"),),
+            [_local_issue("tool_ref 'alpha.web' is ambiguous; use one of: content.alpha.web, nodes.alpha.web")],
         ),
         (
             (),
@@ -232,6 +282,7 @@ def test_broken_binding_in_a_reused_unit_is_reported_once_per_namespace(
     ids=[
         "unexported-tool",
         "tool-is-a-node",
+        "ambiguous-tool",
         "action-from-other-import",
         "role-spans-both-imports",
         "imported-participant-boundary",

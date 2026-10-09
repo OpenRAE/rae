@@ -40,8 +40,11 @@ Primary-source refresh shows that tool-using participants require an explicit au
   `raes/semantics/participant_behavior/_tool_affordance.py` rejects relations
   that widen the specification, fall outside a selected participant's actions
   or boundaries, duplicate another relation, or lack a view classification.
-  Composition: `raes/composition/_behavior.py` rewrites the relations and the
-  boundary classification into the import's namespace. Compiler: one
+  Composition: `raes/composition/_behavior.py` rewrites the relations into the
+  import's namespace and maps each affordance ref to its namespaced form.
+  `raes/composition/_sections.py` applies that map to the boundary's refs,
+  view rules and view transitions, so the classification follows the
+  affordance. Compiler: one
   `participant.behavior-specification.<spec>.tool-affordance.<id>` record per
   affordance.
 - Interfaces and interaction channels:
@@ -76,14 +79,19 @@ Primary-source refresh shows that tool-using participants require an explicit au
 ## Fulfillment boundary
 
 ACTIVE. #298 verified the #294 and #805 surfaces through composition,
-compilation and runtime admission. It fixed one composition gap: an imported
-tool affordance with a section-qualified `tool_ref` such as
-`content.scanner-package` kept the unqualified ref. It bound the importing
-scenario's content of the same name, or failed when there was none.
-`raes/composition/_behavior.py` now rewrites `tool_ref` through the import's
-named symbols, as the validator resolves it through the declaration index. A
-`tool_ref` that names a non-content declaration of the unit now gets the same
-diagnostic as in the standalone unit.
+compilation and runtime admission. It fixed one gap in the reference rewrite
+that module composition and `rename_sdl_declaration`
+(`raes/_transformation_rename.py`) share. A section-qualified `tool_ref` such
+as `content.scanner-package` was not rewritten. In composition, the imported
+affordance bound the importing scenario's content of the same name, or failed
+when there was none. In rename, renaming that content was refused with
+`artifact-transformation.target-invalid`, because the ref kept the old name.
+`raes/composition/_behavior.py` now rewrites `tool_ref` through the named
+symbols, as the validator resolves it through the declaration index. The
+composed affordance binds the unit's own content, and the rename rewrites the
+ref to `content.<new-name>`. Bare refs are rewritten as before. A `tool_ref`
+that names a non-content declaration of the unit now gets the same diagnostic
+as in the standalone unit.
 
 Residual boundaries:
 
@@ -91,11 +99,12 @@ Residual boundaries:
   participant. The affordance must be classified by one of that participant's
   own observation boundaries, and those belong to the imported unit.
 - `participant_role_refs` in an imported declaration select every participant
-  with that role in the composed scenario (#297). A unit with a role-scoped
-  tool affordance validates when imported once and fails when imported twice.
+  with that role in the composed scenario, as the #297 verification in PR #1426
+  also found. A unit with a role-scoped tool affordance validates when imported
+  once and fails when imported twice.
 - A structurally invalid declaration in an imported unit, such as an
   interactive-access `channel: telnet`, raises a raw pydantic `ValidationError`
-  instead of an `SDLParseError` diagnostic (#297).
+  instead of an `SDLParseError` diagnostic, as PR #1426 also found.
 - Decision-time exposure belongs to #300, reusable tool profiles to #301, and
   capability declarations to #304.
 
@@ -115,6 +124,7 @@ Residual boundaries:
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/semantics/participant_interactive_access.py` (Interactive-access target, account and endpoint analyzer)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_content_objectives.py` (Semantic validation entry for participant tool and access checks)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_behavior.py` (Namespaced tool, affordance and access references for imports)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_sections.py` (Observation-boundary classification rewritten to the namespaced affordance refs)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/participant_behaviors.py` (Compiled tool affordance and interactive-access records)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control.py` (Runtime admission that a tool declaration does not bypass)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/sections.md` (Tool affordance and interactive-access authoring reference)
