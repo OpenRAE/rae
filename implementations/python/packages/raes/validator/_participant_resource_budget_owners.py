@@ -3,13 +3,19 @@
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
+from ..semantics.participant_behavior import select_participants
+
 _NODE_PREFIX = "nodes."
 _TENANT_PREFIX = "deployment_tenants."
 
 
 @dataclass(frozen=True)
 class _OwnerScope:
+    # Names a participant owner may use: the authored participant_refs, so an
+    # unresolved template variable still names its owner, plus every governed
+    # participant. Only declared governed participants are counted.
     participant_refs: set[str]
+    governed_participants: set[str]
     deployment_tenants: Mapping[str, object]
     target_tenants: set[str]
     action_targets: set[str]
@@ -67,6 +73,11 @@ def _owner_error(
     if kind == "participant":
         if ref.removeprefix("agents.") not in scope.participant_refs:
             error = f"{label} participant ref '{ref}' is outside the policy participant scope"
+        elif len(scope.governed_participants) > 1:
+            # The policy reserves one vector for every governed participant, so
+            # this would be a policy-wide counter presented as participant-local.
+            governed = ", ".join(sorted(scope.governed_participants))
+            error = f"{label} participant ref '{ref}' would count every governed participant's use ({governed})"
     elif kind == "deployment_tenant":
         error = _tenant_owner_error(label, ref, scope)
     elif kind == "shared_service":
@@ -107,8 +118,16 @@ def participant_resource_budget_owner_errors(
     deployment_cells: Mapping[str, object],
     relationships: Mapping[str, object],
     split_node_service_ref: Callable[[str], object | None],
+    *,
+    participant_roles: Mapping[str, str | None],
 ) -> tuple[str, ...]:
-    """Return errors for resource owners outside their declared SDL scope."""
+    """Return errors for resource owners outside their declared SDL scope.
+
+    ``participant_roles`` maps every declared agent to its effective role, or
+    ``None``. A policy governs the participants the compiler selects with it:
+    the ``participant_refs`` that name declared agents and every agent whose
+    effective role is in ``participant_role_refs``.
+    """
 
     errors: list[str] = []
     for spec_name, behavior_spec in behavior_specifications.items():
@@ -116,6 +135,7 @@ def participant_resource_budget_owner_errors(
         budget = getattr(policy, "resource_budget", None)
         if budget is None:
             continue
+        governed_participants = select_participants(behavior_spec, set(participant_roles), participant_roles)
         participant_refs = {str(ref).removeprefix("agents.") for ref in getattr(behavior_spec, "participant_refs", ())}
         action_targets = _action_targets(policy, action_contracts)
         target_tenants = _target_tenants(action_targets, deployment_cells)
@@ -127,7 +147,8 @@ def participant_resource_budget_owner_errors(
         shared_permissions = _shared_permissions(relationships)
         target_tenants.update(tenant for tenant, target in shared_permissions if target in action_targets)
         scope = _OwnerScope(
-            participant_refs=participant_refs,
+            participant_refs=participant_refs | governed_participants,
+            governed_participants=governed_participants,
             deployment_tenants=deployment_tenants,
             target_tenants=target_tenants,
             action_targets=action_targets,

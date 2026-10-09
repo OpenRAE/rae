@@ -42,21 +42,46 @@ def _missing_execution_service_result(
     )
 
 
+def _episode_boundary_crossed(
+    policy: ParticipantAutonomousExecutionRuntime,
+    before: RuntimeSnapshot,
+    after: RuntimeSnapshot,
+) -> bool:
+    """Return whether every bound participant now runs a different episode.
+
+    The scheduler state still names the pre-reset episode in ``before``. The
+    coordinated time reset resets the episodes before this scheduler reset runs
+    with ``reset_participants=False``, so the live episode identity is the
+    evidence. A clock reset that changed no episode keeps episode-owned use.
+    """
+
+    return all(
+        before.participant_autonomous_execution_states[f"{policy.address}.state.{address}"]["episode_id"]
+        != after.participant_episode_results[address]["episode_id"]
+        for address in policy.participant_addresses
+    )
+
+
 def _reset_resource_generation(
     policy: ParticipantAutonomousExecutionRuntime,
     snapshot: RuntimeSnapshot,
+    *,
+    episode_crossed: bool,
 ) -> ApplyResult:
     service_payload = snapshot.participant_execution_services.get(policy.address)
     if service_payload is None:
         return _missing_execution_service_result(policy, snapshot)
     service = ParticipantExecutionServiceStateModel.model_validate(service_payload)
     generation = service.generation + 1
+    # A shared-clock reset always opens a new time segment. It crosses the
+    # episode boundary only when the bound episodes were reset (SEM-223 EBM-03).
+    boundaries = ("time_segment", "episode") if episode_crossed else ("time_segment",)
     return reconcile_participant_resource_budgets(
         snapshot,
         policy_address=policy.address,
         current_generation=service.generation,
         next_generation=generation,
-        boundary="time_segment",
+        boundary=boundaries,
         evidence_refs=(f"evidence:{policy.address}:shared-time-reset:generation-{generation}",),
     )
 
@@ -92,7 +117,11 @@ def reset_policy_at_clock(
         working = participant_result.snapshot
         changed.extend(participant_result.changed_addresses)
     if failure is None and policy.profile == _RESOURCE_GOVERNED_PROFILE:
-        budget_reset = _reset_resource_generation(policy, working)
+        budget_reset = _reset_resource_generation(
+            policy,
+            working,
+            episode_crossed=reset_participants or _episode_boundary_crossed(policy, snapshot, working),
+        )
         if budget_reset.success:
             working = budget_reset.snapshot
         else:

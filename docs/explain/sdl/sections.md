@@ -2159,6 +2159,23 @@ availability only: visibility, apparatus support, eligibility, admission,
 realization, effects, constraints, and evidence remain on their existing
 contracts and do not follow from the binding.
 
+A `participant-autonomous-execution/v3` policy bounds participant interaction
+through its `resource_budget` dimensions. Besides the six required kinds, a
+dimension may use `interaction_steps`, `interaction_turns`, `tool_invocations`,
+or `scenario_time`; token budgets use `inference_tokens`. These are distinct
+governed kinds with fixed units, so a turn budget never counts action attempts
+and host or watchdog time is never a scenario-time quota. RAES meters
+`scenario_time` as the ticks the policy clock advances. A `tool_invocations`
+dimension must name the tool affordances it counts in `tool_affordance_refs`.
+A quota is hidden from the participant unless the policy's observation
+boundary discloses the dimension ref
+`behavior_specifications.<spec>.autonomous_execution.resource_budget.dimensions.<id>`
+through a `resource_budget` view rule. A disclosed quota is reported only in
+the observations of an attempt that the dimension rejects. There is no
+separate quota map or `max_*` field. The [autonomous execution specification](../../../specs/formal/participant-semantics/autonomous-execution.md)
+defines the semantics, and the [v3 migration guide](../../migration/autonomous-execution-v3.md)
+shows the YAML.
+
 Compiled behavior specifications use stable
 `participant.behavior-specification.<name>` addresses and preserve dependency
 links to the participant behavior, action contract, observation boundary, and

@@ -47,6 +47,15 @@
     "ParticipantResourceBudgetDemandModel": {
       "additionalProperties": false,
       "properties": {
+        "action_contract_refs": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Action Contract Refs",
+          "type": "array"
+        },
         "budget_id": {
           "minLength": 1,
           "title": "Budget Id",
@@ -268,7 +277,11 @@
                 "storage_growth",
                 "inference_tokens",
                 "image_generations",
-                "accelerator"
+                "accelerator",
+                "interaction_steps",
+                "interaction_turns",
+                "tool_invocations",
+                "scenario_time"
               ],
               "type": "string"
             },

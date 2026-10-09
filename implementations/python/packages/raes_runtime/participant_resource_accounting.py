@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Collection, Mapping
 from dataclasses import dataclass
 
 from raes_contracts.contracts.participant_resource_budgets import (
@@ -25,6 +25,7 @@ from .participant_resource_pool_ledger import (
 )
 
 _STALE_GENERATION_CODE = "runtime.participant-resource-stale-generation"
+_SETTLED_CODE = "runtime.participant-resource-reservation-settled"
 
 
 @dataclass
@@ -76,6 +77,38 @@ def _pool_ref_for_state(state: ParticipantResourceBudgetStateModel) -> str:
         unit=state.unit,
         accounting_mode=state.accounting_mode,
         meter_profile_ref=state.meter_profile_ref,
+    )
+
+
+def _settlement_ids(reservation: ParticipantResourceBudgetEventModel) -> tuple[str, str]:
+    prefix = f"{reservation.operation_id}:{reservation.budget_state_ref}"
+    return f"{prefix}:commit", f"{prefix}:release"
+
+
+def _settlement_failure(
+    snapshot: RuntimeSnapshot,
+    reservation: ParticipantResourceBudgetEventModel,
+    current: ParticipantResourceBudgetStateModel,
+    *,
+    execution_generation: int,
+    competing_settlement_id: str,
+    events: Mapping[str, Mapping[str, object]],
+    verb: str,
+) -> ApplyResult | None:
+    """Fence one settlement to its reservation generation and settle it exactly once."""
+
+    if len({execution_generation, reservation.execution_generation, current.generation}) != 1:
+        code = _STALE_GENERATION_CODE
+        message = f"operation {reservation.operation_id} cannot {verb} across a generation boundary"
+    elif competing_settlement_id in events:
+        code = _SETTLED_CODE
+        message = f"operation {reservation.operation_id} already settled resource budget {reservation.budget_id}"
+    else:
+        return None
+    return ApplyResult(
+        success=False,
+        snapshot=snapshot,
+        diagnostics=[_diagnostic(code, reservation.policy_address, message)],
     )
 
 
@@ -155,22 +188,21 @@ def _commit_reservation(
     reservation: ParticipantResourceBudgetEventModel,
     measured: int,
 ) -> ApplyResult | None:
-    commit_id = f"{mutation.operation_id}:{reservation.budget_state_ref}:commit"
+    commit_id, release_id = _settlement_ids(reservation)
     if commit_id in mutation.events:
         return None
     current = _state(mutation.states[reservation.budget_state_ref])
-    if current.generation != mutation.execution_generation:
-        return ApplyResult(
-            success=False,
-            snapshot=mutation.snapshot,
-            diagnostics=[
-                _diagnostic(
-                    _STALE_GENERATION_CODE,
-                    reservation.policy_address,
-                    f"operation {mutation.operation_id} cannot commit across a generation boundary",
-                )
-            ],
-        )
+    failure = _settlement_failure(
+        mutation.snapshot,
+        reservation,
+        current,
+        execution_generation=mutation.execution_generation,
+        competing_settlement_id=release_id,
+        events=mutation.events,
+        verb="commit",
+    )
+    if failure is not None:
+        return failure
     committed = current.model_copy(
         update={
             "reserved": max(0, current.reserved - reservation.requested),
@@ -280,22 +312,21 @@ def release_participant_resource_reservation(
     states = dict(snapshot.participant_resource_budget_states)
     pool_states = dict(snapshot.participant_resource_pool_states)
     for reservation in reservations:
-        release_id = f"{operation_id}:{reservation.budget_state_ref}:release"
+        commit_id, release_id = _settlement_ids(reservation)
         if release_id in events:
             continue
         current = _state(states[reservation.budget_state_ref])
-        if current.generation != execution_generation:
-            return ApplyResult(
-                success=False,
-                snapshot=snapshot,
-                diagnostics=[
-                    _diagnostic(
-                        _STALE_GENERATION_CODE,
-                        reservation.policy_address,
-                        f"operation {operation_id} cannot release across a generation boundary",
-                    )
-                ],
-            )
+        failure = _settlement_failure(
+            snapshot,
+            reservation,
+            current,
+            execution_generation=execution_generation,
+            competing_settlement_id=commit_id,
+            events=events,
+            verb="release",
+        )
+        if failure is not None:
+            return failure
         released = current.model_copy(
             update={
                 "reserved": max(0, current.reserved - reservation.requested),
@@ -345,13 +376,21 @@ def reconcile_participant_resource_budgets(
     policy_address: str,
     current_generation: int,
     next_generation: int,
-    boundary: str,
+    boundary: str | Collection[str],
     evidence_refs: tuple[str, ...] = (),
 ) -> ApplyResult:
-    """Fence a reset generation and reconcile only dimensions owned by its boundary."""
+    """Fence a reset generation and reconcile only dimensions owned by a crossed boundary.
+
+    ``boundary`` names every reset boundary the transition crosses. A dimension
+    is cleared only when its declared reset owner is one of them; every other
+    owner keeps its use across the new generation (EBM-03).
+    """
 
     if next_generation <= current_generation:
         raise ValueError("resource-budget reconciliation must advance generation")
+    crossed = frozenset((boundary,) if isinstance(boundary, str) else boundary)
+    if not crossed:
+        raise ValueError("resource-budget reconciliation must name at least one crossed reset boundary")
     states = dict(snapshot.participant_resource_budget_states)
     pool_states = dict(snapshot.participant_resource_pool_states)
     events = dict(snapshot.participant_resource_budget_events)
@@ -375,7 +414,7 @@ def reconcile_participant_resource_budgets(
             )
     for state_ref, current in selected:
         event_id = f"reconcile:{policy_address}:{next_generation}:{state_ref}"
-        clears = current.reset == boundary
+        clears = current.reset in crossed
         reconciled = current.model_copy(
             update={
                 "generation": next_generation,

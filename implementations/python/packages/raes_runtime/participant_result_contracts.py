@@ -40,6 +40,10 @@ from raes_contracts.participant_outcome_history import (
     iter_outcome_snapshot_violations,
     iter_outcome_transition_violations,
 )
+from raes_contracts.participant_resource_exhaustion import (
+    iter_participant_resource_budget_event_transition_violations,
+    iter_participant_resource_budget_snapshot_violations,
+)
 from raes_contracts.participant_shared_state import (
     iter_participant_shared_state_history_transition_violations,
     iter_participant_shared_state_snapshot_violations,
@@ -119,6 +123,11 @@ def participant_runtime_state_contract_diagnostics(
         *iter_participant_episode_closure_violations(
             snapshot.participant_episode_closure_records,
             snapshot.participant_episode_history,
+        ),
+        *iter_participant_resource_budget_snapshot_violations(
+            snapshot.participant_resource_budget_states,
+            snapshot.participant_resource_budget_events,
+            snapshot.participant_behavior_history,
         ),
         *iter_participant_behavior_snapshot_violations(
             snapshot.participant_behavior_history,
@@ -232,6 +241,13 @@ def participant_runtime_history_transition_diagnostics(
             for address, message in iter_participant_information_state_history_transition_violations(
                 previous_snapshot.information_state_history,
                 next_snapshot.information_state_history,
+            )
+        ]
+        + [
+            _failure_diagnostic("runtime.backend-contract-invalid", address, message)
+            for address, message in iter_participant_resource_budget_event_transition_violations(
+                previous_snapshot.participant_resource_budget_events,
+                next_snapshot.participant_resource_budget_events,
             )
         ]
     )

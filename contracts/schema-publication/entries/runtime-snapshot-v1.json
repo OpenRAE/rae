@@ -1,9 +1,9 @@
 {
-  "content_hash": "61cce2dd5c4e9a964c5354083e1d417a47897ff62e82887bbcb3e7af5aedff48",
+  "content_hash": "3d41f05d4572faeff6c4a2db7e54ac3e1b1d320ac10757a5f06332dc7171178f",
   "contract_id": "runtime-snapshot-v1",
   "last_change": {
-    "summary": "Persist participant-local outcomes alongside bounded shared-time execution state.",
-    "content_hash": "61cce2dd5c4e9a964c5354083e1d417a47897ff62e82887bbcb3e7af5aedff48"
+    "content_hash": "3d41f05d4572faeff6c4a2db7e54ac3e1b1d320ac10757a5f06332dc7171178f",
+    "summary": "Add the DSL-121 interaction dimensions interaction_steps, interaction_turns, tool_invocations and scenario_time to the governed participant resource kind catalog for issue #308."
   },
   "schema_path": "contracts/schemas/snapshots/runtime-snapshot-v1.json",
   "stability": "draft"

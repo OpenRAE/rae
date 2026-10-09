@@ -2,6 +2,7 @@
 
 from typing import Any
 
+from raes.participant_resource_budgets import resource_budget_dimension_reference
 from raes.scenario import InstantiatedScenario
 
 from ..models import (
@@ -20,6 +21,7 @@ from .addresses import (
     _section_ref_name,
 )
 from .alias_index import _runtime_addressable_ref_index, _runtime_addresses_for_refs
+from .participant_resource_scopes import disclosed_budget_refs, tool_action_contract_addresses
 from .participant_temporal import compile_participant_temporal_bindings
 from .support import _address, _dump
 
@@ -99,10 +101,18 @@ def _legacy_resource_demands(
     return (owner,), demands, ParticipantResourceFairnessRuntime()
 
 
+def _disclosure_reference(spec_name: str, budget_id: str, disclosed: frozenset[str]) -> str | None:
+    reference = resource_budget_dimension_reference(spec_name, budget_id)
+    return reference if reference in disclosed else None
+
+
 def _compiled_resource_budget(
     scenario: InstantiatedScenario,
     policy: object,
     participant_addresses: tuple[str, ...],
+    *,
+    spec_name: str,
+    behavior_spec: object,
 ) -> tuple[
     tuple[ParticipantResourceOwnerRuntime, ...],
     tuple[ParticipantResourceDemandRuntime, ...],
@@ -111,6 +121,7 @@ def _compiled_resource_budget(
     authored = getattr(policy, "resource_budget", None)
     if authored is None:
         return _legacy_resource_demands(policy, participant_addresses)
+    disclosed = disclosed_budget_refs(scenario, policy)
     owners = tuple(
         ParticipantResourceOwnerRuntime(
             owner_id=str(owner_id),
@@ -142,6 +153,13 @@ def _compiled_resource_budget(
             window_ticks=dimension.window_ticks,
             parent_budget_ref=(str(dimension.parent_budget_ref) if dimension.parent_budget_ref is not None else None),
             evidence_refs=tuple(dimension.evidence_refs),
+            action_contract_addresses=tool_action_contract_addresses(
+                scenario,
+                behavior_spec,
+                policy,
+                [str(ref) for ref in dimension.tool_affordance_refs],
+            ),
+            participant_disclosure_ref=_disclosure_reference(spec_name, str(budget_id), disclosed),
         )
         for budget_id, dimension in sorted(authored.dimensions.items())
     )
@@ -357,6 +375,8 @@ def _compile_autonomous_execution(
         scenario,
         policy,
         participant_addresses,
+        spec_name=spec_name,
+        behavior_spec=behavior_spec,
     )
     return ParticipantAutonomousExecutionRuntime(
         address=address,

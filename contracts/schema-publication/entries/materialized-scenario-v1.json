@@ -1,9 +1,9 @@
 {
-  "content_hash": "88badd3549d88383d2486b06ed1885397dc290665e1a072009caadf9bdd83549",
+  "content_hash": "63e0841ca64ba397da23687dc8653f2f2b3f916b55a96e957261f9732ad5284c",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "88badd3549d88383d2486b06ed1885397dc290665e1a072009caadf9bdd83549",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "63e0841ca64ba397da23687dc8653f2f2b3f916b55a96e957261f9732ad5284c",
+    "summary": "Accept the DSL-121 interaction dimensions, tool_affordance_refs scopes for tool-use budgets, and the resource_budget view-rule class for explicit quota disclosure for issue #308, and share repeated propertyNames subschemas so the file stays within its publication size budget."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"
