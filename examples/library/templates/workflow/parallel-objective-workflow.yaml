@@ -7,6 +7,11 @@ source_refs:
   - docs/explain/sdl/sections.md
   - docs/explain/sdl/validation.md
 summary: Parallel workflow template with explicit branch convergence through a join step.
+validation:
+  - command: uv run --project implementations/python --frozen python tools/check_example_library.py
+    expected: Exits 0 with no output. The gate loads this file as YAML, parses the loaded body with the SDL parser and semantic validator, and fails on any error or advisory. Loading keeps the last value of a duplicate key, so the gate does not report duplicate keys.
+  - command: uv run --project implementations/python --frozen raes semantic validate my-scenario.sdl.yaml
+    expected: 'With the body saved as my-scenario.sdl.yaml, prints "validate: success" and exits 0. This command does not report semantic-validator advisories.'
 body:
   name: library-workflow-template
   description: Workflow template showing parallel objective branches converging at an explicit join.

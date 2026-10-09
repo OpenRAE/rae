@@ -70,20 +70,23 @@ The AUT-806 library is indexed by
 [`library/catalog.yaml`](library/catalog.yaml). It is a versioned,
 machine-readable catalog for the current non-normative authoring library.
 
-| Surface | Template | Pattern |
-|---------|----------|---------|
-| Scenario | [`library/templates/scenario/minimal-validated-scenario.yaml`](library/templates/scenario/minimal-validated-scenario.yaml) | [`library/patterns/scenario-reference-integrity.yaml`](library/patterns/scenario-reference-integrity.yaml) |
+| Surface | Templates | Pattern |
+|---------|-----------|---------|
+| Scenario | [`library/templates/scenario/minimal-validated-scenario.yaml`](library/templates/scenario/minimal-validated-scenario.yaml), [`library/templates/scenario/segmented-network-scenario.yaml`](library/templates/scenario/segmented-network-scenario.yaml), [`library/templates/scenario/parameterized-scenario.yaml`](library/templates/scenario/parameterized-scenario.yaml) | [`library/patterns/scenario-reference-integrity.yaml`](library/patterns/scenario-reference-integrity.yaml) |
 | Workflow | [`library/templates/workflow/parallel-objective-workflow.yaml`](library/templates/workflow/parallel-objective-workflow.yaml) | [`library/patterns/workflow-explicit-control-graph.yaml`](library/patterns/workflow-explicit-control-graph.yaml) |
 | Participant behavior | [`library/templates/participant_behavior/action-contract-observation-boundary.yaml`](library/templates/participant_behavior/action-contract-observation-boundary.yaml) | [`library/patterns/participant-behavior-contract-binding.yaml`](library/patterns/participant-behavior-contract-binding.yaml) |
 | Task | [`library/templates/task/single-objective-task.yaml`](library/templates/task/single-objective-task.yaml) | [`library/patterns/task-as-objective-contract.yaml`](library/patterns/task-as-objective-contract.yaml) |
 | Run | [`library/templates/run/timed-run-control.yaml`](library/templates/run/timed-run-control.yaml) | [`library/patterns/run-window-with-evidence.yaml`](library/patterns/run-window-with-evidence.yaml) |
 | Study | [`library/templates/study/observational-study-protocol.yaml`](library/templates/study/observational-study-protocol.yaml) | [`library/patterns/observable-study-conditions.yaml`](library/patterns/observable-study-conditions.yaml) |
 
-Each template has metadata plus a complete current-SDL `body`. The
+Each template has metadata, a `validation` list of commands with their
+expected results, and a complete current-SDL `body`. The
 `tools/check_example_library.py` policy gate validates catalog shape, stable
 IDs, referenced paths, AUT-806 requirement references, entry metadata, and
 every template body and validated worked example through the SDL parser and
-semantic validator.
+semantic validator. It also checks that each template has a non-empty
+`validation` list whose entries have non-empty `command` and `expected`
+strings. The gate does not run those commands.
 
 ### Catalog entry metadata
 
@@ -104,6 +107,32 @@ means that current SDL validation accepts the file or template body. It does
 not mean that a backend can realize the scenario or that anything has run. A
 `guidance` entry is reading material, such as a prose pattern or a test
 module, and the gate does not parse it as SDL.
+
+### Scenario templates
+
+Each scenario template claims only that current SDL validation accepts its
+body with no advisories.
+
+| Template | Shows | Does not claim |
+|----------|-------|----------------|
+| [`minimal-validated-scenario`](library/templates/scenario/minimal-validated-scenario.yaml) | One host service, one participant, an objective whose success is an assertion over an observed proposition, and a workflow with one objective step | That a backend can realize the scenario |
+| [`segmented-network-scenario`](library/templates/scenario/segmented-network-scenario.yaml) | Two switched segments, a linked host with a fixed address on each, access rules that admit only HTTPS from the user segment into the server segment, and a service feature | That a backend enforces the access rules or installs the feature |
+| [`parameterized-scenario`](library/templates/scenario/parameterized-scenario.yaml) | Host operating system, size, instance count, and service port taken from declared variables with defaults and an allowed-values list | That the scenario instantiates with every supplied value; the gate does not instantiate it |
+
+To check a template as shipped, run the catalog command in
+[Validate The Examples](#validate-the-examples). To check an adapted copy, save
+its `body` as `my-scenario.sdl.yaml` in the repository root and run this
+command from there:
+
+```shell
+uv run --project implementations/python --frozen raes semantic validate my-scenario.sdl.yaml
+```
+
+The command prints `validate: success` and exits `0` when the SDL parser and
+semantic validator accept the file. It does not report semantic-validator
+advisories, such as a compute node without `resources`. The `parse_sdl_file`
+check in [Validate The Examples](#validate-the-examples) asserts that there
+are none.
 
 ## Validate The Examples
 
@@ -155,11 +184,18 @@ Check the section reference and limitations before adapting a file:
 
 ## Template Boundary
 
-There are no placeholder templates in this directory. Files under
+No template in this directory contains incomplete SDL. Files under
 `examples/scenarios/` are positive SDL examples and must load successfully from
 disk. Files under `examples/library/templates/` are reusable authoring
 templates with complete SDL bodies; they are validated by the example-library
-policy gate.
+policy gate. A template body may use `${name}` variable placeholders, as
+`parameterized-scenario` does. A placeholder's `name` follows the variable-name
+grammar in
+[`../specs/sdl/variables-and-instantiation.md`](../specs/sdl/variables-and-instantiation.md)
+(lowercase letters, digits, `-`, and `_`), and the gate rejects a body whose
+placeholder names a variable that the body does not declare under `variables`.
+Text such as `${Web OS}` or `${CUSTOMER_NAME}` is not a placeholder: it stays
+literal text, and the gate does not report it as an undeclared variable.
 
 Do not add invalid or incomplete SDL files under `examples/scenarios/`.
 Negative-path examples belong in focused parser, model, validator, contract, or

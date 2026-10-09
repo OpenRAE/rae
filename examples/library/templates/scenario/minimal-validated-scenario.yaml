@@ -7,6 +7,11 @@ source_refs:
   - docs/explain/sdl/sections.md
   - docs/explain/sdl/validation.md
 summary: Minimal current-SDL scenario with a target, participant, objective, and workflow.
+validation:
+  - command: uv run --project implementations/python --frozen python tools/check_example_library.py
+    expected: Exits 0 with no output. The gate loads this file as YAML, parses the loaded body with the SDL parser and semantic validator, and fails on any error or advisory. Loading keeps the last value of a duplicate key, so the gate does not report duplicate keys.
+  - command: uv run --project implementations/python --frozen raes semantic validate my-scenario.sdl.yaml
+    expected: 'With the body saved as my-scenario.sdl.yaml, prints "validate: success" and exits 0. This command does not report semantic-validator advisories.'
 body:
   name: library-scenario-template
   description: Minimal scenario template exercising identity, target, objective, and workflow refs.

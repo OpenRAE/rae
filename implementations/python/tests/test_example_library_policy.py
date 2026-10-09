@@ -161,6 +161,7 @@ def _seed_repo(tmp_path: Path) -> Path:
                 "requirement_refs": [REQUIREMENT_REF],
                 "source_refs": ["docs/explain/sdl/sections.md"],
                 "summary": f"Reusable {surface} template for policy tests.",
+                "validation": [{"command": "python tools/check_example_library.py", "expected": "exits 0"}],
                 "body": dict(_VALID_BODY, name=f"{surface}-template"),
             },
         )

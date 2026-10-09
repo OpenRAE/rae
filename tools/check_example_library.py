@@ -16,7 +16,12 @@ if str(REPO_ROOT) not in sys.path:
 
 import yaml
 
-from tools.example_library_checks import check_entry_metadata, check_template_body, check_worked_example_file
+from tools.example_library_checks import (
+    check_entry_metadata,
+    check_template_body,
+    check_template_validation,
+    check_worked_example_file,
+)
 from tools.policy.common import PolicyFailure, apply_exceptions, failures_to_json, load_exceptions
 
 CATALOG_RELATIVE_PATH = "examples/library/catalog.yaml"
@@ -57,6 +62,7 @@ REQUIRED_TEMPLATE_FIELDS: tuple[str, ...] = (
     "requirement_refs",
     "source_refs",
     "summary",
+    "validation",
     "body",
 )
 REQUIRED_PATTERN_FIELDS: tuple[str, ...] = (
@@ -353,6 +359,7 @@ def _check_template_file(path: Path, relative_path: str, *, surface: str, entry:
             failures.append(
                 _fail("example-library-template-field", f"missing required template field: {field}", relative_path)
             )
+    failures.extend(check_template_validation(raw, relative_path))
 
     body = raw.get("body")
     if not isinstance(body, dict):
