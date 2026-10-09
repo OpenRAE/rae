@@ -109,14 +109,58 @@ surfaces:
         intended_user: sdl-author
         limits:
           - Validation covers the participant declarations and their references; it does not run a participant or show backend support.
+      - id: tool-affordance
+        path: examples/library/templates/participant_behavior/tool-affordance.yaml
+        validation_status: validated
+        sdl_sections: [nodes, content, entities, action_contracts, observation_boundaries, agents, behavior_specifications]
+        intended_user: sdl-author
+        limits:
+          - Validation covers the affordance binding and its references; it does not show that a backend installs or exposes the tool or admits an invocation.
+      - id: reusable-behavior-unit
+        path: examples/library/templates/participant_behavior/reusable-behavior-unit.yaml
+        validation_status: validated
+        sdl_sections: [entities, action_contracts, observation_boundaries, agents, behavior_specifications]
+        intended_user: sdl-author
+        limits:
+          - The gate validates the unit as a standalone scenario; it does not import the unit or validate an importing scenario.
     patterns:
       - id: participant-behavior-contract-binding
         path: examples/library/patterns/participant-behavior-contract-binding.yaml
         validation_status: guidance
         sdl_sections: [agents, action_contracts, observation_boundaries]
         intended_user: sdl-author
+        example_refs: [action-contract-observation-boundary]
         limits:
           - Covers declaring and binding contracts only; it does not show participant runtime behavior.
+      - id: participant-behavior-specification
+        path: examples/library/patterns/participant-behavior-specification.yaml
+        validation_status: guidance
+        sdl_sections: [agents, action_contracts, observation_boundaries, behavior_specifications]
+        intended_user: sdl-author
+        example_refs: [action-contract-observation-boundary]
+        limits:
+          - Validation checks references, governed vocabularies, and published evidence-contract ids; it does not run a participant or show that a backend supports the declared behavior mode or features.
+          - It does not resolve realization_profile_ref, which validation checks only for a non-empty value.
+      - id: participant-behavior-reusable-unit
+        path: examples/library/patterns/participant-behavior-reusable-unit.yaml
+        validation_status: guidance
+        sdl_sections: [agents, action_contracts, observation_boundaries, behavior_specifications]
+        intended_user: sdl-author
+        example_refs: [reusable-behavior-unit]
+        limits:
+          - Role refs are not scoped to one import; in a unit imported more than once, a participant_role_refs entry covers the participants of every import that have the role.
+          - It does not validate the importing scenario with raes semantic validate, which rejects a document that declares imports.
+          - It does not give SDL diagnostics for an invalid declaration inside an imported unit, which raises a pydantic ValidationError (validate the unit on its own first), or for a malformed import version range such as >=1,<<2, which raises a packaging InvalidSpecifier.
+          - It does not show that exports hide a declaration; validation accepts a reference from the importing scenario to an unexported declaration's <namespace>.__private.<name> name, although the SDL specification makes that __private segment invalid author input.
+      - id: participant-behavior-tool-affordance
+        path: examples/library/patterns/participant-behavior-tool-affordance.yaml
+        validation_status: guidance
+        sdl_sections: [content, agents, action_contracts, observation_boundaries, behavior_specifications]
+        intended_user: sdl-author
+        example_refs: [tool-affordance]
+        limits:
+          - An affordance records authored availability only; it does not show that a backend installs or exposes the tool, admits an invocation, or records evidence.
+          - It does not let an importing scenario add an affordance for an imported participant, because the binding must be classified by one of that participant's own observation boundaries.
   task:
     summary: Task-oriented authoring using current objectives, conditions, and target refs.
     worked_examples:

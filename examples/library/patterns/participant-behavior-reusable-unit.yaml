@@ -1,0 +1,46 @@
+pattern: raes-library-pattern
+version: 1
+id: participant-behavior-reusable-unit
+surface: participant_behavior
+requirement_refs: [AUT-806, DSL-116]
+source_refs:
+  - docs/explain/sdl/parser.md
+  - specs/sdl/references.md
+  - docs/requirements/DSL-116/requirement.md
+  - implementations/python/tests/test_sem_208_participant_behavior.py
+summary: Export a behavior specification from a module unit and import the unit under a namespace, so that its participant_refs, action_contract_refs, and observation_boundary_refs resolve inside that namespace.
+intent: >
+  Reuse one behavior specification, with the participant and contracts it
+  names, in several scenarios or several times in one scenario.
+use_when:
+  - Several scenarios need the same participant behavior declarations.
+  - One scenario needs two copies of a participant, each with its own behavior specification.
+required_fields:
+  - "In the unit, a module block with id in publisher/name form and version. An imported unit without a module block is rejected."
+  - "In the unit, module.exports naming each declaration that the importing scenario references. An exported declaration is imported as <namespace>.<name>. Composition still imports an unexported declaration, as <namespace>.__private.<name>, and the SDL specification makes that __private segment invalid author input."
+  - "In the importing scenario, each imports entry has source (here local:<path> relative to the importing file; docs/explain/sdl/parser.md lists the other source classes) and namespace. version defaults to any version; set an exact version or a range to pin it."
+authoring_steps:
+  - Write the unit as a complete scenario with a module block, and validate it on its own first.
+  - Name the participants of a behavior specification in participant_refs, not participant_role_refs.
+  - Export the behavior specification, so that it is imported as alpha.red-scan-behavior (the name the parse_sdl_file check prints), and the declarations that the importing scenario refers to.
+  - Import the unit with an explicit namespace and version.
+  - Refer to imported declarations by their namespace-qualified names, such as alpha.red-scan-behavior or alpha.red-agent.
+  - Validate the importing scenario with raes sdl resolve followed by raes sdl verify-imports, or with parse_sdl_file.
+validation:
+  - command: uv run --project implementations/python --frozen python tools/check_example_library.py
+    expected: Exits 0 with no output. The gate checks this pattern and its catalog entry, requires each example_refs entry to name a validated catalog entry, and parses the reusable-behavior-unit template body as a standalone scenario. It does not import the unit.
+  - command: uv run --project implementations/python --frozen python -c "import sys; from pathlib import Path; from raes import parse_sdl_file; print(sorted(parse_sdl_file(Path(sys.argv[1])).behavior_specifications))" my-scenario.sdl.yaml
+    expected: >-
+      With the reusable-behavior-unit template body saved as
+      scan-behavior.sdl.yaml and, in the same directory, a my-scenario.sdl.yaml
+      with name my-scenario and one imports entry (source
+      local:scan-behavior.sdl.yaml, namespace alpha, version 1.0.0), prints
+      ['alpha.red-scan-behavior'] and exits 0.
+  - command: uv run --project implementations/python --frozen raes sdl resolve my-scenario.sdl.yaml
+    expected: With the same two files, writes raes.lock.json next to my-scenario.sdl.yaml, prints its path, and exits 0.
+  - command: uv run --project implementations/python --frozen raes sdl verify-imports my-scenario.sdl.yaml
+    expected: >-
+      After raes sdl resolve, checks raes.lock.json against a fresh resolution,
+      parses my-scenario.sdl.yaml with parse_sdl_file, prints "imports
+      verified", and exits 0. An importing scenario that does not validate
+      makes the command exit 1.
