@@ -8,6 +8,7 @@ from .associated_artifacts import AssociatedArtifactManifestModel
 from .backend_operation_schema import backend_operation_schema_bundle
 from .execution_state import EvaluationHistoryEventModel
 from .experiment_bindings import ParticipantConfigurationResultModel
+from .inject_occurrence_schema import inject_occurrence_schema_bundle
 from .operation_carriers import OperationReceiptModel, OperationStatusModel
 from .participant_context import ParticipantContextViewModel
 from .participant_control import ParticipantControlOccurrenceModel
@@ -95,6 +96,7 @@ def _participant_control_schema_bundle() -> dict[str, dict[str, Any]]:
 def _runtime_schema_bundle() -> dict[str, dict[str, Any]]:
     return {
         **backend_operation_schema_bundle(),
+        **inject_occurrence_schema_bundle(),
         **_participant_control_schema_bundle(),
         "evaluation-history-event-stream-v1": _event_stream_schema(
             "EvaluationHistoryEventStream",
