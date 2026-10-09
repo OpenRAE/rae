@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 68.0.0 and rejects duplicate or unsupported
+Current validation requires release 70.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -527,3 +527,17 @@ and [`analysis-v68.json`](analysis-v68.json). The incoming release 67.0.0
 retains its original bytes. Pre-synchronization issue #1361 captures are
 [archived with exact digests](../execution-recovery-pre-sync-evidence/README.md).
 Retained outcomes and bounded claim limits are unchanged.
+
+Release 69.0.0 replays the retained matrix after issue #1091 stopped
+dispatching control-plane HTTP requests that are abandoned before their body
+completes. Classifications and claim limits remain unchanged; request-boundary
+admission is verified by its dedicated suite in
+[`execution-snapshot-v69.json`](execution-snapshot-v69.json) and
+[`analysis-v69.json`](analysis-v69.json).
+
+Release 70.0.0 replays the retained matrix after issue #8 made the P0 and P2
+control-plane profile declarations name their exactly-once and multi-owner
+exclusions. Classifications and claim limits remain unchanged; the declarations
+are verified by their own tests in
+[`execution-snapshot-v70.json`](execution-snapshot-v70.json) and
+[`analysis-v70.json`](analysis-v70.json).
