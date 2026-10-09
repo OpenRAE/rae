@@ -6,8 +6,11 @@ from copy import deepcopy
 from dataclasses import replace
 from typing import cast
 
+from pydantic_core import to_jsonable_python
+from raes_contracts.canonical import jsonable_fallback
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import ApplyResult, RealizationProvenanceEntry, RuntimeSnapshot
 from raes_processor.models import CompiledRealizationRequirement
 from raes_processor.planner import (
@@ -176,6 +179,22 @@ def _post_apply_contract_result(
     return _realization_disclosure_result(result, realization)
 
 
+def _portable_payloads(plan: ProvisioningPlan, snapshot: RuntimeSnapshot) -> tuple[ProvisioningPlan, RuntimeSnapshot]:
+    """Present declared and returned payloads to the disclosure readers as portable JSON.
+
+    Admission accepts tuple, enum, dataclass and model carriers that the portable
+    codec serializes. The disclosure readers traverse JSON objects and arrays, so
+    a carrier would otherwise hide the realization concern it encloses.
+    """
+
+    def portable(payload: object) -> object:
+        return to_jsonable_python(payload, fallback=jsonable_fallback)
+
+    operations = [replace(operation, payload=portable(operation.payload)) for operation in plan.operations]
+    entries = {address: replace(entry, payload=portable(entry.payload)) for address, entry in snapshot.entries.items()}
+    return replace(plan, operations=operations), snapshot.with_entries(entries)
+
+
 def _realization_disclosure_result(
     result: ApplyResult, realization: _RealizationApplyContext
 ) -> tuple[list[Diagnostic], tuple[RealizationProvenanceEntry, ...]]:
@@ -185,10 +204,12 @@ def _realization_disclosure_result(
     # Still check materialization authority and sanitize the snapshot; requiring
     # the failed readback here would erase recoverable resources.
     plan = realization.plan
-    validation_plan = plan if result.success else replace(plan, observation_demands=())
+    validation_plan, returned = _portable_payloads(
+        plan if result.success else replace(plan, observation_demands=()), result.snapshot
+    )
     diagnostics, provenance = realization_authority_disclosure(
         validation_plan,
-        result.snapshot,
+        returned,
         manifest=realization.manifest,
     )
     supplemental = _supplemental_realization_requirements(realization)
@@ -197,7 +218,7 @@ def _realization_disclosure_result(
     supplemental_diagnostics, supplemental_provenance = realization_disclosure(
         supplemental,
         validation_plan,
-        result.snapshot,
+        returned,
         manifest=realization.manifest,
         artifact_availability=realization.artifact_availability,
     )
