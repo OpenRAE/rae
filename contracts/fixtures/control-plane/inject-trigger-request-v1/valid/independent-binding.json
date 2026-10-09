@@ -13,6 +13,7 @@
   "bindings": [
     {
       "binding": "orchestration.inject-binding.door-controller.reset-badge",
+      "node": "provision.node.door-controller",
       "instance": "door-controller-1",
       "revision": "realization-r2"
     }

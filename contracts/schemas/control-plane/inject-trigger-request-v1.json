@@ -106,7 +106,7 @@
     },
     "InjectTargetBindingModel": {
       "additionalProperties": false,
-      "description": "One selected concrete realization instance; entity names never select hosts.",
+      "description": "One selected realization instance of a compiled node binding; entity names never select hosts.",
       "properties": {
         "binding": {
           "maxLength": 2048,
@@ -124,6 +124,16 @@
           "title": "Instance",
           "type": "string"
         },
+        "node": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Node",
+          "type": "string"
+        },
         "revision": {
           "maxLength": 256,
           "minLength": 1,
@@ -133,6 +143,7 @@
       },
       "required": [
         "binding",
+        "node",
         "instance",
         "revision"
       ],
@@ -282,8 +293,8 @@
   "type": "object",
   "x-raes-invariants": [
     {
-      "description": "Validate compiled address families, bindings of the requested inject, unique selected instances, the orchestration admission context, unrebased order and distinct claim identities; structural validity grants no trigger authority.",
-      "id": "inject-occurrence-local-consistency",
+      "description": "Validate compiled inject, node, event, script and story address families, the pinned orchestration plan, binding addresses rendered exactly from their node and the requested inject, and unique binding/instance pairs; structural validity grants no trigger authority and does not resolve bindings against the plan.",
+      "id": "inject-trigger-request-local-consistency",
       "inputs": [
         {
           "contract_id": "inject-trigger-request-v1",

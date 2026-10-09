@@ -12,9 +12,9 @@
   "inject": "orchestration.inject.release",
   "bindings": [
     {
-      "binding": "orchestration.inject-binding.host.release",
-      "node": "provision.node.host",
-      "instance": "host-1",
+      "binding": "orchestration.inject-binding.mod.host.mod.release",
+      "node": "provision.node.mod.host",
+      "instance": "mod-host-1",
       "revision": "realization-r1"
     }
   ],
@@ -23,8 +23,5 @@
     "event": "orchestration.event.gate"
   },
   "input_ref": null,
-  "expected_head": "order-head-9",
-  "payload": {
-    "script": "release.sh"
-  }
+  "expected_head": "order-head-9"
 }
