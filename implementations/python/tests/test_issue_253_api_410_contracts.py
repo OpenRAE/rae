@@ -226,10 +226,11 @@ def test_information_state_join_rejects_stale_mismatched_or_unsupported_sources(
     payloads = _join_payloads()
     _replace(payloads[target], path, value)
     context = _join_context(payloads)
+    record = ParticipantInformationStateRecordModel.model_validate(payloads["join"])
 
     with pytest.raises(ValueError, match=error):
         validate_participant_information_state_context(
-            ParticipantInformationStateRecordModel.model_validate(payloads["join"]),
+            record,
             reconstruction_profiles={},
             occurrence_histories=context.occurrence_histories,
             resolved_sources=context.resolved_sources,
