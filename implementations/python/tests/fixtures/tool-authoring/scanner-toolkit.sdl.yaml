@@ -1,0 +1,85 @@
+# Reusable participant tool unit (issue #298, DSL-117). It is a valid standalone
+# scenario, and operator-console.sdl.yaml imports it under two namespaces.
+name: scanner-toolkit
+module:
+  id: acme/scanner-toolkit
+  version: 2.1.0
+  exports:
+    nodes: [lan, web]
+    content: [scanner-package]
+    accounts: [operator]
+    entities: [red-team]
+    agents: [red-agent]
+    action_contracts: [scan]
+    observation_boundaries: [red-view]
+    behavior_specifications: [red-scan-behavior]
+nodes:
+  lan:
+    type: switch
+  web:
+    type: compute
+    resources: {ram: 1 GiB, cpu: 1}
+    services: [{port: 80, name: http}, {port: 22, name: ssh}]
+content:
+  scanner-package:
+    type: file
+    target: web
+    path: /opt/raes/tools/scanner
+accounts:
+  operator:
+    username: operator
+    node: web
+entities:
+  red-team:
+    role: red
+agents:
+  red-agent:
+    affiliations: [red-team]
+    actions: [scan]
+    observation_boundaries: [red-view]
+    starting_accounts: [operator]
+    interactive_access:
+      shell: {target_ref: web, channel: ssh, account_ref: operator}
+action_contracts:
+  scan:
+    semantic_version: 1.0.0
+    lifecycle_state: active
+    behavioral_granularity: atomic
+    procedure_basis: service discovery against the web node
+    realization_profile: backend-declared
+    fidelity_claim: records participant discovery intent and terminal observation
+    preconditions:
+      - precondition_id: authority-in-scope
+        precondition_class: authority
+        description: the participant is authorized to scan the web service
+    effects:
+      - effect_id: terminal-scan-observation
+        effect_class: observation_effect
+        description: terminal scan observation
+        evidence_refs: [evidence.scan-output]
+    failure_classes: [backend_error, unknown]
+observation_boundaries:
+  red-view:
+    projection_basis: participant-local view of scan results
+    observable_refs: [behavior_specifications.red-scan-behavior.tool_affordances.network-scanner]
+    evidence_refs: [evidence.scan-output]
+    redaction_policy: no hidden refs are disclosed
+    latency_profile: immediate
+    view_rules:
+      - information_ref: behavior_specifications.red-scan-behavior.tool_affordances.network-scanner
+        boundary_class: observable_resource
+        disposition: observable
+        visibility_basis: authored participant-local affordance
+behavior_specifications:
+  red-scan-behavior:
+    semantic_version: 1.0.0
+    lifecycle_state: active
+    participant_refs: [red-agent]
+    action_contract_refs: [scan]
+    observation_boundary_refs: [red-view]
+    authority_scope_refs: [nodes.web.services.http]
+    tool_affordances:
+      network-scanner:
+        tool_ref: scanner-package
+        action_contract_refs: [scan]
+        observation_boundary_refs: [red-view]

@@ -1,0 +1,61 @@
+# One reusable tool unit imported under two namespaces, plus local participants
+# whose own observation boundary shows a local tool affordance over an imported
+# action and tool (issue #298, DSL-117). The local scanner-package is a
+# different tool that the imported affordances must not bind.
+name: operator-console
+imports:
+  - source: local:scanner-toolkit.sdl.yaml
+    namespace: alpha
+    version: 2.1.0
+  - source: local:scanner-toolkit.sdl.yaml
+    namespace: bravo
+    version: ">=2,<3"
+nodes:
+  console-host:
+    type: compute
+    resources: {ram: 1 GiB, cpu: 1}
+content:
+  scanner-package:
+    type: file
+    target: console-host
+    path: /opt/console/scanner
+entities:
+  oversight:
+    role: blue
+  audit:
+    role: white
+agents:
+  operator:
+    affiliations: [oversight]
+    actions: [alpha.scan]
+    observation_boundaries: [operator-view]
+    interactive_access:
+      console: {target_ref: alpha.web, channel: rdp}
+  auditor:
+    affiliations: [audit]
+    observation_boundaries: [operator-view]
+observation_boundaries:
+  operator-view:
+    projection_basis: operator view of the shared scanner
+    observable_refs: [behavior_specifications.operator-scan.tool_affordances.shared-scanner]
+    evidence_refs: [evidence.scan-output]
+    redaction_policy: no hidden refs are disclosed
+    latency_profile: immediate
+    view_rules:
+      - information_ref: behavior_specifications.operator-scan.tool_affordances.shared-scanner
+        boundary_class: observable_resource
+        disposition: observable
+        visibility_basis: authored participant-local affordance
+behavior_specifications:
+  operator-scan:
+    semantic_version: 1.0.0
+    lifecycle_state: draft
+    participant_role_refs: [blue]
+    action_contract_refs: [alpha.scan]
+    observation_boundary_refs: [operator-view]
+    authority_scope_refs: [nodes.alpha.web.services.http]
+    tool_affordances:
+      shared-scanner:
+        tool_ref: alpha.scanner-package
+        action_contract_refs: [alpha.scan]
+        observation_boundary_refs: [operator-view]
