@@ -47,7 +47,8 @@ def files_outside(root: Path, files: Iterable[str | os.PathLike[str]]) -> list[P
 
 
 def _imported_module_files() -> set[Path]:
-    files = {getattr(module, "__file__", None) for module in list(sys.modules.values())}
+    # Iterate over a copy, as the sys.modules documentation advises: a lookup can import a module.
+    files = {getattr(module, "__file__", None) for module in sys.modules.copy().values()}
     # The build imports this module too, but autodoc never documents it.
     return {Path(file).resolve() for file in files if isinstance(file, str)} - {Path(__file__).resolve()}
 
