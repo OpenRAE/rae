@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 
 from raes_backend_protocols.capabilities import ProvisionerCapabilities
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.plan_projection import planned_provisioning_resources
 from raes_contracts.planning import (
     PlannedResource,
     ProvisioningPlan,
@@ -102,7 +103,7 @@ def _collect_supported_resources(
     network_resources: list[tuple[PlannedResource, Mapping[str, object]]] = []
     node_resources: list[tuple[PlannedResource, Mapping[str, object]]] = []
     placement_resources: list[tuple[PlannedResource, Mapping[str, object]]] = []
-    for resource in sorted(plan.resources.values(), key=lambda item: item.address):
+    for resource in sorted(planned_provisioning_resources(plan), key=lambda item: item.address):
         payload = _supported_resource_payload(resource, diagnostics)
         if payload is None:
             continue

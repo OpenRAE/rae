@@ -14,6 +14,11 @@ diagnostics, and (for provisioning) the realization-envelope identity. The
 internal ``resources`` map and the compiled model / manifest / snapshot / target
 binding carried by the composite ``ExecutionPlan`` are deliberately excluded;
 they are not part of any published plan contract.
+
+``planned_provisioning_resources`` is the backend-facing view of those
+operations (issue #1425): the reference and libvirt interpreters realize the
+resources it returns, so they read the excluded ``resources`` map only for a
+plan that has no operations.
 """
 
 from __future__ import annotations
@@ -31,16 +36,20 @@ from .contracts import (
 )
 from .diagnostics import Diagnostic, diagnostic_payload
 from .planning import (
+    ChangeAction,
     EvaluationPlan,
     OrchestrationPlan,
+    PlannedResource,
     PlanOperation,
     ProvisioningPlan,
     ResolvedRealizationAuthority,
+    RuntimeDomain,
 )
 
 __all__ = [
     "evaluation_plan_model",
     "orchestration_plan_model",
+    "planned_provisioning_resources",
     "provisioning_plan_digest",
     "provisioning_plan_model",
     "runtime_plan_digest",
@@ -130,6 +139,35 @@ def provisioning_plan_digest(plan: ProvisioningPlan) -> str:
     """Return the immutable digest used to resolve a trusted planner artifact."""
 
     return canonical_json_digest(provisioning_plan_model(plan).model_dump(mode="json", exclude_none=True))
+
+
+def planned_provisioning_resources(plan: ProvisioningPlan) -> tuple[PlannedResource, ...]:
+    """Return the desired provisioning resources a backend may materialize.
+
+    Desired state comes from the published, digest-bound operations: one
+    resource per non-delete operation. A plan relayed through its published
+    model therefore realizes what the same plan realizes in process, and the
+    internal ``resources`` map cannot change what the reference and libvirt
+    interpreters realize. An operation-free plan keeps its ``resources`` for
+    pure interpretation; apply paths drive no resource without an active
+    operation.
+    """
+
+    if not plan.operations:
+        return tuple(plan.resources.values())
+    return tuple(
+        PlannedResource(
+            address=operation.address,
+            domain=RuntimeDomain.PROVISIONING,
+            resource_type=operation.resource_type,
+            payload=operation.payload,
+            ordering_dependencies=operation.ordering_dependencies,
+            refresh_dependencies=operation.refresh_dependencies,
+            profile_bindings=getattr(operation, "profile_bindings", ()),
+        )
+        for operation in plan.operations
+        if operation.action is not ChangeAction.DELETE
+    )
 
 
 def runtime_plan_digest(plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan) -> str:
