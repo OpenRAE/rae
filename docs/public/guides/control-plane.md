@@ -135,11 +135,12 @@ public probes, the API description routes, and paths that match no route.
 - **Buffering.** The adapter holds an accepted body in memory, up to the limit.
   Then it passes the whole body to the route as one message. A route never sees
   part of a body. The adapter does not stream a body to a route.
-- **Disconnects.** If the client disconnects before its body is complete, the
-  adapter drops what it has read. No route runs, and no response is sent. Once
-  the whole body has arrived, the route runs even if the client then leaves.
-  Send each mutation with an `Idempotency-Key` header, and reuse it when you
-  retry.
+- **Disconnects.** If the server reports a disconnect before the adapter has
+  read the last chunk of the body, the adapter drops what it has read. No route
+  runs, and no response is sent. This can happen even after the client has sent
+  the whole body. Once the adapter has read the last chunk, the route runs even
+  if the client then leaves. Send each mutation with an `Idempotency-Key`
+  header, and reuse it when you retry.
 - **Rejections.** Every `400` or `413` from this check has the same body for its
   status and carries `Cache-Control: no-store`. No route runs. The adapter
   audits the rejection as an `anonymous` `http-request-rejected` event. When

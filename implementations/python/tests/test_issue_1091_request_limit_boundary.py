@@ -3,8 +3,14 @@
 Every case drives the public ASGI interface with a scripted server channel:
 ``RequestSizeLimitMiddleware`` around a recording application, or the composed
 adapter with recording control-plane entry points. No case reads
-framework-private request state. ``test_issue_1093_request_rejection_offload.py``
-keeps the audit offload and saturation cases.
+framework-private request state.
+
+The earlier size-guard cases stay in place: the #1093 module (middleware units,
+audit offload and saturation), ``test_runtime_control_plane_api.py`` and the
+#1186 and #1359 modules. This grid repeats a few of their inputs so that it has
+no gaps. It adds misleading lengths, empty and one-byte frames at both layers,
+disconnects, routes with and without credentials, delivery to an endpoint, and
+three audit-failure error types.
 """
 
 from __future__ import annotations
@@ -40,6 +46,7 @@ _TOO_LARGE = (413, b'{"detail":"request too large"}')
 _INVALID_LENGTH = (400, b'{"detail":"invalid content-length"}')
 _REJECTION_AUDIT = ("http-request-rejected", "anonymous", False, "request too large")
 _AUDIT_FAILURE_LOG = "control-plane rejection audit persistence failed"
+_GUARD_LOGGER = RequestSizeLimitMiddleware.__module__
 _SENTINEL = "store-secret-1091"
 _OPERATOR_TOKEN = "operator-token-1091"
 _BEARER = (b"authorization", f"Bearer {_OPERATOR_TOKEN}".encode())
@@ -74,14 +81,17 @@ class _Channel:
         await asyncio.sleep(0)
         self.sent.append(message)
 
-    def response(self) -> tuple[int, bytes] | None:
+    def _start(self) -> Message:
         starts = [message for message in self.sent if message["type"] == "http.response.start"]
+        assert len(starts) == 1, self.sent
+        return starts[0]
+
+    def response(self) -> tuple[int, bytes]:
         body = b"".join(message.get("body", b"") for message in self.sent if message["type"] == "http.response.body")
-        return (starts[0]["status"], body) if starts else None
+        return self._start()["status"], body
 
     def headers(self) -> dict[bytes, bytes]:
-        starts = [message for message in self.sent if message["type"] == "http.response.start"]
-        return {name.lower(): value for start in starts for name, value in start.get("headers", ())}
+        return {name.lower(): value for name, value in self._start().get("headers", ())}
 
 
 @dataclass
@@ -132,6 +142,17 @@ def _length_headers(declared: bytes | None) -> tuple[tuple[bytes, bytes], ...]:
     return () if declared is None else ((b"content-length", declared),)
 
 
+def _repeats_truthful(length_name: str, content: bytes) -> bool:
+    """Whether a misleading declaration happens to state the true length.
+
+    Such a case would repeat the truthful case under a misleading id, so the
+    matrices leave it out.
+    """
+
+    truthful = _DECLARED_LENGTHS["truthful"](content)
+    return length_name != "truthful" and _DECLARED_LENGTHS[length_name](content) == truthful
+
+
 def _refused_after_reads(body_name: str, declared: bytes | None) -> int | None:
     """Return the receive() calls made before refusal, or ``None`` when admitted.
 
@@ -149,6 +170,7 @@ _MATRIX = [
     (f"{body_name}-{length_name}", body_name, declare(body.content))
     for body_name, body in _BODIES.items()
     for length_name, declare in _DECLARED_LENGTHS.items()
+    if not _repeats_truthful(length_name, body.content)
 ]
 _ADMITTED = [
     pytest.param(body_name, declared, id=case)
@@ -366,14 +388,20 @@ _DELIVERIES = {
 }
 _CHUNKINGS: dict[str, Callable[[bytes], tuple[bytes, ...]]] = {
     "single-frame": lambda content: (content,),
-    "byte-frames": lambda content: tuple(content[index : index + 1] for index in range(len(content))) or (b"",),
+    "byte-frames": lambda content: tuple(bytes([byte]) for byte in content),
     "empty-frames-between": lambda content: (b"", content[:5], b"", content[5:], b""),
 }
+_DELIVERY_CASES = [
+    pytest.param(delivery, chunking, length_name, id=f"{length_name}-{chunking}-{delivery}")
+    for length_name in ("absent", "truthful", "understated", "overstated-to-limit")
+    for chunking in sorted(_CHUNKINGS)
+    for delivery, (content, _reason) in sorted(_DELIVERIES.items())
+    # An empty body has no bytes to split, so byte frames would repeat the single frame.
+    if (content or chunking != "byte-frames") and not _repeats_truthful(length_name, content)
+]
 
 
-@pytest.mark.parametrize("delivery", sorted(_DELIVERIES))
-@pytest.mark.parametrize("chunking", sorted(_CHUNKINGS))
-@pytest.mark.parametrize("length_name", ["absent", "truthful", "understated", "overstated-to-limit"])
+@pytest.mark.parametrize(("delivery", "chunking", "length_name"), _DELIVERY_CASES)
 def test_served_admitted_body_reaches_the_endpoint_intact(
     monkeypatch: pytest.MonkeyPatch, delivery: str, chunking: str, length_name: str
 ) -> None:
@@ -431,5 +459,5 @@ def test_served_rejection_survives_audit_failure_without_admission_or_disclosure
     assert served.endpoint_calls == []
     assert _SENTINEL not in disclosed
     assert _SENTINEL not in caplog.text
-    assert _AUDIT_FAILURE_LOG in caplog.messages
+    assert [record.getMessage() for record in caplog.records if record.name == _GUARD_LOGGER] == [_AUDIT_FAILURE_LOG]
     assert [record.exc_info for record in caplog.records] == [None] * len(caplog.records)
