@@ -1,14 +1,13 @@
 # Captured boundary shapes
 
-These are the real responses the #1344 audit observed. Each entry names the
-producer, how the response was obtained and when. Long values are trimmed where
-marked, and signed URL query strings are removed. Divergence IDs refer to the
-register in [`index.md`](index.md).
-
-Captures that tests consume live next to those tests instead of here. The
-libvirt readback and missing-object errors are in
-`implementations/python/tests/data/boundary_captures/libvirt-test-driver.json`
-(added by #1453).
+These are the real responses the #1344 audit observed. Every observation was
+made on 2026-10-09 (UTC). Each entry names the producer and how the response
+was obtained, with the producer version where the audit recorded one. Unless an
+entry says otherwise, probes ran on macOS 27.0.1 arm64. The store, time, MCP and
+runtime-snapshot probes drove this repository's code at `35122105` in its
+project environment (CPython 3.14.4); their scripts are not part of this record.
+Long values are trimmed where marked, and signed URL query strings are removed.
+Divergence IDs refer to the register in [`index.md`](index.md).
 
 ## GitHub
 
@@ -58,8 +57,11 @@ their attempt-1 start time:
  {"name": "fast-feedback", "started_at": "2026-09-27T18:55:54Z"}]
 ```
 
-GH-6 and NS-3. The v6.0.1 release evidence produced by run 36967479436
-(`release-evidence-index.json`, trimmed):
+GH-6 and NS-3. The v6.0.1 release evidence produced by run 36967479436, from its
+`release-evidence-3d59d0eb64d3736e337a387f55bc6f1880ccfcfd` artifact (ID
+11210897140), downloaded with `gh run download`. The workflow keeps that
+artifact for 7 days. It expired at 05:29Z on 2026-10-09, after the download, so
+this capture cannot be fetched again. `release-evidence-index.json`, trimmed:
 
 ```json
 {"release": {"run_attempt": "1", "run_id": "36967479436", "tag": "v6.0.1",
@@ -71,7 +73,7 @@ GH-6 and NS-3. The v6.0.1 release evidence produced by run 36967479436
                     "sha256": "3e97f42d42564acc1740757157ffd35a8c6373487845e987a314da54388a06c0"}]}
 ```
 
-The run's `build-inventory.json` lists all three subjects (`wheel`, `sdist`,
+The artifact's `build-inventory.json` lists all three subjects (`wheel`, `sdist`,
 `derived-test-wheel`), and the derived test wheel has the wheel's digest.
 
 ## libvirt
@@ -84,6 +86,32 @@ defineXML, same name, new UUID: libvirtError code=9 "operation failed: domain 'r
 defineXML, same UUID, new name: libvirtError code=9 "operation failed: domain 'raes-audit-web' is already defined with uuid 19837e5e-7699-51af-8bd1-435e6ce85a5f"
 destroy() on an inactive domain: libvirtError code=55 "Requested operation is not valid: domain is not running"
 ```
+
+LV-2 and LV-3. The same libvirt and binding, captured at 09:48Z. The domain and
+network XML was rendered at `35122105` by `native_matrix`, `network_xml` and
+`domain_xml` in `raes_backend_libvirt.techvault_matrix`. Each object was
+defined and started, then read back with `XMLDesc(0)`. The domain's changed
+elements, trimmed:
+
+```text
+defined:   <memory unit="MiB">128</memory>  <vcpu>2</vcpu>
+read back: <memory unit='KiB'>131072</memory>
+           <currentMemory unit='KiB'>131072</currentMemory>
+           <vcpu placement='static'>2</vcpu>
+```
+
+Each network read back with an added `<bridge stp='on' delay='0'/>`. Lookups of
+names that were never defined, with the name elided:
+
+```text
+lookupByName:        libvirtError code=42 "Domain not found"
+networkLookupByName: libvirtError code=43 "Network not found: no network with matching name '<name>'"
+```
+
+`test:///default` starts no hypervisor, so a `qemu:///system` readback adds
+elements this capture does not show, such as device addresses and aliases.
+#1453 proposes the full capture, with the rendered XML, as test data for the
+TechVault fakes.
 
 ## Guest appliance
 
@@ -168,8 +196,8 @@ parse error:          exit=1, stdout empty, stderr
 conftest verify:      exit=1 on the parse error, exit=0 on the rule conflict
 ```
 
-CL-2. `git diff --name-only --diff-filter=d --cached` in a scratch repository,
-next to the `-z` form:
+CL-2. git 2.54.0 (Apple Git-157), `git diff --name-only --diff-filter=d --cached`
+in a scratch repository, next to the `-z` form:
 
 ```text
 "contracts/schemas/na\303\257ve.json"
@@ -183,8 +211,9 @@ git ls-files -z: contracts/schemas/naïve.json | contracts/schemas/plain.json | 
 
 ## SQLite store and Ground Control client
 
-ST-1. `flock` on macOS, observed through a forked child and a separate probe
-process:
+ST-1. `flock`, observed through a forked child and a separate probe process. The
+first two lines come from an OS-level `flock` probe. The last two run the
+production `RuntimeOwnerLease.close()` and a variant that always unlocks:
 
 ```text
 after forked child closed a dup:                  BlockingIOError(errno=35 EAGAIN)
@@ -204,7 +233,8 @@ WAL write failure at COMMIT (RLIMIT_FSIZE): sqlite3.OperationalError(disk I/O er
 disk full inside the body: sqlite3.OperationalError(database or disk is full) SQLITE_FULL, isinstance(OSError) False
 ```
 
-ST-3. A production store file, corrupted in place, then admitted:
+ST-3. A production store file under SQLite 3.50.4, corrupted in place, then
+admitted:
 
 ```text
 index root page overwritten: quick_check row "Tree 10 page 10: btreeInitPage() returns error code 11"

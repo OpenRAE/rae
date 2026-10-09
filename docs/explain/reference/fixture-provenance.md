@@ -1,12 +1,12 @@
 # Boundary fixture provenance
 
-A boundary fixture stands in for something this repository does not control:
-a platform or third-party API, a command-line tool or subprocess, a database
-driver, the filesystem or the operating system, the clock, or another
+A boundary fixture stands in for something this repository does not control.
+That can be a platform or third-party API, a command-line tool or subprocess, a
+database driver, the filesystem or the operating system, the clock, or another
 repository's producer. Such a fixture is evidence only when its shape was
 observed from the real system in the state the code handles. A shape written
 from documentation or from what the code expects can agree with a wrong
-consumer, and the suite then stays green while the behaviour cannot work.
+consumer, and the suite then stays green while the behavior cannot work.
 
 This note sets the rule for adding or changing a boundary fixture. The
 [fixture provenance audit](../../research/fixture-provenance/index.md) applied
@@ -30,18 +30,16 @@ it to the existing suite (issue #1344).
 
 ## Keep the capture where the tests use it
 
-- Put captures that tests read under
-  `implementations/python/tests/data/boundary_captures/`, one file per producer
-  and boundary, with the provenance fields inside the file. Derive the fake's
-  behaviour from the capture instead of retyping its shape.
+- Put a capture that tests read in its own file under
+  `implementations/python/tests/data/`, one file per producer and boundary,
+  with the provenance fields inside the file.
+- Derive the fake's behavior from the capture instead of retyping its shape.
+  For example, a fake for a library binding loads the capture once, returns the
+  captured readback and raises the captured error code for a missing object.
 - When a test cannot read a capture, state in the fake's docstring where its
   shape came from: the capture, the producer's source file, or the published
   schema. If no real response could be obtained, say so; that fixture is
   inferred and stays listed as such in the inventory.
-
-`data/boundary_captures/libvirt-test-driver.json` and the shared fakes in
-`implementations/python/tests/libvirt_native_shapes.py` (added by #1453) show the
-pattern.
 
 ## Prove the fake reaches reality
 

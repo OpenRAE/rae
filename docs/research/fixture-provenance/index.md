@@ -5,7 +5,7 @@ produces. This record answers it for this repository on `dev` at `35122105`
 (2026-10-09). For every boundary where a test stands in for something the
 repository does not control, it records whether the fixture's shape was captured
 or inferred. It checks the shapes that matter against the real producer and
-lists every divergence found, with its status. It is research evidence, not
+lists the divergences found, with their status. It is research evidence, not
 contract authority.
 
 - [`inventory.md`](inventory.md) lists each boundary with its provenance, the
@@ -63,7 +63,7 @@ Limits:
 | Class | Fixtures examined | Diverges | Unverified |
 |---|---|---|---|
 | GitHub platform and workflow runtime | 67 | 7 | 3 |
-| libvirt Python API | 98 fake definitions (16 surfaces) | 4 | 1 |
+| libvirt Python API | 98 fake definitions (16 surfaces) | 4 | 2 |
 | Guest appliance | 31 | 4 | 2 |
 | Network services and supply chain | 171, plus 82 lock values | 8 | 2 |
 | Subprocesses and command-line tools | not recorded (12 boundaries) | 2 | 1 |
@@ -73,19 +73,23 @@ Limits:
 | Runtime snapshots and control-plane payloads | not recorded (5 boundaries) | 3 | 0 |
 | Release, conformance and experiment evidence | 29 | 1, plus NS-3 | 0 |
 
-Most boundaries match. The divergences cluster where a field or behaviour is
-conditional: an empty value that arrives as `null`, a count that can exceed one,
-a re-run that mixes attempt numbers, an error that exits 1 with nothing on
-stdout, a timestamp that loses its fraction on a whole second, or a
-lifecycle precondition a dictionary fake cannot express.
+Most boundaries match. The divergences cluster where a field or behavior is
+conditional:
+
+- an empty value that arrives as `null`;
+- a count that can exceed one;
+- a re-run that mixes attempt numbers;
+- an error that exits 1 with nothing on stdout;
+- a timestamp that loses its fraction on a whole second;
+- a lifecycle precondition that a dictionary fake cannot express.
 
 ## Divergence register
 
-Each entry gives the fixture, the shape it asserts, what the real producer
-returned, the production code that relies on the fixture's shape, the
-recommended fix and the status. "Open" means no change in this repository fixes
-it yet. The pull requests cited below were open, unmerged, when this record was
-written.
+Each entry gives the fixture where there is one, the shape it asserts and what
+the real producer returned. It also names the production code that relies on
+that shape, the recommended fix and the status. "Open" means no change in this
+repository fixes it yet. The pull requests cited below were open, unmerged, when
+this record was written.
 
 ### Addressed by open pull requests
 
@@ -106,12 +110,13 @@ written.
 - **CL-1: conftest error output read as "no failures".** Blast H (policy gate).
   Fixture: `T/test_repo_policy_tools.py:1288-1316` models only failure output.
   Real: conftest 0.68.0 exits 1 with an empty stdout when it cannot load or
-  evaluate the policy. Production: `tools/policy/conftest_tool.py:86-91` returned
+  evaluate the policy. Production: `tools/policy/conftest_tool.py:86-91` returns
   `[]` for an empty stdout. Fix: raise the existing evaluation error. Status:
   #1455, issue #1454.
 - **ST-1: the runtime-owner lease fork test cannot see the non-owner unlock
   guards.** Blast H (single-owner store). Fixture:
-  `test_runtime_owner_lease_rejects_and_closes_in_a_different_process_identity`
+  `T/test_issue_1092_control_plane_crash_consistency.py:2432`
+  (`test_runtime_owner_lease_rejects_and_closes_in_a_different_process_identity`)
   patches `os.getpid` in one process. Real: after `fork()` a child that unlocks
   its inherited descriptors releases the parent's `flock`. Production guards are
   correct (`control_plane_store_lease.py:217-231`, `:113-120`), but removing
@@ -123,7 +128,7 @@ written.
   (`control_plane_execution.py:39-40`) and the LilRAE workflow engine format
   instants with `isoformat()`, which drops the fraction on a whole second, so
   `...:01.001000Z` sorts before `...:01Z`. Production:
-  `control_plane_workflows.py:52` sorted the text, against the reverse-completion
+  `control_plane_workflows.py:52` sorts the text, against the reverse-completion
   rule in `specs/formal/workflows/compensation.md`. Fix: sort parsed instants.
   Status: #1464, issue #1462.
 - **GH-3: `gh release upload` in a job without a checkout.** Blast H. Already
@@ -192,11 +197,12 @@ written.
   cloud-init's UTF-8 write fails. Production: `cloudinit.py:120`. Fix: emit YAML
   `\U` escapes for astral-plane characters and use `yaml.safe_load` as the oracle.
 - **TM-2: naive `requested_at` values pass admission.** Blast M, latent: only
-  tests construct the admission today. Fixture: `T/test_runtime_fact_bindings.py`
-  uses `Z` timestamps. Real: a value built with `datetime.isoformat()` from a
-  naive datetime, or a date-only value, is admitted (`runtime_fact_dispatch.py:36`)
-  and binding raises `TypeError` (`runtime_fact_binding_policy.py:119-124`). Fix:
-  require an offset at admission.
+  tests construct the admission today. Fixtures:
+  `T/test_runtime_fact_bindings.py:107` and `:233-243` use `Z` timestamps.
+  Real: a value built with `datetime.isoformat()` from a naive datetime, or a
+  date-only value, is admitted (`runtime_fact_dispatch.py:36`) and binding
+  raises `TypeError` (`runtime_fact_binding_policy.py:119-124`). Fix: require an
+  offset at admission.
 - **NS-1: curl over HTTP/2 on macOS.** Blast M, macOS profile only. Fixture:
   `_CurlFixture` in `T/test_issue_1217_bootstrap_profiles.py:776-819` speaks
   HTTP/1.x only. Real: macOS curl 8.7.1 exits 56 for a size-limit breach and does
@@ -234,7 +240,8 @@ written.
   Fixture: `T/test_issue_1016_mixed_runtime_coordination.py:278-291` builds the
   target through the same round trip the check uses. Real: the APTL manifest's
   authored OS order and list type differ from the round trip. Production:
-  `mixed_runtime.py:212-214`. Fix: compare canonical contract forms.
+  `P/raes_runtime/mixed_runtime.py:212-214`. Fix: compare canonical contract
+  forms.
 - **RS-1, RS-2, RS-3: conformance and the SEM-222 test validate projections that
   differ from the published snapshot.** Blast M. Real, from one live control
   plane: the hermetic conformance payload omits `realization_envelope` and
@@ -247,7 +254,8 @@ written.
   (RS-3). Fix: validate the payload the public producers emit, and build corpus
   snapshots from the real pipeline.
 - **ST-4: Ground Control transport failures escape classification.** Blast M.
-  Fixture: `T/test_requirement_governance.py` fakes `URLError` and `HTTPError`.
+  Fixture: `T/test_requirement_governance.py:150-152` fakes `HTTPError`,
+  `URLError` and `TimeoutError`.
   Real: dropped connections, truncated bodies, HTML login pages and non-UTF-8
   bodies raise other exceptions. Production: `tools/policy/requirement_governance.py`
   maps only some failures to `GroundControlError`. Fix: classify transport and
@@ -270,10 +278,13 @@ Blast L unless marked.
 - **GH-6:** `T/test_issue_1226_release_evidence_cli.py:70` asserts
   `source_sha != workflow_sha`; real releases record the same SHA. Nothing in
   production depends on them differing. Fix: make the fixture values equal.
-- **LV-4:** generic-driver fakes: `nwfilterDefineXML` as an unconditional upsert
-  (also in the comment at `deployment.py:392-393`), `destroy()` succeeding on an
-  inactive object (real: code 55), `undefine()` leaving the object findable, and
-  `UUIDString()` returning `None`.
+- **LV-4:** generic-driver fakes in `T/test_libvirt_backend_driver.py`:
+  `destroy()` succeeds on an inactive object (real: code 55) and `undefine()`
+  leaves the object findable. The fakes, and the comment at
+  `deployment.py:392-393`, also treat `nwfilterDefineXML` as an unconditional
+  upsert. libvirt's `virNWFilterObjListAssignDef` (`src/conf/virnwfilterobj.c`)
+  rejects a name or UUID mismatch with code 9, but the test driver has no
+  nwfilter driver, so that part is unverified.
 - **GU-4 (blast M):** the committed guest evidence artifact fails the current validator
   with 2 problems and no test loads it. Fix: recapture it or mark it historical.
 - **NS-4:** the NIST CSF export is regenerated per request, so `--verify-remote`
@@ -283,13 +294,20 @@ Blast L unless marked.
 - **NS-6, NS-7, NS-8:** inert or harmless fixture drift in
   `T/test_oci_release_image.py:122-124`, `T/test_issue_1226_attestation_verifier.py:74-77`
   and the curl `000` stub in `T/test_release_workflows.py:1394-1411`.
-- **MF-3:** 9 negative backend-manifest corpus files fail for incidental reasons
-  as well as their named defect. Fix: derive each from the current valid stub
-  with one mutation and assert the reason.
-- **ST-2:** commit-failure fixtures raise `OSError` inside the transaction body;
-  real commit failures raise `sqlite3` errors from `commit()`. Atomicity holds on
-  real SQLite because the connection is closed after each operation.
-- **ST-3:** severe corruption raises `sqlite3.DatabaseError` from
+- **MF-3:** 9 of the 17 negative corpus files under
+  `contracts/fixtures/backend-manifest/backend-manifest-v2/invalid/` (checked by
+  `T/test_backend_manifest.py:1179-1183`) fail for incidental reasons as well as
+  their named defect. Fix: derive each from the current valid stub with one
+  mutation and assert the reason.
+- **ST-2:** commit-failure fixtures
+  (`T/test_run_310_supervisory_lifecycle.py:872`,
+  `T/test_runtime_control_plane_api.py:1878`) raise `OSError` inside the
+  transaction body; real commit failures raise `sqlite3` errors from `commit()`.
+  Atomicity holds on real SQLite because the connection is closed after each
+  operation.
+- **ST-3:** the `_QuickCheckFailureConnection` fake
+  (`T/test_issue_1092_control_plane_crash_consistency.py:1028`) returns a
+  non-`ok` row, but severe corruption raises `sqlite3.DatabaseError` from
   `PRAGMA quick_check` instead of the store's integrity error; admission still
   refuses.
 
@@ -300,7 +318,8 @@ Blast L unless marked.
   belongs to the maintainer.
 - Unverified boundaries: transferred-issue redirects, `GITHUB_SHA` on
   `workflow_dispatch`, `open` release assets, libvirt code 62 for a missing
-  nwfilter under current code, fact-file ownership under a live libvirtd,
+  nwfilter under current code, libvirt code 9 for an `nwfilterDefineXML` name or
+  UUID collision, fact-file ownership under a live libvirtd,
   `genisoimage`, the AWS EC2 CLI JSON, lock digests for self-downloading actions,
   `check-jsonschema`, store migration across releases, and capture offers.
 - Findings for sibling repositories are listed below. Filing them in those

@@ -25,7 +25,7 @@ and `P/` is `implementations/python/packages/`.
 
 ## GitHub platform and workflow runtime
 
-67 hand-built fixtures, `gh` stubs and assumed platform behaviours in 16 test
+67 hand-built fixtures, `gh` stubs and assumed platform behaviors in 16 test
 modules, plus about 25 `github.*` and default-environment reads across the 11
 workflows. None of the fixtures records its source.
 
@@ -33,7 +33,7 @@ workflows. None of the fixtures records its source.
 |---|---|---|---|---|---|---|
 | `pull_request.body` on a PR without a description | `tools/check_pr_body.py:467-469` | `T/test_pr_body_guard.py:633`, `T/test_pr_body_policy_migration.py:61` | inferred | `"body": null` (REST, PR #25); webhook schema allows `["string","null"]` | diverges (GH-1) | L |
 | PR author and head ref for the automation exemption | `tools/check_pr_body.py:190-200` | `T/test_pr_body_guard.py:524-541` | inferred | Dependabot head `dependabot/github_actions/dev/...`; release PRs target `main` | match | M |
-| PR title and optional body for the title lint | `tools/check_pr_title.py:259-280` | `T/test_pr_title_guard.py:138-150`, `:271-289` | inferred | title is a string; body is a string or null and is handled | match | L |
+| PR title and optional body for the title lint | `tools/check_pr_title.py:259-280` | `T/test_pr_title_guard.py:138-150`, `:271-288` | inferred | title is a string; body is a string or null and is handled | match | L |
 | Issues REST read for the closing-route check | `tools/pr_body_issue_scope.py:69-101` | `T/test_pr_body_guard.py:199-217`, `:374-384`, `:561-588` | inferred | open issue without `pull_request`; PR-backed issue with `pull_request`; `"body": null` | match | M |
 | Issues REST 301 for a transferred issue | `tools/pr_body_issue_scope.py:79-86` | none | none | no transferred issue available to capture | unverified | L |
 | Closing keywords in PR bodies that target `dev` | `tools/check_pr_body.py:164-187`, `:296-314` | `T/test_pr_body_guard.py:228-317` | inferred | default branch is `main`; PR #1413 (base `dev`) says `Closes #1361` and has `closingIssuesReferences: []` | diverges (GH-2) | M |
@@ -66,15 +66,15 @@ production-rendered XML, unless the row says otherwise.
 | Boundary | Consumer | Fixture | Provenance | Real observation | Verdict | Blast |
 |---|---|---|---|---|---|---|
 | `libvirtError` identity and `get_error_code()` | `P/raes_backend_libvirt/drivers/libvirt/_native.py:61-87` | `T/test_libvirt_backend_driver.py:36-51` | inferred | `libvirt.libvirtError`, not a `KeyError`, integer code | match | L |
-| Missing domain or network, generic-driver fakes | `P/raes_backend_libvirt/drivers/libvirt/_native.py:208-226` | `T/test_libvirt_backend_driver.py:127-137` | captured | code 42 `Domain not found`; code 43 `Network not found: ...` | match | H |
+| Missing domain or network, generic-driver fakes | `P/raes_backend_libvirt/drivers/libvirt/_native.py:208-226` | `T/test_libvirt_backend_driver.py:127-137` | inferred | code 42 `Domain not found`; code 43 `Network not found: ...` | match | H |
 | Missing domain or network, TechVault-family fakes | `P/raes_backend_libvirt/_techvault_native_ops.py:48-62`, `P/raes_backend_libvirt/techvault_lifecycle.py:70-90` | `T/test_libvirt_backend_techvault_native.py:105-109` and two sibling modules | inferred | code 42 or 43, never `KeyError` | diverges (LV-2) | M |
-| Missing nwfilter | `P/raes_backend_libvirt/drivers/libvirt/deployment.py:397`, `:442` | `T/test_libvirt_backend_driver.py:105-109` | inferred | libvirt source returns `VIR_ERR_NO_NWFILTER` (62); the test driver has no nwfilter driver | unverified | H |
+| Missing nwfilter | `P/raes_backend_libvirt/drivers/libvirt/deployment.py:397`, `:442` | `T/test_libvirt_backend_driver.py:105-109` | inferred | libvirt's `nwfilterLookupByName` (`src/nwfilter/nwfilter_driver.c`) raises `VIR_ERR_NO_NWFILTER` (62); the test driver has no nwfilter driver | unverified | H |
 | `defineXML` and `networkDefineXML` identity | `P/raes_backend_libvirt/drivers/libvirt/deployment.py:428-430`, `:464-490` | `T/test_libvirt_backend_driver.py:111-125` | inferred | a name or UUID collision raises code 9; an owned object can live under another name | diverges (LV-1) | H |
-| `nwfilterDefineXML` | `P/raes_backend_libvirt/drivers/libvirt/deployment.py:400-404` | `T/test_libvirt_backend_driver.py:99-103` | inferred | not an unconditional upsert (code 9 on a name and UUID mismatch, by libvirt source) | diverges (LV-4) | L |
+| `nwfilterDefineXML` | `P/raes_backend_libvirt/drivers/libvirt/deployment.py:400-404` | `T/test_libvirt_backend_driver.py:99-103` | inferred | libvirt's `virNWFilterObjListAssignDef` (`src/conf/virnwfilterobj.c`) rejects a name or UUID mismatch with code 9 and updates in place only when both match; the test driver has no nwfilter driver | unverified | L |
 | `create()` | `P/raes_backend_libvirt/drivers/libvirt/deployment.py:222` | `T/test_libvirt_backend_driver.py:68-71` | inferred | `create()` on a running domain raises code 1; production catches any exception | match | L |
 | `destroy()` on an inactive object | `P/raes_backend_libvirt/drivers/libvirt/_native.py:188-205` | `T/test_libvirt_backend_driver.py:73-76` | inferred | code 55 `domain is not running`; production tolerates 55 | diverges (LV-4) | L |
-| `undefine()` | `P/raes_backend_libvirt/drivers/libvirt/deployment.py:434`, `:455`, `:482` | `T/test_libvirt_backend_driver.py:78-79` | inferred | a running persistent domain becomes transient and stays listed; refusals (managed save, snapshots, NVRAM) are not modelled | diverges (LV-4) | M |
-| `isActive()` | `P/raes_backend_libvirt/drivers/libvirt/deployment.py:149-150` | every fake | captured | `0` and `1` as integers | match | L |
+| `undefine()` | `P/raes_backend_libvirt/drivers/libvirt/deployment.py:434`, `:455`, `:482` | `T/test_libvirt_backend_driver.py:78-79` | inferred | a running persistent domain becomes transient and stays listed; refusals (managed save, snapshots, NVRAM) are not modeled | diverges (LV-4) | M |
+| `isActive()` | `P/raes_backend_libvirt/drivers/libvirt/deployment.py:149-150` | every fake | inferred | `0` and `1` as integers | match | L |
 | `UUIDString()` | `P/raes_backend_libvirt/drivers/libvirt/_native.py:134-148` | `T/test_libvirt_backend_techvault_native.py:67-70` returns `None` | inferred | always a lowercase string | match in effect | L |
 | `name()` | `P/raes_backend_libvirt/techvault_lifecycle.py:151-160` | TechVault fakes | inferred | string | match | L |
 | `XMLDesc(0)` | `P/raes_backend_libvirt/techvault_observation.py:171-198` | three TechVault-family modules | inferred | normalized readback: `<memory unit='KiB'>131072</memory>`, `currentMemory`, `<vcpu placement='static'>` | diverges (LV-3) | M |
@@ -119,9 +119,9 @@ libvirt source.
 
 140 fixtures or hand-built payloads (about 190 parametrized cases) across curl
 acquisition, bootstrap, vocabulary snapshots, the module registry, OCI images,
-release evidence and archives, plus 52 locked artifact values re-checked against
-their producers. A further 31 fixture builders and 30 lock values cover the
-Isabelle and generic-tool archives.
+release evidence and archives. The audit also re-checked 52 locked artifact
+values against their producers. A further 31 fixture builders and 30 lock values
+cover the Isabelle and generic-tool archives.
 
 | Boundary | Consumer | Fixture | Provenance | Real observation | Verdict | Blast |
 |---|---|---|---|---|---|---|
@@ -177,10 +177,10 @@ The observations come from probes that run the store's SQL and the production
 |---|---|---|---|---|---|---|
 | Driver shapes: `BLOB` read-back, unique and primary-key violations, nested `BEGIN IMMEDIATE`, `SQLITE_BUSY` | `P/raes_runtime/control_plane_store_local*.py` | store tests | real | errors and return values as the store expects | match | H |
 | WAL sidecars, backup journal mode, VFS fallbacks | `P/raes_runtime/control_plane_store_maintenance.py` | store tests | real | WAL persists through backup; non-database files raise `DatabaseError` | match | M |
-| `PRAGMA quick_check` on a corrupt file | store admission | `_QuickCheckFailureConnection` fake returns a non-`ok` row | inferred | index and page damage return non-`ok` rows and admission refuses; a damaged table root or truncation raises `sqlite3.DatabaseError` from the PRAGMA itself | diverges (ST-3) | L |
-| Runtime-owner lease across `fork()` | `P/raes_runtime/control_plane_store_lease.py:217-233` | `test_runtime_owner_lease_rejects_and_closes_in_a_different_process_identity` patches `os.getpid` in one process | inferred | a forked child that calls `LOCK_UN` on its inherited descriptor releases the parent's lock; the simulated fork cannot observe that | diverges (ST-1) | H |
+| `PRAGMA quick_check` on a corrupt file | store admission | `_QuickCheckFailureConnection` fake (`T/test_issue_1092_control_plane_crash_consistency.py:1028`) returns a non-`ok` row | inferred | index and page damage return non-`ok` rows and admission refuses; a damaged table root or truncation raises `sqlite3.DatabaseError` from the PRAGMA itself | diverges (ST-3) | L |
+| Runtime-owner lease across `fork()` | `P/raes_runtime/control_plane_store_lease.py:217-233` | `T/test_issue_1092_control_plane_crash_consistency.py:2432` (`test_runtime_owner_lease_rejects_and_closes_in_a_different_process_identity`) patches `os.getpid` in one process | inferred | a forked child that calls `LOCK_UN` on its inherited descriptor releases the parent's lock; the simulated fork cannot observe that | diverges (ST-1) | H |
 | Commit failure | `P/raes_runtime/control_plane_store_local_codec.py:13-24` | `T/test_run_310_supervisory_lifecycle.py:872`, `T/test_runtime_control_plane_api.py:1878` raise `OSError("commit failed")` inside the transaction body | inferred | a real commit failure raises `sqlite3` errors from `commit()`; the per-operation connection close discards it, so nothing persists | diverges (ST-2) | L |
-| Ground Control HTTP client transport | `tools/policy/requirement_governance.py` | `T/test_requirement_governance.py` fakes `URLError` and `HTTPError` | inferred | a dropped connection, a truncated body, an HTML login page and non-UTF-8 JSON raise exceptions that are not `GroundControlError` | diverges (ST-4) | M |
+| Ground Control HTTP client transport | `tools/policy/requirement_governance.py` | `T/test_requirement_governance.py:150-152` fakes `HTTPError`, `URLError` and `TimeoutError` | inferred | a dropped connection, a truncated body, an HTML login page and non-UTF-8 JSON raise exceptions that are not `GroundControlError` | diverges (ST-4) | M |
 | Store migration across releases and request-commitment drift | store migration code | store tests | - | probes were written but recorded no verdict | unverified | H |
 
 ## MCP, filesystem, time and internal stand-ins
@@ -191,7 +191,7 @@ The observations come from probes that run the store's SQL and the production
 | Rejected MCP arguments | `P/raes_mcp` | `T/test_experiment_authoring.py:195-206` passes `spec_content` as a string | inferred | a client that sends an object gets the framework's validation error, which includes `input_value` and, for small inputs, the value | diverges (TM-3) | L |
 | Filesystem errors (`flock`, `O_NOFOLLOW`, `O_DIRECTORY`, `fsync` on directories) | store paths and lease | store and installation tests | real | macOS error classes and errnos captured | match | M |
 | Workflow step timestamps for compensation order | `P/raes_runtime/control_plane_workflows.py:52` | `T/test_runtime_control_plane_api.py:2148`, `:2277` have one compensable step | inferred | producers drop the fraction at a whole second (`...:01Z` then `...:01.001000Z`), so the string sort reverses them | diverges (TM-1) | H |
-| Runtime-fact `requested_at` | `P/raes_runtime/runtime_fact_dispatch.py:36`, `P/raes_runtime/runtime_fact_binding_policy.py:119-124` | `T/test_runtime_fact_bindings.py` uses `Z` timestamps | inferred | a naive or date-only value is admitted, then binding raises `TypeError` | diverges (TM-2) | M |
+| Runtime-fact `requested_at` | `P/raes_runtime/runtime_fact_dispatch.py:36`, `P/raes_runtime/runtime_fact_binding_policy.py:119-124` | `T/test_runtime_fact_bindings.py:107`, `:233-243` use `Z` timestamps | inferred | a naive or date-only value is admitted, then binding raises `TypeError` | diverges (TM-2) | M |
 | Unavailable container runtime | `P/raes_reference_backend/drivers/oci.py` | driver tests | inferred | a stopped Docker daemon gives `reference-backend.driver.command-failed` | match | L |
 | LilRAE `aptl-evidence-bundle/v1` and `aptl.run-record/v2` exports | cross-backend corpus consumer | corpus fixtures | captured from the producer source | both exports pass the corpus checks | match | M |
 
@@ -225,7 +225,10 @@ only).
 
 ## Release, conformance and experiment evidence
 
-29 fixtures across 10 boundaries.
+29 fixtures across 10 boundaries. The table lists seven. The other three match:
+the release evidence index and SBOM subject hash, the optional `task_ref` and
+`apparatus_context_ref` checks on evidence records, and the hand-authored
+lineage ledger example.
 
 | Boundary | Consumer | Fixture | Provenance | Real observation | Verdict | Blast |
 |---|---|---|---|---|---|---|
