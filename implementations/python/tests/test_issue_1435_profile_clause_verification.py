@@ -1,0 +1,170 @@
+"""API-404 clause verification against each control-plane profile (#1435, for #8).
+
+``docs/research/runtime-control-plane/conformance.md`` maps every API-404
+clause to the landed code, conformance cases and operator guidance of the
+profiles it binds. These cases cover the run binding that no profile case
+exercised, and keep that map tied to its clauses, the profiles' declared
+guarantees and its cited files.
+"""
+
+from __future__ import annotations
+
+import ast
+import re
+from pathlib import Path
+
+import pytest
+from control_plane_conformance_fixtures import (
+    KEY,
+    PROFILES,
+    RUN_SCOPE,
+    ProfileHarness,
+    identities,
+    profile_harness,
+    terminal_audits,
+    witness_events,
+)
+from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.plan_projection import evaluation_plan_model
+from raes_contracts.planning import EvaluationPlan
+from raes_runtime.control_plane import RuntimeControlPlane
+from raes_runtime.control_plane_profiles import ControlPlaneProfile, profile_declaration
+from raes_runtime.control_plane_store_memory import InMemoryControlPlaneStore
+from test_issue_1185_api_404_profile_alignment import COMMON_GUARANTEES, DURABLE_GUARANTEES, TRANSPORT_GUARANTEES
+
+pytestmark = pytest.mark.control_plane_conformance
+
+ROOT = Path(__file__).resolve().parents[3]
+CONFORMANCE_PAGE = ROOT / "docs/research/runtime-control-plane/conformance.md"
+CODE_ROOT = ROOT / "implementations/python/packages/raes_runtime"
+TEST_ROOT = Path(__file__).resolve().parent
+ADMITTED_RUN = RUN_SCOPE.removeprefix("run:")
+ACCEPTED = "accepted"
+# How each composition refuses a request whose run differs from its admitted run.
+RUN_REFUSALS = {
+    "P0": "operation run scope does not match the admitted control-plane store scope",
+    "P1": "operation run scope does not match the admitted control-plane store scope",
+    "P2": '409 {"detail":"operation conflict"}',
+}
+# Written independently of the requirement document: the profiles each clause binds.
+CLAUSE_PROFILES = {
+    "API-404-C1": {"P0", "P1", "P2"},
+    "API-404-C2": {"P1", "P2"},
+    "API-404-C3": {"P2"},
+    "API-404-C4": {"P0", "P1", "P2"},
+}
+# The guarantee identifiers API-404 names for each clause, as the #1185 module
+# pins them. C4 names none, so it binds every available profile.
+CLAUSE_GUARANTEES = {
+    "API-404-C1": COMMON_GUARANTEES,
+    "API-404-C2": DURABLE_GUARANTEES,
+    "API-404-C3": TRANSPORT_GUARANTEES,
+    "API-404-C4": set(),
+}
+_CITED_FILE = re.compile(r"`([\w/]+\.py)(?:::(\w+))?`")
+_LINK_TARGET = re.compile(r"\]\(([^)#\s]+)\)")
+
+
+def _evaluate(harness: ProfileHarness, run_id: str) -> str:
+    """Submit one evaluation plan through the composition's own entry point."""
+
+    plan = EvaluationPlan(run_id=run_id)
+    if harness.client is not None:
+        response = harness.client.post(
+            "/operations/evaluation",
+            json=evaluation_plan_model(plan).model_dump(mode="json"),
+            headers=harness.headers(),
+        )
+        accepted = response.status_code == 200 and response.json()["accepted"]
+        return ACCEPTED if accepted else f"{response.status_code} {response.text}"
+    try:
+        receipt = harness.plane.submit_evaluation(plan, idempotency_key=KEY, identity=identities()["alice"])
+    except ValueError as refusal:
+        return str(refusal)
+    return ACCEPTED if receipt.accepted else repr(receipt.diagnostics)
+
+
+@pytest.mark.parametrize("profile", PROFILES)
+def test_request_for_another_run_changes_nothing(profile: str, tmp_path: Path) -> None:
+    witness = tmp_path / "effects.jsonl"
+    with profile_harness(profile, tmp_path) as harness:
+        assert _evaluate(harness, "another-run") == RUN_REFUSALS[profile]
+
+        assert harness.store.load_records() == {}
+        assert harness.store.read_audit() == []
+        assert witness_events(witness) == []
+        assert harness.snapshot_cut() == ({}, 0)
+
+        # The same plan for the admitted run is accepted, and the same reads see
+        # its record, terminal audit, evaluator start and revision.
+        assert _evaluate(harness, ADMITTED_RUN) == ACCEPTED
+        (operation_id,) = harness.store.load_records()
+        assert len(terminal_audits(harness.store, operation_id)) == 1
+        assert witness_events(witness) == [{"event": "evaluate", "operation_id": operation_id}]
+        assert harness.snapshot_cut()[1] == 1
+
+
+def test_selected_p0_store_cannot_be_rebound_to_another_run() -> None:
+    store = InMemoryControlPlaneStore()
+    RuntimeControlPlane(create_stub_target(), store=store, run_scope=RUN_SCOPE, profile=ControlPlaneProfile.P0).close()
+    target = create_stub_target()
+
+    with pytest.raises(ValueError, match="store scope does not match runtime admission"):
+        RuntimeControlPlane(target, store=store, run_scope="run:another", profile=ControlPlaneProfile.P0)
+
+    # The refusal leaves the store bound to its first scope, which reopens.
+    RuntimeControlPlane(create_stub_target(), store=store, run_scope=RUN_SCOPE, profile=ControlPlaneProfile.P0).close()
+
+
+def _clause_section() -> str:
+    page = CONFORMANCE_PAGE.read_text(encoding="utf-8")
+    return page.split("\n## API-404 clause verification\n", 1)[1].split("\n## ", 1)[0]
+
+
+def _clause_rows() -> dict[str, list[str]]:
+    rows = [line.strip().strip("|").split("|") for line in _clause_section().splitlines() if line.startswith("| `API")]
+    return {cells[0].strip().strip("`"): [cell.strip() for cell in cells] for cells in rows}
+
+
+def _declared_profiles(guarantees: set[str]) -> set[str]:
+    """Available profiles whose declared guarantees include every given identifier."""
+
+    declarations = [profile_declaration(profile) for profile in ControlPlaneProfile]
+    return {
+        declaration.profile.value
+        for declaration in declarations
+        if declaration.available and guarantees <= {claim.identifier for claim in declaration.guarantees}
+    }
+
+
+def test_clause_map_binds_each_clause_to_its_declared_profiles() -> None:
+    declared = {clause: _declared_profiles(guarantees) for clause, guarantees in CLAUSE_GUARANTEES.items()}
+    # A note after ";" in a cell, such as "P3 is unavailable", binds no profile.
+    table = {
+        clause: set(re.findall(r"\bP\d\b", cells[1].partition(";")[0])) for clause, cells in _clause_rows().items()
+    }
+
+    assert declared == CLAUSE_PROFILES
+    assert table == CLAUSE_PROFILES
+
+
+def _cites_existing(path: str, function: str) -> bool:
+    source = (TEST_ROOT if Path(path).name.startswith("test_") else CODE_ROOT) / path
+    if not source.is_file():
+        return False
+    tree = ast.parse(source.read_text(encoding="utf-8"))
+    return not function or function in {node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)}
+
+
+def test_clause_map_cites_existing_code_and_tests() -> None:
+    citations = sorted(set(_CITED_FILE.findall(_clause_section())))
+
+    assert len(citations) > len(CLAUSE_PROFILES)
+    assert [citation for citation in citations if not _cites_existing(*citation)] == []
+
+
+def test_clause_map_links_resolve() -> None:
+    targets = _LINK_TARGET.findall(_clause_section())
+
+    assert targets
+    assert [target for target in targets if not (CONFORMANCE_PAGE.parent / target).is_file()] == []
