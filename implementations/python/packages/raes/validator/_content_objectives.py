@@ -380,6 +380,7 @@ class _ContentObjectivesMixin:
             self._err(error)
         self._verify_tool_affordance_tool_refs()
         self._verify_participant_inject_deliveries()
+        self._verify_participant_episode_policies()
         self._verify_participant_interaction_refs()
         self._verify_behavior_specification_authority_refs()
         self._verify_mixed_control_semantics()

@@ -1,9 +1,9 @@
 {
-  "content_hash": "88badd3549d88383d2486b06ed1885397dc290665e1a072009caadf9bdd83549",
+  "content_hash": "141cb9ccd1c637eb578784fb7ec7d7097fd27317d2a7ecbc8c24eceea37ac5b0",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "88badd3549d88383d2486b06ed1885397dc290665e1a072009caadf9bdd83549",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "141cb9ccd1c637eb578784fb7ec7d7097fd27317d2a7ecbc8c24eceea37ac5b0",
+    "summary": "Add the optional authored participant episode policy to behavior specifications: initialization, turn structure, terminal and truncation conditions, and reset policy as declared intent only (#307)."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

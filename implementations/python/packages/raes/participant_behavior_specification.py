@@ -12,6 +12,7 @@ from typing_extensions import TypeAliasType
 from ._base import SDLModel
 from ._classification_guard import LegacyClassificationGuard
 from ._identifiers import PortableIdentifier
+from .participant_episode_policy import ParticipantEpisodePolicy
 from .participant_execution import ParticipantAutonomousExecutionPolicy
 from .participant_inject_delivery import ParticipantInjectDelivery
 
@@ -341,6 +342,7 @@ class ParticipantBehaviorSpecification(LegacyClassificationGuard):
         default_factory=dict,
         json_schema_extra={"additionalProperties": False},
     )
+    episode_policy: ParticipantEpisodePolicy | None = Field(default=None, exclude_if=lambda value: value is None)
     extension_policy: str = "governed-extension"
     extensions: dict[str, BehaviorSpecificationExtensionValue] = Field(default_factory=dict)
 

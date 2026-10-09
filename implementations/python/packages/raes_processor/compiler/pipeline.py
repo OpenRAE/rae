@@ -39,6 +39,7 @@ from .participant_contracts import (
     _compile_observation_boundaries,
     _compile_outcome_interpretation_rules,
 )
+from .participant_episode_policies import _compile_participant_episode_policies
 from .participant_inject_deliveries import _compile_participant_inject_deliveries
 from .placement import (
     _compile_account_placements,
@@ -151,6 +152,7 @@ def _compiled_behavior_parts(
         "behavior_specifications": _compile_behavior_specifications(scenario, diagnostics),
         "tool_affordances": _compile_tool_affordances(scenario, diagnostics),
         "participant_inject_deliveries": _compile_participant_inject_deliveries(scenario),
+        "participant_episode_policies": _compile_participant_episode_policies(scenario),
         "events": _compile_events(
             scenario, assertions, structure["injects"], structure["inject_bindings"], diagnostics
         ),

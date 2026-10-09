@@ -1,8 +1,8 @@
 """Behavior-specification and agent reference rewriters for composition.
 
 Autonomous resource budgets, mixed-control state, tool affordances, participant
-inject deliveries, agent sections, and the behavior-reference maps that seed
-namespaced tool-affordance / inject-delivery identifiers.
+inject deliveries, episode policies, agent sections, and the behavior-reference
+maps that seed namespaced tool-affordance / inject-delivery identifiers.
 """
 
 from __future__ import annotations
@@ -147,6 +147,47 @@ def _rewrite_participant_inject_delivery(
     binding["control_evidence_refs"] = [
         _maybe_rename(ref, symbols["named"]) for ref in binding.get("control_evidence_refs", [])
     ]
+
+
+_EPISODE_POLICY_REF_LISTS = (
+    ("assertion_refs", "assertions"),
+    ("action_contract_refs", "action_contracts"),
+    ("evidence_requirement_refs", "evidence_requirements"),
+)
+
+
+def _episode_policy_records(policy: dict[str, Any]) -> list[object]:
+    records: list[object] = [
+        policy.get("initialization"),
+        policy.get("interaction_structure"),
+        policy.get("reset_policy"),
+    ]
+    for field_name in ("terminal_conditions", "truncation_conditions"):
+        conditions = policy.get(field_name)
+        if isinstance(conditions, dict):
+            records.extend(conditions.values())
+    return records
+
+
+def _rewrite_participant_episode_policy(
+    policy: object,
+    symbols: dict[str, dict[str, str] | set[str]],
+) -> None:
+    """Rewrite episode-policy refs; condition ids stay local to the policy."""
+
+    if not isinstance(policy, dict):
+        return
+    for record in _episode_policy_records(policy):
+        if not isinstance(record, dict):
+            continue
+        for field_name, section in _EPISODE_POLICY_REF_LISTS:
+            if isinstance(record.get(field_name), list):
+                record[field_name] = [_maybe_rename(str(ref), symbols[section]) for ref in record[field_name]]
+        if record.get("temporal_constraint_ref"):
+            record["temporal_constraint_ref"] = _maybe_rename(
+                str(record["temporal_constraint_ref"]),
+                symbols["temporal_constraints"],
+            )
 
 
 def _behavior_reference_maps(
@@ -297,6 +338,7 @@ def _rewrite_behavior_specification(
     for binding in behavior_spec.get("participant_inject_deliveries", {}).values():
         if isinstance(binding, dict):
             _rewrite_participant_inject_delivery(binding, symbols)
+    _rewrite_participant_episode_policy(behavior_spec.get("episode_policy"), symbols)
 
 
 def _rewrite_behavior_sections(

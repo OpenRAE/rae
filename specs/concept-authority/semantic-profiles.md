@@ -62,10 +62,12 @@ only one profile.
 The reference stack requires the native `episodes` concept family in the
 `exchange` and `execution` phases because those phases exchange and execute the
 participant episode state and episode history contracts. Authoring and
-processing do not require the family today: ADR-013 explicitly avoids adding
-SDL authoring syntax for episode semantics, and the reference processor does
-not publish participant episode state/history contracts as a processing
-capability. The profile therefore records episode coverage through
+processing do not require the family today. Since ADR-013's amendment, SDL may
+carry an optional `behavior_specifications.*.episode_policy` record of authored
+episode intent (DSL-120). That record compiles to participant metadata, not to
+episode state or history, and the reference processor does not publish
+participant episode state/history contracts as a processing capability. The
+profile therefore records episode coverage through
 `required_contracts` and `required_concept_families`, not through a
 `required_bindings` entry on `capabilities.supported_participant_contracts`;
 that manifest scope also contains implementation, behavior, and provenance
