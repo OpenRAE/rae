@@ -122,8 +122,9 @@ def test_bare_tool_ref_keeps_its_content_binding_when_a_private_unit_declaration
         "\nbehavior_specifications:\n",
         "\nrelationships:\n  scanner-package: {type: connects_to, source: web, target: lan}\nbehavior_specifications:\n",
     )
+    unit_text = _rewritten(UNIT, (shared_name,))
     with pytest.raises(SDLValidationError, match="tool_ref 'scanner-package' is ambiguous"):
-        parse_sdl(_rewritten(UNIT, (shared_name,)))
+        parse_sdl(unit_text)
 
     model = compile_runtime_model(_parse_pair(tmp_path, unit_edits=(shared_name,)))
 
