@@ -116,6 +116,48 @@ client-supplied identity headers and sets verified ones.
 - Never turn a snapshot, operation record, history, receipt, or error into a
   participant view by filtering it.
 
+## Bound request bodies
+
+The adapter checks the size of every HTTP request before it routes,
+authenticates, or parses it. The check covers every method and path: the
+public probes, the API description routes, and paths that match no route.
+`ControlPlaneSecurityConfig.max_request_bytes` sets the limit. The default is
+1,000,000 bytes.
+
+- **Declared length.** A request gets `400` with `invalid content-length` when
+  it has more than one `Content-Length` header or a value that is not plain
+  digits. A declared length above the limit gets `413` before the adapter reads
+  any of the body.
+- **Counted bytes.** The adapter counts the body bytes that the ASGI server
+  delivers, whatever the header says. When a chunk would take the total past
+  the limit, the adapter returns `413` with `request too large`. It does not
+  keep that chunk or read the rest of the body.
+- **Buffering.** The adapter holds an accepted body in memory, up to the limit.
+  Then it passes the whole body to the route as one message. A route never sees
+  part of a body. The adapter does not stream a body to a route.
+- **Disconnects.** If the client disconnects before its body is complete, the
+  adapter drops what it has read. No route runs, and no response is sent. Once
+  the whole body has arrived, the route runs even if the client then leaves.
+  Send each mutation with an `Idempotency-Key` header, and reuse it when you
+  retry.
+- **Rejections.** Every `400` or `413` from this check has the same body for its
+  status and carries `Cache-Control: no-store`. No route runs. The adapter
+  audits the rejection as an `anonymous` `http-request-rejected` event. When
+  that audit write fails or its queue is full, the response stays the same. The
+  log gets a fixed message with no error details.
+
+Your ASGI server and proxy own the rest of this boundary:
+
+- Set a proxy body limit no larger than `max_request_bytes`.
+- Limit header size, request time, idle time, and open connections. The adapter
+  sets no time limit on a slow body, and each open request can buffer up to
+  `max_request_bytes`.
+- The server parses HTTP framing, such as chunked bodies and requests that send
+  both `Content-Length` and `Transfer-Encoding`. The adapter sees only the
+  body bytes that the server passes on.
+- After a rejection, the adapter stops reading the body. The server decides
+  whether to read and discard the rest or to close the connection.
+
 ## Deploy the adapter
 
 - Serve P2 on an administration or service network. Participants must not

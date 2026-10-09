@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable, Sequence
+from enum import Enum
 from functools import partial
 
 from anyio import CapacityLimiter, to_thread
@@ -16,6 +17,13 @@ NO_STORE_CACHE_CONTROL = "no-store"
 _REQUEST_TOO_LARGE_DETAIL = "request too large"
 _INVALID_CONTENT_LENGTH_DETAIL = "invalid content-length"
 _LOGGER = logging.getLogger(__name__)
+
+
+class _UnadmittedBody(Enum):
+    """Why a received HTTP body was not admitted for dispatch."""
+
+    OVERSIZED = "oversized"
+    ABANDONED = "abandoned"
 
 
 class RejectionAuditExecutor:
@@ -141,7 +149,8 @@ class RequestSizeLimitMiddleware:
     accepted ASGI messages to the application.  A chunk that crosses the limit
     is rejected before it is copied into the buffer, keeping middleware-owned
     allocation bounded without relying on Starlette's private ``Request._body``
-    cache.
+    cache.  A client that disconnects before its body is complete has submitted
+    nothing, so no route runs and no response is sent (issue #1091).
     """
 
     def __init__(
@@ -176,31 +185,30 @@ class RequestSizeLimitMiddleware:
         if content_length is not None and content_length > self._max_request_bytes:
             await self._reject(scope, receive, send, status_code=413, detail=_REQUEST_TOO_LARGE_DETAIL)
             return
+        body = await self._receive_bounded_body(receive)
+        if body is _UnadmittedBody.OVERSIZED:
+            await self._reject(scope, receive, send, status_code=413, detail=_REQUEST_TOO_LARGE_DETAIL)
+        elif body is not _UnadmittedBody.ABANDONED:
+            await self._replay(scope, receive, send, body)
 
+    async def _receive_bounded_body(self, receive: Receive) -> bytes | _UnadmittedBody:
         body = bytearray()
-        disconnected = False
         while True:
             message = await receive()
             if message["type"] == "http.disconnect":
-                disconnected = True
-                break
+                return _UnadmittedBody.ABANDONED
             if message["type"] != "http.request":
                 continue
             chunk = message.get("body", b"")
             if len(chunk) > self._max_request_bytes - len(body):
-                await self._reject(scope, receive, send, status_code=413, detail=_REQUEST_TOO_LARGE_DETAIL)
-                return
+                return _UnadmittedBody.OVERSIZED
             body.extend(chunk)
             if not message.get("more_body", False):
-                break
+                return bytes(body)
 
-        raw_body = bytes(body)
+    async def _replay(self, scope: Scope, receive: Receive, send: Send, raw_body: bytes) -> None:
         scope.setdefault("state", {})["raw_body"] = raw_body
-        replay_message: Message | None = (
-            {"type": "http.disconnect"}
-            if disconnected
-            else {"type": "http.request", "body": raw_body, "more_body": False}
-        )
+        replay_message: Message | None = {"type": "http.request", "body": raw_body, "more_body": False}
 
         async def replay_receive() -> Message:
             nonlocal replay_message
