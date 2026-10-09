@@ -14,6 +14,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
+from libvirt_native_shapes import install_libvirt_error_type, libvirt_readback, lookup
 from paths import EXAMPLES_DIR
 from raes_backend_libvirt.techvault_native import TechVaultNativeLibvirtDriver
 from raes_backend_protocols.naming import provider_resource_name
@@ -77,6 +78,11 @@ def test_guest_evidence_requires_explicit_nonnegative_integer_memory_tolerance(i
 # --- fake native libvirt substrate (no daemon) ---------------------------------
 
 
+@pytest.fixture(autouse=True)
+def _libvirt_error_type(monkeypatch: pytest.MonkeyPatch) -> None:
+    install_libvirt_error_type(monkeypatch)
+
+
 class _NativeObject:
     def __init__(self, name: str = "", xml: str = "") -> None:
         self._name = name
@@ -100,7 +106,7 @@ class _NativeObject:
         return int(self._active)
 
     def XMLDesc(self, _flags=0):  # noqa: N802 - mirrors libvirt API
-        return self._xml
+        return libvirt_readback(self._xml)
 
     def UUIDString(self):  # noqa: N802 - mirrors libvirt API
         return ET.fromstring(self._xml).findtext("uuid")  # noqa: S314 - test-generated XML
@@ -126,10 +132,10 @@ class _FakeConnection:
         return obj
 
     def networkLookupByName(self, name: str):  # noqa: N802 - mirrors libvirt API
-        return self.networks[name]
+        return lookup(self.networks, name, "networkLookupByName")
 
     def lookupByName(self, name: str):  # noqa: N802 - mirrors libvirt API
-        return self.domains[name]
+        return lookup(self.domains, name, "lookupByName")
 
     def listAllDomains(self):  # noqa: N802 - mirrors libvirt API
         return [item for item in self.domains.values() if not item._undefined]

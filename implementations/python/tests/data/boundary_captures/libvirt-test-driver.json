@@ -1,0 +1,48 @@
+{
+  "boundary": "libvirt Python API: XMLDesc readback of defined objects and missing-object lookup errors",
+  "producer": {
+    "library": "libvirt 12.7.0 (Homebrew)",
+    "binding": "libvirt-python 12.8.0 built against libvirt 12.7.0",
+    "uri": "test:///default",
+    "reported_library_version": 12007000
+  },
+  "captured_at": "2026-10-09T09:48:43Z",
+  "rendered_by": {
+    "commit": "35122105b0c1bb648754625d8e3920eafa9bc599",
+    "functions": [
+      "raes_backend_libvirt.techvault_matrix.native_matrix",
+      "raes_backend_libvirt.techvault_matrix.network_xml",
+      "raes_backend_libvirt.techvault_matrix.domain_xml"
+    ],
+    "name_prefix": "raes-techvault",
+    "kernel": "/var/lib/libvirt/boot/vmlinuz",
+    "initrd": "/var/lib/libvirt/boot/initrd.cpio.gz"
+  },
+  "procedure": "networkDefineXML() and create() for each rendered network, defineXML() and create() for the rendered domain, then XMLDesc(0) and isActive() on the returned objects; lookupByName() and networkLookupByName() on names that were never defined.",
+  "limitations": "test:///default is libvirt's built-in test driver. It parses and formats XML with the same libvirt configuration code as the QEMU driver but starts no hypervisor, so a live qemu:///system readback adds elements this capture does not show (device addresses and aliases, for example) and names interface targets differently.",
+  "rendered": {
+    "network_isolated": "<network><name>raes-techvault-provision.network.lab-226790ea1a56</name><uuid>ea53eeab-0ead-53cb-ba3f-6cca05587f1c</uuid><ip address=\"192.0.2.1\" netmask=\"255.255.255.0\"><dhcp><host mac=\"52:54:00:9c:c1:b5\" name=\"raes-techvault-provision.node.demo-84542fe528cb\" ip=\"192.0.2.10\" /></dhcp></ip></network>",
+    "network_nat": "<network><name>raes-techvault-provision.network.natlab-f64c5f75c2f8</name><uuid>f7ebebed-43ec-5e5b-8f88-4547cad82bc7</uuid><forward mode=\"nat\" /><ip address=\"198.51.100.1\" netmask=\"255.255.255.0\"><dhcp><host mac=\"52:54:00:04:bb:bc\" name=\"raes-techvault-provision.node.demo-84542fe528cb\" ip=\"198.51.100.10\" /></dhcp></ip></network>",
+    "domain": "<domain type=\"qemu\"><name>raes-techvault-provision.node.demo-84542fe528cb</name><uuid>773afccf-f77d-5794-b076-ca318e66dcb4</uuid><memory unit=\"MiB\">128</memory><vcpu>2</vcpu><os><type arch=\"x86_64\">hvm</type><kernel>/var/lib/libvirt/boot/vmlinuz</kernel><initrd>/var/lib/libvirt/boot/initrd.cpio.gz</initrd><cmdline>console=ttyS0 panic=-1 raes.appliance=techvault</cmdline></os><features><acpi /></features><devices><emulator>/usr/bin/qemu-system-x86_64</emulator><serial type=\"pty\"><target port=\"0\" /></serial><console type=\"pty\"><target type=\"serial\" port=\"0\" /></console><interface type=\"network\"><mac address=\"52:54:00:9c:c1:b5\" /><source network=\"raes-techvault-provision.network.lab-226790ea1a56\" /><model type=\"virtio\" /></interface><interface type=\"network\"><mac address=\"52:54:00:04:bb:bc\" /><source network=\"raes-techvault-provision.network.natlab-f64c5f75c2f8\" /><model type=\"virtio\" /></interface></devices></domain>"
+  },
+  "readback": {
+    "network_isolated": "<network>\n  <name>raes-techvault-provision.network.lab-226790ea1a56</name>\n  <uuid>ea53eeab-0ead-53cb-ba3f-6cca05587f1c</uuid>\n  <bridge stp='on' delay='0'/>\n  <ip address='192.0.2.1' netmask='255.255.255.0'>\n    <dhcp>\n      <host mac='52:54:00:9c:c1:b5' name='raes-techvault-provision.node.demo-84542fe528cb' ip='192.0.2.10'/>\n    </dhcp>\n  </ip>\n</network>\n",
+    "network_nat": "<network>\n  <name>raes-techvault-provision.network.natlab-f64c5f75c2f8</name>\n  <uuid>f7ebebed-43ec-5e5b-8f88-4547cad82bc7</uuid>\n  <forward mode='nat'/>\n  <bridge stp='on' delay='0'/>\n  <ip address='198.51.100.1' netmask='255.255.255.0'>\n    <dhcp>\n      <host mac='52:54:00:04:bb:bc' name='raes-techvault-provision.node.demo-84542fe528cb' ip='198.51.100.10'/>\n    </dhcp>\n  </ip>\n</network>\n",
+    "domain": "<domain type='qemu' id='2'>\n  <name>raes-techvault-provision.node.demo-84542fe528cb</name>\n  <uuid>773afccf-f77d-5794-b076-ca318e66dcb4</uuid>\n  <memory unit='KiB'>131072</memory>\n  <currentMemory unit='KiB'>131072</currentMemory>\n  <vcpu placement='static'>2</vcpu>\n  <os>\n    <type arch='x86_64'>hvm</type>\n    <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>\n    <initrd>/var/lib/libvirt/boot/initrd.cpio.gz</initrd>\n    <cmdline>console=ttyS0 panic=-1 raes.appliance=techvault</cmdline>\n    <boot dev='hd'/>\n  </os>\n  <features>\n    <acpi/>\n  </features>\n  <clock offset='utc'/>\n  <on_poweroff>destroy</on_poweroff>\n  <on_reboot>restart</on_reboot>\n  <on_crash>destroy</on_crash>\n  <devices>\n    <emulator>/usr/bin/qemu-system-x86_64</emulator>\n    <interface type='network'>\n      <mac address='52:54:00:9c:c1:b5'/>\n      <source network='raes-techvault-provision.network.lab-226790ea1a56'/>\n      <target dev='testnet0'/>\n      <model type='virtio'/>\n    </interface>\n    <interface type='network'>\n      <mac address='52:54:00:04:bb:bc'/>\n      <source network='raes-techvault-provision.network.natlab-f64c5f75c2f8'/>\n      <target dev='testnet1'/>\n      <model type='virtio'/>\n    </interface>\n    <serial type='pty'>\n      <target port='0'/>\n    </serial>\n    <console type='pty'>\n      <target type='serial' port='0'/>\n    </console>\n  </devices>\n</domain>\n",
+    "domain_is_active": 1
+  },
+  "absence": {
+    "lookupByName": {
+      "exception": "libvirt.libvirtError",
+      "is_key_error": false,
+      "code": 42,
+      "message": "Domain not found"
+    },
+    "networkLookupByName": {
+      "exception": "libvirt.libvirtError",
+      "is_key_error": false,
+      "code": 43,
+      "message": "Network not found: no network with matching name 'raes-techvault-provision.network.natlab-f64c5f75c2f8-absent'"
+    }
+  }
+}
