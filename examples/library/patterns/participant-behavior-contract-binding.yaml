@@ -13,11 +13,19 @@ intent: >
 use_when:
   - An agent action needs declared preconditions, effects, failures, and evidence expectations.
   - A participant view needs explicit hidden, observable, and evidence-only material.
+required_fields:
+  - "action_contracts.<action>: semantic_version, behavioral_granularity, procedure_basis, realization_profile, fidelity_claim, and non-empty preconditions, effects, and failure_classes."
+  - "Each precondition: precondition_id, precondition_class, and description. Each effect: effect_id, effect_class, and description, plus target_refs or evidence_refs unless the class is no_effect or unknown_effect."
+  - "observation_boundaries.<boundary>: projection_basis, redaction_policy, latency_profile, and at least one entry in observable_refs or evidence_refs."
+  - "agents.<participant>.actions: once the scenario declares action_contracts, every name must be an action_contracts key."
+  - "agents.<participant>.observation_boundaries: every name must be an observation_boundaries key."
 authoring_steps:
   - Add an action-contract entry for each governed action name.
   - Bind agent actions to the action-contract keys.
-  - Add observation-boundaries and bind each agent boundary reference.
+  - Add observation_boundaries entries and bind each agent boundary reference.
   - Keep sensitive information in hidden or evidence-only boundary rules.
 validation:
-  - command: parse_sdl_file
-    expected: agent actions and observation boundaries resolve to declared entries.
+  - command: uv run --project implementations/python --frozen python tools/check_example_library.py
+    expected: Exits 0 with no output. The gate checks this pattern and its catalog entry, requires each example_refs entry to name a validated catalog entry, and parses the action-contract-observation-boundary template body with the SDL parser and semantic validator.
+  - command: uv run --project implementations/python --frozen raes semantic validate my-scenario.sdl.yaml
+    expected: 'With the action-contract-observation-boundary template body saved as my-scenario.sdl.yaml, prints "validate: success" and exits 0.'

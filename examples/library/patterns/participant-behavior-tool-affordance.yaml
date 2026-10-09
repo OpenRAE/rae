@@ -1,0 +1,33 @@
+pattern: raes-library-pattern
+version: 1
+id: participant-behavior-tool-affordance
+surface: participant_behavior
+requirement_refs: [AUT-806, DSL-117]
+source_refs:
+  - docs/explain/sdl/sections.md
+  - docs/requirements/DSL-117/requirement.md
+  - implementations/python/tests/test_sem_208_participant_behavior.py
+summary: Bind a declared tool content item to the action contracts and observation boundaries it serves with a tool affordance in a behavior specification.
+intent: >
+  Declare which tool is authored as available to a participant for which
+  governed actions, and which observation boundary shows that binding, so that
+  validation checks the tool, actions, and boundary together.
+use_when:
+  - A participant action uses a tool that the scenario declares as a content item.
+  - Reviewers need the tool, the actions it serves, and the boundary that shows it to be checked as one binding.
+required_fields:
+  - "behavior_specifications.<spec>.tool_affordances.<id>.action_contract_refs: one or more action contracts. Each must also be in the specification's action_contract_refs and in the actions of every participant that the specification covers."
+  - "behavior_specifications.<spec>.tool_affordances.<id>.observation_boundary_refs: one or more boundaries. Each must also be in the specification's observation_boundary_refs and in the observation_boundaries of every covered participant."
+  - "Each referenced boundary lists behavior_specifications.<spec>.tool_affordances.<id> in observable_refs, hidden_refs, or evidence_refs and classifies it with a view_rules entry."
+  - "That view_rules entry: information_ref set to the affordance reference, boundary_class, disposition, and visibility_basis. An evidence_only disposition also needs evidence_refs. A disclosed disposition needs disclosure_rule, and so does a discovered, inferred, or deceptive one when boundary_class is hidden_truth, private_answer_key, canary, holdout_variant, or adjudication_material."
+authoring_steps:
+  - Declare the tool as a content item.
+  - Add the affordance under the behavior specification that covers the participant.
+  - Set tool_ref to the bare name of the content item. tool_ref is optional; when present, it must name exactly one content declaration.
+  - Add the affordance reference to each referenced observation boundary and classify it in view_rules.
+  - Do not repeat the same tool, action contracts, and observation boundaries in a second affordance of the same specification.
+validation:
+  - command: uv run --project implementations/python --frozen python tools/check_example_library.py
+    expected: Exits 0 with no output. The gate checks this pattern and its catalog entry, requires each example_refs entry to name a validated catalog entry, and parses the tool-affordance template body with the SDL parser and semantic validator.
+  - command: uv run --project implementations/python --frozen raes semantic validate my-scenario.sdl.yaml
+    expected: 'With the tool-affordance template body saved as my-scenario.sdl.yaml, prints "validate: success" and exits 0.'

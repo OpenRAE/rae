@@ -18,6 +18,7 @@ import yaml
 
 from tools.example_library_checks import (
     check_entry_metadata,
+    check_example_refs,
     check_template_body,
     check_template_validation,
     check_worked_example_file,
@@ -157,6 +158,7 @@ def _check_surfaces(raw: dict[str, Any], *, repo_root: Path) -> list[PolicyFailu
             failures.append(_fail("example-library-surface", f"surfaces.{surface} must be a mapping"))
             continue
         failures.extend(_check_surface(surface, value, repo_root=repo_root, seen_ids=seen_ids))
+    failures.extend(check_example_refs(surfaces))
 
     extras = sorted(set(surfaces) - set(REQUIRED_SURFACES))
     for surface in extras:
@@ -383,7 +385,7 @@ def _check_pattern_file(path: Path, relative_path: str, *, surface: str, catalog
                 _fail("example-library-pattern-field", f"missing required pattern field: {field}", relative_path)
             )
 
-    for field in ("use_when", "authoring_steps", "validation"):
+    for field in ("use_when", "required_fields", "authoring_steps", "validation"):
         if field in raw and not isinstance(raw[field], list):
             failures.append(_fail("example-library-pattern-field-type", f"{field} must be a list", relative_path))
     return failures

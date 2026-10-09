@@ -70,11 +70,11 @@ The AUT-806 library is indexed by
 [`library/catalog.yaml`](library/catalog.yaml). It is a versioned,
 machine-readable catalog for the current non-normative authoring library.
 
-| Surface | Templates | Pattern |
-|---------|-----------|---------|
+| Surface | Templates | Patterns |
+|---------|-----------|----------|
 | Scenario | [`library/templates/scenario/minimal-validated-scenario.yaml`](library/templates/scenario/minimal-validated-scenario.yaml), [`library/templates/scenario/segmented-network-scenario.yaml`](library/templates/scenario/segmented-network-scenario.yaml), [`library/templates/scenario/parameterized-scenario.yaml`](library/templates/scenario/parameterized-scenario.yaml) | [`library/patterns/scenario-reference-integrity.yaml`](library/patterns/scenario-reference-integrity.yaml) |
 | Workflow | [`library/templates/workflow/parallel-objective-workflow.yaml`](library/templates/workflow/parallel-objective-workflow.yaml) | [`library/patterns/workflow-explicit-control-graph.yaml`](library/patterns/workflow-explicit-control-graph.yaml) |
-| Participant behavior | [`library/templates/participant_behavior/action-contract-observation-boundary.yaml`](library/templates/participant_behavior/action-contract-observation-boundary.yaml) | [`library/patterns/participant-behavior-contract-binding.yaml`](library/patterns/participant-behavior-contract-binding.yaml) |
+| Participant behavior | [`library/templates/participant_behavior/action-contract-observation-boundary.yaml`](library/templates/participant_behavior/action-contract-observation-boundary.yaml), [`library/templates/participant_behavior/tool-affordance.yaml`](library/templates/participant_behavior/tool-affordance.yaml), [`library/templates/participant_behavior/reusable-behavior-unit.yaml`](library/templates/participant_behavior/reusable-behavior-unit.yaml) | [`library/patterns/participant-behavior-contract-binding.yaml`](library/patterns/participant-behavior-contract-binding.yaml), [`library/patterns/participant-behavior-specification.yaml`](library/patterns/participant-behavior-specification.yaml), [`library/patterns/participant-behavior-reusable-unit.yaml`](library/patterns/participant-behavior-reusable-unit.yaml), [`library/patterns/participant-behavior-tool-affordance.yaml`](library/patterns/participant-behavior-tool-affordance.yaml) |
 | Task | [`library/templates/task/single-objective-task.yaml`](library/templates/task/single-objective-task.yaml) | [`library/patterns/task-as-objective-contract.yaml`](library/patterns/task-as-objective-contract.yaml) |
 | Run | [`library/templates/run/timed-run-control.yaml`](library/templates/run/timed-run-control.yaml), [`library/templates/run/seeded-run-plan.yaml`](library/templates/run/seeded-run-plan.yaml) | [`library/patterns/run-window-with-evidence.yaml`](library/patterns/run-window-with-evidence.yaml) |
 | Study | [`library/templates/study/observational-study-protocol.yaml`](library/templates/study/observational-study-protocol.yaml), [`library/templates/study/two-condition-study-design.yaml`](library/templates/study/two-condition-study-design.yaml) | [`library/patterns/observable-study-conditions.yaml`](library/patterns/observable-study-conditions.yaml) |
@@ -96,8 +96,8 @@ non-empty `validation` list whose entries have non-empty `command` and
 Every `worked_examples`, `templates`, and `patterns` entry in the catalog
 records `validation_status`, `intended_user`, and `limits`. SDL entries also
 record `sdl_sections`, and a template whose body is not SDL records
-`contract`. The policy gate rejects an entry that omits a field or breaks
-these rules.
+`contract`. A pattern entry may record `example_refs`. The policy gate
+rejects an entry that omits a field or breaks these rules.
 
 | Field | Allowed values | What the gate checks |
 |-------|----------------|----------------------|
@@ -106,6 +106,7 @@ these rules.
 | `sdl_sections` | Top-level section names from [`../specs/sdl/sections.md`](../specs/sdl/sections.md), such as `nodes` or `workflows` | Present for SDL entries and absent otherwise. Each name is a current SDL section, not a metadata or composition field such as `name` or `imports`. For a `validated` entry, each listed section is present in the validated SDL. |
 | `intended_user` | `sdl-author` for SDL entries, `experiment-author` for `experiment-authoring-input-v1` templates | The value matches the entry's contract. |
 | `limits` | One or more short statements of what the entry does not show | The list is present and not empty. Reviewers check the wording. |
+| `example_refs` | On pattern entries only, the IDs of validated worked examples or templates that show the pattern | Each ID names a worked example or template in the catalog whose `validation_status` is `validated`, so the gate also checks each linked example against its contract. Another kind of entry must not record the field. |
 
 `sdl_sections` names the sections that an entry shows for its surface, so a
 large worked example lists only some of the sections it uses. `validated`
@@ -140,6 +141,29 @@ semantic validator accept the file. It does not report semantic-validator
 advisories, such as a compute node without `resources`. The `parse_sdl_file`
 check in [Validate The Examples](#validate-the-examples) asserts that there
 are none.
+
+### Participant behavior patterns
+
+Each participant behavior pattern lists the SDL fields it needs under
+`required_fields`, its authoring steps, and the commands that check it. Its
+catalog entry links validated templates through `example_refs` and states the
+pattern's limits.
+
+| Pattern | Shows how to | Validated template | Does not claim |
+|---------|--------------|--------------------|----------------|
+| [`participant-behavior-contract-binding`](library/patterns/participant-behavior-contract-binding.yaml) | Bind agent actions and views to action contracts and observation boundaries | `action-contract-observation-boundary` | Participant runtime behavior |
+| [`participant-behavior-specification`](library/patterns/participant-behavior-specification.yaml) | Name and version the behavior surfaces of a participant in one scenario | `action-contract-observation-boundary` | That a participant runs, or that a backend supports the declared behavior mode or features |
+| [`participant-behavior-reusable-unit`](library/patterns/participant-behavior-reusable-unit.yaml) | Export a behavior specification from a module unit and import it under a namespace | `reusable-behavior-unit` | That role refs stay inside one import, or that `raes semantic validate` accepts the importing scenario |
+| [`participant-behavior-tool-affordance`](library/patterns/participant-behavior-tool-affordance.yaml) | Bind a declared tool to the action contracts and observation boundaries it serves | `tool-affordance` | That a backend installs or exposes the tool, or admits an invocation |
+
+The gate validates `reusable-behavior-unit` as a standalone scenario and does
+not import it. `raes semantic validate` parses its input in memory, so by
+design it rejects a document that declares imports. To check an importing
+scenario from the command line, run `raes sdl resolve` on it, which writes
+`raes.lock.json` next to the file, and then `raes sdl verify-imports`, which
+checks that lockfile, parses the scenario with `parse_sdl_file`, and prints
+`imports verified`. The reusable-unit pattern lists both commands and a
+`parse_sdl_file` one-liner.
 
 ### Task, run, and study entries
 

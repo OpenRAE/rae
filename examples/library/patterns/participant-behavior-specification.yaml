@@ -1,0 +1,33 @@
+pattern: raes-library-pattern
+version: 1
+id: participant-behavior-specification
+surface: participant_behavior
+requirement_refs: [AUT-806, DSL-116]
+source_refs:
+  - docs/explain/sdl/sections.md
+  - docs/requirements/DSL-116/requirement.md
+  - implementations/python/tests/test_sem_208_participant_behavior.py
+summary: Name and version the behavior surfaces of a participant in one scenario-local behavior specification.
+intent: >
+  Give the action contracts, observation boundaries, outcome rules, and
+  authority scope that a participant uses one versioned name that validation
+  and compilation check, without replacing those declarations.
+use_when:
+  - A scenario needs one named record of which participants use which action contracts and observation boundaries.
+  - Reviewers need each of those references to fail validation when its target is not declared.
+required_fields:
+  - "behavior_specifications.<name>.semantic_version: a non-empty string. Validation checks no version format."
+  - "participant_refs or participant_role_refs: at least one entry in either list."
+  - "At least one behavior surface field, such as action_contract_refs, observation_boundary_refs, or behavior_mode."
+authoring_steps:
+  - Declare the agents, action contracts, and observation boundaries first, as in participant-behavior-contract-binding.
+  - Add a behavior_specifications entry with a semantic_version and the participants it covers.
+  - Name agents in participant_refs. A participant_role_refs entry covers every agent with that role.
+  - Reference the action contracts, observation boundaries, and outcome_interpretation_rules entries by name.
+  - Set lifecycle_state to draft, active, or deprecated when the default, active, does not apply.
+  - Take behavior_mode and backend_feature_support_refs from their governed vocabularies, and evidence_contract_refs from published contract ids.
+validation:
+  - command: uv run --project implementations/python --frozen python tools/check_example_library.py
+    expected: Exits 0 with no output. The gate checks this pattern and its catalog entry, requires each example_refs entry to name a validated catalog entry, and parses the action-contract-observation-boundary template body, which declares one behavior specification, with the SDL parser and semantic validator.
+  - command: uv run --project implementations/python --frozen raes semantic validate my-scenario.sdl.yaml
+    expected: 'With the action-contract-observation-boundary template body saved as my-scenario.sdl.yaml, prints "validate: success" and exits 0.'

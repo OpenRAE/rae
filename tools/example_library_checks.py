@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from functools import cache
 from pathlib import Path
 from typing import Any
@@ -37,6 +38,7 @@ EXPERIMENT_SURFACES: frozenset[str] = frozenset({"run", "study"})
 # sets in step with that catalog.
 NON_SECTION_FIELDS = _METADATA_FIELDS | _COMPOSITION_FIELDS
 VALIDATION_STEP_FIELDS: tuple[str, ...] = ("command", "expected")
+ENTRY_FIELDS: tuple[str, ...] = ("worked_examples", "templates", "patterns")
 
 
 def _fail(rule_id: str, message: str, path: str = CATALOG_RELATIVE_PATH) -> PolicyFailure:
@@ -105,6 +107,56 @@ def _check_entry_sections(entry: dict[str, Any], owner: str, contract: str) -> l
     unknown = sorted(set(sections) - _sdl_section_names())
     message = f"{owner}.sdl_sections names values that are not SDL sections: {unknown}"
     return [_fail("example-library-entry-sections", message)] if unknown else []
+
+
+def check_example_refs(surfaces: dict[str, Any]) -> list[PolicyFailure]:
+    """Require each pattern's example_refs to name validated worked examples or templates.
+
+    The gate checks every validated entry against its contract, so a pattern
+    that passes this check links only to examples that pass that check too.
+    """
+    entries = list(_catalog_entries(surfaces))
+    validated = {
+        entry.get("id")
+        for field, _owner, entry in entries
+        if field != "patterns" and entry.get("validation_status") == VALIDATED and isinstance(entry.get("id"), str)
+    }
+    failures = (
+        _example_refs_failure(field, entry, owner, validated)
+        for field, owner, entry in entries
+        if "example_refs" in entry
+    )
+    return [failure for failure in failures if failure is not None]
+
+
+def _catalog_entries(surfaces: dict[str, Any]) -> Iterator[tuple[str, str, dict[str, Any]]]:
+    """Yield the list field, owner label, and mapping of every catalog entry."""
+    for surface, value in surfaces.items():
+        if isinstance(value, dict):
+            for field in ENTRY_FIELDS:
+                yield from _field_entries(field, f"surfaces.{surface}.{field}", value.get(field))
+
+
+def _field_entries(field: str, owner: str, entries: object) -> Iterator[tuple[str, str, dict[str, Any]]]:
+    for index, entry in enumerate(entries if isinstance(entries, list) else ()):
+        if isinstance(entry, dict):
+            yield field, f"{owner}[{index}]", entry
+
+
+def _example_refs_failure(
+    field: str, entry: dict[str, Any], owner: str, validated: set[object]
+) -> PolicyFailure | None:
+    refs = _text_list(entry["example_refs"])
+    unvalidated = sorted(set(refs or ()) - validated)
+    if field != "patterns":
+        problem = "is allowed only on pattern entries"
+    elif not refs:
+        problem = "must be a non-empty list of catalog ids"
+    elif unvalidated:
+        problem = f"must name validated worked examples or templates; got {unvalidated}"
+    else:
+        return None
+    return _fail("example-library-entry-examples", f"{owner}.example_refs {problem}")
 
 
 def _check_declared_sections(
