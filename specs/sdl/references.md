@@ -551,13 +551,14 @@ Rules:
    ambiguous. Every other purpose resolves among the declarations it admits.
    Qualified references resolve by exact canonical address (§2).
 2. A reference that names only declarations its purpose does not admit fails as
-   dangling (§4). Where semantic validation checks the field against the
-   declaration index, the diagnostic appends the declarations that the
-   reference does name, and a narrowed purpose (objective subject, action
+   dangling (§4). Where semantic validation resolves the field through the
+   shared named-reference check, the diagnostic appends the declarations that
+   the reference does name, and a narrowed purpose (objective subject, action
    target, shared state, authority scope) also names itself. An ambiguous bare
    name lists the eligible candidates, then those that the purpose refuses.
    Participant endpoints, operating scopes, and variation candidates report
-   their own diagnostics.
+   their own diagnostics, and an inject delivery's control scope must equal its
+   target controller state's scope.
 3. An effect `target_refs[]` entry that names no declaration is
    observation-boundary information; recorded action results check it against
    the participant's observation boundary. An entry that names a declaration
