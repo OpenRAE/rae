@@ -34,17 +34,20 @@ Requirement inventory expansion. Shared state and derived context must be portab
   freshness basis, transformation, evidence and provenance, comparability with
   backend disclosures, semantic limitations, visibility projection, and
   redaction policy.
-- Composition: a view cites the snapshot that holds a shared-state revision. An
-  ACT-604 information-state record joins a shared-state source and a
-  context-view source only when identity, relation, participant, episode,
-  visibility projection, and redaction policy agree, and the shared-state
-  record falls inside the sequence cut.
+- Composition: the reference example's view cites the snapshot that holds a
+  shared-state revision. The test checks this example, and no validator checks
+  the citation in general. An ACT-604 information-state record joins a
+  shared-state source and a context-view source only when identity, relation,
+  participant, episode, visibility projection, and redaction policy agree, and
+  the shared-state record falls inside the sequence cut.
 - Retrieval: the runtime context view names the snapshot revision it came from.
   An unknown or mismatched participant or episode gets no view, a governed view
   needs exactly one audience binding, and unsupported projection options fail.
 - Limits: no validator resolves a view's references against recorded
-  shared-state revisions, and contract presence does not show that a backend
-  can compute a given view. The composition reference note lists each limit.
+  shared-state revisions. The information-state join admits a superseded or
+  unpinned shared-state revision. Contract presence does not show that a
+  backend can compute a given view. The composition reference note lists each
+  limit.
 
 ## Traceability
 
@@ -68,7 +71,7 @@ Requirement inventory expansion. Shared state and derived context must be portab
 - DOCUMENTS → SPEC `specs/formal/runtime-contracts/participant-backend-contracts.md` (API-406 carrier and API-408 retrieval design)
 - DOCUMENTS → SPEC `specs/formal/participant-semantics/README.md` (SEM-214 and SEM-216 view semantics)
 - DOCUMENTS → DOCUMENTATION `docs/explain/reference/shared-state-context-composition.md` (Composition example, binding map, and limits)
-- TESTS → TEST `implementations/python/tests/test_issue_253_api_410_contracts.py` (Composition example, information-state join, access markers, view sources, and retrieval)
+- TESTS → TEST `implementations/python/tests/test_issue_253_api_410_contracts.py` (Composition example, information-state join, access markers, view freshness and sources, and retrieval)
 - TESTS → TEST `implementations/python/tests/test_run_307_shared_operational_state.py` (Snapshot shared-state semantics and append-only history)
 - TESTS → TEST `implementations/python/tests/test_run_308_concurrent_participant_execution.py` (Joint-action conflict classes and policies over shared-state reads and writes)
 - TESTS → TEST `implementations/python/tests/test_participant_backend_contracts.py` (Carrier and view schemas and fixtures)

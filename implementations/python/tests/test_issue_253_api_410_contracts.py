@@ -58,9 +58,18 @@ DIGEST = "sha256:" + "c" * 64
 
 # Each case changes one source of the joined composition: "state" is the shared-state
 # record, "view" the context view, and "join" the information-state record citing both.
+# _join_context resolves every shared-state ref to the published rev8 record, so
+# "cited-ref-not-resolved-record" cites a ref that is neither that record's event_id nor
+# its state_address. The join does not check supersession: a resolver that returned a
+# rev7 record for this ref would pass.
 JOIN_REJECTIONS = {
     "state-after-cut": ("state", ("sequence_number",), 19, "after the exact sequence cut"),
-    "superseded-revision": ("join", ("source_refs", 0, "ref"), "state-web01-http-rev7", "shared-state source identity"),
+    "cited-ref-not-resolved-record": (
+        "join",
+        ("source_refs", 0, "ref"),
+        "state-web01-http-rev7",
+        "shared-state source identity",
+    ),
     "state-visibility": ("state", ("visibility_projection_basis",), OTHER_PROJECTION, "shared-state visibility"),
     "state-redaction": ("state", ("redaction_policy_ref",), OTHER_REDACTION, "shared-state redaction"),
     "view-visibility": ("view", ("visibility_projection_ref",), OTHER_PROJECTION, "context-view visibility"),
@@ -140,7 +149,7 @@ def _join_payloads() -> dict[str, dict[str, Any]]:
 
 
 def _join_context(payloads: dict[str, dict[str, Any]]) -> ParticipantInformationStateValidationContext:
-    """Resolve each cited source as a trusted resolver would, at the record's own cut."""
+    """Resolve every cited ref to its contract's payload, at the record's own coordinate."""
 
     record = ParticipantInformationStateRecordModel.model_validate(payloads["join"])
     coordinate = ParticipantInformationStateSourceCoordinate(
@@ -217,7 +226,7 @@ def test_information_state_joins_the_shared_state_revision_and_the_derived_view(
 @pytest.mark.parametrize(
     ("target", "path", "value", "error"), list(JOIN_REJECTIONS.values()), ids=list(JOIN_REJECTIONS)
 )
-def test_information_state_join_rejects_stale_mismatched_or_unsupported_sources(
+def test_information_state_join_rejects_mismatched_or_unsupported_sources(
     target: str,
     path: tuple[str | int, ...],
     value: object,
@@ -261,6 +270,17 @@ def test_access_revision_markers_agree_across_model_and_published_schema(
     ]
 
     assert (_model_accepts(record), _schema_accepts(SHARED_STATE, record)) == (accepted, accepted)
+
+
+def test_view_rejects_a_stale_layer_without_a_freshness_basis() -> None:
+    view = _composition_view()
+    stale_layer = view["source_layers"][1]
+    del stale_layer["freshness_basis_ref"]
+
+    assert stale_layer["temporal_relation"] == "bounded_staleness"
+    assert not _schema_accepts(CONTEXT_VIEW, view)
+    with pytest.raises(ValidationError, match="freshness_basis_ref is required for bounded_staleness"):
+        ParticipantContextViewModel.model_validate(view)
 
 
 @pytest.mark.parametrize(

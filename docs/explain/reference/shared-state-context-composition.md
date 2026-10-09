@@ -109,13 +109,15 @@ record can cite both carriers as sources: the shared-state record with relation
 `validate_participant_information_state_context` then requires both sources to
 resolve to the record's participant, episode, visibility projection, and
 redaction policy. The shared-state record must also fall inside the record's
-sequence cut.
+sequence cut. Each cited ref must name the record it resolves to: a shared-state
+ref names the record's `event_id` or `state_address`, and a view ref names its
+`view_id` or `view_ref`.
 
 [`test_issue_253_api_410_contracts.py`](../../../implementations/python/tests/test_issue_253_api_410_contracts.py)
 loads the JSON above through the model and the published schema. It joins the
 view with the published record in one information state. It also exercises the
-join, access-marker, view-source, and retrieval rejections from the next
-section.
+join, access-marker, freshness-basis, view-source, and retrieval rejections
+from the next section.
 
 ## Where each binding is checked
 
@@ -143,6 +145,10 @@ section.
   record's `revision`.
 - No validator resolves `predecessor_revision_refs` against
   `shared_state_history`.
+- The ACT-604 join admits any shared-state revision at or before the cut,
+  including a superseded one, and a bare state-address ref that pins no
+  revision. The host supplies `information_state_context_resolver`, which
+  decides the record a ref resolves to; the runtime has no built-in resolver.
 - No validator resolves an access's `atomic_group_ref` against the snapshot's
   joint-action records. The concurrency validator checks only the other
   direction: each state reference in a joint-action access set must name
