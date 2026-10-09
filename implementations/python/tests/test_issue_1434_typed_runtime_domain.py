@@ -19,17 +19,24 @@ from raes_reference_backend import create_reference_backend_target
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.manager import RuntimeManager
 
-_LAB = """\
+_WITH_WEB = """\
+name: typed-domain
+nodes:
+  web: {type: compute, resources: {ram: 1 gib, cpu: 1}}
+  lab: {type: switch}
+infrastructure:
+  lab: {count: 1, properties: {cidr: 10.0.0.0/24, gateway: 10.0.0.1}}
+  web: {count: 1, links: [lab]}
+"""
+_LAB_ONLY = """\
+name: typed-domain
+nodes:
   lab: {type: switch}
 infrastructure:
   lab: {count: 1, properties: {cidr: 10.0.0.0/24, gateway: 10.0.0.1}}
 """
-_WITH_WEB = (
-    "name: typed-domain\nnodes:\n  web: {type: compute, resources: {ram: 1 gib, cpu: 1}}\n"
-    + _LAB
-    + "  web: {count: 1, links: [lab]}\n"
-)
-_LAB_ONLY = "name: typed-domain\nnodes:\n" + _LAB
+_UNTYPED_DOMAIN = ("runtime.backend-contract-invalid", "Backend snapshot contains an untyped runtime domain.")
+_OPERATION_FAILED = ("runtime.control-plane.operation-failed", "Operation completed with a known failure.")
 
 
 class _StringDomainsOnce:
@@ -61,8 +68,8 @@ def _target(*, string_domains: bool):
     return replace(target, provisioner=_StringDomainsOnce(target.provisioner))
 
 
-def _codes(diagnostics) -> list[str]:
-    return [diagnostic.code for diagnostic in diagnostics]
+def _pairs(diagnostics) -> list[tuple[str, str]]:
+    return [(diagnostic.code, diagnostic.message) for diagnostic in diagnostics]
 
 
 def test_manager_refuses_a_successful_result_with_a_string_domain():
@@ -71,31 +78,35 @@ def test_manager_refuses_a_successful_result_with_a_string_domain():
     result = manager.apply(manager.plan(parse_sdl(_WITH_WEB)))
 
     assert result.success is False
-    assert "runtime.backend-contract-invalid" in _codes(result.diagnostics)
+    assert _pairs(result.diagnostics) == [_UNTYPED_DOMAIN]
     assert manager.snapshot.entries == {}
 
 
 @pytest.mark.parametrize(
-    ("string_domains", "first_state"),
-    [(False, OperationState.SUCCEEDED), (True, OperationState.FAILED)],
+    ("string_domains", "first_outcome"),
+    [
+        (False, (OperationState.SUCCEEDED, [])),
+        (True, (OperationState.FAILED, [_UNTYPED_DOMAIN, _OPERATION_FAILED])),
+    ],
     ids=["typed", "string-domain"],
 )
-def test_a_string_domain_cannot_wedge_the_next_planned_operation(string_domains, first_state):
+def test_a_string_domain_cannot_wedge_the_next_planned_operation(string_domains, first_outcome):
     target = _target(string_domains=string_domains)
     control = RuntimeControlPlane(target)
     planner = RuntimeManager(target)
-    states = []
+    outcomes = []
     try:
         for scenario in (_WITH_WEB, _LAB_ONLY):
             execution = planner.plan(parse_sdl(scenario), snapshot=control.snapshot)
             control.register_planner_produced_plan(execution)
             receipt = control.submit_provisioning(execution.provisioning)
-            assert receipt.accepted, _codes(receipt.diagnostics)
-            states.append(control.get_operation(receipt.operation_id).state)
+            assert receipt.accepted, _pairs(receipt.diagnostics)
+            operation = control.get_operation(receipt.operation_id)
+            outcomes.append((operation.state, _pairs(operation.diagnostics)))
         entries = control.snapshot.entries
     finally:
         control.close()
 
-    assert states == [first_state, OperationState.SUCCEEDED]
+    assert outcomes == [first_outcome, (OperationState.SUCCEEDED, [])]
     assert sorted(entries) == ["provision.network.lab"]
     assert all(type(entry.domain) is RuntimeDomain for entry in entries.values())
