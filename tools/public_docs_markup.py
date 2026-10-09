@@ -41,8 +41,9 @@ CODE_BODY_DIRECTIVES = frozenset(
 def directive_targets(text: str) -> list[str]:
     """Return the paths that directives read: arguments, file options and download roles.
 
-    Code blocks count too. An inlined file lands inside a public route, where no output
-    check can see it, so this scan errs toward false positives.
+    Code blocks count too, so this scan errs toward false positives. It reads only the forms
+    in LOCAL_DIRECTIVE_PATTERNS and MyST YAML option blocks. tools/public_docs_guard.py fails
+    the build whatever markup reads the file.
     """
 
     targets = [match.group(1) for pattern in LOCAL_DIRECTIVE_PATTERNS for match in pattern.finditer(text)]
@@ -53,8 +54,9 @@ def markdown_link_targets(text: str) -> list[str]:
     """Return Markdown link, image and reference-definition targets outside code.
 
     Code fences, code spans and the bodies of CODE_BODY_DIRECTIVES are code. Other
-    directive and colon fence bodies are Markdown. A link this misses still fails the
-    build guard and evaluate_published_assets once Sphinx copies its target.
+    directive and colon fence bodies are scanned, because MyST parses most of them as
+    Markdown. A link this misses still fails the build guard and evaluate_published_assets
+    once Sphinx copies its target.
     """
 
     prose = _markdown_outside_code(text)
