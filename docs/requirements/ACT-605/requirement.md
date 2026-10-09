@@ -34,3 +34,5 @@ Requirement inventory expansion. Realistic scenarios require first-class specifi
 - TESTS → TEST `implementations/python/tests/test_dsl_437_snapshot_durability_conformance.py` (Autonomous participant durability and conformance coverage)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/participant_autonomous_execution.py` (Autonomous participant runtime compilation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/semantics/participant_behavior/__init__.py` (Autonomous participant semantic validation)
+- IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-execution-control-v1.json` (participant-execution-control-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-execution-service-state-v1.json` (participant-execution-service-state-v1 published schema)

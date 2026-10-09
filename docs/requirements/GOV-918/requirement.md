@@ -59,3 +59,4 @@ Portability breaks down when SDL, processor manifests, backend manifests, and re
 - TESTS → TEST `implementations/python/tests/test_concept_authority_governance.py` (Concept-authority governance gate tests (failure modes, boundaries, catalog error paths))
 - DOCUMENTS → ADR `docs/decisions/adrs/adr-062-concept-authority-catalog-governance-gate.md` (ADR-062: Concept-Authority Catalog Governance Gate)
 - IMPLEMENTS → GITHUB_ISSUE `496` (Issue #496: Concept authority governance gate — new family requires ADR linkage (review CA-6))
+- IMPLEMENTS → SPEC `contracts/schemas/concept-authority/semantic-projection-report-v1.json` (semantic-projection-report-v1 published schema)

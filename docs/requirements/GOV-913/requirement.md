@@ -189,3 +189,4 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - TESTS → TEST `implementations/python/tests/test_issue_1205_repository_governance.py` (Retained contract ownership checks without the retired tooling-inventory exception)
 
 - IMPLEMENTS → SPEC `specs/formal/participant-semantics/participant-opacity-proof-evidence.json` (Replayed proof evidence bound to the current selected-input and private installer sources)
+- IMPLEMENTS → SPEC `contracts/schemas/associated-artifacts/associated-artifact-manifest-v1.json` (associated-artifact-manifest-v1 published schema)

@@ -24,7 +24,7 @@ Requirement inventory expansion. Mature ecosystems need explicit validation-stre
 - IMPLEMENTS → ADR `docs/decisions/adrs/adr-072-validation-and-admission-profiles.md` (ADR-072 validation and admission profiles)
 - IMPLEMENTS → SPEC `specs/formal/validation-admission-profiles/README.md` (Validation and admission profiles formal specification)
 - IMPLEMENTS → CONFIG `contracts/profiles/validation/validation-profile-catalog-v1.json` (Validation profile catalog v1)
-- IMPLEMENTS → CONFIG `contracts/schemas/profiles/validation-profile-catalog-v1.json` (Published validation profile catalog schema v1)
+- IMPLEMENTS → SPEC `contracts/schemas/profiles/validation-profile-catalog-v1.json` (Published validation profile catalog schema v1)
 - TESTS → TEST `implementations/python/tests/test_validation_profiles.py` (Validation profile catalog tests)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-258-asr-511-layered-validation-profiles-preflight.md` (ASR-511 layered validation profiles design boundary)
 - DOCUMENTS → DOCUMENTATION `contracts/README.md` (Validation profile catalog contract documentation)

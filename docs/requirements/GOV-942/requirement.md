@@ -35,3 +35,6 @@ Academic review and range integration require a reproducible, machine-checkable 
 - TESTS → TEST `implementations/python/tests/test_behavioral_relations.py` (Behavioral-relation catalog, binding, and counterexample tests)
 - TESTS → TEST `implementations/python/tests/test_behavioral_relation_claims.py` (Behavioral-relation claim policy tests)
 - IMPLEMENTS → GITHUB_ISSUE `747` (Define behavioral-relation taxonomy and prevent conformance/equivalence conflation)
+- IMPLEMENTS → SPEC `contracts/schemas/concept-authority/behavioral-relations-v1.json` (behavioral-relations-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/profiles/scientific-completeness-assessment-v1.json` (scientific-completeness-assessment-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/profiles/scientific-completeness-taxonomy-v1.json` (scientific-completeness-taxonomy-v1 published schema)
