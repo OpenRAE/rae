@@ -81,10 +81,10 @@ relative to `implementations/python/packages/raes_runtime/`, and test paths to
 
 | Clause | Profiles | Implementation | Conformance cases | Operator guidance |
 | --- | --- | --- | --- | --- |
-| `API-404-C1` | P0, P1, P2 | `control_plane.py`, `control_plane_operation_context.py`, `control_plane_admission.py`, `control_plane_mutation.py`, `control_plane_store.py`, `control_plane_store_memory.py` | `test_issue_1187_control_plane_profiles.py`, `test_issue_1187_control_plane_lifecycle_properties.py`, `test_issue_1184_atomic_idempotency_claims.py`, `test_issue_1180_snapshot_revision_cas.py`, `test_issue_1181_unified_control_plane_mutations.py`, `test_issue_1189_control_plane_profile_declarations.py`, `test_issue_1435_profile_clause_verification.py` | [Control-plane operating profiles](../../explain/sdl/runtime-architecture.md) |
+| `API-404-C1` | P0, P1, P2 | `control_plane.py`, `control_plane_operation_context.py`, `control_plane_admission.py`, `control_plane_mutation.py`, `control_plane_execution.py`, `control_plane_store.py`, `control_plane_store_memory.py` | `test_issue_1187_control_plane_profiles.py`, `test_issue_1187_control_plane_lifecycle_properties.py`, `test_issue_1184_atomic_idempotency_claims.py`, `test_issue_1180_snapshot_revision_cas.py`, `test_issue_1181_unified_control_plane_mutations.py`, `test_issue_1189_control_plane_profile_declarations.py`, `test_issue_1435_profile_clause_verification.py` | [Control-plane operating profiles](../../explain/sdl/runtime-architecture.md#control-plane-operating-profiles) |
 | `API-404-C2` | P1, P2 | `control_plane_store_local.py`, `control_plane_store_local_scope.py`, `control_plane_store_lease.py`, `control_plane_durability.py`, `control_plane_recovery.py` | `test_issue_1187_control_plane_process_loss.py`, `test_issue_1187_control_plane_durable_carriers.py`, `test_issue_1179_startup_reconciliation.py`, `test_issue_1183_store_ownership_leases.py`, `test_issue_1092_control_plane_crash_consistency.py`, `test_issue_1187_control_plane_profiles.py` | [Control-plane operations](../../explain/sdl/control-plane-operations.md) |
-| `API-404-C3` | P2 | `control_plane_api/__init__.py`, `control_plane_api/_auth.py`, `control_plane_api/_offload.py`, `control_plane_api_guards.py`, `control_plane_security.py` | `test_issue_1187_control_plane_security_conformance.py`, `test_issue_1359_runtime_api_trust_boundary.py`, `test_issue_1093_request_rejection_offload.py`, `test_runtime_control_plane_api.py`, `test_issue_1187_control_plane_profiles.py` | [Serve the runtime control plane](../../public/guides/control-plane.md) |
-| `API-404-C4` | P0, P1, P2; P3 is unavailable | `control_plane_profiles.py` | `test_issue_1189_control_plane_profile_declarations.py`, `test_issue_1185_api_404_profile_alignment.py`, `test_issue_1187_control_plane_process_loss.py` | [Control-plane operating profiles](../../explain/sdl/runtime-architecture.md) and the limits above |
+| `API-404-C3` | P2 | `control_plane_api/__init__.py`, `control_plane_api/_auth.py`, `control_plane_api/_offload.py`, `control_plane_api/_operation_routes.py`, `control_plane_api/_responses.py`, `control_plane_api_guards.py`, `control_plane_api_participant_retrieval.py`, `control_plane_security.py` | `test_issue_1187_control_plane_security_conformance.py`, `test_issue_1359_runtime_api_trust_boundary.py`, `test_issue_1093_request_rejection_offload.py`, `test_runtime_control_plane_api.py`, `test_issue_1187_control_plane_profiles.py` | [Serve the runtime control plane](../../public/guides/control-plane.md) |
+| `API-404-C4` | P0, P1, P2; P3 is unavailable | `control_plane_profiles.py` | `test_issue_1189_control_plane_profile_declarations.py`, `test_issue_1185_api_404_profile_alignment.py`, `test_issue_1187_control_plane_process_loss.py` | [Control-plane operating profiles](../../explain/sdl/runtime-architecture.md#control-plane-operating-profiles) and the limits above |
 
 Each property #8 names is checked on every profile that guarantees it:
 
@@ -133,5 +133,7 @@ evidence is the P1 store evidence plus the HTTP cases.
 `test_issue_1435_profile_clause_verification.py` derives each clause's profiles
 from `profile_declaration()`: the available profiles whose guarantees include
 the clause's identifiers, or every available profile for C4. It fails if that
-set, this table and an independently written expectation disagree, or if the
-section cites a file, test or link that does not exist.
+set, this table and an independently written expectation disagree. It also
+fails if an Implementation or Conformance cell holds an entry that is not a
+cited file, if the section cites a file or test that does not exist, or if a
+link names a missing page or heading.

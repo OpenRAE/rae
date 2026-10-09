@@ -62,7 +62,10 @@ CLAUSE_GUARANTEES = {
     "API-404-C4": set(),
 }
 _CITED_FILE = re.compile(r"`([\w/]+\.py)(?:::(\w+))?`")
-_LINK_TARGET = re.compile(r"\]\(([^)#\s]+)\)")
+# A link's page, empty for this page, and its optional heading fragment.
+_LINK_TARGET = re.compile(r"\]\(([^)#\s]*)(?:#([^)\s]*))?\)")
+_HEADING = re.compile(r"^#+ (.+)$", re.MULTILINE)
+_NOT_IN_ANCHOR = re.compile(r"[^\w -]")
 
 
 def _evaluate(harness: ProfileHarness, run_id: str) -> str:
@@ -157,14 +160,31 @@ def _cites_existing(path: str, function: str) -> bool:
 
 
 def test_clause_map_cites_existing_code_and_tests() -> None:
+    rows = _clause_rows()
+    # Every entry of each Implementation and Conformance cell must be a citation
+    # the pattern reads, so an emptied cell or a narrowed pattern fails here.
+    entries = [entry for cells in rows.values() for cell in (cells[2], cells[3]) for entry in cell.split(", ")]
     citations = sorted(set(_CITED_FILE.findall(_clause_section())))
 
-    assert len(citations) > len(CLAUSE_PROFILES)
+    assert rows.keys() == CLAUSE_PROFILES.keys()
+    assert [entry for entry in entries if not _CITED_FILE.fullmatch(entry)] == []
     assert [citation for citation in citations if not _cites_existing(*citation)] == []
 
 
-def test_clause_map_links_resolve() -> None:
-    targets = _LINK_TARGET.findall(_clause_section())
+def _heading_anchors(page: Path) -> set[str]:
+    """The fragments GitHub derives from a page's headings, without duplicate suffixes."""
 
-    assert targets
-    assert [target for target in targets if not (CONFORMANCE_PAGE.parent / target).is_file()] == []
+    headings = _HEADING.findall(page.read_text(encoding="utf-8"))
+    return {_NOT_IN_ANCHOR.sub("", heading.strip().lower()).replace(" ", "-") for heading in headings}
+
+
+def _link_resolves(target: str, fragment: str) -> bool:
+    page = CONFORMANCE_PAGE.parent / target if target else CONFORMANCE_PAGE
+    return page.is_file() and (not fragment or fragment in _heading_anchors(page))
+
+
+def test_clause_map_links_resolve() -> None:
+    links = _LINK_TARGET.findall(_clause_section())
+
+    assert links
+    assert [link for link in links if not _link_resolves(*link)] == []
