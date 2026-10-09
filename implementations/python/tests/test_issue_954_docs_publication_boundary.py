@@ -15,7 +15,6 @@ import pytest
 import yaml
 from tools.check_public_docs import (
     INTERNAL_RECORD_DIRECTORIES,
-    MARKDOWN_LINK_PATTERNS,
     MAX_SOURCE_BYTES,
     REQUIRED_PUBLIC_PAGES,
     REQUIRED_PUBLIC_REDIRECTS,
@@ -24,6 +23,7 @@ from tools.check_public_docs import (
     evaluate_published_assets,
 )
 from tools.policy.common import PolicyFailure
+from tools.public_docs_markup import markdown_link_targets
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 DOCS_LANE_RUN = "nox -f noxfile.py -s docs-local"
@@ -198,12 +198,7 @@ def test_checked_in_public_docs_hold_the_boundary() -> None:
 def test_developer_index_links_resolve_and_reach_every_internal_record_kind() -> None:
     docs_root = REPO_ROOT / "docs"
     index = (docs_root / "README.md").read_text(encoding="utf-8")
-    targets = [
-        docs_root / match.group(1).split("#", 1)[0]
-        for pattern in MARKDOWN_LINK_PATTERNS
-        for match in pattern.finditer(index)
-        if "://" not in match.group(1)
-    ]
+    targets = [docs_root / target.split("#", 1)[0] for target in markdown_link_targets(index) if "://" not in target]
 
     assert [target for target in targets if not target.exists()] == []
     reached = {part for target in targets for part in target.relative_to(docs_root).parts}
