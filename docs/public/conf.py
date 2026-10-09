@@ -1,4 +1,5 @@
 import json
+import sys
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as _distribution_version
 from pathlib import Path
@@ -21,6 +22,10 @@ version = release.split("+", 1)[0]
 
 # -- General configuration -----------------------------------------------------
 
+# Load tools.public_docs_guard from the repository root. It warns when a page
+# reads a file from outside this directory, which fails the warning-strict build.
+sys.path.append(str(Path(__file__).resolve().parents[2]))
+
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
@@ -28,6 +33,7 @@ extensions = [
     "myst_parser",
     "sphinx_copybutton",
     "sphinx_reredirects",
+    "tools.public_docs_guard",
 ]
 
 templates_path = ["_templates"]

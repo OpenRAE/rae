@@ -32,6 +32,10 @@ MARKDOWN_LINK_PATTERNS = (
 FENCE_CHARACTERS = "`~:"
 MIN_FENCE_LENGTH = 3
 BACKTICK_RUN = re.compile(r"(`+)")
+# MyST reads these directive bodies as code, data or reStructuredText, not as Markdown.
+CODE_BODY_DIRECTIVES = frozenset(
+    {"code", "code-block", "sourcecode", "literalinclude", "raw", "math", "eval-rst", "csv-table"}
+)
 
 
 def directive_targets(text: str) -> list[str]:
@@ -48,7 +52,9 @@ def directive_targets(text: str) -> list[str]:
 def markdown_link_targets(text: str) -> list[str]:
     """Return Markdown link, image and reference-definition targets outside code.
 
-    A link this misses still fails evaluate_published_assets once Sphinx copies its target.
+    Code fences, code spans and the bodies of CODE_BODY_DIRECTIVES are code. Other
+    directive and colon fence bodies are Markdown. A link this misses still fails the
+    build guard and evaluate_published_assets once Sphinx copies its target.
     """
 
     prose = _markdown_outside_code(text)
@@ -94,9 +100,12 @@ def _closes(fence: tuple[str, str] | None, opening: str) -> bool:
 
 
 def _opens_markdown_body(fence: tuple[str, str]) -> bool:
-    # MyST parses the body of a colon fence or a directive fence (`{note}`) as Markdown.
+    # MyST parses a plain colon fence body, and most directive bodies (`{note}`), as Markdown.
     run, info = fence
-    return run[0] == ":" or info.lstrip().startswith("{")
+    name = next(iter(info.split()), "")
+    if name.startswith("{") and name.endswith("}"):
+        return name[1:-1].casefold() not in CODE_BODY_DIRECTIVES
+    return run[0] == ":"
 
 
 def _markdown_outside_code(text: str) -> str:

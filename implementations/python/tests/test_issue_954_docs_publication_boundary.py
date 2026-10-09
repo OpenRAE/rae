@@ -1,18 +1,22 @@
 """Publication-boundary rules adopted from env-packs (issue 954).
 
+The public docs build fails when a page reads a file from outside ``docs/public``.
 The public docs checker rejects internal records under ``docs/public``, Markdown
 links and file-reading directives that resolve outside it, and published
-downloads or images that are not copies of a public file. The static tests run
+downloads or images that are not copies of a public file. The checker tests run
 without a docs build.
 """
 
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
 import yaml
+from sphinx.cmd.build import build_main
+from tools import public_docs_guard
 from tools.check_public_docs import (
     INTERNAL_RECORD_DIRECTORIES,
     MAX_SOURCE_BYTES,
@@ -26,8 +30,43 @@ from tools.policy.common import PolicyFailure
 from tools.public_docs_markup import markdown_link_targets
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
+PUBLIC_CONFDIR = REPO_ROOT / "docs" / "public"
 DOCS_LANE_RUN = "nox -f noxfile.py -s docs-local"
 TOOL_LINK = "[Tool](../../tools/internal_tool.py)"
+GRID_CELL = ".. include:: ../development/record.md"
+GRID_BORDER = "+" + "-" * (len(GRID_CELL) + 2) + "+"
+# Pages that read a file outside the source directory. Most use forms the source scan does not parse.
+OUTSIDE_READS = {
+    "list-include.md": "- ```{include} ../development/record.md\n  :literal:\n  ```",
+    "blockquote-include.md": "> ```{include} ../development/record.md\n> ```",
+    "ordered-colon-include.md": "1. :::{include} ../development/record.md\n   :::",
+    "eval-rst-include.md": "```{eval-rst}\n.. include:: ../development/record.md\n```",
+    "blockquote-raw-file.md": "> ```{raw} html\n> :file: ../development/record.md\n> ```",
+    "yaml-folded-file.md": "```{raw} html\n---\nfile: >-\n  ../development/record.md\n---\n```",
+    "yaml-next-line-file.md": "```{raw} html\n---\nfile:\n  ../development/record.md\n---\n```",
+    "blockquote-diff.md": "> ```{literalinclude} quickstart.md\n> :diff: ../development/record.md\n> ```",
+    "list-literalinclude-py.md": "- ```{literalinclude} ../../tools/internal_tool.py\n  ```",
+    "link-to-file.md": "[Data](../development/data.csv)",
+    "image.md": "![Data](../development/data.csv)",
+    "rst-list-include.rst": "- .. include:: ../development/record.md",
+    "rst-field-next-line.rst": ".. raw:: html\n   :file:\n      ../development/record.md",
+    "rst-grid-include.rst": f"{GRID_BORDER}\n| {GRID_CELL} |\n{GRID_BORDER}",
+    "rst-download.rst": ":download:`Data <../development/data.csv>`",
+}
+FILE_URL_READS = {
+    "blockquote-raw-url.md": "> ```{raw} html\n> :url: file://ROOT/docs/development/record.md\n> ```",
+    "csv-table-url.md": "```{csv-table} Data\n:url: file://ROOT/docs/development/data.csv\n```",
+    "rst-split-url.rst": ".. raw:: html\n   :url: fi le://ROOT/docs/development/record.md",
+}
+INSIDE_READS = {
+    "inside-literalinclude.md": "- ```{literalinclude} quickstart.md\n  :diff: index.md\n  ```",
+    "inline-csv-table.md": "```{csv-table} Data\na,b\n```",
+    # autodoc records the source of each module it documents, outside the source directory.
+    "autodoc.rst": ".. automodule:: tools.public_docs_markup",
+}
+BUILD_WARNING = re.compile(r"/docs/public/(?P<page>[^/:\s]+)(?::\d+)?: WARNING: (?P<message>.+)")
+OUTSIDE_WARNING = "which is outside the documentation source directory"
+FILE_URL_WARNING = "must not read a local file through a file: URL"
 
 
 def _write(path: Path, content: str) -> Path:
@@ -38,6 +77,70 @@ def _write(path: Path, content: str) -> Path:
 
 def _findings(failures: list[PolicyFailure]) -> list[tuple[str, str | None]]:
     return [(failure.rule_id, failure.path) for failure in failures]
+
+
+def _warned_pages(warnings: str, message: str = "") -> set[str]:
+    return {match["page"] for match in BUILD_WARNING.finditer(warnings) if message in match["message"]}
+
+
+@pytest.fixture(scope="module")
+def guarded_builds(tmp_path_factory: pytest.TempPathFactory) -> list[tuple[int, str]]:
+    """Build the pages above with docs/public/conf.py, then rebuild without changes."""
+
+    root = tmp_path_factory.mktemp("guarded-docs")
+    public = root / "docs" / "public"
+    _write(root / "docs" / "development" / "record.md", "Development record.\n")
+    _write(root / "docs" / "development" / "data.csv", "a,b\n1,2\n")
+    _write(root / "tools" / "internal_tool.py", "print('internal')\n")
+    _write(public / "index.md", "# Index\n\n```{toctree}\n:glob:\n\n*\n```\n")
+    _write(public / "quickstart.md", "# Quickstart\n")
+    for page, markup in {**OUTSIDE_READS, **FILE_URL_READS, **INSIDE_READS}.items():
+        heading = "# Page\n\n" if page.endswith(".md") else "Page\n====\n\n"
+        _write(public / page, heading + markup.replace("ROOT", root.as_posix()) + "\n")
+    builds = []
+    for run in (1, 2):
+        warning_file = root / f"warnings-{run}.txt"
+        arguments = ["-c", str(PUBLIC_CONFDIR), "-W", "--keep-going", "-q", "-b", "html", "-w", str(warning_file)]
+        status = build_main([*arguments, str(public), str(root / "html")])
+        builds.append((status, warning_file.read_text(encoding="utf-8")))
+    return builds
+
+
+@pytest.mark.parametrize("page", sorted(OUTSIDE_READS))
+def test_build_fails_when_a_page_reads_a_file_outside_the_source(
+    guarded_builds: list[tuple[int, str]], page: str
+) -> None:
+    # The second build reads nothing new; the failing page is read again and fails again.
+    assert [(status, page in _warned_pages(warnings, OUTSIDE_WARNING)) for status, warnings in guarded_builds] == [
+        (1, True),
+        (1, True),
+    ]
+
+
+@pytest.mark.parametrize("page", sorted(FILE_URL_READS))
+def test_build_fails_when_a_directive_reads_a_file_url(guarded_builds: list[tuple[int, str]], page: str) -> None:
+    assert [(status, page in _warned_pages(warnings, FILE_URL_WARNING)) for status, warnings in guarded_builds] == [
+        (1, True),
+        (1, True),
+    ]
+
+
+@pytest.mark.parametrize("page", sorted(INSIDE_READS))
+def test_build_accepts_files_inside_the_source_and_documented_modules(
+    guarded_builds: list[tuple[int, str]], page: str
+) -> None:
+    assert [page in _warned_pages(warnings) for _status, warnings in guarded_builds] == [False, False]
+
+
+def test_recorded_paths_are_resolved_and_only_imported_modules_are_exempt(tmp_path: Path) -> None:
+    root = tmp_path / "docs" / "public"
+    guard_source = Path(public_docs_guard.__file__)
+    recorded = [root / "guides" / ".." / "index.md", root / ".." / "development" / "record.md", Path(json.__file__)]
+
+    # The guard is imported too, but its own source is not exempt.
+    assert public_docs_guard.files_outside(root, [*recorded, guard_source]) == sorted(
+        [(tmp_path / "docs" / "development" / "record.md").resolve(), guard_source.resolve()]
+    )
 
 
 @pytest.fixture
@@ -91,8 +194,10 @@ def test_markdown_link_that_escapes_the_public_root_fails(tmp_path: Path, markdo
         f"~~~~\n{TOOL_LINK}\n~~~~",
         f"Write `{TOOL_LINK}` or ``{TOOL_LINK}``.",
         f"````{{note}}\n```markdown\n{TOOL_LINK}\n```\n````",
+        f"```{{code-block}} markdown\n{TOOL_LINK}\n```",
+        f":::{{code-block}} markdown\n{TOOL_LINK}\n:::",
     ],
-    ids=["backtick-fence", "tilde-fence", "code-span", "fence-inside-a-directive"],
+    ids=["backtick-fence", "tilde-fence", "code-span", "fence-inside-a-directive", "code-block", "colon-code-block"],
 )
 def test_link_shown_as_code_passes(tmp_path: Path, markdown: str) -> None:
     _write(tmp_path / "docs" / "public" / "index.md", f"# Index\n\n{markdown}\n")
