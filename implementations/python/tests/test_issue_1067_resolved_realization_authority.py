@@ -899,6 +899,7 @@ def test_backend_apply_uses_plan_authority_and_restores_baseline_on_closed_exces
     assert result.success is False
     assert result.snapshot == baseline
     assert result.diagnostics[0].code == "runtime.backend-contract-invalid"
+    assert result.diagnostics[0].message == "Backend materialized closed realization concern 'runtime-environment'."
 
 
 def test_apparatus_owned_state_is_not_reclassified_as_scenario_provenance() -> None:
