@@ -75,8 +75,8 @@ published schemas, source code, and ADRs.
   and other reusable assets. It is not another name for a scenario, an SDL
   document phase or model, or a realized environment. The
   [env-packs repository](https://github.com/OpenRAE/env-packs) owns pack
-  structure and pack tooling; this repository owns the meaning of the SDL a
-  pack carries. See
+  structure and pack tooling; this repository remains authoritative for the
+  SDL, concept, and reusable-asset trust-policy meanings a pack relies on. See
   [Scenario And Environment-Pack Vocabulary](../../migration/raes-rename.md#scenario-and-environment-pack-vocabulary).
 
 **Variable**
