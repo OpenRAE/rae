@@ -23,8 +23,11 @@ carries this link to the contract's exact schema path:
 
 - **Only `IMPLEMENTS → SPEC` counts.** `CONSTRAINS`, `DOCUMENTS`, `TESTS`, and
   `VERIFIES` links record a relation other than ownership. An `IMPLEMENTS` link
-  to a schema path typed as `CONFIG`, `SCHEMA`, or `DOCUMENTATION` is a
-  classification error; correct its artifact type to `SPEC`.
+  to a schema path typed as `CONFIG`, `SCHEMA`, or `DOCUMENTATION` does not
+  count as ownership either. Retype it to `SPEC` only where it records that the
+  requirement owns the contract. Some such links record a narrower relation,
+  such as the vocabulary or temporal rules one requirement adds to a shared SDL
+  schema; leave those as they are.
 - **`CODE_FILE` links never count.** A module link cannot say which contract a
   requirement governs. `raes_contracts/contracts/bundle.py` generates every
   published contract and several requirements link it as a `CODE_FILE`, so
@@ -70,11 +73,18 @@ a new schema. Choose the owner by evidence, strongest first:
 
 1. A live requirement already records the exact schema path under another link
    or artifact type, or links the contract's own catalog or publication record.
-2. The pull request that published the schema, or its issue, declared the
-   requirement.
+2. The pull request or commit that published the schema, or its issue,
+   declared the requirement.
 3. The requirement's statement names the contract's subject. Prefer a
    requirement that also links the contract's defining module, tests, or
    governing ADR.
+
+On a branch that requirement governance checks, the edited record is a changed
+file like any other. Where `tools/policy/requirement_order.yaml` maps ownership
+roots to the phase of a requirement governing the branch, including one a scope
+file binds the record to, the record must fall inside them. Otherwise
+governance reports `requirement-ownership-mismatch`. Some phases, such as
+`runtime-core`, own schema paths but not their own requirement records.
 
 Do not link a requirement only to turn the gate green. Do not waive a finding
 through `tools/policy/exceptions.yaml` because a repair is inconvenient. The

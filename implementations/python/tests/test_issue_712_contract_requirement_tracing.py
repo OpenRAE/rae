@@ -94,8 +94,11 @@ def test_one_live_owner_is_enough_beside_a_retired_one(tmp_path: Path) -> None:
     [
         pytest.param(_link(_SCHEMA, artifact_type="CODE_FILE"), id="implements-typed-as-code-file"),
         pytest.param(_link(_SCHEMA, artifact_type="CONFIG"), id="implements-typed-as-config"),
+        pytest.param(_link(_SCHEMA, artifact_type="SCHEMA"), id="implements-typed-as-schema"),
+        pytest.param(_link(_SCHEMA, artifact_type="DOCUMENTATION"), id="implements-typed-as-documentation"),
         pytest.param(_link(_SCHEMA, link_type="CONSTRAINS"), id="constrains-spec"),
         pytest.param(_link(_SCHEMA, link_type="DOCUMENTS"), id="documents-spec"),
+        pytest.param(_link(_SCHEMA, link_type="TESTS"), id="tests-spec"),
         pytest.param(_link(_SCHEMA, link_type="VERIFIES"), id="verifies-spec"),
         pytest.param(
             _link("contracts/control-plane/operation-status-v1.json"),
@@ -107,7 +110,10 @@ def test_only_an_exact_implements_spec_link_traces_the_contract(tmp_path: Path, 
     _publish(tmp_path)
     _requirement(tmp_path, "API-403", link)
 
-    assert _paths(evaluate_contract_tracing(tmp_path), MISSING_RULE_ID) == {_SCHEMA}
+    failures = evaluate_contract_tracing(tmp_path)
+
+    assert _paths(failures, UNREADABLE_RULE_ID) == set()
+    assert _paths(failures, MISSING_RULE_ID) == {_SCHEMA}
 
 
 def test_an_untraced_contract_is_reported_by_id_at_its_exact_path(tmp_path: Path) -> None:

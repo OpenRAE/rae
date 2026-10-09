@@ -17,8 +17,9 @@ carries an ``IMPLEMENTS → SPEC`` link to the contract's exact schema path.
   ``raes_contracts/contracts/bundle.py`` generates every contract, so a module
   link cannot say which contract a requirement governs.
 - Other link types never count. ``CONSTRAINS``, ``DOCUMENTS``, ``TESTS``, and
-  ``VERIFIES`` record a relation other than ownership, and an ``IMPLEMENTS``
-  link typed as anything but ``SPEC`` is a classification error to correct.
+  ``VERIFIES`` record a relation other than ownership. An ``IMPLEMENTS`` link
+  to a schema path typed ``CONFIG``, ``SCHEMA``, or ``DOCUMENTATION`` does not
+  count either; retype it to ``SPEC`` only where it records ownership.
 - DRAFT owners qualify and DEPRECATED or ARCHIVED owners never do. That is the
   status rule ``requirement_governance.py`` applies to implementation work.
 
