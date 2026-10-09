@@ -95,3 +95,4 @@ Agent-assisted development can produce internally coherent code and documentatio
 - IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1208-v9.json` (Atomic coverage release 9.0.0 for typed selections)
 - IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v15.json` (Current formal replay with historical revisions retained)
 - IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1210-v14.json` (Current source-bound coverage replay)
+- IMPLEMENTS → SPEC `contracts/schemas/exploit-path-analysis/exploit-path-analysis-evidence-v1.json` (exploit-path-analysis-evidence-v1 published schema)
