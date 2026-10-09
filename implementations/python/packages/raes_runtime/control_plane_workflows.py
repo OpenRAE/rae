@@ -13,6 +13,8 @@ from raes_contracts.workflow import (
     WorkflowHistoryEventType,
 )
 
+from .diagnostics import _parse_timestamp
+
 _EXPLICIT_OFFSET_TIMESTAMP_ERROR = "timestamp must be an ISO-8601 value with an explicit UTC offset"
 
 
@@ -49,9 +51,10 @@ def maybe_apply_compensation(
     assert contract is not None
     completed_events = _completed_compensable_events(history, contract)
     if completed_events:
-        # Order by instant: producers format with isoformat(), which drops the fraction on a whole second, so
-        # the text of a later completion can sort before an earlier one.
-        ordered = sorted(completed_events, key=lambda event: parse_timestamp(event.timestamp), reverse=True)
+        # Order by instant, parsed the way the history contract checks parse it (an offset-less value is UTC).
+        # Producers format with isoformat(), which drops the fraction on a whole second, so the text of a later
+        # completion can sort before an earlier one.
+        ordered = sorted(completed_events, key=lambda event: _parse_timestamp(event.timestamp), reverse=True)
         updated_history = list(history)
         _append_compensation_history(updated_history, ordered, contract, result, submitted_at)
         payload = _compensated_workflow_payload(result, submitted_at)
