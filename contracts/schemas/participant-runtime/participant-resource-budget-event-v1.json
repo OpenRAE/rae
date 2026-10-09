@@ -157,7 +157,11 @@
             "storage_growth",
             "inference_tokens",
             "image_generations",
-            "accelerator"
+            "accelerator",
+            "interaction_steps",
+            "interaction_turns",
+            "tool_invocations",
+            "scenario_time"
           ],
           "type": "string"
         },

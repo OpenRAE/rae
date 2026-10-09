@@ -2,9 +2,9 @@
   "contract_id": "participant-resource-budget-state-v1",
   "schema_path": "contracts/schemas/participant-runtime/participant-resource-budget-state-v1.json",
   "stability": "draft",
-  "content_hash": "ada050218f6d8650ffad535d686e6816b804df2edf3a6512465b4e8001abbffa",
+  "content_hash": "2adbd61dfb135f79954bcf6a2fdef353aeb1c0bffc7917b12d4607ec8920415e",
   "last_change": {
-    "summary": "Preserve pinned private resource-measure coordinates alongside the six built-in kinds in portable quantities, accounting and history for issue #1208.",
-    "content_hash": "ada050218f6d8650ffad535d686e6816b804df2edf3a6512465b4e8001abbffa"
+    "summary": "Add the DSL-121 interaction dimensions interaction_steps, interaction_turns, tool_invocations and scenario_time to the governed participant resource kind catalog for issue #308.",
+    "content_hash": "2adbd61dfb135f79954bcf6a2fdef353aeb1c0bffc7917b12d4607ec8920415e"
   }
 }

@@ -54,8 +54,14 @@ class _ReservationCheck:
     failure: ApplyResult | None = None
 
 
+def budget_event_id(operation_id: str, state_ref: str, transition: str) -> str:
+    """Return the deterministic id of one operation's transition on one budget state."""
+
+    return f"{operation_id}:{state_ref}:{transition}"
+
+
 def _event_id(operation_id: str, state_ref: str) -> str:
-    return f"{operation_id}:{state_ref}:reserve"
+    return budget_event_id(operation_id, state_ref, "reserve")
 
 
 def _pool_ref_for_state(state: ParticipantResourceBudgetStateModel) -> str:
@@ -106,7 +112,7 @@ def _refused_result(
     transition: str,
 ) -> ApplyResult:
     disposition, code, reason = _REFUSALS[transition]
-    event_id = f"{mutation.operation_id}:{current.state_ref}:{transition}"
+    event_id = budget_event_id(mutation.operation_id, current.state_ref, transition)
     if event_id not in mutation.events:
         mutation.states[current.state_ref] = _payload(
             current.model_copy(
@@ -225,14 +231,16 @@ def _capacity_failure(
     """Refuse the vector: a logical-budget shortfall rejects before pool contention throttles.
 
     Checking every logical budget first makes the disposition independent of the
-    order of the demands in the vector (SEM-223 T10).
+    order of the demands in the vector (SEM-223 T10). A zero quantity, such as a
+    tool budget's share of an attempt outside its scope (DSL-121), never refuses.
     """
 
-    for check in checks:
+    requesting = [check for check in checks if check.amount > 0]
+    for check in requesting:
         current, _ = _admissible(check)
         if check.amount > participant_resource_remaining(current):
             return _refused_result(mutation, check.demand, current, check.amount, "reject")
-    for check in checks:
+    for check in requesting:
         current, physical_pool = _admissible(check)
         if not pool_can_reserve(physical_pool, current.state_ref, check.amount):
             return _refused_result(mutation, check.demand, current, check.amount, "throttle")
@@ -353,4 +361,7 @@ def reserve_participant_resources(
     return result
 
 
-__all__ = ("reserve_participant_resources",)
+__all__ = (
+    "budget_event_id",
+    "reserve_participant_resources",
+)

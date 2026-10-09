@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+from collections.abc import Mapping
 from enum import Enum
 
 from pydantic import Field, field_validator, model_validator
@@ -9,6 +11,7 @@ from raes_contracts.domain_profiles import DomainProfileCoordinateModel
 
 from ._base import SDLModel
 from ._identifiers import PortableIdentifier
+from .semantics._domain_topology_types import resolve_section_ref
 
 
 class ParticipantResourceOwnerKind(str, Enum):
@@ -25,6 +28,10 @@ class ParticipantResourceKind(str, Enum):
     INFERENCE_TOKENS = "inference_tokens"
     IMAGE_GENERATIONS = "image_generations"
     ACCELERATOR = "accelerator"
+    INTERACTION_STEPS = "interaction_steps"
+    INTERACTION_TURNS = "interaction_turns"
+    TOOL_INVOCATIONS = "tool_invocations"
+    SCENARIO_TIME = "scenario_time"
 
 
 class ParticipantResourceAccountingMode(str, Enum):
@@ -71,6 +78,7 @@ class ParticipantResourceBudgetDimension(SDLModel):
     window_ticks: int | None = Field(default=None, ge=1, le=1_000_000_000)
     parent_budget_ref: PortableIdentifier | None = None
     evidence_refs: list[str] = Field(default_factory=list, max_length=1024)
+    tool_affordance_refs: list[PortableIdentifier] = Field(default_factory=list, max_length=256)
 
     @field_validator("evidence_refs")
     @classmethod
@@ -83,10 +91,18 @@ class ParticipantResourceBudgetDimension(SDLModel):
 
     @model_validator(mode="after")
     def _validate_dimension(self) -> ParticipantResourceBudgetDimension:
-        from raes_contracts.contracts.participant_resource_types import require_quantity_semantics
+        from raes_contracts.contracts.participant_resource_types import (
+            require_demand_semantics,
+            require_quantity_semantics,
+        )
 
-        require_quantity_semantics(
-            getattr(self.resource_kind, "value", self.resource_kind), self.unit, self.accounting_mode.value
+        resource_kind = getattr(self.resource_kind, "value", self.resource_kind)
+        require_quantity_semantics(resource_kind, self.unit, self.accounting_mode.value, self.meter_profile_ref)
+        require_demand_semantics(
+            resource_kind,
+            self.reset.value,
+            self.tool_affordance_refs,
+            scope_field="tool_affordance_refs",
         )
         if self.reservation > self.limit:
             raise ValueError("resource-budget reservation cannot exceed limit")
@@ -98,6 +114,82 @@ class ParticipantResourceBudgetDimension(SDLModel):
         ):
             raise ValueError("storage_growth resource budget requires reconciled reset")
         return self
+
+
+# A namespaced import renders a dotted spec name, so only the budget id is a
+# single segment (PortableIdentifier has no dots).
+_DIMENSION_REFERENCE = re.compile(
+    r"^behavior_specifications\.(?P<spec>.+)\.autonomous_execution\.resource_budget\.dimensions\.(?P<budget>[^.]+)$"
+)
+
+
+def resource_budget_dimension_reference(spec_name: str, budget_id: str) -> str:
+    """Return the stable authored reference for one v3 resource-budget dimension."""
+
+    return f"behavior_specifications.{spec_name}.autonomous_execution.resource_budget.dimensions.{budget_id}"
+
+
+def is_resource_budget_dimension_reference(ref: object) -> bool:
+    """Return whether ``ref`` has the shape of a resource-budget dimension reference."""
+
+    return isinstance(ref, str) and _DIMENSION_REFERENCE.match(ref) is not None
+
+
+def _enum_value(item: object) -> str:
+    return str(getattr(item, "value", item))
+
+
+def is_resource_budget_view_rule(rule: object) -> bool:
+    """Return whether a view rule classifies information as a resource-budget quota."""
+
+    return _enum_value(getattr(rule, "boundary_class", None)) == "resource_budget"
+
+
+def disclosed_resource_budget_refs(boundary: object) -> frozenset[str]:
+    """Return the dimension refs a boundary's resource_budget view rules disclose (DSL-121, EBM-07)."""
+
+    return frozenset(
+        str(rule.information_ref)
+        for rule in getattr(boundary, "view_rules", ())
+        if is_resource_budget_view_rule(rule) and _enum_value(rule.disposition) == "disclosed"
+    )
+
+
+def dispatched_action_contracts(policy: object, action_contracts: Mapping[str, object]) -> tuple[str, ...]:
+    """Return the action-contract keys an autonomous policy dispatches, in compilation order."""
+
+    candidates = getattr(policy, "action_candidates", None)
+    refs = (
+        [candidate.action_ref for _, candidate in sorted(candidates.items())]
+        if candidates
+        else list(getattr(policy, "action_order", ()))
+    )
+    resolved = (resolve_section_ref(str(ref), "action_contracts", action_contracts) for ref in refs)
+    return tuple(dict.fromkeys(key for key in resolved if key is not None))
+
+
+def tool_affordance_action_contracts(
+    behavior_spec: object,
+    policy: object,
+    affordance_id: str,
+    action_contracts: Mapping[str, object],
+) -> tuple[str, ...] | None:
+    """Return the dispatched action contracts one tool affordance makes countable.
+
+    The affordance is the authoring contract that makes an invocation of its
+    tool equal to an attempt of its action contracts (DSL-121). Only the actions
+    the policy dispatches are attempts its budget governs. ``None`` means the
+    behavior specification declares no such affordance.
+    """
+
+    affordance = getattr(behavior_spec, "tool_affordances", {}).get(affordance_id)
+    if affordance is None:
+        return None
+    dispatched = dispatched_action_contracts(policy, action_contracts)
+    bound = {
+        resolve_section_ref(str(ref), "action_contracts", action_contracts) for ref in affordance.action_contract_refs
+    }
+    return tuple(key for key in dispatched if key in bound)
 
 
 def _dimension_semantics(dimension: ParticipantResourceBudgetDimension) -> tuple[object, ...]:
@@ -128,6 +220,8 @@ def _visit_parent_budget(
             raise ValueError("resource-budget parent must use the same resource, unit, mode, and meter")
         if dimension.limit > parent.limit:
             raise ValueError("resource-budget child limit cannot exceed its parent")
+        if not set(dimension.tool_affordance_refs) <= set(parent.tool_affordance_refs):
+            raise ValueError("resource-budget child tool_affordance_refs must be within its parent's")
         _visit_parent_budget(dimensions, str(parent_ref), visiting, visited)
     visiting.remove(budget_id)
     visited.add(budget_id)
@@ -161,9 +255,14 @@ class ParticipantResourceBudgetPolicy(SDLModel):
 
     @model_validator(mode="after")
     def _validate_policy(self) -> ParticipantResourceBudgetPolicy:
-        required_kinds = set(ParticipantResourceKind)
-        actual_kinds = {dimension.resource_kind for dimension in self.dimensions.values()}
-        missing = sorted(kind.value for kind in required_kinds - actual_kinds)
+        from raes_contracts.contracts.participant_resource_types import REQUIRED_RESOURCE_KINDS
+
+        actual_kinds = {
+            dimension.resource_kind.value
+            for dimension in self.dimensions.values()
+            if isinstance(dimension.resource_kind, ParticipantResourceKind)
+        }
+        missing = sorted(REQUIRED_RESOURCE_KINDS - actual_kinds)
         if missing:
             raise ValueError("resource budget requires complete resource vector: " + ", ".join(missing))
         for budget_id, dimension in self.dimensions.items():
@@ -226,4 +325,10 @@ __all__ = [
     "ParticipantResourceOwner",
     "ParticipantResourceOwnerKind",
     "ParticipantResourceResetMode",
+    "dispatched_action_contracts",
+    "disclosed_resource_budget_refs",
+    "is_resource_budget_dimension_reference",
+    "is_resource_budget_view_rule",
+    "resource_budget_dimension_reference",
+    "tool_affordance_action_contracts",
 ]

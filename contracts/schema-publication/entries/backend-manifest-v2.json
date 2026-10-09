@@ -1,9 +1,9 @@
 {
-  "content_hash": "be543802e6518ee04254963a97bba5b33c9cf06715cff0a4cd107ffb6ab0316b",
+  "content_hash": "3bbee3e7af6b8683a95a6e25bda9056cf965ee7031725deacde576fcab87df8e",
   "contract_id": "backend-manifest-v2",
   "last_change": {
-    "content_hash": "be543802e6518ee04254963a97bba5b33c9cf06715cff0a4cd107ffb6ab0316b",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "3bbee3e7af6b8683a95a6e25bda9056cf965ee7031725deacde576fcab87df8e",
+    "summary": "Add the DSL-121 interaction dimensions interaction_steps, interaction_turns, tool_invocations and scenario_time to the governed participant resource kind catalog for issue #308."
   },
   "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
   "stability": "draft"

@@ -578,28 +578,31 @@ entries:
         path: implementations/python/tests/test_issue_306_participant_budget_oracle.py
       - kind: typed_ir_or_contract_coverage
         path: implementations/python/packages/raes_contracts/participant_resource_exhaustion.py
+      # Delivered by #308 (DSL-121): the authored interaction-budget surface.
+      - kind: unit_tests
+        path: implementations/python/tests/test_issue_308_participant_interaction_budgets.py
+      - kind: typed_ir_or_contract_coverage
+        path: implementations/python/packages/raes/participant_resource_budgets.py
     waived_artifacts:
       - kind: unit_tests
         date: 2026-08-02
         tracking:
           - "#307"
-          - "#308"
           - "#309"
           - "#310"
         rationale: >-
-          Joint-design run (#122). #305 (SEM-222) and #306 (SEM-223) deliver the
-          episode/termination and budget/exhaustion unit tests above;
-          per-requirement unit tests for the authored SDL surfaces and the
-          first-class model members remain owned by the spawned implementation
-          issues #307-#310.
+          Joint-design run (#122). #305 (SEM-222), #306 (SEM-223) and #308
+          (DSL-121) deliver the episode/termination, budget/exhaustion and
+          interaction-budget unit tests above; per-requirement unit tests for the
+          authored episode surface and the first-class model members remain owned
+          by the spawned implementation issues #307, #309 and #310.
       - kind: typed_ir_or_contract_coverage
         date: 2026-08-02
         tracking:
           - "#307"
-          - "#308"
         rationale: >-
           #305 (SEM-222) delivers the typed RL termination/truncation
-          closure-record contract above; the authored episode-structure and
-          interaction-budget SDL contracts and their generated schemas remain
-          owned by the DSL implementation issues #307 (DSL-120) and #308
-          (DSL-121).
+          closure-record contract and #308 (DSL-121) the interaction-budget SDL
+          contract above; the authored episode-structure SDL contract and its
+          generated schema remain owned by the DSL implementation issue #307
+          (DSL-120).

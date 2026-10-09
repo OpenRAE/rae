@@ -26,13 +26,22 @@ from .participant_resource_types import (
     participant_resource_pool_state_ref,
 )
 from .participant_resource_types import (
+    REQUIRED_RESOURCE_KINDS as _REQUIRED_RESOURCE_KINDS,
+)
+from .participant_resource_types import (
     RESOURCE_ACCOUNTING as _RESOURCE_ACCOUNTING,
 )
 from .participant_resource_types import (
     RESOURCE_UNIT as _RESOURCE_UNIT,
 )
 from .participant_resource_types import (
+    require_demand_semantics as _require_demand_semantics,
+)
+from .participant_resource_types import (
     require_quantity_semantics as _require_quantity_semantics,
+)
+from .participant_resource_types import (
+    require_scenario_time_meter as _require_scenario_time_meter,
 )
 from .participant_resource_validation import (
     pool_allocated_total,
@@ -57,7 +66,7 @@ class ParticipantResourceQuantityModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_quantity(self) -> ParticipantResourceQuantityModel:
-        _require_quantity_semantics(self.resource_kind, self.unit, self.accounting_mode)
+        _require_quantity_semantics(self.resource_kind, self.unit, self.accounting_mode, self.meter_profile_ref)
         return self
 
 
@@ -84,9 +93,11 @@ class ParticipantResourceBudgetDemandModel(ContractModel):
     parent_budget_ref: NonEmptyString | None = None
     evidence_refs: tuple[NonEmptyString, ...] = ()
     provenance: Literal["authored", "legacy_maximum"] = "authored"
+    action_contract_refs: tuple[NonEmptyString, ...] = Field(default=(), exclude_if=lambda value: not value)
 
     @model_validator(mode="after")
     def _validate_demand(self) -> ParticipantResourceBudgetDemandModel:
+        _require_demand_semantics(self.quantity.resource_kind, self.reset, self.action_contract_refs)
         if self.reservation > self.limit:
             raise ValueError("resource reservation cannot exceed its limit")
         windowed = self.quantity.accounting_mode == "windowed_counter"
@@ -112,7 +123,7 @@ class ParticipantResourceBudgetPolicyModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_policy(self) -> ParticipantResourceBudgetPolicyModel:
-        validate_budget_policy(self.owners, self.demands, set(_RESOURCE_UNIT))
+        validate_budget_policy(self.owners, self.demands, set(_REQUIRED_RESOURCE_KINDS))
         return self
 
 
@@ -141,7 +152,7 @@ class ParticipantResourcePoolCapacityModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_capacity(self) -> ParticipantResourcePoolCapacityModel:
-        _require_quantity_semantics(self.resource_kind, self.unit, self.accounting_mode)
+        _require_quantity_semantics(self.resource_kind, self.unit, self.accounting_mode, self.meter_profile_ref)
         if self.protected_capacity > self.capacity:
             raise ValueError("protected capacity cannot exceed configured capacity")
         if len(self.priority_classes) != len(set(self.priority_classes)):
@@ -202,7 +213,7 @@ class ParticipantResourceBudgetStateModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_state(self) -> ParticipantResourceBudgetStateModel:
-        _require_quantity_semantics(self.resource_kind, self.unit, self.accounting_mode)
+        _require_quantity_semantics(self.resource_kind, self.unit, self.accounting_mode, self.meter_profile_ref)
         expected_ref = participant_resource_budget_state_ref(self.policy_address, self.budget_id)
         if self.state_ref != expected_ref:
             raise ValueError("resource budget state_ref must equal its canonical policy-scoped identity")
@@ -226,6 +237,7 @@ class ParticipantResourceMeasurementRequirementModel(ContractModel):
     def _validate_requirement(self) -> ParticipantResourceMeasurementRequirementModel:
         if isinstance(self.resource_kind, DomainProfileCoordinateModel):
             return self
+        _require_scenario_time_meter(self.resource_kind, self.meter_profile_ref)
         expected_modes = _RESOURCE_ACCOUNTING[self.resource_kind]
         if not expected_modes:
             raise ValueError("resource measurement requires supported quantity semantics")
@@ -246,6 +258,7 @@ class ParticipantResourceMeasurementModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_measurement(self) -> ParticipantResourceMeasurementModel:
+        _require_scenario_time_meter(self.resource_kind, self.meter_profile_ref)
         if (
             not isinstance(self.resource_kind, DomainProfileCoordinateModel)
             and self.unit != _RESOURCE_UNIT[self.resource_kind]
@@ -303,7 +316,7 @@ class ParticipantResourcePoolStateModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_pool_state(self) -> ParticipantResourcePoolStateModel:
-        _require_quantity_semantics(self.resource_kind, self.unit, self.accounting_mode)
+        _require_quantity_semantics(self.resource_kind, self.unit, self.accounting_mode, self.meter_profile_ref)
         expected_ref = participant_resource_pool_state_ref(
             pool_ref=self.pool_ref,
             owner_kind=self.owner_kind,
@@ -347,6 +360,7 @@ class ParticipantResourceBudgetEventModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_event(self) -> ParticipantResourceBudgetEventModel:
+        _require_scenario_time_meter(self.resource_kind, self.meter_profile_ref)
         expected_ref = participant_resource_budget_state_ref(self.policy_address, self.budget_id)
         if self.budget_state_ref != expected_ref:
             raise ValueError("resource budget event must reference its canonical policy-scoped state")

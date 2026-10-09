@@ -1,9 +1,9 @@
 {
-  "content_hash": "2dd378f6b80b78ade6bcb48f2ed201c1d83e1b821a2c04dd8cb342661e45b1ce",
+  "content_hash": "29242d2cbfe903ca251294db8b6724b6ca01d84dc5fffc47a4943d40dc4d8211",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "content_hash": "2dd378f6b80b78ade6bcb48f2ed201c1d83e1b821a2c04dd8cb342661e45b1ce",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "29242d2cbfe903ca251294db8b6724b6ca01d84dc5fffc47a4943d40dc4d8211",
+    "summary": "Accept the DSL-121 interaction dimensions, tool_affordance_refs scopes for tool-use budgets, and the resource_budget view-rule class for explicit quota disclosure for issue #308."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"

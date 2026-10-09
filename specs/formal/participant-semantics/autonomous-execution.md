@@ -83,6 +83,9 @@ one fairness obligation, and a complete typed demand vector containing:
 - image-generation (`images`, windowed or cumulative counter); and
 - accelerator (`accelerator_milliseconds`, lease).
 
+The vector may also carry the optional DSL-121 interaction dimensions defined
+below.
+
 Each demand binds exactly one owner, logical pool, unit, accounting mode,
 meter profile, limit, reservation quantity, and reset owner. Owner kinds are
 participant, deployment tenant, shared service, and fleet. Participant,
@@ -131,7 +134,8 @@ It adds no budget root, quota map, failure taxonomy, resource kind, or schema.
   admission point for one governed attempt, before the native adapter is
   called. It is settled at that attempt's terminal native result.
 - **Consumption event.** A commit records the exact measured vector, bounded
-  by the reservation, with native evidence refs. Every reserve, commit,
+  by the reservation, with native evidence refs. RAES measures DSL-121 logical
+  time itself and cites the clock-history cut. Every reserve, commit,
   release, throttle, reject, and reconcile is an append-only event fenced to
   its execution generation.
 - **Exhaustion condition.** For dimension \(d\),
@@ -168,8 +172,8 @@ It adds no budget root, quota map, failure taxonomy, resource kind, or schema.
 - **Visibility of remaining budget.** The participant learns only that a
   resource precondition failed. The rejected attempt names no budget, pool,
   quantity, or remaining capacity (EBM-07). Operators read budget state through
-  the runtime snapshot and its existing read authorization. An authored
-  participant-visible view rule belongs to the DSL-121 surface.
+  the runtime snapshot and its existing read authorization. The DSL-121
+  section below defines the only view rule that discloses a quota.
 - **Provenance and evidence basis.** The governed attempt and its `reject`
   event share the action instance id. A result that claims the portable
   `participant-resource-budget` precondition without a runtime `reject` event
@@ -223,9 +227,9 @@ conformance both apply it to:
 
 ### SEM-223 nonclaims
 
-- No resource kind is added. Step, turn, logical-scenario time, and tool-use
-  dimensions are DSL-121 catalog entries, and host watchdog time is never a
-  portable scenario-time quota.
+- SEM-223 adds no resource kind. The DSL-121 section below adds the step,
+  turn, tool-use, and logical-scenario time dimensions, and host watchdog time
+  is never a portable scenario-time quota.
 - Authors cannot select another limit effect. The reference runtime always
   denies the attempt with `resource_exhausted`; throttling, truncation, and
   interruption are not selectable effects.
@@ -233,6 +237,105 @@ conformance both apply it to:
   generation. Its use resets only at the dimension's declared reset boundary.
 - No fairness, throughput, isolation, or operating-system enforcement claim
   follows from these rules.
+
+## DSL-121 Interaction Budgets
+
+DSL-121 lets authors bound participant interaction with the same ADR-097
+dimensions. An interaction budget compiles into the canonical demand vector
+and is admitted, reserved, committed, exhausted, and reset like any other
+dimension; RAES, not the backend, measures logical time. There is no
+interaction-budget root, quota map, or `max_*` field: the closed policy and
+behavior-specification models reject them.
+
+The governed catalog adds four optional kinds. Each has one fixed unit and the
+accounting modes that fit it:
+
+| Interaction bound | `resource_kind` | Unit | Accounting modes | Meter |
+| --- | --- | --- | --- | --- |
+| Step | `interaction_steps` | `steps` | windowed or cumulative counter | the backend's step meter |
+| Turn | `interaction_turns` | `turns` | windowed or cumulative counter | the backend's turn meter |
+| Tool use | `tool_invocations` | `invocations` | windowed or cumulative counter | the backend's tool meter, scoped by `tool_affordance_refs` |
+| Logical time | `scenario_time` | `ticks` | cumulative counter | `raes.shared-time-ticks/v1`, metered by RAES |
+
+A token budget keeps using `inference_tokens`. Steps, turns, tool invocations,
+logical time, tokens, and action attempts are distinct kinds and units, so the
+parent graph, pool identity, and admission never let one stand in for another.
+A turn is not an action attempt: one turn may span several actions, and one
+action may take several turns. As for every dimension, the `reservation` is
+the most one attempt may use, and an attempt that measures more is not
+committed. A turn budget's reservation is therefore the most turns one action
+may take.
+
+- **Tool use.** A `tool_invocations` dimension must name one or more
+  `tool_affordance_refs`, and no other kind may. Each ref names a tool
+  affordance of the same behavior specification. The affordance is the authored
+  contract that makes an invocation of its tool equivalent to an attempt of its
+  action contracts. At least one of those actions must be dispatched by the
+  policy, and the dimension counts only the dispatched ones. Any other attempt
+  reserves zero from it, which keeps the measured vector complete. A zero
+  quantity never rejects or throttles. A child tool budget's affordances must
+  be within its parent's.
+- **Logical time.** A `scenario_time` dimension bounds the elapsed logical time
+  of the policy's governed shared clock under ADR-090. Its meter must be
+  `raes.shared-time-ticks/v1`, so a host or watchdog meter is rejected. RAES
+  meters it from the clock history, and no backend reports it. Elapsed time is
+  the ticks the clock advanced since the dimension's reset boundary: the latest
+  clock reset for `time_segment`, or clock initialization for `run`. A pause
+  adds no ticks, and a jump or replay opens a segment without adding ticks.
+- **Charging logical time.** Each admitted attempt reserves the ticks that
+  elapsed since the dimension was last charged plus its `reservation`
+  allowance. It commits the elapsed ticks with the clock-history cut as
+  evidence, so ticks between attempts count. Once less than the allowance
+  remains, every attempt is rejected as `resource_exhausted` until the boundary
+  resets. An `episode` or `reconciled` reset is rejected, because an episode
+  need not begin at a shared-clock boundary.
+- **Quota disclosure.** A quota stays hidden by default. The only way to make
+  one participant-visible is a `resource_budget` view rule on the policy's
+  observation boundary whose `information_ref` is the dimension's
+  `behavior_specifications.<spec>.autonomous_execution.resource_budget.dimensions.<id>`
+  ref. The class is sensitive, so exposure requires `disposition: disclosed`
+  and a `disclosure_rule`, and the ref must also be declared in `hidden_refs`.
+  Validation rejects such a ref in `observable_refs`, under another class, in a
+  view transition, or for a dimension governed through a different boundary.
+- **Disclosed amounts.** When a disclosed dimension rejects an attempt, the
+  rejected attempt's `observations` report the dimension ref, its used amount,
+  its authored limit, what remains under that limit, and the attempt's
+  requested amount. A shared pool smaller than the limit is backend
+  configuration, so no amount reveals it. Only the policy's own rejection of
+  that attempt is read. Otherwise the attempt reports no budget at all.
+
+Composition rewrites dimension refs in observation boundaries when a module is
+imported under a namespace, and validation accepts the namespaced refs.
+Validation and compilation resolve a tool scope with one shared rule. The
+`participant-resource-budget-policy-v1` contract can carry the scope: a
+`tool_invocations` demand requires `action_contract_refs`, the canonical action
+contract addresses, and other kinds forbid it. The reference compiler records
+the same addresses on the compiled runtime demand.
+
+### DSL-121 Traceability
+
+| Obligation | Invariant | Enforcement point | Positive test | Negative test |
+| --- | --- | --- | --- | --- |
+| Interaction budgets project into the canonical ADR-097 demand | EBM-04 | `raes_processor.compiler.participant_autonomous_execution` | `test_interaction_dimensions_compile_into_the_canonical_demand` | `test_parallel_limit_fields_cannot_bypass_the_resource_family` |
+| Step, turn, tool use, logical time, and tokens stay distinct, and watchdog time is not scenario time | EBM-05 | catalog quantity semantics, policy parent-graph validation | `test_interaction_dimensions_compile_into_the_canonical_demand`, `test_backend_must_declare_each_interaction_kind_it_admits` | `test_interaction_dimensions_are_distinct_governed_kinds`, `test_scenario_time_contracts_must_meter_shared_time` |
+| Logical time is elapsed shared-clock time that RAES meters | EBM-05 | `participant_resource_scenario_time`, scheduler admission | `test_scenario_time_is_metered_from_the_shared_clock`, `test_scenario_time_elapses_only_while_the_shared_clock_advances` | `test_interaction_dimensions_are_distinct_governed_kinds` |
+| A tool-use budget binds exact tool affordances and counts only their dispatched actions | EBM-05 | `tool_affordance_action_contracts`, `participant_resource_budget_scope_errors`, `action_resource_quantities` | `test_tool_scoped_dimension_reserves_only_for_its_tool_actions`, `test_published_policy_contract_carries_the_tool_scope_and_time_basis` | `test_tool_use_budget_binds_exact_tool_affordances`, `test_only_tool_use_budgets_carry_a_tool_scope` |
+| A quota is participant-visible only through an explicit view rule | EBM-07 | `resource_budget` view rules, `disclosed_resource_budget_refs`, rejected-attempt disclosure | `test_quota_is_participant_visible_only_through_an_explicit_view_rule`, `test_quota_disclosure_compiles_onto_the_disclosed_dimension_only` | `test_quota_cannot_be_exposed_without_an_explicit_view_rule`, `test_quota_disclosure_requires_a_disclosure_rule`, `test_disclosure_reports_only_this_policys_rejection_against_the_authored_limit` |
+| The authored surface rejects unknown fields and variable-created keys, and composition keeps its refs bound | EBM-04 | closed SDL models, parser, composition, validation | `test_imported_quota_disclosure_follows_the_namespaced_behavior_specification` | `test_interaction_budget_keys_cannot_come_from_variables`, `test_parallel_limit_fields_cannot_bypass_the_resource_family`, `test_imported_quota_stays_hidden_unless_disclosed` |
+
+### DSL-121 nonclaims
+
+- Interaction budgets attach only to the v3 autonomous profile here. Budgets on
+  other participant kinds belong to ACT-624.
+- Steps, turns, and tool invocations are counted by the backend's native
+  measurement vector under the declared meter. RAES checks each measurement's
+  identity, kind, unit, meter, and bound, not the native count.
+- Logical time is relative to a shared-clock reset or to the run. No
+  episode-relative logical-time budget is defined.
+- Disclosure reports the quota of a rejecting dimension in the rejected
+  attempt. No other participant view reports quota usage.
+- The reference implementation does not publish a
+  `participant-resource-budget-policy-v1` document from a compiled scenario.
 
 ## Bounded Action Guarantees (ACT-614)
 

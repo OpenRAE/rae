@@ -34,6 +34,10 @@ class ParticipantResourceDemandRuntime:
     parent_budget_ref: str | None = None
     evidence_refs: tuple[str, ...] = ()
     provenance: str = "authored"
+    # DSL-121: a tool_invocations dimension counts only these action contracts.
+    action_contract_addresses: tuple[str, ...] = ()
+    # Authored dimension ref when an explicit view rule discloses the quota.
+    participant_disclosure_ref: str | None = None
 
 
 @dataclass(frozen=True)

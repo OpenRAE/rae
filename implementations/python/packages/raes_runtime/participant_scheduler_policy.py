@@ -6,6 +6,18 @@ from dataclasses import asdict
 
 from raes_processor.models import CompiledTimeModel, ParticipantAutonomousExecutionRuntime
 
+# DSL-121 demand fields enter the identity only when set, so a v3 budget that
+# uses neither keeps the policy identity it had before they existed.
+_OPTIONAL_DEMAND_IDENTITY_FIELDS = ("action_contract_addresses", "participant_disclosure_ref")
+
+
+def _demand_identity(demand: object) -> dict[str, object]:
+    payload = asdict(demand)
+    for field_name in _OPTIONAL_DEMAND_IDENTITY_FIELDS:
+        if not payload.get(field_name):
+            payload.pop(field_name, None)
+    return payload
+
 
 def _policy_digest(
     policy: ParticipantAutonomousExecutionRuntime,
@@ -76,7 +88,7 @@ def _policy_digest(
         payload.update(
             {
                 "resource_owners": tuple(asdict(owner) for owner in policy.resource_owners),
-                "resource_demands": tuple(asdict(demand) for demand in policy.resource_demands),
+                "resource_demands": tuple(_demand_identity(demand) for demand in policy.resource_demands),
                 "resource_fairness": asdict(policy.resource_fairness),
             }
         )

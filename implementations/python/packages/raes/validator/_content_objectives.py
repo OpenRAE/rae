@@ -26,7 +26,7 @@ from ..semantics.participant_outcome import (
 from ..semantics.participant_temporal_bindings import participant_temporal_binding_errors
 from ._participant_execution_renderers import AUTONOMOUS_PARTICIPANT_ISSUE_RENDERERS
 from ._participant_outcome_renderers import PARTICIPANT_OUTCOME_ISSUE_RENDERERS
-from ._participant_resource_budget_owners import participant_resource_budget_owner_errors
+from ._participant_resource_budget_scopes import participant_resource_budget_errors
 
 # Renders an objective-semantics issue (machine-readable code from
 # ``raes.semantics.objective_semantics``) into the authoring-error string
@@ -369,14 +369,8 @@ class _ContentObjectivesMixin:
         )
         for issue in analysis.issues:
             self._err(self._format_participant_behavior_issue(issue))
-        for error in participant_resource_budget_owner_errors(
-            self._s.behavior_specifications,
-            self._s.action_contracts,
-            self._s.deployment_tenants,
-            self._s.deployment_cells,
-            self._s.relationships,
-            self._split_node_service_ref,
-            participant_roles=dict.fromkeys(self._s.agents) | self._participant_roles_by_agent(),
+        for error in participant_resource_budget_errors(
+            self._s, self._participant_roles_by_agent(), self._split_node_service_ref
         ):
             self._err(error)
         self._verify_tool_affordance_tool_refs()

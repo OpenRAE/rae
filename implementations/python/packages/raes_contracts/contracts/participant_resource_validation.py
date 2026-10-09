@@ -101,6 +101,8 @@ def _visit_demand(
             raise ValueError("resource-budget parent must use the same resource, unit, mode, and meter")
         if demand.limit > parent.limit:
             raise ValueError("resource-budget child limit cannot exceed its parent")
+        if not set(getattr(demand, "action_contract_refs", ())) <= set(getattr(parent, "action_contract_refs", ())):
+            raise ValueError("resource-budget child action_contract_refs must be within its parent's")
         _visit_demand(demands, parent_ref, visiting, visited)
     visiting.remove(budget_id)
     visited.add(budget_id)

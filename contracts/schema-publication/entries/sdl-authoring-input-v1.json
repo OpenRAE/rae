@@ -1,9 +1,9 @@
 {
-  "content_hash": "6db2c5bb46445d0ed8eb140e1f7f8cacb562edfe8b44f139bb0b10c86f89a596",
+  "content_hash": "acfef975387007456005fb30883f5d12ca69f6c075f1c01097dbb698b136d8d5",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "6db2c5bb46445d0ed8eb140e1f7f8cacb562edfe8b44f139bb0b10c86f89a596",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "acfef975387007456005fb30883f5d12ca69f6c075f1c01097dbb698b136d8d5",
+    "summary": "Accept the DSL-121 interaction dimensions, tool_affordance_refs scopes for tool-use budgets, and the resource_budget view-rule class for explicit quota disclosure for issue #308."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"
