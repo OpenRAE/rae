@@ -1,4 +1,4 @@
-"""Entry metadata and validated-content checks for the AUT-806 example library gate."""
+"""Entry metadata, template, and worked-example checks for the AUT-806 example library gate."""
 
 from __future__ import annotations
 
@@ -26,6 +26,7 @@ INTENDED_USERS: tuple[str, ...] = ("sdl-author",)
 # composition rather than as sections. The SDL catalog parity gate keeps these
 # sets in step with that catalog.
 NON_SECTION_FIELDS = _METADATA_FIELDS | _COMPOSITION_FIELDS
+VALIDATION_STEP_FIELDS: tuple[str, ...] = ("command", "expected")
 # Characters that json.dumps(ensure_ascii=False) leaves raw but the sdl-yaml/v1
 # reader rejects (DEL, the C1 controls, U+FFFE, U+FFFF) or reads as a line break
 # inside a quoted string (NEL, U+2028, U+2029). JSON escapes the C0 controls.
@@ -172,4 +173,29 @@ def check_worked_example_file(path: Path, relative_path: str, entry: dict[str, A
     # Use the sdl-yaml/v1 loader that parse_sdl_file used; YAML 1.1 yaml.safe_load can reject valid SDL.
     return failures or _check_declared_sections(
         entry, load_sdl_fragment(path.read_text(encoding="utf-8")), relative_path
+    )
+
+
+def check_template_validation(raw: dict[str, Any], relative_path: str) -> list[PolicyFailure]:
+    """Check the shape of a template's validation list; a missing list is a required-field failure."""
+    if "validation" not in raw or _is_validation_list(raw["validation"]):
+        return []
+    return [
+        _fail(
+            "example-library-template-validation",
+            "validation must be a non-empty list of mappings with non-empty command and expected strings",
+            relative_path,
+        )
+    ]
+
+
+def _is_validation_list(value: object) -> bool:
+    return (
+        isinstance(value, list)
+        and bool(value)
+        and all(
+            isinstance(step, dict)
+            and all(isinstance(step.get(field), str) and step[field].strip() for field in VALIDATION_STEP_FIELDS)
+            for step in value
+        )
     )

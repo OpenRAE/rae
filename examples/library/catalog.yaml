@@ -40,6 +40,20 @@ surfaces:
         intended_user: sdl-author
         limits:
           - Validation covers SDL structure and references; it does not show that a backend can realize the scenario.
+      - id: segmented-network-scenario
+        path: examples/library/templates/scenario/segmented-network-scenario.yaml
+        validation_status: validated
+        sdl_sections: [nodes, features, infrastructure]
+        intended_user: sdl-author
+        limits:
+          - Validation covers topology structure, addresses, and references; it does not show that a backend enforces the access rules or installs the feature.
+      - id: parameterized-scenario
+        path: examples/library/templates/scenario/parameterized-scenario.yaml
+        validation_status: validated
+        sdl_sections: [variables, nodes, infrastructure]
+        intended_user: sdl-author
+        limits:
+          - The gate validates the authored body and does not instantiate it with any variable values.
     patterns:
       - id: scenario-reference-integrity
         path: examples/library/patterns/scenario-reference-integrity.yaml

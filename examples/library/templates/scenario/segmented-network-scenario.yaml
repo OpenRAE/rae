@@ -1,0 +1,69 @@
+template: raes-library-template
+version: 1
+id: segmented-network-scenario
+surface: scenario
+requirement_refs: [AUT-806]
+source_refs:
+  - docs/explain/sdl/sections.md
+  - docs/explain/sdl/validation.md
+summary: Two-segment network template with switches, linked hosts, fixed addresses, access rules, and a service feature.
+validation:
+  - command: uv run --project implementations/python --frozen python tools/check_example_library.py
+    expected: Exits 0 with no output. The gate loads this file as YAML, parses the loaded body with the SDL parser and semantic validator, and fails on any error or advisory. Loading keeps the last value of a duplicate key, so the gate does not report duplicate keys.
+  - command: uv run --project implementations/python --frozen raes semantic validate my-scenario.sdl.yaml
+    expected: 'With the body saved as my-scenario.sdl.yaml, prints "validate: success" and exits 0. This command does not report semantic-validator advisories.'
+body:
+  name: library-segmented-network-template
+  description: Two network segments with one host each, fixed addresses, and access rules that admit only HTTPS from the user segment to the server segment.
+  nodes:
+    user-net:
+      type: switch
+    server-net:
+      type: switch
+    workstation:
+      type: compute
+      resources: {ram: 2 GiB, cpu: 1}
+    web:
+      type: compute
+      resources: {ram: 1 GiB, cpu: 1}
+      features: [web-server]
+      services:
+        - {port: 443, protocol: tcp, name: https}
+  features:
+    web-server:
+      type: Service
+      source: nginx-1.24
+  infrastructure:
+    user-net:
+      count: 1
+      properties:
+        cidr: 10.20.1.0/24
+        gateway: 10.20.1.1
+        internal: true
+    server-net:
+      count: 1
+      properties:
+        cidr: 10.20.2.0/24
+        gateway: 10.20.2.1
+        internal: true
+      acls:
+        - name: allow-user-https
+          direction: in
+          from_net: user-net
+          protocol: tcp
+          ports: [443]
+          action: allow
+        - name: deny-user-other
+          direction: in
+          from_net: user-net
+          action: deny
+    workstation:
+      count: 1
+      links: [user-net]
+      properties:
+        - user-net: 10.20.1.10
+    web:
+      count: 1
+      links: [server-net]
+      properties:
+        - server-net: 10.20.2.10

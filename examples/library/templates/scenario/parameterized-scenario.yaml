@@ -1,0 +1,62 @@
+template: raes-library-template
+version: 1
+id: parameterized-scenario
+surface: scenario
+requirement_refs: [AUT-806]
+source_refs:
+  - docs/explain/sdl/sections.md
+  - docs/explain/sdl/validation.md
+summary: Scenario template whose host operating system, size, instance count, and service port come from declared variables.
+validation:
+  - command: uv run --project implementations/python --frozen python tools/check_example_library.py
+    expected: Exits 0 with no output. The gate loads this file as YAML, parses the loaded body with the SDL parser and semantic validator, which reject a placeholder that names an undeclared variable, and fails on any error or advisory. Loading keeps the last value of a duplicate key, so the gate does not report duplicate keys.
+  - command: uv run --project implementations/python --frozen raes semantic validate my-scenario.sdl.yaml
+    expected: 'With the body saved as my-scenario.sdl.yaml, prints "validate: success" and exits 0. This command does not report semantic-validator advisories.'
+body:
+  name: library-parameterized-template
+  description: Scenario whose host operating system, size, instance count, and service port come from declared variables with defaults.
+  variables:
+    web_os:
+      type: string
+      default: linux
+      allowed_values: [linux, windows]
+      description: Operating system of each web host.
+    web_ram:
+      type: string
+      default: 1 GiB
+      description: Memory for each web host.
+    web_cpu:
+      type: integer
+      default: 1
+      description: CPU count for each web host.
+    web_count:
+      type: integer
+      default: 2
+      description: Number of web hosts.
+    https_port:
+      type: integer
+      default: 443
+      description: Port of the HTTPS service on each web host.
+  nodes:
+    app-net:
+      type: switch
+    web:
+      type: compute
+      os: ${web_os}
+      resources:
+        ram: ${web_ram}
+        cpu: ${web_cpu}
+      services:
+        - port: ${https_port}
+          protocol: tcp
+          name: https
+  infrastructure:
+    app-net:
+      count: 1
+      properties:
+        cidr: 10.30.0.0/24
+        gateway: 10.30.0.1
+        internal: true
+    web:
+      count: ${web_count}
+      links: [app-net]
