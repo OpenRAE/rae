@@ -22,10 +22,30 @@ under `contracts/schemas/control-plane/` and the examples under
 | `target_scope`, `run_scope` | The exact target and run. |
 | `plan` | Content-bound pin of the compiled `orchestration-plan-v1`. |
 | `inject` | Canonical `orchestration.inject.*` address. A request names one inject, not a whole event. |
-| `bindings` | One or more selected concrete bindings: compiled binding address, realization instance and revision. An `orchestration.inject-binding.*` address must name the requested inject. Each instance appears once; nothing selects every host or the first matching name. |
+| `bindings` | One or more selected compiled node bindings. Each names its `orchestration.inject-binding.*` address, the compiled `provision.node.*` node it binds, a realization instance and its revision. Each binding/instance pair appears once; nothing selects every host or the first matching name. |
 | `placement` | `independent`, `event` (the event's assertions stay binding) or `schedule` (event, script, optional story and a slot that can be claimed once). |
 | `input_ref` | Optional content-bound reference to an input document that the realization's input contract checks. There are no inline values, and absence means no runtime parameters. |
 | `expected_head` | The ordering head the caller observed. A stale head is refused, never rebased. |
+
+### Binding addresses
+
+The compiler renders a node binding as
+`orchestration.inject-binding.<node>.<inject>`, and module namespaces put dots
+inside both names. When a scenario imports a module under namespace `mod`,
+`orchestration.inject-binding.mod.host.mod.release` binds node `mod.host` to
+inject `mod.release`, yet it also ends in `.release`. The end of an address
+therefore doesn't show which inject it binds.
+
+Local validation requires each binding address to equal the rendering of its
+`node` and the requested inject. Carrying node `provision.node.mod.host`, that
+binding can't serve a request for `release`. Local validation can't see the
+plan, so it doesn't show that the node exists or that the plan records this node
+for the binding. A consumer resolves both against the pinned plan's
+`inject-binding` operations.
+
+This revision selects only `Node.injects` bindings. Under EI-01, a top-level
+inject without `Node.injects` runs only through its realization's explicit target
+contract, which this revision doesn't carry.
 
 ## Occurrence
 
@@ -51,8 +71,13 @@ store and recovery agreement.
 | --- | --- |
 | Same actor, key and request commitment | `require_inject_trigger_retry` returns the original claim. Nothing is admitted or dispatched again. |
 | Changed content, another actor, or another key for the same claim | `require_inject_trigger_retry` raises a conflict. Authorize receipt access before the lookup, so a conflict reveals no other actor's claim. |
-| A reused retry key, occurrence, operation, schedule slot or order position in one store | `validate_inject_occurrence_claims` rejects the claim set. |
+| A reused retry key, occurrence, operation, schedule slot, order position or order predecessor in one store | `validate_inject_occurrence_claims` rejects the claim set. |
 | A fresh key and fresh occurrence for the same inject | Valid; admission checks every current constraint again. |
+
+Two claims that follow the same head would fork the run's order, so each
+predecessor is claimed once. Head tokens are opaque, so the claim set can't
+check that a predecessor is the head that the preceding claim produced. That
+chain belongs to the ordering authority (EI-03).
 
 `inject_trigger_request_digest` and `inject_occurrence_digest` return RFC 8785
 commitments.
@@ -81,15 +106,19 @@ events:
 ```
 
 Each `participant-free-environment.json` fixture triggers `release` against
-`orchestration.inject-binding.host.release`, anchored to `gate`. The caller is
-an authenticated operator, not a participant or controller.
-`test_issue_1423_inject_occurrence_contracts.py` compiles this environment and
-checks that the fixture names only its compiled identities.
+`orchestration.inject-binding.host.release` on node `provision.node.host`,
+anchored to `gate`. The caller is an authenticated operator, not a participant
+or controller. `test_issue_1423_inject_occurrence_contracts.py` compiles this
+environment and checks that the fixture names only its compiled identities. It
+also imports the same environment under namespace `mod` and checks that each
+compiled binding serves only its own inject. The `namespaced-binding.json`
+fixture is the refused case.
 
 ## Limits
 
 Fixture digests, scopes and evidence references are synthetic. Structural and
 local validation grant no trigger authority and prove no effect.
-Authentication, admission, ordering, claims, dispatch and outcome evidence
-belong to the runtime and backend adoption that the
+Authentication, admission, binding resolution against the pinned plan,
+ordering, claims, dispatch and outcome evidence belong to the runtime and
+backend adoption that the
 [compatibility contract](../sdl/external-inject-compatibility.md) describes.

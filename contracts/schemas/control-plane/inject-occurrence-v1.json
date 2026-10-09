@@ -137,7 +137,7 @@
     },
     "InjectTargetBindingModel": {
       "additionalProperties": false,
-      "description": "One selected concrete realization instance; entity names never select hosts.",
+      "description": "One selected realization instance of a compiled node binding; entity names never select hosts.",
       "properties": {
         "binding": {
           "maxLength": 2048,
@@ -155,6 +155,16 @@
           "title": "Instance",
           "type": "string"
         },
+        "node": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Node",
+          "type": "string"
+        },
         "revision": {
           "maxLength": 256,
           "minLength": 1,
@@ -164,6 +174,7 @@
       },
       "required": [
         "binding",
+        "node",
         "instance",
         "revision"
       ],
@@ -471,7 +482,7 @@
   "type": "object",
   "x-raes-invariants": [
     {
-      "description": "Validate compiled address families, bindings of the requested inject, unique selected instances, the orchestration admission context, unrebased order and distinct claim identities; structural validity grants no trigger authority.",
+      "description": "Validate the embedded request, an orchestration admission context for its target and run, an order token whose scope is that run and whose predecessor is the requested head, and distinct request key, occurrence, operation and slot identities; structural validity grants no trigger authority.",
       "id": "inject-occurrence-local-consistency",
       "inputs": [
         {
@@ -483,7 +494,7 @@
       "validator": "raes_contracts.contracts.InjectOccurrenceModel.model_validate"
     },
     {
-      "description": "Retry keys, occurrences, operations, schedule slots and order positions are each claimed at most once in one target/run store.",
+      "description": "Retry keys, occurrences, operations, schedule slots, order positions and order predecessors are each claimed at most once in one target/run store, so no two claims follow the same head; head tokens are opaque, so the head chain itself is not checked.",
       "id": "inject-occurrence-unique-claims",
       "inputs": [
         {

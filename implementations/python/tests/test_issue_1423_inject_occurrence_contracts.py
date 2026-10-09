@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import json
+from itertools import product
 from pathlib import Path
 
 import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
-from raes.parser import parse_sdl
+from raes.parser import parse_sdl, parse_sdl_file
 from raes_contracts import contracts
 from raes_processor.compiler import compile_runtime_model
 
@@ -24,6 +25,20 @@ CORPUS = [
     for category in ("valid", "invalid", "context-invalid")
     for path in sorted((FIXTURES / contract_id / category).glob("*.json"))
 ]
+OWNERSHIP = "its node and the requested inject"
+# Each context-invalid fixture breaks one rule, so it must be refused for that rule's reason.
+CONTEXT_REASONS = {
+    "ambiguous-instance": "binding/instance pair twice",
+    "event-as-inject": "compiled orchestration inject address",
+    "foreign-binding": OWNERSHIP,
+    "namespaced-binding": OWNERSHIP,
+    "provisioning-kind": "admitted as orchestration operations",
+    "rebased-order": "without rebasing",
+    "shared-identity": "must stay distinct",
+}
+# Importing the environment below under namespace ``mod`` compiles a second binding ending in ``.release``.
+MODULE_HEADER = "module: {id: acme/release, version: 1.0.0, exports: {nodes: [host], injects: [release]}}\n"
+IMPORT_HEADER = "imports: [{source: 'local:module.yaml', namespace: mod}]\n"
 ENVIRONMENT_SDL = """name: external-trigger-environment
 nodes:
   host:
@@ -57,12 +72,18 @@ def occurrence(name: str = "participant-free-environment") -> contracts.InjectOc
 def fresh(
     base: contracts.InjectOccurrenceModel, *, actor: str | None = None, **claims
 ) -> contracts.InjectOccurrenceModel:
-    """Return another claim on the same authored intent with the given claim identities."""
+    """Return another claim on the same authored intent with the given claim identities.
+
+    As in the fixtures, position N follows head ``order-head-<N-1>`` unless ``head`` names another.
+    """
     payload = base.model_dump(mode="json")
+    position = claims.get("position", base.order.position)
+    head = claims.get("head", f"order-head-{position - 1}")
     payload["request"]["request_key"] = claims.get("key", base.request.request_key)
     payload["request"]["occurrence_id"] = claims.get("occurrence", base.request.occurrence_id)
+    payload["request"]["expected_head"] = head
     payload["operation_id"] = claims.get("operation", base.operation_id)
-    payload["order"]["position"] = claims.get("position", base.order.position)
+    payload["order"].update(position=position, predecessor=head)
     payload["admission"]["actor_id"] = actor or base.admission.actor_id
     return contracts.InjectOccurrenceModel.model_validate(payload)
 
@@ -84,7 +105,8 @@ def test_fixture_corpus_separates_structure_from_contextual_claims(contract_id, 
     if category == "valid":
         assert model.model_validate(payload).model_dump(mode="json") == payload
     else:
-        with pytest.raises(ValidationError):
+        reason = CONTEXT_REASONS[name] if category == "context-invalid" else None
+        with pytest.raises(ValidationError, match=reason):
             model.model_validate(payload)
 
 
@@ -117,10 +139,46 @@ def test_participant_free_environment_trigger_names_only_compiled_orchestration_
     assert not model.participant_behaviors
     assert not model.participant_inject_deliveries
     assert request.inject in model.injects
-    assert {binding.binding for binding in request.bindings} <= set(model.inject_bindings)
+    assert {(item.binding, item.node) for item in request.bindings} <= {
+        (address, binding.node_address) for address, binding in model.inject_bindings.items()
+    }
     assert request.inject in model.events[request.placement.event].inject_addresses
     names = _property_names(schema("inject-occurrence-v1"))
     assert not [name for name in names if any(word in name for word in ("participant", "episode", "control"))]
+
+
+def _with_header(header: str) -> str:
+    name, body = ENVIRONMENT_SDL.split("\n", 1)
+    return f"{name}\n{header}{body}"
+
+
+def _selects(inject: str, binding) -> bool:
+    payload = fixture("inject-trigger-request-v1", "valid", "participant-free-environment")
+    payload["inject"] = inject
+    payload["bindings"] = [
+        {"binding": binding.address, "node": binding.node_address, "instance": "host-1", "revision": "realization-r1"}
+    ]
+    try:
+        contracts.InjectTriggerRequestModel.model_validate(payload)
+    except ValidationError as error:
+        assert OWNERSHIP in str(error)
+        return False
+    return True
+
+
+def test_module_namespaces_cannot_borrow_another_injects_binding(tmp_path):
+    (tmp_path / "module.yaml").write_text(_with_header(MODULE_HEADER))
+    (tmp_path / "root.yaml").write_text(_with_header(IMPORT_HEADER))
+    model = compile_runtime_model(parse_sdl_file(tmp_path / "root.yaml"))
+    bindings = model.inject_bindings.values()
+
+    assert not model.diagnostics
+    assert sorted(model.inject_bindings) == [
+        "orchestration.inject-binding.host.release",
+        "orchestration.inject-binding.mod.host.mod.release",
+    ]
+    selected = {(inject, item.address) for inject, item in product(model.injects, bindings) if _selects(inject, item)}
+    assert selected == {(item.spec["inject_address"], item.address) for item in bindings}
 
 
 def test_exact_retry_returns_the_original_claim_without_a_new_admission():
@@ -172,7 +230,22 @@ def test_fresh_key_and_occurrence_may_repeat_the_same_authored_inject():
         ("retry key", None, {"occurrence": "release-occurrence-2", "operation": "op-2", "position": 11}),
         ("occurrence", "researcher-2", {"key": "researcher-release-key-2", "operation": "op-2", "position": 11}),
         ("operation", None, {"key": "researcher-release-key-2", "occurrence": "release-occurrence-2", "position": 11}),
-        ("order position", None, {"key": "key-2", "occurrence": "release-occurrence-2", "operation": "op-2"}),
+        (
+            "order position",
+            None,
+            {"key": "key-2", "occurrence": "release-occurrence-2", "operation": "op-2", "head": "order-head-forked"},
+        ),
+        (
+            "order predecessor",
+            None,
+            {
+                "key": "key-2",
+                "occurrence": "release-occurrence-2",
+                "operation": "op-2",
+                "position": 11,
+                "head": "order-head-9",
+            },
+        ),
     ],
 )
 def test_claim_set_rejects_a_reused_claim_identity(label, actor, claims):
@@ -209,8 +282,19 @@ def test_claim_sets_stay_within_one_bounded_target_run_store():
     ("path", "value", "message"),
     [
         (("plan", "contract_id"), "provisioning-plan-v1", "orchestration plan"),
-        (("bindings", 0, "binding"), "orchestration.inject-binding.host.prerelease", "belong to the requested inject"),
+        (("bindings", 0, "binding"), "orchestration.inject-binding.release", OWNERSHIP),
+        (("bindings", 0, "node"), "orchestration.event.gate", "provision node address"),
         (("placement",), {"kind": "event", "event": "orchestration.script.day-one"}, "event address"),
+        (
+            ("placement",),
+            {
+                "kind": "schedule",
+                "event": "orchestration.script.day-one",
+                "script": "orchestration.script.s",
+                "slot": "1",
+            },
+            "event address",
+        ),
         (
             ("placement",),
             {"kind": "schedule", "event": "orchestration.event.gate", "script": "orchestration.story.s", "slot": "1"},

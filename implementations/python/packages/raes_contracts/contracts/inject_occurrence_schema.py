@@ -9,18 +9,34 @@ from .schema_invariants import _add_raes_invariant
 
 _REQUEST = {"contract_id": "inject-trigger-request-v1", "instance_path": "#"}
 _OCCURRENCE = {"contract_id": "inject-occurrence-v1", "instance_path": "#"}
+_LOCAL = (
+    (
+        _REQUEST,
+        InjectTriggerRequestModel,
+        "inject-trigger-request-local-consistency",
+        "Validate compiled inject, node, event, script and story address families, the pinned orchestration plan, "
+        "binding addresses rendered exactly from their node and the requested inject, and unique binding/instance "
+        "pairs; structural validity grants no trigger authority and does not resolve bindings against the plan.",
+    ),
+    (
+        _OCCURRENCE,
+        InjectOccurrenceModel,
+        "inject-occurrence-local-consistency",
+        "Validate the embedded request, an orchestration admission context for its target and run, an order token "
+        "whose scope is that run and whose predecessor is the requested head, and distinct request key, occurrence, "
+        "operation and slot identities; structural validity grants no trigger authority.",
+    ),
+)
 
 
 def inject_occurrence_schema_bundle() -> dict[str, dict[str, Any]]:
     schemas = {}
-    for inputs, model in ((_REQUEST, InjectTriggerRequestModel), (_OCCURRENCE, InjectOccurrenceModel)):
+    for inputs, model, invariant_id, description in _LOCAL:
         schema = model.model_json_schema()
         _add_raes_invariant(
             schema,
-            "inject-occurrence-local-consistency",
-            "Validate compiled address families, bindings of the requested inject, unique selected instances, the "
-            "orchestration admission context, unrebased order and distinct claim identities; structural validity "
-            "grants no trigger authority.",
+            invariant_id,
+            description,
             validator=f"raes_contracts.contracts.{model.__name__}.model_validate",
             inputs=[inputs],
         )
@@ -36,8 +52,9 @@ def inject_occurrence_schema_bundle() -> dict[str, dict[str, Any]]:
     _add_raes_invariant(
         schemas["inject-occurrence-v1"],
         "inject-occurrence-unique-claims",
-        "Retry keys, occurrences, operations, schedule slots and order positions are each claimed at most once "
-        "in one target/run store.",
+        "Retry keys, occurrences, operations, schedule slots, order positions and order predecessors are each claimed "
+        "at most once in one target/run store, so no two claims follow the same head; head tokens are opaque, so the "
+        "head chain itself is not checked.",
         validator="raes_contracts.contracts.validate_inject_occurrence_claims",
         inputs=[_OCCURRENCE],
     )

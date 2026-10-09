@@ -16,11 +16,13 @@
     "bindings": [
       {
         "binding": "orchestration.inject-binding.workstation.handover",
+        "node": "provision.node.workstation",
         "instance": "workstation-1",
         "revision": "realization-r3"
       },
       {
         "binding": "orchestration.inject-binding.workstation.handover",
+        "node": "provision.node.workstation",
         "instance": "workstation-2",
         "revision": "realization-r3"
       }

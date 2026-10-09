@@ -13,6 +13,7 @@
   "bindings": [
     {
       "binding": "orchestration.inject-binding.host.prerelease",
+      "node": "provision.node.host",
       "instance": "host-1",
       "revision": "realization-r1"
     }

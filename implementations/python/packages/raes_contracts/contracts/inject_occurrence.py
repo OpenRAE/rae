@@ -7,7 +7,7 @@ from typing import Annotated, Literal, Self
 
 from pydantic import Field, model_validator
 
-from ..addressing import CompiledAddress
+from ..addressing import CompiledAddress, render_compiled_address
 from ..canonical import canonical_json_digest
 from ..operation_lifecycle import OperationAdmissionContext, OperationKind
 from ..versions import INJECT_OCCURRENCE_SCHEMA_VERSION, INJECT_TRIGGER_REQUEST_SCHEMA_VERSION
@@ -22,25 +22,35 @@ _MAX_CLAIMS = 1024
 _CLAIM_CONFLICT = "inject trigger retry conflicts with the original claim"
 
 
-def _require_family(address: str, family: str) -> None:
-    if not address.startswith(f"orchestration.{family}."):
-        raise ValueError(f"inject trigger requires a compiled orchestration {family} address")
+def _require_family(address: str, family: str, root: str = "orchestration") -> str:
+    """Return the compiled name after ``<root>.<family>.``; module namespaces keep their dots."""
 
-
-def _require_binding_of(inject: str, binding: str) -> None:
-    """A compiled node binding renders as ``orchestration.inject-binding.<node>.<inject>``."""
-
-    prefix = "orchestration.inject-binding."
-    if binding.startswith(prefix) and not binding.endswith("." + inject.removeprefix("orchestration.inject.")):
-        raise ValueError("inject trigger bindings must belong to the requested inject")
+    prefix = f"{root}.{family}."
+    if not address.startswith(prefix):
+        raise ValueError(f"inject trigger requires a compiled {root} {family} address")
+    return address.removeprefix(prefix)
 
 
 class InjectTargetBindingModel(OperationContractModel):
-    """One selected concrete realization instance; entity names never select hosts."""
+    """One selected realization instance of a compiled node binding; entity names never select hosts."""
 
     binding: CompiledAddress
+    node: CompiledAddress
     instance: OperationIdentifier
     revision: OperationIdentifier
+
+    @model_validator(mode="after")
+    def _node(self) -> Self:
+        _require_family(self.node, "node", "provision")
+        return self
+
+
+def _require_binding_of(item: InjectTargetBindingModel, inject: str) -> None:
+    """Dots inside namespaced names make a suffix ambiguous; only the compiler's exact rendering counts."""
+
+    node = item.node.removeprefix("provision.node.")
+    if item.binding != render_compiled_address("orchestration", "inject-binding", node, inject):
+        raise ValueError("inject trigger binding must be the compiled binding of its node and the requested inject")
 
 
 class InjectIndependentPlacementModel(OperationContractModel):
@@ -102,14 +112,14 @@ class InjectTriggerRequestModel(OperationContractModel):
 
     @model_validator(mode="after")
     def _selection(self) -> Self:
-        _require_family(self.inject, "inject")
+        inject = _require_family(self.inject, "inject")
         if self.plan.contract_id != "orchestration-plan-v1":
             raise ValueError("inject trigger must pin its compiled orchestration plan")
-        for binding in self.bindings:
-            _require_binding_of(self.inject, binding.binding)
-        instances = [(binding.binding, binding.instance) for binding in self.bindings]
-        if len(instances) != len(set(instances)):
-            raise ValueError("inject trigger cannot select one realization instance twice")
+        for item in self.bindings:
+            _require_binding_of(item, inject)
+        pairs = [(item.binding, item.instance) for item in self.bindings]
+        if len(pairs) != len(set(pairs)):
+            raise ValueError("inject trigger cannot select one binding/instance pair twice")
         return self
 
 
@@ -188,7 +198,11 @@ def require_inject_trigger_retry(
 
 
 def validate_inject_occurrence_claims(occurrences: Sequence[InjectOccurrenceModel]) -> None:
-    """Reject reuse of a retry key, occurrence, operation, schedule slot or order position."""
+    """Reject reuse of a retry key, occurrence, operation, schedule slot, order position or predecessor.
+
+    Two claims that follow one head fork the run's order. Head tokens are opaque, so this
+    cannot check that a predecessor is the head that the preceding claim produced.
+    """
 
     if len(occurrences) > _MAX_CLAIMS:
         raise ValueError("inject occurrence claim set exceeds its bound")
@@ -199,6 +213,7 @@ def validate_inject_occurrence_claims(occurrences: Sequence[InjectOccurrenceMode
         "occurrence": [item.request.occurrence_id for item in occurrences],
         "operation": [item.operation_id for item in occurrences],
         "order position": [item.order.position for item in occurrences],
+        "order predecessor": [item.order.predecessor for item in occurrences],
         "schedule slot": [slot for item in occurrences for slot in _slot(item)],
     }
     for label, values in claims.items():
