@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Collection, Mapping
+from collections.abc import Collection, Iterator, Mapping
 from dataclasses import dataclass
 from typing import Any
 
@@ -13,8 +13,9 @@ from ._declarations import DeclarationIndex
 from ._errors import SDLParseError
 from ._identifiers import QualifiedName
 from ._language_diagnostics import parse_error as _parse_error
-from ._language_metadata import REFERENCE_COMPLETION_TARGETS, RELATIONSHIP_ENDPOINT_DOMAIN
+from ._language_metadata import REFERENCE_COMPLETION_TARGETS, RELATIONSHIP_ENDPOINT_DOMAIN, VARIATION_CANDIDATE_TARGETS
 from ._reference_targetability import (
+    ReferencePurpose,
     is_eligible,
     purpose_for_domain,
     reference_domain,
@@ -27,18 +28,42 @@ _SUCCESS_REFERENCE_TARGETS = frozenset({"assertions"})
 
 
 @dataclass(frozen=True)
+class PurposeResolver:
+    """Resolve one reference value for a purpose, as validation does.
+
+    Operating scope resolves through its derived alias map, and every other
+    purpose through the declaration index.
+    """
+
+    index: DeclarationIndex
+    operating_scope: Mapping[str, set[str]]
+
+    def resolve(self, value: str, purpose: ReferencePurpose) -> set[str]:
+        if purpose is ReferencePurpose.OPERATING_SCOPE:
+            return set(self.operating_scope.get(value, ()))
+        return self.index.resolve_for(value, purpose)
+
+
+@dataclass(frozen=True)
 class _SymbolScope:
     """The reference fields that may name one qualified symbol, per the shared policy."""
 
     section: str
     kind: str
     relationship_types: Mapping[str, str]
+    variation_slots: Mapping[str, str]
+    address: str | None = None
+    resolver: PurposeResolver | None = None
 
-    def admits(self, target: str | None) -> bool:
-        if target == self.section:
-            return True
+    def admits(self, value: str, target: str | None, spellings: Collection[str]) -> bool:
         purpose = purpose_for_domain(target) if target is not None else None
-        return purpose is not None and is_eligible(self.kind, purpose)
+        if purpose is None:
+            # A section-typed field resolves within its own section.
+            return target == self.section and value in spellings
+        if self.resolver is not None and self.address is not None:
+            # An ambiguous or refused value names no declaration, so it is no occurrence of this one.
+            return self.resolver.resolve(value, purpose) == {self.address}
+        return value in spellings and is_eligible(self.kind, purpose)
 
 
 def find_references(
@@ -47,8 +72,14 @@ def find_references(
     *,
     section_fields: Collection[str],
     declaration_index: DeclarationIndex | None = None,
+    resolver: PurposeResolver | None = None,
 ) -> dict[str, Any]:
-    """Return definition and occurrence locations for an SDL symbol."""
+    """Return definition and occurrence locations for an SDL symbol.
+
+    With a *resolver*, a value in a purpose-bearing field is an occurrence of
+    a qualified symbol only when the resolver resolves it to exactly that
+    declaration.
+    """
     if not sdl_content.strip():
         result = {"status": "ok", "symbol": symbol, "definitions": [], "occurrences": []}
     else:
@@ -56,7 +87,7 @@ def find_references(
         result = (
             error
             if error is not None
-            else _reference_result(root, symbol, section_fields, declaration_index=declaration_index)
+            else _reference_result(root, symbol, section_fields, declaration_index=declaration_index, resolver=resolver)
         )
     return result
 
@@ -67,6 +98,7 @@ def _reference_result(
     section_fields: Collection[str],
     *,
     declaration_index: DeclarationIndex | None,
+    resolver: PurposeResolver | None,
 ) -> dict[str, Any]:
     if root is None:
         return {"status": "ok", "symbol": symbol, "definitions": [], "occurrences": []}
@@ -85,7 +117,7 @@ def _reference_result(
     )
     if declaration_index is not None and _is_variation_member_symbol(symbol):
         spellings = frozenset({*spellings, _bare_symbol(symbol)})
-    _collect_occurrences(root, spellings, [], occurrences, scope=_symbol_scope(root, symbol, declaration_index))
+    _collect_occurrences(root, spellings, [], occurrences, scope=_symbol_scope(root, symbol, resolver))
     return {
         "status": "ok",
         "symbol": symbol,
@@ -94,29 +126,46 @@ def _reference_result(
     }
 
 
-def _symbol_scope(root: Node, symbol: str, declaration_index: DeclarationIndex | None) -> _SymbolScope | None:
+def _symbol_scope(root: Node, symbol: str, resolver: PurposeResolver | None) -> _SymbolScope | None:
     section = _qualified_symbol_section(symbol)
     if section is None:
         return None
-    declaration = declaration_index.declaration_for(symbol) if declaration_index is not None else None
-    kind = declaration.kind if declaration is not None else section_declaration_kind(section)
-    return _SymbolScope(section=section, kind=kind, relationship_types=_relationship_types(root))
+    declaration = resolver.index.declaration_for(symbol) if resolver is not None else None
+    return _SymbolScope(
+        section=section,
+        kind=declaration.kind if declaration is not None else section_declaration_kind(section),
+        relationship_types=_relationship_types(root),
+        variation_slots=_variation_slots(root),
+        address=declaration.address if declaration is not None else None,
+        resolver=resolver,
+    )
+
+
+def _section_entries(root: Node, section: str) -> Iterator[tuple[str, MappingNode]]:
+    entries = _mapping_child(root, section) if isinstance(root, MappingNode) else None
+    for key_node, value_node in entries.value if isinstance(entries, MappingNode) else ():
+        name = _scalar_value(key_node)
+        if name is not None and isinstance(value_node, MappingNode):
+            yield name, value_node
 
 
 def _relationship_types(root: Node) -> dict[str, str]:
-    relationships = _mapping_child(root, "relationships") if isinstance(root, MappingNode) else None
-    if not isinstance(relationships, MappingNode):
-        return {}
     types: dict[str, str] = {}
-    for key_node, value_node in relationships.value:
-        name = _scalar_value(key_node)
-        if name is None or not isinstance(value_node, MappingNode):
-            continue
-        raw_type = _mapping_child(value_node, "type")
+    for name, node in _section_entries(root, "relationships"):
+        raw_type = _mapping_child(node, "type")
         authored = _scalar_value(raw_type) if raw_type is not None else None
-        is_participant = _mapping_child(value_node, "participant") is not None
+        is_participant = _mapping_child(node, "participant") is not None
         types[name] = "participant" if is_participant else normalize_enum_value(authored or "")
     return types
+
+
+def _variation_slots(root: Node) -> dict[str, str]:
+    slots: dict[str, str] = {}
+    for name, node in _section_entries(root, "variation_points"):
+        target = _mapping_child(node, "target")
+        slot = _mapping_child(target, "slot") if isinstance(target, MappingNode) else None
+        slots[name] = (_scalar_value(slot) if slot is not None else None) or ""
+    return slots
 
 
 def _compose_yaml(sdl_content: str) -> tuple[Node | None, dict[str, Any] | None]:
@@ -320,15 +369,11 @@ def _is_matching_occurrence(
     scope: _SymbolScope | None,
     mapping_key: bool,
 ) -> bool:
-    return (
-        value is not None
-        and value in spellings
-        and _include_occurrence(
-            path,
-            scope=scope,
-            mapping_key=mapping_key,
-        )
-    )
+    if value is None:
+        return False
+    if scope is None:
+        return value in spellings
+    return scope.admits(value, _reference_target_for_path(path, mapping_key=mapping_key, scope=scope), spellings)
 
 
 def _append_occurrence(
@@ -385,28 +430,15 @@ def _is_variation_member_symbol(symbol: str) -> bool:
     return len(parts) >= 4 and parts[0] == "variation_points" and parts[-2] in {"alternatives", "members"}
 
 
-def _include_occurrence(
-    path: list[str],
-    *,
-    scope: _SymbolScope | None,
-    mapping_key: bool,
-) -> bool:
-    if scope is None:
-        return True
-    return scope.admits(
-        _reference_target_for_path(path, mapping_key=mapping_key, relationship_types=scope.relationship_types)
-    )
-
-
-def _reference_target_for_path(
-    path: list[str], *, mapping_key: bool, relationship_types: Mapping[str, str]
-) -> str | None:
+def _reference_target_for_path(path: list[str], *, mapping_key: bool, scope: _SymbolScope) -> str | None:
     if len(path) < 3:
         return None
     field = path[-2] if mapping_key or path[-1].isdigit() else path[-1]
     target = REFERENCE_COMPLETION_TARGETS.get((path[0], field))
     if target == RELATIONSHIP_ENDPOINT_DOMAIN and len(path) == 3:
-        target = reference_domain(relationship_endpoint_purpose(relationship_types.get(path[1], "")))
+        target = reference_domain(relationship_endpoint_purpose(scope.relationship_types.get(path[1], "")))
+    elif (path[0], field) == ("variation_points", "reference"):
+        target = VARIATION_CANDIDATE_TARGETS.get(scope.variation_slots.get(path[1], ""), target)
     return target if target is not None else _implicit_reference_target(path, field)
 
 

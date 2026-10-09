@@ -551,7 +551,13 @@ Rules:
    ambiguous. Every other purpose resolves among the declarations it admits.
    Qualified references resolve by exact canonical address (§2).
 2. A reference that names only declarations its purpose does not admit fails as
-   dangling (§4), and the diagnostic names those declarations and the purpose.
+   dangling (§4). Where semantic validation checks the field against the
+   declaration index, the diagnostic appends the declarations that the
+   reference does name, and a narrowed purpose (objective subject, action
+   target, shared state, authority scope) also names itself. An ambiguous bare
+   name lists the eligible candidates, then those that the purpose refuses.
+   Participant endpoints, operating scopes, and variation candidates report
+   their own diagnostics.
 3. An effect `target_refs[]` entry that names no declaration is
    observation-boundary information; recorded action results check it against
    the participant's observation boundary. An entry that names a declaration
@@ -564,10 +570,14 @@ Rules:
    authority scopes.
 5. Composition rewrites purpose-bearing references under the import namespace,
    and instantiation rechecks substituted values against the same purpose.
-   Editor completion, navigation, and diagnostics consume the same purposes:
-   completion offers one unambiguous spelling per eligible declaration and
-   selects the participant-endpoint purpose from the relationship subtype,
-   including in documents that do not yet validate.
+   Editor completion, navigation, and diagnostics consume the same purposes
+   and resolvers. Completion offers one unambiguous spelling per eligible
+   declaration, selects the participant-endpoint purpose from the relationship
+   subtype and a variation candidate's section or purpose from its target
+   slot, and does so in documents that do not yet validate. Navigation reports
+   a value as an occurrence of a declaration only when the field's resolver
+   resolves it to exactly that declaration, so an ambiguous or refused value is
+   an occurrence of none.
 
 ## Extending the reference catalog
 

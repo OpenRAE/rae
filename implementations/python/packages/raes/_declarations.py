@@ -84,10 +84,10 @@ class DeclarationIndex:
         """Return *reference*'s resolution-domain candidates, or none when none is eligible for *purpose*."""
 
         domain = resolution_domain(purpose)
-        candidates = self._eligible(self._aliases.get(reference, set()), domain)
-        return candidates if domain is purpose or self._eligible(candidates, purpose) else set()
+        candidates = self.eligible(self._aliases.get(reference, set()), domain)
+        return candidates if domain is purpose or self.eligible(candidates, purpose) else set()
 
-    def _eligible(self, addresses: set[str], purpose: ReferencePurpose) -> set[str]:
+    def eligible(self, addresses: set[str], purpose: ReferencePurpose) -> set[str]:
         return {
             address
             for address in addresses

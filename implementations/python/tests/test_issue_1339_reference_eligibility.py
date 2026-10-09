@@ -28,7 +28,6 @@ _PROPOSITION = {
 }
 _CONDITION = {"command": "true", "interval": 5}
 _PAIR = {"type": "participant", "source": "red", "target": "blue", "participant": {"kind": "cooperation"}}
-_AMBIGUOUS_WEB = "'web' is ambiguous; use one of: conditions.web, nodes.web"
 
 # Reference fields by purpose, as paths into _payload().
 FIELDS = {
@@ -37,6 +36,32 @@ FIELDS = {
     "shared-state": ("action_contracts", "probe", "interactions", 0, "shared_state_refs"),
     "effect": ("action_contracts", "probe", "effects", 0, "target_refs"),
     "authority-scope": ("behavior_specifications", "red-behavior", "authority_scope_refs"),
+}
+LABELS = {
+    "objective": "an objective subject",
+    "interaction": "an action target",
+    "shared-state": "shared state",
+    "effect": "an action target",
+    "authority-scope": "an authority scope",
+}
+_PROBE = "participant.action-contract.probe"
+_RED = "participant.behavior.red"
+# Where the compiled model carries each reference field of _payload().
+_COMPILED = {
+    FIELDS["objective"]: lambda model: model.objectives["evaluation.objective.goal"].spec["targets"],
+    FIELDS["interaction"]: lambda model: model.action_contracts[_PROBE].spec["interactions"][0]["target"],
+    FIELDS["shared-state"]: lambda model: model.action_contracts[_PROBE].spec["interactions"][0]["shared_state_refs"],
+    FIELDS["effect"]: lambda model: model.action_contracts[_PROBE].spec["effects"][0]["target_refs"],
+    FIELDS["authority-scope"]: lambda model: (
+        model.behavior_specifications["participant.behavior-specification.red-behavior"].authority_scope_refs
+    ),
+    ("relationships", "pair", "target"): lambda model: model.relationship_specs["pair"]["target"],
+    ("relationships", "link", "target"): lambda model: model.relationship_specs["link"]["target"],
+    ("propositions", "ready", "subjects"): lambda model: model.propositions["evaluation.proposition.ready"].spec[
+        "subjects"
+    ],
+    ("agents", "red", "authority_anchors"): lambda model: model.participant_behaviors[_RED].authority_anchor_refs,
+    ("agents", "red", "operating_scope"): lambda model: model.participant_behaviors[_RED].operating_scope_refs,
 }
 
 
@@ -137,6 +162,19 @@ def _refusal(purpose_label: str, ref: str) -> str:
     return f"does not reference any defined element eligible as {purpose_label}; it names {ref}"
 
 
+def _ambiguous_web(purpose_label: str) -> str:
+    """The diagnostic for bare 'web' when node 'web' and condition 'web' are both declared."""
+
+    return f"'web' is ambiguous; use one of: nodes.web; not eligible as {purpose_label}: conditions.web"
+
+
+def _carried(model, path: tuple) -> list[str]:
+    """Return the references that the compiled model keeps for the field at *path*."""
+
+    value = _COMPILED[path](model)
+    return [value] if isinstance(value, str) else list(value)
+
+
 def _with_condition_named_web(payload: dict) -> dict:
     """Share the node's bare name with a declaration that no narrowed purpose admits."""
 
@@ -202,7 +240,7 @@ def test_each_reference_purpose_admits_only_its_declaration_kinds(field: str, re
     payload["content"] = {"answer-key": {"type": "file", "target": "web", "path": "/opt/key.txt", "text": "key"}}
 
     if refused_as is None:
-        assert compile_scenario_runtime_model(_parse(payload)) is not None
+        assert _carried(compile_scenario_runtime_model(_parse(payload)), FIELDS[field]) == [ref]
         return
     with pytest.raises(SDLValidationError) as caught:
         _parse(payload)
@@ -265,7 +303,7 @@ def test_a_bare_name_shared_with_an_ineligible_declaration_stays_ambiguous(field
     with pytest.raises(SDLValidationError) as caught:
         _parse(bare)
     (error,) = caught.value.errors
-    assert error.endswith(_AMBIGUOUS_WEB)
+    assert error.endswith(_ambiguous_web(LABELS[field]))
 
     model = compile_scenario_runtime_model(_parse(_set(payload, FIELDS[field], "nodes.web")))
 
@@ -288,8 +326,9 @@ def test_bare_mixed_control_and_delivery_scopes_shared_with_a_condition_are_refu
     with pytest.raises(SDLValidationError) as caught:
         parse_sdl(bare)
 
-    assert [error for error in caught.value.errors if error.endswith(_AMBIGUOUS_WEB)] == [
-        f"Behavior specification 'red-briefing' mixed_control controller state '{state}' scope_ref {_AMBIGUOUS_WEB}"
+    refusal = _ambiguous_web("an authority scope")
+    assert [error for error in caught.value.errors if error.endswith(refusal)] == [
+        f"Behavior specification 'red-briefing' mixed_control controller state '{state}' scope_ref {refusal}"
         for state in ("autonomous", "pending", "directed")
     ]
 
@@ -416,7 +455,8 @@ def test_instantiation_rechecks_each_purpose_after_substitution(
     payload["agents"]["red"].update(authority_anchors=[], operating_scope=[])
     authored = _parse(_set(payload, path, "${subject}"))
 
-    assert compile_scenario_runtime_model(instantiate_scenario(authored, parameters={"subject": accepted})) is not None
+    model = compile_scenario_runtime_model(instantiate_scenario(authored, parameters={"subject": accepted}))
+    assert _carried(model, path) == [accepted]
     with pytest.raises(SDLInstantiationError) as caught:
         instantiate_scenario(authored, parameters={"subject": refused})
     assert any(diagnostic in error for error in caught.value.errors)

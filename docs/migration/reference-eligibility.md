@@ -12,15 +12,23 @@ before.
 | Field | No longer accepted | Rewrite |
 | --- | --- | --- |
 | `objectives.*.targets[]` and `objectives.targets` variation candidates | `conditions`, `injects`, `events`, `scripts`, `stories`, `action_contracts`, `observation_boundaries`, `behavior_specifications`, participant inject deliveries, `variation_points` | Name the proposition that a condition probes, or the participant, organization, resource, or relationship the objective concerns. Use `actions` for action constraints and `window` for narrative scope. |
-| `action_contracts.*.interactions.*.target`, and declaration names in `action_contracts.*.effects.*.target_refs[]` | `propositions`, `assertions`, `conditions`, narrative entries, behavior surfaces, `variation_points` | Name the participant, organization, resource, or relationship the action acts on. A truth claim belongs in a proposition or objective, not an action target. |
-| `action_contracts.*.interactions.*.shared_state_refs[]` | the same kinds, plus `agents` and `entities` | Name the resource or relationship whose state the interacting actions read or write. |
+| `action_contracts.*.interactions.*.target` | `propositions`, `assertions`, `conditions`, narrative entries, behavior surfaces, `variation_points` | Name the participant, organization, resource, or relationship the action acts on. A truth claim belongs in a proposition or objective, not an action target. |
+| `action_contracts.*.effects.*.target_refs[]`, which were not checked before | an entry that names any declaration other than a participant, organization, resource, or relationship: the kinds in the row above, plus `objectives`, `workflows`, `variables`, `evidence_requirements`, `time_domains`, `clocks`, `time_domain_mappings`, `time_progression_policies`, `temporal_constraints`, tool affordances, and variation alternatives and members | Name the participant, organization, resource, or relationship the effect changes, or keep a token that names no declaration. |
+| `action_contracts.*.interactions.*.shared_state_refs[]` | the kinds refused as interaction targets, plus `agents` and `entities` | Name the resource or relationship whose state the interacting actions read or write. |
 | `behavior_specifications.*.authority_scope_refs[]`, mixed-control state `scope_refs[]`, and inject-delivery `control_authority_scope_refs[]` | `propositions`, `assertions`, `conditions`, narrative entries, `variation_points` | Name the participant, organization, resource, relationship, or behavior surface the authority covers. |
 
 An effect `target_refs[]` entry that names no declaration keeps working. It is
 observation-boundary information, and recorded action results check it against
-the participant's observation boundary as before. Only an entry that names a
-declaration must name an eligible action target, and like the other fields it
-must name exactly one targetable declaration.
+the participant's observation boundary as before. An entry that names a
+referenceable declaration, by bare name or qualified address, is now checked:
+like the other fields it must name exactly one targetable declaration, and that
+declaration must be an action target. Every indexed kind is referenceable
+except the scenario identity, node roles, workflow steps, and
+`outcome_interpretation_rules` entries. A free-form token that equals a declared
+bare name is therefore refused unless it names an action target. For example,
+`port` beside a variable named `port` fails with `... does not reference any
+defined element eligible as an action target; it names variables.port`. Rename
+the token or name the intended action target.
 
 Narrowing only refuses references; it never makes a bare name resolve that did
 not resolve before. A bare reference in these fields resolves among every
@@ -31,13 +39,19 @@ are both named `web`, stays ambiguous and needs the qualified form
 name that also names an organization or resource is ambiguous, so write
 `agents.<name>`.
 
-A refused reference fails semantic validation as dangling, and the diagnostic
-names the purpose and the declaration that the reference does name, for example
-`Action contract 'probe' interaction[0] target 'assertions.done' does not
-reference any defined element eligible as an action target; it names
-assertions.done`. Unresolved references in the fields that do not narrow keep
-their wording and gain the same `; it names` detail when they name a
-declaration. Instantiation reports the same diagnostic for a substituted
+A refused reference fails semantic validation as dangling. In the fields in
+the table, the diagnostic names the purpose and the declaration that the
+reference does name, for example `Action contract 'probe' interaction[0]
+target 'assertions.done' does not reference any defined element eligible as an
+action target; it names assertions.done`. Relationship endpoints, proposition
+subjects, evidence refs, authority anchors, and the general declared and
+targetable fields keep their wording (`any defined element` or `any defined
+targetable element`) and gain the same `; it names` detail when the reference
+names a declaration. An ambiguous bare name lists the eligible choices first
+and then the declarations the purpose refuses, for example `'web' is
+ambiguous; use one of: nodes.web; not eligible as an authority scope:
+conditions.web`. Participant endpoints and operating scopes keep their
+diagnostics. Instantiation reports the same diagnostic for a substituted
 variable value, and composition reports it under the import namespace.
 
 There is no compatibility reader. Rewrite a refused reference by hand with the
@@ -69,10 +83,7 @@ The 101 documents that parse structurally name these declaration kinds:
 
 No accepted reference narrows. The organization endpoint is
 `contracts/fixtures/sdl/participant-relationships-v1/invalid/entity-endpoint.yaml`,
-which was already rejected. The 101 test modules that author these fields pass
-with their inline scenarios unchanged; seven existing tests changed only to
-expect the new completion context names, catalog domain tokens, and diagnostic
-wording.
+which was already rejected.
 
 ## Editor behavior
 
@@ -80,16 +91,26 @@ wording.
   `reference:eligible:objective_subject`. The relationship subtype selects
   `reference:eligible:participant_endpoint`, which offers only agents.
 - Interaction targets, shared-state refs, effect target refs, agent authority
-  anchors, and agent operating scope now have completions. Participant
-  relationship `scope_refs` complete operating scopes, and temporal-constraint
-  subjects complete every declared reference, matching their validators.
+  anchors, and agent operating scope now have completions. Temporal-constraint
+  subjects complete every declared reference. Participant relationship
+  `scope_refs` complete only the operating scopes that both endpoints hold, and
+  `authority_basis_refs` only the source's authority anchors, which is what
+  their validator accepts. An endpoint that does not resolve to one
+  participant, or whose own list is parameterized, does not restrict them.
+- A variation candidate's `reference` completes and navigates in its target
+  slot's section or purpose, so an `objectives.targets` candidate is offered
+  objective subjects only.
 - Completion offers one unambiguous spelling per eligible declaration, and
   qualifies a bare name that validation would find ambiguous, including one
   shared with a refused declaration. Documents that do not validate yet use the
   same purposes; infrastructure entries are offered only in qualified form
   because they have no bare alias.
-- Navigation counts an occurrence only where the field's purpose admits the
-  symbol's declaration kind.
+- Navigation resolves each reference with its field's resolver, as validation
+  does, and reports an occurrence of a declaration only when the value resolves
+  to exactly that declaration. An ambiguous or refused value is an occurrence of
+  no declaration; search for its bare name to find it. Operating scopes resolve
+  through their own aliases, including bare service names. Documents that do
+  not validate yet resolve names among their top-level entries.
 
 ## Unchanged
 
