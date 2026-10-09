@@ -766,7 +766,7 @@
   "type": "object",
   "x-raes-invariants": [
     {
-      "description": "Validate per-binding readback bases, the fan-out effect aggregate and settlement by refusal or backend outcome; structural validity proves no effect, delivery or observation.",
+      "description": "Validate per-binding readback bases, the fan-out effect aggregate and settlement by a start refusal with proven absence or a backend outcome; structural validity proves no effect, delivery or observation.",
       "id": "inject-occurrence-outcome-local-consistency",
       "inputs": [
         {
@@ -778,23 +778,7 @@
       "validator": "raes_contracts.contracts.InjectOccurrenceOutcomeModel.model_validate"
     },
     {
-      "description": "A backend invocation commands the exact claimed occurrence under its operation and admission context and carries its evidence requirements; attempt identities stay distinct from the claims. This grants no dispatch.",
-      "id": "inject-occurrence-invocation",
-      "inputs": [
-        {
-          "contract_id": "inject-occurrence-v1",
-          "instance_path": "#"
-        },
-        {
-          "contract_id": "backend-operation-request-v1",
-          "instance_path": "#"
-        }
-      ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.require_inject_occurrence_invocation"
-    },
-    {
-      "description": "Readback answers that invocation and reports every selected binding in request order; RAE still validates and commits the terminal state.",
+      "description": "Readback answers one backend invocation that commands the exact claimed occurrence under its operation and admission context, carries its evidence requirements and keeps attempt identities distinct from the claims. It reports every selected binding in request order, and binding residual effects stay inside an admitted resource scope. This grants no dispatch; an adopting runtime still validates and commits the terminal state.",
       "id": "inject-occurrence-outcome-binding",
       "inputs": [
         {

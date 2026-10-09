@@ -30,6 +30,15 @@ CORPUS = [
     for category in ("valid", "invalid", "context-invalid")
     for path in sorted((FIXTURES / contract_id / category).glob("*.json"))
 ]
+# Each context-invalid fixture breaks one rule, so it must be refused for that rule's reason.
+CONTEXT_REASONS = {
+    "acceptance-as-settlement": "settles",
+    "applied-without-readback": "readback basis",
+    "successful-no-op": "no successful no-op",
+    "unproven-refusal": "settles",
+    "foreign-outcome": "same occurrence",
+    "request-as-occurrence": "joins an inject occurrence",
+}
 # Each valid outcome answers one claimed occurrence through one backend invocation.
 JOINS = {
     "participant-free-environment": ("participant-free-environment", "inject-release"),
@@ -42,8 +51,17 @@ DECLARED = (*BACKEND_OPERATION_CONTRACT_IDS, *INJECT_OCCURRENCE_BACKEND_CONTRACT
 EVIDENCE = {"contract_id": "runtime-snapshot-v1", "artifact_id": "evidence-1", "digest": "sha256:" + "1" * 64}
 HANDOVER = "orchestration.inject-binding.workstation.handover"
 WORKSTATION = "provision.node.workstation"
+FORGED = "sha256:" + "0" * 64
 PROVEN_ABSENT = {"effect": "absent", "cessation_established": True, "evidence_refs": [EVIDENCE]}
 WILLING = {"kind": "admission", "disposition": "willing", "capability_digest": "sha256:" + "e" * 64, "reason": None}
+ADMISSION_REFUSAL = {**WILLING, "disposition": "refused", "reason": "context-refused"}
+PARTIAL_IN_VAULT = {
+    "effect": "partial",
+    "cessation_established": True,
+    "evidence_refs": [EVIDENCE],
+    "residual_scope": ["orchestration.inject-binding.vault.wipe"],
+    "residual_state": EVIDENCE,
+}
 
 
 def fixture(contract_id: str, category: str, name: str) -> dict:
@@ -68,6 +86,18 @@ def outcome(name: str, payload: dict | None = None) -> contracts.InjectOccurrenc
     )
 
 
+def applied_release() -> tuple[
+    contracts.InjectOccurrenceModel, contracts.BackendOperationRequestModel, contracts.InjectOccurrenceOutcomeModel
+]:
+    """The participant-free occurrence, its release invocation and the applied readback that answers it."""
+
+    return (
+        occurrence("participant-free-environment"),
+        invocation("inject-release"),
+        outcome("participant-free-environment"),
+    )
+
+
 def changed(payload: dict, path: tuple[str | int, ...], value: object) -> dict:
     payload = copy.deepcopy(payload)
     target = payload
@@ -82,7 +112,12 @@ def binding_outcome(effect: str, ceased: bool) -> contracts.InjectBindingOutcome
     residual = {"residual_scope": [HANDOVER], "residual_state": EVIDENCE} if effect == "partial" else {}
     return contracts.InjectBindingOutcomeModel.model_validate(
         {
-            "binding": {"binding": HANDOVER, "node": WORKSTATION, "instance": "workstation-1", "revision": "realization-r3"},
+            "binding": {
+                "binding": HANDOVER,
+                "node": WORKSTATION,
+                "instance": "workstation-1",
+                "revision": "realization-r3",
+            },
             "effects": {
                 "effect": effect,
                 "cessation_established": ceased,
@@ -110,20 +145,27 @@ def test_fixture_corpus_separates_structure_from_contextual_claims(contract_id, 
     if category == "valid":
         assert model.model_validate(payload).model_dump(mode="json") == payload
     else:
-        with pytest.raises(ValidationError):
+        reason = CONTEXT_REASONS[name] if category == "context-invalid" else None
+        with pytest.raises(ValidationError, match=reason):
             model.model_validate(payload)
 
 
-def test_published_schemas_are_the_reference_bundle_with_semantic_bindings():
-    bundle = contracts.schema_bundle()
-    for contract_id in MODELS:
-        assert schema(contract_id) == bundle[contract_id]
-        assert schema(contract_id)["x-raes-semantic-profile"]["required"] is True
-    validators = {item["validator"] for item in bundle["inject-occurrence-outcome-v1"]["x-raes-invariants"]}
-    assert {
-        "raes_contracts.contracts.require_inject_occurrence_invocation",
-        "raes_contracts.contracts.validate_inject_occurrence_outcome",
-    } <= validators
+@pytest.mark.parametrize(
+    ("contract_id", "validator"),
+    [
+        ("inject-occurrence-outcome-v1", "validate_inject_occurrence_outcome"),
+        ("inject-occurrence-correlation-v1", "validate_inject_occurrence_correlation"),
+    ],
+)
+def test_published_schemas_are_the_reference_bundle_with_semantic_bindings(contract_id, validator):
+    published = schema(contract_id)
+    invariants = published["x-raes-invariants"]
+
+    assert published == contracts.schema_bundle()[contract_id]
+    assert published["x-raes-semantic-profile"]["required"] is True
+    assert f"raes_contracts.contracts.{validator}" in {item["validator"] for item in invariants}
+    # Each invariant reads the instance of the schema that publishes it.
+    assert all(contract_id in {item["contract_id"] for item in invariant["inputs"]} for invariant in invariants)
 
 
 @pytest.mark.parametrize("name", sorted(JOINS))
@@ -221,35 +263,55 @@ def test_invocation_commands_the_exact_claimed_occurrence(occurrence_name, invoc
         contracts.require_inject_occurrence_invocation(claim, request)
 
 
-def test_readback_for_another_invocation_cannot_settle_this_occurrence():
-    claim, release, handover_readback = (
-        occurrence("participant-free-environment"),
-        invocation("inject-release"),
-        outcome("known-partial"),
+@pytest.mark.parametrize(
+    "join", [contracts.validate_inject_occurrence_outcome, contracts.inject_occurrence_correlation]
+)
+def test_readback_for_another_invocation_cannot_settle_or_correlate(join):
+    claim, handover, release_readback = (
+        occurrence("scheduled-fan-out"),
+        invocation("inject-handover"),
+        outcome("participant-free-environment"),
     )
 
     with pytest.raises(ValueError, match="binding mismatch"):
-        contracts.validate_inject_occurrence_outcome(claim, release, handover_readback)
+        join(claim, handover, release_readback)
 
 
 @pytest.mark.parametrize(
     ("path", "value", "message"),
     [
-        pytest.param(("bindings",), "reversed", "request order", id="reordered-bindings"),
-        pytest.param(("bindings",), "unknown-only", "request order", id="missing-binding"),
-        pytest.param(("response", "request_digest"), "sha256:" + "0" * 64, "commitment", id="stale-request"),
+        pytest.param(("bindings",), slice(None, None, -1), "request order", id="reordered-bindings"),
+        pytest.param(("bindings",), slice(1, None), "request order", id="missing-binding"),
+        pytest.param(("response", "request_digest"), FORGED, "commitment", id="stale-request"),
+        pytest.param(("occurrence", "digest"), FORGED, "names another occurrence", id="another-occurrence"),
+        pytest.param(
+            ("bindings", 0, "effects"),
+            PARTIAL_IN_VAULT,
+            "exceed the admitted resource scope",
+            id="residual-out-of-scope",
+        ),
     ],
 )
 def test_readback_must_answer_the_invocation_for_every_selected_binding(path, value, message):
     payload = fixture("inject-occurrence-outcome-v1", "valid", "indeterminate")
-    bindings = payload["bindings"]
-    replacement = {"reversed": bindings[::-1], "unknown-only": bindings[1:]}.get(value, value)
+    replacement = payload["bindings"][value] if isinstance(value, slice) else value
 
     claim, handover = occurrence("scheduled-fan-out"), invocation("inject-handover")
     readback = outcome("indeterminate", changed(payload, path, replacement))
 
     with pytest.raises(ValueError, match=message):
         contracts.validate_inject_occurrence_outcome(claim, handover, readback)
+
+
+def test_binding_residual_effects_inside_the_admitted_scope_are_accepted():
+    in_scope = {**PARTIAL_IN_VAULT, "residual_scope": [HANDOVER]}
+    payload = changed(
+        fixture("inject-occurrence-outcome-v1", "valid", "indeterminate"), ("bindings", 0, "effects"), in_scope
+    )
+
+    contracts.validate_inject_occurrence_outcome(
+        occurrence("scheduled-fan-out"), invocation("inject-handover"), outcome("indeterminate", payload)
+    )
 
 
 @pytest.mark.parametrize(
@@ -269,6 +331,11 @@ def test_fan_out_effect_aggregates_every_binding_fact(facts, expected):
     assert contracts.inject_occurrence_effect(bindings) == expected
 
 
+def test_an_empty_fan_out_has_no_effect_to_aggregate():
+    with pytest.raises(ValueError, match="at least one reported binding"):
+        contracts.inject_occurrence_effect(())
+
+
 @pytest.mark.parametrize(
     ("base", "path", "value", "message"),
     [
@@ -276,34 +343,46 @@ def test_fan_out_effect_aggregates_every_binding_fact(facts, expected):
             "refused", ("response", "message"), {"kind": "progress", "phase": "executing"}, "settles", id="progress"
         ),
         pytest.param("refused", ("response", "message"), WILLING, "settles", id="willing-admission"),
+        # An admission refusal precedes dispatch, so EI-03 withdraws the occurrence instead of settling it.
+        pytest.param("refused", ("response", "message"), ADMISSION_REFUSAL, "settles", id="admission-refusal"),
         pytest.param("indeterminate", ("response", "message", "effects"), PROVEN_ABSENT, "disagree", id="disagreeing"),
+        pytest.param("indeterminate", ("effect",), "known-partial", "aggregate", id="unaggregated-effect"),
+        pytest.param(
+            "refused", ("occurrence", "contract_id"), "inject-trigger-request-v1", "claimed inject", id="request-claim"
+        ),
+        pytest.param(
+            "indeterminate", ("bindings", 1, "binding", "instance"), "workstation-1", "instance once", id="duplicate"
+        ),
     ],
 )
-def test_progress_willingness_or_disagreeing_backend_facts_cannot_settle(base, path, value, message):
+def test_outcome_model_refuses_unsettled_or_inconsistent_readback(base, path, value, message):
     payload = changed(fixture("inject-occurrence-outcome-v1", "valid", base), path, value)
 
     with pytest.raises(ValidationError, match=message):
         contracts.InjectOccurrenceOutcomeModel.model_validate(payload)
 
 
-def test_a_refused_start_settles_as_proven_absence():
-    refusal = {"kind": "acknowledgement", "disposition": "refused", "reason": "context-refused"}
-    payload = changed(fixture("inject-occurrence-outcome-v1", "valid", "refused"), ("response", "message"), refusal)
-
-    assert contracts.InjectOccurrenceOutcomeModel.model_validate(payload).effect == "effect-absent"
-
-
 def test_correlation_joins_the_successful_applied_world_effect_and_its_result():
-    applied = outcome("participant-free-environment")
-    correlation = contracts.inject_occurrence_correlation(
-        occurrence("participant-free-environment"), invocation("inject-release"), applied
-    )
+    claim, release, applied = applied_release()
+    received = fixture("inject-occurrence-correlation-v1", "valid", "participant-free-environment")
+    correlation = contracts.inject_occurrence_correlation(claim, release, applied)
 
-    assert correlation.model_dump(mode="json") == fixture(
-        "inject-occurrence-correlation-v1", "valid", "participant-free-environment"
-    )
+    assert correlation.model_dump(mode="json") == received
     assert correlation.outcome.digest == contracts.inject_occurrence_outcome_digest(applied)
     assert correlation.result == applied.response.message.result
+    contracts.validate_inject_occurrence_correlation(
+        claim, release, applied, contracts.InjectOccurrenceCorrelationModel.model_validate(received)
+    )
+
+
+@pytest.mark.parametrize("field", ["occurrence", "outcome", "result"])
+def test_a_received_correlation_must_equal_the_recomputed_join(field):
+    received = fixture("inject-occurrence-correlation-v1", "valid", "participant-free-environment")
+    forged = contracts.InjectOccurrenceCorrelationModel.model_validate(changed(received, (field, "digest"), FORGED))
+    claim, release, applied = applied_release()
+
+    with pytest.raises(ValueError, match="recomputed"):
+        contracts.validate_inject_occurrence_correlation(claim, release, applied, forged)
 
 
 def _failed_but_applied() -> contracts.InjectOccurrenceOutcomeModel:

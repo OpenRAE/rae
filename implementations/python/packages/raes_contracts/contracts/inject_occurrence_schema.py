@@ -34,8 +34,8 @@ _LOCAL = (
         _OUTCOME,
         InjectOccurrenceOutcomeModel,
         "inject-occurrence-outcome-local-consistency",
-        "Validate per-binding readback bases, the fan-out effect aggregate and settlement by refusal or backend "
-        "outcome; structural validity proves no effect, delivery or observation.",
+        "Validate per-binding readback bases, the fan-out effect aggregate and settlement by a start refusal with "
+        "proven absence or a backend outcome; structural validity proves no effect, delivery or observation.",
     ),
     (
         _CORRELATION,
@@ -78,25 +78,20 @@ def inject_occurrence_schema_bundle() -> dict[str, dict[str, Any]]:
     )
     _add_raes_invariant(
         schemas["inject-occurrence-outcome-v1"],
-        "inject-occurrence-invocation",
-        "A backend invocation commands the exact claimed occurrence under its operation and admission context and "
-        "carries its evidence requirements; attempt identities stay distinct from the claims. This grants no dispatch.",
-        validator="raes_contracts.contracts.require_inject_occurrence_invocation",
-        inputs=[_OCCURRENCE, _INVOCATION],
-    )
-    _add_raes_invariant(
-        schemas["inject-occurrence-outcome-v1"],
         "inject-occurrence-outcome-binding",
-        "Readback answers that invocation and reports every selected binding in request order; RAE still validates "
-        "and commits the terminal state.",
+        "Readback answers one backend invocation that commands the exact claimed occurrence under its operation and "
+        "admission context, carries its evidence requirements and keeps attempt identities distinct from the claims. "
+        "It reports every selected binding in request order, and binding residual effects stay inside an admitted "
+        "resource scope. This grants no dispatch; an adopting runtime still validates and commits the terminal state.",
         validator="raes_contracts.contracts.validate_inject_occurrence_outcome",
         inputs=[_OCCURRENCE, _INVOCATION, _OUTCOME],
     )
     _add_raes_invariant(
         schemas["inject-occurrence-correlation-v1"],
         "inject-occurrence-correlation-source",
-        "Only a successful applied world effect with a produced result yields a participant join.",
-        validator="raes_contracts.contracts.inject_occurrence_correlation",
-        inputs=[_OCCURRENCE, _INVOCATION, _OUTCOME],
+        "A received correlation equals the join recomputed from its occurrence, invocation and validated outcome; "
+        "only a successful applied world effect with a produced result yields one.",
+        validator="raes_contracts.contracts.validate_inject_occurrence_correlation",
+        inputs=[_OCCURRENCE, _INVOCATION, _OUTCOME, _CORRELATION],
     )
     return schemas
