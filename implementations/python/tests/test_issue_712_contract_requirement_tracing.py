@@ -31,6 +31,7 @@ from tools.check_contract_requirement_tracing import (  # noqa: E402
     published_schema_paths,
 )
 from tools.check_schema_publication import load_schema_publication_catalog  # noqa: E402
+from tools.policy.common import PolicyFailure  # noqa: E402
 
 _STAGE = "policy / published contract requirement tracing"
 _SCRIPT = "tools/check_contract_requirement_tracing.py"
@@ -57,7 +58,7 @@ def _requirement(repo_root: Path, uid: str, *links: str, status: str = "ACTIVE")
     return record
 
 
-def _paths(failures: list, rule_id: str) -> set[str | None]:
+def _paths(failures: list[PolicyFailure], rule_id: str) -> set[str | None]:
     return {failure.path for failure in failures if failure.rule_id == rule_id}
 
 
