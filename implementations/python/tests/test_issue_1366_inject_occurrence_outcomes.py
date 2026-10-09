@@ -215,16 +215,21 @@ def test_every_valid_outcome_answers_its_exact_invocation(name):
 def test_invocation_commands_the_exact_claimed_occurrence(occurrence_name, invocation_name, path, value, message):
     payload = changed(fixture("backend-operation-request-v1", "valid", invocation_name), path, value)
     request = contracts.BackendOperationRequestModel.model_validate(payload)
+    claim = occurrence(occurrence_name)
 
     with pytest.raises(ValueError, match=message):
-        contracts.require_inject_occurrence_invocation(occurrence(occurrence_name), request)
+        contracts.require_inject_occurrence_invocation(claim, request)
 
 
 def test_readback_for_another_invocation_cannot_settle_this_occurrence():
+    claim, release, handover_readback = (
+        occurrence("participant-free-environment"),
+        invocation("inject-release"),
+        outcome("known-partial"),
+    )
+
     with pytest.raises(ValueError, match="binding mismatch"):
-        contracts.validate_inject_occurrence_outcome(
-            occurrence("participant-free-environment"), invocation("inject-release"), outcome("known-partial")
-        )
+        contracts.validate_inject_occurrence_outcome(claim, release, handover_readback)
 
 
 @pytest.mark.parametrize(
@@ -240,12 +245,11 @@ def test_readback_must_answer_the_invocation_for_every_selected_binding(path, va
     bindings = payload["bindings"]
     replacement = {"reversed": bindings[::-1], "unknown-only": bindings[1:]}.get(value, value)
 
+    claim, handover = occurrence("scheduled-fan-out"), invocation("inject-handover")
+    readback = outcome("indeterminate", changed(payload, path, replacement))
+
     with pytest.raises(ValueError, match=message):
-        contracts.validate_inject_occurrence_outcome(
-            occurrence("scheduled-fan-out"),
-            invocation("inject-handover"),
-            outcome("indeterminate", changed(payload, path, replacement)),
-        )
+        contracts.validate_inject_occurrence_outcome(claim, handover, readback)
 
 
 @pytest.mark.parametrize(
@@ -322,8 +326,10 @@ def _failed_but_applied() -> contracts.InjectOccurrenceOutcomeModel:
     ],
 )
 def test_no_participant_join_without_a_successful_applied_world_effect(occurrence_name, invocation_name, readback):
+    claim, request, settled = occurrence(occurrence_name), invocation(invocation_name), readback()
+
     with pytest.raises(ValueError, match="only a successful applied world effect"):
-        contracts.inject_occurrence_correlation(occurrence(occurrence_name), invocation(invocation_name), readback())
+        contracts.inject_occurrence_correlation(claim, request, settled)
 
 
 def _property_names(node: object) -> set[str]:
@@ -348,8 +354,9 @@ def test_backend_declaration_is_explicit_and_existing_backends_do_not_advertise_
     assert stub.orchestrator.supports_inject_bindings
     for declared in (stub.supported_contract_versions, STUB_CONTRACTS, REFERENCE_CONTRACTS):
         assert set(INJECT_OCCURRENCE_BACKEND_CONTRACT_IDS).isdisjoint(declared)
+    provider = _provider()
     with pytest.raises(ValueError, match="inject occurrence contracts are not declared"):
-        require_inject_occurrence_provider(_provider(), stub.supported_contract_versions)
+        require_inject_occurrence_provider(provider, stub.supported_contract_versions)
 
 
 @pytest.mark.parametrize(
