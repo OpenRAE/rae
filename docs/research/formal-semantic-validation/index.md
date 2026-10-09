@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 70.0.0, rejects unsupported future
+Current validation requires explicit release 71.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -591,4 +591,11 @@ recording logical participant budget exhaustion as rejected resource_exhausted
 attempts and fencing budget settlement to the reserving generation in
 [`execution-snapshot-v70.json`](execution-snapshot-v70.json) and
 [`analysis-v70.json`](analysis-v70.json). Outcomes and claim limits remain
+unchanged.
+
+Release 71.0.0 replays the retained formal cases after issue #308 added
+authored step, turn, tool-use, and RAES-metered scenario-time budget dimensions
+with explicit quota disclosure in
+[`execution-snapshot-v71.json`](execution-snapshot-v71.json) and
+[`analysis-v71.json`](analysis-v71.json). Outcomes and claim limits remain
 unchanged.
