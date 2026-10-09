@@ -1101,7 +1101,7 @@ jobs:
               return 1
             fi
 
-            gh release upload "${EXPECTED_TAG}" "${local_path}"
+            gh release upload "${EXPECTED_TAG}" "${local_path}" --repo "${GITHUB_REPOSITORY}"
 
             # Read the stored bytes back, so the claim rests on observed
             # content rather than on a successful upload call.
