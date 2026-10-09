@@ -129,12 +129,14 @@ _BODIES = {
     "empty-frames-exact": _Body((b"", b"a" * 8, b"", b"b" * 8, b"")),
     "empty-frames-over": _Body((b"", b"a" * 8, b"", b"b" * 8, b"", b"c"), crossing_read=6),
 }
+# Fixed declarations are named by the value they declare, not by how it compares
+# with the body: 16 understates a 17-byte body and overstates a 15-byte one.
 _DECLARED_LENGTHS: dict[str, Callable[[bytes], bytes | None]] = {
     "absent": lambda _content: None,
     "truthful": lambda content: str(len(content)).encode(),
-    "understated": lambda _content: b"0",
-    "overstated-to-limit": lambda _content: str(_LIMIT).encode(),
-    "overstated-past-limit": lambda _content: str(_LIMIT + 1).encode(),
+    "declares-zero": lambda _content: b"0",
+    "declares-limit": lambda _content: str(_LIMIT).encode(),
+    "declares-past-limit": lambda _content: str(_LIMIT + 1).encode(),
 }
 
 
@@ -143,10 +145,9 @@ def _length_headers(declared: bytes | None) -> tuple[tuple[bytes, bytes], ...]:
 
 
 def _repeats_truthful(length_name: str, content: bytes) -> bool:
-    """Whether a misleading declaration happens to state the true length.
+    """Whether a fixed declaration happens to state the true length.
 
-    Such a case would repeat the truthful case under a misleading id, so the
-    matrices leave it out.
+    Such a case would repeat the truthful case, so the matrices leave it out.
     """
 
     truthful = _DECLARED_LENGTHS["truthful"](content)
@@ -255,7 +256,9 @@ _ABANDONED_AT = {
 
 
 @pytest.mark.parametrize("position", sorted(_ABANDONED_AT))
-@pytest.mark.parametrize("declared", [None, b"0", str(_LIMIT).encode()], ids=["absent", "understated", "at-limit"])
+@pytest.mark.parametrize(
+    "declared", [None, b"0", str(_LIMIT).encode()], ids=["absent", "declares-zero", "declares-limit"]
+)
 def test_disconnect_before_the_body_completes_dispatches_nothing(position: str, declared: bytes | None) -> None:
     chunks = _ABANDONED_AT[position]
     app = _RecordingApp()
@@ -285,6 +288,7 @@ def test_only_request_body_frames_are_counted_and_replayed() -> None:
 # --- the composed P2 adapter --------------------------------------------------
 
 _ROUTES = {
+    "api-description": ("GET", "/openapi.json"),
     "public-probe": ("GET", "/health/ready"),
     "administrative-read": ("GET", "/snapshot"),
     "body-mutation": ("POST", "/operations/provisioning"),
@@ -393,7 +397,7 @@ _CHUNKINGS: dict[str, Callable[[bytes], tuple[bytes, ...]]] = {
 }
 _DELIVERY_CASES = [
     pytest.param(delivery, chunking, length_name, id=f"{length_name}-{chunking}-{delivery}")
-    for length_name in ("absent", "truthful", "understated", "overstated-to-limit")
+    for length_name in ("absent", "truthful", "declares-zero", "declares-limit")
     for chunking in sorted(_CHUNKINGS)
     for delivery, (content, _reason) in sorted(_DELIVERIES.items())
     # An empty body has no bytes to split, so byte frames would repeat the single frame.
