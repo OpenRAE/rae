@@ -2451,6 +2451,45 @@ def test_runtime_owner_lease_rejects_and_closes_in_a_different_process_identity(
     reacquired.close()
 
 
+def _runtime_owner_lock_is_held(path: Path, flags: int) -> bool:
+    probe = os.open(path, flags)
+    try:
+        lease_module._lock_runtime_owner(probe)
+    except BlockingIOError:
+        return True
+    else:
+        lease_module._unlock_runtime_owner(probe)
+        return False
+    finally:
+        os.close(probe)
+
+
+@pytest.mark.skipif(os.name == "nt", reason="directory flock guard is POSIX-specific")
+def test_runtime_owner_lease_closed_in_a_forked_child_keeps_the_parent_locks(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # After fork() the parent still holds the same open file descriptions as the child. flock locks belong to
+    # those descriptions, so a child that unlocked its inherited descriptors would release the parent's lease.
+    # os.dup() reproduces the parent's surviving descriptors in this process.
+    lock_path = tmp_path / "runtime-owner.lock"
+    lease = lease_module.RuntimeOwnerLease.acquire(lock_path)
+    parent_descriptors = (os.dup(lease._descriptor), os.dup(lease._directory_descriptor))
+    try:
+        with monkeypatch.context() as patch:
+            patch.setattr(lease_module.os, "getpid", lambda: lease._owner_pid + 1)
+            lease.close()
+
+        assert _runtime_owner_lock_is_held(lock_path, os.O_RDWR)
+        assert _runtime_owner_lock_is_held(tmp_path, os.O_RDONLY)
+    finally:
+        for descriptor in parent_descriptors:
+            os.close(descriptor)
+
+    reacquired = lease_module.RuntimeOwnerLease.acquire(lock_path)
+    reacquired.close()
+
+
 @pytest.mark.integration
 def test_local_store_runtime_lease_blocks_another_process(tmp_path: Path) -> None:
     store_path = tmp_path / "control-plane"
