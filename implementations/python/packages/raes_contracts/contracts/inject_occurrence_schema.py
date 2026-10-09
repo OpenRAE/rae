@@ -1,14 +1,18 @@
-"""Published inject trigger/occurrence schemas and their semantic validation bindings."""
+"""Published inject trigger, occurrence and readback schemas and their semantic validation bindings."""
 
 from __future__ import annotations
 
 from typing import Any
 
 from .inject_occurrence import InjectOccurrenceModel, InjectTriggerRequestModel
+from .inject_occurrence_outcome import InjectOccurrenceCorrelationModel, InjectOccurrenceOutcomeModel
 from .schema_invariants import _add_raes_invariant
 
 _REQUEST = {"contract_id": "inject-trigger-request-v1", "instance_path": "#"}
 _OCCURRENCE = {"contract_id": "inject-occurrence-v1", "instance_path": "#"}
+_OUTCOME = {"contract_id": "inject-occurrence-outcome-v1", "instance_path": "#"}
+_CORRELATION = {"contract_id": "inject-occurrence-correlation-v1", "instance_path": "#"}
+_INVOCATION = {"contract_id": "backend-operation-request-v1", "instance_path": "#"}
 _LOCAL = (
     (
         _REQUEST,
@@ -25,6 +29,20 @@ _LOCAL = (
         "Validate the embedded request, an orchestration admission context for its target and run, an order token "
         "whose scope is that run and whose predecessor is the requested head, and distinct request key, occurrence, "
         "operation and slot identities; structural validity grants no trigger authority.",
+    ),
+    (
+        _OUTCOME,
+        InjectOccurrenceOutcomeModel,
+        "inject-occurrence-outcome-local-consistency",
+        "Validate per-binding readback bases, the fan-out effect aggregate and settlement by refusal or backend "
+        "outcome; structural validity proves no effect, delivery or observation.",
+    ),
+    (
+        _CORRELATION,
+        InjectOccurrenceCorrelationModel,
+        "inject-occurrence-correlation-local-consistency",
+        "Validate that the correlation joins an inject occurrence and an outcome of that same occurrence; structural "
+        "validity proves no effect, delivery or observation.",
     ),
 )
 
@@ -57,5 +75,28 @@ def inject_occurrence_schema_bundle() -> dict[str, dict[str, Any]]:
         "head chain itself is not checked.",
         validator="raes_contracts.contracts.validate_inject_occurrence_claims",
         inputs=[_OCCURRENCE],
+    )
+    _add_raes_invariant(
+        schemas["inject-occurrence-outcome-v1"],
+        "inject-occurrence-invocation",
+        "A backend invocation commands the exact claimed occurrence under its operation and admission context and "
+        "carries its evidence requirements; attempt identities stay distinct from the claims. This grants no dispatch.",
+        validator="raes_contracts.contracts.require_inject_occurrence_invocation",
+        inputs=[_OCCURRENCE, _INVOCATION],
+    )
+    _add_raes_invariant(
+        schemas["inject-occurrence-outcome-v1"],
+        "inject-occurrence-outcome-binding",
+        "Readback answers that invocation and reports every selected binding in request order; RAE still validates "
+        "and commits the terminal state.",
+        validator="raes_contracts.contracts.validate_inject_occurrence_outcome",
+        inputs=[_OCCURRENCE, _INVOCATION, _OUTCOME],
+    )
+    _add_raes_invariant(
+        schemas["inject-occurrence-correlation-v1"],
+        "inject-occurrence-correlation-source",
+        "Only a successful applied world effect with a produced result yields a participant join.",
+        validator="raes_contracts.contracts.inject_occurrence_correlation",
+        inputs=[_OCCURRENCE, _INVOCATION, _OUTCOME],
     )
     return schemas

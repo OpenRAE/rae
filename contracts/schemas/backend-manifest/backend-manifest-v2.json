@@ -3731,7 +3731,9 @@
           "trial-cleanup-receipt-v1",
           "time-model-v1",
           "time-runtime-state-v1",
-          "realized-time-model-v1"
+          "realized-time-model-v1",
+          "inject-occurrence-v1",
+          "inject-occurrence-outcome-v1"
         ],
         "minLength": 1,
         "type": "string"

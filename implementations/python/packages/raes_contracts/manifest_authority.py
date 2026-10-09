@@ -91,6 +91,8 @@ BACKEND_SUPPORTED_CONTRACT_IDS = (
     "time-model-v1",
     "time-runtime-state-v1",
     "realized-time-model-v1",
+    "inject-occurrence-v1",
+    "inject-occurrence-outcome-v1",
 )
 
 PARTICIPANT_RUNTIME_ROLE_SCOPE = "capabilities.participant_runtime.supported_participant_roles"

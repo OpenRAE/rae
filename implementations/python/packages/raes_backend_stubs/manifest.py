@@ -62,6 +62,8 @@ REFERENCE_BACKEND_SUPPORTED_CONTRACT_VERSIONS = frozenset(BACKEND_SUPPORTED_CONT
     "plan-realization-profiles-v1",
     "experiment-binding-descriptors-v1",
     "realization-envelope-v1",
+    "inject-occurrence-v1",
+    "inject-occurrence-outcome-v1",
 }
 REFERENCE_PARTICIPANT_ROLES = frozenset(
     PARTICIPANT_RUNTIME_CAPABILITY_REQUIRED_CONTRACTS[PARTICIPANT_RUNTIME_ROLE_SCOPE]

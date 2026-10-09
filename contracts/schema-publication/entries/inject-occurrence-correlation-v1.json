@@ -1,0 +1,10 @@
+{
+  "contract_id": "inject-occurrence-correlation-v1",
+  "schema_path": "contracts/schemas/control-plane/inject-occurrence-correlation-v1.json",
+  "stability": "draft",
+  "content_hash": "28d43fecb46ce0db8f7b44dde2e5764d08e8adc561b15e94f960669a36dbaba8",
+  "last_change": {
+    "summary": "Publish the ADR-112 inject occurrence correlation joining an applied occurrence, its outcome and produced result for participant-directed consumers (#1366).",
+    "content_hash": "28d43fecb46ce0db8f7b44dde2e5764d08e8adc561b15e94f960669a36dbaba8"
+  }
+}

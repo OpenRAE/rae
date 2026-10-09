@@ -81,8 +81,12 @@ The shared runtime retains authorization, scenario execution and terminal state.
 External inject triggers and occurrences
 ----------------------------------------
 
-Draft ADR-112 carriers for an external inject request and its claimed occurrence.
-They grant no trigger authority and do not execute an inject.
+Draft ADR-112 carriers for an external inject request, its claimed occurrence,
+per-binding readback and participant correlation. They grant no trigger
+authority and do not execute an inject.
 
 .. automodule:: raes_contracts.contracts.inject_occurrence
+   :members:
+
+.. automodule:: raes_contracts.contracts.inject_occurrence_outcome
    :members:

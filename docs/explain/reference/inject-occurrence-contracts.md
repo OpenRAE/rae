@@ -1,15 +1,29 @@
-# Use the inject trigger and occurrence contracts
+# Use the inject trigger, occurrence and readback contracts
 
 [ADR-112](../../decisions/adrs/adr-112-external-inject-triggering-and-execution.md)
 and [EI-01–EI-06](../../../specs/sdl/external-injects.md) define how an
-authorized external request instantiates one authored inject. The draft
-`inject-trigger-request-v1` and `inject-occurrence-v1` contracts carry those
-identities as portable data with pure validators. They add no trigger route,
-store, scheduler or backend call, and the existing runtime does not accept them.
+authorized external request instantiates one authored inject. Four draft
+contracts carry that path as portable data with pure validators:
 
-Import the models and helpers from `raes_contracts.contracts`. The schemas are
-under `contracts/schemas/control-plane/` and the examples under
-`contracts/fixtures/control-plane/inject-*`.
+| Contract | Carries |
+| --- | --- |
+| `inject-trigger-request-v1` | A caller's selection of one inject, its bindings, placement and input. |
+| `inject-occurrence-v1` | The atomic claim of one occurrence under exact admitted pins. |
+| `inject-occurrence-outcome-v1` | Per-binding readback for one claimed occurrence and its settlement. |
+| `inject-occurrence-correlation-v1` | The exact applied occurrence, outcome and produced result that a participant consumer joins. |
+
+They add no trigger route, store, scheduler, operation kind or backend call, and
+the existing runtime does not accept them.
+
+Import the models and helpers from `raes_contracts.contracts`, and
+`require_inject_occurrence_provider` from
+`raes_backend_protocols.operation_supervision`. The schemas are under
+`contracts/schemas/control-plane/`, and the examples are under
+`contracts/fixtures/control-plane/inject-*` and
+`contracts/fixtures/control-plane/backend-operation-request-v1/valid/inject-*`.
+The request names existing compiled `orchestration.inject`,
+`orchestration.inject-binding`, `orchestration.event`, `orchestration.script`
+and `orchestration.story` addresses, so no processor binding changes.
 
 ## Request
 
@@ -82,6 +96,88 @@ chain belongs to the ordering authority (EI-03).
 `inject_trigger_request_digest` and `inject_occurrence_digest` return RFC 8785
 commitments.
 
+## Invocation
+
+An admitted occurrence executes through one invocation of the optional
+[backend operation protocol](backend-operation-supervision.md). The invocation
+is a `backend-operation-request-v1` whose `command` is
+`inject_occurrence_reference(occurrence)`: the `inject-occurrence-v1` contract
+ID, the occurrence ID and the occurrence's RFC 8785 digest.
+`require_inject_occurrence_invocation` requires that:
+
+- the invocation binding keeps the occurrence's operation ID and exact
+  admission context;
+- `requirement_refs` carry every evidence requirement of the occurrence;
+- the attempt and invocation IDs differ from the request key, occurrence,
+  operation and schedule slot;
+- a narrowed `resources` effect scope covers every selected binding.
+
+The check grants no dispatch. The runtime still confirms the claim, current
+authority, preconditions and backend willingness before it starts the work.
+
+## Readback and settlement
+
+`InjectOccurrenceOutcomeModel` carries one backend response and the facts for
+every selected binding, in request order. The `effect` field must aggregate the
+per-binding facts (EI-04):
+
+| Per-binding facts | `effect` |
+| --- | --- |
+| Every binding applied, with cessation established | `effect-applied` |
+| Every binding proven absent, with cessation established | `effect-absent` |
+| A fully known mixture, or a binding with known partial effects | `known-partial` |
+| Any unknown binding, or one whose cessation is not established | `indeterminate` |
+
+An applied or partial binding needs a `readback` reference, and every known
+effect needs evidence. Only a backend `outcome` or a refusal settles an
+occurrence. Acceptance, willingness, progress and control dispositions do not.
+A refusal settles only as `effect-absent`, with no-effect evidence for every
+binding. A backend outcome's own effect must agree with the aggregate, and it
+counts as `indeterminate` until cessation is established. A `succeeded`
+proposal requires `effect-applied`, so no successful no-op settles an inject.
+
+`validate_inject_occurrence_outcome` joins the readback to the exact occurrence
+and invocation, including the response binding and request digest. RAE still
+validates native results and commits the terminal operation, snapshot and audit
+records.
+
+## Participant correlation
+
+`inject_occurrence_correlation` returns an `InjectOccurrenceCorrelationModel`
+only for a validated outcome whose backend proposal is `succeeded` with a
+produced result. It names the occurrence, the outcome digest and the result.
+A participant-directed consumer, such as a DSL-142 delivery or an API-424
+inject effect, joins those exact identities instead of an inject declaration
+or the latest narrative event (EI-05). A refused, failed, partial or
+indeterminate outcome yields no join. A correlation grants no disclosure,
+delivery or observation, so build it only from an outcome that RAE has
+validated and committed.
+
+## Backend declaration
+
+A backend that executes inject occurrences declares `inject-occurrence-v1` and
+`inject-occurrence-outcome-v1` in its manifest, together with the four
+`backend-operation-*-v1` contracts, and installs `BackendOperationProvider`.
+`require_inject_occurrence_provider` checks both declarations and the
+installed call shapes without invoking anything. Inject-binding support and a
+successful plan start are not this declaration (EI-06). The stub and
+reference backends do not declare these contracts.
+
+## Migration and compatibility
+
+| Existing surface | Migration rule |
+| --- | --- |
+| Inject, event, script and story authoring | Unchanged. No SDL field is added; live triggering still needs an admitted realization (EI-01). |
+| Bound or queued orchestration snapshots and plan-start receipts | Keep their original status meaning. They never become an applied effect, delivery or observation. |
+| DSL-142 deliveries and API-424 inject effects | Unchanged. Legacy fixed anchors keep their required fields; a consumer that adopts these contracts joins a correlation explicitly. |
+| Backend manifests and profiles | The allowlist gains the two backend-facing IDs. Existing manifests and profiles stay valid; old closed readers can reject the new IDs. |
+| `operation-receipt-v1`, `operation-status-v1` and stored operations | Unchanged. This publication adds no operation kind, store record or HTTP route. |
+
+No lossless conversion produces these carriers from legacy records. Do not
+fabricate occurrence IDs, order tokens, readback evidence or results. The four
+contracts are draft v1 publications under ADR-009 and ADR-061, and each
+publication entry records its content hash and contract-facing change.
+
 ## Participant-free example
 
 This environment declares no agents, behaviors, scripts or stories, and the
@@ -112,13 +208,25 @@ or controller. `test_issue_1423_inject_occurrence_contracts.py` compiles this
 environment and checks that the fixture names only its compiled identities. It
 also imports the same environment under namespace `mod` and checks that each
 compiled binding serves only its own inject. The `namespaced-binding.json`
-fixture is the refused case.
+fixture is the refused case. The `inject-release` invocation commands that
+occurrence, the outcome fixture reports an applied effect with readback, and
+the correlation fixture joins its result.
+
+The `scheduled-fan-out` occurrence selects two workstation instances of one
+compiled binding. Its `inject-handover` invocation narrows the effect scope to
+that binding address. The `known-partial` and `indeterminate` outcome fixtures
+show a fully known mixture and an unknown binding. On the participant-free
+occurrence, the `refused` fixture shows a refusal with proven absence, and the
+`unceased-effect` fixture shows an applied effect whose cessation is not
+established, which stays indeterminate.
+`test_issue_1366_inject_occurrence_outcomes.py` validates each outcome against
+its occurrence and invocation.
 
 ## Limits
 
 Fixture digests, scopes and evidence references are synthetic. Structural and
-local validation grant no trigger authority and prove no effect.
-Authentication, admission, binding resolution against the pinned plan,
-ordering, claims, dispatch and outcome evidence belong to the runtime and
-backend adoption that the
+local validation grant no trigger authority and prove no effect, delivery or
+observation. Authentication, admission, binding resolution against the pinned
+plan, ordering, claims, dispatch, outcome validation and terminal commits
+belong to the runtime and backend adoption that the
 [compatibility contract](../sdl/external-inject-compatibility.md) describes.
