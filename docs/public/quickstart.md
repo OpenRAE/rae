@@ -1,7 +1,7 @@
 # Validate your first scenario
 
-Install RAES, validate a small SDL file, and print its name. You need Python
-3.11 or newer.
+Install RAES, validate a small SDL file, and print its name. You need
+standard CPython 3.11 through 3.14.
 
 ## Install RAES
 

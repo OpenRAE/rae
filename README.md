@@ -7,21 +7,49 @@
 [![Python](https://img.shields.io/pypi/pyversions/raes.svg)](https://pypi.org/project/raes/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/OpenRAE/rae/blob/main/LICENSE)
 
-RAES, the Reproducible Agentic Environments System, helps you describe and
-check an agentic environment. RAES SDL is its YAML language for authored
-scenarios.
+RAES, the Reproducible Agentic Environments System, helps you describe an
+agentic environment, check it before anything runs, and keep evidence about
+what a run realized. RAES SDL is its YAML language for authored scenarios.
 
-You can use RAES to record nodes, links, participants, objectives, workflows,
-variation, and evidence needs without tying the scenario to one deployment
-backend.
+A RAES scenario records the nodes, links, participants, objectives, workflows,
+variation, and evidence needs of an environment. RAES checks the scenario
+against published rules. A backend that supports the features it needs can
+then run it. The backend's reports show what was realized and observed.
+
+![RAES validates an authored scenario and compiles a plan. An external backend, such as Shifter, LilRAE, your own backend, or a simulator adapter, realizes and runs it. Reports and evidence describe the result.](https://openrae.github.io/rae/_static/raes-ecosystem.svg)
+
+How a scenario reaches a run:
+
+1. Author a scenario in RAES SDL. RAES validates it and compiles a plan.
+2. Choose an external backend that supports what the scenario needs. Shifter
+   and LilRAE (formerly APTL) are examples. You can also write your own
+   backend or use an adapter for a simulator or gym.
+3. The backend builds the environment, and participants act in it.
+4. Reports and evidence describe what was realized and observed.
+
+## What RAES provides
+
+RAES owns the meaning of an authored scenario and the formats around it:
+
+- the RAES SDL language, its specifications, and published schemas;
+- published contracts for the data that tools and backends exchange;
+- validation and processing that check a scenario and compile plans;
+- conformance tests that check whether a backend honors a stated boundary;
+- reference tools: the Python package, the `raes` command, examples, and a
+  reference emulation backend; and
+- evidence structures that record what was requested, realized, and observed.
+
+These parts make scenario intent portable, checkable, and shareable. They also
+tie that intent to evidence about what a backend realized.
+
+Cyber, AI security, AI safety, testing, research, and evaluation are
+non-exhaustive application areas. Additional domains can add their own
+profiles, assets, examples, vocabularies, backends, and evidence rules.
 
 ## Validate your first scenario
 
-You need standard CPython 3.11 through 3.14. Python 3.15 is not admitted until
-its post-final dependency and compatibility qualification is complete. OCI
-module extraction on Python 3.11 additionally requires Python 3.11.4 or newer.
-Earlier patch releases lack the mandatory safe tar extraction filter and fail
-closed instead of extracting without it.
+You need standard CPython 3.11 through 3.14. Install the published package in
+a virtual environment:
 
 ```console
 python -m venv .venv
@@ -82,102 +110,91 @@ infrastructure. Continue with the
 [quickstart](https://openrae.github.io/rae/quickstart.html) to learn what
 each part means.
 
+## Run a scenario on a backend
+
+This repository includes contracts, stubs, a reference emulation backend, and
+conformance tests. It does not include a production deployment backend or a
+managed environment service. External backends realize scenarios outside this
+repository:
+
+- [Shifter](https://github.com/Brad-Edwards/shifter) is a multi-user cyber
+  range platform.
+- [LilRAE](https://github.com/OpenRAE/lilrae), formerly APTL, is a
+  single-user backend for local labs, cyber ranges, and other environments.
+- Your own backend can declare what it supports in a backend manifest and
+  test that claim with the RAES conformance tests. Start with the
+  [backend and conformance guide](https://openrae.github.io/rae/backends.html).
+- [OpenRAE/adapters](https://github.com/OpenRAE/adapters) holds adapter
+  projects for simulators and cyber gyms. It has no published release.
+
+Shifter, LilRAE, and the adapters are separate projects with their own
+documentation. This repository does not ship or certify them. A backend's own
+reports and conformance evidence state what it supports.
+
+## Package and share scenarios
+
+[OpenRAE/env-packs](https://github.com/OpenRAE/env-packs) owns environment
+pack structure, schemas, templates, and the tools to author, validate, and
+release packs. A pack carries RAES SDL scenarios and other reusable assets.
+RAES remains authoritative for the SDL, concept, and reusable-asset
+trust-policy meanings a pack relies on. Catalogs make packs easier to find.
+They do not add SDL semantics.
+
+To build a pack, follow the env-packs
+[quickstart](https://github.com/OpenRAE/env-packs/blob/main/docs/public/quickstart.md).
+It scaffolds a first pack and validates it.
+
 ## Choose your route
 
+- **New to RAES:** Learn the
+  [core concepts](https://openrae.github.io/rae/concepts.html), then complete
+  the
+  [first-scenario tutorial](https://openrae.github.io/rae/tutorials/first-scenario.html).
 - **Scenario authors:** Start with the
-  [SDL guide](https://openrae.github.io/rae/sdl/) and
+  [SDL guide](https://openrae.github.io/rae/sdl/), then
+  [validate, compile, and inspect a scenario plan](https://openrae.github.io/rae/sdl/validate-compile-plan.html).
+  Browse the
   [worked examples](https://github.com/OpenRAE/rae/tree/main/examples/scenarios).
-- **Pack authors:** Use
-  [OpenRAE/env-packs](https://github.com/OpenRAE/env-packs) for environment
-  pack structure, templates, and authoring and validation tools. A pack carries
-  RAES SDL scenarios. RAES remains authoritative for the SDL, concept, and
-  reusable-asset trust-policy meanings a pack relies on.
-- **Python users:** Use the
-  [Python guide](https://openrae.github.io/rae/guides/python.html) and
-  [API reference](https://openrae.github.io/rae/api/).
-- **CLI users:** See the
-  [command-line guide](https://openrae.github.io/rae/guides/cli.html).
-- **Backend implementers:** Read the
-  [backend and conformance guide](https://openrae.github.io/rae/backends.html).
+- **Pack authors:** Follow the env-packs
+  [quickstart](https://github.com/OpenRAE/env-packs/blob/main/docs/public/quickstart.md).
+- **Python and CLI users:** Use the
+  [Python guide](https://openrae.github.io/rae/guides/python.html), the
+  [command-line guide](https://openrae.github.io/rae/guides/cli.html), and the
+  [API reference](https://openrae.github.io/rae/api/). To serve the runtime
+  over HTTP, read
+  [serve the runtime control plane](https://openrae.github.io/rae/guides/control-plane.html).
+- **Participant control:** Use the
+  [participant-control guide](https://openrae.github.io/rae/participant-control.html)
+  to govern participant input and output.
+- **Backend and adapter implementers:** Read the
+  [backend and conformance guide](https://openrae.github.io/rae/backends.html)
+  and see [OpenRAE/adapters](https://github.com/OpenRAE/adapters).
+- **Shifter and LilRAE users:** Install and run each backend from its own
+  documentation: [Shifter](https://github.com/Brad-Edwards/shifter) and
+  [LilRAE](https://openrae.github.io/lilrae/).
 - **Researchers:** Review the
   [research context](https://openrae.github.io/rae/research.html),
   [current limits](https://openrae.github.io/rae/limitations.html), and
   [citation guide](https://openrae.github.io/rae/citation.html).
 - **Contributors:** Follow
-  [CONTRIBUTING.md](https://github.com/OpenRAE/rae/blob/main/CONTRIBUTING.md)
+  [CONTRIBUTING.md](https://github.com/OpenRAE/rae/blob/main/CONTRIBUTING.md),
+  the [governance model](https://github.com/OpenRAE/rae/blob/main/GOVERNANCE.md),
   and the
   [developer documentation index](https://github.com/OpenRAE/rae/blob/main/docs/README.md).
+- **Help:** See [get help](https://openrae.github.io/rae/support.html) for
+  issues and private security reports.
 
-## Understand what RAES promises
+## Know the limits
 
-An authored scenario records intent. A processor and backend may turn supported
-parts of that intent into runtime resources. Reports and evidence show what was
-accepted, changed, observed, or left unsupported.
+An authored scenario records intent. A backend may realize only the parts it
+supports. Reports and evidence show what was accepted, changed, observed, or
+left unsupported.
 
 RAES can support a bounded reproduction attempt. It does not promise
 deterministic runtime behavior, equal outcomes, exact replay, scientific
-validity, or reproducibility.
-
-The repository does not include a production deployment backend or a managed
-environment service. It includes contracts, stubs, examples, conformance
-checks, and reference code. Read the
+validity, or reproducibility. Read the
 [current limits](https://openrae.github.io/rae/limitations.html) before
-choosing it for a study or integration.
-
-## See where RAES fits
-
-Cyber, AI security, AI safety, testing, research, and evaluation are
-non-exhaustive application areas. Additional domains can add their own
-profiles, assets, examples, vocabularies, backends, and evidence rules.
-
-RAES separates these concerns:
-
-- **Authored scenario:** The meaning written in RAES SDL.
-- **Processor:** The code that validates, expands, and compiles that meaning.
-- **Backend:** The implementation that accepts a supported runtime request.
-- **Runtime:** The resources and participant activity that occur during a run.
-- **Evidence:** The records used to state and inspect a bounded result.
-
-The strongest current examples come from cyber ranges and agent evaluation.
-The core model is not limited to those areas.
-
-## Work from a repository checkout
-
-Install the locked development environment:
-
-```console
-git clone https://github.com/OpenRAE/rae.git
-cd rae
-uv sync --project implementations/python --all-extras --frozen
-uv run --project implementations/python raes --help
-```
-
-Run the canonical verification graph:
-
-```console
-uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify
-```
-
-Useful repository roots are:
-
-- `docs/public/` for hosted reader documentation;
-- `docs/README.md` for developer and working records;
-- `specs/` for normative specifications;
-- `contracts/` for published schemas and fixtures;
-- `examples/` for authored scenarios and reusable patterns;
-- `implementations/python/` for the reference implementation.
-
-## Project status
-
-RAES is an academic and engineering project with one maintainer. Contributions
-are welcome. The project does not require a second maintainer or independent
-reviewer for every change.
-
-Release Please owns package versions, GitHub releases, and `CHANGELOG.md`.
-Published schemas carry separate stability labels. See
-[GOVERNANCE.md](https://github.com/OpenRAE/rae/blob/main/GOVERNANCE.md) and
-[MAINTAINERS.md](https://github.com/OpenRAE/rae/blob/main/MAINTAINERS.md) for
-the current decision and maintenance model.
+choosing RAES for a study or integration.
 
 ## Cite RAES
 
@@ -190,6 +207,10 @@ the current decision and maintenance model.
   url     = {https://github.com/OpenRAE/rae}
 }
 ```
+
+Also record the release or commit, scenario, backend, and run evidence that
+you used. The [citation guide](https://openrae.github.io/rae/citation.html)
+lists what to include.
 
 RAES is released under the
 [MIT License](https://github.com/OpenRAE/rae/blob/main/LICENSE). Third-party
