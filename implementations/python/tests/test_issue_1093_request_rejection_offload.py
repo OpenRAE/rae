@@ -165,7 +165,7 @@ def test_request_size_middleware_does_not_retain_empty_transport_messages() -> N
     assert source_messages == []
 
 
-def test_request_size_middleware_accepts_disconnect_before_body() -> None:
+def test_request_size_middleware_abandons_disconnect_before_body() -> None:
     control_plane = RuntimeControlPlane(create_stub_target())
     calls: list[str] = []
 
@@ -183,8 +183,9 @@ def test_request_size_middleware_accepts_disconnect_before_body() -> None:
     scope = _http_scope()
     _run(middleware(scope, receive, send))
 
-    assert calls == ["/accepted"]
-    assert scope["state"]["raw_body"] == b""
+    # The client left before submitting a body, so no route runs (#1091).
+    assert calls == []
+    assert "raw_body" not in scope["state"]
 
 
 def test_request_size_middleware_rejects_stream_that_exceeds_limit_without_header() -> None:
