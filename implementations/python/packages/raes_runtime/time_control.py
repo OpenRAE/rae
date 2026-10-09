@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import TYPE_CHECKING, cast
 
 from raes_backend_protocols.protocols import CoordinatedParticipantTimeRuntime
@@ -96,7 +97,7 @@ class RuntimeTimeControlMixin:
     def _read_time_state_locked(self) -> TimeRuntimeStateModel:
         if self._target.time_runtime is None or self._time_declaration is None:
             raise ValueError("runtime manager has no initialized shared-time model")
-        state = self._target.time_runtime.state(self._snapshot)
+        state = self._target.time_runtime.state(deepcopy(self._snapshot))
         validate_time_runtime_state(self._time_declaration, state)
         if state != self._snapshot.time_model_state:
             raise ValueError("time runtime readback disagrees with the runtime snapshot")
