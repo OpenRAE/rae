@@ -4,7 +4,7 @@ One reusable unit is parsed on its own and then imported twice under distinct
 namespaces next to a scenario-local declaration. Each reference kind is checked
 after composition and compilation. Broken references, ambiguous names, invalid
 declaration versions, and conflicting declarations must fail closed with
-diagnostics that name the declaration and the offending value.
+diagnostics that name the declaration and the offending ref, field or name.
 """
 
 from __future__ import annotations
