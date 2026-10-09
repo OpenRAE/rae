@@ -1,0 +1,333 @@
+{
+  "$defs": {
+    "InjectEventPlacementModel": {
+      "additionalProperties": false,
+      "description": "Event-anchored request; the event's precondition assertions remain binding.",
+      "properties": {
+        "event": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Event",
+          "type": "string"
+        },
+        "kind": {
+          "const": "event",
+          "default": "event",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event"
+      ],
+      "title": "InjectEventPlacementModel",
+      "type": "object"
+    },
+    "InjectIndependentPlacementModel": {
+      "additionalProperties": false,
+      "description": "Direct request through an admitted independent binding; no schedule is invented.",
+      "properties": {
+        "kind": {
+          "const": "independent",
+          "default": "independent",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "title": "InjectIndependentPlacementModel",
+      "type": "object"
+    },
+    "InjectSchedulePlacementModel": {
+      "additionalProperties": false,
+      "description": "One uniquely identified schedule slot, claimable at most once in its run.",
+      "properties": {
+        "event": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Event",
+          "type": "string"
+        },
+        "kind": {
+          "const": "schedule",
+          "default": "schedule",
+          "title": "Kind",
+          "type": "string"
+        },
+        "script": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Script",
+          "type": "string"
+        },
+        "slot": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Slot",
+          "type": "string"
+        },
+        "story": {
+          "anyOf": [
+            {
+              "maxLength": 2048,
+              "minLength": 3,
+              "not": {
+                "pattern": "[^a-z0-9_.-]"
+              },
+              "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Story"
+        }
+      },
+      "required": [
+        "event",
+        "script",
+        "slot"
+      ],
+      "title": "InjectSchedulePlacementModel",
+      "type": "object"
+    },
+    "InjectTargetBindingModel": {
+      "additionalProperties": false,
+      "description": "One selected realization instance of a compiled node binding; entity names never select hosts.",
+      "properties": {
+        "binding": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Binding",
+          "type": "string"
+        },
+        "instance": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Instance",
+          "type": "string"
+        },
+        "node": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Node",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "binding",
+        "node",
+        "instance",
+        "revision"
+      ],
+      "title": "InjectTargetBindingModel",
+      "type": "object"
+    },
+    "OperationArtifactReferenceModel": {
+      "additionalProperties": false,
+      "description": "Content-bound reference resolved through the owning admitted artifact authority.",
+      "properties": {
+        "artifact_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "contract_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*-v[0-9]+$",
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_id",
+        "artifact_id",
+        "digest"
+      ],
+      "title": "OperationArtifactReferenceModel",
+      "type": "object"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/inject-trigger-request-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A caller's selection within admitted intent; acceptance is not an effect.",
+  "properties": {
+    "bindings": {
+      "items": {
+        "$ref": "#/$defs/InjectTargetBindingModel"
+      },
+      "maxItems": 256,
+      "minItems": 1,
+      "title": "Bindings",
+      "type": "array"
+    },
+    "expected_head": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Expected Head",
+      "type": "string"
+    },
+    "inject": {
+      "maxLength": 2048,
+      "minLength": 3,
+      "not": {
+        "pattern": "[^a-z0-9_.-]"
+      },
+      "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+      "title": "Inject",
+      "type": "string"
+    },
+    "input_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/OperationArtifactReferenceModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "occurrence_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Occurrence Id",
+      "type": "string"
+    },
+    "placement": {
+      "discriminator": {
+        "mapping": {
+          "event": "#/$defs/InjectEventPlacementModel",
+          "independent": "#/$defs/InjectIndependentPlacementModel",
+          "schedule": "#/$defs/InjectSchedulePlacementModel"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/InjectIndependentPlacementModel"
+        },
+        {
+          "$ref": "#/$defs/InjectEventPlacementModel"
+        },
+        {
+          "$ref": "#/$defs/InjectSchedulePlacementModel"
+        }
+      ],
+      "title": "Placement"
+    },
+    "plan": {
+      "$ref": "#/$defs/OperationArtifactReferenceModel"
+    },
+    "request_key": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Request Key",
+      "type": "string"
+    },
+    "run_scope": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Run Scope",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "inject-trigger-request/v1",
+      "default": "inject-trigger-request/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "target_scope": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Target Scope",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_key",
+    "occurrence_id",
+    "target_scope",
+    "run_scope",
+    "plan",
+    "inject",
+    "bindings",
+    "placement",
+    "expected_head"
+  ],
+  "title": "InjectTriggerRequestModel",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "Validate compiled inject, node, event, script and story address families, the pinned orchestration plan, binding addresses rendered exactly from their node and the requested inject, and unique binding/instance pairs; structural validity grants no trigger authority and does not resolve bindings against the plan.",
+      "id": "inject-trigger-request-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "inject-trigger-request-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.InjectTriggerRequestModel.model_validate"
+    },
+    {
+      "description": "Only the original actor, key and request commitment retrieve the original claim; changed content conflicts and no retry admits, rebases or dispatches again.",
+      "id": "inject-trigger-exact-retry",
+      "inputs": [
+        {
+          "contract_id": "inject-occurrence-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "inject-trigger-request-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.require_inject_trigger_retry"
+    }
+  ],
+  "x-raes-semantic-profile": {
+    "contract_id": "inject-trigger-request-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
+}

@@ -77,3 +77,12 @@ The shared runtime retains authorization, scenario execution and terminal state.
 
 .. automodule:: raes_backend_protocols.operation_supervision
    :members:
+
+External inject triggers and occurrences
+----------------------------------------
+
+Draft ADR-112 carriers for an external inject request and its claimed occurrence.
+They grant no trigger authority and do not execute an inject.
+
+.. automodule:: raes_contracts.contracts.inject_occurrence
+   :members:

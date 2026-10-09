@@ -1,0 +1,518 @@
+{
+  "$defs": {
+    "InjectEventPlacementModel": {
+      "additionalProperties": false,
+      "description": "Event-anchored request; the event's precondition assertions remain binding.",
+      "properties": {
+        "event": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Event",
+          "type": "string"
+        },
+        "kind": {
+          "const": "event",
+          "default": "event",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event"
+      ],
+      "title": "InjectEventPlacementModel",
+      "type": "object"
+    },
+    "InjectIndependentPlacementModel": {
+      "additionalProperties": false,
+      "description": "Direct request through an admitted independent binding; no schedule is invented.",
+      "properties": {
+        "kind": {
+          "const": "independent",
+          "default": "independent",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "title": "InjectIndependentPlacementModel",
+      "type": "object"
+    },
+    "InjectOrderModel": {
+      "additionalProperties": false,
+      "description": "Trusted ordering-authority token; neither arrival order nor a clock tick.",
+      "properties": {
+        "position": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "title": "Position",
+          "type": "integer"
+        },
+        "predecessor": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Predecessor",
+          "type": "string"
+        },
+        "scope": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scope",
+        "predecessor",
+        "position"
+      ],
+      "title": "InjectOrderModel",
+      "type": "object"
+    },
+    "InjectSchedulePlacementModel": {
+      "additionalProperties": false,
+      "description": "One uniquely identified schedule slot, claimable at most once in its run.",
+      "properties": {
+        "event": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Event",
+          "type": "string"
+        },
+        "kind": {
+          "const": "schedule",
+          "default": "schedule",
+          "title": "Kind",
+          "type": "string"
+        },
+        "script": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Script",
+          "type": "string"
+        },
+        "slot": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Slot",
+          "type": "string"
+        },
+        "story": {
+          "anyOf": [
+            {
+              "maxLength": 2048,
+              "minLength": 3,
+              "not": {
+                "pattern": "[^a-z0-9_.-]"
+              },
+              "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Story"
+        }
+      },
+      "required": [
+        "event",
+        "script",
+        "slot"
+      ],
+      "title": "InjectSchedulePlacementModel",
+      "type": "object"
+    },
+    "InjectTargetBindingModel": {
+      "additionalProperties": false,
+      "description": "One selected realization instance of a compiled node binding; entity names never select hosts.",
+      "properties": {
+        "binding": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Binding",
+          "type": "string"
+        },
+        "instance": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Instance",
+          "type": "string"
+        },
+        "node": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Node",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "binding",
+        "node",
+        "instance",
+        "revision"
+      ],
+      "title": "InjectTargetBindingModel",
+      "type": "object"
+    },
+    "InjectTriggerRequestModel": {
+      "additionalProperties": false,
+      "description": "A caller's selection within admitted intent; acceptance is not an effect.",
+      "properties": {
+        "bindings": {
+          "items": {
+            "$ref": "#/$defs/InjectTargetBindingModel"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Bindings",
+          "type": "array"
+        },
+        "expected_head": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Expected Head",
+          "type": "string"
+        },
+        "inject": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Inject",
+          "type": "string"
+        },
+        "input_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OperationArtifactReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Occurrence Id",
+          "type": "string"
+        },
+        "placement": {
+          "discriminator": {
+            "mapping": {
+              "event": "#/$defs/InjectEventPlacementModel",
+              "independent": "#/$defs/InjectIndependentPlacementModel",
+              "schedule": "#/$defs/InjectSchedulePlacementModel"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/InjectIndependentPlacementModel"
+            },
+            {
+              "$ref": "#/$defs/InjectEventPlacementModel"
+            },
+            {
+              "$ref": "#/$defs/InjectSchedulePlacementModel"
+            }
+          ],
+          "title": "Placement"
+        },
+        "plan": {
+          "$ref": "#/$defs/OperationArtifactReferenceModel"
+        },
+        "request_key": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Request Key",
+          "type": "string"
+        },
+        "run_scope": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Run Scope",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "inject-trigger-request/v1",
+          "default": "inject-trigger-request/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "target_scope": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Target Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_key",
+        "occurrence_id",
+        "target_scope",
+        "run_scope",
+        "plan",
+        "inject",
+        "bindings",
+        "placement",
+        "expected_head"
+      ],
+      "title": "InjectTriggerRequestModel",
+      "type": "object"
+    },
+    "OperationAdmissionContext": {
+      "additionalProperties": false,
+      "description": "Immutable, value-free authority and request context fixed at admission.",
+      "properties": {
+        "actor_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "authorization_scope": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Authorization Scope",
+          "type": "array"
+        },
+        "operation_kind": {
+          "$ref": "#/$defs/OperationKind"
+        },
+        "parent_operation_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Operation Id"
+        },
+        "request_commitment": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Request Commitment",
+          "type": "string"
+        },
+        "run_scope": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Run Scope",
+          "type": "string"
+        },
+        "target_scope": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Target Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "actor_id",
+        "authorization_scope",
+        "target_scope",
+        "run_scope",
+        "operation_kind",
+        "request_commitment"
+      ],
+      "title": "OperationAdmissionContext",
+      "type": "object"
+    },
+    "OperationArtifactReferenceModel": {
+      "additionalProperties": false,
+      "description": "Content-bound reference resolved through the owning admitted artifact authority.",
+      "properties": {
+        "artifact_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "contract_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*-v[0-9]+$",
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_id",
+        "artifact_id",
+        "digest"
+      ],
+      "title": "OperationArtifactReferenceModel",
+      "type": "object"
+    },
+    "OperationKind": {
+      "description": "Closed kinds of work admitted by the runtime control plane.",
+      "enum": [
+        "provisioning",
+        "orchestration",
+        "evaluation",
+        "workflow-cancellation",
+        "workflow-timeout-reconciliation",
+        "participant-action",
+        "participant-control",
+        "participant-crossing",
+        "composition-phase",
+        "indeterminate-resolution"
+      ],
+      "title": "OperationKind",
+      "type": "string"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/inject-occurrence-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Atomic claim of one occurrence under exact admitted pins; not dispatch or outcome.",
+  "properties": {
+    "admission": {
+      "$ref": "#/$defs/OperationAdmissionContext"
+    },
+    "admission_evidence": {
+      "items": {
+        "$ref": "#/$defs/OperationArtifactReferenceModel"
+      },
+      "maxItems": 64,
+      "minItems": 1,
+      "title": "Admission Evidence",
+      "type": "array"
+    },
+    "evidence_requirements": {
+      "items": {
+        "$ref": "#/$defs/OperationArtifactReferenceModel"
+      },
+      "maxItems": 64,
+      "minItems": 1,
+      "title": "Evidence Requirements",
+      "type": "array"
+    },
+    "operation_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Operation Id",
+      "type": "string"
+    },
+    "order": {
+      "$ref": "#/$defs/InjectOrderModel"
+    },
+    "realization": {
+      "$ref": "#/$defs/OperationArtifactReferenceModel"
+    },
+    "request": {
+      "$ref": "#/$defs/InjectTriggerRequestModel"
+    },
+    "scenario": {
+      "$ref": "#/$defs/OperationArtifactReferenceModel"
+    },
+    "schema_version": {
+      "const": "inject-occurrence/v1",
+      "default": "inject-occurrence/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source": {
+      "$ref": "#/$defs/OperationArtifactReferenceModel"
+    },
+    "store_revision": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Store Revision",
+      "type": "string"
+    }
+  },
+  "required": [
+    "operation_id",
+    "request",
+    "admission",
+    "admission_evidence",
+    "store_revision",
+    "order",
+    "scenario",
+    "source",
+    "realization",
+    "evidence_requirements"
+  ],
+  "title": "InjectOccurrenceModel",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "Validate the embedded request, an orchestration admission context for its target and run, an order token whose scope is that run and whose predecessor is the requested head, and distinct request key, occurrence, operation and slot identities; structural validity grants no trigger authority.",
+      "id": "inject-occurrence-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "inject-occurrence-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.InjectOccurrenceModel.model_validate"
+    },
+    {
+      "description": "Retry keys, occurrences, operations, schedule slots, order positions and order predecessors are each claimed at most once in one target/run store, so no two claims follow the same head; head tokens are opaque, so the head chain itself is not checked.",
+      "id": "inject-occurrence-unique-claims",
+      "inputs": [
+        {
+          "contract_id": "inject-occurrence-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.validate_inject_occurrence_claims"
+    }
+  ],
+  "x-raes-semantic-profile": {
+    "contract_id": "inject-occurrence-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
+}
