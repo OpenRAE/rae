@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 69.0.0 and rejects duplicate or unsupported
+Current validation requires release 70.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -531,4 +531,10 @@ Retained outcomes and bounded claim limits are unchanged.
 Release 69.0.0 replays the retained matrix against the issue #1418 runtime-fact export manifest split in
 [`execution-snapshot-v69.json`](execution-snapshot-v69.json) and
 [`analysis-v69.json`](analysis-v69.json). Classifications and claim limits
+remain unchanged.
+
+Release 70.0.0 replays the retained matrix against the issue #1423 inject
+trigger request and occurrence contracts in
+[`execution-snapshot-v70.json`](execution-snapshot-v70.json) and
+[`analysis-v70.json`](analysis-v70.json). Classifications and claim limits
 remain unchanged.
