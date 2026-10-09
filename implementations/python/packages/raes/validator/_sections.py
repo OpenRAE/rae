@@ -6,7 +6,6 @@ Part of the SemanticValidator mixin composition; see __init__.py.
 from pydantic import BaseModel
 
 from .._base import VARIABLE_TOKEN_RE
-from .._reference_targetability import ReferencePurpose
 from .._stateful_resource_references import stateful_resource_reference_errors
 from ..entities import flatten_entities
 from ..explicitness import classify_scenario_explicitness
@@ -141,10 +140,6 @@ class _SectionsMixin:
     def _all_named_elements(self) -> set[str]:
         """Collect all named element keys across all scenario sections."""
         return set(self._named_ref_index().keys())
-
-    def _all_targetable_elements(self) -> set[str]:
-        """Collect named elements that can serve as objective targets."""
-        return set(self._named_ref_index(ReferencePurpose.TARGETABLE).keys())
 
     def _verify_features(self) -> None:
         self._verify_feature_dependency_cycles()

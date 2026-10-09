@@ -78,13 +78,14 @@ class DeclarationIndex:
         shared with another declaration in that domain stays ambiguous.
         """
 
+        return {alias: candidates for alias in self._aliases if (candidates := self.resolve_for(alias, purpose))}
+
+    def resolve_for(self, reference: str, purpose: ReferencePurpose) -> set[str]:
+        """Return *reference*'s resolution-domain candidates, or none when none is eligible for *purpose*."""
+
         domain = resolution_domain(purpose)
-        result: dict[str, set[str]] = {}
-        for alias, addresses in self._aliases.items():
-            candidates = self._eligible(addresses, domain)
-            if candidates and (domain is purpose or self._eligible(candidates, purpose)):
-                result[alias] = candidates
-        return result
+        candidates = self._eligible(self._aliases.get(reference, set()), domain)
+        return candidates if domain is purpose or self._eligible(candidates, purpose) else set()
 
     def _eligible(self, addresses: set[str], purpose: ReferencePurpose) -> set[str]:
         return {

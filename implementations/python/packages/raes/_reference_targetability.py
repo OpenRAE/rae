@@ -134,14 +134,15 @@ DECLARATION_CATEGORIES: Mapping[str, DeclarationCategory] = _classify(
 # Indexed only to detect canonical-address collisions; no reference field names them.
 UNREFERENCEABLE_KINDS = frozenset({"scenario", "node-role", "workflow-step", "outcome_interpretation_rules"})
 
-_EVERY_CATEGORY = frozenset(DeclarationCategory)
-_EXCEPT_SUPPORT = _EVERY_CATEGORY - {_C.SUPPORT}
 _WORLD = frozenset({_C.PARTICIPANT, _C.ORGANIZATION, _C.RESOURCE, _C.RELATIONSHIP})
+# Everything a general target may name. Listed, not derived, so a new category
+# is admitted by no purpose until one names it.
+_TARGETS = _WORLD | {_C.PROPOSITION, _C.PROBE, _C.NARRATIVE, _C.BEHAVIOR, _C.VARIATION}
 
 # One explicit decision per purpose; a purpose admits only the categories listed here.
 _PURPOSE_CATEGORIES: Mapping[ReferencePurpose, frozenset[DeclarationCategory]] = {
-    _P.DECLARED: _EVERY_CATEGORY,
-    _P.TARGETABLE: _EXCEPT_SUPPORT,
+    _P.DECLARED: _TARGETS | {_C.SUPPORT},
+    _P.TARGETABLE: _TARGETS,
     # What an objective concerns: world declarations and truth claims about them.
     _P.OBJECTIVE_SUBJECT: _WORLD | {_C.PROPOSITION},
     # What an action or effect acts on: a world declaration, never a truth claim.
@@ -149,10 +150,10 @@ _PURPOSE_CATEGORIES: Mapping[ReferencePurpose, frozenset[DeclarationCategory]] =
     # State that interacting actions read or write.
     _P.SHARED_STATE: frozenset({_C.RESOURCE, _C.RELATIONSHIP}),
     # Subtypes narrow generic endpoints; see relationship_endpoint_purpose().
-    _P.RELATIONSHIP_ENDPOINT: _EXCEPT_SUPPORT,
+    _P.RELATIONSHIP_ENDPOINT: _TARGETS,
     _P.PARTICIPANT_ENDPOINT: frozenset({_C.PARTICIPANT}),
-    _P.OBSERVATION_SUBJECT: _EXCEPT_SUPPORT,
-    _P.AUTHORITY_ANCHOR: _EVERY_CATEGORY,
+    _P.OBSERVATION_SUBJECT: _TARGETS,
+    _P.AUTHORITY_ANCHOR: _TARGETS | {_C.SUPPORT},
     # What a declared authority covers: world declarations and the behavior surfaces it
     # governs (ACT-607 scopes name action contracts and observation boundaries).
     _P.AUTHORITY_SCOPE: _WORLD | {_C.BEHAVIOR},
@@ -187,6 +188,18 @@ PURPOSE_LABELS: Mapping[ReferencePurpose, str] = {
 # then require a narrower purpose of the uniquely resolved declaration.
 _RELATIONSHIP_SUBTYPE_PURPOSES: Mapping[str, ReferencePurpose] = {"participant": _P.PARTICIPANT_ENDPOINT}
 
+# A narrowed purpose resolves bare names in the wider domain it narrows, then
+# requires the single match to be eligible. Narrowing therefore only refuses
+# references: a bare name that the wider domain finds ambiguous stays ambiguous
+# instead of selecting the eligible declaration.
+_RESOLUTION_DOMAINS: Mapping[ReferencePurpose, ReferencePurpose] = {
+    _P.OBJECTIVE_SUBJECT: _P.TARGETABLE,
+    _P.ACTION_TARGET: _P.TARGETABLE,
+    _P.SHARED_STATE: _P.TARGETABLE,
+    _P.AUTHORITY_SCOPE: _P.TARGETABLE,
+    _P.PARTICIPANT_ENDPOINT: _P.RELATIONSHIP_ENDPOINT,
+}
+
 # Top-level sections whose declaration kind differs from the section name.
 _SECTION_KINDS: Mapping[str, str] = {
     "nodes": "node",
@@ -216,11 +229,13 @@ def resolution_domain(purpose: ReferencePurpose) -> ReferencePurpose:
     """Return the purpose whose eligible declarations decide bare-name ambiguity.
 
     A participant endpoint resolves among all relationship-endpoint candidates,
-    so a bare name that also names an organization or resource stays ambiguous
-    instead of silently selecting the agent.
+    and objective subjects, action targets, shared state, and authority scopes
+    resolve among targetable declarations, so a bare name that also names an
+    ineligible declaration stays ambiguous instead of silently selecting the
+    eligible one.
     """
 
-    return _P.RELATIONSHIP_ENDPOINT if purpose is _P.PARTICIPANT_ENDPOINT else purpose
+    return _RESOLUTION_DOMAINS.get(purpose, purpose)
 
 
 def section_declaration_kind(section: str) -> str:

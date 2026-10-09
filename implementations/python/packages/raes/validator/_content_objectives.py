@@ -25,6 +25,7 @@ from ..semantics.participant_outcome import (
     analyze_participant_outcome_interpretations,
 )
 from ..semantics.participant_temporal_bindings import participant_temporal_binding_errors
+from ._core import eligible_element
 from ._participant_execution_renderers import AUTONOMOUS_PARTICIPANT_ISSUE_RENDERERS
 from ._participant_outcome_renderers import PARTICIPANT_OUTCOME_ISSUE_RENDERERS
 from ._participant_resource_budget_owners import participant_resource_budget_owner_errors
@@ -45,7 +46,10 @@ _OBJECTIVE_ISSUE_RENDERERS = {
         lambda i: f"Objective '{i.objective_name}' action '{i.ref}' must reference a declared action_contract"
     ),
     "objective.target-unresolvable": (
-        lambda i: f"Objective '{i.objective_name}' target '{i.ref}' does not reference any defined targetable element"
+        lambda i: (
+            f"Objective '{i.objective_name}' target '{i.ref}' does not reference any defined "
+            f"{eligible_element(ReferencePurpose.OBJECTIVE_SUBJECT)}"
+        )
     ),
     "objective.target-ambiguous": (
         lambda i: f"Objective '{i.objective_name}' target '{i.ref}' is ambiguous; use one of: {', '.join(i.candidates)}"
@@ -463,7 +467,7 @@ class _ContentObjectivesMixin:
         for issue in analysis.issues:
             message = self._format_objective_issue(issue)
             if issue.code == "objective.target-unresolvable":
-                message += self._ineligible_detail(issue.ref, ReferencePurpose.OBJECTIVE_SUBJECT)
+                message += self._ineligible_detail(issue.ref)
             self._err(message)
 
     @staticmethod
