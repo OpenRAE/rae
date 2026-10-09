@@ -1,8 +1,8 @@
 {
   "schema_version": "backend-operation-request/v1",
   "binding": {
-    "operation_id": "operation:mixed-edge-partial",
-    "invocation_id": "invocation:mixed-edge-partial",
+    "operation_id": "operation:mixed-edge-time-refused",
+    "invocation_id": "invocation:mixed-edge-time-refused",
     "attempt_id": "attempt:1",
     "worker_id": "worker:effects-1",
     "deployment_id": "deployment:reference",
@@ -38,7 +38,7 @@
     "cessation-evidence"
   ],
   "budget": {
-    "origin_id": "budget:mixed-edge-partial",
+    "origin_id": "budget:mixed-edge-time-refused",
     "started_at": "2026-10-09T00:00:00Z",
     "limit_ms": 30000,
     "remaining_ms": 30000

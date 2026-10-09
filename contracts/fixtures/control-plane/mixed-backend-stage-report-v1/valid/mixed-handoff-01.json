@@ -31,6 +31,11 @@
   "sequence": 1,
   "stage": {
     "stage": "time-grant",
+    "producer": {
+      "service_ref": "coordinator:reference-time",
+      "version": "1",
+      "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
     "mapping_ref": "time.mappings.sim-to-emu",
     "ordering_basis": "control_plane_order",
     "order_ref": "order:handoff:mixed-handoff",

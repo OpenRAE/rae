@@ -82,7 +82,7 @@
     },
     "MixedBackendDeliveryStageModel": {
       "additionalProperties": false,
-      "description": "Destination receipt read back independently of the bridge result.",
+      "description": "Destination receipt read back by the pinned delivery reader, not the bridge.",
       "properties": {
         "destination_component_id": {
           "maxLength": 256,
@@ -101,6 +101,9 @@
           "title": "Evidence Refs",
           "type": "array"
         },
+        "producer": {
+          "$ref": "#/$defs/MixedBackendServiceModel"
+        },
         "receipt_ref": {
           "maxLength": 256,
           "minLength": 1,
@@ -115,6 +118,7 @@
       },
       "required": [
         "stage",
+        "producer",
         "destination_component_id",
         "receipt_ref",
         "evidence_refs"
@@ -126,9 +130,6 @@
       "additionalProperties": false,
       "description": "Bridge execution readback; it establishes no delivery or participant observation.",
       "properties": {
-        "bridge": {
-          "$ref": "#/$defs/MixedBackendServiceModel"
-        },
         "cessation_evidence_refs": {
           "default": [],
           "items": {
@@ -172,6 +173,9 @@
           "title": "Mapping Loss Refs",
           "type": "array"
         },
+        "producer": {
+          "$ref": "#/$defs/MixedBackendServiceModel"
+        },
         "source_action_address": {
           "maxLength": 2048,
           "minLength": 3,
@@ -200,7 +204,7 @@
       },
       "required": [
         "stage",
-        "bridge",
+        "producer",
         "source_action_address",
         "destination_action_address",
         "status"
@@ -241,6 +245,9 @@
           "title": "Predecessor History Head",
           "type": "string"
         },
+        "producer": {
+          "$ref": "#/$defs/MixedBackendServiceModel"
+        },
         "stage": {
           "const": "handoff",
           "title": "Stage",
@@ -260,6 +267,7 @@
       },
       "required": [
         "stage",
+        "producer",
         "status",
         "predecessor_history_head",
         "phase_revision",
@@ -305,6 +313,9 @@
           "title": "Participant Address",
           "type": "string"
         },
+        "producer": {
+          "$ref": "#/$defs/MixedBackendServiceModel"
+        },
         "stage": {
           "const": "observation",
           "title": "Stage",
@@ -313,6 +324,7 @@
       },
       "required": [
         "stage",
+        "producer",
         "participant_address",
         "audience_scope_ref",
         "observation_ref",
@@ -323,7 +335,7 @@
     },
     "MixedBackendOwnerReadbackStageModel": {
       "additionalProperties": false,
-      "description": "Native responsibility owner read back after a transfer attempt.",
+      "description": "Native responsibility owner read back by the pinned owner reader after a transfer attempt.",
       "properties": {
         "evidence_refs": {
           "items": {
@@ -354,6 +366,9 @@
           "title": "Phase Revision",
           "type": "integer"
         },
+        "producer": {
+          "$ref": "#/$defs/MixedBackendServiceModel"
+        },
         "stage": {
           "const": "owner-readback",
           "title": "Stage",
@@ -362,6 +377,7 @@
       },
       "required": [
         "stage",
+        "producer",
         "owner_component_id",
         "owner_ref",
         "phase_revision",
@@ -402,7 +418,7 @@
     },
     "MixedBackendTimeGrantStageModel": {
       "additionalProperties": false,
-      "description": "Coordinator grant over the bound clocks; incomparable grants permit no invocation.",
+      "description": "Coordinator grant at the committed clock coordinates; incomparable grants permit no invocation.",
       "properties": {
         "comparison": {
           "enum": [
@@ -456,6 +472,9 @@
           "title": "Ordering Basis",
           "type": "string"
         },
+        "producer": {
+          "$ref": "#/$defs/MixedBackendServiceModel"
+        },
         "source_coordinate": {
           "$ref": "#/$defs/TimeCoordinateModel"
         },
@@ -478,6 +497,7 @@
       },
       "required": [
         "stage",
+        "producer",
         "mapping_ref",
         "ordering_basis",
         "order_ref",
@@ -757,7 +777,7 @@
       "validator": "raes_contracts.contracts.MixedBackendStageReportModel.model_validate"
     },
     {
-      "description": "Require exact invocation binding and commitment, prerequisite stage order, an ordered grant and accepted start before invocation stages, success or failure outcomes that match the stages, and shared evidence that cites only supplied stage reports.",
+      "description": "Require exact invocation binding and commitment, prerequisite stage order, the pinned producer for each stage, grant coordinates equal to the committed time readback, a handoff fenced on the committed composition head and phase revision, an ordered grant and accepted start before invocation stages, success or failure outcomes equal to the state the stages and trusted readbacks establish, and shared evidence that cites only supplied stage reports.",
       "id": "mixed-backend-stage-transcript",
       "inputs": [
         {
@@ -779,6 +799,14 @@
         {
           "contract_id": "time-model-v1",
           "instance_path": "#"
+        },
+        {
+          "contract_id": "time-runtime-state-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "runtime-snapshot-v1",
+          "instance_path": "#/mixed_composition_states"
         }
       ],
       "level": "error",

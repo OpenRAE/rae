@@ -27,10 +27,15 @@
       "independence": null
     }
   },
-  "request_digest": "sha256:9788fd0932ced041639ec6aee18637322a4154b7b94d85325d2d6c25d18c13ff",
+  "request_digest": "sha256:28a8db987813e00f25f47eed676dd744831bcb92bb5d262f7bd97e05bd0ad1bd",
   "sequence": 3,
   "stage": {
     "stage": "delivery",
+    "producer": {
+      "service_ref": "reader:destination-receipt",
+      "version": "1",
+      "digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+    },
     "destination_component_id": "emu",
     "receipt_ref": "receipt:mixed-edge",
     "evidence_refs": [

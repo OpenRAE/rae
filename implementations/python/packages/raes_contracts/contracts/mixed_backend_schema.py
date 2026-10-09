@@ -34,7 +34,8 @@ def mixed_backend_schema_bundle() -> dict[str, dict[str, Any]]:
         schemas[_BINDING],
         "mixed-backend-binding-profile-join",
         "Require exactly one matching binding per active edge and one-to-one component-changing transition of the "
-        "admitted sealed profile, with governed order, preserved compiled subjects and declared loss.",
+        "admitted sealed profile, with governed order, preserved compiled subjects, declared loss and the edge's "
+        "admitted temporal coupling.",
         validator="raes_contracts.contracts.validate_mixed_backend_bindings",
         inputs=_inputs("mixed-participant-composition-profile-v1", _BINDING),
     )
@@ -54,16 +55,22 @@ def mixed_backend_schema_bundle() -> dict[str, dict[str, Any]]:
     _add_raes_invariant(
         schemas[_STAGE_REPORT],
         "mixed-backend-stage-transcript",
-        "Require exact invocation binding and commitment, prerequisite stage order, an ordered grant and accepted "
-        "start before invocation stages, success or failure outcomes that match the stages, and shared evidence "
-        "that cites only supplied stage reports.",
+        "Require exact invocation binding and commitment, prerequisite stage order, the pinned producer for each "
+        "stage, grant coordinates equal to the committed time readback, a handoff fenced on the committed "
+        "composition head and phase revision, an ordered grant and accepted start before invocation stages, "
+        "success or failure outcomes equal to the state the stages and trusted readbacks establish, and shared "
+        "evidence that cites only supplied stage reports.",
         validator="raes_contracts.contracts.validate_mixed_backend_stage_reports",
-        inputs=_inputs(
-            _BINDING,
-            "backend-operation-request-v1",
-            "backend-operation-response-v1",
-            _STAGE_REPORT,
-            "time-model-v1",
-        ),
+        inputs=[
+            *_inputs(
+                _BINDING,
+                "backend-operation-request-v1",
+                "backend-operation-response-v1",
+                _STAGE_REPORT,
+                "time-model-v1",
+                "time-runtime-state-v1",
+            ),
+            {"contract_id": "runtime-snapshot-v1", "instance_path": "#/mixed_composition_states"},
+        ],
     )
     return schemas

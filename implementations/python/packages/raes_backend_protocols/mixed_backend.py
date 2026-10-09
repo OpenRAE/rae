@@ -34,8 +34,9 @@ class MixedBackendBridge(BackendOperationProvider, Protocol):
     The shared operation methods admit, start, observe, cancel and reconcile one
     invocation whose request commits to :meth:`execution_binding`. Starting
     invokes the destination provider at most once, and a duplicate identity
-    starts nothing. Stage reports are evidence proposals: RAE validates them and
-    alone commits the operation, composition history and terminal state.
+    starts nothing. Stage reports are evidence proposals: a reader must validate
+    them, and only RAE may commit the operation, composition history and
+    terminal state.
     """
 
     def execution_binding(self) -> MixedBackendExecutionBindingModel:
@@ -55,7 +56,7 @@ class MixedTimeCoordinator(Protocol):
         request: BackendOperationRequestModel,
         time_state: TimeRuntimeStateModel,
     ) -> MixedBackendStageReportModel:
-        """Return one time-grant report for the committed time readback; it advances no clock."""
+        """Return one time-grant report at the coordinates of ``time_state``; it advances no clock."""
         ...
 
 
@@ -63,7 +64,7 @@ class MixedStageReader(Protocol):
     """Read back destination delivery, participant observation or native owner state."""
 
     def read_stage(self, control: BackendOperationControlModel) -> MixedBackendStageReportModel:
-        """Return one independently observed stage report; the read has no effects of its own."""
+        """Return one stage report that names this reader as its producer; the read has no effects."""
         ...
 
 

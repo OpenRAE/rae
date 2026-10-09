@@ -7,6 +7,7 @@ from ..versions import (
 )
 from .mixed_backend_binding import (
     MixedBackendEdgeBindingModel,
+    MixedBackendEdgeTimeRequirementModel,
     MixedBackendExecutionBindingModel,
     MixedBackendHandoffBindingModel,
     MixedBackendServiceModel,
@@ -22,7 +23,7 @@ from .mixed_backend_stages import (
     MixedBackendStageReportModel,
     MixedBackendTimeGrantStageModel,
 )
-from .mixed_backend_transcript import validate_mixed_backend_stage_reports
+from .mixed_backend_transcript import MixedBackendStageContext, validate_mixed_backend_stage_reports
 from .mixed_backend_validation import (
     require_mixed_backend_admission,
     require_mixed_backend_request,
@@ -35,6 +36,7 @@ __all__ = [
     "MIXED_BACKEND_STAGE_REPORT_SCHEMA_VERSION",
     "MixedBackendDeliveryStageModel",
     "MixedBackendEdgeBindingModel",
+    "MixedBackendEdgeTimeRequirementModel",
     "MixedBackendExecutionBindingModel",
     "MixedBackendExecutionStageModel",
     "MixedBackendHandoffBindingModel",
@@ -42,6 +44,7 @@ __all__ = [
     "MixedBackendObservationStageModel",
     "MixedBackendOwnerReadbackStageModel",
     "MixedBackendServiceModel",
+    "MixedBackendStageContext",
     "MixedBackendStageReportModel",
     "MixedBackendTimeGrantStageModel",
     "MixedBackendTimeRequirementModel",

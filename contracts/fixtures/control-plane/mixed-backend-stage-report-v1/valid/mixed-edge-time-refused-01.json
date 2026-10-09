@@ -1,14 +1,14 @@
 {
   "schema_version": "mixed-backend-stage-report/v1",
   "binding": {
-    "operation_id": "operation:mixed-handoff-stale",
-    "invocation_id": "invocation:mixed-handoff-stale",
+    "operation_id": "operation:mixed-edge-time-refused",
+    "invocation_id": "invocation:mixed-edge-time-refused",
     "attempt_id": "attempt:1",
     "worker_id": "worker:effects-1",
     "deployment_id": "deployment:reference",
     "owner_generation": 1,
     "execution_generation": 1,
-    "backend_id": "transfer:native-ownership",
+    "backend_id": "route:portable",
     "baseline_revision": "revision:7",
     "context": {
       "actor_id": "operator:mixed",
@@ -17,7 +17,7 @@
       ],
       "target_scope": "target:mixed",
       "run_scope": "run:mixed",
-      "operation_kind": "composition-phase",
+      "operation_kind": "participant-crossing",
       "request_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "parent_operation_id": null
     },
@@ -27,7 +27,7 @@
       "independence": null
     }
   },
-  "request_digest": "sha256:07730d4dac0ef09031fce515a014fd45252ee137a1c82c0718e17d667e1fca32",
+  "request_digest": "sha256:4c682409ce65cf3b1581458b9f18e43a84cadebc4b82753f9c986a70ff10a476",
   "sequence": 1,
   "stage": {
     "stage": "time-grant",
@@ -37,25 +37,25 @@
       "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
     },
     "mapping_ref": "time.mappings.sim-to-emu",
-    "ordering_basis": "control_plane_order",
-    "order_ref": "order:handoff:mixed-handoff-stale",
-    "comparison": "ordered",
+    "ordering_basis": "partial_order",
+    "order_ref": "order:bridge:mixed-edge-time-refused",
+    "comparison": "incomparable",
     "source_coordinate": {
       "segment": 0,
       "tick": 4,
       "microstep": 0
     },
     "destination_coordinate": {
-      "segment": 0,
-      "tick": 4,
-      "microstep": 1
+      "segment": 1,
+      "tick": 2,
+      "microstep": 0
     },
     "mapping_evidence_refs": [
       "evidence:mapping-call"
     ],
     "timing_evidence_refs": [
       "evidence:time-grant",
-      "evidence:phase-realization"
+      "evidence:edge-realization"
     ]
   }
 }

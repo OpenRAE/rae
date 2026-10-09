@@ -1,9 +1,12 @@
 """Cross-message checks for the stage reports of one mixed-backend invocation.
 
 The validator joins stage reports to their installed binding, the shared
-backend operation request and response transcript, and the trusted time-model
-declaration resolved by the caller. It performs no I/O, dispatch or state
-mutation, and passing it proves neither backend truth nor runtime adoption.
+backend operation request and response transcript, and trusted inputs resolved
+by the caller: the time-model declaration, the committed time readback the
+coordinator received, RAES's own time readback after the invocation and, for a
+native handoff, the committed composition state. It performs no I/O, dispatch
+or state mutation, and passing it proves neither backend truth nor runtime
+adoption.
 """
 
 from __future__ import annotations
@@ -32,6 +35,7 @@ from .mixed_backend_binding import (
     MixedBackendEdgeBindingModel,
     MixedBackendExecutionBindingModel,
     MixedBackendHandoffBindingModel,
+    MixedBackendServiceModel,
     MixedBackendTimeRequirementModel,
 )
 from .mixed_backend_stages import (
@@ -45,7 +49,13 @@ from .mixed_backend_stages import (
     MixedBackendTimeGrantStageModel,
 )
 from .mixed_backend_validation import require_mixed_backend_request
-from .time_model import TimeModelDeclarationModel
+from .mixed_runtime import MixedCompositionRuntimeStateModel
+from .time_model import (
+    TimeCoordinateModel,
+    TimeModelDeclarationModel,
+    TimeRuntimeStateModel,
+    validate_time_runtime_state,
+)
 
 _MAX_STAGE_REPORTS = 64
 _UNSUPPORTED_ORDER = "time grant does not establish the required order within one segment"
@@ -66,26 +76,56 @@ class _Transcript:
     outcome: BackendOperationOutcomeModel | None
 
 
+@dataclass(frozen=True)
+class MixedBackendStageContext:
+    """Trusted, caller-resolved inputs for one invocation's stage reports; none comes from a backend.
+
+    ``time_model`` is the declaration resolved from the binding's time
+    requirement, and ``time_state`` is the committed time readback that the
+    coordinator received. ``post_time_state`` is RAES's own time readback after
+    the invocation, or ``None`` when none was taken. ``composition_state`` is
+    the committed composition state of the binding's profile; a native handoff
+    requires it.
+    """
+
+    time_model: TimeModelDeclarationModel
+    time_state: TimeRuntimeStateModel
+    post_time_state: TimeRuntimeStateModel | None = None
+    composition_state: MixedCompositionRuntimeStateModel | None = None
+
+
+@dataclass(frozen=True)
+class _Trusted:
+    """Facts derived from the trusted context that the reports must match."""
+
+    time_model: TimeModelDeclarationModel
+    coordinates: tuple[TimeCoordinateModel, TimeCoordinateModel]
+    time_confirmed: bool
+    fence: tuple[str, int] | None
+
+
 def validate_mixed_backend_stage_reports(
     binding: MixedBackendExecutionBindingModel,
     request: BackendOperationRequestModel,
     responses: Sequence[BackendOperationResponseModel],
     reports: Sequence[MixedBackendStageReportModel],
     *,
-    time_model: TimeModelDeclarationModel,
+    context: MixedBackendStageContext,
     controls: Sequence[BackendOperationControlModel] = (),
 ) -> None:
-    """Validate one invocation's stage reports against its binding and shared transcript.
+    """Validate one invocation's stage reports against its binding, transcript and trusted context.
 
-    ``time_model`` is the trusted declaration resolved from the binding's time
-    requirement. Each stage must follow its prerequisite, and the invocation
-    stage needs an ordered grant and an accepted acknowledgement, so nothing
-    follows a refusal. A proposed shared outcome may claim success or known
-    failure only when the stages establish it.
+    The grant's coordinates must equal the committed time readback, and a
+    native handoff must name the committed composition history head and phase
+    revision. Each stage must follow its prerequisite and name the service
+    pinned for its role, and the invocation stage needs an ordered grant and an
+    accepted acknowledgement. A proposed success or known failure must equal
+    the state that the stages and the trusted readbacks establish.
     """
 
     require_mixed_backend_request(binding, request)
     validate_backend_operation_history(request, responses, controls=controls)
+    trusted = _trusted_inputs(binding, context)
     messages = [response.message for response in responses]
     accepted = any(
         isinstance(message, BackendOperationAcknowledgementModel) and message.disposition == "accepted"
@@ -97,10 +137,62 @@ def validate_mixed_backend_stage_reports(
     seen: dict[str, MixedBackendStage] = {}
     for stage in _ordered_stages(request, reports):
         _require_prerequisite(subject, stage, seen, transcript)
-        _require_stage_identity(subject, stage, seen, time_model)
+        _require_producer(subject, stage)
+        _require_stage_identity(subject, stage, seen, trusted)
         seen[stage.stage] = stage
-    _require_honest_outcome(subject, seen, transcript)
+    _require_honest_outcome(subject, seen, transcript, trusted)
     _require_cited_reports(messages, reports)
+
+
+def _trusted_inputs(binding: MixedBackendExecutionBindingModel, context: MixedBackendStageContext) -> _Trusted:
+    required, time_model = binding.subject.time, context.time_model
+    validate_time_runtime_state(time_model, context.time_state)
+    before = _bound_coordinates(required, context.time_state)
+    confirmed = _time_confirmed(required, time_model, before, context.post_time_state)
+    return _Trusted(time_model, before, confirmed, _composition_fence(binding, context.composition_state))
+
+
+def _bound_coordinates(
+    required: MixedBackendTimeRequirementModel,
+    state: TimeRuntimeStateModel,
+) -> tuple[TimeCoordinateModel, TimeCoordinateModel]:
+    source = state.clocks.get(required.source_clock_address)
+    destination = state.clocks.get(required.destination_clock_address)
+    if source is None or destination is None:
+        raise ValueError("time readback does not cover the bound clocks")
+    return source.coordinate, destination.coordinate
+
+
+def _time_confirmed(
+    required: MixedBackendTimeRequirementModel,
+    time_model: TimeModelDeclarationModel,
+    before: tuple[TimeCoordinateModel, TimeCoordinateModel],
+    post_time_state: TimeRuntimeStateModel | None,
+) -> bool:
+    # RAES's own post-invocation readback confirms time only when it matches the
+    # declaration and neither bound clock moved backwards.
+    if post_time_state is None:
+        return False
+    validate_time_runtime_state(time_model, post_time_state)
+    after = _bound_coordinates(required, post_time_state)
+    return all(_position(late) >= _position(early) for early, late in zip(before, after, strict=True))
+
+
+def _position(coordinate: TimeCoordinateModel) -> tuple[int, int, int]:
+    return coordinate.segment, coordinate.tick, coordinate.microstep
+
+
+def _composition_fence(
+    binding: MixedBackendExecutionBindingModel,
+    state: MixedCompositionRuntimeStateModel | None,
+) -> tuple[str, int] | None:
+    if state is None:
+        if binding.subject.kind == "handoff":
+            raise ValueError("native handoff validation requires the committed composition state")
+        return None
+    if (state.profile_id, state.profile_digest) != (binding.profile_id, binding.profile_digest):
+        raise ValueError("committed composition state belongs to another profile")
+    return state.history_head, state.phase_revision
 
 
 def _ordered_stages(
@@ -140,16 +232,35 @@ def _require_prerequisite(
         raise ValueError("known execution failure cannot be followed by delivery")
 
 
+def _require_producer(subject: _SubjectBinding, stage: MixedBackendStage) -> None:
+    if stage.producer != _pinned_producer(subject, stage.stage):
+        raise ValueError("stage report names a producer other than the service pinned for its stage")
+
+
+def _pinned_producer(subject: _SubjectBinding, stage_kind: str) -> MixedBackendServiceModel | None:
+    if stage_kind == "time-grant":
+        return subject.time.coordinator
+    if isinstance(subject, MixedBackendEdgeBindingModel):
+        services = {
+            "execution": subject.bridge,
+            "delivery": subject.delivery_reader,
+            "observation": subject.observation_reader,
+        }
+    else:
+        services = {"handoff": subject.transfer, "owner-readback": subject.owner_reader}
+    return services[stage_kind]
+
+
 def _require_stage_identity(
     subject: _SubjectBinding,
     stage: MixedBackendStage,
     seen: dict[str, MixedBackendStage],
-    time_model: TimeModelDeclarationModel,
+    trusted: _Trusted,
 ) -> None:
     # An owner readback naming neither admitted owner is a valid contradictory
     # fact; the outcome rules keep such a transfer indeterminate.
     if isinstance(stage, MixedBackendTimeGrantStageModel):
-        _require_time_grant(subject, stage, time_model)
+        _require_time_grant(subject, stage, trusted)
     elif isinstance(stage, MixedBackendExecutionStageModel):
         _require_execution(subject, stage)
     elif isinstance(stage, MixedBackendDeliveryStageModel):
@@ -157,21 +268,19 @@ def _require_stage_identity(
     elif isinstance(stage, MixedBackendObservationStageModel):
         _require_observation(subject, stage)
     elif isinstance(stage, MixedBackendHandoffStageModel):
-        _require_handoff(subject, stage, seen["time-grant"])
+        _require_handoff(subject, stage, seen["time-grant"], trusted)
 
 
-def _require_time_grant(
-    subject: _SubjectBinding,
-    grant: MixedBackendTimeGrantStageModel,
-    time_model: TimeModelDeclarationModel,
-) -> None:
+def _require_time_grant(subject: _SubjectBinding, grant: MixedBackendTimeGrantStageModel, trusted: _Trusted) -> None:
     required = subject.time
     if (grant.mapping_ref, grant.ordering_basis) != (required.mapping_ref, required.ordering_basis):
         raise ValueError("time grant differs from the bound mapping or ordering basis")
+    if (grant.source_coordinate, grant.destination_coordinate) != trusted.coordinates:
+        raise ValueError("time grant coordinates differ from the committed time readback")
     if not set(subject.required_evidence_refs) <= {*grant.mapping_evidence_refs, *grant.timing_evidence_refs}:
         raise ValueError("time grant does not cite the admitted evidence obligations")
     if grant.comparison == "ordered":
-        _require_mapped_order(required, grant, time_model)
+        _require_mapped_order(required, grant, trusted.time_model)
 
 
 def _require_mapped_order(
@@ -190,19 +299,17 @@ def _require_mapped_order(
 
 def _require_execution(subject: MixedBackendEdgeBindingModel, execution: MixedBackendExecutionStageModel) -> None:
     observed = (
-        execution.bridge,
         execution.source_action_address,
         execution.destination_action_address,
         frozenset(execution.mapping_loss_refs),
     )
     expected = (
-        subject.bridge,
         subject.source_action_address,
         subject.destination_action_address,
         frozenset({subject.mapping_loss.limitation_ref}),
     )
     if observed != expected:
-        raise ValueError("execution report differs from the installed bridge, subjects or declared loss")
+        raise ValueError("execution report differs from the installed subjects or declared loss")
 
 
 def _require_delivery(subject: MixedBackendEdgeBindingModel, delivery: MixedBackendDeliveryStageModel) -> None:
@@ -215,17 +322,20 @@ def _require_observation(
     observation: MixedBackendObservationStageModel,
 ) -> None:
     observed = (observation.participant_address, observation.audience_scope_ref)
-    if subject.observation_reader is None or observed != (subject.participant_address, subject.audience_scope_ref):
-        raise ValueError("participant observation differs from the bound reader, participant or audience")
+    if observed != (subject.participant_address, subject.audience_scope_ref):
+        raise ValueError("participant observation differs from the bound participant or audience")
 
 
 def _require_handoff(
     subject: MixedBackendHandoffBindingModel,
     handoff: MixedBackendHandoffStageModel,
     grant: MixedBackendTimeGrantStageModel,
+    trusted: _Trusted,
 ) -> None:
     if handoff.order_ref != grant.order_ref:
         raise ValueError("native handoff differs from its granted order")
+    if (handoff.predecessor_history_head, handoff.phase_revision) != trusted.fence:
+        raise ValueError("native handoff differs from the committed composition history head or phase revision")
     if not set(subject.required_evidence_refs) <= set(handoff.evidence_refs):
         raise ValueError("native handoff does not cite the admitted evidence obligations")
 
@@ -234,11 +344,12 @@ def _require_honest_outcome(
     subject: _SubjectBinding,
     seen: dict[str, MixedBackendStage],
     transcript: _Transcript,
+    trusted: _Trusted,
 ) -> None:
     outcome = transcript.outcome
     if outcome is None or outcome.proposed_state not in {OperationState.SUCCEEDED, OperationState.FAILED}:
         return
-    established = _edge_state(seen) if subject.kind == "edge" else _handoff_state(subject, seen)
+    established = _edge_state(seen, trusted) if subject.kind == "edge" else _handoff_state(subject, seen, trusted)
     if outcome.proposed_state != established:
         raise ValueError("shared outcome claims more than the mixed stages establish")
 
@@ -266,24 +377,41 @@ def _evidence_references(message: BackendOperationMessage) -> tuple[OperationArt
     return ()
 
 
-def _edge_state(seen: dict[str, MixedBackendStage]) -> OperationState:
+def _refused_grant_state(seen: dict[str, MixedBackendStage]) -> OperationState:
+    # Only an explicit incomparable grant proves that no invocation could start.
+    grant = seen.get("time-grant")
+    refused = grant is not None and grant.comparison == "incomparable"
+    return OperationState.FAILED if refused else OperationState.INDETERMINATE
+
+
+def _edge_state(seen: dict[str, MixedBackendStage], trusted: _Trusted) -> OperationState:
     execution = seen.get("execution")
-    if execution is None or execution.status in {"partial", "unknown"}:
-        return OperationState.INDETERMINATE
+    if execution is None:
+        return _refused_grant_state(seen)
     if execution.status == "failed":
         return OperationState.FAILED
-    return OperationState.SUCCEEDED if "delivery" in seen else OperationState.INDETERMINATE
+    delivered = execution.status == "succeeded" and "delivery" in seen
+    return OperationState.SUCCEEDED if delivered and trusted.time_confirmed else OperationState.INDETERMINATE
 
 
-def _handoff_state(subject: MixedBackendHandoffBindingModel, seen: dict[str, MixedBackendStage]) -> OperationState:
+def _handoff_state(
+    subject: MixedBackendHandoffBindingModel,
+    seen: dict[str, MixedBackendStage],
+    trusted: _Trusted,
+) -> OperationState:
     # Only a committed transfer read back at the destination owner and next phase
-    # revision succeeds; only a failed or stale one that kept the source owner fails.
+    # revision succeeds; only a failed or stale one that kept the source owner
+    # fails. Both need confirmed post-transfer time.
     handoff, readback = seen.get("handoff"), seen.get("owner-readback")
+    if handoff is None:
+        return _refused_grant_state(seen)
     state = OperationState.INDETERMINATE
-    if handoff is not None and readback is not None:
+    if readback is not None and trusted.time_confirmed:
+        # ``_require_handoff`` fenced this revision on the committed composition state.
+        revision = handoff.phase_revision
         owner = (readback.owner_component_id, readback.owner_ref, readback.phase_revision)
-        destination = (subject.destination_component_id, subject.destination_owner_ref, handoff.phase_revision + 1)
-        source = (subject.source_component_id, subject.source_owner_ref, handoff.phase_revision)
+        destination = (subject.destination_component_id, subject.destination_owner_ref, revision + 1)
+        source = (subject.source_component_id, subject.source_owner_ref, revision)
         if handoff.status == "committed" and owner == destination:
             state = OperationState.SUCCEEDED
         elif handoff.status in {"failed", "stale"} and owner == source:
@@ -291,4 +419,4 @@ def _handoff_state(subject: MixedBackendHandoffBindingModel, seen: dict[str, Mix
     return state
 
 
-__all__ = ["validate_mixed_backend_stage_reports"]
+__all__ = ["MixedBackendStageContext", "validate_mixed_backend_stage_reports"]

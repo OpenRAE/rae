@@ -1,8 +1,8 @@
 {
-  "schema_version": "backend-operation-request/v1",
+  "schema_version": "backend-operation-response/v1",
   "binding": {
-    "operation_id": "operation:mixed-edge-partial",
-    "invocation_id": "invocation:mixed-edge-partial",
+    "operation_id": "operation:mixed-edge-time-refused",
+    "invocation_id": "invocation:mixed-edge-time-refused",
     "attempt_id": "attempt:1",
     "worker_id": "worker:effects-1",
     "deployment_id": "deployment:reference",
@@ -27,20 +27,11 @@
       "independence": null
     }
   },
-  "command": {
-    "contract_id": "mixed-backend-execution-binding-v1",
-    "artifact_id": "binding:edge.sim-to-emu",
-    "digest": "sha256:6e600b603b2c5f83183836920caea4ba2b01b69b9caa94c0dbeac0c5c21a658e"
-  },
-  "requirement_refs": [],
-  "required_guarantees": [
-    "effect-observation",
-    "cessation-evidence"
-  ],
-  "budget": {
-    "origin_id": "budget:mixed-edge-partial",
-    "started_at": "2026-10-09T00:00:00Z",
-    "limit_ms": 30000,
-    "remaining_ms": 30000
+  "request_digest": "sha256:4c682409ce65cf3b1581458b9f18e43a84cadebc4b82753f9c986a70ff10a476",
+  "sequence": 1,
+  "message": {
+    "kind": "acknowledgement",
+    "disposition": "accepted",
+    "reason": null
   }
 }

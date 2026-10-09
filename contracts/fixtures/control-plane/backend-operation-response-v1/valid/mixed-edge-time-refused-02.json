@@ -1,14 +1,14 @@
 {
   "schema_version": "backend-operation-response/v1",
   "binding": {
-    "operation_id": "operation:mixed-handoff",
-    "invocation_id": "invocation:mixed-handoff",
+    "operation_id": "operation:mixed-edge-time-refused",
+    "invocation_id": "invocation:mixed-edge-time-refused",
     "attempt_id": "attempt:1",
     "worker_id": "worker:effects-1",
     "deployment_id": "deployment:reference",
     "owner_generation": 1,
     "execution_generation": 1,
-    "backend_id": "transfer:native-ownership",
+    "backend_id": "route:portable",
     "baseline_revision": "revision:7",
     "context": {
       "actor_id": "operator:mixed",
@@ -17,7 +17,7 @@
       ],
       "target_scope": "target:mixed",
       "run_scope": "run:mixed",
-      "operation_kind": "composition-phase",
+      "operation_kind": "participant-crossing",
       "request_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "parent_operation_id": null
     },
@@ -27,37 +27,28 @@
       "independence": null
     }
   },
-  "request_digest": "sha256:e688489a9b66f704822e227e9a0c25b8a4b6f6e4f072011f02ea3574e309fb3b",
+  "request_digest": "sha256:4c682409ce65cf3b1581458b9f18e43a84cadebc4b82753f9c986a70ff10a476",
   "sequence": 2,
   "message": {
     "kind": "outcome",
-    "proposed_state": "succeeded",
+    "proposed_state": "failed",
     "effects": {
-      "effect": "complete",
+      "effect": "absent",
       "cessation_established": true,
       "evidence_refs": [
         {
           "contract_id": "mixed-backend-stage-report-v1",
-          "artifact_id": "stage:mixed-handoff:handoff",
-          "digest": "sha256:bf3127319ef9703bbacc2fbec20e4fadfd83a92494663228e496ebfb7685cbf1"
-        },
-        {
-          "contract_id": "mixed-backend-stage-report-v1",
-          "artifact_id": "stage:mixed-handoff:owner",
-          "digest": "sha256:08f3aafed02a41b2d45bd14d800737f849a5d800ba673fcb7e6f3e888594bc30"
+          "artifact_id": "stage:mixed-edge-time-refused:time-grant",
+          "digest": "sha256:dc2192edba5d414230956ff0882db05354c43e97e2b8f517ee5bd8e29ef22c01"
         }
       ],
       "residual_scope": [],
       "residual_state": null,
       "external_fence": null
     },
-    "satisfaction": "satisfied",
-    "release_gates_satisfied": true,
+    "satisfaction": "unsatisfied",
+    "release_gates_satisfied": false,
     "cancellation_established": false,
-    "result": {
-      "contract_id": "runtime-snapshot-v1",
-      "artifact_id": "snapshot:mixed-handoff",
-      "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-    }
+    "result": null
   }
 }

@@ -200,23 +200,36 @@ observation, handoff, or owner-readback fact for one invocation of the
   active in at least one phase of the edge. Its `compiled-identity`
   transformation preserves the authorized action address. Its bridge
   reference equals the edge's routing reference, and its time coordinates,
-  mapping loss, participant, audience, and evidence references equal the
-  admitted edge.
+  temporal coupling, mapping loss, participant, audience, and evidence
+  references equal the admitted edge.
 - A handoff binding uses operation kind `composition-phase`. It names the
   leaving and joining components and their native ownership references, and
   its clocks and mapping resolve in the trusted time model.
 - A shared request commits to one binding through its content-bound `command`,
   is addressed to the pinned bridge or transfer service, and uses the
-  binding's operation kind.
+  binding's operation kind. The binding reference digest and each stage-report
+  citation digest are SHA-256 over RFC 8785 canonical JSON of the complete
+  validated model, including materialized defaults and null values.
 - Stage reports repeat the invocation binding and request digest, report each
-  stage at most once, and follow their prerequisite stage. Execution or native
-  transfer needs an `ordered` grant and an accepted acknowledgement. A proposed
-  success or known failure must equal the state the stages establish, and
-  shared evidence cites only supplied reports.
+  stage at most once, and follow their prerequisite stage. Each stage names
+  its producer, which equals the binding's coordinator, bridge, delivery
+  reader, observation reader, transfer service, or owner reader for that
+  stage. Execution or native transfer needs an `ordered` grant and an accepted
+  acknowledgement.
+- Time-grant coordinates equal the caller's committed time readback for both
+  bound clocks. A handoff names the committed composition history head and
+  phase revision, and its owner readback is judged against that revision.
+- A proposed success or known failure must equal the state that the stages
+  and the caller's readbacks establish, and shared evidence cites only
+  supplied reports. Success needs a post-invocation time readback in which
+  neither bound clock moved backwards; so does a handoff failure. An
+  `incomparable` grant with no invocation stage establishes a known failure.
+  The [migration note](../../../docs/migration/mixed-backend-execution.md)
+  states the complete stage and settlement model.
 
 The validators are pure functions over trusted inputs resolved by the caller.
 Passing them does not prove backend truth, installation, conformance, or
-runtime adoption.
+runtime adoption, and these rules do not describe the in-process coordinator.
 
 ### Adversarial-control apparatus and backend support (issue #1004)
 

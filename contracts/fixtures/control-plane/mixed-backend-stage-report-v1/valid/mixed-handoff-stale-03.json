@@ -31,6 +31,11 @@
   "sequence": 3,
   "stage": {
     "stage": "owner-readback",
+    "producer": {
+      "service_ref": "reader:native-owner",
+      "version": "1",
+      "digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+    },
     "owner_component_id": "sim",
     "owner_ref": "native-ownership:sim",
     "phase_revision": 0,

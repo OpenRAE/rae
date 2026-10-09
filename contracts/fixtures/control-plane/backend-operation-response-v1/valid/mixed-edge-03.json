@@ -27,7 +27,7 @@
       "independence": null
     }
   },
-  "request_digest": "sha256:9788fd0932ced041639ec6aee18637322a4154b7b94d85325d2d6c25d18c13ff",
+  "request_digest": "sha256:28a8db987813e00f25f47eed676dd744831bcb92bb5d262f7bd97e05bd0ad1bd",
   "sequence": 3,
   "message": {
     "kind": "outcome",
@@ -39,12 +39,12 @@
         {
           "contract_id": "mixed-backend-stage-report-v1",
           "artifact_id": "stage:mixed-edge:execution",
-          "digest": "sha256:da222ec570824c8d3bd026672c06fe970025e08922d80a8078b8b5917b2bda47"
+          "digest": "sha256:e6c202d828c96370bdf0ae8440950feabd8b980261dda8625f7b20c9047dea18"
         },
         {
           "contract_id": "mixed-backend-stage-report-v1",
           "artifact_id": "stage:mixed-edge:delivery",
-          "digest": "sha256:aa718ae2bdec5815cb5ff3bbd649b7e59c5befc6460e04deb4aee287567f70f1"
+          "digest": "sha256:0bc7ed7268f4cae3dde119d5e12e1e5ebc01e0138719eb66cfd97f09945b16a2"
         }
       ],
       "residual_scope": [],

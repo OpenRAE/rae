@@ -16,6 +16,7 @@ from .backend_operation_response import BackendOperationResponseModel
 from .backend_operation_validation import require_backend_operation_admission
 from .mixed_backend_binding import (
     MixedBackendEdgeBindingModel,
+    MixedBackendEdgeTimeRequirementModel,
     MixedBackendExecutionBindingModel,
     MixedBackendHandoffBindingModel,
     MixedBackendTimeRequirementModel,
@@ -114,6 +115,7 @@ def _validate_edge_binding(
             binding.target_clock_address,
             binding.mapping_address,
             binding.ordering_basis,
+            binding.temporal_coupling,
         ),
     )
     if observed != admitted:
@@ -173,7 +175,7 @@ def _validate_handoff_binding(
     _require_resolved_time(context, installed.time)
 
 
-def _time_coordinates(time: MixedBackendTimeRequirementModel) -> tuple[str, ...]:
+def _time_coordinates(time: MixedBackendEdgeTimeRequirementModel) -> tuple[str, ...]:
     return (
         time.time_model_ref,
         time.time_model_digest,
@@ -181,6 +183,7 @@ def _time_coordinates(time: MixedBackendTimeRequirementModel) -> tuple[str, ...]
         time.destination_clock_address,
         time.mapping_ref,
         time.ordering_basis,
+        time.temporal_coupling,
     )
 
 

@@ -107,7 +107,7 @@
           "type": "string"
         },
         "time": {
-          "$ref": "#/$defs/MixedBackendTimeRequirementModel"
+          "$ref": "#/$defs/MixedBackendEdgeTimeRequirementModel"
         }
       },
       "required": [
@@ -126,6 +126,98 @@
         "required_evidence_refs"
       ],
       "title": "MixedBackendEdgeBindingModel",
+      "type": "object"
+    },
+    "MixedBackendEdgeTimeRequirementModel": {
+      "additionalProperties": false,
+      "description": "Edge time requirement that also carries the admitted edge's temporal coupling.",
+      "properties": {
+        "coordinator": {
+          "$ref": "#/$defs/MixedBackendServiceModel"
+        },
+        "destination_clock_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Destination Clock Address",
+          "type": "string"
+        },
+        "mapping_ref": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Mapping Ref",
+          "type": "string"
+        },
+        "ordering_basis": {
+          "enum": [
+            "total_order",
+            "partial_order",
+            "simultaneous",
+            "serialized_backend_order",
+            "simulation_tick",
+            "control_plane_order",
+            "logical_clock",
+            "vector_clock"
+          ],
+          "title": "Ordering Basis",
+          "type": "string"
+        },
+        "required_comparison": {
+          "const": "ordered",
+          "default": "ordered",
+          "title": "Required Comparison",
+          "type": "string"
+        },
+        "source_clock_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Source Clock Address",
+          "type": "string"
+        },
+        "temporal_coupling": {
+          "enum": [
+            "tight",
+            "bounded-asynchronous",
+            "asynchronous"
+          ],
+          "title": "Temporal Coupling",
+          "type": "string"
+        },
+        "time_model_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Time Model Digest",
+          "type": "string"
+        },
+        "time_model_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Time Model Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "time_model_ref",
+        "time_model_digest",
+        "source_clock_address",
+        "destination_clock_address",
+        "mapping_ref",
+        "ordering_basis",
+        "coordinator",
+        "temporal_coupling"
+      ],
+      "title": "MixedBackendEdgeTimeRequirementModel",
       "type": "object"
     },
     "MixedBackendHandoffBindingModel": {
@@ -441,7 +533,7 @@
       "validator": "raes_contracts.contracts.MixedBackendExecutionBindingModel.model_validate"
     },
     {
-      "description": "Require exactly one matching binding per active edge and one-to-one component-changing transition of the admitted sealed profile, with governed order, preserved compiled subjects and declared loss.",
+      "description": "Require exactly one matching binding per active edge and one-to-one component-changing transition of the admitted sealed profile, with governed order, preserved compiled subjects, declared loss and the edge's admitted temporal coupling.",
       "id": "mixed-backend-binding-profile-join",
       "inputs": [
         {

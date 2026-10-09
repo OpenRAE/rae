@@ -12,6 +12,7 @@ from raes_backend_protocols import require_mixed_backend_service
 from raes_contracts import contracts
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import seal_mixed_composition_profile
+from raes_contracts.contracts.time_model import TimeModelDeclarationModel, TimeRuntimeStateModel
 from raes_contracts.versions import BACKEND_OPERATION_CONTRACT_IDS, MIXED_BACKEND_CONTRACT_IDS
 from test_issue_1014_mixed_composition_contracts import _context, _staged_profile, _time_model
 from test_issue_1016_mixed_runtime_coordination import _runtime_mixed_profile, _runtime_profile
@@ -24,9 +25,13 @@ SCENARIOS = {
     "mixed-edge": "mixed-edge",
     "mixed-edge-partial": "mixed-edge",
     "mixed-edge-refused": "mixed-edge",
+    "mixed-edge-time-refused": "mixed-edge",
     "mixed-handoff": "mixed-handoff",
     "mixed-handoff-stale": "mixed-handoff",
 }
+# Committed source and destination clock coordinates; after a reset the
+# destination clock of the time-refused example sits in a later segment.
+COMMITTED_CLOCKS = {"mixed-edge-time-refused": ((0, 4, 0), (1, 2, 0))}
 
 
 def _fixture(family: str, kind: str, name: str) -> dict:
@@ -54,14 +59,94 @@ def _scenario(name: str) -> tuple[contracts.BackendOperationRequestModel, list, 
     return request, responses, reports
 
 
-def _validate(scenario: str, *, binding=None, responses=None, reports=None) -> None:
+def _coordinate(segment: int, tick: int, microstep: int) -> dict:
+    return {"segment": segment, "tick": tick, "microstep": microstep}
+
+
+def _time_state(
+    source: tuple[int, int, int] = (0, 4, 0),
+    destination: tuple[int, int, int] = (0, 4, 1),
+    *,
+    declaration: TimeModelDeclarationModel | None = None,
+) -> TimeRuntimeStateModel:
+    """Typed time readback with the bound simulation and emulation clocks at the given coordinates."""
+
+    declaration = declaration or _time_model()
+    positions = {"time.clocks.sim": source, "time.clocks.emu": destination}
+    clocks = {}
+    for address, clock in declaration.clocks.items():
+        coordinate = _coordinate(*positions.get(address, (0, 0, 0)))
+        clocks[address] = {
+            "clock_address": address,
+            "time_domain_address": clock.time_domain_address,
+            "authority_kind": clock.authority_kind,
+            "authority_ref": clock.authority_ref,
+            "state": "running",
+            "coordinate": coordinate,
+            "sequence": 0,
+            "history": [
+                {
+                    "sequence": 0,
+                    "kind": "initialize",
+                    "previous": None,
+                    "resulting": coordinate,
+                    "resulting_state": "running",
+                }
+            ],
+        }
+    return TimeRuntimeStateModel.model_validate(
+        {"declaration_digest": declaration.canonical_digest(), "clocks": clocks}
+    )
+
+
+def _declaration(**emulation_clock: object) -> TimeModelDeclarationModel:
+    fields = _time_model().model_dump(mode="python")
+    clock = fields["clocks"].pop("time.clocks.emu") | emulation_clock
+    fields["clocks"][clock["address"]] = clock
+    return TimeModelDeclarationModel.model_validate(fields)
+
+
+def _composition_state(**changes: object) -> contracts.MixedCompositionRuntimeStateModel:
+    profile = _staged_profile()
+    return contracts.MixedCompositionRuntimeStateModel.model_validate(
+        {
+            "run_id": "run:mixed",
+            "plan_id": "plan:mixed",
+            "plan_entry_id": "entry:mixed",
+            "profile_id": profile.profile_id,
+            "profile_digest": profile.profile_digest,
+            "phase_id": "phase.sim",
+            "phase_revision": 0,
+            "active_component_ids": ["sim"],
+            "active_allocation_ids": ["allocation.participant", "allocation.action"],
+            "history_head": "composition:activation:initial",
+        }
+        | changes
+    )
+
+
+def _trusted(scenario: str) -> dict:
+    """Caller-resolved inputs: time model, committed and post-invocation readbacks, composition state."""
+
+    readback = _time_state(*COMMITTED_CLOCKS.get(scenario, ()))
+    trusted = {"time_model": _time_model(), "time_state": readback, "post_time_state": readback}
+    if SCENARIOS[scenario] == "mixed-handoff":
+        trusted["composition_state"] = _composition_state()
+    return trusted
+
+
+def _stage_context(scenario: str, **overrides: object) -> contracts.MixedBackendStageContext:
+    return contracts.MixedBackendStageContext(**(_trusted(scenario) | overrides))
+
+
+def _validate(scenario: str, *, binding=None, responses=None, reports=None, **trusted: object) -> None:
     request, default_responses, default_reports = _scenario(scenario)
     contracts.validate_mixed_backend_stage_reports(
         binding or _binding(SCENARIOS[scenario]),
         request,
         default_responses if responses is None else responses,
         default_reports if reports is None else reports,
-        time_model=_time_model(),
+        context=_stage_context(scenario, **trusted),
     )
 
 
@@ -75,6 +160,34 @@ def _remessage(response, **message: object) -> contracts.BackendOperationRespons
     payload = response.model_dump(mode="json")
     payload["message"].update(message)
     return contracts.BackendOperationResponseModel.model_validate(payload)
+
+
+def _failed_outcome(response, *cited) -> contracts.BackendOperationResponseModel:
+    """Rewrite a transcript's outcome as a known failure with no effect that cites the given reports."""
+
+    references = [
+        {
+            "contract_id": STAGES,
+            "artifact_id": f"stage:{report.stage.stage}",
+            "digest": canonical_json_digest(report.model_dump(mode="json")),
+        }
+        for report in cited
+    ]
+    effects = response.message.effects.model_dump(mode="json") | {
+        "effect": "absent",
+        "cessation_established": True,
+        "evidence_refs": references,
+        "residual_scope": [],
+        "residual_state": None,
+    }
+    return _remessage(
+        response,
+        proposed_state="failed",
+        satisfaction="unsatisfied",
+        release_gates_satisfied=False,
+        result=None,
+        effects=effects,
+    )
 
 
 def _reseal(profile, change) -> object:
@@ -167,34 +280,36 @@ def _defer_owner_allocation(fields: dict) -> None:
 
 
 @pytest.mark.parametrize(
-    ("profile", "bindings", "message"),
+    ("profile", "bindings", "rebind", "message"),
     [
-        (_runtime_mixed_profile, [], "active mixed edge requires an executable binding"),
-        (_staged_profile, [], "requires an executable handoff binding"),
-        (_staged_profile, [_binding()], "another composition profile"),
-        (_runtime_mixed_profile, [_binding(), _binding()], "identities must be unique"),
-        (lambda: _reseal(_runtime_mixed_profile(), _wall_clock_edge), [], "ungoverned order"),
-        (lambda: _reseal(_staged_profile(), _grow_membership), [], "outside one-to-one native handoff"),
+        (_runtime_mixed_profile, [], True, "active mixed edge requires an executable binding"),
+        (_staged_profile, [], True, "requires an executable handoff binding"),
+        (_staged_profile, [_binding()], False, "another composition profile"),
+        (_runtime_mixed_profile, [_binding(), _binding()], True, "identities must be unique"),
+        (lambda: _reseal(_runtime_mixed_profile(), _wall_clock_edge), [], True, "ungoverned order"),
+        (lambda: _reseal(_staged_profile(), _grow_membership), [], True, "outside one-to-one native handoff"),
         (
             lambda: _reseal(_runtime_mixed_profile(), _defer_owner_allocation),
             [_binding()],
+            True,
             "own the destination provider's action allocation",
         ),
         (
             lambda: _reseal(_staged_profile(), _keep_membership),
             [_binding("mixed-handoff", transition_id="transition.sim-to-sim2")],
+            True,
             "needs no native handoff binding",
         ),
     ],
 )
-def test_binding_sets_refuse_missing_foreign_or_unsupported_obligations(profile, bindings, message: str) -> None:
+def test_binding_sets_refuse_missing_foreign_or_unsupported_obligations(
+    profile, bindings, rebind: bool, message: str
+) -> None:
+    # ``rebind`` points the bindings at the selected profile so that only the
+    # case's own defect remains; the foreign-profile case keeps its identity.
     selected = profile()
-    rebound = [
-        binding.model_copy(update={"profile_id": selected.profile_id, "profile_digest": selected.profile_digest})
-        if "another composition profile" not in message
-        else binding
-        for binding in bindings
-    ]
+    identity = {"profile_id": selected.profile_id, "profile_digest": selected.profile_digest}
+    rebound = [binding.model_copy(update=identity) if rebind else binding for binding in bindings]
     context = _context(selected)
     with pytest.raises(ValueError, match=message):
         contracts.validate_mixed_backend_bindings(selected, context, rebound)
@@ -254,6 +369,7 @@ EDGE_TIME = _fixture(BINDING, "valid", "mixed-edge")["subject"]["time"]
         {"time": {**EDGE_TIME, "ordering_basis": "total_order"}},
         {"time": {**EDGE_TIME, "time_model_digest": "sha256:" + "e" * 64}},
         {"time": {**EDGE_TIME, "destination_clock_address": "time.clocks.sim"}},
+        {"time": {**EDGE_TIME, "temporal_coupling": "tight"}},
     ],
 )
 def test_edge_binding_must_match_the_admitted_edge_and_destination_owner(subject: dict) -> None:
@@ -334,6 +450,7 @@ def test_request_must_commit_to_the_exact_binding_kind_and_installed_service(bin
 
 OWNER_READBACK = {
     "stage": "owner-readback",
+    "producer": _fixture(BINDING, "valid", "mixed-handoff")["subject"]["owner_reader"],
     "owner_component_id": "emu",
     "owner_ref": "native-ownership:emu",
     "phase_revision": 1,
@@ -351,8 +468,8 @@ def _edge_case(mutate) -> tuple[list, list]:
     return mutate(list(responses), list(reports))
 
 
-def _mapped_order_case(**coordinates):
-    return lambda responses, reports: (responses, [_restage(reports[0], **coordinates), *reports[1:]])
+def _grant_case(**grant):
+    return lambda responses, reports: (responses, [_restage(reports[0], **grant), *reports[1:]])
 
 
 def _progress_cites_unsupplied_report(responses: list, reports: list) -> tuple[list, list]:
@@ -369,6 +486,11 @@ def _progress_cites_unsupplied_report(responses: list, reports: list) -> tuple[l
     return [*responses[:2], contracts.BackendOperationResponseModel.model_validate(payload)], reports
 
 
+def _rebridged(responses: list, reports: list) -> tuple[list, list]:
+    producer = reports[1].stage.producer.model_dump(mode="json") | {"version": "2"}
+    return responses, [reports[0], _restage(reports[1], producer=producer), *reports[2:]]
+
+
 @pytest.mark.parametrize(
     ("mutate", "message"),
     [
@@ -377,19 +499,17 @@ def _progress_cites_unsupplied_report(responses: list, reports: list) -> tuple[l
         (lambda r, s: (r, [s[0], s[1], s[3]]), "precedes its prerequisite"),
         (lambda r, s: (r[:1], s[:2]), "accepted acknowledgement"),
         (lambda r, s: (r, [_restage(s[0], comparison="incomparable"), *s[1:]]), "ordered time grant"),
-        (_mapped_order_case(destination_coordinate={"segment": 0, "tick": 3, "microstep": 0}), "required order"),
-        (_mapped_order_case(destination_coordinate={"segment": 1, "tick": 9, "microstep": 0}), "required order"),
-        (_mapped_order_case(source_coordinate={"segment": 0, "tick": 4, "microstep": 2}), "required order"),
-        (_mapped_order_case(timing_evidence_refs=["evidence:time-grant"]), "admitted evidence"),
-        (_mapped_order_case(ordering_basis="total_order"), "bound mapping or ordering basis"),
+        (
+            _grant_case(source_coordinate=_coordinate(0, 0, 0), destination_coordinate=_coordinate(0, 999999, 0)),
+            "committed time readback",
+        ),
+        (_grant_case(timing_evidence_refs=["evidence:time-grant"]), "admitted evidence"),
+        (_grant_case(ordering_basis="total_order"), "bound mapping or ordering basis"),
         (
             lambda r, s: (r, [s[0], _restage(s[1], mapping_loss_refs=[]), *s[2:]]),
-            "installed bridge, subjects or declared loss",
+            "installed subjects or declared loss",
         ),
-        (
-            lambda r, s: (r, [s[0], _restage(s[1], bridge={**s[1].stage.bridge.model_dump(), "version": "2"}), *s[2:]]),
-            "installed bridge, subjects or declared loss",
-        ),
+        (_rebridged, "names a producer other than"),
         (lambda r, s: (r, [*s[:2], _restage(s[2], destination_component_id="sim"), s[3]]), "destination provider"),
         (lambda r, s: (r, [*s[:3], _restage(s[3], audience_scope_ref="audience:other")]), "participant or audience"),
         (lambda r, s: (r, [*s, _report(s[3], 5, OWNER_READBACK)]), "belong to this mixed binding"),
@@ -404,6 +524,107 @@ def test_edge_transcript_rejects_out_of_order_foreign_or_overclaimed_stages(muta
     responses, reports = _edge_case(mutate)
     with pytest.raises(ValueError, match=message):
         _validate("mixed-edge", responses=responses, reports=reports)
+
+
+@pytest.mark.parametrize(
+    ("source", "destination"),
+    [((0, 4, 0), (0, 3, 0)), ((0, 4, 0), (1, 9, 0)), ((0, 4, 2), (0, 4, 1))],
+)
+def test_ordered_grant_must_establish_the_mapped_order_at_the_committed_readback(source, destination) -> None:
+    # The grant repeats the committed coordinates exactly, but they do not
+    # support the claimed order: a later mapped tick, another segment, or a
+    # later source microstep at an equal mapped tick.
+    _, _, reports = _scenario("mixed-edge")
+    grant = _restage(
+        reports[0], source_coordinate=_coordinate(*source), destination_coordinate=_coordinate(*destination)
+    )
+    committed = _time_state(source, destination)
+    with pytest.raises(ValueError, match="required order"):
+        _validate("mixed-edge", reports=[grant, *reports[1:]], time_state=committed)
+
+
+@pytest.mark.parametrize(
+    ("scenario", "index", "impostor"),
+    [
+        ("mixed-edge", 0, 1),  # the bridge cannot grant its own time order
+        ("mixed-edge", 1, 2),  # a reader cannot report bridge execution
+        ("mixed-edge", 2, 1),  # the bridge cannot report destination delivery
+        ("mixed-edge", 3, 1),  # nor participant observation
+        ("mixed-handoff", 1, 2),  # the owner reader cannot report the transfer
+        ("mixed-handoff", 2, 1),  # the transfer service cannot read back its own result
+    ],
+)
+def test_each_stage_must_name_the_service_pinned_for_its_role(scenario: str, index: int, impostor: int) -> None:
+    _, responses, reports = _scenario(scenario)
+    reports[index] = _restage(reports[index], producer=reports[impostor].stage.producer.model_dump(mode="json"))
+    with pytest.raises(ValueError, match="names a producer other than"):
+        _validate(scenario, responses=responses, reports=reports)
+
+
+def _rebind(binding: contracts.MixedBackendExecutionBindingModel, name: str = "mixed-edge") -> tuple:
+    """Recommit a scenario's request and correlated messages to another installed binding."""
+
+    request, responses, reports = _scenario(name)
+    request = request.model_copy(update={"command": contracts.mixed_backend_binding_reference(binding)})
+    digest = contracts.backend_operation_request_digest(request)
+    rebound = [message.model_copy(update={"request_digest": digest}) for message in (*responses, *reports)]
+    return request, rebound[: len(responses)], rebound[len(responses) :]
+
+
+def test_an_observation_report_needs_a_pinned_observation_reader() -> None:
+    binding = _binding(observation_reader=None)
+    request, responses, reports = _rebind(binding)
+    context = _stage_context("mixed-edge")
+    with pytest.raises(ValueError, match="names a producer other than"):
+        contracts.validate_mixed_backend_stage_reports(binding, request, responses, reports, context=context)
+
+
+def _foreign_time_state() -> dict:
+    return {"time_state": _time_state(declaration=_declaration(description="another emulation clock"))}
+
+
+def _uncovered_clocks() -> dict:
+    declaration = _declaration(address="time.clocks.other")
+    return {"time_model": declaration, "time_state": _time_state(declaration=declaration), "post_time_state": None}
+
+
+def _foreign_post_time_state() -> dict:
+    return {"post_time_state": _time_state(declaration=_declaration(description="another emulation clock"))}
+
+
+@pytest.mark.parametrize(
+    ("scenario", "trusted", "message"),
+    [
+        ("mixed-edge", _foreign_time_state, "declaration_digest does not match"),
+        ("mixed-edge", _uncovered_clocks, "does not cover the bound clocks"),
+        ("mixed-edge", _foreign_post_time_state, "declaration_digest does not match"),
+        ("mixed-handoff", lambda: {"composition_state": None}, "requires the committed composition state"),
+        (
+            "mixed-handoff",
+            lambda: {"composition_state": _composition_state(profile_id="profile:other")},
+            "belongs to another profile",
+        ),
+    ],
+)
+def test_trusted_readbacks_must_match_the_time_model_bound_clocks_and_profile(scenario, trusted, message) -> None:
+    overrides = trusted()
+    with pytest.raises(ValueError, match=message):
+        _validate(scenario, **overrides)
+
+
+@pytest.mark.parametrize(
+    ("handoff", "readback"),
+    [
+        ({"predecessor_history_head": "composition:foreign:head"}, {}),
+        ({"phase_revision": 41}, {}),
+        ({"predecessor_history_head": "composition:foreign:head", "phase_revision": 41}, {"phase_revision": 42}),
+    ],
+)
+def test_native_handoff_is_fenced_on_the_committed_composition_head_and_revision(handoff, readback) -> None:
+    _, responses, reports = _scenario("mixed-handoff")
+    reports[1:] = [_restage(reports[1], **handoff), _restage(reports[2], **readback)]
+    with pytest.raises(ValueError, match="committed composition history head or phase revision"):
+        _validate("mixed-handoff", responses=responses, reports=reports)
 
 
 FAILED_EXECUTION = {"status": "failed", "cessation_evidence_refs": ["evidence:provider-cessation"]}
@@ -430,6 +651,38 @@ def test_known_failed_execution_cannot_be_followed_by_delivery() -> None:
     delivered_after_failure = [reports[0], _restage(reports[1], **FAILED_EXECUTION), reports[2]]
     with pytest.raises(ValueError, match="cannot be followed by delivery"):
         _validate("mixed-edge", responses=responses[:2], reports=delivered_after_failure)
+
+
+def test_known_failed_execution_settles_without_post_effect_time() -> None:
+    _, responses, reports = _scenario("mixed-edge")
+    failed = _restage(reports[1], **FAILED_EXECUTION)
+    transcript = [*responses[:-1], _failed_outcome(responses[-1], failed)]
+    _validate("mixed-edge", responses=transcript, reports=[reports[0], failed], post_time_state=None)
+
+
+@pytest.mark.parametrize("scenario", ["mixed-edge", "mixed-handoff"])
+def test_incomparable_grant_without_invocation_settles_as_known_failure(scenario: str) -> None:
+    _, responses, reports = _scenario(scenario)
+    grant = _restage(reports[0], comparison="incomparable")
+    transcript = [*responses[:-1], _failed_outcome(responses[-1], grant)]
+    _validate(scenario, responses=transcript, reports=[grant], post_time_state=None)
+
+
+@pytest.mark.parametrize("scenario", ["mixed-edge", "mixed-handoff"])
+def test_an_ordered_grant_without_invocation_establishes_no_failure(scenario: str) -> None:
+    # The invocation may have started without reporting, so nothing is known.
+    _, responses, reports = _scenario(scenario)
+    transcript = [*responses[:-1], _failed_outcome(responses[-1], reports[0])]
+    with pytest.raises(ValueError, match="claims more"):
+        _validate(scenario, responses=transcript, reports=reports[:1])
+
+
+@pytest.mark.parametrize("scenario", ["mixed-edge", "mixed-handoff", "mixed-handoff-stale"])
+@pytest.mark.parametrize("post", ["missing", "regressed"])
+def test_settlement_needs_a_confirmed_post_invocation_time_readback(scenario: str, post: str) -> None:
+    readback = {"missing": None, "regressed": _time_state(source=(0, 3, 0))}[post]
+    with pytest.raises(ValueError, match="claims more"):
+        _validate(scenario, post_time_state=readback)
 
 
 def test_contextual_refusal_permits_a_grant_record_but_no_invocation_stage() -> None:

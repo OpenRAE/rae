@@ -65,6 +65,12 @@ class MixedBackendTimeRequirementModel(OperationContractModel):
     coordinator: MixedBackendServiceModel
 
 
+class MixedBackendEdgeTimeRequirementModel(MixedBackendTimeRequirementModel):
+    """Edge time requirement that also carries the admitted edge's temporal coupling."""
+
+    temporal_coupling: Literal["tight", "bounded-asynchronous", "asynchronous"]
+
+
 class MixedBackendEdgeBindingModel(OperationContractModel):
     """Bridge, coordinator and readers for one admitted directed edge.
 
@@ -85,7 +91,7 @@ class MixedBackendEdgeBindingModel(OperationContractModel):
     destination_action_address: CompiledAddress
     subject_transformation: Literal["compiled-identity"] = "compiled-identity"
     bridge: MixedBackendServiceModel
-    time: MixedBackendTimeRequirementModel
+    time: MixedBackendEdgeTimeRequirementModel
     mapping_loss: MixedCompositionMappingLossModel
     delivery_reader: MixedBackendServiceModel
     observation_reader: MixedBackendServiceModel | None = None
@@ -153,6 +159,7 @@ __all__ = [
     "GovernedOrderingBasis",
     "MIXED_BACKEND_EXECUTION_BINDING_CONTRACT_ID",
     "MixedBackendEdgeBindingModel",
+    "MixedBackendEdgeTimeRequirementModel",
     "MixedBackendExecutionBindingModel",
     "MixedBackendHandoffBindingModel",
     "MixedBackendServiceModel",

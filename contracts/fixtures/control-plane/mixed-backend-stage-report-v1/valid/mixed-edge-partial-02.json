@@ -27,11 +27,11 @@
       "independence": null
     }
   },
-  "request_digest": "sha256:5a8f8c4917847cf38b4d431ba910ae28f92673e722d92169990dba7162012b85",
+  "request_digest": "sha256:0bafdc8cb663d1478e5bd8e66da22a18a26c1f040f47ea95a12fba477948967a",
   "sequence": 2,
   "stage": {
     "stage": "execution",
-    "bridge": {
+    "producer": {
       "service_ref": "route:portable",
       "version": "1",
       "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"

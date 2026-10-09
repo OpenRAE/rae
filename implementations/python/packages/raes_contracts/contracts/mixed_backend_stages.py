@@ -2,10 +2,12 @@
 
 Each report proposes one fact for one shared backend operation invocation: a
 time grant, bridge execution, destination delivery, participant observation,
-native handoff or owner readback. Execution, delivery and observation are
-separate stages, so one success flag cannot imply another; partial and unknown
-execution keep their own status. RAE validates reports against the installed
-binding and the shared operation transcript before publishing any state.
+native handoff or owner readback. Every stage names the pinned service that
+produced it. Execution, delivery and observation are separate stages, so one
+success flag cannot imply another; partial and unknown execution keep their own
+status. A reader must validate reports against the installed binding, the
+shared operation transcript and its own trusted readbacks; only RAES may commit
+operation state, composition history and terminal outcomes.
 """
 
 from __future__ import annotations
@@ -34,9 +36,10 @@ _RequiredRefs = Annotated[tuple[OperationIdentifier, ...], Field(min_length=1, m
 
 
 class MixedBackendTimeGrantStageModel(OperationContractModel):
-    """Coordinator grant over the bound clocks; incomparable grants permit no invocation."""
+    """Coordinator grant at the committed clock coordinates; incomparable grants permit no invocation."""
 
     stage: Literal["time-grant"]
+    producer: MixedBackendServiceModel
     mapping_ref: CompiledAddress
     ordering_basis: GovernedOrderingBasis
     order_ref: OperationIdentifier
@@ -51,7 +54,7 @@ class MixedBackendExecutionStageModel(OperationContractModel):
     """Bridge execution readback; it establishes no delivery or participant observation."""
 
     stage: Literal["execution"]
-    bridge: MixedBackendServiceModel
+    producer: MixedBackendServiceModel
     source_action_address: CompiledAddress
     destination_action_address: CompiledAddress
     status: Literal["succeeded", "failed", "partial", "unknown"]
@@ -69,9 +72,10 @@ class MixedBackendExecutionStageModel(OperationContractModel):
 
 
 class MixedBackendDeliveryStageModel(OperationContractModel):
-    """Destination receipt read back independently of the bridge result."""
+    """Destination receipt read back by the pinned delivery reader, not the bridge."""
 
     stage: Literal["delivery"]
+    producer: MixedBackendServiceModel
     destination_component_id: OperationIdentifier
     receipt_ref: OperationIdentifier
     evidence_refs: _RequiredRefs
@@ -81,6 +85,7 @@ class MixedBackendObservationStageModel(OperationContractModel):
     """Participant and audience readback after delivery; delivery alone is not observation."""
 
     stage: Literal["observation"]
+    producer: MixedBackendServiceModel
     participant_address: CompiledAddress
     audience_scope_ref: OperationIdentifier
     observation_ref: OperationIdentifier
@@ -91,6 +96,7 @@ class MixedBackendHandoffStageModel(OperationContractModel):
     """Native transfer disposition at the exact predecessor history head and phase revision."""
 
     stage: Literal["handoff"]
+    producer: MixedBackendServiceModel
     status: Literal["committed", "failed", "pending", "stale", "unknown"]
     predecessor_history_head: OperationIdentifier
     phase_revision: OperationCounter
@@ -99,9 +105,10 @@ class MixedBackendHandoffStageModel(OperationContractModel):
 
 
 class MixedBackendOwnerReadbackStageModel(OperationContractModel):
-    """Native responsibility owner read back after a transfer attempt."""
+    """Native responsibility owner read back by the pinned owner reader after a transfer attempt."""
 
     stage: Literal["owner-readback"]
+    producer: MixedBackendServiceModel
     owner_component_id: OperationIdentifier
     owner_ref: OperationIdentifier
     phase_revision: OperationCounter

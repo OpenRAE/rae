@@ -175,14 +175,18 @@ owner-readback fact. Each report belongs to one invocation of the shared
 [backend operation protocol](backend-operation-supervision.md).
 
 Pure validators join bindings to the sealed profile, requests to shared
-contextual admission, and stage reports to the response transcript. A proposed
-success or known failure must match the stages, using the settlement rules
-above. Optional `raes_backend_protocols` interfaces describe bridges, time
-coordinators and stage readers; method presence and contract declarations are
-not effective support. The coordinator above does not read these carriers. It
-still executes its in-process bindings, and no runtime adoption is claimed.
-The [migration note](../../migration/mixed-backend-execution.md) records
-producer and reader obligations, compatibility, examples and limits.
+contextual admission, and stage reports to the response transcript and to the
+caller's committed time and composition readbacks. Each stage must name the
+service pinned for its role. A proposed success or known failure must equal
+the state that the published stage and settlement model establishes; that
+model governs the carriers, not the coordinator above. Optional
+`raes_backend_protocols` interfaces describe bridges, time coordinators and
+stage readers; method presence and contract declarations are not effective
+support. The coordinator above does not read these carriers. It still executes
+its in-process bindings, and no runtime adoption is claimed. The
+[migration note](../../migration/mixed-backend-execution.md) records producer
+and reader obligations, the stage and settlement model, compatibility,
+examples and limits.
 
 ## Four worked realizations
 

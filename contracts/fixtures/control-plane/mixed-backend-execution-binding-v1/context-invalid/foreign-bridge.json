@@ -32,7 +32,8 @@
         "service_ref": "coordinator:reference-time",
         "version": "1",
         "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
-      }
+      },
+      "temporal_coupling": "bounded-asynchronous"
     },
     "mapping_loss": {
       "kind": "semantics_approximated",

@@ -31,6 +31,11 @@
   "sequence": 2,
   "stage": {
     "stage": "handoff",
+    "producer": {
+      "service_ref": "transfer:native-ownership",
+      "version": "1",
+      "digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+    },
     "status": "stale",
     "predecessor_history_head": "composition:activation:initial",
     "phase_revision": 0,

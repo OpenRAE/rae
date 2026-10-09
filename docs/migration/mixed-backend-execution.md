@@ -38,9 +38,12 @@ A binding names its sealed profile by `profile_id`, `profile_revision` and
 Both kinds carry a time requirement: the time model reference and digest, the
 source and destination clocks, the clock mapping, a governed ordering basis and
 the pinned coordinator. The required comparison is always `ordered`.
-`wall_clock_only`, `unknown` and `unsupported` bases cannot be expressed. An edge
-binding also carries the declared mapping loss, a delivery reader, an optional
-observation reader and the edge's evidence references.
+`wall_clock_only`, `unknown` and `unsupported` bases cannot be expressed. An
+edge's time requirement also carries the admitted edge's `temporal_coupling`:
+`tight`, `bounded-asynchronous` or `asynchronous`. A transition declares no
+coupling, so a handoff carries none. An edge binding also carries the declared
+mapping loss, a delivery reader, an optional observation reader and the edge's
+evidence references.
 
 Services are pinned by `service_ref`, `version` and `digest`. A service
 reference is an identity, never a module, path, URL, command or credential.
@@ -51,21 +54,33 @@ authority.
 
 Each report repeats the exact `binding` of one shared operation invocation,
 the canonical digest of its request, and a positive `sequence`. Its `stage` is
-one of:
+one of the kinds below. Every stage names its `producer`, which must equal the
+service that the binding pins for that stage:
 
-| Stage | Fact it reports |
-| --- | --- |
-| `time-grant` | Coordinator grant over the bound clocks: mapping, ordering basis, order reference, comparison, both coordinates and the mapping and timing evidence. |
-| `execution` | Bridge execution with status `succeeded`, `failed`, `partial` or `unknown`. Known effects need readback evidence. A known failure needs cessation evidence. |
-| `delivery` | Destination receipt read back independently of the bridge result. |
-| `observation` | Participant and audience readback after delivery. |
-| `handoff` | Native transfer disposition at the predecessor history head and phase revision. |
-| `owner-readback` | Native responsibility owner read back after the transfer attempt. |
+| Stage | Producer | Fact it reports |
+| --- | --- | --- |
+| `time-grant` | `time.coordinator` | Grant at the committed coordinates of both bound clocks: mapping, ordering basis, order reference, comparison, both coordinates and the mapping and timing evidence. |
+| `execution` | `bridge` | Bridge execution with status `succeeded`, `failed`, `partial` or `unknown`. Known effects need readback evidence. A known failure needs cessation evidence. |
+| `delivery` | `delivery_reader` | Destination receipt read back by the delivery reader, not by the bridge. |
+| `observation` | `observation_reader` | Participant and audience readback after delivery. A binding without an observation reader admits no observation stage. |
+| `handoff` | `transfer` | Native transfer disposition at the committed composition history head and phase revision. |
+| `owner-readback` | `owner_reader` | Native responsibility owner read back after the transfer attempt. |
 
 Execution, delivery and observation are separate facts. One success value
 cannot create another stage, and partial or unknown execution keeps its own
-status. The reports are evidence proposals: RAES validates them and alone
-commits operation state, composition history and terminal outcomes.
+status. The reports are evidence proposals. A reader must validate them as
+described below, and only RAES may commit operation state, composition history
+and terminal outcomes.
+
+## Digests
+
+The binding reference digest and each stage-report citation digest are SHA-256
+over RFC 8785 canonical JSON of the complete validated model, including
+materialized defaults and null values, with array order preserved. A digest is
+written as `sha256:` followed by 64 lowercase hexadecimal digits. The reference
+encoders are `mixed_backend_binding_reference()` and
+`canonical_json_digest(report.model_dump(mode="json"))`. The request digest
+follows the backend operation protocol's own rule.
 
 ## Producer obligations
 
@@ -82,44 +97,106 @@ commits operation state, composition history and terminal outcomes.
 - A shared request commits to one binding. Its `command` is the reference
   returned by `mixed_backend_binding_reference()`. Its `backend_id` names the
   pinned bridge or transfer service, and its operation kind matches the binding.
+- Each stage report names the producing service exactly as the binding pins
+  it. A bridge never reports delivery or observation, and a transfer service
+  never reports its own owner readback.
+- A coordinator grants over the committed time readback that it receives, and
+  both coordinates in its grant equal that readback. It reports `ordered` only
+  when the mapped source coordinate does not pass the destination coordinate
+  within one segment. Otherwise it reports `incomparable`.
+- A transfer service names the committed composition history head and phase
+  revision that it acted on.
 - A service reports each stage at most once per invocation, after its
   prerequisite stage. Execution and native transfer reports need an `ordered`
   grant and an accepted acknowledgement, so no invocation stage follows a
-  refusal.
+  refusal or an `incomparable` grant.
 - A proposed shared outcome may claim success or known failure only when the
-  stage reports establish it. Shared evidence may cite only stage reports that
-  the invocation supplied.
+  stage and settlement model below establishes it. Shared evidence may cite
+  only stage reports that the invocation supplied.
 
 ## Reader obligations
 
-Readers resolve the sealed profile, resolution context, time-model declaration
-and shared transcript through their owning authorities. They then call these
-pure validators from `raes_contracts.contracts`:
+Readers resolve the sealed profile, resolution context, time-model declaration,
+shared transcript and their own time and composition readbacks through their
+owning authorities. They then call these pure validators from
+`raes_contracts.contracts`:
 
 1. `validate_mixed_backend_bindings()` requires exactly one matching binding
    for each edge active in an admitted phase. It requires one binding for each
    transition that replaces exactly one component with another. It refuses
-   missing, foreign, duplicate or contradictory bindings. It also refuses an
-   edge with an ungoverned order and a transition that changes components in
-   any other way. Alternative profiles admit no binding.
+   missing, foreign, duplicate or contradictory bindings, including an edge
+   binding whose temporal coupling differs from the admitted edge. It also
+   refuses an edge with an ungoverned order and a transition that changes
+   components in any other way. Alternative profiles admit no binding.
 2. `require_mixed_backend_admission()` joins the request to the binding, then
    applies the shared capability and exact-context willingness checks before
    any invocation.
 3. `validate_mixed_backend_stage_reports()` checks one invocation's reports
-   against the binding, the request and its response transcript.
+   against the binding, the request and its response transcript. Its
+   `context` argument is a `MixedBackendStageContext` that holds these trusted
+   inputs:
+   - `time_model`: the declaration resolved from the binding's time
+     requirement.
+   - `time_state`: the committed time readback that the coordinator received.
+     It must validate against `time_model` and cover both bound clocks.
+   - `post_time_state`: RAES's own time readback after the invocation, or
+     `None` when none was taken. When present, it must validate against
+     `time_model`.
+   - `composition_state`: the committed composition state of the binding's
+     profile. A handoff requires it.
 
-The stage validator compares a proposed `SUCCEEDED` or `FAILED` outcome with
-the state the stages establish. It uses the reference coordinator's settlement
-rules:
+## Stage and settlement model
 
-- An edge succeeds only with `succeeded` execution and destination delivery.
-  Observation is a separate optional stage. Failed execution with cessation
-  evidence is a known failure. Partial, unknown or undelivered execution is
-  `INDETERMINATE`.
-- A handoff succeeds only when a `committed` transfer is followed by an owner
-  readback naming the destination owner at the next phase revision. A `failed`
-  or `stale` transfer whose readback still names the source owner at the same
-  revision is a known failure. Every other combination is `INDETERMINATE`.
+The stage validator enforces this abstract model for one invocation. The rules
+apply to the published carriers only. They do not describe the in-process
+coordinator, which does not read the carriers.
+
+**State.** The record holds the accepted stage reports, at most one of each
+kind. It also records whether the response transcript holds an accepted
+acknowledgement and whether time is confirmed. Time is confirmed when
+`post_time_state` is present and neither bound clock coordinate in it is lower
+than in `time_state`. Coordinates compare by segment, then tick, then
+microstep.
+
+**Transitions.** A report is accepted only after its prerequisite and only when
+its joins hold:
+
+| Stage | Prerequisite | Joins |
+| --- | --- | --- |
+| `time-grant` | None | Both coordinates equal `time_state`. Mapping and ordering basis equal the binding. The grant cites the admitted evidence. An `ordered` grant has the mapped order within one segment. |
+| `execution` | `ordered` grant and accepted acknowledgement | Action addresses and declared loss equal the binding. |
+| `delivery` | Execution that did not fail | The destination component is the destination provider. |
+| `observation` | Delivery | Participant and audience equal the binding. |
+| `handoff` | `ordered` grant and accepted acknowledgement | The order reference equals the grant. History head and phase revision equal `composition_state`. The report cites the admitted evidence. |
+| `owner-readback` | Handoff | None beyond the producer. A readback naming neither owner stays a valid, contradictory fact. |
+
+Every report must also name the pinned producer for its stage and repeat the
+invocation binding and request digest. A repeated sequence number must carry
+identical content, and a transcript holds at most 64 reports.
+
+**Settlement.** The accepted stages establish exactly one state:
+
+| Kind | Established state | Condition |
+| --- | --- | --- |
+| Edge | `SUCCEEDED` | `succeeded` execution, delivery and confirmed time. |
+| Edge | `FAILED` | `failed` execution, or an `incomparable` grant with no execution stage. |
+| Handoff | `SUCCEEDED` | `committed` transfer, an owner readback naming the destination owner at the committed revision plus one, and confirmed time. |
+| Handoff | `FAILED` | `failed` or `stale` transfer, an owner readback naming the source owner at the committed revision, and confirmed time. An `incomparable` grant with no handoff stage also establishes `FAILED`. |
+| Either | `INDETERMINATE` | Every other combination. |
+
+**Observation rules.** A proposed `SUCCEEDED` or `FAILED` outcome must equal the
+established state. A `CANCELLED` or `INDETERMINATE` proposal is checked only by
+the shared protocol's own rules. Only an explicit `incomparable` grant shows
+that no invocation could start. An `ordered` grant without an invocation stage,
+or no grant at all, establishes no failure, because an unreported invocation
+may have started.
+
+**Invariants.** No invocation stage follows a refusal or an `incomparable`
+grant. No stage is accepted from a service other than its pinned producer. A
+success never rests on a backend's own time or composition claims. It needs
+the committed and post-invocation time readbacks, and a handoff also needs the
+committed composition state. A violated join refuses the whole transcript
+instead of settling it.
 
 ## Compatibility
 
@@ -137,7 +214,7 @@ callables, module paths, URLs, commands, credentials or open metadata.
 
 ## Examples
 
-The corpus under `contracts/fixtures/control-plane/` carries five transcripts.
+The corpus under `contracts/fixtures/control-plane/` carries six transcripts.
 Each one has a request, its responses and its stage reports:
 
 | Example | Meaning |
@@ -145,6 +222,7 @@ Each one has a request, its responses and its stage reports:
 | `mixed-edge` | Ordered grant, succeeded execution, destination delivery and participant observation; the shared outcome succeeds. |
 | `mixed-edge-partial` | Partial execution after an ordered grant; the shared outcome is `INDETERMINATE`. |
 | `mixed-edge-refused` | Contextual refusal at admission; no invocation stage can follow. |
+| `mixed-edge-time-refused` | The destination clock has entered a later segment, so the grant is `incomparable`; no bridge call follows, and the shared outcome is a known failure with no effect. |
 | `mixed-handoff` | Committed native transfer with a destination owner readback at the next phase revision. |
 | `mixed-handoff-stale` | Stale transfer whose readback retains the source owner; the shared outcome is a known failure with no effect. |
 
@@ -155,7 +233,12 @@ focused checks from the repository root with
 ## Limits
 
 The validators perform no I/O, dispatch or state mutation. Passing them proves
-neither backend truth nor installation, conformance or runtime authority.
+neither backend truth nor installation, conformance or runtime authority. They
+compare the producer that each report names with the binding. The caller must
+authenticate that a report came from that service. Whether a reader is
+operationally independent of the bridge is a deployment property that the
+binding names but no validator can prove.
+
 These contracts add no generic federation framework, HLA, FMI or HELICS
 support, common clock or physical-OT timing guarantee. They also add no
 exactly-once effects, multi-controller authority or backend equivalence.

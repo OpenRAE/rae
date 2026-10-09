@@ -27,10 +27,15 @@
       "independence": null
     }
   },
-  "request_digest": "sha256:5a8f8c4917847cf38b4d431ba910ae28f92673e722d92169990dba7162012b85",
+  "request_digest": "sha256:0bafdc8cb663d1478e5bd8e66da22a18a26c1f040f47ea95a12fba477948967a",
   "sequence": 1,
   "stage": {
     "stage": "time-grant",
+    "producer": {
+      "service_ref": "coordinator:reference-time",
+      "version": "1",
+      "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
     "mapping_ref": "time.mappings.sim-to-emu",
     "ordering_basis": "partial_order",
     "order_ref": "order:bridge:mixed-edge-partial",
