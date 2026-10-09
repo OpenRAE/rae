@@ -13,7 +13,7 @@ from raes_contracts.contracts import (
     BackendOperationResponseModel,
 )
 from raes_contracts.manifest_authority import validate_backend_supported_contract_versions
-from raes_contracts.versions import BACKEND_OPERATION_CONTRACT_IDS
+from raes_contracts.versions import BACKEND_OPERATION_CONTRACT_IDS, INJECT_OCCURRENCE_BACKEND_CONTRACT_IDS
 
 
 class BackendOperationProvider(Protocol):
@@ -90,4 +90,19 @@ def require_operation_provider(provider: object, declared_contracts: Iterable[st
     return cast(BackendOperationProvider, provider)
 
 
-__all__ = ["BackendOperationProvider", "require_operation_provider"]
+def require_inject_occurrence_provider(provider: object, declared_contracts: Iterable[str]) -> BackendOperationProvider:
+    """Require the inject occurrence/outcome opt-in on an installed operation provider.
+
+    ADR-112 inject execution reuses the one-invocation protocol: the command is
+    the claimed ``inject-occurrence-v1`` and readback is ``inject-occurrence-outcome-v1``.
+    Inject-binding support or plan start is not this declaration, and passing
+    this shape check proves no willingness, effect or conformance.
+    """
+
+    declared = tuple(declared_contracts)
+    if not set(INJECT_OCCURRENCE_BACKEND_CONTRACT_IDS) <= set(declared):
+        raise ValueError("inject occurrence contracts are not declared")
+    return require_operation_provider(provider, declared)
+
+
+__all__ = ["BackendOperationProvider", "require_inject_occurrence_provider", "require_operation_provider"]

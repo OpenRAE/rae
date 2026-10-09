@@ -60,6 +60,7 @@ REFERENCE_BACKEND_SUPPORTED_CONTRACT_VERSIONS = frozenset(
     if contract_id not in {"backend-materialization-attestation-v1", "backend-augmentation-scope-v1"}
     if contract_id
     not in {"experiment-binding-descriptors-v1", "backend-realization-preparation-v1", "plan-realization-profiles-v1"}
+    if contract_id not in {"inject-occurrence-v1", "inject-occurrence-outcome-v1"}
 )
 _TIME_DEDICATED_CONTRACT_VERSIONS = frozenset({"time-model-v1", "time-runtime-state-v1", "realized-time-model-v1"})
 

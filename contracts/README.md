@@ -12,7 +12,8 @@ cancellation dispositions and effect evidence. The
 explains the `operation-supervision` profile and its evidence limits.
 
 The draft [inject trigger and occurrence contracts](../docs/explain/reference/inject-occurrence-contracts.md)
-carry an external inject request and its claimed occurrence under
+carry an external inject request, its claimed occurrence, per-binding readback
+and participant correlation under
 [ADR-112](../docs/decisions/adrs/adr-112-external-inject-triggering-and-execution.md).
 They grant no trigger authority and execute nothing.
 
