@@ -8,20 +8,31 @@ share one implementation.
 
 from __future__ import annotations
 
+from collections import Counter
+from collections.abc import Iterable
 from typing import Any
 
 import yaml
 from pydantic import ValidationError
 
-from ._declarations import DeclarationIndex, build_declaration_index
+from ._base import normalize_enum_value
+from ._declarations import DeclarationIndex, build_declaration_index, operating_scope_aliases, preferred_spelling
 from ._errors import SDLParseError, SDLValidationError
 from ._language_diagnostics import diagnostic as _diagnostic
 from ._language_diagnostics import invalid as _invalid
 from ._language_diagnostics import parse_error as _parse_error
 from ._language_edit import apply_edit
-from ._language_metadata import REFERENCE_COMPLETION_TARGETS, SECTION_FIELD_COMPLETIONS
+from ._language_metadata import REFERENCE_COMPLETION_TARGETS, RELATIONSHIP_ENDPOINT_DOMAIN, SECTION_FIELD_COMPLETIONS
 from ._language_references import find_references
-from ._reference_targetability import is_targetable_section
+from ._reference_targetability import (
+    ReferencePurpose,
+    is_eligible,
+    purpose_for_domain,
+    reference_domain,
+    relationship_endpoint_purpose,
+    resolution_domain,
+    section_declaration_kind,
+)
 from .formatting import format_sdl_source
 from .parser import _load_normalized_data, parse_sdl
 from .scenario import Scenario
@@ -31,7 +42,9 @@ _SCENARIO_METADATA_FIELDS = frozenset(
     {"name", "version", "description", "semantic_revision", "module", "imports", "realization"}
 )
 _SECTION_FIELDS = tuple(field for field in Scenario.model_fields if field not in _SCENARIO_METADATA_FIELDS)
-_TARGETABLE_SECTION_FIELDS = tuple(field for field in _SECTION_FIELDS if is_targetable_section(field))
+# Infrastructure keys mirror node names, so the declaration index gives them no bare alias.
+_QUALIFIED_ONLY_SECTIONS = frozenset({"infrastructure"})
+_SUCCESS_COMPLETION_TARGETS = {"conditions": "conditions"}
 _TOP_LEVEL_KEYS = tuple(Scenario.model_fields)
 
 
@@ -49,12 +62,15 @@ def language_completions(
     data, error = _load_completion_data(sdl_content)
     if error is not None:
         return error
-    declaration_index = _declaration_index_from_data(data)
+    scenario = _scenario_from_data(data)
+    declaration_index = None if scenario is None else build_declaration_index(scenario, raise_on_collision=False)
 
     pointer = _split_pointer_or_empty(cursor_path)
-    target_section = _completion_target_section(pointer)
+    target_section = _completion_target_section(pointer, data)
     if target_section is not None:
-        items = _reference_completion_items(data, target_section, declaration_index=declaration_index)
+        items = _reference_completion_items(
+            data, target_section, scenario=scenario, declaration_index=declaration_index
+        )
         context = f"reference:{target_section}"
     elif len(pointer) == 1 and pointer[0] in SECTION_FIELD_COMPLETIONS:
         section = pointer[0]
@@ -123,12 +139,16 @@ def _try_declaration_index(sdl_content: str) -> DeclarationIndex | None:
     return _declaration_index_from_data(data)
 
 
-def _declaration_index_from_data(data: dict[str, Any]) -> DeclarationIndex | None:
+def _scenario_from_data(data: dict[str, Any]) -> Scenario | None:
     try:
-        scenario = Scenario.model_validate(data)
+        return Scenario.model_validate(data)
     except ValidationError:
         return None
-    return build_declaration_index(scenario, raise_on_collision=False)
+
+
+def _declaration_index_from_data(data: dict[str, Any]) -> DeclarationIndex | None:
+    scenario = _scenario_from_data(data)
+    return None if scenario is None else build_declaration_index(scenario, raise_on_collision=False)
 
 
 def language_format(sdl_content: str) -> dict[str, Any]:
@@ -226,70 +246,112 @@ def _load_completion_data(sdl_content: str) -> tuple[dict[str, Any], dict[str, A
         return {}, _parse_error(exc)
 
 
-def _completion_target_section(pointer: list[str]) -> str | None:
+def _completion_target_section(pointer: list[str], data: dict[str, Any]) -> str | None:
     if len(pointer) < 3:
         return None
-    section = pointer[0]
-    field = pointer[-1]
-    target = REFERENCE_COMPLETION_TARGETS.get((section, field))
-    if target is not None:
-        return target
-    if len(pointer) >= 4 and pointer[-2] == "success":
-        success_targets = {
-            "conditions": "conditions",
-        }
-        return success_targets.get(field)
-    return None
+    target = REFERENCE_COMPLETION_TARGETS.get((pointer[0], pointer[-1]))
+    if target == RELATIONSHIP_ENDPOINT_DOMAIN and len(pointer) == 3:
+        target = reference_domain(relationship_endpoint_purpose(_relationship_type(data, pointer[1])))
+    elif target is None and len(pointer) >= 4 and pointer[-2] == "success":
+        target = _SUCCESS_COMPLETION_TARGETS.get(pointer[-1])
+    return target
+
+
+def _relationship_type(data: dict[str, Any], name: str) -> str:
+    """Return the authored relationship subtype, even in an incomplete document."""
+
+    relationships = data.get("relationships")
+    relationship = relationships.get(name) if isinstance(relationships, dict) else None
+    if not isinstance(relationship, dict):
+        return ""
+    if "participant" in relationship:
+        return "participant"
+    raw_type = relationship.get("type")
+    return normalize_enum_value(raw_type) if isinstance(raw_type, str) else ""
+
+
+def _reference_item(label: str, detail: str) -> dict[str, str]:
+    return {"label": label, "kind": "reference", "detail": detail, "insert_text": label}
+
+
+def _sorted_items(items: Iterable[dict[str, str]]) -> list[dict[str, str]]:
+    return sorted(items, key=lambda item: (item["detail"], item["label"]))
 
 
 def _reference_completion_items(
     data: dict[str, Any],
     target_section: str,
     *,
+    scenario: Scenario | None,
     declaration_index: DeclarationIndex | None,
 ) -> list[dict[str, str]]:
-    if declaration_index is not None and target_section in {"any", "targetable"}:
-        return sorted(
-            (
-                {
-                    "label": spelling,
-                    "kind": "reference",
-                    "detail": declaration.address,
-                    "insert_text": spelling,
-                }
-                for spelling, declaration in declaration_index.reference_completions(
-                    targetable=target_section == "targetable"
-                )
-            ),
-            key=lambda item: (item["detail"], item["label"]),
-        )
-    if target_section == "any":
-        sections = _SECTION_FIELDS
-    elif target_section == "targetable":
-        sections = _TARGETABLE_SECTION_FIELDS
-    elif target_section == "workflow_steps":
+    purpose = purpose_for_domain(target_section)
+    if purpose is not None:
+        return _purpose_completion_items(data, purpose, scenario=scenario, declaration_index=declaration_index)
+    if target_section == "workflow_steps":
         return _workflow_step_completion_items(data)
-    else:
-        sections = (target_section,)
+    section_data = data.get(target_section)
+    names = section_data if isinstance(section_data, dict) else {}
+    return _sorted_items(
+        _reference_item(str(name), f"{target_section}.{name}")
+        for name in names
+        if declaration_index is None or declaration_index.declaration_for(f"{target_section}.{name}") is not None
+    )
 
-    items: list[dict[str, str]] = []
-    for section in sections:
-        section_data = data.get(section)
-        if not isinstance(section_data, dict):
-            continue
-        for name in section_data:
-            detail = f"{section}.{name}"
-            if declaration_index is not None and declaration_index.declaration_for(detail) is None:
-                continue
-            items.append(
-                {
-                    "label": str(name),
-                    "kind": "reference",
-                    "detail": detail,
-                    "insert_text": str(name),
-                }
-            )
-    return sorted(items, key=lambda item: (item["detail"], item["label"]))
+
+def _purpose_completion_items(
+    data: dict[str, Any],
+    purpose: ReferencePurpose,
+    *,
+    scenario: Scenario | None,
+    declaration_index: DeclarationIndex | None,
+) -> list[dict[str, str]]:
+    if purpose is ReferencePurpose.OPERATING_SCOPE:
+        return _operating_scope_completion_items(scenario, declaration_index)
+    if declaration_index is None:
+        return _section_completion_items(data, purpose)
+    return _sorted_items(
+        _reference_item(spelling, declaration.address)
+        for spelling, declaration in declaration_index.reference_completions(purpose)
+    )
+
+
+def _section_completion_items(data: dict[str, Any], purpose: ReferencePurpose) -> list[dict[str, str]]:
+    """Offer top-level entries of an incomplete document through the shared policy.
+
+    A bare label is offered only when the entry has a bare alias and no other
+    entry in the purpose's resolution domain shares it, matching the fail-closed
+    ambiguity rule of validation.
+    """
+
+    domain = resolution_domain(purpose)
+    entries = [
+        (section, str(name))
+        for section in _SECTION_FIELDS
+        if is_eligible(section_declaration_kind(section), domain) and isinstance(data.get(section), dict)
+        for name in data[section]
+    ]
+    counts = Counter(name for section, name in entries if section not in _QUALIFIED_ONLY_SECTIONS)
+    return _sorted_items(
+        _reference_item(
+            name if section not in _QUALIFIED_ONLY_SECTIONS and counts[name] == 1 else f"{section}.{name}",
+            f"{section}.{name}",
+        )
+        for section, name in entries
+        if is_eligible(section_declaration_kind(section), purpose)
+    )
+
+
+def _operating_scope_completion_items(
+    scenario: Scenario | None, declaration_index: DeclarationIndex | None
+) -> list[dict[str, str]]:
+    """Offer operating scopes; node types are known only for a structurally valid document."""
+
+    if scenario is None or declaration_index is None:
+        return []
+    aliases = operating_scope_aliases(declaration_index, scenario)
+    addresses = {address for candidates in aliases.values() for address in candidates}
+    return _sorted_items(_reference_item(preferred_spelling(aliases, address), address) for address in addresses)
 
 
 def _workflow_step_completion_items(data: dict[str, Any]) -> list[dict[str, str]]:

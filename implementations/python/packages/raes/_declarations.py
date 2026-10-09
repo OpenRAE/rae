@@ -10,8 +10,9 @@ from typing import TYPE_CHECKING
 from ._errors import SDLValidationError
 from ._identifiers import QualifiedName
 from ._module_symbols import HASHMAP_SECTIONS
-from ._reference_targetability import is_targetable_section
+from ._reference_targetability import ReferencePurpose, is_eligible, require_eligibility_decision, resolution_domain
 from ._runtime_service_families import RUNTIME_SERVICE_FAMILIES, RuntimeReferenceChild
+from .nodes import NodeType
 from .variation import AlternativeVariationPoint, structural_members
 
 if TYPE_CHECKING:
@@ -27,9 +28,19 @@ class Declaration:
     address: str
     model_path: str
     source: str | None = None
-    referenceable: bool = False
-    targetable: bool = False
     model_tokens: tuple[str, ...] = ()
+
+    @property
+    def referenceable(self) -> bool:
+        """Whether any declared-reference field may name this declaration."""
+
+        return is_eligible(self.kind, ReferencePurpose.DECLARED)
+
+    @property
+    def targetable(self) -> bool:
+        """Whether the explicit general target purpose admits this declaration."""
+
+        return is_eligible(self.kind, ReferencePurpose.TARGETABLE)
 
 
 class DeclarationIndex:
@@ -60,35 +71,39 @@ class DeclarationIndex:
     def resolve(self, reference: str) -> set[str]:
         return set(self._aliases.get(reference, ()))
 
-    def reference_aliases(self, *, targetable: bool = False) -> dict[str, set[str]]:
-        """Return aliases projected through the typed reference policy."""
+    def reference_aliases(self, purpose: ReferencePurpose = ReferencePurpose.DECLARED) -> dict[str, set[str]]:
+        """Return aliases naming a declaration eligible for *purpose*.
 
+        Candidates come from the purpose's resolution domain, so a bare name
+        shared with another declaration in that domain stays ambiguous.
+        """
+
+        domain = resolution_domain(purpose)
         result: dict[str, set[str]] = {}
         for alias, addresses in self._aliases.items():
-            candidates = {
-                address
-                for address in addresses
-                if (
-                    (declaration := self._declarations.get(address)) is not None
-                    and declaration.referenceable
-                    and (declaration.targetable or not targetable)
-                )
-            }
-            if candidates:
+            candidates = self._eligible(addresses, domain)
+            if candidates and (domain is purpose or self._eligible(candidates, purpose)):
                 result[alias] = candidates
         return result
 
-    def reference_completions(self, *, targetable: bool = False) -> tuple[tuple[str, Declaration], ...]:
-        """Return one unambiguous preferred spelling per reference declaration."""
+    def _eligible(self, addresses: set[str], purpose: ReferencePurpose) -> set[str]:
+        return {
+            address
+            for address in addresses
+            if (declaration := self._declarations.get(address)) is not None and is_eligible(declaration.kind, purpose)
+        }
 
-        aliases = self.reference_aliases(targetable=targetable)
+    def reference_completions(
+        self, purpose: ReferencePurpose = ReferencePurpose.DECLARED
+    ) -> tuple[tuple[str, Declaration], ...]:
+        """Return one unambiguous preferred spelling per declaration eligible for *purpose*."""
+
+        aliases = self.reference_aliases(purpose)
         completions: list[tuple[str, Declaration]] = []
         for declaration in self.declarations:
-            if not declaration.referenceable or (targetable and not declaration.targetable):
+            if not is_eligible(declaration.kind, purpose):
                 continue
-            spellings = [alias for alias, candidates in aliases.items() if candidates == {declaration.address}]
-            spelling = min(spellings, key=lambda value: (value.count("."), len(value), value))
-            completions.append((spelling, declaration))
+            completions.append((preferred_spelling(aliases, declaration.address), declaration))
         return tuple(completions)
 
     def spellings_for(self, reference: str) -> frozenset[str]:
@@ -119,6 +134,13 @@ class DeclarationIndex:
             raise SDLValidationError(list(dict.fromkeys(self._collisions)))
 
 
+def preferred_spelling(aliases: dict[str, set[str]], address: str) -> str:
+    """Return the shortest alias that names only *address* (its canonical address at worst)."""
+
+    spellings = [alias for alias, candidates in aliases.items() if candidates == {address}]
+    return min(spellings, key=lambda value: (value.count("."), len(value), value))
+
+
 def _address(*parts: str) -> str:
     return ".".join(parts)
 
@@ -134,17 +156,14 @@ def _add(
     address_parts: tuple[str, ...],
     model_path: tuple[str, ...],
     aliases: Iterable[str] = (),
-    referenceable: bool = False,
-    targetable: bool = False,
 ) -> None:
+    require_eligibility_decision(kind)
     index.add(
         Declaration(
             kind=kind,
             address=_address(*address_parts),
             model_path=".".join(model_path),
             model_tokens=model_path,
-            referenceable=referenceable,
-            targetable=targetable,
         ),
         aliases=aliases,
     )
@@ -167,8 +186,6 @@ def _add_entities(
             address_parts=("entities", *entity_parts),
             model_path=(*model_prefix, name),
             aliases=(relative_name,),
-            referenceable=True,
-            targetable=True,
         )
         _add_entities(
             index,
@@ -195,8 +212,6 @@ def _add_runtime_children(
                 kind=f"runtime-{child_spec.collection_name}",
                 address_parts=child_parts,
                 model_path=(*model_prefix, child_spec.collection_name, str(position), child_spec.id_field),
-                referenceable=True,
-                targetable=True,
             )
             _add_runtime_children(
                 index,
@@ -216,8 +231,6 @@ def _add_node_declarations(index: DeclarationIndex, scenario: ScenarioContent) -
             address_parts=("nodes", *node_parts),
             model_path=("nodes", node_name),
             aliases=(node_name,),
-            referenceable=True,
-            targetable=True,
         )
         for role_name in node.roles:
             _add(
@@ -233,8 +246,6 @@ def _add_node_declarations(index: DeclarationIndex, scenario: ScenarioContent) -
                     kind="service",
                     address_parts=("nodes", *node_parts, "services", service.name),
                     model_path=("nodes", node_name, "services", str(position), "name"),
-                    referenceable=True,
-                    targetable=True,
                 )
         runtime = node.runtime
         if runtime is None:
@@ -254,8 +265,6 @@ def _add_node_declarations(index: DeclarationIndex, scenario: ScenarioContent) -
                     kind=f"runtime-{family.collection_name}",
                     address_parts=runtime_parts,
                     model_path=("nodes", node_name, "runtime", family.collection_name, str(position), family.id_field),
-                    referenceable=True,
-                    targetable=True,
                 )
                 _add_runtime_children(
                     index,
@@ -266,39 +275,6 @@ def _add_node_declarations(index: DeclarationIndex, scenario: ScenarioContent) -
                 )
 
 
-_REFERENCEABLE_SECTIONS = frozenset(
-    {
-        "features",
-        "conditions",
-        "propositions",
-        "assertions",
-        "injects",
-        "events",
-        "scripts",
-        "stories",
-        "generated_artifacts",
-        "persistent_volumes",
-        "accounts",
-        "identity_domains",
-        "identity_forests",
-        "identity_facades",
-        "deployment_tenants",
-        "deployment_cells",
-        "relationships",
-        "agents",
-        "action_contracts",
-        "observation_boundaries",
-        "behavior_specifications",
-        "evidence_requirements",
-        "time_domains",
-        "clocks",
-        "time_domain_mappings",
-        "time_progression_policies",
-        "temporal_constraints",
-        "objectives",
-        "variation_points",
-    }
-)
 _SPECIAL_SECTIONS = frozenset({"nodes", "infrastructure", "entities", "content", "workflows"})
 
 
@@ -307,15 +283,12 @@ def _add_section_declarations(index: DeclarationIndex, scenario: ScenarioContent
         if section_name in _SPECIAL_SECTIONS or section_name == "variables":
             continue
         for name in getattr(scenario, section_name, {}):
-            referenceable = section_name in _REFERENCEABLE_SECTIONS
             _add(
                 index,
                 kind=section_name,
                 address_parts=(section_name, *_qualified_parts(name)),
                 model_path=(section_name, name),
                 aliases=(name,),
-                referenceable=referenceable,
-                targetable=referenceable and is_targetable_section(section_name),
             )
 
 
@@ -333,7 +306,6 @@ def _add_tool_affordance_declarations(index: DeclarationIndex, scenario: Scenari
                     affordance_id,
                 ),
                 model_path=("behavior_specifications", spec_name, "tool_affordances", affordance_id),
-                referenceable=True,
             )
 
 
@@ -354,8 +326,6 @@ def _add_participant_inject_delivery_declarations(
                     binding_id,
                 ),
                 model_path=("behavior_specifications", spec_name, "participant_inject_deliveries", binding_id),
-                referenceable=True,
-                targetable=True,
             )
 
 
@@ -367,7 +337,6 @@ def _add_variable_declarations(index: DeclarationIndex, scenario: ScenarioConten
             address_parts=("variables", name),
             model_path=("variables", name),
             aliases=(name,),
-            referenceable=True,
         )
 
 
@@ -379,8 +348,6 @@ def _add_infrastructure_declarations(index: DeclarationIndex, scenario: Scenario
             kind="infrastructure",
             address_parts=("infrastructure", *parts),
             model_path=("infrastructure", name),
-            referenceable=True,
-            targetable=True,
         )
         for position, acl in enumerate(infrastructure.acls):
             if acl.name:
@@ -389,8 +356,6 @@ def _add_infrastructure_declarations(index: DeclarationIndex, scenario: Scenario
                     kind="infrastructure-acl",
                     address_parts=("infrastructure", *parts, "acls", acl.name),
                     model_path=("infrastructure", name, "acls", str(position), "name"),
-                    referenceable=True,
-                    targetable=True,
                 )
 
 
@@ -403,8 +368,6 @@ def _add_content_declarations(index: DeclarationIndex, scenario: ScenarioContent
             address_parts=("content", *parts),
             model_path=("content", name),
             aliases=(name,),
-            referenceable=True,
-            targetable=True,
         )
         for position, item in enumerate(content.items):
             _add(
@@ -413,8 +376,6 @@ def _add_content_declarations(index: DeclarationIndex, scenario: ScenarioContent
                 address_parts=("content", *parts, "items", item.name),
                 model_path=("content", name, "items", str(position), "name"),
                 aliases=(item.name,),
-                referenceable=True,
-                targetable=True,
             )
 
 
@@ -427,7 +388,6 @@ def _add_workflow_declarations(index: DeclarationIndex, scenario: ScenarioConten
             address_parts=("workflows", *parts),
             model_path=("workflows", name),
             aliases=(name,),
-            referenceable=True,
         )
         for step_name in workflow.steps:
             _add(
@@ -446,8 +406,6 @@ def _add_forwarding_agent_declarations(index: DeclarationIndex, scenario: Scenar
             kind="forwarding-agent",
             address_parts=("forwarding_agents", *_qualified_parts(agent.forwarding_agent_id)),
             model_path=("forwarding_agents", str(position), "forwarding_agent_id"),
-            referenceable=True,
-            targetable=True,
         )
 
 
@@ -461,7 +419,6 @@ def _add_variation_member_declarations(index: DeclarationIndex, scenario: Scenar
                 address_parts=("variation_points", *_qualified_parts(point_name), container, member_name),
                 model_path=("variation_points", point_name, container, member_name),
                 aliases=(f"{point_name}.{member_name}",),
-                referenceable=True,
             )
 
 
@@ -496,4 +453,44 @@ def build_declaration_index(
     return index
 
 
-__all__ = ["Declaration", "DeclarationIndex", "build_declaration_index"]
+def operating_scope_aliases(index: DeclarationIndex, scenario: ScenarioContent) -> dict[str, set[str]]:
+    """Project the operating-scope purpose through the shared reference policy.
+
+    The policy admits node, infrastructure, service, and content declarations.
+    Operating scope further keeps only compute hosts and switch-backed subnets,
+    and, unlike general references, also resolves bare service and subnet names.
+    """
+
+    aliases: dict[str, set[str]] = defaultdict(set)
+    for declaration in index.declarations:
+        if not is_eligible(declaration.kind, ReferencePurpose.OPERATING_SCOPE):
+            continue
+        local_name = _operating_scope_local_name(scenario, declaration)
+        if local_name:
+            aliases[declaration.address].add(declaration.address)
+            aliases[local_name].add(declaration.address)
+    return dict(aliases)
+
+
+# Nested scope kinds carry their own local name: (owner section, item collection).
+_SCOPE_ITEMS = {"service": ("nodes", "services"), "content-item": ("content", "items")}
+_SCOPE_NODE_TYPES = {"node": NodeType.COMPUTE, "infrastructure": NodeType.SWITCH}
+
+
+def _operating_scope_local_name(scenario: ScenarioContent, declaration: Declaration) -> str | None:
+    tokens = declaration.model_tokens
+    if declaration.kind in _SCOPE_ITEMS:
+        section, collection = _SCOPE_ITEMS[declaration.kind]
+        return getattr(getattr(scenario, section)[tokens[1]], collection)[int(tokens[3])].name
+    required = _SCOPE_NODE_TYPES.get(declaration.kind)
+    node = scenario.nodes.get(tokens[1]) if required is not None else None
+    return None if required is not None and (node is None or node.type != required) else tokens[1]
+
+
+__all__ = [
+    "Declaration",
+    "DeclarationIndex",
+    "build_declaration_index",
+    "operating_scope_aliases",
+    "preferred_spelling",
+]

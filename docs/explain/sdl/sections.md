@@ -2142,7 +2142,10 @@ Refs fail closed: participants must resolve to declared `agents`, roles must
 match roles of agent-bound entities, action contracts and observation
 boundaries must resolve to their registries, outcome rules must resolve to
 `outcome_interpretation_rules`, and `authority_scope_refs` must resolve to
-targetable named scenario elements. `behavior_mode` is validated against the
+eligible authority scopes: participants, organizations, resources,
+relationships, or behavior surfaces such as action contracts and observation
+boundaries, never propositions, assertions, conditions, narrative entries, or
+variation points. `behavior_mode` is validated against the
 governed `participant-decision-surface-modes` vocabulary.
 External behavior classifications use standalone concept binding documents.
 ATT&CK, ATLAS and NIST CSF remain optional pinned source catalogs, not governed

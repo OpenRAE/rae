@@ -2,20 +2,43 @@
 
 from __future__ import annotations
 
-from collections.abc import Collection
+from collections.abc import Collection, Mapping
+from dataclasses import dataclass
 from typing import Any
 
 from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
 
+from ._base import normalize_enum_value
 from ._declarations import DeclarationIndex
 from ._errors import SDLParseError
 from ._identifiers import QualifiedName
 from ._language_diagnostics import parse_error as _parse_error
-from ._language_metadata import REFERENCE_COMPLETION_TARGETS
-from ._reference_targetability import is_targetable_section
+from ._language_metadata import REFERENCE_COMPLETION_TARGETS, RELATIONSHIP_ENDPOINT_DOMAIN
+from ._reference_targetability import (
+    is_eligible,
+    purpose_for_domain,
+    reference_domain,
+    relationship_endpoint_purpose,
+    section_declaration_kind,
+)
 from ._yaml_loader import compose_sdl_yaml
 
 _SUCCESS_REFERENCE_TARGETS = frozenset({"assertions"})
+
+
+@dataclass(frozen=True)
+class _SymbolScope:
+    """The reference fields that may name one qualified symbol, per the shared policy."""
+
+    section: str
+    kind: str
+    relationship_types: Mapping[str, str]
+
+    def admits(self, target: str | None) -> bool:
+        if target == self.section:
+            return True
+        purpose = purpose_for_domain(target) if target is not None else None
+        return purpose is not None and is_eligible(self.kind, purpose)
 
 
 def find_references(
@@ -62,19 +85,38 @@ def _reference_result(
     )
     if declaration_index is not None and _is_variation_member_symbol(symbol):
         spellings = frozenset({*spellings, _bare_symbol(symbol)})
-    _collect_occurrences(
-        root,
-        spellings,
-        [],
-        occurrences,
-        qualified_section=_qualified_symbol_section(symbol),
-    )
+    _collect_occurrences(root, spellings, [], occurrences, scope=_symbol_scope(root, symbol, declaration_index))
     return {
         "status": "ok",
         "symbol": symbol,
         "definitions": [item for item in definitions if _definition_matches_symbol(item, symbol)],
         "occurrences": occurrences,
     }
+
+
+def _symbol_scope(root: Node, symbol: str, declaration_index: DeclarationIndex | None) -> _SymbolScope | None:
+    section = _qualified_symbol_section(symbol)
+    if section is None:
+        return None
+    declaration = declaration_index.declaration_for(symbol) if declaration_index is not None else None
+    kind = declaration.kind if declaration is not None else section_declaration_kind(section)
+    return _SymbolScope(section=section, kind=kind, relationship_types=_relationship_types(root))
+
+
+def _relationship_types(root: Node) -> dict[str, str]:
+    relationships = _mapping_child(root, "relationships") if isinstance(root, MappingNode) else None
+    if not isinstance(relationships, MappingNode):
+        return {}
+    types: dict[str, str] = {}
+    for key_node, value_node in relationships.value:
+        name = _scalar_value(key_node)
+        if name is None or not isinstance(value_node, MappingNode):
+            continue
+        raw_type = _mapping_child(value_node, "type")
+        authored = _scalar_value(raw_type) if raw_type is not None else None
+        is_participant = _mapping_child(value_node, "participant") is not None
+        types[name] = "participant" if is_participant else normalize_enum_value(authored or "")
+    return types
 
 
 def _compose_yaml(sdl_content: str) -> tuple[Node | None, dict[str, Any] | None]:
@@ -161,7 +203,7 @@ def _collect_occurrences(
     path: list[str],
     occurrences: list[dict[str, Any]],
     *,
-    qualified_section: str | None,
+    scope: _SymbolScope | None,
 ) -> None:
     if isinstance(node, MappingNode):
         _collect_mapping_occurrences(
@@ -169,7 +211,7 @@ def _collect_occurrences(
             spellings,
             path,
             occurrences,
-            qualified_section=qualified_section,
+            scope=scope,
         )
         return
 
@@ -179,7 +221,7 @@ def _collect_occurrences(
             spellings,
             path,
             occurrences,
-            qualified_section=qualified_section,
+            scope=scope,
         )
         return
 
@@ -189,7 +231,7 @@ def _collect_occurrences(
             spellings,
             path,
             occurrences,
-            qualified_section=qualified_section,
+            scope=scope,
         )
 
 
@@ -199,7 +241,7 @@ def _collect_mapping_occurrences(
     path: list[str],
     occurrences: list[dict[str, Any]],
     *,
-    qualified_section: str | None,
+    scope: _SymbolScope | None,
 ) -> None:
     for key_node, value_node in node.value:
         key = _scalar_value(key_node)
@@ -208,7 +250,7 @@ def _collect_mapping_occurrences(
             key,
             spellings,
             key_path,
-            qualified_section=qualified_section,
+            scope=scope,
             mapping_key=True,
         ):
             _append_occurrence(
@@ -223,7 +265,7 @@ def _collect_mapping_occurrences(
             spellings,
             key_path,
             occurrences,
-            qualified_section=qualified_section,
+            scope=scope,
         )
 
 
@@ -233,7 +275,7 @@ def _collect_sequence_occurrences(
     path: list[str],
     occurrences: list[dict[str, Any]],
     *,
-    qualified_section: str | None,
+    scope: _SymbolScope | None,
 ) -> None:
     for index, item in enumerate(node.value):
         _collect_occurrences(
@@ -241,7 +283,7 @@ def _collect_sequence_occurrences(
             spellings,
             [*path, str(index)],
             occurrences,
-            qualified_section=qualified_section,
+            scope=scope,
         )
 
 
@@ -251,14 +293,14 @@ def _append_scalar_occurrence(
     path: list[str],
     occurrences: list[dict[str, Any]],
     *,
-    qualified_section: str | None,
+    scope: _SymbolScope | None,
 ) -> None:
     value = _scalar_value(node)
     if _is_matching_occurrence(
         value,
         spellings,
         path,
-        qualified_section=qualified_section,
+        scope=scope,
         mapping_key=False,
     ):
         _append_occurrence(
@@ -275,7 +317,7 @@ def _is_matching_occurrence(
     spellings: Collection[str],
     path: list[str],
     *,
-    qualified_section: str | None,
+    scope: _SymbolScope | None,
     mapping_key: bool,
 ) -> bool:
     return (
@@ -283,7 +325,7 @@ def _is_matching_occurrence(
         and value in spellings
         and _include_occurrence(
             path,
-            qualified_section=qualified_section,
+            scope=scope,
             mapping_key=mapping_key,
         )
     )
@@ -346,29 +388,33 @@ def _is_variation_member_symbol(symbol: str) -> bool:
 def _include_occurrence(
     path: list[str],
     *,
-    qualified_section: str | None,
+    scope: _SymbolScope | None,
     mapping_key: bool,
 ) -> bool:
-    if qualified_section is None:
+    if scope is None:
         return True
-    target = _reference_target_for_path(path, mapping_key=mapping_key)
-    if target in {qualified_section, "any"}:
-        return True
-    return target == "targetable" and is_targetable_section(qualified_section)
+    return scope.admits(
+        _reference_target_for_path(path, mapping_key=mapping_key, relationship_types=scope.relationship_types)
+    )
 
 
-def _reference_target_for_path(path: list[str], *, mapping_key: bool) -> str | None:
+def _reference_target_for_path(
+    path: list[str], *, mapping_key: bool, relationship_types: Mapping[str, str]
+) -> str | None:
     if len(path) < 3:
         return None
     field = path[-2] if mapping_key or path[-1].isdigit() else path[-1]
     target = REFERENCE_COMPLETION_TARGETS.get((path[0], field))
-    if target is not None:
-        return target
+    if target == RELATIONSHIP_ENDPOINT_DOMAIN and len(path) == 3:
+        target = reference_domain(relationship_endpoint_purpose(relationship_types.get(path[1], "")))
+    return target if target is not None else _implicit_reference_target(path, field)
+
+
+def _implicit_reference_target(path: list[str], field: str) -> str | None:
     if path[0] == "variation_points" and field == "members":
         return "variation_points"
-    if len(path) >= 4 and path[-2] == "success":
-        return field if field in _SUCCESS_REFERENCE_TARGETS else None
-    return None
+    is_success_ref = len(path) >= 4 and path[-2] == "success" and field in _SUCCESS_REFERENCE_TARGETS
+    return field if is_success_ref else None
 
 
 def _bare_symbol(symbol: str) -> str:

@@ -1,5 +1,6 @@
 """Participant relationship endpoint and refinement agreement checks."""
 
+from .._reference_targetability import ReferencePurpose
 from ..participant_behavior_specification import MixedControlControllerState, MixedControlParticipantOperation
 from ..participant_relationships import PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS, ParticipantRelationship
 from ..relationships import Relationship
@@ -15,12 +16,7 @@ class _ParticipantRelationshipsMixin:
             if self._is_unresolved_var(ref):
                 endpoints.append(None)
                 continue
-            resolved = resolve_section_ref(ref, "agents", self._s.agents)
-            candidates = self._named_ref_index(targetable=True).get(ref, set())
-            if resolved is None or candidates != {f"agents.{resolved}"}:
-                self._err(f"{label} {field} participant endpoint must resolve unambiguously to a declared agent")
-                resolved = None
-            endpoints.append(resolved)
+            endpoints.append(self._participant_endpoint(label, field, ref))
         source, target = endpoints
         if source is not None and source == target:
             self._err(f"{label} requires distinct participants")
@@ -36,6 +32,18 @@ class _ParticipantRelationshipsMixin:
         self._participant_relation_scope(label, detail, source, target)
         self._participant_relation_visibility(label, detail, source)
         self._participant_relation_control(label, detail, source, target)
+
+    def _participant_endpoint(self, label: str, field: str, ref: str) -> str | None:
+        """Resolve in the shared relationship-endpoint domain, then require a participant."""
+
+        candidates = self._named_ref_index(ReferencePurpose.PARTICIPANT_ENDPOINT).get(ref, set())
+        declaration = (
+            self._require_declaration_index().declaration_for(next(iter(candidates))) if len(candidates) == 1 else None
+        )
+        if declaration is None:
+            self._err(f"{label} {field} participant endpoint must resolve unambiguously to a declared agent")
+            return None
+        return declaration.model_tokens[1]
 
     def _participant_relation_control(
         self,
@@ -207,12 +215,14 @@ class _ParticipantRelationshipsMixin:
         detail: ParticipantRelationship,
         source: str | None,
     ) -> None:
-        index = self._named_ref_index()
+        index = self._named_ref_index(ReferencePurpose.AUTHORITY_ANCHOR)
         self._participant_relation_unique_named_refs(label, "authority_basis_refs", detail.authority_basis_refs, index)
         for ref in detail.authority_basis_refs:
             if self._is_unresolved_var(ref):
                 continue
-            self._validate_named_ref(ref, owner_label=label, ref_label="authority_basis_refs")
+            self._validate_named_ref(
+                ref, owner_label=label, ref_label="authority_basis_refs", purpose=ReferencePurpose.AUTHORITY_ANCHOR
+            )
             if source is not None:
                 anchors = self._s.agents[source].authority_anchors
                 authority = self._resolved_mixed_control_refs(anchors, index=index)
