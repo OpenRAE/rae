@@ -1,4 +1,4 @@
-# Migrating to Purpose-Specific Reference Eligibility
+# Migrating to purpose-specific reference eligibility
 
 Issue #1339 replaces the exclusion-based `targetable` rule with an explicit
 eligibility decision for each reference purpose. The
@@ -19,20 +19,25 @@ before.
 An effect `target_refs[]` entry that names no declaration keeps working. It is
 observation-boundary information, and recorded action results check it against
 the participant's observation boundary as before. Only an entry that names a
-declaration must name an eligible action target.
+declaration must name an eligible action target, and like the other fields it
+must name exactly one targetable declaration.
 
-A bare reference now resolves among the declarations its purpose admits. A
-name that was ambiguous only because an ineligible declaration shared it now
-resolves; a name shared by two eligible declarations stays ambiguous and needs
-the qualified form. Participant relationship endpoints keep the stricter rule:
-a bare name that also names an organization or resource is ambiguous, so write
+Narrowing only refuses references; it never makes a bare name resolve that did
+not resolve before. A bare reference in these fields resolves among every
+targetable declaration, and then the single match must be eligible. A bare
+name that a refused declaration shares, such as a node and a condition that
+are both named `web`, stays ambiguous and needs the qualified form
+(`nodes.web`). Participant relationship endpoints follow the same rule: a bare
+name that also names an organization or resource is ambiguous, so write
 `agents.<name>`.
 
 A refused reference fails semantic validation as dangling, and the diagnostic
-names the refused declaration and purpose, for example
+names the purpose and the declaration that the reference does name, for example
 `Action contract 'probe' interaction[0] target 'assertions.done' does not
-reference any defined targetable element; assertions.done is not eligible as an
-action target`. Instantiation reports the same diagnostic for a substituted
+reference any defined element eligible as an action target; it names
+assertions.done`. Unresolved references in the fields that do not narrow keep
+their wording and gain the same `; it names` detail when they name a
+declaration. Instantiation reports the same diagnostic for a substituted
 variable value, and composition reports it under the import namespace.
 
 There is no compatibility reader. Rewrite a refused reference by hand with the
@@ -65,8 +70,9 @@ The 101 documents that parse structurally name these declaration kinds:
 No accepted reference narrows. The organization endpoint is
 `contracts/fixtures/sdl/participant-relationships-v1/invalid/entity-endpoint.yaml`,
 which was already rejected. The 101 test modules that author these fields pass
-with their inline scenarios unchanged; three existing tests changed only to
-expect the new completion context names and catalog domain tokens.
+with their inline scenarios unchanged; seven existing tests changed only to
+expect the new completion context names, catalog domain tokens, and diagnostic
+wording.
 
 ## Editor behavior
 
@@ -78,9 +84,10 @@ expect the new completion context names and catalog domain tokens.
   relationship `scope_refs` complete operating scopes, and temporal-constraint
   subjects complete every declared reference, matching their validators.
 - Completion offers one unambiguous spelling per eligible declaration, and
-  qualifies a bare name that another eligible declaration shares. Documents
-  that do not validate yet use the same purposes; infrastructure entries are
-  offered only in qualified form because they have no bare alias.
+  qualifies a bare name that validation would find ambiguous, including one
+  shared with a refused declaration. Documents that do not validate yet use the
+  same purposes; infrastructure entries are offered only in qualified form
+  because they have no bare alias.
 - Navigation counts an occurrence only where the field's purpose admits the
   symbol's declaration kind.
 

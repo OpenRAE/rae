@@ -541,11 +541,15 @@ before any field can name it.
 
 Rules:
 
-1. A bare reference resolves among the declarations its purpose admits. A
-   participant endpoint resolves among relationship-endpoint candidates and then
-   requires the single match to be an agent, so a bare name shared with an
-   organization or resource stays ambiguous. Qualified references resolve by
-   exact canonical address (§2).
+1. A bare reference resolves within its purpose's resolution domain, and the
+   single match must then be eligible. Objective subjects, action targets,
+   shared state, and authority scopes resolve among all targetable
+   declarations, so a bare name that a refused targetable declaration shares
+   stays ambiguous: narrowing only refuses references. A participant endpoint
+   likewise resolves among relationship-endpoint candidates and then requires
+   an agent, so a bare name shared with an organization or resource stays
+   ambiguous. Every other purpose resolves among the declarations it admits.
+   Qualified references resolve by exact canonical address (§2).
 2. A reference that names only declarations its purpose does not admit fails as
    dangling (§4), and the diagnostic names those declarations and the purpose.
 3. An effect `target_refs[]` entry that names no declaration is

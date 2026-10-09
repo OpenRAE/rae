@@ -11,7 +11,8 @@ from raes import SDLInstantiationError, SDLValidationError, instantiate_scenario
 from raes import _reference_targetability as policy
 from raes._declarations import build_declaration_index
 from raes._module_symbols import HASHMAP_SECTIONS
-from raes_processor.compiler import compile_scenario_runtime_model
+from raes_processor.compiler import compile_runtime_model, compile_scenario_runtime_model
+from test_dsl_142_participant_inject_delivery import BINDING_ADDRESS, _external_direction_yaml
 
 _PROPOSITION = {
     "description": "The web host is ready.",
@@ -25,6 +26,9 @@ _PROPOSITION = {
         "expected": True,
     },
 }
+_CONDITION = {"command": "true", "interval": 5}
+_PAIR = {"type": "participant", "source": "red", "target": "blue", "participant": {"kind": "cooperation"}}
+_AMBIGUOUS_WEB = "'web' is ambiguous; use one of: conditions.web, nodes.web"
 
 # Reference fields by purpose, as paths into _payload().
 FIELDS = {
@@ -50,7 +54,7 @@ def _payload() -> dict:
                 }
             },
             "entities": {"org": {"role": "blue"}},
-            "conditions": {"alive": {"command": "true", "interval": 5}},
+            "conditions": {"alive": _CONDITION},
             "injects": {"notice": {"from_entity": "org", "to_entities": ["org"]}},
             "propositions": {"ready": _PROPOSITION},
             "assertions": {"done": {"proposition": "ready", "role": "postcondition"}},
@@ -129,6 +133,18 @@ def _parse(payload: dict):
     return parse_sdl(yaml.safe_dump(payload))
 
 
+def _refusal(purpose_label: str, ref: str) -> str:
+    return f"does not reference any defined element eligible as {purpose_label}; it names {ref}"
+
+
+def _with_condition_named_web(payload: dict) -> dict:
+    """Share the node's bare name with a declaration that no narrowed purpose admits."""
+
+    payload["conditions"]["web"] = deepcopy(_CONDITION)
+    payload["relationships"]["link"]["source"] = "nodes.web"
+    return payload
+
+
 def test_every_indexed_section_and_runtime_family_has_an_explicit_decision() -> None:
     decided = policy.DECLARATION_CATEGORIES.keys() | policy.UNREFERENCEABLE_KINDS
     section_kinds = {policy.section_declaration_kind(section) for section in HASHMAP_SECTIONS}
@@ -137,6 +153,8 @@ def test_every_indexed_section_and_runtime_family_has_an_explicit_decision() -> 
     assert {policy.DECLARATION_CATEGORIES[kind] for kind in policy.RUNTIME_INVENTORY_KINDS} == {
         policy.DeclarationCategory.RESOURCE
     }
+    for purpose in policy.ReferencePurpose:
+        assert policy.ELIGIBLE_KINDS[purpose] <= policy.ELIGIBLE_KINDS[policy.resolution_domain(purpose)]
 
 
 def test_an_unclassified_kind_is_eligible_for_nothing_and_cannot_register(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -170,7 +188,7 @@ def test_an_unclassified_kind_is_eligible_for_nothing_and_cannot_register(monkey
         ("shared-state", "agents.blue", "shared state"),
         ("shared-state", "entities.org", "shared state"),
         ("effect", "agents.blue", None),
-        ("effect", "content.private-answer-key", None),
+        ("effect", "content.answer-key", None),
         ("effect", "assertions.done", "an action target"),
         ("authority-scope", "action_contracts.probe", None),
         ("authority-scope", "observation_boundaries.view", None),
@@ -181,13 +199,23 @@ def test_an_unclassified_kind_is_eligible_for_nothing_and_cannot_register(monkey
 )
 def test_each_reference_purpose_admits_only_its_declaration_kinds(field: str, ref: str, refused_as: str | None) -> None:
     payload = _set(_payload(), FIELDS[field], ref)
+    payload["content"] = {"answer-key": {"type": "file", "target": "web", "path": "/opt/key.txt", "text": "key"}}
 
     if refused_as is None:
         assert compile_scenario_runtime_model(_parse(payload)) is not None
         return
     with pytest.raises(SDLValidationError) as caught:
         _parse(payload)
-    assert any(f"{ref} is not eligible as {refused_as}" in error for error in caught.value.errors)
+    assert any(_refusal(refused_as, ref) in error for error in caught.value.errors)
+
+
+def test_an_effect_ref_that_names_no_declaration_stays_boundary_information() -> None:
+    payload = _set(_payload(), FIELDS["effect"], "content.private-answer-key")
+
+    model = compile_scenario_runtime_model(_parse(payload))
+
+    effect = model.action_contracts["participant.action-contract.probe"].spec["effects"][0]
+    assert effect["target_refs"] == ["content.private-answer-key"]
 
 
 def test_a_targeted_participant_gains_no_participation_authority_or_visibility() -> None:
@@ -203,25 +231,15 @@ def test_a_targeted_participant_gains_no_participation_authority_or_visibility()
     red = model.participant_behaviors["participant.behavior.red"]
     assert red.action_contract_addresses == ("participant.action-contract.probe",)
     assert red.authority_anchor_refs == ()
-    payload["relationships"]["pair"] = {
-        "type": "participant",
-        "source": "red",
-        "target": "entities.org",
-        "participant": {"kind": "cooperation"},
-    }
+    payload["relationships"]["pair"] = {**_PAIR, "target": "entities.org"}
     with pytest.raises(SDLValidationError, match="target participant endpoint must resolve unambiguously"):
         _parse(payload)
 
 
-def test_bare_names_resolve_among_the_declarations_each_purpose_admits() -> None:
+def test_a_bare_name_shared_by_two_eligible_declarations_needs_the_qualified_form() -> None:
     payload = _payload()
     payload["entities"]["blue"] = {"role": "blue"}
-    payload["relationships"]["pair"] = {
-        "type": "participant",
-        "source": "red",
-        "target": "blue",
-        "participant": {"kind": "cooperation"},
-    }
+    payload["relationships"]["pair"] = deepcopy(_PAIR)
     _set(payload, FIELDS["interaction"], "blue")
     with pytest.raises(SDLValidationError) as caught:
         _parse(payload)
@@ -230,25 +248,56 @@ def test_bare_names_resolve_among_the_declarations_each_purpose_admits() -> None
         "Action contract 'probe' interaction[0] target 'blue' is ambiguous; use one of: agents.blue, entities.blue",
     ]
     payload["relationships"]["pair"]["target"] = "agents.blue"
-    _parse(_set(payload, FIELDS["interaction"], "agents.blue"))
 
-    shared = _payload()
-    shared["propositions"]["web"] = deepcopy(_PROPOSITION)
-    shared["relationships"]["link"]["source"] = "nodes.web"
-    _parse(_set(shared, FIELDS["interaction"], "web"))
-    ambiguous = _set(shared, FIELDS["objective"], "web")
-    with pytest.raises(SDLValidationError, match="target 'web' is ambiguous; use one of: nodes.web, propositions.web"):
-        _parse(ambiguous)
+    model = compile_scenario_runtime_model(_parse(_set(payload, FIELDS["interaction"], "agents.blue")))
+
+    assert (
+        model.action_contracts["participant.action-contract.probe"].spec["interactions"][0]["target"] == "agents.blue"
+    )
+
+
+@pytest.mark.parametrize("field", ["objective", "interaction", "shared-state", "effect", "authority-scope"])
+def test_a_bare_name_shared_with_an_ineligible_declaration_stays_ambiguous(field: str) -> None:
+    """Narrowing only refuses: the bare name resolves where it did before, so it never compiles to nothing."""
+
+    payload = _with_condition_named_web(_payload())
+    bare = _set(deepcopy(payload), FIELDS[field], "web")
+    with pytest.raises(SDLValidationError) as caught:
+        _parse(bare)
+    (error,) = caught.value.errors
+    assert error.endswith(_AMBIGUOUS_WEB)
+
+    model = compile_scenario_runtime_model(_parse(_set(payload, FIELDS[field], "nodes.web")))
+
+    behavior = model.behavior_specifications["participant.behavior-specification.red-behavior"]
+    assert behavior.authority_scope_addresses == ("provision.node.web",)
+
+
+def test_bare_mixed_control_and_delivery_scopes_shared_with_a_condition_are_refused() -> None:
+    source = (
+        _external_direction_yaml()
+        .replace("\nentities:\n", '\nconditions:\n  web:\n    command: "true"\n    interval: 5\nentities:\n', 1)
+        .replace("scope_refs: [web, entities.blue-team]", "scope_refs: [nodes.web, entities.blue-team]")
+    )
+    delivery = compile_runtime_model(parse_sdl(source)).participant_inject_deliveries[BINDING_ADDRESS]
+    assert delivery.control_authority_scope_addresses == ("provision.node.web",)
+    bare = source.replace("          scope_refs: [nodes.web]\n", "          scope_refs: [web]\n").replace(
+        "control_authority_scope_refs: [nodes.web]", "control_authority_scope_refs: [web]"
+    )
+
+    with pytest.raises(SDLValidationError) as caught:
+        parse_sdl(bare)
+
+    assert [error for error in caught.value.errors if error.endswith(_AMBIGUOUS_WEB)] == [
+        f"Behavior specification 'red-briefing' mixed_control controller state '{state}' scope_ref {_AMBIGUOUS_WEB}"
+        for state in ("autonomous", "pending", "directed")
+    ]
 
 
 def _module_payload() -> dict:
     payload = _payload()
-    payload["relationships"]["pair"] = {
-        "type": "participant",
-        "source": "red",
-        "target": "blue",
-        "participant": {"kind": "cooperation"},
-    }
+    payload["relationships"]["pair"] = deepcopy(_PAIR)
+    payload["agents"]["red"].update(authority_anchors=["entities.org"], operating_scope=["web"])
     payload["action_contracts"]["probe"]["effects"][0]["target_refs"] = ["nodes.web", "content.private-answer-key"]
     exports = {key: list(value) for key, value in payload.items() if isinstance(value, dict)}
     payload["module"] = {"id": "example/eligibility", "version": "1.0.0", "exports": exports}
@@ -279,44 +328,40 @@ def test_duplicate_imports_keep_each_purpose_reference_in_its_namespace(tmp_path
         ]
         pair = scenario.relationships[f"{namespace}.pair"]
         assert (pair.source, pair.target) == (f"{namespace}.red", f"{namespace}.blue")
+        link = scenario.relationships[f"{namespace}.link"]
+        assert (link.source, link.target) == (f"{namespace}.web", f"nodes.{namespace}.web.services.http")
+        assert scenario.propositions[f"{namespace}.ready"].subjects == [f"nodes.{namespace}.web"]
+        red = model.participant_behaviors[f"participant.behavior.{namespace}.red"]
+        assert red.authority_anchor_refs == (f"entities.{namespace}.org",)
+        assert red.operating_scope_addresses == (f"provision.node.{namespace}.web",)
         assert model.objectives[f"evaluation.objective.{namespace}.goal"].spec["targets"] == [f"nodes.{namespace}.web"]
 
     refused = _set(_module_payload(), FIELDS["objective"], "conditions.alive")
     with pytest.raises(SDLValidationError) as caught:
         _compose(tmp_path, refused)
-    assert [error.split(";")[1].strip() for error in caught.value.errors] == [
-        "conditions.first.alive is not eligible as an objective subject",
-        "conditions.second.alive is not eligible as an objective subject",
+    assert [error.split(" target ", 1)[1] for error in caught.value.errors] == [
+        f"'conditions.{namespace}.alive' {_refusal('an objective subject', f'conditions.{namespace}.alive')}"
+        for namespace in ("first", "second")
     ]
 
 
 @pytest.mark.parametrize(
     ("path", "accepted", "refused", "diagnostic"),
     [
-        (
-            FIELDS["objective"],
-            "agents.blue",
-            "conditions.alive",
-            "conditions.alive is not eligible as an objective subject",
-        ),
-        (
-            FIELDS["interaction"],
-            "entities.org",
-            "assertions.done",
-            "assertions.done is not eligible as an action target",
-        ),
-        (FIELDS["shared-state"], "relationships.link", "agents.blue", "agents.blue is not eligible as shared state"),
+        (FIELDS["objective"], "agents.blue", "conditions.alive", _refusal("an objective subject", "conditions.alive")),
+        (FIELDS["interaction"], "entities.org", "assertions.done", _refusal("an action target", "assertions.done")),
+        (FIELDS["shared-state"], "relationships.link", "agents.blue", _refusal("shared state", "agents.blue")),
         (
             FIELDS["effect"],
             "nodes.web.services.http",
             "propositions.ready",
-            "propositions.ready is not eligible as an action target",
+            _refusal("an action target", "propositions.ready"),
         ),
         (
             FIELDS["authority-scope"],
             "observation_boundaries.view",
             "injects.notice",
-            "injects.notice is not eligible as an authority scope",
+            _refusal("an authority scope", "injects.notice"),
         ),
         (
             ("relationships", "pair", "target"),
@@ -324,20 +369,51 @@ def test_duplicate_imports_keep_each_purpose_reference_in_its_namespace(tmp_path
             "entities.org",
             "Relationship 'pair' target participant endpoint must resolve unambiguously to a declared agent",
         ),
+        (
+            ("relationships", "link", "target"),
+            "entities.org",
+            "objectives.goal",
+            "target 'objectives.goal' does not reference any defined targetable element; it names objectives.goal",
+        ),
+        (
+            ("propositions", "ready", "subjects"),
+            "agents.blue",
+            "objectives.goal",
+            "subject 'objectives.goal' does not reference any defined targetable element; it names objectives.goal",
+        ),
+        (
+            ("agents", "red", "authority_anchors"),
+            "entities.org",
+            "scenario.reference-eligibility",
+            "authority_anchor 'scenario.reference-eligibility' does not reference any defined element",
+        ),
+        (
+            ("agents", "red", "operating_scope"),
+            "web",
+            "relationships.link",
+            "operating_scope 'relationships.link' does not reference any defined targetable element",
+        ),
     ],
-    ids=["objective", "interaction", "shared-state", "effect", "authority-scope", "participant-endpoint"],
+    ids=[
+        "objective",
+        "interaction",
+        "shared-state",
+        "effect",
+        "authority-scope",
+        "participant-endpoint",
+        "relationship-endpoint",
+        "observation-subject",
+        "authority-anchor",
+        "operating-scope",
+    ],
 )
 def test_instantiation_rechecks_each_purpose_after_substitution(
     path: tuple, accepted: str, refused: str, diagnostic: str
 ) -> None:
     payload = _payload()
     payload["variables"] = {"subject": {"type": "string", "default": accepted}}
-    payload["relationships"]["pair"] = {
-        "type": "participant",
-        "source": "red",
-        "target": "blue",
-        "participant": {"kind": "cooperation"},
-    }
+    payload["relationships"]["pair"] = deepcopy(_PAIR)
+    payload["agents"]["red"].update(authority_anchors=[], operating_scope=[])
     authored = _parse(_set(payload, path, "${subject}"))
 
     assert compile_scenario_runtime_model(instantiate_scenario(authored, parameters={"subject": accepted})) is not None
@@ -346,9 +422,12 @@ def test_instantiation_rechecks_each_purpose_after_substitution(
     assert any(diagnostic in error for error in caught.value.errors)
 
 
-@pytest.mark.parametrize(("member", "accepted"), [("propositions.ready", True), ("conditions.alive", False)])
+@pytest.mark.parametrize(
+    ("member", "accepted"),
+    [("propositions.ready", True), ("nodes.web", True), ("conditions.alive", False), ("web", False)],
+)
 def test_objective_target_variation_candidates_follow_the_objective_subject_purpose(member: str, accepted: bool):
-    payload = _payload()
+    payload = _with_condition_named_web(_payload())
     payload["variation_points"] = {
         "subjects": {
             "kind": "subset",

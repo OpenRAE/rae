@@ -6,7 +6,7 @@ Part of the SemanticValidator mixin composition; see __init__.py.
 from .._base import is_variable_ref
 from .._declarations import DeclarationIndex, build_declaration_index, operating_scope_aliases
 from .._errors import SDLValidationError
-from .._reference_targetability import PURPOSE_LABELS, ReferencePurpose
+from .._reference_targetability import ELIGIBLE_KINDS, PURPOSE_LABELS, ReferencePurpose
 from .._runtime_service_families import (
     RuntimeFamilyReference,
     iter_runtime_family_references,
@@ -15,8 +15,21 @@ from ..entities import flatten_entities
 from ..nodes import NodeType
 from ..scenario import ScenarioContent
 
-# Purposes that admit every referenceable declaration, so no target qualifier applies.
-_UNQUALIFIED_PURPOSES = frozenset({ReferencePurpose.DECLARED, ReferencePurpose.AUTHORITY_ANCHOR})
+
+def eligible_element(purpose: ReferencePurpose) -> str:
+    """Name what a *purpose* reference must reference, for its unresolved diagnostic.
+
+    A purpose that admits every declared or every targetable declaration keeps
+    the general wording, which matches the inspection payload's flags; a
+    narrower purpose names itself.
+    """
+
+    kinds = ELIGIBLE_KINDS[purpose]
+    if kinds == ELIGIBLE_KINDS[ReferencePurpose.DECLARED]:
+        return "element"
+    if kinds == ELIGIBLE_KINDS[ReferencePurpose.TARGETABLE]:
+        return "targetable element"
+    return f"element eligible as {PURPOSE_LABELS[purpose]}"
 
 
 class _ValidatorCore:
@@ -83,14 +96,11 @@ class _ValidatorCore:
             raise RuntimeError("declaration index must be built before reference validation")
         return self._declaration_index
 
-    def _ineligible_detail(self, ref: str, purpose: ReferencePurpose) -> str:
-        """Explain a reference that names declarations its purpose does not admit."""
+    def _ineligible_detail(self, ref: str) -> str:
+        """Name the declarations that a refused reference does name, if any."""
 
         declared = sorted(self._named_ref_index().get(ref, ()))
-        if not declared or purpose in _UNQUALIFIED_PURPOSES:
-            return ""
-        verb = "is" if len(declared) == 1 else "are"
-        return f"; {', '.join(declared)} {verb} not eligible as {PURPOSE_LABELS[purpose]}"
+        return f"; it names {', '.join(declared)}" if declared else ""
 
     def _operating_scope_ref_index(self) -> dict[str, set[str]]:
         """Build the alias map for ACT-601 ``Agent.operating_scope``.
@@ -128,10 +138,9 @@ class _ValidatorCore:
         index = self._named_ref_index(purpose)
         candidates = index.get(ref)
         if not candidates:
-            qualifier = "" if purpose in _UNQUALIFIED_PURPOSES else "targetable "
             self._err(
-                f"{owner_label} {ref_label} '{ref}' does not reference any defined {qualifier}element"
-                f"{self._ineligible_detail(ref, purpose)}"
+                f"{owner_label} {ref_label} '{ref}' does not reference any defined {eligible_element(purpose)}"
+                f"{self._ineligible_detail(ref)}"
             )
             return
 

@@ -8,9 +8,15 @@ import pytest
 import yaml
 from raes import SDLValidationError
 from raes.language_service import language_completions, language_diagnostics, language_references
-from test_issue_1339_reference_eligibility import FIELDS, _parse, _payload, _set
-
-_PAIR = {"type": "participant", "source": "red", "target": "blue", "participant": {"kind": "cooperation"}}
+from test_issue_1339_reference_eligibility import (
+    _PAIR,
+    FIELDS,
+    _parse,
+    _payload,
+    _refusal,
+    _set,
+    _with_condition_named_web,
+)
 
 
 def _paired(*, complete: bool = True) -> dict:
@@ -52,6 +58,29 @@ def test_an_ambiguous_bare_participant_is_offered_only_in_qualified_form(complet
         _parse(valid)
     valid["relationships"]["pair"]["target"] = labels["agents.blue"]
     _parse(valid)
+
+
+@pytest.mark.parametrize("complete", [True, False], ids=["valid-document", "incomplete-document"])
+@pytest.mark.parametrize(
+    "pointer",
+    [
+        "/objectives/goal/targets",
+        "/action_contracts/probe/interactions/0/target",
+        "/action_contracts/probe/interactions/0/shared_state_refs",
+        "/action_contracts/probe/effects/0/target_refs",
+        "/behavior_specifications/red-behavior/authority_scope_refs",
+    ],
+)
+def test_a_bare_name_shared_with_an_ineligible_declaration_is_offered_only_in_qualified_form(
+    pointer: str, complete: bool
+) -> None:
+    labels = {
+        item["detail"]: item["label"]
+        for item in _completions(_with_condition_named_web(_paired(complete=complete)), pointer)["items"]
+    }
+
+    assert labels["nodes.web"] == "nodes.web"
+    assert "conditions.web" not in labels
 
 
 @pytest.mark.parametrize(
@@ -148,5 +177,5 @@ def test_navigation_and_diagnostics_follow_the_purpose_of_each_field() -> None:
     assert "/action_contracts/probe/interactions/0/target" not in proposition_paths
     assert "/objectives/goal/owner" in organization_paths
     assert "/relationships/pair/target" not in organization_paths
-    assert any("propositions.ready is not eligible as an action target" in message for message in messages)
+    assert any(_refusal("an action target", "propositions.ready") in message for message in messages)
     assert any("target participant endpoint must resolve unambiguously" in message for message in messages)
