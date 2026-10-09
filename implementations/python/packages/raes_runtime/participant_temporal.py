@@ -1,10 +1,8 @@
 """Bounded guarantee checks against the existing shared-time authority."""
 
 from dataclasses import replace
-from datetime import UTC, datetime
 from typing import Literal, cast
 
-from raes_backend_protocols.participant_action_commit import participant_binding_post_state_digest
 from raes_contracts.contracts import ParticipantActionResultModel, ParticipantBehaviorHistoryEventModel
 from raes_contracts.contracts.participant_temporal import (
     ParticipantTemporalAssessmentModel,
@@ -12,15 +10,15 @@ from raes_contracts.contracts.participant_temporal import (
     ParticipantTemporalExecutionContextModel,
 )
 from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.participant_behavior import ParticipantAdmissionDisposition
 from raes_contracts.participant_binding import (
     ParticipantActionAdmissionRequest,
     ParticipantActionApplyResult,
-    participant_action_binding_events,
     participant_behavior_event_payload,
 )
 from raes_contracts.participant_temporal import assess_temporal_guarantee, coordinate_key
 from raes_contracts.runtime_state import RuntimeSnapshot
+
+from .participant_pre_dispatch import rejected_attempt_result
 
 
 def temporal_pre_dispatch_assessments(
@@ -99,27 +97,13 @@ def temporal_pre_dispatch_result(
         failure_class="precondition_unsatisfied",
         diagnostics=[assessment.reason for assessment in assessments],
     )
-    events = list(
-        participant_action_binding_events(
-            replace(request, action_result=action_result, state_transition_kind="participant_temporal_rejected"),
-            episode_id=context.episode_id,
-            timestamp=datetime.now(UTC).isoformat(),
-            post_state_digest=participant_binding_post_state_digest(request),
-        )
-    )
-    events[0] = events[0].model_copy(update={"admission_disposition": ParticipantAdmissionDisposition.REJECTED})
-    events[-1] = events[-1].model_copy(update={"temporal_assessments": assessments})
-    histories = dict(snapshot.participant_behavior_history)
-    histories[request.participant_address] = [
-        *histories.get(request.participant_address, ()),
-        *(participant_behavior_event_payload(event) for event in events),
-    ]
-    return ParticipantActionApplyResult(
-        success=False,
-        snapshot=snapshot.with_entries(dict(snapshot.entries), participant_behavior_history=histories),
-        action_result=action_result,
+    return rejected_attempt_result(
+        request,
+        snapshot,
+        action_result,
+        transition_kind="participant_temporal_rejected",
         diagnostics=[temporal_guarantee_diagnostic(request)],
-        changed_addresses=[request.participant_address],
+        terminal_update={"temporal_assessments": assessments},
     )
 
 

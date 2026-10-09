@@ -376,6 +376,7 @@ class _ContentObjectivesMixin:
             self._s.deployment_cells,
             self._s.relationships,
             self._split_node_service_ref,
+            participant_roles=dict.fromkeys(self._s.agents) | self._participant_roles_by_agent(),
         ):
             self._err(error)
         self._verify_tool_affordance_tool_refs()

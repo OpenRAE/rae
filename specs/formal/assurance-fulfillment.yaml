@@ -570,20 +570,28 @@ entries:
         path: implementations/python/tests/test_sem_222_episode_termination_oracle.py
       - kind: typed_ir_or_contract_coverage
         path: implementations/python/packages/raes_contracts/participant_episode_closure.py
+      # Delivered by #306 (SEM-223): budget consumption/exhaustion/effect gates,
+      # reset-scope enforcement, and the differential accounting oracle.
+      - kind: unit_tests
+        path: implementations/python/tests/test_issue_306_participant_budget_exhaustion.py
+      - kind: property_based_or_differential_tests
+        path: implementations/python/tests/test_issue_306_participant_budget_oracle.py
+      - kind: typed_ir_or_contract_coverage
+        path: implementations/python/packages/raes_contracts/participant_resource_exhaustion.py
     waived_artifacts:
       - kind: unit_tests
         date: 2026-08-02
         tracking:
-          - "#306"
           - "#307"
           - "#308"
           - "#309"
           - "#310"
         rationale: >-
-          Joint-design run (#122). #305 (SEM-222) delivers the episode/termination
-          unit tests above; per-requirement unit tests for budget/exhaustion
-          semantics and the authored SDL surfaces remain owned by the spawned
-          implementation issues #306-#310.
+          Joint-design run (#122). #305 (SEM-222) and #306 (SEM-223) deliver the
+          episode/termination and budget/exhaustion unit tests above;
+          per-requirement unit tests for the authored SDL surfaces and the
+          first-class model members remain owned by the spawned implementation
+          issues #307-#310.
       - kind: typed_ir_or_contract_coverage
         date: 2026-08-02
         tracking:
@@ -595,11 +603,3 @@ entries:
           interaction-budget SDL contracts and their generated schemas remain
           owned by the DSL implementation issues #307 (DSL-120) and #308
           (DSL-121).
-      - kind: property_based_or_differential_tests
-        date: 2026-08-02
-        tracking:
-          - "#306"
-        rationale: >-
-          #305 (SEM-222) delivers the episode identity/terminal-reason invariant
-          oracle above; property/differential coverage of budget
-          reserve/commit/reconcile invariants remains owned by #306 (SEM-223).

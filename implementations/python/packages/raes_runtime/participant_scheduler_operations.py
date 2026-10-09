@@ -216,7 +216,7 @@ def _run_one_activity_action(
     run: SchedulerRunState,
 ) -> ParticipantAutonomousExecutionStateModel:
     request = _try_bound_action_request(context, state, run)
-    admission = _admit_activity_action(context, request, run) if request is not None else None
+    admission = _admit_activity_action(context, request, run, state.episode_id) if request is not None else None
     if admission is not None and not _record_stale_completion(request, run):
         result, dispatched, predecessor = admission
         protocol_violation = autonomous_action_result_violation(
@@ -236,16 +236,33 @@ def _admit_activity_action(
     context: _DueActionContext,
     request: ParticipantActionAdmissionRequest,
     run: SchedulerRunState,
+    episode_id: str,
 ) -> tuple[object, bool, RuntimeSnapshot] | None:
     predecessor = run.working
     result = temporal_pre_dispatch_result(request, predecessor)
     if result is not None:
         return result, False, predecessor
-    if not reserve_activity_resources(context, request, run):
-        return None
-    predecessor = run.working
-    result = deepcopy(context.participant_runtime.admit_action(deepcopy(request), deepcopy(predecessor)))
-    return result, True, predecessor
+    return _admit_reserved_activity_action(context, request, run, episode_id, predecessor)
+
+
+def _admit_reserved_activity_action(
+    context: _DueActionContext,
+    request: ParticipantActionAdmissionRequest,
+    run: SchedulerRunState,
+    episode_id: str,
+    predecessor: RuntimeSnapshot,
+) -> tuple[object, bool, RuntimeSnapshot] | None:
+    reserved, rejection = reserve_activity_resources(context, request, run, episode_id=episode_id)
+    if rejection is not None:
+        # Roll back to the pre-reservation snapshot if the attempt cannot be
+        # committed, so a reject event never outlives its governed attempt.
+        return rejection, False, predecessor
+    admission = None
+    if reserved:
+        reserved_snapshot = run.working
+        result = deepcopy(context.participant_runtime.admit_action(deepcopy(request), deepcopy(reserved_snapshot)))
+        admission = (result, True, reserved_snapshot)
+    return admission
 
 
 def _finish_activity_action(

@@ -18,6 +18,10 @@ from .participant_resource_accounting import (
 from .participant_resource_budgets import (
     reserve_participant_resources,
 )
+from .participant_resource_rejection import (
+    is_participant_resource_rejection,
+    resource_exhausted_pre_dispatch_result,
+)
 from .participant_scheduler_types import SchedulerRunState, _DueActionContext
 
 _RESOURCE_GOVERNED_PROFILE = "participant-autonomous-execution/v3"
@@ -67,11 +71,19 @@ def reserve_activity_resources(
     context: _DueActionContext,
     request: ParticipantActionAdmissionRequest,
     run: SchedulerRunState,
-) -> bool:
-    """Reserve the complete v3 resource vector before native execution."""
+    *,
+    episode_id: str,
+) -> tuple[bool, ParticipantActionApplyResult | None]:
+    """Reserve the complete v3 resource vector before native execution.
+
+    A logical-budget rejection (SEM-223 T10) is not a runtime failure: it is
+    returned as an undispatched SEM-211 ``resource_exhausted`` attempt that the
+    ordinary failure policy then settles (T11). Throttling and accounting
+    errors still fail the scheduler pass.
+    """
 
     if context.policy.profile != _RESOURCE_GOVERNED_PROFILE:
-        return True
+        return True, None
     reservation = reserve_participant_resources(
         run.working,
         context.policy,
@@ -79,10 +91,18 @@ def reserve_activity_resources(
         execution_generation=request.execution_generation,
     )
     run.working = reservation.snapshot
+    if is_participant_resource_rejection(reservation):
+        rejection = resource_exhausted_pre_dispatch_result(
+            request,
+            run.working,
+            episode_id=episode_id,
+            diagnostics=reservation.diagnostics,
+        )
+        return False, rejection
     run.diagnostics.extend(reservation.diagnostics)
     if not reservation.success:
         _record_resource_failure(run)
-    return reservation.success
+    return reservation.success, None
 
 
 def _trusted_measurements(

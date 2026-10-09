@@ -20,6 +20,7 @@ from raes_contracts.participant_episode_closure import iter_participant_episode_
 from raes_contracts.participant_information_state_history import (
     iter_participant_information_state_snapshot_violations,
 )
+from raes_contracts.participant_resource_exhaustion import iter_participant_resource_budget_snapshot_violations
 from raes_contracts.participant_shared_state import iter_participant_shared_state_snapshot_violations
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.realization_observation import ObservedOperatingSystemIdentity
@@ -138,6 +139,21 @@ def _participant_episode_closure_snapshot_diagnostics(
         for address, message in iter_participant_episode_closure_violations(
             snapshot.participant_episode_closure_records,
             snapshot.participant_episode_history,
+        )
+    ]
+
+
+def _participant_resource_budget_snapshot_diagnostics(
+    snapshot: RuntimeSnapshot,
+) -> list[Diagnostic]:
+    """Surface SEM-223 budget-event and exhaustion invariants as conformance diagnostics."""
+
+    return [
+        _diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message)
+        for address, message in iter_participant_resource_budget_snapshot_violations(
+            snapshot.participant_resource_budget_states,
+            snapshot.participant_resource_budget_events,
+            snapshot.participant_behavior_history,
         )
     ]
 
@@ -434,6 +450,7 @@ def _runtime_snapshot_semantic_diagnostics(
         *evaluation_result_contract_diagnostics(snapshot),
         *_participant_episode_snapshot_diagnostics(snapshot),
         *_participant_episode_closure_snapshot_diagnostics(snapshot),
+        *_participant_resource_budget_snapshot_diagnostics(snapshot),
         *_participant_behavior_snapshot_diagnostics(snapshot),
         *_shared_state_snapshot_diagnostics(snapshot),
         *_participant_concurrency_snapshot_diagnostics(snapshot),

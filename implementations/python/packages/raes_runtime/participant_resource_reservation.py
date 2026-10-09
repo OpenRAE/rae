@@ -12,6 +12,10 @@ from raes_contracts.contracts.participant_resource_budgets import (
     participant_resource_budget_state_ref,
     participant_resource_pool_state_ref,
 )
+from raes_contracts.participant_resource_exhaustion import (
+    PARTICIPANT_RESOURCE_EXHAUSTED_CODE,
+    participant_resource_remaining,
+)
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 from .participant_resource_budgets import (
@@ -54,12 +58,6 @@ def _event_id(operation_id: str, state_ref: str) -> str:
     return f"{operation_id}:{state_ref}:reserve"
 
 
-def _used_capacity(state: ParticipantResourceBudgetStateModel) -> int:
-    if state.accounting_mode in {"reservable_gauge", "lease"}:
-        return state.current_use + state.reserved
-    return state.cumulative_use + state.reserved
-
-
 def _pool_ref_for_state(state: ParticipantResourceBudgetStateModel) -> str:
     return participant_resource_pool_state_ref(
         pool_ref=state.pool_ref,
@@ -84,42 +82,59 @@ def _failure(
     )
 
 
-def _throttled_result(
+# T10 rejects a quantity the logical budget cannot admit; shared-pool contention
+# throttles. Messages name safe logical ids only, never quantities (EBM-07).
+_REFUSALS = {
+    "reject": (
+        "rejected",
+        PARTICIPANT_RESOURCE_EXHAUSTED_CODE,
+        "cannot admit the requested quantity in this generation; the attempt fails as resource_exhausted",
+    ),
+    "throttle": (
+        "throttled",
+        "runtime.participant-resource-throttled",
+        "has insufficient shared pool capacity",
+    ),
+}
+
+
+def _refused_result(
     mutation: _ReservationMutation,
     demand: ResourceDemand,
     current: ParticipantResourceBudgetStateModel,
     amount: int,
-    budget_available: bool,
+    transition: str,
 ) -> ApplyResult:
-    event_id = f"{mutation.operation_id}:{current.state_ref}:throttle"
-    mutation.states[current.state_ref] = _payload(
-        current.model_copy(
-            update={
-                "throttled": current.throttled + 1,
-                "last_event_ref": event_id,
-            }
+    disposition, code, reason = _REFUSALS[transition]
+    event_id = f"{mutation.operation_id}:{current.state_ref}:{transition}"
+    if event_id not in mutation.events:
+        mutation.states[current.state_ref] = _payload(
+            current.model_copy(
+                update={
+                    disposition: getattr(current, disposition) + 1,
+                    "last_event_ref": event_id,
+                }
+            )
         )
-    )
-    mutation.events[event_id] = _payload(
-        ParticipantResourceBudgetEventModel(
-            event_id=event_id,
-            operation_id=mutation.operation_id,
-            budget_state_ref=current.state_ref,
-            budget_id=demand.budget_id,
-            policy_address=mutation.policy.address,
-            owner_ref=current.owner_ref,
-            pool_ref=current.pool_ref,
-            execution_generation=mutation.execution_generation,
-            transition="throttle",
-            disposition="throttled",
-            requested=amount,
-            resource_kind=current.resource_kind,
-            unit=current.unit,
-            meter_profile_ref=current.meter_profile_ref,
-            predecessor_event_ref=current.last_event_ref,
+        mutation.events[event_id] = _payload(
+            ParticipantResourceBudgetEventModel(
+                event_id=event_id,
+                operation_id=mutation.operation_id,
+                budget_state_ref=current.state_ref,
+                budget_id=demand.budget_id,
+                policy_address=mutation.policy.address,
+                owner_ref=current.owner_ref,
+                pool_ref=current.pool_ref,
+                execution_generation=mutation.execution_generation,
+                transition=transition,
+                disposition=disposition,
+                requested=amount,
+                resource_kind=current.resource_kind,
+                unit=current.unit,
+                meter_profile_ref=current.meter_profile_ref,
+                predecessor_event_ref=current.last_event_ref,
+            )
         )
-    )
-    capacity_kind = "logical budget" if not budget_available else "shared pool"
     return ApplyResult(
         success=False,
         snapshot=mutation.snapshot.with_entries(
@@ -128,13 +143,7 @@ def _throttled_result(
             participant_resource_pool_states=mutation.pool_states,
             participant_resource_budget_events=mutation.events,
         ),
-        diagnostics=[
-            _diagnostic(
-                "runtime.participant-resource-throttled",
-                mutation.policy.address,
-                f"resource budget {demand.budget_id} has insufficient {capacity_kind} capacity",
-            )
-        ],
+        diagnostics=[_diagnostic(code, mutation.policy.address, f"resource budget {demand.budget_id} {reason}")],
     )
 
 
@@ -201,19 +210,33 @@ def _pool_state_check(
     return physical_pool, amount, failure
 
 
+def _admissible(
+    check: _ReservationCheck,
+) -> tuple[ParticipantResourceBudgetStateModel, ParticipantResourcePoolStateModel]:
+    if check.current is None or check.physical_pool is None:
+        raise AssertionError("validated reservation must include budget and pool state")
+    return check.current, check.physical_pool
+
+
 def _capacity_failure(
     mutation: _ReservationMutation,
-    demand: ResourceDemand,
-    current: ParticipantResourceBudgetStateModel,
-    physical_pool: ParticipantResourcePoolStateModel,
-    state_ref: str,
-    amount: int,
+    checks: list[_ReservationCheck],
 ) -> ApplyResult | None:
-    budget_available = _used_capacity(current) + amount <= min(current.limit, current.configured_capacity)
-    failure = None
-    if not budget_available or not pool_can_reserve(physical_pool, state_ref, amount):
-        failure = _throttled_result(mutation, demand, current, amount, budget_available)
-    return failure
+    """Refuse the vector: a logical-budget shortfall rejects before pool contention throttles.
+
+    Checking every logical budget first makes the disposition independent of the
+    order of the demands in the vector (SEM-223 T10).
+    """
+
+    for check in checks:
+        current, _ = _admissible(check)
+        if check.amount > participant_resource_remaining(current):
+            return _refused_result(mutation, check.demand, current, check.amount, "reject")
+    for check in checks:
+        current, physical_pool = _admissible(check)
+        if not pool_can_reserve(physical_pool, current.state_ref, check.amount):
+            return _refused_result(mutation, check.demand, current, check.amount, "throttle")
+    return None
 
 
 def _check_reservation(
@@ -227,8 +250,6 @@ def _check_reservation(
     amount = 0
     if current is not None and failure is None:
         physical_pool, amount, failure = _pool_state_check(mutation, demand, current, requested_quantities)
-    if current is not None and physical_pool is not None and failure is None:
-        failure = _capacity_failure(mutation, demand, current, physical_pool, state_ref, amount)
     return _ReservationCheck(
         demand=demand,
         current=current,
@@ -242,9 +263,7 @@ def _apply_reservation(
     mutation: _ReservationMutation,
     checked: _ReservationCheck,
 ) -> None:
-    if checked.current is None or checked.physical_pool is None:
-        raise AssertionError("validated reservation must include budget and pool state")
-    current = checked.current
+    current, physical_pool = _admissible(checked)
     event_id = _event_id(mutation.operation_id, current.state_ref)
     event = ParticipantResourceBudgetEventModel(
         event_id=event_id,
@@ -271,8 +290,8 @@ def _apply_reservation(
             }
         )
     )
-    mutation.pool_states[checked.physical_pool.pool_state_ref] = _payload(
-        reserve_pool_allocation(checked.physical_pool, current.state_ref, checked.amount)
+    mutation.pool_states[physical_pool.pool_state_ref] = _payload(
+        reserve_pool_allocation(physical_pool, current.state_ref, checked.amount)
     )
     mutation.events[event_id] = _payload(event)
 
@@ -323,6 +342,8 @@ def reserve_participant_resources(
             failure = check.failure
             break
         checked.append(check)
+    if failure is None:
+        failure = _capacity_failure(mutation, checked)
     if failure is not None:
         result = failure
     else:
