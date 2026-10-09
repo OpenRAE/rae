@@ -1,0 +1,65 @@
+template: raes-library-template
+version: 1
+id: two-condition-study-design
+surface: study
+requirement_refs: [AUT-806, EXP-736]
+source_refs:
+  - docs/decisions/adrs/adr-074-experiment-authoring-input-contract-boundary.md
+  - examples/experiments/techvault-red-tactic-sweep.exp.yaml
+summary: Pre-run experiment specification comparing two levels of one treatment factor with a fixed number of runs per condition.
+validation:
+  - command: uv run --project implementations/python --frozen python tools/check_example_library.py
+    expected: Exits 0 with no output. The gate validates this body with the experiment authoring-input loader, parse_experiment_spec, and fails on any error.
+  - command: 'uv run --project implementations/python --frozen python -c "import sys; from pathlib import Path; from raes_contracts.experiment_spec import load_experiment_spec; print(load_experiment_spec(Path(sys.argv[1])).spec_id)" my-experiment.exp.yaml'
+    expected: With the body saved as my-experiment.exp.yaml, prints its spec_id and exits 0. An invalid document raises ExperimentSpecValidationError and exits 1.
+body:
+  schema_version: experiment-authoring-input/v1
+  spec_id: library-two-condition-study-design
+  spec_version: 1.0.0
+  title: Two-condition study design
+  description: Compares two levels of one treatment factor with the same number of seeded runs per condition.
+  task_ref:
+    ref_kind: task
+    ref_id: task-example-v1
+    ref_version: 1.0.0
+  factors:
+    guidance-level:
+      name: Guidance level
+      factor_kind: treatment
+      levels: [baseline, with-hints]
+  run_plan:
+    stochastic_controls:
+      - control_id: base-seed
+        role: seed
+        value: 1234
+        description: Base seed shared by both conditions.
+    episode_control:
+      turn_order: sequential
+      max_steps: 50
+      termination_rule: End each episode after 50 logical steps.
+    allocation:
+      allocation_unit: run
+      allocation_method: balanced
+      compared_conditions: [cond-baseline, cond-with-hints]
+      condition_assignments:
+        cond-baseline:
+          condition_id: cond-baseline
+          factor_levels:
+            guidance-level: baseline
+          required_parameters:
+            - name: guidance_level
+              value: baseline
+              value_kind: protocol
+        cond-with-hints:
+          condition_id: cond-with-hints
+          factor_levels:
+            guidance-level: with-hints
+          required_parameters:
+            - name: guidance_level
+              value: with-hints
+              value_kind: protocol
+      target_runs_per_condition: 20
+      replication_policy: Twenty independent seeded runs per condition.
+  validity_notes:
+    - category: statistical
+      note: The design fixes the runs per condition before any run. It names no analysis plan, estimand, or uncertainty procedure.

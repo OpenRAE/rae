@@ -8,6 +8,7 @@ from typing import Any
 
 import yaml
 from raes import Scenario, load_sdl_fragment, parse_sdl, parse_sdl_file
+from raes_contracts.experiment_spec import ExperimentSpecValidationError, parse_experiment_spec
 
 from tools.policy.common import PolicyFailure
 from tools.sdl_catalog_parity._paths import _COMPOSITION_FIELDS, _METADATA_FIELDS
@@ -20,7 +21,14 @@ REQUIRED_VALIDATION_STATUS: dict[str, str] = {
     "templates": VALIDATED,
     "patterns": GUIDANCE,
 }
-INTENDED_USERS: tuple[str, ...] = ("sdl-author",)
+SDL_CONTRACT = "sdl-yaml/v1"
+EXPERIMENT_CONTRACT = "experiment-authoring-input-v1"
+# Each body contract has exactly one intended user. Only templates may use a
+# contract other than SDL; an entry without a contract is SDL.
+CONTRACT_USERS: dict[str, str] = {
+    SDL_CONTRACT: "sdl-author",
+    EXPERIMENT_CONTRACT: "experiment-author",
+}
 # Top-level SDL fields that specs/sdl/sections.md classifies as metadata or
 # composition rather than as sections. The SDL catalog parity gate keeps these
 # sets in step with that catalog.
@@ -44,7 +52,7 @@ def _sdl_section_names() -> frozenset[str]:
 
 
 def check_entry_metadata(field: str, entry: dict[str, Any], owner: str) -> list[PolicyFailure]:
-    """Check the validation status, SDL sections, intended user, and limits of one catalog entry."""
+    """Check the validation status, limits, contract, intended user, and SDL sections of one catalog entry."""
     failures: list[PolicyFailure] = []
     allowed_statuses = (
         (REQUIRED_VALIDATION_STATUS[field],) if field in REQUIRED_VALIDATION_STATUS else VALIDATION_STATUSES
@@ -57,29 +65,42 @@ def check_entry_metadata(field: str, entry: dict[str, Any], owner: str) -> list[
                 f"{owner}.validation_status must be one of {list(allowed_statuses)}; got {status!r}",
             )
         )
+    if not _text_list(entry.get("limits")):
+        failures.append(_fail("example-library-entry-limits", f"{owner}.limits must be a non-empty list of strings"))
+    contract = entry.get("contract", SDL_CONTRACT)
+    allowed_contracts = tuple(CONTRACT_USERS) if field == "templates" else (SDL_CONTRACT,)
+    if contract not in allowed_contracts:
+        failures.append(
+            _fail(
+                "example-library-entry-contract",
+                f"{owner}.contract must be one of {list(allowed_contracts)}; got {contract!r}",
+            )
+        )
+        return failures
     user = entry.get("intended_user")
-    if user not in INTENDED_USERS:
+    if user != CONTRACT_USERS[contract]:
         failures.append(
             _fail(
                 "example-library-entry-user",
-                f"{owner}.intended_user must be one of {list(INTENDED_USERS)}; got {user!r}",
+                f"{owner}.intended_user must be {CONTRACT_USERS[contract]!r} for {contract}; got {user!r}",
             )
         )
-    if not _text_list(entry.get("limits")):
-        failures.append(_fail("example-library-entry-limits", f"{owner}.limits must be a non-empty list of strings"))
+    failures.extend(_check_entry_sections(entry, owner, contract))
+    return failures
+
+
+def _check_entry_sections(entry: dict[str, Any], owner: str, contract: str) -> list[PolicyFailure]:
+    if contract != SDL_CONTRACT:
+        absent_failure = _fail("example-library-entry-sections", f"{owner}.sdl_sections must be absent for {contract}")
+        return [absent_failure] if "sdl_sections" in entry else []
     sections = _text_list(entry.get("sdl_sections"))
     if not sections or len(set(sections)) != len(sections):
-        failures.append(
+        return [
             _fail("example-library-entry-sections", f"{owner}.sdl_sections must be a non-empty list of distinct names")
-        )
-    elif unknown := sorted(set(sections) - _sdl_section_names()):
-        failures.append(
-            _fail(
-                "example-library-entry-sections",
-                f"{owner}.sdl_sections names values that are not SDL sections: {unknown}",
-            )
-        )
-    return failures
+        ]
+    unknown = sorted(set(sections) - _sdl_section_names())
+    message = f"{owner}.sdl_sections names values that are not SDL sections: {unknown}"
+    return [_fail("example-library-entry-sections", message)] if unknown else []
 
 
 def _check_declared_sections(
@@ -117,8 +138,33 @@ def _check_sdl(source: str | Path, relative_path: str, *, kind: str, subject: st
     return failures
 
 
+def _check_experiment_spec(body: dict[str, Any], relative_path: str) -> list[PolicyFailure]:
+    """Validate a template body with the experiment authoring-input loader (ADR-074)."""
+    try:
+        parse_experiment_spec(yaml.safe_dump(body, sort_keys=False))
+    except ExperimentSpecValidationError as exc:
+        return [
+            _fail(
+                "example-library-template-body",
+                f"template body is not a valid {EXPERIMENT_CONTRACT} document: {exc}",
+                relative_path,
+            )
+        ]
+    return []
+
+
 def check_template_body(entry: dict[str, Any], body: dict[str, Any], relative_path: str) -> list[PolicyFailure]:
-    """Validate a template body as SDL and check the entry's declared sections against it."""
+    """Validate a template body against the entry's contract.
+
+    An SDL body must also contain the entry's declared sections. A body under
+    an unknown contract is not validated; the entry metadata check reports
+    the contract.
+    """
+    contract = entry.get("contract", SDL_CONTRACT)
+    if contract == EXPERIMENT_CONTRACT:
+        return _check_experiment_spec(body, relative_path)
+    if contract != SDL_CONTRACT:
+        return []
     failures = _check_sdl(
         yaml.safe_dump(body, sort_keys=False), relative_path, kind="template", subject="template body"
     )
