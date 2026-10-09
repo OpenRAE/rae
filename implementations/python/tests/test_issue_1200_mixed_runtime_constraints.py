@@ -9,6 +9,7 @@ from raes.explicitness import ExplicitnessClass
 from raes_contracts.apparatus import RealizationObservationCapability
 from raes_contracts.contracts import ProvisioningPlanModel
 from raes_contracts.plan_projection import provisioning_plan_model
+from raes_contracts.planning import RuntimeDomain
 from raes_contracts.realization_observation import RealizationObservationDisclosure
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotEntry
 from raes_contracts.vocabulary import ObservationStrength, RealizationSupportMode, RealizationVerificationScope
@@ -145,7 +146,7 @@ def _returned(plan_value, runtime):
         payload = deepcopy(op.payload)
         payload["spec"]["node"]["runtime"] = runtime
         entries[op.address] = SnapshotEntry(
-            address=op.address, domain="provisioning", resource_type=op.resource_type, payload=payload
+            address=op.address, domain=RuntimeDomain.PROVISIONING, resource_type=op.resource_type, payload=payload
         )
     return RuntimeSnapshot(
         entries=entries,
