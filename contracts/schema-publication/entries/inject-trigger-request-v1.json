@@ -1,0 +1,10 @@
+{
+  "contract_id": "inject-trigger-request-v1",
+  "schema_path": "contracts/schemas/control-plane/inject-trigger-request-v1.json",
+  "stability": "draft",
+  "content_hash": "ac147226ed5e38016ab85f287c1660fbbf8bedb57e11a148fd1e8c15234002b3",
+  "last_change": {
+    "summary": "Publish the ADR-112 inject trigger request with compiled bindings, closed placement and value-free input (#1423, #1366).",
+    "content_hash": "ac147226ed5e38016ab85f287c1660fbbf8bedb57e11a148fd1e8c15234002b3"
+  }
+}

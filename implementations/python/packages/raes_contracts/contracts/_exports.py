@@ -3,6 +3,7 @@
 from ._backend_operation_exports import BACKEND_OPERATION_EXPORTS
 from ._candidate_synthesis_exports import CANDIDATE_SYNTHESIS_EXPORTS
 from ._execution_policy_exports import EXECUTION_POLICY_EXPORTS
+from ._inject_occurrence_exports import INJECT_OCCURRENCE_EXPORTS
 from ._mixed_composition_exports import MIXED_COMPOSITION_EXPORTS
 from ._participant_control_exports import PARTICIPANT_CONTROL_EXPORTS
 from ._runtime_fact_exports import RUNTIME_FACT_EXPORTS
@@ -10,6 +11,7 @@ from ._runtime_fact_exports import RUNTIME_FACT_EXPORTS
 PUBLIC_EXPORTS = [
     *EXECUTION_POLICY_EXPORTS,
     *BACKEND_OPERATION_EXPORTS,
+    *INJECT_OCCURRENCE_EXPORTS,
     *PARTICIPANT_CONTROL_EXPORTS,
     *MIXED_COMPOSITION_EXPORTS,
     "MaterializationArchiveRecord",

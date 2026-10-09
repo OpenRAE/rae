@@ -60,6 +60,15 @@ constraints. The provenance record preserves the participant implementation,
 selected manifest, selected configuration reference, participant contract
 versions, and decision-surface exposure policy used in a run.
 
+External inject triggers and occurrences
+----------------------------------------
+
+Draft ADR-112 carriers for an external inject request and its claimed occurrence.
+They grant no trigger authority and do not execute an inject.
+
+.. automodule:: raes_contracts.contracts.inject_occurrence
+   :members:
+
 Backend operation supervision
 -----------------------------
 
