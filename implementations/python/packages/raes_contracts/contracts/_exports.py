@@ -5,6 +5,7 @@ from ._candidate_synthesis_exports import CANDIDATE_SYNTHESIS_EXPORTS
 from ._execution_policy_exports import EXECUTION_POLICY_EXPORTS
 from ._mixed_composition_exports import MIXED_COMPOSITION_EXPORTS
 from ._participant_control_exports import PARTICIPANT_CONTROL_EXPORTS
+from ._runtime_fact_exports import RUNTIME_FACT_EXPORTS
 
 PUBLIC_EXPORTS = [
     *EXECUTION_POLICY_EXPORTS,
@@ -417,24 +418,7 @@ PUBLIC_EXPORTS = [
     "ReusableAssetEvidenceRequirementModel",
     "ReusableAssetFamilyTrustPolicyModel",
     "ReusableAssetTrustPolicyModel",
-    "RUNTIME_FACT_BINDING_PLANE_V1_SCHEMA_VERSION",
-    "RuntimeFactAbsenceDisposition",
-    "RuntimeFactAudience",
-    "RuntimeFactBindingDisposition",
-    "RuntimeFactBindingEventModel",
-    "RuntimeFactBindingPlaneModel",
-    "RuntimeFactBindingRequestModel",
-    "RuntimeFactBindingSelectionModel",
-    "RuntimeFactDeclarationModel",
-    "RuntimeFactProjectionModel",
-    "RuntimeFactScopeKind",
-    "RuntimeFactScopeModel",
-    "RuntimeFactSensitivity",
-    "RuntimeFactSinkModel",
-    "RuntimeFactSourceKind",
-    "RuntimeFactValueType",
-    "RuntimeFactVersionModel",
-    "RuntimeFactVisibilityModel",
+    *RUNTIME_FACT_EXPORTS,
     "RuntimeSnapshotEnvelopeModel",
     "SCENARIO_INSTANTIATION_REQUEST_SCHEMA_VERSION",
     "SEMANTIC_PROFILE_SCHEMA_VERSION",
