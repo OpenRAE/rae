@@ -96,6 +96,12 @@ def _runtime_owned_violation(
     realization_changed = context.plan is None and any(
         not snapshot_values_equal(getattr(previous, name), getattr(actual, name)) for name in _REALIZATION_FIELDS
     )
+    # A plan that names an envelope binds the result to it or to the accepted predecessor.
+    selected_envelope = None if context.plan is None else context.plan.realization_envelope
+    unbound_envelope = selected_envelope is not None and not any(
+        snapshot_values_equal(actual.realization_envelope, bound)
+        for bound in (previous.realization_envelope, selected_envelope)
+    )
     checks = (
         (
             not snapshot_values_equal(actual.materialization_attestations, previous.materialization_attestations),
@@ -116,6 +122,11 @@ def _runtime_owned_violation(
             realization_changed,
             "runtime.snapshot.realization",
             "Backend changed realization state outside provisioning authority.",
+        ),
+        (
+            unbound_envelope,
+            "runtime.snapshot.realization-envelope",
+            "Backend returned a realization envelope bound to neither the submitted plan nor its predecessor.",
         ),
     )
     refusal = next(((address, message) for violated, address, message in checks if violated), None)
