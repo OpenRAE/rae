@@ -16,6 +16,7 @@ from raes_contracts.bounded_domains import (
 
 from ._base import SDLModel
 from ._identifiers import PortableIdentifier, require_qualified_identifier
+from ._reference_targetability import ReferencePurpose, reference_domain
 
 
 def _qualified_reference(value: str) -> str:
@@ -98,7 +99,7 @@ COLLECTION_TARGET_SPECS: dict[CollectionTargetSlot, tuple[str, str]] = {
     CollectionTargetSlot.STORY_SCRIPTS: ("stories", "scripts"),
     CollectionTargetSlot.AGENT_STARTING_ACCOUNTS: ("agents", "accounts"),
     CollectionTargetSlot.AGENT_STARTING_ASSERTIONS: ("agents", "assertions"),
-    CollectionTargetSlot.OBJECTIVE_TARGETS: ("objectives", "targetable"),
+    CollectionTargetSlot.OBJECTIVE_TARGETS: ("objectives", reference_domain(ReferencePurpose.OBJECTIVE_SUBJECT)),
     CollectionTargetSlot.OBJECTIVE_DEPENDS_ON: ("objectives", "objectives"),
 }
 

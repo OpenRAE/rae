@@ -208,7 +208,7 @@ participant action interaction targets.
 | --- | --- | --- | --- |
 | Scenario-native observability systems are first-class SDL elements | `SCENARIO_NATIVE_OBSERVABILITY_FAMILIES` validated against `RUNTIME_SERVICE_FAMILIES`; `classify_runtime_family()` | `test_dsl_123_exposes_scenario_native_observability_refs_without_second_resolver` | helper/test coverage new; classifier reused |
 | Observability target refs are explicit runtime-family refs | `collect_scenario_native_observability_refs()` as a filtered view over `collect_qualified_runtime_family_refs()` | `test_dsl_123_exposes_scenario_native_observability_refs_without_second_resolver` | yes |
-| In-world observability systems can be depended on or targeted | `SemanticValidator._named_ref_index(targetable=True)` and relationship endpoint validation | `test_dsl_123_observability_refs_are_targetable_relationship_objective_and_action_refs` | test coverage new; resolver reused |
+| In-world observability systems can be depended on or targeted | `SemanticValidator._named_ref_index(purpose)` for the relationship-endpoint, objective-subject, and action-target purposes, and relationship endpoint validation | `test_dsl_123_observability_refs_are_targetable_relationship_objective_and_action_refs` | test coverage new; resolver reused |
 | Participant actions can interact with in-world observability systems | `ParticipantInteractionDeclaration.target` and `shared_state_refs` validation through the targetable index | `test_dsl_123_observability_refs_are_targetable_relationship_objective_and_action_refs` | test coverage new |
 | Bare runtime ids do not resolve by first match | Fail-closed targetable reference resolution requires the qualified runtime-family path | `test_dsl_123_observability_refs_do_not_resolve_by_bare_runtime_id` | test coverage new |
 
@@ -227,7 +227,7 @@ vocabularies instead of free-form observability bags.
 | Authored evidence requirements are first-class SDL authoring surfaces | `Scenario.evidence_requirements`, `EvidenceRequirement` | `test_dsl_124_accepts_authored_evidence_requirement_independent_of_objectives` | yes |
 | Requirement records source/scope/window or comparable boundary plus channel and handling expectations | `EvidenceRequirement._validate_capture_intent` and required sensitivity/redaction/integrity/retention/loss fields | `test_dsl_124_rejects_capture_requirement_without_window_trigger_or_boundary` | yes |
 | Scenario-native observability can be a source without satisfying capture | `collect_scenario_native_observability_refs()` plus `EvidenceRequirement.source_refs` | `test_dsl_124_accepts_authored_evidence_requirement_independent_of_objectives` | yes |
-| Source refs fail closed and bare runtime ids do not first-match | `SemanticValidator._verify_evidence_requirements` over `_validate_named_ref(targetable=True)` | `test_dsl_124_source_refs_fail_closed` | yes |
+| Source refs fail closed and bare runtime ids do not first-match | `SemanticValidator._verify_evidence_requirements` over `_validate_named_ref(purpose=ReferencePurpose.OBSERVATION_SUBJECT)` | `test_dsl_124_source_refs_fail_closed` | yes |
 | Evidence requirements are independent of participant objectives | `evidence_requirements.` is excluded from targetable refs | `test_dsl_124_evidence_requirements_are_not_objective_targets` | yes |
 | SDL section plane ownership is carrier-based | `PLANE_BY_SDL_SECTION`, `classify_sdl_section_plane()` | `test_dsl_124_accepts_authored_evidence_requirement_independent_of_objectives` | yes |
 

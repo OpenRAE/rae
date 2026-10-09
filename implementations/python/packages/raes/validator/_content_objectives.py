@@ -5,6 +5,7 @@ Part of the SemanticValidator mixin composition; see __init__.py.
 
 from collections.abc import Callable
 
+from .._reference_targetability import ReferencePurpose, relationship_endpoint_purpose
 from ..entities import flatten_entities
 from ..semantics.objective_semantics import (
     AssessmentResourceCatalog,
@@ -253,20 +254,15 @@ class _ContentObjectivesMixin:
             if rel.participant is not None:
                 self._verify_participant_relationship(name, rel)
                 continue
-            if not self._is_unresolved_var(rel.source):
-                self._validate_named_ref(
-                    rel.source,
-                    owner_label=f"Relationship '{name}'",
-                    ref_label="source",
-                    targetable=True,
-                )
-            if not self._is_unresolved_var(rel.target):
-                self._validate_named_ref(
-                    rel.target,
-                    owner_label=f"Relationship '{name}'",
-                    ref_label="target",
-                    targetable=True,
-                )
+            for field in ("source", "target"):
+                ref = getattr(rel, field)
+                if not self._is_unresolved_var(ref):
+                    self._validate_named_ref(
+                        ref,
+                        owner_label=f"Relationship '{name}'",
+                        ref_label=field,
+                        purpose=relationship_endpoint_purpose(rel.type),
+                    )
 
     def _verify_agents(self) -> None:
         flat_entity_names = self._all_entity_names()
@@ -302,7 +298,9 @@ class _ContentObjectivesMixin:
             self._verify_agent_initial_knowledge(name, agent.initial_knowledge, service_names)
         for anchor in agent.authority_anchors:
             if not self._is_unresolved_var(anchor):
-                self._validate_named_ref(anchor, owner_label=label, ref_label="authority_anchor", targetable=False)
+                self._validate_named_ref(
+                    anchor, owner_label=label, ref_label="authority_anchor", purpose=ReferencePurpose.AUTHORITY_ANCHOR
+                )
         for scope in agent.operating_scope:
             if not self._is_unresolved_var(scope):
                 self._validate_operating_scope_ref(scope, owner_label=label)
@@ -400,28 +398,35 @@ class _ContentObjectivesMixin:
             for ref in behavior_spec.authority_scope_refs:
                 if self._is_unresolved_var(ref):
                     continue
-                self._validate_named_ref(ref, owner_label=label, ref_label="authority_scope_ref", targetable=True)
+                self._validate_named_ref(
+                    ref, owner_label=label, ref_label="authority_scope_ref", purpose=ReferencePurpose.AUTHORITY_SCOPE
+                )
 
     def _verify_participant_interaction_refs(self) -> None:
+        declared = self._named_ref_index()
         for action_name, action_contract in self._s.action_contracts.items():
             for index, interaction in enumerate(action_contract.interactions):
                 owner_label = f"Action contract '{action_name}' interaction[{index}]"
-                if not self._is_unresolved_var(interaction.target):
-                    self._validate_named_ref(
-                        interaction.target,
-                        owner_label=owner_label,
-                        ref_label="target",
-                        targetable=True,
-                    )
-                for ref in interaction.shared_state_refs:
-                    if self._is_unresolved_var(ref):
-                        continue
-                    self._validate_named_ref(
-                        ref,
-                        owner_label=owner_label,
-                        ref_label="shared_state_ref",
-                        targetable=True,
-                    )
+                self._verify_purpose_refs(owner_label, "target", [interaction.target], ReferencePurpose.ACTION_TARGET)
+                self._verify_purpose_refs(
+                    owner_label, "shared_state_ref", interaction.shared_state_refs, ReferencePurpose.SHARED_STATE
+                )
+            for effect in action_contract.effects:
+                # A ref naming no declaration is observation-boundary information that the
+                # runtime result checks govern; a declared name must be an eligible action target.
+                self._verify_purpose_refs(
+                    f"Action contract '{action_name}' effect '{effect.effect_id}'",
+                    "target_ref",
+                    [ref for ref in effect.target_refs if ref in declared],
+                    ReferencePurpose.ACTION_TARGET,
+                )
+
+    def _verify_purpose_refs(
+        self, owner_label: str, ref_label: str, refs: list[str], purpose: ReferencePurpose
+    ) -> None:
+        for ref in refs:
+            if not self._is_unresolved_var(ref):
+                self._validate_named_ref(ref, owner_label=owner_label, ref_label=ref_label, purpose=purpose)
 
     def _verify_participant_outcomes(self) -> None:
         analysis = analyze_participant_outcome_interpretations(
@@ -452,11 +457,14 @@ class _ContentObjectivesMixin:
                 events=self._s.events,
                 workflows=self._s.workflows,
             ),
-            targetable_name_index=self._named_ref_index(targetable=True),
+            targetable_name_index=self._named_ref_index(ReferencePurpose.OBJECTIVE_SUBJECT),
             is_unresolved=self._is_unresolved_var,
         )
         for issue in analysis.issues:
-            self._err(self._format_objective_issue(issue))
+            message = self._format_objective_issue(issue)
+            if issue.code == "objective.target-unresolvable":
+                message += self._ineligible_detail(issue.ref, ReferencePurpose.OBJECTIVE_SUBJECT)
+            self._err(message)
 
     @staticmethod
     def _format_objective_issue(issue: ObjectiveIssue) -> str:

@@ -50,7 +50,9 @@ Ownership and assignment ([participant contract](../../sdl/participant-identity.
 
 Target resolution:
 
-- targets resolve through the existing targetable named-reference index
+- targets resolve through the objective-subject purpose of the existing
+  named-reference index: participants, organizations, resources,
+  relationships, propositions, and assertions
 - target resolution remains fail-closed for missing or ambiguous references
 - target meaning does not create runtime deployment dependencies unless a
   separately defined runtime contract says so
@@ -136,7 +138,7 @@ a normalized objective analysis (`ObjectiveReference` /
 `ObjectiveResourceDependencies` / `ObjectiveSemanticAnalysis`) reused by
 validation, compilation, planning, and agreement tests, parameterized by the
 existing authorities it needs — the agent/entity indexes, the
-targetable-reference index, the assessment-resource indexes, the objective
+objective-subject reference index, the assessment-resource indexes, the objective
 index, and the window-analysis inputs. The ordering/refresh-role decision is the
 companion `partition_objective_dependencies` plus the `OBJECTIVE_*_DEPENDENCY_ROLES`
 constants, so a future role change lands in one place.

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 
+from .._reference_targetability import ReferencePurpose
+
 _DECLARATION_INDEX_REQUIRED = "declaration index must be built before reference validation"
 
 
@@ -98,7 +100,7 @@ class _ParticipantInjectDeliveriesMixin:
                 ref,
                 owner_label=label,
                 ref_label=field_name,
-                targetable=True,
+                purpose=ReferencePurpose.TARGETABLE,
             )
 
     def _verify_delivery_observation(self, label: str, binding: object) -> None:

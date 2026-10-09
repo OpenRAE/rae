@@ -10,14 +10,15 @@ from raes_contracts.realization_structure import (
 )
 
 from ._declarations import DeclarationIndex
+from ._reference_targetability import ReferencePurpose
 
 
 def canonical_observation_reference(index: DeclarationIndex, reference: str) -> str:
-    """Resolve one targetable spelling to exactly one canonical declaration address."""
+    """Resolve one observation-subject spelling to exactly one canonical declaration address."""
 
-    candidates = index.reference_aliases(targetable=True).get(reference, set())
+    candidates = index.reference_aliases(ReferencePurpose.OBSERVATION_SUBJECT).get(reference, set())
     if not candidates:
-        raise ValueError(f"observation component reference '{reference}' is not targetable")
+        raise ValueError(f"observation component reference '{reference}' is not an eligible observation subject")
     if len(candidates) != 1:
         choices = ", ".join(sorted(candidates))
         raise ValueError(f"observation component reference '{reference}' is ambiguous; use one of: {choices}")
