@@ -2,7 +2,7 @@
   "$defs": {
     "MixedBackendEdgeBindingModel": {
       "additionalProperties": false,
-      "description": "Bridge, coordinator and readers for one admitted directed edge.\n\nThe destination provider executes the mapped action under one RAES\nparticipant-crossing operation; owning the effect confers no controller,\ndisclosure or terminal-commit authority. Native translation stays inside\nthe pinned bridge, so the compiled action subject is preserved.",
+      "description": "Bridge, coordinator and readers for one admitted directed edge.\n\nThe destination provider executes the mapped action under one RAES\nparticipant-crossing operation; owning the effect confers no controller,\ndisclosure or terminal-commit authority. Native translation stays inside\nthe pinned bridge, so the compiled action subject is preserved. Each role\nis a distinct service, so the bridge never grants its own order or reads\nback its own delivery or observation.",
       "properties": {
         "audience_scope_ref": {
           "maxLength": 256,
@@ -222,7 +222,7 @@
     },
     "MixedBackendHandoffBindingModel": {
       "additionalProperties": false,
-      "description": "Native responsibility transfer for one admitted component-changing transition.",
+      "description": "Native responsibility transfer for one admitted component-changing transition.\n\nThe transfer service, coordinator and owner reader are distinct services,\nso a transfer never grants its own order or reads back its own owner.",
       "properties": {
         "destination_component_id": {
           "maxLength": 256,
@@ -521,7 +521,7 @@
   "type": "object",
   "x-raes-invariants": [
     {
-      "description": "Validate closed bounded fields, unique collections and honest stage evidence; structural validity does not prove backend truth, installation or runtime authority.",
+      "description": "Validate closed bounded fields, unique collections, a preserved compiled subject, distinct handoff components and a distinct pinned service for each role, so no two roles share a service reference or digest; structural validity does not prove backend truth, installation or runtime authority.",
       "id": "mixed-backend-local-consistency",
       "inputs": [
         {

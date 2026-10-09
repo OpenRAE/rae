@@ -205,6 +205,9 @@ observation, handoff, or owner-readback fact for one invocation of the
 - A handoff binding uses operation kind `composition-phase`. It names the
   leaving and joining components and their native ownership references, and
   its clocks and mapping resolve in the trusted time model.
+- Each role in one binding has its own service. No two of the bridge or
+  transfer service, the coordinator, and the readers share a service reference
+  or a digest, so a binding that pins one service to two roles is invalid.
 - A shared request commits to one binding through its content-bound `command`,
   is addressed to the pinned bridge or transfer service, and uses the
   binding's operation kind. The binding reference digest and each stage-report
@@ -216,6 +219,10 @@ observation, handoff, or owner-readback fact for one invocation of the
   reader, observation reader, transfer service, or owner reader for that
   stage. Execution or native transfer needs an `ordered` grant and an accepted
   acknowledgement.
+- The caller resolves the trusted time model under the binding's time-model
+  reference and digest. A committed composition state belongs to the
+  binding's profile and still activates the bound edge, or holds the
+  handoff's source component but not its destination component.
 - Time-grant coordinates equal the caller's committed time readback for both
   bound clocks. A handoff names the committed composition history head and
   phase revision, and its owner readback is judged against that revision.

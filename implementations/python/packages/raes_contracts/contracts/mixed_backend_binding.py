@@ -3,9 +3,10 @@
 One binding is the plain-data form of the installed bridge, time coordinator
 and readback services for exactly one admitted ``sem-234/rev1`` directed edge
 or component-changing phase transition. It names pinned identities and the
-obligations they must honour. Decoding a binding installs nothing, selects no
-provider and grants no execution authority; trusted joins against the sealed
-profile live in :mod:`raes_contracts.contracts.mixed_backend_validation`.
+obligations they must honour, and each role has its own service. Decoding a
+binding installs nothing, selects no provider and grants no execution
+authority; trusted joins against the sealed profile live in
+:mod:`raes_contracts.contracts.mixed_backend_validation`.
 """
 
 from __future__ import annotations
@@ -52,6 +53,17 @@ class MixedBackendServiceModel(OperationContractModel):
     digest: OperationDigest
 
 
+def _require_distinct_services(*services: MixedBackendServiceModel | None) -> None:
+    # A service pinned to two roles could report two stages itself, such as a
+    # bridge reading back its own delivery, so no two roles share a reference
+    # or a digest.
+    pinned = [service for service in services if service is not None]
+    references = {service.service_ref for service in pinned}
+    digests = {service.digest for service in pinned}
+    if len(references) != len(pinned) or len(digests) != len(pinned):
+        raise ValueError("a mixed binding must pin a distinct service for each role")
+
+
 class MixedBackendTimeRequirementModel(OperationContractModel):
     """Named clocks, mapping and governed order a coordinator must grant before invocation."""
 
@@ -77,7 +89,9 @@ class MixedBackendEdgeBindingModel(OperationContractModel):
     The destination provider executes the mapped action under one RAES
     participant-crossing operation; owning the effect confers no controller,
     disclosure or terminal-commit authority. Native translation stays inside
-    the pinned bridge, so the compiled action subject is preserved.
+    the pinned bridge, so the compiled action subject is preserved. Each role
+    is a distinct service, so the bridge never grants its own order or reads
+    back its own delivery or observation.
     """
 
     kind: Literal["edge"]
@@ -103,9 +117,18 @@ class MixedBackendEdgeBindingModel(OperationContractModel):
             raise ValueError("compiled-identity mapping must preserve the authorized action address")
         return self
 
+    @model_validator(mode="after")
+    def _distinct_services(self) -> Self:
+        _require_distinct_services(self.bridge, self.time.coordinator, self.delivery_reader, self.observation_reader)
+        return self
+
 
 class MixedBackendHandoffBindingModel(OperationContractModel):
-    """Native responsibility transfer for one admitted component-changing transition."""
+    """Native responsibility transfer for one admitted component-changing transition.
+
+    The transfer service, coordinator and owner reader are distinct services,
+    so a transfer never grants its own order or reads back its own owner.
+    """
 
     kind: Literal["handoff"]
     transition_id: OperationIdentifier
@@ -123,6 +146,11 @@ class MixedBackendHandoffBindingModel(OperationContractModel):
     def _distinct_owners(self) -> Self:
         if self.source_component_id == self.destination_component_id:
             raise ValueError("native handoff requires distinct source and destination components")
+        return self
+
+    @model_validator(mode="after")
+    def _distinct_services(self) -> Self:
+        _require_distinct_services(self.transfer, self.time.coordinator, self.owner_reader)
         return self
 
 

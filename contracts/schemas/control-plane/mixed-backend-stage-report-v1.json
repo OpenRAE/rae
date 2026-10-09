@@ -777,7 +777,7 @@
       "validator": "raes_contracts.contracts.MixedBackendStageReportModel.model_validate"
     },
     {
-      "description": "Require exact invocation binding and commitment, prerequisite stage order, the pinned producer for each stage, grant coordinates equal to the committed time readback, a handoff fenced on the committed composition head and phase revision, an ordered grant and accepted start before invocation stages, success or failure outcomes equal to the state the stages and trusted readbacks establish, and shared evidence that cites only supplied stage reports.",
+      "description": "Require exact invocation binding and commitment, a trusted time model resolved under the binding's time-model reference and digest, prerequisite stage order, the pinned producer for each stage, grant coordinates equal to the committed time readback, a committed composition state that still activates the edge or holds the handoff's source component without its destination, a handoff fenced on that state's head and phase revision, an ordered grant and accepted start before invocation stages, success or failure outcomes equal to the state the stages and trusted readbacks establish, and shared evidence that cites only supplied stage reports.",
       "id": "mixed-backend-stage-transcript",
       "inputs": [
         {

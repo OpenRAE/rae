@@ -166,9 +166,10 @@ within-run fallback.
 Issue #1371 publishes a portable form of the trusted executable inputs above.
 A [`mixed-backend-execution-binding-v1`](../../../contracts/schemas/control-plane/mixed-backend-execution-binding-v1.json)
 record pins one edge bridge or native transfer service, its time coordinator
-and its readers to one admitted edge or component-changing transition. An edge
-binding preserves the compiled action address and names the destination
-provider's action allocation as the effect owner. A
+and its readers to one admitted edge or component-changing transition. Each
+role is a distinct service. An edge binding preserves the compiled action
+address and names the destination provider's action allocation as the effect
+owner. A
 [`mixed-backend-stage-report-v1`](../../../contracts/schemas/control-plane/mixed-backend-stage-report-v1.json)
 record carries one time-grant, execution, delivery, observation, handoff or
 owner-readback fact. Each report belongs to one invocation of the shared

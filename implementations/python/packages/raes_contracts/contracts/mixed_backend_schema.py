@@ -11,6 +11,13 @@ from .schema_invariants import _add_raes_invariant
 _BINDING = "mixed-backend-execution-binding-v1"
 _STAGE_REPORT = "mixed-backend-stage-report-v1"
 _MODELS = {_BINDING: MixedBackendExecutionBindingModel, _STAGE_REPORT: MixedBackendStageReportModel}
+_STRUCTURAL_LIMIT = "structural validity does not prove backend truth, installation or runtime authority."
+_LOCAL_CONSISTENCY = {
+    _BINDING: "Validate closed bounded fields, unique collections, a preserved compiled subject, distinct handoff "
+    "components and a distinct pinned service for each role, so no two roles share a service reference or digest; "
+    + _STRUCTURAL_LIMIT,
+    _STAGE_REPORT: "Validate closed bounded fields, unique collections and honest stage evidence; " + _STRUCTURAL_LIMIT,
+}
 
 
 def _inputs(*contract_ids: str) -> list[dict[str, str]]:
@@ -24,8 +31,7 @@ def mixed_backend_schema_bundle() -> dict[str, dict[str, Any]]:
         _add_raes_invariant(
             schema,
             "mixed-backend-local-consistency",
-            "Validate closed bounded fields, unique collections and honest stage evidence; structural validity "
-            "does not prove backend truth, installation or runtime authority.",
+            _LOCAL_CONSISTENCY[contract_id],
             validator=f"raes_contracts.contracts.{model.__name__}.model_validate",
             inputs=_inputs(contract_id),
         )
@@ -55,11 +61,13 @@ def mixed_backend_schema_bundle() -> dict[str, dict[str, Any]]:
     _add_raes_invariant(
         schemas[_STAGE_REPORT],
         "mixed-backend-stage-transcript",
-        "Require exact invocation binding and commitment, prerequisite stage order, the pinned producer for each "
-        "stage, grant coordinates equal to the committed time readback, a handoff fenced on the committed "
-        "composition head and phase revision, an ordered grant and accepted start before invocation stages, "
-        "success or failure outcomes equal to the state the stages and trusted readbacks establish, and shared "
-        "evidence that cites only supplied stage reports.",
+        "Require exact invocation binding and commitment, a trusted time model resolved under the binding's "
+        "time-model reference and digest, prerequisite stage order, the pinned producer for each stage, grant "
+        "coordinates equal to the committed time readback, a committed composition state that still activates "
+        "the edge or holds the handoff's source component without its destination, a handoff fenced on that "
+        "state's head and phase revision, an ordered grant and accepted start before invocation stages, success "
+        "or failure outcomes equal to the state the stages and trusted readbacks establish, and shared evidence "
+        "that cites only supplied stage reports.",
         validator="raes_contracts.contracts.validate_mixed_backend_stage_reports",
         inputs=[
             *_inputs(

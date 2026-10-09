@@ -2,11 +2,11 @@
 
 The validator joins stage reports to their installed binding, the shared
 backend operation request and response transcript, and trusted inputs resolved
-by the caller: the time-model declaration, the committed time readback the
-coordinator received, RAES's own time readback after the invocation and, for a
-native handoff, the committed composition state. It performs no I/O, dispatch
-or state mutation, and passing it proves neither backend truth nor runtime
-adoption.
+by the caller: the time-model declaration with the reference and digest it was
+resolved under, the committed time readback the coordinator received, RAES's
+own time readback after the invocation and, for a native handoff, the committed
+composition state. It performs no I/O, dispatch or state mutation, and passing
+it proves neither backend truth nor runtime adoption.
 """
 
 from __future__ import annotations
@@ -80,15 +80,19 @@ class _Transcript:
 class MixedBackendStageContext:
     """Trusted, caller-resolved inputs for one invocation's stage reports; none comes from a backend.
 
-    ``time_model`` is the declaration resolved from the binding's time
-    requirement, and ``time_state`` is the committed time readback that the
+    ``time_model`` is the declaration that the caller resolved under
+    ``time_model_ref`` and ``time_model_digest``, which must equal the binding's
+    time requirement. ``time_state`` is the committed time readback that the
     coordinator received. ``post_time_state`` is RAES's own time readback after
     the invocation, or ``None`` when none was taken. ``composition_state`` is
-    the committed composition state of the binding's profile; a native handoff
-    requires it.
+    the committed composition state of the binding's profile: it must activate
+    a bound edge, or hold a handoff's source component but not its destination.
+    A native handoff requires it.
     """
 
     time_model: TimeModelDeclarationModel
+    time_model_ref: str
+    time_model_digest: str
     time_state: TimeRuntimeStateModel
     post_time_state: TimeRuntimeStateModel | None = None
     composition_state: MixedCompositionRuntimeStateModel | None = None
@@ -115,12 +119,15 @@ def validate_mixed_backend_stage_reports(
 ) -> None:
     """Validate one invocation's stage reports against its binding, transcript and trusted context.
 
-    The grant's coordinates must equal the committed time readback, and a
-    native handoff must name the committed composition history head and phase
-    revision. Each stage must follow its prerequisite and name the service
-    pinned for its role, and the invocation stage needs an ordered grant and an
-    accepted acknowledgement. A proposed success or known failure must equal
-    the state that the stages and the trusted readbacks establish.
+    The trusted time model must be resolved under the binding's time-model
+    reference and digest, and a committed composition state must still
+    activate the bound edge or precede the bound handoff. The grant's
+    coordinates must equal the committed time readback, and a native handoff
+    must name the committed composition history head and phase revision. Each
+    stage must follow its prerequisite and name the service pinned for its
+    role, and the invocation stage needs an ordered grant and an accepted
+    acknowledgement. A proposed success or known failure must equal the state
+    that the stages and the trusted readbacks establish.
     """
 
     require_mixed_backend_request(binding, request)
@@ -146,6 +153,8 @@ def validate_mixed_backend_stage_reports(
 
 def _trusted_inputs(binding: MixedBackendExecutionBindingModel, context: MixedBackendStageContext) -> _Trusted:
     required, time_model = binding.subject.time, context.time_model
+    if (context.time_model_ref, context.time_model_digest) != (required.time_model_ref, required.time_model_digest):
+        raise ValueError("trusted time model differs from the binding's time model reference or digest")
     validate_time_runtime_state(time_model, context.time_state)
     before = _bound_coordinates(required, context.time_state)
     confirmed = _time_confirmed(required, time_model, before, context.post_time_state)
@@ -192,7 +201,20 @@ def _composition_fence(
         return None
     if (state.profile_id, state.profile_digest) != (binding.profile_id, binding.profile_digest):
         raise ValueError("committed composition state belongs to another profile")
+    _require_open_obligation(binding.subject, state)
     return state.history_head, state.phase_revision
+
+
+def _require_open_obligation(subject: _SubjectBinding, state: MixedCompositionRuntimeStateModel) -> None:
+    # The committed state must still be the one the obligation acts on: the
+    # edge is active, or the handoff's source is active and its destination not.
+    if isinstance(subject, MixedBackendEdgeBindingModel):
+        if subject.edge_id not in state.active_edge_ids:
+            raise ValueError("committed composition state does not activate the bound edge")
+        return
+    active = set(state.active_component_ids)
+    if subject.source_component_id not in active or subject.destination_component_id in active:
+        raise ValueError("committed composition state does not precede the native handoff")
 
 
 def _ordered_stages(

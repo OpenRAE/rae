@@ -1,8 +1,12 @@
 # Mixed-backend execution contracts migration
 
 Issue #1371 publishes portable contracts for the executable mixed-backend
-obligations defined by the
-[issue #1355 decision](../decisions/issue-1355-executable-mixed-mapping-time-preflight.md):
+obligations that
+[ADR-102](../decisions/adrs/adr-102-mixed-cross-backend-participant-control.md)
+section 13 adopted for issue #1355. The
+[issue #1355 preflight](../decisions/issue-1355-executable-mixed-mapping-time-preflight.md)
+is architecture guidance for that amendment, not a normative decision. The
+two contracts are:
 
 - [`mixed-backend-execution-binding-v1`](../../contracts/schemas/control-plane/mixed-backend-execution-binding-v1.json)
   is the plain-data form of one installed bridge, time coordinator and set of
@@ -47,8 +51,10 @@ evidence references.
 
 Services are pinned by `service_ref`, `version` and `digest`. A service
 reference is an identity, never a module, path, URL, command or credential.
-Decoding a binding installs nothing, selects no provider and grants no
-authority.
+Each role has its own service: within one binding, no two of the bridge or
+transfer service, the coordinator and the readers share a `service_ref` or a
+`digest`. A binding that pins one service to two roles is invalid. Decoding a
+binding installs nothing, selects no provider and grants no authority.
 
 ## Stage reports
 
@@ -98,8 +104,9 @@ follows the backend operation protocol's own rule.
   returned by `mixed_backend_binding_reference()`. Its `backend_id` names the
   pinned bridge or transfer service, and its operation kind matches the binding.
 - Each stage report names the producing service exactly as the binding pins
-  it. A bridge never reports delivery or observation, and a transfer service
-  never reports its own owner readback.
+  it. Because every role has its own service, a bridge never reports a time
+  grant, delivery or observation. A transfer service never reports a time
+  grant or its own owner readback.
 - A coordinator grants over the committed time readback that it receives, and
   both coordinates in its grant equal that readback. It reports `ordered` only
   when the mapped source coordinate does not pass the destination coordinate
@@ -137,13 +144,18 @@ owning authorities. They then call these pure validators from
    inputs:
    - `time_model`: the declaration resolved from the binding's time
      requirement.
+   - `time_model_ref` and `time_model_digest`: the reference and digest that
+     the caller resolved `time_model` under. They must equal the binding's
+     time requirement.
    - `time_state`: the committed time readback that the coordinator received.
      It must validate against `time_model` and cover both bound clocks.
    - `post_time_state`: RAES's own time readback after the invocation, or
      `None` when none was taken. When present, it must validate against
      `time_model`.
    - `composition_state`: the committed composition state of the binding's
-     profile. A handoff requires it.
+     profile. A handoff requires it. When present, it must still activate a
+     bound edge. For a handoff, its active components must include the source
+     component and exclude the destination component.
 
 ## Stage and settlement model
 
@@ -157,6 +169,12 @@ acknowledgement and whether time is confirmed. Time is confirmed when
 `post_time_state` is present and neither bound clock coordinate in it is lower
 than in `time_state`. Coordinates compare by segment, then tick, then
 microstep.
+
+**Preconditions.** Before any report is accepted, the trusted inputs must
+match the binding. `time_model_ref` and `time_model_digest` equal its time
+requirement, and `time_state` covers both bound clocks. A `composition_state`
+belongs to its profile, and it activates the bound edge or precedes the bound
+handoff as described above.
 
 **Transitions.** A report is accepted only after its prerequisite and only when
 its joins hold:
@@ -192,11 +210,12 @@ or no grant at all, establishes no failure, because an unreported invocation
 may have started.
 
 **Invariants.** No invocation stage follows a refusal or an `incomparable`
-grant. No stage is accepted from a service other than its pinned producer. A
-success never rests on a backend's own time or composition claims. It needs
-the committed and post-invocation time readbacks, and a handoff also needs the
-committed composition state. A violated join refuses the whole transcript
-instead of settling it.
+grant. No stage is accepted from a service other than its pinned producer, and
+no service holds two roles in one binding. A success never rests on a
+backend's own time or composition claims. It needs the committed and
+post-invocation time readbacks, and a handoff also needs the committed
+composition state. A violated join refuses the whole transcript instead of
+settling it.
 
 ## Compatibility
 
@@ -226,8 +245,10 @@ Each one has a request, its responses and its stage reports:
 | `mixed-handoff` | Committed native transfer with a destination owner readback at the next phase revision. |
 | `mixed-handoff-stale` | Stale transfer whose readback retains the source owner; the shared outcome is a known failure with no effect. |
 
-Each new contract also has `invalid/` and `context-invalid/` examples. Run the
-focused checks from the repository root with
+Each new contract also has `invalid/` and `context-invalid/` examples. The
+binding's `bridge-as-reader` and `transfer-as-owner-reader` examples are
+invalid because they pin one service to two roles. Run the focused checks from
+the repository root with
 `uv run --project implementations/python --frozen --all-extras python -m pytest implementations/python/tests/test_issue_1371_mixed_backend_contracts.py -q`.
 
 ## Limits
@@ -235,9 +256,10 @@ focused checks from the repository root with
 The validators perform no I/O, dispatch or state mutation. Passing them proves
 neither backend truth nor installation, conformance or runtime authority. They
 compare the producer that each report names with the binding. The caller must
-authenticate that a report came from that service. Whether a reader is
-operationally independent of the bridge is a deployment property that the
-binding names but no validator can prove.
+authenticate that a report came from that service. The binding model refuses
+one service reference or digest in two roles, but whether two distinct
+services are operationally independent is a deployment property that no
+validator can prove.
 
 These contracts add no generic federation framework, HLA, FMI or HELICS
 support, common clock or physical-OT timing guarantee. They also add no

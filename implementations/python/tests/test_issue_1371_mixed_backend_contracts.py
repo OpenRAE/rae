@@ -38,10 +38,14 @@ def _fixture(family: str, kind: str, name: str) -> dict:
     return json.loads((FIXTURES / family / kind / f"{name}.json").read_text(encoding="utf-8"))
 
 
-def _binding(name: str = "mixed-edge", **subject: object) -> contracts.MixedBackendExecutionBindingModel:
+def _subject_payload(name: str, **subject: object) -> dict:
     payload = _fixture(BINDING, "valid", name)
     payload["subject"].update(subject)
-    return contracts.MixedBackendExecutionBindingModel.model_validate(payload)
+    return payload
+
+
+def _binding(name: str = "mixed-edge", **subject: object) -> contracts.MixedBackendExecutionBindingModel:
+    return contracts.MixedBackendExecutionBindingModel.model_validate(_subject_payload(name, **subject))
 
 
 def _scenario(name: str) -> tuple[contracts.BackendOperationRequestModel, list, list]:
@@ -106,8 +110,10 @@ def _declaration(**emulation_clock: object) -> TimeModelDeclarationModel:
     return TimeModelDeclarationModel.model_validate(fields)
 
 
-def _composition_state(**changes: object) -> contracts.MixedCompositionRuntimeStateModel:
-    profile = _staged_profile()
+def _composition_state(profile=None, **changes: object) -> contracts.MixedCompositionRuntimeStateModel:
+    """Committed composition state; by default the staged profile's source phase before its handoff."""
+
+    profile = profile or _staged_profile()
     return contracts.MixedCompositionRuntimeStateModel.model_validate(
         {
             "run_id": "run:mixed",
@@ -125,11 +131,29 @@ def _composition_state(**changes: object) -> contracts.MixedCompositionRuntimeSt
     )
 
 
+def _edge_composition_state(*active_edge_ids: str) -> contracts.MixedCompositionRuntimeStateModel:
+    """Committed state of the edge profile's only phase, with the given edges active."""
+
+    return _composition_state(
+        _runtime_mixed_profile(),
+        phase_id="phase.main",
+        active_component_ids=["sim", "emu"],
+        active_edge_ids=list(active_edge_ids),
+    )
+
+
 def _trusted(scenario: str) -> dict:
-    """Caller-resolved inputs: time model, committed and post-invocation readbacks, composition state."""
+    """Caller-resolved inputs: time model and its identity, time readbacks and the composition state."""
 
     readback = _time_state(*COMMITTED_CLOCKS.get(scenario, ()))
-    trusted = {"time_model": _time_model(), "time_state": readback, "post_time_state": readback}
+    time = _fixture(BINDING, "valid", SCENARIOS[scenario])["subject"]["time"]
+    trusted = {
+        "time_model": _time_model(),
+        "time_model_ref": time["time_model_ref"],
+        "time_model_digest": time["time_model_digest"],
+        "time_state": readback,
+        "post_time_state": readback,
+    }
     if SCENARIOS[scenario] == "mixed-handoff":
         trusted["composition_state"] = _composition_state()
     return trusted
@@ -409,6 +433,50 @@ def test_handoff_binding_must_match_one_to_one_ownership_and_resolved_time(subje
         contracts.validate_mixed_backend_bindings(profile, context, bindings)
 
 
+EDGE_SUBJECT = _fixture(BINDING, "valid", "mixed-edge")["subject"]
+BRIDGE_SERVICE, DELIVERY_SERVICE = EDGE_SUBJECT["bridge"], EDGE_SUBJECT["delivery_reader"]
+TRANSFER_SERVICE = _fixture(BINDING, "valid", "mixed-handoff")["subject"]["transfer"]
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        pytest.param(_fixture(BINDING, "invalid", "bridge-as-reader"), id="invalid-bridge-as-reader"),
+        pytest.param(_fixture(BINDING, "invalid", "transfer-as-owner-reader"), id="invalid-transfer-as-owner-reader"),
+        pytest.param(_subject_payload("mixed-edge", delivery_reader=BRIDGE_SERVICE), id="bridge-reads-delivery"),
+        pytest.param(_subject_payload("mixed-edge", observation_reader=BRIDGE_SERVICE), id="bridge-reads-observation"),
+        pytest.param(_subject_payload("mixed-edge", observation_reader=DELIVERY_SERVICE), id="one-reader-two-stages"),
+        pytest.param(
+            _subject_payload("mixed-edge", time={**EDGE_TIME, "coordinator": BRIDGE_SERVICE}),
+            id="bridge-grants-order",
+        ),
+        pytest.param(
+            _subject_payload("mixed-edge", delivery_reader={**BRIDGE_SERVICE, "service_ref": "reader:renamed"}),
+            id="shared-digest",
+        ),
+        pytest.param(
+            _subject_payload(
+                "mixed-edge", delivery_reader={**DELIVERY_SERVICE, "service_ref": BRIDGE_SERVICE["service_ref"]}
+            ),
+            id="shared-reference",
+        ),
+        pytest.param(
+            _subject_payload("mixed-handoff", time={**HANDOFF_TIME, "coordinator": TRANSFER_SERVICE}),
+            id="transfer-grants-order",
+        ),
+        pytest.param(
+            _subject_payload("mixed-handoff", owner_reader=HANDOFF_TIME["coordinator"]),
+            id="coordinator-reads-owner",
+        ),
+    ],
+)
+def test_binding_pins_a_distinct_service_for_each_role(payload: dict) -> None:
+    # Sharing a reference or a digest would let one service report two stages,
+    # such as a bridge reading back its own delivery or granting its own order.
+    with pytest.raises(ValidationError, match="distinct service for each role"):
+        contracts.MixedBackendExecutionBindingModel.model_validate(payload)
+
+
 def _capabilities(name: str) -> contracts.BackendOperationCapabilitiesModel:
     return contracts.BackendOperationCapabilitiesModel.model_validate(
         _fixture("backend-operation-capabilities-v1", "valid", name)
@@ -592,24 +660,47 @@ def _foreign_post_time_state() -> dict:
     return {"post_time_state": _time_state(declaration=_declaration(description="another emulation clock"))}
 
 
+def _composition_after_handoff() -> dict:
+    # The transition already happened at the same head and revision.
+    return {"composition_state": _composition_state(phase_id="phase.emu", active_component_ids=["emu"])}
+
+
 @pytest.mark.parametrize(
     ("scenario", "trusted", "message"),
     [
         ("mixed-edge", _foreign_time_state, "declaration_digest does not match"),
         ("mixed-edge", _uncovered_clocks, "does not cover the bound clocks"),
         ("mixed-edge", _foreign_post_time_state, "declaration_digest does not match"),
+        ("mixed-edge", lambda: {"time_model_digest": "sha256:" + "e" * 64}, "time model reference or digest"),
+        ("mixed-handoff", lambda: {"time_model_ref": "time-model:other"}, "time model reference or digest"),
         ("mixed-handoff", lambda: {"composition_state": None}, "requires the committed composition state"),
         (
             "mixed-handoff",
             lambda: {"composition_state": _composition_state(profile_id="profile:other")},
             "belongs to another profile",
         ),
+        ("mixed-handoff", _composition_after_handoff, "does not precede the native handoff"),
+        (
+            "mixed-handoff",
+            lambda: {"composition_state": _composition_state(active_component_ids=["sim", "emu"])},
+            "does not precede the native handoff",
+        ),
+        (
+            "mixed-handoff",
+            lambda: {"composition_state": _composition_state(active_component_ids=["other"])},
+            "does not precede the native handoff",
+        ),
+        ("mixed-edge", lambda: {"composition_state": _edge_composition_state()}, "does not activate the bound edge"),
     ],
 )
-def test_trusted_readbacks_must_match_the_time_model_bound_clocks_and_profile(scenario, trusted, message) -> None:
+def test_trusted_inputs_must_match_the_binding_time_model_clocks_and_composition(scenario, trusted, message) -> None:
     overrides = trusted()
     with pytest.raises(ValueError, match=message):
         _validate(scenario, **overrides)
+
+
+def test_an_edge_validates_against_a_composition_state_that_activates_it() -> None:
+    _validate("mixed-edge", composition_state=_edge_composition_state("edge.sim-to-emu"))
 
 
 @pytest.mark.parametrize(
