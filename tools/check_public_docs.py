@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import itertools
 import json
 import os
 import re
@@ -61,13 +62,22 @@ GENERATED_HTML_ROUTES = frozenset(
         "search.html",
     }
 )
+# A MyST directive opens with a fence of three or more backticks, tildes or colons.
+MYST_DIRECTIVE_FENCE = r"^[ \t]*[`~:]{3,}[ \t]*\{"
+# Options that make a directive read a file: :file: and :url: (raw, csv-table) and
+# :diff: (literalinclude). MyST also accepts quoted keys and `key : value`.
+FILE_OPTION = r"[\"']?(?:file|url|diff)[\"']?[ \t]*:[ \t]+(\S+)"
 LOCAL_DIRECTIVE_PATTERNS = (
-    re.compile(
-        r"^\s*(?:```\{|\.\.\s+)(?:include|literalinclude|download)(?:\}|::)\s+([^\s]+)",
-        re.MULTILINE | re.IGNORECASE,
-    ),
+    re.compile(r"^\s*\.\.\s+(?:include|literalinclude|download)::\s+(\S+)", re.MULTILINE | re.IGNORECASE),
+    re.compile(MYST_DIRECTIVE_FENCE + r"(?:include|literalinclude|download)\}\s+(\S+)", re.MULTILINE | re.IGNORECASE),
     re.compile(r"\{download\}`(?:[^`<]*<)?([^>`]+)>?`", re.IGNORECASE),
+    # reStructuredText option fields and MyST `:key: value` option lines.
+    re.compile(r"^[ \t]*:" + FILE_OPTION, re.MULTILINE | re.IGNORECASE),
 )
+# MyST also reads options from a YAML block between `---` lines that opens the body.
+MYST_DIRECTIVE_OPENING = re.compile(MYST_DIRECTIVE_FENCE)
+YAML_FILE_OPTION = re.compile(r"^[ \t]*" + FILE_OPTION, re.IGNORECASE)
+YAML_OPTION_DELIMITER = "---"
 # Directory names and file names that only ever hold internal records.
 INTERNAL_RECORD_DIRECTORIES = frozenset({"adrs", "decisions", "development"})
 ADR_FILENAME = re.compile(r"adr-\d{3,}-", re.IGNORECASE)
@@ -76,8 +86,14 @@ MARKDOWN_LINK_PATTERNS = (
     re.compile(r"\]\(\s*<?([^)\s>]+)"),
     re.compile(r"^[ \t]*\[(?!\^)[^\]\n]+\]:[ \t]*<?([^\s>]+)", re.MULTILINE),
 )
+# Code fences and code spans hold no links. MyST parses the body of a colon fence or a
+# directive fence (an info string such as `{note}`) as Markdown, so those stay.
+FENCE_LINE = re.compile(r"^[ \t]*(`{3,}|~{3,}|:{3,})(.*)$")
+CODE_SPAN = re.compile(r"(`+)[^`\n]*\1")
 # Sphinx copies download and image targets here, even from outside the source root.
 PUBLISHED_ASSET_DIRECTORIES = ("_downloads", "_images")
+# Sphinx never reads this directory as source (exclude_patterns in docs/public/conf.py).
+SPHINX_BUILD_DIRECTORY = "_build"
 
 
 def _public_path(repo_root: Path) -> Path | None:
@@ -121,13 +137,34 @@ def _docname_for_source(public_root: Path, source: Path) -> str:
     return source.relative_to(public_root).with_suffix("").as_posix()
 
 
-def _directive_targets(text: str) -> list[str]:
+def _yaml_option_block(body: list[str]) -> list[str]:
+    """Return the YAML option lines that open a MyST directive body between ``---`` lines."""
+
+    if not body or not body[0].lstrip().startswith(YAML_OPTION_DELIMITER):
+        return []
+    return list(itertools.takewhile(lambda line: not line.lstrip().startswith(YAML_OPTION_DELIMITER), body[1:]))
+
+
+def _yaml_option_targets(text: str) -> list[str]:
+    lines = text.splitlines()
     return [
-        match.group(1).strip().strip("\"'") for pattern in LOCAL_DIRECTIVE_PATTERNS for match in pattern.finditer(text)
+        match.group(1)
+        for index, line in enumerate(lines)
+        if MYST_DIRECTIVE_OPENING.match(line)
+        for match in map(YAML_FILE_OPTION.match, _yaml_option_block(lines[index + 1 :]))
+        if match
     ]
 
 
+def _directive_targets(text: str) -> list[str]:
+    targets = [match.group(1) for pattern in LOCAL_DIRECTIVE_PATTERNS for match in pattern.finditer(text)]
+    return [target.strip().strip("\"'") for target in [*targets, *_yaml_option_targets(text)]]
+
+
 def _target_is_contained(public_root: Path, source: Path, target: str) -> bool:
+    # docutils opens file:// URLs given to :url:, so a file URL is never contained.
+    if target.casefold().startswith("file:"):
+        return False
     if "://" in target or target.startswith(("mailto:", "#")):
         return True
     clean_target = target.split("#", 1)[0]
@@ -229,7 +266,7 @@ def evaluate_public_sources(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
             failures.append(
                 PolicyFailure(
                     "public-docs-source-escape",
-                    "include, literalinclude, and download targets must stay inside docs/public",
+                    "include, literalinclude, download, :file:, :url: and :diff: targets must stay inside docs/public",
                     relative_path,
                 )
             )
@@ -253,8 +290,45 @@ def _bounded_text(source: Path) -> str:
         return ""
 
 
+def _closes(fence: re.Match[str] | None, opening: str) -> bool:
+    if fence is None:
+        return False
+    run = fence.group(1)
+    return run[0] == opening[0] and len(run) >= len(opening) and not fence.group(2).strip()
+
+
+def _opens_markdown_body(fence: re.Match[str]) -> bool:
+    return fence.group(1).startswith(":") or fence.group(2).lstrip().startswith("{")
+
+
+def _markdown_outside_code(text: str) -> str:
+    """Return Markdown text without fenced code blocks or inline code spans.
+
+    A link this misses still fails evaluate_published_assets once Sphinx copies its target.
+    """
+
+    kept: list[str] = []
+    markdown_fences: list[str] = []
+    code_fence = ""
+    for line in text.splitlines():
+        fence = FENCE_LINE.match(line)
+        if code_fence:
+            if _closes(fence, code_fence):
+                code_fence = ""
+        elif fence is None:
+            kept.append(line)
+        elif markdown_fences and _closes(fence, markdown_fences[-1]):
+            markdown_fences.pop()
+        elif _opens_markdown_body(fence):
+            markdown_fences.append(fence.group(1))
+            kept.append(line)
+        else:
+            code_fence = fence.group(1)
+    return CODE_SPAN.sub("", "\n".join(kept))
+
+
 def _escaping_link_targets(public_root: Path, source: Path) -> list[str]:
-    text = _bounded_text(source)
+    text = _markdown_outside_code(_bounded_text(source))
     return [
         match.group(1)
         for pattern in MARKDOWN_LINK_PATTERNS
@@ -456,7 +530,10 @@ def evaluate_published_assets(repo_root: Path, output_root: Path) -> list[Policy
     public_digests = {
         _file_digest(path)
         for path in public_root.rglob("*")
-        if path.is_file() and not path.is_symlink() and resolved_output not in path.resolve().parents
+        if path.is_file()
+        and not path.is_symlink()
+        and path.relative_to(public_root).parts[0] != SPHINX_BUILD_DIRECTORY
+        and resolved_output not in path.resolve().parents
     }
     return [
         PolicyFailure(

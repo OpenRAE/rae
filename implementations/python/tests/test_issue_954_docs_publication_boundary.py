@@ -1,12 +1,14 @@
 """Publication-boundary rules adopted from env-packs (issue 954).
 
 The public docs checker rejects internal records under ``docs/public``, Markdown
-links that resolve outside it, and published downloads or images that are not
-copies of a public file. The static tests run without a docs build.
+links and file-reading directives that resolve outside it, and published
+downloads or images that are not copies of a public file. The static tests run
+without a docs build.
 """
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -15,13 +17,17 @@ from tools.check_public_docs import (
     INTERNAL_RECORD_DIRECTORIES,
     MARKDOWN_LINK_PATTERNS,
     MAX_SOURCE_BYTES,
+    REQUIRED_PUBLIC_PAGES,
+    REQUIRED_PUBLIC_REDIRECTS,
     evaluate_public_boundary,
+    evaluate_public_sources,
     evaluate_published_assets,
 )
 from tools.policy.common import PolicyFailure
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 DOCS_LANE_RUN = "nox -f noxfile.py -s docs-local"
+TOOL_LINK = "[Tool](../../tools/internal_tool.py)"
 
 
 def _write(path: Path, content: str) -> Path:
@@ -32,6 +38,15 @@ def _write(path: Path, content: str) -> Path:
 
 def _findings(failures: list[PolicyFailure]) -> list[tuple[str, str | None]]:
     return [(failure.rule_id, failure.path) for failure in failures]
+
+
+@pytest.fixture
+def seeded_repo(tmp_path: Path) -> Path:
+    public_root = tmp_path / "docs" / "public"
+    for relative_path in REQUIRED_PUBLIC_PAGES:
+        _write(public_root / relative_path, "# Page\n")
+    _write(public_root / "redirects.json", json.dumps(REQUIRED_PUBLIC_REDIRECTS))
+    return tmp_path
 
 
 def test_pages_and_links_inside_the_public_root_pass(tmp_path: Path) -> None:
@@ -51,18 +66,77 @@ def test_pages_and_links_inside_the_public_root_pass(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     "markdown",
     [
-        "[Tool](../../tools/internal_tool.py)",
+        TOOL_LINK,
         "![Diagram](../decisions/diagram.png)",
         "[Tool](<../../tools/internal_tool.py>)",
         '[Tool](../../tools/internal_tool.py "Tool")',
         "[Tool][tool]\n\n[tool]: ../../tools/internal_tool.py",
         "[Hosts](/etc/hosts)",
+        # MyST parses directive and colon fence bodies as Markdown.
+        f"```{{note}}\n{TOOL_LINK}\n```",
+        f":::\n{TOOL_LINK}\n:::",
+        f"```text\nexample\n```\n\n`code` {TOOL_LINK}",
     ],
 )
 def test_markdown_link_that_escapes_the_public_root_fails(tmp_path: Path, markdown: str) -> None:
     _write(tmp_path / "docs" / "public" / "index.md", f"# Index\n\n{markdown}\n")
 
     assert _findings(evaluate_public_boundary(tmp_path)) == [("public-docs-link-escape", "docs/public/index.md")]
+
+
+@pytest.mark.parametrize(
+    "markdown",
+    [
+        f"```text\n{TOOL_LINK}\n```",
+        f"~~~~\n{TOOL_LINK}\n~~~~",
+        f"Write `{TOOL_LINK}` or ``{TOOL_LINK}``.",
+        f"````{{note}}\n```markdown\n{TOOL_LINK}\n```\n````",
+    ],
+    ids=["backtick-fence", "tilde-fence", "code-span", "fence-inside-a-directive"],
+)
+def test_link_shown_as_code_passes(tmp_path: Path, markdown: str) -> None:
+    _write(tmp_path / "docs" / "public" / "index.md", f"# Index\n\n{markdown}\n")
+
+    assert evaluate_public_boundary(tmp_path) == []
+
+
+@pytest.mark.parametrize(
+    ("page", "directive"),
+    [
+        pytest.param("support.md", "```{raw} html\n:file: ../decisions/record.md\n```", id="myst-raw"),
+        pytest.param("support.md", "```{csv-table} Data\n:file: ../development/data.csv\n```", id="myst-csv-table"),
+        pytest.param("api/index.rst", ".. raw:: html\n   :file: ../../development/record.md", id="rst-raw"),
+        pytest.param(
+            "support.md", "```{raw} html\n---\nfile: ../decisions/record.md\n---\n```", id="myst-yaml-options"
+        ),
+        pytest.param(
+            "support.md", '- Item\n\n  ```{raw} html\n  :"file" : ../decisions/record.md\n  ```', id="myst-quoted-key"
+        ),
+        pytest.param(
+            "support.md", "```{literalinclude} quickstart.md\n:diff: ../development/record.md\n```", id="diff"
+        ),
+        pytest.param("support.md", "```{raw} html\n:url: file:///srv/docs/development/record.md\n```", id="file-url"),
+        pytest.param("support.md", ":::{include} ../development/record.md\n:::", id="colon-fence-include"),
+        pytest.param("support.md", "~~~{include} ../development/record.md\n~~~", id="tilde-fence-include"),
+        pytest.param("support.md", "```` {include} ../development/record.md\n````", id="long-fence-include"),
+    ],
+)
+def test_directive_that_reads_a_file_outside_the_public_root_fails(
+    seeded_repo: Path, page: str, directive: str
+) -> None:
+    _write(seeded_repo / "docs" / "public" / page, f"{directive}\n")
+
+    assert _findings(evaluate_public_sources(seeded_repo)) == [("public-docs-source-escape", f"docs/public/{page}")]
+
+
+def test_directive_that_reads_a_public_file_passes(seeded_repo: Path) -> None:
+    _write(
+        seeded_repo / "docs" / "public" / "support.md",
+        "```{csv-table} Data\n:file: _static/data.csv\n```\n\n:::{include} guides/python.md\n:::\n\n"
+        "```{raw} html\n---\nurl: https://example.test/banner.html\n---\n```\n",
+    )
+
+    assert evaluate_public_sources(seeded_repo) == []
 
 
 @pytest.mark.parametrize(
@@ -77,15 +151,25 @@ def test_internal_record_under_the_public_root_fails(tmp_path: Path, relative_pa
     ]
 
 
-@pytest.mark.parametrize("output_parts", [("docs", "_build", "html"), ("docs", "public", "_build", "html")])
-def test_published_asset_must_copy_a_public_file(tmp_path: Path, output_parts: tuple[str, ...]) -> None:
+@pytest.mark.parametrize(
+    "output_trees",
+    [
+        [("docs", "_build", "html")],
+        [("docs", "public", "_build", "html")],
+        # A stale build under docs/public is not a source, so its copies hide nothing.
+        [("docs", "_build", "html"), ("docs", "public", "_build", "html")],
+    ],
+    ids=["outside-the-public-root", "inside-the-public-root", "beside-a-stale-public-build"],
+)
+def test_published_asset_must_copy_a_public_file(tmp_path: Path, output_trees: list[tuple[str, ...]]) -> None:
     example = _write(tmp_path / "docs" / "public" / "_static" / "first-scenario.sdl.yaml", "name: first-scenario\n")
-    output_root = tmp_path.joinpath(*output_parts)
-    _write(output_root / "_downloads" / "a1" / example.name, example.read_text(encoding="utf-8"))
-    _write(output_root / "_downloads" / "b2" / "internal_tool.py", "print('internal')\n")
-    _write(output_root / "_images" / "diagram.png", "internal diagram\n")
+    output_roots = [tmp_path.joinpath(*parts) for parts in output_trees]
+    for output_root in output_roots:
+        _write(output_root / "_downloads" / "a1" / example.name, example.read_text(encoding="utf-8"))
+        _write(output_root / "_downloads" / "b2" / "internal_tool.py", "print('internal')\n")
+        _write(output_root / "_images" / "diagram.png", "internal diagram\n")
 
-    assert _findings(evaluate_published_assets(tmp_path, output_root)) == [
+    assert _findings(evaluate_published_assets(tmp_path, output_roots[0])) == [
         ("public-docs-output-asset", "_downloads/b2/internal_tool.py"),
         ("public-docs-output-asset", "_images/diagram.png"),
     ]
