@@ -87,6 +87,10 @@ each part means.
 - **Scenario authors:** Start with the
   [SDL guide](https://openrae.github.io/rae/sdl/) and
   [worked examples](https://github.com/OpenRAE/rae/tree/main/examples/scenarios).
+- **Pack authors:** Use
+  [OpenRAE/env-packs](https://github.com/OpenRAE/env-packs) for environment
+  pack structure, templates, and authoring and validation tools. A pack carries
+  RAES SDL scenarios. RAES remains the authority for what that SDL means.
 - **Python users:** Use the
   [Python guide](https://openrae.github.io/rae/guides/python.html) and
   [API reference](https://openrae.github.io/rae/api/).
