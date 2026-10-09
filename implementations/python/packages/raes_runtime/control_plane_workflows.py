@@ -49,7 +49,9 @@ def maybe_apply_compensation(
     assert contract is not None
     completed_events = _completed_compensable_events(history, contract)
     if completed_events:
-        ordered = sorted(completed_events, key=lambda event: event.timestamp, reverse=True)
+        # Order by instant: producers format with isoformat(), which drops the fraction on a whole second, so
+        # the text of a later completion can sort before an earlier one.
+        ordered = sorted(completed_events, key=lambda event: parse_timestamp(event.timestamp), reverse=True)
         updated_history = list(history)
         _append_compensation_history(updated_history, ordered, contract, result, submitted_at)
         payload = _compensated_workflow_payload(result, submitted_at)
