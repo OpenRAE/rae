@@ -26,13 +26,16 @@ backends, and evidence requirements.
 | [`scenarios/cross-backend-minimal.sdl.yaml`](scenarios/cross-backend-minimal.sdl.yaml) | Smallest scenario resolving inside more than one provisioning backend's realization envelope | Hermetic admission and apply on the reference in-process and recording-libvirt configurations, with resource correspondence and different bound substrate disclosures asserted | Does not exercise an OCI runtime or live libvirt/QEMU daemon and makes no infrastructure-equivalence or fidelity claim |
 | [`scenarios/reconciliation-demo-v1.sdl.yaml`](scenarios/reconciliation-demo-v1.sdl.yaml) | Baseline version of the reconciliation demonstration pair | Planner reconciliation across scenario versions, exercised end to end through `raes processor reconcile` | Plans only; the projected snapshot is assumed state, never backend readback or proof of realization |
 | [`scenarios/reconciliation-demo-v2.sdl.yaml`](scenarios/reconciliation-demo-v2.sdl.yaml) | Modified version that creates, updates, deletes, and leaves resources unchanged in one plan | Exact `create`/`update`/`delete`/`unchanged` outcomes across provisioning, orchestration, and evaluation | Same limits as the baseline; the pair demonstrates planner behavior, not a deployable environment |
+| [`scenarios/guided-web-probe.sdl.yaml`](scenarios/guided-web-probe.sdl.yaml) | Finished file of the public [validate, compile, and inspect a scenario plan](../docs/public/sdl/validate-compile-plan.md) guide | Disk-backed example test; focused checks that the guide's steps rebuild this file, each step validates, and the guide's outputs and diagnostics match the CLI | Plans with a `capture.offer-missing` error against the reference dry-run manifest, which declares no capture offers; realizes nothing |
 
 The corpus tests are in
 [`../implementations/python/tests/test_scenarios.py`](../implementations/python/tests/test_scenarios.py),
 with the focused cross-backend checks in
-[`../implementations/python/tests/test_cross_backend_minimal_scenario.py`](../implementations/python/tests/test_cross_backend_minimal_scenario.py)
-and the reconciliation-pair checks in
-[`../implementations/python/tests/test_reconciliation_demonstration.py`](../implementations/python/tests/test_reconciliation_demonstration.py).
+[`../implementations/python/tests/test_cross_backend_minimal_scenario.py`](../implementations/python/tests/test_cross_backend_minimal_scenario.py),
+the reconciliation-pair checks in
+[`../implementations/python/tests/test_reconciliation_demonstration.py`](../implementations/python/tests/test_reconciliation_demonstration.py),
+and the guide checks in
+[`../implementations/python/tests/test_issue_613_scenario_plan_guide.py`](../implementations/python/tests/test_issue_613_scenario_plan_guide.py).
 
 ## Reconciliation Demonstration
 
