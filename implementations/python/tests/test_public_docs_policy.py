@@ -6,16 +6,21 @@ import json
 import os
 import re
 import runpy
+import shlex
+import shutil
 import sys
 from pathlib import Path
 
+import pytest
 import yaml
+from typer.testing import CliRunner
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from raes import parse_sdl_file  # noqa: E402
+from raes_cli.main import app  # noqa: E402
 from raes_contracts.behavioral_relations import validate_behavioral_claim_binding  # noqa: E402
 from raes_contracts.contracts import BehavioralClaimBindingModel  # noqa: E402
 from tools.check_public_docs import (  # noqa: E402
@@ -180,6 +185,51 @@ def test_readme_quickstart_matches_checked_in_scenario() -> None:
     )
 
     assert readme_scenario == checked_in_scenario
+
+
+def _stated_format_steps(tutorial: str) -> list[tuple[str, int, str]]:
+    """Return each console block of the format section with the exit code and output the page states after it."""
+    section = tutorial.partition("## Check the file format\n")[2].partition("\n## ")[0]
+    parts = re.split(r"```console\n(.*?)```", section, flags=re.DOTALL)
+    steps = []
+    for commands, statement in zip(parts[1::2], parts[2::2], strict=True):
+        exit_codes = re.findall(r"\bexits with code `(\d+)`", statement)
+        assert len(exit_codes) == 1, f"expected one 'exits with code' statement after:\n{commands}"
+        output = re.search(r"```text\n(.*?)```", statement, re.DOTALL)
+        steps.append((commands, int(exit_codes[0]), output.group(1) if output else ""))
+    return steps
+
+
+def _run_console_block(commands: str) -> tuple[int, str, str]:
+    """Run a console block's `raes` commands in order; return the last one's exit code, stdout and stderr.
+
+    A `> file` suffix saves that command's standard output to the file, as the shell would.
+    """
+    outcomes = []
+    for line in commands.replace("\\\n", " ").splitlines():
+        command, _, target = line.partition(" > ")
+        words = shlex.split(command)
+        result = CliRunner().invoke(app, words[words.index("raes") + 1 :])
+        if target:
+            Path(target.strip()).write_text(result.stdout, encoding="utf-8")
+        outcomes.append((result.exit_code, result.stdout, result.stderr))
+    return outcomes[-1]
+
+
+def test_first_scenario_tutorial_states_the_real_format_check_results(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tutorial = (REPO_ROOT / "docs" / "public" / "tutorials" / "first-scenario.md").read_text(encoding="utf-8")
+    steps = _stated_format_steps(tutorial)
+    # The page's paths are relative to the repository root. Run the commands in a copy of `docs/public` so the
+    # file the page tells the reader to create stays out of the repository.
+    shutil.copytree(REPO_ROOT / "docs" / "public", tmp_path / "docs" / "public")
+    monkeypatch.chdir(tmp_path)
+
+    outcomes = [_run_console_block(commands) for commands, _, _ in steps]
+
+    assert outcomes == [(exit_code, "", output) for _, exit_code, output in steps]
+    assert outcomes[-1] == (0, "", ""), "the section must end with a format check that passes"
 
 
 def test_participant_control_claim_example_is_bounded() -> None:
