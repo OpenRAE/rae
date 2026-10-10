@@ -1,3 +1,4 @@
+import importlib.util
 import json
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as _distribution_version
@@ -29,6 +30,20 @@ extensions = [
     "sphinx_copybutton",
     "sphinx_reredirects",
 ]
+
+# tools/public_docs_guard.py warns when a page reads a file from outside this
+# directory, which fails the warning-strict build. It is loaded by file path so
+# that the repository root stays off sys.path: autodoc and autosummary cannot
+# import repository modules outside the installed packages.
+_PUBLIC_DOCS_GUARD = Path(__file__).resolve().parents[2] / "tools" / "public_docs_guard.py"
+
+
+def setup(app):
+    spec = importlib.util.spec_from_file_location("public_docs_guard", _PUBLIC_DOCS_GUARD)
+    guard = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(guard)
+    guard.setup(app)
+
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -18,6 +19,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from tools.policy.common import PolicyFailure, failures_to_json, safe_repo_path  # noqa: E402
+from tools.public_docs_markup import directive_targets, markdown_link_targets  # noqa: E402
 
 PUBLIC_DOCS_ROOT = Path("docs/public")
 MAX_SOURCE_BYTES = 1_000_000
@@ -60,13 +62,13 @@ GENERATED_HTML_ROUTES = frozenset(
         "search.html",
     }
 )
-LOCAL_DIRECTIVE_PATTERNS = (
-    re.compile(
-        r"^\s*(?:```\{|\.\.\s+)(?:include|literalinclude|download)(?:\}|::)\s+([^\s]+)",
-        re.MULTILINE | re.IGNORECASE,
-    ),
-    re.compile(r"\{download\}`(?:[^`<]*<)?([^>`]+)>?`", re.IGNORECASE),
-)
+# Directory names and file names that only ever hold internal records.
+INTERNAL_RECORD_DIRECTORIES = frozenset({"adrs", "decisions", "development"})
+ADR_FILENAME = re.compile(r"adr-\d{3,}-", re.IGNORECASE)
+# Sphinx copies download and image targets here, even from outside the source root.
+PUBLISHED_ASSET_DIRECTORIES = ("_downloads", "_images")
+# Sphinx never reads this directory as source (exclude_patterns in docs/public/conf.py).
+SPHINX_BUILD_DIRECTORY = "_build"
 
 
 def _public_path(repo_root: Path) -> Path | None:
@@ -110,24 +112,26 @@ def _docname_for_source(public_root: Path, source: Path) -> str:
     return source.relative_to(public_root).with_suffix("").as_posix()
 
 
-def _directive_targets(text: str) -> list[str]:
-    return [
-        match.group(1).strip().strip("\"'") for pattern in LOCAL_DIRECTIVE_PATTERNS for match in pattern.finditer(text)
-    ]
-
-
-def _target_is_contained(public_root: Path, source: Path, target: str) -> bool:
-    if "://" in target or target.startswith(("mailto:", "#")):
-        return True
-    clean_target = target.split("#", 1)[0]
-    if not clean_target:
-        return True
-    candidate = Path(clean_target)
-    if candidate.is_absolute():
+def _target_is_contained(public_root: Path, source: Path, target: str, *, markdown_link: bool = False) -> bool:
+    # docutils opens file:// URLs given to :url:, so a file URL is never contained.
+    if target.casefold().startswith("file:"):
         return False
+    clean_target = target.split("#", 1)[0]
+    if not clean_target or "://" in target or target.startswith("mailto:"):
+        return True
+    return _path_is_contained(public_root, source, Path(clean_target), markdown_link=markdown_link)
+
+
+def _path_is_contained(public_root: Path, source: Path, candidate: Path, *, markdown_link: bool) -> bool:
+    base = source.parent
+    if candidate.is_absolute():
+        # MyST resolves a link that starts with one "/" against the source directory, as Sphinx's
+        # relfn2path does. Directive targets stay strict: raw reads an absolute :file: as given.
+        if not markdown_link or candidate.parts[0] != "/":
+            return False
+        base, candidate = public_root, candidate.relative_to("/")
     try:
-        resolved = (source.parent / candidate).resolve()
-        resolved.relative_to(public_root.resolve())
+        (base / candidate).resolve().relative_to(public_root.resolve())
     except (OSError, ValueError):
         return False
     return True
@@ -214,16 +218,73 @@ def evaluate_public_sources(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
                 )
             )
             continue
-        if any(not _target_is_contained(public_root, source, target) for target in _directive_targets(text)):
+        if any(not _target_is_contained(public_root, source, target) for target in directive_targets(text)):
             failures.append(
                 PolicyFailure(
                     "public-docs-source-escape",
-                    "include, literalinclude, and download targets must stay inside docs/public",
+                    "include, literalinclude, download, :file:, :url: and :diff: targets must stay inside docs/public",
                     relative_path,
                 )
             )
 
     return sorted(failures, key=lambda failure: (failure.path or "", failure.rule_id))
+
+
+def _is_internal_record(relative: Path) -> bool:
+    if INTERNAL_RECORD_DIRECTORIES.intersection(relative.parts[:-1]):
+        return True
+    return relative.suffix.casefold() in SOURCE_SUFFIXES and ADR_FILENAME.match(relative.name) is not None
+
+
+def _bounded_text(source: Path) -> str:
+    # evaluate_public_sources reports oversized or unreadable sources.
+    try:
+        if source.stat().st_size > MAX_SOURCE_BYTES:
+            return ""
+        return source.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return ""
+
+
+def _escaping_link_targets(public_root: Path, source: Path) -> list[str]:
+    return [
+        target
+        for target in markdown_link_targets(_bounded_text(source))
+        if not _target_is_contained(public_root, source, target, markdown_link=True)
+    ]
+
+
+def evaluate_public_boundary(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
+    """Return failures for internal records under docs/public and Markdown links that escape it.
+
+    A Markdown link to a file outside the source root that is not a page passes
+    the warning-strict build: Sphinx copies the file into ``_downloads/`` and
+    publishes it. evaluate_public_sources reports a missing root.
+    """
+
+    public_root = _public_path(repo_root)
+    if public_root is None or not public_root.is_dir():
+        return []
+    failures = [
+        PolicyFailure(
+            "public-docs-internal-record",
+            "decision records and development notes must stay outside docs/public",
+            _relative(repo_root, path),
+        )
+        for path in sorted(public_root.rglob("*"))
+        if path.is_file() and _is_internal_record(path.relative_to(public_root))
+    ]
+    failures.extend(
+        PolicyFailure(
+            "public-docs-link-escape",
+            f"link target {target!r} resolves outside docs/public; link repository files by absolute URL",
+            _relative(repo_root, source),
+        )
+        for source in _source_paths(public_root)
+        if source.suffix.casefold() == ".md"
+        for target in _escaping_link_targets(public_root, source)
+    )
+    return failures
 
 
 def _search_docnames(search_index_path: Path) -> set[str]:
@@ -371,15 +432,48 @@ def evaluate_public_output(repo_root: Path, output_root: Path) -> list[PolicyFai
     return failures
 
 
+def _file_digest(path: Path) -> str:
+    with path.open("rb") as handle:
+        return hashlib.file_digest(handle, "sha256").hexdigest()
+
+
+def evaluate_published_assets(repo_root: Path, output_root: Path) -> list[PolicyFailure]:
+    """Return failures when a published download or image is not a copy of a docs/public file."""
+
+    public_root = _public_path(repo_root)
+    if public_root is None or not public_root.is_dir():
+        return []
+    resolved_output = output_root.resolve()
+    public_digests = {
+        _file_digest(path)
+        for path in public_root.rglob("*")
+        if path.is_file()
+        and not path.is_symlink()
+        and path.relative_to(public_root).parts[0] != SPHINX_BUILD_DIRECTORY
+        and resolved_output not in path.resolve().parents
+    }
+    return [
+        PolicyFailure(
+            "public-docs-output-asset",
+            "published download or image has no byte-identical source beneath docs/public",
+            asset.relative_to(output_root).as_posix(),
+        )
+        for directory in PUBLISHED_ASSET_DIRECTORIES
+        for asset in sorted((output_root / directory).rglob("*"))
+        if asset.is_file() and _file_digest(asset) not in public_digests
+    ]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, help="Also validate a generated Sphinx HTML directory.")
     parser.add_argument("--json", action="store_true", help="Emit failures as JSON.")
     args = parser.parse_args()
 
-    failures = evaluate_public_sources(REPO_ROOT)
+    failures = [*evaluate_public_sources(REPO_ROOT), *evaluate_public_boundary(REPO_ROOT)]
     if not failures and args.output is not None:
         failures.extend(evaluate_public_output(REPO_ROOT, args.output))
+        failures.extend(evaluate_published_assets(REPO_ROOT, args.output))
     if args.json:
         print(failures_to_json(failures))
     else:

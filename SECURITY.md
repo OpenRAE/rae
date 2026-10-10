@@ -5,8 +5,8 @@
 Do not report suspected vulnerabilities through public GitHub issues.
 
 Use GitHub private vulnerability reporting when it is available. If it is not,
-contact the maintainer through the private path on Brad Edwards' GitHub
-profile. Put `RAES SDL security report` in the subject or first line.
+email **security@autarchy.ai**. Put `RAES SDL security report` in the subject
+or first line.
 
 Include enough detail to reproduce and assess the issue:
 
