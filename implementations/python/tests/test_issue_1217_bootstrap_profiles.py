@@ -860,7 +860,7 @@ def _https_fixture(tmp_path: Path) -> tuple[ThreadingHTTPServer, Path]:
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     context.minimum_version = ssl.TLSVersion.TLSv1_2
     context.load_cert_chain(cert_path, key_path)
-    # Offer HTTP/2 first, as the download hosts do (#1475). http.server speaks only HTTP/1.x, so a client that
+    # Offer HTTP/2 first, as most download hosts do (#1475). http.server speaks only HTTP/1.x, so a client that
     # accepted h2 would fail every transfer here.
     context.set_alpn_protocols(["h2", "http/1.1"])
     server.socket = context.wrap_socket(server.socket, server_side=True)
