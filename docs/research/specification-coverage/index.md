@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 70.0.0 and rejects duplicate or unsupported
+Current validation requires release 71.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -537,4 +537,10 @@ Release 70.0.0 replays the retained matrix against the issue #1423 inject
 trigger request and occurrence contracts in
 [`execution-snapshot-v70.json`](execution-snapshot-v70.json) and
 [`analysis-v70.json`](analysis-v70.json). Classifications and claim limits
+remain unchanged.
+
+Release 71.0.0 replays the retained matrix after issue #1366 published the
+inject readback, correlation and backend declaration contracts in
+[`execution-snapshot-v71.json`](execution-snapshot-v71.json) and
+[`analysis-v71.json`](analysis-v71.json). Classifications and claim limits
 remain unchanged.
