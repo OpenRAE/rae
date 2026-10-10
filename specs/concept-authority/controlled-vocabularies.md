@@ -98,7 +98,7 @@ It defines:
   provisioner node types, compute substrates, operating-system families, node CPU architectures,
   content types, account features, orchestrator supported sections, and
   evaluator supported sections
-- a governed-extension vocabulary for
+- a closed vocabulary for
   `participant-offensive-behavior-activities`, whose base terms are a direct
   adoption of MITRE ATT&CK Enterprise tactics v19.1. The pinned source artifact
   is `contracts/concept-authority/attack-enterprise-tactics-source-v1.json`;
@@ -108,7 +108,7 @@ It defines:
   `sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3`.
   MITRE's ATT&CK version history, data and tools page, and terms of use are
   recorded in the source artifact's `citation_urls`.
-- a separate governed-extension vocabulary for
+- a separate closed vocabulary for
   `participant-ai-offensive-behavior-activities`, whose base terms are a direct
   adoption of MITRE ATLAS tactics release v2026.06 (`collection.version`
   `2026.06`, `format-version` `6.0.0`). The pinned source artifact is
@@ -119,7 +119,7 @@ It defines:
   `sha256:b771de8b1489564b2838a709c7429849a9575dbd94073928817fe1a21661e70a`.
   MITRE ATLAS release, data-format, project, and license citations are recorded
   in the source artifact's `citation_urls`.
-- an independent governed-extension vocabulary for
+- an independent closed vocabulary for
   `participant-defensive-behavior-activities`, whose base terms adapt the eight
   active NIST CSF 2.0 Detect, Respond, and Recover categories. The pinned source
   artifact is
@@ -169,7 +169,7 @@ release, a change must update all of the following together:
 - affected authoring and behavior-model documentation
 
 ATT&CK, ATLAS, and NIST CSF remain distinct optional source catalogs. Their
-`governed_scopes` are empty and their adopted term sets are closed. Generic
+`governed_scopes` are empty and their term sets are closed. Generic
 [external concept bindings](external-concept-bindings.md) carry explicit scheme
 coordinates; no catalog governs a privileged SDL classification field.
 Extensions require their own explicit source context, not an implicit adopted
