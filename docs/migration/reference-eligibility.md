@@ -62,15 +62,28 @@ table above, because only the author knows which declaration was meant.
 
 ## Inventory before narrowing
 
-The inventory ran on 2026-10-09 against `origin/dev` at 35122105. It covered
-132 YAML documents with a top-level `name` key: the rae examples, contract
-fixtures, documentation, specifications, and test data, plus the env-packs,
-lilrae examples and test fixtures, reference-packs, adapters, and hub
-repositories. Full validation outcomes are identical before and after the
-change for all 132 documents: 94 are accepted and 38 are rejected for
-unchanged reasons.
+The inventory ran on 2026-10-10 and compared `origin/dev` at 35122105 with
+this change. It covered every tracked YAML file outside `.github` that loads as
+a mapping with a top-level `name` key, on each repository's integration branch:
 
-The 101 documents that parse structurally name these declaration kinds:
+| Repository | Commit | Documents | Accepted |
+| --- | --- | --- | --- |
+| rae: examples, contract fixtures, documentation, specifications, and test data | `dev` 35122105 | 74 | 45 |
+| env-packs | `dev` 9ce449d | 54 | 49 |
+| lilrae | `dev` a5833df9 | 12 | 6 |
+| adapters | `dev` 0272949 | 10 | 0 |
+| reference-packs | `main` 445c3ca, its only branch | 0 | 0 |
+| hub | `dev` 4f15773 | 0 | 0 |
+
+Full validation outcomes, error text included, are identical before and after
+the change for all 150 documents, both as authored and with legacy spellings
+accepted. As authored, 100 are accepted and 50 are rejected for unchanged
+reasons. The rejected files include intentionally invalid fixtures, pack
+manifests and Compose files that are not SDL, and documents that need a
+migration first, such as all seven adapters SDL files.
+
+The 114 documents that parse structurally with legacy spellings accepted name
+these declaration kinds:
 
 | Field | Declaration kinds named |
 | --- | --- |
@@ -80,7 +93,7 @@ The 101 documents that parse structurally name these declaration kinds:
 | `authority_scope_refs[]` | content, nodes, node services |
 | mixed-control and delivery scopes | nodes |
 | proposition `subjects[]` | content, nodes, runtime-inventory records |
-| evidence `source_refs[]` and `scope_refs[]` | content, organizations, nodes, participant inject deliveries, runtime-inventory records |
+| evidence `source_refs[]` and `scope_refs[]` | action contracts, agents, content, organizations, nodes, participant inject deliveries, runtime-inventory records, node services |
 | generic relationship endpoints | accounts, deployment tenants, features, identity domains, facades, and forests, nodes, runtime-inventory records, node services |
 | participant relationship endpoints | agents, and one organization in a fixture that is invalid on purpose |
 
@@ -97,23 +110,33 @@ which was already rejected.
   anchors, and agent operating scope now have completions. Temporal-constraint
   subjects complete every declared reference. Participant relationship
   `scope_refs` complete only the operating scopes that both endpoints hold, and
-  `authority_basis_refs` only the source's authority anchors, which is what
-  their validator accepts. An endpoint that does not resolve to one
-  participant, or whose own list is parameterized, does not restrict them.
-- A variation candidate's `reference` completes and navigates in its target
-  slot's section or purpose, so an `objectives.targets` candidate is offered
-  objective subjects only.
+  `authority_basis_refs` only the source's authority anchors. An endpoint that
+  does not resolve to one participant, or whose own list is parameterized, does
+  not restrict them. Validation also requires a selected
+  `control_specification_ref` to cover each scope; completion does not apply
+  that bound.
+- A variation point's `target.owner` completes and navigates in its target
+  slot's owner section, and a candidate's `reference` or governed
+  `domain.allowed_refs` entry in the slot's candidate section or purpose, as
+  validation resolves them. An `objectives.targets` point is offered only
+  objectives as owners and objective subjects as candidates.
 - Completion offers one unambiguous spelling per eligible declaration, and
   qualifies a bare name that validation would find ambiguous, including one
   shared with a refused declaration. Documents that do not validate yet use the
   same purposes; infrastructure entries are offered only in qualified form
-  because they have no bare alias.
+  because they have no bare alias. Operating-scope fields, agent
+  `operating_scope` and participant-relationship `scope_refs`, are the
+  exception: their aliases depend on node types, so they complete and navigate
+  only in a document that validates structurally.
 - Navigation resolves each reference with its field's resolver, as validation
   does, and reports an occurrence of a declaration only when the value resolves
   to exactly that declaration. An ambiguous or refused value is an occurrence of
   no declaration; search for its bare name to find it. Operating scopes resolve
   through their own aliases, including bare service names. Documents that do
-  not validate yet resolve names among their top-level entries.
+  not validate yet resolve names among their top-level entries, except in
+  operating-scope fields: `dev` reported a participant-relationship
+  `scope_refs` value in such a document as an occurrence, and this change
+  reports none.
 
 ## Unchanged
 

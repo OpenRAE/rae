@@ -536,7 +536,7 @@ before any field can name it.
 | `eligible:participant_endpoint` | `source` and `target` of a `participant` relationship | participant |
 | `eligible:observation_subject` | proposition `subjects[]`, evidence `source_refs[]` and `scope_refs[]`, observation-demand component refs | every category except support |
 | `eligible:authority_anchor` | agent `authority_anchors[]`, participant-relationship and mixed-control `authority_basis_refs[]` | every category |
-| `eligible:authority_scope` | behavior `authority_scope_refs[]`, mixed-control state `scope_refs[]`, delivery `control_authority_scope_refs[]` | participant, organization, resource, relationship, behavior |
+| `eligible:authority_scope` | behavior `authority_scope_refs[]`, mixed-control state `scope_refs[]` (which must then stay within the behavior's authority scope and the controller's operating scope, so §6 lists it as `derived:behavior-and-controller-scope`), delivery `control_authority_scope_refs[]` | participant, organization, resource, relationship, behavior |
 | `derived:operating_scope` | agent `operating_scope[]`, participant-relationship `scope_refs[]` | compute nodes, switch-backed infrastructure, node services, content, and content items |
 
 Rules:
@@ -574,8 +574,9 @@ Rules:
    Editor completion, navigation, and diagnostics consume the same purposes
    and resolvers. Completion offers one unambiguous spelling per eligible
    declaration, selects the participant-endpoint purpose from the relationship
-   subtype and a variation candidate's section or purpose from its target
-   slot, and does so in documents that do not yet validate. Navigation reports
+   subtype, and a variation owner's section and a variation candidate's
+   section or purpose from the point's target slot, and does so in documents
+   that do not yet validate. Navigation reports
    a value as an occurrence of a declaration only when the field's resolver
    resolves it to exactly that declaration, so an ambiguous or refused value is
    an occurrence of none.
