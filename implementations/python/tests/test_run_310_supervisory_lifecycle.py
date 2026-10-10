@@ -53,6 +53,7 @@ from raes_runtime.participant_result_contracts import (
     participant_runtime_state_contract_diagnostics,
 )
 from starlette.testclient import TestClient
+from store_commit_failure_fixtures import fail_sqlite_commit
 
 pytestmark = pytest.mark.control_plane_conformance
 
@@ -844,20 +845,6 @@ def test_unresolved_typed_target_appends_a_bounded_rejection_without_fallback() 
     assert event["predecessor_event_refs"] == []
 
 
-def _fail_sqlite_commit(connection: sqlite3.Connection) -> None:
-    """Make SQLite's own COMMIT of the open transaction fail, as a real commit-time failure does.
-
-    SQLite checks a deferred foreign key at COMMIT, so commit() raises sqlite3.IntegrityError and the transaction
-    stays open (fixture provenance audit #1344, finding ST-2). The temporary table exists only on this connection.
-    """
-
-    connection.execute(
-        "CREATE TEMP TABLE commit_failure "
-        "(id INTEGER PRIMARY KEY, parent INTEGER REFERENCES commit_failure (id) DEFERRABLE INITIALLY DEFERRED)"
-    )
-    connection.execute("INSERT INTO commit_failure (id, parent) VALUES (1, 2)")
-
-
 def test_failed_atomic_control_commit_exposes_no_partial_transition(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -882,7 +869,7 @@ def test_failed_atomic_control_commit_exposes_no_partial_transition(
         # The idempotency claim commits first, in its own transaction. The audit row is the control transition's
         # last write, so its snapshot, record and audit are all pending when COMMIT fails.
         real_insert_audit(connection, event)
-        _fail_sqlite_commit(connection)
+        fail_sqlite_commit(connection)
 
     monkeypatch.setattr(store, "_insert_audit", fail_transition_commit)
     identity = _identity()

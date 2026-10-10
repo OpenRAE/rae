@@ -66,6 +66,7 @@ from raes_runtime.control_plane_store import (
 )
 from starlette.requests import Request
 from starlette.testclient import TestClient
+from store_commit_failure_fixtures import fail_sqlite_commit
 
 pytestmark = pytest.mark.control_plane_conformance
 
@@ -1861,20 +1862,6 @@ def test_local_control_plane_store_commits_snapshot_to_wal_database(tmp_path: Pa
     assert integrity == ("ok",)
 
 
-def _fail_sqlite_commit(connection: sqlite3.Connection) -> None:
-    """Make SQLite's own COMMIT of the open transaction fail, as a real commit-time failure does.
-
-    SQLite checks a deferred foreign key at COMMIT, so commit() raises sqlite3.IntegrityError and the transaction
-    stays open (fixture provenance audit #1344, finding ST-2). The temporary table exists only on this connection.
-    """
-
-    connection.execute(
-        "CREATE TEMP TABLE commit_failure "
-        "(id INTEGER PRIMARY KEY, parent INTEGER REFERENCES commit_failure (id) DEFERRABLE INITIALLY DEFERRED)"
-    )
-    connection.execute("INSERT INTO commit_failure (id, parent) VALUES (1, 2)")
-
-
 def test_local_control_plane_store_rolls_back_snapshot_transaction_failure(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -1890,7 +1877,7 @@ def test_local_control_plane_store_rolls_back_snapshot_transaction_failure(
         revision: int = 0,
     ) -> None:
         real_upsert(connection, snapshot, revision=revision)
-        _fail_sqlite_commit(connection)
+        fail_sqlite_commit(connection)
 
     monkeypatch.setattr(store, "_upsert_snapshot", fail_commit_after_upsert)
     snapshot = RuntimeSnapshot(metadata={"must": "roll back"})
