@@ -77,7 +77,7 @@ jobs:
           -s local-installation-qualification -- --output local-installation-qualification.json
       - name: Retain local installation results
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: bootstrap-${{ matrix.profile }}-${{ github.sha }}
           path: local-installation-qualification.json
@@ -218,7 +218,7 @@ jobs:
             "${RUNNER_TEMP}/development-image-plan.json" > development-image-qualification.json
       - name: Retain bounded clean-image evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: development-image-${{ github.sha }}
           path: development-image-qualification.json
