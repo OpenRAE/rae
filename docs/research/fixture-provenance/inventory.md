@@ -13,9 +13,13 @@ Column meanings:
 - **Provenance**: `captured` (copied from a real response), `inferred` (written
   from documentation, a sibling call, or what the code expects), `synthetic`
   (deliberately artificial and labelled as such), or `real` (the test drives
-  the real producer).
-- **Verdict**: `match`, `diverges`, `unverified` (no real response could be
-  obtained), or `n/a` (nothing consumes the shape).
+  the real producer). A qualifier narrows a label. `real, protocol-limited`
+  and `real, ASCII-only` mean the test drives the real producer with only part
+  of its inputs. `captured once` means one response was copied from a producer
+  whose output changes between requests.
+- **Verdict**: `match`, `match in effect` (the fake differs from the real shape
+  only in a way the consumer already handles), `diverges`, `unverified` (no
+  real response could be obtained), or `n/a` (nothing consumes the shape).
 - **Blast**: `H` for a security control, an authorization or data-integrity
   path, or a rarely exercised automated path; `M` for a path that fails closed
   but blocks real work; `L` for a hot path that fails loudly.
@@ -48,7 +52,7 @@ workflows. None of the fixtures records its source.
 | `gh attestation verify --format json` identity fields | `tools/release_evidence_verifier.py:115-143` | `T/test_issue_1226_attestation_verifier.py:24-38` | inferred | same fields and values in the real v6.0.1 output | match | H |
 | Number of verified attestations per artifact | `tools/release_evidence_verifier.py:107-111` | `T/test_issue_1226_attestation_verifier.py:99-103` | inferred | gh 2.101.0 returns every verified attestation for a digest | diverges (GH-4) | H |
 | `GITHUB_RUN_ATTEMPT` across the jobs of one run | `tools/release_evidence_admission.py:398-408` | `T/test_issue_1226_release_admission.py:283-287` | inferred | run 36342459179: carried-over jobs started in attempt 1, re-run jobs in attempt 2 | diverges (GH-5) | M |
-| `GITHUB_SHA` and `GITHUB_WORKFLOW_SHA` | pass-through, `tools/release_evidence.py:103-110` | `T/test_issue_1226_release_evidence_cli.py:56-70` | synthetic | both are `3d59d0eb...` in the v6.0.1 evidence index | diverges (GH-6) | L |
+| `GITHUB_SHA` and `GITHUB_WORKFLOW_SHA` | pass-through, `tools/release_evidence.py:103-110` | `T/test_issue_1226_release_evidence_cli.py:56-70` | synthetic | both are `3d59d0eb...` in the v6.0.1 evidence index; the fixture's distinct values deliberately check that the two fields map separately (`docs/decisions/package-artifacts/issue-1226-preflight.md:84-85`) | match | L |
 | `GITHUB_SHA` on `workflow_dispatch` | `tools/release_evidence.py:105`, `:449` | same as above | inferred | every listed release run was a `push` run | unverified | M |
 | Runner image environment | `tools/bootstrap_profile.py:652-671` | `T/test_issue_1217_bootstrap_profiles.py:548-577` | inferred | `ImageOS` `ubuntu24`; image versions match the documented format | match | L |
 | `GITHUB_HEAD_REF` and `GITHUB_BASE_REF` | `tools/check_requirement_governance.py:147-148` | `T/test_requirement_governance.py:192-203` | inferred | PR #1409: head `dev`, base `main`; empty on push | match | L |
@@ -138,8 +142,8 @@ cover the Isabelle and generic-tool archives.
 | Docker Hub alpine image graph | `tools/oci_release_image.py:115-181` | lock | captured | digests, sizes and `diff_ids` are byte-exact | match | H |
 | `docker image inspect` output | `tools/oci_release_image.py:54` | `T/test_oci_release_image.py:68-83` | inferred | CI run 37270742395 passed against a real daemon | match | H |
 | `docker run` and `docker container inspect` | `P/raes_reference_backend/drivers/oci.py:288-367` | `T/test_reference_backend_oci_driver.py:19-50` | inferred | ID on stdout, pull progress on stderr | match | M |
-| OCI layer list | `tools/tooling_artifact_policy_oci.py:102-108` | `T/test_tooling_artifact_policy.py:1584-1587` | inferred | an official manifest repeats one layer digest | diverges (NS-5) | L |
-| Lock-shaped image selection fixture | no current consumer | `T/test_oci_release_image.py:122-124`, `:154-155` | inferred | the real lock names the platform manifest; arm64 has variant `v8` | diverges (NS-6) | L |
+| OCI layer list | `tools/tooling_artifact_policy_oci.py:102-108` | `T/test_tooling_artifact_policy.py:1584-1587` | inferred | the linux/amd64 manifest of the Docker Official Image `tomcat:latest` (`sha256:594377d0...`) lists one empty layer three times | diverges (NS-5) | L |
+| Lock-shaped image selection fixture | no current consumer | `T/test_oci_release_image.py:122-124`, `:154-155` | inferred | the real lock names the platform manifest; arm64 has variant `v8` | n/a (NS-6) | L |
 | gh output with no attestation | `tools/release_evidence.py:292-307` | `T/test_issue_1226_attestation_verifier.py:74-77` | inferred | exit 1, empty stdout, stderr `Error: HTTP 404` | diverges (NS-7) | L |
 | Release build inventory subjects | `tools/release_evidence_admission.py:314-320` | `T/test_issue_1226_release_admission.py:70`, `:172`; `T/test_issue_1227_release_publication.py:64` | inferred | the real inventory has 3 subjects; the sdist-built test wheel equals the wheel | diverges (NS-3) | M |
 | CycloneDX 1.6 SBOM | `tools/release_evidence_documents.py:75-150` | `T/test_issue_1226_evidence_documents.py:24-107` | inferred | real SBOMs validate with 0 errors | match | L |
@@ -178,7 +182,7 @@ The observations come from probes that run the store's SQL and the production
 | Driver shapes: `BLOB` read-back, unique and primary-key violations, nested `BEGIN IMMEDIATE`, `SQLITE_BUSY` | `P/raes_runtime/control_plane_store_local*.py` | store tests | real | errors and return values as the store expects | match | H |
 | WAL sidecars, backup journal mode, VFS fallbacks | `P/raes_runtime/control_plane_store_maintenance.py` | store tests | real | WAL persists through backup; non-database files raise `DatabaseError` | match | M |
 | `PRAGMA quick_check` on a corrupt file | store admission | `_QuickCheckFailureConnection` fake (`T/test_issue_1092_control_plane_crash_consistency.py:1028`) returns a non-`ok` row | inferred | index and page damage return non-`ok` rows and admission refuses; a damaged table root or truncation raises `sqlite3.DatabaseError` from the PRAGMA itself | diverges (ST-3) | L |
-| Runtime-owner lease across `fork()` | `P/raes_runtime/control_plane_store_lease.py:217-233` | `T/test_issue_1092_control_plane_crash_consistency.py:2432` (`test_runtime_owner_lease_rejects_and_closes_in_a_different_process_identity`) patches `os.getpid` in one process | inferred | a forked child that calls `LOCK_UN` on its inherited descriptor releases the parent's lock; the simulated fork cannot observe that | diverges (ST-1) | H |
+| Runtime-owner lease across `fork()` | `P/raes_runtime/control_plane_store_lease.py:217-231` | `T/test_issue_1092_control_plane_crash_consistency.py:2432` (`test_runtime_owner_lease_rejects_and_closes_in_a_different_process_identity`) patches `os.getpid` in one process | inferred | a forked child that calls `LOCK_UN` on its inherited descriptor releases the parent's lock; the simulated fork cannot observe that | diverges (ST-1) | H |
 | Commit failure | `P/raes_runtime/control_plane_store_local_codec.py:13-24` | `T/test_run_310_supervisory_lifecycle.py:872`, `T/test_runtime_control_plane_api.py:1878` raise `OSError("commit failed")` inside the transaction body | inferred | a real commit failure raises `sqlite3` errors from `commit()`; the per-operation connection close discards it, so nothing persists | diverges (ST-2) | L |
 | Ground Control HTTP client transport | `tools/policy/requirement_governance.py` | `T/test_requirement_governance.py:150-152` fakes `HTTPError`, `URLError` and `TimeoutError` | inferred | a dropped connection, a truncated body, an HTML login page and non-UTF-8 JSON raise exceptions that are not `GroundControlError` | diverges (ST-4) | M |
 | Store migration across releases and request-commitment drift | store migration code | store tests | - | probes were written but recorded no verdict | unverified | H |
@@ -193,7 +197,7 @@ The observations come from probes that run the store's SQL and the production
 | Workflow step timestamps for compensation order | `P/raes_runtime/control_plane_workflows.py:52` | `T/test_runtime_control_plane_api.py:2148`, `:2277` have one compensable step | inferred | producers drop the fraction at a whole second (`...:01Z` then `...:01.001000Z`), so the string sort reverses them | diverges (TM-1) | H |
 | Runtime-fact `requested_at` | `P/raes_runtime/runtime_fact_dispatch.py:36`, `P/raes_runtime/runtime_fact_binding_policy.py:119-124` | `T/test_runtime_fact_bindings.py:107`, `:233-243` use `Z` timestamps | inferred | a naive or date-only value is admitted, then binding raises `TypeError` | diverges (TM-2) | M |
 | Unavailable container runtime | `P/raes_reference_backend/drivers/oci.py` | driver tests | inferred | a stopped Docker daemon gives `reference-backend.driver.command-failed` | match | L |
-| LilRAE `aptl-evidence-bundle/v1` and `aptl.run-record/v2` exports | cross-backend corpus consumer | corpus fixtures | captured from the producer source | both exports pass the corpus checks | match | M |
+| LilRAE `aptl-evidence-bundle/v1` and `aptl.run-record/v2` exports | cross-backend corpus consumer | hand-built exports in `T/test_cross_backend_corpus.py:109-177` | inferred | both exports, as LilRAE's producer source at `a5833df9` builds them, pass the corpus checks | match | M |
 
 ## Backend manifests and realization envelopes
 
@@ -221,7 +225,7 @@ only).
 | Snapshot validated by target conformance | conformance hermetic projection | conformance tests | inferred | the projection omits `realization_envelope` and `realization_provenance`, which the `/snapshot` API publishes | diverges (RS-1) | M |
 | Public snapshot used by the SEM-222 test | `/snapshot` route | the test serializes with the durable store | inferred | the public route drops episode closure records and mixed-composition state that the store keeps | diverges (RS-2) | M |
 | Participant behavior history in a real snapshot | conformance semantics | corpus adds `participant.*` entries with empty payloads | inferred | a `/snapshot` from the real control plane with behavior history has no `participant.behavior` entry and fails semantic conformance | diverges (RS-3) | M |
-| LilRAE snapshot projection | `RuntimeSnapshotEnvelopeModel`, conformance | - | captured from the producer source | accepted with 0 diagnostics | match | L |
+| LilRAE snapshot projection | `RuntimeSnapshotEnvelopeModel`, conformance | - | - | a projection as LilRAE's producer source at `a5833df9` builds it is accepted with 0 diagnostics | match | L |
 
 ## Release, conformance and experiment evidence
 

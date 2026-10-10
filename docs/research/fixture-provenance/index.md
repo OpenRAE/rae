@@ -2,11 +2,11 @@
 
 Issue #1344 asks which test fixtures assert shapes the real system never
 produces. This record answers it for this repository on `dev` at `35122105`
-(2026-10-09). For every boundary where a test stands in for something the
-repository does not control, it records whether the fixture's shape was captured
-or inferred. It checks the shapes that matter against the real producer and
-lists the divergences found, with their status. It is research evidence, not
-contract authority.
+(2026-10-09). For each boundary the audit examined where a test stands in for
+something the repository does not control, it records whether the fixture's
+shape was captured or inferred. It checks the shapes that matter against the
+real producer and lists the divergences found, with their status. It is
+research evidence, not contract authority.
 
 - [`inventory.md`](inventory.md) lists each boundary with its provenance, the
   real observation, a verdict and a blast-radius rating.
@@ -20,12 +20,13 @@ where this repository consumes their output.
 
 ## Method
 
-1. Inventory. Fakes, stubs, monkeypatched callables, hand-built payloads and
-   corpus files under `implementations/python/tests/` and `contracts/fixtures/`
-   were grouped into ten boundary classes: GitHub platform, libvirt API, guest
-   appliance, network services and supply chain, subprocess tools, the SQLite
-   store and Ground Control client, MCP and filesystem and time, backend
-   manifests, runtime snapshots, and release and experiment evidence.
+1. Inventory. The fakes, stubs, monkeypatched callables, hand-built payloads and
+   corpus files that the audit found under `implementations/python/tests/` and
+   `contracts/fixtures/` were grouped into ten boundary classes: GitHub
+   platform, libvirt API, guest appliance, network services and supply chain,
+   subprocess tools, the SQLite store and Ground Control client, MCP and
+   filesystem and time, backend manifests, runtime snapshots, and release and
+   experiment evidence.
 2. Provenance. Each fixture was traced to the production consumer that relies
    on it and labelled `captured`, `inferred`, `synthetic` or `real`. No GitHub
    fixture records where its shape came from, and no libvirt or guest fixture
@@ -57,15 +58,29 @@ Limits:
   runtime-snapshot classes; the inventory lists their boundaries instead.
 - Probes for store migration across releases and request-commitment drift
   recorded no verdict.
+- The inventory is not exhaustive. Stand-ins the audit did not examine
+  include:
+  - the pinned z3 binding: `z3.Solver.check` and `reason_unknown` are patched
+    at `T/test_scenario_satisfiability.py:353-365`, `:414` and `:692-700`, and
+    `P/raes_processor/satisfiability/_solver.py:254-257` consumes both;
+  - the solver's `time.monotonic_ns` fakes at
+    `T/test_scenario_satisfiability.py:526`, `:659`, `:678`, `:699` and `:724`,
+    which `_solver.py:18-19` and `:59-73` read;
+  - the TechVault host probe stub at
+    `T/test_libvirt_backend_techvault_native.py:196-201`, which
+    `check_native_readiness` discards;
+  - podman, the OCI driver's second allowed runtime
+    (`P/raes_reference_backend/drivers/oci.py:43`), whose output was not
+    observed.
 
 ## Results
 
 | Class | Fixtures examined | Diverges | Unverified |
 |---|---|---|---|
-| GitHub platform and workflow runtime | 67 | 7 | 3 |
+| GitHub platform and workflow runtime | 67 | 6 | 3 |
 | libvirt Python API | 98 fake definitions (16 surfaces) | 4 | 2 |
 | Guest appliance | 31 | 4 | 2 |
-| Network services and supply chain | 171, plus 82 lock values | 8 | 2 |
+| Network services and supply chain | 171, plus 82 lock values | 7 | 2 |
 | Subprocesses and command-line tools | not recorded (12 boundaries) | 2 | 1 |
 | SQLite store and Ground Control client | not recorded (7 boundaries) | 4 | 1 |
 | MCP, filesystem, time and internal stand-ins | not recorded (7 boundaries) | 3 | 0 |
@@ -275,9 +290,6 @@ this record was written.
 
 Blast L unless marked.
 
-- **GH-6:** `T/test_issue_1226_release_evidence_cli.py:70` asserts
-  `source_sha != workflow_sha`; real releases record the same SHA. Nothing in
-  production depends on them differing. Fix: make the fixture values equal.
 - **LV-4:** generic-driver fakes in `T/test_libvirt_backend_driver.py`:
   `destroy()` succeeds on an inactive object (real: code 55) and `undefine()`
   leaves the object findable. The fakes, and the comment at
@@ -293,7 +305,9 @@ Blast L unless marked.
   digests, which real manifests contain.
 - **NS-6, NS-7, NS-8:** inert or harmless fixture drift in
   `T/test_oci_release_image.py:122-124`, `T/test_issue_1226_attestation_verifier.py:74-77`
-  and the curl `000` stub in `T/test_release_workflows.py:1394-1411`.
+  and the curl `000` stub in `T/test_release_workflows.py:1394-1411`. Nothing
+  reads the NS-6 fields, so the inventory rates it `n/a` and the results table
+  does not count it as a divergence.
 - **MF-3:** 9 of the 17 negative corpus files under
   `contracts/fixtures/backend-manifest/backend-manifest-v2/invalid/` (checked by
   `T/test_backend_manifest.py:1179-1183`) fail for incidental reasons as well as
@@ -322,6 +336,7 @@ Blast L unless marked.
   UUID collision, fact-file ownership under a live libvirtd,
   `genisoimage`, the AWS EC2 CLI JSON, lock digests for self-downloading actions,
   `check-jsonschema`, store migration across releases, and capture offers.
+- Boundaries not examined, such as the z3 solver binding (see Limits).
 - Findings for sibling repositories are listed below. Filing them in those
   repositories is outside this change.
 
@@ -342,8 +357,9 @@ pattern:
 - Release attestations accumulate per digest; a verifier must not treat several
   attestations with one identity as ambiguous, nor bind to one run attempt across
   jobs (env-packs attests releases).
-- libvirt reports missing objects as `libvirtError` codes 42, 43 and 62, treats
-  name and UUID as separate identities, and returns normalized XML. A fake that
+- libvirt reports missing objects as `libvirtError` codes 42 and 43 (observed)
+  and, per libvirt source, 62 for a missing nwfilter. It treats name and UUID
+  as separate identities and returns normalized XML. A fake that
   classifies errors by type must register its error class as
   `sys.modules["libvirt"].libvirtError`.
 - `http.server` fixtures speak HTTP/1.x only; macOS curl changes exit codes and

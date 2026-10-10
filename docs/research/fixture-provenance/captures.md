@@ -1,25 +1,34 @@
 # Captured boundary shapes
 
-These are the real responses the #1344 audit observed. Every observation was
-made on 2026-10-09 (UTC). Each entry names the producer and how the response
-was obtained, with the producer version where the audit recorded one. Unless an
-entry says otherwise, probes ran on macOS 27.0.1 arm64. The store, time, MCP and
-runtime-snapshot probes drove this repository's code at `35122105` in its
-project environment (CPython 3.14.4); their scripts are not part of this record.
-Long values are trimmed where marked, and signed URL query strings are removed.
-Divergence IDs refer to the register in [`index.md`](index.md).
+These are the responses the #1344 audit observed from real producers. Every
+observation was made on 2026-10-09 (UTC) except NS-5, which was read on
+2026-10-10. Each entry names the producer and how the response was obtained,
+with the producer version where the audit recorded one. Unless an entry says
+otherwise, probes ran on macOS 27.0.1 arm64. Long values are trimmed where
+marked, and signed URL query strings are removed. Divergence IDs refer to the
+register in [`index.md`](index.md).
+
+The entries for the store and Ground Control client (ST-1 to ST-4), time and
+MCP (TM-1 to TM-3) and runtime snapshots (RS-1 to RS-3) are summaries, not raw
+responses. Their probes drove this repository's code at `35122105` in its
+project environment (CPython 3.14.4), and each entry summarizes what its probe
+observed. The probe scripts are not part of this record.
 
 ## GitHub
 
-GH-1. REST `GET repos/OpenRAE/rae/pulls/25`, read with `gh api` on 2026-10-09:
+GH-1. REST `GET repos/OpenRAE/rae/pulls/25`, read with `gh api` on 2026-10-09,
+trimmed to three fields:
 
 ```json
-{"base": "dev", "body": null, "number": 25}
+{"base": {"ref": "dev"}, "body": null, "number": 25}
 ```
 
 GH-2. Default branch and a merged PR into `dev`, read with `gh api` and
-`gh pr view 1413 --json baseRefName,closingIssuesReferences,body` on 2026-10-09.
-Issue #1361 was closed by `github-actions[bot]`, not by the merge:
+`gh pr view 1413 --json baseRefName,closingIssuesReferences,body` on 2026-10-09,
+trimmed to the fields shown. Issue #1361 was closed by `github-actions[bot]`,
+not by the merge. `closes_lines` is not a `gh` field: it lists the
+`Closes #N` text in `body`, as the jq expression
+`[.body | scan("Closes #[0-9]+")]` extracts it:
 
 ```json
 {"default_branch": "main"}
@@ -57,7 +66,7 @@ their attempt-1 start time:
  {"name": "fast-feedback", "started_at": "2026-09-27T18:55:54Z"}]
 ```
 
-GH-6 and NS-3. The v6.0.1 release evidence produced by run 36967479436, from its
+NS-3. The v6.0.1 release evidence produced by run 36967479436, from its
 `release-evidence-3d59d0eb64d3736e337a387f55bc6f1880ccfcfd` artifact (ID
 11210897140), downloaded with `gh run download`. The workflow keeps that
 artifact for 7 days. It expired at 05:29Z on 2026-10-09, after the download, so
@@ -74,7 +83,9 @@ this capture cannot be fetched again. `release-evidence-index.json`, trimmed:
 ```
 
 The artifact's `build-inventory.json` lists all three subjects (`wheel`, `sdist`,
-`derived-test-wheel`), and the derived test wheel has the wheel's digest.
+`derived-test-wheel`), and the derived test wheel has the wheel's digest. The
+index's `release` block is also the observation behind the inventory's
+`GITHUB_SHA` and `GITHUB_WORKFLOW_SHA` row.
 
 ## libvirt
 
@@ -180,6 +191,20 @@ NS-4. Two downloads of the locked NIST CSF export URL returned 107517 and 107518
 bytes with different SHA-256 digests. The workbook's `docProps/core.xml`
 creation time and one sheet cell differ between them, and neither digest matches
 the lock.
+
+NS-5. The Docker Official Image `tomcat:latest` (Tomcat 11.0.26), read
+anonymously on 2026-10-10 from `public.ecr.aws/docker/library/tomcat`. `HEAD`
+requests to `registry-1.docker.io` returned the same index digest
+(`sha256:bb7c0c78078841047e2d475acce833ef337cb0007ca7c7e4c9ff9058d9019801`) and
+the same linux/amd64 manifest digest
+(`sha256:594377d00cebafa7a413a171ad35bd1756c9be9b26855c8c3ba23313db4e18b9`).
+That manifest lists ten layers, and three of them are one 32-byte layer:
+
+```text
+layers[4] sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 size=32
+layers[7] sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 size=32
+layers[9] sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 size=32
+```
 
 ## Command-line tools
 
