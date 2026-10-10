@@ -7,6 +7,7 @@ import os
 import re
 import runpy
 import shlex
+import shutil
 import sys
 from pathlib import Path
 
@@ -186,27 +187,49 @@ def test_readme_quickstart_matches_checked_in_scenario() -> None:
     assert readme_scenario == checked_in_scenario
 
 
-def _stated_format_check(tutorial: str) -> tuple[list[str], int, str]:
-    """Return the tutorial's format command arguments, stated exit code and shown output."""
+def _stated_format_steps(tutorial: str) -> list[tuple[str, int, str]]:
+    """Return each console block of the format section with the exit code and output the page states after it."""
     section = tutorial.partition("## Check the file format\n")[2].partition("\n## ")[0]
-    command = re.search(r"```console\n(.*?)```", section, re.DOTALL)
-    assert command is not None
-    arguments = shlex.split(command.group(1).replace("\\\n", " "))
-    claims = section[command.end() :]
-    exit_code = re.search(r"[Ee]xits?(?: with)? code `(\d+)`", claims)
-    assert exit_code is not None
-    output = re.search(r"```text\n(.*?)```", claims, re.DOTALL)
-    return arguments[arguments.index("raes") + 1 :], int(exit_code.group(1)), output.group(1) if output else ""
+    parts = re.split(r"```console\n(.*?)```", section, flags=re.DOTALL)
+    steps = []
+    for commands, statement in zip(parts[1::2], parts[2::2], strict=True):
+        exit_codes = re.findall(r"\bexits with code `(\d+)`", statement)
+        assert len(exit_codes) == 1, f"expected one 'exits with code' statement after:\n{commands}"
+        output = re.search(r"```text\n(.*?)```", statement, re.DOTALL)
+        steps.append((commands, int(exit_codes[0]), output.group(1) if output else ""))
+    return steps
 
 
-def test_first_scenario_tutorial_states_the_real_format_check_result(monkeypatch: pytest.MonkeyPatch) -> None:
+def _run_console_block(commands: str) -> tuple[int, str, str]:
+    """Run a console block's `raes` commands in order; return the last one's exit code, stdout and stderr.
+
+    A `> file` suffix saves that command's standard output to the file, as the shell would.
+    """
+    outcomes = []
+    for line in commands.replace("\\\n", " ").splitlines():
+        command, _, target = line.partition(" > ")
+        words = shlex.split(command)
+        result = CliRunner().invoke(app, words[words.index("raes") + 1 :])
+        if target:
+            Path(target.strip()).write_text(result.stdout, encoding="utf-8")
+        outcomes.append((result.exit_code, result.stdout, result.stderr))
+    return outcomes[-1]
+
+
+def test_first_scenario_tutorial_states_the_real_format_check_results(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     tutorial = (REPO_ROOT / "docs" / "public" / "tutorials" / "first-scenario.md").read_text(encoding="utf-8")
-    arguments, stated_exit_code, shown_output = _stated_format_check(tutorial)
-    monkeypatch.chdir(REPO_ROOT)
+    steps = _stated_format_steps(tutorial)
+    # The page's paths are relative to the repository root. Run the commands in a copy of `docs/public` so the
+    # file the page tells the reader to create stays out of the repository.
+    shutil.copytree(REPO_ROOT / "docs" / "public", tmp_path / "docs" / "public")
+    monkeypatch.chdir(tmp_path)
 
-    result = CliRunner().invoke(app, arguments)
+    outcomes = [_run_console_block(commands) for commands, _, _ in steps]
 
-    assert (result.exit_code, result.stderr) == (stated_exit_code, shown_output)
+    assert outcomes == [(exit_code, "", output) for _, exit_code, output in steps]
+    assert outcomes[-1] == (0, "", ""), "the section must end with a format check that passes"
 
 
 def test_participant_control_claim_example_is_bounded() -> None:
