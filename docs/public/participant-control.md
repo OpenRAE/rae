@@ -135,16 +135,21 @@ observation boundary. Reuse the action, control, or inject carrier.
   to the delivery compiles to that delivery's `participant.*` address; it
   constrains the authored occurrence and does not prove dispatch, delivery, or
   observation.
+- Use an `episode_policy` on the behavior specification to declare how a
+  participant's episodes start, take turns, end, and reset. Each end condition
+  names one terminal reason and its evidence. The policy declares intent only.
+  It does not start, reset, or end an episode.
 - Do not infer a participant addressee from an environment inject. Do not put
   policy text, hidden answers, credentials, or raw evidence in a participant
   carrier.
 
 The
-[mixed-control fixture](https://github.com/OpenRAE/rae/blob/main/contracts/fixtures/sdl/mixed-control-v1/valid/mixed-control-participant.yaml)
+[mixed-control fixture](https://github.com/OpenRAE/rae/blob/main/contracts/fixtures/sdl/mixed-control-v1/valid/mixed-control-participant.yaml),
+[participant-directed inject fixture](https://github.com/OpenRAE/rae/blob/main/contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml),
 and
-[participant-directed inject fixture](https://github.com/OpenRAE/rae/blob/main/contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml)
+[episode policy fixture](https://github.com/OpenRAE/rae/blob/main/contracts/fixtures/sdl/participant-episode-policy-v1/valid/analyst-shift-episode.yaml)
 show the governed authoring shapes. They show SDL checks. They do not show
-runtime delivery.
+runtime delivery or episode execution.
 
 ### Participant-implementation author
 

@@ -1,9 +1,9 @@
 {
-  "content_hash": "6db2c5bb46445d0ed8eb140e1f7f8cacb562edfe8b44f139bb0b10c86f89a596",
+  "content_hash": "8b812a0c92c5e9817cf7327e121e9859926bdcbab4007dd4fdf997b7993b5716",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "6db2c5bb46445d0ed8eb140e1f7f8cacb562edfe8b44f139bb0b10c86f89a596",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "8b812a0c92c5e9817cf7327e121e9859926bdcbab4007dd4fdf997b7993b5716",
+    "summary": "Add the optional authored participant episode policy to behavior specifications: initialization, turn structure, terminal and truncation conditions, and reset policy as declared intent only (#307)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

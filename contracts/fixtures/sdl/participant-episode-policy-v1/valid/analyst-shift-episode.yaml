@@ -1,0 +1,171 @@
+name: dsl-120
+nodes:
+  siem:
+    type: compute
+    resources: {ram: 1 gib, cpu: 1}
+    services: [{port: 443, name: console}]
+entities:
+  blue-team:
+    role: blue
+propositions:
+  console-ready:
+    description: The SIEM console is reachable before the analyst episode starts.
+    subjects: [nodes.siem.services.console]
+    basis: declared_state
+    predicate:
+      kind: boolean
+      property: console-reachable
+      semantic_ref: urn:raes:observable:console-reachable
+      expected: true
+  ticket-closed:
+    description: The analyst closed the escalated incident ticket.
+    subjects: [nodes.siem.services.console]
+    basis: observed_state
+    predicate:
+      kind: boolean
+      property: incident-ticket-closed
+      semantic_ref: urn:raes:observable:incident-ticket-closed
+      expected: true
+    evidence_requirements: [ticket-evidence]
+  queue-stalled:
+    description: The alert queue stopped producing new work for the analyst.
+    subjects: [nodes.siem.services.console]
+    basis: observed_state
+    predicate:
+      kind: boolean
+      property: alert-queue-stalled
+      semantic_ref: urn:raes:observable:alert-queue-stalled
+      expected: true
+    evidence_requirements: [queue-evidence]
+assertions:
+  console-ready:
+    proposition: console-ready
+    role: precondition
+  ticket-closed:
+    proposition: ticket-closed
+    role: postcondition
+  queue-stalled:
+    proposition: queue-stalled
+    role: postcondition
+time_domains:
+  shift-time:
+    kind: logical
+    tick_period_seconds: {numerator: 60, denominator: 1}
+    epoch: scenario_start
+    visibility: participant_visible
+    description: analyst shift logical time
+clocks:
+  shift-clock:
+    time_domain_ref: shift-time
+    authority_kind: runtime
+    authority_ref: runtime.scheduler
+    monotonicity: non_decreasing
+    description: analyst shift clock
+temporal_constraints:
+  shift-deadline:
+    constraint_kind: deadline
+    clock_ref: shift-clock
+    subject_refs: [behavior_specifications.analyst-triage]
+    end: {tick: 480}
+    description: the analyst episode must close within one shift
+evidence_requirements:
+  ticket-evidence:
+    description: capture the ticket closure record
+    source_refs: [nodes.siem.services.console]
+    scope_refs: [siem]
+    window: analyst episode close
+    channel: log
+    artifact_role: episode_terminal_evidence
+    sensitivity: plain
+    redaction: none
+    integrity: checksum
+    retention: study_lifetime
+    loss_disclosure: required
+  queue-evidence:
+    description: capture the alert queue telemetry
+    source_refs: [nodes.siem.services.console]
+    scope_refs: [siem]
+    window: analyst episode close
+    channel: log
+    artifact_role: episode_truncation_evidence
+    sensitivity: plain
+    redaction: none
+    integrity: checksum
+    retention: study_lifetime
+    loss_disclosure: required
+  shift-clock-evidence:
+    description: capture the shift clock reading at episode close
+    source_refs: [behavior_specifications.analyst-triage]
+    scope_refs: [siem]
+    window: analyst episode close
+    channel: log
+    artifact_role: episode_timeout_evidence
+    sensitivity: plain
+    redaction: none
+    integrity: checksum
+    retention: study_lifetime
+    loss_disclosure: required
+  reset-evidence:
+    description: capture the episode reset or restart record
+    source_refs: [behavior_specifications.analyst-triage]
+    scope_refs: [siem]
+    window: analyst episode reset
+    channel: log
+    artifact_role: episode_reset_evidence
+    sensitivity: plain
+    redaction: none
+    integrity: checksum
+    retention: study_lifetime
+    loss_disclosure: required
+action_contracts:
+  triage-alert:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: analyst reviews one SIEM alert and records a disposition
+    realization_profile: backend-declared
+    fidelity_claim: records the analyst disposition and the terminal console observation
+    preconditions:
+      - precondition_id: console-in-scope
+        precondition_class: target
+        description: the SIEM console is in the analyst's action scope
+        support_refs: [nodes.siem.services.console]
+    effects:
+      - effect_id: alert-disposition-recorded
+        effect_class: intended_effect
+        description: the analyst records a disposition for the alert
+        target_refs: [nodes.siem.services.console]
+    failure_classes: [target_unavailable, unknown]
+agents:
+  analyst:
+    affiliations: [blue-team]
+    actions: [triage-alert]
+behavior_specifications:
+  analyst-triage:
+    semantic_version: 1.0.0
+    participant_refs: [analyst]
+    action_contract_refs: [triage-alert]
+    behavior_mode: human-supervised
+    episode_policy:
+      profile: participant-episode-policy/v1
+      initialization:
+        assertion_refs: [console-ready]
+      interaction_structure:
+        order_basis: decision-epoch
+        action_contract_refs: [triage-alert]
+      terminal_conditions:
+        ticket-closed:
+          terminal_reason: completed
+          assertion_refs: [ticket-closed]
+          evidence_requirement_refs: [ticket-evidence]
+        shift-ended:
+          terminal_reason: timed_out
+          temporal_constraint_ref: shift-deadline
+          evidence_requirement_refs: [shift-clock-evidence]
+      truncation_conditions:
+        queue-stalled:
+          assertion_refs: [queue-stalled]
+          evidence_requirement_refs: [queue-evidence]
+      reset_policy:
+        control_actions: [reset, restart]
+        participant_memory_scope: persistent_across_episodes
+        evidence_requirement_refs: [reset-evidence]

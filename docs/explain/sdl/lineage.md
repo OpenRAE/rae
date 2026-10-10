@@ -965,6 +965,32 @@ which dynamic queue/log/config details remain evidence or bounded settings.
   Because it only binds already governed carriers and does not change their
   normative derivation or compatibility claims, the SDL lineage ledger and
   source audit remain unchanged.
+- DSL-120 composes the incumbent `episodes` concept-family lineage, the
+  Gymnasium and OpenAI Gym episode notion recorded in
+  `specs/concept-authority/reference-models.md`, with the existing
+  proposition/assertion, shared-time, action-contract, and evidence lineages.
+  The exact RAES mapping is `ParticipantBehaviorSpecification.episode_policy`:
+  a versioned record of initialization assertions, decision-epoch turn
+  structure, completion and timeout terminal conditions, truncation
+  conditions, and a reset policy with admitted control actions, an ADR-095
+  participant-memory scope, and, for an episode-local reset, its reset
+  authority. Each participant has at most one such policy, and each condition
+  maps to exactly one ADR-013 terminal reason and names the evidence
+  requirements that back the transition. Termination and truncation stay
+  distinct, as the lineage separates an end reached by the task's own dynamics
+  from an imposed early stop; interruption is never authored. The record
+  rejects realized episode coordinates, which remain on the ADR-013
+  participant episode contracts.
+- DSL-120 delivery evidence is the governed SDL schemas and publication
+  entries, the valid/invalid participant episode policy fixtures, and
+  `implementations/python/tests/test_issue_307_dsl_120_participant_episode_policy.py`.
+  This delivers authoring, composition, semantic and post-instantiation
+  validation, deterministic compilation to `participant.episode-policy.<name>`,
+  and schema compatibility. It does not claim episode execution, condition
+  evaluation, reset handling, evidence capture, backend realization, or
+  Gymnasium API compatibility. Because it only binds already governed carriers
+  and does not change their normative derivation or compatibility claims, the
+  SDL lineage ledger and source audit remain unchanged.
 - DSL-437 composes the incumbent participant and time lineages rather than
   introducing a live-activity ontology. CybORG and the Gymnasium, PettingZoo,
   and OpenSpiel family remain precedents for agents, actions, observations,

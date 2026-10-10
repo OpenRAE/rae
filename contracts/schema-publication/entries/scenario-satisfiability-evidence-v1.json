@@ -1,9 +1,9 @@
 {
-  "content_hash": "0a5b2ee3ad31c589f30def040783a934fb8855614c9030525f1a648ac27e3ce5",
+  "content_hash": "8e1adf3e7b8831103d26adc044dce3593bcc74a9b803aff88d1b302fa81f7183",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "0a5b2ee3ad31c589f30def040783a934fb8855614c9030525f1a648ac27e3ce5",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "8e1adf3e7b8831103d26adc044dce3593bcc74a9b803aff88d1b302fa81f7183",
+    "summary": "Add the optional authored participant episode policy to behavior specifications: initialization, turn structure, terminal and truncation conditions, and reset policy as declared intent only (#307)."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

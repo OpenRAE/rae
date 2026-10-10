@@ -1,9 +1,9 @@
 {
-  "content_hash": "2dd378f6b80b78ade6bcb48f2ed201c1d83e1b821a2c04dd8cb342661e45b1ce",
+  "content_hash": "6c8f11d67129ac2c77e69951c754b7c4c8b0405de5fabc975b97a2a0e16a7a73",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "content_hash": "2dd378f6b80b78ade6bcb48f2ed201c1d83e1b821a2c04dd8cb342661e45b1ce",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "6c8f11d67129ac2c77e69951c754b7c4c8b0405de5fabc975b97a2a0e16a7a73",
+    "summary": "Add the optional authored participant episode policy to behavior specifications: initialization, turn structure, terminal and truncation conditions, and reset policy as declared intent only (#307)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"
