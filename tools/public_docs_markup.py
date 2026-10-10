@@ -91,6 +91,9 @@ def _fence(line: str) -> tuple[str, str] | None:
         return None
     info = stripped.lstrip(marker)
     run = stripped[: len(stripped) - len(info)]
+    # As in CommonMark, a backtick run whose info string holds a backtick is a code span, not a fence.
+    if marker == "`" and "`" in info:
+        return None
     return (run, info) if len(run) >= MIN_FENCE_LENGTH else None
 
 

@@ -10,13 +10,17 @@ without a docs build.
 from __future__ import annotations
 
 import json
+import os
 import re
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
+import raes
 import yaml
 from sphinx.cmd.build import build_main
-from tools import public_docs_guard
+from tools import public_docs_guard, public_docs_markup
 from tools.check_public_docs import (
     INTERNAL_RECORD_DIRECTORIES,
     MAX_SOURCE_BYTES,
@@ -52,6 +56,8 @@ OUTSIDE_READS = {
     "rst-field-next-line.rst": ".. raw:: html\n   :file:\n      ../development/record.md",
     "rst-grid-include.rst": f"{GRID_BORDER}\n| {GRID_CELL} |\n{GRID_BORDER}",
     "rst-download.rst": ":download:`Data <../development/data.csv>`",
+    # pytest puts the repository root on sys.path, but a tools module is not a documented package.
+    "rst-automodule-tool.rst": ".. automodule:: tools.public_docs_markup",
 }
 FILE_URL_READS = {
     "blockquote-raw-url.md": "> ```{raw} html\n> :url: file://ROOT/docs/development/record.md\n> ```",
@@ -62,7 +68,14 @@ INSIDE_READS = {
     "inside-literalinclude.md": "- ```{literalinclude} quickstart.md\n  :diff: index.md\n  ```",
     "inline-csv-table.md": "```{csv-table} Data\na,b\n```",
     # autodoc records the source of each module it documents, outside the source directory.
-    "autodoc.rst": ".. automodule:: tools.public_docs_markup",
+    "autodoc.rst": ".. automodule:: raes._version",
+}
+# Directives that import a repository module by name. They fail on import when the repository
+# root is not on sys.path. autosummary records no dependency, so the guard never sees its table.
+REPOSITORY_IMPORTS = {
+    "automodule-tool": ".. automodule:: tools.check_public_docs",
+    "autosummary-tool": ".. autosummary::\n\n   tools.check_public_docs.evaluate_public_sources",
+    "automodule-namespace": ".. automodule:: tools",
 }
 BUILD_WARNING = re.compile(r"/docs/public/(?P<page>[^/:\s]+)(?::\d+)?: WARNING: (?P<message>.+)")
 OUTSIDE_WARNING = "which is outside the documentation source directory"
@@ -129,17 +142,39 @@ def test_build_fails_when_a_directive_reads_a_file_url(guarded_builds: list[tupl
 def test_build_accepts_files_inside_the_source_and_documented_modules(
     guarded_builds: list[tuple[int, str]], page: str
 ) -> None:
-    assert [page in _warned_pages(warnings) for _status, warnings in guarded_builds] == [False, False]
+    # Only the first build reads these pages. The second rereads only the pages that failed.
+    _status, warnings = guarded_builds[0]
+
+    assert page not in _warned_pages(warnings)
 
 
-def test_recorded_paths_are_resolved_and_only_imported_modules_are_exempt(tmp_path: Path) -> None:
+@pytest.mark.parametrize("markup", list(REPOSITORY_IMPORTS.values()), ids=list(REPOSITORY_IMPORTS))
+def test_build_cannot_import_repository_modules(tmp_path: Path, markup: str) -> None:
+    public = tmp_path / "docs" / "public"
+    _write(public / "index.rst", f"Index\n=====\n\n{markup}\n")
+    warning_file = tmp_path / "warnings.txt"
+    arguments = ["-c", str(PUBLIC_CONFDIR), "-W", "--keep-going", "-q", "-b", "html", "-w", str(warning_file)]
+    # -I keeps the working directory and PYTHONPATH off sys.path. The nox and Read the Docs
+    # builds do not put the repository root there either.
+    command = [sys.executable, "-I", "-m", "sphinx", *arguments, str(public), str(tmp_path / "html")]
+    status = subprocess.run(command, capture_output=True, check=False).returncode
+
+    warnings = warning_file.read_text(encoding="utf-8").casefold()
+    assert (status, f"failed to import {markup.split()[-1]}." in warnings) == (1, True)
+
+
+def test_recorded_paths_are_resolved_and_only_documented_modules_are_exempt(tmp_path: Path) -> None:
     root = tmp_path / "docs" / "public"
-    guard_source = Path(public_docs_guard.__file__)
-    recorded = [root / "guides" / ".." / "index.md", root / ".." / "development" / "record.md", Path(json.__file__)]
+    record = root / ".." / "development" / "record.md"
+    # Sphinx before 9.0 records paths relative to the source directory, not the working directory.
+    relative = ["guides/index.md", os.path.relpath(yaml.__file__, root)]
+    # Imported modules are exempt under the standard library, site-packages and the package root only.
+    documented = [Path(json.__file__), Path(raes.__file__)]
+    tools_modules = [Path(public_docs_guard.__file__), Path(public_docs_markup.__file__)]
+    recorded = [root / "guides" / ".." / "index.md", record, *relative, *documented, *tools_modules]
 
-    # The guard is imported too, but its own source is not exempt.
-    assert public_docs_guard.files_outside(root, [*recorded, guard_source]) == sorted(
-        [(tmp_path / "docs" / "development" / "record.md").resolve(), guard_source.resolve()]
+    assert public_docs_guard.files_outside(root, recorded) == sorted(
+        path.resolve() for path in [record, *tools_modules]
     )
 
 
@@ -160,6 +195,8 @@ def test_pages_and_links_inside_the_public_root_pass(tmp_path: Path) -> None:
         public_root / "sdl" / "index.md",
         "[Start](../quickstart.md) [Set up](../guides/development-setup.md#install) "
         "[Site](https://example.test/docs) [Top](#top) [Mail](mailto:docs@example.test)\n\n"
+        # MyST resolves a link that starts with "/" against the source directory.
+        "[Root](/quickstart.md)\n\n"
         "[start]: ../quickstart.md\n[^note]: ../../a footnote, not a link\n",
     )
 
@@ -174,11 +211,14 @@ def test_pages_and_links_inside_the_public_root_pass(tmp_path: Path) -> None:
         "[Tool](<../../tools/internal_tool.py>)",
         '[Tool](../../tools/internal_tool.py "Tool")',
         "[Tool][tool]\n\n[tool]: ../../tools/internal_tool.py",
-        "[Hosts](/etc/hosts)",
+        # A link that starts with "/" resolves against docs/public, and its ".." segments leave it.
+        "[Tool](/../../tools/internal_tool.py)",
         # MyST parses directive and colon fence bodies as Markdown.
         f"```{{note}}\n{TOOL_LINK}\n```",
         f":::\n{TOOL_LINK}\n:::",
         f"```text\nexample\n```\n\n`code` {TOOL_LINK}",
+        # A backtick run whose info string holds a backtick is a code span, not a fence.
+        f"```py``` is code.\n\n{TOOL_LINK}",
     ],
 )
 def test_markdown_link_that_escapes_the_public_root_fails(tmp_path: Path, markdown: str) -> None:
@@ -221,6 +261,8 @@ def test_link_shown_as_code_passes(tmp_path: Path, markdown: str) -> None:
             "support.md", "```{literalinclude} quickstart.md\n:diff: ../development/record.md\n```", id="diff"
         ),
         pytest.param("support.md", "```{raw} html\n:url: file:///srv/docs/development/record.md\n```", id="file-url"),
+        # Unlike a Markdown link, raw reads an absolute :file: path as given.
+        pytest.param("support.md", "```{raw} html\n:file: /etc/hosts\n```", id="absolute-file"),
         pytest.param("support.md", ":::{include} ../development/record.md\n:::", id="colon-fence-include"),
         pytest.param("support.md", "~~~{include} ../development/record.md\n~~~", id="tilde-fence-include"),
         pytest.param("support.md", "```` {include} ../development/record.md\n````", id="long-fence-include"),

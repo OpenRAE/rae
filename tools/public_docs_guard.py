@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 import sys
+import sysconfig
 from collections.abc import Iterable, Sequence
 from importlib.machinery import all_suffixes
 from pathlib import Path
@@ -30,27 +31,39 @@ LOGGER = logging.getLogger(__name__)
 # at the default priority (500). Higher priorities run later.
 AFTER_SPHINX_COLLECTORS = 900
 MODULE_SUFFIXES = frozenset(all_suffixes())
+# Imported modules are exempt only under these roots: the documented packages, the
+# environment's site-packages and the standard library. A build with the repository root
+# on sys.path, such as `python -m sphinx` run from it, can import tools/ modules too.
+DOCUMENTED_MODULE_ROOTS = frozenset(
+    Path(path).resolve()
+    for path in (
+        *(sysconfig.get_path(name) for name in ("stdlib", "platstdlib", "purelib", "platlib")),
+        Path(__file__).resolve().parents[1] / "implementations" / "python" / "packages",
+    )
+)
 
 
 def files_outside(root: Path, files: Iterable[str | os.PathLike[str]]) -> list[Path]:
-    """Return the files outside ``root``, except source files of Python modules the build imported.
+    """Return the files outside ``root``, except sources of imported modules under DOCUMENTED_MODULE_ROOTS.
 
-    autodoc records the source file of every module it documents. Sphinx joins recorded
-    paths to the source directory and keeps their ``..`` segments, so they are resolved first.
+    autodoc records the source file of every module it documents. Sphinx 9 joins recorded
+    paths to the source directory and keeps their ``..`` segments. Earlier releases record
+    them relative to it. Each path is therefore joined to ``root`` and resolved.
     """
 
     resolved_root = root.resolve()
-    outside = {path for path in (Path(file).resolve() for file in files) if not path.is_relative_to(resolved_root)}
+    resolved = ((resolved_root / file).resolve() for file in files)
+    outside = {path for path in resolved if not path.is_relative_to(resolved_root)}
     if any(path.suffix in MODULE_SUFFIXES for path in outside):
-        outside -= _imported_module_files()
+        outside -= _documented_module_files()
     return sorted(outside)
 
 
-def _imported_module_files() -> set[Path]:
+def _documented_module_files() -> set[Path]:
     # Iterate over a copy, as the sys.modules documentation advises: a lookup can import a module.
     files = {getattr(module, "__file__", None) for module in sys.modules.copy().values()}
-    # The build imports this module too, but autodoc never documents it.
-    return {Path(file).resolve() for file in files if isinstance(file, str)} - {Path(__file__).resolve()}
+    paths = {Path(file).resolve() for file in files if isinstance(file, str)}
+    return {path for path in paths if any(path.is_relative_to(root) for root in DOCUMENTED_MODULE_ROOTS)}
 
 
 def _warn_about_files_outside(app: Sphinx, _doctree: nodes.document) -> None:

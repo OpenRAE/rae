@@ -112,7 +112,7 @@ def _docname_for_source(public_root: Path, source: Path) -> str:
     return source.relative_to(public_root).with_suffix("").as_posix()
 
 
-def _target_is_contained(public_root: Path, source: Path, target: str) -> bool:
+def _target_is_contained(public_root: Path, source: Path, target: str, *, markdown_link: bool = False) -> bool:
     # docutils opens file:// URLs given to :url:, so a file URL is never contained.
     if target.casefold().startswith("file:"):
         return False
@@ -122,10 +122,15 @@ def _target_is_contained(public_root: Path, source: Path, target: str) -> bool:
     if not clean_target:
         return True
     candidate = Path(clean_target)
+    base = source.parent
     if candidate.is_absolute():
-        return False
+        # MyST resolves a link that starts with one "/" against the source directory, as Sphinx's
+        # relfn2path does. Directive targets stay strict: raw reads an absolute :file: as given.
+        if not markdown_link or candidate.parts[0] != "/":
+            return False
+        base, candidate = public_root, candidate.relative_to("/")
     try:
-        resolved = (source.parent / candidate).resolve()
+        resolved = (base / candidate).resolve()
         resolved.relative_to(public_root.resolve())
     except (OSError, ValueError):
         return False
@@ -245,7 +250,7 @@ def _escaping_link_targets(public_root: Path, source: Path) -> list[str]:
     return [
         target
         for target in markdown_link_targets(_bounded_text(source))
-        if not _target_is_contained(public_root, source, target)
+        if not _target_is_contained(public_root, source, target, markdown_link=True)
     ]
 
 
