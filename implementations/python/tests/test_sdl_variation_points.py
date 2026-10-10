@@ -561,7 +561,7 @@ variation_points:
             source,
             cursor_path="/variation_points/host-choice/target/owner",
         )["items"]
-    } >= {"payload", "primary"}
+    } == {"payload"}
     assert {
         item["label"]
         for item in language_completions(

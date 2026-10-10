@@ -13,7 +13,7 @@ from ._declarations import DeclarationIndex
 from ._errors import SDLParseError
 from ._identifiers import QualifiedName
 from ._language_diagnostics import parse_error as _parse_error
-from ._language_metadata import REFERENCE_COMPLETION_TARGETS, RELATIONSHIP_ENDPOINT_DOMAIN, VARIATION_CANDIDATE_TARGETS
+from ._language_metadata import REFERENCE_COMPLETION_TARGETS, RELATIONSHIP_ENDPOINT_DOMAIN, VARIATION_SLOT_TARGETS
 from ._reference_targetability import (
     ReferencePurpose,
     is_eligible,
@@ -437,8 +437,8 @@ def _reference_target_for_path(path: list[str], *, mapping_key: bool, scope: _Sy
     target = REFERENCE_COMPLETION_TARGETS.get((path[0], field))
     if target == RELATIONSHIP_ENDPOINT_DOMAIN and len(path) == 3:
         target = reference_domain(relationship_endpoint_purpose(scope.relationship_types.get(path[1], "")))
-    elif (path[0], field) == ("variation_points", "reference"):
-        target = VARIATION_CANDIDATE_TARGETS.get(scope.variation_slots.get(path[1], ""), target)
+    elif path[0] == "variation_points" and field in VARIATION_SLOT_TARGETS:
+        target = VARIATION_SLOT_TARGETS[field].get(scope.variation_slots.get(path[1], ""), target)
     return target if target is not None else _implicit_reference_target(path, field)
 
 

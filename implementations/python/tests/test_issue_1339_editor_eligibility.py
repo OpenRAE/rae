@@ -9,6 +9,7 @@ import yaml
 from raes import SDLValidationError
 from raes.language_service import language_completions, language_diagnostics, language_references
 from test_issue_1339_reference_eligibility import (
+    _CONDITION,
     _PAIR,
     FIELDS,
     _parse,
@@ -44,6 +45,41 @@ def _pointer(payload: dict, path: tuple) -> str:
     for key in path:
         node = node[key]
     return "/" + "/".join(str(key) for key in path) + ("/0" if isinstance(node, list) else "")
+
+
+def _governed(payload: dict) -> dict:
+    """Vary condition `alive`'s proposition over a governed set."""
+
+    payload["conditions"]["alive"]["proposition"] = "ready"
+    payload["variation_points"] = {
+        "pick": {
+            "kind": "governed-reference",
+            "target": {"kind": "reference", "owner": "alive", "slot": "conditions.proposition"},
+            "domain": {"kind": "governed-reference", "authority": "author", "allowed_refs": ["ready"]},
+        }
+    }
+    return payload
+
+
+def _subset(payload: dict, reference: str = "nodes.web") -> dict:
+    """Vary objective `goal`'s targets over one candidate."""
+
+    payload["variation_points"] = {
+        "subjects": {
+            "kind": "subset",
+            "target": {"kind": "collection", "owner": "goal", "slot": "objectives.targets"},
+            "members": {"candidate": {"reference": reference}},
+        }
+    }
+    return payload
+
+
+# Variation fields that validation resolves in their target slot's owner or candidate section.
+_VARIATION_FIELDS = {
+    "allowed-ref": (_governed, ("variation_points", "pick", "domain", "allowed_refs")),
+    "governed-owner": (_governed, ("variation_points", "pick", "target", "owner")),
+    "subset-owner": (_subset, ("variation_points", "subjects", "target", "owner")),
+}
 
 
 @pytest.mark.parametrize("complete", [True, False], ids=["valid-document", "incomplete-document"])
@@ -264,15 +300,7 @@ def test_navigation_resolves_operating_scope_through_its_own_aliases() -> None:
 def test_objective_target_candidates_complete_and_navigate_as_objective_subjects(complete: bool) -> None:
     """A candidate resolves where its slot does, so completion and navigation follow the slot's purpose."""
 
-    payload = _paired(complete=complete)
-    candidate = {"reference": "conditions.alive"}
-    payload["variation_points"] = {
-        "subjects": {
-            "kind": "subset",
-            "target": {"kind": "collection", "owner": "goal", "slot": "objectives.targets"},
-            "members": {"candidate": candidate},
-        }
-    }
+    payload = _subset(_paired(complete=complete), "conditions.alive")
     pointer = "/variation_points/subjects/members/candidate/reference"
 
     result = _completions(payload, pointer)
@@ -281,8 +309,67 @@ def test_objective_target_candidates_complete_and_navigate_as_objective_subjects
     assert {"propositions.ready", "agents.blue"} <= {item["detail"] for item in result["items"]}
     assert "conditions.alive" not in {item["detail"] for item in result["items"]}
     assert pointer not in _occurrences(payload, "conditions.alive")
-    candidate["reference"] = "propositions.ready"
+    payload["variation_points"]["subjects"]["members"]["candidate"]["reference"] = "propositions.ready"
     assert pointer in _occurrences(payload, "propositions.ready")
+
+
+@pytest.mark.parametrize(
+    ("field", "section"),
+    [("allowed-ref", "propositions"), ("governed-owner", "conditions"), ("subset-owner", "objectives")],
+)
+def test_variation_owner_and_allowed_ref_suggestions_follow_the_target_slot(field: str, section: str) -> None:
+    """Every suggestion validates in its slot's section, in valid and incomplete documents, and navigates there."""
+
+    point, path = _VARIATION_FIELDS[field]
+    cursor = "/" + "/".join(path)
+
+    result = _completions(point(_with_condition_named_web(_paired())), cursor)
+
+    assert result["context"] == f"reference:{section}"
+    assert result["items"]
+    assert _completions(point(_with_condition_named_web(_paired(complete=False))), cursor) == result
+    for item in result["items"]:
+        suggested = _set(point(_with_condition_named_web(_paired())), path, item["label"])
+        _parse(suggested)
+        assert _pointer(suggested, path) in _occurrences(suggested, item["detail"])
+
+
+@pytest.mark.parametrize("field", sorted(_VARIATION_FIELDS))
+def test_a_refused_variation_owner_or_allowed_ref_is_no_occurrence(field: str) -> None:
+    point, path = _VARIATION_FIELDS[field]
+    refused = _set(point(_paired()), path, "nodes.web")
+
+    with pytest.raises(SDLValidationError, match="is undefined or has the wrong type"):
+        _parse(refused)
+    assert _pointer(refused, path) not in _occurrences(refused, "nodes.web")
+
+
+@pytest.mark.parametrize(
+    ("pointer", "symbol"),
+    [
+        ("/variation_points/host/target/owner", "content.answer-key"),
+        ("/variation_points/host/domain/allowed_refs/0", "nodes.web"),
+    ],
+    ids=["owner", "allowed-ref"],
+)
+def test_a_bare_variation_owner_or_allowed_ref_that_a_condition_shares_names_its_slot_declaration(
+    pointer: str, symbol: str
+) -> None:
+    """Validation resolves both in the slot's section, where the condition is no candidate."""
+
+    payload = _with_condition_named_web(_paired())
+    payload["content"] = {"answer-key": {"type": "file", "target": "web", "path": "/opt/key.txt", "text": "key"}}
+    payload["conditions"]["answer-key"] = deepcopy(_CONDITION)
+    payload["variation_points"] = {
+        "host": {
+            "kind": "governed-reference",
+            "target": {"kind": "reference", "owner": "answer-key", "slot": "content.target"},
+            "domain": {"kind": "governed-reference", "authority": "author", "allowed_refs": ["web"]},
+        }
+    }
+    _parse(payload)
+
+    assert pointer in _occurrences(payload, symbol)
 
 
 def test_navigation_and_diagnostics_follow_the_purpose_of_each_field() -> None:
