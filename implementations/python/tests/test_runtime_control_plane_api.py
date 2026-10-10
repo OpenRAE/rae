@@ -1893,9 +1893,10 @@ def test_local_control_plane_store_rolls_back_snapshot_transaction_failure(
         _fail_sqlite_commit(connection)
 
     monkeypatch.setattr(store, "_upsert_snapshot", fail_commit_after_upsert)
+    snapshot = RuntimeSnapshot(metadata={"must": "roll back"})
 
     with pytest.raises(sqlite3.IntegrityError, match="FOREIGN KEY constraint failed"):
-        store.save_snapshot(RuntimeSnapshot(metadata={"must": "roll back"}), expected_revision=before.revision)
+        store.save_snapshot(snapshot, expected_revision=before.revision)
 
     assert store.load_snapshot_state() == before
 
