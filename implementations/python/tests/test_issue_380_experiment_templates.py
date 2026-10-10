@@ -13,7 +13,6 @@ import yaml
 from test_example_library_policy import _VALID_BODY, _read_catalog, _seed_repo, _write_catalog, _write_yaml
 from tools.check_example_library import evaluate_example_library
 
-_TEMPLATE_PATH = "examples/library/templates/run/template.yaml"
 _EXPERIMENT_CONTRACT = "experiment-authoring-input-v1"
 _EXPERIMENT_BODY: dict[str, Any] = {
     "schema_version": "experiment-authoring-input/v1",
@@ -31,21 +30,23 @@ _EXPERIMENT_BODY: dict[str, Any] = {
 
 @dataclass(frozen=True)
 class _Library:
-    """The seeded catalog and the run surface's template file, loaded for editing."""
+    """The seeded catalog and one surface's template file, loaded for editing."""
 
     catalog: dict[str, Any]
     template: dict[str, Any]
+    surface: str = "run"
 
-    def entry(self, surface: str = "run", field: str = "templates") -> dict[str, Any]:
-        return self.catalog["surfaces"][surface][field][0]
+    def entry(self, surface: str | None = None, field: str = "templates") -> dict[str, Any]:
+        return self.catalog["surfaces"][surface or self.surface][field][0]
 
 
 _Mutation = Callable[[_Library], None]
 
 
-def _apply(repo_root: Path, mutate: _Mutation) -> None:
-    template_path = repo_root / _TEMPLATE_PATH
-    library = _Library(_read_catalog(repo_root), yaml.safe_load(template_path.read_text(encoding="utf-8")))
+def _apply(repo_root: Path, mutate: _Mutation, surface: str = "run") -> None:
+    template_path = repo_root / f"examples/library/templates/{surface}/template.yaml"
+    template = yaml.safe_load(template_path.read_text(encoding="utf-8"))
+    library = _Library(_read_catalog(repo_root), template, surface)
     mutate(library)
     _write_catalog(repo_root, library.catalog)
     _write_yaml(template_path, library.template)
@@ -115,3 +116,22 @@ def test_experiment_template_violation_is_the_only_failure(tmp_path: Path, mutat
     _apply(repo_root, mutation)
 
     assert [failure.rule_id for failure in evaluate_example_library(repo_root)] == [rule_id]
+
+
+@pytest.mark.parametrize(
+    ("surface", "rule_ids"),
+    (
+        pytest.param("study", [], id="study"),
+        *(
+            pytest.param(surface, ["example-library-entry-contract"], id=surface)
+            for surface in ("scenario", "workflow", "participant_behavior", "task")
+        ),
+    ),
+)
+def test_experiment_contract_is_limited_to_run_and_study_templates(
+    tmp_path: Path, surface: str, rule_ids: list[str]
+) -> None:
+    repo_root = _seed_repo(tmp_path)
+    _apply(repo_root, _as_experiment_template, surface=surface)
+
+    assert [failure.rule_id for failure in evaluate_example_library(repo_root)] == rule_ids

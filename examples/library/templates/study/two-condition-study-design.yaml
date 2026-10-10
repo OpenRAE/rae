@@ -9,7 +9,7 @@ source_refs:
 summary: Pre-run experiment specification comparing two levels of one treatment factor with a fixed number of runs per condition.
 validation:
   - command: uv run --project implementations/python --frozen python tools/check_example_library.py
-    expected: Exits 0 with no output. The gate validates this body with the experiment authoring-input loader, parse_experiment_spec, and fails on any error.
+    expected: Exits 0 with no output. The gate passes this body, as yaml.safe_load reads it, to parse_experiment_spec and fails on any error that it reports. It does not see duplicate keys, scalar aliases, or << merge keys; the second command rejects them.
   - command: 'uv run --project implementations/python --frozen python -c "import sys; from pathlib import Path; from raes_contracts.experiment_spec import load_experiment_spec; print(load_experiment_spec(Path(sys.argv[1])).spec_id)" my-experiment.exp.yaml'
     expected: With the body saved as my-experiment.exp.yaml, prints its spec_id and exits 0. An invalid document raises ExperimentSpecValidationError and exits 1.
 body:
