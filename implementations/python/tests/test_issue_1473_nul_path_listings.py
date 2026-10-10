@@ -14,9 +14,12 @@ from tools import check_schema_publication
 from tools.policy.common import changed_paths
 
 # Without -z, git quotes a name with a byte above 0x80 (under the default core.quotePath=true), a control character
-# or a double quote, so the gates drop it or receive the quoted text. Git lists the plain name verbatim either way.
+# such as a tab or a newline, or a double quote, so the gates drop it or receive the quoted text. Git lists the plain
+# name verbatim either way.
 _SCHEMAS = "contracts/schemas"
-_NAMES = sorted(f"{_SCHEMAS}/{name}" for name in ("naïve.json", "tab\tname.json", '"quoted".json', "plain.json"))
+_NAMES = sorted(
+    f"{_SCHEMAS}/{name}" for name in ("naïve.json", "tab\tname.json", "new\nline.json", '"quoted".json', "plain.json")
+)
 _CHANGE_MODES: dict[str, dict[str, object]] = {
     "staged": {"staged": True},
     "base revision": {"base_rev": "HEAD~1"},
@@ -30,7 +33,7 @@ def _git(repo: Path, *args: str) -> None:
 
 @pytest.fixture
 def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    """A real repository with one base commit and the four names staged on top of it."""
+    """A real repository with one base commit and the five names staged on top of it."""
 
     # Use git's built-in defaults, as CI runners do, whatever the developer's global or system configuration says.
     monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
