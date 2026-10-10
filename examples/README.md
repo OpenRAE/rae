@@ -93,7 +93,7 @@ breaks these rules.
 
 | Field | Allowed values | What the gate checks |
 |-------|----------------|----------------------|
-| `validation_status` | `validated` or `guidance` | For `validated`, the gate parses the template body or worked-example file with the SDL parser and semantic validator, and fails on any error or advisory. A `guidance` file is not parsed as SDL. Templates must be `validated`; patterns must be `guidance`. |
+| `validation_status` | `validated` or `guidance` | For `validated`, the gate runs the SDL parser and semantic validator on the worked-example file, or on the template body as PyYAML loads it from the template file, and fails on any error or advisory they report. A `guidance` file is not parsed as SDL. Templates must be `validated`; patterns must be `guidance`. |
 | `sdl_sections` | Top-level section names from [`../specs/sdl/sections.md`](../specs/sdl/sections.md), such as `nodes` or `workflows` | Each name is a current SDL section, not a metadata or composition field such as `name` or `imports`. For a `validated` entry, each listed section is present in the validated SDL. |
 | `intended_user` | `sdl-author` | The value is in the allowed list. |
 | `limits` | One or more short statements of what the entry does not show | The list is present and not empty. Reviewers check the wording. |
@@ -103,7 +103,7 @@ large worked example lists only some of the sections it uses. `validated`
 means that current SDL validation accepts the file or template body. It does
 not mean that a backend can realize the scenario or that anything has run. A
 `guidance` entry is reading material, such as a prose pattern or a test
-module, and is not executable SDL.
+module, and the gate does not parse it as SDL.
 
 ## Validate The Examples
 

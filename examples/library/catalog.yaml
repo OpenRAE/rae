@@ -85,7 +85,7 @@ surfaces:
         sdl_sections: [agents, action_contracts, observation_boundaries, behavior_specifications]
         intended_user: sdl-author
         limits:
-          - A pytest module rather than an SDL file; the test suite runs its inline SDL, this gate does not.
+          - A pytest module rather than an SDL file; the test suite parses and validates its inline SDL, and this gate does not.
     templates:
       - id: action-contract-observation-boundary
         path: examples/library/templates/participant_behavior/action-contract-observation-boundary.yaml
@@ -125,7 +125,7 @@ surfaces:
       - id: task-as-objective-contract
         path: examples/library/patterns/task-as-objective-contract.yaml
         validation_status: guidance
-        sdl_sections: [agents, conditions, objectives, workflows]
+        sdl_sections: [agents, conditions, propositions, assertions, objectives, workflows]
         intended_user: sdl-author
         limits:
           - SDL has no first-class tasks section, and an objective written this way is not an experiment-task-v1 record.
