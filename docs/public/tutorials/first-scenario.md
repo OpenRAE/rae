@@ -30,14 +30,25 @@ command exits with code `1` and writes this line to standard error:
 docs/public/_static/examples/first-scenario.sdl.yaml: not canonical
 ```
 
-The file parses; only its text differs from the canonical format. That format
-is the YAML that the formatter writes back from the parsed scenario, and the
-check passes only when the file's text matches it exactly. For example, the
-formatter drops the blank lines, moves `os` after `resources`, and writes
-`Switch` as `switch` and `2 GiB` as the byte count `2147483648`. Run the
-command without `--check` to print the canonical form without changing the
-file. Exit code `0` means a file already uses the canonical format. The
-command does not provision the scenario.
+Exit code `0` means a file already uses the canonical format. The example
+parses; only its text differs from that format.
+
+The canonical format is the YAML that the formatter produces from the parsed
+scenario. The check passes only when a file's text matches it exactly.
+
+Without `--check`, the command prints the canonical form to standard output
+and leaves the file unchanged. Save that output to a new file in your working
+directory, then check the new file:
+
+```console
+uv run --project implementations/python raes sdl format \
+  docs/public/_static/examples/first-scenario.sdl.yaml > canonical.sdl.yaml
+uv run --project implementations/python raes sdl format \
+  --check canonical.sdl.yaml
+```
+
+This time the check exits with code `0` and prints nothing. The formatter
+does not provision the scenario.
 
 ## Inspect the admitted declarations
 
