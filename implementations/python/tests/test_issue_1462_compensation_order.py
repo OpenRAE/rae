@@ -1,4 +1,8 @@
-"""Issue #1462: compensation runs in reverse completion order for every timestamp form the history contract admits."""
+"""Issue #1462: compensation runs in reverse completion order.
+
+Covered completion timestamp pairs: a whole second written without its fraction, offset-less, a non-UTC offset, one
+instant written twice the same way, and one instant written two ways.
+"""
 
 from __future__ import annotations
 
@@ -122,10 +126,14 @@ def _seed_completed_steps(control_plane: RuntimeControlPlane, a_completed: str, 
         ("2000-01-01T00:00:01", "2000-01-01T00:00:01.001000"),
         # With an explicit non-UTC offset, the earlier completion sorts last as text.
         ("2000-01-01T02:00:01+02:00", "2000-01-01T00:00:01.001000Z"),
+        # The history contract checks reject only decreasing timestamps, so for equal instants the history order is
+        # the completion order: b, recorded after a, ran after it.
+        ("2000-01-01T00:00:01Z", "2000-01-01T00:00:01Z"),
+        ("2000-01-01T00:00:01+00:00", "2000-01-01T00:00:01Z"),
     ],
-    ids=["isoformat-whole-second", "offset-less", "explicit-offset"],
+    ids=["isoformat-whole-second", "offset-less", "explicit-offset", "identical-instant", "same-instant-two-forms"],
 )
-def test_compensation_registers_the_later_step_first(
+def test_compensation_runs_the_later_step_first(
     trigger: Callable[[RuntimeControlPlane], OperationReceipt],
     status: str,
     a_completed: str,
@@ -149,5 +157,6 @@ def test_compensation_registers_the_later_step_first(
     assert receipt.accepted, receipt.diagnostics
     assert snapshot.orchestration_results[_WORKFLOW]["workflow_status"] == status
     history = snapshot.orchestration_history[_WORKFLOW]
-    assert [event["step_name"] for event in history if event["event_type"] == "compensation_registered"] == ["b", "a"]
+    started = [event["step_name"] for event in history if event["event_type"] == "compensation_workflow_started"]
+    assert started == ["b", "a"]
     assert workflow_result_contract_diagnostics(snapshot) == []
