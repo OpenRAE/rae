@@ -13,6 +13,7 @@ from copy import deepcopy
 
 import pytest
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.contracts.time_model import TimeRuntimeStateModel
 from raes_runtime import RuntimeManager
 from test_api_421_time_contracts import _scenario
 
@@ -30,8 +31,20 @@ def _forge_metadata(snapshot, honest):
 
 
 def _forge_paused_clock(snapshot, honest):
-    clock = honest.clocks[_CLOCK]
-    forged = honest.model_copy(update={"clocks": {_CLOCK: clock.model_copy(update={"state": "paused"})}})
+    state = honest.model_dump()
+    clock = state["clocks"][_CLOCK]
+    clock["sequence"] += 1
+    clock["state"] = "paused"
+    clock["history"].append(
+        {
+            "sequence": clock["sequence"],
+            "kind": "pause",
+            "previous": clock["coordinate"],
+            "resulting": clock["coordinate"],
+            "resulting_state": "paused",
+        }
+    )
+    forged = TimeRuntimeStateModel.model_validate(state)
     snapshot.time_model_state = forged
     return forged
 
@@ -58,9 +71,10 @@ def _manager(mutate):
 
 
 @pytest.mark.parametrize("mutate", [_clear_entries, _forge_metadata], ids=["clear-entries", "forge-metadata"])
-def test_readback_cannot_rewrite_the_authoritative_snapshot(mutate):
+def test_readback_cannot_rewrite_the_authoritative_snapshot(mutate) -> None:
     manager = _manager(mutate)
     accepted = deepcopy(manager.snapshot)
+    assert accepted.entries
 
     state = manager.read_time_state()
 
@@ -68,7 +82,7 @@ def test_readback_cannot_rewrite_the_authoritative_snapshot(mutate):
     assert state == accepted.time_model_state
 
 
-def test_clock_forged_into_the_argument_is_a_disagreeing_readback():
+def test_clock_forged_into_the_argument_is_a_disagreeing_readback() -> None:
     manager = _manager(_forge_paused_clock)
     accepted = deepcopy(manager.snapshot)
     assert accepted.time_model_state.clocks[_CLOCK].state != "paused"
