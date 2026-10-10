@@ -13,6 +13,9 @@ Read these limits before you choose RAES for a study or an app.
   maintainer or independent reviewer for every change.
 - Public schemas have their own stability labels. A versioned name does
   not by itself mean that a schema is stable.
+- On Python 3.11, importing SDL modules from an OCI registry requires Python
+  3.11.4 or newer. Earlier 3.11 releases lack the safe tar extraction filter,
+  so RAES stops with an error instead of extracting without it.
 
 Use backend reports, test results, provenance, and evidence to state the limits
 of a result.
