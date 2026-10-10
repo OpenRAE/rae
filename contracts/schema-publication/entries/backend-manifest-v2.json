@@ -1,9 +1,9 @@
 {
-  "content_hash": "be543802e6518ee04254963a97bba5b33c9cf06715cff0a4cd107ffb6ab0316b",
+  "content_hash": "2237cc161a13ef16243ce502bb8bc44b6859c1e54018deb2fe7f6619e8b611da",
   "contract_id": "backend-manifest-v2",
   "last_change": {
-    "content_hash": "be543802e6518ee04254963a97bba5b33c9cf06715cff0a4cd107ffb6ab0316b",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "2237cc161a13ef16243ce502bb8bc44b6859c1e54018deb2fe7f6619e8b611da",
+    "summary": "Allow exact declarations of the ADR-112 inject occurrence and outcome contracts; the stub and reference backends do not declare them (#1366)."
   },
   "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
   "stability": "draft"

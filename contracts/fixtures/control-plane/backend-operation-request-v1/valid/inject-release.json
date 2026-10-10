@@ -1,0 +1,51 @@
+{
+  "schema_version": "backend-operation-request/v1",
+  "binding": {
+    "operation_id": "operation-release-1",
+    "invocation_id": "invocation-release-1",
+    "attempt_id": "attempt-release-1",
+    "worker_id": "worker-1",
+    "deployment_id": "deployment-1",
+    "owner_generation": 1,
+    "execution_generation": 1,
+    "backend_id": "backend-1",
+    "baseline_revision": "store-revision-41",
+    "context": {
+      "actor_id": "researcher-1",
+      "authorization_scope": [
+        "role:operator"
+      ],
+      "target_scope": "target:reference",
+      "run_scope": "run:environment-1",
+      "operation_kind": "orchestration",
+      "request_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "parent_operation_id": null
+    },
+    "effect_scope": {
+      "kind": "target-run",
+      "addresses": [],
+      "independence": null
+    }
+  },
+  "command": {
+    "contract_id": "inject-occurrence-v1",
+    "artifact_id": "release-occurrence-1",
+    "digest": "sha256:42128c86ad7cf88ea3af5863ae8d5529d379bc8370a81748eb1e849872a34a74"
+  },
+  "requirement_refs": [
+    {
+      "contract_id": "runtime-snapshot-v1",
+      "artifact_id": "readback-requirement-1",
+      "digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+    }
+  ],
+  "required_guarantees": [
+    "effect-observation"
+  ],
+  "budget": {
+    "origin_id": "budget-release-1",
+    "started_at": "2026-10-09T00:00:00Z",
+    "limit_ms": 60000,
+    "remaining_ms": 59000
+  }
+}

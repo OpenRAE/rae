@@ -1,0 +1,10 @@
+{
+  "contract_id": "inject-occurrence-outcome-v1",
+  "schema_path": "contracts/schemas/control-plane/inject-occurrence-outcome-v1.json",
+  "stability": "draft",
+  "content_hash": "e63d3147630fd5a5f555ccc144bd6925bb12bf43f269d3130f3d2579da371d7c",
+  "last_change": {
+    "summary": "Publish the ADR-112 inject occurrence outcome with per-binding readback, fan-out aggregation, binding residual effects inside the admitted resource scope and settlement only by a start refusal with proven absence or a backend outcome (#1366).",
+    "content_hash": "e63d3147630fd5a5f555ccc144bd6925bb12bf43f269d3130f3d2579da371d7c"
+  }
+}

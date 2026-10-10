@@ -11,6 +11,12 @@ cancellation dispositions and effect evidence. The
 [backend integration and migration guide](../docs/explain/reference/backend-operation-supervision.md)
 explains the `operation-supervision` profile and its evidence limits.
 
+The draft [inject trigger and occurrence contracts](../docs/explain/reference/inject-occurrence-contracts.md)
+carry an external inject request, its claimed occurrence, per-binding readback
+and participant correlation under
+[ADR-112](../docs/decisions/adrs/adr-112-external-inject-triggering-and-execution.md).
+They grant no trigger authority and execute nothing.
+
 `contracts/` contains the machine-readable contract side of the repository.
 
 The goal of this bucket is organizational clarity:

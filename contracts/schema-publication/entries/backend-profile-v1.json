@@ -1,9 +1,9 @@
 {
-  "content_hash": "b51c39ee482a49608a96ce3bdc66f587a2cdff9daf5b8c872a079dd920d88f56",
+  "content_hash": "a3082027b9cc13859fe323a0c4989d4d59943b4c2a900dcb3fa2c255861a53ce",
   "contract_id": "backend-profile-v1",
   "last_change": {
-    "summary": "Allow exact declarations of participant-control v2 selection and evaluation contracts (#1365).",
-    "content_hash": "b51c39ee482a49608a96ce3bdc66f587a2cdff9daf5b8c872a079dd920d88f56"
+    "summary": "Allow exact declarations of the ADR-112 inject occurrence and outcome contracts; the stub and reference backends do not declare them (#1366).",
+    "content_hash": "a3082027b9cc13859fe323a0c4989d4d59943b4c2a900dcb3fa2c255861a53ce"
   },
   "schema_path": "contracts/schemas/profiles/backend-profile-v1.json",
   "stability": "draft"

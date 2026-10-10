@@ -61,6 +61,8 @@ EXPECTED_SUPPORTED_CONTRACT_VERSIONS_V2 = [
         "backend-materialization-attestation-v1",
         "backend-augmentation-scope-v1",
         "plan-realization-profiles-v1",
+        "inject-occurrence-v1",
+        "inject-occurrence-outcome-v1",
     }
 ]
 

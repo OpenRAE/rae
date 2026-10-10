@@ -1,0 +1,58 @@
+{
+  "schema_version": "backend-operation-request/v1",
+  "binding": {
+    "operation_id": "operation-handover-1",
+    "invocation_id": "invocation-handover-1",
+    "attempt_id": "attempt-handover-1",
+    "worker_id": "worker-1",
+    "deployment_id": "deployment-1",
+    "owner_generation": 1,
+    "execution_generation": 1,
+    "backend_id": "backend-1",
+    "baseline_revision": "store-revision-41",
+    "context": {
+      "actor_id": "scheduler-1",
+      "authorization_scope": [
+        "role:operator"
+      ],
+      "target_scope": "target:reference",
+      "run_scope": "run:exercise-1",
+      "operation_kind": "orchestration",
+      "request_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "parent_operation_id": null
+    },
+    "effect_scope": {
+      "kind": "resources",
+      "addresses": [
+        "orchestration.inject-binding.workstation.handover"
+      ],
+      "independence": {
+        "contract_id": "runtime-snapshot-v1",
+        "artifact_id": "handover-independence-1",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    }
+  },
+  "command": {
+    "contract_id": "inject-occurrence-v1",
+    "artifact_id": "handover-occurrence-1",
+    "digest": "sha256:3c6bf0dade7b33b96e224e6e20cb67679ef5b6cb8f01a3edcfeb16996d06c298"
+  },
+  "requirement_refs": [
+    {
+      "contract_id": "runtime-snapshot-v1",
+      "artifact_id": "readback-requirement-1",
+      "digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+    }
+  ],
+  "required_guarantees": [
+    "effect-observation",
+    "partial-effects"
+  ],
+  "budget": {
+    "origin_id": "budget-handover-1",
+    "started_at": "2026-10-09T00:00:00Z",
+    "limit_ms": 60000,
+    "remaining_ms": 59000
+  }
+}
