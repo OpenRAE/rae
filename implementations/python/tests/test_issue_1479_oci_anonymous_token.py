@@ -602,10 +602,12 @@ def test_tokens_are_cached_per_challenge_for_one_resolution(
         ),
     ],
 )
-def test_bearer_challenge_grammar_accepts_rfc_7235_parameters(header: str, expected: tuple[str, ...]) -> None:
+def test_bearer_challenge_grammar_accepts_rfc_9110_parameters(
+    header: str, expected: tuple[str, str | None, str | None]
+) -> None:
     challenge = module_registry._registry_auth._parse_bearer_challenge(header)
 
-    assert (challenge.realm, challenge.service, challenge.scope) == expected
+    assert challenge == module_registry._registry_auth._BearerChallenge(*expected)
 
 
 @pytest.mark.parametrize(
