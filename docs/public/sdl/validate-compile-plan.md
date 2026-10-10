@@ -230,9 +230,10 @@ agents:
 ```
 <!-- scenario-plan:participants:end -->
 
-`red-agent` takes the `red` role from its one affiliation. Each entry in
-`actions` must name a declared action contract. `initial_knowledge` says what
-the participant knows at the start. `allowed_subnets` limits where it may act.
+`red-agent` takes the `red` role from its one affiliation. Because the scenario
+declares `action_contracts`, each entry in `actions` must name one of them.
+`initial_knowledge` says what the participant knows at the start.
+`allowed_subnets` limits where it may act.
 
 ## Add objectives
 
@@ -277,8 +278,8 @@ objectives:
 Every objective needs an `owner`, an `assigned_participant`, or both.
 `take-web-offline` is assigned to `red-agent`, so each of its actions must be one
 that `red-agent` declares. `keep-web-online` has an owner and no assigned
-participant. Each objective's `success` must name at least one invariant or
-postcondition assertion.
+participant. Each objective's `success` must name at least one assertion, and
+every named assertion must be an invariant or postcondition.
 
 Validate once more. The command prints `validate: success`. The finished file
 is also in the RAES repository as
@@ -362,8 +363,9 @@ These are the results for small mistakes in the finished file:
 | `red-agent` no longer lists `stop-web` | `sdl.validation` | `Objective 'take-web-offline' action 'stop-web' is not declared by agent 'red-agent'` |
 | An objective names `web-offline-at-end` | `sdl.validation` | `Objective 'take-web-offline' references undefined assertion 'web-offline-at-end' in success criteria` |
 
-The last mistake reports two diagnostics. The second says that the assertion is
-not in the `assertions` section.
+For the last mistake, the language service reports two diagnostics. The second
+says that the assertion is not in the `assertions` section. The command line
+prints one `sdl.validation` line that counts both.
 
 ## Compile the scenario
 
@@ -401,10 +403,10 @@ This is part of the output:
 ```
 <!-- scenario-plan:compile-output:end -->
 
-The counts cover the runtime resources that the compiler built. They do not
-include participants, action contracts, or evidence requirements. To list every
-declaration with its address, run
-`raes semantic inspect guided-web-probe.sdl.yaml --output json`.
+The counts cover eleven kinds of runtime resource, not everything the compiler
+built. They do not include the condition binding on `web`, participants, action
+contracts, or evidence requirements. To list every declaration with its address,
+run `raes semantic inspect guided-web-probe.sdl.yaml --output json`.
 
 ## Inspect the plan
 
@@ -484,9 +486,9 @@ Add `--output json` to any `raes semantic` command. Read `status` and
 Run the language service script from [read diagnostics](#read-diagnostics) on
 the file.
 
-**See what the compiler built.**
+**Summarize what the compiler built.**
 Run `raes semantic compile scenario.sdl.yaml --output json` and read
-`resource_counts`.
+`resource_counts`. It counts eleven kinds of runtime resource, not all of them.
 
 **Plan for a specific backend.**
 Run `raes processor plan scenario.sdl.yaml --manifest backend.json --format json`.
