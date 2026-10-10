@@ -4,7 +4,8 @@ The TechVault-family tests fake libvirt without a daemon. Real libvirt reports a
 missing object as ``libvirt.libvirtError`` with a ``VIR_ERR_NO_*`` code, never as
 ``KeyError``, and ``XMLDesc`` returns libvirt's normalized readback, not the XML
 that was defined. ``data/boundary_captures/libvirt-test-driver.json`` records both
-for production-rendered TechVault XML; the fakes take their shapes from it.
+for production-rendered TechVault XML. The fakes raise its lookup errors and apply
+libvirt's memory and vcpu normalization, which a test checks against its readback.
 """
 
 from __future__ import annotations

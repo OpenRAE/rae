@@ -59,11 +59,12 @@ def _observations(xml_by_key: Mapping[str, str]) -> tuple[RealizationObservation
     networks = matrix["networks"]
     domain = matrix["domains"][0]
     observed: list[RealizationObservation] = []
+    # The capture records isActive() for the domain only; its procedure started every network with create() too.
     for key, network in zip(_NETWORK_KEYS, networks, strict=True):
-        observed.extend(network_observations(_readback(xml_by_key[key]), network))
+        observed.extend(network_observations(_readback(xml_by_key[key], active=1), network))
     observed.extend(
         domain_observations(
-            _readback(xml_by_key["domain"]),
+            _readback(xml_by_key["domain"], active=CAPTURE["readback"]["domain_is_active"]),
             domain,
             {str(network["runtime_name"]): str(network["address"]) for network in networks},
             kernel=_KERNEL,
@@ -73,9 +74,8 @@ def _observations(xml_by_key: Mapping[str, str]) -> tuple[RealizationObservation
     return tuple(observed)
 
 
-def _readback(xml: str) -> SimpleNamespace:
-    # Every captured object was started with create() before its readback.
-    return SimpleNamespace(XMLDesc=lambda _flags: xml, isActive=lambda: 1)
+def _readback(xml: str, *, active: int) -> SimpleNamespace:
+    return SimpleNamespace(XMLDesc=lambda _flags: xml, isActive=lambda: active)
 
 
 def _values(observations: tuple[RealizationObservation, ...]) -> dict[tuple[str, str], object]:

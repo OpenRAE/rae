@@ -888,7 +888,34 @@ def test_native_driver_destroy_is_idempotent_only_for_verified_absence(tmp_path)
     assert uncertain.domains[0].realized is True
 
 
-def test_native_driver_verifies_absence_when_libvirt_no_longer_finds_a_known_domain(tmp_path):
+def _delete_domain(connection: _FakeConnection, name: str) -> None:
+    del connection.domains[name]
+
+
+def _rename_stopped_domain(connection: _FakeConnection, name: str) -> None:
+    # libvirt renames only an inactive domain ("cannot rename active domain") and keeps its UUID.
+    native = connection.domains.pop(name)
+    native.destroy()
+    native._name = "renamed-out-of-band"
+    root = ET.fromstring(native._xml)  # noqa: S314 - test-generated XML
+    root.find("name").text = native._name
+    native._xml = ET.tostring(root, encoding="unicode")
+    connection.domains[native.name()] = native
+
+
+@pytest.mark.parametrize(
+    ("change", "codes", "realized"),
+    (
+        pytest.param(_delete_domain, [], False, id="deleted"),
+        pytest.param(
+            _rename_stopped_domain,
+            ["libvirt-backend.techvault-native.residual-state"],
+            True,
+            id="renamed-out-of-band",
+        ),
+    ),
+)
+def test_native_driver_verifies_absence_when_libvirt_no_longer_finds_a_known_domain(tmp_path, change, codes, realized):
     connection = _FakeConnection()
     kernel = tmp_path / "vmlinuz"
     kernel.write_bytes(b"kernel")
@@ -901,12 +928,15 @@ def test_native_driver_verifies_absence_when_libvirt_no_longer_finds_a_known_dom
     )
     network, domain = _bounded_specs()
     assert not driver.realize(networks=(network,), domains=(domain,)).diagnostics
-    del connection.domains[provider_resource_name(domain.address, prefix="native-test")]
+    name = provider_resource_name(domain.address, prefix="native-test")
+    native = connection.domains[name]
+    change(connection, name)
 
     result = driver.destroy(networks=(), domains=(domain.address,))
 
-    assert not result.diagnostics
-    assert result.domains[0].realized is False
+    assert [diagnostic.code for diagnostic in result.diagnostics] == codes
+    assert result.domains[0].realized is realized
+    assert native.undefined is False
 
 
 def test_validate_techvault_live_records_truthful_failed_manifest(tmp_path):
