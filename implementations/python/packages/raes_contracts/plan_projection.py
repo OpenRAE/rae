@@ -16,9 +16,12 @@ binding carried by the composite ``ExecutionPlan`` are deliberately excluded;
 they are not part of any published plan contract.
 
 ``planned_provisioning_resources`` is the backend-facing view of those
-operations (issue #1425): the reference and libvirt interpreters realize the
-resources it returns, so they read the excluded ``resources`` map only for a
-plan that has no operations.
+operations (issue #1425): the reference and libvirt interpreters build their
+network, node/domain and placement specs only from the resources it returns,
+which come from the excluded ``resources`` map only for a plan that has no
+operations. Libvirt's capability-envelope admission
+(``capability_envelope_diagnostics``) also reads ``resources`` payloads, which
+can only add or reorder blocking diagnostics, never change a spec.
 """
 
 from __future__ import annotations
@@ -145,12 +148,13 @@ def planned_provisioning_resources(plan: ProvisioningPlan) -> tuple[PlannedResou
     """Return the desired provisioning resources a backend may materialize.
 
     Desired state comes from the published, digest-bound operations: one
-    resource per non-delete operation. A plan relayed through its published
-    model therefore realizes what the same plan realizes in process, and the
-    internal ``resources`` map cannot change what the reference and libvirt
-    interpreters realize. An operation-free plan keeps its ``resources`` for
-    pure interpretation; apply paths drive no resource without an active
-    operation.
+    resource per non-delete operation. For a plan with operations, a relayed
+    plan therefore yields the same specs as the same plan in process, and the
+    internal ``resources`` map cannot change the specs the reference and
+    libvirt interpreters build. Libvirt's capability-envelope admission still
+    reads that map; there it can only add or reorder blocking diagnostics. An
+    operation-free plan keeps its ``resources`` for pure interpretation; apply
+    paths drive no resource without an active operation.
     """
 
     if not plan.operations:
