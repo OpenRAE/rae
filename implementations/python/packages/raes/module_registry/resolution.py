@@ -15,6 +15,7 @@ from .._source_profile import DEFAULT_SOURCE_PARSE_OPTIONS, SDLSourceParseOption
 from ..scenario import ImportDecl, ModuleDescriptor, Scenario
 from ._constants import LOCKFILE_NAME, OCI_BUNDLE_MEDIA_TYPE, OCI_LAYOUT_MEDIA_TYPE
 from ._digests import _SHA256_PREFIX, _descriptor_digest, _normalize_exact_or_range, _satisfies_version
+from ._registry_auth import _RegistryTokens
 from ._verified_sources import _local_resolved_source, _VerifiedSourceBundle
 from .models import (
     Lockfile,
@@ -276,12 +277,13 @@ def _resolve_oci_manifest(
     import_decl: ImportDecl,
     locked: LockRecord | None,
     source: str,
+    tokens: _RegistryTokens | None = None,
 ) -> tuple[str, dict[str, Any]]:
     from . import _bytes_request, _decode_json_object, _json_request, _sha256_digest
 
     manifest_ref = locked.manifest_digest if locked is not None else None
     if manifest_ref is None:
-        tags_payload = _json_request(f"{base_url}/v2/{quote(repository, safe='/')}/tags/list")
+        tags_payload = _json_request(f"{base_url}/v2/{quote(repository, safe='/')}/tags/list", tokens=tokens)
         raw_tags = tags_payload.get("tags") or []
         if not isinstance(raw_tags, list) or any(not isinstance(tag, str) for tag in raw_tags):
             raise SDLParseError(f"OCI tag metadata for '{source}' has an invalid tags list")
@@ -290,6 +292,7 @@ def _resolve_oci_manifest(
     manifest_bytes = _bytes_request(
         f"{base_url}/v2/{quote(repository, safe='/')}/manifests/{quote(str(manifest_ref), safe=':@/')}",
         headers={"Accept": OCI_LAYOUT_MEDIA_TYPE},
+        tokens=tokens,
     )
     manifest_digest = f"{_SHA256_PREFIX}{_sha256_digest(manifest_bytes)}"
     manifest = _decode_json_object(manifest_bytes, context=f"OCI manifest for '{source}'")
@@ -301,7 +304,7 @@ def _resolve_oci_manifest(
 
 
 def _resolve_oci_config(
-    *, base_url: str, repository: str, manifest: dict[str, Any], source: str
+    *, base_url: str, repository: str, manifest: dict[str, Any], source: str, tokens: _RegistryTokens | None = None
 ) -> tuple[dict[str, Any], str]:
     from . import _bytes_request, _decode_json_object, _sha256_digest
 
@@ -328,7 +331,7 @@ def _resolve_oci_config(
     # entrypoint. Hash the exact bytes received - never a reserialized object -
     # and reuse the bundle's digest spelling.
     config_bytes = _bytes_request(
-        f"{base_url}/v2/{quote(repository, safe='/')}/blobs/{quote(config_digest, safe=':@/')}"
+        f"{base_url}/v2/{quote(repository, safe='/')}/blobs/{quote(config_digest, safe=':@/')}", tokens=tokens
     )
     if f"{_SHA256_PREFIX}{_sha256_digest(config_bytes)}" != config_digest:
         raise SDLParseError(f"OCI module '{source}' config digest verification failed")
@@ -336,12 +339,15 @@ def _resolve_oci_config(
     return config_payload, layer_digest
 
 
-def _fetch_oci_bundle(*, base_url: str, repository: str, layer_digest: str, source: str) -> bytes:
+def _fetch_oci_bundle(
+    *, base_url: str, repository: str, layer_digest: str, source: str, tokens: _RegistryTokens | None = None
+) -> bytes:
     from . import _OCI_LIMITS, _bytes_request, _sha256_digest
 
     bundle_bytes = _bytes_request(
         f"{base_url}/v2/{quote(repository, safe='/')}/blobs/{quote(layer_digest, safe=':@/')}",
         max_bytes=_OCI_LIMITS.max_bundle_bytes,
+        tokens=tokens,
     )
     if f"{_SHA256_PREFIX}{_sha256_digest(bundle_bytes)}" != layer_digest:
         raise SDLParseError(f"OCI module '{source}' bundle digest verification failed")
@@ -398,13 +404,16 @@ def _resolve_oci_import(
         raise SDLParseError(f"Registry '{registry}' is not allowed by trust policy")
     base_url = _registry_base_url(registry, allow_insecure_http=registry_policy.allow_insecure_http)
     locked = _lock_record_for(lockfile, import_decl)
+    tokens = _RegistryTokens()
     manifest_digest, manifest = _resolve_oci_manifest(
-        base_url=base_url, repository=repository, import_decl=import_decl, locked=locked, source=source
+        base_url=base_url, repository=repository, import_decl=import_decl, locked=locked, source=source, tokens=tokens
     )
     config_payload, layer_digest = _resolve_oci_config(
-        base_url=base_url, repository=repository, manifest=manifest, source=source
+        base_url=base_url, repository=repository, manifest=manifest, source=source, tokens=tokens
     )
-    bundle_bytes = _fetch_oci_bundle(base_url=base_url, repository=repository, layer_digest=layer_digest, source=source)
+    bundle_bytes = _fetch_oci_bundle(
+        base_url=base_url, repository=repository, layer_digest=layer_digest, source=source, tokens=tokens
+    )
     descriptor, content_digest, root_file = _build_oci_descriptor(
         config_payload=config_payload, layer_digest=layer_digest, import_decl=import_decl, locked=locked, source=source
     )
