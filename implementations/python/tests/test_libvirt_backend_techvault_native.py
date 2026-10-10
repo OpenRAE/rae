@@ -17,6 +17,7 @@ from libvirt_interface_fixtures import (
     domain_with_interface,
     domain_with_malformed_entry,
 )
+from libvirt_native_shapes import LibvirtError, install_libvirt_error_type, libvirt_readback, lookup
 from paths import EXAMPLES_DIR
 from raes import parse_sdl
 from raes_backend_libvirt import create_libvirt_target
@@ -43,6 +44,13 @@ from raes_operations.techvault_live import (
 )
 from raes_runtime.control_plane import RuntimeControlPlane
 
+_VIR_ERR_INTERNAL_ERROR = 1
+
+
+@pytest.fixture(autouse=True)
+def _libvirt_error_type(monkeypatch: pytest.MonkeyPatch) -> None:
+    install_libvirt_error_type(monkeypatch)
+
 
 class _NativeObject:
     def __init__(self, name: str = "", xml: str = "") -> None:
@@ -62,7 +70,7 @@ class _NativeObject:
         return int(self.created and not self.destroyed)
 
     def XMLDesc(self, _flags=0):  # noqa: N802 - mirrors libvirt API
-        return self._xml
+        return libvirt_readback(self._xml)
 
     def UUIDString(self):  # noqa: N802 - mirrors libvirt API
         if not self._xml:
@@ -103,10 +111,10 @@ class _FakeConnection:
         return native
 
     def networkLookupByName(self, name: str):  # noqa: N802 - mirrors libvirt API
-        return self.networks[name]
+        return lookup(self.networks, name, "networkLookupByName")
 
     def lookupByName(self, name: str):  # noqa: N802 - mirrors libvirt API
-        return self.domains[name]
+        return lookup(self.domains, name, "lookupByName")
 
     def listAllDomains(self):  # noqa: N802 - mirrors libvirt API
         return [native for native in self.domains.values() if not native.undefined]
@@ -133,22 +141,13 @@ class _SecondDomainFailsConnection(_FakeConnection):
         return native
 
 
-class _LookupFailure(Exception):
-    def __init__(self, code: int) -> None:
-        super().__init__("native lookup failed")
-        self.code = code
-
-    def get_error_code(self):
-        return self.code
-
-
 class _FailingLookupConnection(_FakeConnection):
     def lookupByName(self, name: str):  # noqa: N802 - mirrors libvirt API
         del name
-        raise _LookupFailure(1)
+        raise LibvirtError(_VIR_ERR_INTERNAL_ERROR, "internal error")
 
     def listAllDomains(self):  # noqa: N802 - mirrors libvirt API
-        raise _LookupFailure(1)
+        raise LibvirtError(_VIR_ERR_INTERNAL_ERROR, "internal error")
 
 
 class _InactiveDomainConnection(_FakeConnection):
@@ -887,6 +886,57 @@ def test_native_driver_destroy_is_idempotent_only_for_verified_absence(tmp_path)
         "libvirt-backend.techvault-native.residual-state"
     ]
     assert uncertain.domains[0].realized is True
+
+
+def _delete_domain(connection: _FakeConnection, name: str) -> None:
+    del connection.domains[name]
+
+
+def _rename_stopped_domain(connection: _FakeConnection, name: str) -> None:
+    # libvirt renames only an inactive domain ("cannot rename active domain") and keeps its UUID.
+    native = connection.domains.pop(name)
+    native.destroy()
+    native._name = "renamed-out-of-band"
+    root = ET.fromstring(native._xml)  # noqa: S314 - test-generated XML
+    root.find("name").text = native._name
+    native._xml = ET.tostring(root, encoding="unicode")
+    connection.domains[native.name()] = native
+
+
+@pytest.mark.parametrize(
+    ("change", "codes", "realized"),
+    (
+        pytest.param(_delete_domain, [], False, id="deleted"),
+        pytest.param(
+            _rename_stopped_domain,
+            ["libvirt-backend.techvault-native.residual-state"],
+            True,
+            id="renamed-out-of-band",
+        ),
+    ),
+)
+def test_native_driver_verifies_absence_when_libvirt_no_longer_finds_a_known_domain(tmp_path, change, codes, realized):
+    connection = _FakeConnection()
+    kernel = tmp_path / "vmlinuz"
+    kernel.write_bytes(b"kernel")
+    driver = TechVaultNativeLibvirtDriver(
+        state_dir=tmp_path / "state",
+        connection=connection,
+        kernel_path=kernel,
+        name_prefix="native-test",
+        initramfs_builder=_Builder(),
+    )
+    network, domain = _bounded_specs()
+    assert not driver.realize(networks=(network,), domains=(domain,)).diagnostics
+    name = provider_resource_name(domain.address, prefix="native-test")
+    native = connection.domains[name]
+    change(connection, name)
+
+    result = driver.destroy(networks=(), domains=(domain.address,))
+
+    assert [diagnostic.code for diagnostic in result.diagnostics] == codes
+    assert result.domains[0].realized is realized
+    assert native.undefined is False
 
 
 def test_validate_techvault_live_records_truthful_failed_manifest(tmp_path):
