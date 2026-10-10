@@ -66,6 +66,7 @@ from raes_runtime.control_plane_store import (
 )
 from starlette.requests import Request
 from starlette.testclient import TestClient
+from store_commit_failure_fixtures import fail_sqlite_commit
 
 pytestmark = pytest.mark.control_plane_conformance
 
@@ -1866,25 +1867,25 @@ def test_local_control_plane_store_rolls_back_snapshot_transaction_failure(
     monkeypatch: pytest.MonkeyPatch,
 ):
     store = _admitted_local_store(tmp_path / "cp-store")
+    before = store.load_snapshot_state()
     real_upsert = store._upsert_snapshot
 
-    def fail_upsert(
+    def fail_commit_after_upsert(
         connection: sqlite3.Connection,
         snapshot: RuntimeSnapshot,
         *,
         revision: int = 0,
     ) -> None:
         real_upsert(connection, snapshot, revision=revision)
-        raise OSError("commit failed")
+        fail_sqlite_commit(connection)
 
-    monkeypatch.setattr(store, "_upsert_snapshot", fail_upsert)
-    snapshot = RuntimeSnapshot()
-    revision = store.load_snapshot_state().revision
+    monkeypatch.setattr(store, "_upsert_snapshot", fail_commit_after_upsert)
+    snapshot = RuntimeSnapshot(metadata={"must": "roll back"})
 
-    with pytest.raises(OSError, match="commit failed"):
-        store.save_snapshot(snapshot, expected_revision=revision)
+    with pytest.raises(sqlite3.IntegrityError, match="FOREIGN KEY constraint failed"):
+        store.save_snapshot(snapshot, expected_revision=before.revision)
 
-    assert store.load_snapshot() == RuntimeSnapshot()
+    assert store.load_snapshot_state() == before
 
 
 def test_local_control_plane_store_preserves_concurrent_operation_writes(tmp_path: Path) -> None:
