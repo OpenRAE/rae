@@ -2304,7 +2304,7 @@ objectives:
     owner: red-team                    # organizational responsibility
     assigned_participant: red-agent    # explicit pursuit assignment
     actions: [Scan, Exploit]           # global contracts, also available to assignee
-    targets:                           # any named scenario elements except variables/objectives/workflows
+    targets:                           # participants, organizations, resources, relationships, propositions, or assertions
       - web-server
       - app-to-db
       - nodes.web-server.services.https
@@ -2333,10 +2333,17 @@ declared action contract, including on unassigned objectives. When assigned,
 the actions must also be available to that participant. Shared affiliation never
 assigns an objective; unassigned organizational intent creates no runtime work.
 `success` is required and must reference at least one declared invariant or
-postcondition assertion. `targets` are optional, but when present they must
-resolve to named scenario elements. Bare target refs work when unambiguous;
+postcondition assertion. `targets` are optional, but when present each must
+resolve to an eligible objective subject: a participant, organization,
+resource, relationship, proposition, or assertion
+([reference purposes and eligibility](../../../specs/sdl/references.md#7-reference-purposes-and-eligibility)).
+Conditions, narrative entries, behavior surfaces such as action contracts,
+variation points, and support declarations such as variables, objectives, and
+workflows are refused. Bare target refs work when unambiguous;
 otherwise use a qualified ref such as `nodes.web-server`, `features.app-to-db`,
-or `content.mailbox.items.invoice.eml`. `window` is optional; when supplied,
+or `content.mailbox.items.invoice.eml`. A bare name that a refused declaration
+shares, such as a node and a condition both named `web`, stays ambiguous.
+`window` is optional; when supplied,
 referenced stories/scripts/events/workflows must exist and remain internally
 consistent. Workflow steps use qualified refs of the form `<workflow>.<step>`.
 
