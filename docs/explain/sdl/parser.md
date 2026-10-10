@@ -224,3 +224,9 @@ invalid, including when migration acceptance is enabled.
   other typed-model failures use `sdl.model.invalid` with a control-escaped,
   512-character-bounded domain message and no Pydantic input rendering
 - `SDLValidationError` — semantic validation failures (has `.errors` list with all issues)
+
+In an imported unit, typed-model failures raise a raw pydantic `ValidationError`
+instead, and a malformed import `version` range raises
+`packaging.specifiers.InvalidSpecifier`. YAML syntax and mapping-key failures
+in an imported unit still raise `SDLParseError`. The Fulfillment boundary in
+`docs/requirements/DSL-116/requirement.md` records both gaps.
