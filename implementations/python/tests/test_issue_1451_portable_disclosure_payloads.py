@@ -3,9 +3,11 @@
 Backend snapshot admission accepts tuple, enum, dataclass and model carriers
 that the portable codec serializes. The SEM-218 disclosure readers and the
 safe-persistence sanitizer now read declared and returned payloads through that
-projection. Wrapping a value therefore cannot hide a closed concern or let a raw
-observation persist, and a tuple in a planned payload matches the same value
-returned as a JSON array.
+projection. Wrapping a value in a carrier that serializes it therefore cannot
+hide a closed concern or let a raw observation persist, and the realization gate
+matches a tuple in a planned payload with the same value returned as a JSON
+array. An entry returned as planned keeps its tuple, so re-planning finds it
+unchanged.
 """
 
 from __future__ import annotations
@@ -20,6 +22,7 @@ from pydantic_core import to_jsonable_python
 from raes import parse_sdl
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.apparatus import RealizationSupportMode
+from raes_contracts.planning import ChangeAction
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan as build_plan
@@ -185,7 +188,7 @@ def test_honest_apply_is_admitted():
 
 
 @pytest.mark.parametrize("wrap", list(_SPEC_CARRIERS.values()), ids=list(_SPEC_CARRIERS))
-def test_closed_runtime_environment_is_refused_inside_any_admitted_carrier(wrap):
+def test_closed_runtime_environment_is_refused_inside_a_carrier_that_serializes_it(wrap):
     manager, result = _apply(_closed_excess(wrap))
 
     assert result.success is False
@@ -200,7 +203,7 @@ def test_closed_runtime_environment_is_refused_inside_any_admitted_carrier(wrap)
     ids=[*_SPEC_CARRIERS, "enum-member-environment"],
 )
 @pytest.mark.parametrize("posture", list(_POSTURES))
-def test_only_the_safe_projection_persists_inside_any_admitted_carrier(posture, wrap):
+def test_only_the_safe_projection_persists_inside_a_carrier_that_serializes_it(posture, wrap):
     plain, result = _observed_apply(posture, _plain), _observed_apply(posture, wrap)
 
     assert result.success is True, [diagnostic.message for diagnostic in result.diagnostics]
@@ -225,3 +228,15 @@ def test_planned_tuple_matches_the_same_value_returned_as_json(rewrite):
 
     assert result.success, [diagnostic.message for diagnostic in result.diagnostics]
     assert controller.address in manager.snapshot.entries
+
+
+def test_tuple_returned_as_planned_is_committed_as_returned_and_replans_unchanged():
+    manager = _manager(create_stub_target(), _unchanged)
+    result = manager.apply(manager.plan(parse_sdl(_DOMAIN_SCENARIO)))
+    assert result.success, [diagnostic.message for diagnostic in result.diagnostics]
+
+    committed = manager.snapshot.entries["provision.node.dc"].payload
+    assert committed["domain_topology"]["controller_addresses"] == ("provision.node.dc",)
+    replan = manager.plan(parse_sdl(_DOMAIN_SCENARIO))
+    assert replan.provisioning.operations
+    assert {op.action for op in replan.provisioning.operations} == {ChangeAction.UNCHANGED}
