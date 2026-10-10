@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from raes import Scenario, parse_sdl, parse_sdl_file
+from raes import Scenario, load_sdl_fragment, parse_sdl, parse_sdl_file
 
 from tools.policy.common import PolicyFailure
 from tools.sdl_catalog_parity._paths import _COMPOSITION_FIELDS, _METADATA_FIELDS
@@ -91,7 +91,7 @@ def _check_declared_sections(
         return [
             _fail(
                 "example-library-entry-sections",
-                f"sdl_sections lists sections absent from the validated SDL: {absent}",
+                f"sdl_sections of entry {entry.get('id')!r} lists sections absent from the validated SDL: {absent}",
                 relative_path,
             )
         ]
@@ -133,4 +133,7 @@ def check_worked_example_file(path: Path, relative_path: str, entry: dict[str, A
     if entry.get("validation_status") != VALIDATED:
         return []
     failures = _check_sdl(path, relative_path, kind="worked-example", subject="worked example")
-    return failures or _check_declared_sections(entry, yaml.safe_load(path.read_text(encoding="utf-8")), relative_path)
+    # Use the sdl-yaml/v1 loader that parse_sdl_file used; YAML 1.1 yaml.safe_load can reject valid SDL.
+    return failures or _check_declared_sections(
+        entry, load_sdl_fragment(path.read_text(encoding="utf-8")), relative_path
+    )

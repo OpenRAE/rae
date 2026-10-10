@@ -27,6 +27,23 @@ def _rule_ids(repo_root: Path) -> list[str]:
     return [failure.rule_id for failure in evaluate_example_library(repo_root)]
 
 
+def _seed_worked_sdl(tmp_path: Path, sdl_source: bytes, sections_by_surface: dict[str, list[str]]) -> Path:
+    """Point each named surface's worked example at one validated SDL file."""
+    repo_root = _seed_repo(tmp_path)
+    worked_file = repo_root / _WORKED_SDL_PATH
+    worked_file.parent.mkdir(parents=True)
+    worked_file.write_bytes(sdl_source)
+    catalog = _read_catalog(repo_root)
+    for surface, sdl_sections in sections_by_surface.items():
+        catalog["surfaces"][surface]["worked_examples"][0].update(
+            path=_WORKED_SDL_PATH,
+            validation_status="validated",
+            sdl_sections=sdl_sections,
+        )
+    _write_catalog(repo_root, catalog)
+    return repo_root
+
+
 @pytest.mark.parametrize(
     ("mutation", "rule_id"),
     (
@@ -101,21 +118,30 @@ def test_catalog_entry_violation_is_the_only_failure(tmp_path: Path, mutation: _
             id="advisory",
         ),
         pytest.param(b"name: \xff\n", ["nodes"], ["example-library-worked-example-body"], id="not-utf-8"),
+        # sdl-yaml/v1 resolves plain scalars with YAML 1.2 Core, so these are strings.
+        pytest.param(
+            _VALID_SDL + b"description: 2026-02-30\n", ["nodes", "workflows"], [], id="core-date-spelling-is-a-string"
+        ),
+        pytest.param(_VALID_SDL + b"description: =\n", ["nodes", "workflows"], [], id="core-equals-sign-is-a-string"),
+        pytest.param(
+            _VALID_SDL + b"description: 2026-02-30\n",
+            ["stories"],
+            ["example-library-entry-sections"],
+            id="core-date-spelling-section-absent",
+        ),
     ),
 )
 def test_validated_worked_example_is_parsed_as_sdl(
     tmp_path: Path, sdl_source: bytes, sdl_sections: list[str], expected: list[str]
 ) -> None:
-    repo_root = _seed_repo(tmp_path)
-    worked_file = repo_root / _WORKED_SDL_PATH
-    worked_file.parent.mkdir(parents=True)
-    worked_file.write_bytes(sdl_source)
-    catalog = _read_catalog(repo_root)
-    catalog["surfaces"]["scenario"]["worked_examples"][0].update(
-        path=_WORKED_SDL_PATH,
-        validation_status="validated",
-        sdl_sections=sdl_sections,
-    )
-    _write_catalog(repo_root, catalog)
+    assert _rule_ids(_seed_worked_sdl(tmp_path, sdl_source, {"scenario": sdl_sections})) == expected
 
-    assert _rule_ids(repo_root) == expected
+
+def test_absent_section_failure_names_the_catalog_entry(tmp_path: Path) -> None:
+    # Two entries share one file, as the hospital and satcom worked examples do in the catalog.
+    repo_root = _seed_worked_sdl(tmp_path, _VALID_SDL, {"scenario": ["nodes"], "run": ["stories"]})
+
+    failures = evaluate_example_library(repo_root)
+
+    assert [failure.rule_id for failure in failures] == ["example-library-entry-sections"]
+    assert "run-worked" in failures[0].message
