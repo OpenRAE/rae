@@ -1861,30 +1861,43 @@ def test_local_control_plane_store_commits_snapshot_to_wal_database(tmp_path: Pa
     assert integrity == ("ok",)
 
 
+def _fail_sqlite_commit(connection: sqlite3.Connection) -> None:
+    """Make SQLite's own COMMIT of the open transaction fail, as a real commit-time failure does.
+
+    SQLite checks a deferred foreign key at COMMIT, so commit() raises sqlite3.IntegrityError and the transaction
+    stays open (fixture provenance audit #1344, finding ST-2). The temporary table exists only on this connection.
+    """
+
+    connection.execute(
+        "CREATE TEMP TABLE commit_failure "
+        "(id INTEGER PRIMARY KEY, parent INTEGER REFERENCES commit_failure (id) DEFERRABLE INITIALLY DEFERRED)"
+    )
+    connection.execute("INSERT INTO commit_failure (id, parent) VALUES (1, 2)")
+
+
 def test_local_control_plane_store_rolls_back_snapshot_transaction_failure(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ):
     store = _admitted_local_store(tmp_path / "cp-store")
+    before = store.load_snapshot_state()
     real_upsert = store._upsert_snapshot
 
-    def fail_upsert(
+    def fail_commit_after_upsert(
         connection: sqlite3.Connection,
         snapshot: RuntimeSnapshot,
         *,
         revision: int = 0,
     ) -> None:
         real_upsert(connection, snapshot, revision=revision)
-        raise OSError("commit failed")
+        _fail_sqlite_commit(connection)
 
-    monkeypatch.setattr(store, "_upsert_snapshot", fail_upsert)
-    snapshot = RuntimeSnapshot()
-    revision = store.load_snapshot_state().revision
+    monkeypatch.setattr(store, "_upsert_snapshot", fail_commit_after_upsert)
 
-    with pytest.raises(OSError, match="commit failed"):
-        store.save_snapshot(snapshot, expected_revision=revision)
+    with pytest.raises(sqlite3.IntegrityError, match="FOREIGN KEY constraint failed"):
+        store.save_snapshot(RuntimeSnapshot(metadata={"must": "roll back"}), expected_revision=before.revision)
 
-    assert store.load_snapshot() == RuntimeSnapshot()
+    assert store.load_snapshot_state() == before
 
 
 def test_local_control_plane_store_preserves_concurrent_operation_writes(tmp_path: Path) -> None:

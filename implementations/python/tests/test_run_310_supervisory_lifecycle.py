@@ -844,6 +844,20 @@ def test_unresolved_typed_target_appends_a_bounded_rejection_without_fallback() 
     assert event["predecessor_event_refs"] == []
 
 
+def _fail_sqlite_commit(connection: sqlite3.Connection) -> None:
+    """Make SQLite's own COMMIT of the open transaction fail, as a real commit-time failure does.
+
+    SQLite checks a deferred foreign key at COMMIT, so commit() raises sqlite3.IntegrityError and the transaction
+    stays open (fixture provenance audit #1344, finding ST-2). The temporary table exists only on this connection.
+    """
+
+    connection.execute(
+        "CREATE TEMP TABLE commit_failure "
+        "(id INTEGER PRIMARY KEY, parent INTEGER REFERENCES commit_failure (id) DEFERRABLE INITIALLY DEFERRED)"
+    )
+    connection.execute("INSERT INTO commit_failure (id, parent) VALUES (1, 2)")
+
+
 def test_failed_atomic_control_commit_exposes_no_partial_transition(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -862,18 +876,17 @@ def test_failed_atomic_control_commit_exposes_no_partial_transition(
         payload_ref="payload:proposal-1",
     )
 
-    real_upsert = store._upsert_record
+    real_insert_audit = store._insert_audit
 
-    def fail_record_upsert(
-        connection: sqlite3.Connection,
-        record: ControlPlaneOperationRecord,
-    ) -> None:
-        real_upsert(connection, record)
-        raise OSError("commit failed")
+    def fail_transition_commit(connection: sqlite3.Connection, event: AuditEvent) -> None:
+        # The idempotency claim commits first, in its own transaction. The audit row is the control transition's
+        # last write, so its snapshot, record and audit are all pending when COMMIT fails.
+        real_insert_audit(connection, event)
+        _fail_sqlite_commit(connection)
 
-    monkeypatch.setattr(store, "_upsert_record", fail_record_upsert)
+    monkeypatch.setattr(store, "_insert_audit", fail_transition_commit)
     identity = _identity()
-    with pytest.raises(OSError, match="commit failed"):
+    with pytest.raises(sqlite3.IntegrityError, match="FOREIGN KEY constraint failed"):
         control_plane.record_participant_control(
             _PARTICIPANT,
             intent,
@@ -881,12 +894,14 @@ def test_failed_atomic_control_commit_exposes_no_partial_transition(
             idempotency_key="key-1",
         )
 
-    assert not control_plane.snapshot.participant_control_history
+    # The durable claim is still running with no terminal cut, so the runtime serves no state until restart.
+    with pytest.raises(RuntimeError, match="requires restart"):
+        control_plane.get_snapshot()
     control_plane.close()
     restarted = LocalControlPlaneStore(tmp_path / "control-plane")
     restarted.admit_runtime(target_scope="target:stub", run_scope="run:default")
     assert not restarted.load_snapshot().participant_control_history
-    assert not restarted.load_records()
+    assert [record.status.state for record in restarted.load_records().values()] == [OperationState.RUNNING]
     assert not restarted.read_audit()
 
 
