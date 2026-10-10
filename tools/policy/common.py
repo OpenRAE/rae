@@ -101,15 +101,14 @@ def changed_paths(
     base_rev: str | None = None,
 ) -> list[str]:
     if staged:
-        output = run_git(["diff", "--name-only", "--diff-filter=d", "--cached"], repo_root=repo_root)
+        comparison = ["--cached"]
     elif base_rev:
-        output = run_git(
-            ["diff", "--name-only", "--diff-filter=d", base_rev, "HEAD"],
-            repo_root=repo_root,
-        )
+        comparison = [base_rev, "HEAD"]
     else:
-        output = run_git(["diff", "--name-only", "--diff-filter=d", "HEAD"], repo_root=repo_root)
-    return [line.strip() for line in output.splitlines() if line.strip()]
+        comparison = ["HEAD"]
+    # -z prints names verbatim that git would otherwise quote (#1473).
+    output = run_git(["diff", "--name-only", "--diff-filter=d", "-z", *comparison], repo_root=repo_root)
+    return [path for path in output.split("\0") if path]
 
 
 def path_matches_prefix(path: str, prefix: str) -> bool:

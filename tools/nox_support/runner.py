@@ -93,15 +93,16 @@ def _run(
     session.run(*args, external=True, silent=silent, env=env)
 
 
-def _git_lines(*args: str) -> list[str]:
+def _git_paths(command: str, *options: str) -> list[str]:
+    """Run a git path listing with -z, which prints names verbatim that git would otherwise quote (#1473)."""
     proc = subprocess.run(
-        ["git", *args],
+        ["git", command, "-z", *options],
         cwd=REPO_ROOT,
         text=True,
         capture_output=True,
         check=True,
     )
-    return [line.strip() for line in proc.stdout.splitlines() if line.strip()]
+    return [path for path in proc.stdout.split("\0") if path]
 
 
 _EXCLUDE_DELETED_FILTER = "--diff-filter=d"
@@ -109,10 +110,10 @@ _EXCLUDE_DELETED_FILTER = "--diff-filter=d"
 
 def _changed_paths(*, staged: bool = False, base_rev: str | None = None) -> list[str]:
     if staged:
-        return _normalize_paths(_git_lines("diff", "--name-only", _EXCLUDE_DELETED_FILTER, "--cached"))
+        return _normalize_paths(_git_paths("diff", "--name-only", _EXCLUDE_DELETED_FILTER, "--cached"))
     if base_rev:
-        return _normalize_paths(_git_lines("diff", "--name-only", _EXCLUDE_DELETED_FILTER, base_rev, "HEAD"))
-    return _normalize_paths(_git_lines("diff", "--name-only", _EXCLUDE_DELETED_FILTER, "HEAD"))
+        return _normalize_paths(_git_paths("diff", "--name-only", _EXCLUDE_DELETED_FILTER, base_rev, "HEAD"))
+    return _normalize_paths(_git_paths("diff", "--name-only", _EXCLUDE_DELETED_FILTER, "HEAD"))
 
 
 def _sync_project(session: nox.Session) -> None:
@@ -301,7 +302,7 @@ def _parse_hygiene_posargs(posargs: Sequence[str], *, default_all_files: bool) -
 
 
 def _tracked_repo_paths() -> list[str]:
-    return _normalize_paths(_git_lines("ls-files", "--cached", "--others", "--exclude-standard"))
+    return _normalize_paths(_git_paths("ls-files", "--cached", "--others", "--exclude-standard"))
 
 
 def _normalize_paths(paths: Iterable[str]) -> list[str]:
