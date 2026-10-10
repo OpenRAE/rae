@@ -81,8 +81,29 @@ machine-readable catalog for the current non-normative authoring library.
 
 Each template has metadata plus a complete current-SDL `body`. The
 `tools/check_example_library.py` policy gate validates catalog shape, stable
-IDs, referenced paths, AUT-806 requirement references, and every template body
-through the SDL parser and semantic validator.
+IDs, referenced paths, AUT-806 requirement references, entry metadata, and
+every template body and validated worked example through the SDL parser and
+semantic validator.
+
+### Catalog entry metadata
+
+Every `worked_examples`, `templates`, and `patterns` entry in the catalog
+records four fields. The policy gate rejects an entry that omits a field or
+breaks these rules.
+
+| Field | Allowed values | What the gate checks |
+|-------|----------------|----------------------|
+| `validation_status` | `validated` or `guidance` | For `validated`, the gate runs the SDL parser and semantic validator on the worked-example file, or on the template body as PyYAML loads it from the template file, and fails on any error or advisory they report. A `guidance` file is not parsed as SDL. Templates must be `validated`; patterns must be `guidance`. |
+| `sdl_sections` | Top-level section names from [`../specs/sdl/sections.md`](../specs/sdl/sections.md), such as `nodes` or `workflows` | Each name is a current SDL section, not a metadata or composition field such as `name` or `imports`. For a `validated` entry, each listed section is present in the validated SDL. |
+| `intended_user` | `sdl-author` | The value is in the allowed list. |
+| `limits` | One or more short statements of what the entry does not show | The list is present and not empty. Reviewers check the wording. |
+
+`sdl_sections` names the sections that an entry shows for its surface, so a
+large worked example lists only some of the sections it uses. `validated`
+means that current SDL validation accepts the file or template body. It does
+not mean that a backend can realize the scenario or that anything has run. A
+`guidance` entry is reading material, such as a prose pattern or a test
+module, and the gate does not parse it as SDL.
 
 ## Validate The Examples
 
