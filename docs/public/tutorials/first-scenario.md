@@ -23,8 +23,21 @@ uv run --project implementations/python raes sdl format \
   --check docs/public/_static/examples/first-scenario.sdl.yaml
 ```
 
-Exit code `0` means the file parses and already uses the canonical format.
-The command does not provision the scenario.
+The example is laid out for reading, not in the canonical format, so the
+command exits with code `1` and writes this line to standard error:
+
+```text
+docs/public/_static/examples/first-scenario.sdl.yaml: not canonical
+```
+
+The file parses; only its text differs from the canonical format. That format
+is the YAML that the formatter writes back from the parsed scenario, and the
+check passes only when the file's text matches it exactly. For example, the
+formatter drops the blank lines, moves `os` after `resources`, and writes
+`Switch` as `switch` and `2 GiB` as the byte count `2147483648`. Run the
+command without `--check` to print the canonical form without changing the
+file. Exit code `0` means a file already uses the canonical format. The
+command does not provision the scenario.
 
 ## Inspect the admitted declarations
 
