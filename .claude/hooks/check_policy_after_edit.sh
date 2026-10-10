@@ -9,7 +9,13 @@ fi
 
 cd "$CLAUDE_PROJECT_DIR"
 # Claude Code sends an absolute file_path, but the checker accepts only
-# repository-relative paths, so strip the project directory. The checker still
-# refuses any path that leaves the repository.
-FILE_PATH=${FILE_PATH#"$PWD"/}
-implementations/python/.venv/bin/python tools/check_repo_policy.py --check-set file-local "$FILE_PATH"
+# repository-relative paths, so strip the project directory. Paths in a Claude
+# Code worktree under .claude/worktrees/ stay absolute: that worktree is another
+# checkout, whose paths the rules here would misread. The checker refuses them,
+# and any path that leaves the repository.
+case "$FILE_PATH" in
+  "$PWD"/.claude/worktrees/*) ;;
+  *) FILE_PATH=${FILE_PATH#"$PWD"/} ;;
+esac
+# "--" makes the checker read a file named like an option, such as -h, as a path.
+implementations/python/.venv/bin/python tools/check_repo_policy.py --check-set file-local -- "$FILE_PATH"

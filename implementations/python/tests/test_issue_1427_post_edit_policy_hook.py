@@ -23,11 +23,11 @@ path_forms = pytest.mark.parametrize("absolute", [False, True], ids=["relative",
 
 
 def _run_hook(file_path: str) -> subprocess.CompletedProcess[str]:
-    """Run the hook as `.claude/settings.json` does, with PostToolUse JSON on stdin."""
+    """Run the hook as `.claude/settings.json` does: PostToolUse JSON on stdin and a 30-second timeout."""
     event = {"hook_event_name": "PostToolUse", "tool_name": "Edit", "tool_input": {"file_path": file_path}}
     environment = {**os.environ, "CLAUDE_PROJECT_DIR": str(REPO_ROOT)}
     return subprocess.run(
-        [str(HOOK)], input=json.dumps(event), capture_output=True, text=True, env=environment, check=False
+        [str(HOOK)], input=json.dumps(event), capture_output=True, text=True, env=environment, check=False, timeout=30
     )
 
 
@@ -36,11 +36,14 @@ def _file_path(path: str, *, absolute: bool) -> str:
 
 
 # A path the checker accepts reaches its Conftest rules, which the integration lane installs.
+# A root-level file named like an option must reach the checker as a path: read as an option,
+# "-h" prints the checker's usage on stdout and exits 0 without checking anything.
 @pytest.mark.integration
 @path_forms
-def test_a_clean_file_passes(absolute: bool) -> None:
-    result = _run_hook(_file_path("README.md", absolute=absolute))
-    assert (result.returncode, result.stderr) == (0, "")
+@pytest.mark.parametrize("path", ["README.md", "-h"], ids=["readme", "option-like-name"])
+def test_a_clean_file_passes(path: str, absolute: bool) -> None:
+    result = _run_hook(_file_path(path, absolute=absolute))
+    assert (result.returncode, result.stdout, result.stderr) == (0, "", "")
 
 
 @pytest.mark.integration
@@ -56,6 +59,12 @@ def test_a_finding_names_the_repository_path(absolute: bool) -> None:
     [
         pytest.param(f"{REPO_ROOT}-sibling/README.md", f"{REPO_ROOT}-sibling/README.md", id="sibling-directory"),
         pytest.param(f"{REPO_ROOT}/../outside.py", "../outside.py", id="parent-traversal"),
+        # A Claude Code worktree under .claude/worktrees/ is another checkout, so its paths stay absolute.
+        pytest.param(
+            f"{REPO_ROOT}/.claude/worktrees/x/README.md",
+            f"{REPO_ROOT}/.claude/worktrees/x/README.md",
+            id="claude-worktree",
+        ),
     ],
 )
 def test_the_checker_refuses_paths_outside_the_project(file_path: str, checked_path: str) -> None:
