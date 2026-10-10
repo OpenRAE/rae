@@ -131,7 +131,9 @@ per-binding facts (EI-04):
 
 An applied or partial binding needs a `readback` reference, and every known
 effect needs evidence. Only a backend `outcome` or a refused start settles an
-occurrence. Acceptance, willingness, progress and control dispositions do not.
+occurrence. Acceptance, willingness, progress, control dispositions and
+reconciliation records do not. Under EI-04, reconciliation appends linked
+evidence and never refires the inject or rewrites the outcome.
 A refused start is the `acknowledgement` refusal from `start_operation`, which
 proves that the invocation never began. It settles only as `effect-absent`,
 with no-effect evidence for every binding. A backend outcome's own effect must
@@ -159,6 +161,7 @@ results and commit the terminal operation, snapshot and audit records.
 `inject_occurrence_correlation` returns an `InjectOccurrenceCorrelationModel`
 only for a validated outcome whose backend proposal is `succeeded` with a
 produced result. It names the occurrence, the outcome digest and the result.
+`inject_occurrence_outcome_digest` returns that RFC 8785 outcome digest.
 A participant-directed consumer, such as a DSL-142 delivery or an API-424
 inject effect, joins those exact identities instead of an inject declaration
 or the latest narrative event (EI-05). A refused, failed, partial or
@@ -189,6 +192,7 @@ reference backends do not declare these contracts.
 | Bound or queued orchestration snapshots and plan-start receipts | Keep their original status meaning. They never become an applied effect, delivery or observation. |
 | DSL-142 deliveries and API-424 inject effects | Unchanged. Legacy fixed anchors keep their required fields; a consumer that adopts these contracts joins a correlation explicitly. |
 | Backend manifests and profiles | The allowlist gains the two backend-facing IDs. Existing manifests and profiles stay valid; old closed readers can reject the new IDs. |
+| SDL participant behavior specifications | `evidence_contract_refs` may cite `inject-occurrence-v1` and `inject-occurrence-outcome-v1`, which previously raised `participant.behavior-spec-evidence-contract-unbound`. The compiler copies them through, and no runtime path reads them. `inject-occurrence-correlation-v1` still raises that diagnostic. |
 | `operation-receipt-v1`, `operation-status-v1` and stored operations | Unchanged. This publication adds no operation kind, store record or HTTP route. |
 
 No lossless conversion produces these carriers from legacy records. Do not
@@ -219,11 +223,12 @@ events:
     injects: [release]
 ```
 
-Each `participant-free-environment.json` fixture triggers `release` against
-`orchestration.inject-binding.host.release` on node `provision.node.host`,
-anchored to `gate`. The caller is an authenticated operator, not a participant
-or controller. `test_issue_1423_inject_occurrence_contracts.py` compiles this
-environment and checks that the fixture names only its compiled identities. It
+The `participant-free-environment.json` request and occurrence fixtures trigger
+`release` against `orchestration.inject-binding.host.release` on node
+`provision.node.host`, anchored to `gate`. The caller is an authenticated
+operator, not a participant or controller.
+`test_issue_1423_inject_occurrence_contracts.py` compiles this environment and
+checks that the occurrence fixture names only its compiled identities. It
 also imports the same environment under namespace `mod` and checks that each
 compiled binding serves only its own inject. The `namespaced-binding.json`
 fixture is the refused case. The `inject-release` invocation commands that
