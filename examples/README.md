@@ -70,19 +70,123 @@ The AUT-806 library is indexed by
 [`library/catalog.yaml`](library/catalog.yaml). It is a versioned,
 machine-readable catalog for the current non-normative authoring library.
 
-| Surface | Template | Pattern |
-|---------|----------|---------|
-| Scenario | [`library/templates/scenario/minimal-validated-scenario.yaml`](library/templates/scenario/minimal-validated-scenario.yaml) | [`library/patterns/scenario-reference-integrity.yaml`](library/patterns/scenario-reference-integrity.yaml) |
+| Surface | Templates | Pattern |
+|---------|-----------|---------|
+| Scenario | [`library/templates/scenario/minimal-validated-scenario.yaml`](library/templates/scenario/minimal-validated-scenario.yaml), [`library/templates/scenario/segmented-network-scenario.yaml`](library/templates/scenario/segmented-network-scenario.yaml), [`library/templates/scenario/parameterized-scenario.yaml`](library/templates/scenario/parameterized-scenario.yaml) | [`library/patterns/scenario-reference-integrity.yaml`](library/patterns/scenario-reference-integrity.yaml) |
 | Workflow | [`library/templates/workflow/parallel-objective-workflow.yaml`](library/templates/workflow/parallel-objective-workflow.yaml) | [`library/patterns/workflow-explicit-control-graph.yaml`](library/patterns/workflow-explicit-control-graph.yaml) |
 | Participant behavior | [`library/templates/participant_behavior/action-contract-observation-boundary.yaml`](library/templates/participant_behavior/action-contract-observation-boundary.yaml) | [`library/patterns/participant-behavior-contract-binding.yaml`](library/patterns/participant-behavior-contract-binding.yaml) |
 | Task | [`library/templates/task/single-objective-task.yaml`](library/templates/task/single-objective-task.yaml) | [`library/patterns/task-as-objective-contract.yaml`](library/patterns/task-as-objective-contract.yaml) |
-| Run | [`library/templates/run/timed-run-control.yaml`](library/templates/run/timed-run-control.yaml) | [`library/patterns/run-window-with-evidence.yaml`](library/patterns/run-window-with-evidence.yaml) |
-| Study | [`library/templates/study/observational-study-protocol.yaml`](library/templates/study/observational-study-protocol.yaml) | [`library/patterns/observable-study-conditions.yaml`](library/patterns/observable-study-conditions.yaml) |
+| Run | [`library/templates/run/timed-run-control.yaml`](library/templates/run/timed-run-control.yaml), [`library/templates/run/seeded-run-plan.yaml`](library/templates/run/seeded-run-plan.yaml) | [`library/patterns/run-window-with-evidence.yaml`](library/patterns/run-window-with-evidence.yaml) |
+| Study | [`library/templates/study/observational-study-protocol.yaml`](library/templates/study/observational-study-protocol.yaml), [`library/templates/study/two-condition-study-design.yaml`](library/templates/study/two-condition-study-design.yaml) | [`library/patterns/observable-study-conditions.yaml`](library/patterns/observable-study-conditions.yaml) |
 
-Each template has metadata plus a complete current-SDL `body`. The
+Each template has metadata, a `validation` list of commands with their
+expected results, and a complete `body`. Most bodies are current SDL; the
+`seeded-run-plan` and `two-condition-study-design` bodies are
+`experiment-authoring-input-v1` documents. The
 `tools/check_example_library.py` policy gate validates catalog shape, stable
-IDs, referenced paths, AUT-806 requirement references, and every template body
-through the SDL parser and semantic validator.
+IDs, referenced paths, AUT-806 requirement references, and entry metadata. It
+checks every SDL template body and validated worked example with the SDL
+parser and semantic validator, and every experiment template body with the
+experiment authoring-input loader. It also checks that each template has a
+non-empty `validation` list whose entries have non-empty `command` and
+`expected` strings. The gate does not run those commands.
+
+### Catalog entry metadata
+
+Every `worked_examples`, `templates`, and `patterns` entry in the catalog
+records `validation_status`, `intended_user`, and `limits`. SDL entries also
+record `sdl_sections`, and a template whose body is not SDL records
+`contract`. The policy gate rejects an entry that omits a field or breaks
+these rules.
+
+| Field | Allowed values | What the gate checks |
+|-------|----------------|----------------------|
+| `contract` | `sdl-yaml/v1`, the default when absent, or `experiment-authoring-input-v1` for a run or study template | The value is allowed for the entry. It selects how a `validated` body is checked and which `intended_user` the entry names. |
+| `validation_status` | `validated` or `guidance` | For `validated`, the gate checks the template body or worked-example file against its contract. SDL goes through the SDL parser and semantic validator, on the worked-example file or on the template body as PyYAML loads it from the template file, and fails on any error or advisory they report. `experiment-authoring-input-v1` goes through the experiment authoring-input loader and fails on any error it reports for the body as PyYAML `safe_load` reads it from the template file. That read keeps the last of duplicate keys and expands scalar aliases and `<<` merge keys, which the loader rejects in a saved copy. A `guidance` file is not checked against a contract. Templates must be `validated`; patterns must be `guidance`. |
+| `sdl_sections` | Top-level section names from [`../specs/sdl/sections.md`](../specs/sdl/sections.md), such as `nodes` or `workflows` | Present for SDL entries and absent otherwise. Each name is a current SDL section, not a metadata or composition field such as `name` or `imports`. For a `validated` entry, each listed section is present in the validated SDL. |
+| `intended_user` | `sdl-author` for SDL entries, `experiment-author` for `experiment-authoring-input-v1` templates | The value matches the entry's contract. |
+| `limits` | One or more short statements of what the entry does not show | The list is present and not empty. Reviewers check the wording. |
+
+`sdl_sections` names the sections that an entry shows for its surface, so a
+large worked example lists only some of the sections it uses. `validated`
+means that the contract's validator accepts the file or template body. It does
+not mean that a backend can realize the scenario, that anything has run, or
+that references to other artifacts resolve. A `guidance` entry is reading
+material, such as a prose pattern or a test module, and the gate does not
+check it against a contract.
+
+### Scenario templates
+
+Each scenario template claims only that current SDL validation accepts its
+body with no advisories.
+
+| Template | Shows | Does not claim |
+|----------|-------|----------------|
+| [`minimal-validated-scenario`](library/templates/scenario/minimal-validated-scenario.yaml) | One host service, one participant, an objective whose success is an assertion over an observed proposition, and a workflow with one objective step | That a backend can realize the scenario |
+| [`segmented-network-scenario`](library/templates/scenario/segmented-network-scenario.yaml) | Two switched segments, a linked host with a fixed address on each, access rules that admit only HTTPS from the user segment into the server segment, and a service feature | That a backend enforces the access rules or installs the feature |
+| [`parameterized-scenario`](library/templates/scenario/parameterized-scenario.yaml) | Host operating system, size, instance count, and service port taken from declared variables with defaults and an allowed-values list | That the scenario instantiates with every supplied value; the gate does not instantiate it |
+
+To check a template as shipped, run the catalog command in
+[Validate The Examples](#validate-the-examples). To check an adapted copy, save
+its `body` as `my-scenario.sdl.yaml` in the repository root and run this
+command from there:
+
+```shell
+uv run --project implementations/python --frozen raes semantic validate my-scenario.sdl.yaml
+```
+
+The command prints `validate: success` and exits `0` when the SDL parser and
+semantic validator accept the file. It does not report semantic-validator
+advisories, such as a compute node without `resources`. The `parse_sdl_file`
+check in [Validate The Examples](#validate-the-examples) asserts that there
+are none.
+
+### Task, run, and study entries
+
+The task, run, and study surfaces keep these parts separate:
+
+- **SDL:** the `single-objective-task`, `timed-run-control`, and
+  `observational-study-protocol` templates and the worked examples. SDL has no
+  `tasks`, `runs`, or `studies` sections, so these use objectives, workflows,
+  timing, and observable conditions.
+- **Experiment authoring input:** the `seeded-run-plan` and
+  `two-condition-study-design` templates. Each body is an
+  `experiment-authoring-input-v1` document, the pre-run design that binds a
+  task to a run plan
+  ([ADR-074](../docs/decisions/adrs/adr-074-experiment-authoring-input-contract-boundary.md)).
+  `seeded-run-plan` declares the run count, seed, and episode controls for one
+  task. `two-condition-study-design` declares a treatment factor, two compared
+  conditions, and the runs per condition.
+- **Guidance:** the task, run, and study patterns, which are prose.
+- **Outside current support:**
+  - An experiment task template. An experiment task is an
+    `experiment-task-v1` document that a run plan names in `task_ref`. The
+    repository has no task loader, `raes semantic validate` does not accept
+    the `experiment-task-v1` contract, and every task needs an artifact
+    reference with a checksum, size, and creation time that a reusable
+    template would have to invent.
+  - Resolving `task_ref`, and checking condition factor levels that no
+    binding descriptor or stratified selection stratum joins. The experiment
+    authoring-input loader does neither. It does check joined levels against
+    the declared factors and the condition assignment: binding descriptors
+    under `binding_semantics: explicit-required`
+    ([ADR-094](../docs/decisions/adrs/adr-094-authoritative-cross-plane-experiment-bindings.md))
+    and stratified selection strata. The shipped `two-condition-study-design`
+    body joins none, so the loader does not check its levels.
+  - Admitting, scheduling, or running a plan, and the `experiment-run-v1` and
+    `experiment-study-v1` records that describe actual executions and
+    analyses.
+
+To check an adapted copy of an experiment template, save its `body` as
+`my-experiment.exp.yaml` in the repository root and run this command from
+there:
+
+```shell
+uv run --project implementations/python --frozen python -c "import sys; from pathlib import Path; from raes_contracts.experiment_spec import load_experiment_spec; print(load_experiment_spec(Path(sys.argv[1])).spec_id)" my-experiment.exp.yaml
+```
+
+The command prints the document's `spec_id` and exits `0`. An invalid
+document raises `ExperimentSpecValidationError` and exits `1`.
 
 ## Validate The Examples
 
@@ -134,19 +238,28 @@ Check the section reference and limitations before adapting a file:
 
 ## Template Boundary
 
-There are no placeholder templates in this directory. Files under
+No template in this directory contains incomplete SDL. Files under
 `examples/scenarios/` are positive SDL examples and must load successfully from
 disk. Files under `examples/library/templates/` are reusable authoring
-templates with complete SDL bodies; they are validated by the example-library
-policy gate.
+templates with complete SDL or `experiment-authoring-input-v1` bodies; they are
+validated by the example-library policy gate. An SDL template body may use
+`${name}` variable placeholders, as `parameterized-scenario` does. A
+placeholder's `name` follows the variable-name grammar in
+[`../specs/sdl/variables-and-instantiation.md`](../specs/sdl/variables-and-instantiation.md)
+(lowercase letters, digits, `-`, and `_`), and the gate rejects a body whose
+placeholder names a variable that the body does not declare under `variables`.
+Text such as `${Web OS}` or `${CUSTOMER_NAME}` is not a placeholder: it stays
+literal text, and the gate does not report it as an undeclared variable.
 
 Do not add invalid or incomplete SDL files under `examples/scenarios/`.
 Negative-path examples belong in focused parser, model, validator, contract, or
 conformance tests.
 
-Task, run, and study templates use current SDL wrappers rather than first-class
-`tasks`, `runs`, or `studies` sections. They show how to express those concepts
-with objectives, workflows, timing, observable conditions, and evidence-like
-references that the current implementation can validate. Graded scoring and
-reward are experiment/evaluator-plane concerns (experiment-* contracts) per
-ADR-073, not SDL surfaces.
+The task, run, and study SDL templates use current SDL wrappers rather than
+first-class `tasks`, `runs`, or `studies` sections. They show how to express
+those concepts with objectives, workflows, timing, observable conditions, and
+evidence-like references that the current implementation can validate. Graded
+scoring and reward are experiment/evaluator-plane concerns (experiment-*
+contracts) per ADR-073, not SDL surfaces. The run and study experiment
+templates are pre-run designs; see
+[Task, run, and study entries](#task-run-and-study-entries).

@@ -6,12 +6,13 @@ source_refs:
   - docs/public/quickstart.md
   - docs/explain/reference/canonical-reference-map.md
 description: >
-  Domain-neutral RAES agentic-environment authoring library for non-normative,
-  validated examples, templates, and reusable patterns. Current examples are
+  Domain-neutral RAES agentic-environment authoring library for non-normative
+  examples, templates, and reusable patterns. Current examples are
   strongest in cyber; additional domains extend through their own profiles,
-  assets, backends, and evidence requirements. Template bodies use current SDL
-  so they can be parsed and semantically validated by the Python reference
-  implementation.
+  assets, backends, and evidence requirements. SDL template bodies are parsed
+  and semantically validated by the Python reference implementation, and
+  experiment templates hold experiment-authoring-input-v1 documents that its
+  experiment authoring-input loader validates.
 surfaces:
   scenario:
     summary: Complete scenario authoring from topology through objective flow.
@@ -19,72 +20,198 @@ surfaces:
       - id: hospital-ransomware-surgery-day
         path: examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml
         source_refs: [examples/README.md]
+        validation_status: validated
+        sdl_sections: [nodes, infrastructure, features, entities, agents, relationships, content, conditions, objectives]
+        intended_user: sdl-author
+        limits:
+          - Does not deploy a hospital range or prove clinical exercise adequacy.
       - id: cross-backend-minimal
         path: examples/scenarios/cross-backend-minimal.sdl.yaml
         source_refs: [examples/README.md]
+        validation_status: validated
+        sdl_sections: [nodes, infrastructure]
+        intended_user: sdl-author
+        limits:
+          - Does not exercise an OCI runtime or live libvirt/QEMU daemon and makes no infrastructure-equivalence or fidelity claim.
     templates:
       - id: minimal-validated-scenario
         path: examples/library/templates/scenario/minimal-validated-scenario.yaml
+        validation_status: validated
+        sdl_sections: [nodes, conditions, entities, agents, propositions, assertions, evidence_requirements, objectives, workflows]
+        intended_user: sdl-author
+        limits:
+          - Validation covers SDL structure and references; it does not show that a backend can realize the scenario.
+      - id: segmented-network-scenario
+        path: examples/library/templates/scenario/segmented-network-scenario.yaml
+        validation_status: validated
+        sdl_sections: [nodes, features, infrastructure]
+        intended_user: sdl-author
+        limits:
+          - Validation covers topology structure, addresses, and references; it does not show that a backend enforces the access rules or installs the feature.
+      - id: parameterized-scenario
+        path: examples/library/templates/scenario/parameterized-scenario.yaml
+        validation_status: validated
+        sdl_sections: [variables, nodes, infrastructure]
+        intended_user: sdl-author
+        limits:
+          - The gate validates the authored body and does not instantiate it with any variable values.
     patterns:
       - id: scenario-reference-integrity
         path: examples/library/patterns/scenario-reference-integrity.yaml
+        validation_status: guidance
+        sdl_sections: [nodes, entities, agents, objectives, workflows]
+        intended_user: sdl-author
+        limits:
+          - Covers reference resolution only, not backend realization.
   workflow:
     summary: Declarative workflow authoring over objectives and branch state.
     worked_examples:
       - id: satcom-release-poisoning-workflows
         path: examples/scenarios/satcom-release-poisoning.sdl.yaml
         source_refs: [examples/README.md]
+        validation_status: validated
+        sdl_sections: [objectives, workflows, variables]
+        intended_user: sdl-author
+        limits:
+          - Does not implement a CI/CD backend or production release system.
     templates:
       - id: parallel-objective-workflow
         path: examples/library/templates/workflow/parallel-objective-workflow.yaml
+        validation_status: validated
+        sdl_sections: [nodes, conditions, entities, agents, propositions, assertions, evidence_requirements, objectives, workflows]
+        intended_user: sdl-author
+        limits:
+          - Validation covers the workflow graph and its references; no workflow is executed.
     patterns:
       - id: workflow-explicit-control-graph
         path: examples/library/patterns/workflow-explicit-control-graph.yaml
+        validation_status: guidance
+        sdl_sections: [objectives, workflows]
+        intended_user: sdl-author
+        limits:
+          - Covers workflow graph authoring only; it does not execute workflows.
   participant_behavior:
     summary: Participant action contracts, observation boundaries, behavior specifications, and agent bindings.
     worked_examples:
       - id: sem-208-participant-behavior
         path: implementations/python/tests/test_sem_208_participant_behavior.py
         source_refs: [docs/explain/sdl/validation.md]
+        validation_status: guidance
+        sdl_sections: [agents, action_contracts, observation_boundaries, behavior_specifications]
+        intended_user: sdl-author
+        limits:
+          - A pytest module rather than an SDL file; the test suite parses and validates its inline SDL, and this gate does not.
     templates:
       - id: action-contract-observation-boundary
         path: examples/library/templates/participant_behavior/action-contract-observation-boundary.yaml
+        validation_status: validated
+        sdl_sections: [nodes, entities, action_contracts, observation_boundaries, agents, behavior_specifications]
+        intended_user: sdl-author
+        limits:
+          - Validation covers the participant declarations and their references; it does not run a participant or show backend support.
     patterns:
       - id: participant-behavior-contract-binding
         path: examples/library/patterns/participant-behavior-contract-binding.yaml
+        validation_status: guidance
+        sdl_sections: [agents, action_contracts, observation_boundaries]
+        intended_user: sdl-author
+        limits:
+          - Covers declaring and binding contracts only; it does not show participant runtime behavior.
   task:
     summary: Task-oriented authoring using current objectives, conditions, and target refs.
     worked_examples:
       - id: port-authority-objective-tasks
         path: examples/scenarios/port-authority-surge-response.sdl.yaml
         source_refs: [examples/README.md]
+        validation_status: validated
+        sdl_sections: [agents, conditions, propositions, assertions, objectives, workflows]
+        intended_user: sdl-author
+        limits:
+          - Does not implement OT control, safety validation, or port operations.
     templates:
       - id: single-objective-task
         path: examples/library/templates/task/single-objective-task.yaml
+        validation_status: validated
+        sdl_sections: [nodes, conditions, entities, agents, propositions, assertions, evidence_requirements, objectives, workflows]
+        intended_user: sdl-author
+        limits:
+          - SDL has no first-class tasks section, and this objective is not an experiment-task-v1 record.
     patterns:
       - id: task-as-objective-contract
         path: examples/library/patterns/task-as-objective-contract.yaml
+        validation_status: guidance
+        sdl_sections: [agents, conditions, propositions, assertions, objectives, workflows]
+        intended_user: sdl-author
+        limits:
+          - SDL has no first-class tasks section, and an objective written this way is not an experiment-task-v1 record.
   run:
-    summary: Run-oriented authoring with story, script, event, workflow, and objective windows.
+    summary: Run-oriented authoring with story, script, event, workflow, and objective windows, plus a pre-run experiment run plan.
     worked_examples:
       - id: hospital-run-story
         path: examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml
         source_refs: [examples/README.md]
+        validation_status: validated
+        sdl_sections: [injects, events, scripts, stories, objectives]
+        intended_user: sdl-author
+        limits:
+          - Story, script, and event timing is authored SDL; nothing is scheduled or run.
     templates:
       - id: timed-run-control
         path: examples/library/templates/run/timed-run-control.yaml
+        validation_status: validated
+        sdl_sections: [nodes, conditions, injects, events, scripts, stories, entities, agents, propositions, assertions, evidence_requirements, objectives, workflows]
+        intended_user: sdl-author
+        limits:
+          - SDL has no first-class runs section; the template expresses a run with stories, scripts, and events, and nothing is scheduled or run.
+      - id: seeded-run-plan
+        path: examples/library/templates/run/seeded-run-plan.yaml
+        contract: experiment-authoring-input-v1
+        validation_status: validated
+        intended_user: experiment-author
+        limits:
+          - Pre-run design only; nothing runs, and it is not an experiment-run-v1 record.
+          - The loader does not resolve task_ref, and the seed is not an executable random-stream contract.
     patterns:
       - id: run-window-with-evidence
         path: examples/library/patterns/run-window-with-evidence.yaml
+        validation_status: guidance
+        sdl_sections: [injects, events, scripts, stories, objectives, workflows]
+        intended_user: sdl-author
+        limits:
+          - SDL has no first-class runs section; the pattern maps a run onto stories, scripts, events, and objective windows.
   study:
-    summary: Study-oriented authoring with observable conditions, objectives, and workflow protocol. Graded scoring is an experiment/evaluator-plane concern per ADR-073.
+    summary: Study-oriented authoring with observable conditions, objectives, and workflow protocol, plus a pre-run two-condition experiment design. Graded scoring is an experiment/evaluator-plane concern per ADR-073.
     worked_examples:
       - id: satcom-study-scenario
         path: examples/scenarios/satcom-release-poisoning.sdl.yaml
         source_refs: [examples/README.md]
+        validation_status: validated
+        sdl_sections: [conditions, propositions, assertions, evidence_requirements, objectives, workflows]
+        intended_user: sdl-author
+        limits:
+          - Declares observable conditions only; graded scoring and reward are outside the SDL per ADR-073.
     templates:
       - id: observational-study-protocol
         path: examples/library/templates/study/observational-study-protocol.yaml
+        validation_status: validated
+        sdl_sections: [nodes, conditions, entities, agents, propositions, assertions, evidence_requirements, objectives, workflows]
+        intended_user: sdl-author
+        limits:
+          - SDL has no first-class studies section; graded scoring stays in the experiment/evaluator plane per ADR-073.
+      - id: two-condition-study-design
+        path: examples/library/templates/study/two-condition-study-design.yaml
+        contract: experiment-authoring-input-v1
+        validation_status: validated
+        intended_user: experiment-author
+        limits:
+          - Pre-run design only; it is not an experiment-study-v1 record and declares no analysis plan.
+          - The loader does not resolve task_ref. As shipped, the body joins no factor level through an explicit-required binding descriptor or a stratified selection stratum, so the loader does not check its condition factor levels against the declared factors.
+          - The required_parameters are descriptive data that bind no configuration target; binding_semantics explicit-required rejects them and needs binding descriptors instead (ADR-094).
     patterns:
       - id: observable-study-conditions
         path: examples/library/patterns/observable-study-conditions.yaml
+        validation_status: guidance
+        sdl_sections: [conditions, propositions, assertions, evidence_requirements, objectives, workflows]
+        intended_user: sdl-author
+        limits:
+          - SDL has no first-class studies section; graded scoring stays in the experiment/evaluator plane per ADR-073.
