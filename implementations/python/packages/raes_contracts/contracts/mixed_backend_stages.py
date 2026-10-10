@@ -127,7 +127,13 @@ MixedBackendStage = Annotated[
 
 
 class MixedBackendStageReportModel(OperationContractModel):
-    """One stage fact bound to the exact shared operation invocation and request commitment."""
+    """One stage fact bound to the exact shared operation invocation and request commitment.
+
+    The sequence is the stage's fixed position in its chain: time grant 1,
+    execution or handoff 2, delivery or owner readback 3, observation 4. Each
+    producer numbers its own report without seeing the others, and a reader
+    accepts the reports in ascending sequence.
+    """
 
     schema_version: Literal[MIXED_BACKEND_STAGE_REPORT_SCHEMA_VERSION] = MIXED_BACKEND_STAGE_REPORT_SCHEMA_VERSION
     binding: BackendOperationBindingModel

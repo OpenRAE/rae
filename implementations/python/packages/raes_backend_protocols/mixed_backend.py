@@ -44,7 +44,10 @@ class MixedBackendBridge(BackendOperationProvider, Protocol):
         ...
 
     def stage_reports(self, control: BackendOperationControlModel) -> tuple[MixedBackendStageReportModel, ...]:
-        """Return bounded execution or handoff stage reports for an independently authorized read."""
+        """Return bounded execution or handoff stage reports for an independently authorized read.
+
+        Each report's sequence is 2, the chain position of execution and handoff.
+        """
         ...
 
 
@@ -56,7 +59,10 @@ class MixedTimeCoordinator(Protocol):
         request: BackendOperationRequestModel,
         time_state: TimeRuntimeStateModel,
     ) -> MixedBackendStageReportModel:
-        """Return one time-grant report at the coordinates of ``time_state``; it advances no clock."""
+        """Return one time-grant report at the coordinates of ``time_state``; it advances no clock.
+
+        Its sequence is 1, the time grant's chain position.
+        """
         ...
 
 
@@ -64,7 +70,10 @@ class MixedStageReader(Protocol):
     """Read back destination delivery, participant observation or native owner state."""
 
     def read_stage(self, control: BackendOperationControlModel) -> MixedBackendStageReportModel:
-        """Return one stage report that names this reader as its producer; the read has no effects."""
+        """Return one stage report that names this reader as its producer; the read has no effects.
+
+        Its sequence is its stage's chain position: 3 for delivery or owner readback, 4 for observation.
+        """
         ...
 
 

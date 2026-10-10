@@ -516,6 +516,7 @@ def test_request_must_commit_to_the_exact_binding_kind_and_installed_service(bin
         contracts.require_mixed_backend_request(selected, request)
 
 
+CHAIN_POSITION = "sequence differs from its stage's chain position"
 OWNER_READBACK = {
     "stage": "owner-readback",
     "producer": _fixture(BINDING, "valid", "mixed-handoff")["subject"]["owner_reader"],
@@ -580,8 +581,8 @@ def _rebridged(responses: list, reports: list) -> tuple[list, list]:
         (_rebridged, "names a producer other than"),
         (lambda r, s: (r, [*s[:2], _restage(s[2], destination_component_id="sim"), s[3]]), "destination provider"),
         (lambda r, s: (r, [*s[:3], _restage(s[3], audience_scope_ref="audience:other")]), "participant or audience"),
-        (lambda r, s: (r, [*s, _report(s[3], 5, OWNER_READBACK)]), "belong to this mixed binding"),
-        (lambda r, s: (r, [*s, s[3].model_copy(update={"sequence": 9})]), "at most once"),
+        (lambda r, s: (r, [*s[:2], _report(s[1], 3, OWNER_READBACK)]), "belong to this mixed binding"),
+        (lambda r, s: (r, [*s, s[3].model_copy(update={"sequence": 9})]), CHAIN_POSITION),
         (lambda r, s: (r, [*s, _restage(s[3], observation_ref="observation:rewritten")]), "changed its content"),
         (lambda r, s: (r, s[:2]), "claims more than the mixed stages establish"),
         (lambda r, s: (r, [s[0], s[1], _restage(s[2], receipt_ref="receipt:other"), s[3]]), "cites a stage report"),
@@ -592,6 +593,50 @@ def test_edge_transcript_rejects_out_of_order_foreign_or_overclaimed_stages(muta
     responses, reports = _edge_case(mutate)
     with pytest.raises(ValueError, match=message):
         _validate("mixed-edge", responses=responses, reports=reports)
+
+
+def _renumbered(scenario: str, sequences: tuple) -> tuple[list, list]:
+    """A scenario's reports under other sequence numbers, re-cited so the numbering is the only defect."""
+
+    _, responses, reports = _scenario(scenario)
+    renumbered = [report.model_copy(update={"sequence": n}) for report, n in zip(reports, sequences, strict=True)]
+    digests = {
+        canonical_json_digest(old.model_dump(mode="json")): canonical_json_digest(new.model_dump(mode="json"))
+        for old, new in zip(reports, renumbered, strict=True)
+    }
+    recited = []
+    for response in responses:
+        payload = response.model_dump(mode="json")
+        message = payload["message"]
+        for reference in [*message.get("evidence_refs", ()), *(message.get("effects") or {}).get("evidence_refs", ())]:
+            reference["digest"] = digests.get(reference["digest"], reference["digest"])
+        recited.append(contracts.BackendOperationResponseModel.model_validate(payload))
+    return recited, renumbered
+
+
+@pytest.mark.parametrize(
+    ("scenario", "sequences"),
+    [
+        ("mixed-edge", (1, 1, 1, 1)),  # each producer numbers its own report from 1
+        ("mixed-edge-partial", (1, 1)),
+        ("mixed-handoff", (1, 1, 1)),
+        ("mixed-edge", (5, 3, 6, 7)),  # the coordinator picks 5 and the bridge 3
+        ("mixed-handoff", (5, 3, 6)),
+        ("mixed-edge", (10, 20, 30, 40)),  # ascending, but not the chain positions
+    ],
+)
+def test_independent_producers_number_each_stage_by_its_chain_position(scenario: str, sequences: tuple) -> None:
+    # A producer sees neither the other producers' reports nor a shared counter,
+    # so only the stage's fixed chain position can give every report its number.
+    responses, reports = _renumbered(scenario, sequences)
+    with pytest.raises(ValueError, match=CHAIN_POSITION):
+        _validate(scenario, responses=responses, reports=reports)
+
+
+@pytest.mark.parametrize("scenario", ["mixed-edge", "mixed-edge-partial", "mixed-handoff", "mixed-handoff-stale"])
+def test_chain_numbered_reports_are_accepted_in_any_supplied_order(scenario: str) -> None:
+    _, _, reports = _scenario(scenario)
+    _validate(scenario, reports=reports[::-1])
 
 
 @pytest.mark.parametrize(
@@ -768,10 +813,17 @@ def test_an_ordered_grant_without_invocation_establishes_no_failure(scenario: st
         _validate(scenario, responses=transcript, reports=reports[:1])
 
 
+POST_READBACKS = {
+    "missing": lambda: None,
+    "source-regressed": lambda: _time_state(source=(0, 3, 0)),
+    "destination-regressed": lambda: _time_state(destination=(0, 1, 0)),
+}
+
+
 @pytest.mark.parametrize("scenario", ["mixed-edge", "mixed-handoff", "mixed-handoff-stale"])
-@pytest.mark.parametrize("post", ["missing", "regressed"])
+@pytest.mark.parametrize("post", sorted(POST_READBACKS))
 def test_settlement_needs_a_confirmed_post_invocation_time_readback(scenario: str, post: str) -> None:
-    readback = {"missing": None, "regressed": _time_state(source=(0, 3, 0))}[post]
+    readback = POST_READBACKS[post]()
     with pytest.raises(ValueError, match="claims more"):
         _validate(scenario, post_time_state=readback)
 
@@ -910,6 +962,25 @@ def test_service_declarations_and_call_shapes_are_checked_without_invocation(rol
         require_mixed_backend_service(empty, role, DECLARED)
     with pytest.raises(ValueError, match="call shape"):
         require_mixed_backend_service(narrowed, role, DECLARED)
+
+
+@pytest.mark.parametrize(
+    ("method", "replacement", "message"),
+    [
+        ("execution_binding", None, "mixed backend service protocol is not installed"),
+        ("stage_reports", None, "mixed backend service protocol is not installed"),
+        ("execution_binding", lambda required: required, "installed mixed backend method has incompatible call shape"),
+        ("stage_reports", lambda: None, "installed mixed backend method has incompatible call shape"),
+    ],
+)
+def test_a_bridge_needs_its_mixed_methods_beyond_the_shared_operation_protocol(method, replacement, message) -> None:
+    # Every shared operation method stays installed, so only the bridge's own
+    # binding and stage-report methods can be refused.
+    from types import SimpleNamespace
+
+    bridge = SimpleNamespace(**(BRIDGE | {method: replacement}))
+    with pytest.raises(ValueError, match=message):
+        require_mixed_backend_service(bridge, "bridge", DECLARED)
 
 
 def test_stub_and_reference_backends_do_not_advertise_mixed_backend_contracts() -> None:

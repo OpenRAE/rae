@@ -66,6 +66,9 @@ _PREREQUISITES = {
     "edge": {"time-grant": None, "execution": "time-grant", "delivery": "execution", "observation": "delivery"},
     "handoff": {"time-grant": None, "handoff": "time-grant", "owner-readback": "handoff"},
 }
+# A report's sequence is its stage's fixed position in that chain, so producers
+# that see neither each other's reports nor a shared counter can number them.
+_STAGE_SEQUENCE = {"time-grant": 1, "execution": 2, "handoff": 2, "delivery": 3, "owner-readback": 3, "observation": 4}
 
 
 @dataclass(frozen=True)
@@ -124,10 +127,13 @@ def validate_mixed_backend_stage_reports(
     activate the bound edge or precede the bound handoff. The grant's
     coordinates must equal the committed time readback, and a native handoff
     must name the committed composition history head and phase revision. Each
-    stage must follow its prerequisite and name the service pinned for its
-    role, and the invocation stage needs an ordered grant and an accepted
-    acknowledgement. A proposed success or known failure must equal the state
-    that the stages and the trusted readbacks establish.
+    report's ``sequence`` must be its stage's fixed chain position (time grant
+    1, execution or handoff 2, delivery or owner readback 3, observation 4),
+    and reports are accepted in ascending ``sequence`` whatever order they are
+    supplied in. Each stage must follow its prerequisite and name the service
+    pinned for its role, and the invocation stage needs an ordered grant and an
+    accepted acknowledgement. A proposed success or known failure must equal
+    the state that the stages and the trusted readbacks establish.
     """
 
     require_mixed_backend_request(binding, request)
@@ -228,12 +234,13 @@ def _ordered_stages(
     for report in reports:
         if report.binding != request.binding or report.request_digest != digest:
             raise ValueError("mixed stage report belongs to another invocation")
+        if report.sequence != _STAGE_SEQUENCE[report.stage.stage]:
+            raise ValueError("stage report sequence differs from its stage's chain position")
+        # One number per stage kind, so a second report of a stage is either a
+        # retransmission or a contradiction.
         if by_sequence.setdefault(report.sequence, report) != report:
             raise ValueError("duplicate stage report sequence changed its content")
-    stages = [by_sequence[sequence].stage for sequence in sorted(by_sequence)]
-    if len({stage.stage for stage in stages}) != len(stages):
-        raise ValueError("an invocation reports each stage at most once")
-    return stages
+    return [by_sequence[sequence].stage for sequence in sorted(by_sequence)]
 
 
 def _require_prerequisite(

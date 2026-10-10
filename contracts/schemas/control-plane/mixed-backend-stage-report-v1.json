@@ -698,7 +698,7 @@
   "$id": "https://openrae.github.io/rae/schemas/mixed-backend-stage-report-v1.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "One stage fact bound to the exact shared operation invocation and request commitment.",
+  "description": "One stage fact bound to the exact shared operation invocation and request commitment.\n\nThe sequence is the stage's fixed position in its chain: time grant 1,\nexecution or handoff 2, delivery or owner readback 3, observation 4. Each\nproducer numbers its own report without seeing the others, and a reader\naccepts the reports in ascending sequence.",
   "properties": {
     "binding": {
       "$ref": "#/$defs/BackendOperationBindingModel"
@@ -777,7 +777,7 @@
       "validator": "raes_contracts.contracts.MixedBackendStageReportModel.model_validate"
     },
     {
-      "description": "Require exact invocation binding and commitment, a trusted time model resolved under the binding's time-model reference and digest, prerequisite stage order, the pinned producer for each stage, grant coordinates equal to the committed time readback, a committed composition state that still activates the edge or holds the handoff's source component without its destination, a handoff fenced on that state's head and phase revision, an ordered grant and accepted start before invocation stages, success or failure outcomes equal to the state the stages and trusted readbacks establish, and shared evidence that cites only supplied stage reports.",
+      "description": "Require exact invocation binding and commitment, a trusted time model resolved under the binding's time-model reference and digest, each report's sequence equal to its stage's fixed chain position (time grant 1, execution or handoff 2, delivery or owner readback 3, observation 4) with reports accepted in ascending sequence, prerequisite stage order, the pinned producer for each stage, grant coordinates equal to the committed time readback, a committed composition state that still activates the edge or holds the handoff's source component without its destination, a handoff fenced on that state's head and phase revision, an ordered grant and accepted start before invocation stages, success or failure outcomes equal to the state the stages and trusted readbacks establish, and shared evidence that cites only supplied stage reports.",
       "id": "mixed-backend-stage-transcript",
       "inputs": [
         {

@@ -213,12 +213,14 @@ observation, handoff, or owner-readback fact for one invocation of the
   binding's operation kind. The binding reference digest and each stage-report
   citation digest are SHA-256 over RFC 8785 canonical JSON of the complete
   validated model, including materialized defaults and null values.
-- Stage reports repeat the invocation binding and request digest, report each
-  stage at most once, and follow their prerequisite stage. Each stage names
-  its producer, which equals the binding's coordinator, bridge, delivery
-  reader, observation reader, transfer service, or owner reader for that
-  stage. Execution or native transfer needs an `ordered` grant and an accepted
-  acknowledgement.
+- Stage reports repeat the invocation binding and request digest and report
+  each stage at most once. A report's `sequence` is its stage's fixed chain
+  position: time grant 1, execution or handoff 2, delivery or owner readback
+  3, and observation 4. Reports are accepted in ascending `sequence`, and a
+  stage needs its prerequisite stage. Each stage names its producer, which
+  equals the binding's coordinator, bridge, delivery reader, observation
+  reader, transfer service, or owner reader for that stage. Execution or
+  native transfer needs an `ordered` grant and an accepted acknowledgement.
 - The caller resolves the trusted time model under the binding's time-model
   reference and digest. A committed composition state belongs to the
   binding's profile and still activates the bound edge, or holds the

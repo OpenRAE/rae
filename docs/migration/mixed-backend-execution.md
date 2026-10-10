@@ -58,19 +58,23 @@ binding installs nothing, selects no provider and grants no authority.
 
 ## Stage reports
 
-Each report repeats the exact `binding` of one shared operation invocation,
-the canonical digest of its request, and a positive `sequence`. Its `stage` is
-one of the kinds below. Every stage names its `producer`, which must equal the
-service that the binding pins for that stage:
+Each report repeats the exact `binding` of one shared operation invocation
+and the canonical digest of its request. Its `stage` is one of the kinds
+below. Its `sequence` is fixed by that stage: the stage's position in its
+chain, as the table shows. Each producer therefore numbers its own report
+without seeing the other reports. This differs from the shared protocol's
+response sequence, which one backend assigns in order. Every stage names its
+`producer`, which must equal the service that the binding pins for that
+stage:
 
-| Stage | Producer | Fact it reports |
-| --- | --- | --- |
-| `time-grant` | `time.coordinator` | Grant at the committed coordinates of both bound clocks: mapping, ordering basis, order reference, comparison, both coordinates and the mapping and timing evidence. |
-| `execution` | `bridge` | Bridge execution with status `succeeded`, `failed`, `partial` or `unknown`. Known effects need readback evidence. A known failure needs cessation evidence. |
-| `delivery` | `delivery_reader` | Destination receipt read back by the delivery reader, not by the bridge. |
-| `observation` | `observation_reader` | Participant and audience readback after delivery. A binding without an observation reader admits no observation stage. |
-| `handoff` | `transfer` | Native transfer disposition at the committed composition history head and phase revision. |
-| `owner-readback` | `owner_reader` | Native responsibility owner read back after the transfer attempt. |
+| Stage | Sequence | Producer | Fact it reports |
+| --- | --- | --- | --- |
+| `time-grant` | 1 | `time.coordinator` | Grant at the committed coordinates of both bound clocks: mapping, ordering basis, order reference, comparison, both coordinates and the mapping and timing evidence. |
+| `execution` | 2 | `bridge` | Bridge execution with status `succeeded`, `failed`, `partial` or `unknown`. Known effects need readback evidence. A known failure needs cessation evidence. |
+| `delivery` | 3 | `delivery_reader` | Destination receipt read back by the delivery reader, not by the bridge. |
+| `observation` | 4 | `observation_reader` | Participant and audience readback after delivery. A binding without an observation reader admits no observation stage. |
+| `handoff` | 2 | `transfer` | Native transfer disposition at the committed composition history head and phase revision. |
+| `owner-readback` | 3 | `owner_reader` | Native responsibility owner read back after the transfer attempt. |
 
 Execution, delivery and observation are separate facts. One success value
 cannot create another stage, and partial or unknown execution keeps its own
@@ -113,10 +117,13 @@ follows the backend operation protocol's own rule.
   within one segment. Otherwise it reports `incomparable`.
 - A transfer service names the committed composition history head and phase
   revision that it acted on.
-- A service reports each stage at most once per invocation, after its
-  prerequisite stage. Execution and native transfer reports need an `ordered`
-  grant and an accepted acknowledgement, so no invocation stage follows a
-  refusal or an `incomparable` grant.
+- A service reports each stage at most once per invocation, under the
+  stage's fixed `sequence` from the table above. A retransmitted report
+  carries identical content. A transcript that holds a stage must also hold
+  its prerequisite stage. Readers accept reports in ascending `sequence`, so
+  the order in which reports arrive does not matter. Execution and native
+  transfer reports need an `ordered` grant and an accepted acknowledgement,
+  so no invocation stage follows a refusal or an `incomparable` grant.
 - A proposed shared outcome may claim success or known failure only when the
   stage and settlement model below establishes it. Shared evidence may cite
   only stage reports that the invocation supplied.
@@ -176,8 +183,10 @@ requirement, and `time_state` covers both bound clocks. A `composition_state`
 belongs to its profile, and it activates the bound edge or precedes the bound
 handoff as described above.
 
-**Transitions.** A report is accepted only after its prerequisite and only when
-its joins hold:
+**Transitions.** Reports are accepted in ascending `sequence`, which is chain
+order, whatever order they are supplied in. A report is accepted only when its
+`sequence` is its stage's position from the stage report table, its
+prerequisite was accepted before it and its joins hold:
 
 | Stage | Prerequisite | Joins |
 | --- | --- | --- |
@@ -241,7 +250,7 @@ Each one has a request, its responses and its stage reports:
 | `mixed-edge` | Ordered grant, succeeded execution, destination delivery and participant observation; the shared outcome succeeds. |
 | `mixed-edge-partial` | Partial execution after an ordered grant; the shared outcome is `INDETERMINATE`. |
 | `mixed-edge-refused` | Contextual refusal at admission; no invocation stage can follow. |
-| `mixed-edge-time-refused` | The destination clock has entered a later segment, so the grant is `incomparable`; no bridge call follows, and the shared outcome is a known failure with no effect. |
+| `mixed-edge-time-refused` | The destination clock has entered a later segment, so the grant is `incomparable`. The bridge accepts the start but reports no execution stage, and it proposes a known failure with no effect. |
 | `mixed-handoff` | Committed native transfer with a destination owner readback at the next phase revision. |
 | `mixed-handoff-stale` | Stale transfer whose readback retains the source owner; the shared outcome is a known failure with no effect. |
 

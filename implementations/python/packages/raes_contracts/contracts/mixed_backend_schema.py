@@ -62,7 +62,9 @@ def mixed_backend_schema_bundle() -> dict[str, dict[str, Any]]:
         schemas[_STAGE_REPORT],
         "mixed-backend-stage-transcript",
         "Require exact invocation binding and commitment, a trusted time model resolved under the binding's "
-        "time-model reference and digest, prerequisite stage order, the pinned producer for each stage, grant "
+        "time-model reference and digest, each report's sequence equal to its stage's fixed chain position (time "
+        "grant 1, execution or handoff 2, delivery or owner readback 3, observation 4) with reports accepted in "
+        "ascending sequence, prerequisite stage order, the pinned producer for each stage, grant "
         "coordinates equal to the committed time readback, a committed composition state that still activates "
         "the edge or holds the handoff's source component without its destination, a handoff fenced on that "
         "state's head and phase revision, an ordered grant and accepted start before invocation stages, success "
