@@ -248,9 +248,6 @@ BehaviorSpecification =
   outcome_interpretation_rule_ref*
   authority_scope_ref*
   behavior_mode?
-  ai_offensive_behavior_ref*
-  defensive_behavior_ref*
-  offensive_behavior_ref*
   realization_profile_ref?
   backend_feature_support_ref*
   evidence_contract_ref*
@@ -265,11 +262,12 @@ Rules:
   contracts, observation boundaries, outcome rules, manifests, backend
   capabilities, or runtime evidence.
 - `behavior_mode` binds to the controlled vocabulary described in ACT-608.
-- `offensive_behavior_ref` values bind to the ACT-609 offensive behavior
-  vocabulary for attack-oriented participant tasks, goals, or activities.
-- `defensive_behavior_ref` values bind to the ACT-610 defensive behavior
-  vocabulary for detection, investigation, response, mitigation, and recovery
-  classifications.
+- Offensive (ACT-609) and defensive (ACT-610) behavior classifications are not
+  aggregate fields. They use generic concept bindings against the exact
+  behavior specification. SDL parsing rejects the retired
+  `offensive_behavior_refs`, `ai_offensive_behavior_refs`, and
+  `defensive_behavior_refs` fields with `sdl.classification-migration-required`;
+  see [classification migration](../../concept-authority/classification-migration.md).
 - `realization_profile_ref` records how the behavior can be realized without
   exposing private implementation configuration.
 - `evidence_contract_ref` names the contracts needed to prove the behavior
@@ -425,8 +423,9 @@ and conformance for behavior modes.
 
 ## ACT-609 - Offensive Behavior Vocabularies
 
-Offensive behavior refs declare attack-oriented participant tasks, goals, or
-activities as governed vocabulary values on a behavior specification.
+Offensive classifications of attack-oriented participant tasks, goals, or
+activities use generic bindings against the exact behavior-specification
+subject.
 
 The base terms in `participant-offensive-behavior-activities` are a direct
 adoption of MITRE ATT&CK Enterprise tactics v19.1. The pinned source artifact is
@@ -546,12 +545,14 @@ exists, a detection or investigation is correct, mitigation contains an event,
 recovery completed, or an organization conforms to NIST CSF. Those claims use
 the existing action, observation, outcome, evidence, runtime, and conformance
 surfaces. D3FEND tactics and techniques remain distinct external mappings and
-are not aliases for these categories. Governed local extensions use the shared
-`x-<owner>:<term>` syntax.
+are not aliases for these categories. The catalog's adopted term set is
+closed; additional schemes require explicit source context.
 
-Implementation issue #210 owns the executable SDL field, governed validation,
-source-integrity checker, generated schemas, documentation, and compiler
-carry-through for defensive behavior refs.
+Issue #210 originally implemented native defensive behavior refs. Issue #989
+retires that field and its compiler carry-through in favor of
+[generic concept bindings](../../concept-authority/external-concept-bindings.md).
+The pinned source artifact, catalog terms, and source-integrity checker that
+#210 added remain.
 
 ## ACT-611 - Autonomous Service And Agent Behavior Vocabularies
 
@@ -664,8 +665,8 @@ portable occurrence contracts and runtime mediation/persistence respectively.
 | PBM-06 | Backend support claims require governed feature terms, support levels, disclosure refs, and evidence contracts. | ACT-602, ACT-608 |
 | PBM-07 | Hidden prompts, credentials, answer keys, raw command output, backend-private objects, and adjudication assets stay out of portable behavior artifacts. | ACT-606, ACT-607 |
 | PBM-08 | Unknown, opaque, unsupported, not applicable, bounded, lossy, and exact are distinct claims. | ACT-602, ACT-603, ACT-608 |
-| PBM-09 | Offensive behavior refs are governed vocabulary classifications, not raw action names, roles, goals, tasks, commands, or external technique labels. | ACT-609 |
-| PBM-10 | Defensive behavior refs classify intent or outcome domains and do not prove incident existence, effectiveness, recovery, or CSF conformance. | ACT-610 |
+| PBM-09 | Offensive behavior classifications are generic concept bindings against an exact behavior specification, not behavior-specification fields, raw action names, roles, goals, tasks, commands, or external technique labels. | ACT-609 |
+| PBM-10 | Defensive behavior classifications are generic concept bindings against an exact behavior specification; they classify intent or outcome domains and do not prove incident existence, effectiveness, recovery, or CSF conformance. | ACT-610 |
 | PBM-11 | Mixed-control authority and ordered control facts are explicit, fail closed, and remain distinct from admission, execution, and observation. | ACT-617 |
 | PBM-12 | Autonomous behavior vocabulary terms are external assertions about exact behavior specifications and do not create native or executable behavior meaning. | ACT-611 |
 
