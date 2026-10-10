@@ -141,6 +141,9 @@ def curl_transfer_argv(
         "=https",
         "--proto-redir",
         "=https",
+        # Qualification covers HTTP/1.1. Over HTTP/2, macOS curl 8.7.1 exits 56 for a size
+        # breach and does not retry a 503 (#1475).
+        "--http1.1",
         "--max-redirs",
         "5",
         "--retry",

@@ -196,6 +196,7 @@ def test_curl_qualification_uses_fixed_hardened_argv() -> None:
     assert argv[:2] == ["/usr/bin/curl", "--disable"]
     assert argv[argv.index("--proto") : argv.index("--proto") + 2] == ["--proto", "=https"]
     assert argv[argv.index("--proto-redir") : argv.index("--proto-redir") + 2] == ["--proto-redir", "=https"]
+    assert [arg for arg in argv if arg.startswith("--http")] == ["--http1.1"]
     assert "--insecure" not in argv
     assert "--location-trusted" not in argv
     assert "--retry-all-errors" not in argv
@@ -859,6 +860,9 @@ def _https_fixture(tmp_path: Path) -> tuple[ThreadingHTTPServer, Path]:
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     context.minimum_version = ssl.TLSVersion.TLSv1_2
     context.load_cert_chain(cert_path, key_path)
+    # Offer HTTP/2 first, as most download hosts do (#1475). http.server speaks only HTTP/1.x, so a client that
+    # accepted h2 would fail every transfer here.
+    context.set_alpn_protocols(["h2", "http/1.1"])
     server.socket = context.wrap_socket(server.socket, server_side=True)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     return server, cert_path
