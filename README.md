@@ -16,14 +16,14 @@ variation, and evidence needs of an environment. RAES checks the scenario
 against published rules. A backend that supports the features it needs can
 then run it. The backend's reports show what was realized and observed.
 
-![RAES validates an authored scenario and compiles a plan. An external backend, such as Shifter, LilRAE, your own backend, or a simulator adapter, realizes and runs it. Reports and evidence describe the result.](https://openrae.github.io/rae/_static/raes-ecosystem.svg)
+![RAES validates an authored scenario and compiles a plan. An external backend, such as Shifter, LilRAE, or your own backend, realizes and runs it. Simulator and gym adapters are unreleased. Reports and evidence describe the result.](https://openrae.github.io/rae/_static/raes-ecosystem.svg)
 
 How a scenario reaches a run:
 
 1. Author a scenario in RAES SDL. RAES validates it and compiles a plan.
 2. Choose an external backend that supports what the scenario needs. Shifter
    and LilRAE (formerly APTL) are examples. You can also write your own
-   backend or use an adapter for a simulator or gym.
+   backend. Simulator and gym adapters are unreleased.
 3. The backend builds the environment, and participants act in it.
 4. Reports and evidence describe what was realized and observed.
 
@@ -125,7 +125,8 @@ repository:
   test that claim with the RAES conformance tests. Start with the
   [backend and conformance guide](https://openrae.github.io/rae/backends.html).
 - [OpenRAE/adapters](https://github.com/OpenRAE/adapters) holds adapter
-  projects for simulators and cyber gyms. It has no published release.
+  projects for simulators and cyber gyms. None is released. Each adapter's own
+  conformance reports and evidence records state what it can run.
 
 Shifter, LilRAE, and the adapters are separate projects with their own
 documentation. This repository does not ship or certify them. A backend's own
