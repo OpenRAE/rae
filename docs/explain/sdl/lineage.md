@@ -993,8 +993,8 @@ which dynamic queue/log/config details remain evidence or bounded settings.
   SDL lineage ledger and source audit remain unchanged.
 - ACT-623 makes that policy a first-class member of the behavior specification
   aggregate for every participant kind and checks recorded ADR-013 episode
-  history against it in `raes_conformance`. Its evidence is the standalone and autonomous-profile
-  fixtures and
+  history against it in `raes_conformance`. Its evidence is the standalone and
+  autonomous-profile fixtures and
   `implementations/python/tests/test_issue_309_act_623_participant_episode_structure.py`.
   It introduces no external derivation, so the ledger remains unchanged.
 - DSL-437 composes the incumbent participant and time lineages rather than

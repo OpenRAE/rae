@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
 
@@ -10,7 +11,10 @@ from raes._errors import SDLParseError
 from raes.parser import parse_sdl, parse_sdl_file
 from raes_backend_stubs.stubs import create_stub_target
 from raes_conformance.conformance import participant_episode_structure_conformance_diagnostics
-from raes_contracts.participant_episode import ParticipantEpisodeTerminalReason
+from raes_contracts.participant_episode import (
+    ParticipantEpisodeTerminalReason,
+    iter_participant_episode_snapshot_violations,
+)
 from raes_processor.compiler import compile_runtime_model
 from raes_runtime.control_plane import RuntimeControlPlane
 
@@ -154,18 +158,35 @@ def test_recorded_episodes_conform_to_their_authored_structure() -> None:
     control_plane.terminate_participant_episode(ANALYST, terminal_reason=ParticipantEpisodeTerminalReason.INTERRUPTED)
 
     history = _history(control_plane)[ANALYST]
-    assert [event["event_type"] for event in history][-1] == "episode_interrupted"
+    assert [event["event_type"] for event in history] == [
+        "episode_initialized",
+        "episode_running",
+        "episode_completed",
+        "episode_restarted",
+        "episode_running",
+        "episode_reset",
+        "episode_running",
+        "episode_truncated",
+        "episode_restarted",
+        "episode_running",
+        "episode_interrupted",
+    ]
     assert participant_episode_structure_conformance_diagnostics(policies, _history(control_plane)) == ()
 
 
-def test_recorded_episodes_that_contradict_their_structure_are_reported() -> None:
-    policies = compile_runtime_model(parse_sdl_file(STANDALONE_FIXTURE)).participant_episode_policies
+def _recorded_replays(final_reason: ParticipantEpisodeTerminalReason) -> RuntimeControlPlane:
     control_plane = RuntimeControlPlane(create_stub_target())
     control_plane.initialize_participant_episode(REPLAYER)
     control_plane.reset_participant_episode(REPLAYER)
     control_plane.terminate_participant_episode(REPLAYER, terminal_reason=ParticipantEpisodeTerminalReason.TIMED_OUT)
     control_plane.restart_participant_episode(REPLAYER)
-    control_plane.terminate_participant_episode(REPLAYER, terminal_reason=ParticipantEpisodeTerminalReason.COMPLETED)
+    control_plane.terminate_participant_episode(REPLAYER, terminal_reason=final_reason)
+    return control_plane
+
+
+def test_recorded_episodes_that_contradict_their_structure_are_reported() -> None:
+    policies = compile_runtime_model(parse_sdl_file(STANDALONE_FIXTURE)).participant_episode_policies
+    control_plane = _recorded_replays(ParticipantEpisodeTerminalReason.COMPLETED)
     control_plane.initialize_participant_episode("participant.behavior.observer")
     control_plane.terminate_participant_episode(
         "participant.behavior.observer",
@@ -185,6 +206,41 @@ def test_recorded_episodes_that_contradict_their_structure_are_reported() -> Non
         f"runtime.snapshot.participant-episode-history.{REPLAYER}[{event_types.index(event_type)}]"
         for event_type in ("episode_restarted", "episode_completed")
     ]
+
+
+def test_a_policy_without_a_reset_policy_admits_every_reset_and_restart() -> None:
+    source = STANDALONE_FIXTURE.read_text(encoding="utf-8")
+    model = compile_runtime_model(parse_sdl(source[: source.index("      reset_policy:\n")]))
+    history = _history(_recorded_replays(ParticipantEpisodeTerminalReason.TIMED_OUT))
+
+    assert [event["control_action"] for event in history[REPLAYER] if event["control_action"]] == [
+        "initialize",
+        "reset",
+        "restart",
+    ]
+    assert participant_episode_structure_conformance_diagnostics(model.participant_episode_policies, history) == ()
+
+
+@pytest.mark.parametrize(
+    "unreadable",
+    [
+        pytest.param(tuple, id="non-list-history"),
+        pytest.param(lambda events: [str(event) for event in events], id="non-mapping-events"),
+        pytest.param(
+            lambda events: [{**event, "sequence_number": str(event["sequence_number"])} for event in events],
+            id="malformed-events",
+        ),
+    ],
+)
+def test_conformance_leaves_unreadable_history_to_snapshot_integrity(
+    unreadable: Callable[[list[dict[str, object]]], object],
+) -> None:
+    policies = compile_runtime_model(parse_sdl_file(STANDALONE_FIXTURE)).participant_episode_policies
+    snapshot = _recorded_replays(ParticipantEpisodeTerminalReason.COMPLETED).get_snapshot().snapshot
+    history = {REPLAYER: unreadable(snapshot.participant_episode_history[REPLAYER])}
+
+    assert list(iter_participant_episode_snapshot_violations(snapshot.participant_episode_results, history))
+    assert participant_episode_structure_conformance_diagnostics(policies, history) == ()
 
 
 def test_conformance_refuses_a_participant_with_two_compiled_structures() -> None:

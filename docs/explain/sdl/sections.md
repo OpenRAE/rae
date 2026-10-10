@@ -2285,7 +2285,8 @@ episode policy, so the behavior specification stays its only home.
 `raes_conformance.conformance` checks recorded episode history against the
 compiled policies. It reports a terminal reason that no authored condition
 produces, other than `interrupted`, and a reset or restart that the reset
-policy does not admit. It reads history only and does not evaluate conditions.
+policy does not admit. For a policy without a `reset_policy`, it admits any
+reset or restart. It reads history only and does not evaluate conditions.
 
 For `behavior_mode: mixed-control`, authors must also provide a closed
 `mixed_control` declaration. It binds one controlled participant, explicit
