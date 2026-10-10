@@ -545,7 +545,7 @@ exists, a detection or investigation is correct, mitigation contains an event,
 recovery completed, or an organization conforms to NIST CSF. Those claims use
 the existing action, observation, outcome, evidence, runtime, and conformance
 surfaces. D3FEND tactics and techniques remain distinct external mappings and
-are not aliases for these categories. The catalog's adopted term set is
+are not aliases for these categories. The catalog's term set is
 closed; additional schemes require explicit source context.
 
 Issue #210 originally implemented native defensive behavior refs. Issue #989
