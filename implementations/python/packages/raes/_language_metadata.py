@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from ._reference_targetability import ReferencePurpose, reference_domain
 from .participant_relationships import PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS
-from .variation import COLLECTION_TARGET_SPECS, REFERENCE_TARGET_SPECS
+from .variation import COLLECTION_TARGET_SPECS, REFERENCE_TARGET_SPECS, TIMING_TARGET_SPECS
 
 _OBJECTIVE_SUBJECT = reference_domain(ReferencePurpose.OBJECTIVE_SUBJECT)
 _ACTION_TARGET = reference_domain(ReferencePurpose.ACTION_TARGET)
@@ -16,12 +16,23 @@ _OPERATING_SCOPE = reference_domain(ReferencePurpose.OPERATING_SCOPE)
 # Relationship subtypes narrow this domain; the language service selects the subtype purpose.
 RELATIONSHIP_ENDPOINT_DOMAIN = reference_domain(ReferencePurpose.RELATIONSHIP_ENDPOINT)
 
-# A variation candidate's `reference` resolves where its point's target slot does;
-# the language service selects it from the authored slot.
+# A variation point's owner resolves in its target slot's owner section, and a candidate
+# (`reference` or governed `allowed_refs` entry) where the slot's candidates do; the
+# language service selects them from the authored slot.
+VARIATION_OWNER_TARGETS = {
+    slot.value: spec[0]
+    for specs in (REFERENCE_TARGET_SPECS, COLLECTION_TARGET_SPECS, TIMING_TARGET_SPECS)
+    for slot, spec in specs.items()
+}
 VARIATION_CANDIDATE_TARGETS = {
     slot.value: target
     for specs in (REFERENCE_TARGET_SPECS, COLLECTION_TARGET_SPECS)
     for slot, (_owner, target) in specs.items()
+}
+VARIATION_SLOT_TARGETS = {
+    "owner": VARIATION_OWNER_TARGETS,
+    "reference": VARIATION_CANDIDATE_TARGETS,
+    "allowed_refs": VARIATION_CANDIDATE_TARGETS,
 }
 
 REFERENCE_COMPLETION_TARGETS = {

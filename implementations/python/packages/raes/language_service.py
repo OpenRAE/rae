@@ -31,7 +31,7 @@ from ._language_metadata import (
     REFERENCE_COMPLETION_TARGETS,
     RELATIONSHIP_ENDPOINT_DOMAIN,
     SECTION_FIELD_COMPLETIONS,
-    VARIATION_CANDIDATE_TARGETS,
+    VARIATION_SLOT_TARGETS,
 )
 from ._language_references import PurposeResolver, find_references
 from ._reference_targetability import (
@@ -298,8 +298,8 @@ def _completion_target_section(pointer: list[str], data: dict[str, Any]) -> str 
     target = REFERENCE_COMPLETION_TARGETS.get((pointer[0], pointer[-1]))
     if target == RELATIONSHIP_ENDPOINT_DOMAIN and len(pointer) == 3:
         target = reference_domain(relationship_endpoint_purpose(_relationship_type(data, pointer[1])))
-    elif (pointer[0], pointer[-1]) == ("variation_points", "reference"):
-        target = VARIATION_CANDIDATE_TARGETS.get(_variation_slot(data, pointer[1]), target)
+    elif pointer[0] == "variation_points" and pointer[-1] in VARIATION_SLOT_TARGETS:
+        target = VARIATION_SLOT_TARGETS[pointer[-1]].get(_variation_slot(data, pointer[1]), target)
     elif target is None and len(pointer) >= 4 and pointer[-2] == "success":
         target = _SUCCESS_COMPLETION_TARGETS.get(pointer[-1])
     return target

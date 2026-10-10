@@ -186,11 +186,46 @@ def _with_condition_named_web(payload: dict) -> dict:
 def test_every_indexed_section_and_runtime_family_has_an_explicit_decision() -> None:
     decided = policy.DECLARATION_CATEGORIES.keys() | policy.UNREFERENCEABLE_KINDS
     section_kinds = {policy.section_declaration_kind(section) for section in HASHMAP_SECTIONS}
+    payload = _payload()
+    payload["nodes"]["web"]["runtime"] = {
+        "database_services": [{"database_service_id": "db", "databases": [{"database_id": "app", "name": "app"}]}],
+        "dns_services": [
+            {
+                "dns_service_id": "dns",
+                "zones": [
+                    {
+                        "zone_id": "corp",
+                        "name": "corp.example",
+                        "rrsets": [
+                            {
+                                "rrset_id": "www",
+                                "owner": "www",
+                                "record_type": "A",
+                                "records": [{"address": "192.0.2.10"}],
+                            }
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+    # A runtime family, a child record, and a nested child record, as the index registers them.
+    runtime = {
+        declaration.kind: policy.DECLARATION_CATEGORIES[declaration.kind]
+        for declaration in build_declaration_index(_parse(payload)).declarations
+        if ".runtime." in declaration.address
+    }
 
     assert sorted(section_kinds - decided) == []
-    assert {policy.DECLARATION_CATEGORIES[kind] for kind in policy.RUNTIME_INVENTORY_KINDS} == {
-        policy.DeclarationCategory.RESOURCE
-    }
+    assert not policy.DECLARATION_CATEGORIES.keys() & policy.UNREFERENCEABLE_KINDS
+    assert sorted(runtime) == [
+        "runtime-database_services",
+        "runtime-databases",
+        "runtime-dns_services",
+        "runtime-rrsets",
+        "runtime-zones",
+    ]
+    assert set(runtime.values()) == {policy.DeclarationCategory.RESOURCE}
     for purpose in policy.ReferencePurpose:
         assert policy.ELIGIBLE_KINDS[purpose] <= policy.ELIGIBLE_KINDS[policy.resolution_domain(purpose)]
 
@@ -307,6 +342,7 @@ def test_a_bare_name_shared_with_an_ineligible_declaration_stays_ambiguous(field
 
     model = compile_scenario_runtime_model(_parse(_set(payload, FIELDS[field], "nodes.web")))
 
+    assert _carried(model, FIELDS[field]) == ["nodes.web"]
     behavior = model.behavior_specifications["participant.behavior-specification.red-behavior"]
     assert behavior.authority_scope_addresses == ("provision.node.web",)
 
