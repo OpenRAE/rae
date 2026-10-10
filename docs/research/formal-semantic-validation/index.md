@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 70.0.0, rejects unsupported future
+Current validation requires explicit release 71.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -593,3 +593,10 @@ optional authored participant episode policies to behavior specifications, in
 unchanged. Two compiled digests differ because the runtime model carries
 participant episode policy metadata; their exact baseline and retest values are
 recorded as deviations.
+
+Release 71.0.0 replays the retained formal cases after issue #309 made
+participant episode structure a first-class member of the behavior
+specification aggregate, in
+[`execution-snapshot-v71.json`](execution-snapshot-v71.json) and
+[`analysis-v71.json`](analysis-v71.json). Outcomes and claim limits remain
+unchanged.
