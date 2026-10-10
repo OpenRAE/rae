@@ -10,6 +10,9 @@ themselves normative specifications or ADRs.
     experiment reference material
 - [documentation-style-guide.md](documentation-style-guide.md)
   - Repo-wide documentation style, citation, and tone expectations
+- [fixture-provenance.md](fixture-provenance.md)
+  - How a test fixture that stands in for an external system establishes
+    where its shape came from
 - [glossary.md](glossary.md)
   - Current terminology for SDL, contracts, processing, runtime, experiments,
     and ecosystem concepts
