@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from pydantic import ValidationError
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope, backend_manifest_v2_model
 from raes_backend_stubs.stubs import create_stub_components
@@ -31,6 +32,7 @@ _CAPTURE = json.loads(
     )
 )
 _PRODUCER_ROWS = _CAPTURE["producer_representation"]["operating_systems"]
+_REFUSAL = "mixed runtime target manifest differs from the admitted component"
 
 
 def _published_payload() -> dict[str, Any]:
@@ -86,6 +88,17 @@ def _narrower_manifest() -> BackendManifest:
     return replace(manifest, capabilities=replace(manifest.capabilities, provisioner=provisioner))
 
 
+def _reordered_mechanisms_manifest() -> BackendManifest:
+    """Another contract: the producer's manifest with its artifact mechanisms, still a list, in reverse order."""
+
+    manifest = _producer_manifest()
+    support = tuple(
+        replace(declaration, artifact_mechanisms=declaration.artifact_mechanisms[::-1])
+        for declaration in manifest.realization_support
+    )
+    return replace(manifest, realization_support=support)
+
+
 def _changed_envelope_manifest() -> BackendManifest:
     """The producer's manifest whose envelope lost a concern after validation and kept its identity."""
 
@@ -93,6 +106,17 @@ def _changed_envelope_manifest() -> BackendManifest:
     envelope = manifest.realization_envelope.model_copy(deep=True)
     envelope.concerns = envelope.concerns[:-1]
     return replace(manifest, realization_envelope=envelope)
+
+
+def _scope_outside_contract_manifest() -> BackendManifest:
+    """The producer's manifest with a suffixed concept-binding scope.
+
+    BackendManifest accepts the scope; backend-manifest-v2 rejects it as no governed vocabulary surface.
+    """
+
+    manifest = _producer_manifest()
+    first, *rest = manifest.concept_bindings
+    return replace(manifest, concept_bindings=(replace(first, scope=f"{first.scope}_extra"), *rest))
 
 
 def _bind(target_manifest: BackendManifest, payload: dict[str, Any]) -> None:
@@ -150,9 +174,16 @@ def test_target_carrying_the_admitted_contract_is_bound(target_manifest, payload
 
 @pytest.mark.parametrize(
     "target_manifest",
-    [_narrower_manifest, _changed_envelope_manifest],
-    ids=["narrower-operating-systems", "envelope-changed-after-validation"],
+    [_narrower_manifest, _reordered_mechanisms_manifest, _changed_envelope_manifest],
+    ids=["narrower-operating-systems", "reordered-artifact-mechanisms", "envelope-changed-after-validation"],
 )
 def test_target_carrying_another_contract_is_refused(target_manifest) -> None:
-    with pytest.raises(ValueError, match="mixed runtime target manifest differs from the admitted component"):
+    with pytest.raises(ValueError, match=_REFUSAL):
         _bind(target_manifest(), _published_payload())
+
+
+def test_target_manifest_without_a_contract_form_is_refused() -> None:
+    with pytest.raises(ValueError, match=_REFUSAL) as refused:
+        _bind(_scope_outside_contract_manifest(), _published_payload())
+
+    assert isinstance(refused.value.__cause__, ValidationError)

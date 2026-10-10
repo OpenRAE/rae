@@ -7,6 +7,7 @@ from dataclasses import dataclass, field, replace
 from types import MappingProxyType
 from uuid import uuid4
 
+from pydantic import ValidationError
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope, backend_manifest_v2_model
 from raes_contracts.admitted_trial_plan_ingress import revalidate_admitted_trial_plan
 from raes_contracts.canonical import canonical_json_digest
@@ -212,8 +213,13 @@ def _require_bound_component(bound: MixedRuntimeComponent, declaration: MixedCom
     expected_manifest = backend_manifest_from_v2_model_with_envelope(bound.manifest, bound.envelope)
     # A backend may hold the admitted contract in another sequence order or container type, so compare
     # contract forms. The contract form names the envelope only by identity; compare the envelope too.
+    try:
+        target_contract = backend_manifest_v2_model(bound.target.manifest)
+    except ValidationError as exc:
+        # A target manifest with no backend-manifest-v2 form cannot carry the admitted contract.
+        raise ValueError("mixed runtime target manifest differs from the admitted component") from exc
     if (
-        backend_manifest_v2_model(bound.target.manifest) != backend_manifest_v2_model(expected_manifest)
+        target_contract != backend_manifest_v2_model(expected_manifest)
         or bound.target.manifest.realization_envelope != bound.envelope
     ):
         raise ValueError("mixed runtime target manifest differs from the admitted component")
