@@ -55,6 +55,12 @@ FORGED = "sha256:" + "0" * 64
 PROVEN_ABSENT = {"effect": "absent", "cessation_established": True, "evidence_refs": [EVIDENCE]}
 WILLING = {"kind": "admission", "disposition": "willing", "capability_digest": "sha256:" + "e" * 64, "reason": None}
 ADMISSION_REFUSAL = {**WILLING, "disposition": "refused", "reason": "context-refused"}
+RECONCILIATION = {
+    "kind": "reconciliation",
+    "control_id": "control-1",
+    "control_digest": "sha256:" + "c" * 64,
+    "effects": PROVEN_ABSENT,
+}
 PARTIAL_IN_VAULT = {
     "effect": "partial",
     "cessation_established": True,
@@ -231,6 +237,14 @@ def test_every_valid_outcome_answers_its_exact_invocation(name):
         pytest.param(
             "participant-free-environment",
             "inject-release",
+            ("binding", "attempt_id"),
+            "operation-release-1",
+            "distinct from the claims",
+            id="attempt-reuses-operation",
+        ),
+        pytest.param(
+            "participant-free-environment",
+            "inject-release",
             ("binding", "invocation_id"),
             "researcher-release-key-1",
             "distinct from the claims",
@@ -323,6 +337,7 @@ def test_binding_residual_effects_inside_the_admitted_scope_are_accepted():
         ([("partial", True)], "known-partial"),
         ([("complete", True), ("unknown", False)], "indeterminate"),
         ([("complete", False)], "indeterminate"),
+        ([("absent", False)], "indeterminate"),
     ],
 )
 def test_fan_out_effect_aggregates_every_binding_fact(facts, expected):
@@ -345,6 +360,8 @@ def test_an_empty_fan_out_has_no_effect_to_aggregate():
         pytest.param("refused", ("response", "message"), WILLING, "settles", id="willing-admission"),
         # An admission refusal precedes dispatch, so EI-03 withdraws the occurrence instead of settling it.
         pytest.param("refused", ("response", "message"), ADMISSION_REFUSAL, "settles", id="admission-refusal"),
+        # EI-04 appends reconciliation as linked evidence; even proven absence there settles nothing.
+        pytest.param("refused", ("response", "message"), RECONCILIATION, "settles", id="reconciliation"),
         pytest.param("indeterminate", ("response", "message", "effects"), PROVEN_ABSENT, "disagree", id="disagreeing"),
         pytest.param("indeterminate", ("effect",), "known-partial", "aggregate", id="unaggregated-effect"),
         pytest.param(
@@ -352,6 +369,13 @@ def test_an_empty_fan_out_has_no_effect_to_aggregate():
         ),
         pytest.param(
             "indeterminate", ("bindings", 1, "binding", "instance"), "workstation-1", "instance once", id="duplicate"
+        ),
+        pytest.param(
+            "indeterminate",
+            ("bindings", 1, "effects"),
+            {**PARTIAL_IN_VAULT, "residual_scope": [HANDOVER]},
+            "readback basis",
+            id="partial-without-readback",
         ),
     ],
 )
