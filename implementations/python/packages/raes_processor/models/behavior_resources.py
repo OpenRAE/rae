@@ -238,6 +238,7 @@ class ParticipantBehaviorSpecificationRuntime(ResolvedResource):
     evidence_contract_refs: tuple[str, ...] = ()
     tool_affordance_addresses: tuple[str, ...] = ()
     participant_inject_delivery_addresses: tuple[str, ...] = ()
+    episode_policy_address: str = ""
     extension_policy: str = ""
     extension_keys: tuple[str, ...] = ()
 

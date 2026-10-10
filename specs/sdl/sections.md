@@ -176,6 +176,75 @@ experiment/evaluator plane
 [ADR-069](../../docs/decisions/adrs/adr-069-cage-2-replication-architecture.md)),
 never as authored SDL.
 
+## Participant episode structure
+
+`behavior_specifications.*.episode_policy` is an optional, closed record of
+authored episode intent (DSL-120) for the participants that its behavior
+specification selects. Its design authority is the
+[participant episode model](../formal/participant-episode-model/README.md).
+The required `profile` is `participant-episode-policy/v1`. The record declares
+at least one of the following:
+
+- `initialization` names precondition assertions for every new episode
+  generation.
+- `interaction_structure` orders turns by the `decision-epoch` authority and
+  names the action contracts a turn offers. Each one must belong to the owning
+  behavior specification and to every participant it selects.
+- `terminal_conditions` is keyed by local condition identifiers. A `completed`
+  condition names invariant or postcondition assertions. A `timed_out`
+  condition names one deadline, window, or duration constraint. That
+  constraint must bind the owning behavior specification or every participant
+  it selects.
+- `truncation_conditions` is keyed by local condition identifiers that differ
+  from the terminal ones. Each names the invariant or postcondition assertions
+  whose evidenced truth ends the episode as `truncated`, and it carries no
+  `terminal_reason`. Its assertion set must differ from that of every
+  `completed` condition, so one evidenced fact never ends an episode as both.
+- `reset_policy` names the admitted `reset`/`restart` control actions and the
+  ADR-095 participant-memory scope across the reset boundary. An
+  `episode_local_reset` scope also names a `memory_reset_authority_ref`, and a
+  `persistent_across_episodes` scope names none. The ADR-095 decision-surface
+  assurance and information-state contracts require the same pairing; the
+  policy does not supply their values. The authority must resolve to exactly
+  one declared targetable element, such as a participant, an entity, or a
+  service. Module composition namespaces it, and compilation records that
+  element's canonical address.
+
+A condition holds only when every assertion it names holds. Every condition
+and the reset policy name the evidence requirements that together back the
+transition. Semantic validation requires each named requirement to be
+declared; it does not check which record the requirement captures.
+`interrupted` is never authored, because interruption is externally induced. A participant is governed by at most one episode policy,
+because realized episodes are keyed by participant. The record holds
+references only. It rejects realized episode coordinates such as episode
+identity, lifecycle status, timestamps, sequence numbers, and decision epochs.
+Those stay on the ADR-013 participant episode state and history contracts.
+Checks that need a participant selection or a reference still written as a
+`${var}` run again after instantiation.
+
+Compilation emits one `participant.episode-policy.<name>` record beside the
+selected participants' `participant.behavior.<agent>` episode addresses. It
+never initializes, resets, or ends an episode, and it claims no executable or
+runtime adoption.
+
+Episode structure is a first-class member of the behavior specification
+aggregate (ACT-623). An episode policy may be the only behavior surface a
+specification aggregates. It attaches to participants of every behavior mode.
+The autonomous execution profile cannot carry one, so episode structure never
+depends on that profile. The compiled aggregate names its member through
+`episode_policy_address`. Turns are ordered by the decision epoch, while the
+episode `sequence_number` orders episode instances only. The structure
+describes observable episodes and does not imply that a participant exposes
+an internal reasoning loop.
+
+Conformance compares recorded ADR-013 episode history with the compiled
+structure. For a governed participant, a terminal reason other than
+`interrupted` must come from an authored condition, and a recorded reset or
+restart must be one that the reset policy admits. A policy without a
+`reset_policy` admits any recorded reset or restart. This check reads recorded
+history only. It does not evaluate conditions or claim that a backend enforces
+the policy.
+
 ## Extending the section set
 
 A new top-level authoring section is added by: defining its model and the

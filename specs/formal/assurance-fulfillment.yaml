@@ -570,31 +570,39 @@ entries:
         path: implementations/python/tests/test_sem_222_episode_termination_oracle.py
       - kind: typed_ir_or_contract_coverage
         path: implementations/python/packages/raes_contracts/participant_episode_closure.py
+      # Delivered by #307 (DSL-120): the authored episode-structure SDL contract,
+      # its generated schemas, and its authoring/validation/compilation tests.
+      - kind: unit_tests
+        path: implementations/python/tests/test_issue_307_dsl_120_participant_episode_policy.py
+      - kind: typed_ir_or_contract_coverage
+        path: implementations/python/packages/raes/participant_episode_policy.py
+      # Delivered by #309 (ACT-623): the first-class episode-structure member,
+      # cross-kind attachment, and recorded-history conformance tests.
+      - kind: unit_tests
+        path: implementations/python/tests/test_issue_309_act_623_participant_episode_structure.py
     waived_artifacts:
       - kind: unit_tests
         date: 2026-08-02
         tracking:
           - "#306"
-          - "#307"
           - "#308"
-          - "#309"
           - "#310"
         rationale: >-
-          Joint-design run (#122). #305 (SEM-222) delivers the episode/termination
-          unit tests above; per-requirement unit tests for budget/exhaustion
-          semantics and the authored SDL surfaces remain owned by the spawned
-          implementation issues #306-#310.
+          Joint-design run (#122). #305 (SEM-222), #307 (DSL-120), and #309
+          (ACT-623) deliver the episode unit tests above; per-requirement unit
+          tests for budget/exhaustion semantics, the interaction-budget SDL
+          surface, and the first-class budget member remain owned by the
+          spawned implementation issues #306, #308, and #310.
       - kind: typed_ir_or_contract_coverage
         date: 2026-08-02
         tracking:
-          - "#307"
           - "#308"
         rationale: >-
           #305 (SEM-222) delivers the typed RL termination/truncation
-          closure-record contract above; the authored episode-structure and
-          interaction-budget SDL contracts and their generated schemas remain
-          owned by the DSL implementation issues #307 (DSL-120) and #308
-          (DSL-121).
+          closure-record contract and #307 (DSL-120) delivers the authored
+          episode-structure SDL contract above; the interaction-budget SDL
+          contract and its generated schemas remain owned by the DSL
+          implementation issue #308 (DSL-121).
       - kind: property_based_or_differential_tests
         date: 2026-08-02
         tracking:

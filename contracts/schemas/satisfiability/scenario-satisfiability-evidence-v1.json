@@ -10757,6 +10757,17 @@
           "default": null,
           "title": "Behavior Mode"
         },
+        "episode_policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantEpisodePolicy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "evidence_contract_refs": {
           "items": {
             "not": {
@@ -10923,6 +10934,394 @@
         "unknown_effect"
       ],
       "title": "ParticipantEffectClass",
+      "type": "string"
+    },
+    "ParticipantEpisodeCompletionCondition": {
+      "additionalProperties": false,
+      "description": "Evidenced assertions that end the episode as completed.",
+      "properties": {
+        "assertion_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Assertion Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "evidence_requirement_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Requirement Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "terminal_reason": {
+          "const": "completed",
+          "title": "Terminal Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "terminal_reason",
+        "assertion_refs",
+        "evidence_requirement_refs"
+      ],
+      "title": "ParticipantEpisodeCompletionCondition",
+      "type": "object"
+    },
+    "ParticipantEpisodeInitialization": {
+      "additionalProperties": false,
+      "description": "Preconditions of every new episode generation.",
+      "properties": {
+        "assertion_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Assertion Refs",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "assertion_refs"
+      ],
+      "title": "ParticipantEpisodeInitialization",
+      "type": "object"
+    },
+    "ParticipantEpisodeInteractionStructure": {
+      "additionalProperties": false,
+      "description": "Turn order authority and the actions a turn offers.",
+      "properties": {
+        "action_contract_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Action Contract Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "order_basis": {
+          "$ref": "#/$defs/ParticipantEpisodeTurnOrderBasis"
+        }
+      },
+      "required": [
+        "order_basis",
+        "action_contract_refs"
+      ],
+      "title": "ParticipantEpisodeInteractionStructure",
+      "type": "object"
+    },
+    "ParticipantEpisodeMemoryScope": {
+      "description": "ADR-095 participant-memory scope across a reset.",
+      "enum": [
+        "episode_local_reset",
+        "persistent_across_episodes"
+      ],
+      "title": "ParticipantEpisodeMemoryScope",
+      "type": "string"
+    },
+    "ParticipantEpisodePolicy": {
+      "additionalProperties": false,
+      "description": "Versioned episode structure intent of a behavior specification.",
+      "properties": {
+        "initialization": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantEpisodeInitialization"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "interaction_structure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantEpisodeInteractionStructure"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "profile": {
+          "const": "participant-episode-policy/v1",
+          "title": "Profile",
+          "type": "string"
+        },
+        "reset_policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantEpisodeResetPolicy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "terminal_conditions": {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[a-z0-9]": {
+              "discriminator": {
+                "mapping": {
+                  "completed": "#/$defs/ParticipantEpisodeCompletionCondition",
+                  "timed_out": "#/$defs/ParticipantEpisodeTimeoutCondition"
+                },
+                "propertyName": "terminal_reason"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/ParticipantEpisodeCompletionCondition"
+                },
+                {
+                  "$ref": "#/$defs/ParticipantEpisodeTimeoutCondition"
+                }
+              ]
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            }
+          },
+          "title": "Terminal Conditions",
+          "type": "object"
+        },
+        "truncation_conditions": {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[a-z0-9]": {
+              "$ref": "#/$defs/ParticipantEpisodeTruncationCondition"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            }
+          },
+          "title": "Truncation Conditions",
+          "type": "object"
+        }
+      },
+      "required": [
+        "profile"
+      ],
+      "title": "ParticipantEpisodePolicy",
+      "type": "object"
+    },
+    "ParticipantEpisodeResetAction": {
+      "description": "ADR-013 control actions that start a later episode.",
+      "enum": [
+        "reset",
+        "restart"
+      ],
+      "title": "ParticipantEpisodeResetAction",
+      "type": "string"
+    },
+    "ParticipantEpisodeResetPolicy": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "memory_reset_authority_ref": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "participant_memory_scope": {
+                "const": "episode_local_reset"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "memory_reset_authority_ref": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "memory_reset_authority_ref"
+            ]
+          }
+        }
+      ],
+      "description": "Admitted reset actions, memory scope, reset authority, and evidence.",
+      "properties": {
+        "control_actions": {
+          "items": {
+            "$ref": "#/$defs/ParticipantEpisodeResetAction"
+          },
+          "minItems": 1,
+          "title": "Control Actions",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "evidence_requirement_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Requirement Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "memory_reset_authority_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Memory Reset Authority Ref"
+        },
+        "participant_memory_scope": {
+          "$ref": "#/$defs/ParticipantEpisodeMemoryScope"
+        }
+      },
+      "required": [
+        "control_actions",
+        "participant_memory_scope",
+        "evidence_requirement_refs"
+      ],
+      "title": "ParticipantEpisodeResetPolicy",
+      "type": "object"
+    },
+    "ParticipantEpisodeTimeoutCondition": {
+      "additionalProperties": false,
+      "description": "Evidenced clock limit that ends the episode as timed out.",
+      "properties": {
+        "evidence_requirement_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Requirement Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "temporal_constraint_ref": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Temporal Constraint Ref",
+          "type": "string"
+        },
+        "terminal_reason": {
+          "const": "timed_out",
+          "title": "Terminal Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "terminal_reason",
+        "temporal_constraint_ref",
+        "evidence_requirement_refs"
+      ],
+      "title": "ParticipantEpisodeTimeoutCondition",
+      "type": "object"
+    },
+    "ParticipantEpisodeTruncationCondition": {
+      "additionalProperties": false,
+      "description": "Evidenced assertions that end the episode as truncated.",
+      "properties": {
+        "assertion_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Assertion Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "evidence_requirement_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Requirement Refs",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "assertion_refs",
+        "evidence_requirement_refs"
+      ],
+      "title": "ParticipantEpisodeTruncationCondition",
+      "type": "object"
+    },
+    "ParticipantEpisodeTurnOrderBasis": {
+      "description": "Authority that orders a participant's turns.",
+      "enum": [
+        "decision-epoch"
+      ],
+      "title": "ParticipantEpisodeTurnOrderBasis",
       "type": "string"
     },
     "ParticipantEvaluationAuthority": {
