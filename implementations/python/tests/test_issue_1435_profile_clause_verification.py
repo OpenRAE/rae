@@ -2,9 +2,10 @@
 
 ``docs/research/runtime-control-plane/conformance.md`` maps every API-404
 clause to the landed code, conformance cases and operator guidance of the
-profiles it binds. These cases cover the run binding that no profile case
-exercised, and keep that map tied to its clauses, the profiles' declared
-guarantees and its cited files.
+profiles it binds. These cases add the run binding no profile case exercised:
+a request for another run through each composition, and a selected P0 store
+rebound to another run. They also keep that map tied to its clauses, the
+profiles' declared guarantees and its cited files.
 """
 
 from __future__ import annotations
@@ -26,7 +27,7 @@ from control_plane_conformance_fixtures import (
 )
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.plan_projection import evaluation_plan_model
-from raes_contracts.planning import EvaluationPlan
+from raes_contracts.planning import ChangeAction, EvaluationOp, EvaluationPlan
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_profiles import ControlPlaneProfile, profile_declaration
 from raes_runtime.control_plane_store_memory import InMemoryControlPlaneStore
@@ -45,6 +46,17 @@ RUN_REFUSALS = {
     "P0": "operation run scope does not match the admitted control-plane store scope",
     "P1": "operation run scope does not match the admitted control-plane store scope",
     "P2": '409 {"detail":"operation conflict"}',
+}
+# An unregistered plan that carries an operation. P2's route checks planner
+# authorization before the core's run check, so it refuses the plan there and
+# records its denial audit. P0 and P1 refuse it on the run check.
+OPERATION_PLAN_REFUSALS = {
+    "P0": (RUN_REFUSALS["P0"], []),
+    "P1": (RUN_REFUSALS["P1"], []),
+    "P2": (
+        '403 {"detail":"evaluation plan is not planner-authorized"}',
+        [("submit_evaluation", False, "planner-authorization-mismatch")],
+    ),
 }
 # Written independently of the requirement document: the profiles each clause binds.
 CLAUSE_PROFILES = {
@@ -68,10 +80,9 @@ _HEADING = re.compile(r"^#+ (.+)$", re.MULTILINE)
 _NOT_IN_ANCHOR = re.compile(r"[^\w -]")
 
 
-def _evaluate(harness: ProfileHarness, run_id: str) -> str:
+def _evaluate(harness: ProfileHarness, plan: EvaluationPlan) -> str:
     """Submit one evaluation plan through the composition's own entry point."""
 
-    plan = EvaluationPlan(run_id=run_id)
     if harness.client is not None:
         response = harness.client.post(
             "/operations/evaluation",
@@ -91,7 +102,7 @@ def _evaluate(harness: ProfileHarness, run_id: str) -> str:
 def test_request_for_another_run_changes_nothing(profile: str, tmp_path: Path) -> None:
     witness = tmp_path / "effects.jsonl"
     with profile_harness(profile, tmp_path) as harness:
-        assert _evaluate(harness, "another-run") == RUN_REFUSALS[profile]
+        assert _evaluate(harness, EvaluationPlan(run_id="another-run")) == RUN_REFUSALS[profile]
 
         assert harness.store.load_records() == {}
         assert harness.store.read_audit() == []
@@ -100,11 +111,27 @@ def test_request_for_another_run_changes_nothing(profile: str, tmp_path: Path) -
 
         # The same plan for the admitted run is accepted, and the same reads see
         # its record, terminal audit, evaluator start and revision.
-        assert _evaluate(harness, ADMITTED_RUN) == ACCEPTED
+        assert _evaluate(harness, EvaluationPlan(run_id=ADMITTED_RUN)) == ACCEPTED
         (operation_id,) = harness.store.load_records()
         assert len(terminal_audits(harness.store, operation_id)) == 1
         assert witness_events(witness) == [{"event": "evaluate", "operation_id": operation_id}]
         assert harness.snapshot_cut()[1] == 1
+
+
+@pytest.mark.parametrize("profile", PROFILES)
+def test_plan_with_operations_for_another_run_leaves_no_record_or_effect(profile: str, tmp_path: Path) -> None:
+    operation = EvaluationOp(
+        action=ChangeAction.CREATE, address="evaluation.assertion.test", resource_type="assertion", payload={}
+    )
+    refusal, audit = OPERATION_PLAN_REFUSALS[profile]
+    with profile_harness(profile, tmp_path) as harness:
+        assert _evaluate(harness, EvaluationPlan(run_id="another-run", operations=[operation])) == refusal
+
+        # Read the audit before the snapshot: P2 audits the snapshot read too.
+        assert [(event.action, event.allowed, event.reason) for event in harness.store.read_audit()] == audit
+        assert harness.store.load_records() == {}
+        assert witness_events(tmp_path / "effects.jsonl") == []
+        assert harness.snapshot_cut() == ({}, 0)
 
 
 def test_selected_p0_store_cannot_be_rebound_to_another_run() -> None:

@@ -81,8 +81,8 @@ relative to `implementations/python/packages/raes_runtime/`, and test paths to
 
 | Clause | Profiles | Implementation | Conformance cases | Operator guidance |
 | --- | --- | --- | --- | --- |
-| `API-404-C1` | P0, P1, P2 | `control_plane.py`, `control_plane_operation_context.py`, `control_plane_admission.py`, `control_plane_mutation.py`, `control_plane_execution.py`, `control_plane_store.py`, `control_plane_store_memory.py` | `test_issue_1187_control_plane_profiles.py`, `test_issue_1187_control_plane_lifecycle_properties.py`, `test_issue_1184_atomic_idempotency_claims.py`, `test_issue_1180_snapshot_revision_cas.py`, `test_issue_1181_unified_control_plane_mutations.py`, `test_issue_1189_control_plane_profile_declarations.py`, `test_issue_1435_profile_clause_verification.py` | [Control-plane operating profiles](../../explain/sdl/runtime-architecture.md#control-plane-operating-profiles) |
-| `API-404-C2` | P1, P2 | `control_plane_store_local.py`, `control_plane_store_local_scope.py`, `control_plane_store_lease.py`, `control_plane_durability.py`, `control_plane_recovery.py` | `test_issue_1187_control_plane_process_loss.py`, `test_issue_1187_control_plane_durable_carriers.py`, `test_issue_1179_startup_reconciliation.py`, `test_issue_1183_store_ownership_leases.py`, `test_issue_1092_control_plane_crash_consistency.py`, `test_issue_1187_control_plane_profiles.py` | [Control-plane operations](../../explain/sdl/control-plane-operations.md) |
+| `API-404-C1` | P0, P1, P2 | `control_plane.py`, `control_plane_configuration.py`, `control_plane_operation_context.py`, `control_plane_admission.py`, `control_plane_mutation.py`, `control_plane_execution.py`, `control_plane_store.py`, `control_plane_store_revision.py`, `control_plane_store_memory.py`, `control_plane_store_local_snapshot.py` | `test_issue_1187_control_plane_profiles.py`, `test_issue_1187_control_plane_lifecycle_properties.py`, `test_issue_1184_atomic_idempotency_claims.py`, `test_issue_1180_snapshot_revision_cas.py`, `test_issue_1181_unified_control_plane_mutations.py`, `test_issue_1189_control_plane_profile_declarations.py`, `test_issue_1435_profile_clause_verification.py` | [Control-plane operating profiles](../../explain/sdl/runtime-architecture.md#control-plane-operating-profiles) |
+| `API-404-C2` | P1, P2 | `control_plane_store_local.py`, `control_plane_store_local_records.py`, `control_plane_store_local_scope.py`, `control_plane_store_local_codec.py`, `control_plane_store_records.py`, `control_plane_store_lease.py`, `control_plane_durability.py`, `control_plane_recovery.py` | `test_issue_1187_control_plane_process_loss.py`, `test_issue_1187_control_plane_durable_carriers.py`, `test_issue_1179_startup_reconciliation.py`, `test_issue_1183_store_ownership_leases.py`, `test_issue_1092_control_plane_crash_consistency.py`, `test_issue_1187_control_plane_profiles.py` | [Control-plane operations](../../explain/sdl/control-plane-operations.md) |
 | `API-404-C3` | P2 | `control_plane_api/__init__.py`, `control_plane_api/_auth.py`, `control_plane_api/_offload.py`, `control_plane_api/_operation_routes.py`, `control_plane_api/_responses.py`, `control_plane_api_guards.py`, `control_plane_api_participant_retrieval.py`, `control_plane_security.py` | `test_issue_1187_control_plane_security_conformance.py`, `test_issue_1359_runtime_api_trust_boundary.py`, `test_issue_1093_request_rejection_offload.py`, `test_runtime_control_plane_api.py`, `test_issue_1187_control_plane_profiles.py` | [Serve the runtime control plane](../../public/guides/control-plane.md) |
 | `API-404-C4` | P0, P1, P2; P3 is unavailable | `control_plane_profiles.py` | `test_issue_1189_control_plane_profile_declarations.py`, `test_issue_1185_api_404_profile_alignment.py`, `test_issue_1187_control_plane_process_loss.py` | [Control-plane operating profiles](../../explain/sdl/runtime-architecture.md#control-plane-operating-profiles) and the limits above |
 
@@ -97,17 +97,29 @@ Each property #8 names is checked on every profile that guarantees it:
   (`test_issue_1435_profile_clause_verification.py::test_selected_p0_store_cannot_be_rebound_to_another_run`).
   A P1 or P2 store refuses both
   (`test_issue_1187_control_plane_profiles.py::test_profile_lease_scope_and_restore_keep_receipts_and_claims`).
-  On every profile, a request for another run leaves no record, effect, audit
-  or revision change. The same request for the admitted run adds one record,
-  one terminal audit and one evaluator start in the backend-effect witness, and
-  moves the snapshot revision from 0 to 1
+  On every profile, an evaluation plan for another run that carries no
+  operations or observation demands leaves no record, effect, audit or revision
+  change. The same plan for the admitted run adds one record, one terminal
+  audit and one evaluator start in the backend-effect witness, and moves the
+  snapshot revision from 0 to 1
   (`test_issue_1435_profile_clause_verification.py::test_request_for_another_run_changes_nothing`).
-  The refusal is not an admission denial, which creates audit only under the
-  [CP-9 preflight](../../decisions/issue-1187-control-plane-conformance-preflight.md).
-  The [CP-5 preflight](../../decisions/issue-1183-store-ownership-lease-preflight.md)
+  On P2, the provisioning, orchestration and evaluation routes check planner
+  authorization for a plan that carries operations or observation demands,
+  before the core's run check (`control_plane_api/_operation_routes.py`). So P2
+  refuses an unregistered evaluation plan for another run that carries an
+  operation with 403 and the route's `planner-authorization-mismatch` denial
+  audit. P0 and P1 refuse it on the run check with no audit. No profile adds a
+  record or effect, and the revision stays 0
+  (`test_issue_1435_profile_clause_verification.py::test_plan_with_operations_for_another_run_leaves_no_record_or_effect`).
+  The run refusal itself is not an admission denial, which the
+  [CP-2 preflight](../../decisions/issue-1181-unified-control-plane-mutations-preflight.md)
+  defines as an `accepted=False` receipt plus the bounded denial audit and no
+  stored operation. P0 and P1 raise `ValueError` and P2 answers 409, with no
+  receipt. The
+  [CP-5 preflight](../../decisions/issue-1183-store-ownership-lease-preflight.md)
   requires a request for another run to fail before claim or disclosure, and
   `operation_admission_context()` refuses it before building the operation
-  context that an admission-denial audit records.
+  context that the core's admission-denial audit records.
 - **Atomic state and audit.** Every operation kind commits its terminal state
   with exactly one actor-bound audit on P0 and P1
   (`test_issue_1187_control_plane_lifecycle_properties.py::test_each_operation_kind_commits_one_immutable_actor_bound_terminal_cut`),

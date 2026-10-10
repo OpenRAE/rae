@@ -239,7 +239,7 @@ identifies those implementation gaps and the retained canonical requirements.
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1185-api-404-profile-alignment-preflight.md` (CP-11 profile and evidence boundaries)
 - TESTS → TEST `implementations/python/tests/test_issue_1185_api_404_profile_alignment.py` (Clause matrix, profile catalog, nonclaims, public documentation, and local-evidence drift checks)
 - DOCUMENTS → GITHUB_ISSUE `1435` (API-404 clause-to-profile evidence map and run binding on every profile)
-- TESTS → TEST `implementations/python/tests/test_issue_1435_profile_clause_verification.py` (Out-of-run requests refused without record, evaluator effect, audit, or revision change on P0, P1, and P2; P0 run rebinding refused; clause-map profiles checked against profile declarations; citation and link drift checks)
+- TESTS → TEST `implementations/python/tests/test_issue_1435_profile_clause_verification.py` (Out-of-run evaluation plans refused on P0, P1, and P2 without record, evaluator effect, or revision change, and without audit unless P2's planner-authorization check refuses an unregistered plan with operations first; P0 run rebinding refused; clause-map profiles checked against profile declarations; citation and link drift checks)
 - DOCUMENTS → GITHUB_ISSUE `1186` (CP-12: Recovery runbook and operator tooling)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1186-control-plane-recovery-operations-preflight.md` (CP-12 recovery, maintenance, health, and disclosure boundaries)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/control-plane-operations.md` (Operator recovery, health, shutdown, backup, restore, and upgrade runbook)
