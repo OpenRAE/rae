@@ -1606,6 +1606,7 @@ def test_github_attachment_fails_closed_on_an_uncertain_asset_listing(tmp_path: 
     )
 
     assert result.returncode != 0
+    assert "could not list release assets" in result.stderr
     assert "upload" not in (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines()
 
 

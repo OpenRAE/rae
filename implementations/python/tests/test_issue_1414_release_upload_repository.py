@@ -1,11 +1,19 @@
 """Workflow ``gh`` calls outside a repository checkout must name their repository (#1414).
 
-``gh`` resolves subcommands such as ``gh release`` against the local git checkout
-unless the call names the repository through ``--repo``/``-R``, ``GH_REPO``, a
-GitHub URL, or an ``OWNER/REPO`` argument. Before a same-repository
-``actions/checkout`` runs at the workspace root there is no checkout to resolve
-against, so an unnamed call fails with ``fatal: not a git repository``. That is
-how the v6.0.1 GitHub Release stayed a draft after PyPI publication succeeded.
+``gh`` resolves the repository for subcommands such as ``gh release`` from the
+local git checkout unless ``--repo``/``-R`` or ``GH_REPO`` names it. Before a
+same-repository ``actions/checkout`` runs at the workspace root there is no
+checkout to resolve against, so an unnamed call fails with ``fatal: not a git
+repository``. That is how the v6.0.1 GitHub Release stayed a draft after PyPI
+publication succeeded.
+
+The scan credits only those two mechanisms. It ignores quoted text, so a
+``--repo`` or ``-R`` inside a value such as ``--notes`` or ``--body`` does not
+count, and it does not credit a GitHub URL or ``OWNER/REPO`` argument, which only
+some subcommands accept. Coverage follows step order alone: a same-repository
+checkout at the workspace root covers every later step in its job, even if
+``if:`` skips that checkout or a later step runs elsewhere through
+``working-directory`` or ``cd``.
 """
 
 from __future__ import annotations
@@ -20,13 +28,18 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[3]
 WORKFLOWS = REPO_ROOT / ".github" / "workflows"
 
-# ``gh api`` addresses the repository through its endpoint path, so it is out of scope.
+# Subcommands that otherwise resolve their repository from the local checkout. ``gh api``
+# addresses it through the endpoint path and ``gh attestation`` requires ``--owner`` or
+# ``--repo``, so neither is listed. Accepted false positives, which a step can satisfy with
+# ``GH_REPO``: org-scoped calls (``--org``) and calls that take their repository, owner, or
+# URL as an argument, such as ``gh repo clone OWNER/REPO``, ``gh repo list OWNER``, or
+# ``gh pr view URL``.
 _REPOSITORY_SCOPED_GH = re.compile(
-    r"(?<![\w./-])gh\s+(attestation|cache|issue|label|pr|release|repo|run|secret|variable|workflow)\b"
+    r"(?<![\w./-])gh\s+(browse|cache|discussion|issue|label|pr|release|repo|ruleset|run|secret|variable|workflow)\b"
 )
 _COMMAND_TERMINATORS = ";|&)`"
-_NAMES_REPOSITORY = re.compile(r"(?:^|\s)(?:--repo(?:=|\s)|-R)|https://github\.com/")
-_OWNER_REPO_ARGUMENT = re.compile(r"\s[\w.-]+/[\w.-]+(?:\s|$)")
+_NAMES_REPOSITORY = re.compile(r"(?:^|\s)(?:--repo(?:=|\s)|-R)")
+_QUOTED_SPAN = re.compile(r"'[^']*'|\"[^\"]*\"")
 _CONTINUATION = re.compile(r"\\\n\s*")
 _SAME_REPOSITORY = "${{github.repository}}"
 
@@ -67,12 +80,10 @@ def _unnamed_repository_calls(script: str) -> list[str]:
         if line.lstrip().startswith("#"):
             continue
         for match in _REPOSITORY_SCOPED_GH.finditer(line):
-            tail = _command_tail(line, match.end())
-            named = (
-                "GH_REPO=" in _command_head(line, match.start())
-                or _NAMES_REPOSITORY.search(tail) is not None
-                or (match.group(1) == "repo" and _OWNER_REPO_ARGUMENT.search(tail) is not None)
-            )
+            # Blank quoted values such as release notes, so only a flag outside them counts;
+            # ``--repo "${GITHUB_REPOSITORY}"`` still reads as ``--repo ""``.
+            tail = _QUOTED_SPAN.sub('""', _command_tail(line, match.end()))
+            named = "GH_REPO=" in _command_head(line, match.start()) or _NAMES_REPOSITORY.search(tail) is not None
             if not named:
                 offending.append(line.strip())
     return offending
@@ -113,8 +124,13 @@ def _violations(workflow: dict[str, Any], name: str) -> list[str]:
         ('gh pr view "${number}" --json body', True),
         ('gh release view "${tag}" && gh release upload "${tag}" asset --repo "${GITHUB_REPOSITORY}"', True),
         ('GH_REPO="${GITHUB_REPOSITORY}" gh release upload "${tag}" asset', False),
-        ("gh repo clone OpenRAE/rae", False),
-        ("gh pr view https://github.com/OpenRAE/rae/pull/1", False),
+        ('gh release create "${TAG}" --notes "See https://github.com/OpenRAE/rae/blob/main/CHANGELOG.md"', True),
+        ('gh pr comment "${PR}" --body "pass --repo next time"', True),
+        ("gh release edit \"${TAG}\" --notes 'Use -R for the repo'", True),
+        ('gh attestation verify "${wheel}" --owner OpenRAE', False),
+        ("gh ruleset list", True),
+        ("gh browse --no-browser", True),
+        ("gh discussion list", True),
         ('gh release view "${tag}" --repo "${GITHUB_REPOSITORY}" --json assets --jq \'.assets[] | .name\'', False),
         ('id="$(gh release view "${tag}" --json databaseId)"', True),
         ('id="$(gh release view "${tag}" --repo "${GITHUB_REPOSITORY}" --json databaseId)"', False),
