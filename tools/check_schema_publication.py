@@ -220,14 +220,14 @@ def _git_show(repo_root: Path, gitref: str) -> str | None:
 
 def _git_paths(repo_root: Path, revision: str, directory: str) -> list[str] | None:
     proc = subprocess.run(
-        ["git", "ls-tree", "-r", "--name-only", revision, "--", directory],
+        ["git", "ls-tree", "-r", "--name-only", "-z", revision, "--", directory],
         cwd=repo_root,
         capture_output=True,
         text=True,
     )
     if proc.returncode != 0:
         return None
-    return sorted(path for path in proc.stdout.splitlines() if path.endswith(".json"))
+    return sorted(path for path in proc.stdout.split("\0") if path.endswith(".json"))
 
 
 def _manifest_entries(payload: dict[str, Any]) -> dict[str, dict[str, Any]]:
