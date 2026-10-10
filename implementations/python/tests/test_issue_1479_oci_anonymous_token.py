@@ -326,8 +326,9 @@ def _import_root(directory: Path, registry: _Server) -> Path:
     return root
 
 
+@pytest.mark.parametrize("imports", [1, 2], ids=["one-import", "two-imports"])
 def test_import_uses_one_anonymous_token_and_retries_each_request_once(
-    tmp_path: Path, layout: _Layout, serve: Callable[..., _Server], https: ssl.SSLContext
+    tmp_path: Path, layout: _Layout, serve: Callable[..., _Server], https: ssl.SSLContext, imports: int
 ) -> None:
     token = _new_token()
     token_server = serve(_fixed_route(_json({"token": token})), tls=https)
@@ -335,21 +336,23 @@ def test_import_uses_one_anonymous_token_and_retries_each_request_once(
     registry = serve(
         _registry_route(layout, token=token, challenges=[_challenge(token_server)], blob_location=storage.origin)
     )
+    root = _import_root(tmp_path, registry)
 
-    scenario = parse_sdl_file(_import_root(tmp_path, registry))
+    scenarios = [parse_sdl_file(root) for _ in range(imports)]
 
-    assert set(scenario.nodes) == {"shared.vm"}
-    assert token_server.seen == [_Seen(f"/token?{TOKEN_QUERY}", None)]
+    assert [set(scenario.nodes) for scenario in scenarios] == imports * [{"shared.vm"}]
+    # The token cache lives for one import resolution, so each import requests its own token.
+    assert token_server.seen == imports * [_Seen(f"/token?{TOKEN_QUERY}", None)]
     resources = [
         f"/v2/{REPOSITORY}/tags/list",
         f"/v2/{REPOSITORY}/manifests/{layout.tag}",
         f"/v2/{REPOSITORY}/blobs/{layout.config_digest}",
         f"/v2/{REPOSITORY}/blobs/{layout.bundle_digest}",
     ]
-    assert registry.seen == [
+    assert registry.seen == imports * [
         attempt for path in resources for attempt in (_Seen(path, None), _Seen(path, f"Bearer {token}"))
     ]
-    assert storage.seen == [
+    assert storage.seen == imports * [
         _Seen(f"/storage/{digest}?{SIGNED_QUERY}", None) for digest in (layout.config_digest, layout.bundle_digest)
     ]
 
@@ -509,16 +512,21 @@ def test_token_response_is_read_under_the_metadata_limit(
     layout: _Layout, serve: Callable[..., _Server], https: ssl.SSLContext, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     token = _new_token()
-    token_server = serve(_fixed_route(_json({"token": token, "padding": "x" * 64})), tls=https)
+    response = _json({"token": token, "padding": "x" * 64})
+    token_server = serve(_fixed_route(response), tls=https)
     registry = serve(_registry_route(layout, token=token, challenges=[_challenge(token_server)]))
     limits = replace(module_registry._OCI_LIMITS, max_metadata_bytes=64)
     monkeypatch.setattr(module_registry, "_OCI_LIMITS", limits)
 
     url = _url(registry, "tags/list")
 
-    with pytest.raises(SDLParseError, match="exceeding the 64-byte limit"):
+    with pytest.raises(SDLParseError) as exc_info:
         module_registry._json_request(url)
 
+    # The message names the requested URL, not the token URL built from the challenge.
+    assert str(exc_info.value) == (
+        f"OCI response from {url} declares Content-Length {len(response[2])} bytes, exceeding the 64-byte limit"
+    )
     assert len(registry.seen) == 1
 
 
@@ -648,6 +656,11 @@ def test_bearer_challenge_grammar_rejects_malformed_challenges(header: str) -> N
         ("https://auth.test:99999/token", False),
         ("https://auth.test/a b", False),
         ("https://[::1/token", False),
+        # urllib percent-decodes the host it connects to, and the socket layer IDNA-encodes it.
+        ("https://a%20b.test/token", False),
+        ("https://a%0a.test/token", False),
+        ("https://a..test/token", False),
+        (f"https://{'a' * 64}.test/token", False),
     ],
 )
 def test_token_realm_must_be_an_absolute_https_url(realm: str, accepted: bool) -> None:

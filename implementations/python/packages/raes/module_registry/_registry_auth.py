@@ -111,12 +111,19 @@ def _parse_bearer_challenge(value: str) -> _BearerChallenge:
 
 
 def _is_https_url(url: str) -> bool:
-    """Accept only an absolute ``https`` URL with a host and no userinfo, fragment or whitespace."""
+    """Accept only an absolute ``https`` URL with a host and no userinfo, fragment or whitespace.
+
+    urllib percent-decodes the host it connects to and the socket layer IDNA-encodes
+    it, so a ``%`` in the authority or a host the IDNA codec refuses is rejected here,
+    rather than failing later outside ``SDLParseError``.
+    """
 
     try:
         parts = urlsplit(url)
-        # ``port`` raises ValueError when the port is out of range.
+        # ``port`` raises ValueError when the port is out of range, and the IDNA codec
+        # raises UnicodeError, also a ValueError, for an empty or over-long label.
         port_valid = parts.port is None or parts.port > 0
+        host = (parts.hostname or "").encode("idna")
     except ValueError:
         return False
     return all(
@@ -124,8 +131,9 @@ def _is_https_url(url: str) -> bool:
             port_valid,
             _URL_TEXT.fullmatch(url) is not None,
             parts.scheme == "https",
-            bool(parts.hostname),
+            bool(host),
             "@" not in parts.netloc,
+            "%" not in parts.netloc,
             not parts.fragment,
         )
     )
@@ -166,7 +174,8 @@ def _anonymous_token(challenge: _BearerChallenge, *, url: str) -> str:
     request = Request(token_url, headers={"Accept": "application/json"})  # noqa: S310 - validated https realm
     try:
         with opener.open(request, timeout=_OCI_LIMITS.timeout_seconds) as response:
-            payload = _read_capped(response, url=token_url, max_bytes=_OCI_LIMITS.max_metadata_bytes)
+            # Messages name the requested URL only, never the challenge-derived token URL.
+            payload = _read_capped(response, url=url, max_bytes=_OCI_LIMITS.max_metadata_bytes)
     except URLError as exc:
         raise SDLParseError(f"Failed to obtain an anonymous OCI registry token for {url}") from exc
     document = _decode_json_object(payload, context=f"OCI registry token response for {url}")
