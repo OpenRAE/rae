@@ -101,8 +101,8 @@ these rules.
 
 | Field | Allowed values | What the gate checks |
 |-------|----------------|----------------------|
-| `contract` | `sdl-yaml/v1`, the default when absent, or `experiment-authoring-input-v1` for a template | The value is allowed for the entry. It selects how a `validated` body is checked and which `intended_user` the entry names. |
-| `validation_status` | `validated` or `guidance` | For `validated`, the gate checks the template body or worked-example file against its contract. SDL goes through the SDL parser and semantic validator, on the worked-example file or on the template body as PyYAML loads it from the template file, and fails on any error or advisory they report. `experiment-authoring-input-v1` goes through the experiment authoring-input loader and fails on any error. A `guidance` file is not checked against a contract. Templates must be `validated`; patterns must be `guidance`. |
+| `contract` | `sdl-yaml/v1`, the default when absent, or `experiment-authoring-input-v1` for a run or study template | The value is allowed for the entry. It selects how a `validated` body is checked and which `intended_user` the entry names. |
+| `validation_status` | `validated` or `guidance` | For `validated`, the gate checks the template body or worked-example file against its contract. SDL goes through the SDL parser and semantic validator, on the worked-example file or on the template body as PyYAML loads it from the template file, and fails on any error or advisory they report. `experiment-authoring-input-v1` goes through the experiment authoring-input loader and fails on any error it reports for the body as PyYAML `safe_load` reads it from the template file. That read keeps the last of duplicate keys and expands scalar aliases and `<<` merge keys, which the loader rejects in a saved copy. A `guidance` file is not checked against a contract. Templates must be `validated`; patterns must be `guidance`. |
 | `sdl_sections` | Top-level section names from [`../specs/sdl/sections.md`](../specs/sdl/sections.md), such as `nodes` or `workflows` | Present for SDL entries and absent otherwise. Each name is a current SDL section, not a metadata or composition field such as `name` or `imports`. For a `validated` entry, each listed section is present in the validated SDL. |
 | `intended_user` | `sdl-author` for SDL entries, `experiment-author` for `experiment-authoring-input-v1` templates | The value matches the entry's contract. |
 | `limits` | One or more short statements of what the entry does not show | The list is present and not empty. Reviewers check the wording. |
@@ -165,14 +165,21 @@ The task, run, and study surfaces keep these parts separate:
     the `experiment-task-v1` contract, and every task needs an artifact
     reference with a checksum, size, and creation time that a reusable
     template would have to invent.
-  - Resolving `task_ref` and checking condition factor levels against the
-    declared factors. The experiment authoring-input loader does neither.
+  - Resolving `task_ref`, and checking condition factor levels that no
+    binding descriptor or stratified selection stratum joins. The experiment
+    authoring-input loader does neither. It does check joined levels against
+    the declared factors and the condition assignment: binding descriptors
+    under `binding_semantics: explicit-required`
+    ([ADR-094](../docs/decisions/adrs/adr-094-authoritative-cross-plane-experiment-bindings.md))
+    and stratified selection strata. The shipped `two-condition-study-design`
+    body joins none, so the loader does not check its levels.
   - Admitting, scheduling, or running a plan, and the `experiment-run-v1` and
     `experiment-study-v1` records that describe actual executions and
     analyses.
 
 To check an adapted copy of an experiment template, save its `body` as
-`my-experiment.exp.yaml` and run:
+`my-experiment.exp.yaml` in the repository root and run this command from
+there:
 
 ```shell
 uv run --project implementations/python --frozen python -c "import sys; from pathlib import Path; from raes_contracts.experiment_spec import load_experiment_spec; print(load_experiment_spec(Path(sys.argv[1])).spec_id)" my-experiment.exp.yaml

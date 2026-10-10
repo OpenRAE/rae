@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ruff: noqa: E402, I001
-"""Structural and SDL-validation gate for the AUT-806 example library."""
+"""Structural, SDL, and experiment authoring-input validation gate for the AUT-806 example library."""
 
 from __future__ import annotations
 
@@ -263,7 +263,7 @@ def _check_reference_entry(
             )
 
     failures.extend(_check_unique_id(entry.get("id"), f"surfaces.{surface}.{field}[{index}]", seen_ids))
-    failures.extend(check_entry_metadata(field, entry, f"surfaces.{surface}.{field}[{index}]"))
+    failures.extend(check_entry_metadata(field, entry, f"surfaces.{surface}.{field}[{index}]", surface=surface))
     absolute, relative, path_failure = _repo_relative_path(
         entry.get("path"),
         repo_root=repo_root,
@@ -313,7 +313,7 @@ def _check_artifact_entries(
                 )
         entry_id = entry.get("id")
         failures.extend(_check_unique_id(entry_id, f"surfaces.{surface}.{field}[{index}]", seen_ids))
-        failures.extend(check_entry_metadata(field, entry, f"surfaces.{surface}.{field}[{index}]"))
+        failures.extend(check_entry_metadata(field, entry, f"surfaces.{surface}.{field}[{index}]", surface=surface))
         absolute, relative, path_failure = _repo_relative_path(
             entry.get("path"),
             repo_root=repo_root,

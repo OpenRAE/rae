@@ -145,7 +145,7 @@ surfaces:
         limits:
           - SDL has no first-class tasks section, and an objective written this way is not an experiment-task-v1 record.
   run:
-    summary: Run-oriented authoring with story, script, event, workflow, and objective windows.
+    summary: Run-oriented authoring with story, script, event, workflow, and objective windows, plus a pre-run experiment run plan.
     worked_examples:
       - id: hospital-run-story
         path: examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml
@@ -180,7 +180,7 @@ surfaces:
         limits:
           - SDL has no first-class runs section; the pattern maps a run onto stories, scripts, events, and objective windows.
   study:
-    summary: Study-oriented authoring with observable conditions, objectives, and workflow protocol. Graded scoring is an experiment/evaluator-plane concern per ADR-073.
+    summary: Study-oriented authoring with observable conditions, objectives, and workflow protocol, plus a pre-run two-condition experiment design. Graded scoring is an experiment/evaluator-plane concern per ADR-073.
     worked_examples:
       - id: satcom-study-scenario
         path: examples/scenarios/satcom-release-poisoning.sdl.yaml
@@ -205,7 +205,8 @@ surfaces:
         intended_user: experiment-author
         limits:
           - Pre-run design only; it is not an experiment-study-v1 record and declares no analysis plan.
-          - The loader does not resolve task_ref or check condition factor levels against the declared factors.
+          - The loader does not resolve task_ref. As shipped, the body joins no factor level through an explicit-required binding descriptor or a stratified selection stratum, so the loader does not check its condition factor levels against the declared factors.
+          - The required_parameters are descriptive data that bind no configuration target; binding_semantics explicit-required rejects them and needs binding descriptors instead (ADR-094).
     patterns:
       - id: observable-study-conditions
         path: examples/library/patterns/observable-study-conditions.yaml

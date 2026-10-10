@@ -29,6 +29,9 @@ CONTRACT_USERS: dict[str, str] = {
     SDL_CONTRACT: "sdl-author",
     EXPERIMENT_CONTRACT: "experiment-author",
 }
+# An authoring input is a pre-run design that names its task by reference
+# (ADR-074), so only run and study templates may hold one.
+EXPERIMENT_SURFACES: frozenset[str] = frozenset({"run", "study"})
 # Top-level SDL fields that specs/sdl/sections.md classifies as metadata or
 # composition rather than as sections. The SDL catalog parity gate keeps these
 # sets in step with that catalog.
@@ -51,7 +54,7 @@ def _sdl_section_names() -> frozenset[str]:
     return frozenset(Scenario.model_fields) - NON_SECTION_FIELDS
 
 
-def check_entry_metadata(field: str, entry: dict[str, Any], owner: str) -> list[PolicyFailure]:
+def check_entry_metadata(field: str, entry: dict[str, Any], owner: str, *, surface: str) -> list[PolicyFailure]:
     """Check the validation status, limits, contract, intended user, and SDL sections of one catalog entry."""
     failures: list[PolicyFailure] = []
     allowed_statuses = (
@@ -68,7 +71,8 @@ def check_entry_metadata(field: str, entry: dict[str, Any], owner: str) -> list[
     if not _text_list(entry.get("limits")):
         failures.append(_fail("example-library-entry-limits", f"{owner}.limits must be a non-empty list of strings"))
     contract = entry.get("contract", SDL_CONTRACT)
-    allowed_contracts = tuple(CONTRACT_USERS) if field == "templates" else (SDL_CONTRACT,)
+    experiment_allowed = field == "templates" and surface in EXPERIMENT_SURFACES
+    allowed_contracts = tuple(CONTRACT_USERS) if experiment_allowed else (SDL_CONTRACT,)
     if contract not in allowed_contracts:
         failures.append(
             _fail(
