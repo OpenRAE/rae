@@ -141,10 +141,6 @@ class _SectionsMixin:
         """Collect all named element keys across all scenario sections."""
         return set(self._named_ref_index().keys())
 
-    def _all_targetable_elements(self) -> set[str]:
-        """Collect named elements that can serve as objective targets."""
-        return set(self._named_ref_index(targetable=True).keys())
-
     def _verify_features(self) -> None:
         self._verify_feature_dependency_cycles()
 

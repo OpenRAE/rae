@@ -8,20 +8,40 @@ share one implementation.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from typing import Any
 
 import yaml
 from pydantic import ValidationError
 
-from ._declarations import DeclarationIndex, build_declaration_index
+from ._base import is_variable_ref, normalize_enum_value
+from ._declarations import (
+    Declaration,
+    DeclarationIndex,
+    build_declaration_index,
+    operating_scope_aliases,
+    preferred_spelling,
+)
 from ._errors import SDLParseError, SDLValidationError
 from ._language_diagnostics import diagnostic as _diagnostic
 from ._language_diagnostics import invalid as _invalid
 from ._language_diagnostics import parse_error as _parse_error
 from ._language_edit import apply_edit
-from ._language_metadata import REFERENCE_COMPLETION_TARGETS, SECTION_FIELD_COMPLETIONS
-from ._language_references import find_references
-from ._reference_targetability import is_targetable_section
+from ._language_metadata import (
+    REFERENCE_COMPLETION_TARGETS,
+    RELATIONSHIP_ENDPOINT_DOMAIN,
+    SECTION_FIELD_COMPLETIONS,
+    VARIATION_SLOT_TARGETS,
+)
+from ._language_references import PurposeResolver, find_references
+from ._reference_targetability import (
+    ReferencePurpose,
+    is_eligible,
+    purpose_for_domain,
+    reference_domain,
+    relationship_endpoint_purpose,
+    section_declaration_kind,
+)
 from .formatting import format_sdl_source
 from .parser import _load_normalized_data, parse_sdl
 from .scenario import Scenario
@@ -31,7 +51,15 @@ _SCENARIO_METADATA_FIELDS = frozenset(
     {"name", "version", "description", "semantic_revision", "module", "imports", "realization"}
 )
 _SECTION_FIELDS = tuple(field for field in Scenario.model_fields if field not in _SCENARIO_METADATA_FIELDS)
-_TARGETABLE_SECTION_FIELDS = tuple(field for field in _SECTION_FIELDS if is_targetable_section(field))
+# Infrastructure keys mirror node names, so the declaration index gives them no bare alias.
+_QUALIFIED_ONLY_SECTIONS = frozenset({"infrastructure"})
+_SUCCESS_COMPLETION_TARGETS = {"conditions": "conditions"}
+# Participant-relationship refinements that validation keeps within what endpoints hold:
+# field -> (endpoint fields, participant field, purpose of that participant field).
+_ENDPOINT_BOUNDED_REFINEMENTS = {
+    "scope_refs": (("source", "target"), "operating_scope", ReferencePurpose.OPERATING_SCOPE),
+    "authority_basis_refs": (("source",), "authority_anchors", ReferencePurpose.AUTHORITY_ANCHOR),
+}
 _TOP_LEVEL_KEYS = tuple(Scenario.model_fields)
 
 
@@ -49,12 +77,20 @@ def language_completions(
     data, error = _load_completion_data(sdl_content)
     if error is not None:
         return error
-    declaration_index = _declaration_index_from_data(data)
+    scenario = _scenario_from_data(data)
+    declaration_index = None if scenario is None else build_declaration_index(scenario, raise_on_collision=False)
 
     pointer = _split_pointer_or_empty(cursor_path)
-    target_section = _completion_target_section(pointer)
+    target_section = _completion_target_section(pointer, data)
     if target_section is not None:
-        items = _reference_completion_items(data, target_section, declaration_index=declaration_index)
+        items = _reference_completion_items(
+            data,
+            target_section,
+            pointer=pointer,
+            scenario=scenario,
+            declaration_index=declaration_index,
+            resolver=_purpose_resolver(data, scenario, declaration_index),
+        )
         context = f"reference:{target_section}"
     elif len(pointer) == 1 and pointer[0] in SECTION_FIELD_COMPLETIONS:
         section = pointer[0]
@@ -105,30 +141,60 @@ def language_references(sdl_content: str, symbol: str) -> dict[str, Any]:
     if size_error is not None:
         return size_error
 
+    declaration_index, resolver = _reference_context(sdl_content)
     return find_references(
         sdl_content,
         symbol,
         section_fields=_SECTION_FIELDS,
-        declaration_index=_try_declaration_index(sdl_content),
+        declaration_index=declaration_index,
+        resolver=resolver,
     )
 
 
-def _try_declaration_index(sdl_content: str) -> DeclarationIndex | None:
-    """Return the authoritative index for a complete structural document."""
+def _reference_context(sdl_content: str) -> tuple[DeclarationIndex | None, PurposeResolver | None]:
+    """Return the authoritative index of a complete structural document and the resolver its fields use."""
 
     try:
         data = _load_normalized_data(sdl_content)
     except SDLParseError:
-        return None
-    return _declaration_index_from_data(data)
+        return None, None
+    scenario = _scenario_from_data(data)
+    declaration_index = None if scenario is None else build_declaration_index(scenario, raise_on_collision=False)
+    return declaration_index, _purpose_resolver(data, scenario, declaration_index)
 
 
-def _declaration_index_from_data(data: dict[str, Any]) -> DeclarationIndex | None:
+def _scenario_from_data(data: dict[str, Any]) -> Scenario | None:
     try:
-        scenario = Scenario.model_validate(data)
+        return Scenario.model_validate(data)
     except ValidationError:
         return None
-    return build_declaration_index(scenario, raise_on_collision=False)
+
+
+def _purpose_resolver(
+    data: dict[str, Any], scenario: Scenario | None, declaration_index: DeclarationIndex | None
+) -> PurposeResolver:
+    """Resolve references as validation does; an incomplete document resolves among its top-level entries."""
+
+    if scenario is None or declaration_index is None:
+        # Node types, and so operating scopes, are known only for a structurally valid document.
+        return PurposeResolver(_entry_index(data), {})
+    return PurposeResolver(declaration_index, operating_scope_aliases(declaration_index, scenario))
+
+
+def _entry_index(data: dict[str, Any]) -> DeclarationIndex:
+    """Index the top-level entries of a document that does not validate yet, with their bare aliases."""
+
+    index = DeclarationIndex()
+    for section in _SECTION_FIELDS:
+        kind = section_declaration_kind(section)
+        entries = data.get(section)
+        if not is_eligible(kind, ReferencePurpose.DECLARED) or not isinstance(entries, dict):
+            continue
+        for name in entries:
+            address = f"{section}.{name}"
+            aliases = () if section in _QUALIFIED_ONLY_SECTIONS else (str(name),)
+            index.add(Declaration(kind=kind, address=address, model_path=address), aliases=aliases)
+    return index
 
 
 def language_format(sdl_content: str) -> dict[str, Any]:
@@ -226,70 +292,132 @@ def _load_completion_data(sdl_content: str) -> tuple[dict[str, Any], dict[str, A
         return {}, _parse_error(exc)
 
 
-def _completion_target_section(pointer: list[str]) -> str | None:
+def _completion_target_section(pointer: list[str], data: dict[str, Any]) -> str | None:
     if len(pointer) < 3:
         return None
-    section = pointer[0]
-    field = pointer[-1]
-    target = REFERENCE_COMPLETION_TARGETS.get((section, field))
-    if target is not None:
-        return target
-    if len(pointer) >= 4 and pointer[-2] == "success":
-        success_targets = {
-            "conditions": "conditions",
-        }
-        return success_targets.get(field)
-    return None
+    target = REFERENCE_COMPLETION_TARGETS.get((pointer[0], pointer[-1]))
+    if target == RELATIONSHIP_ENDPOINT_DOMAIN and len(pointer) == 3:
+        target = reference_domain(relationship_endpoint_purpose(_relationship_type(data, pointer[1])))
+    elif pointer[0] == "variation_points" and pointer[-1] in VARIATION_SLOT_TARGETS:
+        target = VARIATION_SLOT_TARGETS[pointer[-1]].get(_variation_slot(data, pointer[1]), target)
+    elif target is None and len(pointer) >= 4 and pointer[-2] == "success":
+        target = _SUCCESS_COMPLETION_TARGETS.get(pointer[-1])
+    return target
+
+
+def _entry(data: dict[str, Any], section: str, name: str) -> dict[str, Any]:
+    entries = data.get(section)
+    entry = entries.get(name) if isinstance(entries, dict) else None
+    return entry if isinstance(entry, dict) else {}
+
+
+def _relationship_type(data: dict[str, Any], name: str) -> str:
+    """Return the authored relationship subtype, even in an incomplete document."""
+
+    relationship = _entry(data, "relationships", name)
+    if "participant" in relationship:
+        return "participant"
+    raw_type = relationship.get("type")
+    return normalize_enum_value(raw_type) if isinstance(raw_type, str) else ""
+
+
+def _variation_slot(data: dict[str, Any], name: str) -> str:
+    """Return the authored target slot of a variation point, even in an incomplete document."""
+
+    target = _entry(data, "variation_points", name).get("target")
+    slot = target.get("slot") if isinstance(target, dict) else None
+    return slot if isinstance(slot, str) else ""
+
+
+def _reference_item(label: str, detail: str) -> dict[str, str]:
+    return {"label": label, "kind": "reference", "detail": detail, "insert_text": label}
+
+
+def _sorted_items(items: Iterable[dict[str, str]]) -> list[dict[str, str]]:
+    return sorted(items, key=lambda item: (item["detail"], item["label"]))
 
 
 def _reference_completion_items(
     data: dict[str, Any],
     target_section: str,
     *,
+    pointer: list[str],
+    scenario: Scenario | None,
     declaration_index: DeclarationIndex | None,
+    resolver: PurposeResolver,
 ) -> list[dict[str, str]]:
-    if declaration_index is not None and target_section in {"any", "targetable"}:
-        return sorted(
-            (
-                {
-                    "label": spelling,
-                    "kind": "reference",
-                    "detail": declaration.address,
-                    "insert_text": spelling,
-                }
-                for spelling, declaration in declaration_index.reference_completions(
-                    targetable=target_section == "targetable"
-                )
-            ),
-            key=lambda item: (item["detail"], item["label"]),
-        )
-    if target_section == "any":
-        sections = _SECTION_FIELDS
-    elif target_section == "targetable":
-        sections = _TARGETABLE_SECTION_FIELDS
-    elif target_section == "workflow_steps":
+    purpose = purpose_for_domain(target_section)
+    if purpose is not None:
+        return _purpose_completion_items(purpose, pointer=pointer, scenario=scenario, resolver=resolver)
+    if target_section == "workflow_steps":
         return _workflow_step_completion_items(data)
-    else:
-        sections = (target_section,)
+    section_data = data.get(target_section)
+    names = section_data if isinstance(section_data, dict) else {}
+    return _sorted_items(
+        _reference_item(str(name), f"{target_section}.{name}")
+        for name in names
+        if declaration_index is None or declaration_index.declaration_for(f"{target_section}.{name}") is not None
+    )
 
-    items: list[dict[str, str]] = []
-    for section in sections:
-        section_data = data.get(section)
-        if not isinstance(section_data, dict):
+
+def _purpose_completion_items(
+    purpose: ReferencePurpose,
+    *,
+    pointer: list[str],
+    scenario: Scenario | None,
+    resolver: PurposeResolver,
+) -> list[dict[str, str]]:
+    """Offer one spelling per eligible declaration that the field's resolver maps to exactly that declaration.
+
+    An incomplete document resolves among its top-level entries, so a bare label
+    is offered only when no other entry in the purpose's resolution domain shares it.
+    Operating scopes resolve only in a structurally valid document.
+    """
+
+    if purpose is ReferencePurpose.OPERATING_SCOPE:
+        aliases = resolver.operating_scope
+        addresses = {address for candidates in aliases.values() for address in candidates}
+        offered = [(preferred_spelling(aliases, address), address) for address in addresses]
+    else:
+        offered = [
+            (spelling, declaration.address) for spelling, declaration in resolver.index.reference_completions(purpose)
+        ]
+    held = _endpoint_held(pointer, scenario, resolver)
+    return _sorted_items(
+        _reference_item(spelling, address) for spelling, address in offered if held is None or address in held
+    )
+
+
+def _endpoint_held(pointer: list[str], scenario: Scenario | None, resolver: PurposeResolver) -> set[str] | None:
+    """Return what a participant-relationship refinement may name, as validation requires, or None if unbounded.
+
+    An endpoint that does not resolve to one participant, or whose own field is
+    still parameterized, bounds nothing, as in validation.
+    """
+
+    bound = _ENDPOINT_BOUNDED_REFINEMENTS.get(pointer[-1]) if pointer[0] == "relationships" else None
+    if bound is None or scenario is None:
+        return None
+    relationship = scenario.relationships.get(pointer[1])
+    if relationship is None or relationship.participant is None:
+        return None
+    endpoint_fields, participant_field, purpose = bound
+    held: set[str] | None = None
+    for endpoint_field in endpoint_fields:
+        refs = _endpoint_refs(scenario, resolver, getattr(relationship, endpoint_field), participant_field)
+        if refs is None or any(is_variable_ref(ref) for ref in refs):
             continue
-        for name in section_data:
-            detail = f"{section}.{name}"
-            if declaration_index is not None and declaration_index.declaration_for(detail) is None:
-                continue
-            items.append(
-                {
-                    "label": str(name),
-                    "kind": "reference",
-                    "detail": detail,
-                    "insert_text": str(name),
-                }
-            )
-    return sorted(items, key=lambda item: (item["detail"], item["label"]))
+        own = {address for ref in refs for address in resolver.resolve(ref, purpose)}
+        held = own if held is None else held & own
+    return held
+
+
+def _endpoint_refs(scenario: Scenario, resolver: PurposeResolver, endpoint: str, field: str) -> list[str] | None:
+    """Return a participant endpoint's own *field* refs, or None when it names no single participant."""
+
+    candidates = resolver.resolve(endpoint, ReferencePurpose.PARTICIPANT_ENDPOINT)
+    declaration = resolver.index.declaration_for(next(iter(candidates))) if len(candidates) == 1 else None
+    return None if declaration is None else list(getattr(scenario.agents[declaration.model_tokens[1]], field))
 
 
 def _workflow_step_completion_items(data: dict[str, Any]) -> list[dict[str, str]]:

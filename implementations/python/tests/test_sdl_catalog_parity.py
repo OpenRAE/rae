@@ -120,8 +120,8 @@ def test_reference_domain_drift_is_flagged(tmp_path: Path) -> None:
     _replace(
         repo,
         "specs/sdl/references.md",
+        "| `behavior_specifications.*.authority_scope_refs[]` | `eligible:authority_scope` |",
         "| `behavior_specifications.*.authority_scope_refs[]` | `targetable` |",
-        "| `behavior_specifications.*.authority_scope_refs[]` | `any` |",
     )
     assert "sdl-catalog-reference-domain" in _rule_ids(repo)
 

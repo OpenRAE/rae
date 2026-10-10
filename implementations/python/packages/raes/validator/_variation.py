@@ -15,6 +15,7 @@ from raes_contracts.bounded_domains import (
 
 from .._errors import SDLValidationError
 from .._identifiers import QualifiedName
+from .._reference_targetability import purpose_for_domain
 from ..variables import Variable, VariableType
 from ..variation import (
     COLLECTION_TARGET_SPECS,
@@ -400,14 +401,10 @@ class _VariationMixin:
     def _resolved_addresses(self, reference: str, section: str) -> list[str]:
         if self._declaration_index is None:
             raise RuntimeError("declaration index must exist before variation validation")
+        purpose = purpose_for_domain(section)
+        if purpose is not None:
+            return sorted(self._declaration_index.resolve_for(reference, purpose))
         candidates = self._declaration_index.resolve(reference)
-        if section == "targetable":
-            return sorted(
-                address
-                for address in candidates
-                if (declaration := self._declaration_index.declaration_for(address)) is not None
-                and declaration.targetable
-            )
         return sorted(address for address in candidates if address.startswith(f"{section}."))
 
     def _resolves_to(self, reference: str, section: str) -> bool:

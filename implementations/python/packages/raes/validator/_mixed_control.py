@@ -1,5 +1,6 @@
 """Semantic validation for ACT-617 mixed-control participant operation."""
 
+from .._reference_targetability import ReferencePurpose
 from ..participant_behavior_specification import (
     MixedControlAuthorityStatus,
     MixedControlControllerState,
@@ -51,11 +52,11 @@ class _MixedControlMixin:
         if declaration.policy_revision != behavior_spec.semantic_version:
             self._err(f"{label} policy_revision must match the behavior specification semantic_version")
 
-        named_index = self._named_ref_index()
-        targetable_index = self._named_ref_index(targetable=True)
+        named_index = self._named_ref_index(ReferencePurpose.AUTHORITY_ANCHOR)
+        scope_index = self._named_ref_index(ReferencePurpose.AUTHORITY_SCOPE)
         owner_scope = self._resolved_mixed_control_refs(
             behavior_spec.authority_scope_refs,
-            index=targetable_index,
+            index=scope_index,
         )
         for state_id, state in declaration.controller_states.items():
             self._verify_mixed_control_state(
@@ -64,7 +65,7 @@ class _MixedControlMixin:
                 declaration=declaration,
                 label=label,
                 named_index=named_index,
-                targetable_index=targetable_index,
+                scope_index=scope_index,
                 owner_scope=owner_scope,
             )
 
@@ -87,7 +88,7 @@ class _MixedControlMixin:
         declaration: MixedControlParticipantOperation,
         label: str,
         named_index: dict[str, set[str]],
-        targetable_index: dict[str, set[str]],
+        scope_index: dict[str, set[str]],
         owner_scope: set[str],
     ) -> None:
         controller_ref = declaration.participant_ref if state.controller_ref == "self" else state.controller_ref
@@ -112,13 +113,13 @@ class _MixedControlMixin:
         )
         controller_scope = self._resolved_mixed_control_refs(
             controller.operating_scope,
-            index=targetable_index,
+            index=scope_index,
         )
         self._verify_scope_refs(
             refs=state.scope_refs,
             controller_ref=state.controller_ref,
             controller_scope=controller_scope,
-            targetable_index=targetable_index,
+            scope_index=scope_index,
             owner_scope=owner_scope,
             owner_label=owner_label,
         )
@@ -134,7 +135,9 @@ class _MixedControlMixin:
         owner_label: str,
     ) -> None:
         for ref in refs:
-            self._validate_named_ref(ref, owner_label=owner_label, ref_label="authority_basis_ref")
+            self._validate_named_ref(
+                ref, owner_label=owner_label, ref_label="authority_basis_ref", purpose=ReferencePurpose.AUTHORITY_ANCHOR
+            )
             if not set(named_index.get(ref, ())).issubset(controller_authority):
                 self._err(f"{owner_label} authority basis '{ref}' is not declared by controller '{controller_ref}'")
 
@@ -144,13 +147,15 @@ class _MixedControlMixin:
         refs: list[str],
         controller_ref: str,
         controller_scope: set[str],
-        targetable_index: dict[str, set[str]],
+        scope_index: dict[str, set[str]],
         owner_scope: set[str],
         owner_label: str,
     ) -> None:
         for ref in refs:
-            self._validate_named_ref(ref, owner_label=owner_label, ref_label="scope_ref", targetable=True)
-            resolved = set(targetable_index.get(ref, ()))
+            self._validate_named_ref(
+                ref, owner_label=owner_label, ref_label="scope_ref", purpose=ReferencePurpose.AUTHORITY_SCOPE
+            )
+            resolved = set(scope_index.get(ref, ()))
             if not resolved.issubset(owner_scope):
                 self._err(f"{owner_label} scope_ref '{ref}' widens the behavior specification authority scope")
             if not resolved.issubset(controller_scope):

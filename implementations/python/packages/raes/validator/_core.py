@@ -3,11 +3,12 @@
 Part of the SemanticValidator mixin composition; see __init__.py.
 """
 
-from collections import defaultdict
+from collections.abc import Iterable
 
 from .._base import is_variable_ref
-from .._declarations import DeclarationIndex, build_declaration_index
+from .._declarations import DeclarationIndex, build_declaration_index, operating_scope_aliases
 from .._errors import SDLValidationError
+from .._reference_targetability import ELIGIBLE_KINDS, PURPOSE_LABELS, ReferencePurpose
 from .._runtime_service_families import (
     RuntimeFamilyReference,
     iter_runtime_family_references,
@@ -15,6 +16,22 @@ from .._runtime_service_families import (
 from ..entities import flatten_entities
 from ..nodes import NodeType
 from ..scenario import ScenarioContent
+
+
+def eligible_element(purpose: ReferencePurpose) -> str:
+    """Name what a *purpose* reference must reference, for its unresolved diagnostic.
+
+    A purpose that admits every declared or every targetable declaration keeps
+    the general wording, which matches the inspection payload's flags; a
+    narrower purpose names itself.
+    """
+
+    kinds = ELIGIBLE_KINDS[purpose]
+    if kinds == ELIGIBLE_KINDS[ReferencePurpose.DECLARED]:
+        return "element"
+    if kinds == ELIGIBLE_KINDS[ReferencePurpose.TARGETABLE]:
+        return "targetable element"
+    return f"element eligible as {PURPOSE_LABELS[purpose]}"
 
 
 class _ValidatorCore:
@@ -66,92 +83,48 @@ class _ValidatorCore:
                 refs.add(f"{workflow_name}.{step_name}")
         return refs
 
-    def _named_ref_index(self, *, targetable: bool = False) -> dict[str, set[str]]:
-        """Build the alias map for generic relationship/objective refs.
+    def _named_ref_index(self, purpose: ReferencePurpose = ReferencePurpose.DECLARED) -> dict[str, set[str]]:
+        """Build the alias map of declarations the reference policy admits for *purpose*.
 
         Bare refs stay available for most top-level sections when they are
-        unambiguous. Qualified refs are always accepted for top-level sections,
-        and are required for infrastructure entries because those keys
-        intentionally mirror node names.
+        unambiguous among eligible declarations. Qualified refs are always
+        accepted for top-level sections, and are required for infrastructure
+        entries because those keys intentionally mirror node names.
         """
+        return self._require_declaration_index().reference_aliases(purpose)
+
+    def _require_declaration_index(self) -> DeclarationIndex:
         if self._declaration_index is None:
             raise RuntimeError("declaration index must be built before reference validation")
-        return self._declaration_index.reference_aliases(targetable=targetable)
+        return self._declaration_index
+
+    def _ineligible_detail(self, ref: str) -> str:
+        """Name the declarations that a refused reference does name, if any."""
+
+        declared = sorted(self._named_ref_index().get(ref, ()))
+        return f"; it names {', '.join(declared)}" if declared else ""
+
+    def _ambiguity_choices(self, candidates: Iterable[str], purpose: ReferencePurpose) -> str:
+        """List an ambiguous reference's eligible candidates, then those that *purpose* refuses."""
+
+        named = set(candidates)
+        eligible = self._require_declaration_index().eligible(named, purpose)
+        refused = sorted(named - eligible)
+        detail = f"; not eligible as {PURPOSE_LABELS[purpose]}: {', '.join(refused)}" if refused else ""
+        return f"{', '.join(sorted(eligible))}{detail}"
 
     def _operating_scope_ref_index(self) -> dict[str, set[str]]:
         """Build the alias map for ACT-601 ``Agent.operating_scope``.
 
         ADR-020 §2 defines operating scope as the declarative boundary for
-        where the participant may act or observe — concretely subnets,
-        hosts, services, and content (and content items). The split here
-        mirrors the pre-existing scope-validation patterns:
-
-        - hosts come from ``nodes.*`` but only compute nodes (matches
-          ``initial_knowledge.hosts``).
-        - subnets come from ``infrastructure.*`` but only switch-backed
-          entries (matches ``allowed_subnets``).
-        - services come from declared services on compute nodes.
-        - content references stay open across content sections and items.
-
-        Non-spatial, non-resource elements (conditions, accounts,
-        relationships, objectives, …) are not scope boundaries even though
-        they appear in the generic targetable index.
+        where the participant may act or observe: compute hosts, switch-backed
+        subnets, services, and content (and content items). The shared
+        reference policy names those declaration kinds; see
+        :func:`raes._declarations.operating_scope_aliases`. Non-spatial,
+        non-resource elements (conditions, accounts, relationships,
+        objectives, ...) are not scope boundaries.
         """
-        index: dict[str, set[str]] = defaultdict(set)
-
-        # Hosts: compute nodes only. Both bare and qualified references
-        # aliases are accepted. Switch nodes go through the subnets path,
-        # never the host path.
-        for node_name, node in self._s.nodes.items():
-            if node.type != NodeType.COMPUTE:
-                continue
-            canonical = f"nodes.{node_name}"
-            index[node_name].add(canonical)
-            index[canonical].add(canonical)
-
-        # Subnets: switch-backed infrastructure only. Both bare and
-        # qualified aliases. Compute-backed infrastructure entries (which
-        # mirror compute nodes' names) go through the host path's `nodes.*`
-        # alias, not here.
-        for infra_name, _infra in self._s.infrastructure.items():
-            if not self._is_switch_node(infra_name):
-                continue
-            canonical = f"infrastructure.{infra_name}"
-            index[infra_name].add(canonical)
-            index[canonical].add(canonical)
-
-        self._add_operating_scope_service_aliases(index)
-        self._add_operating_scope_content_aliases(index)
-
-        return {alias: set(candidates) for alias, candidates in index.items()}
-
-    def _add_operating_scope_service_aliases(self, index: dict[str, set[str]]) -> None:
-        # Services: qualified `nodes.<vm>.services.<svc>` refs plus bare
-        # service names. The service-ref helper only emits names declared
-        # on compute nodes (a service on a switch is meaningless), so no extra
-        # filtering is needed here.
-        for node_name, node in self._s.nodes.items():
-            for service in node.services:
-                if not service.name:
-                    continue
-                ref = f"nodes.{node_name}.services.{service.name}"
-                index[ref].add(ref)
-                index[service.name].add(ref)
-
-    def _add_operating_scope_content_aliases(self, index: dict[str, set[str]]) -> None:
-        # Content: sections and items keep the unrestricted aliasing from
-        # the targetable index; ADR-020 does not split content by sub-type.
-        for content_name in self._s.content:
-            canonical = f"content.{content_name}"
-            index[content_name].add(canonical)
-            index[canonical].add(canonical)
-        for content_name, content in self._s.content.items():
-            for item in content.items:
-                if not item.name:
-                    continue
-                canonical = f"content.{content_name}.items.{item.name}"
-                index[item.name].add(canonical)
-                index[canonical].add(canonical)
+        return operating_scope_aliases(self._require_declaration_index(), self._s)
 
     def _validate_operating_scope_ref(self, ref: str, *, owner_label: str) -> None:
         """Validate ``operating_scope`` against the spatial/resource index."""
@@ -170,18 +143,20 @@ class _ValidatorCore:
         *,
         owner_label: str,
         ref_label: str,
-        targetable: bool = False,
+        purpose: ReferencePurpose = ReferencePurpose.DECLARED,
     ) -> None:
-        """Validate a generic reference against the named-element index."""
-        index = self._named_ref_index(targetable=targetable)
+        """Validate a reference against the declarations eligible for *purpose*."""
+        index = self._named_ref_index(purpose)
         candidates = index.get(ref)
         if not candidates:
-            qualifier = "targetable " if targetable else ""
-            self._err(f"{owner_label} {ref_label} '{ref}' does not reference any defined {qualifier}element")
+            self._err(
+                f"{owner_label} {ref_label} '{ref}' does not reference any defined {eligible_element(purpose)}"
+                f"{self._ineligible_detail(ref)}"
+            )
             return
 
         if len(candidates) > 1:
-            choices = ", ".join(sorted(candidates))
+            choices = self._ambiguity_choices(candidates, purpose)
             self._err(f"{owner_label} {ref_label} '{ref}' is ambiguous; use one of: {choices}")
 
     def validate(self) -> None:

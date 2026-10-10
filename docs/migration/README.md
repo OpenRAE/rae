@@ -47,3 +47,6 @@ captured in [ADR-010](../decisions/adrs/adr-010-repository-realignment-order-and
 
 [Progressive SDL semantics migration](progressive-semantics.md) covers the breaking
 cutover, source-bound adoption and classification binding coordination.
+
+[Reference eligibility migration](reference-eligibility.md) lists the reference
+fields whose eligible declaration kinds narrowed and how to rewrite them.
