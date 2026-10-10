@@ -6,16 +6,20 @@ import json
 import os
 import re
 import runpy
+import shlex
 import sys
 from pathlib import Path
 
+import pytest
 import yaml
+from typer.testing import CliRunner
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from raes import parse_sdl_file  # noqa: E402
+from raes_cli.main import app  # noqa: E402
 from raes_contracts.behavioral_relations import validate_behavioral_claim_binding  # noqa: E402
 from raes_contracts.contracts import BehavioralClaimBindingModel  # noqa: E402
 from tools.check_public_docs import (  # noqa: E402
@@ -180,6 +184,29 @@ def test_readme_quickstart_matches_checked_in_scenario() -> None:
     )
 
     assert readme_scenario == checked_in_scenario
+
+
+def _stated_format_check(tutorial: str) -> tuple[list[str], int, str]:
+    """Return the tutorial's format command arguments, stated exit code and shown output."""
+    section = tutorial.partition("## Check the file format\n")[2].partition("\n## ")[0]
+    command = re.search(r"```console\n(.*?)```", section, re.DOTALL)
+    assert command is not None
+    arguments = shlex.split(command.group(1).replace("\\\n", " "))
+    claims = section[command.end() :]
+    exit_code = re.search(r"[Ee]xits?(?: with)? code `(\d+)`", claims)
+    assert exit_code is not None
+    output = re.search(r"```text\n(.*?)```", claims, re.DOTALL)
+    return arguments[arguments.index("raes") + 1 :], int(exit_code.group(1)), output.group(1) if output else ""
+
+
+def test_first_scenario_tutorial_states_the_real_format_check_result(monkeypatch: pytest.MonkeyPatch) -> None:
+    tutorial = (REPO_ROOT / "docs" / "public" / "tutorials" / "first-scenario.md").read_text(encoding="utf-8")
+    arguments, stated_exit_code, shown_output = _stated_format_check(tutorial)
+    monkeypatch.chdir(REPO_ROOT)
+
+    result = CliRunner().invoke(app, arguments)
+
+    assert (result.exit_code, result.stderr) == (stated_exit_code, shown_output)
 
 
 def test_participant_control_claim_example_is_bounded() -> None:
