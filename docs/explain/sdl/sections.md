@@ -2197,8 +2197,9 @@ observation remain downstream contracts.
 
 `episode_policy` is an optional, closed record of participant episode intent
 (DSL-120). It names existing assertions, action contracts, temporal
-constraints, and evidence requirements. It never carries a new expression,
-counter, or backend callback.
+constraints, and evidence requirements, and, for an episode-local reset, a
+declared reset authority. It never carries a new expression, counter, or
+backend callback.
 
 ```yaml
 episode_policy:
@@ -2238,11 +2239,23 @@ identifiers that module composition preserves while it rewrites the external
 refs. A participant may be governed by one episode policy at most. A second
 policy that selects the same participant, by name or by role, is rejected.
 
+A condition holds only when every assertion it names holds. To end the episode
+when any one of several assertions holds, declare one condition per assertion.
+A truncation condition cannot reuse the exact assertion set of a completion
+condition. The evidence requirements a condition names together back its
+transition; validation checks that each one is declared, not which record it
+captures.
+
 The example declares `persistent_across_episodes`, so it names no reset
 authority. An `episode_local_reset` scope must add a
 `memory_reset_authority_ref` that names the authority resetting the
 participant implementation and its participant-visible memory. ADR-095's
-assurance and information-state contracts require the same pairing.
+assurance and information-state contracts require the same pairing; the policy
+does not supply their values. The reference must resolve to exactly one
+declared targetable element, for example `agents.analyst` or
+`nodes.siem.services.console`. A dangling or ambiguous reference is rejected,
+module composition namespaces it, and compilation records the element's
+canonical address, such as `sdl.agents.analyst`.
 
 The policy is intent, not an execution record. Fields such as `episode_id`,
 `status`, `initialized_at`, or `decision_epoch` are rejected with a diagnostic
@@ -2251,9 +2264,9 @@ that points to the ADR-013 participant episode contracts. So is a
 condition the diagnostic says that truncation already fixes the reason.
 Compilation emits
 `participant.episode-policy.<name>` with the resolved assertion, action,
-time, and evidence addresses. It keys the policy to the selected participants'
-`participant.behavior.<agent>` addresses, which also key realized episode
-state. The full fixture at
+time, evidence, and reset-authority addresses. It keys the policy to the
+selected participants' `participant.behavior.<agent>` addresses, which also
+key realized episode state. The full fixture at
 `contracts/fixtures/sdl/participant-episode-policy-v1/valid/analyst-shift-episode.yaml`
 shows the complete document. Episode execution, condition evaluation, reset
 handling, and evidence capture remain runtime surfaces; this surface claims no

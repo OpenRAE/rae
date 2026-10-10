@@ -109,7 +109,19 @@ class _ParticipantEpisodePoliciesMixin:
             self._verify_closure_assertions(condition_label, condition.assertion_refs)
             self._verify_episode_evidence(condition_label, condition.evidence_requirement_refs)
         if policy.reset_policy is not None:
-            self._verify_episode_evidence(f"{label} reset policy", policy.reset_policy.evidence_requirement_refs)
+            self._verify_episode_reset_policy(f"{label} reset policy", policy.reset_policy)
+
+    def _verify_episode_reset_policy(self, label: str, reset_policy: object) -> None:
+        # The ADR-095 reset authority must be exactly one declared targetable element.
+        authority = reset_policy.memory_reset_authority_ref
+        if authority is not None and not self._is_unresolved_var(authority):
+            self._validate_named_ref(
+                authority,
+                owner_label=label,
+                ref_label="memory_reset_authority_ref",
+                targetable=True,
+            )
+        self._verify_episode_evidence(label, reset_policy.evidence_requirement_refs)
 
     def _verify_closure_assertions(self, label: str, refs: Iterable[str]) -> None:
         self._verify_episode_assertions(label, refs, _CLOSURE_ROLES, "an invariant or postcondition")

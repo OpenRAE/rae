@@ -154,6 +154,11 @@ _EPISODE_POLICY_REF_LISTS = (
     ("action_contract_refs", "action_contracts"),
     ("evidence_requirement_refs", "evidence_requirements"),
 )
+_EPISODE_POLICY_REFS = (
+    ("temporal_constraint_ref", "temporal_constraints"),
+    # The reset authority is any one targetable declaration, like authority_scope_refs.
+    ("memory_reset_authority_ref", "named"),
+)
 
 
 def _episode_policy_records(policy: dict[str, Any]) -> list[object]:
@@ -178,16 +183,20 @@ def _rewrite_participant_episode_policy(
     if not isinstance(policy, dict):
         return
     for record in _episode_policy_records(policy):
-        if not isinstance(record, dict):
-            continue
-        for field_name, section in _EPISODE_POLICY_REF_LISTS:
-            if isinstance(record.get(field_name), list):
-                record[field_name] = [_maybe_rename(str(ref), symbols[section]) for ref in record[field_name]]
-        if record.get("temporal_constraint_ref"):
-            record["temporal_constraint_ref"] = _maybe_rename(
-                str(record["temporal_constraint_ref"]),
-                symbols["temporal_constraints"],
-            )
+        if isinstance(record, dict):
+            _rewrite_episode_policy_record(record, symbols)
+
+
+def _rewrite_episode_policy_record(
+    record: dict[str, Any],
+    symbols: dict[str, dict[str, str] | set[str]],
+) -> None:
+    for field_name, section in _EPISODE_POLICY_REF_LISTS:
+        if isinstance(record.get(field_name), list):
+            record[field_name] = [_maybe_rename(str(ref), symbols[section]) for ref in record[field_name]]
+    for field_name, section in _EPISODE_POLICY_REFS:
+        if record.get(field_name):
+            record[field_name] = _maybe_rename(str(record[field_name]), symbols[section])
 
 
 def _behavior_reference_maps(

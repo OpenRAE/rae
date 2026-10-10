@@ -9,6 +9,7 @@ episode contracts keyed by the same ``participant.behavior.<agent>`` addresses.
 
 from dataclasses import dataclass
 
+from raes.participant_episode_policy import ParticipantEpisodeMemoryScope
 from raes_contracts.participant_episode import ParticipantEpisodeTerminalReason
 
 from .resources import ResolvedResource
@@ -57,5 +58,10 @@ class ParticipantEpisodePolicyRuntime(ResolvedResource):
     conditions: tuple[ParticipantEpisodeConditionRuntime, ...] = ()
     reset_control_actions: tuple[str, ...] = ()
     participant_memory_scope: str = ""
-    memory_reset_authority_ref: str = ""
+    memory_reset_authority_address: str = ""
     reset_evidence_requirement_addresses: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        local = self.participant_memory_scope == ParticipantEpisodeMemoryScope.EPISODE_LOCAL_RESET.value
+        if local != bool(self.memory_reset_authority_address):
+            raise ValueError("compiled episode policies name a reset authority exactly when the scope is episode-local")

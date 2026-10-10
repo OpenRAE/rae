@@ -11,6 +11,7 @@ from collections.abc import Callable, Iterable
 from raes.entities import flatten_entities
 from raes.participant_episode_policy import (
     ParticipantEpisodePolicy,
+    ParticipantEpisodeResetPolicy,
     ParticipantEpisodeTimeoutCondition,
 )
 from raes.scenario import InstantiatedScenario
@@ -34,6 +35,7 @@ from .support import _address, _dedupe, _dump
 
 def _compile_participant_episode_policies(
     scenario: InstantiatedScenario,
+    declaration_index: object,
 ) -> dict[str, ParticipantEpisodePolicyRuntime]:
     """Compile admitted episode policies as participant metadata."""
 
@@ -49,9 +51,23 @@ def _compile_participant_episode_policies(
     policies: dict[str, ParticipantEpisodePolicyRuntime] = {}
     for spec_name, behavior_spec in governed:
         participants = sorted(select_participants(behavior_spec, set(scenario.agents), roles))
-        runtime = _compile_policy(scenario, spec_name, behavior_spec.episode_policy, participants)
+        reset_authority = _reset_authority_address(declaration_index, behavior_spec.episode_policy.reset_policy)
+        runtime = _compile_policy(scenario, spec_name, behavior_spec.episode_policy, participants, reset_authority)
         policies[runtime.address] = runtime
     return policies
+
+
+def _reset_authority_address(declaration_index: object, reset: ParticipantEpisodeResetPolicy | None) -> str:
+    """Render the one targetable declaration that validation resolved as the reset authority."""
+
+    ref = reset.memory_reset_authority_ref if reset is not None else None
+    if ref is None:
+        return ""
+    candidates = declaration_index.reference_aliases(targetable=True).get(ref, set())
+    if len(candidates) != 1:
+        raise ValueError(f"validated memory_reset_authority_ref did not resolve to one declaration: {ref}")
+    section, _, name = next(iter(candidates)).partition(".")
+    return _address("sdl", section.replace("_", "-"), name)
 
 
 def _addresses(
@@ -135,6 +151,7 @@ def _compile_policy(
     spec_name: str,
     policy: ParticipantEpisodePolicy,
     participants: list[str],
+    reset_authority: str,
 ) -> ParticipantEpisodePolicyRuntime:
     owner = _behavior_specification_address(spec_name)
     participant_addresses = tuple(_participant_behavior_address(name) for name in participants)
@@ -167,6 +184,7 @@ def _compile_policy(
                 *turn_actions,
                 *_condition_dependencies(conditions),
                 *reset_evidence,
+                *((reset_authority,) if reset_authority else ()),
             ]
         ),
         behavior_specification_address=owner,
@@ -178,6 +196,6 @@ def _compile_policy(
         conditions=conditions,
         reset_control_actions=tuple(action.value for action in reset.control_actions) if reset is not None else (),
         participant_memory_scope=reset.participant_memory_scope.value if reset is not None else "",
-        memory_reset_authority_ref=(reset.memory_reset_authority_ref or "") if reset is not None else "",
+        memory_reset_authority_address=reset_authority,
         reset_evidence_requirement_addresses=reset_evidence,
     )

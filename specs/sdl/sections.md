@@ -198,16 +198,23 @@ at least one of the following:
 - `truncation_conditions` is keyed by local condition identifiers that differ
   from the terminal ones. Each names the invariant or postcondition assertions
   whose evidenced truth ends the episode as `truncated`, and it carries no
-  `terminal_reason`.
+  `terminal_reason`. Its assertion set must differ from that of every
+  `completed` condition, so one evidenced fact never ends an episode as both.
 - `reset_policy` names the admitted `reset`/`restart` control actions and the
   ADR-095 participant-memory scope across the reset boundary. An
   `episode_local_reset` scope also names a `memory_reset_authority_ref`, and a
-  `persistent_across_episodes` scope names none, as on the ADR-095 contracts
-  that the policy feeds.
+  `persistent_across_episodes` scope names none. The ADR-095 decision-surface
+  assurance and information-state contracts require the same pairing; the
+  policy does not supply their values. The authority must resolve to exactly
+  one declared targetable element, such as a participant, an entity, or a
+  service. Module composition namespaces it, and compilation records that
+  element's canonical address.
 
-Every condition and the reset policy name the evidence requirements that back
-the transition. `interrupted` is never authored, because interruption is
-externally induced. A participant is governed by at most one episode policy,
+A condition holds only when every assertion it names holds. Every condition
+and the reset policy name the evidence requirements that together back the
+transition. Semantic validation requires each named requirement to be
+declared; it does not check which record the requirement captures.
+`interrupted` is never authored, because interruption is externally induced. A participant is governed by at most one episode policy,
 because realized episodes are keyed by participant. The record holds
 references only. It rejects realized episode coordinates such as episode
 identity, lifecycle status, timestamps, sequence numbers, and decision epochs.

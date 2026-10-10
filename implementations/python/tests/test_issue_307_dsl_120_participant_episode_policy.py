@@ -14,7 +14,7 @@ from raes.language_service import language_completions
 from raes.parser import parse_sdl, parse_sdl_file
 from raes_contracts.contracts import schema_bundle
 from raes_processor.compiler import compile_runtime_model
-from raes_processor.models import ParticipantEpisodeConditionRuntime
+from raes_processor.models import ParticipantEpisodeConditionRuntime, ParticipantEpisodePolicyRuntime
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_ROOT = REPO_ROOT / "contracts" / "fixtures" / "sdl" / "participant-episode-policy-v1"
@@ -25,6 +25,8 @@ SPEC_ADDRESS = "participant.behavior-specification.analyst-triage"
 PARTICIPANT_ADDRESS = "participant.behavior.analyst"
 REALIZED_STATE = "declare intent only"
 CLOSED_RECORD = "Extra inputs are not permitted"
+PERSISTENT_SCOPE = "participant_memory_scope: persistent_across_episodes"
+LOCAL_RESET = "participant_memory_scope: episode_local_reset\n        memory_reset_authority_ref: {authority}"
 
 
 def _source() -> str:
@@ -188,6 +190,11 @@ def test_variable_created_condition_keys_are_rejected(old: str, new: str) -> Non
             "          assertion_refs: [queue-stalled]\n          terminal_reason: truncated\n",
             "always end the episode as truncated and carry no terminal_reason",
         ),
+        (
+            "          assertion_refs: [queue-stalled]\n",
+            "          assertion_refs: [ticket-closed]\n",
+            "truncation conditions must not reuse the assertions of a completion condition: queue-stalled",
+        ),
     ],
 )
 def test_terminal_reasons_stay_distinct(old: str, new: str, expected: str) -> None:
@@ -281,6 +288,16 @@ _SHIFT_DEADLINE = """  shift-deadline:
             "        evidence_requirement_refs: [reset-evidence]\n",
             "        evidence_requirement_refs: [missing-evidence]\n",
             "reset policy evidence_requirement_ref 'missing-evidence' does not reference",
+        ),
+        (
+            PERSISTENT_SCOPE,
+            LOCAL_RESET.format(authority="analyst-console-reset"),
+            "reset policy memory_reset_authority_ref 'analyst-console-reset' does not reference any defined targetable",
+        ),
+        (
+            PERSISTENT_SCOPE,
+            LOCAL_RESET.format(authority="ticket-closed"),
+            "reset policy memory_reset_authority_ref 'ticket-closed' is ambiguous",
         ),
     ],
 )
@@ -405,16 +422,22 @@ def test_checks_that_need_a_resolved_selection_wait_for_instantiation(
     )
 
 
-def test_episode_local_reset_names_the_reset_authority() -> None:
-    source = _edit(
-        "participant_memory_scope: persistent_across_episodes",
-        "participant_memory_scope: episode_local_reset\n        memory_reset_authority_ref: analyst-console-reset",
-    )
+@pytest.mark.parametrize(
+    ("authority", "address"),
+    [
+        ("nodes.siem.services.console", "sdl.nodes.siem.services.console"),
+        ("agents.analyst", "sdl.agents.analyst"),
+        ("blue-team", "sdl.entities.blue-team"),
+    ],
+)
+def test_episode_local_reset_resolves_the_reset_authority(authority: str, address: str) -> None:
+    source = _edit(PERSISTENT_SCOPE, LOCAL_RESET.format(authority=authority))
 
     compiled = compile_runtime_model(parse_sdl(source)).participant_episode_policies[POLICY_ADDRESS]
 
     assert compiled.participant_memory_scope == "episode_local_reset"
-    assert compiled.memory_reset_authority_ref == "analyst-console-reset"
+    assert compiled.memory_reset_authority_address == address
+    assert address in compiled.refresh_dependencies
 
 
 def test_module_composition_rewrites_policy_refs_and_keeps_condition_ids(tmp_path: Path) -> None:
@@ -438,7 +461,8 @@ def test_module_composition_rewrites_policy_refs_and_keeps_condition_ids(tmp_pat
             behavior_specifications: [analyst-triage]
         """
     ).lstrip()
-    (tmp_path / "module.yaml").write_text(_replace(_source(), "name: dsl-120\n", module), encoding="utf-8")
+    source = _edit(PERSISTENT_SCOPE, LOCAL_RESET.format(authority="agents.analyst"))
+    (tmp_path / "module.yaml").write_text(_replace(source, "name: dsl-120\n", module), encoding="utf-8")
     root = tmp_path / "root.yaml"
     root.write_text("name: root\nimports:\n  - source: local:module.yaml\n    namespace: shared\n", encoding="utf-8")
 
@@ -452,32 +476,61 @@ def test_module_composition_rewrites_policy_refs_and_keeps_condition_ids(tmp_pat
     assert policy.terminal_conditions["shift-ended"].temporal_constraint_ref == "shared.shift-deadline"
     assert policy.truncation_conditions["queue-stalled"].evidence_requirement_refs == ["shared.queue-evidence"]
     assert policy.reset_policy.evidence_requirement_refs == ["shared.reset-evidence"]
+    assert policy.reset_policy.memory_reset_authority_ref == "agents.shared.analyst"
     compiled = compile_runtime_model(scenario).participant_episode_policies
     assert set(compiled) == {"participant.episode-policy.shared.analyst-triage"}
-
-
-def test_variable_refs_are_revalidated_after_instantiation() -> None:
-    source = _replace(
-        _edit("        assertion_refs: [console-ready]\n", "        assertion_refs: ['${start_assertion}']\n"),
-        "name: dsl-120\n",
-        textwrap.dedent(
-            """
-            name: dsl-120
-            variables:
-              start_assertion:
-                type: string
-                default: console-ready
-                allowed_values: [console-ready, missing-assertion]
-            """
-        ).lstrip(),
+    assert (
+        compiled["participant.episode-policy.shared.analyst-triage"].memory_reset_authority_address
+        == "sdl.agents.shared.analyst"
     )
+
+
+_CHOICE = """name: dsl-120
+variables:
+  choice:
+    type: string
+    default: {good}
+    allowed_values: [{good}, {bad}]
+"""
+
+
+@pytest.mark.parametrize(
+    ("old", "new", "good", "bad", "compiled_field", "expected"),
+    [
+        (
+            "        assertion_refs: [console-ready]\n",
+            "        assertion_refs: ['${choice}']\n",
+            "console-ready",
+            "missing-assertion",
+            "initialization_assertion_addresses",
+            ("evaluation.assertion.console-ready",),
+        ),
+        (
+            PERSISTENT_SCOPE,
+            LOCAL_RESET.format(authority="'${choice}'"),
+            "agents.analyst",
+            "analyst-console-reset",
+            "memory_reset_authority_address",
+            "sdl.agents.analyst",
+        ),
+    ],
+)
+def test_variable_refs_are_revalidated_after_instantiation(
+    old: str,
+    new: str,
+    good: str,
+    bad: str,
+    compiled_field: str,
+    expected: object,
+) -> None:
+    source = _replace(_edit(old, new), "name: dsl-120\n", _CHOICE.format(good=good, bad=bad))
     authored = parse_sdl(source)
 
-    instantiated = instantiate_scenario(authored, parameters={"start_assertion": "console-ready"})
+    instantiated = instantiate_scenario(authored, parameters={"choice": good})
     compiled = compile_runtime_model(instantiated).participant_episode_policies[POLICY_ADDRESS]
-    assert compiled.initialization_assertion_addresses == ("evaluation.assertion.console-ready",)
-    with pytest.raises(SDLInstantiationError, match="missing-assertion"):
-        instantiate_scenario(authored, parameters={"start_assertion": "missing-assertion"})
+    assert getattr(compiled, compiled_field) == expected
+    with pytest.raises(SDLInstantiationError, match=bad):
+        instantiate_scenario(authored, parameters={"choice": bad})
 
 
 def test_policy_free_behavior_specifications_keep_their_existing_shape() -> None:
@@ -514,6 +567,25 @@ def test_compiled_conditions_reassert_the_authored_pairing(fields: dict[str, obj
 
     with pytest.raises(ValueError, match=expected):
         ParticipantEpisodeConditionRuntime(**values)
+
+
+@pytest.mark.parametrize(
+    ("scope", "authority"),
+    [
+        ("episode_local_reset", ""),
+        ("persistent_across_episodes", "sdl.agents.analyst"),
+        ("", "sdl.agents.analyst"),
+    ],
+)
+def test_compiled_policies_reassert_the_reset_authority_pairing(scope: str, authority: str) -> None:
+    with pytest.raises(ValueError, match="reset authority"):
+        ParticipantEpisodePolicyRuntime(
+            address=POLICY_ADDRESS,
+            name="analyst-triage",
+            spec={},
+            participant_memory_scope=scope,
+            memory_reset_authority_address=authority,
+        )
 
 
 @pytest.mark.parametrize(

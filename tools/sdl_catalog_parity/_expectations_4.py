@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from tools.sdl_catalog_parity._paths import _SEMANTIC
+from tools.sdl_catalog_parity._paths import _DANGLING, _SEMANTIC
 
 _EPISODE_POLICY_VALIDATOR = (
     "[episode-policy validator](../../implementations/python/packages/raes/validator/_participant_episode_policies.py)"
@@ -59,6 +59,12 @@ EXPECTATIONS_PART_4: dict[str, tuple[str, str, str, str]] = {
         "evidence_requirements",
         _SEMANTIC,
         _FATAL_DANGLING,
+        _EPISODE_POLICY_VALIDATOR,
+    ),
+    f"{_EPISODE_POLICY}.reset_policy.memory_reset_authority_ref": (
+        "targetable",
+        _SEMANTIC,
+        _DANGLING,
         _EPISODE_POLICY_VALIDATOR,
     ),
 }

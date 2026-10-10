@@ -145,10 +145,11 @@ class ParticipantEpisodeTruncationCondition(_EpisodePolicyIntent):
 class ParticipantEpisodeResetPolicy(_EpisodePolicyIntent):
     """Admitted reset actions, memory scope, reset authority, and evidence."""
 
-    # As on the ADR-095 assurance and information-state contracts this feeds, an
+    # The ADR-095 assurance and information-state contracts require the same pairing: an
     # episode_local_reset scope names the authority that resets the participant
     # implementation and every participant-visible memory channel, and a
-    # persistent_across_episodes scope claims no reset authority.
+    # persistent_across_episodes scope claims no reset authority. Semantic
+    # validation resolves the authority to exactly one declared targetable element.
 
     control_actions: Annotated[
         list[ParticipantEpisodeResetAction],
@@ -209,6 +210,22 @@ class ParticipantEpisodePolicy(_EpisodePolicyIntent):
             raise ValueError(
                 "participant episode condition ids must be unique across terminal and truncation conditions: "
                 + ", ".join(shared)
+            )
+        # One evidenced set of assertions cannot end an episode as both completed and truncated.
+        completions = {
+            frozenset(condition.assertion_refs)
+            for condition in self.terminal_conditions.values()
+            if isinstance(condition, ParticipantEpisodeCompletionCondition)
+        }
+        aliases = sorted(
+            condition_id
+            for condition_id, condition in self.truncation_conditions.items()
+            if frozenset(condition.assertion_refs) in completions
+        )
+        if aliases:
+            raise ValueError(
+                "participant episode truncation conditions must not reuse the assertions of a completion condition: "
+                + ", ".join(aliases)
             )
         return self
 
