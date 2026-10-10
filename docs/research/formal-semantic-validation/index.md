@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 69.0.0, rejects unsupported future
+Current validation requires explicit release 70.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -585,3 +585,9 @@ retains its original bytes. Pre-synchronization issue #1361 captures are
 Retained outcomes and bounded claim limits are unchanged.
 Two compiled digests differ because the runtime model carries execution-policy
 metadata; their exact baseline and retest values are recorded as deviations.
+
+Release 70.0.0 replays the retained formal cases after issue #1425 derived
+reference and libvirt realization from published plan operations in
+[`execution-snapshot-v70.json`](execution-snapshot-v70.json) and
+[`analysis-v70.json`](analysis-v70.json). Outcomes and claim limits remain
+unchanged.
