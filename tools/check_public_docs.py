@@ -116,12 +116,13 @@ def _target_is_contained(public_root: Path, source: Path, target: str, *, markdo
     # docutils opens file:// URLs given to :url:, so a file URL is never contained.
     if target.casefold().startswith("file:"):
         return False
-    if "://" in target or target.startswith(("mailto:", "#")):
-        return True
     clean_target = target.split("#", 1)[0]
-    if not clean_target:
+    if not clean_target or "://" in target or target.startswith("mailto:"):
         return True
-    candidate = Path(clean_target)
+    return _path_is_contained(public_root, source, Path(clean_target), markdown_link=markdown_link)
+
+
+def _path_is_contained(public_root: Path, source: Path, candidate: Path, *, markdown_link: bool) -> bool:
     base = source.parent
     if candidate.is_absolute():
         # MyST resolves a link that starts with one "/" against the source directory, as Sphinx's
@@ -130,8 +131,7 @@ def _target_is_contained(public_root: Path, source: Path, target: str, *, markdo
             return False
         base, candidate = public_root, candidate.relative_to("/")
     try:
-        resolved = (base / candidate).resolve()
-        resolved.relative_to(public_root.resolve())
+        (base / candidate).resolve().relative_to(public_root.resolve())
     except (OSError, ValueError):
         return False
     return True
