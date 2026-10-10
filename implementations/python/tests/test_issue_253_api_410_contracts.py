@@ -1,11 +1,12 @@
 """API-410 shared operational state and derived context contract verification (issue #253).
 
-The published RUN-307 shared-state record and the API-408/SEM-214 context view are
-driven through their public validation and retrieval paths: the models and
-published schemas, the ACT-604 information-state join, and the control-plane
-context route. Each case is a valid composition or a stale, mismatched,
-unauthorized, or unsupported input. Nothing here shows that a backend can compute
-a given operational view.
+A context view derived from the published RUN-307 shared-state record goes through
+the API-408/SEM-214 context-view model and published schema, the record's access
+markers through the shared-state model and published schema, and both through an
+ACT-604 information-state join. Separate runtime tests check the control-plane
+context route and projection without the composition view. The cases cover valid
+inputs and stale, mismatched, unauthorized, or unsupported ones. Nothing here
+shows that a backend can compute a given operational view.
 """
 
 from __future__ import annotations
@@ -109,13 +110,20 @@ def _information_state(record: dict[str, Any], view: dict[str, Any]) -> dict[str
     ):
         payload.pop(strong_claim_field)
     payload.update(
-        event_id="information-state-red-18",
+        event_id="information-state-red-19",
         participant_address=PARTICIPANT,
         episode_id=EPISODE,
-        sequence_number=18,
+        sequence_number=19,
+        occurred_at="2026-05-26T10:50:03Z",
+        recorded_at="2026-05-26T10:50:03Z",
+        ingested_at="2026-05-26T10:50:04Z",
         actor_ref=PARTICIPANT,
+        producer_ref="adapters.cyborg-red.v1",
+        provenance_refs=["provenance.backend_realized"],
+        evidence_refs=["evidence.information-state-red-19"],
         authorization_scope=f"participant:{PARTICIPANT}",
         information_state_ref="information-state.red.ep004.cut18",
+        information_state_digest=DIGEST,
         payload_ref="payloads.information-state.red.ep004.cut18",
         state_cut={
             "cut_kind": "sequence_prefix",
@@ -208,6 +216,7 @@ def test_composition_example_is_a_valid_view_of_the_published_revision() -> None
     assert record["predecessor_revision_refs"] == [f"{STATE_ADDRESS}@{access['read_revision']}"]
     assert model.observation_point == record["logical_order_ref"]
     assert set(record["evidence_refs"]) <= set(model.evidence_refs)
+    assert set(record["marking_definition_refs"]) <= set(model.marking_definition_refs)
 
 
 def test_information_state_joins_the_shared_state_revision_and_the_derived_view() -> None:

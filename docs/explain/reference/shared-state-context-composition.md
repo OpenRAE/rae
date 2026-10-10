@@ -14,7 +14,7 @@ derived, participant-relevant context. Two published contract families meet it:
   evidence, visibility projection, and limitations.
 
 This note derives one view from one published shared-state revision. It then
-lists the validator that checks each binding between the two contracts.
+lists which validator, if any, checks each binding.
 
 ## The shared-state revision
 
@@ -137,6 +137,17 @@ from the next section.
 - No validator reads a view together with the snapshot it cites. Nothing checks
   that `source_snapshot_ref` or `derived_from_refs` resolve to a recorded
   revision.
+- The view contract has no `source_layer` kind for a shared-state record. A
+  view cites a revision, as the example does, through a `source_snapshot` layer
+  plus an untyped `derived_from_refs` entry in the `address@revision` form. No
+  schema or grammar defines that form, and no validator reads it. This note
+  treats the missing check as a validator gap rather than a contract gap,
+  because the shared-state record already carries the `state_address` and
+  `revision` that such an entry names, so a check needs no new field.
+- No validator compares a view's `observation_point`, `marking_definition_refs`,
+  or `evidence_refs` with the `logical_order_ref`, `marking_definition_refs`, or
+  `evidence_refs` of the shared-state record it derives from. Only the test
+  checks that the example agrees.
 - Standalone validation of a shared-state record does not compare its accesses
   with the record. The model, the published schema, and
   `validate_contract_payload` accept an access to another address, or a
