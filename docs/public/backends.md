@@ -28,3 +28,9 @@ cancellation and effect reports for backend authors. Read the
 [protocol and migration guide](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/backend-operation-supervision.md).
 These contracts keep unknown effects explicit. Publishing them does not certify
 that a backend can interrupt work or recover after a failure.
+
+Mixed-backend bridges, time services and readers can describe one admitted edge
+or handoff with the execution binding and stage report contracts. Read the
+[mixed-backend migration note](https://github.com/OpenRAE/rae/blob/main/docs/migration/mixed-backend-execution.md).
+These reports keep execution, delivery and observation apart. Declaring the
+contracts does not prove support, and the runtime does not read them.

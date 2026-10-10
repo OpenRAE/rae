@@ -180,6 +180,66 @@ physical-OT timing guarantee. Installed bindings are trusted runtime inputs
 against the sealed `sem-234/rev1` profile; this rule adds no manifest field,
 support vocabulary term, or published carrier revision.
 
+### Published mixed-backend execution contracts (issue #1371)
+
+`mixed-backend-execution-binding-v1` is the closed plain-data form of one
+installed binding for one admitted edge or component-changing transition.
+`mixed-backend-stage-report-v1` carries one time-grant, execution, delivery,
+observation, handoff, or owner-readback fact for one invocation of the
+[backend operation protocol](backend-operation-supervision.md). Rules:
+
+- A backend may list both contract IDs in `supported_contract_versions`. The
+  listing is an opt-in declaration, not effective support. It adds no feature
+  term or support level, and it does not replace the joins above.
+- Exactly one binding exists for each edge active in an admitted phase and for
+  each transition that replaces exactly one component with another. Missing,
+  foreign, duplicate, or contradictory bindings refuse the whole set, as do an
+  ungoverned edge order and any other component change.
+- An edge binding uses operation kind `participant-crossing`. Its effect owner
+  is the destination provider's action allocation for the bound address,
+  active in at least one phase of the edge. Its `compiled-identity`
+  transformation preserves the authorized action address. Its bridge
+  reference equals the edge's routing reference, and its time coordinates,
+  temporal coupling, mapping loss, participant, audience, and evidence
+  references equal the admitted edge.
+- A handoff binding uses operation kind `composition-phase`. It names the
+  leaving and joining components and their native ownership references, and
+  its clocks and mapping resolve in the trusted time model.
+- Each role in one binding has its own service. No two of the bridge or
+  transfer service, the coordinator, and the readers share a service reference
+  or a digest, so a binding that pins one service to two roles is invalid.
+- A shared request commits to one binding through its content-bound `command`,
+  is addressed to the pinned bridge or transfer service, and uses the
+  binding's operation kind. The binding reference digest and each stage-report
+  citation digest are SHA-256 over RFC 8785 canonical JSON of the complete
+  validated model, including materialized defaults and null values.
+- Stage reports repeat the invocation binding and request digest and report
+  each stage at most once. A report's `sequence` is its stage's fixed chain
+  position: time grant 1, execution or handoff 2, delivery or owner readback
+  3, and observation 4. Reports are accepted in ascending `sequence`, and a
+  stage needs its prerequisite stage. Each stage names its producer, which
+  equals the binding's coordinator, bridge, delivery reader, observation
+  reader, transfer service, or owner reader for that stage. Execution or
+  native transfer needs an `ordered` grant and an accepted acknowledgement.
+- The caller resolves the trusted time model under the binding's time-model
+  reference and digest. A committed composition state belongs to the
+  binding's profile and still activates the bound edge, or holds the
+  handoff's source component but not its destination component.
+- Time-grant coordinates equal the caller's committed time readback for both
+  bound clocks. A handoff names the committed composition history head and
+  phase revision, and its owner readback is judged against that revision.
+- A proposed success or known failure must equal the state that the stages
+  and the caller's readbacks establish, and shared evidence cites only
+  supplied reports. Success needs a post-invocation time readback in which
+  neither bound clock moved backwards; so does a handoff failure. An
+  `incomparable` grant with no invocation stage establishes a known failure.
+  The [migration note](../../../docs/migration/mixed-backend-execution.md)
+  states the complete stage and settlement model.
+
+The validators are pure functions over trusted inputs resolved by the caller.
+Passing them does not prove backend truth, installation, conformance, or
+runtime adoption, and these rules do not describe the in-process coordinator.
+
 ### Adversarial-control apparatus and backend support (issue #1004)
 
 The following governed `participant-runtime-behavior-features` terms let a

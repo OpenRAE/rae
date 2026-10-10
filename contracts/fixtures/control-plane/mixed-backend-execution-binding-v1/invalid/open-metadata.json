@@ -1,0 +1,61 @@
+{
+  "schema_version": "mixed-backend-execution-binding/v1",
+  "binding_id": "binding:edge.sim-to-emu",
+  "profile_id": "profile:mixed",
+  "profile_revision": "mixed-cross-backend-participant-control-v1@rev1",
+  "profile_digest": "sha256:24758820769f964644a9331c1600aa8830ad85c3dc0b271d7760cb430520d821",
+  "subject": {
+    "kind": "edge",
+    "edge_id": "edge.sim-to-emu",
+    "operation_kind": "participant-crossing",
+    "owner_component_id": "emu",
+    "owner_allocation_id": "allocation.action",
+    "participant_address": "participant.behavior.red-agent",
+    "audience_scope_ref": "audience:red-operator",
+    "source_action_address": "participant.action-contract.contain-host",
+    "destination_action_address": "participant.action-contract.contain-host",
+    "subject_transformation": "compiled-identity",
+    "bridge": {
+      "service_ref": "route:portable",
+      "version": "1",
+      "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "time": {
+      "time_model_ref": "time-model:composition",
+      "time_model_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "source_clock_address": "time.clocks.sim",
+      "destination_clock_address": "time.clocks.emu",
+      "mapping_ref": "time.mappings.sim-to-emu",
+      "ordering_basis": "partial_order",
+      "required_comparison": "ordered",
+      "coordinator": {
+        "service_ref": "coordinator:reference-time",
+        "version": "1",
+        "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "temporal_coupling": "bounded-asynchronous"
+    },
+    "mapping_loss": {
+      "kind": "semantics_approximated",
+      "basis_ref": "mapping:basis",
+      "affected_ref": "observation:status",
+      "limitation_ref": "limitation:mapping"
+    },
+    "delivery_reader": {
+      "service_ref": "reader:destination-receipt",
+      "version": "1",
+      "digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+    },
+    "observation_reader": {
+      "service_ref": "reader:participant-audience",
+      "version": "1",
+      "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+    },
+    "required_evidence_refs": [
+      "evidence:edge-realization"
+    ]
+  },
+  "metadata": {
+    "backend": "emu"
+  }
+}
