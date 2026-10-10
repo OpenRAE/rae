@@ -85,7 +85,9 @@ A VS Code integration needs these parts:
   also debounces diagnostics and copes with documents that do not parse yet.
 - A setting that picks the Python interpreter. The `raes` version installed there decides the
   semantics.
-- A Workspace Trust declaration, because that setting names a program to run.
+- A Workspace Trust declaration, because that setting names a program to run. If the server
+  resolves imports, the workspace's `raes-trust.yaml` also decides which registries an import may
+  fetch from.
 - A package built with `vsce`. A VS Code package cannot declare Python dependencies, so authors
   install `raes` with `pip`.
 
@@ -125,7 +127,7 @@ keeps running. Two tests check this with helpers that raise on a marker line.
 | Incomplete documents | Completion needs a document that parses. An unclosed `[` or a key without its colon gives a parse error and no items. | L4 |
 | Imported modules | The helpers take no file path, so a document with `imports` is invalid even without semantic validation. `parse_sdl_file` accepts the same fixture. | L8 |
 | Workspace context | The helpers see one document. Nothing indexes the workspace or follows references across files. | [`language_service.py`](../../../implementations/python/packages/raes/language_service.py) |
-| Robustness | Each helper turns the parser's and validator's own errors into results. Any other exception reaches the caller, so a server must guard every call. | Handled exceptions under [inspected seams](evidence.md#inspected-seams) |
+| Robustness | Every helper turns `SDLParseError` into a result. `language_diagnostics` also turns `SDLValidationError` into one, and `apply_structured_edit` and `language_format` check their output with `language_diagnostics`. But `language_format` lets `SDLValidationError` reach the caller for a document with `materialization_provenance`. For such a document, `parse_sdl` runs the semantic validator even though `format_sdl_source` skips it. Other exceptions reach the caller too, unless a catch listed under inspected seams handles them, so a server must guard every call. | L12; handled exceptions under [inspected seams](evidence.md#inspected-seams) |
 | Large scenarios | The largest repository example is 46 KB, under the 64 KiB limit. Each call parses the whole text. On that file a warm call took 160 to 175 ms at load average 7 to 13, and about 375 ms at load average 22. A cold start took 1.2 to 2.9 s. The machine was shared, so the timings are indicative. | L9 and L11 |
 | Formatting and edits | Both drop comments and expand shorthand. Formatting also lowers enum case and migrates recognized legacy spellings. | L6 and L7; the `language_format` docstring |
 | Schema validation | The schema describes the normalized object, so `x-raes-validates-raw-source` is `false`. It flags accepted shorthand and case variants and misses semantic errors. | S2 to S4 and Y1 |
@@ -133,8 +135,12 @@ keeps running. Two tests check this with helpers that raise on a marker line.
 
 The schema check flags one of the 21 accepted examples (S1): the quickstart's
 `first-scenario.sdl.yaml` uses `type: Switch`. Any fix for imports must also handle registry
-imports. When `parse_sdl` gets a path, an OCI import fetches the module over the network. It also
-writes `.raes/module-cache` next to the document (`raes.module_registry`).
+imports. When `parse_sdl` gets a path and the document has `imports`, it reads `raes.lock.json`
+and `raes-trust.yaml` from the document's directory. It refuses an OCI import before any request
+unless that trust file lists the import's registry. For a listed registry it fetches the module.
+Once the registry's signature policy passes, it writes `.raes/module-cache` next to the document.
+The trust file is workspace content, so a path-aware server should resolve imports only in a
+trusted workspace (Import trust under [inspected seams](evidence.md#inspected-seams)).
 
 ## Answers to the issue's questions
 
@@ -143,7 +149,10 @@ writes `.raes/module-cache` next to the document (`raes.module_registry`).
 Diagnostics come first. They need no cursor mapping and reuse the full validator. Reference
 completion and go to definition come next. They help most on reference-heavy sections, but
 completion inherits the #1339 mismatch. Schema hover shows field descriptions. Highlighting adds
-little over plain YAML. Snippets and a document outline were not prototyped. Formatting should
+little over plain YAML. Snippets and a document outline were not prototyped. Snippets give no
+diagnostics or references (alternative 2), so they rank low. None of the five helpers returns the
+document's declarations with their ranges, so an outline needs new helper or server work. It
+would help in long scenarios, but it ranks after diagnostics and references. Formatting should
 wait until comments survive it.
 
 ### Can YAML support and the schema provide enough value
@@ -216,9 +225,10 @@ mismatch.
 The probes call the helpers on small documents and on the repository examples. They compare the
 results with the published schema and with yaml-language-server 1.24.0. Version 1.24.0 is the
 server that Red Hat's YAML extension 1.24.0 uses. Nothing was mocked. The
-[evidence record](evidence.md) gives each probe's input and output, the source locations behind
-the other claims, and the scripts that reproduce the probes. The prototype's tests and CI run
-cover only the editor client.
+[evidence record](evidence.md) gives each probe's input and output and the source locations
+behind the other claims. It also links to the scripts that reproduce most probes. They live in
+the prototype's repository, not in this one. The prototype's tests and CI run cover only the
+editor client.
 
 ## References
 
