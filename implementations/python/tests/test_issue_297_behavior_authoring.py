@@ -5,6 +5,12 @@ namespaces next to a scenario-local declaration. Each reference kind is checked
 after composition and compilation. Broken references, ambiguous names, invalid
 declaration versions, and conflicting declarations must fail closed with
 diagnostics that name the declaration and the offending ref, field or name.
+
+Some cases pin gaps that the DSL-116 Fulfillment boundary records rather than
+fixes: authored ``__private`` refs and role refs still reach unexported
+declarations, a unit ref that dangles on its own binds a same-named declaration
+of the importing scenario, and the published schema admits an empty
+``semantic_version`` that the parser rejects.
 """
 
 from __future__ import annotations
@@ -39,6 +45,31 @@ behavior_specifications:
     semantic_version: 2.0.0
     participant_role_refs: [red]
     behavior_mode: scripted
+"""
+DANGLING_ACTION = ("    action_contract_refs: [scan]\n", "    action_contract_refs: [exploit]\n")
+IMPORTER_EXPLOIT = """\
+action_contracts:
+  exploit:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: exploit step declared by the importing scenario
+    realization_profile: backend-declared
+    fidelity_claim: records participant exploit intent
+    preconditions:
+      - precondition_id: authority-in-scope
+        precondition_class: authority
+        description: the participant is authorized to act on the web node
+    effects:
+      - effect_id: no-effect
+        effect_class: no_effect
+        description: the fixture declares no environment effect
+    failure_classes: [unknown]
+"""
+IMPORTER_GATEWAY = """\
+nodes:
+  gateway:
+    type: compute
+    resources: {ram: 1 GiB, cpu: 1}
 """
 
 
@@ -111,6 +142,10 @@ def test_published_authoring_schema_admits_both_declaration_forms(document: Path
     errors = [(list(error.path), error.validator) for error in validator.iter_errors(authored)]
     assert errors == [(["behavior_specifications", spec_name], "required")]
 
+    # Parity gap in the DSL-116 Fulfillment boundary: the parser rejects this empty version.
+    authored["behavior_specifications"][spec_name]["semantic_version"] = ""
+    assert list(validator.iter_errors(authored)) == []
+
 
 @pytest.mark.parametrize(
     ("authored", "replacement", "message"),
@@ -148,16 +183,14 @@ def test_published_authoring_schema_admits_both_declaration_forms(document: Path
     ],
     ids=["participant", "role", "action", "observation", "outcome", "authority"],
 )
-def test_scenario_local_declaration_cannot_reach_unqualified_import_names(
-    tmp_path: Path, authored: str, replacement: str, message: str
-):
+def test_scenario_local_declaration_rejects_unbound_refs(tmp_path: Path, authored: str, replacement: str, message: str):
     with pytest.raises(SDLValidationError) as excinfo:
         _compose(tmp_path, root_edits=((authored, replacement),))
 
     assert excinfo.value.errors == [f"Behavior specification '{LOCAL}' {message}"]
 
 
-def test_unexported_declarations_stay_private_to_each_import(tmp_path: Path):
+def test_unexported_declarations_are_unreachable_under_their_exported_name(tmp_path: Path):
     unexport = ("    outcome_interpretation_rules: [scan-outcome]\n", "")
     with pytest.raises(SDLValidationError) as excinfo:
         _compose(tmp_path, unit_edits=(unexport,))
@@ -182,10 +215,76 @@ def test_unexported_declarations_stay_private_to_each_import(tmp_path: Path):
 
 
 @pytest.mark.parametrize(
+    ("unexport", "authored", "respelled", "field", "address"),
+    [
+        (
+            ("    agents: [red-agent]\n", ""),
+            "participant_role_refs: [red]",
+            "participant_refs: [alpha.__private.red-agent, bravo.__private.red-agent]",
+            "participant_addresses",
+            "participant.behavior.{ns}.__private.red-agent",
+        ),
+        (
+            ("    action_contracts: [scan]\n", ""),
+            "action_contract_refs: [alpha.scan, bravo.scan]",
+            "action_contract_refs: [alpha.__private.scan, bravo.__private.scan]",
+            "action_contract_addresses",
+            "participant.action-contract.{ns}.__private.scan",
+        ),
+        (
+            # The unit's agent repeats this export line, so the edit anchors on the next export.
+            ("    observation_boundaries: [red-view]\n    outcome", "    outcome"),
+            "observation_boundary_refs: [alpha.red-view, bravo.red-view]",
+            "observation_boundary_refs: [alpha.__private.red-view, bravo.__private.red-view]",
+            "observation_boundary_addresses",
+            "participant.observation-boundary.{ns}.__private.red-view",
+        ),
+        (
+            ("    outcome_interpretation_rules: [scan-outcome]\n", ""),
+            "outcome_interpretation_rule_refs: [alpha.scan-outcome, bravo.scan-outcome]",
+            "outcome_interpretation_rule_refs: [alpha.__private.scan-outcome, bravo.__private.scan-outcome]",
+            "outcome_interpretation_rule_addresses",
+            "participant.outcome-interpretation-rule.{ns}.__private.scan-outcome",
+        ),
+        (
+            ("    nodes: [web]\n", ""),
+            "authority_scope_refs: [nodes.alpha.web.services.http, nodes.bravo.web.services.http]",
+            "authority_scope_refs: [nodes.alpha.__private.web.services.http, nodes.bravo.__private.web.services.http]",
+            "authority_scope_addresses",
+            "provision.node.{ns}.__private.web.service.http",
+        ),
+        (
+            # Only the unit's exports change; the role ref stays as authored.
+            ("    entities: [red-team]\n    agents: [red-agent]\n", ""),
+            "participant_role_refs: [red]",
+            "participant_role_refs: [red]",
+            "participant_addresses",
+            "participant.behavior.{ns}.__private.red-agent",
+        ),
+    ],
+    ids=["participant", "action", "observation", "outcome", "authority", "role"],
+)
+def test_unexported_declarations_stay_reachable_by_private_name_and_role(
+    tmp_path: Path, unexport: tuple[str, str], authored: str, respelled: str, field: str, address: str
+):
+    """Pins a gap in the DSL-116 Fulfillment boundary rather than the language rule.
+
+    ``specs/sdl/document-model.md`` and ADR-076 make ``__private`` invalid author
+    input, and ADR-053 makes its use a hard error, yet these authored refs bind.
+    The role case reaches the unexported participants without naming them.
+    """
+
+    scenario = _compose(tmp_path, unit_edits=(unexport,), root_edits=((authored, respelled),))
+
+    compiled = compile_runtime_model(scenario).behavior_specifications[SPEC_ADDRESS + LOCAL]
+    assert getattr(compiled, field) == _per_namespace(address)
+
+
+@pytest.mark.parametrize(
     ("unit_edits", "message"),
     [
         (
-            (("    action_contract_refs: [scan]\n", "    action_contract_refs: [exploit]\n"),),
+            (DANGLING_ACTION,),
             "action_contract_ref 'exploit' does not reference a declared action_contract",
         ),
         (
@@ -205,10 +304,42 @@ def test_unexported_declarations_stay_private_to_each_import(tmp_path: Path):
 def test_reused_unit_reports_each_broken_reference_once_per_namespace(
     tmp_path: Path, unit_edits: tuple[tuple[str, str], ...], message: str
 ):
+    """The importing scenario declares nothing the broken ref names; the next test covers the case where it does."""
+
     with pytest.raises(SDLValidationError) as excinfo:
         _compose(tmp_path, unit_edits=unit_edits)
 
     assert excinfo.value.errors == list(_per_namespace(f"Behavior specification '{{ns}}.{REUSABLE}' {message}"))
+
+
+@pytest.mark.parametrize(
+    ("unit_edit", "importer_section", "field", "addresses"),
+    [
+        (DANGLING_ACTION, IMPORTER_EXPLOIT, "action_contract_addresses", ("participant.action-contract.exploit",)),
+        (
+            (
+                "    authority_scope_refs: [nodes.web.services.http]\n",
+                "    authority_scope_refs: [nodes.web.services.http, nodes.gateway]\n",
+            ),
+            IMPORTER_GATEWAY,
+            "authority_scope_addresses",
+            ("provision.node.{ns}.web.service.http", "provision.node.gateway"),
+        ),
+    ],
+    ids=["action", "authority"],
+)
+def test_dangling_unit_ref_binds_a_same_named_declaration_of_the_importing_scenario(
+    tmp_path: Path, unit_edit: tuple[str, str], importer_section: str, field: str, addresses: tuple[str, ...]
+):
+    """Pins a gap in the DSL-116 Fulfillment boundary: composition renames only the names a unit declares."""
+
+    declare = ("behavior_specifications:\n", importer_section + "behavior_specifications:\n")
+    scenario = _compose(tmp_path, unit_edits=(unit_edit,), root_edits=(declare,))
+
+    compiled = compile_runtime_model(scenario).behavior_specifications
+    for namespace in NAMESPACES:
+        bound = getattr(compiled[f"{SPEC_ADDRESS}{namespace}.{REUSABLE}"], field)
+        assert bound == tuple(address.format(ns=namespace) for address in addresses)
 
 
 def test_conflicting_behavior_declarations_in_one_namespace_are_rejected(tmp_path: Path):
@@ -222,6 +353,13 @@ def test_conflicting_behavior_declarations_in_one_namespace_are_rejected(tmp_pat
         _compose(tmp_path, root_edits=(second_alpha_import,))
 
 
+def test_ranged_import_rejects_a_module_version_outside_its_range(tmp_path: Path):
+    out_of_range = ('    version: ">=1.2,<2"\n', '    version: ">=2,<3"\n')
+
+    with pytest.raises(SDLParseError, match=r"requested version '>=2,<3' but module declares '1\.2\.0'$"):
+        _compose(tmp_path, root_edits=(out_of_range,))
+
+
 @pytest.mark.parametrize(
     ("authored", "replacement", "field"),
     [
@@ -230,7 +368,7 @@ def test_conflicting_behavior_declarations_in_one_namespace_are_rejected(tmp_pat
     ],
     ids=["empty-version", "unknown-lifecycle"],
 )
-def test_scenario_local_declaration_version_fields_fail_closed(
+def test_scenario_local_declaration_version_and_lifecycle_fields_fail_closed(
     tmp_path: Path, authored: str, replacement: str, field: str
 ):
     with pytest.raises(SDLParseError) as excinfo:
