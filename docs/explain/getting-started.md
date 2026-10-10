@@ -38,7 +38,7 @@ RAES can currently support:
 - parsing and validating SDL through the Python implementation
 - instantiating variables and compiling runtime models in the reference stack
 - checking backend contract fixtures and conformance profiles
-- browsing validated, non-normative examples, templates, and reusable patterns
+- browsing non-normative examples, templates, and reusable patterns
   for scenarios, workflows, participant behavior, tasks, runs, and studies
 - reviewing the specifications, ADRs, and examples that define current claims
 
@@ -60,7 +60,7 @@ fixtures or schema authority.
 | Understand the repository | `README.md`, [`docs/index.md`](../index.md), [`docs/explain/reference/canonical-reference-map.md`](reference/canonical-reference-map.md) | Read the referenced docs | The repository layout and current boundaries are understood. |
 | Understand the agentic-environment lifecycle | [`docs/explain/reference/glossary.md`](reference/glossary.md), [`docs/explain/sdl/runtime-architecture.md`](sdl/runtime-architecture.md) | Follow the authored scenario, realized environment, evidence, and conformance references | RAES system concepts are distinguished from SDL and backend behavior. |
 | Read a complete scenario | `examples/README.md`, `examples/scenarios/*.sdl.yaml` | `pytest tests/test_example_schema_conformance.py` | The checked examples load through the current parser boundary. |
-| Start from a reusable template or pattern | `examples/library/catalog.yaml`, `examples/library/templates/`, `examples/library/patterns/` | `python tools/check_example_library.py` | The catalog covers scenario, workflow, participant behavior, task, run, and study surfaces with parser-validated template bodies. |
+| Start from a reusable template or pattern | `examples/library/catalog.yaml`, `examples/library/templates/`, `examples/library/patterns/` | `python tools/check_example_library.py` | The catalog covers scenario, workflow, participant behavior, task, run, and study surfaces, with template bodies validated as SDL or as `experiment-authoring-input-v1` documents. |
 | Author a small SDL file | [`docs/explain/sdl/index.md`](sdl/index.md), [`docs/explain/sdl/sections.md`](sdl/sections.md), [`docs/explain/sdl/validation.md`](sdl/validation.md) | `parse_sdl_file()` or `load_scenario()` | The file is accepted by the current SDL model and semantic validator. |
 | Use an agent-facing authoring surface | `raes-mcp`, then `raes_tool_surface`, `raes_agent_guidance`, `raes_intended_use_profiles`, and [`docs/explain/sdl/language-service.md`](sdl/language-service.md) | `raes_agent_guidance`, `raes_intended_use_profiles`, `sdl_completions`, `sdl_apply_edit`, `sdl_diagnostics`, `sdl_format`, `sdl_references`, `sdl_validate`, `sdl_design_assessment`, `sdl_plan`, `sdl_claims_assessment` | The agent can choose an intended-use scope, inspect current RAES blockers, and help author, edit, dry-run, and qualify claims without repository-local code access. |
 | Use variables or imports | [`docs/explain/sdl/parser.md`](sdl/parser.md), [`docs/explain/sdl/sections.md`](sdl/sections.md) | `raes sdl resolve`, `raes sdl verify-imports` | Imports and variable placeholders follow the current parser rules. |
@@ -77,7 +77,7 @@ Use the lowest level that answers the question.
 | Orientation | You need to know what RAES is and is not. | README, docs index, reference map | Current repository scope and entrypoints | SDL validity, backend behavior, or experiment adequacy |
 | SDL parse and validation | You have an SDL file and need current parser feedback. | `parse_sdl_file()`, `load_scenario()`, SDL parser/model/validator tests | Structural and semantic acceptance by the reference implementation | Deployment viability or general domain completeness |
 | Example-backed authoring | You need a worked scenario to study or adapt. | `examples/scenarios/*.sdl.yaml`, `test_example_schema_conformance.py` | The example loads from disk without advisories under current tests | Suitability for another range, backend, exercise, or research design |
-| Template and pattern authoring | You need a reusable starting shape for a scenario, workflow, participant behavior, task, run, or study. | `examples/library/catalog.yaml`, `tools/check_example_library.py` | The cataloged template body validates as current SDL and the pattern has stable metadata | New runtime semantics or first-class task, run, or study sections |
+| Template and pattern authoring | You need a reusable starting shape for a scenario, workflow, participant behavior, task, run, or study. | `examples/library/catalog.yaml`, `tools/check_example_library.py` | The cataloged template body validates as current SDL or as an `experiment-authoring-input-v1` document, and the pattern has stable metadata | New runtime semantics or first-class task, run, or study sections |
 | Runtime and contracts | You need processor or backend integration context. | Runtime compiler/planner, contract schemas, backend profiles, conformance fixtures | Current reference-stack and contract behavior | Production backend correctness or operational reliability |
 | Specification review | You need to evaluate a semantic or authority claim. | `specs/`, ADRs, formal notes, tests | The current reasoning and normative boundary for a claim | Completed implementation when the materialized code/contracts are absent |
 
@@ -219,7 +219,7 @@ Do not use examples to claim:
 
 ## Template And Pattern Boundary
 
-The current library provides validated authoring aids, not new runtime
+The current library provides authoring aids, not new runtime
 authority.
 
 Current status:

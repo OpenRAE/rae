@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ruff: noqa: E402, I001
-"""Structural and SDL-validation gate for the AUT-806 example library."""
+"""Structural, SDL, and experiment authoring-input validation gate for the AUT-806 example library."""
 
 from __future__ import annotations
 
@@ -16,6 +16,13 @@ if str(REPO_ROOT) not in sys.path:
 
 import yaml
 
+from tools.example_library_checks import (
+    check_entry_metadata,
+    check_example_refs,
+    check_template_body,
+    check_template_validation,
+    check_worked_example_file,
+)
 from tools.policy.common import PolicyFailure, apply_exceptions, failures_to_json, load_exceptions
 
 CATALOG_RELATIVE_PATH = "examples/library/catalog.yaml"
@@ -56,6 +63,7 @@ REQUIRED_TEMPLATE_FIELDS: tuple[str, ...] = (
     "requirement_refs",
     "source_refs",
     "summary",
+    "validation",
     "body",
 )
 REQUIRED_PATTERN_FIELDS: tuple[str, ...] = (
@@ -150,6 +158,7 @@ def _check_surfaces(raw: dict[str, Any], *, repo_root: Path) -> list[PolicyFailu
             failures.append(_fail("example-library-surface", f"surfaces.{surface} must be a mapping"))
             continue
         failures.extend(_check_surface(surface, value, repo_root=repo_root, seen_ids=seen_ids))
+    failures.extend(check_example_refs(surfaces))
 
     extras = sorted(set(surfaces) - set(REQUIRED_SURFACES))
     for surface in extras:
@@ -256,6 +265,7 @@ def _check_reference_entry(
             )
 
     failures.extend(_check_unique_id(entry.get("id"), f"surfaces.{surface}.{field}[{index}]", seen_ids))
+    failures.extend(check_entry_metadata(field, entry, f"surfaces.{surface}.{field}[{index}]", surface=surface))
     absolute, relative, path_failure = _repo_relative_path(
         entry.get("path"),
         repo_root=repo_root,
@@ -263,8 +273,8 @@ def _check_reference_entry(
     )
     if path_failure is not None:
         failures.append(path_failure)
-    elif absolute is not None and relative is not None and not absolute.is_file():
-        failures.append(_fail("example-library-path-missing", f"referenced path does not exist: {relative}", relative))
+    elif absolute is not None and relative is not None:
+        failures.extend(check_worked_example_file(absolute, relative, entry))
 
     if "source_refs" in entry and _str_list(entry["source_refs"]) is None:
         failures.append(
@@ -305,6 +315,7 @@ def _check_artifact_entries(
                 )
         entry_id = entry.get("id")
         failures.extend(_check_unique_id(entry_id, f"surfaces.{surface}.{field}[{index}]", seen_ids))
+        failures.extend(check_entry_metadata(field, entry, f"surfaces.{surface}.{field}[{index}]", surface=surface))
         absolute, relative, path_failure = _repo_relative_path(
             entry.get("path"),
             repo_root=repo_root,
@@ -321,7 +332,7 @@ def _check_artifact_entries(
             )
             continue
         if artifact_kind == "template":
-            failures.extend(_check_template_file(absolute, relative, surface=surface, catalog_id=entry_id))
+            failures.extend(_check_template_file(absolute, relative, surface=surface, entry=entry))
         else:
             failures.extend(_check_pattern_file(absolute, relative, surface=surface, catalog_id=entry_id))
     return failures
@@ -336,10 +347,11 @@ def _check_unique_id(value: Any, owner: str, seen_ids: set[str]) -> list[PolicyF
     return []
 
 
-def _check_template_file(path: Path, relative_path: str, *, surface: str, catalog_id: Any) -> list[PolicyFailure]:
+def _check_template_file(path: Path, relative_path: str, *, surface: str, entry: dict[str, Any]) -> list[PolicyFailure]:
     raw, failures = _load_yaml_file(path, relative_path)
     if raw is None:
         return failures
+    catalog_id = entry.get("id")
     failures.extend(_check_artifact_common(raw, relative_path, surface=surface, catalog_id=catalog_id, kind="template"))
 
     if "template" in raw and raw["template"] != TEMPLATE_VALUE:
@@ -349,12 +361,13 @@ def _check_template_file(path: Path, relative_path: str, *, surface: str, catalo
             failures.append(
                 _fail("example-library-template-field", f"missing required template field: {field}", relative_path)
             )
+    failures.extend(check_template_validation(raw, relative_path))
 
     body = raw.get("body")
     if not isinstance(body, dict):
         failures.append(_fail("example-library-template-body", "template body must be a mapping", relative_path))
         return failures
-    failures.extend(_check_template_body(body, relative_path))
+    failures.extend(check_template_body(entry, body, relative_path))
     return failures
 
 
@@ -372,7 +385,7 @@ def _check_pattern_file(path: Path, relative_path: str, *, surface: str, catalog
                 _fail("example-library-pattern-field", f"missing required pattern field: {field}", relative_path)
             )
 
-    for field in ("use_when", "authoring_steps", "validation"):
+    for field in ("use_when", "required_fields", "authoring_steps", "validation"):
         if field in raw and not isinstance(raw[field], list):
             failures.append(_fail("example-library-pattern-field-type", f"{field} must be a list", relative_path))
     return failures
@@ -424,27 +437,6 @@ def _check_artifact_common(
     if not isinstance(summary, str) or len(summary.strip()) < 20:
         failures.append(_fail(f"example-library-{kind}-summary", "summary must be substantive", relative_path))
     return failures
-
-
-def _check_template_body(body: dict[str, Any], relative_path: str) -> list[PolicyFailure]:
-    try:
-        from raes import parse_sdl
-    except ImportError as exc:  # pragma: no cover - policy runs inside the project environment
-        return [_fail("example-library-template-import", f"could not import raes: {exc}", relative_path)]
-
-    try:
-        scenario = parse_sdl(yaml.safe_dump(body, sort_keys=False))
-    except Exception as exc:  # noqa: BLE001 - render parser/validator failures as policy failures
-        return [_fail("example-library-template-body", f"template body is not valid SDL: {exc}", relative_path)]
-    if scenario.advisories:
-        return [
-            _fail(
-                "example-library-template-advisory",
-                "template body produced advisories: " + "; ".join(scenario.advisories),
-                relative_path,
-            )
-        ]
-    return []
 
 
 def evaluate_example_library(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:

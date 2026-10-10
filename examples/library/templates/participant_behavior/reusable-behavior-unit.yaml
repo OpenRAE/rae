@@ -1,0 +1,68 @@
+template: raes-library-template
+version: 1
+id: reusable-behavior-unit
+surface: participant_behavior
+requirement_refs: [AUT-806, DSL-116]
+source_refs:
+  - docs/explain/sdl/sections.md
+  - docs/explain/sdl/parser.md
+  - implementations/python/tests/test_sem_208_participant_behavior.py
+summary: Participant behavior template for a module unit that exports a behavior specification and the declarations it names, so that another scenario can import it under a namespace.
+validation:
+  - command: uv run --project implementations/python --frozen python tools/check_example_library.py
+    expected: Exits 0 with no output. The gate loads this file as YAML, parses the loaded body as a standalone scenario with the SDL parser and semantic validator, and fails on any error or advisory. Loading keeps the last value of a duplicate key, so the gate does not report duplicate keys. It does not import the unit.
+  - command: uv run --project implementations/python --frozen python -c "import sys; from pathlib import Path; from raes import parse_sdl_file; print(sorted(parse_sdl_file(Path(sys.argv[1])).behavior_specifications))" my-scenario.sdl.yaml
+    expected: >-
+      With the body saved as scan-behavior.sdl.yaml and, in the same directory,
+      a my-scenario.sdl.yaml with name my-scenario and one imports entry
+      (source local:scan-behavior.sdl.yaml, namespace alpha, version 1.0.0),
+      prints ['alpha.red-scan-behavior'] and exits 0. raes semantic validate
+      rejects a document that declares imports.
+body:
+  name: library-reusable-behavior-unit
+  description: Module unit that exports a participant behavior specification for import under a namespace.
+  module:
+    id: example/scan-behavior
+    version: 1.0.0
+    exports:
+      agents: [red-agent]
+      action_contracts: [scan]
+      observation_boundaries: [red-view]
+      behavior_specifications: [red-scan-behavior]
+  entities:
+    red-team:
+      role: red
+  action_contracts:
+    scan:
+      semantic_version: 1.0.0
+      behavioral_granularity: atomic
+      procedure_basis: service discovery in the participant's authorized scope
+      realization_profile: backend-declared
+      fidelity_claim: records participant discovery intent and terminal observation
+      preconditions:
+        - precondition_id: authority-in-scope
+          precondition_class: authority
+          description: the participant is authorized to scan
+      effects:
+        - effect_id: terminal-scan-observation
+          effect_class: observation_effect
+          description: terminal scan observation
+          evidence_refs: [evidence.scan-output]
+      failure_classes: [backend_error, unknown]
+  observation_boundaries:
+    red-view:
+      projection_basis: participant-local view of scan results
+      evidence_refs: [evidence.scan-output]
+      redaction_policy: no hidden refs are disclosed
+      latency_profile: terminal observation after the scan completes
+  agents:
+    red-agent:
+      affiliations: [red-team]
+      actions: [scan]
+      observation_boundaries: [red-view]
+  behavior_specifications:
+    red-scan-behavior:
+      semantic_version: 1.0.0
+      participant_refs: [red-agent]
+      action_contract_refs: [scan]
+      observation_boundary_refs: [red-view]
