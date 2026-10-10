@@ -7,7 +7,7 @@ from dataclasses import dataclass, field, replace
 from types import MappingProxyType
 from uuid import uuid4
 
-from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope
+from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope, backend_manifest_v2_model
 from raes_contracts.admitted_trial_plan_ingress import revalidate_admitted_trial_plan
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
@@ -210,7 +210,12 @@ def _require_bound_component(bound: MixedRuntimeComponent, declaration: MixedCom
     if configured_manifest != admitted_manifest:
         raise ValueError("mixed runtime component manifest or envelope differs from admission")
     expected_manifest = backend_manifest_from_v2_model_with_envelope(bound.manifest, bound.envelope)
-    if bound.target.manifest != expected_manifest:
+    # A backend may hold the admitted contract in another sequence order or container type, so compare
+    # contract forms. The contract form names the envelope only by identity; compare the envelope too.
+    if (
+        backend_manifest_v2_model(bound.target.manifest) != backend_manifest_v2_model(expected_manifest)
+        or bound.target.manifest.realization_envelope != bound.envelope
+    ):
         raise ValueError("mixed runtime target manifest differs from the admitted component")
 
 
