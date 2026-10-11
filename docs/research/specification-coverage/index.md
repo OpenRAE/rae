@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 73.0.0 and rejects duplicate or unsupported
+Current validation requires release 74.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -547,14 +547,29 @@ export manifest split in
 [`analysis-v71.json`](analysis-v71.json). Classifications and claim limits
 remain unchanged.
 
-Release 72.0.0 replays the retained matrix against the issue #1423 inject
-trigger request and occurrence contracts in
+The issue #1371 captures that reused published release identities are preserved
+in the [initial publication archive](../mixed-backend-pre-sync-evidence/README.md)
+and [run-scope repair archive](../mixed-backend-run-scope-pre-sync-evidence/README.md),
+with exact bytes and digests. The incoming published release history remains canonical.
+
+Release 72.0.0 replays the retained controls after merging the issue #1418
+runtime-fact export manifest split with the issue #1371 mixed-backend contracts
+and composition run-scope repair in
 [`execution-snapshot-v72.json`](execution-snapshot-v72.json) and
-[`analysis-v72.json`](analysis-v72.json). Classifications and claim limits
-remain unchanged.
+[`analysis-v72.json`](analysis-v72.json). Outcomes and bounded claim
+limits remain unchanged; this retained corpus makes no new mixed-runtime execution claim.
 
 Release 73.0.0 replays the retained matrix after issue #1366 published the
 inject readback, correlation and backend declaration contracts in
 [`execution-snapshot-v73.json`](execution-snapshot-v73.json) and
 [`analysis-v73.json`](analysis-v73.json). Classifications and claim limits
 remain unchanged.
+
+The [inject readback pre-synchronization archive](../inject-readback-pre-sync-evidence/README.md)
+preserves the original issue #1423 and #1366 captures, including collided
+identities and the dependent formal baseline chain.
+
+Release 74.0.0 captures the merged inject and mixed-backend contract source in
+[`execution-snapshot-v74.json`](execution-snapshot-v74.json) and
+[`analysis-v74.json`](analysis-v74.json). Retained outcomes, classifications
+and bounded claim limits remain unchanged; these contracts add no runtime adoption.

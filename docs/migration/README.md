@@ -29,6 +29,10 @@ The fail-closed adoption of coherent backend capture offers and content-backed
 evidence satisfaction is documented in
 [Required Capture Admission Migration](required-capture-admission.md).
 
+Producer and reader obligations for the published mixed-backend execution
+binding and stage-report contracts are documented in
+[Mixed-Backend Execution Contracts Migration](mixed-backend-execution.md).
+
 The reorganization moved existing material into the current long-term buckets:
 
 - root `schemas/` -> `contracts/schemas/`

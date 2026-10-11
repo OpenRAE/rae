@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-10-11T07:04:16.616377+00:00",
+  "captured_at": "2026-10-11T19:24:50.695662+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -647,7 +647,7 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "004c88cd6754c7b0f2552fc965f66425d1d1b2a5c726b3d3d70816dc8abb610c",
+      "content_sha256": "701bd6ec60fe127e60bbd0dda48e01634206650d8aab67b2619b1bbc142d90ee",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
@@ -688,17 +688,18 @@
     "Issue #1361 execution and recovery requirements are verified by dedicated policy, composition, and admission tests; this retained corpus establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The issue #1361 maintainability repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The issue #1361 resource type-hint repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
-    "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee."
+    "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee.",
+    "This synchronization adds no mixed-backend runtime execution claim; the issue #1371 tests cover the composition run-scope join."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "f0215beecd728c8941b6bfd520ac0c4827aaf81a",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1423-v72",
+  "raes_revision": "dabaf7c76e8b297a271a37dcd31d5947e9641413",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1371-sync-v72",
   "snapshot_revision": "72.0.0",
   "source_state": {
-    "base_revision": "f0215beecd728c8941b6bfd520ac0c4827aaf81a",
+    "base_revision": "dabaf7c76e8b297a271a37dcd31d5947e9641413",
     "checkout_state": "modified",
-    "implementation_digest": "e9b23d9653f2c38214c03042f4c83e3356ae0e4e4f7d111cf2fadf0ee70f4690",
+    "implementation_digest": "25d03497c992a1079103325e50a36de2b16868efb4a7ddc33db82530c643679d",
     "profile": "python-reference-source/v2"
   }
 }

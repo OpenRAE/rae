@@ -1,9 +1,9 @@
 {
-  "content_hash": "a3082027b9cc13859fe323a0c4989d4d59943b4c2a900dcb3fa2c255861a53ce",
+  "content_hash": "b43ab9ede2182263b4abea1c5ca8784cef67a68f127c7cc8c3ead1cb6402e161",
   "contract_id": "backend-profile-v1",
   "last_change": {
-    "summary": "Allow exact declarations of the ADR-112 inject occurrence and outcome contracts; the stub and reference backends do not declare them (#1366).",
-    "content_hash": "a3082027b9cc13859fe323a0c4989d4d59943b4c2a900dcb3fa2c255861a53ce"
+    "summary": "Allow explicit declarations of both mixed-backend execution binding/stage report and inject occurrence/outcome contracts; shipped backends retain their declared support boundaries (#1371, #1366).",
+    "content_hash": "b43ab9ede2182263b4abea1c5ca8784cef67a68f127c7cc8c3ead1cb6402e161"
   },
   "schema_path": "contracts/schemas/profiles/backend-profile-v1.json",
   "stability": "draft"

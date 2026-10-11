@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-1423-analysis-v73",
+  "analysis_id": "issue-1371-sync-analysis-v73",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -123,8 +123,8 @@
   ],
   "corpus_revision": "4.0.0",
   "evidence_status": "partial",
-  "execution_id": "issue-1423-execution-v73",
-  "generated_at": "2026-10-11T07:04:16.616377+00:00",
+  "execution_id": "issue-1371-sync-execution-v73",
+  "generated_at": "2026-10-11T19:24:50.695662+00:00",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
     "The subset-minimal unsatisfiable core is not a universal proof certificate.",
@@ -157,8 +157,8 @@
     "The issue #1361 resource type-hint repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The issue #1418 runtime-fact export manifest split changes no contract, schema or behavior and adds no new formal-semantic claim.",
-    "The issue #1423 inject trigger request and occurrence contracts are new draft carriers that no SDL construct, compiler or runtime path reads, and they add no new formal-semantic claim."
+    "This synchronization adds no mixed-backend runtime execution claim; the issue #1371 tests cover the composition run-scope join."
   ],
-  "plain_language_outcome": "The retained formal controls reproduce their prior outcomes against the issue #1423 inject trigger request and occurrence contracts; bounded claims are unchanged.",
+  "plain_language_outcome": "The retained formal controls reproduce their prior outcomes after merging the runtime-fact export manifest split with the mixed-backend contracts and composition run-scope repair. Bounded claim limits are unchanged.",
   "protocol_revision": "2.0.0"
 }

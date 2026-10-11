@@ -1,9 +1,9 @@
 {
-  "content_hash": "2237cc161a13ef16243ce502bb8bc44b6859c1e54018deb2fe7f6619e8b611da",
+  "content_hash": "bedf1036a4e02b8b6eeb5759eac23c50ed021916a0173fca4cc3677e3b22be2b",
   "contract_id": "backend-manifest-v2",
   "last_change": {
-    "content_hash": "2237cc161a13ef16243ce502bb8bc44b6859c1e54018deb2fe7f6619e8b611da",
-    "summary": "Allow exact declarations of the ADR-112 inject occurrence and outcome contracts; the stub and reference backends do not declare them (#1366)."
+    "summary": "Allow explicit declarations of both mixed-backend execution binding/stage report and inject occurrence/outcome contracts; shipped backends retain their declared support boundaries (#1371, #1366).",
+    "content_hash": "bedf1036a4e02b8b6eeb5759eac23c50ed021916a0173fca4cc3677e3b22be2b"
   },
   "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
   "stability": "draft"
