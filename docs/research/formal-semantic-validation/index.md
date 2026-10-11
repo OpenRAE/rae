@@ -611,3 +611,10 @@ The issue #1371 captures that reused published release identities are preserved
 in the [initial publication archive](../mixed-backend-pre-sync-evidence/README.md)
 and [run-scope repair archive](../mixed-backend-run-scope-pre-sync-evidence/README.md),
 with exact bytes and digests. The incoming published release history remains canonical.
+
+Release 73.0.0 replays the retained controls after merging the issue #1418
+runtime-fact export manifest split with the issue #1371 mixed-backend contracts
+and composition run-scope repair in
+[`execution-snapshot-v73.json`](execution-snapshot-v73.json) and
+[`analysis-v73.json`](analysis-v73.json). Outcomes and bounded claim
+limits remain unchanged; this retained corpus makes no new mixed-runtime execution claim.

@@ -10,3 +10,6 @@ The [records](records.json) pin every archived file to its original path, digest
 and immutable source revision. Embedded paths refer to that source revision.
 These historical records are outside the active indexes; no capture byte or
 observation has been discarded or relabeled.
+
+Formal release 73 and specification release 72 replay the synchronized source.
+Retained outcomes, classifications and bounded claim limits remain unchanged.
