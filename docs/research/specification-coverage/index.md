@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 71.0.0 and rejects duplicate or unsupported
+Current validation requires release 74.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -576,3 +576,10 @@ The issue #1421 captures that reused published release identities are preserved
 in the [shared-time readback archive](../time-readback-pre-sync-evidence/README.md)
 with exact bytes, digests, and source revision. Incoming published history
 remains canonical.
+
+Release 74.0.0 replays the retained corpus after synchronizing issue #1421's
+shared-time readback isolation with `dev`. See
+[`execution-snapshot-v74.json`](execution-snapshot-v74.json) and
+[`analysis-v74.json`](analysis-v74.json). Retained outcomes and bounded
+claim limits remain unchanged; the readback mutation cases are covered by
+`test_issue_1421_time_readback_isolation.py`.
