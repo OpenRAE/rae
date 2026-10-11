@@ -74,8 +74,8 @@ def surface_digest(repo_root: Path, relative: str) -> str:
 
 _CAPTURE_RE = re.compile(r"^capture-[0-9a-f]{64}$")
 _PUBLISHED_HISTORY_PINS = {
-    "formal-semantic-validation": "b39b9923c733fe9b71bc9be598dfd8774784bb5a2254ef088aad233a6c052fc2",
-    "specification-coverage": "1f4828bb0c7707971f934b2ce710dfdf1592ec5f96058812cfec2b79f72fdb1a",
+    "formal-semantic-validation": "0f4268804b9a46742068435ea66dab067d50945ac7a7dd6fe317679878b9a572",
+    "specification-coverage": "16a926f7995bc567c3ae6d3ed5981598c22e9067a421d4371f1708df800a4f2f",
 }
 
 
@@ -120,22 +120,30 @@ def validate_inventory(
     by_path = dict(records)
     if len(by_path) != len(records):
         raise ValueError("research evidence paths must be unique")
+    by_revision = {
+        manifest.get("revision"): (path, manifest) for path, manifest in records
+    }
+    if len(by_revision) != len(records):
+        raise ValueError("research evidence release revisions must be unique")
+    historical_paths = set()
     for pin in expected:
-        path = safe_repo_path(repo_root, pin["path"])
-        if (
-            pin["path"] not in by_path
-            or path is None
-            or hashlib.sha256(path.read_bytes()).hexdigest() != pin["sha256"]
-        ):
+        selected = by_revision.get(pin["revision"])
+        if selected is None:
             raise ValueError(
                 "research evidence requires every supported published historical and current release"
             )
-        # Check the supplied record too, so callers cannot substitute another inventory.
-        if by_path[pin["path"]] != load_bounded_json_object(
-            repo_root, pin["path"], max_bytes=512 * 1024
+        relative, manifest = selected
+        path = safe_repo_path(repo_root, relative)
+        if (
+            path is None
+            or hashlib.sha256(path.read_bytes()).hexdigest() != pin["sha256"]
+        ):
+            raise ValueError("published research history manifest pin is stale")
+        if manifest != load_bounded_json_object(
+            repo_root, relative, max_bytes=512 * 1024
         ):
             raise ValueError("published research history record differs from its pin")
-    historical_paths = {pin["path"] for pin in expected}
+        historical_paths.add(relative)
     receipts = {}
     receipt_folder = repo_root / folder / "capture-records"
     for receipt_path in sorted(receipt_folder.glob("*.json")):

@@ -544,16 +544,18 @@ def test_gate_binds_participant_observations_to_the_declared_test_refs() -> None
     assert "formal-validation-participant-observation-evidence" in _rule_ids(failures)
 
 
-def test_gate_replays_participant_tests_instead_of_trusting_pass_labels() -> None:
+def test_gate_replays_participant_tests_instead_of_trusting_pass_labels(monkeypatch) -> None:
     def failed_replay(_repo_root: Path, _test_refs: list[str]) -> tuple[bool, str]:
         return False, "seeded participant fixture failure"
 
     releases = [
         SimpleNamespace(
+            manifest_path="selected-manifest.json",
             manifest={"revision": "1.0.0", "snapshot_path": "snapshot.json"},
             protocol={"participant_obligations": [{"positive_test_ref": "positive", "negative_test_ref": "negative"}]},
         )
     ]
+    monkeypatch.setattr(formal_validation, "current_release_path", lambda *_: "selected-manifest.json")
     failures = formal_validation._participant_replay_failures(REPO_ROOT, releases, failed_replay)
     assert [(failure.rule_id, failure.message, failure.path) for failure in failures] == [
         ("formal-validation-participant-replay", "seeded participant fixture failure", "snapshot.json")
