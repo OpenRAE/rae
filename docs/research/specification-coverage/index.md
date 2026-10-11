@@ -558,3 +558,16 @@ and composition run-scope repair in
 [`execution-snapshot-v72.json`](execution-snapshot-v72.json) and
 [`analysis-v72.json`](analysis-v72.json). Outcomes and bounded claim
 limits remain unchanged; this retained corpus makes no new mixed-runtime execution claim.
+
+## Issue #297 behavior authoring verification
+
+Release 73.0.0 replays the retained corpus against the behavior authoring
+validation changes after integration with the runtime-fact manifest split and
+mixed-backend execution contracts. See
+[`execution-snapshot-v73.json`](execution-snapshot-v73.json) and
+[`analysis-v73.json`](analysis-v73.json). Incoming published captures retain
+their exact bytes; this release records a fresh implementation digest and
+modified-checkout provenance. Declaration reuse, authored-private rejection,
+import diagnostics and version parity have targeted evidence in
+`test_issue_297_behavior_authoring.py`; this refresh does not promote those
+claims into runtime or backend realization.

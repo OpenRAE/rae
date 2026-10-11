@@ -59,6 +59,7 @@ and the existing normative composition rules.
 | #1348 / #1350 / ADR-113; #1360–#1362 | Parsing and compiling a behavior neither dispatches an operation nor authorizes retry, recovery, cancellation, or another trial. Existing execution and backend contracts remain authoritative. |
 | #1353; #1366–#1369 | General injects and their world effects remain independent of participant declarations. Behavior bindings establish neither delivery nor observation. |
 | #1356 / #1359 | Authentication principals are not SDL roles or controllers. Module name visibility is not an authorization or tenant isolation boundary. |
+| #1371 / PR #1442 | Reusable behavior declarations do not create mixed-backend execution bindings, stage reports, or readback authority. Those runtime contracts remain distinct from SDL name resolution and role membership. |
 | #1019 | Migration/reference guidance distinguishes declaration reuse from control occurrence reuse and makes no unfinished runtime-realization claim. |
 
 ## Verification and compatibility
