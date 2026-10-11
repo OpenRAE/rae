@@ -13,20 +13,20 @@ Delivery-level concerns (Docker, Terraform, cloud APIs) are outside the SDL.
 from collections.abc import Mapping
 from typing import ClassVar, Literal
 
-from pydantic import ConfigDict, Field, PrivateAttr, field_validator, model_validator
+from pydantic import ConfigDict, Field, PrivateAttr, model_validator
 from raes_contracts.augmentation_scope import OptionalAugmentationScope
 from raes_contracts.execution_policy import OptionalExecutionPolicy
 
-from ._base import SDLModel
 from ._classification_guard import LegacyClassificationGuard
 from ._errors import SDLParseDiagnostic
 from ._identifiers import (
     PortableIdentifier,
     QualifiedName,
-    require_module_identifier,
     require_portable_identifier,
 )
 from ._mapping_scopes import HASHMAP_SECTIONS
+from ._module_declarations import ImportDecl as ImportDecl
+from ._module_declarations import ModuleDescriptor as ModuleDescriptor
 from ._scenario_instantiation import (
     collect_variable_tokens,
     validate_capability_constraint_outputs,
@@ -198,67 +198,6 @@ def _validate_runtime_forwarding_agent_identifiers(value: Mapping[object, object
             allow_qualified=False,
             field_name="runtime forwarding_agent_id",
         )
-
-
-class ModuleDescriptor(SDLModel):
-    """Published module metadata for SDL composition."""
-
-    id: str
-    version: str
-    parameters: list[PortableIdentifier] = Field(default_factory=list)
-    exports: dict[str, list[str]] = Field(default_factory=dict)
-    description: str = ""
-
-    @model_validator(mode="after")
-    def validate_descriptor(self) -> "ModuleDescriptor":
-        require_module_identifier(self.id)
-        if len(self.parameters) != len(set(self.parameters)):
-            raise ValueError("module.parameters must be unique")
-        for section, names in self.exports.items():
-            if len(names) != len(set(names)):
-                raise ValueError(f"module.exports.{section} entries must be unique")
-        return self
-
-
-class ImportDecl(SDLModel):
-    """A module import expanded before full semantic validation."""
-
-    source: str = ""
-    path: str = ""
-    namespace: str = ""
-    version: str = "*"
-    parameters: dict[PortableIdentifier, object] = Field(default_factory=dict)
-    digest: str = ""
-
-    @field_validator("version")
-    @classmethod
-    def _validate_version_constraint(cls, value: str) -> str:
-        from packaging.specifiers import InvalidSpecifier
-
-        from .module_registry._digests import _normalize_exact_or_range
-
-        try:
-            _normalize_exact_or_range(value)
-        except InvalidSpecifier as exc:
-            raise ValueError("import version must be an exact version, '*', or a valid version range") from exc
-        return value
-
-    @model_validator(mode="after")
-    def validate_source_fields(self) -> "ImportDecl":
-        if not self.source and not self.path:
-            raise ValueError("Import requires either 'source' or deprecated 'path'")
-        if self.source and self.path:
-            raise ValueError("Import may specify only one of 'source' or 'path'")
-        if not self.namespace:
-            raise ValueError("Import requires an explicit namespace")
-        require_portable_identifier(self.namespace, field_name="namespace")
-        return self
-
-    @property
-    def normalized_source(self) -> str:
-        if self.source:
-            return self.source
-        return f"local:{self.path}"
 
 
 class ScenarioContent(LegacyClassificationGuard):
