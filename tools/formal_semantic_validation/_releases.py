@@ -160,7 +160,7 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
                 release.corpus,
                 release.snapshot,
                 release.analysis,
-                replay_current=manifest.get("revision") == "73.0.0",
+                replay_current=manifest.get("revision") == "74.0.0",
             )
         )
     else:
@@ -291,6 +291,7 @@ def _expected_corpus_revision(release_revision: object) -> str:
         "71.0.0",
         "72.0.0",
         "73.0.0",
+        "74.0.0",
     }:
         expected_corpus_revision = "4.0.0"
     return expected_corpus_revision
@@ -318,7 +319,7 @@ def validate_retest_bundle(
         return [
             _failure(
                 "formal-validation-current-replay-required",
-                "only releases 3.0.0 through 72.0.0 can use integrated historical validation",
+                "only releases 3.0.0 through 73.0.0 can use integrated historical validation",
                 snapshot_path,
             )
         ]

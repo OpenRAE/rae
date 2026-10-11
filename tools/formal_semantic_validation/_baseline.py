@@ -209,6 +209,7 @@ def _selected_baseline_manifest(
         "71.0.0",
         "72.0.0",
         "73.0.0",
+        "74.0.0",
     }:
         expected_corpus_path = "docs/research/formal-semantic-validation/corpus/manifest-v4.json"
     elif baseline_revision in _V3_CORPUS_REVISIONS:
