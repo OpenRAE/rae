@@ -87,11 +87,11 @@ def _sync_archive_candidates(repo_root: Path, path_value: str, digest: str) -> l
     )
     if sync_pins is None:
         return []
-    return list(
+    return [
         row["archive_path"]
         for row in sync_pins["records"]
         if row["original_path"] == path_value and row["sha256"] == digest
-    )
+    ]
 
 
 def _validated_baseline_pin(

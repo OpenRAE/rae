@@ -36,7 +36,7 @@ def _records(root: Path, family: str) -> list[tuple[str, dict[str, object]]]:
     return records
 
 
-def _pinned_capture_documents(root, manifest):
+def _pinned_capture_documents(root: Path, manifest: dict[str, object]) -> dict[str, bytes]:
     documents = {}
     for label in ("protocol", "corpus", "snapshot", "analysis"):
         if f"{label}_path" not in manifest:
@@ -51,7 +51,13 @@ def _pinned_capture_documents(root, manifest):
     return documents
 
 
-def _prepare_capture_documents(root, manifest, documents, snapshot_path, analysis_path):
+def _prepare_capture_documents(
+    root: Path,
+    manifest: dict[str, object],
+    documents: dict[str, bytes],
+    snapshot_path: str | None,
+    analysis_path: str | None,
+) -> None:
     overrides = {"snapshot": snapshot_path, "analysis": analysis_path}
     if (snapshot_path is None) != (analysis_path is None):
         raise ValueError("a fresh capture requires snapshot and analysis together")
@@ -66,7 +72,7 @@ def _prepare_capture_documents(root, manifest, documents, snapshot_path, analysi
         _normalize_snapshot_reference(manifest, documents, snapshot_path)
 
 
-def _normalize_snapshot_reference(manifest, documents, snapshot_path):
+def _normalize_snapshot_reference(manifest: dict[str, object], documents: dict[str, bytes], snapshot_path: str) -> None:
     analysis = json.loads(documents["analysis"])
     claim = analysis.get("claim")
     if isinstance(claim, dict) and isinstance(claim.get("evidence_artifacts"), list):
@@ -77,7 +83,7 @@ def _normalize_snapshot_reference(manifest, documents, snapshot_path):
         manifest["analysis_sha256"] = hashlib.sha256(documents["analysis"]).hexdigest()
 
 
-def _write_capture_documents(root, prefix, documents):
+def _write_capture_documents(root: Path, prefix: str, documents: dict[str, bytes]) -> None:
     folder = root / prefix
     if folder.exists():
         if any((folder / f"{label}.json").read_bytes() != content for label, content in documents.items()):
@@ -88,7 +94,7 @@ def _write_capture_documents(root, prefix, documents):
             (folder / f"{label}.json").write_bytes(content)
 
 
-def _write_retention_record(root, family, identity, prefix, documents):
+def _write_retention_record(root: Path, family: str, identity: str, prefix: str, documents: dict[str, bytes]) -> None:
     receipt = {
         "capture_path": prefix + "/manifest.json",
         "capture_sha256": hashlib.sha256(documents["manifest"]).hexdigest(),
@@ -137,7 +143,14 @@ def record_capture(
     return prefix + "/manifest.json"
 
 
-def _validate_publication_receipt(root, receipt_path, receipt, records, revisions, capture_paths):
+def _validate_publication_receipt(
+    root: Path,
+    receipt_path: Path,
+    receipt: dict[str, object],
+    records: list[tuple[str, dict[str, object]]],
+    revisions: set[object],
+    capture_paths: set[object],
+) -> None:
     if set(receipt) != {"revision", "capture_path", "capture_sha256"}:
         raise ValueError("invalid evidence publication receipt")
     number = revision_key(receipt["revision"])
@@ -156,7 +169,12 @@ def _validate_publication_receipt(root, receipt_path, receipt, records, revision
         raise ValueError("publication receipt has a stale capture pin")
 
 
-def _publication_receipts(root, folder, records, selected):
+def _publication_receipts(
+    root: Path,
+    folder: Path,
+    records: list[tuple[str, dict[str, object]]],
+    selected: str,
+) -> tuple[list[dict[str, object]], str | None]:
     prior = []
     existing = None
     revisions = set()

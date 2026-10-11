@@ -6,7 +6,7 @@ import hashlib
 import json
 import re
 from collections.abc import Mapping, Sequence
-from datetime import UTC
+from datetime import UTC, datetime
 from pathlib import Path
 
 from tools.evidence_bundle_index import revision_key
@@ -92,10 +92,15 @@ def capture_identity(manifest: Mapping[str, object]) -> str:
     return "capture-" + hashlib.sha256(encoded).hexdigest()
 
 
+_EvidenceRecords = Sequence[tuple[str, Mapping[str, object]]]
+_DatedCapture = tuple[datetime, str, Mapping[str, object]]
+
 _UNIQUE_REVISIONS = "research evidence release revisions must be unique"
 
 
-def _inventory_maps(records):
+def _inventory_maps(
+    records: _EvidenceRecords,
+) -> tuple[dict[str, Mapping[str, object]], dict[object, tuple[str, Mapping[str, object]]]]:
     by_path = dict(records)
     if len(by_path) != len(records):
         raise ValueError("research evidence paths must be unique")
@@ -105,7 +110,11 @@ def _inventory_maps(records):
     return by_path, by_revision
 
 
-def _historical_paths(repo_root, family, by_revision):
+def _historical_paths(
+    repo_root: Path,
+    family: str,
+    by_revision: Mapping[object, tuple[str, Mapping[str, object]]],
+) -> set[str]:
     folder = f"docs/research/{family}"
     history_path = f"{folder}/published-history.json"
     history = safe_repo_path(repo_root, history_path)
@@ -127,7 +136,11 @@ def _historical_paths(repo_root, family, by_revision):
     return historical_paths
 
 
-def _capture_receipts(repo_root, folder, by_path):
+def _capture_receipts(
+    repo_root: Path,
+    folder: str,
+    by_path: Mapping[str, Mapping[str, object]],
+) -> dict[str, dict[str, object]]:
     receipts = {}
     receipt_folder = repo_root / folder / "capture-records"
     for receipt_path in sorted(receipt_folder.glob("*.json")):
@@ -150,7 +163,7 @@ def _capture_receipts(repo_root, folder, by_path):
     return receipts
 
 
-def _validate_capture_paths(folder, records, historical_paths):
+def _validate_capture_paths(folder: str, records: _EvidenceRecords, historical_paths: set[str]) -> None:
     for path, manifest in records:
         identity = manifest.get("revision")
         evidence_key(identity)
@@ -178,7 +191,7 @@ def validate_inventory(repo_root: Path, family: str, records: Sequence[tuple[str
     _validate_capture_paths(folder, records, historical_paths)
 
 
-def _live_source_candidates(records, repo_root):
+def _live_source_candidates(records: _EvidenceRecords, repo_root: Path) -> list[_DatedCapture]:
     digest = implementation_digest(repo_root)
     candidates = []
     legacy = [(path, record) for path, record in records if not is_capture(record.get("revision"))]
@@ -195,7 +208,7 @@ def _live_source_candidates(records, repo_root):
     return candidates
 
 
-def _live_source_matches(state, digest):
+def _live_source_matches(state: object, digest: str) -> bool:
     return (
         isinstance(state, Mapping)
         and state.get("profile") == SOURCE_PROFILE
@@ -203,9 +216,7 @@ def _live_source_matches(state, digest):
     )
 
 
-def _capture_date(captured_at):
-    from datetime import datetime
-
+def _capture_date(captured_at: object) -> datetime:
     if not isinstance(captured_at, str):
         raise ValueError("capture date must be an offset-aware timestamp")
     date = datetime.fromisoformat(captured_at)
@@ -214,7 +225,7 @@ def _capture_date(captured_at):
     return date
 
 
-def _select_recent_capture(dated):
+def _select_recent_capture(dated: list[_DatedCapture]) -> str:
     latest = max(date for date, _, _ in dated)
     latest_records = [(path, record) for date, path, record in dated if date == latest]
     # Prefer an exact content-addressed wrapper of an existing numbered release.
