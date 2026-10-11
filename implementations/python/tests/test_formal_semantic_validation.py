@@ -76,86 +76,11 @@ def test_formal_evidence_gate_replays_real_participant_fixtures() -> None:
 def test_atomic_release_index_validates_every_historical_bundle() -> None:
     releases = copy_bundle(load_release_bundles, REPO_ROOT)
 
-    assert [release.manifest["revision"] for release in releases] == [
-        "1.0.0",
-        "1.1.0",
-        "1.2.0",
-        "2.0.0",
-        "3.0.0",
-        "4.0.0",
-        "5.0.0",
-        "6.0.0",
-        "7.0.0",
-        "8.0.0",
-        "9.0.0",
-        "10.0.0",
-        "11.0.0",
-        "12.0.0",
-        "13.0.0",
-        "14.0.0",
-        "15.0.0",
-        "16.0.0",
-        "17.0.0",
-        "18.0.0",
-        "19.0.0",
-        "20.0.0",
-        "21.0.0",
-        "22.0.0",
-        "23.0.0",
-        "24.0.0",
-        "25.0.0",
-        "26.0.0",
-        "27.0.0",
-        "28.0.0",
-        "29.0.0",
-        "30.0.0",
-        "31.0.0",
-        "32.0.0",
-        "33.0.0",
-        "34.0.0",
-        "35.0.0",
-        "36.0.0",
-        "37.0.0",
-        "38.0.0",
-        "39.0.0",
-        "40.0.0",
-        "41.0.0",
-        "42.0.0",
-        "43.0.0",
-        "44.0.0",
-        "45.0.0",
-        "46.0.0",
-        "47.0.0",
-        "48.0.0",
-        "49.0.0",
-        "50.0.0",
-        "51.0.0",
-        "52.0.0",
-        "53.0.0",
-        "54.0.0",
-        "55.0.0",
-        "56.0.0",
-        "57.0.0",
-        "58.0.0",
-        "59.0.0",
-        "60.0.0",
-        "61.0.0",
-        "62.0.0",
-        "63.0.0",
-        "64.0.0",
-        "65.0.0",
-        "66.0.0",
-        "67.0.0",
-        "68.0.0",
-        "69.0.0",
-        "70.0.0",
-        "71.0.0",
-        "72.0.0",
-        "73.0.0",
-        "74.0.0",
-        "75.0.0",
-        "76.0.0",
-    ]
+    from tools.research_evidence import is_capture
+
+    revisions = [release.manifest["revision"] for release in releases]
+    assert len(revisions) == len(set(revisions))
+    assert any(is_capture(revision) for revision in revisions)
     assert all(validate_release_bundle(REPO_ROOT, release) == [] for release in releases)
 
 
@@ -163,10 +88,15 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
 def test_current_retest_bundle_is_coherent_and_clean() -> None:
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
 
-    assert release.manifest["revision"] == "76.0.0"
+    assert release.manifest["revision"].startswith("capture-")
     assert protocol["revision"] == "2.0.0"
     assert corpus["revision"] == "4.0.0"
-    assert snapshot["baseline"]["release_revision"] == "75.0.0"
+    baseline = next(
+        item
+        for item in copy_bundle(load_release_bundles, REPO_ROOT)
+        if item.manifest_path == snapshot["baseline"]["release_path"]
+    )
+    assert snapshot["baseline"]["release_revision"] == baseline.manifest["revision"]
     assert snapshot["deviations"] == []
     assert validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis) == []
 
