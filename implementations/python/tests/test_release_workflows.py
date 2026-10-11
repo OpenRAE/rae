@@ -181,6 +181,17 @@ def _run_github_finalization(
     gh_stub.write_text(
         """#!/bin/sh
 set -eu
+# Like real gh, a repository-scoped call that names no repository falls back
+# to the local git checkout, which this job does not have (#1414).
+case "${1-}" in
+  api) ;;
+  *)
+    case " $* " in
+      *" --repo "*|*" --repo="*|*" -R "*) ;;
+      *) git rev-parse --show-toplevel ;;
+    esac
+    ;;
+esac
 case "${1-}:${2-}" in
   release:view)
     case "$*" in
@@ -1595,6 +1606,7 @@ def test_github_attachment_fails_closed_on_an_uncertain_asset_listing(tmp_path: 
     )
 
     assert result.returncode != 0
+    assert "could not list release assets" in result.stderr
     assert "upload" not in (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines()
 
 

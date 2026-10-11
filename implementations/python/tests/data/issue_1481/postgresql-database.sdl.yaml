@@ -1,0 +1,135 @@
+name: postgresql-database
+version: 2.0.0
+description: Reusable static infrastructure for PostgreSQL database. Configures database_name
+  through the kit parameter contract.
+module:
+  id: infrastructure/postgresql-database
+  version: 2.0.0
+  parameters:
+  - deployment_profile
+  - service_label
+  - database_name
+  exports:
+    nodes:
+    - database
+    content:
+    - seed_inventory
+    accounts:
+    - database_operator
+  description: Composable PostgreSQL database infrastructure module.
+variables:
+  deployment_profile:
+    type: string
+    default: standard
+    allowed_values:
+    - compact
+    - standard
+  service_label:
+    type: string
+    default: postgresql-database
+  database_name:
+    type: string
+    default: environment
+    allowed_values:
+    - analytics
+    - environment
+nodes:
+  database:
+    type: compute
+    description: '${deployment_profile} profile for ${service_label} (PostgreSQL database).
+      Configuration: ${database_name}.'
+    source:
+      name: postgresql
+      version: '17'
+    resources:
+      cpu: 2
+      ram: 2 GiB
+    services:
+    - port: 5432
+      protocol: tcp
+      name: postgresql
+      description: Declared postgresql service surface.
+    runtime:
+      database_services:
+      - database_service_id: postgresql_service
+        service: postgresql
+        engine: postgresql
+        protocol: postgresql
+        version: '17'
+        databases:
+        - database_id: application_database
+          name: ${database_name}
+          origin: scenario
+          schemas:
+          - schema_id: application_schema
+            name: application
+            tables:
+            - table_id: records_table
+              name: records
+            - table_id: audit_table
+              name: audit_log
+        roles:
+        - role_id: application_role
+          name: application
+          role_type: application
+          can_login: true
+        - role_id: operator_role
+          name: operator
+          role_type: admin
+          can_login: true
+        grants:
+        - grantee_role_ref: application_role
+          object_type: table
+          object_ref: records_table
+          privileges:
+          - SELECT
+          - INSERT
+          - UPDATE
+          with_grant_option: false
+content:
+  seed_inventory:
+    type: dataset
+    target: database
+    description: Benign infrastructure seed inventory for ${database_name}.
+    items:
+    - name: database
+      display_name: Database
+      tags:
+      - infrastructure
+      - seed
+      description: Declared database for this reusable service.
+    - name: schemas
+      display_name: Schemas
+      tags:
+      - infrastructure
+      - seed
+      description: Declared schemas for this reusable service.
+    - name: tables
+      display_name: Tables
+      tags:
+      - infrastructure
+      - seed
+      description: Declared tables for this reusable service.
+    - name: roles
+      display_name: Roles
+      tags:
+      - infrastructure
+      - seed
+      description: Declared roles for this reusable service.
+    - name: seed_rows
+      display_name: Seed Rows
+      tags:
+      - infrastructure
+      - seed
+      description: Declared seed rows for this reusable service.
+accounts:
+  database_operator:
+    username: db-operator
+    node: database
+    password_strength: strong
+    description: Declared environment account; credential delivery remains backend-owned.
+realization:
+  constraints:
+  - field_pointer: /nodes/database
+    concern: compute-substrate
+    posture: open

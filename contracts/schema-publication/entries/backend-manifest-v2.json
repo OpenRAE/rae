@@ -1,9 +1,9 @@
 {
-  "content_hash": "be543802e6518ee04254963a97bba5b33c9cf06715cff0a4cd107ffb6ab0316b",
+  "content_hash": "5835e2604fb7c583e4fc84e4a78c31f52e7ee79baef69910c5bc6d120a578028",
   "contract_id": "backend-manifest-v2",
   "last_change": {
-    "content_hash": "be543802e6518ee04254963a97bba5b33c9cf06715cff0a4cd107ffb6ab0316b",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "5835e2604fb7c583e4fc84e4a78c31f52e7ee79baef69910c5bc6d120a578028",
+    "summary": "Allow declarations of the mixed-backend execution binding and stage report contracts (#1371)."
   },
   "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
   "stability": "draft"
