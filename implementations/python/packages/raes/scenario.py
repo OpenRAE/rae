@@ -17,16 +17,16 @@ from pydantic import ConfigDict, Field, PrivateAttr, model_validator
 from raes_contracts.augmentation_scope import OptionalAugmentationScope
 from raes_contracts.execution_policy import OptionalExecutionPolicy
 
-from ._base import SDLModel
 from ._classification_guard import LegacyClassificationGuard
 from ._errors import SDLParseDiagnostic
 from ._identifiers import (
     PortableIdentifier,
     QualifiedName,
-    require_module_identifier,
     require_portable_identifier,
 )
 from ._mapping_scopes import HASHMAP_SECTIONS
+from ._module_declarations import ImportDecl as ImportDecl
+from ._module_declarations import ModuleDescriptor as ModuleDescriptor
 from ._scenario_instantiation import (
     collect_variable_tokens,
     validate_capability_constraint_outputs,
@@ -200,54 +200,6 @@ def _validate_runtime_forwarding_agent_identifiers(value: Mapping[object, object
         )
 
 
-class ModuleDescriptor(SDLModel):
-    """Published module metadata for SDL composition."""
-
-    id: str
-    version: str
-    parameters: list[PortableIdentifier] = Field(default_factory=list)
-    exports: dict[str, list[str]] = Field(default_factory=dict)
-    description: str = ""
-
-    @model_validator(mode="after")
-    def validate_descriptor(self) -> "ModuleDescriptor":
-        require_module_identifier(self.id)
-        if len(self.parameters) != len(set(self.parameters)):
-            raise ValueError("module.parameters must be unique")
-        for section, names in self.exports.items():
-            if len(names) != len(set(names)):
-                raise ValueError(f"module.exports.{section} entries must be unique")
-        return self
-
-
-class ImportDecl(SDLModel):
-    """A module import expanded before full semantic validation."""
-
-    source: str = ""
-    path: str = ""
-    namespace: str = ""
-    version: str = "*"
-    parameters: dict[PortableIdentifier, object] = Field(default_factory=dict)
-    digest: str = ""
-
-    @model_validator(mode="after")
-    def validate_source_fields(self) -> "ImportDecl":
-        if not self.source and not self.path:
-            raise ValueError("Import requires either 'source' or deprecated 'path'")
-        if self.source and self.path:
-            raise ValueError("Import may specify only one of 'source' or 'path'")
-        if not self.namespace:
-            raise ValueError("Import requires an explicit namespace")
-        require_portable_identifier(self.namespace, field_name="namespace")
-        return self
-
-    @property
-    def normalized_source(self) -> str:
-        if self.source:
-            return self.source
-        return f"local:{self.path}"
-
-
 class ScenarioContent(LegacyClassificationGuard):
     """Executable SDL content shared by the closed document-phase types."""
 
@@ -387,6 +339,15 @@ class Scenario(ScenarioContent):
         json_schema_extra={"additionalProperties": False},
     )
     variation_points: dict[str, VariationPoint] = Field(default_factory=dict)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _reject_private_behavior_references(cls, value: object) -> object:
+        from ._behavior_authoring import validate_authored_behavior_references
+
+        if isinstance(value, Mapping):
+            validate_authored_behavior_references(value)
+        return value
 
     @property
     def module_variable_specs(self) -> dict[str, dict[str, object]]:
