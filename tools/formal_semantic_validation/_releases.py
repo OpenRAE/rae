@@ -160,7 +160,7 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
                 release.corpus,
                 release.snapshot,
                 release.analysis,
-                replay_current=manifest.get("revision") == "72.0.0",
+                replay_current=manifest.get("revision") == "73.0.0",
             )
         )
     else:
@@ -290,6 +290,7 @@ def _expected_corpus_revision(release_revision: object) -> str:
         "70.0.0",
         "71.0.0",
         "72.0.0",
+        "73.0.0",
     }:
         expected_corpus_revision = "4.0.0"
     return expected_corpus_revision
