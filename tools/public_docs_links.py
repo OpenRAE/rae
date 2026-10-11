@@ -91,12 +91,11 @@ def _line_problems(line: str, kinds: Mapping[PurePosixPath, str]) -> Iterator[st
 def _link_problem(url: str, kinds: Mapping[PurePosixPath, str]) -> str | None:
     # The URL path is /<owner>/rae/<route>/<ref>/<repository path>; REPOSITORY_LINK fixes the route.
     route, ref, *segments = urlsplit(url).path.split("/")[3:]
-    if ref not in CHECKED_REFS:
-        return None
     path = PurePosixPath(unquote("/".join(segments)))
     expected = ROUTE_KINDS[route]
     actual = kinds.get(path)
-    if actual == expected:
+    # Skip a link on another ref, and pass one whose path git tracks as the kind that its route names.
+    if ref not in CHECKED_REFS or actual == expected:
         return None
     if actual is None:
         return f"{url} does not resolve: this checkout tracks no {expected} at {path}"
