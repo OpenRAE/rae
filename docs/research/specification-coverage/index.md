@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 69.0.0 and rejects duplicate or unsupported
+Current validation requires release 68.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -528,8 +528,19 @@ retains its original bytes. Pre-synchronization issue #1361 captures are
 [archived with exact digests](../execution-recovery-pre-sync-evidence/README.md).
 Retained outcomes and bounded claim limits are unchanged.
 
-Release 69.0.0 replays the retained matrix after issue #1371 published the
-mixed-backend execution binding and stage-report contracts with their pure
-validators in [`execution-snapshot-v69.json`](execution-snapshot-v69.json) and
-[`analysis-v69.json`](analysis-v69.json). Classifications and claim limits
-remain unchanged.
+Release 69.0.0 replays the retained matrix after issue #1481 adds configurable
+runtime parameter authority in
+[`execution-snapshot-v69.json`](execution-snapshot-v69.json) and
+[`analysis-v69.json`](analysis-v69.json). Source and package digests are refreshed;
+historical records, classifications, outcomes, and bounded claim limits remain
+unchanged. Issue-specific regression tests establish the new parameter behavior;
+this retained matrix makes no broader claim about it.
+
+Release 70.0.0 replays the same matrix after the issue #1481 Sonar refactor in
+[`execution-snapshot-v70.json`](execution-snapshot-v70.json) and
+[`analysis-v70.json`](analysis-v70.json). The capture refreshes source and package
+identities without changing classifications, outcomes, or claim limits.
+
+The issue #1371 pre-synchronization captures that reused published release
+identities are [archived with exact digests](../mixed-backend-pre-sync-evidence/README.md).
+The incoming published release history remains canonical.

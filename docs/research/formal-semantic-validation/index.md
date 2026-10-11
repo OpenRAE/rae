@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 70.0.0, rejects unsupported future
+Current validation requires explicit release 69.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -586,8 +586,21 @@ Retained outcomes and bounded claim limits are unchanged.
 Two compiled digests differ because the runtime model carries execution-policy
 metadata; their exact baseline and retest values are recorded as deviations.
 
-Release 70.0.0 replays the retained formal cases after issue #1371 published
-the mixed-backend execution binding and stage-report contracts with their pure
-validators in [`execution-snapshot-v70.json`](execution-snapshot-v70.json) and
-[`analysis-v70.json`](analysis-v70.json). Outcomes and claim limits remain
-unchanged.
+Release 70.0.0 replays the retained cases after issue #1481 adds configurable
+runtime parameter authority in
+[`execution-snapshot-v70.json`](execution-snapshot-v70.json) and
+[`analysis-v70.json`](analysis-v70.json). The capture binds fresh source identity
+and compares against immutable release 69.0.0. Outcomes and bounded claim limits
+are unchanged; two compiled metadata digests change with parameter-derivation
+provenance and are recorded as exact deviations. Issue-specific regression tests,
+not these retained controls, establish the new configurable parameter behavior.
+
+Release 71.0.0 replays the retained controls after the issue #1481 Sonar refactor
+in [`execution-snapshot-v71.json`](execution-snapshot-v71.json) and
+[`analysis-v71.json`](analysis-v71.json). Source identity is refreshed against
+immutable release 70.0.0; outcomes, compiled digests, and bounded claim limits
+remain unchanged, with no baseline deviations.
+
+The issue #1371 pre-synchronization captures that reused published release
+identities are [archived with exact digests](../mixed-backend-pre-sync-evidence/README.md).
+The incoming published release history remains canonical.

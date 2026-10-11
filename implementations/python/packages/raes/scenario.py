@@ -18,7 +18,6 @@ from raes_contracts.augmentation_scope import OptionalAugmentationScope
 from raes_contracts.execution_policy import OptionalExecutionPolicy
 
 from ._base import SDLModel
-from ._capability_binding_normalization import normalize_capability_binding
 from ._classification_guard import LegacyClassificationGuard
 from ._errors import SDLParseDiagnostic
 from ._identifiers import (
@@ -28,7 +27,11 @@ from ._identifiers import (
     require_portable_identifier,
 )
 from ._mapping_scopes import HASHMAP_SECTIONS
-from ._scenario_instantiation import collect_variable_tokens, resolve_json_pointer
+from ._scenario_instantiation import (
+    collect_variable_tokens,
+    validate_capability_constraint_outputs,
+    validate_parameter_derivation_outputs,
+)
 from .accounts import Account
 from .agents import Agent
 from .conditions import Condition
@@ -54,7 +57,6 @@ from .phase_contracts import (
     CapabilityConstraint,
     ExpansionProvenance,
     InstantiationProvenance,
-    _json_value_equal,
 )
 from .propositions import Assertion, Proposition
 from .realization_designation import RealizationDesignation
@@ -482,18 +484,10 @@ class InstantiatedScenario(ScenarioContent):
         for imported in self.instantiation_provenance.imports:
             for binding in imported.bindings:
                 binding_values[(*imported.namespace, *binding.parameter)] = binding.value
-        for constraint in self.instantiation_provenance.capability_constraints:
-            try:
-                concrete_value = resolve_json_pointer(payload, constraint.field_pointer)
-            except (KeyError, IndexError, TypeError, ValueError) as exc:
-                raise ValueError(
-                    f"Capability constraint field_pointer does not resolve: {constraint.field_pointer}"
-                ) from exc
-            if constraint.parameter not in binding_values:
-                raise ValueError("Capability constraint references an unresolved parameter identity")
-            binding = binding_values[constraint.parameter]
-            if not _json_value_equal(concrete_value, binding):
-                binding = normalize_capability_binding(self, constraint.field_pointer, binding)
-                if not _json_value_equal(concrete_value, binding):
-                    raise ValueError("Capability constraint binding does not match the concrete field value")
+        validate_capability_constraint_outputs(
+            self, payload, self.instantiation_provenance.capability_constraints, binding_values
+        )
+        validate_parameter_derivation_outputs(
+            self, payload, self.instantiation_provenance.parameter_derivations, binding_values
+        )
         return self

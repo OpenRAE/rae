@@ -1133,6 +1133,7 @@ ownership:
     - implementations/python/packages/raes_mcp
     - implementations/python/tests/test_project_positioning.py
     - implementations/python/tests/test_public_docs_policy.py
+    - implementations/python/tests/test_issue_954_docs_publication_boundary.py
     - implementations/python/tests/test_public_project_readiness.py
     - implementations/python/tests/test_repo_policy_tools.py
     - implementations/python/tests/test_vale_tool.py
@@ -1145,6 +1146,8 @@ ownership:
     - styles/config/vocabularies/RAES
     - tools/check_project_positioning.py
     - tools/check_public_docs.py
+    - tools/public_docs_guard.py
+    - tools/public_docs_markup.py
     - tools/policy/requirement_order.yaml
     - tools/tool_versions.py
     - tools/vale_tool.py
