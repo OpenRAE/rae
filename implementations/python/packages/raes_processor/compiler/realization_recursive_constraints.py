@@ -296,6 +296,27 @@ class _SourceMetadata:
             raise ValueError("constrained leaf requires a publication-safe domain")
         return domain
 
+    def _parameter_constraint(
+        self, derivation: ParameterDerivation, source: object, pointer: str, projected: object
+    ) -> RealizationLiteral | RealizationDomainValue:
+        # Only a verbatim public leaf approved by the registered safe projection
+        # can consume scalar derivation evidence. Presence and commitment
+        # projections never expose their source value.
+        if (
+            pointer.endswith(("_present", "_commitment"))
+            or not isinstance(source, (str, int, float, bool))
+            or projected != to_jsonable_python(source)
+        ):
+            raise ValueError("parameter derivation requires a public scalar projection")
+        image = finite_derivation_image(derivation, scenario=self.scenario)
+        return (
+            RealizationLiteral(kind="literal", value=projected, origin=RealizationOrigin.PROCESSOR)
+            if image is None
+            else RealizationDomainValue(
+                kind="domain", domain=EnumDomain(values=list(image)), origin=RealizationOrigin.PROCESSOR
+            )
+        )
+
     def leaf(
         self, source: object, pointer: str, record: ExplicitnessRecord | None, source_pointer: str, projected: object
     ) -> None:
@@ -311,23 +332,7 @@ class _SourceMetadata:
         elif classification is ExplicitnessClass.CONSTRAINED:
             derivation = self.parameter_derivations.get(f"{self.root_pointer}{source_pointer}")
             if derivation is not None:
-                # Only a verbatim public leaf approved by the registered safe
-                # projection can consume scalar derivation evidence. Presence
-                # and commitment projections never expose their source value.
-                if (
-                    pointer.endswith(("_present", "_commitment"))
-                    or not isinstance(source, (str, int, float, bool))
-                    or projected != to_jsonable_python(source)
-                ):
-                    raise ValueError("parameter derivation requires a public scalar projection")
-                image = finite_derivation_image(derivation, scenario=self.scenario)
-                self.leaf_constraints[pointer] = (
-                    RealizationLiteral(kind="literal", value=projected, origin=RealizationOrigin.PROCESSOR)
-                    if image is None
-                    else RealizationDomainValue(
-                        kind="domain", domain=EnumDomain(values=list(image)), origin=RealizationOrigin.PROCESSOR
-                    )
-                )
+                self.leaf_constraints[pointer] = self._parameter_constraint(derivation, source, pointer, projected)
                 return
             self.leaf_constraints[pointer] = RealizationDomainValue(
                 kind="domain", domain=self._constrained_domain(pointer, source_pointer)

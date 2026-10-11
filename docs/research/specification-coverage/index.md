@@ -535,3 +535,8 @@ runtime parameter authority in
 historical records, classifications, outcomes, and bounded claim limits remain
 unchanged. Issue-specific regression tests establish the new parameter behavior;
 this retained matrix makes no broader claim about it.
+
+Release 70.0.0 replays the same matrix after the issue #1481 Sonar refactor in
+[`execution-snapshot-v70.json`](execution-snapshot-v70.json) and
+[`analysis-v70.json`](analysis-v70.json). The capture refreshes source and package
+identities without changing classifications, outcomes, or claim limits.

@@ -594,3 +594,9 @@ and compares against immutable release 69.0.0. Outcomes and bounded claim limits
 are unchanged; two compiled metadata digests change with parameter-derivation
 provenance and are recorded as exact deviations. Issue-specific regression tests,
 not these retained controls, establish the new configurable parameter behavior.
+
+Release 71.0.0 replays the retained controls after the issue #1481 Sonar refactor
+in [`execution-snapshot-v71.json`](execution-snapshot-v71.json) and
+[`analysis-v71.json`](analysis-v71.json). Source identity is refreshed against
+immutable release 70.0.0; outcomes, compiled digests, and bounded claim limits
+remain unchanged, with no baseline deviations.

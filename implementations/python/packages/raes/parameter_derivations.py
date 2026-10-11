@@ -106,15 +106,23 @@ class ParameterDerivation(FrozenPhaseModel):
         )
 
 
+def _is_whole_finite_reference(value: str, variables: Mapping[str, Variable]) -> bool:
+    match = VARIABLE_TOKEN_RE.fullmatch(value)
+    variable = variables.get(match.group(1)) if match is not None else None
+    return variable is not None and bool(variable.allowed_values)
+
+
 def capture_parameter_derivation(
     *, field_pointer: str, value: object, variables: Mapping[str, Variable]
 ) -> ParameterDerivation | None:
     if not isinstance(value, str):
         return None
     matches = list(VARIABLE_TOKEN_RE.finditer(value))
-    if not matches or any(match.group(1) not in variables for match in matches):
-        return None
-    if len(matches) == 1 and matches[0].span() == (0, len(value)) and variables[matches[0].group(1)].allowed_values:
+    if (
+        not matches
+        or any(match.group(1) not in variables for match in matches)
+        or _is_whole_finite_reference(value, variables)
+    ):
         # The incumbent whole-field finite constraint retains its full domain.
         return None
     segments: list[ParameterLiteralSegment | ParameterReferenceSegment] = []
@@ -136,6 +144,24 @@ def capture_parameter_derivation(
     if offset < len(value):
         segments.append(ParameterLiteralSegment(kind="literal", value=value[offset:]))
     return ParameterDerivation(field_pointer=field_pointer, segments=tuple(segments))
+
+
+def _render_bounded_alternative(
+    derivation: ParameterDerivation,
+    identity: tuple[str, ...],
+    value: JSONScalar,
+    scenario: BaseModel | None,
+) -> object:
+    if not validate_realization_value(value).conformant:
+        raise ValueError("finite derivation input exceeds the scalar budget")
+    # The reference model has validated every declared alternative. Reusing
+    # resolve here would scan the same domain for each member, quadratically.
+    rendered = derivation._render({identity: value})
+    if scenario is not None:
+        rendered = normalize_capability_binding(scenario, derivation.field_pointer, rendered)
+    if not validate_realization_value(rendered).conformant:
+        raise ValueError("finite derivation output exceeds the scalar budget")
+    return rendered
 
 
 def finite_derivation_image(
@@ -162,15 +188,7 @@ def finite_derivation_image(
     seen: set[tuple[type, object]] = set()
     total_bytes = 0
     for value in reference.allowed_values:
-        if not validate_realization_value(value).conformant:
-            raise ValueError("finite derivation input exceeds the scalar budget")
-        # The reference model has validated every declared alternative. Reusing
-        # resolve here would scan the same domain for each member, quadratically.
-        rendered = derivation._render({identity: value})
-        if scenario is not None:
-            rendered = normalize_capability_binding(scenario, derivation.field_pointer, rendered)
-        if not validate_realization_value(rendered).conformant:
-            raise ValueError("finite derivation output exceeds the scalar budget")
+        rendered = _render_bounded_alternative(derivation, identity, value, scenario)
         key = (type(rendered), rendered)
         if key not in seen:
             seen.add(key)

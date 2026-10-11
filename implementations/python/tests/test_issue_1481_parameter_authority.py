@@ -390,5 +390,6 @@ def test_derivation_segment_type_tags_are_required_by_schema_and_runtime(tmp_pat
     del next(s for s in derivation["segments"] if s["kind"] == segment_kind)["kind"]
     with pytest.raises(ValidationError):
         InstantiatedScenario.model_validate(payload)
+    validator = Draft202012Validator(schema_bundle()["instantiated-scenario-v1"])
     with pytest.raises(SchemaValidationError):
-        Draft202012Validator(schema_bundle()["instantiated-scenario-v1"]).validate(payload)
+        validator.validate(payload)
