@@ -120,4 +120,5 @@ verify its current head before merge.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/instantiate.py` (Prevent parameters from introducing private behavior refs)
 - TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (Current source-bound formal evidence release selection)
 - TESTS → TEST `implementations/python/tests/test_specification_coverage.py` (Current source-bound coverage evidence release selection)
+- TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (Explicit current release selection and rejection of stale evidence)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_module_declarations.py` (Typed module and import metadata with version-constraint validation)
