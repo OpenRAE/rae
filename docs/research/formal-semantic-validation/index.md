@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 72.0.0, rejects unsupported future
+Current validation requires explicit release 73.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -606,3 +606,15 @@ runtime-fact export manifest split in
 [`execution-snapshot-v72.json`](execution-snapshot-v72.json) and
 [`analysis-v72.json`](analysis-v72.json). Outcomes and claim limits remain
 unchanged.
+
+## Issue #297 behavior authoring verification
+
+Release 73.0.0 replays the retained corpus against the behavior authoring
+validation changes after integration with the issue #1418 manifest split.
+See [`execution-snapshot-v73.json`](execution-snapshot-v73.json) and
+[`analysis-v73.json`](analysis-v73.json). Incoming published captures retain
+their exact bytes; this release records a fresh implementation digest and
+modified-checkout provenance. Declaration reuse, authored-private rejection,
+import diagnostics and version parity have targeted evidence in
+`test_issue_297_behavior_authoring.py`; this refresh does not promote those
+claims into runtime or backend realization.

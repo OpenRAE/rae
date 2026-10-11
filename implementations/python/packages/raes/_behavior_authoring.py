@@ -15,7 +15,7 @@ _REFERENCE_FIELDS = (
 )
 
 
-def _private_refs(specification: Mapping) -> Iterator[tuple[str, int, str]]:
+def _private_refs(specification: Mapping[str, object]) -> Iterator[tuple[str, int, str]]:
     for field in _REFERENCE_FIELDS:
         refs = specification.get(field, ())
         if not isinstance(refs, (list, tuple)):
@@ -25,7 +25,7 @@ def _private_refs(specification: Mapping) -> Iterator[tuple[str, int, str]]:
                 yield field, index, ref
 
 
-def _private_locations(document: Mapping) -> Iterator[tuple[tuple, str]]:
+def _private_locations(document: Mapping[str, object]) -> Iterator[tuple[tuple[str | int, ...], str]]:
     specifications = document.get("behavior_specifications", {})
     if not isinstance(specifications, Mapping):
         return
@@ -37,7 +37,9 @@ def _private_locations(document: Mapping) -> Iterator[tuple[tuple, str]]:
                 yield ("behavior_specifications", name, field, index), ref
 
 
-def validate_authored_behavior_references(document: Mapping, *, generated_from: Mapping | None = None) -> None:
+def validate_authored_behavior_references(
+    document: Mapping[str, object], *, generated_from: Mapping[str, object] | None = None
+) -> None:
     """Reject authored private refs while retaining exact composition output.
 
     ExpandedScenario deliberately does not call this check: a module's own
