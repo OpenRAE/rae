@@ -224,3 +224,11 @@ invalid, including when migration acceptance is enabled.
   other typed-model failures use `sdl.model.invalid` with a control-escaped,
   512-character-bounded domain message and no Pydantic input rendering
 - `SDLValidationError` — semantic validation failures (has `.errors` list with all issues)
+
+Imported-unit typed-model failures use the same bounded `sdl.model.invalid`
+diagnostics as root declarations, with the imported source file and field
+pointer. Malformed import version constraints also raise `SDLParseError` with a
+field diagnostic. Authored behavior refs using the reserved `__private` segment
+fail before composition; generated private refs remain valid in expanded SDL.
+See [behavior composition](../../decisions/issue-297-behavior-authoring.md) for
+reference scope, compatibility, and the authoring/runtime boundary.

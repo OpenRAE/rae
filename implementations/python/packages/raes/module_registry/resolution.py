@@ -10,7 +10,8 @@ from urllib.parse import quote
 from packaging.version import InvalidVersion, Version
 from pydantic import ValidationError
 
-from .._errors import SDLParseDiagnostic, SDLParseError
+from .._errors import SDLParseDiagnostic, SDLParseError, SDLSourceRange
+from .._model_diagnostics import _model_parse_error
 from .._source_profile import DEFAULT_SOURCE_PARSE_OPTIONS, SDLSourceParseOptions
 from ..scenario import ImportDecl, ModuleDescriptor, Scenario
 from ._constants import LOCKFILE_NAME, OCI_BUNDLE_MEDIA_TYPE, OCI_LAYOUT_MEDIA_TYPE
@@ -228,13 +229,18 @@ def _resolve_local_import(
             base_dir=context.base_dir,
             relative=relative,
         )
+    source_ranges: dict[str, SDLSourceRange] = {}
     imported_raw = _load_normalized_data(
         imported_source.text,
         path=import_path,
         source_options=context.source_options,
         source_diagnostics=context.source_diagnostics,
+        source_ranges=source_ranges,
     )
-    imported_scenario = Scenario.model_validate(imported_raw)
+    try:
+        imported_scenario = Scenario.model_validate(imported_raw)
+    except ValidationError as exc:
+        raise _model_parse_error(exc, path=import_path, source_ranges=source_ranges) from exc
     descriptor = _scenario_module_descriptor(
         imported_scenario,
         source_id=relative.replace("\\", "/"),

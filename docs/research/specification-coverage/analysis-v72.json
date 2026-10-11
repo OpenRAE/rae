@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-1423-v72",
+  "analysis_id": "raes-standardized-specification-coverage-issue-1371-sync-analysis-v72",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-10-11T07:04:16.616377+00:00",
+  "generated_at": "2026-10-11T19:24:50.695662+00:00",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
@@ -68,7 +68,7 @@
     "The issue #1361 resource type-hint repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The issue #1418 runtime-fact export manifest split changes no contract, schema or behavior; this retained matrix makes no new admission or coverage claim.",
-    "The issue #1423 inject trigger request and occurrence contracts are new draft carriers that no SDL construct, compiler or runtime path reads; this retained matrix makes no new admission or coverage claim."
+    "This synchronization adds no mixed-backend runtime execution claim; the issue #1371 tests cover the composition run-scope join."
   ],
   "load_bearing_results": {
     "failed": 0,
@@ -76,7 +76,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "The retained specification matrix preserves its prior classifications against the issue #1423 inject trigger request and occurrence contracts; bounded claim limits are unchanged.",
+  "plain_language_outcome": "The retained specification matrix preserves its prior classifications after merging the runtime-fact export manifest split with the mixed-backend contracts and composition run-scope repair. Bounded claim limits are unchanged.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -108,6 +108,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1423-v72",
-  "snapshot_sha256": "728c996b22dfe6e96a1d75c0ed906029c2eac9196cf4aced3541c6ab428fc074"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1371-sync-v72",
+  "snapshot_sha256": "e3e92557e7de81a436de657f224f2e865414d20ceb1639f04296f778dbaa962a"
 }

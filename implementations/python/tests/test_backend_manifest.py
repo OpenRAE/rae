@@ -55,6 +55,8 @@ EXPECTED_SUPPORTED_CONTRACT_VERSIONS_V2 = [
         "backend-operation-capabilities-v1",
         "backend-operation-control-v1",
         "backend-operation-response-v1",
+        "mixed-backend-execution-binding-v1",
+        "mixed-backend-stage-report-v1",
         "experiment-binding-descriptors-v1",
         "realization-envelope-v1",
         "backend-realization-preparation-v1",

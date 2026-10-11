@@ -14,7 +14,8 @@ from typing import Any, TypedDict, Unpack
 from pydantic import ValidationError
 
 from .._composition_budget import CompositionBudget, CompositionTraversal
-from .._errors import SDLInstantiationError, SDLParseDiagnostic, SDLParseError
+from .._errors import SDLInstantiationError, SDLParseDiagnostic, SDLParseError, SDLSourceRange
+from .._model_diagnostics import _model_parse_error
 from .._module_symbols import FORWARDING_AGENTS_SECTION
 from .._module_symbols import HASHMAP_SECTIONS as _HASHMAP_SECTIONS
 from .._module_symbols import (
@@ -51,7 +52,7 @@ from ..realization_designation import (
     constraint_records,
     designation_records,
 )
-from ..scenario import ExpandedScenario, ImportDecl, ModuleDescriptor, ScenarioContent
+from ..scenario import ExpandedScenario, ImportDecl, ModuleDescriptor, Scenario, ScenarioContent
 from ._augmentation import merge_augmentation_scope, rewrite_augmentation_scope
 from ._behavior import _behavior_reference_maps, _rewrite_agent_sections, _rewrite_behavior_sections
 from ._execution_policy import merge_execution_policy, rewrite_execution_policy
@@ -270,6 +271,7 @@ def _expand_one_import(
         _registry_base_dir=context.registry_base_dir,
     )
     import_path = resolved_import.root_file
+    source_ranges: dict[str, SDLSourceRange] = {}
     imported_raw = _load_normalized_data(
         resolved_import.source_document.text,
         path=import_path,
@@ -280,7 +282,12 @@ def _expand_one_import(
             required_semantic_revision=context.semantic_revision,
         ),
         source_diagnostics=context.source_diagnostics,
+        source_ranges=source_ranges,
     )
+    try:
+        Scenario.model_validate(imported_raw)
+    except ValidationError as exc:
+        raise _model_parse_error(exc, path=import_path, source_ranges=source_ranges) from exc
     if imported_raw.get("semantic_revision") != context.semantic_revision:
         raise SDLParseError("Imported SDL semantic revision must match the root revision.", path=import_path)
     imported_expanded, inner_provenance = expand_sdl_modules(
@@ -306,7 +313,7 @@ def _expand_one_import(
             preserve_variation_variables=True,
         )
     except ValidationError as exc:
-        raise SDLParseError("Imported SDL unit is structurally invalid", path=import_path) from exc
+        raise _model_parse_error(exc, path=import_path, source_ranges=source_ranges) from exc
     except SDLInstantiationError as exc:
         raise SDLParseError(str(exc), path=import_path) from exc
     namespace = import_decl.namespace
