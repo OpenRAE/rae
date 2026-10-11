@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 
 from pydantic import BaseModel
 
 from ._base import extract_variable_name
 from .nodes import Node
-from .phase_contracts import CapabilityConstraint
+from .parameter_derivations import capture_parameter_derivation
+from .phase_contracts import CapabilityConstraint, ParameterDerivation
 from .runtime_resource_limits import RuntimeProcessResourceLimit
 from .scenario import ExpandedScenario, Scenario
 from .variables import Variable
@@ -123,8 +124,12 @@ def _node_capability_constraints(
 
 
 def _runtime_scalar_constraints(
-    value: object, *, pointer: str, variables: Mapping[str, Variable]
-) -> list[CapabilityConstraint]:
+    value: object,
+    *,
+    pointer: str,
+    variables: Mapping[str, Variable],
+    capture: Callable[..., CapabilityConstraint | ParameterDerivation | None] = _finite_domain_constraint,
+) -> list[CapabilityConstraint | ParameterDerivation]:
     """Retain public typed scalar domains, never classification-governed raw alternatives.
 
     Classified records require their owning safe projection before a domain can
@@ -137,26 +142,28 @@ def _runtime_scalar_constraints(
         classified = any(name.endswith(("classification", "sensitivity")) for name in fields) or getattr(
             value, "command_redacted", False
         )
-        if classified:
-            return []
+        public_fields = getattr(value, "realization_public_parameter_fields", frozenset())
         children = (
             (name, getattr(value, name))
             for name, info in fields.items()
-            if not isinstance(info.json_schema_extra, dict)
-            or info.json_schema_extra.get("x-raes-realization-dimension") is not False
+            if (not classified or name in public_fields)
+            and (
+                not isinstance(info.json_schema_extra, dict)
+                or info.json_schema_extra.get("x-raes-realization-dimension") is not False
+            )
         )
     elif isinstance(value, Mapping):
         children = value.items()
     elif isinstance(value, (list, tuple)):
         children = enumerate(value)
     else:
-        constraint = _finite_domain_constraint(field_pointer=pointer, value=value, variables=variables)
+        constraint = capture(field_pointer=pointer, value=value, variables=variables)
         return [constraint] if constraint is not None else []
     return [
         constraint
         for name, child in children
         for constraint in _runtime_scalar_constraints(
-            child, pointer=f"{pointer}/{_json_pointer_segment(str(name))}", variables=variables
+            child, pointer=f"{pointer}/{_json_pointer_segment(str(name))}", variables=variables, capture=capture
         )
     ]
 
@@ -186,3 +193,19 @@ def capture_capability_constraints(
             )
         )
     return tuple(constraints)
+
+
+def capture_parameter_derivations(scenario: Scenario | ExpandedScenario) -> tuple[ParameterDerivation, ...]:
+    """Retain substitution evidence only on owner-approved public runtime leaves."""
+
+    return tuple(
+        derivation
+        for name, node in scenario.nodes.items()
+        for derivation in _runtime_scalar_constraints(
+            node.runtime,
+            pointer=f"/nodes/{_json_pointer_segment(name)}/runtime",
+            variables=scenario.variables,
+            capture=capture_parameter_derivation,
+        )
+        if isinstance(derivation, ParameterDerivation)
+    )
