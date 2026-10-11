@@ -7,7 +7,7 @@ from contextvars import ContextVar
 from pathlib import Path
 
 from tools.evidence_bundle_index import load_index_records
-from tools.formal_semantic_validation._analysis import _validate_analysis
+from tools.formal_semantic_validation._analysis import _AnalysisContext, _validate_analysis
 from tools.formal_semantic_validation._baseline import _validate_baseline_drift
 from tools.formal_semantic_validation._bundle import validate_bundle
 from tools.formal_semantic_validation._corpus import _validate_corpus
@@ -195,62 +195,70 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
             )
         )
     else:
-        legacy_manifest = {
-            "bundle_id": manifest.get("bundle_id"),
-            "revision": manifest.get("revision"),
-            "protocol_path": manifest.get("protocol_path"),
-            "corpus_path": manifest.get("corpus_path"),
-            "snapshot_path": manifest.get("snapshot_path"),
-            "analysis_path": manifest.get("analysis_path"),
-            "satisfiability_snapshot_path": None,
-            "satisfiability_analysis_path": None,
-        }
-        failures.extend(
-            validate_bundle(
-                repo_root,
-                legacy_manifest,
-                release.protocol,
-                release.corpus,
-                release.snapshot,
-                release.analysis,
-                replay_cases=False,
-            )
+        failures.extend(_validate_legacy_release(repo_root, release, artifacts))
+    return failures
+
+
+def _validate_legacy_release(repo_root: Path, release: EvidenceRelease, artifacts: list[object]) -> list[PolicyFailure]:
+    manifest = release.manifest
+    path = release.manifest_path
+    failures: list[PolicyFailure] = []
+    legacy_manifest = {
+        "bundle_id": manifest.get("bundle_id"),
+        "revision": manifest.get("revision"),
+        "protocol_path": manifest.get("protocol_path"),
+        "corpus_path": manifest.get("corpus_path"),
+        "snapshot_path": manifest.get("snapshot_path"),
+        "analysis_path": manifest.get("analysis_path"),
+        "satisfiability_snapshot_path": None,
+        "satisfiability_analysis_path": None,
+    }
+    failures.extend(
+        validate_bundle(
+            repo_root,
+            legacy_manifest,
+            release.protocol,
+            release.corpus,
+            release.snapshot,
+            release.analysis,
+            replay_cases=False,
         )
-        artifact_by_kind = {item.get("kind"): item for item in artifacts if isinstance(item, Mapping)}
-        sat_snapshot_pin = artifact_by_kind.get("satisfiability-snapshot")
-        sat_analysis_pin = artifact_by_kind.get("satisfiability-analysis")
-        if sat_snapshot_pin is not None or sat_analysis_pin is not None:
-            if sat_snapshot_pin is None or sat_analysis_pin is None:
-                failures.append(
-                    _failure(
-                        "formal-validation-release-artifacts",
-                        "historical satisfiability evidence must be selected atomically",
-                        path,
-                    )
+    )
+    artifact_by_kind = {item.get("kind"): item for item in artifacts if isinstance(item, Mapping)}
+    sat_snapshot_pin = artifact_by_kind.get("satisfiability-snapshot")
+    sat_analysis_pin = artifact_by_kind.get("satisfiability-analysis")
+    if sat_snapshot_pin is not None or sat_analysis_pin is not None:
+        if sat_snapshot_pin is None or sat_analysis_pin is None:
+            failures.append(
+                _failure(
+                    "formal-validation-release-artifacts",
+                    "historical satisfiability evidence must be selected atomically",
+                    path,
                 )
-            else:
-                legacy_manifest["revision"] = "2.0.0"
-                legacy_manifest["satisfiability_snapshot_path"] = sat_snapshot_pin.get("path")
-                legacy_manifest["satisfiability_analysis_path"] = sat_analysis_pin.get("path")
-                snapshot = load_bounded_json_object(
+            )
+        else:
+            legacy_manifest["revision"] = "2.0.0"
+            legacy_manifest["satisfiability_snapshot_path"] = sat_snapshot_pin.get("path")
+            legacy_manifest["satisfiability_analysis_path"] = sat_analysis_pin.get("path")
+            snapshot = load_bounded_json_object(
+                repo_root,
+                str(sat_snapshot_pin.get("path")),
+                max_bytes=_MAX_FILE_BYTES,
+            )
+            analysis = load_bounded_json_object(
+                repo_root,
+                str(sat_analysis_pin.get("path")),
+                max_bytes=_MAX_FILE_BYTES,
+            )
+            failures.extend(
+                validate_satisfiability_analysis(
                     repo_root,
-                    str(sat_snapshot_pin.get("path")),
-                    max_bytes=_MAX_FILE_BYTES,
+                    legacy_manifest,
+                    snapshot,
+                    analysis,
+                    replay_current=False,
                 )
-                analysis = load_bounded_json_object(
-                    repo_root,
-                    str(sat_analysis_pin.get("path")),
-                    max_bytes=_MAX_FILE_BYTES,
-                )
-                failures.extend(
-                    validate_satisfiability_analysis(
-                        repo_root,
-                        legacy_manifest,
-                        snapshot,
-                        analysis,
-                        replay_current=False,
-                    )
-                )
+            )
     return failures
 
 
@@ -342,14 +350,12 @@ def validate_retest_bundle(
     baseline_cases = cases_by_id if source_bound_revision(release_revision) else historical_cases
     _validate_baseline_drift(repo_root, snapshot, baseline_cases, failures, snapshot_path)
     _validate_analysis(
-        repo_root,
+        _AnalysisContext(repo_root, analysis_path, snapshot_path),
         protocol,
         corpus,
         snapshot,
         analysis,
         failures,
-        analysis_path,
-        snapshot_path=snapshot_path,
     )
     return failures
 

@@ -92,20 +92,26 @@ def capture_identity(manifest: Mapping[str, object]) -> str:
     return "capture-" + hashlib.sha256(encoded).hexdigest()
 
 
-def validate_inventory(repo_root: Path, family: str, records: Sequence[tuple[str, Mapping[str, object]]]) -> None:
-    """Retain admitted history and reject changed or unaddressed capture records."""
+_UNIQUE_REVISIONS = "research evidence release revisions must be unique"
+
+
+def _inventory_maps(records):
+    by_path = dict(records)
+    if len(by_path) != len(records):
+        raise ValueError("research evidence paths must be unique")
+    by_revision = {manifest.get("revision"): (path, manifest) for path, manifest in records}
+    if len(by_revision) != len(records):
+        raise ValueError(_UNIQUE_REVISIONS)
+    return by_path, by_revision
+
+
+def _historical_paths(repo_root, family, by_revision):
     folder = f"docs/research/{family}"
     history_path = f"{folder}/published-history.json"
     history = safe_repo_path(repo_root, history_path)
     if history is None or hashlib.sha256(history.read_bytes()).hexdigest() != _PUBLISHED_HISTORY_PINS[family]:
         raise ValueError("published research history pin is invalid")
     expected = load_bounded_json_object(repo_root, history_path, max_bytes=512 * 1024)["records"]
-    by_path = dict(records)
-    if len(by_path) != len(records):
-        raise ValueError("research evidence paths must be unique")
-    by_revision = {manifest.get("revision"): (path, manifest) for path, manifest in records}
-    if len(by_revision) != len(records):
-        raise ValueError("research evidence release revisions must be unique")
     historical_paths = set()
     for pin in expected:
         selected = by_revision.get(pin["revision"])
@@ -118,6 +124,10 @@ def validate_inventory(repo_root: Path, family: str, records: Sequence[tuple[str
         if manifest != load_bounded_json_object(repo_root, relative, max_bytes=512 * 1024):
             raise ValueError("published research history record differs from its pin")
         historical_paths.add(relative)
+    return historical_paths
+
+
+def _capture_receipts(repo_root, folder, by_path):
     receipts = {}
     receipt_folder = repo_root / folder / "capture-records"
     for receipt_path in sorted(receipt_folder.glob("*.json")):
@@ -137,14 +147,13 @@ def validate_inventory(repo_root: Path, family: str, records: Sequence[tuple[str
         if pinned is None or hashlib.sha256(pinned.read_bytes()).hexdigest() != receipt["capture_sha256"]:
             raise ValueError("capture retention manifest pin is stale")
         receipts[capture_path] = receipt
-    capture_paths = {path for path, manifest in records if is_capture(manifest.get("revision"))}
-    if set(receipts) != capture_paths:
-        raise ValueError("every capture requires an independent retention record")
-    identities = []
+    return receipts
+
+
+def _validate_capture_paths(folder, records, historical_paths):
     for path, manifest in records:
         identity = manifest.get("revision")
         evidence_key(identity)
-        identities.append(identity)
         if path not in historical_paths:
             if not is_capture(identity) or capture_identity(manifest) != identity:
                 raise ValueError("new research evidence must use a content-addressed capture identity")
@@ -155,8 +164,67 @@ def validate_inventory(repo_root: Path, family: str, records: Sequence[tuple[str
                 or manifest.get("analysis_path") != prefix + "analysis.json"
             ):
                 raise ValueError("capture documents must stay in their unique capture directory")
-    if len(set(identities)) != len(identities):
-        raise ValueError("research evidence release revisions must be unique")
+
+
+def validate_inventory(repo_root: Path, family: str, records: Sequence[tuple[str, Mapping[str, object]]]) -> None:
+    """Retain admitted history and reject changed or unaddressed capture records."""
+    folder = f"docs/research/{family}"
+    by_path, by_revision = _inventory_maps(records)
+    historical_paths = _historical_paths(repo_root, family, by_revision)
+    receipts = _capture_receipts(repo_root, folder, by_path)
+    capture_paths = {path for path, manifest in records if is_capture(manifest.get("revision"))}
+    if set(receipts) != capture_paths:
+        raise ValueError("every capture requires an independent retention record")
+    _validate_capture_paths(folder, records, historical_paths)
+
+
+def _live_source_candidates(records, repo_root):
+    digest = implementation_digest(repo_root)
+    candidates = []
+    legacy = [(path, record) for path, record in records if not is_capture(record.get("revision"))]
+    selectable = [(path, record) for path, record in records if is_capture(record.get("revision"))]
+    if legacy:
+        selectable.append(max(legacy, key=lambda item: revision_key(item[1].get("revision"))))
+    for path, record in selectable:
+        snapshot = load_bounded_json_object(repo_root, str(record.get("snapshot_path")), max_bytes=2 * 1024 * 1024)
+        state = snapshot.get("source_state")
+        if _live_source_matches(state, digest):
+            candidates.append((_capture_date(snapshot.get("captured_at")), path, record))
+    if not candidates:
+        raise ValueError("no current research capture binds the live implementation source")
+    return candidates
+
+
+def _live_source_matches(state, digest):
+    return (
+        isinstance(state, Mapping)
+        and state.get("profile") == SOURCE_PROFILE
+        and state.get("implementation_digest") == digest
+    )
+
+
+def _capture_date(captured_at):
+    from datetime import datetime
+
+    if not isinstance(captured_at, str):
+        raise ValueError("capture date must be an offset-aware timestamp")
+    date = datetime.fromisoformat(captured_at)
+    if date.tzinfo is None or date > datetime.now(UTC):
+        raise ValueError("capture date must be offset-aware and cannot be in the future")
+    return date
+
+
+def _select_recent_capture(dated):
+    latest = max(date for date, _, _ in dated)
+    latest_records = [(path, record) for date, path, record in dated if date == latest]
+    # Prefer an exact content-addressed wrapper of an existing numbered release.
+    pins = {(record.get("snapshot_sha256"), record.get("analysis_sha256")) for _, record in latest_records}
+    if len(pins) == 1 and any(is_capture(record.get("revision")) for _, record in latest_records):
+        latest_records = [(path, record) for path, record in latest_records if is_capture(record.get("revision"))]
+    selected = [path for path, _ in latest_records]
+    if len(selected) != 1:
+        raise ValueError("current research capture is ambiguous")
+    return selected[0]
 
 
 def current_release_path(records: Sequence[tuple[str, Mapping[str, object]]], repo_root: Path | None = None) -> str:
@@ -165,47 +233,9 @@ def current_release_path(records: Sequence[tuple[str, Mapping[str, object]]], re
         raise ValueError("no research evidence releases")
     keys = [evidence_key(record.get("revision")) for _, record in records]
     if len(set(keys)) != len(keys):
-        raise ValueError("research evidence release revisions must be unique")
+        raise ValueError(_UNIQUE_REVISIONS)
     if repo_root is not None:
-        digest = implementation_digest(repo_root)
-        candidates = []
-        legacy = [(path, record) for path, record in records if not is_capture(record.get("revision"))]
-        selectable = [(path, record) for path, record in records if is_capture(record.get("revision"))]
-        if legacy:
-            selectable.append(max(legacy, key=lambda item: revision_key(item[1].get("revision"))))
-        for path, record in selectable:
-            snapshot = load_bounded_json_object(repo_root, str(record.get("snapshot_path")), max_bytes=2 * 1024 * 1024)
-            state = snapshot.get("source_state")
-            if (
-                isinstance(state, Mapping)
-                and state.get("profile") == SOURCE_PROFILE
-                and state.get("implementation_digest") == digest
-            ):
-                candidates.append((snapshot.get("captured_at"), path, record))
-        if not candidates:
-            raise ValueError("no current research capture binds the live implementation source")
-        # Capture dates select only among exact live-source matches. Full replay
-        # and shape validation still run on the selected record.
-        from datetime import datetime
-
-        dated = []
-        for captured_at, path, record in candidates:
-            if not isinstance(captured_at, str):
-                raise ValueError("capture date must be an offset-aware timestamp")
-            date = datetime.fromisoformat(captured_at)
-            if date.tzinfo is None or date > datetime.now(UTC):
-                raise ValueError("capture date must be offset-aware and cannot be in the future")
-            dated.append((date, path, record))
-        latest = max(date for date, _, _ in dated)
-        latest_records = [(path, record) for date, path, record in dated if date == latest]
-        # A content-addressed wrapper may retain an existing release verbatim.
-        pins = {(record.get("snapshot_sha256"), record.get("analysis_sha256")) for _, record in latest_records}
-        if len(pins) == 1 and any(is_capture(record.get("revision")) for _, record in latest_records):
-            latest_records = [(path, record) for path, record in latest_records if is_capture(record.get("revision"))]
-        selected = [path for path, _ in latest_records]
-        if len(selected) != 1:
-            raise ValueError("current research capture is ambiguous")
-        return selected[0]
+        return _select_recent_capture(_live_source_candidates(records, repo_root))
     return max(zip(keys, records, strict=True), key=lambda item: item[0])[1][0]
 
 

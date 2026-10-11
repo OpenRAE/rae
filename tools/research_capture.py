@@ -36,19 +36,7 @@ def _records(root: Path, family: str) -> list[tuple[str, dict[str, object]]]:
     return records
 
 
-def record_capture(
-    root: Path,
-    family: str,
-    template_path: str,
-    *,
-    snapshot_path: str | None = None,
-    analysis_path: str | None = None,
-) -> str:
-    """Copy a digest-pinned capture without relabeling its immutable observations."""
-    records = _records(root, family)
-    if template_path not in dict(records):
-        raise ValueError("capture template must be an indexed, admitted evidence manifest")
-    manifest = dict(dict(records)[template_path])
+def _pinned_capture_documents(root, manifest):
     documents = {}
     for label in ("protocol", "corpus", "snapshot", "analysis"):
         if f"{label}_path" not in manifest:
@@ -60,6 +48,10 @@ def record_capture(
         if hashlib.sha256(content).hexdigest() != manifest[f"{label}_sha256"]:
             raise ValueError("capture document pin is stale")
         documents[label] = content
+    return documents
+
+
+def _prepare_capture_documents(root, manifest, documents, snapshot_path, analysis_path):
     overrides = {"snapshot": snapshot_path, "analysis": analysis_path}
     if (snapshot_path is None) != (analysis_path is None):
         raise ValueError("a fresh capture requires snapshot and analysis together")
@@ -71,26 +63,21 @@ def record_capture(
         documents[label] = path.read_bytes()
         manifest[f"{label}_sha256"] = hashlib.sha256(documents[label]).hexdigest()
     if snapshot_path is not None:
-        analysis = json.loads(documents["analysis"])
-        claim = analysis.get("claim")
-        if isinstance(claim, dict) and isinstance(claim.get("evidence_artifacts"), list):
-            claim["evidence_artifacts"] = [
-                "@snapshot" if reference == snapshot_path else reference for reference in claim["evidence_artifacts"]
-            ]
-            documents["analysis"] = (json.dumps(analysis, indent=2, sort_keys=True) + "\n").encode()
-            manifest["analysis_sha256"] = hashlib.sha256(documents["analysis"]).hexdigest()
-    identity = capture_identity(manifest)
-    prefix = f"docs/research/{family}/captures/{identity}"
-    manifest.update(
-        revision=identity,
-        snapshot_path=f"{prefix}/snapshot.json",
-        analysis_path=f"{prefix}/analysis.json",
-    )
-    documents = {
-        "snapshot": documents["snapshot"],
-        "analysis": documents["analysis"],
-        "manifest": (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode(),
-    }
+        _normalize_snapshot_reference(manifest, documents, snapshot_path)
+
+
+def _normalize_snapshot_reference(manifest, documents, snapshot_path):
+    analysis = json.loads(documents["analysis"])
+    claim = analysis.get("claim")
+    if isinstance(claim, dict) and isinstance(claim.get("evidence_artifacts"), list):
+        claim["evidence_artifacts"] = [
+            "@snapshot" if reference == snapshot_path else reference for reference in claim["evidence_artifacts"]
+        ]
+        documents["analysis"] = (json.dumps(analysis, indent=2, sort_keys=True) + "\n").encode()
+        manifest["analysis_sha256"] = hashlib.sha256(documents["analysis"]).hexdigest()
+
+
+def _write_capture_documents(root, prefix, documents):
     folder = root / prefix
     if folder.exists():
         if any((folder / f"{label}.json").read_bytes() != content for label, content in documents.items()):
@@ -99,6 +86,9 @@ def record_capture(
         folder.mkdir(parents=True)
         for label, content in documents.items():
             (folder / f"{label}.json").write_bytes(content)
+
+
+def _write_retention_record(root, family, identity, prefix, documents):
     receipt = {
         "capture_path": prefix + "/manifest.json",
         "capture_sha256": hashlib.sha256(documents["manifest"]).hexdigest(),
@@ -113,7 +103,71 @@ def record_capture(
     else:
         with receipt_path.open("x") as stream:
             stream.write(expected)
+
+
+def record_capture(
+    root: Path,
+    family: str,
+    template_path: str,
+    *,
+    snapshot_path: str | None = None,
+    analysis_path: str | None = None,
+) -> str:
+    """Copy a digest-pinned capture without relabeling its immutable observations."""
+    records = _records(root, family)
+    if template_path not in dict(records):
+        raise ValueError("capture template must be an indexed, admitted evidence manifest")
+    manifest = dict(dict(records)[template_path])
+    documents = _pinned_capture_documents(root, manifest)
+    _prepare_capture_documents(root, manifest, documents, snapshot_path, analysis_path)
+    identity = capture_identity(manifest)
+    prefix = f"docs/research/{family}/captures/{identity}"
+    manifest.update(
+        revision=identity,
+        snapshot_path=f"{prefix}/snapshot.json",
+        analysis_path=f"{prefix}/analysis.json",
+    )
+    documents = {
+        "snapshot": documents["snapshot"],
+        "analysis": documents["analysis"],
+        "manifest": (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode(),
+    }
+    _write_capture_documents(root, prefix, documents)
+    _write_retention_record(root, family, identity, prefix, documents)
     return prefix + "/manifest.json"
+
+
+def _validate_publication_receipt(root, receipt_path, receipt, records, revisions, capture_paths):
+    if set(receipt) != {"revision", "capture_path", "capture_sha256"}:
+        raise ValueError("invalid evidence publication receipt")
+    number = revision_key(receipt["revision"])
+    if receipt_path.name != f"v{number[0]}.json" or number[1:] != (0, 0):
+        raise ValueError("publication receipt filename must match its major release number")
+    if receipt["revision"] in revisions or receipt["capture_path"] in capture_paths:
+        raise ValueError("publication receipts must have unique revisions and captures")
+    revisions.add(receipt["revision"])
+    capture_paths.add(receipt["capture_path"])
+    capture = safe_repo_path(root, receipt["capture_path"])
+    if (
+        capture is None
+        or receipt["capture_path"] not in dict(records)
+        or hashlib.sha256(capture.read_bytes()).hexdigest() != receipt["capture_sha256"]
+    ):
+        raise ValueError("publication receipt has a stale capture pin")
+
+
+def _publication_receipts(root, folder, records, selected):
+    prior = []
+    existing = None
+    revisions = set()
+    capture_paths = set()
+    for receipt_path in sorted(folder.glob("*.json")):
+        receipt = load_bounded_json_object(root, receipt_path.relative_to(root).as_posix(), max_bytes=4096)
+        _validate_publication_receipt(root, receipt_path, receipt, records, revisions, capture_paths)
+        if receipt["capture_path"] == selected:
+            existing = receipt_path.relative_to(root).as_posix()
+        prior.append(receipt)
+    return prior, existing
 
 
 def publish_capture(root: Path, family: str) -> str:
@@ -131,32 +185,7 @@ def publish_capture(root: Path, family: str) -> str:
     path = safe_repo_path(root, selected)
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
     folder = root / "docs/research" / family / "publications"
-    prior = []
-    existing = None
-    revisions = set()
-    capture_paths = set()
-    if folder.exists():
-        for receipt_path in sorted(folder.glob("*.json")):
-            receipt = load_bounded_json_object(root, receipt_path.relative_to(root).as_posix(), max_bytes=4096)
-            if set(receipt) != {"revision", "capture_path", "capture_sha256"}:
-                raise ValueError("invalid evidence publication receipt")
-            number = revision_key(receipt["revision"])
-            if receipt_path.name != f"v{number[0]}.json" or number[1:] != (0, 0):
-                raise ValueError("publication receipt filename must match its major release number")
-            if receipt["revision"] in revisions or receipt["capture_path"] in capture_paths:
-                raise ValueError("publication receipts must have unique revisions and captures")
-            revisions.add(receipt["revision"])
-            capture_paths.add(receipt["capture_path"])
-            capture = safe_repo_path(root, receipt["capture_path"])
-            if (
-                capture is None
-                or receipt["capture_path"] not in dict(records)
-                or hashlib.sha256(capture.read_bytes()).hexdigest() != receipt["capture_sha256"]
-            ):
-                raise ValueError("publication receipt has a stale capture pin")
-            if receipt["capture_path"] == selected:
-                existing = receipt_path.relative_to(root).as_posix()
-            prior.append(receipt)
+    prior, existing = _publication_receipts(root, folder, records, selected)
     if existing is not None:
         return existing
     numbers = [revision_key(record["revision"]) for _, record in records if not is_capture(record["revision"])]

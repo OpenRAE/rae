@@ -14,6 +14,4 @@ def expected_corpus_revision(value: object) -> str:
     major, _, _ = revision_key(value)
     if major == 42 or major >= 45:
         return "4.0.0"
-    if major >= 16:
-        return "3.0.0"
-    return "2.0.0"
+    return "3.0.0" if major >= 16 else "2.0.0"

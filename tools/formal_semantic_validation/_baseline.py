@@ -71,22 +71,27 @@ def _baseline_document(repo_root: Path, path_value: object, digest: object) -> M
     candidates = [path_value]
     if _archive_allowed(repo_root, path_value, digest):
         candidates.append(f"docs/research/formal-semantic-validation/historical-artifacts/{digest}.json")
-    sync_pins_path = "docs/research/inject-readback-first-sync-evidence/records.json"
-    sync_pins = _pinned_document(
-        repo_root, sync_pins_path, "229a8b72f9ec97c277350e6f9dfda18bb1e06d49d80068ca1aad36e8b7713f3e"
-    )
-    if sync_pins is not None:
-        candidates.extend(
-            row["archive_path"]
-            for row in sync_pins["records"]
-            if row["original_path"] == path_value and row["sha256"] == digest
-        )
+    candidates.extend(_sync_archive_candidates(repo_root, path_value, digest))
     document = None
     for candidate in candidates:
         document = _pinned_document(repo_root, candidate, digest)
         if document is not None:
             break
     return document
+
+
+def _sync_archive_candidates(repo_root: Path, path_value: str, digest: str) -> list[str]:
+    sync_pins_path = "docs/research/inject-readback-first-sync-evidence/records.json"
+    sync_pins = _pinned_document(
+        repo_root, sync_pins_path, "229a8b72f9ec97c277350e6f9dfda18bb1e06d49d80068ca1aad36e8b7713f3e"
+    )
+    if sync_pins is None:
+        return []
+    return list(
+        row["archive_path"]
+        for row in sync_pins["records"]
+        if row["original_path"] == path_value and row["sha256"] == digest
+    )
 
 
 def _validated_baseline_pin(
