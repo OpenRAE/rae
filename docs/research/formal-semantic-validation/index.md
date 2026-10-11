@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 72.0.0, rejects unsupported future
+Current validation requires explicit release 73.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -605,4 +605,10 @@ Release 72.0.0 replays the retained formal cases against the issue #1418
 runtime-fact export manifest split in
 [`execution-snapshot-v72.json`](execution-snapshot-v72.json) and
 [`analysis-v72.json`](analysis-v72.json). Outcomes and claim limits remain
+unchanged.
+
+Release 73.0.0 replays the retained formal cases against the issue #1423 inject
+trigger request and occurrence contracts in
+[`execution-snapshot-v73.json`](execution-snapshot-v73.json) and
+[`analysis-v73.json`](analysis-v73.json). Outcomes and claim limits remain
 unchanged.
