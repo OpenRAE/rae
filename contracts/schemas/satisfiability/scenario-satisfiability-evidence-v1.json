@@ -9587,7 +9587,6 @@
       "properties": {
         "kind": {
           "const": "literal",
-          "default": "literal",
           "title": "Kind",
           "type": "string"
         },
@@ -9601,6 +9600,7 @@
         }
       },
       "required": [
+        "kind",
         "value"
       ],
       "title": "ParameterLiteralSegment",
@@ -9636,7 +9636,6 @@
         },
         "kind": {
           "const": "parameter",
-          "default": "parameter",
           "title": "Kind",
           "type": "string"
         },
@@ -9667,6 +9666,7 @@
         }
       },
       "required": [
+        "kind",
         "parameter",
         "variable_type"
       ],

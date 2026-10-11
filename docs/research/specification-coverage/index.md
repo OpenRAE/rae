@@ -527,3 +527,11 @@ and [`analysis-v68.json`](analysis-v68.json). The incoming release 67.0.0
 retains its original bytes. Pre-synchronization issue #1361 captures are
 [archived with exact digests](../execution-recovery-pre-sync-evidence/README.md).
 Retained outcomes and bounded claim limits are unchanged.
+
+Release 69.0.0 replays the retained matrix after issue #1481 adds configurable
+runtime parameter authority in
+[`execution-snapshot-v69.json`](execution-snapshot-v69.json) and
+[`analysis-v69.json`](analysis-v69.json). Source and package digests are refreshed;
+historical records, classifications, outcomes, and bounded claim limits remain
+unchanged. Issue-specific regression tests establish the new parameter behavior;
+this retained matrix makes no broader claim about it.

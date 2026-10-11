@@ -20,14 +20,14 @@ from .variables import Variable, VariableType, _matches_variable_type
 class ParameterLiteralSegment(FrozenPhaseModel):
     """Literal part of a substitution, without unresolved token syntax."""
 
-    kind: Literal["literal"] = "literal"
+    kind: Literal["literal"]
     value: str = Field(max_length=4096)
 
 
 class ParameterReferenceSegment(FrozenPhaseModel):
     """One typed input, distinct from the derived field's output."""
 
-    kind: Literal["parameter"] = "parameter"
+    kind: Literal["parameter"]
     parameter: tuple[PortableIdentifier, ...] = Field(min_length=1, max_length=32)
     variable_type: VariableType
     allowed_values: tuple[JSONScalar, ...] = ()
@@ -121,17 +121,20 @@ def capture_parameter_derivation(
     offset = 0
     for match in matches:
         if match.start() > offset:
-            segments.append(ParameterLiteralSegment(value=value[offset : match.start()]))
+            segments.append(ParameterLiteralSegment(kind="literal", value=value[offset : match.start()]))
         name = match.group(1)
         variable = variables[name]
         segments.append(
             ParameterReferenceSegment(
-                parameter=(name,), variable_type=variable.type, allowed_values=tuple(variable.allowed_values)
+                kind="parameter",
+                parameter=(name,),
+                variable_type=variable.type,
+                allowed_values=tuple(variable.allowed_values),
             )
         )
         offset = match.end()
     if offset < len(value):
-        segments.append(ParameterLiteralSegment(value=value[offset:]))
+        segments.append(ParameterLiteralSegment(kind="literal", value=value[offset:]))
     return ParameterDerivation(field_pointer=field_pointer, segments=tuple(segments))
 
 

@@ -585,3 +585,12 @@ retains its original bytes. Pre-synchronization issue #1361 captures are
 Retained outcomes and bounded claim limits are unchanged.
 Two compiled digests differ because the runtime model carries execution-policy
 metadata; their exact baseline and retest values are recorded as deviations.
+
+Release 70.0.0 replays the retained cases after issue #1481 adds configurable
+runtime parameter authority in
+[`execution-snapshot-v70.json`](execution-snapshot-v70.json) and
+[`analysis-v70.json`](analysis-v70.json). The capture binds fresh source identity
+and compares against immutable release 69.0.0. Outcomes and bounded claim limits
+are unchanged; two compiled metadata digests change with parameter-derivation
+provenance and are recorded as exact deviations. Issue-specific regression tests,
+not these retained controls, establish the new configurable parameter behavior.

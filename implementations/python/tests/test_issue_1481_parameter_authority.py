@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 import yaml
 from jsonschema import Draft202012Validator
+from jsonschema import ValidationError as SchemaValidationError
 from pydantic import ValidationError
 from raes import instantiate_scenario, parse_sdl, parse_sdl_file
 from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
@@ -31,6 +32,21 @@ CASES = [
     ("reverse-proxy-api-gateway", "route_prefix", "/team/api", "gateway", "runtime-applications"),
     ("smtp-imap-mail-service", "mail_domain", "example.test", "mail", "runtime-mail-services"),
 ]
+
+
+def test_empty_derivation_provenance_preserves_legacy_serialization():
+    from raes.phase_contracts import ExpansionProvenance, InstantiationProvenance
+
+    for provenance in (
+        ExpansionProvenance(),
+        InstantiationProvenance(
+            authored_digest={"profile": "raes-sdl-semantic/v2", "algorithm": "sha256", "value": "sha256:" + "0" * 64}
+        ),
+    ):
+        model = type(provenance)
+        assert provenance.parameter_derivations == ()
+        assert "parameter_derivations" not in provenance.model_dump(mode="json")
+        assert model.model_validate(provenance.model_dump(mode="json")) == provenance
 
 
 def _composed(tmp_path, case, mode="provided", *, finite=False, interpolate=False):
@@ -349,11 +365,30 @@ def test_finite_interpolation_image_respects_relation_work_budgets():
     derivation = ParameterDerivation(
         field_pointer="/nodes/host/runtime/database_services/0/version",
         segments=(
-            ParameterLiteralSegment(value="v-"),
+            ParameterLiteralSegment(kind="literal", value="v-"),
             ParameterReferenceSegment(
-                parameter=("revision",), variable_type="integer", allowed_values=tuple(range(limit + 1))
+                kind="parameter",
+                parameter=("revision",),
+                variable_type="integer",
+                allowed_values=tuple(range(limit + 1)),
             ),
         ),
     )
     with pytest.raises(ValueError, match="member budget"):
         finite_derivation_image(derivation)
+
+
+@pytest.mark.parametrize("segment_kind", ["literal", "parameter"])
+def test_derivation_segment_type_tags_are_required_by_schema_and_runtime(tmp_path, segment_kind):
+    scenario, _, _ = _composed(tmp_path, CASES[-1], interpolate=True)
+    payload = scenario.model_dump(mode="json")
+    derivation = next(
+        d
+        for d in payload["instantiation_provenance"]["parameter_derivations"]
+        if d["field_pointer"].endswith("/mailboxes/0/address")
+    )
+    del next(s for s in derivation["segments"] if s["kind"] == segment_kind)["kind"]
+    with pytest.raises(ValidationError):
+        InstantiatedScenario.model_validate(payload)
+    with pytest.raises(SchemaValidationError):
+        Draft202012Validator(schema_bundle()["instantiated-scenario-v1"]).validate(payload)

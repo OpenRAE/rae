@@ -213,7 +213,7 @@ class ExpansionProvenance(FrozenPhaseModel):
 
     imports: tuple[ResolvedImportProvenance, ...] = ()
     capability_constraints: tuple[CapabilityConstraint, ...] = ()
-    parameter_derivations: tuple[ParameterDerivation, ...] = ()
+    parameter_derivations: tuple[ParameterDerivation, ...] = Field(default=(), exclude_if=lambda value: not value)
     explicitness: tuple[ExplicitnessProvenanceRecord, ...] = ()
     realization_designations: tuple[RealizationDesignationRecord, ...] = ()
     realization_constraints: tuple[RealizationConstraintRecord, ...] = ()
@@ -239,7 +239,7 @@ class InstantiationProvenance(FrozenPhaseModel):
     bindings: tuple[ParameterBinding, ...] = ()
     imports: tuple[ResolvedImportProvenance, ...] = ()
     capability_constraints: tuple[CapabilityConstraint, ...] = ()
-    parameter_derivations: tuple[ParameterDerivation, ...] = ()
+    parameter_derivations: tuple[ParameterDerivation, ...] = Field(default=(), exclude_if=lambda value: not value)
     explicitness: tuple[ExplicitnessProvenanceRecord, ...] = ()
     realization_designations: tuple[RealizationDesignationRecord, ...] = ()
     realization_constraints: tuple[RealizationConstraintRecord, ...] = ()
