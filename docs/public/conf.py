@@ -54,9 +54,11 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 redirects = json.loads((Path(__file__).parent / "redirects.json").read_text(encoding="utf-8"))
 
 # Bound remote I/O and avoid connection-pool stalls during the required
-# repository-wide link check. Links back into this repository are covered by
-# local policy and schema checks, so do not spend unauthenticated GitHub quota
-# rechecking them over the network.
+# repository-wide link check. Do not spend unauthenticated GitHub quota on links
+# back into this repository. Instead, tools/check_public_docs.py checks that blob
+# and tree links on main, dev or HEAD name paths that git tracks in the checkout
+# (tools/public_docs_links.py). Links to issues, pull requests and other
+# repository pages stay unchecked.
 linkcheck_timeout = 15
 linkcheck_workers = 1
 linkcheck_ignore = [
