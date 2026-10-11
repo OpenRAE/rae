@@ -32,21 +32,13 @@ def load_index_records(
     index = load_bounded_json_object(repo_root, index_path, max_bytes=max_bytes)
     expected_keys = {"schema_version", directory_key}
     if set(index) != expected_keys:
-        raise ValueError(
-            f"{index_path!r} fields must exactly match {sorted(expected_keys)}"
-        )
+        raise ValueError(f"{index_path!r} fields must exactly match {sorted(expected_keys)}")
     if index.get("schema_version") != schema_version:
         raise ValueError(f"{index_path!r} schema_version must be {schema_version!r}")
     directory_value = index.get(directory_key)
-    directory = (
-        safe_repo_path(repo_root, directory_value)
-        if isinstance(directory_value, str)
-        else None
-    )
+    directory = safe_repo_path(repo_root, directory_value) if isinstance(directory_value, str) else None
     if directory is None or not directory.is_dir():
-        raise ValueError(
-            f"{index_path!r} contains an unsafe or missing {directory_key}"
-        )
+        raise ValueError(f"{index_path!r} contains an unsafe or missing {directory_key}")
     paths = sorted(
         [
             *directory.glob("*.json"),
@@ -61,9 +53,7 @@ def load_index_records(
         try:
             record = load_bounded_json_object(repo_root, relative, max_bytes=max_bytes)
         except (OSError, ValueError) as exc:
-            raise ValueError(
-                f"cannot load evidence record {relative!r}: {exc}"
-            ) from exc
+            raise ValueError(f"cannot load evidence record {relative!r}: {exc}") from exc
         records.append((relative, record))
     return records
 

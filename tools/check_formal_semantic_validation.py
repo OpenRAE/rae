@@ -82,9 +82,7 @@ def _participant_replay_failures(
     releases: list[EvidenceRelease],
     participant_test_runner: ParticipantTestRunner,
 ) -> list[PolicyFailure]:
-    selected = current_release_path(
-        [(item.manifest_path, item.manifest) for item in releases], repo_root
-    )
+    selected = current_release_path([(item.manifest_path, item.manifest) for item in releases], repo_root)
     latest = next(item for item in releases if item.manifest_path == selected)
     test_refs = _participant_test_refs(latest.protocol)
     replayed, detail = participant_test_runner(repo_root, test_refs)
@@ -113,9 +111,7 @@ def evaluate(
     for release in releases:
         failures.extend(validate_release_bundle(repo_root, release))
     if not failures:
-        failures = _participant_replay_failures(
-            repo_root, releases, participant_test_runner
-        )
+        failures = _participant_replay_failures(repo_root, releases, participant_test_runner)
     return failures
 
 
@@ -128,9 +124,7 @@ def main() -> int:
         for failure in failures:
             print(failure.render(), file=sys.stderr)
         return 1
-    print(
-        "Formal semantic-validation evidence bundle passed integrity and replay checks."
-    )
+    print("Formal semantic-validation evidence bundle passed integrity and replay checks.")
     return 0
 
 

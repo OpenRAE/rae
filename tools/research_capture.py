@@ -47,9 +47,7 @@ def record_capture(
     """Copy a digest-pinned capture without relabeling its immutable observations."""
     records = _records(root, family)
     if template_path not in dict(records):
-        raise ValueError(
-            "capture template must be an indexed, admitted evidence manifest"
-        )
+        raise ValueError("capture template must be an indexed, admitted evidence manifest")
     manifest = dict(dict(records)[template_path])
     documents = {}
     for label in ("protocol", "corpus", "snapshot", "analysis"):
@@ -75,19 +73,12 @@ def record_capture(
     if snapshot_path is not None:
         analysis = json.loads(documents["analysis"])
         claim = analysis.get("claim")
-        if isinstance(claim, dict) and isinstance(
-            claim.get("evidence_artifacts"), list
-        ):
+        if isinstance(claim, dict) and isinstance(claim.get("evidence_artifacts"), list):
             claim["evidence_artifacts"] = [
-                "@snapshot" if reference == snapshot_path else reference
-                for reference in claim["evidence_artifacts"]
+                "@snapshot" if reference == snapshot_path else reference for reference in claim["evidence_artifacts"]
             ]
-            documents["analysis"] = (
-                json.dumps(analysis, indent=2, sort_keys=True) + "\n"
-            ).encode()
-            manifest["analysis_sha256"] = hashlib.sha256(
-                documents["analysis"]
-            ).hexdigest()
+            documents["analysis"] = (json.dumps(analysis, indent=2, sort_keys=True) + "\n").encode()
+            manifest["analysis_sha256"] = hashlib.sha256(documents["analysis"]).hexdigest()
     identity = capture_identity(manifest)
     prefix = f"docs/research/{family}/captures/{identity}"
     manifest.update(
@@ -102,13 +93,8 @@ def record_capture(
     }
     folder = root / prefix
     if folder.exists():
-        if any(
-            (folder / f"{label}.json").read_bytes() != content
-            for label, content in documents.items()
-        ):
-            raise ValueError(
-                "an immutable capture identity already contains different bytes"
-            )
+        if any((folder / f"{label}.json").read_bytes() != content for label, content in documents.items()):
+            raise ValueError("an immutable capture identity already contains different bytes")
     else:
         folder.mkdir(parents=True)
         for label, content in documents.items():
@@ -123,9 +109,7 @@ def record_capture(
     expected = json.dumps(receipt, indent=2, sort_keys=True) + "\n"
     if receipt_path.exists():
         if receipt_path.read_text() != expected:
-            raise ValueError(
-                "capture retention record differs from its immutable manifest"
-            )
+            raise ValueError("capture retention record differs from its immutable manifest")
     else:
         with receipt_path.open("x") as stream:
             stream.write(expected)
@@ -134,16 +118,10 @@ def record_capture(
 
 def publish_capture(root: Path, family: str) -> str:
     """Create a numbered publication receipt on dev; leave the capture unchanged."""
-    branch = subprocess.check_output(
-        ["git", "-C", str(root), "branch", "--show-current"], text=True
-    ).strip()
+    branch = subprocess.check_output(["git", "-C", str(root), "branch", "--show-current"], text=True).strip()
     if branch != "dev":
-        raise ValueError(
-            "numbered evidence publication is allowed only on the dev integration branch"
-        )
-    if subprocess.check_output(
-        ["git", "-C", str(root), "status", "--porcelain"], text=True
-    ).strip():
+        raise ValueError("numbered evidence publication is allowed only on the dev integration branch")
+    if subprocess.check_output(["git", "-C", str(root), "status", "--porcelain"], text=True).strip():
         raise ValueError("publication requires a clean integrated checkout")
     records = _records(root, family)
     selected = current_release_path(records, root)
@@ -159,31 +137,21 @@ def publish_capture(root: Path, family: str) -> str:
     capture_paths = set()
     if folder.exists():
         for receipt_path in sorted(folder.glob("*.json")):
-            receipt = load_bounded_json_object(
-                root, receipt_path.relative_to(root).as_posix(), max_bytes=4096
-            )
+            receipt = load_bounded_json_object(root, receipt_path.relative_to(root).as_posix(), max_bytes=4096)
             if set(receipt) != {"revision", "capture_path", "capture_sha256"}:
                 raise ValueError("invalid evidence publication receipt")
             number = revision_key(receipt["revision"])
             if receipt_path.name != f"v{number[0]}.json" or number[1:] != (0, 0):
-                raise ValueError(
-                    "publication receipt filename must match its major release number"
-                )
-            if (
-                receipt["revision"] in revisions
-                or receipt["capture_path"] in capture_paths
-            ):
-                raise ValueError(
-                    "publication receipts must have unique revisions and captures"
-                )
+                raise ValueError("publication receipt filename must match its major release number")
+            if receipt["revision"] in revisions or receipt["capture_path"] in capture_paths:
+                raise ValueError("publication receipts must have unique revisions and captures")
             revisions.add(receipt["revision"])
             capture_paths.add(receipt["capture_path"])
             capture = safe_repo_path(root, receipt["capture_path"])
             if (
                 capture is None
                 or receipt["capture_path"] not in dict(records)
-                or hashlib.sha256(capture.read_bytes()).hexdigest()
-                != receipt["capture_sha256"]
+                or hashlib.sha256(capture.read_bytes()).hexdigest() != receipt["capture_sha256"]
             ):
                 raise ValueError("publication receipt has a stale capture pin")
             if receipt["capture_path"] == selected:
@@ -191,11 +159,7 @@ def publish_capture(root: Path, family: str) -> str:
             prior.append(receipt)
     if existing is not None:
         return existing
-    numbers = [
-        revision_key(record["revision"])
-        for _, record in records
-        if not is_capture(record["revision"])
-    ]
+    numbers = [revision_key(record["revision"]) for _, record in records if not is_capture(record["revision"])]
     numbers.extend(revision_key(receipt["revision"]) for receipt in prior)
     major = max(numbers)[0] + 1
     folder.mkdir(exist_ok=True)

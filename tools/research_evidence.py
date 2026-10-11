@@ -6,6 +6,7 @@ import hashlib
 import json
 import re
 from collections.abc import Mapping, Sequence
+from datetime import UTC
 from pathlib import Path
 
 from tools.evidence_bundle_index import revision_key
@@ -39,13 +40,9 @@ def _source_bytes(path: Path, relative: str) -> bytes:
     if relative != RELEASE_MANAGED_VERSION_SOURCE:
         return content
     text = content.decode("utf-8")
-    normalized, replaced = _RELEASE_VERSION_LINE.subn(
-        r"\g<1>release-managed\g<2>", text
-    )
+    normalized, replaced = _RELEASE_VERSION_LINE.subn(r"\g<1>release-managed\g<2>", text)
     if replaced != 1 or text.count(_RELEASE_VERSION_MARKER) != 1:
-        raise ValueError(
-            "release-managed version source must carry exactly one marked version literal"
-        )
+        raise ValueError("release-managed version source must carry exactly one marked version literal")
     return normalized.encode("utf-8")
 
 
@@ -64,9 +61,7 @@ def surface_digest(repo_root: Path, relative: str) -> str:
         if len(pins) >= 10000:
             raise ValueError("implementation source budget exceeded")
         source = _source_bytes(path, path.relative_to(repo_root).as_posix())
-        pins.append(
-            [path.relative_to(root).as_posix(), hashlib.sha256(source).hexdigest()]
-        )
+        pins.append([path.relative_to(root).as_posix(), hashlib.sha256(source).hexdigest()])
     if not pins:
         raise ValueError("empty implementation surface")
     return hashlib.sha256(json.dumps(pins, separators=(",", ":")).encode()).hexdigest()
@@ -92,56 +87,35 @@ def evidence_key(value: object) -> tuple[int, tuple[int, int, int] | str]:
 
 def capture_identity(manifest: Mapping[str, object]) -> str:
     """Bind immutable document pins without depending on their storage paths."""
-    pins = {
-        key: value
-        for key, value in manifest.items()
-        if key not in {"revision", "snapshot_path", "analysis_path"}
-    }
+    pins = {key: value for key, value in manifest.items() if key not in {"revision", "snapshot_path", "analysis_path"}}
     encoded = json.dumps(pins, sort_keys=True, separators=(",", ":")).encode()
     return "capture-" + hashlib.sha256(encoded).hexdigest()
 
 
-def validate_inventory(
-    repo_root: Path, family: str, records: Sequence[tuple[str, Mapping[str, object]]]
-) -> None:
+def validate_inventory(repo_root: Path, family: str, records: Sequence[tuple[str, Mapping[str, object]]]) -> None:
     """Retain admitted history and reject changed or unaddressed capture records."""
     folder = f"docs/research/{family}"
     history_path = f"{folder}/published-history.json"
     history = safe_repo_path(repo_root, history_path)
-    if (
-        history is None
-        or hashlib.sha256(history.read_bytes()).hexdigest()
-        != _PUBLISHED_HISTORY_PINS[family]
-    ):
+    if history is None or hashlib.sha256(history.read_bytes()).hexdigest() != _PUBLISHED_HISTORY_PINS[family]:
         raise ValueError("published research history pin is invalid")
-    expected = load_bounded_json_object(repo_root, history_path, max_bytes=512 * 1024)[
-        "records"
-    ]
+    expected = load_bounded_json_object(repo_root, history_path, max_bytes=512 * 1024)["records"]
     by_path = dict(records)
     if len(by_path) != len(records):
         raise ValueError("research evidence paths must be unique")
-    by_revision = {
-        manifest.get("revision"): (path, manifest) for path, manifest in records
-    }
+    by_revision = {manifest.get("revision"): (path, manifest) for path, manifest in records}
     if len(by_revision) != len(records):
         raise ValueError("research evidence release revisions must be unique")
     historical_paths = set()
     for pin in expected:
         selected = by_revision.get(pin["revision"])
         if selected is None:
-            raise ValueError(
-                "research evidence requires every supported published historical and current release"
-            )
+            raise ValueError("research evidence requires every supported published historical and current release")
         relative, manifest = selected
         path = safe_repo_path(repo_root, relative)
-        if (
-            path is None
-            or hashlib.sha256(path.read_bytes()).hexdigest() != pin["sha256"]
-        ):
+        if path is None or hashlib.sha256(path.read_bytes()).hexdigest() != pin["sha256"]:
             raise ValueError("published research history manifest pin is stale")
-        if manifest != load_bounded_json_object(
-            repo_root, relative, max_bytes=512 * 1024
-        ):
+        if manifest != load_bounded_json_object(repo_root, relative, max_bytes=512 * 1024):
             raise ValueError("published research history record differs from its pin")
         historical_paths.add(relative)
     receipts = {}
@@ -160,16 +134,10 @@ def validate_inventory(
         if receipt_path.stem != manifest["revision"]:
             raise ValueError("capture retention identity differs from its manifest")
         pinned = safe_repo_path(repo_root, capture_path)
-        if (
-            pinned is None
-            or hashlib.sha256(pinned.read_bytes()).hexdigest()
-            != receipt["capture_sha256"]
-        ):
+        if pinned is None or hashlib.sha256(pinned.read_bytes()).hexdigest() != receipt["capture_sha256"]:
             raise ValueError("capture retention manifest pin is stale")
         receipts[capture_path] = receipt
-    capture_paths = {
-        path for path, manifest in records if is_capture(manifest.get("revision"))
-    }
+    capture_paths = {path for path, manifest in records if is_capture(manifest.get("revision"))}
     if set(receipts) != capture_paths:
         raise ValueError("every capture requires an independent retention record")
     identities = []
@@ -179,25 +147,19 @@ def validate_inventory(
         identities.append(identity)
         if path not in historical_paths:
             if not is_capture(identity) or capture_identity(manifest) != identity:
-                raise ValueError(
-                    "new research evidence must use a content-addressed capture identity"
-                )
+                raise ValueError("new research evidence must use a content-addressed capture identity")
             prefix = f"{folder}/captures/{identity}/"
             if (
                 path != prefix + "manifest.json"
                 or manifest.get("snapshot_path") != prefix + "snapshot.json"
                 or manifest.get("analysis_path") != prefix + "analysis.json"
             ):
-                raise ValueError(
-                    "capture documents must stay in their unique capture directory"
-                )
+                raise ValueError("capture documents must stay in their unique capture directory")
     if len(set(identities)) != len(identities):
         raise ValueError("research evidence release revisions must be unique")
 
 
-def current_release_path(
-    records: Sequence[tuple[str, Mapping[str, object]]], repo_root: Path | None = None
-) -> str:
+def current_release_path(records: Sequence[tuple[str, Mapping[str, object]]], repo_root: Path | None = None) -> str:
     """Select a live-source capture; legacy callers retain semantic selection."""
     if not records:
         raise ValueError("no research evidence releases")
@@ -207,24 +169,12 @@ def current_release_path(
     if repo_root is not None:
         digest = implementation_digest(repo_root)
         candidates = []
-        legacy = [
-            (path, record)
-            for path, record in records
-            if not is_capture(record.get("revision"))
-        ]
-        selectable = [
-            (path, record)
-            for path, record in records
-            if is_capture(record.get("revision"))
-        ]
+        legacy = [(path, record) for path, record in records if not is_capture(record.get("revision"))]
+        selectable = [(path, record) for path, record in records if is_capture(record.get("revision"))]
         if legacy:
-            selectable.append(
-                max(legacy, key=lambda item: revision_key(item[1].get("revision")))
-            )
+            selectable.append(max(legacy, key=lambda item: revision_key(item[1].get("revision"))))
         for path, record in selectable:
-            snapshot = load_bounded_json_object(
-                repo_root, str(record.get("snapshot_path")), max_bytes=2 * 1024 * 1024
-            )
+            snapshot = load_bounded_json_object(repo_root, str(record.get("snapshot_path")), max_bytes=2 * 1024 * 1024)
             state = snapshot.get("source_state")
             if (
                 isinstance(state, Mapping)
@@ -233,40 +183,25 @@ def current_release_path(
             ):
                 candidates.append((snapshot.get("captured_at"), path, record))
         if not candidates:
-            raise ValueError(
-                "no current research capture binds the live implementation source"
-            )
+            raise ValueError("no current research capture binds the live implementation source")
         # Capture dates select only among exact live-source matches. Full replay
         # and shape validation still run on the selected record.
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         dated = []
         for captured_at, path, record in candidates:
             if not isinstance(captured_at, str):
                 raise ValueError("capture date must be an offset-aware timestamp")
             date = datetime.fromisoformat(captured_at)
-            if date.tzinfo is None or date > datetime.now(timezone.utc):
-                raise ValueError(
-                    "capture date must be offset-aware and cannot be in the future"
-                )
+            if date.tzinfo is None or date > datetime.now(UTC):
+                raise ValueError("capture date must be offset-aware and cannot be in the future")
             dated.append((date, path, record))
         latest = max(date for date, _, _ in dated)
-        latest_records = [
-            (path, record) for date, path, record in dated if date == latest
-        ]
+        latest_records = [(path, record) for date, path, record in dated if date == latest]
         # A content-addressed wrapper may retain an existing release verbatim.
-        pins = {
-            (record.get("snapshot_sha256"), record.get("analysis_sha256"))
-            for _, record in latest_records
-        }
-        if len(pins) == 1 and any(
-            is_capture(record.get("revision")) for _, record in latest_records
-        ):
-            latest_records = [
-                (path, record)
-                for path, record in latest_records
-                if is_capture(record.get("revision"))
-            ]
+        pins = {(record.get("snapshot_sha256"), record.get("analysis_sha256")) for _, record in latest_records}
+        if len(pins) == 1 and any(is_capture(record.get("revision")) for _, record in latest_records):
+            latest_records = [(path, record) for path, record in latest_records if is_capture(record.get("revision"))]
         selected = [path for path, _ in latest_records]
         if len(selected) != 1:
             raise ValueError("current research capture is ambiguous")
@@ -282,10 +217,7 @@ def implementation_digest(repo_root: Path) -> str:
     paths = sorted(packages.rglob("*.py"))
     if not paths or len(paths) > 10000:
         raise ValueError("reference implementation file count is invalid")
-    paths.extend(
-        repo_root / "implementations/python" / name
-        for name in ("pyproject.toml", "uv.lock")
-    )
+    paths.extend(repo_root / "implementations/python" / name for name in ("pyproject.toml", "uv.lock"))
     pins = []
     total = 0
     for path in sorted(paths):
@@ -294,9 +226,7 @@ def implementation_digest(repo_root: Path) -> str:
         if resolved is None or not resolved.is_file() or path.is_symlink():
             raise ValueError("unsafe reference implementation source")
         total = _source_size(resolved, total)
-        pins.append(
-            [relative, hashlib.sha256(_source_bytes(resolved, relative)).hexdigest()]
-        )
+        pins.append([relative, hashlib.sha256(_source_bytes(resolved, relative)).hexdigest()])
     encoded = json.dumps(pins, ensure_ascii=True, separators=(",", ":")).encode()
     return hashlib.sha256(encoded).hexdigest()
 
@@ -316,13 +246,9 @@ def _source_identity_valid(state: object, profiles: frozenset[str]) -> bool:
     )
 
 
-def source_state_failures(
-    repo_root: Path, state: object, path: str, *, current: bool
-) -> list[PolicyFailure]:
+def source_state_failures(repo_root: Path, state: object, path: str, *, current: bool) -> list[PolicyFailure]:
     """Historical source identity is retained; a current capture binds live code."""
-    valid = _source_identity_valid(
-        state, frozenset({SOURCE_PROFILE}) if current else HISTORICAL_SOURCE_PROFILES
-    )
+    valid = _source_identity_valid(state, frozenset({SOURCE_PROFILE}) if current else HISTORICAL_SOURCE_PROFILES)
     if valid and current:
         try:
             valid = state["implementation_digest"] == implementation_digest(repo_root)

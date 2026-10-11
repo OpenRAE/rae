@@ -6,8 +6,9 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
-import tools.check_specification_coverage as coverage_gate
 from evidence_test_fixtures import copy_bundle
+
+import tools.check_specification_coverage as coverage_gate
 from tools.check_specification_coverage import (
     EXPECTED_CLASSIFICATIONS,
     EXPECTED_STRATA,

@@ -31,12 +31,12 @@ from tools.formal_semantic_validation._shape import (
 )
 from tools.formal_semantic_validation._types import (
     _MAX_FILE_BYTES,
-    MANIFEST_PATH,
-    MANIFEST_SCHEMA_VERSION,
     _RELEASE_ARTIFACT_PIN_KEYS,
     _RELEASE_MANIFEST_KEYS,
     _RETAINED_CASE_TEXT_REPLACEMENTS,
     _SHA256_RE,
+    MANIFEST_PATH,
+    MANIFEST_SCHEMA_VERSION,
     PARTICIPANT_IDENTITY_FIXTURE_SUCCESSORS,
     EvidenceRelease,
 )
@@ -51,9 +51,7 @@ from tools.research_evidence import (
 
 
 def _stale_pin(repo_root: Path, path_value: object, digest_value: object) -> bool:
-    resolved = (
-        safe_repo_path(repo_root, path_value) if isinstance(path_value, str) else None
-    )
+    resolved = safe_repo_path(repo_root, path_value) if isinstance(path_value, str) else None
     return (
         resolved is None
         or not resolved.is_file()
@@ -70,9 +68,7 @@ def _release_document_pin_failures(
     path: str,
 ) -> None:
     for label in ("protocol", "corpus", "snapshot", "analysis"):
-        if _stale_pin(
-            repo_root, manifest.get(f"{label}_path"), manifest.get(f"{label}_sha256")
-        ):
+        if _stale_pin(repo_root, manifest.get(f"{label}_path"), manifest.get(f"{label}_sha256")):
             failures.append(
                 _failure(
                     "formal-validation-release-digest",
@@ -132,9 +128,7 @@ def _pinned_release_artifacts(
     return list(artifacts)
 
 
-def validate_release_bundle(
-    repo_root: Path, release: EvidenceRelease
-) -> list[PolicyFailure]:
+def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[PolicyFailure]:
     """Validate one atomic release record, all digest pins, and its evidence."""
 
     failures: list[PolicyFailure] = []
@@ -160,10 +154,7 @@ def validate_release_bundle(
             )
         )
 
-    if (
-        is_capture(manifest.get("revision"))
-        and capture_identity(manifest) != manifest["revision"]
-    ):
+    if is_capture(manifest.get("revision")) and capture_identity(manifest) != manifest["revision"]:
         failures.append(
             _failure(
                 "formal-validation-release-digest",
@@ -208,9 +199,7 @@ def validate_release_bundle(
                 replay_cases=False,
             )
         )
-        artifact_by_kind = {
-            item.get("kind"): item for item in artifacts if isinstance(item, Mapping)
-        }
+        artifact_by_kind = {item.get("kind"): item for item in artifacts if isinstance(item, Mapping)}
         sat_snapshot_pin = artifact_by_kind.get("satisfiability-snapshot")
         sat_analysis_pin = artifact_by_kind.get("satisfiability-analysis")
         if sat_snapshot_pin is not None or sat_analysis_pin is not None:
@@ -224,12 +213,8 @@ def validate_release_bundle(
                 )
             else:
                 legacy_manifest["revision"] = "2.0.0"
-                legacy_manifest["satisfiability_snapshot_path"] = sat_snapshot_pin.get(
-                    "path"
-                )
-                legacy_manifest["satisfiability_analysis_path"] = sat_analysis_pin.get(
-                    "path"
-                )
+                legacy_manifest["satisfiability_snapshot_path"] = sat_snapshot_pin.get("path")
+                legacy_manifest["satisfiability_analysis_path"] = sat_analysis_pin.get("path")
                 snapshot = load_bounded_json_object(
                     repo_root,
                     str(sat_snapshot_pin.get("path")),
@@ -304,8 +289,7 @@ def validate_retest_bundle(
         failures.append(
             _failure(
                 "formal-validation-retest-revision",
-                "the integrated retest must bind protocol revision 2.0.0 "
-                f"and corpus revision {expected_corpus}",
+                f"the integrated retest must bind protocol revision 2.0.0 and corpus revision {expected_corpus}",
                 release.manifest_path,
             )
         )
@@ -321,9 +305,7 @@ def validate_retest_bundle(
         )
     _validate_protocol(repo_root, protocol, failures, protocol_path)
     cases_by_id = _validate_corpus(repo_root, protocol, corpus, failures, corpus_path)
-    historical_cases = _retained_historical_cases(
-        repo_root, cases_by_id, failures, corpus_path, corpus.get("revision")
-    )
+    historical_cases = _retained_historical_cases(repo_root, cases_by_id, failures, corpus_path, corpus.get("revision"))
     _validate_retest_snapshot(
         _RetestScope(
             repo_root=repo_root,
@@ -337,12 +319,8 @@ def validate_retest_bundle(
         failures,
         snapshot_path,
     )
-    baseline_cases = (
-        cases_by_id if source_bound_revision(release_revision) else historical_cases
-    )
-    _validate_baseline_drift(
-        repo_root, snapshot, baseline_cases, failures, snapshot_path
-    )
+    baseline_cases = cases_by_id if source_bound_revision(release_revision) else historical_cases
+    _validate_baseline_drift(repo_root, snapshot, baseline_cases, failures, snapshot_path)
     _validate_analysis(
         repo_root,
         protocol,
@@ -365,15 +343,9 @@ def _current_retest_source_failures(
     release_revision: str,
     replay_current: bool,
 ) -> None:
-    failures.extend(
-        source_state_failures(
-            repo_root, snapshot.get("source_state"), path, current=replay_current
-        )
-    )
+    failures.extend(source_state_failures(repo_root, snapshot.get("source_state"), path, current=replay_current))
     state = snapshot.get("source_state")
-    if not isinstance(state, Mapping) or state.get("base_revision") != snapshot.get(
-        "raes_revision"
-    ):
+    if not isinstance(state, Mapping) or state.get("base_revision") != snapshot.get("raes_revision"):
         failures.append(
             _failure(
                 "research-evidence-source-state",
@@ -382,10 +354,7 @@ def _current_retest_source_failures(
             )
         )
     baseline = snapshot.get("baseline")
-    if (
-        isinstance(baseline, Mapping)
-        and baseline.get("release_revision") == release_revision
-    ):
+    if isinstance(baseline, Mapping) and baseline.get("release_revision") == release_revision:
         failures.append(
             _failure(
                 "formal-validation-baseline-selection",
@@ -418,18 +387,14 @@ def _retained_historical_cases(
         )
         historical_corpus = {}
     historical_cases = {
-        item.get("case_id"): item
-        for item in historical_corpus.get("cases", [])
-        if isinstance(item, Mapping)
+        item.get("case_id"): item for item in historical_corpus.get("cases", []) if isinstance(item, Mapping)
     }
     retained_cases_match = all(
         cases_by_id.get(str(case_id))
         == {
             **case,
             "fixture_path": (
-                PARTICIPANT_IDENTITY_FIXTURE_SUCCESSORS.get(
-                    case.get("fixture_path"), case.get("fixture_path")
-                )
+                PARTICIPANT_IDENTITY_FIXTURE_SUCCESSORS.get(case.get("fixture_path"), case.get("fixture_path"))
                 if corpus_revision == "4.0.0"
                 else case.get("fixture_path")
             ),

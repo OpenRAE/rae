@@ -4,6 +4,7 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
+
 from tools.check_formal_semantic_validation import load_release_bundles, validate_release_bundle
 from tools.formal_semantic_validation import _production, _releases, _replay, _retest
 from tools.formal_semantic_validation._archival_invariants import validate_archival_evidence_invariants

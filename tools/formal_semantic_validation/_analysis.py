@@ -78,9 +78,7 @@ def _validate_analysis(
             continue
         result_ids.append(item.get("claim_class_id"))
         _claim_result_failures(item, expected_by_id, failures, path)
-    if set(result_ids) != set(expected_by_id) or len(result_ids) != len(
-        set(result_ids)
-    ):
+    if set(result_ids) != set(expected_by_id) or len(result_ids) != len(set(result_ids)):
         failures.append(
             _failure(
                 "formal-validation-analysis-result-coverage",
@@ -89,9 +87,7 @@ def _validate_analysis(
             )
         )
     _overall_status_failures(recomputed, analysis, failures, path)
-    _claim_record_failures(
-        repo_root, analysis, failures, path, snapshot_path=snapshot_path
-    )
+    _claim_record_failures(repo_root, analysis, failures, path, snapshot_path=snapshot_path)
 
 
 def _claim_result_failures(
@@ -128,9 +124,7 @@ def _claim_result_failures(
                 )
             )
             break
-    if expected["evidence_status"] in {"untested", "refuted"} and item.get(
-        "evidence_status"
-    ) in {
+    if expected["evidence_status"] in {"untested", "refuted"} and item.get("evidence_status") in {
         "partial",
         "demonstrated",
     }:
@@ -209,9 +203,7 @@ def _claim_record_failures(
     for artifact in claim.get("evidence_artifacts", []):
         if artifact == "@snapshot":
             artifact = snapshot_path
-        resolved = (
-            safe_repo_path(repo_root, artifact) if isinstance(artifact, str) else None
-        )
+        resolved = safe_repo_path(repo_root, artifact) if isinstance(artifact, str) else None
         if resolved is None or not resolved.is_file():
             failures.append(
                 _failure(
@@ -220,9 +212,7 @@ def _claim_record_failures(
                     path,
                 )
             )
-    if not _string_list(analysis.get("limitations")) or not _nonempty_string(
-        analysis.get("plain_language_outcome")
-    ):
+    if not _string_list(analysis.get("limitations")) or not _nonempty_string(analysis.get("plain_language_outcome")):
         failures.append(
             _failure(
                 "formal-validation-analysis-disclosure",
