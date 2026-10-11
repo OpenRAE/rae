@@ -20,6 +20,7 @@ import pytest
 import raes
 import yaml
 from sphinx.cmd.build import build_main
+
 from tools import public_docs_guard, public_docs_markup
 from tools.check_public_docs import (
     INTERNAL_RECORD_DIRECTORIES,
@@ -119,6 +120,7 @@ def guarded_builds(tmp_path_factory: pytest.TempPathFactory) -> list[tuple[int, 
     return builds
 
 
+@pytest.mark.integration
 @pytest.mark.parametrize("page", sorted(OUTSIDE_READS))
 def test_build_fails_when_a_page_reads_a_file_outside_the_source(
     guarded_builds: list[tuple[int, str]], page: str
@@ -130,6 +132,7 @@ def test_build_fails_when_a_page_reads_a_file_outside_the_source(
     ]
 
 
+@pytest.mark.integration
 @pytest.mark.parametrize("page", sorted(FILE_URL_READS))
 def test_build_fails_when_a_directive_reads_a_file_url(guarded_builds: list[tuple[int, str]], page: str) -> None:
     assert [(status, page in _warned_pages(warnings, FILE_URL_WARNING)) for status, warnings in guarded_builds] == [
@@ -138,6 +141,7 @@ def test_build_fails_when_a_directive_reads_a_file_url(guarded_builds: list[tupl
     ]
 
 
+@pytest.mark.integration
 @pytest.mark.parametrize("page", sorted(INSIDE_READS))
 def test_build_accepts_files_inside_the_source_and_documented_modules(
     guarded_builds: list[tuple[int, str]], page: str
@@ -148,6 +152,7 @@ def test_build_accepts_files_inside_the_source_and_documented_modules(
     assert page not in _warned_pages(warnings)
 
 
+@pytest.mark.integration
 @pytest.mark.parametrize("markup", list(REPOSITORY_IMPORTS.values()), ids=list(REPOSITORY_IMPORTS))
 def test_build_cannot_import_repository_modules(tmp_path: Path, markup: str) -> None:
     public = tmp_path / "docs" / "public"
@@ -243,6 +248,93 @@ def test_link_shown_as_code_passes(tmp_path: Path, markdown: str) -> None:
     _write(tmp_path / "docs" / "public" / "index.md", f"# Index\n\n{markdown}\n")
 
     assert evaluate_public_boundary(tmp_path) == []
+
+
+@pytest.mark.parametrize(
+    "example",
+    [
+        f"    {TOOL_LINK}",
+        f"\t{TOOL_LINK}",
+        f"> ```markdown\n> {TOOL_LINK}\n> ```",
+        f"> > ~~~markdown\n> > {TOOL_LINK}\n> > ~~~",
+        f"- ```markdown\n  {TOOL_LINK}\n  ```",
+        f">     {TOOL_LINK}",
+        f"``example\n{TOOL_LINK}\nexample``",
+        f"> :::{{code-block}} markdown\n> {TOOL_LINK}\n> :::",
+    ],
+    ids=[
+        "indented",
+        "tab",
+        "blockquote",
+        "nested-quote",
+        "list",
+        "quoted-indent",
+        "multiline-span",
+        "quoted-directive",
+    ],
+)
+def test_code_examples_do_not_hide_following_live_links(example: str) -> None:
+    assert markdown_link_targets(f"{example}\n\n[Start](quickstart.md)") == ["quickstart.md"]
+
+
+@pytest.mark.parametrize(
+    "markdown",
+    [
+        f"> {TOOL_LINK}",
+        f"- {TOOL_LINK}",
+        f"> ```{{note}}\n> {TOOL_LINK}\n> ```",
+        f"- :::{{note}}\n  {TOOL_LINK}\n  :::",
+        "> [tool]: ../../tools/internal_tool.py\n>\n> [Tool][tool]",
+    ],
+)
+def test_live_links_inside_containers_are_checked(markdown: str) -> None:
+    assert "../../tools/internal_tool.py" in markdown_link_targets(markdown)
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("initially_enabled", [False, True], ids=["enable-guard", "change-guard"])
+def test_guard_changes_invalidate_cached_pages(tmp_path: Path, initially_enabled: bool) -> None:
+    public = tmp_path / "docs" / "public"
+    _write(public / "index.md", "# Index\n\nPublic documentation.\n")
+    _write(public / "redirects.json", "{}\n")
+    for directory in ("_static", "_templates"):
+        (public / directory).mkdir()
+    guard = _write(tmp_path / "tools" / "public_docs_guard.py", Path(public_docs_guard.__file__).read_text())
+    production_config = (PUBLIC_CONFDIR / "conf.py").read_text()
+
+    def configure(enabled: bool) -> None:
+        _write(
+            public / "conf.py",
+            production_config + f"\n_public_setup = setup\ndef setup(app):\n"
+            f"    if {enabled!r}:\n        _public_setup(app)\n"
+            "    app.connect('doctree-read', lambda app, tree: print('guard-test-read:' + app.env.docname))\n",
+        )
+
+    def build() -> str:
+        command = [
+            sys.executable,
+            "-I",
+            "-m",
+            "sphinx",
+            "-W",
+            "--keep-going",
+            "-b",
+            "html",
+            str(public),
+            str(tmp_path / "html"),
+        ]
+        result = subprocess.run(command, capture_output=True, text=True, check=False)
+        assert result.returncode == 0, result.stdout + result.stderr
+        return result.stdout
+
+    configure(initially_enabled)
+    assert "guard-test-read:index" in build()
+    if initially_enabled:
+        guard.write_text(guard.read_text() + "\n# Guard revision for the cache invalidation regression.\n")
+    else:
+        configure(True)
+    assert "guard-test-read:index" in build()
+    assert "guard-test-read:index" not in build()
 
 
 @pytest.mark.parametrize(

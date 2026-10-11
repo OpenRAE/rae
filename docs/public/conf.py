@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import sys
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as _distribution_version
 from pathlib import Path
@@ -42,7 +43,8 @@ def setup(app):
     spec = importlib.util.spec_from_file_location("public_docs_guard", _PUBLIC_DOCS_GUARD)
     guard = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(guard)
-    guard.setup(app)
+    sys.modules[spec.name] = guard
+    app.setup_extension(spec.name)
 
 
 templates_path = ["_templates"]

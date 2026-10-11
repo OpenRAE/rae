@@ -8,6 +8,7 @@ page wrote the directive or link.
 
 from __future__ import annotations
 
+import hashlib
 import os
 import sys
 import sysconfig
@@ -114,4 +115,7 @@ def setup(app: Sphinx) -> dict[str, Any]:
     app.add_directive("raw", FileUrlRefusingRaw, override=True)
     app.add_directive("csv-table", FileUrlRefusingCSVTable, override=True)
     app.connect("doctree-read", _warn_about_files_outside, priority=AFTER_SPHINX_COLLECTORS)
-    return {"version": "1", "parallel_read_safe": True, "parallel_write_safe": True}
+    # Register a content-derived environment version so both first installation and
+    # later guard edits invalidate cached doctrees, even when no page source changed.
+    revision = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    return {"version": "1", "env_version": int(revision, 16), "parallel_read_safe": True, "parallel_write_safe": True}
