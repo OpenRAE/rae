@@ -44,3 +44,35 @@ Conformance Commands
 
 .. automodule:: raes_cli.conformance
    :members:
+
+Libvirt Commands
+----------------
+
+``raes libvirt`` holds the operational commands of the native libvirt backend.
+``raes libvirt techvault validate-live`` and ``raes libvirt techvault
+guest-certify`` create libvirt/QEMU resources and ask for confirmation unless
+you pass ``--yes``. ``raes libvirt evidence validate`` writes the
+evaluator-evidence archive for a scenario. It runs deterministically unless you
+pass ``--native-live``, which needs a libvirt daemon.
+
+.. automodule:: raes_cli.libvirt
+   :members:
+
+Corpus Commands
+---------------
+
+``raes corpus build`` builds the cross-backend evidence corpus for a reference
+scenario and writes it to the ``--output`` file.
+
+.. automodule:: raes_cli.corpus
+   :members:
+
+Runtime Commands
+----------------
+
+``raes runtime store`` checks, backs up, and restores an offline local
+control-plane store.
+
+.. automodule:: raes_cli.runtime
+   :members:
+   :ignore-module-all:

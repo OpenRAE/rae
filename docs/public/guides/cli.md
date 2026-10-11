@@ -5,6 +5,12 @@ Use `raes semantic` to work with RAES data. It provides `parse`, `validate`,
 commands. Each command accepts a file path or `-` for stdin. Each command is
 offline and read-only by default.
 
+Each command reads one document as in-memory text, so it does not expand SDL
+`imports`. A scenario with top-level `imports` is rejected with exit `1` and
+only the generic `sdl.parse` diagnostic, even when the composed scenario is
+valid. To check such a scenario, parse its file with `parse_sdl_file` in
+Python, as the [Python guide](python.md) shows.
+
 From a repository checkout:
 
 ```console
@@ -79,5 +85,7 @@ and malformed registry JSON is reported as a stable `SDLParseError` without
 including response bodies or decoder internals.
 
 Use `raes processor --help` and `raes conformance --help` for the processor and
-backend-contract surfaces. The [CLI API reference](../api/cli.rst) lists the
-current command implementation.
+backend-contract surfaces. The [CLI API reference](../api/cli.rst) documents the
+main `raes` command and its `semantic`, `sdl`, `processor`, `conformance`,
+`libvirt`, `corpus`, and `runtime` groups. Run `raes --help` to list the
+groups of your installed version.
