@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 74.0.0 and rejects duplicate or unsupported
+Current validation requires release 75.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -587,3 +587,9 @@ claim limits remain unchanged; the readback mutation cases are covered by
 Issue #1091's pre-synchronization captures are
 [archived with exact digests](../request-limit-pre-sync-evidence/README.md).
 The incoming published releases retain their original bytes and selection rules.
+
+Release 75.0.0 replays the retained matrix after merging issue #1091's
+abandoned-request admission fix with `dev`, in
+[`execution-snapshot-v75.json`](execution-snapshot-v75.json) and
+[`analysis-v75.json`](analysis-v75.json). Outcomes and bounded claim limits
+remain unchanged. The request-boundary behavior is covered by its dedicated tests.

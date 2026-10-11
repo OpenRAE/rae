@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 75.0.0, rejects unsupported future
+Current validation requires explicit release 76.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -647,3 +647,9 @@ claim limits remain unchanged; the readback mutation cases are covered by
 Issue #1091's pre-synchronization captures are
 [archived with exact digests](../request-limit-pre-sync-evidence/README.md).
 The incoming published releases retain their original bytes and selection rules.
+
+Release 76.0.0 replays the retained formal cases after merging issue #1091's
+abandoned-request admission fix with `dev`, in
+[`execution-snapshot-v76.json`](execution-snapshot-v76.json) and
+[`analysis-v76.json`](analysis-v76.json). Outcomes and bounded claim limits
+remain unchanged. The request-boundary behavior is covered by its dedicated tests.
