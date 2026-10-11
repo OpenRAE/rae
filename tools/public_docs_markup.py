@@ -72,11 +72,14 @@ def markdown_link_targets(text: str) -> list[str]:
         for token in _walk_tokens(tokens):
             if token.type in {"fence", "colon_fence"} and _opens_markdown_body(token):
                 pending.append(token.content)
-            elif token.type in {"link_open", "image"}:
-                target = token.attrGet("href" if token.type == "link_open" else "src")
-                if target is not None:
-                    targets.append(target)
+            elif (target := _link_target(token)) is not None:
+                targets.append(target)
     return list(dict.fromkeys(targets))
+
+
+def _link_target(token: Token) -> str | None:
+    attribute = {"link_open": "href", "image": "src"}.get(token.type)
+    return token.attrGet(attribute) if attribute is not None else None
 
 
 def _walk_tokens(tokens: list[Token]) -> Iterator[Token]:
