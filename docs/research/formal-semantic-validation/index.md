@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 73.0.0, rejects unsupported future
+Current validation requires explicit release 72.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -607,14 +607,14 @@ runtime-fact export manifest split in
 [`analysis-v72.json`](analysis-v72.json). Outcomes and claim limits remain
 unchanged.
 
-## Issue #297 behavior authoring verification
+The issue #1371 captures that reused published release identities are preserved
+in the [initial publication archive](../mixed-backend-pre-sync-evidence/README.md)
+and [run-scope repair archive](../mixed-backend-run-scope-pre-sync-evidence/README.md),
+with exact bytes and digests. The incoming published release history remains canonical.
 
-Release 73.0.0 replays the retained corpus against the behavior authoring
-validation changes after integration with the issue #1418 manifest split.
-See [`execution-snapshot-v73.json`](execution-snapshot-v73.json) and
-[`analysis-v73.json`](analysis-v73.json). Incoming published captures retain
-their exact bytes; this release records a fresh implementation digest and
-modified-checkout provenance. Declaration reuse, authored-private rejection,
-import diagnostics and version parity have targeted evidence in
-`test_issue_297_behavior_authoring.py`; this refresh does not promote those
-claims into runtime or backend realization.
+Release 73.0.0 replays the retained controls after merging the issue #1418
+runtime-fact export manifest split with the issue #1371 mixed-backend contracts
+and composition run-scope repair in
+[`execution-snapshot-v73.json`](execution-snapshot-v73.json) and
+[`analysis-v73.json`](analysis-v73.json). Outcomes and bounded claim
+limits remain unchanged; this retained corpus makes no new mixed-runtime execution claim.
