@@ -6,7 +6,6 @@ import shutil
 from pathlib import Path
 
 import pytest
-
 from tools.evidence_bundle_index import load_index_records
 from tools.research_capture import FAMILIES, publish_capture, record_capture
 from tools.research_evidence import capture_identity, current_release_path, is_capture, validate_inventory
@@ -228,3 +227,15 @@ def test_ci_participant_replay_uses_the_source_selected_capture(monkeypatch):
     )
     assert calls == [["selected-protocol"]]
     assert failures[0].path == selected.manifest["snapshot_path"]
+
+
+def test_collided_formal_baseline_resolves_the_exact_preserved_capture():
+    from tools.formal_semantic_validation._baseline import _resolved_baseline_snapshot
+
+    snapshot = json.loads((ROOT / "docs/research/formal-semantic-validation/execution-snapshot-v76.json").read_text())
+    failures = []
+    baseline = _resolved_baseline_snapshot(ROOT, snapshot, failures, "retained-formal-76")
+    assert failures == []
+    assert baseline["execution_id"] == snapshot["baseline"]["execution_id"]
+    canonical = json.loads((ROOT / "docs/research/formal-semantic-validation/execution-snapshot-v75.json").read_text())
+    assert baseline["execution_id"] != canonical["execution_id"]

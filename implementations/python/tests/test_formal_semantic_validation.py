@@ -8,9 +8,8 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from evidence_test_fixtures import copy_bundle
-
 import tools.check_formal_semantic_validation as formal_validation
+from evidence_test_fixtures import copy_bundle
 from tools.check_formal_semantic_validation import (
     REQUIRED_CLAIM_CLASS_IDS,
     REQUIRED_PARTICIPANT_OBLIGATION_IDS,
