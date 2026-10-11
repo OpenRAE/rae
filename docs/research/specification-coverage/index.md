@@ -544,3 +544,10 @@ identities without changing classifications, outcomes, or claim limits.
 The issue #1371 pre-synchronization captures that reused published release
 identities are [archived with exact digests](../mixed-backend-pre-sync-evidence/README.md).
 The incoming published release history remains canonical.
+
+Release 71.0.0 replays the retained controls after integrating issue #1371
+and binding mixed-backend composition readback to the invocation's run in
+[`execution-snapshot-v71.json`](execution-snapshot-v71.json) and
+[`analysis-v71.json`](analysis-v71.json). Outcomes and bounded claim
+limits remain unchanged. The issue #1371 regression tests cover the new run join;
+this retained corpus makes no new mixed-runtime execution claim.

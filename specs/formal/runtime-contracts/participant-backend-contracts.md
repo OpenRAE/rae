@@ -223,7 +223,8 @@ observation, handoff, or owner-readback fact for one invocation of the
   native transfer needs an `ordered` grant and an accepted acknowledgement.
 - The caller resolves the trusted time model under the binding's time-model
   reference and digest. A committed composition state belongs to the
-  binding's profile and still activates the bound edge, or holds the
+  invocation's run and binding's profile: the request's `run_scope` equals
+  `run:<composition_state.run_id>`. It still activates the bound edge, or holds the
   handoff's source component but not its destination component.
 - Time-grant coordinates equal the caller's committed time readback for both
   bound clocks. A handoff names the committed composition history head and

@@ -10,3 +10,7 @@ The [records](records.json) pin each archived file to its original path, digest
 and immutable source revision. Paths embedded in these archival documents refer
 to that source revision. These are historical records outside the active indexes.
 No observation or prior capture byte has been discarded or relabeled.
+
+Formal release 72 and specification release 71 replay the synchronized source
+with the composition run-scope repair. The retained outcomes and bounded claim
+limits remain unchanged.

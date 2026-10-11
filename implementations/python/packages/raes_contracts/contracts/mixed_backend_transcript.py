@@ -88,7 +88,7 @@ class MixedBackendStageContext:
     time requirement. ``time_state`` is the committed time readback that the
     coordinator received. ``post_time_state`` is RAES's own time readback after
     the invocation, or ``None`` when none was taken. ``composition_state`` is
-    the committed composition state of the binding's profile: it must activate
+    the committed composition state of the invocation's run and binding's profile: it must activate
     a bound edge, or hold a handoff's source component but not its destination.
     A native handoff requires it.
     """
@@ -138,7 +138,7 @@ def validate_mixed_backend_stage_reports(
 
     require_mixed_backend_request(binding, request)
     validate_backend_operation_history(request, responses, controls=controls)
-    trusted = _trusted_inputs(binding, context)
+    trusted = _trusted_inputs(binding, request, context)
     messages = [response.message for response in responses]
     accepted = any(
         isinstance(message, BackendOperationAcknowledgementModel) and message.disposition == "accepted"
@@ -157,14 +157,18 @@ def validate_mixed_backend_stage_reports(
     _require_cited_reports(messages, reports)
 
 
-def _trusted_inputs(binding: MixedBackendExecutionBindingModel, context: MixedBackendStageContext) -> _Trusted:
+def _trusted_inputs(
+    binding: MixedBackendExecutionBindingModel,
+    request: BackendOperationRequestModel,
+    context: MixedBackendStageContext,
+) -> _Trusted:
     required, time_model = binding.subject.time, context.time_model
     if (context.time_model_ref, context.time_model_digest) != (required.time_model_ref, required.time_model_digest):
         raise ValueError("trusted time model differs from the binding's time model reference or digest")
     validate_time_runtime_state(time_model, context.time_state)
     before = _bound_coordinates(required, context.time_state)
     confirmed = _time_confirmed(required, time_model, before, context.post_time_state)
-    return _Trusted(time_model, before, confirmed, _composition_fence(binding, context.composition_state))
+    return _Trusted(time_model, before, confirmed, _composition_fence(binding, request, context.composition_state))
 
 
 def _bound_coordinates(
@@ -199,12 +203,15 @@ def _position(coordinate: TimeCoordinateModel) -> tuple[int, int, int]:
 
 def _composition_fence(
     binding: MixedBackendExecutionBindingModel,
+    request: BackendOperationRequestModel,
     state: MixedCompositionRuntimeStateModel | None,
 ) -> tuple[str, int] | None:
     if state is None:
         if binding.subject.kind == "handoff":
             raise ValueError("native handoff validation requires the committed composition state")
         return None
+    if request.binding.context.run_scope != f"run:{state.run_id}":
+        raise ValueError("committed composition state belongs to another run")
     if (state.profile_id, state.profile_digest) != (binding.profile_id, binding.profile_digest):
         raise ValueError("committed composition state belongs to another profile")
     _require_open_obligation(binding.subject, state)

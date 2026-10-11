@@ -116,7 +116,7 @@ def _composition_state(profile=None, **changes: object) -> contracts.MixedCompos
     profile = profile or _staged_profile()
     return contracts.MixedCompositionRuntimeStateModel.model_validate(
         {
-            "run_id": "run:mixed",
+            "run_id": "mixed",
             "plan_id": "plan:mixed",
             "plan_entry_id": "entry:mixed",
             "profile_id": profile.profile_id,
@@ -746,6 +746,15 @@ def test_trusted_inputs_must_match_the_binding_time_model_clocks_and_composition
 
 def test_an_edge_validates_against_a_composition_state_that_activates_it() -> None:
     _validate("mixed-edge", composition_state=_edge_composition_state("edge.sim-to-emu"))
+
+
+@pytest.mark.parametrize("scenario", ["mixed-edge", "mixed-handoff"])
+def test_composition_readback_must_belong_to_the_invocation_run(scenario: str) -> None:
+    state = _edge_composition_state("edge.sim-to-emu") if scenario == "mixed-edge" else _composition_state()
+    _validate(scenario, composition_state=state)
+    foreign = state.model_copy(update={"run_id": "other"})
+    with pytest.raises(ValueError, match="committed composition state belongs to another run"):
+        _validate(scenario, composition_state=foreign)
 
 
 @pytest.mark.parametrize(

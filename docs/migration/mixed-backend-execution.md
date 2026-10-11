@@ -159,8 +159,10 @@ owning authorities. They then call these pure validators from
    - `post_time_state`: RAES's own time readback after the invocation, or
      `None` when none was taken. When present, it must validate against
      `time_model`.
-   - `composition_state`: the committed composition state of the binding's
-     profile. A handoff requires it. When present, it must still activate a
+   - `composition_state`: the committed composition state of the invocation's
+     run and binding's profile. Its `run_id` is the unprefixed run identity;
+     the request's `run_scope` must equal `run:<run_id>`. A handoff requires it.
+     When present, it must still activate a
      bound edge. For a handoff, its active components must include the source
      component and exclude the destination component.
 
@@ -180,7 +182,7 @@ microstep.
 **Preconditions.** Before any report is accepted, the trusted inputs must
 match the binding. `time_model_ref` and `time_model_digest` equal its time
 requirement, and `time_state` covers both bound clocks. A `composition_state`
-belongs to its profile, and it activates the bound edge or precedes the bound
+belongs to the request's run and its profile, and it activates the bound edge or precedes the bound
 handoff as described above.
 
 **Transitions.** Reports are accepted in ascending `sequence`, which is chain
