@@ -126,10 +126,32 @@ B(P)[q.parameter] in-json q.allowed_values
 resolve_json_pointer(I, q.field_pointer) =json B(P)[q.parameter]
 ```
 
-`q.field_pointer` is exactly `/nodes/<qualified-id>/os` or
-`/infrastructure/<qualified-id>/count`. `=json` distinguishes booleans from
+`q.field_pointer` addresses an admitted scalar node capability, infrastructure
+count, or runtime leaf. `=json` distinguishes booleans from
 numbers; numeric JSON values compare by numeric value. `in-json` uses the same
 equality. Allowed domains contain no duplicate JSON values.
+
+### P4a: Public scalar derivation consistency
+
+For each `parameter_derivations` record `d`, every typed parameter segment
+references an input in `B(P)`, its value matches the declared `VariableType`, and
+any retained finite input domain contains it under `in-json`. Repeated references
+to one identity MUST have the same type and domain. Literal segments MUST contain
+no unresolved tokens. The record's non-root RFC 6901 pointer resolves to a public
+runtime scalar and is unique across capability constraints and derivations.
+
+`resolve_json_pointer(I, d.field_pointer) =json render(d, B(P))` MUST hold.
+`render` preserves the input type for a single whole-field parameter segment;
+otherwise it concatenates literal segments and the canonical substitution's
+string conversion of each selected input. Namespace rewriting prefixes every
+parameter identity and the addressed declaration, never literal content.
+
+This evidence preserves constrained specificity and processor provenance.
+Unenumerated inputs represent binding selection, not an author-wide finite
+domain. Single-input finite interpolations may retain their transformed image;
+multiple independent finite images are unsupported rather than approximated.
+Owning field validation, safe publication, plan binding and runtime comparison
+remain separate gates. See SEM-218's configurable scalar binding authority.
 
 ### P5: Explicitness evidence closure
 

@@ -257,7 +257,16 @@ destination and complete only what is outstanding:
 | Same version, different bytes at a destination | Fails visibly. See below. |
 
 Actions artifacts are retained for **seven days**. Within that window the
-re-run is the whole procedure.
+re-run is sufficient when the original workflow can complete publication.
+
+**If the failure is a workflow defect.** Re-running the original run uses its
+original workflow definition; it does not pick up a fix merged afterward. For
+example, the missing repository argument on the GitHub asset upload (#1414)
+will fail again on that run even after the fix is merged. If the version is
+already on PyPI, do not dispatch a fresh run to rebuild it. Stop and cut a new
+patch release through the normal reviewed process so the corrected workflow
+publishes a new version. If PyPI publication has not happened, use the existing
+tag dispatch procedure below after the fix reaches `main`.
 
 **If the artifacts have aged out.** The distribution artifact is the only
 source of publishable bytes; no publisher can rebuild. When the download fails,
@@ -288,7 +297,8 @@ while applying the current publication gates, rather than re-running a stale
 workflow definition. Never use manual dispatch for a version already on PyPI:
 it rebuilds instead of reusing the original admitted artifacts, even if the
 resulting bytes happen to match. Re-run failed jobs on the original run while
-its artifacts remain available; otherwise stop and cut a new patch release.
+its artifacts remain available and its workflow can complete publication;
+otherwise stop and cut a new patch release.
 Manual dispatch is not a verification bypass and never builds from the current
 branch head.
 

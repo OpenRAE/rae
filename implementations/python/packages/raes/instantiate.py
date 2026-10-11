@@ -15,7 +15,7 @@ from typing import Any, ClassVar
 from pydantic import ConfigDict, Field, ValidationError
 
 from ._base import VARIABLE_TOKEN_RE, extract_variable_name
-from ._capability_constraints import capture_capability_constraints
+from ._capability_constraints import capture_capability_constraints, capture_parameter_derivations
 from ._errors import SDLInstantiationError, SDLValidationError
 from ._identifiers import QualifiedName
 from ._mapping_scopes import HASHMAP_SECTIONS
@@ -27,6 +27,7 @@ from .phase_contracts import (
     ExplicitnessProvenanceRecord,
     InstantiationProvenance,
     ParameterBinding,
+    ParameterDerivation,
     SemanticDigest,
     TrialInstantiationProvenance,
 )
@@ -59,6 +60,7 @@ class _BoundScenarioResult:
     content: _BoundScenarioContent
     bindings: tuple[ParameterBinding, ...]
     capability_constraints: tuple[CapabilityConstraint, ...]
+    parameter_derivations: tuple[ParameterDerivation, ...]
     explicitness: tuple[ExplicitnessProvenanceRecord, ...]
     realization_designations: tuple[RealizationDesignationRecord, ...]
     realization_constraints: tuple[RealizationConstraintRecord, ...]
@@ -318,6 +320,13 @@ def _bind_scenario_content(
         for constraint in capture_capability_constraints(raw_scenario)
         if not constraint.parameter or constraint.parameter[0] not in preserved
     )
+    derivations = tuple(
+        derivation
+        for derivation in capture_parameter_derivations(raw_scenario)
+        if not any(
+            segment.parameter[0] in preserved for segment in derivation.segments if hasattr(segment, "parameter")
+        )
+    )
     raw_payload = raw_scenario.model_dump(mode="python", by_alias=True)
     _preserve_listener_protocol_presence(raw_payload, raw_scenario)
     unresolved_refs: set[str] = set()
@@ -364,6 +373,7 @@ def _bind_scenario_content(
         else ()
     )
     if isinstance(raw_scenario, ExpandedScenario):
+        derivations = (*raw_scenario.expansion_provenance.parameter_derivations, *derivations)
         constraints, realization_designations, realization_constraints = _merge_expanded_provenance(
             raw_scenario,
             local_constraints,
@@ -381,6 +391,7 @@ def _bind_scenario_content(
             for name, value in variable_values.items()
         ),
         capability_constraints=constraints,
+        parameter_derivations=derivations,
         explicitness=tuple(explicitness_by_path.values()),
         realization_designations=realization_designations,
         realization_constraints=realization_constraints,
@@ -451,6 +462,7 @@ def instantiate_scenario(
         bindings=bound.bindings,
         imports=expansion.imports if expansion is not None else (),
         capability_constraints=bound.capability_constraints,
+        parameter_derivations=bound.parameter_derivations,
         explicitness=bound.explicitness,
         realization_designations=bound.realization_designations,
         realization_constraints=bound.realization_constraints,
