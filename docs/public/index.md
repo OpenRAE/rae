@@ -13,6 +13,11 @@ about five minutes and uses the Python package.
   [first-scenario tutorial](tutorials/first-scenario.md).
 - **Writing a scenario?** Use the [SDL guide](sdl/index.md) and
   [examples](https://github.com/OpenRAE/rae/tree/main/examples/scenarios).
+- **Packaging scenarios to share?** Use
+  [OpenRAE/env-packs](https://github.com/OpenRAE/env-packs) for environment
+  pack structure, templates, and authoring and validation tools. RAES remains
+  authoritative for the SDL, concept, and reusable-asset trust-policy meanings
+  a pack relies on.
 - **Controlling participant input or output?** Use the
   [participant-control guide](participant-control.md).
 - **Integrating RAES?** Choose the [Python API](guides/python.md) or
