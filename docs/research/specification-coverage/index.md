@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 68.0.0 and rejects duplicate or unsupported
+Current validation requires release 71.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -541,13 +541,13 @@ Release 70.0.0 replays the same matrix after the issue #1481 Sonar refactor in
 [`analysis-v70.json`](analysis-v70.json). The capture refreshes source and package
 identities without changing classifications, outcomes, or claim limits.
 
-The issue #1371 pre-synchronization captures that reused published release
-identities are [archived with exact digests](../mixed-backend-pre-sync-evidence/README.md).
-The incoming published release history remains canonical.
-
-Release 71.0.0 replays the retained controls after integrating issue #1371
-and binding mixed-backend composition readback to the invocation's run in
+Release 71.0.0 replays the retained matrix against the issue #1418 runtime-fact
+export manifest split in
 [`execution-snapshot-v71.json`](execution-snapshot-v71.json) and
-[`analysis-v71.json`](analysis-v71.json). Outcomes and bounded claim
-limits remain unchanged. The issue #1371 regression tests cover the new run join;
-this retained corpus makes no new mixed-runtime execution claim.
+[`analysis-v71.json`](analysis-v71.json). Classifications and claim limits
+remain unchanged.
+
+The issue #1371 captures that reused published release identities are preserved
+in the [initial publication archive](../mixed-backend-pre-sync-evidence/README.md)
+and [run-scope repair archive](../mixed-backend-run-scope-pre-sync-evidence/README.md),
+with exact bytes and digests. The incoming published release history remains canonical.

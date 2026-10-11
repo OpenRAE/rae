@@ -317,7 +317,7 @@ def validate_retest_bundle(
         return [
             _failure(
                 "formal-validation-current-replay-required",
-                "only releases 3.0.0 through 66.0.0 can use integrated historical validation",
+                "only releases 3.0.0 through 71.0.0 can use integrated historical validation",
                 snapshot_path,
             )
         ]

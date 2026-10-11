@@ -11,6 +11,6 @@ and immutable source revision. Paths embedded in these archival documents refer
 to that source revision. These are historical records outside the active indexes.
 No observation or prior capture byte has been discarded or relabeled.
 
-Formal release 72 and specification release 71 replay the synchronized source
-with the composition run-scope repair. The retained outcomes and bounded claim
-limits remain unchanged.
+The subsequent formal release 72 and specification release 71 captures from
+the composition run-scope repair are also [preserved with exact digests](../mixed-backend-run-scope-pre-sync-evidence/README.md)
+after their identities collided with the issue #1418 integration releases.

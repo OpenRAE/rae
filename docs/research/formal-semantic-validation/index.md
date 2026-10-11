@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 69.0.0, rejects unsupported future
+Current validation requires explicit release 72.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -601,13 +601,13 @@ in [`execution-snapshot-v71.json`](execution-snapshot-v71.json) and
 immutable release 70.0.0; outcomes, compiled digests, and bounded claim limits
 remain unchanged, with no baseline deviations.
 
-The issue #1371 pre-synchronization captures that reused published release
-identities are [archived with exact digests](../mixed-backend-pre-sync-evidence/README.md).
-The incoming published release history remains canonical.
-
-Release 72.0.0 replays the retained controls after integrating issue #1371
-and binding mixed-backend composition readback to the invocation's run in
+Release 72.0.0 replays the retained formal cases against the issue #1418
+runtime-fact export manifest split in
 [`execution-snapshot-v72.json`](execution-snapshot-v72.json) and
-[`analysis-v72.json`](analysis-v72.json). Outcomes and bounded claim
-limits remain unchanged. The issue #1371 regression tests cover the new run join;
-this retained corpus makes no new mixed-runtime execution claim.
+[`analysis-v72.json`](analysis-v72.json). Outcomes and claim limits remain
+unchanged.
+
+The issue #1371 captures that reused published release identities are preserved
+in the [initial publication archive](../mixed-backend-pre-sync-evidence/README.md)
+and [run-scope repair archive](../mixed-backend-run-scope-pre-sync-evidence/README.md),
+with exact bytes and digests. The incoming published release history remains canonical.

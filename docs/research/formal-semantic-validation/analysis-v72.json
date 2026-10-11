@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-1371-run-scope-analysis-v72",
+  "analysis_id": "issue-1418-analysis-v72",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -123,8 +123,8 @@
   ],
   "corpus_revision": "4.0.0",
   "evidence_status": "partial",
-  "execution_id": "issue-1371-run-scope-execution-v72",
-  "generated_at": "2026-10-11T18:05:47.960607+00:00",
+  "execution_id": "issue-1418-execution-v72",
+  "generated_at": "2026-10-11T06:56:15.112239+00:00",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
     "The subset-minimal unsatisfiable core is not a universal proof certificate.",
@@ -156,8 +156,8 @@
     "The issue #1361 maintainability repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The issue #1361 resource type-hint repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee.",
-    "Mixed-backend composition run-scope joins are covered by the issue #1371 regression tests, not a new formal claim in this retained corpus."
+    "The issue #1418 runtime-fact export manifest split changes no contract, schema or behavior and adds no new formal-semantic claim."
   ],
-  "plain_language_outcome": "The retained formal controls reproduce their prior outcomes after integration and the mixed-backend composition run-scope repair. Bounded claim limits are unchanged.",
+  "plain_language_outcome": "The retained formal controls reproduce their prior outcomes against the issue #1418 runtime-fact export manifest split; bounded claims are unchanged.",
   "protocol_revision": "2.0.0"
 }
