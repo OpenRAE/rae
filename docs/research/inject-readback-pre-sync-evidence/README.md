@@ -13,3 +13,6 @@ Specification release 73 also remains an unchanged active historical capture.
 
 Formal release 75 and specification release 74 capture the synchronized source.
 The original observations and capture bytes remain preserved without relabeling.
+Formal identity 74 remains in this archive and is not reissued: its baseline
+depends on the archived inject release 73. The active release 75 instead pins
+the mixed-backend release 73 already published on `dev`.
