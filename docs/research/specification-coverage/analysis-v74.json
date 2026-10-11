@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-1366-sync-v74",
+  "analysis_id": "issue-1421-sync-analysis-v74",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -18,7 +18,7 @@
     ],
     "evidence_artifacts": [
       "docs/research/specification-coverage/protocol-v1.json",
-      "docs/research/specification-coverage/execution-snapshot-v74.json",
+      "docs/research/specification-coverage/execution-snapshot-v72.json",
       "docs/research/specification-coverage/analysis-v68.json"
     ],
     "falsification_protocol": "docs/research/specification-coverage/protocol-v1.json",
@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-10-11T20:13:21.510712+00:00",
+  "generated_at": "2026-10-11T20:38:00.148769+00:00",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
@@ -68,9 +68,7 @@
     "The issue #1361 resource type-hint repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The issue #1418 runtime-fact export manifest split changes no contract, schema or behavior; this retained matrix makes no new admission or coverage claim.",
-    "The issue #1423 inject trigger request and occurrence contracts are new draft carriers that no SDL construct, compiler or runtime path reads; this retained matrix makes no new admission or coverage claim.",
-    "The issue #1366 inject readback, correlation and backend declaration contracts are new draft carriers; the shared backend allowlist also lets SDL participant behavior specifications cite inject-occurrence-v1 and inject-occurrence-outcome-v1 as evidence_contract_refs, which the compiler copies through uninterpreted, and no runtime path or shipped backend reads or declares them; this retained matrix makes no new admission or coverage claim.",
-    "This synchronization preserves the original inject and mixed-backend captures, binds their combined source, and adds no runtime or backend-adoption claim."
+    "This synchronization adds no mixed-backend runtime execution claim; the issue #1371 tests cover the composition run-scope join."
   ],
   "load_bearing_results": {
     "failed": 0,
@@ -78,7 +76,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "The retained specification matrix preserves its classifications against the synchronized inject and mixed-backend contracts; bounded claims remain unchanged.",
+  "plain_language_outcome": "The retained specification matrix preserves its prior classifications after merging the runtime-fact export manifest split with the mixed-backend contracts and composition run-scope repair. Bounded claim limits are unchanged.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -110,6 +108,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1366-sync-v74",
-  "snapshot_sha256": "e9f837c1dd39a72c9cc9f46771e13eeb4470f830cdc49b7d95b7daf31cd6553a"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1421-sync-v74",
+  "snapshot_sha256": "9b64a75c86f6d4629474eb6ff4695b189fe838b46992276c758a51cf2f0af9f3"
 }

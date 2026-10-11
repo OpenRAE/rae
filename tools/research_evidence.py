@@ -69,8 +69,8 @@ def surface_digest(repo_root: Path, relative: str) -> str:
 
 _CAPTURE_RE = re.compile(r"^capture-[0-9a-f]{64}$")
 _PUBLISHED_HISTORY_PINS = {
-    "formal-semantic-validation": "0f4268804b9a46742068435ea66dab067d50945ac7a7dd6fe317679878b9a572",
-    "specification-coverage": "16a926f7995bc567c3ae6d3ed5981598c22e9067a421d4371f1708df800a4f2f",
+    "formal-semantic-validation": "db52f783eac308e56840346989dbc57adc17b27bfab10d308676b9b849871f17",
+    "specification-coverage": "97aed459b5cd547b1b771bd0e80ebbf9ef91705313d59fd388dc1c7a5697de32",
 }
 
 

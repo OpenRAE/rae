@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 72.0.0, rejects unsupported future
+Current validation requires explicit release 75.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -632,16 +632,19 @@ import diagnostics and version parity have targeted evidence in
 `test_issue_297_behavior_authoring.py`; this refresh does not promote those
 claims into runtime or backend realization.
 
-The [inject readback pre-synchronization archive](../inject-readback-pre-sync-evidence/README.md)
-preserves the original issue #1423 and #1366 captures, including collided
-identities and the dependent formal baseline chain.
+The issue #1421 captures that reused published release identities are preserved
+in the [shared-time readback archive](../time-readback-pre-sync-evidence/README.md)
+with exact bytes, digests, and source revision. Incoming published history
+remains canonical.
 
-Release 75.0.0 captures the merged inject and mixed-backend contract source in
+Release 75.0.0 replays the retained corpus after synchronizing issue #1421's
+shared-time readback isolation with `dev`. See
 [`execution-snapshot-v75.json`](execution-snapshot-v75.json) and
-[`analysis-v75.json`](analysis-v75.json). Retained outcomes, classifications
-and bounded claim limits remain unchanged; these contracts add no runtime adoption.
+[`analysis-v75.json`](analysis-v75.json). Retained outcomes and bounded
+claim limits remain unchanged; the readback mutation cases are covered by
+`test_issue_1421_time_readback_isolation.py`.
 
-Release 76.0.0 captures the combined inject, mixed-backend and behavior-authoring source in
-[`execution-snapshot-v76.json`](execution-snapshot-v76.json) and
-[`analysis-v76.json`](analysis-v76.json). Previous capture bytes remain unchanged;
-retained outcomes and bounded claims are preserved without claiming runtime adoption.
+[Original inject synchronization captures](../inject-readback-first-sync-evidence/README.md)
+retain the collided identities and dependent baseline pins. Current combined-source
+evidence uses the content-addressed capture workflow documented in
+[research captures](../../develop/research-captures.md).

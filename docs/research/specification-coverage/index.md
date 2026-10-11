@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 71.0.0 and rejects duplicate or unsupported
+Current validation requires release 74.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -572,16 +572,19 @@ import diagnostics and version parity have targeted evidence in
 `test_issue_297_behavior_authoring.py`; this refresh does not promote those
 claims into runtime or backend realization.
 
-The [inject readback pre-synchronization archive](../inject-readback-pre-sync-evidence/README.md)
-preserves the original issue #1423 and #1366 captures, including collided
-identities and the dependent formal baseline chain.
+The issue #1421 captures that reused published release identities are preserved
+in the [shared-time readback archive](../time-readback-pre-sync-evidence/README.md)
+with exact bytes, digests, and source revision. Incoming published history
+remains canonical.
 
-Release 74.0.0 captures the merged inject and mixed-backend contract source in
+Release 74.0.0 replays the retained corpus after synchronizing issue #1421's
+shared-time readback isolation with `dev`. See
 [`execution-snapshot-v74.json`](execution-snapshot-v74.json) and
-[`analysis-v74.json`](analysis-v74.json). Retained outcomes, classifications
-and bounded claim limits remain unchanged; these contracts add no runtime adoption.
+[`analysis-v74.json`](analysis-v74.json). Retained outcomes and bounded
+claim limits remain unchanged; the readback mutation cases are covered by
+`test_issue_1421_time_readback_isolation.py`.
 
-Release 75.0.0 captures the combined inject, mixed-backend and behavior-authoring source in
-[`execution-snapshot-v75.json`](execution-snapshot-v75.json) and
-[`analysis-v75.json`](analysis-v75.json). Previous capture bytes remain unchanged;
-retained outcomes and bounded claims are preserved without claiming runtime adoption.
+[Original inject synchronization captures](../inject-readback-first-sync-evidence/README.md)
+retain the collided identities and dependent baseline pins. Current combined-source
+evidence uses the content-addressed capture workflow documented in
+[research captures](../../develop/research-captures.md).
