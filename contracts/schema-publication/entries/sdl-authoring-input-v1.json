@@ -1,9 +1,9 @@
 {
-  "content_hash": "6db2c5bb46445d0ed8eb140e1f7f8cacb562edfe8b44f139bb0b10c86f89a596",
+  "content_hash": "c89bbbb26022f043fa1b7da27356d4667edd80426c359173c7238820d18ed122",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "6db2c5bb46445d0ed8eb140e1f7f8cacb562edfe8b44f139bb0b10c86f89a596",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "c89bbbb26022f043fa1b7da27356d4667edd80426c359173c7238820d18ed122",
+    "summary": "Reject empty and whitespace-only behavior specification version labels, matching existing parser validity; DSL-116 issue #297."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

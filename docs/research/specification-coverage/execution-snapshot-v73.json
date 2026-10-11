@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-10-11T07:15:48.674073+00:00",
+  "captured_at": "2026-10-11T19:55:11.608295+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -647,7 +647,7 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "3e26a745321bf02d01a086a43c7a95cf2f268c14a80c682948a967fe6ccbfccd",
+      "content_sha256": "701bd6ec60fe127e60bbd0dda48e01634206650d8aab67b2619b1bbc142d90ee",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
@@ -657,7 +657,7 @@
       "surface_id": "processor-pipeline"
     },
     {
-      "content_sha256": "51688dbe152fb4bbeacd7f8443a3f1fbc7a09b1b898adb134be0e5b4edec28ab",
+      "content_sha256": "fd19fc83b0306d5d0ff4495d97a8cc9f7c9d45300fc640cb0d246e1c6c2cdbe2",
       "path": "implementations/python/packages/raes",
       "surface_id": "sdl-pipeline"
     }
@@ -688,17 +688,18 @@
     "Issue #1361 execution and recovery requirements are verified by dedicated policy, composition, and admission tests; this retained corpus establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The issue #1361 maintainability repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The issue #1361 resource type-hint repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
-    "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee."
+    "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee.",
+    "This synchronization adds no mixed-backend runtime execution claim; the issue #1371 tests cover the composition run-scope join."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "937149eb9b96eeb059c46baba6f3c726c3d16d05",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1366-v73",
+  "raes_revision": "6128a67a9b2244216f72c97de957747e797a8fe1",
+  "snapshot_id": "issue-297-behavior-authoring-v73",
   "snapshot_revision": "73.0.0",
   "source_state": {
-    "base_revision": "937149eb9b96eeb059c46baba6f3c726c3d16d05",
+    "base_revision": "6128a67a9b2244216f72c97de957747e797a8fe1",
     "checkout_state": "modified",
-    "implementation_digest": "f7c705743314800c97bcf41620770d87dc0c2f048347888bffb54043ac4a5688",
+    "implementation_digest": "692c445b8b097635f6216e123d9f9a966073fe464f13f0e74532ec5f4ca5858b",
     "profile": "python-reference-source/v2"
   }
 }

@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 74.0.0 and rejects duplicate or unsupported
+Current validation requires release 71.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -559,11 +559,18 @@ and composition run-scope repair in
 [`analysis-v72.json`](analysis-v72.json). Outcomes and bounded claim
 limits remain unchanged; this retained corpus makes no new mixed-runtime execution claim.
 
-Release 73.0.0 replays the retained matrix after issue #1366 published the
-inject readback, correlation and backend declaration contracts in
+## Issue #297 behavior authoring verification
+
+Release 73.0.0 replays the retained corpus against the behavior authoring
+validation changes after integration with the runtime-fact manifest split and
+mixed-backend execution contracts. See
 [`execution-snapshot-v73.json`](execution-snapshot-v73.json) and
-[`analysis-v73.json`](analysis-v73.json). Classifications and claim limits
-remain unchanged.
+[`analysis-v73.json`](analysis-v73.json). Incoming published captures retain
+their exact bytes; this release records a fresh implementation digest and
+modified-checkout provenance. Declaration reuse, authored-private rejection,
+import diagnostics and version parity have targeted evidence in
+`test_issue_297_behavior_authoring.py`; this refresh does not promote those
+claims into runtime or backend realization.
 
 The [inject readback pre-synchronization archive](../inject-readback-pre-sync-evidence/README.md)
 preserves the original issue #1423 and #1366 captures, including collided
@@ -573,3 +580,8 @@ Release 74.0.0 captures the merged inject and mixed-backend contract source in
 [`execution-snapshot-v74.json`](execution-snapshot-v74.json) and
 [`analysis-v74.json`](analysis-v74.json). Retained outcomes, classifications
 and bounded claim limits remain unchanged; these contracts add no runtime adoption.
+
+Release 75.0.0 captures the combined inject, mixed-backend and behavior-authoring source in
+[`execution-snapshot-v75.json`](execution-snapshot-v75.json) and
+[`analysis-v75.json`](analysis-v75.json). Previous capture bytes remain unchanged;
+retained outcomes and bounded claims are preserved without claiming runtime adoption.

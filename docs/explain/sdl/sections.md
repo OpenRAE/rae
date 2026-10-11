@@ -2153,6 +2153,19 @@ realization or conformance.
 authored affordance bindings; each value may name one governed scenario
 `content` identity and must name non-empty action-contract and observation-
 boundary sets. The binding reference
+Behavior specifications may be declared locally or exported by a reusable
+module. References to the unit's declarations are rewritten into each import's
+namespace. Other references resolve against the complete composed scenario;
+missing or ambiguous targets fail validation. `participant_role_refs` selects
+all matching participants across that scenario, including unexported ones.
+Use explicit `participant_refs` when a reusable tool binding must select only
+the unit's own participants. Namespacing does not silently narrow a role.
+Authored refs must use exported names; `__private` is reserved for composition.
+Behavior `semantic_version` labels must be nonblank. See the
+[composition decision and migration guidance](../../decisions/issue-297-behavior-authoring.md).
+Declaration reuse does not imply repeatable mixed-control occurrences or live
+runtime authorization.
+
 `behavior_specifications.<spec>.tool_affordances.<id>` must be explicitly
 classified by each referenced observation boundary. Presence means authored
 availability only: visibility, apparatus support, eligibility, admission,

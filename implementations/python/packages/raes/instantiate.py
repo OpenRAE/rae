@@ -349,6 +349,12 @@ def _bind_scenario_content(
     for authoring_field in ("imports", "module", "realization", "expansion_provenance"):
         substituted_payload.pop(authoring_field, None)
     try:
+        from ._behavior_authoring import validate_authored_behavior_references
+
+        validate_authored_behavior_references(
+            substituted_payload,
+            generated_from=raw_payload if isinstance(raw_scenario, ExpandedScenario) else None,
+        )
         content = _BoundScenarioContent.model_validate(substituted_payload)
     except ValidationError as exc:
         raise SDLInstantiationError(_safe_model_validation_errors(exc)) from exc
