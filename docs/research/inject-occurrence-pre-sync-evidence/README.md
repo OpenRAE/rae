@@ -11,5 +11,6 @@ and immutable source revision. Embedded paths refer to that source revision.
 These historical records are outside the active indexes; no capture byte or
 observation has been discarded or relabeled.
 
-Fresh captures will record the synchronized implementation and discriminator
-repair without promoting the retained corpus to inject execution evidence.
+Formal release 76 and specification release 75 replay the synchronized
+implementation and discriminator repair. Retained outcomes and bounded claim
+limits remain unchanged; the corpus makes no inject execution claim.

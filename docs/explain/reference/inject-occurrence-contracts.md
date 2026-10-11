@@ -27,6 +27,10 @@ under `contracts/schemas/control-plane/` and the examples under
 | `input_ref` | Optional content-bound reference to an input document that the realization's input contract checks. There are no inline values, and absence means no runtime parameters. |
 | `expected_head` | The ordering head the caller observed. A stale head is refused, never rebased. |
 
+Every placement requires an explicit `kind` discriminator, including independent
+placement. Both the published schemas and the Python models refuse an omitted
+discriminator.
+
 ### Binding addresses
 
 The compiler renders a node binding as
