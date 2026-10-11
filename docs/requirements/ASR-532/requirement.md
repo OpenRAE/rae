@@ -30,6 +30,8 @@ requirement.
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_issue_1481_parameter_authority.py` (Runtime rejection of changed selected parameter outputs)
+
 - TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (Completion regression: replay compiled carriers and participant admission at the current source identity)
 - TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (Completion regression: reject stale implementation and replay evidence after result-admission changes)
 - TESTS → TEST `implementations/python/tests/test_specification_coverage.py` (Completion regression: retain portable compiler coverage at the current source identity)

@@ -7231,6 +7231,14 @@
           "title": "Imports",
           "type": "array"
         },
+        "parameter_derivations": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ParameterDerivation"
+          },
+          "title": "Parameter Derivations",
+          "type": "array"
+        },
         "realization_constraints": {
           "default": [],
           "items": {
@@ -9527,6 +9535,142 @@
         "value"
       ],
       "title": "ParameterBinding",
+      "type": "object"
+    },
+    "ParameterDerivation": {
+      "additionalProperties": false,
+      "description": "Portable substitution evidence for a publication-safe runtime scalar.\n\nA whole-field reference preserves its input type; an interpolation renders\neach input with the incumbent single-pass string conversion. An input with\nno finite domain binds its selected value, not all values of its type.",
+      "properties": {
+        "field_pointer": {
+          "maxLength": 4096,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^/nodes/[^/]+/runtime/",
+          "title": "Field Pointer",
+          "type": "string"
+        },
+        "segments": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "literal": "#/$defs/ParameterLiteralSegment",
+                "parameter": "#/$defs/ParameterReferenceSegment"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/ParameterLiteralSegment"
+              },
+              {
+                "$ref": "#/$defs/ParameterReferenceSegment"
+              }
+            ]
+          },
+          "maxItems": 128,
+          "minItems": 1,
+          "title": "Segments",
+          "type": "array"
+        }
+      },
+      "required": [
+        "field_pointer",
+        "segments"
+      ],
+      "title": "ParameterDerivation",
+      "type": "object"
+    },
+    "ParameterLiteralSegment": {
+      "additionalProperties": false,
+      "description": "Literal part of a substitution, without unresolved token syntax.",
+      "properties": {
+        "kind": {
+          "const": "literal",
+          "default": "literal",
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "maxLength": 4096,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "ParameterLiteralSegment",
+      "type": "object"
+    },
+    "ParameterReferenceSegment": {
+      "additionalProperties": false,
+      "description": "One typed input, distinct from the derived field's output.",
+      "properties": {
+        "allowed_values": {
+          "default": [],
+          "items": {
+            "anyOf": [
+              {
+                "not": {
+                  "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+                },
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "title": "Allowed Values",
+          "type": "array"
+        },
+        "kind": {
+          "const": "parameter",
+          "default": "parameter",
+          "title": "Kind",
+          "type": "string"
+        },
+        "parameter": {
+          "items": {
+            "allOf": [
+              {
+                "not": {
+                  "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+                }
+              }
+            ],
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Parameter",
+          "type": "array"
+        },
+        "variable_type": {
+          "$ref": "#/$defs/VariableType"
+        }
+      },
+      "required": [
+        "parameter",
+        "variable_type"
+      ],
+      "title": "ParameterReferenceSegment",
       "type": "object"
     },
     "ParticipantActionArgumentCardinality": {
@@ -31297,6 +31441,17 @@
       ],
       "title": "UnsupportedAnalysisModel",
       "type": "object"
+    },
+    "VariableType": {
+      "description": "Data type of a variable.",
+      "enum": [
+        "string",
+        "integer",
+        "boolean",
+        "number"
+      ],
+      "title": "VariableType",
+      "type": "string"
     },
     "VersionDomain": {
       "additionalProperties": false,

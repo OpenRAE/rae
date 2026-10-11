@@ -1,9 +1,9 @@
 {
-  "content_hash": "0a5b2ee3ad31c589f30def040783a934fb8855614c9030525f1a648ac27e3ce5",
+  "content_hash": "d87fbe6f87231f7d47f91df38bd7aee2c5b7b2bbee284612b256bdc9579a161c",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "0a5b2ee3ad31c589f30def040783a934fb8855614c9030525f1a648ac27e3ce5",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "d87fbe6f87231f7d47f91df38bd7aee2c5b7b2bbee284612b256bdc9579a161c",
+    "summary": "Retain typed public runtime parameter derivations and selected-binding or finite-image authority across serialized SDL phases (#1481)."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"
