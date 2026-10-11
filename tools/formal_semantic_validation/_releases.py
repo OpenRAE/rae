@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from contextvars import ContextVar
 from pathlib import Path
 
 from tools.evidence_bundle_index import load_index_records
@@ -48,6 +49,22 @@ from tools.research_evidence import (
     is_capture,
     source_state_failures,
 )
+
+_SELECTED_RELEASE: ContextVar[tuple[Path, str] | None] = ContextVar("selected_evidence_release", default=None)
+
+
+def validate_release_bundles(repo_root: Path, releases: list[EvidenceRelease]) -> list[PolicyFailure]:
+    """Validate one inventory with a single source-bound selection.
+
+    Scope selection to this evaluation so subsequent evaluations read source
+    again. Historical integrity checks and the selected live replay still run.
+    """
+    selected = current_release_path([(item.manifest_path, item.manifest) for item in releases], repo_root)
+    token = _SELECTED_RELEASE.set((repo_root, selected))
+    try:
+        return [failure for release in releases for failure in validate_release_bundle(repo_root, release)]
+    finally:
+        _SELECTED_RELEASE.reset(token)
 
 
 def _stale_pin(repo_root: Path, path_value: object, digest_value: object) -> bool:
@@ -238,6 +255,9 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
 
 
 def _is_current(repo_root: Path, release: EvidenceRelease) -> bool:
+    selected = _SELECTED_RELEASE.get()
+    if selected is not None and selected[0] == repo_root:
+        return selected[1] == release.manifest_path
     records = load_index_records(
         repo_root,
         index_path=MANIFEST_PATH,

@@ -30,6 +30,7 @@ from tools.formal_semantic_validation._loading import (
 )
 from tools.formal_semantic_validation._releases import (
     validate_release_bundle,
+    validate_release_bundles,
     validate_retest_bundle,
 )
 from tools.formal_semantic_validation._replay import (
@@ -72,6 +73,7 @@ __all__ = [
     "replay_case",
     "validate_bundle",
     "validate_release_bundle",
+    "validate_release_bundles",
     "validate_retest_bundle",
     "validate_satisfiability_analysis",
 ]
@@ -107,9 +109,7 @@ def evaluate(
         load_retest_bundle(repo_root)
     except (OSError, ValueError) as exc:
         return [_failure("formal-validation-bundle-load", str(exc), MANIFEST_PATH)]
-    failures: list[PolicyFailure] = []
-    for release in releases:
-        failures.extend(validate_release_bundle(repo_root, release))
+    failures = validate_release_bundles(repo_root, releases)
     if not failures:
         failures = _participant_replay_failures(repo_root, releases, participant_test_runner)
     return failures

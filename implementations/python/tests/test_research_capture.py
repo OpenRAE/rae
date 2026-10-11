@@ -239,3 +239,38 @@ def test_collided_formal_baseline_resolves_the_exact_preserved_capture():
     assert baseline["execution_id"] == snapshot["baseline"]["execution_id"]
     canonical = json.loads((ROOT / "docs/research/formal-semantic-validation/execution-snapshot-v75.json").read_text())
     assert baseline["execution_id"] != canonical["execution_id"]
+
+
+def test_inventory_selection_is_scoped_and_still_replays_only_current(monkeypatch, tmp_path):
+    from types import SimpleNamespace
+
+    from tools.formal_semantic_validation import _releases
+
+    releases = [SimpleNamespace(manifest_path=name, manifest={}) for name in ("old", "current")]
+    selections = []
+    replayed = []
+
+    def select(records, root):
+        selections.append(root)
+        return "current"
+
+    def validate(root, release):
+        replayed.append((release.manifest_path, _releases._is_current(root, release)))
+        return []
+
+    monkeypatch.setattr(_releases, "current_release_path", select)
+    monkeypatch.setattr(_releases, "validate_release_bundle", validate)
+    assert _releases.validate_release_bundles(tmp_path, releases) == []
+    assert selections == [tmp_path]
+    assert replayed == [("old", False), ("current", True)]
+    assert _releases._SELECTED_RELEASE.get() is None
+    assert _releases.validate_release_bundles(tmp_path, releases) == []
+    assert selections == [tmp_path, tmp_path]
+
+    def fail(*args):
+        raise ValueError("seeded validation failure")
+
+    monkeypatch.setattr(_releases, "validate_release_bundle", fail)
+    with pytest.raises(ValueError, match="seeded validation failure"):
+        _releases.validate_release_bundles(tmp_path, releases)
+    assert _releases._SELECTED_RELEASE.get() is None

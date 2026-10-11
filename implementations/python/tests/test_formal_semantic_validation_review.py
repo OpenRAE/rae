@@ -212,7 +212,7 @@ def test_release_gate_rejects_remaining_integrity_mutations(keys, value, rule):
 @pytest.mark.parametrize(
     ("artifact", "field", "value", "rule"),
     [
-        ("release", "revision", "99.0.0", "formal-validation-retest-release"),
+        ("release", "revision", "not-an-evidence-identity", "formal-validation-retest-release"),
         ("protocol", "revision", "1.0.0", "formal-validation-retest-revision"),
     ],
 )

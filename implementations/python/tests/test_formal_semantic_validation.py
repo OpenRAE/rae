@@ -20,6 +20,7 @@ from tools.check_formal_semantic_validation import (
     load_satisfiability_analysis,
     validate_bundle,
     validate_release_bundle,
+    validate_release_bundles,
     validate_retest_bundle,
     validate_satisfiability_analysis,
 )
@@ -81,7 +82,7 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
     revisions = [release.manifest["revision"] for release in releases]
     assert len(revisions) == len(set(revisions))
     assert any(is_capture(revision) for revision in revisions)
-    assert all(validate_release_bundle(REPO_ROOT, release) == [] for release in releases)
+    assert validate_release_bundles(REPO_ROOT, releases) == []
 
 
 @pytest.mark.integration
@@ -810,7 +811,6 @@ def test_satisfiability_gate_rejects_mutated_execution_snapshot() -> None:
     assert "formal-satisfiability-snapshot-drift" in _rule_ids(failures)
 
 
-@pytest.mark.integration
 def test_current_retest_analysis_pins_its_own_execution_snapshot() -> None:
     """The published analysis must name the snapshot its bundle selects.
 
@@ -823,6 +823,10 @@ def test_current_retest_analysis_pins_its_own_execution_snapshot() -> None:
 
     selected_snapshot = release.manifest["snapshot_path"]
     evidence = analysis["claim"]["evidence_artifacts"]
-    snapshots = [item for item in evidence if "execution-snapshot-" in item]
+    snapshots = [
+        selected_snapshot if item == "@snapshot" else item
+        for item in evidence
+        if item == "@snapshot" or "execution-snapshot-" in item or item.endswith("/snapshot.json")
+    ]
 
     assert snapshots == [selected_snapshot]
