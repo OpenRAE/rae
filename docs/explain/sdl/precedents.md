@@ -244,8 +244,10 @@ claim that RAES adopts one simulator's worldview wholesale. They are precedents
 for the recurring architectural concerns that show up once scenarios must run
 honestly across simulation, emulation, and live infrastructure.
 
-The primary research set for this area is curated in
-`research/primary/literature/time-and-simulation/`.
+The [time-model research note](../../research/time-model/prior-art-and-design-criteria.md)
+reviews the ROS 2, FMI, HLA, TENA, and OpenSCENARIO sources behind ADR-090.
+[Academic Lineage](lineage.md#runtime-time-and-causality) lists more time and
+co-simulation sources.
 
 | Concern | Primary Sources | Influence plane | What We Adapted |
 | ------- | --------------- | --- | --------------- |
