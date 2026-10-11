@@ -212,3 +212,18 @@ def test_formal_release_rejects_a_rebound_capture_identity(monkeypatch):
     monkeypatch.setattr(_releases, "validate_retest_bundle", lambda *args, **kwargs: [])
     failures = _releases.validate_release_bundle(ROOT, release)
     assert any(failure.rule_id == "formal-validation-release-digest" for failure in failures)
+
+
+def test_ci_participant_replay_uses_the_source_selected_capture(monkeypatch):
+    from tools import check_formal_semantic_validation as gate
+    from tools.formal_semantic_validation._loading import load_release_bundles, load_retest_bundle
+
+    releases = load_release_bundles(ROOT)
+    selected = load_retest_bundle(ROOT)[0]
+    calls = []
+    monkeypatch.setattr(gate, "_participant_test_refs", lambda protocol: ["selected-protocol"])
+    failures = gate._participant_replay_failures(
+        ROOT, releases, lambda root, refs: (calls.append(refs) or False, "bounded failure")
+    )
+    assert calls == [["selected-protocol"]]
+    assert failures[0].path == selected.manifest["snapshot_path"]
