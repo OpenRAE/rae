@@ -600,3 +600,13 @@ in [`execution-snapshot-v71.json`](execution-snapshot-v71.json) and
 [`analysis-v71.json`](analysis-v71.json). Source identity is refreshed against
 immutable release 70.0.0; outcomes, compiled digests, and bounded claim limits
 remain unchanged, with no baseline deviations.
+
+## Issue #297 behavior authoring verification
+
+Release 72.0.0 replays the retained corpus against the behavior authoring
+validation changes, with a fresh implementation digest and explicit modified
+checkout provenance. See [`execution-snapshot-v72.json`](execution-snapshot-v72.json)
+and [`analysis-v72.json`](analysis-v72.json). Prior releases retain their exact
+bytes. Declaration reuse, authored-private rejection, import diagnostics and
+version parity have targeted evidence in `test_issue_297_behavior_authoring.py`;
+this refresh does not promote those claims into runtime or backend realization.

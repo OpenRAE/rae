@@ -6,11 +6,9 @@ after composition and compilation. Broken references, ambiguous names, invalid
 declaration versions, and conflicting declarations must fail closed with
 diagnostics that name the declaration and the offending ref, field or name.
 
-Some cases pin gaps that the DSL-116 Fulfillment boundary records rather than
-fixes: authored ``__private`` refs and role refs still reach unexported
-declarations, a unit ref that dangles on its own binds a same-named declaration
-of the importing scenario, and the published schema admits an empty
-``semantic_version`` that the parser rejects.
+ADR-053 resolves references and roles against the composed scenario. Authored
+private names are rejected before expansion, and imported structural failures
+retain the same source-anchored diagnostics as scenario-local declarations.
 """
 
 from __future__ import annotations
@@ -142,9 +140,9 @@ def test_published_authoring_schema_admits_both_declaration_forms(document: Path
     errors = [(list(error.path), error.validator) for error in validator.iter_errors(authored)]
     assert errors == [(["behavior_specifications", spec_name], "required")]
 
-    # Parity gap in the DSL-116 Fulfillment boundary: the parser rejects this empty version.
-    authored["behavior_specifications"][spec_name]["semantic_version"] = ""
-    assert list(validator.iter_errors(authored)) == []
+    for invalid_version in ("", "   ", "\t"):
+        authored["behavior_specifications"][spec_name]["semantic_version"] = invalid_version
+        assert list(validator.iter_errors(authored))
 
 
 @pytest.mark.parametrize(
@@ -215,69 +213,51 @@ def test_unexported_declarations_are_unreachable_under_their_exported_name(tmp_p
 
 
 @pytest.mark.parametrize(
-    ("unexport", "authored", "respelled", "field", "address"),
+    ("unexport", "authored", "respelled"),
     [
         (
             ("    agents: [red-agent]\n", ""),
             "participant_role_refs: [red]",
             "participant_refs: [alpha.__private.red-agent, bravo.__private.red-agent]",
-            "participant_addresses",
-            "participant.behavior.{ns}.__private.red-agent",
         ),
         (
             ("    action_contracts: [scan]\n", ""),
             "action_contract_refs: [alpha.scan, bravo.scan]",
             "action_contract_refs: [alpha.__private.scan, bravo.__private.scan]",
-            "action_contract_addresses",
-            "participant.action-contract.{ns}.__private.scan",
         ),
         (
             # The unit's agent repeats this export line, so the edit anchors on the next export.
             ("    observation_boundaries: [red-view]\n    outcome", "    outcome"),
             "observation_boundary_refs: [alpha.red-view, bravo.red-view]",
             "observation_boundary_refs: [alpha.__private.red-view, bravo.__private.red-view]",
-            "observation_boundary_addresses",
-            "participant.observation-boundary.{ns}.__private.red-view",
         ),
         (
             ("    outcome_interpretation_rules: [scan-outcome]\n", ""),
             "outcome_interpretation_rule_refs: [alpha.scan-outcome, bravo.scan-outcome]",
             "outcome_interpretation_rule_refs: [alpha.__private.scan-outcome, bravo.__private.scan-outcome]",
-            "outcome_interpretation_rule_addresses",
-            "participant.outcome-interpretation-rule.{ns}.__private.scan-outcome",
         ),
         (
             ("    nodes: [web]\n", ""),
             "authority_scope_refs: [nodes.alpha.web.services.http, nodes.bravo.web.services.http]",
             "authority_scope_refs: [nodes.alpha.__private.web.services.http, nodes.bravo.__private.web.services.http]",
-            "authority_scope_addresses",
-            "provision.node.{ns}.__private.web.service.http",
-        ),
-        (
-            # Only the unit's exports change; the role ref stays as authored.
-            ("    entities: [red-team]\n    agents: [red-agent]\n", ""),
-            "participant_role_refs: [red]",
-            "participant_role_refs: [red]",
-            "participant_addresses",
-            "participant.behavior.{ns}.__private.red-agent",
         ),
     ],
-    ids=["participant", "action", "observation", "outcome", "authority", "role"],
+    ids=["participant", "action", "observation", "outcome", "authority"],
 )
-def test_unexported_declarations_stay_reachable_by_private_name_and_role(
-    tmp_path: Path, unexport: tuple[str, str], authored: str, respelled: str, field: str, address: str
+def test_authored_private_references_are_rejected_before_composition(
+    tmp_path: Path, unexport: tuple[str, str], authored: str, respelled: str
 ):
-    """Pins a gap in the DSL-116 Fulfillment boundary rather than the language rule.
+    with pytest.raises(SDLParseError) as excinfo:
+        _compose(tmp_path, unit_edits=(unexport,), root_edits=((authored, respelled),))
 
-    ``specs/sdl/document-model.md`` and ADR-076 make ``__private`` invalid author
-    input, and ADR-053 makes its use a hard error, yet these authored refs bind.
-    The role case reaches the unexported participants without naming them.
-    """
-
-    scenario = _compose(tmp_path, unit_edits=(unexport,), root_edits=((authored, respelled),))
-
-    compiled = compile_runtime_model(scenario).behavior_specifications[SPEC_ADDRESS + LOCAL]
-    assert getattr(compiled, field) == _per_namespace(address)
+    diagnostics = excinfo.value.diagnostics
+    assert len(diagnostics) == 2
+    assert all(item.code == "sdl.identifier.invalid" for item in diagnostics)
+    ref_field = respelled.split(":", 1)[0]
+    assert [item.pointer for item in diagnostics] == [
+        f"/behavior_specifications/{LOCAL}/{ref_field}/{index}" for index in range(2)
+    ]
+    assert all(item.source == str(tmp_path / ROOT.name) for item in diagnostics)
 
 
 @pytest.mark.parametrize(
@@ -328,10 +308,10 @@ def test_reused_unit_reports_each_broken_reference_once_per_namespace(
     ],
     ids=["action", "authority"],
 )
-def test_dangling_unit_ref_binds_a_same_named_declaration_of_the_importing_scenario(
+def test_cross_fragment_references_resolve_against_the_composed_scenario(
     tmp_path: Path, unit_edit: tuple[str, str], importer_section: str, field: str, addresses: tuple[str, ...]
 ):
-    """Pins a gap in the DSL-116 Fulfillment boundary: composition renames only the names a unit declares."""
+    """ADR-053 validates cross-fragment references after the global symbol table exists."""
 
     declare = ("behavior_specifications:\n", importer_section + "behavior_specifications:\n")
     scenario = _compose(tmp_path, unit_edits=(unit_edit,), root_edits=(declare,))
@@ -376,3 +356,135 @@ def test_scenario_local_declaration_version_and_lifecycle_fields_fail_closed(
 
     diagnostics = [(diagnostic.code, diagnostic.pointer) for diagnostic in excinfo.value.diagnostics]
     assert diagnostics == [("sdl.model.invalid", f"/behavior_specifications/{LOCAL}/{field}")]
+
+
+@pytest.mark.parametrize("private", [False, True], ids=["exported", "unexported"])
+def test_roles_select_the_composed_scenario_independently_of_module_exports(tmp_path: Path, private: bool):
+    edits = (("    participant_refs: [red-agent]\n", "    participant_role_refs: [red]\n"),)
+    if private:
+        edits += (("    entities: [red-team]\n    agents: [red-agent]\n", ""),)
+    scenario = _compose(tmp_path, unit_edits=edits)
+    compiled = compile_runtime_model(scenario).behavior_specifications
+    segment = ".__private" if private else ""
+    expected = _per_namespace(f"participant.behavior.{{ns}}{segment}.red-agent")
+    for name in (LOCAL, *_per_namespace(f"{{ns}}.{REUSABLE}")):
+        assert compiled[SPEC_ADDRESS + name].participant_addresses == expected
+
+
+def test_reusable_tool_bindings_require_explicit_participants_for_local_selection(tmp_path: Path):
+    affordance = (
+        "    behavior_mode: policy-directed\n",
+        "    behavior_mode: policy-directed\n"
+        "    tool_affordances:\n"
+        "      scanner:\n"
+        "        action_contract_refs: [scan]\n"
+        "        observation_boundary_refs: [red-view]\n",
+    )
+    visible = (
+        "    observable_refs: []\n",
+        "    observable_refs: [behavior_specifications.red-scan-behavior.tool_affordances.scanner]\n"
+        "    view_rules:\n"
+        "      - information_ref: behavior_specifications.red-scan-behavior.tool_affordances.scanner\n"
+        "        boundary_class: observable_resource\n"
+        "        disposition: observable\n"
+        "        visibility_basis: declared participant tool\n",
+    )
+    role = ("    participant_refs: [red-agent]\n", "    participant_role_refs: [red]\n")
+    imports_only = ROOT.read_text(encoding="utf-8").split("behavior_specifications:")[0]
+    single_import = imports_only.split("  - source: local:scan-behavior.sdl.yaml", 2)
+    single_import = "  - source: local:scan-behavior.sdl.yaml".join(single_import[:2])
+    root_text = ROOT.read_text(encoding="utf-8")
+    one = _compose(tmp_path, unit_edits=(affordance, visible, role), root_edits=((root_text, single_import),))
+    assert compile_runtime_model(one).behavior_specifications[
+        SPEC_ADDRESS + "alpha." + REUSABLE
+    ].participant_addresses == ("participant.behavior.alpha.red-agent",)
+
+    with pytest.raises(SDLValidationError) as excinfo:
+        _compose(tmp_path, unit_edits=(affordance, visible, role), root_edits=((root_text, imports_only),))
+    assert len(excinfo.value.errors) == 4
+    assert all("scanner" in error for error in excinfo.value.errors)
+    assert all(any(f"{namespace}.{REUSABLE}" in error for namespace in NAMESPACES) for error in excinfo.value.errors)
+
+    explicit = _compose(tmp_path, unit_edits=(affordance, visible), root_edits=((root_text, imports_only),))
+    compiled = compile_runtime_model(explicit).behavior_specifications
+    for namespace in NAMESPACES:
+        assert compiled[f"{SPEC_ADDRESS}{namespace}.{REUSABLE}"].participant_addresses == (
+            f"participant.behavior.{namespace}.red-agent",
+        )
+
+
+@pytest.mark.parametrize(
+    ("authored", "replacement", "field"),
+    [
+        (
+            "    lifecycle_state: active\n    participant_refs:",
+            "    lifecycle_state: retired\n    participant_refs:",
+            "lifecycle_state",
+        ),
+        (
+            "  red-scan-behavior:\n    semantic_version: 1.0.0",
+            "  red-scan-behavior:\n    semantic_version: ''",
+            "semantic_version",
+        ),
+    ],
+    ids=["unknown-lifecycle", "empty-version"],
+)
+def test_imported_model_errors_have_source_anchored_diagnostics(
+    tmp_path: Path, authored: str, replacement: str, field: str
+):
+    with pytest.raises(SDLParseError) as excinfo:
+        _compose(tmp_path, unit_edits=((authored, replacement),))
+    (diagnostic,) = excinfo.value.diagnostics
+    assert diagnostic.code == "sdl.model.invalid"
+    assert diagnostic.pointer == f"/behavior_specifications/{REUSABLE}/{field}"
+    assert diagnostic.source == str(tmp_path / UNIT.name)
+    assert diagnostic.primary_range.start.line > 1
+    assert "input_value" not in str(excinfo.value)
+
+
+@pytest.mark.parametrize("invalid_version", [">=banana", "==", "not-a-version"])
+def test_malformed_import_versions_have_field_diagnostics(tmp_path: Path, invalid_version: str):
+    with pytest.raises(SDLParseError) as excinfo:
+        _compose(tmp_path, root_edits=(('    version: ">=1.2,<2"', f'    version: "{invalid_version}"'),))
+    (diagnostic,) = excinfo.value.diagnostics
+    assert diagnostic.code == "sdl.model.invalid"
+    assert diagnostic.pointer == "/imports/1/version"
+    assert diagnostic.source == str(tmp_path / ROOT.name)
+    assert diagnostic.primary_range.start.line == 10
+    assert "input_value" not in str(excinfo.value)
+
+
+def test_direct_authoring_model_rejects_private_behavior_refs():
+    from pydantic import ValidationError
+    from raes.scenario import Scenario
+
+    document = yaml.safe_load(ROOT.read_text(encoding="utf-8"))
+    document["behavior_specifications"][LOCAL]["participant_refs"] = ["alpha.__private.red-agent"]
+    with pytest.raises(ValidationError) as excinfo:
+        Scenario.model_validate(document)
+    assert excinfo.value.errors()[0]["loc"] == ("behavior_specifications", LOCAL, "participant_refs", 0)
+
+
+def test_imported_private_reference_is_rejected_with_its_original_source(tmp_path: Path):
+    edit = ("    participant_refs: [red-agent]\n", "    participant_refs: [other.__private.agent]\n")
+    with pytest.raises(SDLParseError) as excinfo:
+        _compose(tmp_path, unit_edits=(edit,))
+    (diagnostic,) = excinfo.value.diagnostics
+    assert diagnostic.code == "sdl.identifier.invalid"
+    assert diagnostic.pointer == f"/behavior_specifications/{REUSABLE}/participant_refs/0"
+    assert diagnostic.source == str(tmp_path / UNIT.name)
+
+
+def test_parameters_cannot_introduce_private_behavior_references(tmp_path: Path):
+    from raes import SDLInstantiationError, instantiate_scenario
+
+    edits = (
+        (
+            "behavior_specifications:\n",
+            "variables:\n  selected:\n    type: string\n    default: alpha.__private.red-agent\nbehavior_specifications:\n",
+        ),
+        ("    participant_role_refs: [red]\n", "    participant_refs: ['${selected}']\n"),
+    )
+    scenario = _compose(tmp_path, root_edits=edits)
+    with pytest.raises(SDLInstantiationError, match="participant_refs/0"):
+        instantiate_scenario(scenario)

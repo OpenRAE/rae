@@ -385,6 +385,13 @@ def parse_sdl(
             )
         from .composition import expand_sdl_modules
 
+        # Public authoring checks must run before expansion introduces generated
+        # identities, including legitimate private references owned by modules.
+        try:
+            Scenario.model_validate(data)
+        except ValidationError as exc:
+            raise _model_parse_error(exc, path=path, source_ranges=source_ranges) from exc
+
         data, _expansion_provenance = expand_sdl_modules(
             data,
             path=path,

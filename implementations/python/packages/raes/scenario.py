@@ -13,7 +13,7 @@ Delivery-level concerns (Docker, Terraform, cloud APIs) are outside the SDL.
 from collections.abc import Mapping
 from typing import ClassVar, Literal
 
-from pydantic import ConfigDict, Field, PrivateAttr, model_validator
+from pydantic import ConfigDict, Field, PrivateAttr, field_validator, model_validator
 from raes_contracts.augmentation_scope import OptionalAugmentationScope
 from raes_contracts.execution_policy import OptionalExecutionPolicy
 
@@ -230,6 +230,19 @@ class ImportDecl(SDLModel):
     parameters: dict[PortableIdentifier, object] = Field(default_factory=dict)
     digest: str = ""
 
+    @field_validator("version")
+    @classmethod
+    def _validate_version_constraint(cls, value: str) -> str:
+        from packaging.specifiers import InvalidSpecifier
+
+        from .module_registry._digests import _normalize_exact_or_range
+
+        try:
+            _normalize_exact_or_range(value)
+        except InvalidSpecifier as exc:
+            raise ValueError("import version must be an exact version, '*', or a valid version range") from exc
+        return value
+
     @model_validator(mode="after")
     def validate_source_fields(self) -> "ImportDecl":
         if not self.source and not self.path:
@@ -387,6 +400,15 @@ class Scenario(ScenarioContent):
         json_schema_extra={"additionalProperties": False},
     )
     variation_points: dict[str, VariationPoint] = Field(default_factory=dict)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _reject_private_behavior_references(cls, value: object) -> object:
+        from ._behavior_authoring import validate_authored_behavior_references
+
+        if isinstance(value, Mapping):
+            validate_authored_behavior_references(value)
+        return value
 
     @property
     def module_variable_specs(self) -> dict[str, dict[str, object]]:

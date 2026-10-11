@@ -225,8 +225,10 @@ invalid, including when migration acceptance is enabled.
   512-character-bounded domain message and no Pydantic input rendering
 - `SDLValidationError` — semantic validation failures (has `.errors` list with all issues)
 
-In an imported unit, typed-model failures raise a raw pydantic `ValidationError`
-instead, and a malformed import `version` range raises
-`packaging.specifiers.InvalidSpecifier`. YAML syntax and mapping-key failures
-in an imported unit still raise `SDLParseError`. The Fulfillment boundary in
-`docs/requirements/DSL-116/requirement.md` records both gaps.
+Imported-unit typed-model failures use the same bounded `sdl.model.invalid`
+diagnostics as root declarations, with the imported source file and field
+pointer. Malformed import version constraints also raise `SDLParseError` with a
+field diagnostic. Authored behavior refs using the reserved `__private` segment
+fail before composition; generated private refs remain valid in expanded SDL.
+See [behavior composition](../../decisions/issue-297-behavior-authoring.md) for
+reference scope, compatibility, and the authoring/runtime boundary.

@@ -1,11 +1,11 @@
 ---
 id: DSL-116
 title: "Participant Behavior Specification Surface"
-status: DRAFT
+status: ACTIVE
 type: FUNCTIONAL
 priority: MUST
 created_at: 2026-04-05T01:24:06.394920Z
-updated_at: 2026-04-05T01:24:06.394920Z
+updated_at: 2026-10-11T18:30:00Z
 ---
 
 # DSL-116 — Participant Behavior Specification Surface
@@ -27,7 +27,7 @@ Primary-source refresh from OpenRange, Open Trajectory Gym, and OpenThoughts-Age
   (`raes/participant_behavior_specification.py`) in the `raes/scenario.py`
   section. Schema: `$defs.ParticipantBehaviorSpecification` in
   `contracts/schemas/sdl/sdl-authoring-input-v1.json` admits the declaration
-  and requires a `semantic_version` string, which may be empty. Validator:
+  and requires a nonblank `semantic_version` string. Validator:
   `raes/semantics/participant_behavior/_behavior_spec.py` rejects dangling and
   ungoverned refs, and `raes/validator/_content_objectives.py` passes each
   authority scope to `_validate_named_ref` in `raes/validator/_core.py`, which
@@ -69,55 +69,28 @@ Primary-source refresh from OpenRange, Open Trajectory Gym, and OpenThoughts-Age
 
 ## Fulfillment boundary
 
-DRAFT. #297 verified the #206 surface without changing it and found residual
-gaps for reusable definitions:
+ACTIVE records the DSL authoring contract and its delivery in #297. The
+[composition decision](../../decisions/issue-297-behavior-authoring.md) settles
+role and reference scope consistently with ADR-053: roles select matching
+participants across the composed scenario, while explicit participant refs
+retain their namespaced bindings. Cross-fragment refs may resolve root
+declarations; unresolved and ambiguous refs fail against the complete symbol
+table. Module exports govern authored name access, not role membership or
+runtime permission.
 
-- Role scope. `participant_role_refs` in an imported declaration select every
-  participant with that role in the composed scenario, including participants
-  of another import, so a unit that pairs role refs with tool affordances
-  validates when imported once and fails when imported twice. Role refs in a
-  scenario-local declaration also select participants the unit does not
-  export. Scoping role selection to the declaring unit would change the meaning
-  of existing compositions and needs a language decision.
-- Unit-local resolution. Composition renames only the names a unit declares
-  (`_maybe_rename` in `raes/composition/_references.py`, applied by
-  `raes/composition/_behavior.py`). Import checks the unit only structurally
-  (`Scenario.model_validate` in `raes/module_registry/resolution.py` and
-  `ExpandedScenario.model_validate` in `raes/composition/_expand.py`), and
-  semantic validation runs once, on the composed scenario. A unit ref that
-  dangles on its own therefore binds a same-named declaration of the importing
-  scenario. This holds for participant, action, observation, outcome-rule and
-  authority refs; for example, an `exploit` action contract or a `gateway` node
-  in the importing scenario captures the unit's `exploit` or `nodes.gateway`
-  ref. Closing the
-  gap would change what existing compositions mean, either by validating each
-  unit against its own declarations before namespacing or by namespacing
-  unknown names, so it is an open resolution-scope question for the language,
-  like role scope.
-- Private names. The importing scenario can still bind an import's unexported
-  participant, action, observation, outcome-rule and authority targets by
-  writing `<namespace>.__private.<name>`, and parse and compile both succeed.
-  `specs/sdl/document-model.md:210-211` and ADR-076 (lines 150-151) make the
-  `__private` segment invalid author input, and ADR-053 (lines 133-135) makes
-  reserved private namespace use a hard error. Rejecting `__private` in
-  authored refs is a package source change plus an evidence republish, so it
-  belongs in a separate PR. The check has to run on authored refs before
-  composition, because expanded refs legitimately contain `__private`.
-- Diagnostics. An imported declaration that fails its typed model, such as
-  `lifecycle_state: retired`, raises a raw pydantic `ValidationError`, and a
-  malformed import version range raises a `packaging` `InvalidSpecifier`,
-  instead of an `SDLParseError` diagnostic. Import
-  resolution in `raes/module_registry/resolution.py` validates the imported
-  scenario without the parser's diagnostic wrapping, and
-  `raes/module_registry/_digests.py` builds the version `SpecifierSet` without
-  a guard.
-- Schema parity. `semantic_version` in `$defs.ParticipantBehaviorSpecification`
-  has no `minLength`, so the published authoring schema admits an empty
-  `semantic_version`, which the parser rejects as `sdl.model.invalid`.
+Authored private behavior refs fail before composition, including on direct
+`Scenario` construction. Generated private refs remain valid inside imported
+units. Imported typed-model failures and malformed import constraints produce
+source-anchored `SDLParseError` diagnostics. Published behavior version schemas
+reject empty and whitespace-only labels, matching parser validation.
 
-The diagnostic and schema-parity gaps need no language decision. Closing them
-is a package source change with an evidence republish, and schema parity also
-needs a published schema change, which this verification does not make.
+The tests cover reusable local bindings and intentional scenario-wide role
+selection, including rejection when selected participants lack a declared tool
+binding. These are executable authoring/compiler claims. They do not establish
+backend execution or the repeatable control occurrences owned by #1363/#1364
+under ADR-110. No issue-297 authoring acceptance criterion is deferred to those
+runtime deliveries. Evidence becomes delivered when PR #1426 merges; CI must
+verify its current head before merge.
 
 ## Traceability
 
@@ -137,8 +110,13 @@ needs a published schema change, which this verification does not make.
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/sections.md` (Behavior specification authoring reference)
 - DOCUMENTS → SPEC `specs/formal/participant-behavior-model/README.md` (ACT-606 behavior specification aggregate)
 - DOCUMENTS → GITHUB_ISSUE `297` (Verify reusable and scenario-local behavior authoring)
-- TESTS → TEST `implementations/python/tests/test_issue_297_behavior_authoring.py` (Standalone, twice-imported and scenario-local declarations through composition and compilation, with fail-closed diagnostics and pins for the recorded gaps)
+- TESTS → TEST `implementations/python/tests/test_issue_297_behavior_authoring.py` (Standalone, twice-imported and scenario-local declarations through composition and compilation, with fail-closed diagnostics, authored-private rejection and explicit global role/reference semantics)
 - TESTS → TEST `implementations/python/tests/fixtures/behavior-authoring/scan-behavior.sdl.yaml` (Reusable behavior unit that is also a valid standalone scenario)
 - TESTS → TEST `implementations/python/tests/fixtures/behavior-authoring/twice-imported.sdl.yaml` (Scenario-local declaration over two namespaced imports of one unit)
 - TESTS → TEST `implementations/python/tests/test_sem_208_participant_behavior.py` (Single-file declarations, single-namespace import, governed vocabularies and dangling-reference rejection)
 - TESTS → TEST `implementations/python/tests/test_sdl_parser.py` (Import version mismatch and namespace collision rejection)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_behavior_authoring.py` (Pre-expansion authored reference boundary)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-297-behavior-authoring.md` (Composition design, compatibility and runtime-refactor alignment)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/instantiate.py` (Prevent parameters from introducing private behavior refs)
+- TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (Current source-bound formal evidence release selection)
+- TESTS → TEST `implementations/python/tests/test_specification_coverage.py` (Current source-bound coverage evidence release selection)

@@ -1,9 +1,9 @@
 {
-  "content_hash": "d391510a19eee33f4237f46e9b46a64f215472c1dd87c47b9a121691f542dc4b",
+  "content_hash": "c2eaca0b3c50d7c8f9d559abe63762a8fee61227d6322c685e0b5868bc52cc8b",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "content_hash": "d391510a19eee33f4237f46e9b46a64f215472c1dd87c47b9a121691f542dc4b",
-    "summary": "Retain typed public runtime parameter derivations and selected-binding or finite-image authority across serialized SDL phases (#1481)."
+    "content_hash": "c2eaca0b3c50d7c8f9d559abe63762a8fee61227d6322c685e0b5868bc52cc8b",
+    "summary": "Reject empty and whitespace-only behavior specification version labels, matching existing parser validity; DSL-116 issue #297."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"

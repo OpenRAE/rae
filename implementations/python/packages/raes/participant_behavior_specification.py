@@ -319,7 +319,7 @@ class ParticipantBehaviorSpecification(LegacyClassificationGuard):
 
     legacy_classification_fields = ("ai_offensive_behavior_refs", "defensive_behavior_refs", "offensive_behavior_refs")
 
-    semantic_version: str
+    semantic_version: str = Field(min_length=1, pattern=r"\S")
     lifecycle_state: ParticipantBehaviorSpecificationLifecycle = ParticipantBehaviorSpecificationLifecycle.ACTIVE
     participant_refs: list[str] = Field(default_factory=list)
     participant_role_refs: list[str] = Field(default_factory=list)
