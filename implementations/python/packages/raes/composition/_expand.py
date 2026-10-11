@@ -14,25 +14,8 @@ from typing import Any, TypedDict, Unpack
 from pydantic import ValidationError
 
 from .._composition_budget import CompositionBudget, CompositionTraversal
-from .._composition_provenance import (
-    prefixed_constraint as _prefixed_constraint,
-)
-from .._composition_provenance import (
-    prefixed_explicitness as _prefixed_explicitness,
-)
-from .._composition_provenance import (
-    prefixed_import_record as _prefixed_import_record,
-)
-from .._composition_provenance import (
-    prefixed_realization_constraint as _prefixed_realization_constraint,
-)
-from .._composition_provenance import (
-    prefixed_realization_designation as _prefixed_realization_designation,
-)
-from .._composition_provenance import (
-    resolved_import_record as _resolved_import_record,
-)
-from .._errors import SDLInstantiationError, SDLParseDiagnostic, SDLParseError
+from .._errors import SDLInstantiationError, SDLParseDiagnostic, SDLParseError, SDLSourceRange
+from .._model_diagnostics import _model_parse_error
 from .._module_symbols import FORWARDING_AGENTS_SECTION
 from .._module_symbols import HASHMAP_SECTIONS as _HASHMAP_SECTIONS
 from .._module_symbols import (
@@ -45,10 +28,9 @@ from .._source_profile import (
     SDLParserLimits,
     SDLSourceParseOptions,
 )
-from ..instantiate import _bind_scenario_content, _BoundScenarioResult
+from ..instantiate import _bind_scenario_content
 from ..module_registry import (
     Lockfile,
-    ResolvedModule,
     TrustPolicy,
     _VerifiedSourceBundle,
     load_lockfile,
@@ -60,6 +42,7 @@ from ..phase_contracts import (
     CapabilityConstraint,
     ExpansionProvenance,
     ExplicitnessProvenanceRecord,
+    ParameterDerivation,
     ResolvedImportProvenance,
 )
 from ..realization_designation import (
@@ -69,11 +52,12 @@ from ..realization_designation import (
     constraint_records,
     designation_records,
 )
-from ..scenario import ExpandedScenario, ImportDecl, ModuleDescriptor, ScenarioContent
+from ..scenario import ExpandedScenario, ImportDecl, ModuleDescriptor, Scenario, ScenarioContent
 from ._augmentation import merge_augmentation_scope, rewrite_augmentation_scope
 from ._behavior import _behavior_reference_maps, _rewrite_agent_sections, _rewrite_behavior_sections
 from ._execution_policy import merge_execution_policy, rewrite_execution_policy
 from ._profiles import rewrite_profile_selections
+from ._provenance import import_provenance_additions as _import_provenance_additions
 from ._references import _rewrite_variable_tokens
 from ._sections import (
     _rewrite_account_and_domain_sections,
@@ -257,6 +241,7 @@ def _expand_one_import(
     dict[str, Any],
     list[ResolvedImportProvenance],
     list[CapabilityConstraint],
+    list[ParameterDerivation],
     list[ExplicitnessProvenanceRecord],
     list[RealizationDesignationRecord],
     list[RealizationConstraintRecord],
@@ -286,6 +271,7 @@ def _expand_one_import(
         _registry_base_dir=context.registry_base_dir,
     )
     import_path = resolved_import.root_file
+    source_ranges: dict[str, SDLSourceRange] = {}
     imported_raw = _load_normalized_data(
         resolved_import.source_document.text,
         path=import_path,
@@ -296,7 +282,12 @@ def _expand_one_import(
             required_semantic_revision=context.semantic_revision,
         ),
         source_diagnostics=context.source_diagnostics,
+        source_ranges=source_ranges,
     )
+    try:
+        Scenario.model_validate(imported_raw)
+    except ValidationError as exc:
+        raise _model_parse_error(exc, path=import_path, source_ranges=source_ranges) from exc
     if imported_raw.get("semantic_revision") != context.semantic_revision:
         raise SDLParseError("Imported SDL semantic revision must match the root revision.", path=import_path)
     imported_expanded, inner_provenance = expand_sdl_modules(
@@ -322,7 +313,7 @@ def _expand_one_import(
             preserve_variation_variables=True,
         )
     except ValidationError as exc:
-        raise SDLParseError("Imported SDL unit is structurally invalid", path=import_path) from exc
+        raise _model_parse_error(exc, path=import_path, source_ranges=source_ranges) from exc
     except SDLInstantiationError as exc:
         raise SDLParseError(str(exc), path=import_path) from exc
     namespace = import_decl.namespace
@@ -344,52 +335,6 @@ def _expand_one_import(
     merged = _merge_sections(merged, namespaced_payload, path=import_path)
 
     return (merged, *_import_provenance_additions(resolved_import, import_decl, bound, inner_provenance, symbols))
-
-
-def _import_provenance_additions(
-    resolved_import: ResolvedModule,
-    import_decl: ImportDecl,
-    bound: _BoundScenarioResult,
-    inner_provenance: ExpansionProvenance,
-    symbols: dict[str, dict[str, str] | set[str]],
-) -> tuple[
-    list[ResolvedImportProvenance],
-    list[CapabilityConstraint],
-    list[ExplicitnessProvenanceRecord],
-    list[RealizationDesignationRecord],
-    list[RealizationConstraintRecord],
-]:
-    """Build the namespaced provenance additions contributed by one import."""
-
-    namespace = import_decl.namespace
-    import_records: list[ResolvedImportProvenance] = [
-        _resolved_import_record(resolved_import, requested=import_decl, bindings=bound)
-    ]
-    import_records.extend(_prefixed_import_record(record, namespace) for record in inner_provenance.imports)
-    capability_constraints = [
-        _prefixed_constraint(constraint, namespace=namespace, symbols=symbols)
-        for constraint in bound.capability_constraints
-    ]
-    explicitness_records = [
-        _prefixed_explicitness(record, namespace=namespace, imported=bound.content, symbols=symbols)
-        for record in bound.explicitness
-        if any(record.model_path.startswith(f"{section_name}.") for section_name in _HASHMAP_SECTIONS)
-    ]
-    realization_records = [
-        _prefixed_realization_designation(record, namespace=namespace, symbols=symbols)
-        for record in inner_provenance.realization_designations
-    ]
-    realization_constraints = [
-        _prefixed_realization_constraint(record, namespace=namespace, symbols=symbols)
-        for record in inner_provenance.realization_constraints
-    ]
-    return (
-        import_records,
-        capability_constraints,
-        explicitness_records,
-        realization_records,
-        realization_constraints,
-    )
 
 
 def expand_sdl_modules(
@@ -430,6 +375,7 @@ def expand_sdl_modules(
     merged.setdefault("version", "*")
     import_records: list[ResolvedImportProvenance] = []
     capability_constraints: list[CapabilityConstraint] = []
+    parameter_derivations: list[ParameterDerivation] = []
     explicitness_records: list[ExplicitnessProvenanceRecord] = []
     realization_records: list[RealizationDesignationRecord] = []
     realization_constraints: list[RealizationConstraintRecord] = []
@@ -468,11 +414,12 @@ def expand_sdl_modules(
     )
 
     for raw_import in merged.get("imports", []):
-        merged, import_add, capability_add, explicitness_add, realization_add, constraint_add = _expand_one_import(
-            raw_import, merged, context
+        merged, import_add, capability_add, derivation_add, explicitness_add, realization_add, constraint_add = (
+            _expand_one_import(raw_import, merged, context)
         )
         import_records.extend(import_add)
         capability_constraints.extend(capability_add)
+        parameter_derivations.extend(derivation_add)
         explicitness_records.extend(explicitness_add)
         realization_records.extend(realization_add)
         realization_constraints.extend(constraint_add)
@@ -480,6 +427,7 @@ def expand_sdl_modules(
     provenance = ExpansionProvenance(
         imports=tuple(import_records),
         capability_constraints=tuple(capability_constraints),
+        parameter_derivations=tuple(parameter_derivations),
         explicitness=tuple(explicitness_records),
         realization_designations=tuple(realization_records),
         realization_constraints=tuple(realization_constraints),

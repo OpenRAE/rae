@@ -46,6 +46,9 @@ BACKEND_OPERATION_CONTRACT_IDS = (
     "backend-operation-control-v1",
     "backend-operation-response-v1",
 )
+MIXED_BACKEND_EXECUTION_BINDING_SCHEMA_VERSION = "mixed-backend-execution-binding/v1"
+MIXED_BACKEND_STAGE_REPORT_SCHEMA_VERSION = "mixed-backend-stage-report/v1"
+MIXED_BACKEND_CONTRACT_IDS = ("mixed-backend-execution-binding-v1", "mixed-backend-stage-report-v1")
 EVALUATION_STATE_SCHEMA_VERSION = "evaluation-result-state/v1"
 PROPOSITION_TRUTH_RESULT_SCHEMA_VERSION = "proposition-truth-result/v1"
 SDL_LINEAGE_LEDGER_SCHEMA_VERSION = "sdl-lineage-ledger/v1"

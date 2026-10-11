@@ -71,9 +71,14 @@ _HISTORICAL_RETEST_REVISIONS = frozenset(
     "67.0.0",
     "68.0.0",
     "69.0.0",
+    "70.0.0",
+    "71.0.0",
+    "72.0.0",
+    "73.0.0",
+    "74.0.0",
 }
 
-_SUPPORTED_RETEST_REVISIONS = _HISTORICAL_RETEST_REVISIONS | {"70.0.0"}
+_SUPPORTED_RETEST_REVISIONS = _HISTORICAL_RETEST_REVISIONS | {"75.0.0"}
 _SOURCE_BOUND_RETEST_REVISIONS = _SUPPORTED_RETEST_REVISIONS - {"3.0.0"}
 
 _RETEST_BASELINE_REVISIONS = {
@@ -146,4 +151,9 @@ _RETEST_BASELINE_REVISIONS = {
     "68.0.0": "67.0.0",
     "69.0.0": "68.0.0",
     "70.0.0": "69.0.0",
+    "71.0.0": "70.0.0",
+    "72.0.0": "71.0.0",
+    "73.0.0": "72.0.0",
+    "74.0.0": "73.0.0",
+    "75.0.0": "74.0.0",
 }

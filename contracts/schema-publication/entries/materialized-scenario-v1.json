@@ -1,9 +1,9 @@
 {
-  "content_hash": "88badd3549d88383d2486b06ed1885397dc290665e1a072009caadf9bdd83549",
+  "content_hash": "561545be507a1e79632488702c1fb322c62d38fb3cbb49953fb9b24771eae6af",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "88badd3549d88383d2486b06ed1885397dc290665e1a072009caadf9bdd83549",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "561545be507a1e79632488702c1fb322c62d38fb3cbb49953fb9b24771eae6af",
+    "summary": "Reject empty and whitespace-only behavior specification version labels, matching existing parser validity; DSL-116 issue #297."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 70.0.0, rejects unsupported future
+Current validation requires explicit release 75.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -586,8 +586,64 @@ Retained outcomes and bounded claim limits are unchanged.
 Two compiled digests differ because the runtime model carries execution-policy
 metadata; their exact baseline and retest values are recorded as deviations.
 
-Release 70.0.0 replays the retained formal cases after issue #1091 stopped
-dispatching control-plane HTTP requests that are abandoned before their body
-completes, in [`execution-snapshot-v70.json`](execution-snapshot-v70.json) and
-[`analysis-v70.json`](analysis-v70.json). Outcomes and claim limits remain
+Release 70.0.0 replays the retained cases after issue #1481 adds configurable
+runtime parameter authority in
+[`execution-snapshot-v70.json`](execution-snapshot-v70.json) and
+[`analysis-v70.json`](analysis-v70.json). The capture binds fresh source identity
+and compares against immutable release 69.0.0. Outcomes and bounded claim limits
+are unchanged; two compiled metadata digests change with parameter-derivation
+provenance and are recorded as exact deviations. Issue-specific regression tests,
+not these retained controls, establish the new configurable parameter behavior.
+
+Release 71.0.0 replays the retained controls after the issue #1481 Sonar refactor
+in [`execution-snapshot-v71.json`](execution-snapshot-v71.json) and
+[`analysis-v71.json`](analysis-v71.json). Source identity is refreshed against
+immutable release 70.0.0; outcomes, compiled digests, and bounded claim limits
+remain unchanged, with no baseline deviations.
+
+Release 72.0.0 replays the retained formal cases against the issue #1418
+runtime-fact export manifest split in
+[`execution-snapshot-v72.json`](execution-snapshot-v72.json) and
+[`analysis-v72.json`](analysis-v72.json). Outcomes and claim limits remain
 unchanged.
+
+The issue #1371 captures that reused published release identities are preserved
+in the [initial publication archive](../mixed-backend-pre-sync-evidence/README.md)
+and [run-scope repair archive](../mixed-backend-run-scope-pre-sync-evidence/README.md),
+with exact bytes and digests. The incoming published release history remains canonical.
+
+Release 73.0.0 replays the retained controls after merging the issue #1418
+runtime-fact export manifest split with the issue #1371 mixed-backend contracts
+and composition run-scope repair in
+[`execution-snapshot-v73.json`](execution-snapshot-v73.json) and
+[`analysis-v73.json`](analysis-v73.json). Outcomes and bounded claim
+limits remain unchanged; this retained corpus makes no new mixed-runtime execution claim.
+
+## Issue #297 behavior authoring verification
+
+Release 74.0.0 replays the retained corpus against the behavior authoring
+validation changes after integration with the runtime-fact manifest split and
+mixed-backend execution contracts. See
+[`execution-snapshot-v74.json`](execution-snapshot-v74.json) and
+[`analysis-v74.json`](analysis-v74.json). Incoming published captures retain
+their exact bytes; this release records a fresh implementation digest and
+modified-checkout provenance. Declaration reuse, authored-private rejection,
+import diagnostics and version parity have targeted evidence in
+`test_issue_297_behavior_authoring.py`; this refresh does not promote those
+claims into runtime or backend realization.
+
+The issue #1421 captures that reused published release identities are preserved
+in the [shared-time readback archive](../time-readback-pre-sync-evidence/README.md)
+with exact bytes, digests, and source revision. Incoming published history
+remains canonical.
+
+Release 75.0.0 replays the retained corpus after synchronizing issue #1421's
+shared-time readback isolation with `dev`. See
+[`execution-snapshot-v75.json`](execution-snapshot-v75.json) and
+[`analysis-v75.json`](analysis-v75.json). Retained outcomes and bounded
+claim limits remain unchanged; the readback mutation cases are covered by
+`test_issue_1421_time_readback_isolation.py`.
+
+Issue #1091's pre-synchronization captures are
+[archived with exact digests](../request-limit-pre-sync-evidence/README.md).
+The incoming published releases retain their original bytes and selection rules.

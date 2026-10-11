@@ -390,6 +390,12 @@ ownership:
     - docs/governance/requirement-scopes/1353.json
     - docs/requirements/DSL-111/requirement.md
     - docs/requirements/DSL-142/requirement.md
+    # Issue #297 completes DSL-116 and republishes source-bound verification.
+    - docs/requirements/DSL-116/requirement.md
+    - docs/decisions/issue-297-behavior-authoring.md
+    - docs/research/formal-semantic-validation
+    - tools/check_specification_coverage.py
+    - tools/formal_semantic_validation
     - docs/requirements/DSL-435
     - docs/explain/sdl
     - docs/index.md
@@ -1133,6 +1139,7 @@ ownership:
     - implementations/python/packages/raes_mcp
     - implementations/python/tests/test_project_positioning.py
     - implementations/python/tests/test_public_docs_policy.py
+    - implementations/python/tests/test_issue_954_docs_publication_boundary.py
     - implementations/python/tests/test_public_project_readiness.py
     - implementations/python/tests/test_repo_policy_tools.py
     - implementations/python/tests/test_vale_tool.py
@@ -1145,6 +1152,8 @@ ownership:
     - styles/config/vocabularies/RAES
     - tools/check_project_positioning.py
     - tools/check_public_docs.py
+    - tools/public_docs_guard.py
+    - tools/public_docs_markup.py
     - tools/policy/requirement_order.yaml
     - tools/tool_versions.py
     - tools/vale_tool.py
