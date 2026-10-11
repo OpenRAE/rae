@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-297-behavior-authoring-analysis-v71",
+  "analysis_id": "raes-standardized-specification-coverage-issue-1418-v71",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -18,7 +18,7 @@
     ],
     "evidence_artifacts": [
       "docs/research/specification-coverage/protocol-v1.json",
-      "docs/research/specification-coverage/execution-snapshot-v70.json",
+      "docs/research/specification-coverage/execution-snapshot-v71.json",
       "docs/research/specification-coverage/analysis-v68.json"
     ],
     "falsification_protocol": "docs/research/specification-coverage/protocol-v1.json",
@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-10-11T18:39:17.425139+00:00",
+  "generated_at": "2026-10-11T06:56:15.112239+00:00",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
@@ -66,7 +66,8 @@
     "Issue #1361 execution and recovery requirements are verified by dedicated policy, composition, and admission tests; this retained corpus establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The issue #1361 maintainability repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The issue #1361 resource type-hint repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
-    "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee."
+    "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee.",
+    "The issue #1418 runtime-fact export manifest split changes no contract, schema or behavior; this retained matrix makes no new admission or coverage claim."
   ],
   "load_bearing_results": {
     "failed": 0,
@@ -74,7 +75,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "The retained specification matrix preserves its prior classifications against the combined execution-policy and build-backend updates; bounded claim limits are unchanged.",
+  "plain_language_outcome": "The retained specification matrix preserves its prior classifications against the issue #1418 runtime-fact export manifest split; bounded claim limits are unchanged.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -106,6 +107,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "issue-297-behavior-authoring-v71",
-  "snapshot_sha256": "adc88dd90075755c8aba7133a60247f87a94343ee1a5cfd34401d596e471ba74"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1418-v71",
+  "snapshot_sha256": "fe5d06b53b9d37773b2bda1d329147fa75fb2f821809deb2d360bc669c6e9906"
 }
