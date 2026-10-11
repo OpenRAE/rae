@@ -9,7 +9,9 @@ the map tied to the statement and to the code, tests and pages it cites.
 from __future__ import annotations
 
 import ast
+import json
 import re
+from collections.abc import Iterator
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -40,8 +42,10 @@ STATUSES = {"covered", "partial", "gap"}
 _ROW = re.compile(r'^\| (C\d+) \| "([^"]+)" \| (\w+) \| (\w+) \|$', re.MULTILINE)
 _SECTION_HEADING = re.compile(r"### (C\d+) ")
 _LEAD = re.compile(r"\*\*(Backends|Processors): (\w+)\.\*\*")
-_CODE_CITATION = re.compile(r"`([\w.-]+)` \(`([\w/.-]+):(\d+)`\)")
-_LINE_CITATION = re.compile(r"`[\w/.-]+\.\w+:\d+`")
+# `path::symbol`, where a quoted symbol names a string constant in that file.
+_CODE_CITATION = re.compile(r"`(?!test_)([\w/.-]+\.(?:py|json))::([^`]+)`")
+_QUOTED = re.compile(r'"([^"]+)"')
+_DEFINITIONS = (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)
 _TEST_CITATION = re.compile(r"`(test_\w+\.py)(?:::(\w+))?`")
 _LINK_TARGET = re.compile(r"\]\(([^)\s]+)\)")
 
@@ -89,32 +93,54 @@ def test_every_clause_has_one_row_and_one_section_that_agree() -> None:
         assert dict(_LEAD.findall(sections[label])) == table, label
 
 
-def _source(path: str) -> Path:
-    return (ROOT if path.startswith("contracts/") else CODE_ROOT) / path
+def _scope_nodes(scope: ast.AST) -> Iterator[ast.AST]:
+    """The nodes of ``scope``, without the bodies of the definitions nested in it."""
+
+    for child in ast.iter_child_nodes(scope):
+        yield child
+        if not isinstance(child, _DEFINITIONS):
+            yield from _scope_nodes(child)
 
 
-def _lines_holding(path: str, symbol: str) -> list[int]:
-    source = _source(path)
+def _binds(node: ast.AST, name: str) -> bool:
+    """Whether ``node`` defines or assigns ``name``, or passes it as a call keyword."""
+
+    if isinstance(node, _DEFINITIONS):
+        return node.name == name
+    if isinstance(node, ast.Name):
+        return isinstance(node.ctx, ast.Store) and node.id == name
+    return isinstance(node, ast.keyword) and node.arg == name
+
+
+def _defines(tree: ast.Module, symbol: str) -> bool:
+    """Whether each part of a dotted ``symbol`` is bound in the scope that the part before it names."""
+
+    scopes: list[ast.AST] = [tree]
+    for name in symbol.split("."):
+        scopes = [node for scope in scopes for node in _scope_nodes(scope) if _binds(node, name)]
+    return bool(scopes)
+
+
+def _cites_existing_code(path: str, symbol: str) -> bool:
+    source = (ROOT if path.startswith("contracts/") else CODE_ROOT) / path
     if not source.is_file():
-        return []
-    token = re.compile(rf"(?<![\w.-]){re.escape(symbol)}(?![\w-])")
-    lines = source.read_text(encoding="utf-8").splitlines()
-    return [number for number, line in enumerate(lines, start=1) if token.search(line)]
+        return False
+    text = source.read_text(encoding="utf-8")
+    quoted = _QUOTED.fullmatch(symbol)
+    if source.suffix == ".json":
+        # A JSON citation names a string that the document holds.
+        return quoted is not None and json.dumps(quoted.group(1)) in text
+    tree = ast.parse(text)
+    if quoted:
+        return any(isinstance(node, ast.Constant) and node.value == quoted.group(1) for node in ast.walk(tree))
+    return _defines(tree, symbol)
 
 
-def test_cited_code_lines_hold_their_symbols() -> None:
-    page = _page()
-    citations = _CODE_CITATION.findall(page)
-    stale = [
-        f"{path}:{line} does not hold {symbol!r}; lines that do: {_lines_holding(path, symbol)}"
-        for symbol, path, line in citations
-        if int(line) not in _lines_holding(path, symbol)
-    ]
+def test_cited_code_symbols_exist() -> None:
+    citations = list(_CODE_CITATION.finditer(_page()))
 
     assert citations
-    # Every path:line citation must name its symbol, so none escapes this check.
-    assert len(_LINE_CITATION.findall(page)) == len(citations)
-    assert stale == []
+    assert [match.group(0) for match in citations if not _cites_existing_code(*match.groups())] == []
 
 
 def _test_exists(module: str, function: str) -> bool:

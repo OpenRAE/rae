@@ -10,8 +10,12 @@ changes no code and no requirement text.
 ASR-526 is DRAFT, and its record does not number its clauses. The labels C1 to
 C7 belong to this page. Code paths are relative to
 `implementations/python/packages/`, and `contracts/` paths to the repository
-root. Test paths are relative to `implementations/python/tests/`. Each code
-citation names a symbol and the line that holds it.
+root. Test paths are relative to `implementations/python/tests/`. Code is
+cited as `path::symbol`, where the symbol names a definition. A field, local
+name or call keyword is qualified by its class or function, as in
+`BackendConformanceReport.profile`. A quoted symbol, such as a diagnostic
+code, is a string in that file. Citations carry no line numbers, so code that
+moves inside its file leaves them valid.
 
 ## How the statement is split
 
@@ -62,14 +66,14 @@ section names the missing part. **Gap** means nothing exposes it.
 ### C1 machine-readable reports
 
 - **Backends: covered.**
-  `backend_conformance_report_payload` (`raes_conformance/conformance/report.py:299`)
+  `raes_conformance/conformance/report.py::backend_conformance_report_payload`
   renders a report as one JSON-ready mapping. It first calls
-  `validate_backend_conformance_report` (`raes_conformance/conformance/report.py:140`),
+  `raes_conformance/conformance/report.py::validate_backend_conformance_report`,
   which refuses a report that claims more than its cases show. The
   `raes conformance backend` command is
-  `backend` (`raes_cli/conformance.py:27`). It prints the mapping and exits
+  `raes_cli/conformance.py::backend`. It prints the mapping and exits
   with code 1 when the report fails.
-  `write_backend_conformance_report` (`raes_operations/realization_conformance.py:12`)
+  `raes_operations/realization_conformance.py::write_backend_conformance_report`
   stores the mapping as a run artifact after a redaction check.
   - Tests:
     `test_backend_conformance_cli.py::test_backend_conformance_cli_passes_for_provisioning_only_profile`,
@@ -77,16 +81,16 @@ section names the missing part. **Gap** means nothing exposes it.
     and
     `test_realization_honesty_conformance.py::test_machine_readable_report_write_is_redaction_gated`.
   - Limits: the command runs only the fixture suite,
-    `run_fixture_suite` (`raes_conformance/conformance/fixture_suite.py:26`).
+    `raes_conformance/conformance/fixture_suite.py::run_fixture_suite`.
     No `raes` command runs
-    `run_target_conformance` (`raes_conformance/conformance/target.py:365`),
+    `raes_conformance/conformance/target.py::run_target_conformance`,
     so target reports come only from the Python API. No schema under
     `contracts/schemas/` describes the mapping. ASR-526 does not ask for one.
 - **Processors: gap.** No processor conformance report exists. The only
   machine-readable processor output about support is the manifest,
-  `reference_processor_manifest_payload` (`raes_processor/manifest.py:99`).
+  `raes_processor/manifest.py::reference_processor_manifest_payload`.
   The `raes processor manifest` command,
-  `manifest` (`raes_cli/processor.py:69`), prints it. A manifest declares
+  `raes_cli/processor.py::manifest`, prints it. A manifest declares
   support and records no checks.
   - Test:
     `test_processor_manifest.py::test_processor_manifest_cli_emits_reference_v2_manifest`.
@@ -94,40 +98,41 @@ section names the missing part. **Gap** means nothing exposes it.
 ### C2 human-readable reports
 
 - **Backends: gap.** `raes conformance backend` prints JSON only.
-  `typer.echo` (`raes_cli/conformance.py:61`) writes the indented mapping. No
-  other code renders a conformance report for people.
+  `raes_cli/conformance.py::backend` passes the indented mapping to
+  `typer.echo`. No other code renders a conformance report for people.
   - The `raes semantic` commands already render one result in either form.
-    `OutputFormat` (`raes_cli/_semantic_result.py:19`) offers `human` and
-    `json`, and `render_result` (`raes_cli/_semantic_result.py:139`) prints
+    `raes_cli/_semantic_result.py::OutputFormat` offers `human` and
+    `json`, and `raes_cli/_semantic_result.py::render_result` prints
     either. The `raes semantic conformance` command,
-    `conformance_command` (`raes_cli/semantic.py:225`), uses them to check one
+    `raes_cli/semantic.py::conformance_command`, uses them to check one
     artifact against one registered contract, such as a backend manifest.
     That check is not a conformance and support report. It names no profile,
     cases or support levels.
 - **Processors: gap.** There is no processor report to render. Also,
   `raes semantic conformance` cannot check a processor manifest, because
   `processor-manifest-v2` is not a registered contract. The command answers
-  with `cli.selector` (`raes_cli/_semantic_portable.py:42`) and exit code 2.
+  with `raes_cli/_semantic_portable.py::"cli.selector"` and exit code 2.
   By contrast,
-  `backend-manifest-v2` (`raes_conformance/conformance/validators.py:120`)
+  `raes_conformance/conformance/validators.py::"backend-manifest-v2"`
   is registered.
 
 ### C3 achieved conformance profile or level
 
 - **Backends: partial.** A report names one profile,
-  `profile` (`raes_conformance/conformance/report.py:123`), which the class
-  docstring calls the requested profile.
-  `passed` (`raes_conformance/conformance/report.py:124`) says whether every
-  check for that profile passed. When the caller names no profile,
-  `profile_for_manifest` (`raes_conformance/conformance/target.py:54`) infers
+  `raes_conformance/conformance/report.py::BackendConformanceReport.profile`,
+  which the class docstring calls the requested profile.
+  `raes_conformance/conformance/report.py::BackendConformanceReport.passed`
+  says whether every check for that profile passed. When the caller names no
+  profile,
+  `raes_conformance/conformance/target.py::profile_for_manifest` infers
   one from the roles the manifest declares. The run then uses it as
-  `effective_profile` (`raes_conformance/conformance/target.py:383`).
-  `native_conformance` (`raes_conformance/conformance/report.py:132`) adds one
-  level above a plain pass. The runner sets it only when the report passed
-  and its realization probes passed on a native-live basis, at
-  `native_conformance` (`raes_conformance/conformance/target.py:361`). The
-  report claim states its own assurance level, `tested`, at
-  `assurance_status` (`raes_conformance/conformance/report.py:380`).
+  `raes_conformance/conformance/target.py::run_target_conformance.effective_profile`.
+  `raes_conformance/conformance/report.py::BackendConformanceReport.native_conformance`
+  adds one level above a plain pass. The runner sets it only when the report
+  passed and its realization probes passed on a native-live basis, at
+  `raes_conformance/conformance/target.py::_known_profile_report.native_conformance`.
+  The report claim states its own assurance level, `tested`, at
+  `raes_conformance/conformance/report.py::_bounded_conformance_claim.assurance_status`.
   - Tests:
     `test_runtime_conformance.py::test_profile_is_inferred_as_full_when_manifest_declares_participant_runtime`,
     `test_realization_honesty_conformance.py::test_only_native_live_can_support_native_conformance`
@@ -147,17 +152,17 @@ section names the missing part. **Gap** means nothing exposes it.
 ### C4 passed and failed checks
 
 - **Backends: covered.** Each check is one case.
-  `ConformanceCaseResult` (`raes_conformance/conformance/report.py:66`)
+  `raes_conformance/conformance/report.py::ConformanceCaseResult`
   records `valid`, `passed` and `outcome` for it.
-  `__post_init__` (`raes_conformance/conformance/report.py:105`) turns a
-  `passed` outcome into `failed` when the case did not pass. The fixture suite
-  adds one case for each valid and each invalid fixture. It passes only when
+  `raes_conformance/conformance/report.py::ConformanceCaseResult.__post_init__`
+  turns a `passed` outcome into `failed` when the case did not pass. The
+  fixture suite adds one case for each valid and each invalid fixture. It passes only when
   every case passes, as
-  `run_fixture_suite` (`raes_conformance/conformance/fixture_suite.py:26`)
+  `raes_conformance/conformance/fixture_suite.py::run_fixture_suite`
   shows. Target runs add participant, adapter and realization probe cases.
   The closed probe outcome vocabulary also has `skipped` and `unsupported`,
-  in `ProbeOutcome` (`raes_conformance/_realization_models.py:23`).
-  `_validate_case_evidence` (`raes_conformance/conformance/report.py:254`)
+  in `raes_conformance/_realization_models.py::ProbeOutcome`.
+  `raes_conformance/conformance/report.py::_validate_case_evidence`
   refuses a passed report that carries a failed case. It also refuses a claim
   that cites a case the report does not carry.
   - Tests:
@@ -173,44 +178,44 @@ section names the missing part. **Gap** means nothing exposes it.
 
 - **Backends: partial.**
   - Gaps against the profile:
-    `unsupported_contract_gaps` (`raes_conformance/conformance/report.py:128`)
+    `raes_conformance/conformance/report.py::BackendConformanceReport.unsupported_contract_gaps`
     lists the contracts that the profile requires and the manifest does not
-    declare. `_declared_contract_gaps` (`raes_conformance/conformance/target.py:121`)
+    declare. `raes_conformance/conformance/target.py::_declared_contract_gaps`
     computes them.
-    `unsupported_capability_gaps` (`raes_conformance/conformance/report.py:129`)
+    `raes_conformance/conformance/report.py::BackendConformanceReport.unsupported_capability_gaps`
     lists the runtime roles that the target lacks, from
-    `_capability_gaps` (`raes_conformance/conformance/target.py:78`). It also
+    `raes_conformance/conformance/target.py::_capability_gaps`. It also
     lists capability claims made without their contracts.
   - Declared support levels: each policy feature in the manifest's
     participant feature-support list gets a case. The case records
-    `declared_support_level` (`raes_conformance/conformance/report.py:92`)
+    `raes_conformance/conformance/report.py::ConformanceCaseResult.declared_support_level`
     and
-    `effective_support_level` (`raes_conformance/conformance/report.py:93`).
+    `raes_conformance/conformance/report.py::ConformanceCaseResult.effective_support_level`.
     The levels come from the ADR-054 scale,
-    `ParticipantFeatureSupportLevel` (`raes_contracts/vocabulary.py:174`):
+    `raes_contracts/vocabulary.py::ParticipantFeatureSupportLevel`:
     `unsupported`, `disclosed_weak`, `bounded` and `exact`. For these cases,
-    `_participant_feature_cases` (`raes_conformance/conformance/target.py:226`)
+    `raes_conformance/conformance/target.py::_participant_feature_cases`
     resolves the effective level from the manifest. So it is declared, not
     observed.
   - Observed support: participant-policy probes drive the runtime boundary.
     They record the observed level beside the declared one, as
-    `effective_support_level` (`raes_conformance/conformance/participant_policy_probes.py:239`).
+    `raes_conformance/conformance/participant_policy_probes.py::_case_result.effective_support_level`.
     A probe that observes a breach of the declared obligation fails with
-    `conformance.participant-policy-overclaim` (`raes_conformance/conformance/participant_policy_probes.py:54`).
+    `raes_conformance/conformance/participant_policy_probes.py::"conformance.participant-policy-overclaim"`.
     In a release case, an effective level that differs from the declared one
     is such a breach. A declared feature that no authorized probe established
     becomes an `unsupported` case, from
-    `_unsupported_case` (`raes_conformance/conformance/participant_policy_probes.py:84`).
+    `raes_conformance/conformance/participant_policy_probes.py::_unsupported_case`.
     A participant-opacity case keeps an effective level only when its probe
     passed, at
-    `effective_support_level` (`raes_conformance/conformance/participant_opacity_probes.py:343`).
+    `raes_conformance/conformance/participant_opacity_probes.py::_run_case.effective_support_level`.
   - Realization probes record observed behavior beside the plan:
-    `accounted_operations` (`raes_conformance/realization.py:255`) beside the
-    expected operations, and
-    `actual_observation_strengths` (`raes_conformance/realization.py:257`)
+    `raes_conformance/realization.py::_positive_case.accounted_operations`
+    beside the expected operations, and
+    `raes_conformance/realization.py::_positive_case.actual_observation_strengths`
     beside the expected strengths. An envelope that yields no usable probes
     becomes an `unsupported` case, from
-    `_constructive_failure` (`raes_conformance/realization.py:141`).
+    `raes_conformance/realization.py::_constructive_failure`.
   - Tests:
     `test_runtime_conformance.py::test_target_conformance_fails_when_declared_contracts_do_not_cover_profile_requirements`,
     `test_runtime_conformance.py::test_target_conformance_rejects_participant_capability_claims_without_contract_evidence`,
@@ -228,37 +233,38 @@ section names the missing part. **Gap** means nothing exposes it.
     reader joins the two gap lists and the case levels. No test asserts the
     `conformance.unsupported-surface` diagnostic that a missing runtime role
     produces in
-    `_gap_diagnostics` (`raes_conformance/conformance/target.py:191`).
+    `raes_conformance/conformance/target.py::_gap_diagnostics`.
 - **Processors: gap.** The processor manifest declares support: contract
   versions, SDL versions, features and compatible backends, in
-  `create_reference_processor_manifest` (`raes_processor/manifest.py:45`).
+  `raes_processor/manifest.py::create_reference_processor_manifest`.
   Its vocabulary has no unsupported or partial level. A feature is either in
-  `supported_features` (`raes_processor/capabilities.py:20`) or absent. The
-  reference processor declares every feature, at
-  `supported_features` (`raes_processor/manifest.py:57`). Nothing observes
-  processor support.
+  `raes_processor/capabilities.py::ProcessorCapabilitySet.supported_features`
+  or absent. The reference processor declares every feature, at
+  `raes_processor/manifest.py::create_reference_processor_manifest.supported_features`.
+  Nothing observes processor support.
 
 ### C6 applicable validation basis
 
 - **Backends: partial.**
   - Each case records its
-    `execution_basis` (`raes_conformance/conformance/report.py:74`):
+    `raes_conformance/conformance/report.py::ConformanceCaseResult.execution_basis`:
     `fixture-only`, `hermetic-live` or `native-live`, from
-    `ExecutionBasis` (`raes_conformance/_realization_models.py:15`). The
+    `raes_conformance/_realization_models.py::ExecutionBasis`. The
     target runner's basis defaults to `hermetic-live`, at
-    `execution_basis` (`raes_conformance/conformance/target.py:148`).
+    `raes_conformance/conformance/target.py::_TargetConformanceOptions.execution_basis`.
   - The report claim fixes the evidence scope.
-    `quantifier_scope` (`raes_conformance/conformance/report.py:374`) is
-    `finite-cases`, and
-    `evidence_scope` (`raes_conformance/conformance/report.py:375`) is
-    `finite`. `evidence_boundary` (`raes_conformance/conformance/report.py:376`)
+    `raes_conformance/conformance/report.py::_bounded_conformance_claim.quantifier_scope`
+    is `finite-cases`, and
+    `raes_conformance/conformance/report.py::_bounded_conformance_claim.evidence_scope`
+    is `finite`.
+    `raes_conformance/conformance/report.py::_bounded_conformance_claim.evidence_boundary`
     counts the named cases. Cases add
-    `finite_scope` (`raes_conformance/conformance/report.py:94`), limitations
-    and nonclaims.
-  - `_validate_claim_strength` (`raes_conformance/conformance/report.py:235`)
+    `raes_conformance/conformance/report.py::ConformanceCaseResult.finite_scope`,
+    limitations and nonclaims.
+  - `raes_conformance/conformance/report.py::_validate_claim_strength`
     refuses a universal claim backed by finite evidence. It also refuses a
     native claim without a native-live case.
-    `_validate_backend_conformance_claim` (`raes_conformance/conformance/report.py:215`)
+    `raes_conformance/conformance/report.py::_validate_backend_conformance_claim`
     requires six digests for a backend conformance claim: profile, manifest,
     configuration, tool, environment and probe set.
   - Tests:
@@ -270,47 +276,51 @@ section names the missing part. **Gap** means nothing exposes it.
   - Missing: the report carries no validation-basis disclosure of the kind
     that [proposed ADR-072](../../decisions/adrs/adr-072-validation-and-admission-profiles.md)
     describes. The carrier for one is
-    `ValidationBasisDisclosureModel` (`raes_contracts/contracts/validation_disclosure.py:211`),
+    `raes_contracts/contracts/validation_disclosure.py::ValidationBasisDisclosureModel`,
     with its
-    `achieved_strength` (`raes_contracts/contracts/validation_disclosure.py:222`).
+    `raes_contracts/contracts/validation_disclosure.py::ValidationBasisDisclosureModel.achieved_strength`.
     Its subject kinds include
-    `backend_conformance_claim` (`raes_contracts/contracts/validation_disclosure.py:85`),
+    `raes_contracts/contracts/validation_disclosure.py::"backend_conformance_claim"`,
     and the validation profile catalog lists that kind at
-    `backend_conformance_claim` (`contracts/profiles/validation/validation-profile-catalog-v1.json:54`).
+    `contracts/profiles/validation/validation-profile-catalog-v1.json::"backend_conformance_claim"`.
     No report field holds a disclosure. Fixture cases also omit each
     contract's validation strength.
-    `contract_validation_strength` (`raes_conformance/conformance/validators.py:460`)
+    `raes_conformance/conformance/validators.py::contract_validation_strength`
     computes it, and `raes semantic` reports it as
-    `validation_strength` (`raes_cli/_semantic_portable.py:107`).
+    `raes_cli/_semantic_portable.py::_execute_registered_portable.validation_strength`.
 - **Processors: gap.** No processor report exists to carry a basis. The
   disclosure's subject kinds include no processor kind, in
-  `_SUBJECT_KIND_TO_REF_KIND` (`raes_contracts/contracts/validation_disclosure.py:79`).
+  `raes_contracts/contracts/validation_disclosure.py::_SUBJECT_KIND_TO_REF_KIND`.
 
 ### C7 diagnostics sufficient to explain gaps or limitations
 
 - **Backends: partial.**
-  - Reports and cases both carry
-    `diagnostics` (`raes_conformance/conformance/report.py:130`). The payload
-    keeps each diagnostic's code, domain, address, severity and message.
-  - Each gap kind that the runner detects has its own code:
-    `conformance.unsupported-contract-declaration` (`raes_conformance/conformance/target.py:202`),
-    `conformance.unsupported-surface` (`raes_conformance/conformance/target.py:210`),
-    `conformance.unsupported-capability-claim` (`raes_conformance/conformance/target.py:218`),
-    `conformance.profile-load-failed` (`raes_conformance/conformance/profiles.py:171`),
-    `conformance.profile-runtime-surface-unknown` (`raes_conformance/conformance/target.py:165`),
-    `conformance.fixture-missing` (`raes_conformance/conformance/fixture_suite.py:53`),
-    `conformance.participant-feature-support-invalid` (`raes_conformance/conformance/target.py:253`),
-    `conformance.participant-policy-probe-missing` (`raes_conformance/conformance/participant_policy_probes.py:53`),
-    `conformance.realization-harness-missing` (`raes_conformance/realization.py:372`)
+  - Reports and cases both carry diagnostics, in
+    `raes_conformance/conformance/report.py::BackendConformanceReport.diagnostics`
     and
-    `conformance.native-basis-required` (`raes_conformance/realization.py:405`).
+    `raes_conformance/conformance/report.py::ConformanceCaseResult.diagnostics`.
+    The payload keeps each diagnostic's code, domain, address, severity and
+    message.
+  - Each gap kind that the runner detects has its own code:
+    `raes_conformance/conformance/target.py::"conformance.unsupported-contract-declaration"`,
+    `raes_conformance/conformance/target.py::"conformance.unsupported-surface"`,
+    `raes_conformance/conformance/target.py::"conformance.unsupported-capability-claim"`,
+    `raes_conformance/conformance/profiles.py::"conformance.profile-load-failed"`,
+    `raes_conformance/conformance/target.py::"conformance.profile-runtime-surface-unknown"`,
+    `raes_conformance/conformance/fixture_suite.py::"conformance.fixture-missing"`,
+    `raes_conformance/conformance/target.py::"conformance.participant-feature-support-invalid"`,
+    `raes_conformance/conformance/participant_policy_probes.py::"conformance.participant-policy-probe-missing"`,
+    `raes_conformance/realization.py::"conformance.realization-harness-missing"`
+    and
+    `raes_conformance/realization.py::"conformance.native-basis-required"`.
   - Limitations travel as text. Cases carry
-    `limitations` (`raes_conformance/conformance/report.py:95`) and
-    `explicit_non_claims` (`raes_conformance/conformance/report.py:96`). The
-    claim that
-    `_bounded_conformance_claim` (`raes_conformance/conformance/report.py:356`)
+    `raes_conformance/conformance/report.py::ConformanceCaseResult.limitations`
+    and
+    `raes_conformance/conformance/report.py::ConformanceCaseResult.explicit_non_claims`.
+    The claim that
+    `raes_conformance/conformance/report.py::_bounded_conformance_claim`
     builds carries its own limitations and nonclaims.
-    `_sanitize_load_error` (`raes_conformance/conformance/profiles.py:185`)
+    `raes_conformance/conformance/profiles.py::_sanitize_load_error`
     describes a failure without echoing the rejected input, so a report can be
     stored.
   - Tests:
@@ -322,14 +332,14 @@ section names the missing part. **Gap** means nothing exposes it.
   - Missing: a failed invalid-fixture case has no diagnostic. When the
     validators accept a fixture from an `invalid/` directory, the case fails
     with an empty diagnostics list, at
-    `case_diagnostics` (`raes_conformance/conformance/fixture_suite.py:82`).
+    `raes_conformance/conformance/fixture_suite.py::run_fixture_suite.case_diagnostics`.
     The report adds no diagnostic either. Only `valid: false` with
     `passed: false` marks the failure. No test asserts the
     `conformance.unsupported-surface` path (see C5). Whether diagnostics are
     "sufficient" is a judgment. This map checks only that they exist.
 - **Processors: gap.** Processor commands report scenario diagnostics. One
   example is the `diagnostics` list that `raes processor plan` prints, built
-  in `_execution_plan_payload` (`raes_cli/processor.py:152`). None of them
+  in `raes_cli/processor.py::_execution_plan_payload`. None of them
   explains a gap in a processor's own support.
 
 ## Missing processor reporting
@@ -357,7 +367,7 @@ conformance model. This map does not choose a design.
 
 - The map changes no runtime code, profile or requirement text. It claims no
   executable or runtime adoption.
-- A status rests on the cited lines and tests. "Covered" means the cited code
+- A status rests on the cited code and tests. "Covered" means the cited code
   exposes what the clause names. It does not mean that the exposure suffices
   for every consumer.
 - The map does not assess the other done-when items of #222.
@@ -372,9 +382,10 @@ conformance model. This map does not choose a design.
   the statement gains words that no clause or frame phrase covers.
 - A clause loses its row or its section, or gains a second one. A table
   status disagrees with its section.
-- A cited code file is missing, or the cited line no longer holds the named
-  symbol. The failure lists the lines that hold the symbol now.
+- A cited code file is missing, or it no longer defines the cited symbol or
+  holds the cited string.
 - A cited test module or `module::test` function is missing.
 - A link opens no page.
 
-When cited code moves, update its line here in the same change.
+The check reads no line numbers, so code that moves inside its file still
+passes. Renaming or removing a cited symbol or string fails it.
