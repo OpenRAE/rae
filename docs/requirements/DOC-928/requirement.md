@@ -28,6 +28,7 @@ Issue #928 establishes a public documentation publication boundary and adds an e
 - IMPLEMENTS → CODE_FILE `tools/public_docs_guard.py` (Sphinx publication guard and cache invalidation)
 - IMPLEMENTS → CODE_FILE `tools/public_docs_markup.py` (MyST publication-boundary source checks)
 - IMPLEMENTS → CONFIG `docs/public/conf.py` (Public documentation build and guard registration)
+- IMPLEMENTS → CONFIG `docs/governance/requirement-scopes/954.json` (Issue-bound documentation verification scope)
 - IMPLEMENTS → GITHUB_ISSUE `954` (Publication-boundary enforcement and reporting contact)
 - TESTS → TEST `implementations/python/tests/test_issue_954_docs_publication_boundary.py` (Static boundary checks and Sphinx build regressions)
 - IMPLEMENTS → CODE_FILE `tools/vale_tool.py` (Pinned Vale tooling helper)

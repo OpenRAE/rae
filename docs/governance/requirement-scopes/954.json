@@ -1,0 +1,18 @@
+{
+  "schema_version": "requirement-scope/v1",
+  "issue_number": 954,
+  "primary_requirement_uid": "DOC-928",
+  "requirement_uids": ["DOC-928"],
+  "bindings": {
+    "CODE_OF_CONDUCT.md": ["DOC-928"],
+    "SECURITY.md": ["DOC-928"],
+    "docs/governance/requirement-scopes/954.json": ["DOC-928"],
+    "docs/public/conf.py": ["DOC-928"],
+    "docs/requirements/DOC-928/requirement.md": ["DOC-928"],
+    "implementations/python/tests/test_issue_954_docs_publication_boundary.py": ["DOC-928"],
+    "tools/check_public_docs.py": ["DOC-928"],
+    "tools/policy/requirement_order.yaml": ["DOC-928"],
+    "tools/public_docs_guard.py": ["DOC-928"],
+    "tools/public_docs_markup.py": ["DOC-928"]
+  }
+}

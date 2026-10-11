@@ -20,7 +20,6 @@ import pytest
 import raes
 import yaml
 from sphinx.cmd.build import build_main
-
 from tools import public_docs_guard, public_docs_markup
 from tools.check_public_docs import (
     INTERNAL_RECORD_DIRECTORIES,
@@ -77,6 +76,8 @@ REPOSITORY_IMPORTS = {
     "automodule-tool": ".. automodule:: tools.check_public_docs",
     "autosummary-tool": ".. autosummary::\n\n   tools.check_public_docs.evaluate_public_sources",
     "automodule-namespace": ".. automodule:: tools",
+    "automodule-guard": ".. automodule:: public_docs_guard",
+    "autosummary-guard": ".. autosummary::\n\n   public_docs_guard.files_outside",
 }
 BUILD_WARNING = re.compile(r"/docs/public/(?P<page>[^/:\s]+)(?::\d+)?: WARNING: (?P<message>.+)")
 OUTSIDE_WARNING = "which is outside the documentation source directory"
