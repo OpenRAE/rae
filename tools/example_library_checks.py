@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+import json
 from functools import cache
 from pathlib import Path
 from typing import Any
 
-import yaml
 from raes import Scenario, SDLParseError, load_sdl_fragment, parse_sdl, parse_sdl_file
 
 from tools.policy.common import PolicyFailure
@@ -139,9 +139,9 @@ def load_template_file(path: Path, relative_path: str) -> tuple[dict[str, Any] |
 
 def check_template_body(entry: dict[str, Any], body: dict[str, Any], relative_path: str) -> list[PolicyFailure]:
     """Validate a template body as SDL and check the entry's declared sections against it."""
-    failures = _check_sdl(
-        yaml.safe_dump(body, sort_keys=False), relative_path, kind="template", subject="template body"
-    )
+    # JSON is sdl-yaml/v1 input that keeps the loaded types; yaml.safe_dump would
+    # leave a string such as '0o36' unquoted, and sdl-yaml/v1 reads it as an int.
+    failures = _check_sdl(json.dumps(body), relative_path, kind="template", subject="template body")
     return failures or _check_declared_sections(entry, body, relative_path)
 
 

@@ -185,6 +185,14 @@ _BODY_NAME_LINE = "  name: scenario-template\n"
         ),
         # YAML 1.2 Core reads this as a string; yaml.safe_load raises ValueError on it.
         pytest.param(_BODY_NAME_LINE, _BODY_NAME_LINE + "  description: 2026-02-30\n", [], "", id="core-date-spelling"),
+        # sdl-yaml/v1 keeps this quoted value a string; yaml.safe_dump writes it unquoted, which reads back as an int.
+        pytest.param(
+            "      interval: 30\n",
+            "      interval: '0o36'\n",
+            ["example-library-template-body"],
+            "interval must be an integer",
+            id="quoted-octal-string",
+        ),
     ),
 )
 def test_template_file_is_read_with_the_sdl_yaml_loader(
