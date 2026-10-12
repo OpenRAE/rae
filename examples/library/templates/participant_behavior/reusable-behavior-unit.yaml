@@ -10,7 +10,7 @@ source_refs:
 summary: Participant behavior template for a module unit that exports a behavior specification and the declarations it names, so that another scenario can import it under a namespace.
 validation:
   - command: uv run --project implementations/python --frozen python tools/check_example_library.py
-    expected: Exits 0 with no output. The gate loads this file as YAML, parses the loaded body as a standalone scenario with the SDL parser and semantic validator, and fails on any error or advisory. Loading keeps the last value of a duplicate key, so the gate does not report duplicate keys. It does not import the unit.
+    expected: Exits 0 with no output. The gate reads this file with the sdl-yaml/v1 loader, which rejects duplicate keys and merge keys. It parses the body as a standalone scenario with the SDL parser and semantic validator and fails on any error or advisory. It does not import the unit.
   - command: uv run --project implementations/python --frozen python -c "import sys; from pathlib import Path; from raes import parse_sdl_file; print(sorted(parse_sdl_file(Path(sys.argv[1])).behavior_specifications))" my-scenario.sdl.yaml
     expected: >-
       With the body saved as scan-behavior.sdl.yaml and, in the same directory,
