@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from functools import cache
 from pathlib import Path
 from typing import Any
@@ -25,6 +26,10 @@ INTENDED_USERS: tuple[str, ...] = ("sdl-author",)
 # composition rather than as sections. The SDL catalog parity gate keeps these
 # sets in step with that catalog.
 NON_SECTION_FIELDS = _METADATA_FIELDS | _COMPOSITION_FIELDS
+# Characters that json.dumps(ensure_ascii=False) leaves raw but the sdl-yaml/v1
+# reader rejects (DEL, the C1 controls, U+FFFE, U+FFFF) or reads as a line break
+# inside a quoted string (NEL, U+2028, U+2029). JSON escapes the C0 controls.
+_YAML_SPECIAL_CHARACTERS = re.compile(r"[\x7f-\x9f\u2028\u2029\ufffe\uffff]")
 
 
 def _fail(rule_id: str, message: str, path: str = CATALOG_RELATIVE_PATH) -> PolicyFailure:
@@ -137,11 +142,21 @@ def load_template_file(path: Path, relative_path: str) -> tuple[dict[str, Any] |
     return raw, []
 
 
+def sdl_body_source(body: dict[str, Any]) -> str:
+    """Write a loaded template body as sdl-yaml/v1 text that reads back to the same values.
+
+    JSON keeps the loaded types; yaml.safe_dump would leave a string such as
+    '0o36' unquoted, and sdl-yaml/v1 reads it as an int. ensure_ascii=True
+    would write a character outside the BMP as a surrogate pair, which
+    sdl-yaml/v1 reads as two lone surrogates.
+    """
+    text = json.dumps(body, ensure_ascii=False)
+    return _YAML_SPECIAL_CHARACTERS.sub(lambda match: f"\\u{ord(match.group()):04x}", text)
+
+
 def check_template_body(entry: dict[str, Any], body: dict[str, Any], relative_path: str) -> list[PolicyFailure]:
     """Validate a template body as SDL and check the entry's declared sections against it."""
-    # JSON is sdl-yaml/v1 input that keeps the loaded types; yaml.safe_dump would
-    # leave a string such as '0o36' unquoted, and sdl-yaml/v1 reads it as an int.
-    failures = _check_sdl(json.dumps(body), relative_path, kind="template", subject="template body")
+    failures = _check_sdl(sdl_body_source(body), relative_path, kind="template", subject="template body")
     return failures or _check_declared_sections(entry, body, relative_path)
 
 

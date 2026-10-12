@@ -8,8 +8,10 @@ from typing import Any
 
 import pytest
 import yaml
+from raes import load_sdl_fragment
 from test_example_library_policy import _VALID_BODY, _read_catalog, _seed_repo, _write_catalog
 from tools.check_example_library import evaluate_example_library
+from tools.example_library_checks import sdl_body_source
 
 _Mutation = Callable[[dict[str, Any]], None]
 _WORKED_SDL_PATH = "examples/scenarios/worked.sdl.yaml"
@@ -193,6 +195,18 @@ _BODY_NAME_LINE = "  name: scenario-template\n"
             "interval must be an integer",
             id="quoted-octal-string",
         ),
+        # parse_sdl accepts this text; a surrogate-pair escape of the emoji would read back as two lone surrogates.
+        pytest.param(
+            _BODY_NAME_LINE, _BODY_NAME_LINE + "  description: smile \U0001f600\n", [], "", id="non-bmp-character"
+        ),
+        # YAML escapes for characters the sdl-yaml/v1 reader rejects or reads as line breaks when written raw.
+        pytest.param(
+            _BODY_NAME_LINE,
+            _BODY_NAME_LINE + '  description: "\\x7f \\x85 \\x9f \\L \\P \\uFFFE \\uFFFF"\n',
+            [],
+            "",
+            id="yaml-special-characters",
+        ),
     ),
 )
 def test_template_file_is_read_with_the_sdl_yaml_loader(
@@ -208,3 +222,25 @@ def test_template_file_is_read_with_the_sdl_yaml_loader(
 
     assert [failure.rule_id for failure in failures] == expected
     assert all(diagnostic in failure.message and failure.path == _TEMPLATE_PATH for failure in failures)
+
+
+@pytest.mark.parametrize(
+    "character",
+    (
+        pytest.param("\U0001f600", id="non-bmp"),
+        pytest.param("\x7f", id="delete"),
+        pytest.param("\x80", id="first-c1-control"),
+        pytest.param("\x85", id="next-line"),
+        pytest.param("\x9f", id="last-c1-control"),
+        pytest.param("\u2028", id="line-separator"),
+        pytest.param("\u2029", id="paragraph-separator"),
+        pytest.param("\ufeff", id="byte-order-mark"),
+        pytest.param("\ufffe", id="noncharacter-fffe"),
+        pytest.param("\uffff", id="noncharacter-ffff"),
+    ),
+)
+def test_template_body_source_reads_back_as_the_loaded_body(character: str) -> None:
+    # Spaces around the character catch the line folding that a raw NEL, U+2028, or U+2029 gets.
+    body = {"name": "scenario-template", "description": f" a {character} b "}
+
+    assert load_sdl_fragment(sdl_body_source(body)) == body
