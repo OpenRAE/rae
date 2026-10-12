@@ -1261,18 +1261,27 @@ def test_structural_policy_runner_receives_policy_input(tmp_path: Path) -> None:
     assert [failure.rule_id for failure in failures] == ["structural-check"]
 
 
+def _verified_conftest_binary() -> Path:
+    installation = verified_tool_installation.default_installation_root(REPO_ROOT) / "conftest"
+    binary = next(
+        (path for path in installation.glob("**/conftest") if path.is_file() and path.stat().st_mode & 0o777 == 0o500),
+        None,
+    )
+    if binary is None:
+        pytest.fail(
+            f"no verified conftest installation under {installation}; run `make policy` to install it",
+            pytrace=False,
+        )
+    return binary
+
+
 @pytest.mark.integration
 def test_default_structural_policy_runner_executes_rego(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
     repo_root = setup_policy_repo(tmp_path)
-    binary = next(
-        path
-        for path in (verified_tool_installation.default_installation_root(REPO_ROOT) / "conftest").glob("**/conftest")
-        if path.is_file() and path.stat().st_mode & 0o777 == 0o500
-    )
-    assert binary.is_file()
+    binary = _verified_conftest_binary()
     monkeypatch.setattr(conftest_tool, "ensure_conftest", lambda *_args, **_kwargs: binary)
 
     failures = evaluate_repo_policy(
@@ -1283,6 +1292,28 @@ def test_default_structural_policy_runner_executes_rego(
     )
 
     assert [failure.rule_id for failure in failures] == ["legacy-top-level-root"]
+
+
+@pytest.mark.parametrize("installed_mode", [None, 0o755], ids=["absent", "unverified-mode"])
+def test_rego_runner_test_names_missing_conftest_installation(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    installed_mode: int | None,
+) -> None:
+    installation_root = tmp_path / "installations"
+    if installed_mode is not None:
+        unverified = installation_root / "conftest" / "interrupted" / "conftest"
+        unverified.parent.mkdir(parents=True)
+        unverified.write_bytes(b"")
+        unverified.chmod(installed_mode)
+    monkeypatch.setattr(verified_tool_installation, "default_installation_root", lambda _root: installation_root)
+
+    with pytest.raises(pytest.fail.Exception) as failure:
+        test_default_structural_policy_runner_executes_rego(monkeypatch, tmp_path / "repo")
+
+    assert str(failure.value) == (
+        f"no verified conftest installation under {installation_root / 'conftest'}; run `make policy` to install it"
+    )
 
 
 def test_conftest_policy_runner_parses_and_sorts_failures(
