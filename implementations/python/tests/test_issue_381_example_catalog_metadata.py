@@ -145,3 +145,58 @@ def test_absent_section_failure_names_the_catalog_entry(tmp_path: Path) -> None:
 
     assert [failure.rule_id for failure in failures] == ["example-library-entry-sections"]
     assert "run-worked" in failures[0].message
+
+
+_TEMPLATE_PATH = "examples/library/templates/scenario/template.yaml"
+_BODY_NAME_LINE = "  name: scenario-template\n"
+
+
+@pytest.mark.parametrize(
+    ("old", "new", "expected", "diagnostic"),
+    (
+        pytest.param(
+            _BODY_NAME_LINE,
+            _BODY_NAME_LINE + "  description: First.\n  description: Second.\n",
+            ["example-library-parse"],
+            "sdl.mapping_key_conflict",
+            id="duplicate-body-key",
+        ),
+        pytest.param(
+            "      type: compute\n",
+            "      <<: {type: compute}\n",
+            ["example-library-parse"],
+            "sdl.noncanonical_merge",
+            id="merge-key",
+        ),
+        pytest.param(
+            _BODY_NAME_LINE,
+            "  name: !!str scenario-template\n",
+            ["example-library-parse"],
+            "Explicit YAML tags",
+            id="explicit-tag",
+        ),
+        # sdl-yaml/v1 accepts an acyclic alias within its limits, as parse_sdl does.
+        pytest.param(
+            _BODY_NAME_LINE,
+            "  name: &shared scenario-template\n  description: *shared\n",
+            [],
+            "",
+            id="acyclic-alias-accepted",
+        ),
+        # YAML 1.2 Core reads this as a string; yaml.safe_load raises ValueError on it.
+        pytest.param(_BODY_NAME_LINE, _BODY_NAME_LINE + "  description: 2026-02-30\n", [], "", id="core-date-spelling"),
+    ),
+)
+def test_template_file_is_read_with_the_sdl_yaml_loader(
+    tmp_path: Path, old: str, new: str, expected: list[str], diagnostic: str
+) -> None:
+    repo_root = _seed_repo(tmp_path)
+    template_file = repo_root / _TEMPLATE_PATH
+    source = template_file.read_text(encoding="utf-8")
+    assert source.count(old) == 1
+    template_file.write_text(source.replace(old, new), encoding="utf-8")
+
+    failures = evaluate_example_library(repo_root)
+
+    assert [failure.rule_id for failure in failures] == expected
+    assert all(diagnostic in failure.message and failure.path == _TEMPLATE_PATH for failure in failures)

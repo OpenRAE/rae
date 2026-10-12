@@ -16,7 +16,12 @@ if str(REPO_ROOT) not in sys.path:
 
 import yaml
 
-from tools.example_library_checks import check_entry_metadata, check_template_body, check_worked_example_file
+from tools.example_library_checks import (
+    check_entry_metadata,
+    check_template_body,
+    check_worked_example_file,
+    load_template_file,
+)
 from tools.policy.common import PolicyFailure, apply_exceptions, failures_to_json, load_exceptions
 
 CATALOG_RELATIVE_PATH = "examples/library/catalog.yaml"
@@ -340,7 +345,7 @@ def _check_unique_id(value: Any, owner: str, seen_ids: set[str]) -> list[PolicyF
 
 
 def _check_template_file(path: Path, relative_path: str, *, surface: str, entry: dict[str, Any]) -> list[PolicyFailure]:
-    raw, failures = _load_yaml_file(path, relative_path)
+    raw, failures = load_template_file(path, relative_path)
     if raw is None:
         return failures
     catalog_id = entry.get("id")
