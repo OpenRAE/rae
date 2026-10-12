@@ -11,6 +11,7 @@ from typing import Any
 import yaml
 from raes import Scenario, SDLParseError, load_sdl_fragment, parse_sdl, parse_sdl_file
 from raes_contracts.experiment_spec import ExperimentSpecValidationError, parse_experiment_spec
+from raes_contracts.experiment_spec import _load_yaml as _read_experiment_yaml
 
 from tools.policy.common import PolicyFailure
 from tools.sdl_catalog_parity._paths import _COMPOSITION_FIELDS, _METADATA_FIELDS
@@ -148,19 +149,28 @@ def _check_sdl(source: str | Path, relative_path: str, *, kind: str, subject: st
     return failures
 
 
-def load_template_file(path: Path, relative_path: str) -> tuple[dict[str, Any] | None, list[PolicyFailure]]:
-    """Read a template file with the strict sdl-yaml/v1 loader that parse_sdl uses.
+def load_template_file(
+    path: Path, relative_path: str, contract: object = None
+) -> tuple[dict[str, Any] | None, list[PolicyFailure]]:
+    """Read a template file with the strict loader of the entry's contract.
 
     yaml.safe_load keeps the last of duplicate keys and expands merge keys, so
     the body it returns can differ from the body an author saves and parses.
-    The SDL loader rejects both, along with explicit tags. It accepts acyclic
-    aliases within its limits, as parse_sdl does. The root mapping holds the
-    template fields, so its keys are read literally; the body below it gets
-    the same structural key checks as an SDL document root.
+    An experiment authoring-input template is read with the YAML reader of
+    parse_experiment_spec, which rejects duplicate keys, aliases, and merge
+    keys. Any other template is read with the sdl-yaml/v1 loader that
+    parse_sdl uses. It rejects duplicate keys, merge keys, and explicit tags,
+    and accepts acyclic aliases within its limits, as parse_sdl does. The root
+    mapping holds the template fields, so its keys are read literally; the
+    body below it gets the same structural key checks as an SDL document root.
     """
     try:
-        raw = load_sdl_fragment(path.read_text(encoding="utf-8"), mapping_keys="literal")
-    except (SDLParseError, UnicodeDecodeError) as exc:
+        text = path.read_text(encoding="utf-8")
+        if contract == EXPERIMENT_CONTRACT:
+            raw = _read_experiment_yaml(text)
+        else:
+            raw = load_sdl_fragment(text, mapping_keys="literal")
+    except (SDLParseError, yaml.YAMLError, UnicodeDecodeError) as exc:
         return None, [_fail("example-library-parse", f"failed to parse {relative_path}: {exc}", relative_path)]
     if not isinstance(raw, dict):
         return None, [

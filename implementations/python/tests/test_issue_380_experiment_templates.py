@@ -135,3 +135,29 @@ def test_experiment_contract_is_limited_to_run_and_study_templates(
     _apply(repo_root, _as_experiment_template, surface=surface)
 
     assert [failure.rule_id for failure in evaluate_example_library(repo_root)] == rule_ids
+
+
+_RUN_TEMPLATE_PATH = "examples/library/templates/run/template.yaml"
+_TITLE_LINE = "  title: Policy test spec\n"
+_TEXT_LINES = _TITLE_LINE + "  description: Experiment template body for policy tests.\n"
+
+
+@pytest.mark.parametrize(
+    ("old", "new"),
+    (
+        pytest.param(_TITLE_LINE, _TITLE_LINE + "  title: Second title\n", id="duplicate-key"),
+        pytest.param(_TEXT_LINES, "  title: &text Policy test spec\n  description: *text\n", id="scalar-alias"),
+        pytest.param("      turn_order: sequential\n", "      <<: {turn_order: sequential}\n", id="merge-key"),
+    ),
+)
+def test_experiment_template_file_is_read_with_the_experiment_loader_reader(tmp_path: Path, old: str, new: str) -> None:
+    # yaml.safe_load accepts each edit, and the body it returns is a valid experiment spec.
+    repo_root = _seed_experiment_repo(tmp_path)
+    template_file = repo_root / _RUN_TEMPLATE_PATH
+    source = template_file.read_text(encoding="utf-8")
+    assert source.count(old) == 1
+    template_file.write_text(source.replace(old, new), encoding="utf-8")
+
+    failures = evaluate_example_library(repo_root)
+
+    assert [(failure.rule_id, failure.path) for failure in failures] == [("example-library-parse", _RUN_TEMPLATE_PATH)]

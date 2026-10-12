@@ -347,7 +347,7 @@ def _check_unique_id(value: Any, owner: str, seen_ids: set[str]) -> list[PolicyF
 
 
 def _check_template_file(path: Path, relative_path: str, *, surface: str, entry: dict[str, Any]) -> list[PolicyFailure]:
-    raw, failures = load_template_file(path, relative_path)
+    raw, failures = load_template_file(path, relative_path, entry.get("contract"))
     if raw is None:
         return failures
     catalog_id = entry.get("id")
