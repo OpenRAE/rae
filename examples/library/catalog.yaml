@@ -149,7 +149,7 @@ surfaces:
         example_refs: [reusable-behavior-unit]
         limits:
           - It does not validate the importing scenario with raes semantic validate, which rejects a document that declares imports.
-          - It does not show that exports hide every declaration; validation rejects the __private segment in a behavior specification's refs, but it accepts an importing scenario agent's affiliations, actions, or observation_boundaries entry that names an unexported declaration as <namespace>.__private.<name>, although the SDL specification makes that segment invalid author input.
+          - It does not show that exports hide every declaration. Validation rejects the __private segment in a behavior specification's participant_refs, action_contract_refs, observation_boundary_refs, outcome_interpretation_rule_refs, and authority_scope_refs, but it accepts an unexported declaration's <namespace>.__private.<name> name in some other fields of the importing scenario, including a tool affordance's tool_ref and an agent's affiliations, actions, and observation_boundaries, although the SDL specification makes that segment invalid author input.
       - id: participant-behavior-tool-affordance
         path: examples/library/patterns/participant-behavior-tool-affordance.yaml
         validation_status: guidance

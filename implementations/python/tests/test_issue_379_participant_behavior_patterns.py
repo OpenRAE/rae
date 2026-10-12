@@ -287,14 +287,49 @@ def test_behavior_specification_cannot_name_an_unexported_declaration_by_its_pri
         parse_sdl_file(root)
 
 
-def test_importing_scenario_agent_can_name_an_unexported_declaration_by_its_private_name(tmp_path: Path) -> None:
+def _agent_naming_private_declarations(tmp_path: Path) -> Path:
     unit = _unit_exporting_only_the_specification()
-    root = _importing_scenario(tmp_path, unit, {"alpha": "1.0.0"}, _PRIVATE_AGENT_REF)
+    return _importing_scenario(tmp_path, unit, {"alpha": "1.0.0"}, _PRIVATE_AGENT_REF)
 
-    agent = parse_sdl_file(root).agents["blue-agent"]
 
-    assert (agent.affiliations, agent.actions, agent.observation_boundaries) == (
-        ["alpha.__private.red-team"],
-        ["alpha.__private.scan"],
-        ["alpha.__private.red-view"],
+def _affordance_naming_private_content(tmp_path: Path) -> Path:
+    """Move the tool-affordance template's content into a unit that exports nothing."""
+    importer = _template_body("tool-affordance")
+    unit = {
+        "name": "scanner-toolkit",
+        "module": {"id": "example/scanner-toolkit", "version": "1.0.0"},
+        "nodes": importer["nodes"],
+        "content": importer.pop("content"),
+    }
+    del importer["name"]
+    importer["behavior_specifications"][_SPEC]["tool_affordances"]["network-scanner"]["tool_ref"] = (
+        "alpha.__private.scanner-package"
     )
+    return _importing_scenario(tmp_path, unit, {"alpha": "1.0.0"}, yaml.safe_dump(importer, sort_keys=False))
+
+
+def _agent_refs(scenario: Any) -> tuple[list[str], list[str], list[str]]:
+    agent = scenario.agents["blue-agent"]
+    return agent.affiliations, agent.actions, agent.observation_boundaries
+
+
+def _tool_ref(scenario: Any) -> str | None:
+    return scenario.behavior_specifications[_SPEC].tool_affordances["network-scanner"].tool_ref
+
+
+@pytest.mark.parametrize(
+    ("write_scenario", "read", "expected"),
+    (
+        pytest.param(
+            _agent_naming_private_declarations,
+            _agent_refs,
+            (["alpha.__private.red-team"], ["alpha.__private.scan"], ["alpha.__private.red-view"]),
+            id="agent-fields",
+        ),
+        pytest.param(_affordance_naming_private_content, _tool_ref, "alpha.__private.scanner-package", id="tool-ref"),
+    ),
+)
+def test_importing_scenario_can_name_an_unexported_declaration_by_its_private_name(
+    tmp_path: Path, write_scenario: Callable[[Path], Path], read: Callable[[Any], object], expected: object
+) -> None:
+    assert read(parse_sdl_file(write_scenario(tmp_path))) == expected

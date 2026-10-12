@@ -17,7 +17,7 @@ use_when:
   - One scenario needs two copies of a participant, each with its own behavior specification.
 required_fields:
   - "In the unit, a module block with id in publisher/name form and version. An imported unit without a module block is rejected."
-  - "In the unit, module.exports naming each declaration that the importing scenario references. An exported declaration is imported as <namespace>.<name>. Composition still imports an unexported declaration, as <namespace>.__private.<name>; the SDL specification makes that __private segment invalid author input, and validation rejects it in a behavior specification's refs."
+  - "In the unit, module.exports naming each declaration that the importing scenario references. An exported declaration is imported as <namespace>.<name>. Composition still imports an unexported declaration, as <namespace>.__private.<name>; the SDL specification makes that __private segment invalid author input. Validation rejects it in a behavior specification's participant_refs, action_contract_refs, observation_boundary_refs, outcome_interpretation_rule_refs, and authority_scope_refs, but accepts it in some other fields of the importing scenario, including a tool affordance's tool_ref and an agent's affiliations, actions, and observation_boundaries."
   - "In the importing scenario, each imports entry has source (here local:<path> relative to the importing file; docs/explain/sdl/parser.md lists the other source classes) and namespace. version defaults to any version; set an exact version or a range to pin it."
 authoring_steps:
   - Write the unit as a complete scenario with a module block, and validate it on its own first.
