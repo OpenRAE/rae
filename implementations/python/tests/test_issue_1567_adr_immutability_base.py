@@ -41,12 +41,17 @@ def _git(repo: Path, *args: str) -> None:
     subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True)
 
 
-def _write_adr(repo: Path, name: str, body: str, *, amended: bool = False) -> None:
-    """Write ADR-001 at ``name`` and pin it in the manifest at that path."""
+def _write_adr(repo: Path, name: str, body: str, *, amended: bool = False, recorded_path: str | None = None) -> None:
+    """Write ADR-001 at ``name`` and pin it in the manifest at ``recorded_path``
+    (default: that path)."""
     text = _adr_text(body, amended=amended)
     (repo / ADR_DIR).mkdir(parents=True, exist_ok=True)
     (repo / ADR_DIR / name).write_text(text, encoding="utf-8")
-    entry: dict[str, object] = {"id": "ADR-001", "path": (ADR_DIR / name).as_posix(), "pin": content_hash(text)}
+    entry: dict[str, object] = {
+        "id": "ADR-001",
+        "path": recorded_path or (ADR_DIR / name).as_posix(),
+        "pin": content_hash(text),
+    }
     if amended:
         entry["amendments"] = [{"date": "2026-10-12", "ref": AMENDMENT_REF, "summary": "rewrote the body"}]
     manifest = {"hash_algorithm": "sha256", "adrs": [entry]}
@@ -148,3 +153,41 @@ def test_base_without_usable_manifest_compares_at_current_path(repo: Path, base_
     assert [(failure.rule_id, failure.path) for failure in failures] == [
         (adr_gate.RULE_AMENDMENT_UNRECORDED, (ADR_DIR / ORIGINAL_NAME).as_posix())
     ]
+
+
+@pytest.mark.parametrize("mode", ["base-rev", "staged"])
+@pytest.mark.parametrize(
+    "recorded_path",
+    [
+        f"{ADR_DIR.as_posix()}/./{ORIGINAL_NAME}",
+        f"./{ADR_DIR.as_posix()}/{ORIGINAL_NAME}",
+        f"docs//decisions/adrs/{ORIGINAL_NAME}",
+        f"docs/decisions/adrs-link/{ORIGINAL_NAME}",
+    ],
+    ids=["dot-segment", "leading-dot", "double-slash", "symlinked-dir"],
+)
+def test_unnormalized_base_manifest_path_still_compares_the_base_copy(
+    repo: Path, mode: str, recorded_path: str
+) -> None:
+    """A manifest path that resolves to the ADR file but is not the literal path
+    git stores must not make the edited ADR look newly added."""
+    (repo / "docs/decisions/adrs-link").symlink_to("adrs", target_is_directory=True)
+    _write_adr(repo, ORIGINAL_NAME, ORIGINAL_BODY, recorded_path=recorded_path)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "base pinned at an unnormalized path")
+    _write_adr(repo, ORIGINAL_NAME, EDITED_BODY, recorded_path=recorded_path)
+
+    failures = _evaluate(repo, mode)
+
+    assert [(failure.rule_id, failure.path) for failure in failures] == [
+        (adr_gate.RULE_AMENDMENT_UNRECORDED, (ADR_DIR / ORIGINAL_NAME).as_posix())
+    ]
+
+
+@pytest.mark.parametrize("mode", ["base-rev", "staged"])
+def test_accepted_adr_absent_at_base_is_treated_as_newly_added(repo: Path, mode: str) -> None:
+    _git(repo, "rm", "-q", "-r", ADR_DIR.as_posix())
+    _git(repo, "commit", "-q", "-m", "base without ADR-001")
+    _write_adr(repo, ORIGINAL_NAME, EDITED_BODY)
+
+    assert _evaluate(repo, mode) == []

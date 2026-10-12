@@ -43,6 +43,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import posixpath
 import re
 import subprocess
 import sys
@@ -282,8 +283,10 @@ def _resolve_commit(repo_root: Path, rev: str) -> str | None:
 
 
 def _base_manifest_paths(repo_root: Path, base: str) -> dict[str, str]:
-    """``ADR-NNN`` → path recorded in the base revision's manifest. Empty when
-    the base has no readable manifest (for example a revision before ADR-059)."""
+    """``ADR-NNN`` → path recorded in the base revision's manifest, normalized
+    (``./`` and ``//`` segments removed) because ``git show`` needs the literal
+    tree path. Empty when the base has no readable manifest (for example a
+    revision before ADR-059)."""
     text = _git_show(repo_root, f"{base}:{MANIFEST_PATH}")
     try:
         raw = yaml.safe_load(text) if text is not None else None
@@ -293,10 +296,20 @@ def _base_manifest_paths(repo_root: Path, base: str) -> dict[str, str]:
     if not isinstance(entries, list):
         return {}
     return {
-        entry["id"]: entry["path"]
+        entry["id"]: posixpath.normpath(entry["path"])
         for entry in entries
         if isinstance(entry, dict) and isinstance(entry.get("id"), str) and isinstance(entry.get("path"), str)
     }
+
+
+def _base_copy(repo_root: Path, base: str, recorded: str | None, rel: str) -> str | None:
+    """The ADR's text at ``base``: at the base manifest's ``recorded`` path, else
+    at its current path ``rel``. None only when neither exists at ``base``."""
+    for path in dict.fromkeys((recorded or rel, rel)):
+        text = _git_show(repo_root, f"{base}:{path}")
+        if text is not None:
+            return text
+    return None
 
 
 def _check_unrecorded_edits(
@@ -309,8 +322,9 @@ def _check_unrecorded_edits(
     """A pin bump alone must not bless an edit: when an accepted ADR's canonical
     content changed versus the base, the same change must also have added a
     ``## Amendments`` record. The base copy is the file at the path the base
-    manifest records for the same ADR id (the current path when the base
-    manifest has none), so a rename cannot hide an edit."""
+    manifest records for the same ADR id, or at the current path when the base
+    manifest has none or git stores nothing there, so a rename cannot hide an
+    edit."""
     if staged:
         base = "HEAD"
     else:
@@ -328,7 +342,7 @@ def _check_unrecorded_edits(
     failures: list[PolicyFailure] = []
     for adr_id, disk_path in accepted.items():
         rel = _rel(repo_root, disk_path)
-        base_text = _git_show(repo_root, f"{base}:{base_paths.get(adr_id, rel)}")
+        base_text = _base_copy(repo_root, base, base_paths.get(adr_id), rel)
         if base_text is None:
             continue  # not present at base (newly added) — nothing to compare
         head_text = _git_show(repo_root, f":{rel}") if staged else disk_path.read_text(encoding="utf-8")
