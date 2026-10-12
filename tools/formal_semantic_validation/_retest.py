@@ -10,6 +10,7 @@ from tools.formal_semantic_validation._production import (
     _ProductionObservationContext,
     _validate_production_evidence_observation,
 )
+from tools.formal_semantic_validation._release_revisions import source_bound_revision
 from tools.formal_semantic_validation._replay import (
     _participant_test_refs,
     _replay_observation_matches,
@@ -37,8 +38,6 @@ from tools.formal_semantic_validation._types import (
 )
 from tools.policy.common import PolicyFailure
 
-_SOURCE_STATE_REVISIONS = frozenset(f"{revision}.0.0" for revision in range(4, 77))
-
 
 @dataclasses.dataclass(frozen=True)
 class _RetestScope:
@@ -65,8 +64,7 @@ def _validate_retest_snapshot(
     cases_by_id = scope.cases_by_id
     if not _closed_object(
         snapshot,
-        _SNAPSHOT_V2_KEYS
-        | ({"source_state"} if release.manifest.get("revision") in _SOURCE_STATE_REVISIONS else set()),
+        _SNAPSHOT_V2_KEYS | ({"source_state"} if source_bound_revision(release.manifest.get("revision")) else set()),
         rule_id="formal-validation-snapshot-shape",
         label="retest snapshot",
         failures=failures,
@@ -83,7 +81,7 @@ def _validate_retest_snapshot(
     expected_release_paths = _retest_observation_failures(
         scope, (release_artifacts_by_path, commands_by_id), failures, path
     )
-    if release.manifest.get("revision") in _SOURCE_STATE_REVISIONS:
+    if source_bound_revision(release.manifest.get("revision")):
         expected_release_paths.update(_retained_fixture_paths(cases_by_id))
     _validate_release_selection(scope, command_ids, expected_release_paths, failures, path)
     _validate_retest_participant_observations(protocol, snapshot, failures, path)

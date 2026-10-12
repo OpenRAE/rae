@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-1423-sync-v75",
+  "analysis_id": "raes-standardized-specification-coverage-issue-1366-sync-v75",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -18,7 +18,7 @@
     ],
     "evidence_artifacts": [
       "docs/research/specification-coverage/protocol-v1.json",
-      "docs/research/specification-coverage/execution-snapshot-v72.json",
+      "docs/research/specification-coverage/execution-snapshot-v75.json",
       "docs/research/specification-coverage/analysis-v68.json"
     ],
     "falsification_protocol": "docs/research/specification-coverage/protocol-v1.json",
@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-10-11T21:58:12.665142+00:00",
+  "generated_at": "2026-10-11T20:33:55.374067+00:00",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
@@ -68,8 +68,10 @@
     "The issue #1361 resource type-hint repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The issue #1418 runtime-fact export manifest split changes no contract, schema or behavior; this retained matrix makes no new admission or coverage claim.",
-    "This synchronization adds no mixed-backend runtime execution claim; the issue #1371 tests cover the composition run-scope join.",
-    "The issue #1423 inject contract discriminator repair is covered by its dedicated fixtures; the retained corpus adds no inject execution, authorization or world-effect claim."
+    "The issue #1423 inject trigger request and occurrence contracts are new draft carriers that no SDL construct, compiler or runtime path reads; this retained matrix makes no new admission or coverage claim.",
+    "The issue #1366 inject readback, correlation and backend declaration contracts are new draft carriers; the shared backend allowlist also lets SDL participant behavior specifications cite inject-occurrence-v1 and inject-occurrence-outcome-v1 as evidence_contract_refs, which the compiler copies through uninterpreted, and no runtime path or shipped backend reads or declares them; this retained matrix makes no new admission or coverage claim.",
+    "This synchronization preserves the original inject and mixed-backend captures, binds their combined source, and adds no runtime or backend-adoption claim.",
+    "This second synchronization adds behavior-authoring source from issue #297; prior inject and behavior-authoring captures remain preserved. No additional runtime adoption is claimed."
   ],
   "load_bearing_results": {
     "failed": 0,
@@ -77,7 +79,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "The retained specification matrix preserves its prior classifications after synchronizing the inject trigger and occurrence contracts with dev and requiring explicit placement discriminators. Bounded claim limits are unchanged.",
+  "plain_language_outcome": "The retained specification matrix preserves its classifications against synchronized inject, mixed-backend and behavior-authoring source; bounded claims remain unchanged.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -109,6 +111,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1423-sync-v75",
-  "snapshot_sha256": "d173523abfea872b820e96bcc7cac05d47ef794588bdfdc9bf20d369bc2f1625"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1366-sync-v75",
+  "snapshot_sha256": "ddac2e2fc25db95d4015c980c1be8c667fcf93c279629d9805e639925c3e6e42"
 }

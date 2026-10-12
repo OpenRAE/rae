@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 75.0.0 and rejects duplicate or unsupported
+Current validation requires release 74.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -584,16 +584,7 @@ shared-time readback isolation with `dev`. See
 claim limits remain unchanged; the readback mutation cases are covered by
 `test_issue_1421_time_readback_isolation.py`.
 
-The issue #1423 captures whose release identities collided during synchronization
-are preserved in the [inject occurrence archive](../inject-occurrence-pre-sync-evidence/README.md)
-with exact bytes, digests and source revision. Incoming published history remains
-canonical.
-
-Release 75.0.0 replays the retained corpus after synchronizing issue #1423's
-inject trigger and occurrence contracts with `dev` and requiring explicit
-placement discriminators. See
-[`execution-snapshot-v75.json`](execution-snapshot-v75.json) and
-[`analysis-v75.json`](analysis-v75.json). Retained outcomes and bounded
-claim limits remain unchanged; the missing-discriminator cases are covered by
-`test_issue_1423_inject_occurrence_contracts.py`. These captures establish no
-inject execution, authorization or world-effect claim.
+[Original inject synchronization captures](../inject-readback-first-sync-evidence/README.md)
+retain the collided identities and dependent baseline pins. Current combined-source
+evidence uses the content-addressed capture workflow documented in
+[research captures](../../develop/research-captures.md).

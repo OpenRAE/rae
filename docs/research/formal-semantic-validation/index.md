@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 76.0.0, rejects unsupported future
+Current validation requires explicit release 75.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -644,16 +644,7 @@ shared-time readback isolation with `dev`. See
 claim limits remain unchanged; the readback mutation cases are covered by
 `test_issue_1421_time_readback_isolation.py`.
 
-The issue #1423 captures whose release identities collided during synchronization
-are preserved in the [inject occurrence archive](../inject-occurrence-pre-sync-evidence/README.md)
-with exact bytes, digests and source revision. Incoming published history remains
-canonical.
-
-Release 76.0.0 replays the retained corpus after synchronizing issue #1423's
-inject trigger and occurrence contracts with `dev` and requiring explicit
-placement discriminators. See
-[`execution-snapshot-v76.json`](execution-snapshot-v76.json) and
-[`analysis-v76.json`](analysis-v76.json). Retained outcomes and bounded
-claim limits remain unchanged; the missing-discriminator cases are covered by
-`test_issue_1423_inject_occurrence_contracts.py`. These captures establish no
-inject execution, authorization or world-effect claim.
+[Original inject synchronization captures](../inject-readback-first-sync-evidence/README.md)
+retain the collided identities and dependent baseline pins. Current combined-source
+evidence uses the content-addressed capture workflow documented in
+[research captures](../../develop/research-captures.md).
