@@ -1,0 +1,40 @@
+{
+  "schema_version": "inject-trigger-request/v1",
+  "request_key": "slot-key-1",
+  "occurrence_id": "handover-occurrence-1",
+  "target_scope": "target:reference",
+  "run_scope": "run:exercise-1",
+  "plan": {
+    "contract_id": "orchestration-plan-v1",
+    "artifact_id": "orchestration-plan-1",
+    "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "inject": "orchestration.inject.handover",
+  "bindings": [
+    {
+      "binding": "orchestration.inject-binding.workstation.handover",
+      "node": "provision.node.workstation",
+      "instance": "workstation-1",
+      "revision": "realization-r3"
+    },
+    {
+      "binding": "orchestration.inject-binding.workstation.handover",
+      "node": "provision.node.workstation",
+      "instance": "workstation-2",
+      "revision": "realization-r3"
+    }
+  ],
+  "placement": {
+    "kind": "schedule",
+    "event": "orchestration.event.shift-change",
+    "script": "orchestration.script.day-one",
+    "story": "orchestration.story.exercise",
+    "slot": "day-one/shift-change/1"
+  },
+  "input_ref": {
+    "contract_id": "handover-input-v1",
+    "artifact_id": "handover-input-1",
+    "digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+  },
+  "expected_head": "order-head-19"
+}
