@@ -170,7 +170,9 @@ def load_template_file(
             raw = _read_experiment_yaml(text)
         else:
             raw = load_sdl_fragment(text, mapping_keys="literal")
-    except (SDLParseError, yaml.YAMLError, UnicodeDecodeError) as exc:
+    # ValueError covers UnicodeDecodeError and the experiment reader's
+    # timestamp error on an invalid date such as 2026-02-30.
+    except (SDLParseError, yaml.YAMLError, ValueError) as exc:
         return None, [_fail("example-library-parse", f"failed to parse {relative_path}: {exc}", relative_path)]
     if not isinstance(raw, dict):
         return None, [

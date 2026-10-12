@@ -148,10 +148,12 @@ _TEXT_LINES = _TITLE_LINE + "  description: Experiment template body for policy 
         pytest.param(_TITLE_LINE, _TITLE_LINE + "  title: Second title\n", id="duplicate-key"),
         pytest.param(_TEXT_LINES, "  title: &text Policy test spec\n  description: *text\n", id="scalar-alias"),
         pytest.param("      turn_order: sequential\n", "      <<: {turn_order: sequential}\n", id="merge-key"),
+        # The reader resolves YAML 1.1 timestamps and raises a bare ValueError on this date.
+        pytest.param(_TEXT_LINES, _TITLE_LINE + "  description: 2026-02-30\n", id="invalid-date"),
     ),
 )
 def test_experiment_template_file_is_read_with_the_experiment_loader_reader(tmp_path: Path, old: str, new: str) -> None:
-    # yaml.safe_load accepts each edit, and the body it returns is a valid experiment spec.
+    # Except for invalid-date, yaml.safe_load accepts each edit and returns a valid experiment spec body.
     repo_root = _seed_experiment_repo(tmp_path)
     template_file = repo_root / _RUN_TEMPLATE_PATH
     source = template_file.read_text(encoding="utf-8")
