@@ -156,7 +156,7 @@ pattern's limits.
 |---------|--------------|--------------------|----------------|
 | [`participant-behavior-contract-binding`](library/patterns/participant-behavior-contract-binding.yaml) | Bind agent actions and views to action contracts and observation boundaries | `action-contract-observation-boundary` | Participant runtime behavior |
 | [`participant-behavior-specification`](library/patterns/participant-behavior-specification.yaml) | Name and version the behavior surfaces of a participant in one scenario | `action-contract-observation-boundary` | That a participant runs, or that a backend supports the declared behavior mode or features |
-| [`participant-behavior-reusable-unit`](library/patterns/participant-behavior-reusable-unit.yaml) | Export a behavior specification from a module unit and import it under a namespace | `reusable-behavior-unit` | That role refs stay inside one import, or that `raes semantic validate` accepts the importing scenario |
+| [`participant-behavior-reusable-unit`](library/patterns/participant-behavior-reusable-unit.yaml) | Export a behavior specification from a module unit and import it under a namespace | `reusable-behavior-unit` | That `raes semantic validate` accepts the importing scenario, or that exports hide every declaration |
 | [`participant-behavior-tool-affordance`](library/patterns/participant-behavior-tool-affordance.yaml) | Bind a declared tool to the action contracts and observation boundaries it serves | `tool-affordance` | That a backend installs or exposes the tool, or admits an invocation |
 
 The gate validates `reusable-behavior-unit` as a standalone scenario and does

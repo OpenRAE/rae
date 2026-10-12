@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
 import pytest
 import yaml
-from packaging.specifiers import InvalidSpecifier
 from paths import REPO_ROOT
-from pydantic import ValidationError
 from raes import SDLParseError, SDLValidationError, parse_sdl_file
 from raes_cli.main import app
 from raes_processor.compiler import compile_runtime_model
@@ -48,6 +47,13 @@ behavior_specifications:
     semantic_version: 1.0.0
     participant_refs: [alpha.__private.red-agent]
     action_contract_refs: [alpha.__private.scan]
+"""
+_PRIVATE_AGENT_REF = """\
+agents:
+  blue-agent:
+    affiliations: [alpha.__private.red-team]
+    actions: [alpha.__private.scan]
+    observation_boundaries: [alpha.__private.red-view]
 """
 
 
@@ -249,31 +255,46 @@ def test_importing_scenario_cannot_add_an_affordance_for_an_imported_participant
         parse_sdl_file(root)
 
 
-def test_invalid_declaration_reports_a_diagnostic_only_outside_an_import(tmp_path: Path) -> None:
+@pytest.mark.parametrize("parsed", ("unit.sdl.yaml", "my-scenario.sdl.yaml"), ids=("standalone", "imported"))
+def test_invalid_declaration_reports_the_same_diagnostic_inside_an_import(tmp_path: Path, parsed: str) -> None:
     unit = _template_body("reusable-behavior-unit")
     unit["behavior_specifications"][_SPEC]["lifecycle_state"] = "retired"
-    root = _importing_scenario(tmp_path, unit, {"alpha": "1.0.0"})
+    _importing_scenario(tmp_path, unit, {"alpha": "1.0.0"})
+    diagnostic = f"unit.sdl.yaml: SDL model validation failed at /behavior_specifications/{_SPEC}/lifecycle_state:"
 
-    with pytest.raises(SDLParseError, match="lifecycle_state"):
-        parse_sdl_file(tmp_path / "unit.sdl.yaml")
-    with pytest.raises(ValidationError):
-        parse_sdl_file(root)
+    with pytest.raises(SDLParseError, match=re.escape(diagnostic)):
+        parse_sdl_file(tmp_path / parsed)
 
 
-def test_malformed_import_version_range_raises_a_raw_specifier_error(tmp_path: Path) -> None:
+def test_malformed_import_version_range_reports_an_sdl_diagnostic(tmp_path: Path) -> None:
     root = _importing_scenario(tmp_path, _template_body("reusable-behavior-unit"), {"alpha": ">=1,<<2"})
 
-    with pytest.raises(InvalidSpecifier, match="<<2"):
+    with pytest.raises(SDLParseError, match="at /imports/0/version: import version must be an exact version"):
         parse_sdl_file(root)
 
 
-def test_importing_scenario_can_bind_an_unexported_declaration_by_its_private_name(tmp_path: Path) -> None:
+def _unit_exporting_only_the_specification() -> dict[str, Any]:
     unit = _template_body("reusable-behavior-unit")
     unit["module"]["exports"] = {"behavior_specifications": [_SPEC]}
+    return unit
+
+
+def test_behavior_specification_cannot_name_an_unexported_declaration_by_its_private_name(tmp_path: Path) -> None:
+    unit = _unit_exporting_only_the_specification()
     root = _importing_scenario(tmp_path, unit, {"alpha": "1.0.0"}, _PRIVATE_NAME_REF)
 
-    compiled = compile_runtime_model(parse_sdl_file(root)).behavior_specifications
+    with pytest.raises(SDLParseError, match="participant_refs/0: authored qualified SDL identifier must not contain"):
+        parse_sdl_file(root)
 
-    assert compiled["participant.behavior-specification.local-scan"].participant_addresses == (
-        "participant.behavior.alpha.__private.red-agent",
+
+def test_importing_scenario_agent_can_name_an_unexported_declaration_by_its_private_name(tmp_path: Path) -> None:
+    unit = _unit_exporting_only_the_specification()
+    root = _importing_scenario(tmp_path, unit, {"alpha": "1.0.0"}, _PRIVATE_AGENT_REF)
+
+    agent = parse_sdl_file(root).agents["blue-agent"]
+
+    assert (agent.affiliations, agent.actions, agent.observation_boundaries) == (
+        ["alpha.__private.red-team"],
+        ["alpha.__private.scan"],
+        ["alpha.__private.red-view"],
     )

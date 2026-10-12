@@ -17,11 +17,11 @@ use_when:
   - One scenario needs two copies of a participant, each with its own behavior specification.
 required_fields:
   - "In the unit, a module block with id in publisher/name form and version. An imported unit without a module block is rejected."
-  - "In the unit, module.exports naming each declaration that the importing scenario references. An exported declaration is imported as <namespace>.<name>. Composition still imports an unexported declaration, as <namespace>.__private.<name>, and the SDL specification makes that __private segment invalid author input."
+  - "In the unit, module.exports naming each declaration that the importing scenario references. An exported declaration is imported as <namespace>.<name>. Composition still imports an unexported declaration, as <namespace>.__private.<name>; the SDL specification makes that __private segment invalid author input, and validation rejects it in a behavior specification's refs."
   - "In the importing scenario, each imports entry has source (here local:<path> relative to the importing file; docs/explain/sdl/parser.md lists the other source classes) and namespace. version defaults to any version; set an exact version or a range to pin it."
 authoring_steps:
   - Write the unit as a complete scenario with a module block, and validate it on its own first.
-  - Name the participants of a behavior specification in participant_refs, not participant_role_refs.
+  - Name the participants of a behavior specification in participant_refs, not participant_role_refs. A participant_role_refs entry selects every participant with that role in the composed scenario, so in a unit imported more than once it covers the participants of every import.
   - Export the behavior specification, so that it is imported as alpha.red-scan-behavior (the name the parse_sdl_file check prints), and the declarations that the importing scenario refers to.
   - Import the unit with an explicit namespace and version.
   - Refer to imported declarations by their namespace-qualified names, such as alpha.red-scan-behavior or alpha.red-agent.

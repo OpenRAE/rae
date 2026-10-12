@@ -148,10 +148,8 @@ surfaces:
         intended_user: sdl-author
         example_refs: [reusable-behavior-unit]
         limits:
-          - Role refs are not scoped to one import; in a unit imported more than once, a participant_role_refs entry covers the participants of every import that have the role.
           - It does not validate the importing scenario with raes semantic validate, which rejects a document that declares imports.
-          - It does not give SDL diagnostics for an invalid declaration inside an imported unit, which raises a pydantic ValidationError (validate the unit on its own first), or for a malformed import version range such as >=1,<<2, which raises a packaging InvalidSpecifier.
-          - It does not show that exports hide a declaration; validation accepts a reference from the importing scenario to an unexported declaration's <namespace>.__private.<name> name, although the SDL specification makes that __private segment invalid author input.
+          - It does not show that exports hide every declaration; validation rejects the __private segment in a behavior specification's refs, but it accepts an importing scenario agent's affiliations, actions, or observation_boundaries entry that names an unexported declaration as <namespace>.__private.<name>, although the SDL specification makes that segment invalid author input.
       - id: participant-behavior-tool-affordance
         path: examples/library/patterns/participant-behavior-tool-affordance.yaml
         validation_status: guidance
