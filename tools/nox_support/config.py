@@ -21,6 +21,7 @@ PUBLIC_DOCS_ENTRYPOINTS = (
 PUBLIC_DOCS_EXAMPLE_TESTS = (
     "implementations/python/tests/test_public_docs_policy.py::test_checked_in_quickstart_scenario_parses",
     "implementations/python/tests/test_public_docs_policy.py::test_readme_quickstart_matches_checked_in_scenario",
+    "implementations/python/tests/test_public_docs_policy.py::test_first_scenario_tutorial_shows_real_format_results",
     "implementations/python/tests/test_public_docs_policy.py::test_participant_control_claim_example_is_bounded",
 )
 RUFF_CONFIG = PROJECT_ROOT / "pyproject.toml"

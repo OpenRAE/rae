@@ -216,9 +216,7 @@ def _run_console_block(commands: str) -> tuple[int, str, str]:
     return outcomes[-1]
 
 
-def test_first_scenario_tutorial_states_the_real_format_check_results(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_first_scenario_tutorial_shows_real_format_results(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     tutorial = (REPO_ROOT / "docs" / "public" / "tutorials" / "first-scenario.md").read_text(encoding="utf-8")
     steps = _stated_format_steps(tutorial)
     # The page's paths are relative to the repository root. Run the commands in a copy of `docs/public` so the
