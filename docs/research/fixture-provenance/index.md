@@ -103,10 +103,11 @@ conditional:
 Each entry gives the fixture where there is one, the shape it asserts and what
 the real producer returned. It also names the production code that relies on
 that shape, the recommended fix and the status. "Open" means no change in this
-repository fixes it yet. The pull requests cited below were open, unmerged, when
-this record was written.
+repository fixes it yet, and each open entry names the issue that tracks it.
+The pull requests cited below were open on 2026-10-12, except #1415, which
+merged on 2026-10-11.
 
-### Addressed by open pull requests
+### Addressed by pull requests
 
 - **LV-2: libvirt missing objects raise `KeyError` in the TechVault fakes.**
   Blast M. Fixtures: `T/test_libvirt_backend_techvault_native.py:105-109` and the
@@ -136,7 +137,8 @@ this record was written.
   its inherited descriptors releases the parent's `flock`. Production guards are
   correct (`control_plane_store_lease.py:217-231`, `:113-120`), but removing
   either still passes the test. Fix: a test that holds duplicates of the lease
-  descriptors and probes both locks. Status: #1459 (test only).
+  descriptors and probes both locks. Status: #1459 (test only), issue
+  #1558.
 - **TM-1: compensation order sorts timestamps as strings.** Blast H. Fixtures:
   the compensation tests in `T/test_runtime_control_plane_api.py` have one
   compensable step, so none observes the order. Real: RAES
@@ -146,8 +148,48 @@ this record was written.
   `control_plane_workflows.py:52` sorts the text, against the reverse-completion
   rule in `specs/formal/workflows/compensation.md`. Fix: sort parsed instants.
   Status: #1464, issue #1462.
-- **GH-3: `gh release upload` in a job without a checkout.** Blast H. Already
-  tracked as #1414. Status: #1415.
+- **GH-3: `gh release upload` in a job without a checkout.** Blast H. Issue
+  #1414. Status: fixed by #1415, merged on 2026-10-11.
+- **GH-7: `run_started_at` resets on re-run.** Blast L. Fixture:
+  `T/test_ci_latency_report.py:12-123`. Production:
+  `tools/ci_latency_report.py:129-137` reports the re-run delay as queue time.
+  Fix: record the attempt and measure attempt 1 separately.
+  Status: #1491, issue #1490.
+- **NS-1: curl over HTTP/2 on macOS.** Blast M, macOS profile only. Fixture:
+  `_CurlFixture` in `T/test_issue_1217_bootstrap_profiles.py:776-819` speaks
+  HTTP/1.x only. Real: macOS curl 8.7.1 exits 56 for a size-limit breach and does
+  not retry a 503 over HTTP/2. Production:
+  `tools/maintained_client_acquisition.py:236-243` recognizes only 63, and
+  `:146-151` relies on curl's retries. Fix: pass `--http1.1`, the protocol the
+  qualification covers. Status: #1476, issue #1475.
+- **NS-2: OCI registries require a Bearer token.** Blast M. Fixture:
+  `T/test_sdl_module_registry.py:96-170` serves every endpoint anonymously.
+  Real: ghcr.io, Docker Hub and ECR Public answer 401 with a `Bearer` challenge,
+  and blobs redirect with 307. Production: `raes/module_registry/__init__.py:156-186`
+  treats the 401 as a fetch error. Fix: implement the anonymous token flow
+  without forwarding the token to the redirect target.
+  Status: #1480, issue #1479.
+- **MF-2: the mixed-runtime check compares internal representations.** Blast M.
+  Fixture: `T/test_issue_1016_mixed_runtime_coordination.py:278-291` builds the
+  target through the same round trip the check uses. Real: the APTL manifest's
+  authored OS order and list type differ from the round trip. Production:
+  `P/raes_runtime/mixed_runtime.py:212-214`. Fix: compare canonical contract
+  forms. Status: #1483, issue #1482.
+- **CL-2: git path listings without `-z`.** Blast M, latent (no non-ASCII path
+  is tracked today). Real: git quotes such paths. Production: `_changed_paths`
+  and `_tracked_repo_paths` in `tools/nox_support/runner.py` drop them, and
+  `changed_paths` in `tools/policy/common.py` returns the quoted text. Fix: use
+  `-z` listings. Status: #1474, issue #1473.
+- **ST-2: commit-failure fixtures raise inside the transaction body.** Blast L.
+  Fixtures: `T/test_run_310_supervisory_lifecycle.py:872` and
+  `T/test_runtime_control_plane_api.py:1878` raise `OSError` inside the
+  transaction body. Real: commit failures raise `sqlite3` errors from
+  `commit()`. Atomicity holds on real SQLite because the connection is closed
+  after each operation. Status: #1472 (test only), issue #1559.
+- **NS-7, NS-8: inert or harmless fixture drift.** Blast L. Fixtures:
+  `T/test_issue_1226_attestation_verifier.py:74-77` and the curl `000` stub in
+  `T/test_release_workflows.py:1394-1411`. Status: #1488 (test only), issues
+  #1560 (NS-7) and #1561 (NS-8).
 
 ### Open: production change needed
 
@@ -158,6 +200,7 @@ this record was written.
   an empty body and evaluate the exemption first. The validator file is
   byte-pinned by the #1284 policy migration (`pr-body-policy.yml` and
   `T/test_pr_body_policy_migration.py`), so the fix also moves that pin.
+  Status: open, issue #1525.
 - **GH-2: GitHub ignores closing keywords in PRs that target `dev`.** Blast M.
   Fixture comment: `T/test_pr_body_guard.py:295-296`. Real: PR #1413 says
   `Closes #1361` and has `closingIssuesReferences: []`. Production:
@@ -165,7 +208,7 @@ this record was written.
   references GitHub reads". Keywords in squashed commit messages do act once
   `dev` reaches `main`, and nothing checks them. Fix: check commit messages for
   closing references in `tools/check_pr_title.py`, which already receives them,
-  and correct the docstring.
+  and correct the docstring. Status: open, issue #1527.
 - **GH-4: more than one verified attestation per artifact.** Blast H. Fixture:
   `T/test_issue_1226_attestation_verifier.py:99-103`. Real: gh 2.101.0 prints one
   entry per verified attestation, and re-attesting byte-reproducible builds adds
@@ -173,16 +216,14 @@ this record was written.
   `tools/release_evidence_verifier.py:107-111` refuses any list longer than one
   (`verifier-ambiguous-attestation`), so a re-run or repair of an attested tag
   can never be admitted. Fix: refuse only distinct identities.
+  Status: open, issue #1529.
 - **GH-5: a partial re-run mixes attempt numbers.** Blast M. Fixture:
   `T/test_issue_1226_release_admission.py:283-287` treats another attempt as a
   replay. Real: run 36342459179. Production:
   `tools/release_evidence_admission.py:398-408` requires exact attempt equality,
   so "re-run failed jobs" after a transient admission failure cannot pass. Fix:
   keep `run_id` strict and accept `1 <= index attempt <= GITHUB_RUN_ATTEMPT`.
-- **GH-7: `run_started_at` resets on re-run.** Blast L. Fixture:
-  `T/test_ci_latency_report.py:12-123`. Production:
-  `tools/ci_latency_report.py:129-137` reports the re-run delay as queue time.
-  Fix: record the attempt and measure attempt 1 separately.
+  Status: open, issue #1531.
 - **LV-1: the generic driver identifies native objects by name only.** Blast H.
   Fixture: `T/test_libvirt_backend_driver.py:111-125` stores objects in a
   name-keyed dictionary that accepts any UUID. Real: a name or UUID collision
@@ -191,13 +232,14 @@ this record was written.
   `deployment.py:428-430` and `:464-490` treat a name miss as absence; destroy
   then reports the object removed while it keeps running. Fix: fall back to
   `lookupByUUIDString` and `networkLookupByUUIDString` on the owned UUID, and
-  make the fakes raise code 9 on collisions.
+  make the fakes raise code 9 on collisions. Status: open, issue #1533.
 - **GU-1: the guest reports far less memory than the domain has.** Blast H.
   Fixtures: `T/test_libvirt_backend_guest_certified.py:115` (120), `:490`, `:683`.
   Real: `memory_mib 81` from `MemTotal` at 128 MiB; the committed July evidence
   says 78. Production: `guest_observation.py:65` and `:245-246` accept 112-128,
   so a real guest fails certification. Fix: measure firmware "System RAM" in the
   probe and bump the probe policy, or derive the tolerance from measurements.
+  Status: open, issue #1535.
 - **GU-2: the guest's account `disabled` report is constant.** Blast H.
   Fixtures: `T/test_libvirt_backend_guest_certified.py:183`, `:600`, `:608`.
   Real: every account reports `1`. Production: enabled accounts are written with
@@ -205,32 +247,20 @@ this record was written.
   the SDL pipeline also sets `lock_passwd=True` for every account
   (`realization/_cloud_init.py:122`) and `techvault_matrix.py:132` maps that to
   `disabled`. Fix: report only `!` as disabled and carry the authored `disabled`
-  separately from `lock_passwd`.
+  separately from `lock_passwd`. Status: open, issue #1537.
 - **GU-3: cloud-init reads `user-data` as YAML.** Blast M. Fixture:
   `T/test_libvirt_backend_cloudinit.py:28-31` checks with `json.loads`. Real:
   PyYAML turns `json.dumps` surrogate pairs into lone surrogates, and
   cloud-init's UTF-8 write fails. Production: `cloudinit.py:120`. Fix: emit YAML
   `\U` escapes for astral-plane characters and use `yaml.safe_load` as the oracle.
+  Status: open, issue #1539.
 - **TM-2: naive `requested_at` values pass admission.** Blast M, latent: only
   tests construct the admission today. Fixtures:
   `T/test_runtime_fact_bindings.py:107` and `:233-243` use `Z` timestamps.
   Real: a value built with `datetime.isoformat()` from a naive datetime, or a
   date-only value, is admitted (`runtime_fact_dispatch.py:36`) and binding
   raises `TypeError` (`runtime_fact_binding_policy.py:119-124`). Fix: require an
-  offset at admission.
-- **NS-1: curl over HTTP/2 on macOS.** Blast M, macOS profile only. Fixture:
-  `_CurlFixture` in `T/test_issue_1217_bootstrap_profiles.py:776-819` speaks
-  HTTP/1.x only. Real: macOS curl 8.7.1 exits 56 for a size-limit breach and does
-  not retry a 503 over HTTP/2. Production:
-  `tools/maintained_client_acquisition.py:236-243` recognizes only 63, and
-  `:146-151` relies on curl's retries. Fix: pass `--http1.1`, the protocol the
-  qualification covers.
-- **NS-2: OCI registries require a Bearer token.** Blast M. Fixture:
-  `T/test_sdl_module_registry.py:96-170` serves every endpoint anonymously.
-  Real: ghcr.io, Docker Hub and ECR Public answer 401 with a `Bearer` challenge,
-  and blobs redirect with 307. Production: `raes/module_registry/__init__.py:156-186`
-  treats the 401 as a fetch error. Fix: implement the anonymous token flow
-  without forwarding the token to the redirect target.
+  offset at admission. Status: open, issue #1541.
 - **NS-3: the sdist-built test wheel equals the wheel.** Blast M. Fixtures:
   `T/test_issue_1226_release_admission.py:70`, `:172` and
   `T/test_issue_1227_release_publication.py:64`, `:156` use distinct bytes and a
@@ -238,12 +268,14 @@ this record was written.
   digest. Production: `tools/release_evidence_admission.py:314-320` passes only
   because the digests coincide. Fix: admit the derived subject against
   `test_subjects`, or make byte identity an explicit gate.
+  Status: open, issue #1545.
 - **EV-1: LilRAE evidence records omit `capture_spec_ref.ref_version`.** Blast M.
   Fixtures: the 5 files under
   `contracts/fixtures/experiment-core/experiment-evidence-record-v1/valid/`.
   Real: the schema accepts LilRAE's record and
   `raes_contracts/evidence_satisfaction.py:98-107` rejects it. Fix: compare as
   `run_ref` already does, or require the version in the schema and in LilRAE.
+  Status: open, issue #1547.
 - **MF-1: processor and backend compatibility exists only in fixtures.** Blast M.
   Fixtures patch the pairing: `compatibility.backends` at
   `T/test_sce_002_trial_realization.py:67` and `T/test_runtime_contracts.py:81`,
@@ -251,12 +283,7 @@ this record was written.
   declares `["stub"]`, so every shipped non-stub backend is rejected by
   `trial_realization.py:224-228` and `trial_compiler/apparatus.py:389-401`. Fix:
   declare the certified pairings or document that trial realization is stub-only.
-- **MF-2: the mixed-runtime check compares internal representations.** Blast M.
-  Fixture: `T/test_issue_1016_mixed_runtime_coordination.py:278-291` builds the
-  target through the same round trip the check uses. Real: the APTL manifest's
-  authored OS order and list type differ from the round trip. Production:
-  `P/raes_runtime/mixed_runtime.py:212-214`. Fix: compare canonical contract
-  forms.
+  Status: open, issue #1549.
 - **RS-1, RS-2, RS-3: conformance and the SEM-222 test validate projections that
   differ from the published snapshot.** Blast M. Real, from one live control
   plane: the hermetic conformance payload omits `realization_envelope` and
@@ -268,27 +295,23 @@ this record was written.
   `participant.behavior` entry, which the corpus supplies with an empty payload
   (RS-3). Fix: validate the payload the public producers emit, and build corpus
   snapshots from the real pipeline.
+  Status: open, issues #1551 (RS-1), #1553 (RS-2) and #1555 (RS-3).
 - **ST-4: Ground Control transport failures escape classification.** Blast M.
   Fixture: `T/test_requirement_governance.py:150-152` fakes `HTTPError`,
   `URLError` and `TimeoutError`.
   Real: dropped connections, truncated bodies, HTML login pages and non-UTF-8
   bodies raise other exceptions. Production: `tools/policy/requirement_governance.py`
   maps only some failures to `GroundControlError`. Fix: classify transport and
-  decoding errors as unavailable.
-- **CL-2: git path listings without `-z`.** Blast M, latent (no non-ASCII path
-  is tracked today). Real: git quotes such paths. Production: `_changed_paths`
-  and `_tracked_repo_paths` in `tools/nox_support/runner.py` drop them, and
-  `changed_paths` in `tools/policy/common.py` returns the quoted text. Fix: use
-  `-z` listings.
+  decoding errors as unavailable. Status: open, issue #1557.
 - **TM-3: rejected MCP arguments echo the input value.** Blast L.
   `T/test_experiment_authoring.py:195-206` asserts no `input_value` in the
   rendered result, passing `spec_content` as a string. Real: an object argument
   gets the MCP framework's validation error with `input_value`. Fix: handle
-  argument validation errors in the server.
+  argument validation errors in the server. Status: open, issue #1543.
 
 ### Open: smaller corrections
 
-Blast L unless marked.
+Blast L unless marked. Status: open, tracked together in #1521.
 
 - **LV-4:** generic-driver fakes in `T/test_libvirt_backend_driver.py`:
   `destroy()` succeeds on an inactive object (real: code 55) and `undefine()`
@@ -303,22 +326,14 @@ Blast L unless marked.
   always fails. Fix: lock the canonical digest the checker already computes.
 - **NS-5:** `tools/tooling_artifact_policy_oci.py:102-108` rejects repeated layer
   digests, which real manifests contain.
-- **NS-6, NS-7, NS-8:** inert or harmless fixture drift in
-  `T/test_oci_release_image.py:122-124`, `T/test_issue_1226_attestation_verifier.py:74-77`
-  and the curl `000` stub in `T/test_release_workflows.py:1394-1411`. Nothing
-  reads the NS-6 fields, so the inventory rates it `n/a` and the results table
-  does not count it as a divergence.
+- **NS-6:** inert fixture drift in `T/test_oci_release_image.py:122-124`.
+  Nothing reads its fields, so the inventory rates it `n/a` and the results
+  table does not count it as a divergence.
 - **MF-3:** 9 of the 17 negative corpus files under
   `contracts/fixtures/backend-manifest/backend-manifest-v2/invalid/` (checked by
   `T/test_backend_manifest.py:1179-1183`) fail for incidental reasons as well as
   their named defect. Fix: derive each from the current valid stub with one
   mutation and assert the reason.
-- **ST-2:** commit-failure fixtures
-  (`T/test_run_310_supervisory_lifecycle.py:872`,
-  `T/test_runtime_control_plane_api.py:1878`) raise `OSError` inside the
-  transaction body; real commit failures raise `sqlite3` errors from `commit()`.
-  Atomicity holds on real SQLite because the connection is closed after each
-  operation.
 - **ST-3:** the `_QuickCheckFailureConnection` fake
   (`T/test_issue_1092_control_plane_crash_consistency.py:1028`) returns a
   non-`ok` row, but severe corruption raises `sqlite3.DatabaseError` from
@@ -329,7 +344,8 @@ Blast L unless marked.
 
 - The open divergences above need production changes. GH-2, GH-4, GH-5, NS-3,
   MF-1, GU-1 and GU-2 also involve a release-admission or semantics choice that
-  belongs to the maintainer.
+  belongs to the maintainer, and their issues (#1527, #1529, #1531, #1545,
+  #1549, #1535 and #1537) list the options.
 - Unverified boundaries: transferred-issue redirects, `GITHUB_SHA` on
   `workflow_dispatch`, `open` release assets, libvirt code 62 for a missing
   nwfilter under current code, libvirt code 9 for an `nwfilterDefineXML` name or
@@ -337,6 +353,7 @@ Blast L unless marked.
   `genisoimage`, the AWS EC2 CLI JSON, lock digests for self-downloading actions,
   `check-jsonschema`, store migration across releases, and capture offers.
 - Boundaries not examined, such as the z3 solver binding (see Limits).
+- #1522 tracks the unverified boundaries and the boundaries not examined.
 - Findings for sibling repositories are listed below. Filing them in those
   repositories is outside this change.
 
