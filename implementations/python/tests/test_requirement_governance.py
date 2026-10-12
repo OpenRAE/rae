@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import json
 import shutil
+import socket
 import sys
+import threading
 from io import BytesIO
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -150,6 +152,7 @@ def test_ground_control_http_client_bounds_external_requests(monkeypatch) -> Non
         (HTTPError("http://ground-control.invalid", 503, "unavailable", None, BytesIO(b"offline")), "503: offline"),
         (URLError("connection refused"), "connection refused"),
         (TimeoutError(), "request timed out"),
+        (ConnectionResetError("reset by peer"), "ConnectionResetError: reset by peer"),
     ),
 )
 def test_ground_control_http_client_maps_transport_failures_to_runtime_error(
@@ -166,6 +169,113 @@ def test_ground_control_http_client_maps_transport_failures_to_runtime_error(
 
     with pytest.raises(RuntimeError, match=message):
         client.get_requirement("project", "ASR-535")
+
+
+def _raw_reply(
+    status: str, body: bytes, *, declared_length: int | None = None, content_type: str = "application/json"
+) -> bytes:
+    length = len(body) if declared_length is None else declared_length
+    head = f"HTTP/1.1 {status}\r\nContent-Type: {content_type}\r\nContent-Length: {length}\r\nConnection: close\r\n\r\n"
+    return head.encode("ascii") + body
+
+
+def _read_request_head(conn: socket.socket) -> None:
+    received = b""
+    while b"\r\n\r\n" not in received:
+        chunk = conn.recv(4096)
+        if not chunk:
+            return
+        received += chunk
+
+
+@pytest.fixture
+def one_shot_ground_control(monkeypatch):
+    """Answer one request on localhost with a canned raw reply, then close the socket."""
+    for name in ("http_proxy", "HTTP_PROXY"):
+        monkeypatch.delenv(name, raising=False)
+    threads: list[threading.Thread] = []
+
+    def serve(reply: bytes) -> str:
+        listener = socket.create_server(("127.0.0.1", 0))
+        listener.settimeout(5)
+
+        def answer() -> None:
+            with listener:
+                conn, _ = listener.accept()
+                with conn:
+                    conn.settimeout(5)
+                    _read_request_head(conn)
+                    conn.sendall(reply)
+
+        thread = threading.Thread(target=answer, daemon=True)
+        thread.start()
+        threads.append(thread)
+        host, port = listener.getsockname()[:2]
+        return f"http://{host}:{port}"
+
+    yield serve
+    for thread in threads:
+        thread.join(timeout=5)
+
+
+@pytest.mark.parametrize(
+    ("reply", "error_type", "message"),
+    (
+        pytest.param(b"", GroundControlUnavailable, "RemoteDisconnected", id="closed-without-response"),
+        pytest.param(
+            _raw_reply("200 OK", b'{"status":', declared_length=64),
+            GroundControlUnavailable,
+            "IncompleteRead",
+            id="truncated-body",
+        ),
+        pytest.param(
+            _raw_reply("200 OK", b"<html><body>Sign in</body></html>", content_type="text/html"),
+            GroundControlUnavailable,
+            "JSONDecodeError",
+            id="html-login-page",
+        ),
+        pytest.param(
+            _raw_reply("200 OK", b'{"status": "\xff"}'),
+            GroundControlUnavailable,
+            "UnicodeDecodeError",
+            id="non-utf8-json",
+        ),
+        pytest.param(
+            _raw_reply("503 Service Unavailable", b"off", declared_length=64),
+            GroundControlUnavailable,
+            "503: <body unreadable: IncompleteRead>",
+            id="truncated-503-body",
+        ),
+        pytest.param(
+            _raw_reply("401 Unauthorized", b"auth", declared_length=64),
+            GroundControlAuthRequired,
+            "401: <body unreadable: IncompleteRead>",
+            id="truncated-401-body",
+        ),
+    ),
+)
+def test_ground_control_http_client_classifies_malformed_replies(
+    one_shot_ground_control,
+    reply: bytes,
+    error_type: type[Exception],
+    message: str,
+) -> None:
+    client = GroundControlHttpClient(one_shot_ground_control(reply), timeout_seconds=5.0)
+
+    with pytest.raises(error_type, match=message):
+        client.get_requirement("project", "ASR-535")
+
+
+def test_dropped_ground_control_reply_is_reported_as_unavailable(monkeypatch, capsys, one_shot_ground_control) -> None:
+    base_url = one_shot_ground_control(b"")
+    monkeypatch.setattr("tools.check_requirement_governance.resolve_base_url", lambda _root: base_url)
+
+    exit_code = evaluate_against_ground_control([], "GOV-918", require_governance=True, as_json=False)
+
+    assert exit_code == 1
+    err = capsys.readouterr().err
+    assert "ground-control-unavailable" in err
+    assert "RemoteDisconnected" in err
 
 
 def test_requirement_uid_context_precedence(monkeypatch) -> None:
