@@ -39,7 +39,12 @@ def load_index_records(
     directory = safe_repo_path(repo_root, directory_value) if isinstance(directory_value, str) else None
     if directory is None or not directory.is_dir():
         raise ValueError(f"{index_path!r} contains an unsafe or missing {directory_key}")
-    paths = sorted(directory.glob("*.json"))
+    paths = sorted(
+        [
+            *directory.glob("*.json"),
+            *(directory.parent / "captures").glob("*/manifest.json"),
+        ]
+    )
     if not paths:
         raise ValueError(f"{index_path!r} selects no evidence records")
     records: list[tuple[str, dict[str, object]]] = []

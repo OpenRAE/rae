@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-1091-sync-analysis-v76",
+  "analysis_id": "issue-1366-sync-analysis-v76",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -123,8 +123,8 @@
   ],
   "corpus_revision": "4.0.0",
   "evidence_status": "partial",
-  "execution_id": "issue-1091-sync-execution-v76",
-  "generated_at": "2026-10-11T21:36:38.671409+00:00",
+  "execution_id": "issue-1366-sync-execution-v76",
+  "generated_at": "2026-10-11T20:33:55.374067+00:00",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
     "The subset-minimal unsatisfiable core is not a universal proof certificate.",
@@ -157,9 +157,11 @@
     "The issue #1361 resource type-hint repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The issue #1418 runtime-fact export manifest split changes no contract, schema or behavior and adds no new formal-semantic claim.",
-    "This synchronization adds no mixed-backend runtime execution claim; the issue #1371 tests cover the composition run-scope join.",
-    "Issue #1091 request-boundary admission is verified by its dedicated tests; this retained corpus does not execute the served HTTP adapter or broaden its bounded claims."
+    "The issue #1423 inject trigger request and occurrence contracts are new draft carriers that no SDL construct, compiler or runtime path reads, and they add no new formal-semantic claim.",
+    "The issue #1366 inject readback, correlation and backend declaration contracts are new draft carriers; the shared backend allowlist also lets SDL participant behavior specifications cite inject-occurrence-v1 and inject-occurrence-outcome-v1 as evidence_contract_refs, which the compiler copies through uninterpreted, and no runtime path or shipped backend reads or declares them; they add no new formal-semantic claim.",
+    "This synchronization preserves the original inject baseline chain in the pre-sync archive, retains frozen production and participant evidence, and binds the combined contract source. CI independently verifies current evidence replay; no new runtime adoption is claimed.",
+    "This second synchronization binds behavior-authoring source from issue #297, retains frozen production and participant evidence, and pins the preserved first-sync release 75 as its baseline. CI independently verifies replay; no new runtime adoption is claimed."
   ],
-  "plain_language_outcome": "The retained formal controls reproduce their prior outcomes after merging the issue #1091 abandoned-request admission fix with dev. Bounded claim limits are unchanged.",
+  "plain_language_outcome": "The retained formal cases preserve their outcomes against synchronized inject, mixed-backend and behavior-authoring source; unsupported classes and bounded claims remain unchanged.",
   "protocol_revision": "2.0.0"
 }
