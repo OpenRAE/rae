@@ -1,9 +1,9 @@
 {
-  "content_hash": "1ad4ff17d19657f15deace6663c54ea90c44c24a2916fb26e51029455f73ba88",
+  "content_hash": "0653882846aec31da80b81daba31e5a3cff00d5e2fb6aeb099555b5acbf2e42e",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "1ad4ff17d19657f15deace6663c54ea90c44c24a2916fb26e51029455f73ba88",
-    "summary": "Reject empty and whitespace-only behavior specification version labels, matching existing parser validity; DSL-116 issue #297."
+    "content_hash": "0653882846aec31da80b81daba31e5a3cff00d5e2fb6aeb099555b5acbf2e42e",
+    "summary": "Add optional participant_refs and participant_role_refs selectors to behavior-specification tool-affordance bindings, so one participant tool profile can narrow each binding to some of its participants; ACT-619 issue #301."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

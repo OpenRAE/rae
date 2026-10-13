@@ -37,7 +37,11 @@ ToolAffordanceReference = Annotated[str, Field(min_length=1, pattern=r"\S")]
 
 
 class ParticipantToolAffordance(SDLModel):
-    """Authored participant-local binding from tool identity to governed behavior."""
+    """Authored participant-local binding from tool identity to governed behavior.
+
+    The optional participant selector (ACT-619) only narrows the owning specification's
+    selection; both lists empty means the binding applies to every selected participant.
+    """
 
     tool_ref: str | None = Field(default=None, min_length=1)
     action_contract_refs: list[ToolAffordanceReference] = Field(
@@ -48,8 +52,10 @@ class ParticipantToolAffordance(SDLModel):
         min_length=1,
         json_schema_extra={"uniqueItems": True},
     )
+    participant_refs: list[str] = Field(default_factory=list)
+    participant_role_refs: list[str] = Field(default_factory=list)
 
-    @field_validator("action_contract_refs", "observation_boundary_refs")
+    @field_validator("action_contract_refs", "observation_boundary_refs", "participant_refs", "participant_role_refs")
     @classmethod
     def _require_unique_non_empty_refs(cls, values: list[str]) -> list[str]:
         if any(not value.strip() for value in values):

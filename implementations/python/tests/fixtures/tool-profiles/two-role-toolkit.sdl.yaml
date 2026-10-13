@@ -1,0 +1,225 @@
+# One reusable participant tool profile used by two roles (issue #301, ACT-619).
+# The behavior specification `toolkit` is the profile. Its two bindings share one
+# tool (`nmap`) and differ in availability (selector), invocation constraints (the
+# bound action contract) and visibility (the bound observation boundary).
+#
+# The validator checks view classification by authored reference
+# (behavior_specifications.<spec>.tool_affordances.<id>), while decision-surface
+# projection reads the compiled view relation by runtime address, so each boundary
+# classifies both forms.
+name: two-role-toolkit
+nodes:
+  web:
+    type: compute
+    resources: {ram: 1 GiB, cpu: 1}
+    services: [{port: 80, name: http}]
+entities:
+  blue-team:
+    role: blue
+  white-team:
+    role: white
+content:
+  nmap:
+    type: file
+    target: web
+    path: /opt/raes/tools/nmap
+agents:
+  analyst:
+    affiliations: [blue-team]
+    actions: [scan-active]
+    observation_boundaries: [blue-view]
+  observer:
+    affiliations: [white-team]
+    actions: [scan-passive, scan-active]
+    observation_boundaries: [white-view]
+action_contracts:
+  scan-active:
+    semantic_version: 1.0.0
+    lifecycle_state: active
+    behavioral_granularity: atomic
+    procedure_basis: active service discovery against the web node
+    realization_profile: backend-declared
+    fidelity_claim: records participant discovery intent
+    arguments:
+      rate:
+        value_type: integer
+        minimum: 1
+        maximum: 100
+        normalization: identity
+        normalization_disclosure_ref: arguments.rate.normalization.identity
+        omission: reject
+        omission_disclosure_ref: arguments.rate.omission.reject
+        loss_disclosure_ref: arguments.rate.loss.none
+    preconditions:
+      - precondition_id: authority-in-scope
+        precondition_class: authority
+        description: the participant is authorized to scan the web service
+    effects:
+      - effect_id: no-effect
+        effect_class: no_effect
+        description: the fixture declares no environment effect
+    failure_classes: [unknown]
+  scan-passive:
+    semantic_version: 1.0.0
+    lifecycle_state: active
+    behavioral_granularity: atomic
+    procedure_basis: low-rate passive service observation of the web node
+    realization_profile: backend-declared
+    fidelity_claim: records participant observation intent
+    arguments:
+      rate:
+        value_type: integer
+        minimum: 1
+        maximum: 10
+        normalization: identity
+        normalization_disclosure_ref: arguments.rate.normalization.identity
+        omission: reject
+        omission_disclosure_ref: arguments.rate.omission.reject
+        loss_disclosure_ref: arguments.rate.loss.none
+    preconditions:
+      - precondition_id: authority-in-scope
+        precondition_class: authority
+        description: the participant is authorized to observe the web service
+    effects:
+      - effect_id: no-effect
+        effect_class: no_effect
+        description: the fixture declares no environment effect
+    failure_classes: [unknown]
+    temporal_contracts:
+      - temporal_id: passive-cadence
+        temporal_kind: cadence
+        time_domain: episode_step
+        clock_authority: processor.episode-sequence
+        event_points: [submit]
+        description: passive observations are rate-limited per participant episode
+        duration_ref: cadence.scan-passive.per-episode
+        reset_boundary: participant episode reset starts a new cadence segment
+        replay_boundary: replay preserves the original cadence segment id
+        randomization_basis: seeded participant episode sequence
+        ordering_basis: participant episode sequence
+        backend_disclosure_refs: [timing.remote-pacing]
+    backend_timing_disclosures:
+      - disclosure_id: timing.remote-pacing
+        disclosure_kind: pacing
+        support_mode: disclosed_limitation
+        description: remote backend pacing is best-effort and not portable semantic time
+        affected_temporal_ids: [passive-cadence]
+        limitations: [wall-clock pacing may lag backend event time]
+observation_boundaries:
+  blue-view:
+    projection_basis: blue participant view of the shared toolkit
+    observable_refs:
+      - context.public
+      - participant.action-contract.scan-active
+      - participant.action-contract.scan-passive
+      - participant.behavior-specification.toolkit.tool-affordance.scanner-blue
+      - behavior_specifications.toolkit.tool_affordances.scanner-blue
+    evidence_refs: [evidence.scan-output]
+    redaction_policy: no hidden refs are disclosed
+    latency_profile: immediate
+    view_rules:
+      - information_ref: context.public
+        boundary_class: public_task_statement
+        disposition: observable
+        visibility_basis: the public task statement is always visible
+      - information_ref: participant.action-contract.scan-active
+        boundary_class: observable_resource
+        disposition: observable
+        visibility_basis: blue participants see active scanning from the start
+      - information_ref: participant.action-contract.scan-passive
+        boundary_class: observable_resource
+        disposition: observable
+        visibility_basis: blue participants can see that passive scanning exists
+      - information_ref: participant.behavior-specification.toolkit.tool-affordance.scanner-blue
+        boundary_class: observable_resource
+        disposition: observable
+        visibility_basis: the blue binding is visible with its action
+      - information_ref: behavior_specifications.toolkit.tool_affordances.scanner-blue
+        boundary_class: observable_resource
+        disposition: observable
+        visibility_basis: authored classification of the blue binding
+  white-view:
+    projection_basis: white participant view of the shared toolkit
+    observable_refs:
+      - context.public
+      - participant.action-contract.scan-active
+      - participant.behavior-specification.toolkit.tool-affordance.scanner-blue
+    hidden_refs:
+      - participant.action-contract.scan-passive
+      - participant.behavior-specification.toolkit.tool-affordance.scanner-white
+      - behavior_specifications.toolkit.tool_affordances.scanner-white
+    evidence_refs: [evidence.scan-output]
+    redaction_policy: passive scanning is hidden until the exercise discloses it
+    latency_profile: immediate
+    view_rules:
+      - information_ref: context.public
+        boundary_class: public_task_statement
+        disposition: observable
+        visibility_basis: the public task statement is always visible
+      - information_ref: participant.action-contract.scan-active
+        boundary_class: observable_resource
+        disposition: observable
+        visibility_basis: white participants see active scanning from the start
+      - information_ref: participant.behavior-specification.toolkit.tool-affordance.scanner-blue
+        boundary_class: observable_resource
+        disposition: observable
+        visibility_basis: visible but never selected for white participants
+      - information_ref: participant.action-contract.scan-passive
+        boundary_class: observable_resource
+        disposition: hidden
+        visibility_basis: passive scanning is disclosed by the exercise
+      - information_ref: participant.behavior-specification.toolkit.tool-affordance.scanner-white
+        boundary_class: observable_resource
+        disposition: hidden
+        visibility_basis: the white binding is hidden and revealed with its action
+      - information_ref: behavior_specifications.toolkit.tool_affordances.scanner-white
+        boundary_class: observable_resource
+        disposition: hidden
+        visibility_basis: authored classification of the white binding
+    view_transitions:
+      - transition_id: disclose-passive-scan
+        transition_kind: disclosure
+        information_ref: participant.action-contract.scan-passive
+        trigger: the white participant's first observation
+        effective_from: episode-step:reveal-1:terminal-observation
+        effective_order: 1
+        history_event_type: observation_emitted
+        action_instance_id: reveal-1
+        from_disposition: hidden
+        to_disposition: disclosed
+        disclosure_rule: the exercise discloses passive scanning to white
+        evidence_refs: [evidence.scan-output]
+        certainty: high
+        latency_profile: terminal observation latency
+      - transition_id: disclose-passive-scanner
+        transition_kind: disclosure
+        information_ref: participant.behavior-specification.toolkit.tool-affordance.scanner-white
+        trigger: the white participant's first observation
+        effective_from: episode-step:reveal-1:terminal-observation
+        effective_order: 2
+        history_event_type: observation_emitted
+        action_instance_id: reveal-1
+        from_disposition: hidden
+        to_disposition: disclosed
+        disclosure_rule: the white binding is disclosed with its action
+        evidence_refs: [evidence.scan-output]
+        certainty: high
+        latency_profile: terminal observation latency
+behavior_specifications:
+  toolkit:
+    semantic_version: 1.0.0
+    lifecycle_state: active
+    participant_role_refs: [blue, white]
+    action_contract_refs: [scan-active, scan-passive]
+    observation_boundary_refs: [blue-view, white-view]
+    tool_affordances:
+      scanner-blue:
+        tool_ref: nmap
+        participant_role_refs: [blue]
+        action_contract_refs: [scan-active]
+        observation_boundary_refs: [blue-view]
+      scanner-white:
+        tool_ref: nmap
+        participant_role_refs: [white]
+        action_contract_refs: [scan-passive]
+        observation_boundary_refs: [white-view]

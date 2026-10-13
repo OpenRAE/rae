@@ -13,6 +13,7 @@ from .behavior_resources import (
     _PARTICIPANT_VISIBLE_VIEW_DISPOSITIONS,
     ParticipantBehaviorSpecificationRuntime,
     ParticipantObservationBoundaryRuntime,
+    ParticipantToolAffordanceRuntime,
 )
 from .history_event import ParticipantBehaviorHistoryEvent
 from .participant_exposure import project_participant_exposure_bindings
@@ -131,18 +132,41 @@ def _surface_action_assessments(
     return tuple(assessments[ref] for ref in action_refs)
 
 
+def _tool_affordance_is_scoped(affordance: ParticipantToolAffordanceRuntime) -> bool:
+    # Scoped is decided from the raw selector lists, never from the resolved addresses (ACT-619).
+    return bool(affordance.participant_refs or affordance.participant_role_refs)
+
+
 def _action_affordance_addresses(
     runtime_model: RuntimeModel,
     *,
     behavior_affordance_addresses: tuple[str, ...],
     action_address: str,
+    participant_address: str,
 ) -> tuple[str, ...]:
+    """Return the bindings of one spec that name the action and select the projected participant.
+
+    A scoped binding whose selector resolved to nobody is offered to nobody (fail closed).
+    """
+
     return tuple(
         affordance_address
         for affordance_address in behavior_affordance_addresses
-        if affordance_address in runtime_model.tool_affordances
-        and action_address in runtime_model.tool_affordances[affordance_address].action_contract_addresses
+        if (affordance := runtime_model.tool_affordances.get(affordance_address)) is not None
+        and action_address in affordance.action_contract_addresses
+        and (not _tool_affordance_is_scoped(affordance) or participant_address in affordance.participant_addresses)
     )
+
+
+def _reject_scoped_tool_affordances(
+    runtime_model: RuntimeModel, behavior: ParticipantBehaviorSpecificationRuntime
+) -> None:
+    """Keep v1 at its historical meaning (ADR-095 section 3): no v1 record can contain a scoped binding."""
+
+    for affordance_address in behavior.tool_affordance_addresses:
+        affordance = runtime_model.tool_affordances.get(affordance_address)
+        if affordance is not None and _tool_affordance_is_scoped(affordance):
+            raise ValueError("participant-scoped tool affordances require participant-decision-surface-v2")
 
 
 def _participant_visible_disposition(
@@ -254,6 +278,7 @@ def _project_surface_action(
         runtime_model,
         behavior_affordance_addresses=behavior.tool_affordance_addresses,
         action_address=action_address,
+        participant_address=projection.participant_address,
     )
     visibility = _participant_visible_disposition(
         relation,
@@ -359,6 +384,7 @@ def project_participant_decision_surface(
 
     _validate_projection_history(history_events, projection)
     behavior, boundary = _resolve_projection_scope(runtime_model, projection)
+    _reject_scoped_tool_affordances(runtime_model, behavior)
     relation = _projection_visibility_relation(history_events, projection, boundary)
     _validate_context_visibility(
         relation,

@@ -254,6 +254,9 @@ class ParticipantToolAffordanceRuntime(ResolvedResource):
     action_contract_addresses: tuple[str, ...] = ()
     observation_boundary_refs: tuple[str, ...] = ()
     observation_boundary_addresses: tuple[str, ...] = ()
+    participant_refs: tuple[str, ...] = ()
+    participant_role_refs: tuple[str, ...] = ()
+    participant_addresses: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

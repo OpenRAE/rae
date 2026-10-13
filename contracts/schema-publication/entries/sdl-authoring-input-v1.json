@@ -1,9 +1,9 @@
 {
-  "content_hash": "c89bbbb26022f043fa1b7da27356d4667edd80426c359173c7238820d18ed122",
+  "content_hash": "0f10a7945ee49f2e899ea5c3cb1beb280fe9bae596f53140a0ba76f186b2382c",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "c89bbbb26022f043fa1b7da27356d4667edd80426c359173c7238820d18ed122",
-    "summary": "Reject empty and whitespace-only behavior specification version labels, matching existing parser validity; DSL-116 issue #297."
+    "content_hash": "0f10a7945ee49f2e899ea5c3cb1beb280fe9bae596f53140a0ba76f186b2382c",
+    "summary": "Add optional participant_refs and participant_role_refs selectors to behavior-specification tool-affordance bindings, so one participant tool profile can narrow each binding to some of its participants; ACT-619 issue #301."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

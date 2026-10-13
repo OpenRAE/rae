@@ -33,6 +33,10 @@ Producer and reader obligations for the published mixed-backend execution
 binding and stage-report contracts are documented in
 [Mixed-Backend Execution Contracts Migration](mixed-backend-execution.md).
 
+Participant-scoped tool-affordance bindings, which let one behavior
+specification serve as a reusable tool profile, are documented in
+[Participant tool profiles migration](participant-tool-profiles.md).
+
 The reorganization moved existing material into the current long-term buckets:
 
 - root `schemas/` -> `contracts/schemas/`

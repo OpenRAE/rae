@@ -1065,6 +1065,16 @@ which dynamic queue/log/config details remain evidence or bounded settings.
   or evidence merely from authored presence. The lineage ledger and source
   audit remain unchanged because this implementation adds no normative
   external derivation or compatibility claim.
+- ACT-619's reusable participant tool profiles (#301) also adopt no new
+  external syntax. A profile is one behavior specification's bindings, and
+  the optional binding `participant_refs` and `participant_role_refs` reuse
+  the PI-03 selector shape and resolver. The design takes two ideas from cited
+  precedents without importing their syntax: role-based access control
+  (Sandhu et al., IEEE Computer 1996) and Kubernetes RBAC give additive
+  bindings with no negative grants, and traits (Schärli et al., ECOOP 2003)
+  give order-free composition in which conflicts are errors. The lineage
+  ledger and source audit remain unchanged because the selectors add no
+  normative external derivation or compatibility claim.
 - SEM-220's executable participant decision surface adopts the existing
   action/observation-interface lineage above without importing a UI, prompt,
   command, or backend-native parameter language. Published v1 retains its
