@@ -94,7 +94,8 @@ def test_compiled_bindings_carry_selectors_and_resolved_participants() -> None:
     assert (blue.participant_refs, blue.participant_role_refs, blue.participant_addresses) == ((), ("blue",), (BLUE,))
     assert (white.participant_role_refs, white.participant_addresses) == (("white",), (WHITE,))
     assert blue.tool_address == white.tool_address == "provision.content.nmap"
-    assert BLUE in blue.refresh_dependencies and WHITE not in blue.refresh_dependencies
+    assert BLUE in blue.refresh_dependencies
+    assert WHITE not in blue.refresh_dependencies
     assert blue.spec["participant_role_refs"] == ["blue"]
     assert model.behavior_specifications[SPEC].participant_addresses == (BLUE, WHITE)
 
@@ -202,11 +203,13 @@ def test_evidence_identifies_the_profile_by_address_and_its_content_by_snapshot_
     delivered, delivery = deliver(white)
     selection = implementation_selection(WHITE, permitted_refs=("context.public", PASSIVE, SCANNER_WHITE))
     resolvers = binding_resolvers(model, delivery, selection)
+    foreign_digest = selection_for(delivered, PASSIVE, {"rate": 5}, digest=blue.assurance.participant_view_digest)
+    request = admission_request(WHITE, PASSIVE, WHITE_VIEW, selection=selection)
     with pytest.raises(ValueError, match="selection participant_view_digest must match the canonical participant view"):
         bind_participant_decision_surface_selection_v2(
             surface=delivered,
-            selection=selection_for(delivered, PASSIVE, {"rate": 5}, digest=blue.assurance.participant_view_digest),
-            admission_request=admission_request(WHITE, PASSIVE, WHITE_VIEW, selection=selection),
+            selection=foreign_digest,
+            admission_request=request,
             argument_shape_resolver=resolvers.argument_shape,
             apparatus_resolver=resolvers.apparatus,
             delivery_resolver=resolvers.delivery,
@@ -262,7 +265,8 @@ def test_participant_filter_runs_before_the_one_disposition_check(
         return
     with pytest.raises(ValueError, match="refs are not participant-visible at state cut") as raised:
         episode.project((ACTIVE,), (probe_blue, probe_white))
-    assert probe_white in str(raised.value) and probe_blue not in str(raised.value)
+    assert probe_white in str(raised.value)
+    assert probe_blue not in str(raised.value)
 
 
 def _blue_only_profile(*, scoped: bool) -> str:
