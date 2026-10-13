@@ -6,11 +6,14 @@ specification. It adds no semantics. The normative text stays in the
 [participant behavior model](../participant-behavior-model/README.md), and the
 [participant runtime design](../participant-runtime/README.md).
 
-For each clause the matrix records the requirement, the normative location, the
+For each row the matrix records the requirement, the normative location, the
 contract, the implementation, the tests, the class of that evidence, the
-resulting coverage, and, for every clause that is not `covered`, the open
-issue that owns the gap and the test that would close it. It is the one place
-that names current owners. When an owner lands, its PR updates the row.
+resulting coverage, and, for every row that is not `covered`, the open issue
+that owns the gap and the test that would close it. When an owner lands, its PR
+updates the row. ADR-022's "Cross-Issue Boundaries And Evidence Ownership"
+owner table is acceptance-time text pinned under ADR-059 §1 (any edit needs an
+ADR-059 §3 amendment record), so it keeps the owners named at acceptance. This
+matrix, not that table, records the current open owner of each gap.
 
 `implementations/python/tests/test_issue_219_participant_semantic_coverage.py`
 checks the matrix against the tree in both directions: every clause has a row,

@@ -348,8 +348,9 @@ entries:
     # SEM-230 adds an executable bounded policy model, SEM-233 adds an exact
     # two-coordinate algebra with a test-local finite falsification model, and
     # ASR-535 adds bounded enforcement and backend-conformance falsification, while
-    # runtime-wide typed contract coverage remains incomplete for the broader
-    # participant surface. ASR-535 makes no model-check or proof claim.
+    # typed contract coverage remains incomplete for the observation capture
+    # apparatus, IFC profiles, and reusable mixed control (waiver below).
+    # ASR-535 makes no model-check or proof claim.
     delivered_artifacts:
       - kind: invariant_list
         path: specs/formal/participant-semantics/modular-participant-control.md
@@ -400,13 +401,19 @@ entries:
         date: 2026-10-13
         tracking:
           - "#1595"
+          - "#1370"
+          - "#1363"
         rationale: >-
           The issue #219 audit found typed contracts for behavior history,
-          decision surfaces, context views, and flow control, but no typed
-          carrier discloses the observation capture apparatus (capture basis,
-          granularity, loss model, observer effects) that I3 and I13 require.
-          specs/formal/participant-semantics/semantic-coverage.md names #1595
-          as the open owner.
+          decision surfaces, context views, and flow control, but three typed
+          contract gaps remain. No typed carrier discloses the observation
+          capture apparatus (capture basis, granularity, loss model, observer
+          effects) that I3 and I13 require (#1595). The accepted IFC profile
+          representation still needs its schemas and governed publication
+          records (#1370). Reusable ACT-617 mixed control still needs its
+          versioned schemas and generated contracts (#1363).
+          specs/formal/participant-semantics/semantic-coverage.md
+          names these issues as the open owners of the matching rows.
 
   - subsystem: participant-behavior-model
     # Design coverage for ACT-602/603/606/607/608 plus executable coverage from

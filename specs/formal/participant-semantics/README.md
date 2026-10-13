@@ -65,9 +65,17 @@ PR #914) then amended the decision-surface coordinates and made
 `participant-decision-surface-v2` the actionable contract.
 
 The [participant semantic coverage matrix](semantic-coverage.md) (issue #219)
-maps every clause of this document and its focused specifications to
-contracts, implementation, tests, evidence class, coverage, and the open
-owner of each remaining gap. It is the one place that names current owners.
+indexes this document and its focused specifications. It has clause rows for
+the design commitments of SEM-208, SEM-209, SEM-210, SEM-212, SEM-213, and
+SEM-215, the SEM-211 precondition, effect, and failure groups, and invariants
+I1 to I18. Every other `SEM-…` section has one family row, and every focused
+specification is named by at least one family row. SEM-219, SEM-220, and
+SEM-226 share a family row that points to the ADR-083 §7
+source-to-contract-to-test matrix in this document instead of restating it.
+The matrix also has clause rows for the behavior model's invariants PBM-01 to
+PBM-12 and three participant-runtime criteria. Each row records contracts,
+implementation, tests, evidence class, and coverage, and each row that is not
+`covered` names the open owner of its gap.
 
 Issue #796 and ADR-085 add the revisioned SEM-230 composition boundary. Its
 normative model is the focused sibling specification
@@ -474,10 +482,11 @@ concerns that belong to other RAES design or evidence gates.
 | Machine-checkable semantic validation | Needs cross-gate evidence | #162, #168 | #220 | Provide participant-specific invariants and negative fixtures; do not treat ADR prose as conformance |
 | DSL language adequacy | Needs dedicated evidence | #346 | #221 | Provide ambiguity, usability, maintainability, reviewability, and authoring-profile evidence for concrete syntax |
 
-The "Current open owner(s)" column records the open issues on 2026-10-13 (the
-original owners are closed or, for #165, #166, #170, and #177, transferred to
-OpenRAE/research). The [coverage matrix](semantic-coverage.md) assigns each
-uncovered clause to one of them.
+The "Current open owner(s)" column records the open issues on 2026-10-13. Of
+the original owners, #106, #124, #125, #273, #328, and #333 are still open;
+#165, #166, #170, and #177 were transferred to OpenRAE/research; the rest are
+closed. Every [coverage matrix](semantic-coverage.md) row that defers to one of
+these concerns names its owner from this column.
 
 ## Semantic Core
 

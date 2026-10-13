@@ -700,7 +700,7 @@ adoption of the reusable amendment.
 ## Child-Issue Mapping
 
 This table records the original executable ownership. Every issue in it is
-closed; the coverage matrix names the current owners.
+closed; the coverage matrix names the open owner of each remaining gap.
 
 | Issue | UID | Executable ownership |
 | --- | --- | --- |
