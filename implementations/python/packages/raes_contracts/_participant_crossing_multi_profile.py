@@ -1,12 +1,16 @@
 """Closed vocabulary for the separately governed two-operation profile."""
 
-from typing import Literal, Self
+from typing import TYPE_CHECKING, Any, Literal, Self
 
 from pydantic import Field, StrictInt, field_validator, model_validator
+from pydantic.fields import FieldInfo
 
 from ._participant_crossing_profile import HIDDEN
 from ._participant_opacity_common import SafeRef
 from .contracts.base import ContractModel, PrefixedDigestString
+
+if TYPE_CHECKING:
+    from .behavioral_relation_profiles import BehavioralRelationProfileModel
 
 INPUTS = ("plain", "transform", "declassify", "unsupported", "forbidden", "unresolved")
 OUTCOMES = ("permit", "deny", "unsupported", "transform", "declassify", "unresolved")
@@ -73,7 +77,7 @@ DOMAINS = {
 }
 
 
-def _domain(name):
+def _domain(name: str) -> FieldInfo:
     return Field(json_schema_extra={"const": DOMAINS[name]})
 
 
@@ -177,12 +181,12 @@ MULTI_JOIN = {
 }
 
 
-def validate_multi_crossing_profile_join(profile) -> None:
+def validate_multi_crossing_profile_join(profile: "BehavioralRelationProfileModel") -> None:
     if any(getattr(profile, key) != value for key, value in MULTI_JOIN.items()):
         raise ValueError("multi-operation profile coordinates do not match its parameters")
 
 
-def multi_crossing_profile_schema_join() -> dict:
+def multi_crossing_profile_schema_join() -> dict[str, Any]:
     return {
         "if": {
             "properties": {

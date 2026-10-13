@@ -127,10 +127,9 @@ def test_multi_binding_checks_right_carrier_and_opacity_admission_rejects_it():
     binding = crossing_binding(profile)
     catalog = load_behavioral_relation_catalog_revision("rev8")
     validate_behavioral_claim_binding(binding, catalog=catalog, profile=profile)
+    wrong_carrier = binding.model_copy(update={"right_carrier_ref": "wrong"})
     with pytest.raises(ValueError, match="right carrier"):
-        validate_behavioral_claim_binding(
-            binding.model_copy(update={"right_carrier_ref": "wrong"}), catalog=catalog, profile=profile
-        )
+        validate_behavioral_claim_binding(wrong_carrier, catalog=catalog, profile=profile)
     from types import SimpleNamespace
 
     from raes_processor.participant_opacity import ParticipantOpacityOperationalError, _service
