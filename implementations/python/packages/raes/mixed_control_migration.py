@@ -9,13 +9,14 @@ needs an author decision and is not offered.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import yaml
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import ArtifactTransformationPreservationModel, ArtifactTransformationReportModel
 
-from ._errors import SDLError
+from ._errors import SDLError, SDLValidationError
 from ._mapping_scopes import normalize_field_key
 from ._source_profile import DEFAULT_PARSER_LIMITS, SDLParserLimits, SDLSourceParseOptions
 from ._transformation_support import check, diagnostic
@@ -37,6 +38,9 @@ _HANDOFF = MixedControlTransitionKind.HANDOFF
 _PROPOSAL_OUTSIDE_KIND_SET = frozenset(
     {MixedControlTransitionKind.INTERVENTION, MixedControlTransitionKind.HANDOFF, MixedControlTransitionKind.OVERRIDE}
 )
+_TRANSITION_ERROR_RE = re.compile(
+    r"Behavior specification '([^']+)' mixed_control (transition|permitted transition) '([^']+)'"
+)
 _LIMITATIONS = (
     "Conversion preserves authored trace constraints; it is not evidence of an executed or equivalent runtime trace.",
     "Legacy proposal_revision values equal state revisions; converted proposals and decisions bind revision 1.",
@@ -45,6 +49,20 @@ _LIMITATIONS = (
 
 def _pointer(*parts: str) -> str:
     return "".join("/" + part.replace("~", "~0").replace("/", "~1") for part in parts)
+
+
+def _error_pointers(error: SDLValidationError) -> list[str]:
+    """Point each failure at its source transition; converted edges keep the legacy transition ids."""
+
+    pointers = []
+    for message in error.errors:
+        match = _TRANSITION_ERROR_RE.search(message)
+        if match is None:
+            pointers.append("")
+            continue
+        spec_name, _, transition_id = match.groups()
+        pointers.append(_pointer("behavior_specifications", spec_name, "mixed_control", "transitions", transition_id))
+    return pointers or [""]
 
 
 def _controller(declaration: MixedControlParticipantOperation, state_ref: str) -> str:
@@ -187,6 +205,8 @@ def migrate_mixed_control_to_finite_script(
         converted, refusals, affected = _convert(payload, scenario)
         if converted is not None:
             output = parse_sdl(yaml.safe_dump(converted, sort_keys=False), limits=limits)
+    except SDLValidationError as error:
+        refusals = [("source-or-target-invalid", pointer) for pointer in _error_pointers(error)]
     except (SDLError, ValueError, TypeError):
         refusals = [("source-or-target-invalid", "")]
     codes = sorted({(f"mixed-control-migration.{code}", pointer) for code, pointer in refusals})
