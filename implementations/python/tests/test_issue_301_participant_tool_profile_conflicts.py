@@ -66,6 +66,14 @@ def _binding(prefix: str) -> str:
     return f"Behavior specification 'toolkit' tool affordance '{prefix}'"
 
 
+def _white_scanner_disclosure() -> str:
+    """The white-view transition that discloses the white binding's authored classification."""
+
+    text = toolkit_text()
+    start = text.index("      - transition_id: disclose-passive-scanner\n")
+    return text[start : text.index("behavior_specifications:\n", start)]
+
+
 @pytest.mark.parametrize(
     ("edits", "messages"),
     (
@@ -135,6 +143,7 @@ def _binding(prefix: str) -> str:
                     "        visibility_basis: authored classification of the white binding\n",
                     "",
                 ),
+                (_white_scanner_disclosure(), ""),
             ),
             (
                 f"{_binding('scanner-white')} reference 'behavior_specifications.toolkit.tool_affordances.scanner-white' must be explicitly classified by observation boundary 'white-view'",
@@ -281,8 +290,6 @@ def test_two_bindings_that_select_one_participant_must_agree_on_the_action_dispo
     hidden_rule = (
         "      - information_ref: behavior_specifications.toolkit.tool_affordances.audit-blue\n"
         "        boundary_class: observable_resource\n        disposition: hidden\n        visibility_basis: audit binding hidden\n"
-        "      - information_ref: participant.behavior-specification.toolkit.tool-affordance.audit-blue\n"
-        "        boundary_class: observable_resource\n        disposition: hidden\n        visibility_basis: audit binding hidden\n"
     )
     text = edited(
         toolkit_text(),
@@ -290,8 +297,7 @@ def test_two_bindings_that_select_one_participant_must_agree_on_the_action_dispo
         (
             "      - behavior_specifications.toolkit.tool_affordances.scanner-blue\n    evidence_refs",
             "      - behavior_specifications.toolkit.tool_affordances.scanner-blue\n    hidden_refs:\n"
-            "      - behavior_specifications.toolkit.tool_affordances.audit-blue\n"
-            "      - participant.behavior-specification.toolkit.tool-affordance.audit-blue\n    evidence_refs",
+            "      - behavior_specifications.toolkit.tool_affordances.audit-blue\n    evidence_refs",
         ),
         (
             "        visibility_basis: authored classification of the blue binding\n",

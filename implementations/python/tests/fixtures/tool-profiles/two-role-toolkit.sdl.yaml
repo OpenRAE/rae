@@ -3,10 +3,11 @@
 # tool (`nmap`) and differ in availability (selector), invocation constraints (the
 # bound action contract) and visibility (the bound observation boundary).
 #
-# The validator checks view classification by authored reference
-# (behavior_specifications.<spec>.tool_affordances.<id>), while decision-surface
-# projection reads the compiled view relation by runtime address, so each boundary
-# classifies both forms.
+# Each boundary that a binding names classifies it once, by authored reference
+# (behavior_specifications.<spec>.tool_affordances.<id>). Compilation keys that
+# classification by the binding's runtime address, which decision-surface
+# projection reads (issue #1572). Action contracts, and the blue binding at
+# white-view (a boundary it does not name), are classified by runtime address.
 name: two-role-toolkit
 nodes:
   web:
@@ -112,7 +113,6 @@ observation_boundaries:
       - context.public
       - participant.action-contract.scan-active
       - participant.action-contract.scan-passive
-      - participant.behavior-specification.toolkit.tool-affordance.scanner-blue
       - behavior_specifications.toolkit.tool_affordances.scanner-blue
     evidence_refs: [evidence.scan-output]
     redaction_policy: no hidden refs are disclosed
@@ -130,10 +130,6 @@ observation_boundaries:
         boundary_class: observable_resource
         disposition: observable
         visibility_basis: blue participants can see that passive scanning exists
-      - information_ref: participant.behavior-specification.toolkit.tool-affordance.scanner-blue
-        boundary_class: observable_resource
-        disposition: observable
-        visibility_basis: the blue binding is visible with its action
       - information_ref: behavior_specifications.toolkit.tool_affordances.scanner-blue
         boundary_class: observable_resource
         disposition: observable
@@ -146,7 +142,6 @@ observation_boundaries:
       - participant.behavior-specification.toolkit.tool-affordance.scanner-blue
     hidden_refs:
       - participant.action-contract.scan-passive
-      - participant.behavior-specification.toolkit.tool-affordance.scanner-white
       - behavior_specifications.toolkit.tool_affordances.scanner-white
     evidence_refs: [evidence.scan-output]
     redaction_policy: passive scanning is hidden until the exercise discloses it
@@ -168,10 +163,6 @@ observation_boundaries:
         boundary_class: observable_resource
         disposition: hidden
         visibility_basis: passive scanning is disclosed by the exercise
-      - information_ref: participant.behavior-specification.toolkit.tool-affordance.scanner-white
-        boundary_class: observable_resource
-        disposition: hidden
-        visibility_basis: the white binding is hidden and revealed with its action
       - information_ref: behavior_specifications.toolkit.tool_affordances.scanner-white
         boundary_class: observable_resource
         disposition: hidden
@@ -193,7 +184,7 @@ observation_boundaries:
         latency_profile: terminal observation latency
       - transition_id: disclose-passive-scanner
         transition_kind: disclosure
-        information_ref: participant.behavior-specification.toolkit.tool-affordance.scanner-white
+        information_ref: behavior_specifications.toolkit.tool_affordances.scanner-white
         trigger: the white participant's first observation
         effective_from: episode-step:reveal-1:terminal-observation
         effective_order: 2

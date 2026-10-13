@@ -53,10 +53,8 @@ observation_boundaries:
     observable_refs:
       - context.public
       - participant.action-contract.scan-active
-      - participant.behavior-specification.probes.tool-affordance.probe-blue
       - behavior_specifications.probes.tool_affordances.probe-blue
     hidden_refs:
-      - participant.behavior-specification.probes.tool-affordance.probe-white
       - behavior_specifications.probes.tool_affordances.probe-white
     redaction_policy: the white probe stays hidden
     latency_profile: immediate
@@ -69,18 +67,10 @@ observation_boundaries:
         boundary_class: observable_resource
         disposition: observable
         visibility_basis: active scanning is visible
-      - information_ref: participant.behavior-specification.probes.tool-affordance.probe-blue
-        boundary_class: observable_resource
-        disposition: observable
-        visibility_basis: the blue probe is visible
       - information_ref: behavior_specifications.probes.tool_affordances.probe-blue
         boundary_class: observable_resource
         disposition: observable
         visibility_basis: authored classification of the blue probe
-      - information_ref: participant.behavior-specification.probes.tool-affordance.probe-white
-        boundary_class: observable_resource
-        disposition: hidden
-        visibility_basis: the white probe is hidden
       - information_ref: behavior_specifications.probes.tool_affordances.probe-white
         boundary_class: observable_resource
         disposition: hidden
