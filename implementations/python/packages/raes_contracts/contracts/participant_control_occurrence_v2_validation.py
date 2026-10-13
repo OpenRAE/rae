@@ -54,6 +54,20 @@ PARTICIPANT_CONTROL_VALIDITY_BOUNDS_MISMATCH = (
     "accepted participant control occurrence validity bounds must equal the pinned policy's evaluated window"
 )
 _ORDER_STRATEGY = "total-effective-order"
+_OUTSIDE_EPISODE = "participant control occurrence lies outside its pinned episode policy"
+_PIN_NOT_CONSTANT = "participant control policy pin must be constant within an episode"
+
+
+def _first_broken(rules: Sequence[tuple[bool, str]]) -> str | None:
+    """Return the message of the first broken rule, in order."""
+
+    return next((message for broken, message in rules if broken), None)
+
+
+def _first_violation(*checks: Callable[[], str | None]) -> str | None:
+    """Evaluate checks lazily in order and return the first violation."""
+
+    return next((result for result in (check() for check in checks) if result is not None), None)
 
 
 @dataclass
@@ -71,20 +85,24 @@ class _EpisodeFold:
         )
 
     def apply(self, record: ParticipantControlOccurrenceV2Model) -> str | None:
-        if (record.participant_address, record.episode_id) != (self.policy.participant_address, self.policy.episode_id):
-            return "participant control occurrence lies outside its pinned episode policy"
-        if record.semantics != self.policy.semantics or policy_pin_key(record.policy) != policy_pin_key(
-            self.policy.pin
-        ):
-            return "participant control policy pin must be constant within an episode"
         occurrence = record.occurrence
-        if isinstance(occurrence, ParticipantRejectedOccurrenceV2Model):
-            return self._rejected(occurrence)
-        violation = self._structure(occurrence) or self._accepted_rejection(record, occurrence)
-        if violation is not None:
-            return violation
-        self._advance(record, occurrence)
-        return None
+        violation = self._envelope_violation(record)
+        if violation is None and isinstance(occurrence, ParticipantRejectedOccurrenceV2Model):
+            violation = self._rejected(occurrence)
+        elif violation is None:
+            violation = self._structure(occurrence) or self._accepted_rejection(record, occurrence)
+            if violation is None:
+                self._advance(record, occurrence)
+        return violation
+
+    def _envelope_violation(self, record: ParticipantControlOccurrenceV2Model) -> str | None:
+        scope = (self.policy.participant_address, self.policy.episode_id)
+        pinned = (self.policy.semantics, policy_pin_key(self.policy.pin))
+        rules = (
+            ((record.participant_address, record.episode_id) != scope, _OUTSIDE_EPISODE),
+            ((record.semantics, policy_pin_key(record.policy)) != pinned, _PIN_NOT_CONSTANT),
+        )
+        return _first_broken(rules)
 
     def _rejected(self, occurrence: ParticipantRejectedOccurrenceV2Model) -> str | None:
         observed = occurrence.observed
@@ -113,67 +131,72 @@ class _EpisodeFold:
     def _accepted_rejection(
         self, record: ParticipantControlOccurrenceV2Model, occurrence: ParticipantAcceptedOccurrenceV2Model
     ) -> str | None:
-        code = self._state_rejection(occurrence) or self._authority_rejection(occurrence)
-        code = code or self._order_rejection(occurrence) or self._kind_rejection(record, occurrence)
+        code = _first_violation(
+            lambda: self._state_rejection(occurrence),
+            lambda: self._authority_rejection(occurrence),
+            lambda: self._order_rejection(occurrence),
+            lambda: self._kind_rejection(occurrence),
+        )
         if code is not None:
             return f"accepted participant control occurrence fails {code}"
-        if isinstance(occurrence, ParticipantProposalOccurrenceV2Model) and occurrence.source_proposal_ref is not None:
-            transformation = self._transformation_violation(record, occurrence)
-            if transformation is not None:
-                return transformation
+        return _first_violation(
+            lambda: self._transformation_violation(record, occurrence),
+            lambda: self._bounds_violation(occurrence),
+        )
+
+    def _bounds_violation(self, occurrence: ParticipantAcceptedOccurrenceV2Model) -> str | None:
         bounds = participant_control_validity_bounds(
             self.policy, occurrence.permitted_transition_ref, occurrence.script_step_ref
         )
-        if bounds != (occurrence.valid_from_order, occurrence.valid_until_order):
-            return PARTICIPANT_CONTROL_VALIDITY_BOUNDS_MISMATCH
-        return None
+        matches = bounds == (occurrence.valid_from_order, occurrence.valid_until_order)
+        return None if matches else PARTICIPANT_CONTROL_VALIDITY_BOUNDS_MISMATCH
 
     def _state_rejection(self, occurrence: ParticipantAcceptedOccurrenceV2Model) -> str | None:
         transition = self.policy.transition(occurrence.permitted_transition_ref)
         live = self.state
-        if self.policy.order_strategy != _ORDER_STRATEGY:
-            return "unsupported-order-strategy"
-        if transition is None:
-            return "unknown-transition"
-        if transition.kind != occurrence.kind:
-            return "transition-kind-mismatch"
         observed = (live.state_ref, live.state_revision)
-        if (occurrence.prior_state_ref, occurrence.expected_state_revision) != observed or (
-            transition.from_state_ref != live.state_ref
-        ):
-            return "stale-state"
-        return self._script_rejection(occurrence)
+        rules = (
+            (lambda: self.policy.order_strategy != _ORDER_STRATEGY, "unsupported-order-strategy"),
+            (lambda: transition is None, "unknown-transition"),
+            (lambda: transition.kind != occurrence.kind, "transition-kind-mismatch"),
+            (
+                lambda: (
+                    (occurrence.prior_state_ref, occurrence.expected_state_revision) != observed
+                    or transition.from_state_ref != live.state_ref
+                ),
+                "stale-state",
+            ),
+        )
+        code = next((code for broken, code in rules if broken()), None)
+        return code or self._script_rejection(occurrence)
 
     def _script_rejection(self, occurrence: ParticipantAcceptedOccurrenceV2Model) -> str | None:
         if self.policy.pin.form != "finite-script":
             return None
-        if self.state.script_cursor >= len(self.policy.script_steps):
+        cursor = self.state.script_cursor
+        step = self.policy.script_steps[cursor] if cursor < len(self.policy.script_steps) else None
+        if step is None:
             return "script-exhausted"
-        step = self.policy.script_steps[self.state.script_cursor]
         expected_revision = step.expected_state_revision
-        if (
+        mismatch = (
             occurrence.script_step_ref != step.step_ref
             or occurrence.permitted_transition_ref != step.transition_ref
             or (expected_revision is not None and expected_revision != occurrence.expected_state_revision)
-        ):
-            return "script-step-mismatch"
-        return None
+        )
+        return "script-step-mismatch" if mismatch else None
 
     def _authority_rejection(self, occurrence: ParticipantAcceptedOccurrenceV2Model) -> str | None:
         transition = self.policy.transition(occurrence.permitted_transition_ref)
         source = self.policy.state(transition.from_state_ref)
         destination = self.policy.state(transition.to_state_ref)
-        if (occurrence.controller_ref, occurrence.authority_basis_refs) != (
-            source.controller_ref,
-            source.authority_basis_refs,
-        ):
-            return "controller-not-source"
+        acting = (occurrence.controller_ref, occurrence.authority_basis_refs)
         granted = set(source.scope_refs) & set(self.policy.behavior_scope_refs)
-        if not set(occurrence.controlled_scope_refs) <= granted:
-            return "scope-widened"
-        if "revoked" in (source.authority_status, destination.authority_status):
-            return "revoked-authority"
-        return None
+        rules = (
+            (acting != (source.controller_ref, source.authority_basis_refs), "controller-not-source"),
+            (not set(occurrence.controlled_scope_refs) <= granted, "scope-widened"),
+            ("revoked" in (source.authority_status, destination.authority_status), "revoked-authority"),
+        )
+        return _first_broken(rules)
 
     def _order_rejection(self, occurrence: ParticipantAcceptedOccurrenceV2Model) -> str | None:
         order = occurrence.effective_order
@@ -185,30 +208,32 @@ class _EpisodeFold:
         )
         return None if bounds is not None and bounds[0] <= order <= bounds[1] else "late-authority"
 
-    def _kind_rejection(
-        self, record: ParticipantControlOccurrenceV2Model, occurrence: ParticipantAcceptedOccurrenceV2Model
-    ) -> str | None:
-        identity = self._identity_rejection(occurrence)
-        if identity is not None:
-            return identity
+    def _kind_rejection(self, occurrence: ParticipantAcceptedOccurrenceV2Model) -> str | None:
         cited = cited_participant_control_target(occurrence)
-        if cited is None:
-            return None
-        target_kind, target_ref, target_revision = cited
-        if not isinstance(occurrence, ParticipantProposalOccurrenceV2Model) and not self._target_kind_permitted(
-            occurrence, target_kind, target_ref
-        ):
+        return _first_violation(
+            lambda: self._identity_rejection(occurrence),
+            lambda: None if cited is None else self._target_rejection(occurrence, *cited),
+        )
+
+    def _target_rejection(
+        self,
+        occurrence: ParticipantAcceptedOccurrenceV2Model,
+        target_kind: TargetKind,
+        target_ref: str,
+        target_revision: int,
+    ) -> str | None:
+        source_link = isinstance(occurrence, ParticipantProposalOccurrenceV2Model)
+        if not source_link and not self._target_kind_permitted(occurrence, target_kind, target_ref):
             return "invalid-target"
-        position = occurrence.occurrence_revision
         reference = participant_control_target_reference(
             self.state,
             self.available_targets,
             target_kind=target_kind,
             target_ref=target_ref,
             target_revision=target_revision,
-            position=position,
+            position=occurrence.occurrence_revision,
         )
-        if reference is not None or isinstance(occurrence, ParticipantProposalOccurrenceV2Model):
+        if reference is not None or source_link:
             return reference
         return participant_control_target_authorization(
             self.state, citing_kind=Kind(occurrence.kind), target_kind=target_kind, target_ref=target_ref
@@ -230,30 +255,45 @@ class _EpisodeFold:
         return producer is not None and produced is not None and produced.record_event_id == producer
 
     def _identity_rejection(self, occurrence: ParticipantAcceptedOccurrenceV2Model) -> str | None:
-        edges = {transition.transition_ref for transition in self.policy.transitions}
+        taken = (
+            self.state.proposal_ids
+            | self.state.decision_ids
+            | {item.transition_ref for item in self.policy.transitions}
+        )
+        clash, code = False, None
         if isinstance(occurrence, ParticipantProposalOccurrenceV2Model):
-            reused = occurrence.proposal_id in self.state.proposal_ids | self.state.decision_ids | edges
-            return "proposal-identity-reused" if reused else None
-        if isinstance(occurrence, (ParticipantApprovalOccurrenceV2Model, ParticipantDenialOccurrenceV2Model)):
-            reused = occurrence.decision_ref in self.state.proposal_ids | self.state.decision_ids | edges
-            return "decision-identity-reused" if reused else None
-        if isinstance(occurrence, ParticipantHandoffOccurrenceV2Model):
-            reused = occurrence.completion_evidence_ref in self.state.completion_evidence_refs
-            return "completion-evidence-reused" if reused else None
-        return None
+            clash, code = occurrence.proposal_id in taken, "proposal-identity-reused"
+        elif isinstance(occurrence, (ParticipantApprovalOccurrenceV2Model, ParticipantDenialOccurrenceV2Model)):
+            clash, code = occurrence.decision_ref in taken, "decision-identity-reused"
+        elif isinstance(occurrence, ParticipantHandoffOccurrenceV2Model):
+            clash = occurrence.completion_evidence_ref in self.state.completion_evidence_refs
+            code = "completion-evidence-reused"
+        return code if clash else None
 
     def _transformation_violation(
-        self, record: ParticipantControlOccurrenceV2Model, occurrence: ParticipantProposalOccurrenceV2Model
+        self, record: ParticipantControlOccurrenceV2Model, occurrence: ParticipantAcceptedOccurrenceV2Model
     ) -> str | None:
-        produced = self.state.produced(TargetKind.PROPOSAL, occurrence.source_proposal_ref)
+        produced = None
+        if isinstance(occurrence, ParticipantProposalOccurrenceV2Model) and occurrence.source_proposal_ref is not None:
+            produced = self.state.produced(TargetKind.PROPOSAL, occurrence.source_proposal_ref)
+        if produced is None:
+            return None
         source = self.records[produced.record_event_id]
-        if not {source.event_id, occurrence.transformation_ref} <= set(record.provenance_refs):
-            return "transformed proposal provenance must bind its source and transformation"
-        if not set(source.object_marking_refs) <= set(record.object_marking_refs):
-            return "transformed proposal must inherit source markings"
-        return None
+        rules = (
+            (
+                not {source.event_id, occurrence.transformation_ref} <= set(record.provenance_refs),
+                "transformed proposal provenance must bind its source and transformation",
+            ),
+            (
+                not set(source.object_marking_refs) <= set(record.object_marking_refs),
+                "transformed proposal must inherit source markings",
+            ),
+        )
+        return _first_broken(rules)
 
-    def _advance(self, record: ParticipantControlOccurrenceV2Model, occurrence: ParticipantAcceptedOccurrenceV2Model):
+    def _advance(
+        self, record: ParticipantControlOccurrenceV2Model, occurrence: ParticipantAcceptedOccurrenceV2Model
+    ) -> None:
         live = self.state
         position = occurrence.occurrence_revision
         produced = [
@@ -308,16 +348,19 @@ def _cited_lifecycle(
     occurrence: ParticipantAcceptedOccurrenceV2Model,
     target_kind: TargetKind,
 ) -> ParticipantControlRecordLifecycleV2:
-    if isinstance(occurrence, (ParticipantApprovalOccurrenceV2Model, ParticipantDenialOccurrenceV2Model)):
-        return replace(lifecycle, decided=True)
-    if isinstance(occurrence, ParticipantProposalOccurrenceV2Model):
-        return replace(lifecycle, replaced=True)
-    if isinstance(occurrence, ParticipantOverrideOccurrenceV2Model) or (
+    """Apply one accepted record's effect to the lifecycle of the record it cites."""
+
+    supersedes = isinstance(occurrence, ParticipantOverrideOccurrenceV2Model) or (
         isinstance(occurrence, ParticipantCancellationOccurrenceV2Model)
         and target_kind in {TargetKind.PROPOSAL, TargetKind.DECISION}
-    ):
-        return replace(lifecycle, superseded=True)
-    return lifecycle
+    )
+    return ParticipantControlRecordLifecycleV2(
+        event_id=lifecycle.event_id,
+        superseded=lifecycle.superseded or supersedes,
+        decided=lifecycle.decided
+        or isinstance(occurrence, (ParticipantApprovalOccurrenceV2Model, ParticipantDenialOccurrenceV2Model)),
+        replaced=lifecycle.replaced or isinstance(occurrence, ParticipantProposalOccurrenceV2Model),
+    )
 
 
 def fold_participant_control_episode_v2(

@@ -162,11 +162,17 @@ def _rewrite_participant_inject_delivery(
     binding["control_evidence_refs"] = [
         _maybe_rename(ref, symbols["named"]) for ref in binding.get("control_evidence_refs", [])
     ]
-    control = binding.get("control")
-    if isinstance(control, dict):
-        if control.get("controller_ref") and control["controller_ref"] != "self":
-            control["controller_ref"] = _maybe_rename(str(control["controller_ref"]), symbols["agents"])
-        _rewrite_present_named_lists(control, ("authority_scope_refs", "evidence_refs"), symbols)
+    _rewrite_delivery_control_block(binding.get("control"), symbols)
+
+
+def _rewrite_delivery_control_block(control: object, symbols: dict[str, dict[str, str] | set[str]]) -> None:
+    """Rewrite a rev1 directed-delivery ``control`` block; its permitted-transition ref stays local."""
+
+    if not isinstance(control, dict):
+        return
+    if control.get("controller_ref") and control["controller_ref"] != "self":
+        control["controller_ref"] = _maybe_rename(str(control["controller_ref"]), symbols["agents"])
+    _rewrite_present_named_lists(control, ("authority_scope_refs", "evidence_refs"), symbols)
 
 
 def _behavior_reference_maps(

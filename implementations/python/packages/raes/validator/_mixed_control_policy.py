@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from ..participant_behavior_specification import ParticipantBehaviorSpecification
 from ..participant_mixed_control_policy import (
+    MixedControlPermittedTransition,
     MixedControlPolicy,
     MixedControlScriptStep,
 )
@@ -68,7 +69,9 @@ class _MixedControlPolicyMixin:
         if declaration.script_steps is not None:
             self._verify_script_steps(label, declaration)
 
-    def _verify_permitted_transition(self, label: str, declaration: _Policy, transition_id: str, transition) -> None:
+    def _verify_permitted_transition(
+        self, label: str, declaration: _Policy, transition_id: str, transition: MixedControlPermittedTransition
+    ) -> None:
         owner_label = f"{label} permitted transition '{transition_id}'"
         source = declaration.controller_states[transition.from_state_ref]
         destination = declaration.controller_states[transition.to_state_ref]
@@ -104,7 +107,13 @@ class _MixedControlPolicyMixin:
                 self._verify_step_target(owner_label, step, allowed, earlier)
             earlier[step.step_id] = MixedControlTransitionKind(transition.transition_kind)
 
-    def _verify_step_window(self, owner_label: str, declaration: _Policy, step: MixedControlScriptStep, transition):
+    def _verify_step_window(
+        self,
+        owner_label: str,
+        declaration: _Policy,
+        step: MixedControlScriptStep,
+        transition: MixedControlPermittedTransition,
+    ) -> None:
         if step.valid_from_order is None:
             return
         window = (step.valid_from_order, step.valid_until_order)

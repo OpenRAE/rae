@@ -177,21 +177,23 @@ class ParticipantInjectDelivery(SDLModel):
             return self
         control_fields = {name: getattr(self, name) for name in _FLAT_CONTROL_FIELDS}
         if directs_control:
-            missing = [field_name for field_name, value in control_fields.items() if value is None or value == []]
-            if missing:
-                raise ValueError(
-                    f"{self.delivery_kind.value} delivery requires complete control agreement fields: "
-                    + ", ".join(missing)
-                )
-            if self.control_valid_until_order < self.control_valid_from_order:
-                raise ValueError("participant inject delivery control validity interval must not be inverted")
-            if not self.control_valid_from_order <= self.control_effective_order <= self.control_valid_until_order:
-                raise ValueError("participant inject delivery control effective order must fall within its interval")
+            self._validate_flat_control_agreement(control_fields)
         else:
             present = [field_name for field_name, value in control_fields.items() if value is not None and value != []]
             if present:
                 raise ValueError("disclosure delivery cannot carry control agreement fields: " + ", ".join(present))
         return self
+
+    def _validate_flat_control_agreement(self, control_fields: dict[str, object]) -> None:
+        missing = [field_name for field_name, value in control_fields.items() if value is None or value == []]
+        if missing:
+            raise ValueError(
+                f"{self.delivery_kind.value} delivery requires complete control agreement fields: " + ", ".join(missing)
+            )
+        if self.control_valid_until_order < self.control_valid_from_order:
+            raise ValueError("participant inject delivery control validity interval must not be inverted")
+        if not self.control_valid_from_order <= self.control_effective_order <= self.control_valid_until_order:
+            raise ValueError("participant inject delivery control effective order must fall within its interval")
 
     def _validate_control_block(self, directs_control: bool) -> None:
         flat = [name for name in _FLAT_CONTROL_FIELDS if getattr(self, name) not in (None, [])]

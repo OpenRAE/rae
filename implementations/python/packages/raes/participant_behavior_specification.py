@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from enum import Enum
-from typing import Annotated, Any
+from typing import Annotated
 
 from pydantic import Discriminator, Field, StrictInt, Tag, field_validator, model_validator
 from typing_extensions import TypeAliasType
@@ -16,22 +16,10 @@ from .participant_execution import ParticipantAutonomousExecutionPolicy
 from .participant_inject_delivery import ParticipantInjectDelivery
 from .participant_mixed_control_policy import MIXED_CONTROL_POLICY_SEMANTICS, MixedControlPolicy
 from .participant_mixed_control_vocabulary import (
-    MixedControlAuthorityStatus as MixedControlAuthorityStatus,
-)
-from .participant_mixed_control_vocabulary import (
-    MixedControlConcurrentDisposition as MixedControlConcurrentDisposition,
-)
-from .participant_mixed_control_vocabulary import (
     MixedControlControllerState,
     MixedControlDispositionRules,
     MixedControlOrderStrategy,
     MixedControlTransitionKind,
-)
-from .participant_mixed_control_vocabulary import (
-    MixedControlDuplicateDisposition as MixedControlDuplicateDisposition,
-)
-from .participant_mixed_control_vocabulary import (
-    MixedControlRejectDisposition as MixedControlRejectDisposition,
 )
 
 
@@ -246,7 +234,7 @@ class MixedControlParticipantOperation(SDLModel):
 _ABSENT = object()
 
 
-def _mixed_control_form(value: Any) -> str | None:
+def _mixed_control_form(value: object) -> str | None:
     """Select the legacy form only when ``semantics`` is absent; an unknown pin selects nothing."""
 
     semantics = value.get("semantics", _ABSENT) if isinstance(value, dict) else getattr(value, "semantics", _ABSENT)

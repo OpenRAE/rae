@@ -191,7 +191,7 @@ class _ParticipantInjectDeliveriesMixin:
         delivery_kind = str(getattr(binding.delivery_kind, "value", binding.delivery_kind))
         if delivery_kind == "disclosure":
             return
-        if binding.control is not None:
+        if binding.control is not None or isinstance(behavior_spec.mixed_control, MixedControlPolicy):
             self._verify_delivery_policy_control(label, behavior_spec, binding, delivery_kind)
             return
         control = self._resolve_delivery_control(label, behavior_spec, binding)
@@ -218,9 +218,6 @@ class _ParticipantInjectDeliveriesMixin:
         declaration = behavior_spec.mixed_control
         if declaration is None:
             self._err(f"{label} control_transition_ref requires mixed_control on the owning behavior specification")
-            return None
-        if isinstance(declaration, MixedControlPolicy):
-            self._err(f"{label} flat control fields cannot bind a mixed-control-policy-occurrence/rev1 policy")
             return None
         transition_ref = binding.control_transition_ref
         transition = declaration.transitions.get(transition_ref) if transition_ref is not None else None

@@ -1,7 +1,6 @@
 """Semantic validation for ACT-617 mixed-control participant operation."""
 
 from ..participant_behavior_specification import (
-    MixedControlAuthorityStatus,
     MixedControlControllerState,
     MixedControlParticipantOperation,
     MixedControlTransition,
@@ -9,6 +8,7 @@ from ..participant_behavior_specification import (
     ParticipantBehaviorSpecification,
 )
 from ..participant_mixed_control_policy import MixedControlPolicy
+from ..participant_mixed_control_vocabulary import MixedControlAuthorityStatus
 
 
 class _MixedControlMixin:

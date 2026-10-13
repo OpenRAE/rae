@@ -441,7 +441,8 @@ REFUSALS = [
 def test_every_applicable_refusal_is_reported_with_its_pointer(case: str, build, expected: set) -> None:
     result = migrate_mixed_control_to_finite_script(_source(build()))
     assert not result.succeeded, case
-    assert result.output is None and result.report.target_digest is None
+    assert result.output is None
+    assert result.report.target_digest is None
     reported = {
         (item.code.removeprefix("mixed-control-migration."), item.address) for item in result.report.diagnostics
     }
@@ -454,5 +455,6 @@ def test_source_that_fails_legacy_validation_is_refused_without_partial_output()
     _transitions(payload)["return"]["expected_state_revision"] = 7
     _transitions(payload)["return"]["resulting_state_revision"] = 8
     result = migrate_mixed_control_to_finite_script(_source(payload))
-    assert not result.succeeded and result.output is None
+    assert not result.succeeded
+    assert result.output is None
     assert {item.code for item in result.report.diagnostics} == {"mixed-control-migration.source-or-target-invalid"}

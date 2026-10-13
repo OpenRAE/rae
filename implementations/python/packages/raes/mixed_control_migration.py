@@ -26,6 +26,7 @@ from .canonical import canonical_sdl_digest
 from .parser import parse_sdl
 from .participant_behavior_specification import (
     MixedControlParticipantOperation,
+    MixedControlTransition,
     MixedControlTransitionKind,
     ParticipantBehaviorSpecification,
 )
@@ -74,23 +75,30 @@ def _controller(declaration: MixedControlParticipantOperation, state_ref: str) -
     return declaration.participant_ref if controller == "self" else controller
 
 
+def _transition_codes(declaration: MixedControlParticipantOperation, transition: MixedControlTransition) -> list[str]:
+    """Refusal codes one legacy transition triggers on its own (migration-contract cases)."""
+
+    kind = MixedControlTransitionKind(transition.transition_kind)
+    handoff = kind is _HANDOFF
+    changes = _controller(declaration, transition.from_state_ref) != _controller(declaration, transition.to_state_ref)
+    rules = (
+        (handoff and not changes, "handoff-without-controller-change"),
+        (changes and not handoff, "controller-change-requires-handoff"),
+        (
+            transition.proposal_ref is not None and kind in _PROPOSAL_OUTSIDE_KIND_SET,
+            "proposal-target-outside-kind-set",
+        ),
+        (bool(transition.completion_evidence_refs) and not handoff, _INVALID),
+    )
+    return [code for triggered, code in rules if triggered]
+
+
 def _transition_refusals(spec_name: str, declaration: MixedControlParticipantOperation) -> list[tuple[str, str]]:
     refusals: list[tuple[str, str]] = []
     established: set[tuple[str, int]] = set()
     for transition_id, transition in sorted(declaration.transitions.items(), key=lambda item: item[1].effective_order):
         pointer = _pointer(_SPECS, spec_name, _MIXED_CONTROL, _TRANSITIONS, transition_id)
-        kind = MixedControlTransitionKind(transition.transition_kind)
-        changes = _controller(declaration, transition.from_state_ref) != _controller(
-            declaration, transition.to_state_ref
-        )
-        if kind is _HANDOFF and not changes:
-            refusals.append(("handoff-without-controller-change", pointer))
-        if kind is not _HANDOFF and changes:
-            refusals.append(("controller-change-requires-handoff", pointer))
-        if transition.proposal_ref is not None and kind in _PROPOSAL_OUTSIDE_KIND_SET:
-            refusals.append(("proposal-target-outside-kind-set", pointer))
-        if transition.completion_evidence_refs and kind is not _HANDOFF:
-            refusals.append((_INVALID, pointer))
+        refusals += [(code, pointer) for code in _transition_codes(declaration, transition)]
         node = (transition.from_state_ref, transition.expected_state_revision)
         if node in established:
             refusals.append(("branching-sequence", pointer))

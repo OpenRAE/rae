@@ -506,10 +506,11 @@ def test_unverifiable_is_a_typed_result_distinct_from_invalid() -> None:
         schema_name: str = "participant-control-occurrence"
         schema_version: str = "9.0.0"
 
-    report = participant_control_history_verifiability([Unknown()], policies=[history.projection])
+    unknown = [Unknown()]
+    report = participant_control_history_verifiability(unknown, policies=[history.projection])
     assert report.entries[0].missing == ("unsupported-lineage",)
     with pytest.raises(ValueError, match=PARTICIPANT_CONTROL_HISTORY_UNVERIFIABLE):
-        validate_participant_control_occurrence_context([Unknown()], declarations=())
+        validate_participant_control_occurrence_context(unknown, declarations=())
 
     fresh = History()
     invalid = fresh.candidate("take", controller_ref=SUPERVISOR)
@@ -540,17 +541,18 @@ def test_mixed_archives_select_each_episode_reader_and_report_missing_v1_context
 
 def test_mixed_archives_refuse_gaps_and_episodes_that_mix_lineages() -> None:
     legacy = v1_record(1)
+    declarations = [v1_declaration()]
     gap = History(start=2)
     gap.accept("take")
+    gapped = [legacy, *gap.records]
     with pytest.raises(ValueError, match="contiguous"):
-        validate_participant_control_occurrence_context(
-            [legacy, *gap.records], declarations=[v1_declaration()], policies=[gap.projection]
-        )
+        validate_participant_control_occurrence_context(gapped, declarations=declarations, policies=[gap.projection])
     mixed = History(policy(episode="episode-0"), episode="episode-0", start=1)
     mixed.accept("take")
+    mixed_episode = [legacy, *mixed.records]
     with pytest.raises(ValueError, match="must not mix occurrence lineages"):
         validate_participant_control_occurrence_context(
-            [legacy, *mixed.records], declarations=[v1_declaration()], policies=[mixed.projection]
+            mixed_episode, declarations=declarations, policies=[mixed.projection]
         )
 
 

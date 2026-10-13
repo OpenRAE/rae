@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from enum import Enum
-from typing import Annotated, Any, Literal, get_args
+from typing import Annotated, Literal, get_args
 
 from pydantic import Discriminator, Field, GetJsonSchemaHandler, Tag, field_validator, model_validator
 from pydantic.json_schema import JsonSchemaValue
@@ -281,7 +281,7 @@ class ParticipantRejectedOccurrenceV2Model(ContractModel):
         return _require_unique(values)
 
 
-def _occurrence_tag(value: Any) -> str | None:
+def _occurrence_tag(value: object) -> str | None:
     """Select by disposition, then by kind for accepted records; anything else matches no member."""
 
     read = value.get if isinstance(value, dict) else lambda name: getattr(value, name, None)

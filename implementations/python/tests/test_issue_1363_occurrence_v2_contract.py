@@ -56,8 +56,9 @@ def test_the_authored_coordinate_limit_is_the_api_424_count_bound(annotation: ob
     ],
 )
 def test_context_free_accepted_arithmetic_is_enforced_by_the_model(fields: dict, message: str) -> None:
+    payload = _accepted(**fields)
     with pytest.raises(ValidationError, match=message):
-        ParticipantControlOccurrenceV2Model.model_validate(_accepted(**fields))
+        ParticipantControlOccurrenceV2Model.model_validate(payload)
 
 
 def test_inclusive_bounds_equal_to_the_order_pass_and_each_rule_is_a_published_invariant() -> None:
@@ -75,26 +76,23 @@ def test_inclusive_bounds_equal_to_the_order_pass_and_each_rule_is_a_published_i
 @pytest.mark.parametrize("value", [True, "5", 1_000_001, -1])
 @pytest.mark.parametrize("field", ["expected_state_revision", "effective_order", "expected_history_head"])
 def test_unrepresentable_attempted_coordinates_create_no_fact(field: str, value: object) -> None:
-    with pytest.raises(ValidationError):
-        ParticipantControlOccurrenceV2Model.model_validate(_rejected(**{field: value}))
-    with pytest.raises(ValidationError):
-        ParticipantControlOccurrenceV2Model.model_validate(_accepted(**{field: value}))
+    for payload in (_rejected(**{field: value}), _accepted(**{field: value})):
+        with pytest.raises(ValidationError):
+            ParticipantControlOccurrenceV2Model.model_validate(payload)
 
 
 @pytest.mark.parametrize("ref", ["x" * 257, "-leading", "has space", ""])
 def test_unrepresentable_refs_create_no_fact(ref: str) -> None:
-    with pytest.raises(ValidationError):
-        ParticipantControlOccurrenceV2Model.model_validate(_rejected(permitted_transition_ref=ref))
-    with pytest.raises(ValidationError):
-        ParticipantControlOccurrenceV2Model.model_validate(_accepted(permitted_transition_ref=ref))
+    for payload in (_rejected(permitted_transition_ref=ref), _accepted(permitted_transition_ref=ref)):
+        with pytest.raises(ValidationError):
+            ParticipantControlOccurrenceV2Model.model_validate(payload)
 
 
 def test_an_overflowing_application_is_refused_but_its_rejection_is_recordable() -> None:
     limit = MIXED_CONTROL_COORDINATE_LIMIT
+    overflowing = _accepted(expected_state_revision=limit, resulting_state_revision=limit + 1)
     with pytest.raises(ValidationError):
-        ParticipantControlOccurrenceV2Model.model_validate(
-            _accepted(expected_state_revision=limit, resulting_state_revision=limit + 1)
-        )
+        ParticipantControlOccurrenceV2Model.model_validate(overflowing)
     history = History()
     payload = history.rejected_payload(
         "take", "coordinate-out-of-range", expected_state_revision=limit, observed={"state_revision": limit}
@@ -144,10 +142,10 @@ def test_the_reader_dispatches_on_lineage_and_never_upgrades_v1() -> None:
     v1 = json.loads(V1_FIXTURE.read_text(encoding="utf-8"))
     assert isinstance(parse_participant_control_occurrence(v1), ParticipantControlOccurrenceModel)
     assert isinstance(parse_participant_control_occurrence(_accepted()), ParticipantControlOccurrenceV2Model)
-    with pytest.raises(ValidationError):
-        parse_participant_control_occurrence({**v1, "schema_version": "2.0.0"})
-    with pytest.raises(ValidationError):
-        parse_participant_control_occurrence({**_accepted(), "schema_version": "1.0.0"})
+    relabelled = ({**v1, "schema_version": "2.0.0"}, {**_accepted(), "schema_version": "1.0.0"})
+    for payload in relabelled:
+        with pytest.raises(ValidationError):
+            parse_participant_control_occurrence(payload)
     with pytest.raises(ValueError, match="lineage is unsupported"):
         parse_participant_control_occurrence({**v1, "schema_version": "3.0.0"})
 
@@ -162,7 +160,8 @@ def test_published_v2_fixtures_agree_with_the_model_and_schema() -> None:
     validator = Draft202012Validator(schema)
     valid = sorted((FIXTURES / "valid").glob("*.json"))
     invalid = sorted((FIXTURES / "invalid").glob("*.json"))
-    assert valid and invalid
+    assert valid
+    assert invalid
     for path in valid:
         payload = json.loads(path.read_text(encoding="utf-8"))
         ParticipantControlOccurrenceV2Model.model_validate(payload)

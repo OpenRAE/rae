@@ -137,34 +137,46 @@ def participant_control_target_authorization(
     if produced is None:
         return None
     lifecycle = state.lifecycle(produced.record_event_id)
-    if target_kind is TargetKind.PROPOSAL and citing_kind in _PROPOSAL_LIVENESS_KINDS:
-        if lifecycle.decided:
-            return "proposal-already-decided"
-        if lifecycle.superseded or lifecycle.replaced:
-            return "target-superseded"
-    if citing_kind in _SUPERSEDING_KINDS and lifecycle.superseded:
-        return "target-superseded"
-    return None
+    gated_by_liveness = target_kind is TargetKind.PROPOSAL and citing_kind in _PROPOSAL_LIVENESS_KINDS
+    reasons = (
+        (gated_by_liveness and lifecycle.decided, "proposal-already-decided"),
+        (gated_by_liveness and (lifecycle.superseded or lifecycle.replaced), "target-superseded"),
+        (citing_kind in _SUPERSEDING_KINDS and lifecycle.superseded, "target-superseded"),
+    )
+    return next((reason for refused, reason in reasons if refused), None)
+
+
+# (fixed kind or kind field, ref field, revision field) for each kind that cites an existing target.
+_CITATIONS: dict[type, tuple[TargetKind | str, str, str]] = {
+    ParticipantApprovalOccurrenceV2Model: (TargetKind.PROPOSAL, "proposal_ref", "proposal_revision"),
+    ParticipantDenialOccurrenceV2Model: (TargetKind.PROPOSAL, "proposal_ref", "proposal_revision"),
+    ParticipantExternalDirectionOccurrenceV2Model: ("target_kind", "target_ref", "target_revision"),
+    ParticipantCancellationOccurrenceV2Model: ("target_kind", "target_ref", "target_revision"),
+    ParticipantInterventionOccurrenceV2Model: (
+        "affected_target_kind",
+        "affected_occurrence_ref",
+        "affected_revision",
+    ),
+    ParticipantOverrideOccurrenceV2Model: (
+        "superseded_target_kind",
+        "superseded_occurrence_ref",
+        "superseded_revision",
+    ),
+    ParticipantProposalOccurrenceV2Model: (TargetKind.PROPOSAL, "source_proposal_ref", "source_proposal_revision"),
+}
 
 
 def cited_participant_control_target(
     occurrence: ParticipantAcceptedOccurrenceV2Model,
 ) -> tuple[TargetKind, str, int] | None:
-    if isinstance(occurrence, (ParticipantApprovalOccurrenceV2Model, ParticipantDenialOccurrenceV2Model)):
-        return TargetKind.PROPOSAL, occurrence.proposal_ref, occurrence.proposal_revision
-    if isinstance(
-        occurrence, (ParticipantExternalDirectionOccurrenceV2Model, ParticipantCancellationOccurrenceV2Model)
-    ):
-        return TargetKind(occurrence.target_kind), occurrence.target_ref, occurrence.target_revision
-    if isinstance(occurrence, ParticipantInterventionOccurrenceV2Model):
-        kind = TargetKind(occurrence.affected_target_kind)
-        return kind, occurrence.affected_occurrence_ref, occurrence.affected_revision
-    if isinstance(occurrence, ParticipantOverrideOccurrenceV2Model):
-        kind = TargetKind(occurrence.superseded_target_kind)
-        return kind, occurrence.superseded_occurrence_ref, occurrence.superseded_revision
-    if isinstance(occurrence, ParticipantProposalOccurrenceV2Model) and occurrence.source_proposal_ref is not None:
-        return TargetKind.PROPOSAL, occurrence.source_proposal_ref, occurrence.source_proposal_revision
-    return None
+    """Return the (kind, ref, revision) an accepted record cites, or ``None`` when it cites no target."""
+
+    citation = _CITATIONS.get(type(occurrence))
+    ref = getattr(occurrence, citation[1]) if citation is not None else None
+    if ref is None:
+        return None
+    kind = citation[0] if isinstance(citation[0], TargetKind) else TargetKind(getattr(occurrence, citation[0]))
+    return kind, ref, getattr(occurrence, citation[2])
 
 
 __all__ = [

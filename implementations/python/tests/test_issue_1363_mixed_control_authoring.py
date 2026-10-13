@@ -95,8 +95,9 @@ def _set(payload: dict, path: tuple, value) -> dict:
 def test_authored_coordinates_above_the_mc_08_range_are_refused(path: tuple, limit_is_valid: bool) -> None:
     payload = rev1_scenario(form="finite-script")
     rev1_policy_of(payload)["script_steps"][0].update({"valid_from_order": 0, "valid_until_order": 10})
+    overflowing = _set(copy.deepcopy(payload), path, 1_000_001)
     with pytest.raises(SDLParseError, match="less than or equal to 1000000"):
-        parse(_set(copy.deepcopy(payload), path, 1_000_001))
+        parse(overflowing)
     if limit_is_valid:
         parse(_set(payload, path, 1_000_000))
 

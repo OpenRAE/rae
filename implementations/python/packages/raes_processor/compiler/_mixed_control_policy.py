@@ -161,7 +161,7 @@ def _ref_range_diagnostics(
                 f"(at most {_CONTROL_REF_MAX_LENGTH} characters, portable pattern); it is never truncated."
             ),
         )
-        for label, ref in dict.fromkeys(refs)
+        for label, ref in list(dict.fromkeys(refs))
         if len(ref) > _CONTROL_REF_MAX_LENGTH or _CONTROL_REF_RE.fullmatch(ref) is None
     ]
 
@@ -172,7 +172,7 @@ def _compile_mixed_control_declaration(
     behavior_spec: ParticipantBehaviorSpecification,
     addressable_ref_index: dict[str, set[str]],
     diagnostics: list[Diagnostic],
-) -> tuple:
+) -> tuple[object, ...]:
     """Compile either form: the legacy eight-part result plus the rev1 policy child or ``None``."""
 
     declaration = behavior_spec.mixed_control

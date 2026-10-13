@@ -10,6 +10,12 @@ from __future__ import annotations
 from ..participant_mixed_control_policy import MixedControlPolicy
 
 
+def _cross_form_message(label: str, control: object) -> str:
+    if control is None:
+        return f"{label} flat control fields cannot bind a mixed-control-policy-occurrence/rev1 policy"
+    return f"{label} control block requires a mixed-control-policy-occurrence/rev1 mixed_control policy"
+
+
 class _ParticipantInjectDeliveryControlMixin:
     def _verify_delivery_policy_control(
         self,
@@ -20,8 +26,8 @@ class _ParticipantInjectDeliveryControlMixin:
     ) -> None:
         control = binding.control
         declaration = behavior_spec.mixed_control
-        if not isinstance(declaration, MixedControlPolicy):
-            self._err(f"{label} control block requires a mixed-control-policy-occurrence/rev1 mixed_control policy")
+        if control is None or not isinstance(declaration, MixedControlPolicy):
+            self._err(_cross_form_message(label, control))
             return
         if (control.semantics, control.policy_revision) != (declaration.semantics, declaration.policy_revision):
             self._err(f"{label} control policy pin disagrees with the owning mixed_control policy")
