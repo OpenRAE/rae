@@ -5,8 +5,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from pathlib import Path
 
-from tools.evidence_bundle_index import load_index_records
-from tools.formal_semantic_validation._release_revisions import _HISTORICAL_RETEST_REVISIONS
+from tools.evidence_bundle_index import load_index_records, revision_key
+from tools.formal_semantic_validation._release_revisions import expected_corpus_revision
 from tools.formal_semantic_validation._shape import (
     _closed_object,
     _failure,
@@ -24,6 +24,7 @@ from tools.formal_semantic_validation._types import (
     MANIFEST_SCHEMA_VERSION,
 )
 from tools.policy.common import PolicyFailure, load_bounded_json_object, safe_repo_path
+from tools.research_evidence import is_capture
 
 _ARCHIVE_PINS_PATH = "docs/research/formal-semantic-validation/historical-artifacts/pins-v1.json"
 _ARCHIVE_PINS_SHA256 = "bcb61fa1f0bce5411eb4d3f9583b51df47798ac955d85b6dd3eadf50c14599f2"
@@ -31,39 +32,6 @@ _ADDITIONAL_ARCHIVE_PINS_PATH = "docs/research/formal-semantic-validation/histor
 _ADDITIONAL_ARCHIVE_PINS_SHA256 = "04b4a1cdfa8c76ccbc536e87365e9343bec4fb8dcde712c15a6535c6e927352a"
 
 _DRIFT_COMPARISON_KEYS = ("actual_outcome", "diagnostic_kind", "result_digest")
-_V2_REVISIONS = _HISTORICAL_RETEST_REVISIONS
-_V3_CORPUS_REVISIONS = frozenset(
-    {
-        "16.0.0",
-        "17.0.0",
-        "18.0.0",
-        "19.0.0",
-        "20.0.0",
-        "21.0.0",
-        "22.0.0",
-        "23.0.0",
-        "24.0.0",
-        "25.0.0",
-        "26.0.0",
-        "27.0.0",
-        "28.0.0",
-        "29.0.0",
-        "30.0.0",
-        "31.0.0",
-        "32.0.0",
-        "33.0.0",
-        "34.0.0",
-        "35.0.0",
-        "36.0.0",
-        "37.0.0",
-        "38.0.0",
-        "39.0.0",
-        "40.0.0",
-        "41.0.0",
-        "43.0.0",
-        "44.0.0",
-    }
-)
 
 
 def _pinned_document(repo_root: Path, relative: str, digest: str) -> Mapping[str, object] | None:
@@ -103,12 +71,27 @@ def _baseline_document(repo_root: Path, path_value: object, digest: object) -> M
     candidates = [path_value]
     if _archive_allowed(repo_root, path_value, digest):
         candidates.append(f"docs/research/formal-semantic-validation/historical-artifacts/{digest}.json")
+    candidates.extend(_sync_archive_candidates(repo_root, path_value, digest))
     document = None
     for candidate in candidates:
         document = _pinned_document(repo_root, candidate, digest)
         if document is not None:
             break
     return document
+
+
+def _sync_archive_candidates(repo_root: Path, path_value: str, digest: str) -> list[str]:
+    sync_pins_path = "docs/research/inject-readback-first-sync-evidence/records.json"
+    sync_pins = _pinned_document(
+        repo_root, sync_pins_path, "229a8b72f9ec97c277350e6f9dfda18bb1e06d49d80068ca1aad36e8b7713f3e"
+    )
+    if sync_pins is None:
+        return []
+    return [
+        row["archive_path"]
+        for row in sync_pins["records"]
+        if row["original_path"] == path_value and row["sha256"] == digest
+    ]
 
 
 def _validated_baseline_pin(
@@ -173,47 +156,16 @@ def _selected_baseline_manifest(
     indexed = indexed_records.get(baseline_path)
     baseline_manifest = _baseline_document(repo_root, baseline_path, baseline.get("release_sha256"))
     baseline_revision = baseline.get("release_revision")
-    expected_protocol_path = (
-        "docs/research/formal-semantic-validation/protocol-v2.json"
-        if baseline_revision in _V2_REVISIONS
-        else "docs/research/formal-semantic-validation/protocol-v1.json"
+    try:
+        integrated = is_capture(baseline_revision) or revision_key(baseline_revision) >= (3, 0, 0)
+        corpus_revision = expected_corpus_revision(baseline_revision) if integrated else "1.0.0"
+    except ValueError:
+        integrated = False
+        corpus_revision = "invalid"
+    expected_protocol_path = f"docs/research/formal-semantic-validation/protocol-v{2 if integrated else 1}.json"
+    expected_corpus_path = (
+        f"docs/research/formal-semantic-validation/corpus/manifest-v{corpus_revision.split('.')[0]}.json"
     )
-    if baseline_revision in {
-        "42.0.0",
-        "45.0.0",
-        "46.0.0",
-        "47.0.0",
-        "48.0.0",
-        "49.0.0",
-        "50.0.0",
-        "51.0.0",
-        "52.0.0",
-        "53.0.0",
-        "54.0.0",
-        "55.0.0",
-        "56.0.0",
-        "57.0.0",
-        "58.0.0",
-        "59.0.0",
-        "60.0.0",
-        "61.0.0",
-        "62.0.0",
-        "63.0.0",
-        "64.0.0",
-        "65.0.0",
-        "66.0.0",
-        "67.0.0",
-        "68.0.0",
-        "69.0.0",
-        "70.0.0",
-    }:
-        expected_corpus_path = "docs/research/formal-semantic-validation/corpus/manifest-v4.json"
-    elif baseline_revision in _V3_CORPUS_REVISIONS:
-        expected_corpus_path = "docs/research/formal-semantic-validation/corpus/manifest-v3.json"
-    elif baseline_revision in _V2_REVISIONS:
-        expected_corpus_path = "docs/research/formal-semantic-validation/corpus/manifest-v2.json"
-    else:
-        expected_corpus_path = "docs/research/formal-semantic-validation/corpus/manifest-v1.json"
     if (
         not isinstance(baseline_manifest, Mapping)
         or not isinstance(indexed, Mapping)

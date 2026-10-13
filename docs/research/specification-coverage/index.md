@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 69.0.0 and rejects duplicate or unsupported
+Current validation requires release 74.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -528,8 +528,63 @@ retains its original bytes. Pre-synchronization issue #1361 captures are
 [archived with exact digests](../execution-recovery-pre-sync-evidence/README.md).
 Retained outcomes and bounded claim limits are unchanged.
 
-Release 69.0.0 replays the retained matrix after issue #1425 derived reference
-and libvirt realization from published plan operations in
+Release 69.0.0 replays the retained matrix after issue #1481 adds configurable
+runtime parameter authority in
 [`execution-snapshot-v69.json`](execution-snapshot-v69.json) and
-[`analysis-v69.json`](analysis-v69.json). Classifications and claim limits
+[`analysis-v69.json`](analysis-v69.json). Source and package digests are refreshed;
+historical records, classifications, outcomes, and bounded claim limits remain
+unchanged. Issue-specific regression tests establish the new parameter behavior;
+this retained matrix makes no broader claim about it.
+
+Release 70.0.0 replays the same matrix after the issue #1481 Sonar refactor in
+[`execution-snapshot-v70.json`](execution-snapshot-v70.json) and
+[`analysis-v70.json`](analysis-v70.json). The capture refreshes source and package
+identities without changing classifications, outcomes, or claim limits.
+
+Release 71.0.0 replays the retained matrix against the issue #1418 runtime-fact
+export manifest split in
+[`execution-snapshot-v71.json`](execution-snapshot-v71.json) and
+[`analysis-v71.json`](analysis-v71.json). Classifications and claim limits
 remain unchanged.
+
+The issue #1371 captures that reused published release identities are preserved
+in the [initial publication archive](../mixed-backend-pre-sync-evidence/README.md)
+and [run-scope repair archive](../mixed-backend-run-scope-pre-sync-evidence/README.md),
+with exact bytes and digests. The incoming published release history remains canonical.
+
+Release 72.0.0 replays the retained controls after merging the issue #1418
+runtime-fact export manifest split with the issue #1371 mixed-backend contracts
+and composition run-scope repair in
+[`execution-snapshot-v72.json`](execution-snapshot-v72.json) and
+[`analysis-v72.json`](analysis-v72.json). Outcomes and bounded claim
+limits remain unchanged; this retained corpus makes no new mixed-runtime execution claim.
+
+## Issue #297 behavior authoring verification
+
+Release 73.0.0 replays the retained corpus against the behavior authoring
+validation changes after integration with the runtime-fact manifest split and
+mixed-backend execution contracts. See
+[`execution-snapshot-v73.json`](execution-snapshot-v73.json) and
+[`analysis-v73.json`](analysis-v73.json). Incoming published captures retain
+their exact bytes; this release records a fresh implementation digest and
+modified-checkout provenance. Declaration reuse, authored-private rejection,
+import diagnostics and version parity have targeted evidence in
+`test_issue_297_behavior_authoring.py`; this refresh does not promote those
+claims into runtime or backend realization.
+
+The issue #1421 captures that reused published release identities are preserved
+in the [shared-time readback archive](../time-readback-pre-sync-evidence/README.md)
+with exact bytes, digests, and source revision. Incoming published history
+remains canonical.
+
+Release 74.0.0 replays the retained corpus after synchronizing issue #1421's
+shared-time readback isolation with `dev`. See
+[`execution-snapshot-v74.json`](execution-snapshot-v74.json) and
+[`analysis-v74.json`](analysis-v74.json). Retained outcomes and bounded
+claim limits remain unchanged; the readback mutation cases are covered by
+`test_issue_1421_time_readback_isolation.py`.
+
+[Original inject synchronization captures](../inject-readback-first-sync-evidence/README.md)
+retain the collided identities and dependent baseline pins. Current combined-source
+evidence uses the content-addressed capture workflow documented in
+[research captures](../../develop/research-captures.md).

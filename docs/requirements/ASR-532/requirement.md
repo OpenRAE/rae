@@ -30,6 +30,8 @@ requirement.
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_issue_1481_parameter_authority.py` (Runtime rejection of changed selected parameter outputs)
+
 - TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (Completion regression: replay compiled carriers and participant admission at the current source identity)
 - TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (Completion regression: reject stale implementation and replay evidence after result-admission changes)
 - TESTS → TEST `implementations/python/tests/test_specification_coverage.py` (Completion regression: retain portable compiler coverage at the current source identity)
@@ -182,6 +184,7 @@ requirement.
 - TESTS → TEST `implementations/python/tests/test_issue_1204_specialized_constraints.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1204_substrate_handoff.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1204_targeted_effects.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1421_time_readback_isolation.py` (A time runtime that rewrites its readback snapshot argument changes neither the authoritative snapshot nor the agreement check)
 - TESTS → TEST `implementations/python/tests/test_issue_158_runtime_result_integrity.py`
 - TESTS → TEST `implementations/python/tests/test_issue_898_participant_execution_control.py`
 - TESTS → TEST `implementations/python/tests/test_issue_899_participant_resource_budgets.py`

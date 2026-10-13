@@ -70,6 +70,15 @@ published schemas, source code, and ADRs.
 : A reference from one SDL module to another module source. Current source
   classes are `local:`, `oci:`, and `locked:`.
 
+**Environment pack**
+: A downstream packaging and distribution unit that may contain SDL scenarios
+  and other reusable assets. It is not another name for a scenario, an SDL
+  document phase or model, or a realized environment. The
+  [env-packs repository](https://github.com/OpenRAE/env-packs) owns pack
+  structure and pack tooling; this repository remains authoritative for the
+  SDL, concept, and reusable-asset trust-policy meanings a pack relies on. See
+  [Scenario And Environment-Pack Vocabulary](../../migration/raes-rename.md#scenario-and-environment-pack-vocabulary).
+
 **Variable**
 : A declared value placeholder for attribute values on already-declared SDL
   objects. Variables do not create or rename mapping keys. The variable lineage

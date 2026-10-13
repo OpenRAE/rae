@@ -21,6 +21,12 @@ Current state: identified gap. Honest portability requires normative semantics f
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/parameter_derivations.py` (Public typed parameter derivations and finite interpolation images)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_phase_base.py` (Immutable phase records and JSON scalar equality)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_scenario_instantiation.py` (Selected output and whole-field provenance admission)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_provenance.py` (Namespaced portable derivation evidence)
+- TESTS → TEST `implementations/python/tests/test_issue_1481_parameter_authority.py` (Configurable runtime strings, safe mailbox interpolation and runtime non-approximation)
+
 - IMPLEMENTS → GITHUB_ISSUE `1237` (Canonical source sufficiency at substrate admission boundaries)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_compute_substrate.py` (Independent scope and exact-source runtime admission)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_operational_observation.py` (Authoritative native readback and prior-disclosure reuse)

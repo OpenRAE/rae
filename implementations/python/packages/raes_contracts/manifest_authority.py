@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from .versions import BACKEND_OPERATION_CONTRACT_IDS
+from .versions import BACKEND_OPERATION_CONTRACT_IDS, MIXED_BACKEND_CONTRACT_IDS
 
 PROCESSOR_SUPPORTED_SDL_VERSION_IDS = ("sdl-authoring-input-v1",)
 
@@ -40,6 +40,7 @@ PROCESSOR_SUPPORTED_CONTRACT_IDS = (
 # separate authority surfaces and do not belong in this declaration field.
 BACKEND_SUPPORTED_CONTRACT_IDS = (
     *BACKEND_OPERATION_CONTRACT_IDS,
+    *MIXED_BACKEND_CONTRACT_IDS,
     "backend-materialization-attestation-v1",
     "backend-augmentation-scope-v1",
     "plan-realization-profiles-v1",
@@ -91,6 +92,8 @@ BACKEND_SUPPORTED_CONTRACT_IDS = (
     "time-model-v1",
     "time-runtime-state-v1",
     "realized-time-model-v1",
+    "inject-occurrence-v1",
+    "inject-occurrence-outcome-v1",
 )
 
 PARTICIPANT_RUNTIME_ROLE_SCOPE = "capabilities.participant_runtime.supported_participant_roles"

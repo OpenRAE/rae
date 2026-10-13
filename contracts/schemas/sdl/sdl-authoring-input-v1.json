@@ -9132,6 +9132,8 @@
           "title": "Realization Profile Ref"
         },
         "semantic_version": {
+          "minLength": 1,
+          "pattern": "\\S",
           "title": "Semantic Version",
           "type": "string"
         },

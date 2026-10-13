@@ -20,8 +20,7 @@ to the project.
 
 ## Report a concern
 
-Report a concern to the maintainer through the private contact path on Brad
-Edwards' GitHub profile.
+Email **security@autarchy.ai** to report a concern to the maintainer.
 
 The project has one maintainer and no separate enforcement group. The
 maintainer may remove comments, close threads, decline work, or block a person
