@@ -216,8 +216,11 @@ These pre-existing gaps are neither widened nor fixed here:
   specification, not against the projected participant's declarations.
 - #1571: projection has no boundary filter, so a binding must be classified at
   every projection boundary, not only at its own.
-- #1572: projection reads the view relation by runtime address while authors
-  classify authored references, so the #301 fixtures classify both forms.
+
+#1572 is fixed by #1592. Projection reads the view relation by runtime
+address, and compilation keys each authored action-contract and binding
+classification by its compiled address. Each boundary that a binding in the
+#301 fixtures names classifies that binding once, by authored reference.
 
 ## Precedents
 
