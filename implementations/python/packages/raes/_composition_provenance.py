@@ -3,14 +3,19 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from pathlib import Path
+
+from pydantic import ValidationError
 
 from ._errors import SDLParseError
+from ._model_diagnostics import _field_problems
 from ._module_symbols import HASHMAP_SECTIONS
 from .instantiate import _BoundScenarioResult
 from .module_registry import ResolvedModule
 from .phase_contracts import (
     CapabilityConstraint,
     ExplicitnessProvenanceRecord,
+    ParameterBinding,
     ParameterDerivation,
     ResolvedImportProvenance,
 )
@@ -36,21 +41,44 @@ def resolved_import_record(
     *,
     requested: ImportDecl,
     bindings: _BoundScenarioResult,
+    path: Path,
 ) -> ResolvedImportProvenance:
-    return ResolvedImportProvenance(
-        namespace=(requested.namespace,),
-        requested_source=requested.normalized_source,
-        requested_version=requested.version,
-        requested_digest=_normalized_digest(requested.digest),
-        module_id=resolved.module_descriptor.id,
-        module_version=resolved.module_descriptor.version,
-        resolved_source=resolved.resolved_source,
-        manifest_digest=_normalized_digest(resolved.manifest_digest),
-        content_digest=_normalized_digest(resolved.content_digest),
-        export_hash=_normalized_digest(resolved.export_hash),
-        signer_id=resolved.signer_id,
-        bindings=bindings.bindings,
-    )
+    return _provenance_record(resolved, requested=requested, bindings=bindings.bindings, path=path)
+
+
+def _provenance_record(
+    resolved: ResolvedModule,
+    *,
+    requested: ImportDecl,
+    path: Path,
+    bindings: tuple[ParameterBinding, ...] = (),
+) -> ResolvedImportProvenance:
+    """Build one resolved-import record, failing as an SDL error when its bounds reject a value.
+
+    ``path`` is the document that declares ``requested``; the error names it.
+    """
+
+    try:
+        return ResolvedImportProvenance(
+            namespace=(requested.namespace,),
+            requested_source=requested.normalized_source,
+            requested_version=requested.version,
+            requested_digest=_normalized_digest(requested.digest),
+            module_id=resolved.module_descriptor.id,
+            module_version=resolved.module_descriptor.version,
+            resolved_source=resolved.resolved_source,
+            manifest_digest=_normalized_digest(resolved.manifest_digest),
+            content_digest=_normalized_digest(resolved.content_digest),
+            export_hash=_normalized_digest(resolved.export_hash),
+            signer_id=resolved.signer_id,
+            bindings=bindings,
+        )
+    except ValidationError as exc:
+        raise SDLParseError(
+            f"Import '{requested.normalized_source}' cannot be recorded as resolved import provenance: "
+            + _field_problems(exc),
+            path=path,
+        ) from exc
 
 
 def prefixed_constraint(

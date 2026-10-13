@@ -8,9 +8,10 @@ these helpers so ``from raes.parser import ...`` call sites remain stable.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from pathlib import Path
 
-from pydantic import ValidationError
+from pydantic import TypeAdapter, ValidationError
 
 from ._classification_guard import CLASSIFICATION_MIGRATION_CODE
 from ._errors import (
@@ -19,6 +20,9 @@ from ._errors import (
     SDLSourcePosition,
     SDLSourceRange,
 )
+from ._module_declarations import ImportDecl
+
+_IMPORT_DECLARATIONS: TypeAdapter[list[ImportDecl]] = TypeAdapter(list[ImportDecl])
 
 
 def _dedupe_source_diagnostics(
@@ -77,15 +81,30 @@ def _bounded_model_message(message: str) -> str:
     return escaped[: _MODEL_DIAGNOSTIC_MESSAGE_MAX_LENGTH - 3] + "..."
 
 
+def _field_problems(error: ValidationError, *, field_names: Mapping[str, str] | None = None) -> str:
+    """Render each failure as ``field: message`` with bounded prose and no input values."""
+
+    names = field_names or {}
+    problems: list[str] = []
+    for item in error.errors():
+        location = [str(part) for part in item.get("loc", ())]
+        if location:
+            location[0] = names.get(location[0], location[0])
+        message = _bounded_model_message(str(item.get("msg", "")))
+        problems.append(f"{'.'.join(location)}: {message}" if location else message)
+    return "; ".join(problems)
+
+
 def _model_parse_error(
     error: ValidationError,
     *,
     path: Path | None,
     source_ranges: dict[str, SDLSourceRange],
+    location_prefix: tuple[str, ...] = (),
 ) -> SDLParseError:
     diagnostics: list[SDLParseDiagnostic] = []
     for item in error.errors():
-        pointer = _pointer_from_location(tuple(item.get("loc", ())))
+        pointer = _pointer_from_location((*location_prefix, *item.get("loc", ())))
         raw_message = str(item.get("msg", ""))
         is_identifier = "portable SDL identifier" in raw_message or "qualified SDL identifier" in raw_message
         message = _bounded_model_message(raw_message)
@@ -110,3 +129,24 @@ def _model_parse_error(
         path=path,
         diagnostics=diagnostics,
     )
+
+
+def _import_declarations(
+    data: Mapping[str, object],
+    *,
+    path: Path | None,
+    source_ranges: dict[str, SDLSourceRange],
+) -> list[ImportDecl]:
+    """Validate a document's ``imports`` as its typed field, failing with field diagnostics.
+
+    Pointers and source ranges match what full-document validation reports for
+    the same ``imports`` value, so callers that consume only the declarations
+    agree with :func:`raes.parser.parse_sdl` (ADR-053 validation order, step 3).
+    """
+
+    if "imports" not in data:
+        return []
+    try:
+        return _IMPORT_DECLARATIONS.validate_python(data["imports"])
+    except ValidationError as exc:
+        raise _model_parse_error(exc, path=path, source_ranges=source_ranges, location_prefix=("imports",)) from exc

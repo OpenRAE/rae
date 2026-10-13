@@ -15,7 +15,7 @@ from pydantic import ValidationError
 
 from .._composition_budget import CompositionBudget, CompositionTraversal
 from .._errors import SDLInstantiationError, SDLParseDiagnostic, SDLParseError, SDLSourceRange
-from .._model_diagnostics import _model_parse_error
+from .._model_diagnostics import _import_declarations, _model_parse_error
 from .._module_symbols import FORWARDING_AGENTS_SECTION
 from .._module_symbols import HASHMAP_SECTIONS as _HASHMAP_SECTIONS
 from .._module_symbols import (
@@ -37,7 +37,7 @@ from ..module_registry import (
     load_trust_policy,
     resolve_import,
 )
-from ..parser import _load_normalized_data
+from ..parser import _load_normalized_data, _reject_removed_scoring_sections
 from ..phase_contracts import (
     CapabilityConstraint,
     ExpansionProvenance,
@@ -173,12 +173,6 @@ def _merge_sections(
     return merged
 
 
-def _import_decl(value: object) -> ImportDecl:
-    if isinstance(value, ImportDecl):
-        return value
-    return ImportDecl.model_validate(value)
-
-
 @dataclass(frozen=True)
 class _ImportContext:
     """Invariant per-document context threaded through each import expansion."""
@@ -234,7 +228,7 @@ def _expansion_context(options: _ExpansionPrivateOptions) -> _ExpansionContext:
 
 
 def _expand_one_import(
-    raw_import: object,
+    import_decl: ImportDecl,
     merged: dict[str, Any],
     context: _ImportContext,
 ) -> tuple[
@@ -249,7 +243,6 @@ def _expand_one_import(
     """Resolve, expand, namespace, and merge a single import; return provenance additions."""
 
     context.budget.add_import(path=context.path)
-    import_decl = _import_decl(raw_import)
     if "__private." in import_decl.namespace:
         raise SDLParseError(
             "Import namespaces may not contain the reserved '__private' segment",
@@ -284,6 +277,7 @@ def _expand_one_import(
         source_diagnostics=context.source_diagnostics,
         source_ranges=source_ranges,
     )
+    _reject_removed_scoring_sections(imported_raw, path=import_path)
     try:
         Scenario.model_validate(imported_raw)
     except ValidationError as exc:
@@ -334,7 +328,10 @@ def _expand_one_import(
     context.budget.check_namespaces(namespaced_payload, path=import_path)
     merged = _merge_sections(merged, namespaced_payload, path=import_path)
 
-    return (merged, *_import_provenance_additions(resolved_import, import_decl, bound, inner_provenance, symbols))
+    additions = _import_provenance_additions(
+        resolved_import, import_decl, bound, inner_provenance, symbols, path=context.path
+    )
+    return (merged, *additions)
 
 
 def expand_sdl_modules(
@@ -413,9 +410,11 @@ def expand_sdl_modules(
         semantic_revision=data.get("semantic_revision"),
     )
 
-    for raw_import in merged.get("imports", []):
+    # ADR-053 steps 1, 3 and 4: the policy files are loaded, then every declaration
+    # is validated as the typed field before the first import resolves.
+    for import_decl in _import_declarations(merged, path=path, source_ranges={}):
         merged, import_add, capability_add, derivation_add, explicitness_add, realization_add, constraint_add = (
-            _expand_one_import(raw_import, merged, context)
+            _expand_one_import(import_decl, merged, context)
         )
         import_records.extend(import_add)
         capability_constraints.extend(capability_add)

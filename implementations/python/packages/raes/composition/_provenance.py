@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from .._composition_provenance import (
     prefixed_constraint as _prefixed_constraint,
 )
@@ -41,6 +43,8 @@ def import_provenance_additions(
     bound: _BoundScenarioResult,
     inner_provenance: ExpansionProvenance,
     symbols: dict[str, dict[str, str] | set[str]],
+    *,
+    path: Path,
 ) -> tuple[
     list[ResolvedImportProvenance],
     list[CapabilityConstraint],
@@ -49,11 +53,11 @@ def import_provenance_additions(
     list[RealizationDesignationRecord],
     list[RealizationConstraintRecord],
 ]:
-    """Build the namespaced provenance additions contributed by one import."""
+    """Build the namespaced provenance additions contributed by one import declared in ``path``."""
 
     namespace = import_decl.namespace
     import_records: list[ResolvedImportProvenance] = [
-        _resolved_import_record(resolved_import, requested=import_decl, bindings=bound)
+        _resolved_import_record(resolved_import, requested=import_decl, bindings=bound, path=path)
     ]
     import_records.extend(_prefixed_import_record(record, namespace) for record in inner_provenance.imports)
     capability_constraints = [
