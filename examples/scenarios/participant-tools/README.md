@@ -26,13 +26,20 @@ session or runs a scan.
 
 ## Imports
 
-A reference inside the module that names one of the module's declarations
+A `tool_ref` inside the module that names one of the module's declarations
 binds that declaration in every import, whether it is bare (`scanner-package`)
-or section-qualified (`content.scanner-package`). A bare name that the module
-gives to two declarations fails composition with the same "is ambiguous"
+or section-qualified (`content.scanner-package`). A bare `tool_ref` that the
+module gives to two declarations fails composition with the same "is ambiguous"
 diagnostic that the module gets on its own. Spell it `content.<name>` or rename
-the other declaration. A reference that names nothing in the module resolves
+the other declaration. A `tool_ref` that names nothing in the module resolves
 against the complete composed scenario.
+
+These rules cover `tool_ref` only. In other reference families, such as
+`authority_scope_refs`, a bare name that the module gives to two declarations
+still composes and binds one of them without a diagnostic; see
+[#1575](https://github.com/OpenRAE/rae/issues/1575). Reference-typed action
+argument values are neither resolved nor namespaced on import; see
+[#1574](https://github.com/OpenRAE/rae/issues/1574).
 
 An importing scenario cannot add a tool affordance for an imported
 participant: the affordance must be classified by one of that participant's own
