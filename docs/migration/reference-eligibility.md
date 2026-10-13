@@ -90,42 +90,57 @@ listener.
 
 ## Inventory before narrowing
 
-The inventory ran on 2026-10-10 and compared `origin/dev` at 35122105 with
-this change. It covered every tracked YAML file outside `.github` that loads as
+The inventory ran on 2026-10-13 and compared `origin/dev` at a391904a with
+this change, including the typed relationship endpoint purposes and their
+conjunction. It covered every tracked YAML file outside `.github` that loads as
 a mapping with a top-level `name` key, on each repository's integration branch:
 
 | Repository | Commit | Documents | Accepted |
 | --- | --- | --- | --- |
-| rae: examples, contract fixtures, documentation, specifications, and test data | `dev` 35122105 | 74 | 45 |
-| env-packs | `dev` 9ce449d | 54 | 49 |
-| lilrae | `dev` a5833df9 | 12 | 6 |
+| rae: examples, contract fixtures, documentation, specifications, and test data | `dev` a391904a | 81 | 50 |
+| env-packs | `dev` 1d8adfb | 97 | 92 |
+| lilrae | `dev` d77c06f4 | 12 | 6 |
 | adapters | `dev` 0272949 | 10 | 0 |
-| reference-packs | `main` 445c3ca, its only branch | 0 | 0 |
+| reference-packs | `main` 445c3ca | 0 | 0 |
 | hub | `dev` 4f15773 | 0 | 0 |
 
 Full validation outcomes, error text included, are identical before and after
-the change for all 150 documents, both as authored and with legacy spellings
-accepted. As authored, 100 are accepted and 50 are rejected for unchanged
+the change for all 200 documents, both as authored and with legacy spellings
+accepted. As authored, 148 are accepted and 52 are rejected for unchanged
 reasons. The rejected files include intentionally invalid fixtures, pack
 manifests and Compose files that are not SDL, and documents that need a
-migration first, such as all seven adapters SDL files.
+migration first, such as all the adapters SDL files.
 
-The 114 documents that parse structurally with legacy spellings accepted name
-these declaration kinds:
+The 162 documents that parse structurally with legacy spellings accepted name
+these declaration kinds, by reference purpose. A reference counts when it
+resolves to one declaration among its purpose's resolution domain; the fields
+of each purpose are listed in the
+[reference-purpose catalog](../../specs/sdl/references.md#7-reference-purposes-and-eligibility).
 
-| Field | Declaration kinds named |
+| Purpose | Declaration kinds named |
 | --- | --- |
-| `objectives.*.targets[]` | content, named infrastructure ACLs, nodes, relationships, node services |
-| interaction `target` and `shared_state_refs[]` | node services |
-| effect `target_refs[]` | content, named infrastructure ACLs, nodes, relationships, node services |
-| `authority_scope_refs[]` | content, nodes, node services |
-| mixed-control and delivery scopes | nodes |
-| proposition `subjects[]` | content, nodes, runtime-inventory records |
-| evidence `source_refs[]` and `scope_refs[]` | action contracts, agents, content, organizations, nodes, participant inject deliveries, runtime-inventory records, node services |
-| generic relationship endpoints | accounts, deployment tenants, features, identity domains, facades, and forests, nodes, runtime-inventory records, node services |
-| participant relationship endpoints | agents, and one organization in a fixture that is invalid on purpose |
+| objective subject | content, named infrastructure ACLs, nodes, relationships, node services |
+| action target | content, named infrastructure ACLs, nodes, relationships, node services |
+| shared state | node services |
+| authority scope, including mixed-control and delivery scopes | content, nodes, node services |
+| observation subject | action contracts, agents, content, organizations, nodes, participant inject deliveries, runtime-inventory records, node services |
+| authority anchor | content, organizations |
+| declared | action contracts, organizations, nodes, participant inject deliveries |
+| targetable | action contracts, conditions, content, observation boundaries, runtime applications |
+| relationship endpoint (generic types and details) | accounts, features, nodes |
+| node endpoint | nodes |
+| identity domain endpoint | identity domains |
+| identity authority endpoint | identity forests |
+| identity facade endpoint | identity facades |
+| deployment tenant endpoint | deployment tenants |
+| node service endpoint | node services |
+| runtime application endpoint | runtime applications |
+| database endpoint | runtime database services |
+| participant endpoint | agents, and one organization in a fixture that is invalid on purpose |
 
-No accepted reference narrows. The organization endpoint is
+No document names a `forest_trusts` endpoint or a `mail_access` target. No
+accepted reference narrows: every typed endpoint names a kind that its
+subtype's check already accepted. The organization endpoint is
 `contracts/fixtures/sdl/participant-relationships-v1/invalid/entity-endpoint.yaml`,
 which was already rejected.
 
