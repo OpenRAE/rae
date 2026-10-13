@@ -109,7 +109,7 @@ Hashes detect drift; they do not establish correspondence. A status read after
 key conflict does not deliver a participant payload. A fresh key after response
 loss may duplicate an already completed effect.
 
-SEM-232 remains DRAFT. Model construction establishes no bisimulation, live
+SEM-232 remains DRAFT. Model construction does not establish bisimulation, live
 realization, backend conformance, noninterference, opacity, arbitrary-history,
 latency, throughput, concurrency or universal recovery result. SEM-230/API-423/
 RUN-319 retain their ACTIVE contracts and adoption/enforcement boundaries.
