@@ -169,8 +169,9 @@ def test_bare_tool_ref_naming_two_unit_declarations_fails_composition_as_it_fail
         f"Behavior specification '{REUSABLE}' tool affordance 'network-scanner' "
         f"tool_ref 'scanner-package' is ambiguous; use one of: {candidates}"
     ]
+    unit_text = _rewritten(UNIT, (clash,))
     with pytest.raises(SDLValidationError) as standalone:
-        parse_sdl(_rewritten(UNIT, (clash,)))
+        parse_sdl(unit_text)
     with pytest.raises(SDLValidationError) as composed:
         _parse_pair(tmp_path, unit_edits=(clash,))
 
