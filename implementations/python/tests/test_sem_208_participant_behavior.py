@@ -669,6 +669,9 @@ def test_sem219_schemas_publish_closed_tool_affordance_shape():
             "tool_ref",
             "action_contract_refs",
             "observation_boundary_refs",
+            # ACT-619 (#301): optional participant selectors that only narrow the owning specification.
+            "participant_refs",
+            "participant_role_refs",
         }
 
 

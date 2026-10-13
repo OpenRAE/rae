@@ -233,6 +233,7 @@ def _project_action(
     assessment: ParticipantDecisionSurfaceActionAssessment,
     *,
     state_cut_ref: str,
+    participant_address: str,
 ) -> tuple[dict[str, object], tuple[str, ...]]:
     action_address = assessment.action_contract_address
     if action_address not in behavior.action_contract_addresses:
@@ -246,6 +247,7 @@ def _project_action(
         runtime_model,
         behavior_affordance_addresses=behavior.tool_affordance_addresses,
         action_address=action_address,
+        participant_address=participant_address,
     )
     _validate_visible_refs(relation, (action_address, *affordances), state_cut_ref=state_cut_ref)
     dispositions = {relation[ref] for ref in (action_address, *affordances)}
@@ -308,6 +310,7 @@ def project_participant_decision_surface_v2(
             relation,
             assessment,
             state_cut_ref=projection.decision_cut_ref,
+            participant_address=projection.participant_address,
         )
         entries.append(entry)
         affordances.extend(entry_affordances)

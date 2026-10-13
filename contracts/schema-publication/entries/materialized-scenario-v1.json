@@ -1,9 +1,9 @@
 {
-  "content_hash": "561545be507a1e79632488702c1fb322c62d38fb3cbb49953fb9b24771eae6af",
+  "content_hash": "b1a5b8e88639015cecc7e19d03ffae557b6895b1438e5124d69331cd1d855bb6",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "561545be507a1e79632488702c1fb322c62d38fb3cbb49953fb9b24771eae6af",
-    "summary": "Reject empty and whitespace-only behavior specification version labels, matching existing parser validity; DSL-116 issue #297."
+    "content_hash": "b1a5b8e88639015cecc7e19d03ffae557b6895b1438e5124d69331cd1d855bb6",
+    "summary": "Add optional participant_refs and participant_role_refs selectors to behavior-specification tool-affordance bindings, so one participant tool profile can narrow each binding to some of its participants; ACT-619 issue #301."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"
