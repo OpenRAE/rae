@@ -24,6 +24,12 @@ cohort from stdin means the tool invokes no subprocess and opens no caller-named
 path, so it adds no command-execution or path-traversal surface. Queue time is
 reported separately from execution time and successful runs are never imputed as
 failures. The metric functions are pure and unit-tested.
+
+Queue time runs from a run's ``created_at`` to its ``run_started_at``. GitHub
+keeps ``created_at`` from the first attempt but resets ``run_started_at`` on each
+re-run, so only a first attempt (``run_attempt`` 1, or no ``run_attempt``)
+reports queue time. A re-run attempt keeps its other metrics, measured from its
+own ``run_started_at``, and the summary counts it in ``rerun_attempts``.
 """
 
 from __future__ import annotations
@@ -67,6 +73,7 @@ class RunTiming:
     execution_s: float | None
     time_to_first_failure_s: float | None
     final_required_completion_s: float | None
+    run_attempt: int = 1
 
 
 def _job_elapsed(job: Mapping[str, object], started: datetime | None) -> tuple[str, str, float] | None:
@@ -89,6 +96,14 @@ def _optional_max(values: Sequence[float]) -> float | None:
 
 def _coerce_run_id(value: object) -> int:
     return value if isinstance(value, int) and not isinstance(value, bool) else 0
+
+
+def _coerce_run_attempt(value: object) -> int:
+    """Return GitHub's ``run_attempt``: 1 when absent, 0 when not a positive integer."""
+
+    if value is None:
+        return 1
+    return value if isinstance(value, int) and not isinstance(value, bool) and value > 0 else 0
 
 
 @dataclass(frozen=True)
@@ -126,7 +141,9 @@ def parse_run(
     """Derive the latency metrics for a single run from its native timestamps."""
 
     required = set(required_checks)
-    created = _parse_timestamp(run.get("created_at"))
+    attempt = _coerce_run_attempt(run.get("run_attempt"))
+    # GitHub keeps ``created_at`` from the first attempt, so it anchors only a first attempt.
+    created = _parse_timestamp(run.get("created_at")) if attempt == 1 else None
     started = _parse_timestamp(run.get("run_started_at")) or created
     jobs_timing = _aggregate_jobs(jobs, started, required, required | {FAST_FEEDBACK_CHECK})
 
@@ -138,6 +155,7 @@ def parse_run(
         execution_s=_optional_max(jobs_timing.completions),
         time_to_first_failure_s=_optional_min(jobs_timing.failures),
         final_required_completion_s=_optional_max(jobs_timing.required_completions),
+        run_attempt=attempt,
     )
 
 
@@ -171,6 +189,7 @@ def summarize(timings: Sequence[RunTiming]) -> dict[str, object]:
 
     return {
         "runs": len(timings),
+        "rerun_attempts": sum(1 for item in timings if item.run_attempt > 1),
         "queue_seconds": _summary(collect("queue_s")),
         "execution_seconds": _summary(collect("execution_s")),
         "time_to_first_failure_seconds": _summary(collect("time_to_first_failure_s")),
