@@ -109,11 +109,31 @@ def test_authored_coordinates_above_the_mc_08_range_are_refused(path: tuple, lim
         (lambda p: p.update(semantics="mixed-control-policy-occurrence/rev2"), SDLParseError, "semantics"),
         (lambda p: p.pop("form"), SDLParseError, "form"),
         (lambda p: p.update(form="infinite-script"), SDLParseError, "form"),
-        (lambda p: p.update(script_steps=[{"step_id": "h1", "permitted_transition_ref": "take"}]), SDLParseError, ""),
-        (lambda p: p["permitted_transitions"]["approve"].update(target_kinds=["proposal"]), SDLParseError, ""),
-        (lambda p: p["permitted_transitions"]["direct"].update(target_kinds=["decision"]), SDLParseError, ""),
-        (lambda p: p["permitted_transitions"]["take"].pop("completion_evidence_refs"), SDLParseError, ""),
-        (lambda p: p["permitted_transitions"]["take"].update(expected_state_revision=0), SDLParseError, ""),
+        (
+            lambda p: p.update(script_steps=[{"step_id": "h1", "permitted_transition_ref": "take"}]),
+            SDLParseError,
+            "has no script_steps",
+        ),
+        (
+            lambda p: p["permitted_transitions"]["approve"].update(target_kinds=["proposal"]),
+            SDLParseError,
+            "approval permitted transitions cannot carry target_kinds",
+        ),
+        (
+            lambda p: p["permitted_transitions"]["direct"].update(target_kinds=["decision"]),
+            SDLParseError,
+            "direct/target_kinds/0: Input should be",
+        ),
+        (
+            lambda p: p["permitted_transitions"]["take"].pop("completion_evidence_refs"),
+            SDLParseError,
+            "handoff permitted transitions require completion_evidence_refs",
+        ),
+        (
+            lambda p: p["permitted_transitions"]["take"].update(expected_state_revision=0),
+            SDLParseError,
+            "expected_state_revision: Extra inputs are not permitted",
+        ),
         (lambda p: p["permitted_transitions"]["take"].update(to_state_ref="missing"), SDLParseError, "unknown"),
     ],
 )
@@ -208,7 +228,10 @@ def test_an_edge_window_must_intersect_the_destination_window() -> None:
 @pytest.mark.parametrize(
     ("step", "message"),
     [
-        ({"step_id": "h2", "permitted_transition_ref": "return", "valid_from_order": 0, "valid_until_order": 2000}, ""),
+        (
+            {"step_id": "h2", "permitted_transition_ref": "return", "valid_from_order": 0, "valid_until_order": 2000},
+            "window widens its permitted transition window",
+        ),
         ({"step_id": "h2", "permitted_transition_ref": "return", "target_kind": "proposal"}, "widens"),
         ({"step_id": "h2", "permitted_transition_ref": "approve", "target_step_ref": "missing"}, "earlier step"),
         ({"step_id": "h2", "permitted_transition_ref": "approve", "target_step_ref": "h1"}, "exactly one eligible"),
