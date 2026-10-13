@@ -15,7 +15,7 @@ from ..models import (
     ParticipantInteractiveAccessRuntime,
     ParticipantToolAffordanceRuntime,
 )
-from ._mixed_control import _compile_mixed_control
+from ._mixed_control_policy import _compile_mixed_control_declaration, mixed_control_semantics
 from .addresses import (
     _action_contract_address,
     _assertion_address,
@@ -305,10 +305,12 @@ def _compile_behavior_specifications(
             controller_states,
             control_transitions,
             mixed_control_dependencies,
-        ) = _compile_mixed_control(
+            mixed_control_policy,
+        ) = _compile_mixed_control_declaration(
             spec_name=name,
             behavior_spec=behavior_spec,
             addressable_ref_index=addressable_ref_index,
+            diagnostics=diagnostics,
         )
         dependencies = _dedupe(
             [
@@ -355,6 +357,8 @@ def _compile_behavior_specifications(
             mixed_control_dispositions=mixed_control_dispositions,
             controller_states=controller_states,
             control_transitions=control_transitions,
+            mixed_control_semantics=mixed_control_semantics(behavior_spec.mixed_control),
+            mixed_control_policy=mixed_control_policy,
             realization_profile_ref=str(behavior_spec.realization_profile_ref or ""),
             backend_feature_support_refs=tuple(behavior_spec.backend_feature_support_refs),
             evidence_contract_refs=tuple(behavior_spec.evidence_contract_refs),

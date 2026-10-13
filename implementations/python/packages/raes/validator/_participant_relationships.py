@@ -1,6 +1,6 @@
 """Participant relationship endpoint and refinement agreement checks."""
 
-from ..participant_behavior_specification import MixedControlControllerState, MixedControlParticipantOperation
+from ..participant_behavior_specification import MixedControlControllerState, MixedControlDeclaration
 from ..participant_relationships import PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS, ParticipantRelationship
 from ..relationships import Relationship
 from ..semantics._domain_topology_types import resolve_section_ref
@@ -57,7 +57,7 @@ class _ParticipantRelationshipsMixin:
         else:
             self._participant_relation_control_scope(label, detail.scope_refs, states)
 
-    def _participant_relation_control_policy(self, label: str, ref: str) -> MixedControlParticipantOperation | None:
+    def _participant_relation_control_policy(self, label: str, ref: str) -> MixedControlDeclaration | None:
         name = resolve_section_ref(ref, "behavior_specifications", self._s.behavior_specifications)
         if name is None:
             self._err(f"{label} control_specification_ref must reference declared behavior_specifications")
@@ -69,7 +69,7 @@ class _ParticipantRelationshipsMixin:
 
     @staticmethod
     def _participant_relation_controller_states(
-        control: MixedControlParticipantOperation, controlled: str, controller: str
+        control: MixedControlDeclaration, controlled: str, controller: str
     ) -> list[MixedControlControllerState]:
         if control.participant_ref != controlled:
             return []

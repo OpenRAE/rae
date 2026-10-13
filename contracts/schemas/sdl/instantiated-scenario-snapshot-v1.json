@@ -5484,6 +5484,153 @@
       "title": "FederationProtocol",
       "type": "string"
     },
+    "FiniteScriptMixedControlPolicy": {
+      "additionalProperties": false,
+      "description": "Pins an ordered list of distinct steps; exhaustion admits no further application.",
+      "properties": {
+        "controller_states": {
+          "minProperties": 1,
+          "patternProperties": {
+            "^[a-z0-9]": {
+              "$ref": "#/$defs/MixedControlPolicyControllerState"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            }
+          },
+          "title": "Controller States",
+          "type": "object"
+        },
+        "dispositions": {
+          "$ref": "#/$defs/MixedControlDispositionRules"
+        },
+        "form": {
+          "const": "finite-script",
+          "title": "Form",
+          "type": "string"
+        },
+        "initial_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Initial State Ref",
+          "type": "string"
+        },
+        "order_strategy": {
+          "$ref": "#/$defs/MixedControlOrderStrategy"
+        },
+        "participant_ref": {
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Participant Ref",
+          "type": "string"
+        },
+        "permitted_transitions": {
+          "minProperties": 1,
+          "patternProperties": {
+            "^[a-z0-9]": {
+              "discriminator": {
+                "mapping": {
+                  "approval": "#/$defs/MixedControlApprovalEdge",
+                  "cancellation": "#/$defs/MixedControlCancellationEdge",
+                  "denial": "#/$defs/MixedControlDenialEdge",
+                  "external-direction": "#/$defs/MixedControlExternalDirectionEdge",
+                  "handoff": "#/$defs/MixedControlHandoffEdge",
+                  "intervention": "#/$defs/MixedControlInterventionEdge",
+                  "override": "#/$defs/MixedControlOverrideEdge",
+                  "proposal": "#/$defs/MixedControlProposalEdge"
+                },
+                "propertyName": "transition_kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/MixedControlProposalEdge"
+                },
+                {
+                  "$ref": "#/$defs/MixedControlApprovalEdge"
+                },
+                {
+                  "$ref": "#/$defs/MixedControlDenialEdge"
+                },
+                {
+                  "$ref": "#/$defs/MixedControlExternalDirectionEdge"
+                },
+                {
+                  "$ref": "#/$defs/MixedControlInterventionEdge"
+                },
+                {
+                  "$ref": "#/$defs/MixedControlHandoffEdge"
+                },
+                {
+                  "$ref": "#/$defs/MixedControlOverrideEdge"
+                },
+                {
+                  "$ref": "#/$defs/MixedControlCancellationEdge"
+                }
+              ]
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            }
+          },
+          "title": "Permitted Transitions",
+          "type": "object"
+        },
+        "policy_revision": {
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Policy Revision",
+          "type": "string"
+        },
+        "script_steps": {
+          "items": {
+            "$ref": "#/$defs/MixedControlScriptStep"
+          },
+          "minItems": 1,
+          "title": "Script Steps",
+          "type": "array"
+        },
+        "semantics": {
+          "const": "mixed-control-policy-occurrence/rev1",
+          "title": "Semantics",
+          "type": "string"
+        }
+      },
+      "required": [
+        "semantics",
+        "form",
+        "participant_ref",
+        "policy_revision",
+        "order_strategy",
+        "initial_state_ref",
+        "dispositions",
+        "controller_states",
+        "permitted_transitions",
+        "script_steps"
+      ],
+      "title": "FiniteScriptMixedControlPolicy",
+      "type": "object"
+    },
     "ForestTrustDirection": {
       "description": "Authority direction for one forest trust edge.",
       "enum": [
@@ -7542,6 +7689,87 @@
       "title": "LocalOutcomeDefinition",
       "type": "object"
     },
+    "MixedControlApprovalEdge": {
+      "additionalProperties": false,
+      "description": "Permission to approve one live, unresolved proposal.",
+      "properties": {
+        "evidence_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "from_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "From State Ref",
+          "type": "string"
+        },
+        "to_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "To State Ref",
+          "type": "string"
+        },
+        "transition_kind": {
+          "const": "approval",
+          "title": "Transition Kind",
+          "type": "string"
+        },
+        "valid_from_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid From Order",
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid Until Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "transition_kind",
+        "from_state_ref",
+        "to_state_ref",
+        "valid_from_order",
+        "valid_until_order",
+        "evidence_refs"
+      ],
+      "title": "MixedControlApprovalEdge",
+      "type": "object"
+    },
     "MixedControlAuthorityStatus": {
       "description": "Authored authority state for one controller binding.",
       "enum": [
@@ -7550,6 +7778,87 @@
       ],
       "title": "MixedControlAuthorityStatus",
       "type": "string"
+    },
+    "MixedControlCancellationEdge": {
+      "additionalProperties": false,
+      "description": "Permission to cancel an existing proposal, decision, admitted action or attempt.",
+      "properties": {
+        "evidence_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "from_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "From State Ref",
+          "type": "string"
+        },
+        "to_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "To State Ref",
+          "type": "string"
+        },
+        "transition_kind": {
+          "const": "cancellation",
+          "title": "Transition Kind",
+          "type": "string"
+        },
+        "valid_from_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid From Order",
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid Until Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "transition_kind",
+        "from_state_ref",
+        "to_state_ref",
+        "valid_from_order",
+        "valid_until_order",
+        "evidence_refs"
+      ],
+      "title": "MixedControlCancellationEdge",
+      "type": "object"
     },
     "MixedControlConcurrentDisposition": {
       "description": "Disposition for decisions that share a control-state revision.",
@@ -7634,6 +7943,87 @@
       "title": "MixedControlControllerState",
       "type": "object"
     },
+    "MixedControlDenialEdge": {
+      "additionalProperties": false,
+      "description": "Permission to deny one live, unresolved proposal.",
+      "properties": {
+        "evidence_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "from_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "From State Ref",
+          "type": "string"
+        },
+        "to_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "To State Ref",
+          "type": "string"
+        },
+        "transition_kind": {
+          "const": "denial",
+          "title": "Transition Kind",
+          "type": "string"
+        },
+        "valid_from_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid From Order",
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid Until Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "transition_kind",
+        "from_state_ref",
+        "to_state_ref",
+        "valid_from_order",
+        "valid_until_order",
+        "evidence_refs"
+      ],
+      "title": "MixedControlDenialEdge",
+      "type": "object"
+    },
     "MixedControlDispositionRules": {
       "additionalProperties": false,
       "description": "Explicit deterministic rules for invalid or competing decisions.",
@@ -7676,6 +8066,279 @@
       "title": "MixedControlDuplicateDisposition",
       "type": "string"
     },
+    "MixedControlExternalDirectionEdge": {
+      "additionalProperties": false,
+      "description": "Permission to direct an existing proposal, action or control occurrence.",
+      "properties": {
+        "evidence_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "from_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "From State Ref",
+          "type": "string"
+        },
+        "target_kinds": {
+          "items": {
+            "enum": [
+              "proposal",
+              "action",
+              "control"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Target Kinds",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "to_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "To State Ref",
+          "type": "string"
+        },
+        "transition_kind": {
+          "const": "external-direction",
+          "title": "Transition Kind",
+          "type": "string"
+        },
+        "valid_from_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid From Order",
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid Until Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "transition_kind",
+        "from_state_ref",
+        "to_state_ref",
+        "valid_from_order",
+        "valid_until_order",
+        "evidence_refs",
+        "target_kinds"
+      ],
+      "title": "MixedControlExternalDirectionEdge",
+      "type": "object"
+    },
+    "MixedControlHandoffEdge": {
+      "additionalProperties": false,
+      "description": "Permission to transfer control; each transfer supplies its own completion evidence.",
+      "properties": {
+        "completion_evidence_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Completion Evidence Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "evidence_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "from_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "From State Ref",
+          "type": "string"
+        },
+        "to_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "To State Ref",
+          "type": "string"
+        },
+        "transition_kind": {
+          "const": "handoff",
+          "title": "Transition Kind",
+          "type": "string"
+        },
+        "valid_from_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid From Order",
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid Until Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "transition_kind",
+        "from_state_ref",
+        "to_state_ref",
+        "valid_from_order",
+        "valid_until_order",
+        "evidence_refs",
+        "completion_evidence_refs"
+      ],
+      "title": "MixedControlHandoffEdge",
+      "type": "object"
+    },
+    "MixedControlInterventionEdge": {
+      "additionalProperties": false,
+      "description": "Permission to intervene in an existing action, control occurrence or attempt.",
+      "properties": {
+        "evidence_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "from_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "From State Ref",
+          "type": "string"
+        },
+        "to_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "To State Ref",
+          "type": "string"
+        },
+        "transition_kind": {
+          "const": "intervention",
+          "title": "Transition Kind",
+          "type": "string"
+        },
+        "valid_from_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid From Order",
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid Until Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "transition_kind",
+        "from_state_ref",
+        "to_state_ref",
+        "valid_from_order",
+        "valid_until_order",
+        "evidence_refs"
+      ],
+      "title": "MixedControlInterventionEdge",
+      "type": "object"
+    },
     "MixedControlOrderStrategy": {
       "description": "Portable ordering strategies for authored control decisions.",
       "enum": [
@@ -7683,6 +8346,87 @@
       ],
       "title": "MixedControlOrderStrategy",
       "type": "string"
+    },
+    "MixedControlOverrideEdge": {
+      "additionalProperties": false,
+      "description": "Permission to supersede an existing control or decision occurrence.",
+      "properties": {
+        "evidence_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "from_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "From State Ref",
+          "type": "string"
+        },
+        "to_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "To State Ref",
+          "type": "string"
+        },
+        "transition_kind": {
+          "const": "override",
+          "title": "Transition Kind",
+          "type": "string"
+        },
+        "valid_from_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid From Order",
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid Until Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "transition_kind",
+        "from_state_ref",
+        "to_state_ref",
+        "valid_from_order",
+        "valid_until_order",
+        "evidence_refs"
+      ],
+      "title": "MixedControlOverrideEdge",
+      "type": "object"
     },
     "MixedControlParticipantOperation": {
       "additionalProperties": false,
@@ -7770,6 +8514,164 @@
       "title": "MixedControlParticipantOperation",
       "type": "object"
     },
+    "MixedControlPolicyControllerState": {
+      "additionalProperties": false,
+      "description": "Legacy controller-state binding whose order window fits the MC-08 range.",
+      "properties": {
+        "authority_basis_refs": {
+          "items": {
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "title": "Authority Basis Refs",
+          "type": "array"
+        },
+        "authority_status": {
+          "$ref": "#/$defs/MixedControlAuthorityStatus"
+        },
+        "controller_ref": {
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Controller Ref",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "policy_revision": {
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Policy Revision",
+          "type": "string"
+        },
+        "scope_refs": {
+          "items": {
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "title": "Scope Refs",
+          "type": "array"
+        },
+        "valid_from_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid From Order",
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid Until Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "controller_ref",
+        "authority_basis_refs",
+        "scope_refs",
+        "policy_revision",
+        "valid_from_order",
+        "valid_until_order",
+        "authority_status",
+        "evidence_refs"
+      ],
+      "title": "MixedControlPolicyControllerState",
+      "type": "object"
+    },
+    "MixedControlProposalEdge": {
+      "additionalProperties": false,
+      "description": "Permission to record a fresh proposal occurrence.",
+      "properties": {
+        "evidence_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "from_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "From State Ref",
+          "type": "string"
+        },
+        "to_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "To State Ref",
+          "type": "string"
+        },
+        "transition_kind": {
+          "const": "proposal",
+          "title": "Transition Kind",
+          "type": "string"
+        },
+        "valid_from_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid From Order",
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid Until Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "transition_kind",
+        "from_state_ref",
+        "to_state_ref",
+        "valid_from_order",
+        "valid_until_order",
+        "evidence_refs"
+      ],
+      "title": "MixedControlProposalEdge",
+      "type": "object"
+    },
     "MixedControlRejectDisposition": {
       "description": "Fail-closed disposition that preserves the current state.",
       "enum": [
@@ -7777,6 +8679,130 @@
       ],
       "title": "MixedControlRejectDisposition",
       "type": "string"
+    },
+    "MixedControlScriptStep": {
+      "additionalProperties": false,
+      "description": "One finite-script step; it may only narrow its permitted transition.",
+      "properties": {
+        "expected_state_revision": {
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected State Revision"
+        },
+        "permitted_transition_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Permitted Transition Ref",
+          "type": "string"
+        },
+        "step_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Step Id",
+          "type": "string"
+        },
+        "target_kind": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantControlTargetKind"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "target_step_ref": {
+          "anyOf": [
+            {
+              "allOf": [
+                {
+                  "not": {
+                    "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+                  }
+                }
+              ],
+              "maxLength": 64,
+              "minLength": 1,
+              "not": {
+                "pattern": "[^a-z0-9_-]"
+              },
+              "pattern": "^[a-z0-9]",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Step Ref"
+        },
+        "valid_from_order": {
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid From Order"
+        },
+        "valid_until_order": {
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid Until Order"
+        }
+      },
+      "required": [
+        "step_id",
+        "permitted_transition_ref"
+      ],
+      "title": "MixedControlScriptStep",
+      "type": "object"
     },
     "MixedControlTransition": {
       "additionalProperties": false,
@@ -11014,13 +12040,35 @@
         "mixed_control": {
           "anyOf": [
             {
-              "$ref": "#/$defs/MixedControlParticipantOperation"
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/MixedControlParticipantOperation"
+                },
+                {
+                  "discriminator": {
+                    "mapping": {
+                      "finite-script": "#/$defs/FiniteScriptMixedControlPolicy",
+                      "reusable-policy": "#/$defs/ReusableMixedControlPolicy"
+                    },
+                    "propertyName": "form"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/$defs/ReusableMixedControlPolicy"
+                    },
+                    {
+                      "$ref": "#/$defs/FiniteScriptMixedControlPolicy"
+                    }
+                  ]
+                }
+              ]
             },
             {
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "title": "Mixed Control"
         },
         "observation_boundary_refs": {
           "items": {
@@ -11135,6 +12183,19 @@
         "deprecated"
       ],
       "title": "ParticipantBehaviorSpecificationLifecycle",
+      "type": "string"
+    },
+    "ParticipantControlTargetKind": {
+      "description": "Closed kinds for typed API-409 target relations.",
+      "enum": [
+        "proposal",
+        "action",
+        "control",
+        "decision",
+        "admitted-action",
+        "attempt"
+      ],
+      "title": "ParticipantControlTargetKind",
       "type": "string"
     },
     "ParticipantEffectClass": {
@@ -11266,8 +12327,119 @@
     },
     "ParticipantInjectDelivery": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "control": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "control"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "properties": {
+                    "control_transition_ref": {
+                      "not": {
+                        "type": "null"
+                      }
+                    }
+                  },
+                  "required": [
+                    "control_transition_ref"
+                  ]
+                },
+                {
+                  "properties": {
+                    "controller_ref": {
+                      "not": {
+                        "type": "null"
+                      }
+                    }
+                  },
+                  "required": [
+                    "controller_ref"
+                  ]
+                },
+                {
+                  "properties": {
+                    "control_effective_order": {
+                      "not": {
+                        "type": "null"
+                      }
+                    }
+                  },
+                  "required": [
+                    "control_effective_order"
+                  ]
+                },
+                {
+                  "properties": {
+                    "control_valid_from_order": {
+                      "not": {
+                        "type": "null"
+                      }
+                    }
+                  },
+                  "required": [
+                    "control_valid_from_order"
+                  ]
+                },
+                {
+                  "properties": {
+                    "control_valid_until_order": {
+                      "not": {
+                        "type": "null"
+                      }
+                    }
+                  },
+                  "required": [
+                    "control_valid_until_order"
+                  ]
+                },
+                {
+                  "properties": {
+                    "control_authority_scope_refs": {
+                      "minItems": 1
+                    }
+                  },
+                  "required": [
+                    "control_authority_scope_refs"
+                  ]
+                },
+                {
+                  "properties": {
+                    "control_evidence_refs": {
+                      "minItems": 1
+                    }
+                  },
+                  "required": [
+                    "control_evidence_refs"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ],
       "description": "Authored participant-local relation to one orchestration inject occurrence.",
       "properties": {
+        "control": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantInjectDeliveryControl"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "control_authority_scope_refs": {
           "items": {
             "not": {
@@ -11465,6 +12637,86 @@
         "failure_disposition"
       ],
       "title": "ParticipantInjectDelivery",
+      "type": "object"
+    },
+    "ParticipantInjectDeliveryControl": {
+      "additionalProperties": false,
+      "description": "Rev1 binding of a directed delivery to one reusable permitted transition (MC-09).\n\nIt names a permission, never an occurrence: each realized delivery must join one\nexact accepted API-424/API-409 control occurrence of that permission.",
+      "properties": {
+        "authority_scope_refs": {
+          "items": {
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Authority Scope Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "controller_ref": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Controller Ref",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "permitted_transition_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Permitted Transition Ref",
+          "type": "string"
+        },
+        "policy_revision": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Policy Revision",
+          "type": "string"
+        },
+        "semantics": {
+          "const": "mixed-control-policy-occurrence/rev1",
+          "title": "Semantics",
+          "type": "string"
+        }
+      },
+      "required": [
+        "semantics",
+        "policy_revision",
+        "permitted_transition_ref",
+        "controller_ref",
+        "authority_scope_refs",
+        "evidence_refs"
+      ],
+      "title": "ParticipantInjectDeliveryControl",
       "type": "object"
     },
     "ParticipantInjectDeliveryFailureDisposition": {
@@ -14569,6 +15821,144 @@
         "cpu"
       ],
       "title": "Resources",
+      "type": "object"
+    },
+    "ReusableMixedControlPolicy": {
+      "additionalProperties": false,
+      "description": "Permits any finite trace its edges and the ordinary gates admit; no edge schedules itself.",
+      "properties": {
+        "controller_states": {
+          "minProperties": 1,
+          "patternProperties": {
+            "^[a-z0-9]": {
+              "$ref": "#/$defs/MixedControlPolicyControllerState"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            }
+          },
+          "title": "Controller States",
+          "type": "object"
+        },
+        "dispositions": {
+          "$ref": "#/$defs/MixedControlDispositionRules"
+        },
+        "form": {
+          "const": "reusable-policy",
+          "title": "Form",
+          "type": "string"
+        },
+        "initial_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Initial State Ref",
+          "type": "string"
+        },
+        "order_strategy": {
+          "$ref": "#/$defs/MixedControlOrderStrategy"
+        },
+        "participant_ref": {
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Participant Ref",
+          "type": "string"
+        },
+        "permitted_transitions": {
+          "minProperties": 1,
+          "patternProperties": {
+            "^[a-z0-9]": {
+              "discriminator": {
+                "mapping": {
+                  "approval": "#/$defs/MixedControlApprovalEdge",
+                  "cancellation": "#/$defs/MixedControlCancellationEdge",
+                  "denial": "#/$defs/MixedControlDenialEdge",
+                  "external-direction": "#/$defs/MixedControlExternalDirectionEdge",
+                  "handoff": "#/$defs/MixedControlHandoffEdge",
+                  "intervention": "#/$defs/MixedControlInterventionEdge",
+                  "override": "#/$defs/MixedControlOverrideEdge",
+                  "proposal": "#/$defs/MixedControlProposalEdge"
+                },
+                "propertyName": "transition_kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/MixedControlProposalEdge"
+                },
+                {
+                  "$ref": "#/$defs/MixedControlApprovalEdge"
+                },
+                {
+                  "$ref": "#/$defs/MixedControlDenialEdge"
+                },
+                {
+                  "$ref": "#/$defs/MixedControlExternalDirectionEdge"
+                },
+                {
+                  "$ref": "#/$defs/MixedControlInterventionEdge"
+                },
+                {
+                  "$ref": "#/$defs/MixedControlHandoffEdge"
+                },
+                {
+                  "$ref": "#/$defs/MixedControlOverrideEdge"
+                },
+                {
+                  "$ref": "#/$defs/MixedControlCancellationEdge"
+                }
+              ]
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            }
+          },
+          "title": "Permitted Transitions",
+          "type": "object"
+        },
+        "policy_revision": {
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Policy Revision",
+          "type": "string"
+        },
+        "semantics": {
+          "const": "mixed-control-policy-occurrence/rev1",
+          "title": "Semantics",
+          "type": "string"
+        }
+      },
+      "required": [
+        "semantics",
+        "form",
+        "participant_ref",
+        "policy_revision",
+        "order_strategy",
+        "initial_state_ref",
+        "dispositions",
+        "controller_states",
+        "permitted_transitions"
+      ],
+      "title": "ReusableMixedControlPolicy",
       "type": "object"
     },
     "Role": {

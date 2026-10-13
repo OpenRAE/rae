@@ -8,6 +8,7 @@ from ..participant_behavior_specification import (
     MixedControlTransitionKind,
     ParticipantBehaviorSpecification,
 )
+from ..participant_mixed_control_policy import FiniteScriptMixedControlPolicy, ReusableMixedControlPolicy
 
 
 class _MixedControlMixin:
@@ -19,7 +20,13 @@ class _MixedControlMixin:
                 behavior_mode=behavior_spec.behavior_mode,
                 declaration=declaration,
             )
-            if declaration is not None:
+            if isinstance(declaration, (ReusableMixedControlPolicy, FiniteScriptMixedControlPolicy)):
+                self._verify_mixed_control_policy(
+                    spec_name=spec_name,
+                    behavior_spec=behavior_spec,
+                    declaration=declaration,
+                )
+            elif declaration is not None:
                 self._verify_mixed_control_declaration(
                     spec_name=spec_name,
                     behavior_spec=behavior_spec,
@@ -31,7 +38,7 @@ class _MixedControlMixin:
         *,
         spec_name: str,
         behavior_mode: str | None,
-        declaration: MixedControlParticipantOperation | None,
+        declaration: object | None,
     ) -> None:
         if behavior_mode == "mixed-control" and declaration is None:
             self._err(f"Behavior specification '{spec_name}' mixed-control mode requires mixed_control")

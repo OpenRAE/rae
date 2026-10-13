@@ -1,11 +1,12 @@
 """Participant-directed inject delivery compilation (DSL-142)."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from raes.participant_inject_delivery import ParticipantInjectDelivery
 from raes.scenario import InstantiatedScenario
 
 from ..models import ParticipantInjectDeliveryRuntime
+from ._mixed_control_policy import _compile_delivery_policy_control
 from .addresses import (
     _behavior_specification_address,
     _observation_boundary_address,
@@ -75,13 +76,29 @@ def _compile_participant_inject_delivery(
         addresses.participant,
         addressable_ref_index,
     )
-    return _delivery_runtime(
+    runtime = _delivery_runtime(
         spec_name,
         binding_id,
         binding,
         addresses,
         control,
         _delivery_dependencies(addresses, control),
+    )
+    policy_control = _compile_delivery_policy_control(
+        scenario, spec_name, binding, addresses.participant, addressable_ref_index
+    )
+    if policy_control is None:
+        return runtime
+    dependencies = (
+        policy_control.permitted_transition_address,
+        policy_control.controller_address,
+        *policy_control.authority_scope_addresses,
+        *policy_control.evidence_addresses,
+    )
+    return replace(
+        runtime,
+        control=policy_control,
+        refresh_dependencies=_dedupe([*runtime.refresh_dependencies, *dependencies]),
     )
 
 

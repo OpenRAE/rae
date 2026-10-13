@@ -1,9 +1,9 @@
 {
-  "content_hash": "c89bbbb26022f043fa1b7da27356d4667edd80426c359173c7238820d18ed122",
+  "content_hash": "eb6dfbd417eae12801061fd036f26b22acd2ec8f53d78f51da7134354b9e3cb7",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "c89bbbb26022f043fa1b7da27356d4667edd80426c359173c7238820d18ed122",
-    "summary": "Reject empty and whitespace-only behavior specification version labels, matching existing parser validity; DSL-116 issue #297."
+    "content_hash": "eb6dfbd417eae12801061fd036f26b22acd2ec8f53d78f51da7134354b9e3cb7",
+    "summary": "Publish the mixed-control-policy-occurrence/rev1 behavior form (reusable-policy and finite-script permitted transitions) and the rev1 DSL-142 control block; issue #1363."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

@@ -91,9 +91,10 @@ def _rewrite_mixed_control(
     for state in mixed_control.get("controller_states", {}).values():
         if isinstance(state, dict):
             _rewrite_mixed_control_state(state, symbols)
-    for transition in mixed_control.get("transitions", {}).values():
-        if isinstance(transition, dict):
-            _rewrite_mixed_control_transition(transition, symbols)
+    for field_name in ("transitions", "permitted_transitions"):
+        for transition in mixed_control.get(field_name, {}).values():
+            if isinstance(transition, dict):
+                _rewrite_mixed_control_transition(transition, symbols)
 
 
 def _rewrite_tool_affordance(
@@ -147,6 +148,13 @@ def _rewrite_participant_inject_delivery(
     binding["control_evidence_refs"] = [
         _maybe_rename(ref, symbols["named"]) for ref in binding.get("control_evidence_refs", [])
     ]
+    control = binding.get("control")
+    if isinstance(control, dict):
+        if control.get("controller_ref") and control["controller_ref"] != "self":
+            control["controller_ref"] = _maybe_rename(str(control["controller_ref"]), symbols["agents"])
+        for field_name in ("authority_scope_refs", "evidence_refs"):
+            if isinstance(control.get(field_name), list):
+                control[field_name] = [_maybe_rename(ref, symbols["named"]) for ref in control[field_name]]
 
 
 def _behavior_reference_maps(

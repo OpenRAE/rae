@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 
+from ..participant_mixed_control_policy import FiniteScriptMixedControlPolicy, ReusableMixedControlPolicy
+
 _DECLARATION_INDEX_REQUIRED = "declaration index must be built before reference validation"
 
 
@@ -189,6 +191,9 @@ class _ParticipantInjectDeliveriesMixin:
         delivery_kind = str(getattr(binding.delivery_kind, "value", binding.delivery_kind))
         if delivery_kind == "disclosure":
             return
+        if binding.control is not None:
+            self._verify_delivery_policy_control(label, behavior_spec, binding, delivery_kind)
+            return
         control = self._resolve_delivery_control(label, behavior_spec, binding)
         if control is None:
             return
@@ -213,6 +218,9 @@ class _ParticipantInjectDeliveriesMixin:
         declaration = behavior_spec.mixed_control
         if declaration is None:
             self._err(f"{label} control_transition_ref requires mixed_control on the owning behavior specification")
+            return None
+        if isinstance(declaration, (ReusableMixedControlPolicy, FiniteScriptMixedControlPolicy)):
+            self._err(f"{label} flat control fields cannot bind a mixed-control-policy-occurrence/rev1 policy")
             return None
         transition_ref = binding.control_transition_ref
         transition = declaration.transitions.get(transition_ref) if transition_ref is not None else None

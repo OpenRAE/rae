@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Any, Literal
 
-from pydantic import Field, StrictInt, field_validator, model_validator
+from pydantic import ConfigDict, Field, StrictInt, field_validator, model_validator
 
 from ._base import SDLModel
 from ._identifiers import PortableIdentifier
@@ -63,8 +64,57 @@ class ParticipantInjectDeliveryPolicy(SDLModel):
         return value
 
 
+class ParticipantInjectDeliveryControl(SDLModel):
+    """Rev1 binding of a directed delivery to one reusable permitted transition (MC-09).
+
+    It names a permission, never an occurrence: each realized delivery must join one
+    exact accepted API-424/API-409 control occurrence of that permission.
+    """
+
+    semantics: Literal["mixed-control-policy-occurrence/rev1"]
+    policy_revision: str = Field(min_length=1, pattern=r"\S")
+    permitted_transition_ref: PortableIdentifier
+    controller_ref: str = Field(min_length=1, pattern=r"\S")
+    authority_scope_refs: list[str] = Field(min_length=1, json_schema_extra={"uniqueItems": True})
+    evidence_refs: list[str] = Field(min_length=1, json_schema_extra={"uniqueItems": True})
+
+    @field_validator("authority_scope_refs", "evidence_refs")
+    @classmethod
+    def _require_unique_non_empty_refs(cls, values: list[str]) -> list[str]:
+        if any(not value.strip() for value in values):
+            raise ValueError("participant inject delivery control refs must be non-empty")
+        if len(values) != len(set(values)):
+            raise ValueError("participant inject delivery control refs must be unique within each field")
+        return values
+
+
+_FLAT_CONTROL_SCALARS = (
+    "control_transition_ref",
+    "controller_ref",
+    "control_effective_order",
+    "control_valid_from_order",
+    "control_valid_until_order",
+)
+_FLAT_CONTROL_LISTS = ("control_authority_scope_refs", "control_evidence_refs")
+
+
+def _control_block_exclusivity_schema(schema: dict[str, Any]) -> None:
+    present = [
+        *({"required": [name], "properties": {name: {"not": {"type": "null"}}}} for name in _FLAT_CONTROL_SCALARS),
+        *({"required": [name], "properties": {name: {"minItems": 1}}} for name in _FLAT_CONTROL_LISTS),
+    ]
+    schema.setdefault("allOf", []).append(
+        {
+            "if": {"required": ["control"], "properties": {"control": {"type": "object"}}},
+            "then": {"not": {"anyOf": present}},
+        }
+    )
+
+
 class ParticipantInjectDelivery(SDLModel):
     """Authored participant-local relation to one orchestration inject occurrence."""
+
+    model_config = ConfigDict(json_schema_extra=_control_block_exclusivity_schema)
 
     participant_ref: str = Field(min_length=1)
     inject_ref: str = Field(min_length=1)
@@ -85,6 +135,7 @@ class ParticipantInjectDelivery(SDLModel):
     control_valid_from_order: StrictInt | None = Field(default=None, ge=0)
     control_valid_until_order: StrictInt | None = Field(default=None, ge=0)
     control_evidence_refs: list[str] = Field(default_factory=list, json_schema_extra={"uniqueItems": True})
+    control: ParticipantInjectDeliveryControl | None = None
 
     @field_validator(
         "participant_ref",
@@ -119,6 +170,17 @@ class ParticipantInjectDelivery(SDLModel):
             ParticipantInjectDeliveryKind.EXTERNAL_DIRECTION,
             ParticipantInjectDeliveryKind.INTERVENTION,
         }
+        if self.control is not None:
+            flat = [
+                name for name in (*_FLAT_CONTROL_SCALARS, *_FLAT_CONTROL_LISTS) if getattr(self, name) not in (None, [])
+            ]
+            if flat:
+                raise ValueError(
+                    "participant inject delivery control block excludes flat control fields: " + ", ".join(flat)
+                )
+            if not directs_control:
+                raise ValueError("disclosure delivery cannot carry a control block")
+            return self
         control_fields = {
             "control_transition_ref": self.control_transition_ref,
             "controller_ref": self.controller_ref,
