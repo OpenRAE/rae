@@ -101,6 +101,20 @@ def test_record_capture_spec_reference_must_resolve(key: str, value: str, messag
         _validate(task, run, [capture], [payload], content)
 
 
+def test_run_traceability_must_still_pin_the_capture_spec_version() -> None:
+    # LilRAE's run builder copies the record's version-less reference into run
+    # traceability (src/aptl/core/execution/assembly.py:284-312 at 3bdccc74).
+    # The run is the pin, so that run stays rejected.
+    task, run, capture, record, content = _evidence_bundle()
+    run_payload = run.model_dump(mode="json")
+    del run_payload["traceability"]["capture_spec_refs"][0]["ref_version"]
+    run = ExperimentRunModel.model_validate(run_payload)
+    record_payloads = [_lilrae_shaped(record)]
+
+    with pytest.raises(ValueError, match="run capture_spec_refs must resolve exactly to supplied capture specs"):
+        _validate(task, run, [capture], record_payloads, content)
+
+
 def test_versionless_record_binds_the_run_pinned_version() -> None:
     task, run, specs, records, content = _two_pinned_versions(LEGACY_REQUIREMENT_ID, None)
 
