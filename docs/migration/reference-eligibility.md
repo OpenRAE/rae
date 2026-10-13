@@ -60,6 +60,34 @@ variable value, and composition reports it under the import namespace.
 There is no compatibility reader. Rewrite a refused reference by hand with the
 table above, because only the author knows which declaration was meant.
 
+## Typed relationship endpoints
+
+Each relationship type and typed detail field now has an explicit endpoint
+decision, listed in the
+[subtype decision table](../../specs/sdl/references.md#7-reference-purposes-and-eligibility).
+The ten endpoint purposes, such as `node_endpoint` for a `domain_controller_for`
+source or `mail_service_endpoint` for a `mail_access` target, admit declaration
+kinds rather than categories. An endpoint must satisfy the purpose of its type
+and of every typed detail it carries.
+
+Typed endpoints refuse nothing new. Each kind set equals what the subtype's own
+check already accepted: the identity, topology, and tenancy checks are tested
+for equality against the policy, and the `database_access` and `mail_access`
+checks now read the policy's sets. A typed endpoint that names the wrong kind
+gains the shared diagnostic next to the subtype's existing message, for example
+`Relationship 'trust' source 'conditions.alive' does not reference any defined
+element eligible as an identity forest endpoint; it names conditions.alive`. A
+typed endpoint whose purposes no declaration satisfies, such as a
+`domain_controller_for` source that also carries `database_access`, names each
+purpose that its match fails.
+
+Runtime child records are named by family inside the policy, so a `mail_access`
+target admits a mail service listener and refuses a security-monitoring manager
+listener. Published declaration kinds do not change: external-concept
+`subject_kind`, transformation-report `declaration_kind`, and the inspection
+payload report the same kinds as before, such as `runtime-listeners` for a mail
+listener.
+
 ## Inventory before narrowing
 
 The inventory ran on 2026-10-10 and compared `origin/dev` at 35122105 with
@@ -104,8 +132,17 @@ which was already rejected.
 ## Editor behavior
 
 - Completion contexts name the purpose token, such as
-  `reference:eligible:objective_subject`. The relationship subtype selects
-  `reference:eligible:participant_endpoint`, which offers only agents.
+  `reference:eligible:objective_subject`. A relationship endpoint's context
+  names the purposes that its type and typed details select for that side:
+  `reference:eligible:<purpose>` for one, such as
+  `reference:eligible:participant_endpoint`, which offers only agents, and
+  `reference:eligible:<p1>+<p2>` for several, in policy order. A typed
+  endpoint's context therefore changes from
+  `reference:eligible:relationship_endpoint` to its endpoint purpose, for
+  example `reference:eligible:node_endpoint` for a `domain_controller_for`
+  source. A conjunction that no declaration satisfies, such as
+  `reference:eligible:node_endpoint+runtime_application_endpoint`, offers
+  nothing.
 - Interaction targets, shared-state refs, effect target refs, agent authority
   anchors, and agent operating scope now have completions. Temporal-constraint
   subjects complete every declared reference. Participant relationship
@@ -123,8 +160,15 @@ which was already rejected.
 - Completion offers one unambiguous spelling per eligible declaration, and
   qualifies a bare name that validation would find ambiguous, including one
   shared with a refused declaration. Documents that do not validate yet use the
-  same purposes; infrastructure entries are offered only in qualified form
-  because they have no bare alias. Operating-scope fields, agent
+  same purposes and one index that the validator's index builder makes from the
+  top-level entries that validate on their own, plus the names of the other
+  top-level entries; infrastructure entries are offered only in qualified form
+  because they have no bare alias. A declaration inside an entry that does not
+  validate on its own is not in that index: it is neither offered nor reported
+  as an occurrence, and it does not make a spelling ambiguous. For example, a
+  content item `alpha` in a content entry with a stray field, next to node
+  `alpha`, leaves `alpha` naming the node until the entry validates; validation
+  may then refuse `alpha` as ambiguous. Operating-scope fields, agent
   `operating_scope` and participant-relationship `scope_refs`, are the
   exception: their aliases depend on node types, so they complete and navigate
   only in a document that validates structurally.
@@ -133,10 +177,19 @@ which was already rejected.
   to exactly that declaration. An ambiguous or refused value is an occurrence of
   no declaration; search for its bare name to find it. Operating scopes resolve
   through their own aliases, including bare service names. Documents that do
-  not validate yet resolve names among their top-level entries, except in
-  operating-scope fields: `dev` reported a participant-relationship
+  not validate yet resolve names through the same partial index as completion,
+  except in operating-scope fields: `dev` reported a participant-relationship
   `scope_refs` value in such a document as an occurrence, and this change
-  reports none.
+  reports none. A bare node-service or runtime-record name, which the index
+  gives no alias, is no occurrence in either kind of document.
+- The Python helpers `language_diagnostics`, `language_completions`,
+  `language_references`, `language_format`, and `apply_structured_edit` accept
+  an optional `path`. With it, local imports compose as in `parse_sdl_file()`,
+  so imported declarations complete, navigate, and validate under their
+  namespaces, and a namespace imported twice reports the same collision. A
+  registry import is refused rather than fetched (see the
+  [language-service tools](../explain/sdl/language-service.md#python-helpers)).
+  Without a path, and in the MCP tools, behavior is unchanged.
 
 ## Unchanged
 
@@ -144,9 +197,11 @@ Generic relationship endpoints, proposition subjects, evidence source, scope,
 channel, trigger, and boundary refs, observation-demand component refs, agent
 authority anchors, and agent operating scope accept the same declarations as
 before. The inspection payload keeps `referenceable` and `targetable`;
-`targetable` now reports the general target purpose. No published schema
-changes. Historical evidence, compiled snapshots, and stored records are not
-rewritten.
+`targetable` now reports the general target purpose. The only published
+schema change is the `Relationship` description in five schemas, which now
+states endpoint eligibility and typed narrowing; it is a description-only
+change on the same contract versions. Historical evidence, compiled snapshots,
+and stored records are not rewritten.
 
 Eligibility only decides what a reference may name. Targeting a participant or
 naming an organization as an objective subject grants neither participation,
