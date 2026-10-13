@@ -161,7 +161,7 @@ def _ref_range_diagnostics(
                 f"(at most {_CONTROL_REF_MAX_LENGTH} characters, portable pattern); it is never truncated."
             ),
         )
-        for label, ref in list(dict.fromkeys(refs))
+        for label, ref in sorted(set(refs))
         if len(ref) > _CONTROL_REF_MAX_LENGTH or _CONTROL_REF_RE.fullmatch(ref) is None
     ]
 
