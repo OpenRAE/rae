@@ -7,7 +7,7 @@ state's scope, and the control and delivery policies are pinned independently.
 
 from __future__ import annotations
 
-from ..participant_mixed_control_policy import FiniteScriptMixedControlPolicy, ReusableMixedControlPolicy
+from ..participant_mixed_control_policy import MixedControlPolicy
 
 
 class _ParticipantInjectDeliveryControlMixin:
@@ -20,7 +20,7 @@ class _ParticipantInjectDeliveryControlMixin:
     ) -> None:
         control = binding.control
         declaration = behavior_spec.mixed_control
-        if not isinstance(declaration, (ReusableMixedControlPolicy, FiniteScriptMixedControlPolicy)):
+        if not isinstance(declaration, MixedControlPolicy):
             self._err(f"{label} control block requires a mixed-control-policy-occurrence/rev1 mixed_control policy")
             return
         if (control.semantics, control.policy_revision) != (declaration.semantics, declaration.policy_revision):

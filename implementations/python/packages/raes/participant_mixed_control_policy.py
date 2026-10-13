@@ -11,9 +11,9 @@ ordered list of steps over those edges.
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import Field, StrictInt, field_validator, model_validator
+from pydantic import ConfigDict, Field, StrictInt, field_validator, model_validator
 
 from ._base import SDLModel
 from ._identifiers import PortableIdentifier
@@ -24,6 +24,7 @@ from .participant_mixed_control_vocabulary import (
     MixedControlOrderStrategy,
     MixedControlTransitionKind,
     ParticipantControlTargetKind,
+    omit_property_titles,
 )
 
 MIXED_CONTROL_POLICY_SEMANTICS = "mixed-control-policy-occurrence/rev1"
@@ -71,15 +72,51 @@ def _require_unique(values: list[str], label: str) -> list[str]:
     return values
 
 
-class MixedControlPolicyControllerState(MixedControlControllerState):
-    """Legacy controller-state binding whose order window fits the MC-08 range."""
+DirectionTargetKind = Literal[
+    ParticipantControlTargetKind.PROPOSAL,
+    ParticipantControlTargetKind.ACTION,
+    ParticipantControlTargetKind.CONTROL,
+]
+StepTargetKind = Literal[
+    ParticipantControlTargetKind.PROPOSAL,
+    ParticipantControlTargetKind.ACTION,
+    ParticipantControlTargetKind.CONTROL,
+    ParticipantControlTargetKind.DECISION,
+    ParticipantControlTargetKind.ADMITTED_ACTION,
+    ParticipantControlTargetKind.ATTEMPT,
+]
+_KIND_ONLY_FIELDS = (
+    (MixedControlTransitionKind.EXTERNAL_DIRECTION, "target_kinds"),
+    (MixedControlTransitionKind.HANDOFF, "completion_evidence_refs"),
+)
+_DirectionTargets = Annotated[list[DirectionTargetKind], Field(min_length=1, json_schema_extra=_UNIQUE_REFS)]
+_CompletionEvidence = Annotated[list[MixedControlRef], Field(min_length=1, json_schema_extra=_UNIQUE_REFS)]
 
-    valid_from_order: MixedControlCoordinate
-    valid_until_order: MixedControlCoordinate
+
+def _only_when(selector: str, value: str, name: str) -> dict[str, Any]:
+    """``name`` is a non-null array exactly when ``selector`` equals ``value``; otherwise absent or null."""
+
+    return {
+        "if": {"properties": {selector: {"const": value}}},
+        "then": {"required": [name], "properties": {name: {"type": "array"}}},
+        "else": {"properties": {name: {"type": "null"}}},
+    }
 
 
-class _MixedControlEdgeBase(SDLModel):
-    """One reusable permission: kind, source/destination states, window and evidence."""
+def _permitted_transition_schema(schema: dict[str, Any]) -> None:
+    """Publish the kind-specific fields as closed JSON Schema conditionals."""
+
+    omit_property_titles(schema)
+    schema["allOf"] = [_only_when("transition_kind", kind.value, name) for kind, name in _KIND_ONLY_FIELDS]
+
+
+class MixedControlPermittedTransition(SDLModel):
+    """One reusable permission (MC-01); kind-specific fields follow MC-05."""
+
+    # Only an external-direction edge has ``target_kinds`` and only a handoff edge has
+    # ``completion_evidence_refs``; every other kind uses its fixed MC-05 target set.
+
+    model_config = ConfigDict(json_schema_extra=_permitted_transition_schema)
 
     transition_kind: MixedControlTransitionKind
     from_state_ref: PortableIdentifier
@@ -87,118 +124,45 @@ class _MixedControlEdgeBase(SDLModel):
     valid_from_order: MixedControlCoordinate
     valid_until_order: MixedControlCoordinate
     evidence_refs: list[MixedControlRef] = Field(min_length=1, json_schema_extra=_UNIQUE_REFS)
+    target_kinds: _DirectionTargets | None = None
+    completion_evidence_refs: _CompletionEvidence | None = None
 
-    @field_validator("evidence_refs")
+    @field_validator("evidence_refs", "target_kinds", "completion_evidence_refs")
     @classmethod
-    def _unique_evidence(cls, values: list[str]) -> list[str]:
-        return _require_unique(values, "permitted-transition evidence refs")
+    def _unique_refs(cls, values: list | None) -> list | None:
+        return values if values is None else _require_unique(values, "permitted-transition refs")
 
     @model_validator(mode="after")
-    def _validate_window(self) -> _MixedControlEdgeBase:
+    def _validate_permission(self) -> MixedControlPermittedTransition:
         if self.valid_until_order < self.valid_from_order:
             raise ValueError("mixed-control permitted-transition window must not be inverted")
+        kind = MixedControlTransitionKind(self.transition_kind)
+        for owner, name in _KIND_ONLY_FIELDS:
+            if kind is owner and getattr(self, name) is None:
+                raise ValueError(f"{kind.value} permitted transitions require {name}")
+            if kind is not owner and getattr(self, name) is not None:
+                raise ValueError(f"{kind.value} permitted transitions cannot carry {name}")
         return self
 
     def target_kinds_allowed(self) -> frozenset[ParticipantControlTargetKind]:
         """Return the MC-05 target kinds this edge permits."""
 
+        if self.target_kinds is not None:
+            return frozenset(ParticipantControlTargetKind(kind) for kind in self.target_kinds)
         return MIXED_CONTROL_KIND_TARGETS[MixedControlTransitionKind(self.transition_kind)]
 
 
-class MixedControlProposalEdge(_MixedControlEdgeBase):
-    """Permission to record a fresh proposal occurrence."""
-
-    transition_kind: Literal[MixedControlTransitionKind.PROPOSAL]
-
-
-class MixedControlApprovalEdge(_MixedControlEdgeBase):
-    """Permission to approve one live, unresolved proposal."""
-
-    transition_kind: Literal[MixedControlTransitionKind.APPROVAL]
-
-
-class MixedControlDenialEdge(_MixedControlEdgeBase):
-    """Permission to deny one live, unresolved proposal."""
-
-    transition_kind: Literal[MixedControlTransitionKind.DENIAL]
-
-
-DirectionTargetKind = Literal[
-    ParticipantControlTargetKind.PROPOSAL,
-    ParticipantControlTargetKind.ACTION,
-    ParticipantControlTargetKind.CONTROL,
-]
-
-
-class MixedControlExternalDirectionEdge(_MixedControlEdgeBase):
-    """Permission to direct an existing proposal, action or control occurrence."""
-
-    transition_kind: Literal[MixedControlTransitionKind.EXTERNAL_DIRECTION]
-    target_kinds: list[DirectionTargetKind] = Field(min_length=1, json_schema_extra=_UNIQUE_REFS)
-
-    @field_validator("target_kinds")
-    @classmethod
-    def _unique_target_kinds(cls, values: list[ParticipantControlTargetKind]) -> list[ParticipantControlTargetKind]:
-        if len(set(values)) != len(values):
-            raise ValueError("mixed-control direction target_kinds must be unique")
-        return values
-
-    def target_kinds_allowed(self) -> frozenset[ParticipantControlTargetKind]:
-        return frozenset(ParticipantControlTargetKind(kind) for kind in self.target_kinds)
-
-
-class MixedControlInterventionEdge(_MixedControlEdgeBase):
-    """Permission to intervene in an existing action, control occurrence or attempt."""
-
-    transition_kind: Literal[MixedControlTransitionKind.INTERVENTION]
-
-
-class MixedControlHandoffEdge(_MixedControlEdgeBase):
-    """Permission to transfer control; each transfer supplies its own completion evidence."""
-
-    transition_kind: Literal[MixedControlTransitionKind.HANDOFF]
-    completion_evidence_refs: list[MixedControlRef] = Field(min_length=1, json_schema_extra=_UNIQUE_REFS)
-
-    @field_validator("completion_evidence_refs")
-    @classmethod
-    def _unique_completion_evidence(cls, values: list[str]) -> list[str]:
-        return _require_unique(values, "completion evidence refs")
-
-
-class MixedControlOverrideEdge(_MixedControlEdgeBase):
-    """Permission to supersede an existing control or decision occurrence."""
-
-    transition_kind: Literal[MixedControlTransitionKind.OVERRIDE]
-
-
-class MixedControlCancellationEdge(_MixedControlEdgeBase):
-    """Permission to cancel an existing proposal, decision, admitted action or attempt."""
-
-    transition_kind: Literal[MixedControlTransitionKind.CANCELLATION]
-
-
-MixedControlPermittedTransition = Annotated[
-    MixedControlProposalEdge
-    | MixedControlApprovalEdge
-    | MixedControlDenialEdge
-    | MixedControlExternalDirectionEdge
-    | MixedControlInterventionEdge
-    | MixedControlHandoffEdge
-    | MixedControlOverrideEdge
-    | MixedControlCancellationEdge,
-    Field(discriminator="transition_kind"),
-]
-
-
 class MixedControlScriptStep(SDLModel):
-    """One finite-script step; it may only narrow its permitted transition."""
+    """One finite-script step; it only narrows its edge."""
+
+    model_config = ConfigDict(json_schema_extra=omit_property_titles)
 
     step_id: PortableIdentifier
     permitted_transition_ref: PortableIdentifier
     expected_state_revision: MixedControlCoordinate | None = None
     valid_from_order: MixedControlCoordinate | None = None
     valid_until_order: MixedControlCoordinate | None = None
-    target_kind: ParticipantControlTargetKind | None = None
+    target_kind: StepTargetKind | None = None
     target_step_ref: PortableIdentifier | None = None
 
     @model_validator(mode="after")
@@ -212,18 +176,39 @@ class MixedControlScriptStep(SDLModel):
         return self
 
 
-class _MixedControlPolicyBase(SDLModel):
-    """Fields shared by the reusable-policy and finite-script forms."""
+_ScriptSteps = Annotated[list[MixedControlScriptStep], Field(min_length=1)]
+
+
+def _policy_schema(schema: dict[str, Any]) -> None:
+    """Publish the form's script rule as a closed conditional and the MC-08 bound over legacy states."""
+
+    omit_property_titles(schema)
+    schema["allOf"] = [_only_when("form", "finite-script", "script_steps")]
+    states = schema["properties"]["controller_states"]
+    bound = {"maximum": MIXED_CONTROL_COORDINATE_LIMIT}
+    window = {"properties": {"valid_from_order": bound, "valid_until_order": bound}}
+    patterns = states.get("patternProperties", {})
+    for pattern, value in patterns.items():
+        patterns[pattern] = {"allOf": [value, window]}
+
+
+class MixedControlPolicy(SDLModel):
+    """A rev1 reusable policy or finite script (MC-01, MC-02)."""
+
+    # A reusable-policy permits any finite trace its edges admit and has no script_steps.
+    # A finite-script requires an ordered list of distinct steps over those edges.
+    model_config = ConfigDict(json_schema_extra=_policy_schema)
 
     semantics: Literal["mixed-control-policy-occurrence/rev1"]
-    form: str
+    form: Literal["reusable-policy", "finite-script"]
     participant_ref: str
     policy_revision: str
     order_strategy: MixedControlOrderStrategy
     initial_state_ref: PortableIdentifier
     dispositions: MixedControlDispositionRules
-    controller_states: dict[PortableIdentifier, MixedControlPolicyControllerState] = Field(min_length=1)
+    controller_states: dict[PortableIdentifier, MixedControlControllerState] = Field(min_length=1)
     permitted_transitions: dict[PortableIdentifier, MixedControlPermittedTransition] = Field(min_length=1)
+    script_steps: _ScriptSteps | None = None
 
     @field_validator("participant_ref", "policy_revision")
     @classmethod
@@ -233,73 +218,54 @@ class _MixedControlPolicyBase(SDLModel):
         return value
 
     @model_validator(mode="after")
-    def _validate_policy_graph(self) -> _MixedControlPolicyBase:
+    def _validate_policy_graph(self) -> MixedControlPolicy:
         if self.initial_state_ref not in self.controller_states:
             raise ValueError("mixed_control initial_state_ref must resolve to controller_states")
         for state_id, state in self.controller_states.items():
             if state.policy_revision != self.policy_revision:
                 raise ValueError(f"mixed-control controller state '{state_id}' has a stale policy revision")
+            if state.valid_until_order > MIXED_CONTROL_COORDINATE_LIMIT:
+                raise ValueError(
+                    f"mixed-control controller state '{state_id}' order window must be less than or equal to "
+                    f"{MIXED_CONTROL_COORDINATE_LIMIT}"
+                )
         for transition_id, transition in self.permitted_transitions.items():
             if any(ref not in self.controller_states for ref in (transition.from_state_ref, transition.to_state_ref)):
                 raise ValueError(
                     f"mixed-control permitted transition '{transition_id}' has an unknown controller-state ref"
                 )
+        self._validate_script()
         return self
 
-
-class ReusableMixedControlPolicy(_MixedControlPolicyBase):
-    """Permits any finite trace its edges and the ordinary gates admit; no edge schedules itself."""
-
-    form: Literal["reusable-policy"]
-
-
-class FiniteScriptMixedControlPolicy(_MixedControlPolicyBase):
-    """Pins an ordered list of distinct steps; exhaustion admits no further application."""
-
-    form: Literal["finite-script"]
-    script_steps: list[MixedControlScriptStep] = Field(min_length=1)
-
-    @model_validator(mode="after")
-    def _validate_script(self) -> FiniteScriptMixedControlPolicy:
+    def _validate_script(self) -> None:
+        if self.form == "reusable-policy":
+            if self.script_steps is not None:
+                raise ValueError("a reusable-policy mixed_control has no script_steps")
+            return
+        if self.script_steps is None:
+            raise ValueError("a finite-script mixed_control requires script_steps")
         step_ids = [step.step_id for step in self.script_steps]
         if len(set(step_ids)) != len(step_ids):
             raise ValueError("mixed-control script step identities must be distinct")
         for step in self.script_steps:
             if step.permitted_transition_ref not in self.permitted_transitions:
                 raise ValueError(f"mixed-control script step '{step.step_id}' names an unknown permitted transition")
-        return self
-
-
-MixedControlPolicy = Annotated[
-    ReusableMixedControlPolicy | FiniteScriptMixedControlPolicy,
-    Field(discriminator="form"),
-]
 
 
 def mixed_control_policy_semantics(declaration: object) -> str:
     """Return the explicit interpretation pin of one authored ``mixed_control`` value."""
 
-    return MIXED_CONTROL_POLICY_SEMANTICS if isinstance(declaration, _MixedControlPolicyBase) else ""
+    return MIXED_CONTROL_POLICY_SEMANTICS if isinstance(declaration, MixedControlPolicy) else ""
 
 
 __all__ = [
     "MIXED_CONTROL_KIND_TARGETS",
     "MIXED_CONTROL_POLICY_SEMANTICS",
     "DirectionTargetKind",
-    "FiniteScriptMixedControlPolicy",
-    "MixedControlApprovalEdge",
-    "MixedControlCancellationEdge",
     "MixedControlCoordinate",
-    "MixedControlDenialEdge",
-    "MixedControlExternalDirectionEdge",
-    "MixedControlHandoffEdge",
-    "MixedControlInterventionEdge",
-    "MixedControlOverrideEdge",
     "MixedControlPermittedTransition",
     "MixedControlPolicy",
-    "MixedControlPolicyControllerState",
-    "MixedControlProposalEdge",
     "MixedControlScriptStep",
-    "ReusableMixedControlPolicy",
+    "StepTargetKind",
     "mixed_control_policy_semantics",
 ]

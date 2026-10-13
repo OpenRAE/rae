@@ -325,13 +325,13 @@ EXPECTATIONS_PART_2: dict[str, tuple[str, str, str, str]] = {
         _DELIVERY_CONTROL_VALIDATOR,
     ),
     "behavior_specifications.*.participant_inject_deliveries.*.control.controller_ref": (
-        "agents",
+        "derived:source-state-controller",
         _SEMANTIC,
         "fatal unless the permitted transition's source-state controller",
         _DELIVERY_CONTROL_VALIDATOR,
     ),
     "behavior_specifications.*.participant_inject_deliveries.*.control.authority_scope_refs[]": (
-        "targetable",
+        "derived:source-state-scope",
         _SEMANTIC,
         "fatal dangling, ambiguous, or widening the source-state scope",
         _DELIVERY_CONTROL_VALIDATOR,

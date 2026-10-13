@@ -8,7 +8,7 @@ from ..participant_behavior_specification import (
     MixedControlTransitionKind,
     ParticipantBehaviorSpecification,
 )
-from ..participant_mixed_control_policy import FiniteScriptMixedControlPolicy, ReusableMixedControlPolicy
+from ..participant_mixed_control_policy import MixedControlPolicy
 
 
 class _MixedControlMixin:
@@ -20,7 +20,7 @@ class _MixedControlMixin:
                 behavior_mode=behavior_spec.behavior_mode,
                 declaration=declaration,
             )
-            if isinstance(declaration, (ReusableMixedControlPolicy, FiniteScriptMixedControlPolicy)):
+            if isinstance(declaration, MixedControlPolicy):
                 self._verify_mixed_control_policy(
                     spec_name=spec_name,
                     behavior_spec=behavior_spec,

@@ -9,6 +9,7 @@ from pydantic import ConfigDict, Field, StrictInt, field_validator, model_valida
 
 from ._base import SDLModel
 from ._identifiers import PortableIdentifier
+from .participant_mixed_control_vocabulary import omit_property_titles
 
 
 class ParticipantInjectDeliveryKind(str, Enum):
@@ -65,11 +66,12 @@ class ParticipantInjectDeliveryPolicy(SDLModel):
 
 
 class ParticipantInjectDeliveryControl(SDLModel):
-    """Rev1 binding of a directed delivery to one reusable permitted transition (MC-09).
+    """Rev1 binding to one permitted transition (MC-09)."""
 
-    It names a permission, never an occurrence: each realized delivery must join one
-    exact accepted API-424/API-409 control occurrence of that permission.
-    """
+    # It names a permission, never an occurrence: each realized delivery must join one
+    # exact accepted API-409 control occurrence of that permission.
+
+    model_config = ConfigDict(json_schema_extra=omit_property_titles)
 
     semantics: Literal["mixed-control-policy-occurrence/rev1"]
     policy_revision: str = Field(min_length=1, pattern=r"\S")
@@ -99,15 +101,10 @@ _FLAT_CONTROL_LISTS = ("control_authority_scope_refs", "control_evidence_refs")
 
 
 def _control_block_exclusivity_schema(schema: dict[str, Any]) -> None:
-    present = [
-        *({"required": [name], "properties": {name: {"not": {"type": "null"}}}} for name in _FLAT_CONTROL_SCALARS),
-        *({"required": [name], "properties": {name: {"minItems": 1}}} for name in _FLAT_CONTROL_LISTS),
-    ]
+    absent = {name: {"type": "null"} for name in _FLAT_CONTROL_SCALARS}
+    absent.update({name: {"maxItems": 0} for name in _FLAT_CONTROL_LISTS})
     schema.setdefault("allOf", []).append(
-        {
-            "if": {"required": ["control"], "properties": {"control": {"type": "object"}}},
-            "then": {"not": {"anyOf": present}},
-        }
+        {"if": {"properties": {"control": {"type": "object"}}, "required": ["control"]}, "then": {"properties": absent}}
     )
 
 

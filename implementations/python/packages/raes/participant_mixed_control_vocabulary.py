@@ -9,6 +9,7 @@ the SDL and the occurrence carriers share one target vocabulary.
 from __future__ import annotations
 
 from enum import Enum
+from typing import Any
 
 from pydantic import Field, StrictInt, field_validator, model_validator
 
@@ -16,6 +17,20 @@ from ._base import SDLModel
 
 MIXED_CONTROL_COORDINATE_LIMIT = 1_000_000
 """MC-08 range bound shared with API-424 ``ControlCount`` (a test pins the two)."""
+
+
+def omit_property_titles(schema: dict[str, Any]) -> None:
+    """Drop generated property titles and null defaults from a published rev1 shape.
+
+    Both are annotations with no validation effect. Omitting them keeps the
+    self-contained materialized-scenario schema inside its publication budget.
+    """
+
+    for value in schema.get("properties", {}).values():
+        if isinstance(value, dict):
+            value.pop("title", None)
+            if "default" in value and value["default"] is None:
+                del value["default"]
 
 
 class MixedControlOrderStrategy(str, Enum):

@@ -12,8 +12,7 @@ from raes.participant_behavior_specification import ParticipantBehaviorSpecifica
 from raes.participant_inject_delivery import ParticipantInjectDelivery
 from raes.participant_mixed_control_policy import (
     MIXED_CONTROL_POLICY_SEMANTICS,
-    FiniteScriptMixedControlPolicy,
-    ReusableMixedControlPolicy,
+    MixedControlPolicy,
 )
 from raes.scenario import InstantiatedScenario
 from raes_contracts.contracts import ParticipantControlOccurrencePolicyModel
@@ -40,7 +39,6 @@ from .support import _address, _dedupe, _dump
 FIXED_COORDINATE_SEMANTICS = "fixed-coordinate-v1"
 _CONTROL_REF_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/@-]*$")
 _CONTROL_REF_MAX_LENGTH = 256
-_Rev1Policy = ReusableMixedControlPolicy | FiniteScriptMixedControlPolicy
 
 
 def _policy_address(spec_name: str) -> str:
@@ -60,13 +58,13 @@ def mixed_control_semantics(declaration: object) -> str:
 
     if declaration is None:
         return ""
-    if isinstance(declaration, (ReusableMixedControlPolicy, FiniteScriptMixedControlPolicy)):
+    if isinstance(declaration, MixedControlPolicy):
         return MIXED_CONTROL_POLICY_SEMANTICS
     return FIXED_COORDINATE_SEMANTICS
 
 
 def _compile_permitted_transitions(
-    declaration: _Rev1Policy,
+    declaration: MixedControlPolicy,
     *,
     spec_name: str,
     addressable_ref_index: dict[str, set[str]],
@@ -75,7 +73,7 @@ def _compile_permitted_transitions(
     for transition_id, transition in sorted(declaration.permitted_transitions.items()):
         from_address = _mixed_control_state_address(spec_name, transition.from_state_ref)
         to_address = _mixed_control_state_address(spec_name, transition.to_state_ref)
-        completion = tuple(getattr(transition, "completion_evidence_refs", ()))
+        completion = tuple(transition.completion_evidence_refs or ())
         evidence_addresses = _runtime_addresses_for_refs(
             list(transition.evidence_refs), addressable_ref_index=addressable_ref_index
         )
@@ -104,8 +102,10 @@ def _compile_permitted_transitions(
     return tuple(transitions)
 
 
-def _compile_script_steps(declaration: _Rev1Policy, *, spec_name: str) -> tuple[MixedControlScriptStepRuntime, ...]:
-    if not isinstance(declaration, FiniteScriptMixedControlPolicy):
+def _compile_script_steps(
+    declaration: MixedControlPolicy, *, spec_name: str
+) -> tuple[MixedControlScriptStepRuntime, ...]:
+    if declaration.script_steps is None:
         return ()
     steps = []
     for position, step in enumerate(declaration.script_steps, start=1):
@@ -168,7 +168,7 @@ def _compile_mixed_control_declaration(
     """Compile either form: the legacy eight-part result plus the rev1 policy child or ``None``."""
 
     declaration = behavior_spec.mixed_control
-    if not isinstance(declaration, (ReusableMixedControlPolicy, FiniteScriptMixedControlPolicy)):
+    if not isinstance(declaration, MixedControlPolicy):
         legacy = _compile_mixed_control(
             spec_name=spec_name, behavior_spec=behavior_spec, addressable_ref_index=addressable_ref_index
         )

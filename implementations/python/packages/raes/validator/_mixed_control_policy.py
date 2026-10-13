@@ -4,14 +4,16 @@ from __future__ import annotations
 
 from ..participant_behavior_specification import ParticipantBehaviorSpecification
 from ..participant_mixed_control_policy import (
-    FiniteScriptMixedControlPolicy,
-    MixedControlPolicyControllerState,
+    MixedControlPolicy,
     MixedControlScriptStep,
-    ReusableMixedControlPolicy,
 )
-from ..participant_mixed_control_vocabulary import MixedControlTransitionKind, ParticipantControlTargetKind
+from ..participant_mixed_control_vocabulary import (
+    MixedControlControllerState,
+    MixedControlTransitionKind,
+    ParticipantControlTargetKind,
+)
 
-_Policy = ReusableMixedControlPolicy | FiniteScriptMixedControlPolicy
+_Policy = MixedControlPolicy
 _PROPOSAL = MixedControlTransitionKind.PROPOSAL
 _DECIDING = frozenset({MixedControlTransitionKind.APPROVAL, MixedControlTransitionKind.DENIAL})
 
@@ -61,7 +63,7 @@ class _MixedControlPolicyMixin:
             self._err(f"{label} initial state cannot use revoked authority")
         for transition_id, transition in declaration.permitted_transitions.items():
             self._verify_permitted_transition(label, declaration, transition_id, transition)
-        if isinstance(declaration, FiniteScriptMixedControlPolicy):
+        if declaration.script_steps is not None:
             self._verify_script_steps(label, declaration)
 
     def _verify_permitted_transition(self, label: str, declaration: _Policy, transition_id: str, transition) -> None:
@@ -83,11 +85,11 @@ class _MixedControlPolicyMixin:
         if transition.transition_kind != MixedControlTransitionKind.HANDOFF and changes_controller:
             self._err(f"{owner_label} changes controller; only a handoff changes controller identity")
         self._verify_evidence_refs(
-            (*transition.evidence_refs, *getattr(transition, "completion_evidence_refs", ())),
+            (*transition.evidence_refs, *(transition.completion_evidence_refs or ())),
             owner_label=owner_label,
         )
 
-    def _verify_script_steps(self, label: str, declaration: FiniteScriptMixedControlPolicy) -> None:
+    def _verify_script_steps(self, label: str, declaration: MixedControlPolicy) -> None:
         earlier: dict[str, MixedControlTransitionKind] = {}
         for step in declaration.script_steps:
             transition = declaration.permitted_transitions[step.permitted_transition_ref]
@@ -128,9 +130,9 @@ class _MixedControlPolicyMixin:
             )
 
 
-def _state_window(state: MixedControlPolicyControllerState) -> tuple[int, int]:
+def _state_window(state: MixedControlControllerState) -> tuple[int, int]:
     return state.valid_from_order, state.valid_until_order
 
 
-def _resolved_controller(declaration: _Policy, state: MixedControlPolicyControllerState) -> str:
+def _resolved_controller(declaration: _Policy, state: MixedControlControllerState) -> str:
     return declaration.participant_ref if state.controller_ref == "self" else state.controller_ref
