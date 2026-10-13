@@ -83,7 +83,9 @@ def test_stale_replay_and_an_old_revision_contender_are_refused(cycle: tuple[str
     history = History()
     for edge in cycle:
         history.accept(edge)
-    contender = history.candidate("take", prior_state_ref=STATES["A"], expected_state_revision=0, resulting_state_revision=1)
+    contender = history.candidate(
+        "take", prior_state_ref=STATES["A"], expected_state_revision=0, resulting_state_revision=1
+    )
     _refused(history, contender, "stale-state")
 
 
