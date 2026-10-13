@@ -725,7 +725,12 @@ def test_rule_two_states_when_a_refusal_names_its_purpose() -> None:
 
 
 def matrix_payload() -> dict:
-    """The all-kinds fixture without the parts that composing it twice does not support yet, plus probe fields."""
+    """The all-kinds fixture, ready to compile and to compose twice, plus a temporal constraint to probe.
+
+    Variation points need a recorded selection before compilation. Forwarding-agent ids must be unique
+    across the scenario, so two copies cannot both declare one. Composition does not yet rewrite an
+    ACL's `from_net` under the import namespace (#1579).
+    """
 
     payload = fixture_payload()
     payload.pop("variation_points")
@@ -750,6 +755,7 @@ def matrix_payload() -> dict:
 class StageRow:
     """One purpose-bearing field, an eligible and an ineligible value, and the refusal of the ineligible one."""
 
+    purpose: P
     relationship: dict | None
     path: tuple
     accepted: str
@@ -773,6 +779,7 @@ def _endpoint_row(relationship: dict, side: str, accepted: str, refused: str) ->
     (purpose, *_more) = endpoint_policy.relationship_endpoint_purposes(relationship, side)
     label = policy.PURPOSE_LABELS[purpose]
     return StageRow(
+        purpose,
         relationship,
         ("relationships", "probe", side),
         accepted,
@@ -793,9 +800,10 @@ _DETECTION = (
     "source_artifact_ref",
 )
 STAGE_ROWS = {
-    # Temporal-constraint subjects refuse every unresolved variable when authored, so their declared
-    # purpose is exercised through instantiation by the detection definition's declared source artifact.
+    # Temporal-constraint subjects refuse every unresolved variable when authored, so the declared purpose is
+    # instantiated through a detection definition's source artifact, which composition does not rewrite yet (#1579).
     "declared-temporal-subject": StageRow(
+        P.DECLARED,
         None,
         ("temporal_constraints", "app-window", "subject_refs", 0),
         "nodes.app",
@@ -804,6 +812,7 @@ STAGE_ROWS = {
         instantiable=False,
     ),
     "declared-source-artifact": StageRow(
+        P.DECLARED,
         None,
         _DETECTION,
         "nodes.app",
@@ -812,6 +821,7 @@ STAGE_ROWS = {
         composable=False,
     ),
     "targetable-delivery-item": StageRow(
+        P.TARGETABLE,
         None,
         _DELIVERY,
         "content.briefing",
@@ -884,9 +894,27 @@ def _import_twice(directory: Path, module: dict):
     return parse_sdl_file(directory / "root.yaml")
 
 
-def test_the_stage_matrix_covers_every_reference_purpose() -> None:
-    assert len(STAGE_ROWS) == 3 + 15
-    assert any(not row.instantiable for row in STAGE_ROWS.values())
+# The purposes that the stage matrix in test_issue_1339_reference_eligibility.py already drives.
+REFERENCE_MATRIX_PURPOSES = {
+    P.OBJECTIVE_SUBJECT,
+    P.ACTION_TARGET,
+    P.SHARED_STATE,
+    P.AUTHORITY_SCOPE,
+    P.PARTICIPANT_ENDPOINT,
+    P.RELATIONSHIP_ENDPOINT,
+    P.OBSERVATION_SUBJECT,
+    P.AUTHORITY_ANCHOR,
+    P.OPERATING_SCOPE,
+}
+
+
+def test_the_two_stage_matrices_cover_every_reference_purpose_in_every_stage() -> None:
+    composed = {row.purpose for row in STAGE_ROWS.values() if row.composable}
+    instantiated = {row.purpose for row in STAGE_ROWS.values() if row.instantiable}
+
+    assert composed | REFERENCE_MATRIX_PURPOSES == set(P)
+    assert instantiated | REFERENCE_MATRIX_PURPOSES == set(P)
+    assert len([name for name in STAGE_ROWS if name.endswith(SIDES)]) == 15
 
 
 @pytest.mark.parametrize("row", [name for name, row in STAGE_ROWS.items() if row.composable])

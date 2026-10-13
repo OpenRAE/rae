@@ -33,6 +33,13 @@ def _completions(payload: dict, side: str) -> dict:
     return language_completions(yaml.safe_dump(payload, sort_keys=False), cursor_path=f"/relationships/probe/{side}")
 
 
+def _labels(payload: dict, pointer: str) -> dict[str, str]:
+    """Map each offered declaration to the label that completion offers for it."""
+
+    items = language_completions(yaml.safe_dump(payload, sort_keys=False), cursor_path=pointer)["items"]
+    return {item["detail"]: item["label"] for item in items}
+
+
 def _occurrences(payload: dict, symbol: str) -> set[str]:
     result = language_references(yaml.safe_dump(payload, sort_keys=False), symbol)
     return {item["path"] for item in result["occurrences"]}
@@ -209,7 +216,7 @@ def test_a_bare_name_that_the_index_gives_no_alias_is_neither_offered_nor_an_occ
 ) -> None:
     payload = _with(_rule(name, side, bare), broken=broken)
 
-    labels = {item["detail"]: item["label"] for item in _completions(payload, side)["items"]}
+    labels = _labels(payload, f"/relationships/probe/{side}")
 
     assert labels[declaration] == declaration
     assert f"/relationships/probe/{side}" not in _occurrences(payload, declaration)
@@ -273,14 +280,8 @@ def _hidden_alias(*, broken: bool) -> dict:
 
 def test_ambiguity_is_judged_among_the_declarations_the_editor_index_holds() -> None:
     complete, broken = _hidden_alias(broken=False), _hidden_alias(broken=True)
-    complete_labels = {
-        item["detail"]: item["label"]
-        for item in language_completions(yaml.safe_dump(complete), cursor_path="/relationships/r/target")["items"]
-    }
-    broken_labels = {
-        item["detail"]: item["label"]
-        for item in language_completions(yaml.safe_dump(broken), cursor_path="/relationships/r/target")["items"]
-    }
+    complete_labels = _labels(complete, "/relationships/r/target")
+    broken_labels = _labels(broken, "/relationships/r/target")
 
     with pytest.raises(SDLValidationError) as caught:
         parse_sdl(yaml.safe_dump(complete))
@@ -288,20 +289,16 @@ def test_ambiguity_is_judged_among_the_declarations_the_editor_index_holds() -> 
         caught.value.errors
     )
     for symbol in ("nodes.alpha", "content.docs.items.alpha"):
-        assert "/relationships/r/target" not in _occurrences_of(complete, symbol)
+        assert "/relationships/r/target" not in _occurrences(complete, symbol)
     assert (complete_labels["nodes.alpha"], complete_labels["content.docs.items.alpha"]) == (
         "nodes.alpha",
         "content.docs.items.alpha",
     )
     # A content entry that does not validate on its own hides its item until it validates.
-    assert "/relationships/r/target" in _occurrences_of(broken, "nodes.alpha")
-    assert "/relationships/r/target" not in _occurrences_of(broken, "content.docs.items.alpha")
+    assert "/relationships/r/target" in _occurrences(broken, "nodes.alpha")
+    assert "/relationships/r/target" not in _occurrences(broken, "content.docs.items.alpha")
     assert "content.docs.items.alpha" not in broken_labels
     assert broken_labels["nodes.alpha"] == "alpha"
-
-
-def _occurrences_of(payload: dict, symbol: str) -> set[str]:
-    return {item["path"] for item in language_references(yaml.safe_dump(payload), symbol)["occurrences"]}
 
 
 def test_the_partial_index_equals_the_complete_index_for_every_entry_that_validates() -> None:
