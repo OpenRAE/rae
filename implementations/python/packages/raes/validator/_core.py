@@ -6,9 +6,18 @@ Part of the SemanticValidator mixin composition; see __init__.py.
 from collections.abc import Iterable
 
 from .._base import is_variable_ref
-from .._declarations import DeclarationIndex, build_declaration_index, operating_scope_aliases
+from .._declarations import DeclarationIndex, Purposes, build_declaration_index
 from .._errors import SDLValidationError
-from .._reference_targetability import ELIGIBLE_KINDS, PURPOSE_LABELS, ReferencePurpose
+from .._operating_scope_index import operating_scope_aliases
+from .._reference_targetability import (
+    ELIGIBLE_KINDS,
+    PURPOSE_LABELS,
+    ReferencePurpose,
+    canonical_purposes,
+    is_eligible,
+    resolution_domain,
+    runtime_eligibility_kind,
+)
 from .._runtime_service_families import (
     RuntimeFamilyReference,
     iter_runtime_family_references,
@@ -18,20 +27,27 @@ from ..nodes import NodeType
 from ..scenario import ScenarioContent
 
 
-def eligible_element(purpose: ReferencePurpose) -> str:
+def purpose_labels(purposes: Purposes) -> str:
+    """Label one purpose, or every member of a purpose tuple joined as a conjunction."""
+
+    return " and as ".join(PURPOSE_LABELS[purpose] for purpose in canonical_purposes(purposes))
+
+
+def eligible_element(purposes: Purposes) -> str:
     """Name what a *purpose* reference must reference, for its unresolved diagnostic.
 
     A purpose that admits every declared or every targetable declaration keeps
     the general wording, which matches the inspection payload's flags; a
-    narrower purpose names itself.
+    narrower purpose names itself, and a tuple of several purposes names each.
     """
 
-    kinds = ELIGIBLE_KINDS[purpose]
+    members = canonical_purposes(purposes)
+    kinds = ELIGIBLE_KINDS[members[0]] if len(members) == 1 else None
     if kinds == ELIGIBLE_KINDS[ReferencePurpose.DECLARED]:
         return "element"
     if kinds == ELIGIBLE_KINDS[ReferencePurpose.TARGETABLE]:
         return "targetable element"
-    return f"element eligible as {PURPOSE_LABELS[purpose]}"
+    return f"element eligible as {purpose_labels(members)}"
 
 
 class _ValidatorCore:
@@ -83,7 +99,7 @@ class _ValidatorCore:
                 refs.add(f"{workflow_name}.{step_name}")
         return refs
 
-    def _named_ref_index(self, purpose: ReferencePurpose = ReferencePurpose.DECLARED) -> dict[str, set[str]]:
+    def _named_ref_index(self, purpose: Purposes = ReferencePurpose.DECLARED) -> dict[str, set[str]]:
         """Build the alias map of declarations the reference policy admits for *purpose*.
 
         Bare refs stay available for most top-level sections when they are
@@ -104,14 +120,22 @@ class _ValidatorCore:
         declared = sorted(self._named_ref_index().get(ref, ()))
         return f"; it names {', '.join(declared)}" if declared else ""
 
-    def _ambiguity_choices(self, candidates: Iterable[str], purpose: ReferencePurpose) -> str:
+    def _ambiguity_choices(self, candidates: Iterable[str], purpose: Purposes) -> str:
         """List an ambiguous reference's eligible candidates, then those that *purpose* refuses."""
 
         named = set(candidates)
         eligible = self._require_declaration_index().eligible(named, purpose)
         refused = sorted(named - eligible)
-        detail = f"; not eligible as {PURPOSE_LABELS[purpose]}: {', '.join(refused)}" if refused else ""
+        detail = f"; not eligible as {purpose_labels(purpose)}: {', '.join(refused)}" if refused else ""
         return f"{', '.join(sorted(eligible))}{detail}"
+
+    def _failed_purposes(self, ref: str, purposes: tuple[ReferencePurpose, ...]) -> tuple[ReferencePurpose, ...]:
+        """Return the members of *purposes* that a reference's single resolution-domain match fails."""
+
+        index = self._require_declaration_index()
+        named = index.resolve_for(ref, resolution_domain(purposes[0]))
+        failed = tuple(purpose for purpose in purposes if len(named) == 1 and not index.eligible(named, purpose))
+        return failed or purposes
 
     def _operating_scope_ref_index(self) -> dict[str, set[str]]:
         """Build the alias map for ACT-601 ``Agent.operating_scope``.
@@ -120,7 +144,7 @@ class _ValidatorCore:
         where the participant may act or observe: compute hosts, switch-backed
         subnets, services, and content (and content items). The shared
         reference policy names those declaration kinds; see
-        :func:`raes._declarations.operating_scope_aliases`. Non-spatial,
+        :func:`raes._operating_scope_index.operating_scope_aliases`. Non-spatial,
         non-resource elements (conditions, accounts, relationships,
         objectives, ...) are not scope boundaries.
         """
@@ -143,15 +167,15 @@ class _ValidatorCore:
         *,
         owner_label: str,
         ref_label: str,
-        purpose: ReferencePurpose = ReferencePurpose.DECLARED,
+        purpose: Purposes = ReferencePurpose.DECLARED,
     ) -> None:
-        """Validate a reference against the declarations eligible for *purpose*."""
-        index = self._named_ref_index(purpose)
-        candidates = index.get(ref)
+        """Validate a reference against the declarations eligible for *purpose* (every member of a tuple)."""
+        purposes = canonical_purposes(purpose)
+        candidates = self._require_declaration_index().resolve_for(ref, purposes)
         if not candidates:
             self._err(
-                f"{owner_label} {ref_label} '{ref}' does not reference any defined {eligible_element(purpose)}"
-                f"{self._ineligible_detail(ref)}"
+                f"{owner_label} {ref_label} '{ref}' does not reference any defined "
+                f"{eligible_element(self._failed_purposes(ref, purposes))}{self._ineligible_detail(ref)}"
             )
             return
 
@@ -297,11 +321,9 @@ class _ValidatorCore:
         ``database_access`` can be checked against it.
         """
         reference = self._runtime_reference(ref)
-        if reference is None or reference.family.collection_name != "database_services":
-            return None
-        if reference.collection_path not in {(), ("databases",)}:
-            return None
-        return reference.owning_item
+        return (
+            reference.owning_item if runtime_reference_eligible(reference, ReferencePurpose.DATABASE_ENDPOINT) else None
+        )
 
     def _resolve_application_ref(self, ref: object) -> object | None:
         """Resolve a qualified ``nodes.<node>.runtime.applications.<id>`` ref.
@@ -311,10 +333,16 @@ class _ValidatorCore:
         application (ADR-029 §4).
         """
         reference = self._runtime_reference(ref)
-        if (
-            reference is None
-            or reference.family.collection_name != "applications"
-            or reference.item is not reference.owning_item
-        ):
-            return None
-        return reference.item
+        return (
+            reference.item
+            if runtime_reference_eligible(reference, ReferencePurpose.RUNTIME_APPLICATION_ENDPOINT)
+            else None
+        )
+
+
+def runtime_reference_eligible(reference: RuntimeFamilyReference | None, purpose: ReferencePurpose) -> bool:
+    """Whether an exact runtime reference's family-qualified kind is eligible for an endpoint *purpose*."""
+
+    return reference is not None and is_eligible(
+        runtime_eligibility_kind(reference.family.collection_name, reference.collection_path), purpose
+    )

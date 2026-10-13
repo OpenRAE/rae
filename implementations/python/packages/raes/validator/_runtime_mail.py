@@ -6,6 +6,9 @@ Part of the SemanticValidator mixin composition; see __init__.py.
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 
+from .._reference_targetability import ReferencePurpose
+from ._core import runtime_reference_eligible
+
 
 @dataclass(frozen=True)
 class _MailServiceLocalIds:
@@ -254,6 +257,8 @@ class _RuntimeMailMixin:
     def _resolve_mail_service_ref(self, ref: object) -> object | None:
         """Resolve a qualified runtime mail-service or child ref to the service."""
         reference = self._runtime_reference(ref)
-        if reference is None or reference.family.collection_name != "mail_services":
-            return None
-        return reference.owning_item
+        return (
+            reference.owning_item
+            if runtime_reference_eligible(reference, ReferencePurpose.MAIL_SERVICE_ENDPOINT)
+            else None
+        )

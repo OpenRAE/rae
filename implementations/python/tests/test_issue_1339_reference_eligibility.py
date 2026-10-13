@@ -226,7 +226,8 @@ def test_every_indexed_section_and_runtime_family_has_an_explicit_decision() -> 
         "runtime-zones",
     ]
     assert set(runtime.values()) == {policy.DeclarationCategory.RESOURCE}
-    for purpose in policy.ReferencePurpose:
+    # Endpoint purposes hold family-qualified eligibility kinds; the relationship-endpoint invariants check them.
+    for purpose in set(policy.ReferencePurpose) - policy.ENDPOINT_KINDS.keys():
         assert policy.ELIGIBLE_KINDS[purpose] <= policy.ELIGIBLE_KINDS[policy.resolution_domain(purpose)]
 
 

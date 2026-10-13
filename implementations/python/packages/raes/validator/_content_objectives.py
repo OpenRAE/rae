@@ -5,7 +5,8 @@ Part of the SemanticValidator mixin composition; see __init__.py.
 
 from collections.abc import Callable
 
-from .._reference_targetability import ReferencePurpose, relationship_endpoint_purpose
+from .._reference_targetability import ReferencePurpose
+from .._relationship_endpoint_policy import relationship_endpoint_purposes
 from ..entities import flatten_entities
 from ..semantics.objective_semantics import (
     AssessmentResourceCatalog,
@@ -262,7 +263,7 @@ class _ContentObjectivesMixin:
                         ref,
                         owner_label=f"Relationship '{name}'",
                         ref_label=field,
-                        purpose=relationship_endpoint_purpose(rel.type),
+                        purpose=relationship_endpoint_purposes(rel, field),
                     )
 
     def _verify_agents(self) -> None:

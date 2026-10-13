@@ -225,17 +225,26 @@ join is unreferenced.
 any role-bearing refs
 ([ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md)):
 
-| Subtype | Endpoints / role refs resolve to |
-|---------|----------------------------------|
-| generic | eligible relationship endpoints (`source`/`target`, §7) |
-| `database_access` | `source` → an `applications` element; `target` → a `database_services` element; role ref → a declared role on the target |
-| `mail_access` | `target` → a `mail_services` element; listener/mailbox/domain refs → declared children of that mail service |
-| `forwarding_edge` | `forwarder_ref` → exactly one `forwarding_agents` element (node-scoped or scenario-level); protocol/role MUST agree with a declared ship target |
-| `service_integration` | consumer/engine refs → `platform_applications`; auth-principal ref → a declared app-authorization on the engine's node |
-| `proxy_upstream` | upstream → a resolved runtime application/endpoint |
-| `participant` | `source` / `target` → distinct declared agents that resolve unambiguously among relationship endpoints (§7); optional refinements → existing participant, action, objective, authority, scope, observation and mixed-control declarations ([participant relationships](participant-relationships.md)) |
-| `domain_controller_for` | `source` → a compute node; `target` → an `identity_domains` entry |
-| `joins_domain` | `source` → a compute node; `target` → an `identity_domains` entry; controller refs → controller nodes for the same domain |
+| Subtype | Endpoints / role refs resolve to | Endpoint purposes (`source` / `target`, §7) |
+|---------|----------------------------------|----------------------------------|
+| generic | eligible relationship endpoints (`source`/`target`, §7) | `relationship_endpoint` / `relationship_endpoint` |
+| `database_access` | `source` → an `applications` element; `target` → a `database_services` element or one of its `databases`; role ref → a declared role on the target | `runtime_application_endpoint` / `database_endpoint` |
+| `mail_access` | `target` → a `mail_services` element; listener/mailbox/domain refs → declared children of that mail service | `relationship_endpoint` / `mail_service_endpoint` |
+| `forwarding_edge` | `forwarder_ref` → exactly one `forwarding_agents` element (node-scoped or scenario-level); protocol/role MUST agree with a declared ship target | `relationship_endpoint` / `relationship_endpoint` |
+| `service_integration` | consumer/engine refs → `platform_applications`; auth-principal ref → a declared app-authorization on the engine's node | `relationship_endpoint` / `relationship_endpoint` |
+| `proxy_upstream` | upstream → a resolved runtime application/endpoint | `relationship_endpoint` / `relationship_endpoint` |
+| `participant` | `source` / `target` → distinct declared agents that resolve unambiguously among relationship endpoints (§7); optional refinements → existing participant, action, objective, authority, scope, observation and mixed-control declarations ([participant relationships](participant-relationships.md)) | `participant_endpoint` / `participant_endpoint` |
+| `domain_controller_for` | `source` → a compute node; `target` → an `identity_domains` entry | `node_endpoint` / `identity_domain_endpoint` |
+| `joins_domain` | `source` → a compute node; `target` → an `identity_domains` entry; controller refs → controller nodes for the same domain | `node_endpoint` / `identity_domain_endpoint` |
+| `forest_trusts` | `source` / `target` → two distinct `identity_forests` entries ([enterprise deployment tenancy](enterprise-deployment-tenancy.md)) | `identity_forest_endpoint` / `identity_forest_endpoint` |
+| `directory_federates_to` | `source` → one `identity_domains` or `identity_forests` entry; `target` → one `identity_facades` entry | `identity_authority_endpoint` / `identity_facade_endpoint` |
+| `placed_on_carrier` | `source` / `target` → two compute nodes; the target carries the carrier persona | `node_endpoint` / `node_endpoint` |
+| `uses_shared_service` | `source` → a `deployment_tenants` entry; `target` → a named node service, `nodes.<node>.services.<name>` | `deployment_tenant_endpoint` / `node_service_endpoint` |
+
+A relationship's endpoints must satisfy the endpoint purposes of its type and of
+every typed detail it carries (§7). The purposes check declaration kinds only;
+attribute rules such as a compute node, the carrier persona, distinct forests,
+or a shared deployment cell stay with each subtype's own validator.
 
 ### Variables
 
@@ -502,9 +511,11 @@ gate; a matching row count cannot hide a different edge.
 
 ## 7. Reference purposes and eligibility
 
-Each purpose-bearing reference field declares one purpose, and each purpose
-admits declarations by category. Eligibility is never inferred by excluding
-sections. Every indexed declaration kind has exactly one category or is
+Each purpose-bearing reference field declares one purpose. Most purposes admit
+declarations by category; operating scope and the typed relationship endpoint
+purposes admit explicit declaration kinds; a typed relationship endpoint must
+satisfy every applicable endpoint purpose. Eligibility is never inferred by
+excluding sections. Every indexed declaration kind has exactly one category or is
 explicitly unreferenceable: the scenario identity, node roles, workflow steps,
 and `outcome_interpretation_rules` entries are indexed to detect canonical
 address collisions, and fields that name them use their own domains. A kind
@@ -525,40 +536,101 @@ before any field can name it.
 | variation | `variation_points` |
 | support | `evidence_requirements`, `time_domains`, `clocks`, `time_domain_mappings`, `time_progression_policies`, `temporal_constraints`, `objectives`, `workflows`, `variables`, tool affordances, variation alternatives and members |
 
-| Purpose (domain token) | Reference fields | Eligible categories |
-| --- | --- | --- |
-| `declared` | declared-reference fields such as temporal-constraint subjects (which also accept workflow steps) and mixed-control evidence refs | every category |
-| `targetable` | remaining general target fields, such as identity-facade services, inject-delivery items, and evidence channel, trigger, and boundary refs | every category except support |
-| `eligible:objective_subject` | objective `targets[]` and the `objectives.targets` variation slot | participant, organization, resource, relationship, proposition |
-| `eligible:action_target` | interaction `target`, effect `target_refs[]` | participant, organization, resource, relationship |
-| `eligible:shared_state` | interaction `shared_state_refs[]` | resource, relationship |
-| `eligible:relationship_endpoint` | generic relationship `source` and `target` | every category except support; typed subtypes narrow it (§5) |
-| `eligible:participant_endpoint` | `source` and `target` of a `participant` relationship | participant |
-| `eligible:observation_subject` | proposition `subjects[]`, evidence `source_refs[]` and `scope_refs[]`, observation-demand component refs | every category except support |
-| `eligible:authority_anchor` | agent `authority_anchors[]`, participant-relationship and mixed-control `authority_basis_refs[]` | every category |
-| `eligible:authority_scope` | behavior `authority_scope_refs[]`, mixed-control state `scope_refs[]` (which must then stay within the behavior's authority scope and the controller's operating scope, so §6 lists it as `derived:behavior-and-controller-scope`), delivery `control_authority_scope_refs[]` | participant, organization, resource, relationship, behavior |
-| `derived:operating_scope` | agent `operating_scope[]`, participant-relationship `scope_refs[]` | compute nodes, switch-backed infrastructure, node services, content, and content items |
+| Purpose (domain token) | Reference fields | Eligible declarations | Resolves among |
+| --- | --- | --- | --- |
+| `declared` | declared-reference fields such as temporal-constraint subjects (which also accept workflow steps) and mixed-control evidence refs | every category | `declared` |
+| `targetable` | remaining general target fields, such as identity-facade services, inject-delivery items, and evidence channel, trigger, and boundary refs | every category except support | `targetable` |
+| `eligible:objective_subject` | objective `targets[]` and the `objectives.targets` variation slot | participant, organization, resource, relationship, proposition | `targetable` |
+| `eligible:action_target` | interaction `target`, effect `target_refs[]` | participant, organization, resource, relationship | `targetable` |
+| `eligible:shared_state` | interaction `shared_state_refs[]` | resource, relationship | `targetable` |
+| `eligible:relationship_endpoint` | generic relationship `source` and `target` | every category except support; typed types and details narrow it (§5) | `eligible:relationship_endpoint` |
+| `eligible:participant_endpoint` | `source` and `target` of a `participant` relationship | participant | `eligible:relationship_endpoint` |
+| `eligible:node_endpoint` | `domain_controller_for` and `joins_domain` `source`, both `placed_on_carrier` endpoints | `node` | `eligible:relationship_endpoint` |
+| `eligible:identity_domain_endpoint` | `domain_controller_for` and `joins_domain` `target` | `identity_domains` | `eligible:relationship_endpoint` |
+| `eligible:identity_forest_endpoint` | both `forest_trusts` endpoints | `identity_forests` | `eligible:relationship_endpoint` |
+| `eligible:identity_authority_endpoint` | `directory_federates_to` `source` | `identity_domains`, `identity_forests` | `eligible:relationship_endpoint` |
+| `eligible:identity_facade_endpoint` | `directory_federates_to` `target` | `identity_facades` | `eligible:relationship_endpoint` |
+| `eligible:deployment_tenant_endpoint` | `uses_shared_service` `source` | `deployment_tenants` | `eligible:relationship_endpoint` |
+| `eligible:node_service_endpoint` | `uses_shared_service` `target` | `service` | `eligible:relationship_endpoint` |
+| `eligible:runtime_application_endpoint` | `database_access` `source` | `runtime-applications` | `eligible:relationship_endpoint` |
+| `eligible:database_endpoint` | `database_access` `target` | `runtime-database_services`, `runtime-database_services.databases` | `eligible:relationship_endpoint` |
+| `eligible:mail_service_endpoint` | `mail_access` `target` | the `mail_services` record and every registered child | `eligible:relationship_endpoint` |
+| `eligible:observation_subject` | proposition `subjects[]`, evidence `source_refs[]` and `scope_refs[]`, observation-demand component refs | every category except support | `eligible:observation_subject` |
+| `eligible:authority_anchor` | agent `authority_anchors[]`, participant-relationship and mixed-control `authority_basis_refs[]` | every category | `eligible:authority_anchor` |
+| `eligible:authority_scope` | behavior `authority_scope_refs[]`, mixed-control state `scope_refs[]` (which must then stay within the behavior's authority scope and the controller's operating scope, so §6 lists it as `derived:behavior-and-controller-scope`), delivery `control_authority_scope_refs[]` | participant, organization, resource, relationship, behavior | `targetable` |
+| `derived:operating_scope` | agent `operating_scope[]`, participant-relationship `scope_refs[]` | compute nodes, switch-backed infrastructure, node services, content, and content items | `derived:operating_scope` |
+
+The typed relationship endpoint purposes admit declaration kinds, not
+categories. A runtime record is named by its family: the eligibility kind of a
+runtime child record is `runtime-<family>.<child path>`, for example
+`runtime-mail_services.listeners`, so a `mail_access` target admits a mail
+listener but not a security-monitoring manager listener. The published
+declaration kind (`runtime-listeners`) does not change. The `mail_access` target
+rule covers the family: a mail child registered later is admitted, while the
+application and database rules name their records, so a later child of those
+families is not.
+
+Every relationship type and typed detail field has one endpoint decision:
+
+| Type or detail field | Decision | `source` | `target` |
+| --- | --- | --- | --- |
+| `authenticates_with` type | generic | — | — |
+| `trusts` type | generic | — | — |
+| `federates_with` type | generic | — | — |
+| `connects_to` type | generic | — | — |
+| `depends_on` type | generic | — | — |
+| `manages` type | generic | — | — |
+| `replicates_to` type | generic | — | — |
+| `domain_controller_for` type | own rule | `node_endpoint` | `identity_domain_endpoint` |
+| `joins_domain` type | own rule | `node_endpoint` | `identity_domain_endpoint` |
+| `forest_trusts` type | own rule | `identity_forest_endpoint` | `identity_forest_endpoint` |
+| `directory_federates_to` type | own rule | `identity_authority_endpoint` | `identity_facade_endpoint` |
+| `placed_on_carrier` type | own rule | `node_endpoint` | `node_endpoint` |
+| `uses_shared_service` type | own rule | `deployment_tenant_endpoint` | `node_service_endpoint` |
+| `participant` type | own rule | `participant_endpoint` | `participant_endpoint` |
+| `domain_controller` detail | bound to `domain_controller_for` | `node_endpoint` | `identity_domain_endpoint` |
+| `domain_join` detail | bound to `joins_domain` | `node_endpoint` | `identity_domain_endpoint` |
+| `forest_trust` detail | bound to `forest_trusts` | `identity_forest_endpoint` | `identity_forest_endpoint` |
+| `identity_federation` detail | bound to `directory_federates_to` | `identity_authority_endpoint` | `identity_facade_endpoint` |
+| `carrier_placement` detail | bound to `placed_on_carrier` | `node_endpoint` | `node_endpoint` |
+| `shared_service` detail | bound to `uses_shared_service` | `deployment_tenant_endpoint` | `node_service_endpoint` |
+| `participant` detail | bound to `participant` | `participant_endpoint` | `participant_endpoint` |
+| `database_access` detail | own rule | `runtime_application_endpoint` | `database_endpoint` |
+| `mail_access` detail | own rule | — | `mail_service_endpoint` |
+| `forwarding_edge` detail | generic | — | — |
+| `service_integration` detail | generic | — | — |
+| `proxy_upstream` detail | generic | — | — |
+
+A dash leaves that side on `relationship_endpoint`. A bound detail selects its
+type's rule, which validation already pairs with it, so a detail written before
+its `type` in an unfinished document narrows completion as the type would. A
+relationship type or detail field without a decision is refused when a
+relationship is checked.
 
 Rules:
 
-1. A bare reference resolves within its purpose's resolution domain, and the
-   single match must then be eligible. Objective subjects, action targets,
-   shared state, and authority scopes resolve among all targetable
-   declarations, so a bare name that a refused targetable declaration shares
-   stays ambiguous: narrowing only refuses references. A participant endpoint
-   likewise resolves among relationship-endpoint candidates and then requires
-   an agent, so a bare name shared with an organization or resource stays
-   ambiguous. Every other purpose resolves among the declarations it admits.
-   Qualified references resolve by exact canonical address (§2).
+1. A bare reference resolves among the declarations in its purpose's
+   "Resolves among" domain, and the single match must then be eligible for the
+   purpose (for a typed relationship endpoint, for every applicable endpoint
+   purpose). A bare name that a refused declaration in that domain shares
+   therefore stays ambiguous: narrowing only refuses references. A participant
+   endpoint, for example, resolves among relationship-endpoint candidates and
+   then requires an agent, so a bare name shared with an organization or
+   resource stays ambiguous. Qualified references resolve by exact canonical
+   address (§2).
 2. A reference that names only declarations its purpose does not admit fails as
    dangling (§4). Where semantic validation resolves the field through the
    shared named-reference check, the diagnostic appends the declarations that
-   the reference does name, and a narrowed purpose (objective subject, action
-   target, shared state, authority scope) also names itself. An ambiguous bare
-   name lists the eligible candidates, then those that the purpose refuses.
-   Participant endpoints, operating scopes, and variation candidates report
-   their own diagnostics, and an inject delivery's control scope must equal its
-   target controller state's scope.
+   the reference does name, and a purpose whose eligible declarations equal
+   neither every declaration (`declared`) nor every targetable declaration
+   (`targetable`) also names itself. A typed relationship endpoint names each
+   endpoint purpose that its single match fails, for example `... does not
+   reference any defined element eligible as an identity forest endpoint; it
+   names conditions.alive`. An ambiguous bare name lists the eligible
+   candidates, then those that the purpose refuses. Participant endpoints,
+   operating scopes, and variation candidates report their own diagnostics, and
+   an inject delivery's control scope must equal its target controller state's
+   scope.
 3. An effect `target_refs[]` entry that names no declaration is
    observation-boundary information; recorded action results check it against
    the participant's observation boundary. An entry that names a declaration
@@ -573,13 +645,24 @@ Rules:
    and instantiation rechecks substituted values against the same purpose.
    Editor completion, navigation, and diagnostics consume the same purposes
    and resolvers. Completion offers one unambiguous spelling per eligible
-   declaration, selects the participant-endpoint purpose from the relationship
-   subtype, and a variation owner's section and a variation candidate's
-   section or purpose from the point's target slot, and does so in documents
-   that do not yet validate. Navigation reports
-   a value as an occurrence of a declaration only when the field's resolver
-   resolves it to exactly that declaration, so an ambiguous or refused value is
-   an occurrence of none.
+   declaration, selects the endpoint purposes from the relationship type and
+   typed details, and its completion context names all of them
+   (`eligible:<p1>+<p2>` for a conjunction), and selects a variation owner's
+   section and a variation candidate's section or purpose from the point's
+   target slot, and does so in documents that do not yet validate. Completion
+   and navigation resolve against one declaration index: the semantic index of
+   a document that validates structurally, and otherwise an index that the
+   same builder makes from the top-level entries that validate on their own,
+   plus the names of the other top-level entries. Navigation reports a value as
+   an occurrence of a declaration only when the field's resolver resolves it to
+   exactly that declaration in that index, so a value that is ambiguous or
+   refused in that index is an occurrence of none. Ambiguity is judged among
+   the declarations in that index only: a declaration inside an entry that does
+   not validate on its own is not in it, so completion does not offer it,
+   navigation reports no occurrence of it, and it does not make a spelling
+   ambiguous; once the entry validates, a spelling that it shares with another
+   declaration is ambiguous. Operating scope resolves nothing until the
+   document validates.
 
 ## Extending the reference catalog
 

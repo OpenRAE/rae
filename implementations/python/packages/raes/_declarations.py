@@ -10,14 +10,22 @@ from typing import TYPE_CHECKING
 from ._errors import SDLValidationError
 from ._identifiers import QualifiedName
 from ._module_symbols import HASHMAP_SECTIONS
-from ._reference_targetability import ReferencePurpose, is_eligible, require_eligibility_decision, resolution_domain
+from ._reference_targetability import (
+    ReferencePurpose,
+    canonical_purposes,
+    declaration_eligible,
+    is_eligible,
+    require_eligibility_decision,
+    resolution_domain,
+)
 from ._runtime_service_families import RUNTIME_SERVICE_FAMILIES, RuntimeReferenceChild
-from .nodes import NodeType
 from .variation import AlternativeVariationPoint, structural_members
 
 if TYPE_CHECKING:
     from .entities import Entity
     from .scenario import ScenarioContent
+
+Purposes = ReferencePurpose | tuple[ReferencePurpose, ...]
 
 
 @dataclass(frozen=True)
@@ -71,8 +79,8 @@ class DeclarationIndex:
     def resolve(self, reference: str) -> set[str]:
         return set(self._aliases.get(reference, ()))
 
-    def reference_aliases(self, purpose: ReferencePurpose = ReferencePurpose.DECLARED) -> dict[str, set[str]]:
-        """Return aliases naming a declaration eligible for *purpose*.
+    def reference_aliases(self, purpose: Purposes = ReferencePurpose.DECLARED) -> dict[str, set[str]]:
+        """Return aliases naming a declaration eligible for *purpose* (every member of a purpose tuple).
 
         Candidates come from the purpose's resolution domain, so a bare name
         shared with another declaration in that domain stays ambiguous.
@@ -80,32 +88,35 @@ class DeclarationIndex:
 
         return {alias: candidates for alias in self._aliases if (candidates := self.resolve_for(alias, purpose))}
 
-    def resolve_for(self, reference: str, purpose: ReferencePurpose) -> set[str]:
+    def resolve_for(self, reference: str, purpose: Purposes) -> set[str]:
         """Return *reference*'s resolution-domain candidates, or none when none is eligible for *purpose*."""
 
-        domain = resolution_domain(purpose)
+        purposes = canonical_purposes(purpose)
+        domain = resolution_domain(purposes[0])
         candidates = self.eligible(self._aliases.get(reference, set()), domain)
-        return candidates if domain is purpose or self.eligible(candidates, purpose) else set()
+        return candidates if purposes == (domain,) or self.eligible(candidates, purposes) else set()
 
-    def eligible(self, addresses: set[str], purpose: ReferencePurpose) -> set[str]:
+    def eligible(self, addresses: set[str], purpose: Purposes) -> set[str]:
+        purposes = canonical_purposes(purpose)
         return {
             address
             for address in addresses
-            if (declaration := self._declarations.get(address)) is not None and is_eligible(declaration.kind, purpose)
+            if (declaration := self._declarations.get(address)) is not None
+            and declaration_eligible(declaration, purposes)
         }
 
     def reference_completions(
-        self, purpose: ReferencePurpose = ReferencePurpose.DECLARED
+        self, purpose: Purposes = ReferencePurpose.DECLARED
     ) -> tuple[tuple[str, Declaration], ...]:
         """Return one unambiguous preferred spelling per declaration eligible for *purpose*."""
 
-        aliases = self.reference_aliases(purpose)
-        completions: list[tuple[str, Declaration]] = []
-        for declaration in self.declarations:
-            if not is_eligible(declaration.kind, purpose):
-                continue
-            completions.append((preferred_spelling(aliases, declaration.address), declaration))
-        return tuple(completions)
+        purposes = canonical_purposes(purpose)
+        aliases = self.reference_aliases(purposes)
+        return tuple(
+            (preferred_spelling(aliases, declaration.address), declaration)
+            for declaration in self.declarations
+            if declaration_eligible(declaration, purposes)
+        )
 
     def spellings_for(self, reference: str) -> frozenset[str]:
         """Return aliases denoting the same declarations as *reference*."""
@@ -454,44 +465,9 @@ def build_declaration_index(
     return index
 
 
-def operating_scope_aliases(index: DeclarationIndex, scenario: ScenarioContent) -> dict[str, set[str]]:
-    """Project the operating-scope purpose through the shared reference policy.
-
-    The policy admits node, infrastructure, service, and content declarations.
-    Operating scope further keeps only compute hosts and switch-backed subnets,
-    and, unlike general references, also resolves bare service and subnet names.
-    """
-
-    aliases: dict[str, set[str]] = defaultdict(set)
-    for declaration in index.declarations:
-        if not is_eligible(declaration.kind, ReferencePurpose.OPERATING_SCOPE):
-            continue
-        local_name = _operating_scope_local_name(scenario, declaration)
-        if local_name:
-            aliases[declaration.address].add(declaration.address)
-            aliases[local_name].add(declaration.address)
-    return dict(aliases)
-
-
-# Nested scope kinds carry their own local name: (owner section, item collection).
-_SCOPE_ITEMS = {"service": ("nodes", "services"), "content-item": ("content", "items")}
-_SCOPE_NODE_TYPES = {"node": NodeType.COMPUTE, "infrastructure": NodeType.SWITCH}
-
-
-def _operating_scope_local_name(scenario: ScenarioContent, declaration: Declaration) -> str | None:
-    tokens = declaration.model_tokens
-    if declaration.kind in _SCOPE_ITEMS:
-        section, collection = _SCOPE_ITEMS[declaration.kind]
-        return getattr(getattr(scenario, section)[tokens[1]], collection)[int(tokens[3])].name
-    required = _SCOPE_NODE_TYPES.get(declaration.kind)
-    node = scenario.nodes.get(tokens[1]) if required is not None else None
-    return None if required is not None and (node is None or node.type != required) else tokens[1]
-
-
 __all__ = [
     "Declaration",
     "DeclarationIndex",
     "build_declaration_index",
-    "operating_scope_aliases",
     "preferred_spelling",
 ]

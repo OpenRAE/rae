@@ -2,19 +2,23 @@
 
 Every indexed declaration kind has exactly one explicit category, or is
 explicitly unreferenceable. Every reference purpose admits an explicit set of
-categories. A kind without a decision is eligible for no purpose, and the
-declaration index refuses to register it, so a new kind gains nothing until it
-is classified here. Eligibility only decides what a reference may name: it
-grants no participation, authority, visibility, or execution permission to the
-named declaration.
+categories, or, for operating scope and the typed relationship endpoint
+purposes, an explicit set of declaration kinds. A kind without a decision is
+eligible for no purpose, and the declaration index refuses to register it, so a
+new kind gains nothing until it is classified here. Every relationship type and
+typed detail field likewise has an explicit endpoint decision. Eligibility only
+decides what a reference may name: it grants no participation, authority,
+visibility, or execution permission to the named declaration.
 """
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Iterator, Mapping
 from enum import Enum
+from itertools import pairwise
+from typing import Protocol
 
-from ._runtime_service_family_registry import RUNTIME_SERVICE_FAMILIES, RuntimeReferenceChild
+from ._runtime_service_family_registry import RUNTIME_SERVICE_FAMILIES, RuntimeReferenceChild, RuntimeServiceFamily
 
 
 class DeclarationCategory(str, Enum):
@@ -42,6 +46,16 @@ class ReferencePurpose(str, Enum):
     SHARED_STATE = "shared_state"
     RELATIONSHIP_ENDPOINT = "relationship_endpoint"
     PARTICIPANT_ENDPOINT = "participant_endpoint"
+    NODE_ENDPOINT = "node_endpoint"
+    IDENTITY_DOMAIN_ENDPOINT = "identity_domain_endpoint"
+    IDENTITY_FOREST_ENDPOINT = "identity_forest_endpoint"
+    IDENTITY_AUTHORITY_ENDPOINT = "identity_authority_endpoint"
+    IDENTITY_FACADE_ENDPOINT = "identity_facade_endpoint"
+    DEPLOYMENT_TENANT_ENDPOINT = "deployment_tenant_endpoint"
+    NODE_SERVICE_ENDPOINT = "node_service_endpoint"
+    RUNTIME_APPLICATION_ENDPOINT = "runtime_application_endpoint"
+    DATABASE_ENDPOINT = "database_endpoint"
+    MAIL_SERVICE_ENDPOINT = "mail_service_endpoint"
     OBSERVATION_SUBJECT = "observation_subject"
     AUTHORITY_ANCHOR = "authority_anchor"
     AUTHORITY_SCOPE = "authority_scope"
@@ -66,6 +80,50 @@ RUNTIME_INVENTORY_KINDS = frozenset(
     for family in RUNTIME_SERVICE_FAMILIES
     for kind in (f"runtime-{family.collection_name}", *_child_kinds(family.child_refs))
 )
+
+
+def runtime_eligibility_kind(family: str, collection_path: Iterable[str] = ()) -> str:
+    """Spell a runtime record's family-qualified eligibility kind, such as ``runtime-mail_services.listeners``.
+
+    Child kinds such as ``runtime-listeners`` are shared by several families, so
+    endpoint purposes name the family and child path. The published declaration
+    kind does not change.
+    """
+
+    return ".".join((f"runtime-{family}", *collection_path))
+
+
+def _child_paths(children: Iterable[RuntimeReferenceChild], prefix: tuple[str, ...] = ()) -> Iterator[tuple[str, ...]]:
+    for child in children:
+        path = (*prefix, child.collection_name)
+        yield path
+        yield from _child_paths(child.children, path)
+
+
+def runtime_eligibility_kinds(
+    family: str | None = None, *, families: Iterable[RuntimeServiceFamily] = RUNTIME_SERVICE_FAMILIES
+) -> frozenset[str]:
+    """Return the eligibility kinds of every registered runtime family, or of one family's record and children."""
+
+    return frozenset(
+        runtime_eligibility_kind(registered.collection_name, path)
+        for registered in families
+        if family is None or registered.collection_name == family
+        for path in ((), *_child_paths(registered.child_refs))
+    )
+
+
+def eligibility_kind(kind: str, model_tokens: tuple[str, ...]) -> str:
+    """Return the kind that endpoint purposes test: family-qualified for a runtime child record, else *kind*.
+
+    A runtime child's model tokens are ``nodes, <node>, runtime, <family>, <position>,
+    <child>, <position>, ..., <id field>``.
+    """
+
+    if not kind.startswith("runtime-") or len(model_tokens) < 8 or model_tokens[2] != "runtime":
+        return kind
+    return runtime_eligibility_kind(model_tokens[3], model_tokens[5:-1:2])
+
 
 _RESOURCE_KINDS = (
     "node",
@@ -151,7 +209,7 @@ _PURPOSE_CATEGORIES: Mapping[ReferencePurpose, frozenset[DeclarationCategory]] =
     _P.ACTION_TARGET: _WORLD,
     # State that interacting actions read or write.
     _P.SHARED_STATE: frozenset({_C.RESOURCE, _C.RELATIONSHIP}),
-    # Subtypes narrow generic endpoints; see relationship_endpoint_purpose().
+    # Typed relationship types and details narrow generic endpoints (_relationship_endpoint_policy.py).
     _P.RELATIONSHIP_ENDPOINT: _TARGETS,
     _P.PARTICIPANT_ENDPOINT: frozenset({_C.PARTICIPANT}),
     _P.OBSERVATION_SUBJECT: _TARGETS,
@@ -164,11 +222,29 @@ _PURPOSE_CATEGORIES: Mapping[ReferencePurpose, frozenset[DeclarationCategory]] =
 # further admits only compute nodes and switch-backed infrastructure.
 OPERATING_SCOPE_KINDS = frozenset({"node", "infrastructure", "service", "content", "content-item"})
 
+# Typed relationship endpoints admit explicit eligibility kinds, each the rule its
+# owning check states: the semantics modules for identity, topology and tenancy
+# (parity-tested there), and the validator's runtime resolvers, which read these sets.
+ENDPOINT_KINDS: Mapping[ReferencePurpose, frozenset[str]] = {
+    _P.NODE_ENDPOINT: frozenset({"node"}),
+    _P.IDENTITY_DOMAIN_ENDPOINT: frozenset({"identity_domains"}),
+    _P.IDENTITY_FOREST_ENDPOINT: frozenset({"identity_forests"}),
+    _P.IDENTITY_AUTHORITY_ENDPOINT: frozenset({"identity_domains", "identity_forests"}),
+    _P.IDENTITY_FACADE_ENDPOINT: frozenset({"identity_facades"}),
+    _P.DEPLOYMENT_TENANT_ENDPOINT: frozenset({"deployment_tenants"}),
+    _P.NODE_SERVICE_ENDPOINT: frozenset({"service"}),
+    _P.RUNTIME_APPLICATION_ENDPOINT: frozenset({"runtime-applications"}),
+    _P.DATABASE_ENDPOINT: frozenset({"runtime-database_services", "runtime-database_services.databases"}),
+    # Family-level rule (ADR-038): the mail service record and every registered child.
+    _P.MAIL_SERVICE_ENDPOINT: runtime_eligibility_kinds("mail_services"),
+}
+
 ELIGIBLE_KINDS: Mapping[ReferencePurpose, frozenset[str]] = {
     **{
         purpose: frozenset(kind for kind, category in DECLARATION_CATEGORIES.items() if category in categories)
         for purpose, categories in _PURPOSE_CATEGORIES.items()
     },
+    **ENDPOINT_KINDS,
     _P.OPERATING_SCOPE: OPERATING_SCOPE_KINDS,
 }
 
@@ -180,15 +256,21 @@ PURPOSE_LABELS: Mapping[ReferencePurpose, str] = {
     _P.SHARED_STATE: "shared state",
     _P.RELATIONSHIP_ENDPOINT: "a relationship endpoint",
     _P.PARTICIPANT_ENDPOINT: "a participant endpoint",
+    _P.NODE_ENDPOINT: "a node endpoint",
+    _P.IDENTITY_DOMAIN_ENDPOINT: "an identity domain endpoint",
+    _P.IDENTITY_FOREST_ENDPOINT: "an identity forest endpoint",
+    _P.IDENTITY_AUTHORITY_ENDPOINT: "an identity authority endpoint",
+    _P.IDENTITY_FACADE_ENDPOINT: "an identity facade endpoint",
+    _P.DEPLOYMENT_TENANT_ENDPOINT: "a deployment tenant endpoint",
+    _P.NODE_SERVICE_ENDPOINT: "a node service endpoint",
+    _P.RUNTIME_APPLICATION_ENDPOINT: "a runtime application endpoint",
+    _P.DATABASE_ENDPOINT: "a database endpoint",
+    _P.MAIL_SERVICE_ENDPOINT: "a mail service endpoint",
     _P.OBSERVATION_SUBJECT: "an observation subject",
     _P.AUTHORITY_ANCHOR: "an authority anchor",
     _P.AUTHORITY_SCOPE: "an authority scope",
     _P.OPERATING_SCOPE: "an operating scope",
 }
-
-# Relationship subtypes resolve endpoints in one shared domain; a subtype may
-# then require a narrower purpose of the uniquely resolved declaration.
-_RELATIONSHIP_SUBTYPE_PURPOSES: Mapping[str, ReferencePurpose] = {"participant": _P.PARTICIPANT_ENDPOINT}
 
 # A narrowed purpose resolves bare names in the wider domain it narrows, then
 # requires the single match to be eligible. Narrowing therefore only refuses
@@ -200,6 +282,7 @@ _RESOLUTION_DOMAINS: Mapping[ReferencePurpose, ReferencePurpose] = {
     _P.SHARED_STATE: _P.TARGETABLE,
     _P.AUTHORITY_SCOPE: _P.TARGETABLE,
     _P.PARTICIPANT_ENDPOINT: _P.RELATIONSHIP_ENDPOINT,
+    **dict.fromkeys(ENDPOINT_KINDS, _P.RELATIONSHIP_ENDPOINT),
 }
 
 # Top-level sections whose declaration kind differs from the section name.
@@ -212,6 +295,15 @@ _SECTION_KINDS: Mapping[str, str] = {
 
 ELIGIBLE_DOMAIN_PREFIX = "eligible:"
 OPERATING_SCOPE_DOMAIN = "derived:operating_scope"
+_ORDER: Mapping[ReferencePurpose, int] = {purpose: position for position, purpose in enumerate(ReferencePurpose)}
+
+
+class _Declared(Protocol):
+    @property
+    def kind(self) -> str: ...
+
+    @property
+    def model_tokens(self) -> tuple[str, ...]: ...
 
 
 def require_eligibility_decision(kind: str) -> None:
@@ -227,17 +319,51 @@ def is_eligible(kind: str, purpose: ReferencePurpose) -> bool:
     return kind in ELIGIBLE_KINDS[purpose]
 
 
+def kinds_eligible(kind: str, eligibility: str, purpose: ReferencePurpose) -> bool:
+    """Test the eligibility kind for an endpoint purpose and the published kind for every other purpose."""
+
+    return is_eligible(eligibility if purpose in ENDPOINT_KINDS else kind, purpose)
+
+
+def declaration_eligible(declaration: _Declared, purposes: ReferencePurpose | tuple[ReferencePurpose, ...]) -> bool:
+    """Return whether *declaration* is eligible for every purpose in *purposes*."""
+
+    eligibility = eligibility_kind(declaration.kind, declaration.model_tokens)
+    members = (purposes,) if isinstance(purposes, ReferencePurpose) else purposes
+    return all(kinds_eligible(declaration.kind, eligibility, purpose) for purpose in members)
+
+
 def resolution_domain(purpose: ReferencePurpose) -> ReferencePurpose:
     """Return the purpose whose eligible declarations decide bare-name ambiguity.
 
-    A participant endpoint resolves among all relationship-endpoint candidates,
-    and objective subjects, action targets, shared state, and authority scopes
-    resolve among targetable declarations, so a bare name that also names an
-    ineligible declaration stays ambiguous instead of silently selecting the
-    eligible one.
+    Participant and typed relationship endpoints resolve among all
+    relationship-endpoint candidates, and objective subjects, action targets,
+    shared state, and authority scopes resolve among targetable declarations,
+    so a bare name that also names an ineligible declaration stays ambiguous
+    instead of silently selecting the eligible one.
     """
 
     return _RESOLUTION_DOMAINS.get(purpose, purpose)
+
+
+def canonical_purposes(purposes: ReferencePurpose | Iterable[ReferencePurpose]) -> tuple[ReferencePurpose, ...]:
+    """Return *purposes* as a canonical tuple: non-empty, in declaration order, without repeats, one domain.
+
+    Raises:
+        ValueError: If the tuple is empty, out of order, repeats a member, or mixes resolution domains.
+    """
+
+    if isinstance(purposes, ReferencePurpose):
+        return (purposes,)
+    members = tuple(purposes)
+    if (
+        not members
+        or not all(isinstance(member, ReferencePurpose) for member in members)
+        or any(_ORDER[first] >= _ORDER[second] for first, second in pairwise(members))
+        or len({resolution_domain(member) for member in members}) != 1
+    ):
+        raise ValueError(f"purpose tuple {members!r} is not canonical")
+    return members
 
 
 def section_declaration_kind(section: str) -> str:
@@ -246,16 +372,13 @@ def section_declaration_kind(section: str) -> str:
     return _SECTION_KINDS.get(section, section)
 
 
-def relationship_endpoint_purpose(relationship_type: object) -> ReferencePurpose:
-    """Return the purpose a relationship subtype requires of its endpoints."""
+def reference_domain(purposes: ReferencePurpose | tuple[ReferencePurpose, ...]) -> str:
+    """Return the candidate-domain token for a purpose, or ``eligible:<p1>+<p2>`` for a conjunction."""
 
-    value = getattr(relationship_type, "value", relationship_type)
-    return _RELATIONSHIP_SUBTYPE_PURPOSES.get(str(value), _P.RELATIONSHIP_ENDPOINT)
-
-
-def reference_domain(purpose: ReferencePurpose) -> str:
-    """Return the reference-catalog candidate-domain token for *purpose*."""
-
+    members = canonical_purposes(purposes)
+    if len(members) > 1:
+        return ELIGIBLE_DOMAIN_PREFIX + "+".join(member.value for member in members)
+    (purpose,) = members
     if purpose in {_P.DECLARED, _P.TARGETABLE}:
         return purpose.value
     if purpose is _P.OPERATING_SCOPE:
@@ -276,20 +399,43 @@ def purpose_for_domain(domain: str) -> ReferencePurpose | None:
     return _PURPOSES_BY_DOMAIN.get(domain)
 
 
+def purposes_for_domain(domain: str) -> tuple[ReferencePurpose, ...] | None:
+    """Invert :func:`reference_domain`, or return ``None`` for a section token or a malformed composite."""
+
+    purpose = purpose_for_domain(domain)
+    if purpose is not None:
+        return (purpose,)
+    names = domain.removeprefix(ELIGIBLE_DOMAIN_PREFIX).split("+") if domain.startswith(ELIGIBLE_DOMAIN_PREFIX) else []
+    members = [_PURPOSES_BY_DOMAIN.get(f"{ELIGIBLE_DOMAIN_PREFIX}{name}") for name in names]
+    if len(members) < 2 or None in members:
+        return None
+    try:
+        return canonical_purposes(member for member in members if member is not None)
+    except ValueError:
+        return None
+
+
 __all__ = [
     "DECLARATION_CATEGORIES",
     "ELIGIBLE_KINDS",
+    "ENDPOINT_KINDS",
     "OPERATING_SCOPE_KINDS",
     "PURPOSE_LABELS",
     "RUNTIME_INVENTORY_KINDS",
     "UNREFERENCEABLE_KINDS",
     "DeclarationCategory",
     "ReferencePurpose",
+    "canonical_purposes",
+    "declaration_eligible",
+    "eligibility_kind",
     "is_eligible",
+    "kinds_eligible",
     "purpose_for_domain",
+    "purposes_for_domain",
     "reference_domain",
-    "relationship_endpoint_purpose",
     "require_eligibility_decision",
     "resolution_domain",
+    "runtime_eligibility_kind",
+    "runtime_eligibility_kinds",
     "section_declaration_kind",
 ]
