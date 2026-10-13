@@ -19,6 +19,9 @@ MIXED_CONTROL_COORDINATE_LIMIT = 1_000_000
 """MC-08 range bound shared with API-424 ``ControlCount`` (a test pins the two)."""
 
 
+_PRESENT = object()
+
+
 def omit_property_titles(schema: dict[str, Any]) -> None:
     """Drop generated property titles and null defaults from a published rev1 shape.
 
@@ -29,7 +32,7 @@ def omit_property_titles(schema: dict[str, Any]) -> None:
     for value in schema.get("properties", {}).values():
         if isinstance(value, dict):
             value.pop("title", None)
-            if "default" in value and value["default"] is None:
+            if value.get("default", _PRESENT) is None:
                 del value["default"]
 
 

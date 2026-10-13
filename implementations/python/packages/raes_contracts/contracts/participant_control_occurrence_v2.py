@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from enum import Enum
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, get_args
 
 from pydantic import Discriminator, Field, GetJsonSchemaHandler, Tag, field_validator, model_validator
 from pydantic.json_schema import JsonSchemaValue
@@ -27,11 +27,14 @@ from .participant_envelopes import ParticipantRuntimeBaseEnvelopeModel
 from .schema_invariants import _add_raes_invariant
 
 PARTICIPANT_CONTROL_OCCURRENCE_V2_CONTRACT_ID = "participant-control-occurrence-v2"
-PARTICIPANT_CONTROL_OCCURRENCE_SCHEMA_NAME = "participant-control-occurrence"
+OccurrenceSchemaName = Literal["participant-control-occurrence"]
+PARTICIPANT_CONTROL_OCCURRENCE_SCHEMA_NAME: str = get_args(OccurrenceSchemaName)[0]
 PARTICIPANT_CONTROL_OCCURRENCE_V2_VERSION = "2.0.0"
 ControlRefList = Annotated[list[ControlRef], Field(min_length=1, max_length=256)]
 PolicyRevision = Annotated[NonEmptyString, Field(max_length=256, pattern=r"\S")]
 _V2 = [{"contract_id": PARTICIPANT_CONTROL_OCCURRENCE_V2_CONTRACT_ID, "instance_path": "#"}]
+_MODEL_VALIDATOR = "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
+_REJECTED = "rejected"
 
 
 class ParticipantControlOccurrenceV2RejectionCode(str, Enum):
@@ -283,8 +286,8 @@ def _occurrence_tag(value: Any) -> str | None:
 
     read = value.get if isinstance(value, dict) else lambda name: getattr(value, name, None)
     disposition = read("disposition")
-    if disposition == "rejected":
-        return "rejected"
+    if disposition == _REJECTED:
+        return _REJECTED
     kind = read("kind")
     kind = getattr(kind, "value", kind)
     return f"accepted:{kind}" if disposition == "accepted" and isinstance(kind, str) else None
@@ -299,7 +302,7 @@ ParticipantControlOccurrenceV2Detail = Annotated[
     | Annotated[ParticipantHandoffOccurrenceV2Model, Tag("accepted:handoff")]
     | Annotated[ParticipantOverrideOccurrenceV2Model, Tag("accepted:override")]
     | Annotated[ParticipantCancellationOccurrenceV2Model, Tag("accepted:cancellation")]
-    | Annotated[ParticipantRejectedOccurrenceV2Model, Tag("rejected")],
+    | Annotated[ParticipantRejectedOccurrenceV2Model, Tag(_REJECTED)],
     Discriminator(
         _occurrence_tag,
         custom_error_type="participant_control_occurrence_v2_disposition",
@@ -318,22 +321,22 @@ _INVARIANTS = (
     (
         "participant-control-occurrence-v2-acting-controller",
         "actor_ref equals the acting controller_ref: the accepted record's, or the rejected attempt's.",
-        "raes_contracts.contracts.ParticipantControlOccurrenceV2Model",
+        _MODEL_VALIDATOR,
     ),
     (
         "participant-control-occurrence-v2-revision-advance",
         "An accepted occurrence's resulting_state_revision equals expected_state_revision + 1 for every kind.",
-        "raes_contracts.contracts.ParticipantControlOccurrenceV2Model",
+        _MODEL_VALIDATOR,
     ),
     (
         "participant-control-occurrence-v2-history-head",
         "An accepted occurrence's expected_history_head equals occurrence_revision - 1.",
-        "raes_contracts.contracts.ParticipantControlOccurrenceV2Model",
+        _MODEL_VALIDATOR,
     ),
     (
         "participant-control-occurrence-v2-validity-bounds",
         "An accepted occurrence satisfies valid_from_order <= effective_order <= valid_until_order (inclusive).",
-        "raes_contracts.contracts.ParticipantControlOccurrenceV2Model",
+        _MODEL_VALIDATOR,
     ),
 )
 
@@ -342,9 +345,9 @@ class ParticipantControlOccurrenceV2Model(ParticipantRuntimeBaseEnvelopeModel):
     """Closed carrier for one API-409 v2 control fact under a pinned rev1 policy."""
 
     event_id: ControlRef
-    schema_name: Literal["participant-control-occurrence"]
+    schema_name: OccurrenceSchemaName
     schema_version: Literal["2.0.0"]
-    event_type: Literal["participant-control-occurrence"]
+    event_type: OccurrenceSchemaName
     extension_policy: Literal["closed"]
     participant_address: ControlRef
     episode_id: ControlRef

@@ -8,12 +8,14 @@ from ..participant_mixed_control_policy import (
     MixedControlScriptStep,
 )
 from ..participant_mixed_control_vocabulary import (
+    MixedControlAuthorityStatus,
     MixedControlControllerState,
     MixedControlTransitionKind,
     ParticipantControlTargetKind,
 )
 
 _Policy = MixedControlPolicy
+_REVOKED = MixedControlAuthorityStatus.REVOKED
 _PROPOSAL = MixedControlTransitionKind.PROPOSAL
 _DECIDING = frozenset({MixedControlTransitionKind.APPROVAL, MixedControlTransitionKind.DENIAL})
 
@@ -59,7 +61,7 @@ class _MixedControlPolicyMixin:
                 targetable_index=targetable_index,
                 owner_scope=owner_scope,
             )
-        if declaration.controller_states[declaration.initial_state_ref].authority_status == "revoked":
+        if declaration.controller_states[declaration.initial_state_ref].authority_status is _REVOKED:
             self._err(f"{label} initial state cannot use revoked authority")
         for transition_id, transition in declaration.permitted_transitions.items():
             self._verify_permitted_transition(label, declaration, transition_id, transition)
@@ -70,9 +72,9 @@ class _MixedControlPolicyMixin:
         owner_label = f"{label} permitted transition '{transition_id}'"
         source = declaration.controller_states[transition.from_state_ref]
         destination = declaration.controller_states[transition.to_state_ref]
-        if source.authority_status == "revoked":
+        if source.authority_status is _REVOKED:
             self._err(f"{owner_label} starts from revoked authority")
-        if destination.authority_status == "revoked":
+        if destination.authority_status is _REVOKED:
             self._err(f"{owner_label} enters revoked authority")
         window = (transition.valid_from_order, transition.valid_until_order)
         if not _windows_intersect(window, _state_window(source)):

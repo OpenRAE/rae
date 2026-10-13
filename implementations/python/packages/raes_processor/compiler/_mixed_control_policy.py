@@ -41,16 +41,24 @@ _CONTROL_REF_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/@-]*$")
 _CONTROL_REF_MAX_LENGTH = 256
 
 
+def _policy_child_address(spec_name: str, *parts: str) -> str:
+    return _address("participant", "behavior-specification", spec_name, *parts)
+
+
 def _policy_address(spec_name: str) -> str:
-    return _address("participant", "behavior-specification", spec_name, "mixed-control-policy")
+    return _policy_child_address(spec_name, "mixed-control-policy")
 
 
 def _permitted_transition_address(spec_name: str, transition_id: str) -> str:
-    return _address("participant", "behavior-specification", spec_name, "permitted-transition", transition_id)
+    return _policy_child_address(spec_name, "permitted-transition", transition_id)
 
 
 def _script_step_address(spec_name: str, step_id: str) -> str:
-    return _address("participant", "behavior-specification", spec_name, "script-step", step_id)
+    return _policy_child_address(spec_name, "script-step", step_id)
+
+
+def _window(item: object) -> dict[str, int | None]:
+    return {"valid_from_order": item.valid_from_order, "valid_until_order": item.valid_until_order}
 
 
 def mixed_control_semantics(declaration: object) -> str:
@@ -137,7 +145,7 @@ def _ref_range_diagnostics(
 ) -> list[Diagnostic]:
     refs = [
         ("policy", policy.address),
-        ("participant", policy.participant_address),
+        ("participant-behavior", policy.participant_address),
         *(("permitted-transition", item.address) for item in policy.permitted_transitions),
         *(("script-step", item.address) for item in policy.script_steps),
         *(("controller-state", item.address) for item in states),
@@ -284,8 +292,7 @@ def occurrence_policy_projection(
                     "authority_basis_refs": list(state.authority_basis_addresses or state.authority_basis_refs),
                     "scope_refs": list(state.scope_addresses or state.scope_refs),
                     "authority_status": state.authority_status,
-                    "valid_from_order": state.valid_from_order,
-                    "valid_until_order": state.valid_until_order,
+                    **_window(state),
                 }
                 for state in specification.controller_states
             ],
@@ -295,8 +302,7 @@ def occurrence_policy_projection(
                     "kind": item.transition_kind,
                     "from_state_ref": item.from_state_address,
                     "to_state_ref": item.to_state_address,
-                    "valid_from_order": item.valid_from_order,
-                    "valid_until_order": item.valid_until_order,
+                    **_window(item),
                     "target_kinds": list(item.target_kinds),
                 }
                 for item in policy.permitted_transitions
@@ -306,8 +312,7 @@ def occurrence_policy_projection(
                     "step_ref": step.address,
                     "transition_ref": step.permitted_transition_address,
                     "expected_state_revision": step.expected_state_revision,
-                    "valid_from_order": step.valid_from_order,
-                    "valid_until_order": step.valid_until_order,
+                    **_window(step),
                     "target_kind": step.target_kind or None,
                     "target_step_ref": step.target_step_address or None,
                 }

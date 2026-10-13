@@ -34,6 +34,10 @@ from .scenario import Scenario
 from .semantic_revisions import source_byte_digest
 
 MIXED_CONTROL_MIGRATION_PROFILE = "convert-mixed-control-finite-script/v1"
+_SPECS = "behavior_specifications"
+_MIXED_CONTROL = "mixed_control"
+_TRANSITIONS = "transitions"
+_INVALID = "source-or-target-invalid"
 _HANDOFF = MixedControlTransitionKind.HANDOFF
 _PROPOSAL_OUTSIDE_KIND_SET = frozenset(
     {MixedControlTransitionKind.INTERVENTION, MixedControlTransitionKind.HANDOFF, MixedControlTransitionKind.OVERRIDE}
@@ -61,7 +65,7 @@ def _error_pointers(error: SDLValidationError) -> list[str]:
             pointers.append("")
             continue
         spec_name, _, transition_id = match.groups()
-        pointers.append(_pointer("behavior_specifications", spec_name, "mixed_control", "transitions", transition_id))
+        pointers.append(_pointer(_SPECS, spec_name, _MIXED_CONTROL, _TRANSITIONS, transition_id))
     return pointers or [""]
 
 
@@ -74,7 +78,7 @@ def _transition_refusals(spec_name: str, declaration: MixedControlParticipantOpe
     refusals: list[tuple[str, str]] = []
     established: set[tuple[str, int]] = set()
     for transition_id, transition in sorted(declaration.transitions.items(), key=lambda item: item[1].effective_order):
-        pointer = _pointer("behavior_specifications", spec_name, "mixed_control", "transitions", transition_id)
+        pointer = _pointer(_SPECS, spec_name, _MIXED_CONTROL, _TRANSITIONS, transition_id)
         kind = MixedControlTransitionKind(transition.transition_kind)
         changes = _controller(declaration, transition.from_state_ref) != _controller(
             declaration, transition.to_state_ref
@@ -86,7 +90,7 @@ def _transition_refusals(spec_name: str, declaration: MixedControlParticipantOpe
         if transition.proposal_ref is not None and kind in _PROPOSAL_OUTSIDE_KIND_SET:
             refusals.append(("proposal-target-outside-kind-set", pointer))
         if transition.completion_evidence_refs and kind is not _HANDOFF:
-            refusals.append(("source-or-target-invalid", pointer))
+            refusals.append((_INVALID, pointer))
         node = (transition.from_state_ref, transition.expected_state_revision)
         if node in established:
             refusals.append(("branching-sequence", pointer))
@@ -104,7 +108,7 @@ def _delivery_refusals(
         transition = declaration.transitions.get(binding.control_transition_ref or "")
         if transition is None:
             continue
-        pointer = _pointer("behavior_specifications", spec_name, "participant_inject_deliveries", binding_id)
+        pointer = _pointer(_SPECS, spec_name, "participant_inject_deliveries", binding_id)
         refusals += [("order-time-mapping-required", pointer), ("policy-revision-conflated", pointer)]
         source = declaration.controller_states[transition.from_state_ref]
         destination = declaration.controller_states[transition.to_state_ref]
@@ -162,26 +166,25 @@ def _converted_policy(declaration: MixedControlParticipantOperation) -> dict[str
 
 
 def _convert(payload: object, scenario: Scenario) -> tuple[dict[str, Any] | None, list[tuple[str, str]], list[str]]:
-    if not isinstance(payload, dict) or not isinstance(payload.get("behavior_specifications", {}), dict):
-        return None, [("source-or-target-invalid", "")], []
+    if not isinstance(payload, dict) or not isinstance(payload.get(_SPECS, {}), dict):
+        return None, [(_INVALID, "")], []
     refusals: list[tuple[str, str]] = []
     affected: list[str] = []
-    for spec_name, raw_spec in payload.get("behavior_specifications", {}).items():
+    for spec_name, raw_spec in payload.get(_SPECS, {}).items():
         behavior_spec = scenario.behavior_specifications.get(spec_name)
-        declaration = getattr(behavior_spec, "mixed_control", None)
+        declaration = getattr(behavior_spec, _MIXED_CONTROL, None)
         if not isinstance(declaration, MixedControlParticipantOperation) or not isinstance(raw_spec, dict):
             continue
         refusals += _transition_refusals(spec_name, declaration)
         refusals += _delivery_refusals(spec_name, behavior_spec, declaration)
         affected += [
-            _pointer("behavior_specifications", spec_name, "mixed_control", "transitions", transition_id)
-            + "/proposal_revision"
+            _pointer(_SPECS, spec_name, _MIXED_CONTROL, _TRANSITIONS, transition_id) + "/proposal_revision"
             for transition_id, transition in declaration.transitions.items()
             if transition.proposal_revision is not None
         ]
-        for key in [key for key in raw_spec if normalize_field_key(str(key)) == "mixed_control"]:
+        for key in [key for key in raw_spec if normalize_field_key(str(key)) == _MIXED_CONTROL]:
             del raw_spec[key]
-        raw_spec["mixed_control"] = _converted_policy(declaration)
+        raw_spec[_MIXED_CONTROL] = _converted_policy(declaration)
     return (payload if not refusals else None), refusals, affected
 
 
@@ -206,9 +209,9 @@ def migrate_mixed_control_to_finite_script(
         if converted is not None:
             output = parse_sdl(yaml.safe_dump(converted, sort_keys=False), limits=limits)
     except SDLValidationError as error:
-        refusals = [("source-or-target-invalid", pointer) for pointer in _error_pointers(error)]
+        refusals = [(_INVALID, pointer) for pointer in _error_pointers(error)]
     except (SDLError, ValueError, TypeError):
-        refusals = [("source-or-target-invalid", "")]
+        refusals = [(_INVALID, "")]
     codes = sorted({(f"mixed-control-migration.{code}", pointer) for code, pointer in refusals})
     policy_digest = canonical_json_digest(None)
     report = ArtifactTransformationReportModel(

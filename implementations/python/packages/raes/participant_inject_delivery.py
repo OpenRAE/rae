@@ -65,6 +65,9 @@ class ParticipantInjectDeliveryPolicy(SDLModel):
         return value
 
 
+_UNIQUE_ITEMS = {"uniqueItems": True}
+
+
 class ParticipantInjectDeliveryControl(SDLModel):
     """Rev1 binding to one permitted transition (MC-09)."""
 
@@ -77,8 +80,8 @@ class ParticipantInjectDeliveryControl(SDLModel):
     policy_revision: str = Field(min_length=1, pattern=r"\S")
     permitted_transition_ref: PortableIdentifier
     controller_ref: str = Field(min_length=1, pattern=r"\S")
-    authority_scope_refs: list[str] = Field(min_length=1, json_schema_extra={"uniqueItems": True})
-    evidence_refs: list[str] = Field(min_length=1, json_schema_extra={"uniqueItems": True})
+    authority_scope_refs: list[str] = Field(min_length=1, json_schema_extra=_UNIQUE_ITEMS)
+    evidence_refs: list[str] = Field(min_length=1, json_schema_extra=_UNIQUE_ITEMS)
 
     @field_validator("authority_scope_refs", "evidence_refs")
     @classmethod
@@ -90,14 +93,17 @@ class ParticipantInjectDeliveryControl(SDLModel):
         return values
 
 
-_FLAT_CONTROL_SCALARS = (
+_FLAT_CONTROL_LISTS = ("control_authority_scope_refs", "control_evidence_refs")
+_FLAT_CONTROL_FIELDS = (
     "control_transition_ref",
     "controller_ref",
+    _FLAT_CONTROL_LISTS[0],
     "control_effective_order",
     "control_valid_from_order",
     "control_valid_until_order",
+    _FLAT_CONTROL_LISTS[1],
 )
-_FLAT_CONTROL_LISTS = ("control_authority_scope_refs", "control_evidence_refs")
+_FLAT_CONTROL_SCALARS = tuple(name for name in _FLAT_CONTROL_FIELDS if name not in _FLAT_CONTROL_LISTS)
 
 
 def _control_block_exclusivity_schema(schema: dict[str, Any]) -> None:
@@ -150,8 +156,7 @@ class ParticipantInjectDelivery(SDLModel):
     @field_validator(
         "temporal_constraint_refs",
         "evidence_requirement_refs",
-        "control_authority_scope_refs",
-        "control_evidence_refs",
+        *_FLAT_CONTROL_LISTS,
     )
     @classmethod
     def _require_unique_non_empty_ref_lists(cls, values: list[str]) -> list[str]:
@@ -168,25 +173,9 @@ class ParticipantInjectDelivery(SDLModel):
             ParticipantInjectDeliveryKind.INTERVENTION,
         }
         if self.control is not None:
-            flat = [
-                name for name in (*_FLAT_CONTROL_SCALARS, *_FLAT_CONTROL_LISTS) if getattr(self, name) not in (None, [])
-            ]
-            if flat:
-                raise ValueError(
-                    "participant inject delivery control block excludes flat control fields: " + ", ".join(flat)
-                )
-            if not directs_control:
-                raise ValueError("disclosure delivery cannot carry a control block")
+            self._validate_control_block(directs_control)
             return self
-        control_fields = {
-            "control_transition_ref": self.control_transition_ref,
-            "controller_ref": self.controller_ref,
-            "control_authority_scope_refs": self.control_authority_scope_refs,
-            "control_effective_order": self.control_effective_order,
-            "control_valid_from_order": self.control_valid_from_order,
-            "control_valid_until_order": self.control_valid_until_order,
-            "control_evidence_refs": self.control_evidence_refs,
-        }
+        control_fields = {name: getattr(self, name) for name in _FLAT_CONTROL_FIELDS}
         if directs_control:
             missing = [field_name for field_name, value in control_fields.items() if value is None or value == []]
             if missing:
@@ -203,6 +192,15 @@ class ParticipantInjectDelivery(SDLModel):
             if present:
                 raise ValueError("disclosure delivery cannot carry control agreement fields: " + ", ".join(present))
         return self
+
+    def _validate_control_block(self, directs_control: bool) -> None:
+        flat = [name for name in _FLAT_CONTROL_FIELDS if getattr(self, name) not in (None, [])]
+        if flat:
+            raise ValueError(
+                "participant inject delivery control block excludes flat control fields: " + ", ".join(flat)
+            )
+        if not directs_control:
+            raise ValueError("disclosure delivery cannot carry a control block")
 
 
 def participant_inject_delivery_reference(spec_name: str, binding_id: str) -> str:

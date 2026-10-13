@@ -137,9 +137,10 @@ class _EpisodeFold:
             return "unknown-transition"
         if transition.kind != occurrence.kind:
             return "transition-kind-mismatch"
-        if (occurrence.prior_state_ref, occurrence.expected_state_revision) != (live.state_ref, live.state_revision):
-            return "stale-state"
-        if transition.from_state_ref != live.state_ref:
+        observed = (live.state_ref, live.state_revision)
+        if (occurrence.prior_state_ref, occurrence.expected_state_revision) != observed or (
+            transition.from_state_ref != live.state_ref
+        ):
             return "stale-state"
         return self._script_rejection(occurrence)
 
@@ -355,6 +356,24 @@ def validate_participant_control_history_v2(
 
     if not participant_control_history_verifiability(records, declarations=declarations, policies=policies).verifiable:
         raise ValueError(PARTICIPANT_CONTROL_HISTORY_UNVERIFIABLE)
+    v1_records = []
+    completions: set[str] = set()
+    for (participant, episode), episode_records in _contiguous_episodes(records).items():
+        lineages = {participant_control_occurrence_lineage(record) for record in episode_records}
+        if len(lineages) != 1:
+            raise ValueError("participant control episode must not mix occurrence lineages")
+        if lineages == {"v1"}:
+            v1_records.extend(episode_records)
+            continue
+        policy = _episode_policy(policies, participant, episode, episode_records[0])
+        completions = _fold_episode(episode_records, policy, available_targets, completions)
+    if v1_records:
+        validate_v1(v1_records, declarations=declarations, known_targets=known_targets)
+
+
+def _contiguous_episodes(records: Sequence[object]) -> dict[tuple[str, str], list[object]]:
+    """Group a complete, contiguous, uniquely identified participant prefix by episode, in archive order."""
+
     episodes: dict[tuple[str, str], list[object]] = {}
     positions: dict[str, int] = {}
     event_ids: set[str] = set()
@@ -365,26 +384,21 @@ def validate_participant_control_history_v2(
         positions[record.participant_address] = position
         event_ids.add(record.event_id)
         episodes.setdefault((record.participant_address, record.episode_id), []).append(record)
-    v1_records = []
-    completions: set[str] = set()
-    for (participant, episode), episode_records in episodes.items():
-        lineages = {participant_control_occurrence_lineage(record) for record in episode_records}
-        if len(lineages) != 1:
-            raise ValueError("participant control episode must not mix occurrence lineages")
-        if lineages == {"v1"}:
-            v1_records.extend(episode_records)
-            continue
-        policy = _episode_policy(policies, participant, episode, episode_records[0])
-        result = fold_participant_control_episode_v2(
-            episode_records, policy=policy, available_targets=available_targets
-        )
-        if result.violation is not None:
-            raise ValueError(result.violation)
-        if completions & result.state.completion_evidence_refs:
-            raise ValueError("handoff completion evidence must not be reused")
-        completions |= result.state.completion_evidence_refs
-    if v1_records:
-        validate_v1(v1_records, declarations=declarations, known_targets=known_targets)
+    return episodes
+
+
+def _fold_episode(
+    records: list[object],
+    policy: ParticipantControlOccurrencePolicyModel,
+    available_targets: Sequence[ParticipantControlOccurrenceTarget],
+    completions: set[str],
+) -> set[str]:
+    result = fold_participant_control_episode_v2(records, policy=policy, available_targets=available_targets)
+    if result.violation is not None:
+        raise ValueError(result.violation)
+    if completions & result.state.completion_evidence_refs:
+        raise ValueError("handoff completion evidence must not be reused")
+    return completions | result.state.completion_evidence_refs
 
 
 def _episode_policy(

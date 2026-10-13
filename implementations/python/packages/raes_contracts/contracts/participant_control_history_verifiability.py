@@ -22,6 +22,11 @@ PARTICIPANT_CONTROL_HISTORY_UNVERIFIABLE = (
 _V1 = (PARTICIPANT_CONTROL_OCCURRENCE_SCHEMA_NAME, "1.0.0")
 _V2 = (PARTICIPANT_CONTROL_OCCURRENCE_SCHEMA_NAME, "2.0.0")
 MissingContext = Literal["missing-policy", "unsupported-lineage"]
+Lineage = Literal["v1", "v2", "unknown"]
+Status = Literal["verifiable", "unverifiable"]
+_UNKNOWN_LINEAGE: Lineage = "unknown"
+_LINEAGES: dict[tuple[object, object], Lineage] = {_V1: "v1", _V2: "v2"}
+_VERIFIABLE: Status = "verifiable"
 
 
 @dataclass(frozen=True)
@@ -30,7 +35,7 @@ class ParticipantControlEpisodeVerifiability:
 
     participant_address: str
     episode_id: str
-    status: Literal["verifiable", "unverifiable"]
+    status: Status
     missing: tuple[MissingContext, ...] = ()
 
 
@@ -44,14 +49,14 @@ class ParticipantControlHistoryVerifiability:
     def verifiable(self) -> bool:
         """Return whether every episode has its complete reconstruction context."""
 
-        return all(entry.status == "verifiable" for entry in self.entries)
+        return all(entry.status == _VERIFIABLE for entry in self.entries)
 
 
-def participant_control_occurrence_lineage(record: object) -> Literal["v1", "v2", "unknown"]:
+def participant_control_occurrence_lineage(record: object) -> Lineage:
     """Dispatch on (``schema_name``, ``schema_version``); never infer a lineage from other fields."""
 
     pair = (getattr(record, "schema_name", None), getattr(record, "schema_version", None))
-    return "v1" if pair == _V1 else "v2" if pair == _V2 else "unknown"
+    return _LINEAGES.get(pair, _UNKNOWN_LINEAGE)
 
 
 def policy_pin_key(pin: object) -> tuple[object, ...]:
@@ -91,7 +96,7 @@ def participant_control_history_verifiability(
         key = (str(getattr(record, "participant_address", "")), str(getattr(record, "episode_id", "")))
         gaps = missing.setdefault(key, set())
         lineage = participant_control_occurrence_lineage(record)
-        if lineage == "unknown":
+        if lineage == _UNKNOWN_LINEAGE:
             gaps.add("unsupported-lineage")
         elif not _context_supplied(lineage, record, key, declared, pinned):
             gaps.add("missing-policy")
@@ -100,7 +105,7 @@ def participant_control_history_verifiability(
             ParticipantControlEpisodeVerifiability(
                 participant_address=participant,
                 episode_id=episode,
-                status="unverifiable" if gaps else "verifiable",
+                status="unverifiable" if gaps else _VERIFIABLE,
                 missing=tuple(sorted(gaps)),
             )
             for (participant, episode), gaps in missing.items()

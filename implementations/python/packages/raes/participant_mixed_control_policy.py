@@ -31,6 +31,8 @@ MIXED_CONTROL_POLICY_SEMANTICS = "mixed-control-policy-occurrence/rev1"
 MixedControlCoordinate = Annotated[StrictInt, Field(ge=0, le=MIXED_CONTROL_COORDINATE_LIMIT)]
 MixedControlRef = Annotated[str, Field(min_length=1, pattern=r"\S")]
 _UNIQUE_REFS = {"uniqueItems": True}
+_PROPERTIES = "properties"
+_ALL_OF = "allOf"
 
 MIXED_CONTROL_KIND_TARGETS: dict[MixedControlTransitionKind, frozenset[ParticipantControlTargetKind]] = {
     MixedControlTransitionKind.PROPOSAL: frozenset(),
@@ -97,9 +99,9 @@ def _only_when(selector: str, value: str, name: str) -> dict[str, Any]:
     """``name`` is a non-null array exactly when ``selector`` equals ``value``; otherwise absent or null."""
 
     return {
-        "if": {"properties": {selector: {"const": value}}},
-        "then": {"required": [name], "properties": {name: {"type": "array"}}},
-        "else": {"properties": {name: {"type": "null"}}},
+        "if": {_PROPERTIES: {selector: {"const": value}}},
+        "then": {"required": [name], _PROPERTIES: {name: {"type": "array"}}},
+        "else": {_PROPERTIES: {name: {"type": "null"}}},
     }
 
 
@@ -107,7 +109,7 @@ def _permitted_transition_schema(schema: dict[str, Any]) -> None:
     """Publish the kind-specific fields as closed JSON Schema conditionals."""
 
     omit_property_titles(schema)
-    schema["allOf"] = [_only_when("transition_kind", kind.value, name) for kind, name in _KIND_ONLY_FIELDS]
+    schema[_ALL_OF] = [_only_when("transition_kind", kind.value, name) for kind, name in _KIND_ONLY_FIELDS]
 
 
 class MixedControlPermittedTransition(SDLModel):
@@ -183,13 +185,13 @@ def _policy_schema(schema: dict[str, Any]) -> None:
     """Publish the form's script rule as a closed conditional and the MC-08 bound over legacy states."""
 
     omit_property_titles(schema)
-    schema["allOf"] = [_only_when("form", "finite-script", "script_steps")]
-    states = schema["properties"]["controller_states"]
+    schema[_ALL_OF] = [_only_when("form", "finite-script", "script_steps")]
+    states = schema[_PROPERTIES]["controller_states"]
     bound = {"maximum": MIXED_CONTROL_COORDINATE_LIMIT}
-    window = {"properties": {"valid_from_order": bound, "valid_until_order": bound}}
+    window = {_PROPERTIES: {"valid_from_order": bound, "valid_until_order": bound}}
     patterns = states.get("patternProperties", {})
     for pattern, value in patterns.items():
-        patterns[pattern] = {"allOf": [value, window]}
+        patterns[pattern] = {_ALL_OF: [value, window]}
 
 
 class MixedControlPolicy(SDLModel):
