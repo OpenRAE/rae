@@ -9,6 +9,10 @@ This document is the issue #77 formal design artifact for:
 - `ACT-608` - Participant Behavior Modes
 - `ACT-609` - Offensive Behavior Vocabularies
 
+Later issues add the `ACT-610` - Defensive Behavior Vocabularies, `ACT-611` -
+Autonomous Service And Agent Behavior Vocabularies, and `ACT-617` -
+Mixed-Control Participant Operation sections below.
+
 It is governed by ADR-067. It composes the participant semantics from ADR-022
 with SDL participant framing, participant runtime records, backend-facing
 contracts, controlled vocabularies, and participant implementation provenance.
@@ -45,8 +49,14 @@ Remaining child-issue boundaries:
 - child issues must not publish local behavior semantics outside this model;
 - authority/scope and mode work beyond ACT-606 must continue to bind through
   the governed refs and vocabularies defined here; and
-- executable behavior-model gates for ACT-602, ACT-607, and ACT-608 remain
-  owned by their child issues.
+- issues #204, #207, and #208 delivered the executable behavior-model gates for
+  ACT-602, ACT-607, and ACT-608.
+
+Current disposition (issue #219): every issue in the child-issue mapping below
+is closed. The
+[participant semantic coverage matrix](../participant-semantics/semantic-coverage.md)
+maps PBM-01 to PBM-12 to their current contracts, implementation, tests, and
+coverage, and names the open owner of each remaining gap.
 
 ## Model Summary
 
@@ -229,8 +239,8 @@ Required executable properties:
   disclosure refs, and diagnostics; and
 - conformance cannot rely on schema acceptance alone.
 
-Implementation issue #204 owns executable contract bindings, validators,
-fixtures, and conformance evidence for this requirement.
+Implementation issue #204 (PR #588) delivered executable contract bindings,
+validators, fixtures, and conformance evidence for this requirement.
 
 ## ACT-606 - First-Class Participant Behavior Specifications
 
@@ -248,10 +258,15 @@ BehaviorSpecification =
   outcome_interpretation_rule_ref*
   authority_scope_ref*
   behavior_mode?
+  autonomous_execution?
+  mixed_control?
   realization_profile_ref?
   backend_feature_support_ref*
   evidence_contract_ref*
+  tool_affordance*
+  participant_inject_delivery*
   extension_policy
+  extension*
 ```
 
 Rules:
@@ -262,6 +277,16 @@ Rules:
   contracts, observation boundaries, outcome rules, manifests, backend
   capabilities, or runtime evidence.
 - `behavior_mode` binds to the controlled vocabulary described in ACT-608.
+- `autonomous_execution` is defined by
+  [autonomous execution](../participant-semantics/autonomous-execution.md)
+  (ADR-092 Decision 1).
+- `mixed_control` is the controller policy defined in the ACT-617 section
+  below.
+- `tool_affordance` entries are the affordance bindings defined by SEM-219 in
+  the [participant-semantics design](../participant-semantics/README.md).
+- `participant_inject_delivery` entries are the DSL-142 participant-directed
+  inject deliveries defined in `specs/sdl/sections.md` and MC-09 of
+  [reusable mixed control](../participant-semantics/reusable-mixed-control.md).
 - Offensive (ACT-609) and defensive (ACT-610) behavior classifications are not
   aggregate fields. They use generic concept bindings against the exact
   behavior specification. SDL parsing rejects the retired
@@ -311,8 +336,8 @@ Rules:
 - Runtime denial, backend sandboxing, or control-plane authorization may enforce
   a boundary, but they do not define the authored boundary by themselves.
 
-Implementation issue #207 owns executable authority/scope extensions beyond
-the ACT-601 fields already shipped.
+Implementation issue #207 (PR #596) delivered executable authority/scope
+extensions beyond the ACT-601 fields.
 
 ### ACT-607 Implementation Preflight Guardrails
 
@@ -418,8 +443,8 @@ Rules:
 - `mixed-control` mode identifies combined control over one participant
   decision surface. It is not multi-participant interaction semantics.
 
-Implementation issue #208 owns executable declaration, selection, validation,
-and conformance for behavior modes.
+Implementation issue #208 (PR #616) delivered executable declaration,
+selection, validation, and conformance for behavior modes.
 
 ## ACT-609 - Offensive Behavior Vocabularies
 
@@ -650,8 +675,10 @@ Rules:
 
 Issue #251 provides the authored model, semantic validation, composition,
 governed SDL schema publication, valid/invalid fixtures, typed compiler
-projection, and negative/state-transition evidence. Issues #252 and #255 own
-portable occurrence contracts and runtime mediation/persistence respectively.
+projection, and negative/state-transition evidence. Issues #252 (PR #868) and
+#255 (PR #911) delivered portable occurrence contracts and runtime
+mediation/persistence for this fixed-coordinate form; #1363 owns executable
+adoption of the reusable amendment.
 
 ## Cross-Clause Invariants
 
@@ -671,6 +698,9 @@ portable occurrence contracts and runtime mediation/persistence respectively.
 | PBM-12 | Autonomous behavior vocabulary terms are external assertions about exact behavior specifications and do not create native or executable behavior meaning. | ACT-611 |
 
 ## Child-Issue Mapping
+
+This table records the original executable ownership. Every issue in it is
+closed; the coverage matrix names the current owners.
 
 | Issue | UID | Executable ownership |
 | --- | --- | --- |
@@ -700,5 +730,5 @@ Any executable issue that claims this model must provide:
   to the artifact.
 
 Issue #77 satisfies the design requirement by publishing ADR-067 and this
-formal spec. Child issues provide executable SDL syntax, schema, fixture,
-runtime emission, and conformance implementation for #204 through #208.
+formal spec. Child issues #204 through #208 provided executable SDL syntax,
+schema, fixture, runtime emission, and conformance implementation.
