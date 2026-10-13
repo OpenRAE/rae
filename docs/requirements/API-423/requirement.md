@@ -21,6 +21,12 @@ API-406 and API-409 provide adjacent carriers, but no common contract records th
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1395` (Bounded independent formal representation of crossing contracts)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/multi_concrete.py` (Independent candidate, claim, atomic-result and receipt-provenance model)
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-multi-operation-models.md` (Portable crossing and cached-result boundary without a new message carrier)
+- TESTS → TEST `implementations/python/tests/test_issue_1395_crossing_profile.py` (Closed schema/profile and both-carrier joins)
+- TESTS → TEST `implementations/python/tests/test_issue_1395_crossing_models.py` (Fresh/refused/unresolved operations, cached results and unchanged-policy history conflicts)
+
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#971` (Independent single-operation formal model construction)
 
 - DOCUMENTS → DOCUMENTATION `docs/research/participant-bisimulation/model-construction.md` (Construction boundary and source derivation)
