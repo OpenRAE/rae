@@ -14,7 +14,16 @@ from collections.abc import Mapping
 from enum import Enum
 from typing import Annotated, Literal, get_args
 
-from pydantic import Discriminator, Field, GetJsonSchemaHandler, Tag, field_validator, model_validator
+from pydantic import (
+    Discriminator,
+    Field,
+    GetJsonSchemaHandler,
+    StrictInt,
+    Tag,
+    WithJsonSchema,
+    field_validator,
+    model_validator,
+)
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 from raes.participant_behavior_specification import MixedControlTransitionKind
@@ -32,6 +41,8 @@ PARTICIPANT_CONTROL_OCCURRENCE_SCHEMA_NAME: str = get_args(OccurrenceSchemaName)
 PARTICIPANT_CONTROL_OCCURRENCE_V2_VERSION = "2.0.0"
 ControlRefList = Annotated[list[ControlRef], Field(min_length=1, max_length=256)]
 PolicyRevision = Annotated[NonEmptyString, Field(max_length=256, pattern=r"\S")]
+# A record's own binding revision. StrictInt, not lax Literal[1], which would take the boolean true (MC-01).
+OwnBindingRevision = Annotated[StrictInt, Field(ge=1, le=1), WithJsonSchema({"const": 1, "type": "integer"})]
 _V2 = [{"contract_id": PARTICIPANT_CONTROL_OCCURRENCE_V2_CONTRACT_ID, "instance_path": "#"}]
 _MODEL_VALIDATOR = "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
 _REJECTED = "rejected"
@@ -124,7 +135,7 @@ class ParticipantProposalOccurrenceV2Model(ParticipantAcceptedOccurrenceV2Model)
 
     kind: Literal[MixedControlTransitionKind.PROPOSAL]
     proposal_id: ControlRef
-    proposal_revision: Literal[1]
+    proposal_revision: OwnBindingRevision
     admission_status: Literal["not-admitted"]
     action_contract_ref: ControlRef
     decision_surface_ref: ControlRef | None = None
@@ -154,7 +165,7 @@ class ParticipantApprovalOccurrenceV2Model(ParticipantAcceptedOccurrenceV2Model)
     proposal_ref: ControlRef
     proposal_revision: ControlPosition
     decision_ref: ControlRef
-    decision_revision: Literal[1]
+    decision_revision: OwnBindingRevision
 
 
 class ParticipantDenialOccurrenceV2Model(ParticipantAcceptedOccurrenceV2Model):
@@ -164,7 +175,7 @@ class ParticipantDenialOccurrenceV2Model(ParticipantAcceptedOccurrenceV2Model):
     proposal_ref: ControlRef
     proposal_revision: ControlPosition
     decision_ref: ControlRef
-    decision_revision: Literal[1]
+    decision_revision: OwnBindingRevision
 
 
 class ParticipantExternalDirectionOccurrenceV2Model(ParticipantAcceptedOccurrenceV2Model):

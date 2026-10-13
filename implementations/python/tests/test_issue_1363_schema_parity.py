@@ -142,11 +142,18 @@ def test_delivery_control_block_exclusivity_agrees_across_python_and_schema(sche
     assert validator.is_valid(binding) is valid, case
 
 
-def _approval() -> dict[str, Any]:
-    history = History()
-    history.accept("propose")
-    history.accept("take")
-    return history.accepted_payload("approve", proposal_ref="proposal-1")
+def _decision(edge: str) -> Callable[[], dict[str, Any]]:
+    def build() -> dict[str, Any]:
+        history = History()
+        history.accept("propose")
+        history.accept("take")
+        return history.accepted_payload(edge, proposal_ref="proposal-1")
+
+    return build
+
+
+_approval = _decision("approve")
+_denial = _decision("deny")
 
 
 def _set(payload: dict, path: tuple, value: Any) -> dict:
@@ -192,7 +199,17 @@ V2_CASES = [
         2,
         False,
     ),
+    (
+        "proposal-own-revision-true",
+        lambda: History().accepted_payload("propose"),
+        ("occurrence", "proposal_revision"),
+        True,
+        False,
+    ),
     ("approval-own-revision-2", _approval, ("occurrence", "decision_revision"), 2, False),
+    ("approval-own-revision-true", _approval, ("occurrence", "decision_revision"), True, False),
+    ("denial", _denial, (), None, True),
+    ("denial-own-revision-true", _denial, ("occurrence", "decision_revision"), True, False),
     ("approval-cites-revision-2", _approval, ("occurrence", "proposal_revision"), 2, True),
     ("accepted-no-from", lambda: History().accepted_payload("take"), ("occurrence", "valid_from_order"), _DROP, False),
     (
