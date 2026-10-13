@@ -1,17 +1,21 @@
 """Participant tool authoring across composition and compilation (issue #298, DSL-117).
 
-A reusable unit that declares a tool affordance and an SSH access carrier is
+The example pair in ``examples/scenarios/participant-tools`` is the fixture. A
+reusable unit that declares a tool affordance and an SSH access carrier is
 parsed on its own and imported twice under distinct namespaces. The importing
 scenario adds local participants and a local tool affordance over an imported
-action and tool. Each binding is checked after composition and compilation,
-broken bindings fail closed, and a declared or displayed tool neither admits
-an invocation nor records one. Composition and declaration rename share one
-reference rewrite, so renaming the tool content is checked here too.
+action and tool. Each binding is checked after composition and compilation.
+Broken, ambiguous and unsupported bindings fail closed with the diagnostics the
+unit gets on its own, and a declared or displayed tool neither admits an
+invocation nor records one. Composition and declaration rename share one
+reference rewrite, so renaming the tool content and the access account is
+checked here too.
 """
 
 from __future__ import annotations
 
 import json
+from dataclasses import asdict
 from pathlib import Path
 
 import pytest
@@ -20,6 +24,7 @@ from jsonschema import Draft202012Validator
 from paths import REPO_ROOT
 from raes import (
     RenameSDLDeclarationRequest,
+    SDLParseError,
     SDLValidationError,
     parse_sdl,
     parse_sdl_file,
@@ -29,20 +34,32 @@ from raes_backend_stubs.stubs import create_stub_target
 from raes_processor.compiler import compile_runtime_model
 from raes_runtime.control_plane import RuntimeControlPlane
 
-FIXTURES = Path(__file__).parent / "fixtures" / "tool-authoring"
-UNIT = FIXTURES / "scanner-toolkit.sdl.yaml"
-ROOT = FIXTURES / "operator-console.sdl.yaml"
+EXAMPLES = REPO_ROOT / "examples" / "scenarios" / "participant-tools"
+UNIT = EXAMPLES / "tool-kit.sdl.yaml"
+ROOT = EXAMPLES / "twice-imported.sdl.yaml"
 AUTHORING_SCHEMA = REPO_ROOT / "contracts" / "schemas" / "sdl" / "sdl-authoring-input-v1.json"
 NAMESPACES = ("alpha", "bravo")
 REUSABLE = "red-scan-behavior"
 LOCAL = "operator-scan"
 SHARED = "shared-scanner"
 SPEC_ADDRESS = "participant.behavior-specification."
+REUSABLE_AFFORDANCE = f"{SPEC_ADDRESS}{REUSABLE}.tool-affordance.network-scanner"
 LOCAL_AFFORDANCE = f"{SPEC_ADDRESS}{LOCAL}.tool-affordance.{SHARED}"
 OPERATOR = "participant.behavior.operator"
 AUDITOR = "participant.behavior.auditor"
 IMPORTED_SCAN = "participant.action-contract.alpha.scan"
 IMPORTED_TOOLS = [f"provision.content.{namespace}.scanner-package" for namespace in NAMESPACES]
+UNIT_CARRIER = "{target_ref: web, channel: ssh, account_ref: operator}"
+LOCAL_CARRIER = "{target_ref: alpha.web, channel: rdp}"
+RELATIONSHIP_CLASH = (
+    "\nbehavior_specifications:\n",
+    "\nrelationships:\n  scanner-package: {type: connects_to, source: web, target: lan}\nbehavior_specifications:\n",
+)
+CONTENT_ITEM_CLASH = (
+    "content:\n  scanner-package:\n",
+    "content:\n  bundle: {type: dataset, target: web, items: [{name: scanner-package}]}\n  scanner-package:\n",
+)
+CLASH_IDS = ["relationship", "content-item"]
 
 
 def _rewritten(source: Path, edits: tuple[tuple[str, str], ...]) -> str:
@@ -54,13 +71,13 @@ def _rewritten(source: Path, edits: tuple[tuple[str, str], ...]) -> str:
 
 
 def _tool_ref_edit(authored: str, spelling: str) -> tuple[str, str]:
-    """Edit that respells a fixture affordance's authored tool_ref."""
+    """Edit that respells an example affordance's authored tool_ref."""
 
     return f"        tool_ref: {authored}\n", f"        tool_ref: {spelling}\n"
 
 
 def _parse_pair(tmp_path: Path, *, unit_edits=(), root_edits=()):
-    """Parse edited copies of both fixtures from one directory, as authored."""
+    """Parse edited copies of both examples from one directory, as authored."""
 
     for source, edits in ((UNIT, unit_edits), (ROOT, root_edits)):
         (tmp_path / source.name).write_text(_rewritten(source, edits), encoding="utf-8")
@@ -78,11 +95,12 @@ def _access(participant) -> list[tuple[str, str, str, str]]:
     ]
 
 
+def _imported_affordance(namespace: str) -> str:
+    return f"{SPEC_ADDRESS}{namespace}.{REUSABLE}.tool-affordance.network-scanner"
+
+
 def _imported_tool_addresses(model) -> list[str]:
-    return [
-        model.tool_affordances[f"{SPEC_ADDRESS}{namespace}.{REUSABLE}.tool-affordance.network-scanner"].tool_address
-        for namespace in NAMESPACES
-    ]
+    return [model.tool_affordances[_imported_affordance(namespace)].tool_address for namespace in NAMESPACES]
 
 
 @pytest.mark.parametrize(
@@ -91,7 +109,9 @@ def _imported_tool_addresses(model) -> list[str]:
     ids=["standalone", "alpha", "bravo"],
 )
 def test_reusable_tool_bindings_resolve_inside_their_own_namespace(document: Path, prefix: str):
-    model = compile_runtime_model(parse_sdl_file(document))
+    scenario = parse_sdl_file(document)
+    assert scenario.advisories == []
+    model = compile_runtime_model(scenario)
 
     affordance = model.tool_affordances[f"{SPEC_ADDRESS}{prefix}{REUSABLE}.tool-affordance.network-scanner"]
     assert affordance.behavior_specification_address == f"{SPEC_ADDRESS}{prefix}{REUSABLE}"
@@ -107,6 +127,23 @@ def test_reusable_tool_bindings_resolve_inside_their_own_namespace(document: Pat
     ]
 
 
+def test_invocation_interface_is_joined_through_each_imports_own_action_contract():
+    """The affordance names the action; the action contract alone owns the arguments."""
+
+    model = compile_runtime_model(parse_sdl_file(ROOT))
+
+    shape_refs = []
+    for namespace in NAMESPACES:
+        affordance = model.tool_affordances[_imported_affordance(namespace)]
+        assert affordance.action_contract_addresses == (f"participant.action-contract.{namespace}.scan",)
+        contract = model.action_contracts[affordance.action_contract_addresses[0]]
+        assert contract.argument_shape_ref.startswith(f"{contract.address}.argument-shape.sha256-")
+        assert [definition["name"] for definition in contract.argument_definitions] == ["profile"]
+        assert "argument" not in json.dumps(asdict(affordance))
+        shape_refs.append(contract.argument_shape_ref)
+    assert shape_refs[0] != shape_refs[1]
+
+
 @pytest.mark.parametrize("tool_ref", ["scanner-package", "content.scanner-package"], ids=["bare", "qualified"])
 def test_imported_affordance_keeps_its_own_tool_when_the_importer_declares_the_same_name(tmp_path: Path, tool_ref: str):
     model = compile_runtime_model(_parse_pair(tmp_path, unit_edits=(_tool_ref_edit("scanner-package", tool_ref),)))
@@ -115,42 +152,141 @@ def test_imported_affordance_keeps_its_own_tool_when_the_importer_declares_the_s
     assert model.tool_affordances[LOCAL_AFFORDANCE].tool_address == "provision.content.alpha.scanner-package"
 
 
-def test_bare_tool_ref_keeps_its_content_binding_when_a_private_unit_declaration_shares_the_name(tmp_path: Path):
-    """The unit alone rejects the ambiguous bare ref; composition keeps the binding it had before #298."""
+@pytest.mark.parametrize(
+    ("clash", "candidates"),
+    [
+        (RELATIONSHIP_CLASH, "content.scanner-package, relationships.scanner-package"),
+        (CONTENT_ITEM_CLASH, "content.bundle.items.scanner-package, content.scanner-package"),
+    ],
+    ids=CLASH_IDS,
+)
+def test_bare_tool_ref_naming_two_unit_declarations_fails_composition_as_it_fails_alone(
+    tmp_path: Path, clash: tuple[str, str], candidates: str
+):
+    """The composed import reports the unit's own addresses, anchored at the unit file, and binds nothing."""
 
-    shared_name = (
-        "\nbehavior_specifications:\n",
-        "\nrelationships:\n  scanner-package: {type: connects_to, source: web, target: lan}\nbehavior_specifications:\n",
-    )
-    unit_text = _rewritten(UNIT, (shared_name,))
-    with pytest.raises(SDLValidationError, match="tool_ref 'scanner-package' is ambiguous"):
-        parse_sdl(unit_text)
+    expected = [
+        f"Behavior specification '{REUSABLE}' tool affordance 'network-scanner' "
+        f"tool_ref 'scanner-package' is ambiguous; use one of: {candidates}"
+    ]
+    with pytest.raises(SDLValidationError) as standalone:
+        parse_sdl(_rewritten(UNIT, (clash,)))
+    with pytest.raises(SDLValidationError) as composed:
+        _parse_pair(tmp_path, unit_edits=(clash,))
 
-    model = compile_runtime_model(_parse_pair(tmp_path, unit_edits=(shared_name,)))
+    assert standalone.value.errors == expected
+    assert composed.value.errors == expected
+    assert composed.value.path == tmp_path / UNIT.name
+
+
+@pytest.mark.parametrize("clash", [RELATIONSHIP_CLASH, CONTENT_ITEM_CLASH], ids=CLASH_IDS)
+def test_qualified_tool_ref_binds_its_own_content_beside_a_clashing_unit_declaration(
+    tmp_path: Path, clash: tuple[str, str]
+):
+    edits = (clash, _tool_ref_edit("scanner-package", "content.scanner-package"))
+    assert parse_sdl(_rewritten(UNIT, edits)).advisories == []
+
+    model = compile_runtime_model(_parse_pair(tmp_path, unit_edits=edits))
 
     assert _imported_tool_addresses(model) == IMPORTED_TOOLS
 
 
-@pytest.mark.parametrize(
-    ("tool_ref", "renamed_ref"),
-    [("scanner-package", "scanner-kit"), ("content.scanner-package", "content.scanner-kit")],
-    ids=["bare", "qualified"],
-)
-def test_renaming_the_tool_content_rewrites_either_tool_ref_spelling(tool_ref: str, renamed_ref: str):
-    unit = parse_sdl(_rewritten(UNIT, (_tool_ref_edit("scanner-package", tool_ref),)))
+def test_imported_tool_ref_that_names_only_root_content_binds_the_root_content(tmp_path: Path):
+    """Refs that name nothing in the unit resolve against the composed scenario (issue-297 decision)."""
 
-    result = rename_sdl_declaration(
-        unit,
-        RenameSDLDeclarationRequest(target_address="content.scanner-package", new_local_name="scanner-kit"),
+    model = compile_runtime_model(
+        _parse_pair(
+            tmp_path,
+            unit_edits=(_tool_ref_edit("scanner-package", "console-scanner"),),
+            root_edits=(("content:\n  scanner-package:\n", "content:\n  console-scanner:\n"),),
+        )
     )
+
+    assert _imported_tool_addresses(model) == ["provision.content.console-scanner"] * len(NAMESPACES)
+
+
+@pytest.mark.parametrize(
+    ("document", "carrier", "pointer"),
+    [
+        (UNIT, UNIT_CARRIER, "/agents/red-agent/interactive_access/shell/channel"),
+        (ROOT, LOCAL_CARRIER, "/agents/operator/interactive_access/console/channel"),
+    ],
+    ids=["imported", "local"],
+)
+def test_unsupported_channel_is_a_bounded_parse_diagnostic_in_the_unit_and_the_importer(
+    tmp_path: Path, document: Path, carrier: str, pointer: str
+):
+    edits = ((carrier, carrier.replace("ssh", "telnet").replace("rdp", "telnet")),)
+    edited = {"unit_edits": edits} if document == UNIT else {"root_edits": edits}
+
+    with pytest.raises(SDLParseError) as excinfo:
+        _parse_pair(tmp_path, **edited)
+
+    message = "channel must be one of: ssh, rdp"
+    assert str(excinfo.value) == f"{tmp_path / document.name}: SDL model validation failed at {pointer}: {message}"
+    assert [(item.code, item.pointer, item.message) for item in excinfo.value.diagnostics] == [
+        ("sdl.model.invalid", pointer, message)
+    ]
+
+
+def _tool_ref(scenario) -> str:
+    return scenario.behavior_specifications[REUSABLE].tool_affordances["network-scanner"].tool_ref
+
+
+def _account_ref(scenario) -> str:
+    return scenario.agents["red-agent"].interactive_access["shell"].account_ref
+
+
+def _compiled_tool(model) -> str:
+    return model.tool_affordances[REUSABLE_AFFORDANCE].tool_address
+
+
+def _compiled_account(model) -> str:
+    return _access(model.participant_behaviors["participant.behavior.red-agent"])[0][3]
+
+
+@pytest.mark.parametrize(
+    ("target", "new_name", "edit", "read_ref", "renamed_ref", "read_compiled", "compiled"),
+    [
+        (
+            "content.scanner-package",
+            "scanner-kit",
+            _tool_ref_edit("scanner-package", spelling),
+            _tool_ref,
+            renamed,
+            _compiled_tool,
+            "provision.content.scanner-kit",
+        )
+        for spelling, renamed in (
+            ("scanner-package", "scanner-kit"),
+            ("content.scanner-package", "content.scanner-kit"),
+        )
+    ]
+    + [
+        (
+            "accounts.operator",
+            "analyst",
+            ("account_ref: operator}", f"account_ref: {spelling}}}"),
+            _account_ref,
+            renamed,
+            _compiled_account,
+            "provision.account.analyst",
+        )
+        for spelling, renamed in (("operator", "analyst"), ("accounts.operator", "accounts.analyst"))
+    ],
+    ids=["tool-bare", "tool-qualified", "account-bare", "account-qualified"],
+)
+def test_renaming_a_declaration_rewrites_either_spelling_of_its_tool_or_access_ref(
+    target, new_name, edit, read_ref, renamed_ref, read_compiled, compiled
+):
+    unit = parse_sdl(_rewritten(UNIT, (edit,)))
+
+    result = rename_sdl_declaration(unit, RenameSDLDeclarationRequest(target_address=target, new_local_name=new_name))
 
     assert [diagnostic.code for diagnostic in result.report.diagnostics] == []
     assert result.succeeded
-    assert result.output.behavior_specifications[REUSABLE].tool_affordances["network-scanner"].tool_ref == renamed_ref
-    affordance = compile_runtime_model(result.output).tool_affordances[
-        f"{SPEC_ADDRESS}{REUSABLE}.tool-affordance.network-scanner"
-    ]
-    assert affordance.tool_address == "provision.content.scanner-kit"
+    assert read_ref(result.output) == renamed_ref
+    assert read_compiled(compile_runtime_model(result.output)) == compiled
 
 
 def test_local_affordance_binds_an_imported_action_and_tool_for_one_role():
@@ -210,7 +346,7 @@ def test_published_authoring_schema_requires_both_affordance_relations(
             "action_contract_ref '{ns}.scan' is outside participant '{ns}.red-agent' actions",
         ),
         (
-            (("{target_ref: web, channel: ssh, account_ref: operator}", "{target_ref: lan, channel: ssh}"),),
+            ((UNIT_CARRIER, "{target_ref: lan, channel: ssh}"),),
             "Agent '{ns}.red-agent' interactive_access 'shell' target_ref '{ns}.lan' must reference a compute node",
         ),
     ],
@@ -295,7 +431,7 @@ def test_broken_binding_in_a_reused_unit_is_reported_once_per_namespace(
         ),
         (
             (),
-            (("{target_ref: alpha.web, channel: rdp}", "{target_ref: alpha.lan, channel: rdp}"),),
+            ((LOCAL_CARRIER, "{target_ref: alpha.lan, channel: rdp}"),),
             ["Agent 'operator' interactive_access 'console' target_ref 'alpha.lan' must reference a compute node"],
         ),
     ],

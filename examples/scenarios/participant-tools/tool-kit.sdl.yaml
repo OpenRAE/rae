@@ -1,5 +1,8 @@
-# Reusable participant tool unit (issue #298, DSL-117). It is a valid standalone
-# scenario, and operator-console.sdl.yaml imports it under two namespaces.
+# Reusable participant tool unit (DSL-117). It is a valid standalone scenario,
+# and twice-imported.sdl.yaml imports it under two namespaces. The red agent
+# holds the scan action, sees the network-scanner affordance through its own
+# observation boundary, and has an SSH carrier to the web node. None of these
+# declarations authorizes an invocation or proves that a scan ran.
 name: scanner-toolkit
 module:
   id: acme/scanner-toolkit
@@ -48,6 +51,17 @@ action_contracts:
     procedure_basis: service discovery against the web node
     realization_profile: backend-declared
     fidelity_claim: records participant discovery intent and terminal observation
+    arguments:
+      profile:
+        value_type: string
+        allowed_values: [quick, full]
+        default: quick
+        normalization: identity
+        normalization_disclosure_ref: arguments.profile.normalization.identity
+        omission: use_default
+        omission_disclosure_ref: arguments.profile.omission.default
+        default_disclosure_ref: arguments.profile.default.quick
+        loss_disclosure_ref: arguments.profile.loss.none
     preconditions:
       - precondition_id: authority-in-scope
         precondition_class: authority

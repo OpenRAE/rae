@@ -7,8 +7,12 @@ namespaced tool-affordance / inject-delivery identifiers.
 
 from __future__ import annotations
 
-from typing import Any
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
+from .._base import is_variable_ref
+from .._declarations import build_declaration_index
+from .._errors import SDLValidationError
 from ..participant_behavior_specification import tool_affordance_reference
 from ..participant_inject_delivery import participant_inject_delivery_reference
 from ._references import (
@@ -17,6 +21,9 @@ from ._references import (
     _rewrite_node_or_service_ref,
     _rewrite_section_ref,
 )
+
+if TYPE_CHECKING:
+    from ..scenario import ScenarioContent
 
 
 def _rewrite_participant_resource_budget(
@@ -96,15 +103,42 @@ def _rewrite_mixed_control(
             _rewrite_mixed_control_transition(transition, symbols)
 
 
+def _reject_ambiguous_unit_tool_refs(unit: ScenarioContent, *, path: Path) -> None:
+    """Reject an imported unit's tool_ref that names two of the unit's declarations.
+
+    The unit's own declaration index decides, as in standalone validation, so the
+    composed import fails with the standalone diagnostic instead of binding one
+    candidate by section order. The check binds nothing.
+    """
+
+    bindings = [
+        (spec_name, affordance_id, binding.tool_ref)
+        for spec_name, behavior_spec in unit.behavior_specifications.items()
+        for affordance_id, binding in behavior_spec.tool_affordances.items()
+        if binding.tool_ref is not None and not is_variable_ref(binding.tool_ref)
+    ]
+    if not bindings:
+        return
+    index = build_declaration_index(unit, raise_on_collision=False)
+    errors = [
+        f"Behavior specification '{spec_name}' tool affordance '{affordance_id}' tool_ref '{tool_ref}' "
+        f"is ambiguous; use one of: {', '.join(sorted(candidates))}"
+        for spec_name, affordance_id, tool_ref in bindings
+        if len(candidates := index.resolve(tool_ref)) > 1
+    ]
+    if errors:
+        raise SDLValidationError(errors, path=path)
+
+
 def _rewrite_tool_affordance(
     binding: dict[str, Any],
     symbols: dict[str, dict[str, str] | set[str]],
 ) -> None:
     if binding.get("tool_ref"):
         tool_ref = str(binding["tool_ref"])
-        # Bare content names keep the content map, so a unit name that another
-        # section shares still binds the content. Other spellings, such as
-        # content.<name>, resolve through the named map.
+        # Bare content names keep the content map; the import guard above has
+        # already rejected a bare name that another unit declaration shares.
+        # Other spellings, such as content.<name>, resolve through the named map.
         content_symbols = symbols["content"]
         binding["tool_ref"] = _maybe_rename(
             tool_ref, content_symbols if tool_ref in content_symbols else symbols["named"]

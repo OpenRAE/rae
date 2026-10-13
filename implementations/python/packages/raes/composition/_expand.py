@@ -54,7 +54,12 @@ from ..realization_designation import (
 )
 from ..scenario import ExpandedScenario, ImportDecl, ModuleDescriptor, Scenario, ScenarioContent
 from ._augmentation import merge_augmentation_scope, rewrite_augmentation_scope
-from ._behavior import _behavior_reference_maps, _rewrite_agent_sections, _rewrite_behavior_sections
+from ._behavior import (
+    _behavior_reference_maps,
+    _reject_ambiguous_unit_tool_refs,
+    _rewrite_agent_sections,
+    _rewrite_behavior_sections,
+)
 from ._execution_policy import merge_execution_policy, rewrite_execution_policy
 from ._profiles import rewrite_profile_selections
 from ._provenance import import_provenance_additions as _import_provenance_additions
@@ -325,6 +330,7 @@ def _expand_one_import(
         restrict_to_descriptor=True,
     )
 
+    _reject_ambiguous_unit_tool_refs(bound.content, path=import_path)
     namespaced_payload = _namespace_payload(
         bound.content.model_dump(mode="python", by_alias=True),
         bound.content,

@@ -1,13 +1,14 @@
 # One reusable tool unit imported under two namespaces, plus local participants
 # whose own observation boundary shows a local tool affordance over an imported
-# action and tool (issue #298, DSL-117). The local scanner-package is a
-# different tool that the imported affordances must not bind.
+# action and tool (DSL-117). The local scanner-package is a different tool that
+# the imported affordances must not bind. The auditor sees the affordance but
+# does not hold the action, so the display grants it nothing.
 name: operator-console
 imports:
-  - source: local:scanner-toolkit.sdl.yaml
+  - source: local:tool-kit.sdl.yaml
     namespace: alpha
     version: 2.1.0
-  - source: local:scanner-toolkit.sdl.yaml
+  - source: local:tool-kit.sdl.yaml
     namespace: bravo
     version: ">=2,<3"
 nodes:

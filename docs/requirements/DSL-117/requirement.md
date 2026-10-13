@@ -5,7 +5,7 @@ status: ACTIVE
 type: FUNCTIONAL
 priority: MUST
 created_at: 2026-04-05T01:24:06.514527Z
-updated_at: 2026-07-15T08:42:44.856602Z
+updated_at: 2026-10-13T02:45:14.000000Z
 ---
 
 # DSL-117 — Participant Tool And Affordance Modeling
@@ -27,10 +27,12 @@ Primary-source refresh shows that tool-using participants require an explicit au
   Schema: `$defs.ParticipantToolAffordance` in
   `contracts/schemas/sdl/sdl-authoring-input-v1.json` is closed. Validator:
   `raes/validator/_participant_tool_affordances.py` resolves `tool_ref` through
-  the declaration index and requires a content declaration. Composition:
-  `raes/composition/_behavior.py` namespaces a bare content name through the
-  import's content symbols and any other spelling, such as `content.<name>`,
-  through its named symbols. Compiler:
+  the declaration index and requires exactly one content declaration.
+  Composition: `raes/composition/_behavior.py` rewrites a bare unit content
+  name through the import's content symbols and any other spelling, such as
+  `content.<name>`, through its named symbols. Before that rewrite,
+  `raes/composition/_expand.py` rejects a unit `tool_ref` that the unit's own
+  declaration index finds ambiguous, with the standalone diagnostic. Compiler:
   `raes_processor/compiler/participant_behaviors.py` emits the resolved
   `provision.content.<name>` address.
 - Affordances: `behavior_specifications.<spec>.tool_affordances.<id>` binds
@@ -48,11 +50,16 @@ Primary-source refresh shows that tool-using participants require an explicit au
   affordance. Compiler: one
   `participant.behavior-specification.<spec>.tool-affordance.<id>` record per
   affordance.
-- Interfaces and interaction channels:
-  `agents.<name>.interactive_access.<id>` names a compute-node `target_ref`, a
-  closed `ssh` or `rdp` channel and an optional `account_ref`. Parser:
-  `raes/parser.py` builds `ParticipantInteractiveAccess` (`raes/agents.py`).
-  Schema: `$defs.ParticipantInteractiveAccess` is closed. Validator: the
+- Interfaces: the access interface is
+  `agents.<name>.interactive_access.<id>`, which names a compute-node
+  `target_ref` and an optional `account_ref` in the participant's
+  `starting_accounts`. The invocation interface is the bound action contract's
+  `arguments`. The compiled affordance holds only action addresses; each one
+  resolves to a compiled action contract whose `argument_shape_ref` starts with
+  that address, and the affordance copies no argument data (issue-294
+  compilation boundary; ACT-622). Parser: `raes/parser.py` builds
+  `ParticipantInteractiveAccess` (`raes/agents.py`). Schema:
+  `$defs.ParticipantInteractiveAccess` is closed. Validator: the
   interactive-access analyzer `raes/semantics/participant_interactive_access.py`,
   run from `raes/validator/_content_objectives.py`, rejects non-compute
   targets, accounts on another node or outside `starting_accounts`, and
@@ -60,55 +67,76 @@ Primary-source refresh shows that tool-using participants require an explicit au
   `raes/composition/_behavior.py` namespaces targets and accounts. Compiler:
   `raes_processor/compiler/participant_behaviors.py` carries each entry on the
   compiled participant behavior.
+- Interaction channels: `channel` is the closed vocabulary `ssh` or `rdp`. Any
+  other value, in a root document or an imported unit, raises `SDLParseError`
+  with the file and the `/agents/<name>/interactive_access/<id>/channel`
+  pointer.
 - Scope and availability constraints: an affordance is available only to the
   participants that its behavior specification selects by `participant_refs` or
-  `participant_role_refs`, and each of them must already hold the bound actions
-  and boundaries. Absence means no availability. Parser and schema: the same
-  closed models. Validator: `select_participants` in
+  `participant_role_refs`, within its `authority_scope_refs`, and each of them
+  must already hold the bound actions and boundaries. Action-contract
+  preconditions and argument domains bound each invocation. Absence means no
+  availability. Validator: `select_participants` in
   `raes/semantics/participant_behavior/_references.py` selects the
-  participants. Composition: role refs stay global, so a local role-scoped
-  affordance must hold for every participant with that role in every import.
-  Compiler: the specification's `participant_addresses` record the selection.
+  participants. Composition: role refs select across the composed scenario, so
+  a role-scoped affordance must hold for every participant with that role in
+  every import. Compiler: the specification's `participant_addresses` record
+  the selection.
 - Declaring or displaying a tool authorizes no invocation and proves no
   execution. Runtime admission in `raes_runtime/participant_control.py` checks
   the compiled participant's own action set and requires an
   implementation-bound request. A participant whose observation boundary shows
   the tool, but who does not declare the bound action, is refused. A tool
   affordance address is not an action. Refused attempts record no operation and
-  no behavior history.
+  no behavior history. Declared, visible, supported, eligible, admitted and
+  realized remain separate SEM-219 predicates.
+
+`examples/scenarios/participant-tools/` holds a reusable tool unit and a
+scenario that imports it twice. Its README maps each concern to its authored
+field.
 
 ## Fulfillment boundary
 
-ACTIVE. #298 verified the #294 and #805 surfaces through composition,
-compilation and runtime admission. It fixed one gap in the reference rewrite
-that module composition and `rename_sdl_declaration`
-(`raes/_transformation_rename.py`) share. A section-qualified `tool_ref` such
-as `content.scanner-package` was not rewritten. In composition, the imported
-affordance bound the importing scenario's content of the same name, or failed
-when there was none. In rename, renaming that content was refused with
-`artifact-transformation.target-invalid`, because the ref kept the old name.
-`raes/composition/_behavior.py` now rewrites any `tool_ref` other than a bare
-content name through the named symbols, as the validator resolves it through
-the declaration index. The composed affordance binds the unit's own content,
-and the rename rewrites the ref to `content.<new-name>`. A bare content name
-keeps the content symbols, so it is rewritten as before, even when another
-section of the unit uses the same name. A `tool_ref` that names a non-content
-declaration of the unit now gets the same diagnostic as in the standalone unit.
+ACTIVE. #298 verified the #294 and #805 surfaces through parsing, semantic
+validation, composition, declaration rename, compilation and runtime admission,
+and fixed two gaps in the composition of an imported unit's `tool_ref`. The
+[tool authoring decision](../../decisions/issue-298-tool-authoring.md) records
+the semantics and the migration.
 
-Residual boundaries:
+- A section-qualified `tool_ref` such as `content.scanner-package` was not
+  rewritten. In composition, the imported affordance bound the importing
+  scenario's content of the same name, or failed when there was none. In
+  `rename_sdl_declaration` (`raes/_transformation_rename.py`), which shares the
+  rewrite, renaming that content was refused with
+  `artifact-transformation.target-invalid`. The ref now binds the unit's own
+  content and is renamed with it. A `tool_ref` that names a non-content
+  declaration of the unit gets the standalone diagnostic.
+- A bare `tool_ref` that names two of the unit's declarations, such as content
+  and a relationship, or content and a content item, failed in the unit alone
+  but composed silently to the content. Composition now fails with the
+  standalone ambiguity diagnostic, anchored at the unit file.
+
+Settled boundaries, not gaps:
 
 - An importing scenario cannot add a tool affordance for an imported
-  participant. The affordance must be classified by one of that participant's
-  own observation boundaries, and those belong to the imported unit.
+  participant: ADR-053 rejects overlay patches, and the issue-294 preflight
+  requires the participant's own observation boundary to classify the
+  affordance. The unit exports the affordance, or the importer declares its own
+  participant over imported actions and tools.
 - `participant_role_refs` in an imported declaration select every participant
-  with that role in the composed scenario, as the #297 verification in PR #1426
-  also found. A unit with a role-scoped tool affordance validates when imported
-  once and fails when imported twice.
-- A structurally invalid declaration in an imported unit, such as an
-  interactive-access `channel: telnet`, raises a raw pydantic `ValidationError`
-  instead of an `SDLParseError` diagnostic, as PR #1426 also found.
+  with that role in the composed scenario. The
+  [issue-297 decision](../../decisions/issue-297-behavior-authoring.md) settles
+  this; reusable tool bindings use explicit `participant_refs`.
+- An invalid imported `channel` raises `SDLParseError`, as #1426 delivered.
 - Decision-time exposure belongs to #300, reusable tool profiles to #301, and
   capability declarations to #304.
+
+Adjacent defects outside DSL-117 are tracked separately:
+
+- #1573: rename of nested node-service and content-item refs.
+- #1574: reference-typed action argument values across imports.
+- #1575: ambiguous bare refs in other reference families.
+- #1498: authored `__private` refs in importing scenarios.
 
 ## Traceability
 
@@ -126,6 +154,7 @@ Residual boundaries:
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/semantics/participant_interactive_access.py` (Interactive-access target, account and endpoint analyzer)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_content_objectives.py` (Semantic validation entry for participant tool and access checks)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_behavior.py` (Namespaced tool, affordance and access references for imports)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_expand.py` (Import-time rejection of an ambiguous unit tool_ref)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_sections.py` (Observation-boundary classification rewritten to the namespaced affordance refs)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/participant_behaviors.py` (Compiled tool affordance and interactive-access records)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control.py` (Runtime admission that a tool declaration does not bypass)
@@ -133,7 +162,10 @@ Residual boundaries:
 - DOCUMENTS → SPEC `specs/formal/participant-semantics/README.md` (SEM-219 predicates and the DSL-117 interactive-access specialization)
 - DOCUMENTS → GITHUB_ISSUE `298` (Verify participant tool authoring across composition and compilation)
 - TESTS → TEST `implementations/python/tests/test_issue_298_tool_authoring.py` (Standalone, twice-imported and local tool bindings through composition, declaration rename, compilation and runtime admission)
-- TESTS → TEST `implementations/python/tests/fixtures/tool-authoring/scanner-toolkit.sdl.yaml` (Reusable tool unit that is also a valid standalone scenario)
-- TESTS → TEST `implementations/python/tests/fixtures/tool-authoring/operator-console.sdl.yaml` (Two namespaced imports of one tool unit and a local tool affordance)
+- VERIFIES → SPEC `examples/scenarios/participant-tools/tool-kit.sdl.yaml` (Reusable tool unit that is also a valid standalone scenario)
+- VERIFIES → SPEC `examples/scenarios/participant-tools/twice-imported.sdl.yaml` (Two namespaced imports of one tool unit and a local tool affordance)
+- DOCUMENTS → DOCUMENTATION `examples/scenarios/participant-tools/README.md` (Concern-to-field mapping, import rules and limits)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-298-tool-authoring.md` (Tool composition decision, settled boundaries and migration)
+- TESTS → TEST `implementations/python/tests/test_issue_297_behavior_authoring.py` (Role-wide selection of a reusable tool binding and explicit participant refs)
 - TESTS → TEST `implementations/python/tests/test_sem_208_participant_behavior.py` (Single-file tool affordance parsing, validation, visibility and compilation)
 - TESTS → TEST `implementations/python/tests/test_runtime_control_plane.py` (Runtime admission rejects an action outside the compiled participant behavior)
