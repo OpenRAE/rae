@@ -19,8 +19,9 @@ import zlib
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any, Protocol
-from urllib.error import URLError
-from urllib.request import Request, urlopen
+
+# Registry requests resolve ``urlopen`` through this facade, the transport patch seam.
+from urllib.request import urlopen
 
 # The submodule imports below retain the package's documented domain re-exports
 # plus the private ``_sha256_digest`` / ``_signable_payload`` /
@@ -85,6 +86,7 @@ from ._filesystem import (
     _same_file_identity,
     _write_version_pointer,
 )
+from ._registry_auth import _registry_get, _RegistryTokens
 from ._verified_sources import _cache_source_result, _VerifiedSourceBundle
 from .models import (
     Lockfile,
@@ -153,14 +155,16 @@ def _read_capped(response: _CappableResponse, *, url: str, max_bytes: int) -> by
     return data
 
 
-def _json_request(url: str, *, headers: dict[str, str] | None = None, max_bytes: int | None = None) -> dict[str, Any]:
-    request = Request(url, headers=headers or {})
+def _json_request(
+    url: str,
+    *,
+    headers: dict[str, str] | None = None,
+    max_bytes: int | None = None,
+    tokens: _RegistryTokens | None = None,
+) -> dict[str, Any]:
     limit = _OCI_LIMITS.max_metadata_bytes if max_bytes is None else max_bytes
-    try:
-        with urlopen(request, timeout=_OCI_LIMITS.timeout_seconds) as response:
-            payload = _read_capped(response, url=url, max_bytes=limit)
-    except URLError as exc:
-        raise SDLParseError(f"Failed to fetch OCI metadata from {url}") from exc
+    failure = f"Failed to fetch OCI metadata from {url}"
+    payload = _registry_get(url, headers=headers, max_bytes=limit, tokens=tokens, failure=failure)
     return _decode_json_object(payload, context=f"OCI metadata from {url}")
 
 
@@ -176,14 +180,16 @@ def _decode_json_object(payload: bytes, *, context: str) -> dict[str, Any]:
     return decoded
 
 
-def _bytes_request(url: str, *, headers: dict[str, str] | None = None, max_bytes: int | None = None) -> bytes:
-    request = Request(url, headers=headers or {})
+def _bytes_request(
+    url: str,
+    *,
+    headers: dict[str, str] | None = None,
+    max_bytes: int | None = None,
+    tokens: _RegistryTokens | None = None,
+) -> bytes:
     limit = _OCI_LIMITS.max_metadata_bytes if max_bytes is None else max_bytes
-    try:
-        with urlopen(request, timeout=_OCI_LIMITS.timeout_seconds) as response:
-            return _read_capped(response, url=url, max_bytes=limit)
-    except URLError as exc:
-        raise SDLParseError(f"Failed to fetch OCI blob from {url}") from exc
+    failure = f"Failed to fetch OCI blob from {url}"
+    return _registry_get(url, headers=headers, max_bytes=limit, tokens=tokens, failure=failure)
 
 
 def _oci_cache_dir(base_dir: Path) -> Path:
