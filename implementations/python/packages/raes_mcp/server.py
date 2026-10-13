@@ -8,7 +8,14 @@ Launch via:
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
+from typing import Any
+
 from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp.exceptions import ToolError
+from mcp.server.fastmcp.tools import Tool
+from mcp.types import ContentBlock
+from pydantic import ValidationError
 
 from raes_mcp.tools.authoring import register as register_authoring_tools
 from raes_mcp.tools.completeness import register as register_completeness_tools
@@ -50,9 +57,58 @@ to check it.\
 """
 
 
+_UNTYPED_EXPECTATION = "a value matching the tool input schema"
+_UNMATCHED_ARGUMENTS = "arguments do not match the tool input schema"
+
+
+def _expected_type(schema: Mapping[str, Any]) -> str:
+    """Render the expected type of one argument from the tool's static input schema."""
+    members = schema.get("anyOf") or schema.get("oneOf") or ()
+    declared = schema.get("type") or [_expected_type(member) for member in members]
+    names = [declared] if isinstance(declared, str) else list(dict.fromkeys(map(str, declared)))
+    return " or ".join(names) or _UNTYPED_EXPECTATION
+
+
+def _argument_error_message(tool: Tool, error: ValidationError) -> str:
+    """Name each rejected argument and its expected type, never its value.
+
+    Only the top-level location (a declared parameter name or alias) and the
+    pydantic error code are used; pydantic messages and nested locations can
+    carry client-supplied text, so they are dropped.
+    """
+    properties = tool.parameters.get("properties", {})
+    kinds: dict[str, dict[str, None]] = {}
+    for detail in error.errors(include_url=False, include_context=False, include_input=False):
+        kinds.setdefault(str(next(iter(detail["loc"]), "")), {})[detail["type"]] = None
+    lines = [
+        f"{field}: expected {_expected_type(schema)} ({', '.join(kinds[field])})"
+        for field, schema in properties.items()
+        if field in kinds
+    ]
+    return f"Invalid arguments for tool {tool.name}: " + ("; ".join(lines) or _UNMATCHED_ARGUMENTS)
+
+
+class _RaesFastMCP(FastMCP):
+    """FastMCP server whose argument validation errors never echo argument values."""
+
+    async def call_tool(self, name: str, arguments: dict[str, Any]) -> Sequence[ContentBlock] | dict[str, Any]:
+        try:
+            return await super().call_tool(name, arguments)
+        except ToolError as exc:
+            cause = exc.__cause__
+            tool = self._tool_manager.get_tool(name)
+            if (
+                tool is None
+                or not isinstance(cause, ValidationError)
+                or cause.title != tool.fn_metadata.arg_model.__name__
+            ):
+                raise
+            raise ToolError(_argument_error_message(tool, cause)) from None
+
+
 def create_server() -> FastMCP:
     """Build and return the configured MCP server instance."""
-    mcp = FastMCP(
+    mcp = _RaesFastMCP(
         name="raes",
         instructions=_INSTRUCTIONS,
     )
