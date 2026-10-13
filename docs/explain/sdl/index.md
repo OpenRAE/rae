@@ -60,8 +60,8 @@ incidental runtime detail. Clock authority, time domains, pacing,
 synchronization, and realized ordering guarantees are part of the broader
 apparatus story, even when the current SDL syntax only exposes a subset of that
 surface through timelines, timeouts, and budget-like controls. The primary
-references collected in `research/primary/literature/time-and-simulation/`
-are the current foundation for that time/clock work.
+references for that time/clock work are reviewed in the
+[time-model research note](../../research/time-model/prior-art-and-design-criteria.md).
 
 ## Current Use Boundary
 
@@ -108,7 +108,6 @@ nodes:
     resources: {ram: 2 gib, cpu: 1}
     features: [flask-app]
     services: [{port: 8080, name: http}]
-    vulnerabilities: [sqli]
   database:
     type: compute
     os: linux
@@ -126,13 +125,6 @@ features:
   flask-app: {type: Service, source: vulnerable-flask-app}
   postgres: {type: Service, source: postgresql-16}
 
-vulnerabilities:
-  sqli:
-    name: SQL Injection
-    description: SQLi in login form
-    technical: true
-    class: CWE-89
-
 relationships:
   app-to-db:
     type: connects_to
@@ -145,6 +137,13 @@ accounts:
     node: database
     password_strength: weak
 ```
+
+The example records no weakness classification. The SDL reader rejects the
+former `vulnerabilities` fields with `sdl.classification-migration-required`;
+classifications now live in standalone `external-concept-bindings/v1`
+documents, as the
+[external classification migration guide](../../migration/external-classifications.md)
+describes.
 
 ## Documentation
 
