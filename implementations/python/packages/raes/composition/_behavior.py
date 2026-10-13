@@ -108,6 +108,9 @@ def _rewrite_tool_affordance(
     binding["observation_boundary_refs"] = [
         _maybe_rename(name, symbols["observation_boundaries"]) for name in binding.get("observation_boundary_refs", [])
     ]
+    if "participant_refs" in binding:
+        # Role refs stay global (#297); only explicit participant selectors are namespaced.
+        binding["participant_refs"] = [_maybe_rename(name, symbols["agents"]) for name in binding["participant_refs"]]
 
 
 def _rewrite_participant_inject_delivery(

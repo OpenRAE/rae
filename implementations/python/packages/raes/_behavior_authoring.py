@@ -13,10 +13,15 @@ _REFERENCE_FIELDS = (
     "outcome_interpretation_rule_refs",
     "authority_scope_refs",
 )
+# Nested binding fields with the same authoring boundary (#301). The existing
+# nested tool_affordances refs are tracked separately by issue #1498.
+_TOOL_AFFORDANCE_REFERENCE_FIELDS = ("participant_refs",)
 
 
-def _private_refs(specification: Mapping[str, object]) -> Iterator[tuple[str, int, str]]:
-    for field in _REFERENCE_FIELDS:
+def _private_refs(
+    specification: Mapping[str, object], fields: tuple[str, ...] = _REFERENCE_FIELDS
+) -> Iterator[tuple[str, int, str]]:
+    for field in fields:
         refs = specification.get(field, ())
         if not isinstance(refs, (list, tuple)):
             continue
@@ -35,6 +40,20 @@ def _private_locations(document: Mapping[str, object]) -> Iterator[tuple[tuple[s
         if isinstance(specification, Mapping):
             for field, index, ref in _private_refs(specification):
                 yield ("behavior_specifications", name, field, index), ref
+            yield from _private_tool_affordance_locations(name, specification.get("tool_affordances"))
+
+
+def _private_tool_affordance_locations(
+    name: object, affordances: object
+) -> Iterator[tuple[tuple[str | int, ...], str]]:
+    if not isinstance(affordances, Mapping):
+        return
+    for key, affordance in affordances.items():
+        if isinstance(affordance, BaseModel):
+            affordance = affordance.model_dump(mode="python")
+        if isinstance(affordance, Mapping):
+            for field, index, ref in _private_refs(affordance, _TOOL_AFFORDANCE_REFERENCE_FIELDS):
+                yield ("behavior_specifications", name, "tool_affordances", key, field, index), ref
 
 
 def validate_authored_behavior_references(

@@ -27,6 +27,7 @@ from ..semantics.participant_temporal_bindings import participant_temporal_bindi
 from ._participant_execution_renderers import AUTONOMOUS_PARTICIPANT_ISSUE_RENDERERS
 from ._participant_outcome_renderers import PARTICIPANT_OUTCOME_ISSUE_RENDERERS
 from ._participant_resource_budget_owners import participant_resource_budget_owner_errors
+from ._participant_tool_affordance_renderers import PARTICIPANT_TOOL_AFFORDANCE_ISSUE_RENDERERS
 
 # Renders an objective-semantics issue (machine-readable code from
 # ``raes.semantics.objective_semantics``) into the authoring-error string
@@ -95,6 +96,7 @@ _OBJECTIVE_ISSUE_RENDERERS = {
 
 _PARTICIPANT_BEHAVIOR_ISSUE_RENDERERS = {
     **AUTONOMOUS_PARTICIPANT_ISSUE_RENDERERS,
+    **PARTICIPANT_TOOL_AFFORDANCE_ISSUE_RENDERERS,
     "participant.action-contract-unbound": (
         lambda i: f"Agent '{i.participant_name}' action '{i.ref}' does not reference a declared action_contract"
     ),

@@ -2152,7 +2152,8 @@ realization or conformance.
 `tool_affordances` is a closed, participant-local mapping. Its keys identify
 authored affordance bindings; each value may name one governed scenario
 `content` identity and must name non-empty action-contract and observation-
-boundary sets. The binding reference
+boundary sets.
+
 Behavior specifications may be declared locally or exported by a reusable
 module. References to the unit's declarations are rewritten into each import's
 namespace. Other references resolve against the complete composed scenario;
@@ -2166,18 +2167,85 @@ Behavior `semantic_version` labels must be nonblank. See the
 Declaration reuse does not imply repeatable mixed-control occurrences or live
 runtime authorization.
 
-`behavior_specifications.<spec>.tool_affordances.<id>` must be explicitly
-classified by each referenced observation boundary. Presence means authored
-availability only: visibility, apparatus support, eligibility, admission,
-realization, effects, constraints, and evidence remain on their existing
-contracts and do not follow from the binding.
+The binding reference `behavior_specifications.<spec>.tool_affordances.<id>`
+must be explicitly classified by each referenced observation boundary.
+Presence means authored availability only: visibility, apparatus support,
+eligibility, admission, realization, effects, constraints, and evidence remain
+on their existing contracts and do not follow from the binding.
+
+A participant tool profile is the `tool_affordances` of one behavior
+specification together with that specification's participant and role
+selection. There is no separate profile section. The specification address
+identifies the profile, and each binding keeps its own address. A binding may
+add `participant_refs` and `participant_role_refs`. These selectors only
+narrow the specification's selection:
+
+```yaml
+behavior_specifications:
+  toolkit:
+    semantic_version: "1.0.0"
+    participant_role_refs: [blue, white]
+    action_contract_refs: [scan-active, scan-passive]
+    observation_boundary_refs: [blue-view, white-view]
+    tool_affordances:
+      scanner-blue: {tool_ref: nmap, participant_role_refs: [blue],
+                     action_contract_refs: [scan-active], observation_boundary_refs: [blue-view]}
+      scanner-white: {tool_ref: nmap, participant_role_refs: [white],
+                      action_contract_refs: [scan-passive], observation_boundary_refs: [white-view]}
+```
+
+- A binding is scoped when either selector list is non-empty and unscoped when
+  both are empty. An unscoped binding applies to every participant the
+  specification selects. A scoped binding that resolves to no participant is
+  offered to none.
+- Binding selectors use the specification's participant and role resolution
+  over the whole composed scenario. A binding role selector therefore reaches
+  every participant with that role. If one of them is outside the
+  specification's selection, the binding fails validation, even when that
+  participant was added elsewhere in the scenario. Use binding role selectors
+  under a role-selected specification and explicit `participant_refs`
+  otherwise. Roles stay global across imports, so in a module imported more
+  than once a role-scoped binding over module-local actions fails; use
+  explicit `participant_refs` there.
+- Every participant a binding selects must declare the binding's actions and
+  observation boundaries. Explicit selector refs must use exported names.
+- Bindings add up. A participant receives every binding that selects it, each
+  under its own address, with no order, precedence, merge, or override. Two
+  bindings with the same tool, actions, and boundaries are duplicates even
+  when their selectors differ; write one binding with the combined selector.
+- Roles receive different invocation constraints by binding different action
+  contracts, and different visibility through different observation
+  boundaries. A binding carries no constraint body. Every binding that selects
+  a participant and names an action must share that action's disposition in
+  the participant's projection.
+- Nothing else makes a binding available: not `tool_ref`, installed content,
+  manifest tool expectations, interactive access, visibility, an exposure
+  policy, or an affiliation.
+- A profile does not gate admission. A participant may invoke any action it
+  declares and its specification admits, with or without a binding.
+- A decision surface projected for one participant and one specification
+  carries only that specification's bindings.
+- `participant-decision-surface-v1` refuses a specification that contains a
+  scoped binding; project it with `participant-decision-surface-v2`.
+- `semantic_version` is an authored label. Nothing checks it against the
+  module version or the profile content. Evidence identifies the profile by
+  its address and pins its content through the instantiated-snapshot digest.
+- One profile cannot span participants that need different `behavior_mode`,
+  `autonomous_execution`, `mixed_control`, or `realization_profile_ref`
+  values; declare one specification for each.
+
+See the [tool-profile decision](../../decisions/issue-301-participant-tool-profiles.md)
+and the [migration notes](../../migration/participant-tool-profiles.md).
 
 Compiled behavior specifications use stable
 `participant.behavior-specification.<name>` addresses and preserve dependency
 links to the participant behavior, action contract, observation boundary, and
 outcome-rule runtime addresses. Each nested affordance compiles independently
 at `participant.behavior-specification.<name>.tool-affordance.<id>` with raw
-refs and resolved content/action/observation addresses.
+refs and resolved content/action/observation addresses. A scoped binding also
+records its raw selector refs and resolved participant addresses; an unscoped
+binding records empty selector fields and reaches its specification's scope
+through the specification address.
 
 `participant_inject_deliveries` is a closed, keyed mapping for explicit
 participant-directed delivery. Each binding has exactly one `participant_ref`
