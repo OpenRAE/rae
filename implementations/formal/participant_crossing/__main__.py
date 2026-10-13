@@ -6,18 +6,25 @@ from pathlib import Path
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(
-        description="Construct or check the complete crossing model bundle."
-    )
+    parser = argparse.ArgumentParser(description="Construct or check the complete crossing model bundle.")
     parser.add_argument(
         "--write",
         action="store_true",
         help="Publish a new bundle; refuse existing drift.",
     )
+    parser.add_argument(
+        "--profile",
+        choices=("single", "multi"),
+        default="single",
+        help="Select the exact governed construction profile.",
+    )
     args = parser.parse_args(argv)
     root = Path(__file__).resolve().parents[3]
     try:
-        from .export import check, publish
+        if args.profile == "multi":
+            from .multi_export import check, publish
+        else:
+            from .export import check, publish
 
         (publish if args.write else check)(root)
     except (OSError, ValueError):

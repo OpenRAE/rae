@@ -257,3 +257,4 @@ program publishes its evidence.
 | Date | Commit/PR | Summary |
 |------|-----------|---------|
 | 2026-09-27 | #971 | Select executable profile/model rev2 and close the approved single-operation retry, history, ordering, and completion semantics; retain projection rev1 and separate runtime mapping. |
+| 2026-10-13 | #1395 | Add the separate participant-crossing-multi-operation-dpbb-finite-v1@rev1 construction and its revisioned projection, with at most two fresh identities, history-sensitive retries and bounded completed-result response loss; preserve #971's profile and evidence, and keep equivalence and realization unestablished. |
