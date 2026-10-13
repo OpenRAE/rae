@@ -2088,6 +2088,25 @@ observation_boundaries:
     evidence_refs: [content.terminal-output]
 ```
 
+Compilation keys two kinds of view-rule and view-transition `information_ref`
+by compiled address. A declared action contract written as
+`action_contracts.<name>` becomes `participant.action-contract.<name>`. A
+tool-affordance binding written as
+`behavior_specifications.<spec>.tool_affordances.<id>` becomes
+`participant.behavior-specification.<spec>.tool-affordance.<id>`.
+Decision-surface projection, history anchoring and exposure read these keys.
+Only the section-qualified form resolves. A bare name such as `scan` and every
+other information ref are carried as written. A ref that names more than one
+declaration fails compilation as ambiguous.
+
+A boundary classifies each declaration once. Classifying both
+`action_contracts.scan` and `participant.action-contract.scan` in one boundary
+fails compilation, because one disposition would otherwise replace the other.
+To migrate such a boundary, keep the authored rule and give it the disposition
+of the runtime-address rule. Then remove the runtime-address rule and its
+`observable_refs`, `hidden_refs` or `evidence_refs` entries. Retarget that
+rule's view transitions to the authored ref.
+
 ## Outcome Interpretation Rules
 
 `outcome_interpretation_rules` state how participant action outcomes,
