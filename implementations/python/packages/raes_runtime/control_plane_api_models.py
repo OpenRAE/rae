@@ -213,7 +213,13 @@ def _operation_status_model(status: OperationStatus) -> OperationStatusModel:
     )
 
 
-def _snapshot_model(envelope: RuntimeSnapshotEnvelope) -> RuntimeSnapshotEnvelopeModel:
+def published_snapshot_payload(envelope: RuntimeSnapshotEnvelope) -> dict[str, Any]:
+    """Return the JSON payload the ``/snapshot`` route publishes for ``envelope``.
+
+    Account-placement credential bindings are redacted to their value-free form.
+    Target conformance validates this payload, so it checks what clients read.
+    """
+
     snapshot = envelope.snapshot
     payload = {
         "materialization_attestations": [
@@ -285,4 +291,8 @@ def _snapshot_model(envelope: RuntimeSnapshotEnvelope) -> RuntimeSnapshotEnvelop
         entry_payload = entry["payload"]
         if account_placement_has_credential_bindings(entry_payload):
             entry["payload"] = value_free_account_placement_payload(entry_payload)
-    return RuntimeSnapshotEnvelopeModel.model_validate(payload)
+    return payload
+
+
+def _snapshot_model(envelope: RuntimeSnapshotEnvelope) -> RuntimeSnapshotEnvelopeModel:
+    return RuntimeSnapshotEnvelopeModel.model_validate(published_snapshot_payload(envelope))

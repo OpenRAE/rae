@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from typing import Any
 
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.manifest_authority import PARTICIPANT_RUNTIME_POLICY_FEATURES
@@ -12,11 +11,12 @@ from raes_contracts.participant_episode import (
     iter_participant_episode_snapshot_violations,
 )
 from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
-from raes_contracts.runtime_state import RuntimeSnapshot, RuntimeSnapshotEnvelope
+from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 from raes_processor.models import ExecutionPlan
 from raes_processor.reference import ScenarioInput
 from raes_runtime.control_plane import RuntimeControlPlane
+from raes_runtime.control_plane_api_models import published_snapshot_payload
 from raes_runtime.registry import RuntimeTarget
 
 from raes_conformance.conformance.diagnostics import (
@@ -281,72 +281,22 @@ def _provisioning_probe_case(
     )
 
 
-def _hermetic_snapshot_payload(control_plane: RuntimeControlPlane) -> dict[str, Any]:
-    """Serialize the hermetic control-plane snapshot to its portable envelope shape."""
-
-    return {
-        "schema_version": RuntimeSnapshotEnvelope().schema_version,
-        "entries": {
-            address: {
-                "address": entry.address,
-                "domain": entry.domain.value,
-                "resource_type": entry.resource_type,
-                "payload": dict(entry.payload),
-                "ordering_dependencies": list(entry.ordering_dependencies),
-                "refresh_dependencies": list(entry.refresh_dependencies),
-                "status": entry.status,
-            }
-            for address, entry in control_plane.snapshot.entries.items()
-        },
-        "orchestration_results": dict(control_plane.snapshot.orchestration_results),
-        "orchestration_history": dict(control_plane.snapshot.orchestration_history),
-        "evaluation_results": dict(control_plane.snapshot.evaluation_results),
-        "evaluation_history": dict(control_plane.snapshot.evaluation_history),
-        "participant_episode_results": dict(control_plane.snapshot.participant_episode_results),
-        "participant_episode_history": {
-            participant_address: list(events)
-            for participant_address, events in control_plane.snapshot.participant_episode_history.items()
-        },
-        "participant_behavior_history": {
-            participant_address: list(events)
-            for participant_address, events in control_plane.snapshot.participant_behavior_history.items()
-        },
-        "participant_control_history": {
-            participant_address: list(events)
-            for participant_address, events in control_plane.snapshot.participant_control_history.items()
-        },
-        "participant_autonomous_execution_states": dict(control_plane.snapshot.participant_autonomous_execution_states),
-        "participant_execution_services": dict(control_plane.snapshot.participant_execution_services),
-        "shared_state_records": dict(control_plane.snapshot.shared_state_records),
-        "shared_state_history": {
-            state_address: list(records)
-            for state_address, records in control_plane.snapshot.shared_state_history.items()
-        },
-        "joint_action_records": dict(control_plane.snapshot.joint_action_records),
-        "time_management_contexts": dict(control_plane.snapshot.time_management_contexts),
-        "time_model_state": (
-            control_plane.snapshot.time_model_state.model_dump(mode="json")
-            if control_plane.snapshot.time_model_state is not None
-            else None
-        ),
-        "metadata": dict(control_plane.snapshot.metadata),
-    }
-
-
 def _hermetic_snapshot_case(control_plane: RuntimeControlPlane) -> ConformanceCaseResult:
     """Validate the post-provisioning snapshot and prove it was mutated.
 
-    Runs the ``runtime-snapshot-v1`` schema + semantic checks on the hermetic
-    snapshot and additionally requires at least one provisioning-domain entry
-    (issue #606), so a target cannot pass with a schema-valid but empty
+    Runs the ``runtime-snapshot-v1`` schema + semantic checks on the payload the
+    control plane's ``/snapshot`` route publishes (issue #1551), including the
+    realization envelope and realization provenance. Semantic checks run only on a
+    schema-valid payload, because they would raise on an invalid one instead of
+    reporting a diagnostic. The case also requires at least one provisioning-domain
+    entry (issue #606), so a target cannot pass with a schema-valid but empty
     (unmutated) snapshot.
     """
 
-    snapshot_payload = _hermetic_snapshot_payload(control_plane)
-    diagnostics = [
-        *_validate_payload("runtime-snapshot-v1", snapshot_payload),
-        *_semantic_diagnostics("runtime-snapshot-v1", snapshot_payload),
-    ]
+    snapshot_payload = published_snapshot_payload(control_plane.get_snapshot())
+    diagnostics = _validate_payload("runtime-snapshot-v1", snapshot_payload)
+    if not diagnostics:
+        diagnostics = _semantic_diagnostics("runtime-snapshot-v1", snapshot_payload)
     has_provisioning_entry = any(
         entry.domain == RuntimeDomain.PROVISIONING for entry in control_plane.snapshot.entries.values()
     )
