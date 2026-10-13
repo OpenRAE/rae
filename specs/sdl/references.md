@@ -103,6 +103,24 @@ violated.
 All reference failures in a document are reported together in a single
 validation pass rather than one-at-a-time ([diagnostics.md](diagnostics.md)).
 
+Compilation binds each `behavior_specifications.*.authority_scope_refs[]` value
+to the declaration that semantic validation resolved for it, and does not
+resolve the authored spelling again. A node, infrastructure entry, named node
+service, content entry or item, account, feature, condition, action contract,
+observation boundary, or behavior specification contributes its compiled
+runtime address to the behavior's `authority_scope_addresses` and to its
+refresh dependencies. Every other declaration that an authority scope can
+name constrains only the semantic record. Examples are agents, entities,
+relationships, propositions, assertions, narrative entries, identity and
+tenancy records, persistent volumes, generated artifacts, ACLs,
+runtime-inventory records, forwarding agents, participant inject deliveries,
+and variation points. Such a reference stays in `authority_scope_refs` and
+contributes no runtime address to the authority scope and no dependency. A
+value that does not resolve to exactly one declaration at compilation is the
+error diagnostic
+`participant.behavior-specification-authority-scope-ref-unbound`; the compiler
+never drops it silently.
+
 ## 5. Cross-section reference edge catalog
 
 Each row is a reference edge: a source section's field names a target. Unless

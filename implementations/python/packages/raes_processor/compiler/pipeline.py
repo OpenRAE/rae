@@ -148,7 +148,9 @@ def _compiled_behavior_parts(
         "observation_boundaries": _compile_observation_boundaries(scenario),
         "outcome_interpretation_rules": _compile_outcome_interpretation_rules(scenario),
         "participant_behaviors": _compile_participant_behaviors(scenario, diagnostics),
-        "behavior_specifications": _compile_behavior_specifications(scenario, diagnostics),
+        "behavior_specifications": _compile_behavior_specifications(
+            scenario, diagnostics, declaration_index=declaration_index
+        ),
         "tool_affordances": _compile_tool_affordances(scenario, diagnostics),
         "participant_inject_deliveries": _compile_participant_inject_deliveries(scenario),
         "events": _compile_events(
