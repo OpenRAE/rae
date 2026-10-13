@@ -68,8 +68,11 @@ The [participant semantic coverage matrix](semantic-coverage.md) (issue #219)
 indexes this document and its focused specifications. It has clause rows for
 the design commitments of SEM-208, SEM-209, SEM-210, SEM-212, SEM-213, and
 SEM-215, the SEM-211 precondition, effect, and failure groups, and invariants
-I1 to I18. Every other `SEM-…` section has one family row, and every focused
-specification is named by at least one family row. SEM-219, SEM-220, and
+I1 to I18. Every other `SEM-…` section has one family row, as does each of
+the five requirement families whose focused specifications have no section
+here. Family rows follow requirement families, not files: a row can name
+several focused specifications, and every focused specification is named by
+at least one family row. SEM-219, SEM-220, and
 SEM-226 share a family row that points to the ADR-083 §7
 source-to-contract-to-test matrix in this document instead of restating it.
 The matrix also has clause rows for the behavior model's invariants PBM-01 to

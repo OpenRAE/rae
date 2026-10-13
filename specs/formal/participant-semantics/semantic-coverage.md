@@ -29,13 +29,18 @@ clause is a review judgment.
   invariants PBM-01 to PBM-12. Clause IDs such as `SEM-208.C1` exist only here
   and follow bullet order. The normative bullets are not renumbered.
 - **Family rows** (`.F`). One row for each `## SEM-…` README section without
-  clause rows. SEM-219, SEM-220, and SEM-226 share one joint row, which points to
+  clause rows, and one for each focused-specification requirement family with
+  no README section (SEM-234, SEM-235, ACT-617, ACT-618, and DSL-437), for 13
+  rows. SEM-219, SEM-220, and SEM-226 share one joint row, which points to
   the README's ADR-083 §7 "Source-to-contract-to-test matrix" instead of
-  restating it, so no clause has two clause matrices. Every focused
-  specification (every top-level `*.md` in this directory other than `README.md`
-  and this file) is named in the normative location of at least one family row,
-  and every UID in the README's declared scope list appears in at least one
-  row's requirement cell.
+  restating it, so no clause has two clause matrices. Rows follow requirement
+  families, not files. Every focused specification (every top-level `*.md` in
+  this directory other than `README.md` and this file) is named in the
+  normative location of at least one family row, and one row can name several:
+  `SEM-232.F` names two, `SEM-235.F` names three, and
+  `ifc-profile-variability.md` appears in both `SEM-233-ASR-536.F` and
+  `SEM-235.F`. Every UID in the README's declared scope list appears in at
+  least one row's requirement cell.
 - **Participant-runtime rows.** PRT-07, PRT-09, and PRT-10 of the runtime
   design's "V1 Traceability Criteria Matrix" (visibility, shared state, and
   concurrency/time), with that design's declared scope as requirements.
