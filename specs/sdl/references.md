@@ -263,14 +263,17 @@ occurrence/result and, for direction/intervention, its accepted control
 application. These are versioned adoption obligations, not new source fields
 or permission to weaken the legacy reference rows below.
 
-Mixed-control and participant-inject rows in this index describe the current
-fixed-coordinate SDL fields. The
-[reusable semantic amendment](../formal/participant-semantics/reusable-mixed-control.md)
-requires a separate permission reference and exact occurrence-context join,
-acting-source controller authority, independent control/disclosure policy pins
-and typed order/time coordinates. These are adopted only through the explicit
-[producer/reader boundary](../../docs/migration/reusable-mixed-control.md), not
-by reinterpreting these existing reference rows or accepting undeclared fields.
+The `mixed_control.transitions` rows and the flat `control_*` delivery rows in
+this index describe the legacy fixed-coordinate fields, which keep their
+original meaning. The `controller_states` rows cover both forms. The
+`mixed_control.permitted_transitions`, `mixed_control.script_steps` and nested
+delivery `control` rows describe the reusable form of the
+[semantic amendment](../formal/participant-semantics/reusable-mixed-control.md),
+selected only by `semantics: mixed-control-policy-occurrence/rev1`. Each of
+those refs names a reusable permission. The join from a delivery to one exact
+accepted control occurrence is an API-409 owner check, not an SDL reference
+edge. The [producer/reader boundary](../../docs/migration/reusable-mixed-control.md)
+keeps the two forms apart.
 
 This index gives every cross-section or cross-declaration authoring reference a
 stable candidate-domain token. Registered node-runtime inventories and their
@@ -407,6 +410,10 @@ the source of the row's normative meaning.
 | `behavior_specifications.*.participant_inject_deliveries.*.controller_ref` | `agents` | semantic validation | fatal disagreement with the selected control-transition target controller | [participant semantics](../formal/participant-semantics/README.md) | [participant-inject delivery validator](../../implementations/python/packages/raes/validator/_participant_inject_deliveries.py) |
 | `behavior_specifications.*.participant_inject_deliveries.*.control_authority_scope_refs[]` | `targetable` | semantic validation | fatal dangling, ambiguous, or disagreement with the selected target-state scope | [participant semantics](../formal/participant-semantics/README.md) | [participant-inject delivery validator](../../implementations/python/packages/raes/validator/_participant_inject_deliveries.py) |
 | `behavior_specifications.*.participant_inject_deliveries.*.control_evidence_refs[]` | `targetable` | semantic validation | fatal dangling, control disagreement, or absent evidence-requirement coverage | [participant semantics](../formal/participant-semantics/README.md) | [participant-inject delivery validator](../../implementations/python/packages/raes/validator/_participant_inject_deliveries.py) |
+| `behavior_specifications.*.participant_inject_deliveries.*.control.permitted_transition_ref` | `derived:mixed_control_local_ids` | semantic validation | fatal dangling, wrong-kind, or cross-form binding | [participant semantics](../formal/participant-semantics/README.md) | [delivery-control validator](../../implementations/python/packages/raes/validator/_participant_inject_delivery_control.py) |
+| `behavior_specifications.*.participant_inject_deliveries.*.control.controller_ref` | `agents` | semantic validation | fatal unless the permitted transition's source-state controller | [participant semantics](../formal/participant-semantics/README.md) | [delivery-control validator](../../implementations/python/packages/raes/validator/_participant_inject_delivery_control.py) |
+| `behavior_specifications.*.participant_inject_deliveries.*.control.authority_scope_refs[]` | `targetable` | semantic validation | fatal dangling, ambiguous, or widening the source-state scope | [participant semantics](../formal/participant-semantics/README.md) | [delivery-control validator](../../implementations/python/packages/raes/validator/_participant_inject_delivery_control.py) |
+| `behavior_specifications.*.participant_inject_deliveries.*.control.evidence_refs[]` | `targetable` | semantic validation | fatal outside the transition and source-state evidence, or absent evidence-requirement coverage | [participant semantics](../formal/participant-semantics/README.md) | [delivery-control validator](../../implementations/python/packages/raes/validator/_participant_inject_delivery_control.py) |
 | `behavior_specifications.*.behavior_mode` | `vocabulary:behavior_mode` | structural validation | fatal invalid vocabulary value | [behavior model](../formal/participant-behavior-model/README.md) | [behavior model](../../implementations/python/packages/raes/participant_behavior/__init__.py) |
 | `behavior_specifications.*.mixed_control.participant_ref` | `agents` | semantic validation | fatal unless owned by the enclosing behavior specification | [behavior model](../formal/participant-behavior-model/README.md) | [behavior validator](../../implementations/python/packages/raes/validator/_mixed_control.py) |
 | `behavior_specifications.*.mixed_control.controller_states.*.controller_ref` | `agents-or-self` | semantic validation | fatal operator/role/identity impersonation or dangling agent | [behavior model](../formal/participant-behavior-model/README.md) | [behavior validator](../../implementations/python/packages/raes/validator/_mixed_control.py) |
@@ -428,6 +435,12 @@ the source of the row's normative meaning.
 | `behavior_specifications.*.mixed_control.transitions.*.proposal_ref` | `derived:mixed_control_local_ids` | structural and semantic validation | fatal dangling, stale, reversed, or ambiguously ordered local ref | [behavior model](../formal/participant-behavior-model/README.md) | [behavior model](../../implementations/python/packages/raes/participant_behavior_specification.py) |
 | `behavior_specifications.*.mixed_control.transitions.*.evidence_refs[]` | `declared` | semantic validation | fatal dangling, ambiguous, or silent handoff | [behavior model](../formal/participant-behavior-model/README.md) | [behavior validator](../../implementations/python/packages/raes/validator/_mixed_control.py) |
 | `behavior_specifications.*.mixed_control.transitions.*.completion_evidence_refs[]` | `declared` | semantic validation | fatal dangling, ambiguous, or silent handoff | [behavior model](../formal/participant-behavior-model/README.md) | [behavior validator](../../implementations/python/packages/raes/validator/_mixed_control.py) |
+| `behavior_specifications.*.mixed_control.permitted_transitions.*.from_state_ref` | `derived:mixed_control_local_ids` | structural and semantic validation | fatal dangling local ref, revoked source, or disjoint window | [behavior model](../formal/participant-behavior-model/README.md) | [behavior model](../../implementations/python/packages/raes/participant_mixed_control_policy.py) |
+| `behavior_specifications.*.mixed_control.permitted_transitions.*.to_state_ref` | `derived:mixed_control_local_ids` | structural and semantic validation | fatal dangling local ref, revoked destination, disjoint window, or controller change outside a handoff | [behavior model](../formal/participant-behavior-model/README.md) | [behavior model](../../implementations/python/packages/raes/participant_mixed_control_policy.py) |
+| `behavior_specifications.*.mixed_control.permitted_transitions.*.evidence_refs[]` | `declared` | semantic validation | fatal dangling or ambiguous | [behavior model](../formal/participant-behavior-model/README.md) | [reusable-policy validator](../../implementations/python/packages/raes/validator/_mixed_control_policy.py) |
+| `behavior_specifications.*.mixed_control.permitted_transitions.*.completion_evidence_refs[]` | `declared` | structural and semantic validation | fatal dangling, ambiguous, or absent on a handoff | [behavior model](../formal/participant-behavior-model/README.md) | [reusable-policy validator](../../implementations/python/packages/raes/validator/_mixed_control_policy.py) |
+| `behavior_specifications.*.mixed_control.script_steps[].permitted_transition_ref` | `derived:mixed_control_local_ids` | structural validation | fatal dangling local ref | [behavior model](../formal/participant-behavior-model/README.md) | [behavior model](../../implementations/python/packages/raes/participant_mixed_control_policy.py) |
+| `behavior_specifications.*.mixed_control.script_steps[].target_step_ref` | `derived:mixed_control_local_ids` | semantic validation | fatal unless an earlier step produces exactly one eligible target | [behavior model](../formal/participant-behavior-model/README.md) | [reusable-policy validator](../../implementations/python/packages/raes/validator/_mixed_control_policy.py) |
 | `behavior_specifications.*.realization_profile_ref` | `opaque:realization_profile` | structural validation | fatal invalid reference shape; resolution belongs to realization | [behavior model](../formal/participant-behavior-model/README.md) | [behavior model](../../implementations/python/packages/raes/participant_behavior/__init__.py) |
 | `behavior_specifications.*.backend_feature_support_refs[]` | `registry:behavior_features` | semantic validation | fatal unsupported feature identifier | [behavior model](../formal/participant-behavior-model/README.md) | [behavior semantics](../../implementations/python/packages/raes/semantics/participant_behavior/__init__.py) |
 | `behavior_specifications.*.evidence_contract_refs[]` | `contract:participant_evidence` | semantic validation | fatal unknown contract identifier | [behavior model](../formal/participant-behavior-model/README.md) | [behavior semantics](../../implementations/python/packages/raes/semantics/participant_behavior/__init__.py) |

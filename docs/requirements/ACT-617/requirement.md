@@ -42,6 +42,10 @@ the legacy fixed-coordinate form; the new bounded tests evidence a design
 projection. Executable adoption and historical readers must meet the
 [migration contract](../../migration/reusable-mixed-control.md).
 
+Issue #1363 adds the rev1 authoring form with its validation, composition,
+compiled children and an explicit finite-script conversion. Planning and
+runtime admission refuse that form, so no executable adoption is claimed.
+
 ## Traceability
 
 - IMPLEMENTS → SPEC `specs/formal/participant-semantics/reusable-mixed-control.md` (Reusable permission/application semantic amendment; not runtime conformance)
@@ -61,3 +65,18 @@ projection. Executable adoption and historical readers must meet the
 - IMPLEMENTS → SPEC `contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json` (Instantiated scenario snapshot mixed-control schema)
 - IMPLEMENTS → SPEC `specs/formal/participant-behavior-model/README.md` (ACT-617 mixed-control participant formal semantics)
 - IMPLEMENTS → GITHUB_ISSUE `251` (Mixed-Control Participant Operation (ACT-617))
+
+- IMPLEMENTS → GITHUB_ISSUE `1363` (Reusable mixed-control authoring; executable adoption not claimed)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/participant_mixed_control_policy.py` (Rev1 reusable-policy and finite-script authoring models)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/participant_mixed_control_vocabulary.py` (Mixed-control vocabulary shared by both forms)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_mixed_control_policy.py` (Rev1 semantic validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/_mixed_control_policy.py` (Rev1 compiled children and occurrence-policy projection)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/models/mixed_control_resources.py` (Compiled rev1 policy children)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/mixed_control_migration.py` (Explicit finite-script conversion)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/mixed_control_admission.py` (Backend-agnostic rev1 planning refusal)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_control_admission.py` (Reference-runtime rev1 admission and construction refusal)
+- DOCUMENTS → DOCUMENTATION `docs/migration/mixed-control-finite-script-conversion.md` (Finite-script conversion record)
+- TESTS → TEST `implementations/python/tests/test_issue_1363_mixed_control_authoring.py` (Rev1 authoring, validation, composition and compiler tests)
+- TESTS → TEST `implementations/python/tests/test_issue_1363_schema_parity.py` (Python and published-schema parity for the rev1 shapes)
+- TESTS → TEST `implementations/python/tests/test_issue_1363_mixed_control_migration.py` (Finite-script conversion and bounded legacy differential)
+- TESTS → TEST `implementations/python/tests/test_issue_1363_delivery_and_admission.py` (Rev1 planning, admission and construction refusals)
