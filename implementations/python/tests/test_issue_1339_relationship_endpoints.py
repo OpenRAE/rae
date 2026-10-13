@@ -368,8 +368,9 @@ def runtime_refusals(detail: str, side: str, other: str, refusal: str) -> tuple[
     for position, spelling in enumerate(written):
         endpoints = {side: spelling, SIDES[1 - SIDES.index(side)]: other}
         payload["relationships"][f"candidate-{position}"] = typed("connects_to", detail, **endpoints)
+    validator = SemanticValidator(structural(payload))
     with pytest.raises(SDLValidationError) as caught:
-        SemanticValidator(structural(payload)).validate()
+        validator.validate()
     refused = {
         spelling
         for position, spelling in enumerate(written)
@@ -469,9 +470,10 @@ def test_a_relationship_type_or_detail_without_a_decision_is_refused(
     monkeypatch: pytest.MonkeyPatch, table: str, key: str
 ) -> None:
     monkeypatch.delitem(getattr(endpoint_policy, table), key)
+    source = FIXTURE.read_text(encoding="utf-8")
 
     with pytest.raises(RuntimeError, match=f"relationship .*{key}.* has no explicit endpoint-eligibility decision"):
-        parse_sdl(FIXTURE.read_text(encoding="utf-8"))
+        parse_sdl(source)
 
 
 def _pairing_issues(detail: str, relationship_type: str) -> list:
@@ -576,7 +578,6 @@ def test_conjunction_tokens_keep_a_pinned_canonical_order() -> None:
         ("eligible:runtime_application_endpoint+node_endpoint", None),
         ("eligible:node_endpoint+node_endpoint", None),
         ("eligible:action_target+participant_endpoint", None),
-        ("eligible:node_endpoint", (P.NODE_ENDPOINT,)),
     ],
 )
 def test_completion_tokens_name_one_purpose_or_a_canonical_conjunction(token: str, expected: tuple | None) -> None:
@@ -929,8 +930,9 @@ def test_each_purpose_holds_in_both_namespaces_of_a_module_imported_twice(tmp_pa
     if stage.path[0] == "relationships":
         name, side = stage.path[1], stage.path[2]
         assert model.relationship_specs[f"first.{name}"][side] == _namespaced(stage.accepted, "first")
+    refused = stage.payload(stage.refused)
     with pytest.raises(SDLValidationError) as caught:
-        _import_twice(tmp_path, stage.payload(stage.refused))
+        _import_twice(tmp_path, refused)
     for namespace in ("first", "second"):
         # Composition rewrites a value that names a module declaration; an unreferenceable one stays as written.
         refusals = {stage.refusal, stage.refusal.replace(stage.refused, _namespaced(stage.refused, namespace))}

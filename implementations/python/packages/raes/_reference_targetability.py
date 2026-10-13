@@ -295,6 +295,12 @@ _SECTION_KINDS: Mapping[str, str] = {
 
 ELIGIBLE_DOMAIN_PREFIX = "eligible:"
 OPERATING_SCOPE_DOMAIN = "derived:operating_scope"
+# Purposes whose catalog token is not ``eligible:<purpose>``.
+_PLAIN_DOMAINS: Mapping[ReferencePurpose, str] = {
+    _P.DECLARED: _P.DECLARED.value,
+    _P.TARGETABLE: _P.TARGETABLE.value,
+    _P.OPERATING_SCOPE: OPERATING_SCOPE_DOMAIN,
+}
 _ORDER: Mapping[ReferencePurpose, int] = {purpose: position for position, purpose in enumerate(ReferencePurpose)}
 
 
@@ -376,14 +382,9 @@ def reference_domain(purposes: ReferencePurpose | tuple[ReferencePurpose, ...]) 
     """Return the candidate-domain token for a purpose, or ``eligible:<p1>+<p2>`` for a conjunction."""
 
     members = canonical_purposes(purposes)
-    if len(members) > 1:
-        return ELIGIBLE_DOMAIN_PREFIX + "+".join(member.value for member in members)
-    (purpose,) = members
-    if purpose in {_P.DECLARED, _P.TARGETABLE}:
-        return purpose.value
-    if purpose is _P.OPERATING_SCOPE:
-        return OPERATING_SCOPE_DOMAIN
-    return f"{ELIGIBLE_DOMAIN_PREFIX}{purpose.value}"
+    if len(members) == 1 and members[0] in _PLAIN_DOMAINS:
+        return _PLAIN_DOMAINS[members[0]]
+    return ELIGIBLE_DOMAIN_PREFIX + "+".join(member.value for member in members)
 
 
 # "any" is the legacy completion token for every declared reference.
@@ -407,10 +408,15 @@ def purposes_for_domain(domain: str) -> tuple[ReferencePurpose, ...] | None:
         return (purpose,)
     names = domain.removeprefix(ELIGIBLE_DOMAIN_PREFIX).split("+") if domain.startswith(ELIGIBLE_DOMAIN_PREFIX) else []
     members = [_PURPOSES_BY_DOMAIN.get(f"{ELIGIBLE_DOMAIN_PREFIX}{name}") for name in names]
-    if len(members) < 2 or None in members:
+    return _canonical_or_none(members) if len(members) > 1 else None
+
+
+def _canonical_or_none(members: list[ReferencePurpose | None]) -> tuple[ReferencePurpose, ...] | None:
+    known = tuple(member for member in members if member is not None)
+    if len(known) != len(members):
         return None
     try:
-        return canonical_purposes(member for member in members if member is not None)
+        return canonical_purposes(known)
     except ValueError:
         return None
 

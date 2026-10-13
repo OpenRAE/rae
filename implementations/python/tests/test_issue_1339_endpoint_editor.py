@@ -46,8 +46,9 @@ def _occurrences(payload: dict, symbol: str) -> set[str]:
 
 
 def _errors(payload: dict) -> list[str]:
+    source = yaml.safe_dump(payload, sort_keys=False)
     with pytest.raises(SDLValidationError) as caught:
-        parse_sdl(yaml.safe_dump(payload, sort_keys=False))
+        parse_sdl(source)
     return caught.value.errors
 
 
@@ -283,10 +284,8 @@ def test_ambiguity_is_judged_among_the_declarations_the_editor_index_holds() -> 
     complete_labels = _labels(complete, "/relationships/r/target")
     broken_labels = _labels(broken, "/relationships/r/target")
 
-    with pytest.raises(SDLValidationError) as caught:
-        parse_sdl(yaml.safe_dump(complete))
     assert "Relationship 'r' target 'alpha' is ambiguous; use one of: content.docs.items.alpha, nodes.alpha" in (
-        caught.value.errors
+        _errors(complete)
     )
     for symbol in ("nodes.alpha", "content.docs.items.alpha"):
         assert "/relationships/r/target" not in _occurrences(complete, symbol)
