@@ -34,8 +34,10 @@ _OFFSET_RULE = "must be an ISO 8601 date-time with an explicit UTC offset"
     ],
 )
 def test_admission_rejects_requested_at_without_an_offset(requested_at: object) -> None:
+    request = _host_request()
+
     with pytest.raises(ValueError, match=f"^requested_at {_OFFSET_RULE}$") as raised:
-        _admission(_host_request(), requested_at=requested_at)  # type: ignore[arg-type]
+        _admission(request, requested_at=requested_at)  # type: ignore[arg-type]
 
     assert str(requested_at) not in str(raised.value)
     assert raised.value.__context__ is None or raised.value.__suppress_context__
