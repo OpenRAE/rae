@@ -196,6 +196,9 @@ module_boundaries:
           - raes_processor.reference
         raes_runtime:
           - raes_runtime.control_plane
+          # Issue #1551: target-snapshot validates the /snapshot route's own
+          # published payload (published_snapshot_payload) only.
+          - raes_runtime.control_plane_api_models
           - raes_runtime.registry
           - raes_runtime.result_contracts
     - id: raes_cli

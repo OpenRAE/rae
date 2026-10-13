@@ -272,6 +272,13 @@ Native and guest certification require the stronger observation gates tracked
 by issues #715-#717. The probe needs a scenario to exercise and defaults to a
 generic linux-vm scenario (`_DEFAULT_CONFORMANCE_SCENARIO`).
 
+The `target-snapshot` case validates the payload that the control plane's
+`/snapshot` route publishes, built by the same serializer (issue #1551). That
+payload includes the realization envelope identity and the realization
+provenance, so an invalid published carrier fails the case with
+`conformance.schema-invalid`. Semantic checks run only after the schema check
+passes.
+
 A single hard-coded scenario wrongly assumes *every* backend can realize it.
 Fixed-topology emulation backends (which map RAES nodes onto a pre-built
 environment) and bounded simulation backends legitimately cannot realize an
