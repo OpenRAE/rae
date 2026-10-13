@@ -8,11 +8,12 @@ Provides ``parse_sdl()`` as the primary entry point. Handles:
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, Unpack
 
 from pydantic import ValidationError
 
 from ._base import contains_variable_token, is_variable_ref
+from ._composition_budget import ParsePrivateOptions
 from ._errors import (
     SDLParseDiagnostic,
     SDLParseError,
@@ -338,6 +339,7 @@ def parse_sdl(
     source_format: str = SDL_SOURCE_FORMAT,
     migration_policy: SDLMigrationPolicy | str = SDLMigrationPolicy.REJECT,
     limits: SDLParserLimits = DEFAULT_PARSER_LIMITS,
+    **private_options: Unpack[ParsePrivateOptions],
 ) -> Scenario | ExpandedScenario | MaterializedScenario:
     """Parse SDL YAML into a normalized or expanded authoring object.
 
@@ -399,6 +401,7 @@ def parse_sdl(
             migration_policy=migration_policy,
             limits=limits,
             source_diagnostics=source_diagnostics,
+            _traversal=private_options.get("_traversal"),
         )
         scenario_cls = ExpandedScenario
     else:

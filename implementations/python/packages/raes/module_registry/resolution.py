@@ -187,14 +187,7 @@ def _resolve_locked_import(
     lockfile = context.lockfile
     if lockfile is None:
         raise SDLParseError(f"Locked import '{source}' requires {LOCKFILE_NAME}")
-    record = next(
-        (
-            candidate
-            for candidate in lockfile.imports
-            if candidate.resolved_source == locked_ref or candidate.source == locked_ref
-        ),
-        None,
-    )
+    record = lockfile.locked_record(locked_ref)
     if record is None:
         raise SDLParseError(f"Locked import '{source}' is not present in {LOCKFILE_NAME}")
     delegated = ImportDecl(

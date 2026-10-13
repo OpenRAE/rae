@@ -233,6 +233,20 @@ def _expansion_context(options: _ExpansionPrivateOptions) -> _ExpansionContext:
     )
 
 
+def _refuse_registry_import(import_decl: ImportDecl, lockfile: Lockfile | None, *, path: Path) -> None:
+    """Refuse a registry import in editor path mode, which resolves local sources only and fetches nothing."""
+
+    source = import_decl.normalized_source
+    locked = (
+        lockfile.locked_record(source.removeprefix("locked:")) if lockfile and source.startswith("locked:") else None
+    )
+    if source.startswith("oci:") or (locked is not None and locked.source.startswith("oci:")):
+        raise SDLParseError(
+            f"Registry import '{source}' is not resolved in editor path mode; validate with parse_sdl_file()",
+            path=path,
+        )
+
+
 def _expand_one_import(
     raw_import: object,
     merged: dict[str, Any],
@@ -255,6 +269,8 @@ def _expand_one_import(
             "Import namespaces may not contain the reserved '__private' segment",
             path=context.path,
         )
+    if context.child_traversal.local_sources_only:
+        _refuse_registry_import(import_decl, context.lockfile, path=context.path)
     resolved_import = resolve_import(
         import_decl,
         base_dir=context.resolved_path.parent,
@@ -390,6 +406,9 @@ def expand_sdl_modules(
     if expansion_context.verified_sources is None:
         lockfile = load_lockfile(resolved_path.parent)
         trust_policy = load_trust_policy(resolved_path.parent)
+        if traversal.local_sources_only:
+            # Editor path mode never fetches, so workspace trust cannot authorize a registry request.
+            trust_policy = trust_policy.model_copy(update={"registries": {}})
     else:
         lockfile = expansion_context.inherited_lockfile
         trust_policy = (

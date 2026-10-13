@@ -9,20 +9,23 @@ share one implementation.
 from __future__ import annotations
 
 from collections.abc import Iterable
+from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import ValidationError
 
-from ._base import is_variable_ref, normalize_enum_value
-from ._declarations import (
-    Declaration,
-    DeclarationIndex,
-    build_declaration_index,
-    operating_scope_aliases,
-    preferred_spelling,
-)
+from ._base import is_variable_ref
+from ._composition_budget import CompositionTraversal
+from ._declarations import DeclarationIndex, preferred_spelling
 from ._errors import SDLParseError, SDLValidationError
+from ._language_context import (
+    SECTION_FIELDS,
+    PurposeResolver,
+    document_context,
+    endpoint_purposes,
+    load_completion_data,
+    reference_context,
+)
 from ._language_diagnostics import diagnostic as _diagnostic
 from ._language_diagnostics import invalid as _invalid
 from ._language_diagnostics import parse_error as _parse_error
@@ -33,26 +36,15 @@ from ._language_metadata import (
     SECTION_FIELD_COMPLETIONS,
     VARIATION_SLOT_TARGETS,
 )
-from ._language_references import PurposeResolver, find_references
-from ._reference_targetability import (
-    ReferencePurpose,
-    is_eligible,
-    purpose_for_domain,
-    reference_domain,
-    relationship_endpoint_purpose,
-    section_declaration_kind,
-)
+from ._language_references import find_references
+from ._reference_targetability import ReferencePurpose, purposes_for_domain, reference_domain
+from ._relationship_endpoint_policy import relationship_endpoint_purposes
+from ._source_profile import DEFAULT_PARSER_LIMITS
 from .formatting import format_sdl_source
 from .parser import _load_normalized_data, parse_sdl
-from .scenario import Scenario
+from .scenario import Scenario, ScenarioContent
 
 _MAX_INPUT_BYTES = 64 * 1024
-_SCENARIO_METADATA_FIELDS = frozenset(
-    {"name", "version", "description", "semantic_revision", "module", "imports", "realization"}
-)
-_SECTION_FIELDS = tuple(field for field in Scenario.model_fields if field not in _SCENARIO_METADATA_FIELDS)
-# Infrastructure keys mirror node names, so the declaration index gives them no bare alias.
-_QUALIFIED_ONLY_SECTIONS = frozenset({"infrastructure"})
 _SUCCESS_COMPLETION_TARGETS = {"conditions": "conditions"}
 # Participant-relationship refinements that validation keeps within what endpoints hold:
 # field -> (endpoint fields, participant field, purpose of that participant field).
@@ -68,17 +60,22 @@ def language_completions(
     *,
     cursor_path: str = "",
     prefix: str = "",
+    path: Path | None = None,
 ) -> dict[str, Any]:
-    """Return completion items for a JSON-pointer-like SDL location."""
+    """Return completion items for a JSON-pointer-like SDL location.
+
+    With *path*, local imports resolve first, as in ``parse_sdl_file()``, so imported
+    declarations are offered under their namespaces; registry imports are not fetched.
+    """
     size_error = _size_error(sdl_content)
     if size_error is not None:
         return size_error
 
-    data, error = _load_completion_data(sdl_content)
+    data, error = load_completion_data(sdl_content)
     if error is not None:
         return error
-    scenario = _scenario_from_data(data)
-    declaration_index = None if scenario is None else build_declaration_index(scenario, raise_on_collision=False)
+    document = document_context(data, path)
+    data = document.data
 
     pointer = _split_pointer_or_empty(cursor_path)
     target_section = _completion_target_section(pointer, data)
@@ -87,9 +84,9 @@ def language_completions(
             data,
             target_section,
             pointer=pointer,
-            scenario=scenario,
-            declaration_index=declaration_index,
-            resolver=_purpose_resolver(data, scenario, declaration_index),
+            scenario=document.scenario,
+            declaration_index=document.declaration_index,
+            resolver=document.resolver,
         )
         context = f"reference:{target_section}"
     elif len(pointer) == 1 and pointer[0] in SECTION_FIELD_COMPLETIONS:
@@ -135,82 +132,41 @@ def language_completions(
     return {"status": "ok", "context": context, "items": filtered}
 
 
-def language_references(sdl_content: str, symbol: str) -> dict[str, Any]:
-    """Return definition and occurrence locations for an SDL symbol."""
+def language_references(sdl_content: str, symbol: str, *, path: Path | None = None) -> dict[str, Any]:
+    """Return definition and occurrence locations for an SDL symbol.
+
+    With *path*, local imports resolve first, so a root value is an occurrence of an
+    imported declaration when it resolves to exactly that declaration.
+    """
     size_error = _size_error(sdl_content)
     if size_error is not None:
         return size_error
 
-    declaration_index, resolver = _reference_context(sdl_content)
+    document = reference_context(sdl_content, path)
     return find_references(
         sdl_content,
         symbol,
-        section_fields=_SECTION_FIELDS,
-        declaration_index=declaration_index,
-        resolver=resolver,
+        section_fields=SECTION_FIELDS,
+        declaration_index=None if document is None else document.declaration_index,
+        resolver=None if document is None else document.resolver,
+        endpoint_purposes={} if document is None else endpoint_purposes(document.data),
     )
 
 
-def _reference_context(sdl_content: str) -> tuple[DeclarationIndex | None, PurposeResolver | None]:
-    """Return the authoritative index of a complete structural document and the resolver its fields use."""
-
-    try:
-        data = _load_normalized_data(sdl_content)
-    except SDLParseError:
-        return None, None
-    scenario = _scenario_from_data(data)
-    declaration_index = None if scenario is None else build_declaration_index(scenario, raise_on_collision=False)
-    return declaration_index, _purpose_resolver(data, scenario, declaration_index)
-
-
-def _scenario_from_data(data: dict[str, Any]) -> Scenario | None:
-    try:
-        return Scenario.model_validate(data)
-    except ValidationError:
-        return None
-
-
-def _purpose_resolver(
-    data: dict[str, Any], scenario: Scenario | None, declaration_index: DeclarationIndex | None
-) -> PurposeResolver:
-    """Resolve references as validation does; an incomplete document resolves among its top-level entries."""
-
-    if scenario is None or declaration_index is None:
-        # Node types, and so operating scopes, are known only for a structurally valid document.
-        return PurposeResolver(_entry_index(data), {})
-    return PurposeResolver(declaration_index, operating_scope_aliases(declaration_index, scenario))
-
-
-def _entry_index(data: dict[str, Any]) -> DeclarationIndex:
-    """Index the top-level entries of a document that does not validate yet, with their bare aliases."""
-
-    index = DeclarationIndex()
-    for section in _SECTION_FIELDS:
-        kind = section_declaration_kind(section)
-        entries = data.get(section)
-        if not is_eligible(kind, ReferencePurpose.DECLARED) or not isinstance(entries, dict):
-            continue
-        for name in entries:
-            address = f"{section}.{name}"
-            aliases = () if section in _QUALIFIED_ONLY_SECTIONS else (str(name),)
-            index.add(Declaration(kind=kind, address=address, model_path=address), aliases=aliases)
-    return index
-
-
-def language_format(sdl_content: str) -> dict[str, Any]:
+def language_format(sdl_content: str, *, path: Path | None = None) -> dict[str, Any]:
     """Migrate recognized legacy spellings and return canonical SDL YAML."""
     size_error = _size_error(sdl_content)
     if size_error is not None:
         return size_error
 
     try:
-        result = format_sdl_source(sdl_content)
+        result = format_sdl_source(sdl_content, path=path, _traversal=_local_traversal(path))
     except SDLParseError as exc:
         return _parse_error(exc)
 
     formatted = result.content
     diagnostics = [item.as_dict() for item in result.diagnostics]
-    diagnostics.extend(language_diagnostics(formatted)["diagnostics"])
+    diagnostics.extend(language_diagnostics(formatted, path=path)["diagnostics"])
     status = "formatted" if not diagnostics else "formatted_with_diagnostics"
     return {"status": status, "content": formatted, "diagnostics": diagnostics}
 
@@ -219,8 +175,13 @@ def language_diagnostics(
     sdl_content: str,
     *,
     semantic_validation: bool = True,
+    path: Path | None = None,
 ) -> dict[str, Any]:
-    """Parse SDL and return structured diagnostics instead of prose."""
+    """Parse SDL and return structured diagnostics instead of prose.
+
+    With *path*, local imports compose as in ``parse_sdl_file()``; a registry import
+    is refused instead of fetched.
+    """
     size_error = _size_error(sdl_content)
     if size_error is not None:
         return size_error
@@ -228,7 +189,9 @@ def language_diagnostics(
     try:
         parse_sdl(
             sdl_content,
+            path=path,
             skip_semantic_validation=not semantic_validation,
+            _traversal=_local_traversal(path),
         )
     except SDLParseError as exc:
         return _parse_error(exc)
@@ -255,6 +218,7 @@ def apply_structured_edit(
     operation: str,
     pointer: str,
     value: Any = None,
+    path: Path | None = None,
 ) -> dict[str, Any]:
     """Apply a structured edit addressed by JSON pointer and revalidate."""
     size_error = _size_error(sdl_content)
@@ -278,18 +242,9 @@ def apply_structured_edit(
         default_flow_style=False,
         sort_keys=False,
     )
-    diagnostics = language_diagnostics(content)["diagnostics"]
+    diagnostics = language_diagnostics(content, path=path)["diagnostics"]
     status = "edited" if not diagnostics else "edited_with_diagnostics"
     return {"status": status, "content": content, "diagnostics": diagnostics}
-
-
-def _load_completion_data(sdl_content: str) -> tuple[dict[str, Any], dict[str, Any] | None]:
-    if not sdl_content.strip():
-        return {}, None
-    try:
-        return _load_normalized_data(sdl_content), None
-    except SDLParseError as exc:
-        return {}, _parse_error(exc)
 
 
 def _completion_target_section(pointer: list[str], data: dict[str, Any]) -> str | None:
@@ -297,7 +252,7 @@ def _completion_target_section(pointer: list[str], data: dict[str, Any]) -> str 
         return None
     target = REFERENCE_COMPLETION_TARGETS.get((pointer[0], pointer[-1]))
     if target == RELATIONSHIP_ENDPOINT_DOMAIN and len(pointer) == 3:
-        target = reference_domain(relationship_endpoint_purpose(_relationship_type(data, pointer[1])))
+        target = reference_domain(relationship_endpoint_purposes(_entry(data, "relationships", pointer[1]), pointer[2]))
     elif pointer[0] == "variation_points" and pointer[-1] in VARIATION_SLOT_TARGETS:
         target = VARIATION_SLOT_TARGETS[pointer[-1]].get(_variation_slot(data, pointer[1]), target)
     elif target is None and len(pointer) >= 4 and pointer[-2] == "success":
@@ -309,16 +264,6 @@ def _entry(data: dict[str, Any], section: str, name: str) -> dict[str, Any]:
     entries = data.get(section)
     entry = entries.get(name) if isinstance(entries, dict) else None
     return entry if isinstance(entry, dict) else {}
-
-
-def _relationship_type(data: dict[str, Any], name: str) -> str:
-    """Return the authored relationship subtype, even in an incomplete document."""
-
-    relationship = _entry(data, "relationships", name)
-    if "participant" in relationship:
-        return "participant"
-    raw_type = relationship.get("type")
-    return normalize_enum_value(raw_type) if isinstance(raw_type, str) else ""
 
 
 def _variation_slot(data: dict[str, Any], name: str) -> str:
@@ -342,13 +287,13 @@ def _reference_completion_items(
     target_section: str,
     *,
     pointer: list[str],
-    scenario: Scenario | None,
+    scenario: ScenarioContent | None,
     declaration_index: DeclarationIndex | None,
     resolver: PurposeResolver,
 ) -> list[dict[str, str]]:
-    purpose = purpose_for_domain(target_section)
-    if purpose is not None:
-        return _purpose_completion_items(purpose, pointer=pointer, scenario=scenario, resolver=resolver)
+    purposes = purposes_for_domain(target_section)
+    if purposes is not None:
+        return _purpose_completion_items(purposes, pointer=pointer, scenario=scenario, resolver=resolver)
     if target_section == "workflow_steps":
         return _workflow_step_completion_items(data)
     section_data = data.get(target_section)
@@ -361,26 +306,27 @@ def _reference_completion_items(
 
 
 def _purpose_completion_items(
-    purpose: ReferencePurpose,
+    purposes: tuple[ReferencePurpose, ...],
     *,
     pointer: list[str],
-    scenario: Scenario | None,
+    scenario: ScenarioContent | None,
     resolver: PurposeResolver,
 ) -> list[dict[str, str]]:
     """Offer one spelling per eligible declaration that the field's resolver maps to exactly that declaration.
 
-    An incomplete document resolves among its top-level entries, so a bare label
-    is offered only when no other entry in the purpose's resolution domain shares it.
+    A declaration must be eligible for every purpose in *purposes*. An incomplete
+    document resolves through its partial index, so a bare label is offered only
+    when no other indexed declaration in the purposes' resolution domain shares it.
     Operating scopes resolve only in a structurally valid document.
     """
 
-    if purpose is ReferencePurpose.OPERATING_SCOPE:
+    if purposes == (ReferencePurpose.OPERATING_SCOPE,):
         aliases = resolver.operating_scope
         addresses = {address for candidates in aliases.values() for address in candidates}
         offered = [(preferred_spelling(aliases, address), address) for address in addresses]
     else:
         offered = [
-            (spelling, declaration.address) for spelling, declaration in resolver.index.reference_completions(purpose)
+            (spelling, declaration.address) for spelling, declaration in resolver.index.reference_completions(purposes)
         ]
     held = _endpoint_held(pointer, scenario, resolver)
     return _sorted_items(
@@ -388,7 +334,7 @@ def _purpose_completion_items(
     )
 
 
-def _endpoint_held(pointer: list[str], scenario: Scenario | None, resolver: PurposeResolver) -> set[str] | None:
+def _endpoint_held(pointer: list[str], scenario: ScenarioContent | None, resolver: PurposeResolver) -> set[str] | None:
     """Return what a participant-relationship refinement may name, as validation requires, or None if unbounded.
 
     An endpoint that does not resolve to one participant, or whose own field is
@@ -412,7 +358,7 @@ def _endpoint_held(pointer: list[str], scenario: Scenario | None, resolver: Purp
     return held
 
 
-def _endpoint_refs(scenario: Scenario, resolver: PurposeResolver, endpoint: str, field: str) -> list[str] | None:
+def _endpoint_refs(scenario: ScenarioContent, resolver: PurposeResolver, endpoint: str, field: str) -> list[str] | None:
     """Return a participant endpoint's own *field* refs, or None when it names no single participant."""
 
     candidates = resolver.resolve(endpoint, ReferencePurpose.PARTICIPANT_ENDPOINT)
@@ -469,6 +415,12 @@ def _split_pointer(pointer: str) -> list[str]:
 
 def _unescape_pointer_token(token: str) -> str:
     return token.replace("~1", "/").replace("~0", "~")
+
+
+def _local_traversal(path: Path | None) -> CompositionTraversal | None:
+    """Start a fresh local-only composition for one path-mode parse; content-only calls compose nothing."""
+
+    return None if path is None else CompositionTraversal.local_root(DEFAULT_PARSER_LIMITS)
 
 
 def _size_error(*values: str) -> dict[str, Any] | None:

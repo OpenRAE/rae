@@ -8,40 +8,16 @@ from typing import Any
 
 from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
 
-from ._base import normalize_enum_value
 from ._declarations import DeclarationIndex
 from ._errors import SDLParseError
 from ._identifiers import QualifiedName
+from ._language_context import EndpointPurposes, PurposeResolver
 from ._language_diagnostics import parse_error as _parse_error
 from ._language_metadata import REFERENCE_COMPLETION_TARGETS, RELATIONSHIP_ENDPOINT_DOMAIN, VARIATION_SLOT_TARGETS
-from ._reference_targetability import (
-    ReferencePurpose,
-    is_eligible,
-    purpose_for_domain,
-    reference_domain,
-    relationship_endpoint_purpose,
-    section_declaration_kind,
-)
+from ._reference_targetability import ReferencePurpose, purposes_for_domain, reference_domain
 from ._yaml_loader import compose_sdl_yaml
 
 _SUCCESS_REFERENCE_TARGETS = frozenset({"assertions"})
-
-
-@dataclass(frozen=True)
-class PurposeResolver:
-    """Resolve one reference value for a purpose, as validation does.
-
-    Operating scope resolves through its derived alias map, and every other
-    purpose through the declaration index.
-    """
-
-    index: DeclarationIndex
-    operating_scope: Mapping[str, set[str]]
-
-    def resolve(self, value: str, purpose: ReferencePurpose) -> set[str]:
-        if purpose is ReferencePurpose.OPERATING_SCOPE:
-            return set(self.operating_scope.get(value, ()))
-        return self.index.resolve_for(value, purpose)
 
 
 @dataclass(frozen=True)
@@ -49,21 +25,22 @@ class _SymbolScope:
     """The reference fields that may name one qualified symbol, per the shared policy."""
 
     section: str
-    kind: str
-    relationship_types: Mapping[str, str]
+    endpoint_purposes: EndpointPurposes
     variation_slots: Mapping[str, str]
     address: str | None = None
     resolver: PurposeResolver | None = None
 
     def admits(self, value: str, target: str | None, spellings: Collection[str]) -> bool:
-        purpose = purpose_for_domain(target) if target is not None else None
-        if purpose is None:
+        purposes = purposes_for_domain(target) if target is not None else None
+        if purposes is None:
             # A section-typed field resolves within its own section.
             return target == self.section and value in spellings
-        if self.resolver is not None and self.address is not None:
-            # An ambiguous or refused value names no declaration, so it is no occurrence of this one.
-            return self.resolver.resolve(value, purpose) == {self.address}
-        return value in spellings and is_eligible(self.kind, purpose)
+        # An ambiguous, refused, or unindexed value names no declaration, so it is no occurrence of this one.
+        return (
+            self.resolver is not None
+            and self.address is not None
+            and self.resolver.resolve(value, purposes) == {self.address}
+        )
 
 
 def find_references(
@@ -73,12 +50,13 @@ def find_references(
     section_fields: Collection[str],
     declaration_index: DeclarationIndex | None = None,
     resolver: PurposeResolver | None = None,
+    endpoint_purposes: EndpointPurposes | None = None,
 ) -> dict[str, Any]:
     """Return definition and occurrence locations for an SDL symbol.
 
-    With a *resolver*, a value in a purpose-bearing field is an occurrence of
-    a qualified symbol only when the resolver resolves it to exactly that
-    declaration.
+    A value in a purpose-bearing field is an occurrence of a qualified symbol
+    only when the *resolver* resolves it to exactly that declaration in its
+    index. *endpoint_purposes* holds each relationship endpoint's purposes.
     """
     if not sdl_content.strip():
         result = {"status": "ok", "symbol": symbol, "definitions": [], "occurrences": []}
@@ -87,7 +65,14 @@ def find_references(
         result = (
             error
             if error is not None
-            else _reference_result(root, symbol, section_fields, declaration_index=declaration_index, resolver=resolver)
+            else _reference_result(
+                root,
+                symbol,
+                section_fields,
+                declaration_index=declaration_index,
+                resolver=resolver,
+                endpoint_purposes=endpoint_purposes or {},
+            )
         )
     return result
 
@@ -99,6 +84,7 @@ def _reference_result(
     *,
     declaration_index: DeclarationIndex | None,
     resolver: PurposeResolver | None,
+    endpoint_purposes: EndpointPurposes,
 ) -> dict[str, Any]:
     if root is None:
         return {"status": "ok", "symbol": symbol, "definitions": [], "occurrences": []}
@@ -110,14 +96,12 @@ def _reference_result(
             if declaration_index.declaration_for(definition["qualified_name"]) is not None
         ]
     occurrences: list[dict[str, Any]] = []
-    spellings = (
-        declaration_index.spellings_for(symbol)
-        if declaration_index is not None
-        else frozenset({symbol, _bare_symbol(symbol)})
-    )
-    if declaration_index is not None and _is_variation_member_symbol(symbol):
+    # Spellings come from the resolver's index, complete or partial, as completion's do.
+    spellings = frozenset({symbol, _bare_symbol(symbol)}) if resolver is None else resolver.index.spellings_for(symbol)
+    if resolver is not None and _is_variation_member_symbol(symbol):
         spellings = frozenset({*spellings, _bare_symbol(symbol)})
-    _collect_occurrences(root, spellings, [], occurrences, scope=_symbol_scope(root, symbol, resolver))
+    scope = _symbol_scope(root, symbol, resolver, endpoint_purposes)
+    _collect_occurrences(root, spellings, [], occurrences, scope=scope)
     return {
         "status": "ok",
         "symbol": symbol,
@@ -126,15 +110,16 @@ def _reference_result(
     }
 
 
-def _symbol_scope(root: Node, symbol: str, resolver: PurposeResolver | None) -> _SymbolScope | None:
+def _symbol_scope(
+    root: Node, symbol: str, resolver: PurposeResolver | None, endpoint_purposes: EndpointPurposes
+) -> _SymbolScope | None:
     section = _qualified_symbol_section(symbol)
     if section is None:
         return None
     declaration = resolver.index.declaration_for(symbol) if resolver is not None else None
     return _SymbolScope(
         section=section,
-        kind=declaration.kind if declaration is not None else section_declaration_kind(section),
-        relationship_types=_relationship_types(root),
+        endpoint_purposes=endpoint_purposes,
         variation_slots=_variation_slots(root),
         address=declaration.address if declaration is not None else None,
         resolver=resolver,
@@ -147,16 +132,6 @@ def _section_entries(root: Node, section: str) -> Iterator[tuple[str, MappingNod
         name = _scalar_value(key_node)
         if name is not None and isinstance(value_node, MappingNode):
             yield name, value_node
-
-
-def _relationship_types(root: Node) -> dict[str, str]:
-    types: dict[str, str] = {}
-    for name, node in _section_entries(root, "relationships"):
-        raw_type = _mapping_child(node, "type")
-        authored = _scalar_value(raw_type) if raw_type is not None else None
-        is_participant = _mapping_child(node, "participant") is not None
-        types[name] = "participant" if is_participant else normalize_enum_value(authored or "")
-    return types
 
 
 def _variation_slots(root: Node) -> dict[str, str]:
@@ -436,7 +411,8 @@ def _reference_target_for_path(path: list[str], *, mapping_key: bool, scope: _Sy
     field = path[-2] if mapping_key or path[-1].isdigit() else path[-1]
     target = REFERENCE_COMPLETION_TARGETS.get((path[0], field))
     if target == RELATIONSHIP_ENDPOINT_DOMAIN and len(path) == 3:
-        target = reference_domain(relationship_endpoint_purpose(scope.relationship_types.get(path[1], "")))
+        purposes = scope.endpoint_purposes.get((path[1], path[2]), (ReferencePurpose.RELATIONSHIP_ENDPOINT,))
+        target = reference_domain(purposes)
     elif path[0] == "variation_points" and field in VARIATION_SLOT_TARGETS:
         target = VARIATION_SLOT_TARGETS[field].get(scope.variation_slots.get(path[1], ""), target)
     return target if target is not None else _implicit_reference_target(path, field)

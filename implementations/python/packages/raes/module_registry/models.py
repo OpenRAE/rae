@@ -54,6 +54,11 @@ class Lockfile(SDLModel):
     schema_version: str = LOCKFILE_SCHEMA_VERSION
     imports: list[LockRecord] = Field(default_factory=list)
 
+    def locked_record(self, locked_ref: str) -> LockRecord | None:
+        """Return the record that a ``locked:<ref>`` import names, by resolved or requested source."""
+
+        return next((record for record in self.imports if locked_ref in {record.resolved_source, record.source}), None)
+
 
 @dataclass(frozen=True)
 class ResolvedModule:
