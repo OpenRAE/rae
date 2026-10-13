@@ -34,9 +34,14 @@ diagnostic that the module gets on its own. Spell it `content.<name>` or rename
 the other declaration. A `tool_ref` that names nothing in the module resolves
 against the complete composed scenario.
 
-These rules cover `tool_ref` only. In other reference families, such as
-`authority_scope_refs`, a bare name that the module gives to two declarations
-still composes and binds one of them without a diagnostic; see
+The paragraph above describes `tool_ref`. A stateful resource's
+`ordering_dependencies` and `refresh_dependencies` have their own check. A bare
+dependency name that the module gives to both a generated artifact and a
+persistent volume fails composition with a "dependency reference ... is
+ambiguous; use one of" diagnostic. Composition renames some other references,
+such as `authority_scope_refs`, through the module's combined name map without
+such a check. There, a bare name that the module gives to two declarations still
+composes and binds one of them without a diagnostic; see
 [#1575](https://github.com/OpenRAE/rae/issues/1575). Reference-typed action
 argument values are neither resolved nor namespaced on import; see
 [#1574](https://github.com/OpenRAE/rae/issues/1574).
