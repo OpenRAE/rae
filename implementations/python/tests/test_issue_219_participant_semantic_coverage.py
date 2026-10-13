@@ -240,7 +240,8 @@ def test_coverage_follows_the_cited_evidence() -> None:
     for row in ROWS:
         cited = [row[column] != DASH for column in ("contract", "implementation", "tests")]
         if row["coverage"] == "covered":
-            assert cited[:2] == [True, True] and _evidence(row).get("runtime-test"), row["clause"]
+            assert cited[:2] == [True, True], row["clause"]
+            assert _evidence(row).get("runtime-test"), row["clause"]
         else:
             assert any(cited) == (row["coverage"] == "partial"), row["clause"]
 
@@ -249,8 +250,10 @@ def test_open_rows_name_an_owner_and_an_acceptance_test() -> None:
     for row in OPEN_ROWS:
         owners = _owners(row)
         acceptance = CODE.findall(row["acceptance"])
-        assert owners and "219" not in owners, row["clause"]
-        assert acceptance and TEST_REF.match(acceptance[0]), row["clause"]
+        assert owners, row["clause"]
+        assert "219" not in owners, row["clause"]
+        assert acceptance, row["clause"]
+        assert TEST_REF.match(acceptance[0]), row["clause"]
     assert all(row["owner"] == row["acceptance"] == DASH for row in ROWS if row["coverage"] == "covered")
 
 
