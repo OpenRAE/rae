@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+from dataclasses import replace
 from types import SimpleNamespace
 
 import pytest
@@ -147,7 +148,7 @@ def test_the_reference_runtime_refuses_rev1_admission_before_any_episode() -> No
     assert not result.success
     assert result.snapshot.participant_episode_history == {}
     assert result.snapshot.participant_control_history == {}
-    stripped = execution_plan.__class__(**{**execution_plan.__dict__, "diagnostics": []})
+    stripped = replace(execution_plan, diagnostics=[])
     retry = manager.apply(stripped)
     assert not retry.success
     assert RUNTIME_CODE in {item.code for item in retry.diagnostics}

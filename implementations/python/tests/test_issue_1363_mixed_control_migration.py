@@ -10,6 +10,7 @@ from typing import Any
 import pytest
 import yaml
 from mixed_control_rev1_scenarios import legacy_scenario, rev1_scenario
+from mixed_control_v2_support import envelope
 from raes.canonical import canonical_sdl_digest
 from raes.mixed_control_migration import migrate_mixed_control_to_finite_script
 from raes.parser import parse_sdl
@@ -184,26 +185,18 @@ def _v1_record(spec, transition, state, position: int, earlier: list) -> tuple:
             "resulting_state_revision": transition.resulting_state_revision,
             "completion_evidence_ref": f"completion-{position}",
         }
+    base = envelope(
+        position,
+        state.controller_address,
+        {},
+        episode="episode-1",
+        event_id=f"legacy-control.{position}",
+        participant_address=spec.mixed_control_participant_address,
+        predecessor_event_refs=[linked.event_id] if linked is not None else [],
+    )
     record = {
-        "event_id": f"legacy-control.{position}",
-        "schema_name": "participant-control-occurrence",
+        **{key: value for key, value in base.items() if key not in {"semantics", "policy", "occurrence"}},
         "schema_version": "1.0.0",
-        "event_type": "participant-control-occurrence",
-        "extension_policy": "closed",
-        "participant_address": spec.mixed_control_participant_address,
-        "episode_id": "episode-1",
-        "occurred_at": "2026-10-13T00:00:00Z",
-        "recorded_at": "2026-10-13T00:00:00Z",
-        "ingested_at": "2026-10-13T00:00:00Z",
-        "clock_authority": "clock",
-        "ordering_basis": "logical_clock",
-        "predecessor_event_refs": [linked.event_id] if linked is not None else [],
-        "actor_ref": state.controller_address,
-        "producer_ref": "producer",
-        "provenance_refs": ["provenance"],
-        "evidence_refs": ["evidence"],
-        "object_marking_refs": ["marking"],
-        "authorization_scope": "scope",
         "occurrence": {
             **common,
             "occurrence_revision": position,
@@ -269,48 +262,35 @@ def _v2_payload(projection, transition, step, source, position: int, revision: i
         detail = {"target_kind": "proposal", "target_ref": proposal, "target_revision": 1}
     elif kind == "handoff":
         detail = {"completion_evidence_ref": f"completion-{position}"}
-    return {
-        "event_id": f"control.{position}",
-        "schema_name": "participant-control-occurrence",
-        "schema_version": "2.0.0",
-        "event_type": "participant-control-occurrence",
-        "extension_policy": "closed",
-        "participant_address": projection.participant_address,
-        "episode_id": projection.episode_id,
-        "occurred_at": "2026-10-13T00:00:00Z",
-        "recorded_at": "2026-10-13T00:00:00Z",
-        "ingested_at": "2026-10-13T00:00:00Z",
-        "clock_authority": "clock",
-        "ordering_basis": "logical_clock",
-        "actor_ref": source.controller_ref,
-        "producer_ref": "producer",
-        "provenance_refs": ["provenance"],
-        "evidence_refs": ["evidence"],
-        "object_marking_refs": ["marking"],
-        "authorization_scope": "scope",
-        "semantics": projection.semantics,
-        "policy": projection.pin.model_dump(mode="json"),
-        "occurrence": {
-            "disposition": "accepted",
-            "permitted_transition_ref": transition.transition_ref,
-            "kind": kind,
-            "prior_state_ref": source.state_ref,
-            "expected_state_revision": revision,
-            "resulting_state_ref": transition.to_state_ref,
-            "resulting_state_revision": revision + 1,
-            "expected_history_head": position - 1,
-            "occurrence_revision": position,
-            "controller_ref": source.controller_ref,
-            "authority_basis_refs": source.authority_basis_refs,
-            "controlled_scope_refs": source.scope_refs,
-            "effective_order": step.valid_from_order,
-            "valid_from_order": bounds[0],
-            "valid_until_order": bounds[1],
-            "script_step_ref": step.step_ref,
-            "limitation_refs": ["limitation"],
-            **detail,
-        },
+    occurrence = {
+        "disposition": "accepted",
+        "permitted_transition_ref": transition.transition_ref,
+        "kind": kind,
+        "prior_state_ref": source.state_ref,
+        "expected_state_revision": revision,
+        "resulting_state_ref": transition.to_state_ref,
+        "resulting_state_revision": revision + 1,
+        "expected_history_head": position - 1,
+        "occurrence_revision": position,
+        "controller_ref": source.controller_ref,
+        "authority_basis_refs": source.authority_basis_refs,
+        "controlled_scope_refs": source.scope_refs,
+        "effective_order": step.valid_from_order,
+        "valid_from_order": bounds[0],
+        "valid_until_order": bounds[1],
+        "script_step_ref": step.step_ref,
+        "limitation_refs": ["limitation"],
+        **detail,
     }
+    return envelope(
+        position,
+        source.controller_ref,
+        occurrence,
+        episode=projection.episode_id,
+        event_id=f"control.{position}",
+        participant_address=projection.participant_address,
+        policy=projection.pin.model_dump(mode="json"),
+    )
 
 
 def _converted_projection(payload: dict[str, Any]):

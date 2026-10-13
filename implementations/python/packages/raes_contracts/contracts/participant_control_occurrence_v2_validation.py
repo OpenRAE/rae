@@ -179,18 +179,11 @@ class _EpisodeFold:
         order = occurrence.effective_order
         if self.state.last_order is not None and order <= self.state.last_order:
             return "non-increasing-order"
-        transition = self.policy.transition(occurrence.permitted_transition_ref)
-        windows = [
-            (transition.valid_from_order, transition.valid_until_order),
-            *(
-                (state.valid_from_order, state.valid_until_order)
-                for state in (self.policy.state(transition.from_state_ref), self.policy.state(transition.to_state_ref))
-            ),
-        ]
-        step = self.policy.step(occurrence.script_step_ref)
-        if step is not None and step.valid_from_order is not None:
-            windows.append((step.valid_from_order, step.valid_until_order))
-        return None if all(low <= order <= high for low, high in windows) else "late-authority"
+        # Inside every evaluated window (edge, step, source and destination state) means inside their intersection.
+        bounds = participant_control_validity_bounds(
+            self.policy, occurrence.permitted_transition_ref, occurrence.script_step_ref
+        )
+        return None if bounds is not None and bounds[0] <= order <= bounds[1] else "late-authority"
 
     def _kind_rejection(
         self, record: ParticipantControlOccurrenceV2Model, occurrence: ParticipantAcceptedOccurrenceV2Model
