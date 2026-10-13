@@ -643,7 +643,10 @@ Rules:
    authority scopes.
 5. Composition rewrites purpose-bearing references under the import namespace,
    and instantiation rechecks substituted values against the same purpose.
-   Editor completion, navigation, and diagnostics consume the same purposes
+   The exception is a security-monitoring detection definition's
+   `source_artifact_ref` (`declared`), which composition leaves unchanged, so a
+   module that sets it fails validation when imported under a namespace
+   ([#1579](https://github.com/OpenRAE/rae/issues/1579)). Editor completion, navigation, and diagnostics consume the same purposes
    and resolvers. Completion offers one unambiguous spelling per eligible
    declaration, selects the endpoint purposes from the relationship type and
    typed details, and its completion context names all of them
