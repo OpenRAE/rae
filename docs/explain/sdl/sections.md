@@ -1148,9 +1148,14 @@ in relationships, generic reference validation, and module import rewriting
 and
 [ADR-045](../../decisions/adrs/adr-045-security-monitoring-detection-definition-semantics.md)).
 Module composition rewrites a detection definition's `source_artifact_ref` and
-`target_refs` like relationship endpoints: a value that names one of the
-module's own declarations becomes its namespaced address, such as
-`nodes.first.app`.
+`target_refs` like relationship endpoints. A bare or section-qualified key of
+one of the module's own declarations becomes its namespaced key, so `app`
+becomes `first.app` and `nodes.app` becomes `nodes.first.app`. Qualified
+node-service, node-runtime and content-item addresses under such a declaration
+are rewritten the same way. References to named ACLs
+(`infrastructure.<infra>.acls.<acl>`) and to content items written by their
+bare item name stay as written
+([#1590](https://github.com/OpenRAE/rae/issues/1590)).
 
 `runtime.mail_services` records the participant-observable mail-server logical
 state, distinct from transport-level `services`, host publication in

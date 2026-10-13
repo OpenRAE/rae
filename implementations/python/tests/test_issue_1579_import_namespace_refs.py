@@ -29,6 +29,7 @@ from raes_contracts.contracts import ArtifactTransformationStatus
 from raes_processor.compiler import compile_runtime_model
 
 _RULES = "runtime.security_monitoring_managers.siem.content_sets.rules"
+_NESTED_TARGETS = f"[nodes.app, nodes.app.{_RULES}]"
 _EXPORTED = "{nodes: [lan, app], infrastructure: [lan]}"
 _ROOT_SHARES_NAMES = """\
 nodes:
@@ -50,7 +51,7 @@ def _segment(
     exports: str | None = _EXPORTED,
     from_net: str = "lan",
     source_artifact: str = "nodes.app",
-    targets: str = f"[nodes.app, nodes.app.{_RULES}]",
+    targets: str = _NESTED_TARGETS,
 ) -> str:
     descriptor = (
         f"module: {{id: acme/monitored-segment, version: 1.0.0, exports: {exports}}}\n" if exports is not None else ""
@@ -100,13 +101,17 @@ def _copy_refs(scenario: object, local: str) -> tuple[object, ...]:
     )
 
 
-@pytest.mark.parametrize("root_body", ["", _ROOT_SHARES_NAMES], ids=["bare-root", "root-declares-same-names"])
+@pytest.mark.parametrize(
+    ("root_body", "targets"),
+    [("", _NESTED_TARGETS), (_ROOT_SHARES_NAMES, _NESTED_TARGETS), (_ROOT_SHARES_NAMES, "[nodes.app]")],
+    ids=["bare-root", "root-declares-same-names", "root-declares-same-names-node-target-only"],
+)
 @pytest.mark.parametrize("namespaces", [("first",), ("first", "second")], ids=["imported-once", "imported-twice"])
 @pytest.mark.parametrize(("exports", "private"), [(_EXPORTED, ""), ("{}", "__private.")], ids=["exported", "private"])
 def test_each_imported_copy_binds_its_own_declarations(
-    tmp_path: Path, root_body: str, namespaces: tuple[str, ...], exports: str, private: str
+    tmp_path: Path, root_body: str, targets: str, namespaces: tuple[str, ...], exports: str, private: str
 ) -> None:
-    module = _segment(exports=exports)
+    module = _segment(exports=exports, targets=targets)
     parse_sdl(module)
 
     scenario = parse_sdl_file(_compose(tmp_path, module, namespaces, root_body))
@@ -115,8 +120,9 @@ def test_each_imported_copy_binds_its_own_declarations(
     for namespace in namespaces:
         local = f"{namespace}.{private}"
         network, node = f"{local}lan", f"nodes.{local}app"
-        assert _copy_refs(scenario, local) == (network, network, node, [node, f"{node}.{_RULES}"], [node])
-        assert {f"infrastructure.{network}", node, f"{node}.{_RULES}"} <= addresses
+        nested = [f"{node}.{_RULES}"] if _RULES in targets else []
+        assert _copy_refs(scenario, local) == (network, network, node, [node, *nested], [node])
+        assert {f"infrastructure.{network}", node, *nested} <= addresses
     if root_body:
         assert scenario.infrastructure["lan"].acls == []
         assert scenario.nodes["app"].runtime is None
