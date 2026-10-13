@@ -6,7 +6,6 @@ import shutil
 
 import pytest
 from crossing_model_fixtures import ROOT, profile_payload
-
 from implementations.formal.participant_crossing import abstract, concrete, export
 
 
