@@ -19,6 +19,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from tools.policy.common import PolicyFailure, failures_to_json, safe_repo_path  # noqa: E402
+from tools.public_docs_links import evaluate_repository_links  # noqa: E402
 from tools.public_docs_markup import directive_targets, markdown_link_targets  # noqa: E402
 
 PUBLIC_DOCS_ROOT = Path("docs/public")
@@ -471,6 +472,10 @@ def main() -> int:
     args = parser.parse_args()
 
     failures = [*evaluate_public_sources(REPO_ROOT), *evaluate_public_boundary(REPO_ROOT)]
+    public_root = _public_path(REPO_ROOT)
+    if public_root is not None and public_root.is_dir():
+        pages = {_relative(REPO_ROOT, source): _bounded_text(source) for source in _source_paths(public_root)}
+        failures.extend(evaluate_repository_links(REPO_ROOT, pages))
     if not failures and args.output is not None:
         failures.extend(evaluate_public_output(REPO_ROOT, args.output))
         failures.extend(evaluate_published_assets(REPO_ROOT, args.output))
