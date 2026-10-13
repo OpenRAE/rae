@@ -5,6 +5,8 @@ This package is a thin facade over cohesive subdomains:
 * :mod:`._references` - pure symbol/reference-rewriting primitives.
 * :mod:`._sections` - foundational/proposition/narrative/observation/content/
   stateful/account/deployment/relationship section rewriters.
+* :mod:`._runtime_references` - node-runtime reference rewriters
+  (security-monitoring detection definitions).
 * :mod:`._behavior` - behavior-specification and agent rewriters.
 * :mod:`._terminal` - time/objective/workflow/variation rewriters and
   namespacing.

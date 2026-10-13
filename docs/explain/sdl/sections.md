@@ -1147,6 +1147,10 @@ in relationships, generic reference validation, and module import rewriting
 [ADR-040](../../decisions/adrs/adr-040-security-monitoring-manager-runtime-inventory.md)
 and
 [ADR-045](../../decisions/adrs/adr-045-security-monitoring-detection-definition-semantics.md)).
+Module composition rewrites a detection definition's `source_artifact_ref` and
+`target_refs` like relationship endpoints: a value that names one of the
+module's own declarations becomes its namespaced address, such as
+`nodes.first.app`.
 
 `runtime.mail_services` records the participant-observable mail-server logical
 state, distinct from transport-level `services`, host publication in
@@ -1454,6 +1458,8 @@ infrastructure:
 `links` are switch/network connectivity references, not arbitrary infrastructure edges. If a node has attached `conditions`, its `count` must stay at `1` so the condition-to-node binding remains unambiguous. Per-link IP assignments must be valid IP addresses within the linked switch's CIDR.
 
 ACL rule `name` is optional, but when present it must be unique within that infrastructure entry and can be targeted directly as `infrastructure.<infra>.acls.<acl_name>`.
+
+Module composition rewrites an ACL `from_net` or `to_net` that names one of the module's own infrastructure entries to that entry's namespaced key, such as `first.lan`. Any other value stays as written and resolves against the composed scenario.
 
 ---
 
