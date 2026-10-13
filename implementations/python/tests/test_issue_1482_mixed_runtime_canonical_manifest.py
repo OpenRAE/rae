@@ -178,12 +178,14 @@ def test_target_carrying_the_admitted_contract_is_bound(target_manifest, payload
     ids=["narrower-operating-systems", "reordered-artifact-mechanisms", "envelope-changed-after-validation"],
 )
 def test_target_carrying_another_contract_is_refused(target_manifest) -> None:
+    manifest, payload = target_manifest(), _published_payload()
     with pytest.raises(ValueError, match=_REFUSAL):
-        _bind(target_manifest(), _published_payload())
+        _bind(manifest, payload)
 
 
 def test_target_manifest_without_a_contract_form_is_refused() -> None:
+    manifest, payload = _scope_outside_contract_manifest(), _published_payload()
     with pytest.raises(ValueError, match=_REFUSAL) as refused:
-        _bind(_scope_outside_contract_manifest(), _published_payload())
+        _bind(manifest, payload)
 
     assert isinstance(refused.value.__cause__, ValidationError)
