@@ -119,10 +119,7 @@ def _lock_record_for(lockfile: Lockfile | None, import_decl: ImportDecl) -> Lock
     return None
 
 
-def _verify_allowed_parameters(
-    import_decl: ImportDecl,
-    descriptor: ModuleDescriptor,
-) -> None:
+def _verify_allowed_parameters(import_decl: ImportDecl, descriptor: ModuleDescriptor) -> None:
     allowed = set(descriptor.parameters)
     disallowed = sorted(name for name in import_decl.parameters if name not in allowed)
     if disallowed:
