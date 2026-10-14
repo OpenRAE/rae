@@ -7,6 +7,19 @@ from ..relationships import Relationship
 from ..semantics._domain_topology_types import resolve_section_ref
 
 
+def participant_relation_controller_states(
+    control: MixedControlParticipantOperation, controlled: str, controller: str
+) -> list[MixedControlControllerState]:
+    """The active controller-state selection shared by validation and authoring."""
+    if control.participant_ref != controlled:
+        return []
+    return [
+        state
+        for state in control.controller_states.values()
+        if state.controller_ref == controller and state.authority_status == "active"
+    ]
+
+
 class _ParticipantRelationshipsMixin:
     def _verify_participant_relationship(self, name: str, relationship: Relationship) -> None:
         label = f"Relationship '{name}'"
@@ -79,13 +92,7 @@ class _ParticipantRelationshipsMixin:
     def _participant_relation_controller_states(
         control: MixedControlParticipantOperation, controlled: str, controller: str
     ) -> list[MixedControlControllerState]:
-        if control.participant_ref != controlled:
-            return []
-        return [
-            state
-            for state in control.controller_states.values()
-            if state.controller_ref == controller and state.authority_status == "active"
-        ]
+        return participant_relation_controller_states(control, controlled, controller)
 
     def _participant_relation_control_scope(
         self, label: str, refs: list[str], states: list[MixedControlControllerState]

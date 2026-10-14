@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from collections.abc import Iterable
-from dataclasses import dataclass
+from collections.abc import Iterable, Mapping
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
+from ._declaration_sources import DeclarationSource
 from ._errors import SDLValidationError
 from ._identifiers import QualifiedName
 from ._module_symbols import HASHMAP_SECTIONS
@@ -37,6 +38,7 @@ class Declaration:
     model_path: str
     source: str | None = None
     model_tokens: tuple[str, ...] = ()
+    source_location: DeclarationSource | None = None
 
     @property
     def referenceable(self) -> bool:
@@ -127,6 +129,7 @@ class DeclarationIndex:
         return frozenset(alias for alias, candidates in self._aliases.items() if candidates.intersection(targets))
 
     def add(self, declaration: Declaration, *, aliases: Iterable[str] = ()) -> None:
+        require_eligibility_decision(declaration.kind)
         previous = self._declarations.get(declaration.address)
         if previous is not None and previous != declaration:
             self._collisions.append(
@@ -144,6 +147,12 @@ class DeclarationIndex:
     def raise_for_collisions(self) -> None:
         if self._collisions:
             raise SDLValidationError(list(dict.fromkeys(self._collisions)))
+
+    def attach_sources(self, sources: Mapping[str, DeclarationSource]) -> None:
+        for address, location in sources.items():
+            declaration = self._declarations.get(address)
+            if declaration is not None:
+                self._declarations[address] = replace(declaration, source=location.source, source_location=location)
 
 
 def preferred_spelling(aliases: dict[str, set[str]], address: str) -> str:
@@ -169,7 +178,6 @@ def _add(
     model_path: tuple[str, ...],
     aliases: Iterable[str] = (),
 ) -> None:
-    require_eligibility_decision(kind)
     index.add(
         Declaration(
             kind=kind,
@@ -460,6 +468,7 @@ def build_declaration_index(
     _add_workflow_declarations(index, scenario)
     _add_forwarding_agent_declarations(index, scenario)
     _add_variation_member_declarations(index, scenario)
+    index.attach_sources(scenario.declaration_sources)
     if raise_on_collision:
         index.raise_for_collisions()
     return index

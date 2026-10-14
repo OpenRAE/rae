@@ -37,6 +37,7 @@ from ._language_metadata import (
     VARIATION_SLOT_TARGETS,
 )
 from ._language_references import find_references
+from ._language_relationship_candidates import filter_relationship_candidates
 from ._reference_targetability import ReferencePurpose, purposes_for_domain, reference_domain
 from ._relationship_endpoint_policy import relationship_endpoint_purposes
 from ._source_profile import DEFAULT_PARSER_LIMITS
@@ -78,15 +79,19 @@ def language_completions(
     data = document.data
 
     pointer = _split_pointer_or_empty(cursor_path)
-    target_section = _completion_target_section(pointer, data)
+    reference_pointer = pointer[:-1] if pointer and pointer[-1].isdecimal() else pointer
+    target_section = _completion_target_section(reference_pointer, data)
     if target_section is not None:
         items = _reference_completion_items(
             data,
             target_section,
-            pointer=pointer,
+            pointer=reference_pointer,
             scenario=document.scenario,
             declaration_index=document.declaration_index,
             resolver=document.resolver,
+        )
+        items = filter_relationship_candidates(
+            items, pointer, data, document.scenario, document.partial_scenario, document.resolver
         )
         context = f"reference:{target_section}"
     elif len(pointer) == 1 and pointer[0] in SECTION_FIELD_COMPLETIONS:
@@ -200,12 +205,14 @@ def language_diagnostics(
             "status": "invalid",
             "stage": "semantic_validation",
             "diagnostics": [
-                _diagnostic(
+                exc.diagnostics[index].as_dict()
+                if index < len(exc.diagnostics) and exc.diagnostics[index] is not None
+                else _diagnostic(
                     "semantic_validation",
                     "sdl.semantic",
                     message,
                 )
-                for message in exc.errors
+                for index, message in enumerate(exc.errors)
             ],
         }
 

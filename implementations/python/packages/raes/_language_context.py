@@ -19,6 +19,7 @@ from typing import Any
 from pydantic import ValidationError
 
 from ._composition_budget import CompositionTraversal
+from ._declaration_sources import DeclarationSource
 from ._declarations import Declaration, DeclarationIndex, Purposes, build_declaration_index
 from ._errors import SDLError, SDLParseError
 from ._language_diagnostics import parse_error as _parse_error
@@ -68,6 +69,7 @@ class DocumentContext:
     scenario: ScenarioContent | None
     declaration_index: DeclarationIndex | None
     resolver: PurposeResolver
+    partial_scenario: ScenarioContent | None = None
 
 
 def load_completion_data(sdl_content: str) -> tuple[dict[str, Any], dict[str, Any] | None]:
@@ -92,27 +94,37 @@ def reference_context(sdl_content: str, path: Path | None = None) -> DocumentCon
 def document_context(data: dict[str, Any], path: Path | None = None) -> DocumentContext:
     """Type *data* as validation does; with *path*, compose its local imports first."""
 
-    composed = _composed_data(data, path) if path is not None and data.get("imports") else None
+    sources: dict[str, DeclarationSource] = {}
+    composed = _composed_data(data, path, sources) if path is not None and data.get("imports") else None
     model: _Model = Scenario if composed is None else ExpandedScenario
     data = data if composed is None else composed
     scenario = _validated(model, data)
     if scenario is None:
         # Node types, and so operating scopes, are known only for a structurally valid document.
-        return DocumentContext(data, None, None, PurposeResolver(partial_index(data, model), {}))
+        partial = _partial_model(data, model)
+        index = DeclarationIndex() if partial is None else build_declaration_index(partial, raise_on_collision=False)
+        _add_entry_names(index, data)
+        index.attach_sources(sources)
+        return DocumentContext(data, None, None, PurposeResolver(index, {}), partial)
+    scenario._set_declaration_sources(sources)
     index = build_declaration_index(scenario, raise_on_collision=False)
     return DocumentContext(data, scenario, index, PurposeResolver(index, operating_scope_aliases(index, scenario)))
 
 
-def _composed_data(data: dict[str, Any], path: Path) -> dict[str, Any] | None:
+def _composed_data(data: dict[str, Any], path: Path, sources: dict[str, DeclarationSource]) -> dict[str, Any] | None:
     """Compose local imports with the existing gates; registry imports are refused, never fetched."""
 
     from .composition import expand_sdl_modules
 
     try:
         composed, _provenance = expand_sdl_modules(
-            deepcopy(data), path=path, _traversal=CompositionTraversal.local_root(DEFAULT_PARSER_LIMITS)
+            deepcopy(data),
+            path=path,
+            _traversal=CompositionTraversal.local_root(DEFAULT_PARSER_LIMITS),
+            _declaration_sources=sources,
         )
     except (SDLError, ValueError):
+        sources.clear()
         return None
     return composed
 
@@ -133,6 +145,13 @@ def partial_index(data: dict[str, Any], model: _Model) -> DeclarationIndex:
     makes a spelling ambiguous.
     """
 
+    scenario = _partial_model(data, model)
+    index = DeclarationIndex() if scenario is None else build_declaration_index(scenario, raise_on_collision=False)
+    _add_entry_names(index, data)
+    return index
+
+
+def _partial_model(data: dict[str, Any], model: _Model) -> ScenarioContent | None:
     base = {field: data[field] for field in model.model_fields if field not in SECTION_FIELDS and field in data}
     union = dict(base)
     for section, unit in _section_units(data):
@@ -142,10 +161,7 @@ def partial_index(data: dict[str, Any], model: _Model) -> DeclarationIndex:
             union.setdefault(section, {}).update(unit)
         else:
             union[section] = unit
-    scenario = _validated(model, union)
-    index = DeclarationIndex() if scenario is None else build_declaration_index(scenario, raise_on_collision=False)
-    _add_entry_names(index, data)
-    return index
+    return _validated(model, union)
 
 
 def _section_units(data: dict[str, Any]) -> list[tuple[str, Any]]:

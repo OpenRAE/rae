@@ -88,7 +88,6 @@ def test_participant_relationship_completion_offers_only_participants(complete: 
 
     assert [(item["label"], item["detail"]) for item in result["items"]] == [
         ("blue", "agents.blue"),
-        ("red", "agents.red"),
     ]
     assert result["context"] == "reference:eligible:participant_endpoint"
 
@@ -100,7 +99,7 @@ def test_an_ambiguous_bare_participant_is_offered_only_in_qualified_form(complet
 
     labels = {item["detail"]: item["label"] for item in _completions(payload, "/relationships/pair/target")["items"]}
 
-    assert labels == {"agents.blue": "agents.blue", "agents.red": "red"}
+    assert labels == {"agents.blue": "agents.blue"}
     valid = _paired()
     valid["entities"]["blue"] = {"role": "blue"}
     with pytest.raises(SDLValidationError, match="target participant endpoint must resolve unambiguously"):

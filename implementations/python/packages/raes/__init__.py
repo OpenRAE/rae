@@ -29,6 +29,8 @@ __all__ = [
     "canonical_sdl_digest",
     "ExpandedScenarioBindingTargetResolver",
     "build_declaration_index",
+    "ReferencePurpose",
+    "operating_scope_aliases",
     "INSTANTIATED_SNAPSHOT_PROFILE",
     "instantiate_scenario",
     "InstantiatedScenario",
@@ -110,6 +112,10 @@ def __getattr__(name: str):
         module = import_module("raes._base")
     elif name == "build_declaration_index":
         module = import_module("raes._declarations")
+    elif name == "ReferencePurpose":
+        module = import_module("raes._reference_targetability")
+    elif name == "operating_scope_aliases":
+        module = import_module("raes._operating_scope_index")
     elif name in {"admit_instantiated_scenario", "instantiate_scenario"}:
         module = import_module("raes.instantiate")
     elif name in {"admit_materialized_scenario", "MaterializedScenario"}:

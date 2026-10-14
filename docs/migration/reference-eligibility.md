@@ -20,11 +20,12 @@ before.
 An effect `target_refs[]` entry that names no declaration keeps working. It is
 observation-boundary information, and recorded action results check it against
 the participant's observation boundary as before. An entry that names a
-referenceable declaration, by bare name or qualified address, is now checked:
+registered declaration, by bare name or qualified address, is now checked:
 like the other fields it must name exactly one targetable declaration, and that
 declaration must be an action target. Every indexed kind is referenceable
 except the scenario identity, node roles, workflow steps, and
-`outcome_interpretation_rules` entries. A free-form token that equals a declared
+`outcome_interpretation_rules` entries; naming these kinds as an effect target
+is rejected too, including inside imported modules. A free-form token that equals a declared
 bare name is therefore refused unless it names an action target. For example,
 `port` beside a variable named `port` fails with `... does not reference any
 defined element eligible as an action target; it names variables.port`. Rename
@@ -165,8 +166,9 @@ which was already rejected.
   `authority_basis_refs` only the source's authority anchors. An endpoint that
   does not resolve to one participant, or whose own list is parameterized, does
   not restrict them. Validation also requires a selected
-  `control_specification_ref` to cover each scope; completion does not apply
-  that bound.
+  `control_specification_ref` to cover each scope; completion applies the same
+  active controller-state selection and excludes scopes outside it, including
+  when completing an individual list item.
 - A variation point's `target.owner` completes and navigates in its target
   slot's owner section, and a candidate's `reference` or governed
   `domain.allowed_refs` entry in the slot's candidate section or purpose, as
@@ -187,6 +189,12 @@ which was already rejected.
   `operating_scope` and participant-relationship `scope_refs`, are the
   exception: their aliases depend on node types, so they complete and navigate
   only in a document that validates structurally.
+- Relationship suggestions also satisfy the owning subtype's known attribute
+  and contextual rules. Self-links are excluded for participant relationships
+  and forest trusts; topology sources must be compute nodes; placement targets
+  must be carriers in the compatible cell. The semantic validator checks
+  candidates in a valid context, including controller direction and selected
+  policy bounds. In incomplete documents, known attributes still apply.
 - Navigation resolves each reference with its field's resolver, as validation
   does, and reports an occurrence of a declaration only when the value resolves
   to exactly that declaration. An ambiguous or refused value is an occurrence of
@@ -205,6 +213,24 @@ which was already rejected.
   registry import is refused rather than fetched (see the
   [language-service tools](../explain/sdl/language-service.md#python-helpers)).
   Without a path, and in the MCP tools, behavior is unchanged.
+
+Nested local declarations now have definitions at their authored key or
+identifier range. With `path`, imported definitions include the actual module
+file, original path and range, composed path, namespace, module identity and
+fragment digest. An imported declaration's semantic diagnostic reports its
+original file and range together with the canonical composed address. Loading
+and composition capture this metadata; editor helpers do not independently
+walk imports. Cyclic or overlong locked chains and malformed workspace trust
+or lock files return bounded SDL errors, and editor calls never fetch registry
+imports, even through a chain of locked records.
+
+Authority scopes compile through the same declaration identities validation
+selected. Bare node names remain node scopes beside same-named services.
+Participants, entities, relationships and other catalogued semantic-only
+surfaces retain their authored scope references without a runtime address;
+this conveys no runtime enforcement. Runtime-addressable scopes, including
+generated artifacts and persistent volumes, keep their actual compiled
+addresses. See the [projection table](../../specs/sdl/references.md#runtime-projection-of-authority-and-operating-scopes).
 
 ## Unchanged
 

@@ -523,6 +523,14 @@ without a decision is eligible for no purpose, and the declaration index
 refuses to register it, so a new referenceable kind needs an explicit category
 before any field can name it.
 
+Every runtime family and child registration **MUST** explicitly select its
+reviewed reference policy. The current `world-resource` decision assigns the
+resource category; omission or an unsupported decision is rejected. Adding a
+family or child does not inherit a decision from its parent. Family-qualified
+endpoint purposes still distinguish identically named children in different
+families. A different category or purpose decision requires an explicit policy
+amendment.
+
 | Category | Declaration kinds |
 | --- | --- |
 | participant | `agents` |
@@ -635,6 +643,10 @@ Rules:
    observation-boundary information; recorded action results check it against
    the participant's observation boundary. An entry that names a declaration
    **MUST** name an eligible action target.
+   Recognition uses the complete declaration index, including the explicitly
+   unreferenceable scenario, node-role, workflow-step, and outcome-rule kinds.
+   Importing a module or substituting a variable cannot turn one of these
+   known declarations into opaque boundary information.
 4. Eligibility decides only what a reference may name. Naming a participant as
    an action target or objective subject does not make it act, and naming an
    organization, proposition, or resource grants it no participation,
@@ -643,11 +655,10 @@ Rules:
    authority scopes.
 5. Composition rewrites purpose-bearing references under the import namespace,
    and instantiation rechecks substituted values against the same purpose.
-   The exception is a security-monitoring detection definition's
-   `source_artifact_ref` (`declared`), which composition leaves unchanged, so a
-   module that sets it fails validation when imported under a namespace
-   ([#1579](https://github.com/OpenRAE/rae/issues/1579)). Editor completion, navigation, and diagnostics consume the same purposes
-   and resolvers. Completion offers one unambiguous spelling per eligible
+   This includes infrastructure ACL networks and security-monitoring detection
+   definitions' `source_artifact_ref` (`declared`). Editor completion, navigation,
+   and diagnostics consume the same purposes and resolvers. Completion offers
+   one unambiguous spelling per eligible
    declaration, selects the endpoint purposes from the relationship type and
    typed details, and its completion context names all of them
    (`eligible:<p1>+<p2>` for a conjunction), and selects a variation owner's
@@ -666,12 +677,53 @@ Rules:
    ambiguous; once the entry validates, a spelling that it shares with another
    declaration is ambiguous. Operating scope resolves nothing until the
    document validates.
+6. Relationship completion applies the subtype owner's attributes and known
+   contextual constraints after kind filtering: distinct participants and
+   forests, compute nodes, carrier persona and deployment cell, and selected
+   mixed-control controller-state scope. In a valid context, every offered
+   candidate passes semantic validation when inserted. In incomplete contexts,
+   known bounds still apply; unrelated existing errors do not become new
+   restrictions on this field. Completion does not grant authority or repair
+   another field's invalid identity.
+7. Navigation derives nested declaration definitions from their typed model
+   paths. Composition retains original declaration provenance: fragment file,
+   authored key or identifier range, original JSON pointer, module identity,
+   import namespace, and fragment content digest. Imported definitions report
+   the original location and composed model path; owner-labelled semantic
+   diagnostics retain the original location and canonical composed address.
+   Locations are captured during loading and expansion, never guessed by a
+   separate editor import walker. This location metadata is not scenario
+   authority and is not serialized into portable scenario artifacts.
+
+### Runtime projection of authority and operating scopes
+
+The compiler resolves each authored reference with the declaration index and
+the field's purpose before projecting its canonical identity to a runtime
+address. Operating scope uses its derived alias map, including bare service
+and subnet names. A same-named service must not make a validated bare node
+authority scope disappear.
+
+| Declaration surface | Runtime projection |
+| --- | --- |
+| Node and its infrastructure | Node deployment or network address |
+| Node service | Service address |
+| Content and content item | Content or item address |
+| Account, feature, action contract, observation boundary, behavior specification | Corresponding compiled runtime address |
+| Generated artifact, persistent volume, participant inject delivery | Corresponding compiled resource or delivery address |
+| Participant, entity, relationship, identity domain/forest/facade, deployment tenant/cell, infrastructure ACL, forwarding-agent inventory, nested runtime inventory | Semantic reference only; no independently addressable scope projection |
+
+Every authored scope remains in the compiled raw reference list. A documented
+semantic-only scope constrains that semantic record and yields no runtime
+address or dependency. It does not grant runtime enforcement or permission.
+Runtime-addressable scopes must project to the identity validation selected;
+the compiler must not independently broaden aliases or silently drop an
+ambiguous projection.
 
 ## Extending the reference catalog
 
 A new reference edge is added by defining the field's candidate set, adding a
 row here, and enforcing it in the reference implementation and tests. A new
 declaration kind is added with an explicit category in §7. New
-runtime-family child refs follow the nested runtime-family form (§1.3)
-automatically once registered in the family index
+runtime-family child refs require an explicit policy decision at registration
+and then follow the nested runtime-family form (§1.3) in the family index
 ([runtime-inventory.md](runtime-inventory.md)); they do not need bespoke prose.

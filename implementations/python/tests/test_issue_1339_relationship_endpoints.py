@@ -23,7 +23,11 @@ from raes import _relationship_endpoint_policy as endpoint_policy
 from raes._base import is_variable_ref
 from raes._declarations import Declaration, DeclarationIndex, build_declaration_index, preferred_spelling
 from raes._language_context import PurposeResolver
-from raes._runtime_service_family_registry import RUNTIME_SERVICE_FAMILIES, RuntimeReferenceChild
+from raes._runtime_service_family_registry import (
+    RUNTIME_SERVICE_FAMILIES,
+    RuntimeReferenceChild,
+    RuntimeReferencePolicy,
+)
 from raes.external_concept_subjects import external_concept_subjects
 from raes.nodes import NodeType
 from raes.relationships import Relationship, RelationshipType
@@ -322,7 +326,13 @@ def test_runtime_endpoint_sets_equal_the_rules_the_validator_resolvers_held(purp
 
 def test_runtime_endpoint_rules_keep_their_level_when_the_registry_grows() -> None:
     grown = tuple(
-        replace(family, child_refs=(*family.child_refs, RuntimeReferenceChild(child, f"{child}_id")))
+        replace(
+            family,
+            child_refs=(
+                *family.child_refs,
+                RuntimeReferenceChild(child, f"{child}_id", reference_policy=RuntimeReferencePolicy.RESOURCE),
+            ),
+        )
         if (child := {"mail_services": "archives", "database_services": "replicas"}.get(family.collection_name))
         else family
         for family in RUNTIME_SERVICE_FAMILIES
@@ -729,15 +739,13 @@ def matrix_payload() -> dict:
     """The all-kinds fixture, ready to compile and to compose twice, plus a temporal constraint to probe.
 
     Variation points need a recorded selection before compilation. Forwarding-agent ids must be unique
-    across the scenario, so two copies cannot both declare one. Composition does not yet rewrite an
-    ACL's `from_net` under the import namespace (#1579).
+    across the scenario, so two copies cannot both declare one.
     """
 
     payload = fixture_payload()
     payload.pop("variation_points")
     payload.pop("forwarding_agents")
     payload["nodes"]["app"]["runtime"].pop("forwarding_agents")
-    payload["infrastructure"]["lan"].pop("acls")
     # A second controller, so a parameterized controller edge leaves its domain controlled while authored.
     payload["nodes"]["partner-dc-2"] = deepcopy(payload["nodes"]["partner-dc"])
     payload["deployment_cells"]["range-a-cell"]["node_refs"].append("partner-dc-2")
@@ -802,7 +810,7 @@ _DETECTION = (
 )
 STAGE_ROWS = {
     # Temporal-constraint subjects refuse every unresolved variable when authored, so the declared purpose is
-    # instantiated through a detection definition's source artifact, which composition does not rewrite yet (#1579).
+    # instantiated through a detection definition's source artifact.
     "declared-temporal-subject": StageRow(
         P.DECLARED,
         None,
@@ -819,7 +827,6 @@ STAGE_ROWS = {
         "nodes.app",
         "nodes.dc.roles.ops",
         "source_artifact_ref 'nodes.dc.roles.ops' does not reference any defined element",
-        composable=False,
     ),
     "targetable-delivery-item": StageRow(
         P.TARGETABLE,

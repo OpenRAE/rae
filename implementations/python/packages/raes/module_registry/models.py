@@ -8,10 +8,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import yaml
-from pydantic import Field
+from pydantic import Field, ValidationError
 
 from .._base import SDLModel
-from .._errors import SDLParseError
+from .._errors import SDLParseDiagnostic, SDLParseError, SDLSourcePosition, SDLSourceRange
+from .._source_profile import DEFAULT_PARSER_LIMITS
+from .._source_validation import validate_source_graph, validate_source_tokens
 from ..scenario import ImportDecl, ModuleDescriptor, Scenario
 from ._constants import (
     LOCKFILE_NAME,
@@ -85,17 +87,66 @@ def _scenario_module_descriptor(scenario: Scenario, *, source_id: str) -> Module
 
 def load_trust_policy(base_dir: Path) -> TrustPolicy:
     path = base_dir / TRUST_POLICY_NAME
-    if not path.exists():
+    content = _read_workspace_config(path)
+    if content is None:
         return TrustPolicy()
-    payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    return TrustPolicy.model_validate(payload)
+    loader: yaml.SafeLoader | None = None
+    try:
+        validate_source_tokens(content, path=path, limits=DEFAULT_PARSER_LIMITS)
+        loader = yaml.SafeLoader(content)
+        root = loader.get_single_node()
+        if root is None:
+            return TrustPolicy()
+        validate_source_graph(root, path=path, limits=DEFAULT_PARSER_LIMITS)
+        return TrustPolicy.model_validate(loader.construct_document(root))
+    except (yaml.YAMLError, ValidationError, SDLParseError, ValueError, RecursionError) as exc:
+        raise _workspace_config_error(path, exc) from None
+    finally:
+        if loader is not None:
+            loader.dispose()
 
 
 def load_lockfile(base_dir: Path) -> Lockfile | None:
     path = base_dir / LOCKFILE_NAME
-    if not path.exists():
+    content = _read_workspace_config(path)
+    if content is None:
         return None
-    return Lockfile.model_validate_json(path.read_text(encoding="utf-8"))
+    try:
+        return Lockfile.model_validate_json(content)
+    except ValidationError as exc:
+        raise _workspace_config_error(path, exc) from None
+
+
+def _read_workspace_config(path: Path) -> str | None:
+    try:
+        with path.open("rb") as handle:
+            raw = handle.read(DEFAULT_PARSER_LIMITS.max_input_bytes + 1)
+        if len(raw) > DEFAULT_PARSER_LIMITS.max_input_bytes:
+            raise _workspace_config_error(path)
+        return raw.decode("utf-8")
+    except FileNotFoundError:
+        return None
+    except (OSError, UnicodeDecodeError) as exc:
+        raise _workspace_config_error(path, exc) from None
+
+
+def _workspace_config_error(path: Path, exc: Exception | None = None) -> SDLParseError:
+    """Expose source metadata without YAML/Pydantic input values or OS error prose."""
+
+    message = f"Cannot load workspace configuration {path.name}."
+    mark = getattr(exc, "problem_mark", None)
+    position = SDLSourcePosition(mark.line + 1, mark.column + 1) if mark else SDLSourcePosition(1, 1)
+    source_range = SDLSourceRange(start=position, end=position)
+    if isinstance(exc, SDLParseError) and exc.diagnostics:
+        source_range = exc.diagnostics[0].primary_range
+    diagnostic = SDLParseDiagnostic(
+        code="sdl.workspace-config.invalid",
+        message=message,
+        pointer="",
+        primary_range=source_range,
+        source=str(path),
+    )
+    return SDLParseError(message, path=path, diagnostics=(diagnostic,))
 
 
 def write_lockfile(base_dir: Path, lockfile: Lockfile) -> Path:

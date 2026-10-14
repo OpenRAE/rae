@@ -113,7 +113,7 @@ class _MixedControlMixin:
         )
         controller_scope = self._resolved_mixed_control_refs(
             controller.operating_scope,
-            index=scope_index,
+            index=self._operating_scope_ref_index(),
         )
         self._verify_scope_refs(
             refs=state.scope_refs,

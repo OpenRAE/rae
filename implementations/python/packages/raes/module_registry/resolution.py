@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any, TypedDict, Unpack
 from urllib.parse import quote
 
-from packaging.version import InvalidVersion, Version
 from pydantic import ValidationError
 
 from .._errors import SDLParseDiagnostic, SDLParseError, SDLSourceRange
@@ -15,7 +14,7 @@ from .._model_diagnostics import _model_parse_error
 from .._source_profile import DEFAULT_SOURCE_PARSE_OPTIONS, SDLSourceParseOptions
 from ..scenario import ImportDecl, ModuleDescriptor, Scenario
 from ._constants import LOCKFILE_NAME, OCI_BUNDLE_MEDIA_TYPE, OCI_LAYOUT_MEDIA_TYPE
-from ._digests import _SHA256_PREFIX, _descriptor_digest, _normalize_exact_or_range, _satisfies_version
+from ._digests import _SHA256_PREFIX, _descriptor_digest, _satisfies_version, _select_tag
 from ._verified_sources import _local_resolved_source, _VerifiedSourceBundle
 from .models import (
     Lockfile,
@@ -45,6 +44,8 @@ class _ResolutionContext:
     source_diagnostics: list[SDLParseDiagnostic] | None
     verified_sources: _VerifiedSourceBundle | None
     registry_base_dir: Path | None
+    local_sources_only: bool
+    requested_source: str
 
 
 class _ResolutionPrivateOptions(TypedDict, total=False):
@@ -52,6 +53,7 @@ class _ResolutionPrivateOptions(TypedDict, total=False):
 
     verified_sources: _VerifiedSourceBundle | None
     _registry_base_dir: Path | None
+    _local_sources_only: bool
 
 
 def _parse_oci_source(source: str) -> tuple[str, str]:
@@ -78,31 +80,6 @@ def _registry_base_url(registry: str, *, allow_insecure_http: bool) -> str:
     loopback = registry.startswith(("localhost:", "127.0.0.1:", "localhost/", "127.0.0.1/"))
     scheme = "http" if allow_insecure_http or loopback else "https"
     return f"{scheme}{scheme_sep}{registry}".rstrip("/")
-
-
-def _parse_versioned_tags(tags: list[str]) -> list[tuple[Version, str]]:
-    parsed: list[tuple[Version, str]] = []
-    for tag in tags:
-        try:
-            parsed.append((Version(tag), tag))
-        except InvalidVersion:
-            continue
-    return parsed
-
-
-def _select_tag(tags: list[str], requested_version: str) -> str:
-    spec = _normalize_exact_or_range(requested_version)
-    parsed = _parse_versioned_tags(tags)
-    if spec is None:
-        if parsed:
-            return max(parsed)[1]
-        if tags:
-            return max(tags)
-        raise SDLParseError("OCI module has no published tags")
-    matching = [(version, tag) for version, tag in parsed if version in spec]
-    if matching:
-        return max(matching)[1]
-    raise SDLParseError(f"No OCI module tag satisfies requested version '{requested_version}'")
 
 
 def _lock_record_for(lockfile: Lockfile | None, import_decl: ImportDecl) -> LockRecord | None:
@@ -155,6 +132,8 @@ def resolve_import(
         source_diagnostics=source_diagnostics,
         verified_sources=private_options.get("verified_sources"),
         registry_base_dir=private_options.get("_registry_base_dir"),
+        local_sources_only=private_options.get("_local_sources_only", False),
+        requested_source=import_decl.normalized_source,
     )
     return _resolve_import_with_context(import_decl, context)
 
@@ -167,6 +146,12 @@ def _resolve_import_with_context(import_decl: ImportDecl, context: _ResolutionCo
         return _resolve_local_import(import_decl, source, context=context)
     if not source.startswith("oci:"):
         raise SDLParseError(f"Unsupported import source '{source}'")
+    if context.local_sources_only:
+        raise SDLParseError(
+            f"Registry import '{context.requested_source}' is not resolved in editor path mode; "
+            "validate with parse_sdl_file()",
+            path=context.base_dir,
+        )
     return _resolve_oci_import(
         import_decl,
         source,
@@ -183,21 +168,31 @@ def _resolve_locked_import(
     *,
     context: _ResolutionContext,
 ) -> ResolvedModule:
-    locked_ref = source.removeprefix("locked:")
     lockfile = context.lockfile
     if lockfile is None:
         raise SDLParseError(f"Locked import '{source}' requires {LOCKFILE_NAME}")
-    record = lockfile.locked_record(locked_ref)
-    if record is None:
-        raise SDLParseError(f"Locked import '{source}' is not present in {LOCKFILE_NAME}")
-    delegated = ImportDecl(
-        source=record.source,
-        namespace=import_decl.namespace or record.namespace,
-        version=record.requested_version,
-        parameters=dict(import_decl.parameters),
-        digest=import_decl.digest or record.content_digest,
-    )
-    return _resolve_import_with_context(delegated, context)
+    visited: set[str] = set()
+    while source.startswith("locked:"):
+        if source in visited:
+            raise SDLParseError("Locked import cycle detected", path=context.base_dir / LOCKFILE_NAME)
+        if len(visited) >= context.source_options.limits.max_composition_depth:
+            raise SDLParseError("Locked import chain budget exceeded", path=context.base_dir / LOCKFILE_NAME)
+        visited.add(source)
+        record = lockfile.locked_record(source.removeprefix("locked:"))
+        if record is None:
+            raise SDLParseError(f"Locked import '{source}' is not present in {LOCKFILE_NAME}")
+        try:
+            import_decl = ImportDecl(
+                source=record.source,
+                namespace=import_decl.namespace or record.namespace,
+                version=record.requested_version,
+                parameters=dict(import_decl.parameters),
+                digest=import_decl.digest or record.content_digest,
+            )
+        except ValidationError:
+            raise SDLParseError("Locked import record is invalid", path=context.base_dir / LOCKFILE_NAME) from None
+        source = import_decl.normalized_source
+    return _resolve_import_with_context(import_decl, context)
 
 
 def _resolve_local_import(

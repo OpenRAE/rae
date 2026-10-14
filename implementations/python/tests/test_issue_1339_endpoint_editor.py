@@ -73,7 +73,7 @@ _ROWS = [(name, None) for name in _TYPES] + [(None, field) for field in sorted(D
 
 @pytest.mark.parametrize("side", ["source", "target"])
 @pytest.mark.parametrize(("relationship_type", "detail"), _ROWS, ids=lambda value: value or "-")
-def test_typed_endpoint_completion_offers_exactly_the_eligible_declarations(
+def test_typed_endpoint_completion_narrows_eligible_declarations_without_adding_semantic_failures(
     relationship_type: str | None, detail: str | None, side: str
 ) -> None:
     relationship = typed(relationship_type, source="dc", target="corp") if relationship_type else _twin(detail)
@@ -83,15 +83,24 @@ def test_typed_endpoint_completion_offers_exactly_the_eligible_declarations(
 
     result = _completions(complete, side)
 
-    assert {item["detail"] for item in result["items"]} == {
+    eligible = {
         declaration.address for declaration in index.declarations if policy.declaration_eligible(declaration, purposes)
     }
+    assert {declaration.address for _spelling, declaration in index.reference_completions(purposes)} == eligible
+    assert {item["detail"] for item in result["items"]}.issubset(eligible)
+    baseline = {item["message"] for item in language_diagnostics(yaml.safe_dump(complete))["diagnostics"]}
+    for item in result["items"]:
+        candidate = deepcopy(complete)
+        candidate["relationships"]["probe"][side] = item["label"]
+        errors = {entry["message"] for entry in language_diagnostics(yaml.safe_dump(candidate))["diagnostics"]}
+        assert errors.issubset(baseline)
     assert result["context"] == f"reference:{policy.reference_domain(purposes)}"
     assert _completions(_with(relationship, broken=True), side) == result
     if detail is not None:
         # A detail written before its type selects the rule that its type would.
         untyped = {key: value for key, value in relationship.items() if key != "type"}
-        assert _completions(_with(untyped), side) == result
+        assert _completions(_with(untyped), side)["context"] == result["context"]
+        assert {item["detail"] for item in _completions(_with(untyped), side)["items"]}.issubset(eligible)
 
 
 def test_a_mail_listener_is_a_mail_access_target_and_a_monitoring_listener_is_not() -> None:

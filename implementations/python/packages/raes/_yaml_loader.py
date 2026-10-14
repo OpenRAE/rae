@@ -48,6 +48,7 @@ def load_sdl_yaml(
     source_options: SDLSourceParseOptions = DEFAULT_SOURCE_PARSE_OPTIONS,
     source_diagnostics: list[SDLParseDiagnostic] | None = None,
     source_ranges: dict[str, SDLSourceRange] | None = None,
+    source_key_ranges: dict[str, SDLSourceRange] | None = None,
 ) -> object:
     """Validate and safely construct one SDL YAML document or fragment."""
     prepared = prepare_content(content, path=path)
@@ -69,6 +70,7 @@ def load_sdl_yaml(
             migration_policy=policy,
             source_diagnostics=source_diagnostics,
             source_ranges=source_ranges,
+            source_key_ranges=source_key_ranges,
         )
         constructed = loader.construct_document(root)
         validate_constructed_domain(constructed, path=path)
@@ -146,11 +148,13 @@ def _validate_mapping_keys(
     migration_policy: SDLMigrationPolicy,
     source_diagnostics: list[SDLParseDiagnostic] | None,
     source_ranges: dict[str, SDLSourceRange] | None,
+    source_key_ranges: dict[str, SDLSourceRange] | None = None,
 ) -> None:
     diagnostics = _MappingAnalyzer(
         migration_policy=migration_policy,
         path=path,
         source_ranges=source_ranges,
+        source_key_ranges=source_key_ranges,
         materialized=_is_materialized_mapping(root, scope, base_pointer),
     ).analyze(
         root,

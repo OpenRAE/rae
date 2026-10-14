@@ -73,8 +73,9 @@ def _child_kinds(children: Iterable[RuntimeReferenceChild]) -> tuple[str, ...]:
     return tuple(kinds)
 
 
-# Registering a runtime family is its classification: the accepted runtime-inventory
-# decisions keep every family and child record a referenceable world resource.
+# Every family and child must explicitly select its reviewed world-resource policy
+# in the registry. The dataclasses reject missing or unsupported decisions before
+# this inventory can grant a reference purpose.
 RUNTIME_INVENTORY_KINDS = frozenset(
     kind
     for family in RUNTIME_SERVICE_FAMILIES

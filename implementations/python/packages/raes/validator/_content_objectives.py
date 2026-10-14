@@ -405,22 +405,13 @@ class _ContentObjectivesMixin:
                 )
 
     def _verify_participant_interaction_refs(self) -> None:
-        declared = self._named_ref_index()
+        self._verify_effect_target_refs()
         for action_name, action_contract in self._s.action_contracts.items():
             for index, interaction in enumerate(action_contract.interactions):
                 owner_label = f"Action contract '{action_name}' interaction[{index}]"
                 self._verify_purpose_refs(owner_label, "target", [interaction.target], ReferencePurpose.ACTION_TARGET)
                 self._verify_purpose_refs(
                     owner_label, "shared_state_ref", interaction.shared_state_refs, ReferencePurpose.SHARED_STATE
-                )
-            for effect in action_contract.effects:
-                # A ref naming no declaration is observation-boundary information that the
-                # runtime result checks govern; a declared name must be an eligible action target.
-                self._verify_purpose_refs(
-                    f"Action contract '{action_name}' effect '{effect.effect_id}'",
-                    "target_ref",
-                    [ref for ref in effect.target_refs if ref in declared],
-                    ReferencePurpose.ACTION_TARGET,
                 )
 
     def _verify_purpose_refs(

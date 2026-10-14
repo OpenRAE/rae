@@ -14,6 +14,7 @@ from pydantic import ValidationError
 
 from ._base import contains_variable_token, is_variable_ref
 from ._composition_budget import ParsePrivateOptions
+from ._declaration_sources import attach_declaration_sources, semantic_source_diagnostics
 from ._errors import (
     SDLParseDiagnostic,
     SDLParseError,
@@ -367,6 +368,8 @@ def parse_sdl(
     """
     source_diagnostics: list[SDLParseDiagnostic] = []
     source_ranges: dict[str, SDLSourceRange] = {}
+    source_key_ranges: dict[str, SDLSourceRange] = {}
+    declaration_sources = {}
     data = _load_normalized_data(
         content,
         path=path,
@@ -375,6 +378,7 @@ def parse_sdl(
         ),
         source_diagnostics=source_diagnostics,
         source_ranges=source_ranges,
+        source_key_ranges=source_key_ranges,
     )
     _reject_removed_scoring_sections(data, path=path)
     if "materialization_provenance" in data:
@@ -402,6 +406,7 @@ def parse_sdl(
             limits=limits,
             source_diagnostics=source_diagnostics,
             _traversal=private_options.get("_traversal"),
+            _declaration_sources=declaration_sources,
         )
         scenario_cls = ExpandedScenario
     else:
@@ -416,6 +421,7 @@ def parse_sdl(
     source_diagnostics = _dedupe_source_diagnostics(source_diagnostics)
 
     scenario._set_source_diagnostics(source_diagnostics)
+    attach_declaration_sources(scenario, content, path, source_ranges, source_key_ranges, declaration_sources)
 
     # Semantic validation
     if not skip_semantic_validation or isinstance(scenario, MaterializedScenario):
@@ -424,6 +430,7 @@ def parse_sdl(
             validator.validate()
         except SDLValidationError as e:
             e.path = path
+            semantic_source_diagnostics(e, scenario)
             raise
         scenario._set_advisories(validator.warnings)
         scenario._set_semantic_validated(True)
@@ -450,6 +457,7 @@ def _load_normalized_data(
     source_options: SDLSourceParseOptions = DEFAULT_SOURCE_PARSE_OPTIONS,
     source_diagnostics: list[SDLParseDiagnostic] | None = None,
     source_ranges: dict[str, SDLSourceRange] | None = None,
+    source_key_ranges: dict[str, SDLSourceRange] | None = None,
 ) -> dict[str, Any]:
     raw = load_sdl_yaml(
         content,
@@ -457,6 +465,7 @@ def _load_normalized_data(
         source_options=source_options,
         source_diagnostics=source_diagnostics,
         source_ranges=source_ranges,
+        source_key_ranges=source_key_ranges,
     )
 
     if not isinstance(raw, dict):

@@ -12,6 +12,7 @@ from ._declarations import DeclarationIndex
 from ._errors import SDLParseError
 from ._identifiers import QualifiedName
 from ._language_context import EndpointPurposes, PurposeResolver
+from ._language_definitions import indexed_definitions
 from ._language_diagnostics import parse_error as _parse_error
 from ._language_metadata import REFERENCE_COMPLETION_TARGETS, RELATIONSHIP_ENDPOINT_DOMAIN, VARIATION_SLOT_TARGETS
 from ._reference_targetability import ReferencePurpose, purposes_for_domain, reference_domain
@@ -89,6 +90,11 @@ def _reference_result(
     if root is None:
         return {"status": "ok", "symbol": symbol, "definitions": [], "occurrences": []}
     definitions = _collect_definitions(root, section_fields)
+    typed_index = declaration_index or (resolver.index if resolver is not None else None)
+    if typed_index is not None:
+        definitions = list(
+            {item["qualified_name"]: item for item in (*definitions, *indexed_definitions(root, typed_index))}.values()
+        )
     if declaration_index is not None:
         definitions = [
             definition

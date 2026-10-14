@@ -484,6 +484,7 @@ def instantiate_scenario(
         instantiated = InstantiatedScenario.model_validate(payload)
     except ValidationError as exc:
         raise SDLInstantiationError(_safe_model_validation_errors(exc)) from exc
+    instantiated._set_declaration_sources(raw_scenario.declaration_sources)
     try:
         return admit_instantiated_scenario(instantiated)
     except SDLValidationError as exc:
