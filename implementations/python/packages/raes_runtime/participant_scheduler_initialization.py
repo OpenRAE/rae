@@ -6,6 +6,7 @@ from raes_contracts.participant_episode import ParticipantEpisodeInitializeReque
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.models import CompiledTimeModel, ParticipantAutonomousExecutionRuntime
 
+from .backend_calls import _call_backend_apply
 from .participant_activity import (
     ParticipantActivityDrawContext,
     ParticipantActivityRandomControl,
@@ -13,6 +14,7 @@ from .participant_activity import (
     draw_activity_integer,
     next_activity_timing,
 )
+from .participant_effect_authority import participant_effect_authority
 from .participant_scheduler_policy import _policy_digest
 from .participant_scheduler_time import cadence, clock_coordinate
 
@@ -51,12 +53,19 @@ def _ensure_participant_episode(
 ) -> ApplyResult:
     if participant_address in snapshot.participant_episode_results:
         return ApplyResult(success=True, snapshot=snapshot)
-    return participant_runtime.initialize(
-        ParticipantEpisodeInitializeRequest(
-            participant_address=participant_address,
-            episode_id=f"{participant_address}-autonomous-0",
-        ),
+    request = ParticipantEpisodeInitializeRequest(
+        participant_address=participant_address,
+        episode_id=f"{participant_address}-autonomous-0",
+    )
+    # Same gate and participant effect authority as the control plane uses for this
+    # backend method. Unlike the control plane, no information-state resolver is passed.
+    return _call_backend_apply(
+        participant_runtime.initialize,
+        request,
         snapshot,
+        address=f"runtime.participant-scheduler.{participant_address}.initialize",
+        snapshot=snapshot,
+        realization=participant_effect_authority(request, snapshot),
     )
 
 
