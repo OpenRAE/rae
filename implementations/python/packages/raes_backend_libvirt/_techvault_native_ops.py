@@ -51,8 +51,6 @@ def _ensure_name_available(connection: object, method_name: str, name: str, addr
         raise RuntimeError("native lookup is unavailable")
     try:
         native = method(name)
-    except KeyError:
-        return
     except Exception as exc:
         if _is_expected_lookup_absence(exc, method_name):
             return

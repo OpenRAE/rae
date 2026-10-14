@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import pytest
+from libvirt_native_shapes import install_libvirt_error_type, libvirt_readback, lookup
 from raes_backend_libvirt.cloudinit import CloudInitFile, CloudInitSpec, CloudInitUser
 from raes_backend_libvirt.driver import DomainSpec, NetworkSpec, ServiceSpec
 from raes_backend_libvirt.guest_appliance import _init_script, _write_placement_specs
@@ -28,6 +29,11 @@ from raes_backend_libvirt.techvault_matrix import domain_placements, mac_address
 from raes_contracts.realization_envelope import RealizationConcern
 
 _CHALLENGE = "deadbeefcafef00d"
+
+
+@pytest.fixture(autouse=True)
+def _libvirt_error_type(monkeypatch: pytest.MonkeyPatch) -> None:
+    install_libvirt_error_type(monkeypatch)
 
 
 @dataclass
@@ -60,7 +66,7 @@ class _NativeObject:
         return int(self.created and not self.destroyed)
 
     def XMLDesc(self, _flags=0):  # noqa: N802 - mirrors libvirt API
-        return self._xml
+        return libvirt_readback(self._xml)
 
     def UUIDString(self):  # noqa: N802 - mirrors libvirt API
         import xml.etree.ElementTree as ET
@@ -90,10 +96,10 @@ class _FakeConnection:
         return native
 
     def networkLookupByName(self, name: str):  # noqa: N802
-        return self.networks[name]
+        return lookup(self.networks, name, "networkLookupByName")
 
     def lookupByName(self, name: str):  # noqa: N802
-        return self.domains[name]
+        return lookup(self.domains, name, "lookupByName")
 
     def listAllDomains(self):  # noqa: N802
         return [native for native in self.domains.values() if not native.undefined]
