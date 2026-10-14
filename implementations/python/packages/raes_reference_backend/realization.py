@@ -15,6 +15,7 @@ from dataclasses import dataclass
 
 from raes_backend_protocols.naming import provider_resource_name
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.plan_projection import planned_provisioning_resources
 from raes_contracts.planning import (
     PlannedResource,
     ProvisioningPlan,
@@ -80,7 +81,7 @@ def interpret_provisioning_plan(plan: ProvisioningPlan) -> Realization:
     node_resources: list[tuple[PlannedResource, Mapping[str, object]]] = []
     placement_resources: list[tuple[PlannedResource, Mapping[str, object]]] = []
 
-    for resource in plan.resources.values():
+    for resource in planned_provisioning_resources(plan):
         if resource.domain != RuntimeDomain.PROVISIONING:
             continue
         if resource.resource_type not in SUPPORTED_RESOURCE_TYPES:
