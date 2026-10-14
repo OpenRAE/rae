@@ -18,14 +18,18 @@ from tools.tooling_artifact_policy_common import (
 PYTHON_PROJECT_LOCK_PATH = "implementations/python/uv.lock"
 PYTHON_TOOL_LOCK_PATH = "implementations/tooling/python/uv.lock"
 _EXPECTED_CONTEXT_IDS = frozenset({"python-public"})
-_PROJECT_SCOPED_PURPOSES = frozenset({"wheel-smoke", "sdist-smoke", "compatibility", "docs"})
+_PROJECT_SCOPED_PURPOSES = frozenset(
+    {"wheel-smoke", "sdist-smoke", "compatibility", "docs"}
+)
 _PROJECTION_SIZE_LIMIT = 2 * 1024 * 1024
 
 
 def _context_set_failures(context_ids: Sequence[str]) -> list[PolicyFailure]:
     """Require the acquisition-context set to be exactly the reviewed one."""
 
-    if set(context_ids) == _EXPECTED_CONTEXT_IDS and len(context_ids) == len(set(context_ids)):
+    if set(context_ids) == _EXPECTED_CONTEXT_IDS and len(context_ids) == len(
+        set(context_ids)
+    ):
         return []
     return [
         failure(
@@ -80,9 +84,9 @@ def _closure_binding_failures(
             )
         )
     python = value.get("python", {})
-    if isinstance(python, Mapping) and str(python.get("abi", "")) != "cp" + str(python.get("version", "")).replace(
-        ".", ""
-    ):
+    if isinstance(python, Mapping) and str(python.get("abi", "")) != "cp" + str(
+        python.get("version", "")
+    ).replace(".", ""):
         failures.append(
             failure(
                 "tooling-python-abi",
@@ -98,7 +102,7 @@ def _closure_binding_failures(
                 PROFILES_PATH,
             )
         )
-    expected_extras = {"dev", "docs"} if project_scoped else set()
+    expected_extras = {"dev", "docs", "distributed"} if project_scoped else set()
     if set(value.get("project_extras", [])) != expected_extras:
         failures.append(
             failure(
@@ -133,7 +137,9 @@ def _projection_read_failure(
 ) -> PolicyFailure | None:
     """Report why a closure projection cannot be read, or None when it can."""
 
-    if not is_regular_repo_file(repo_root, manifest_path) or not is_regular_repo_file(repo_root, requirements_path):
+    if not is_regular_repo_file(repo_root, manifest_path) or not is_regular_repo_file(
+        repo_root, requirements_path
+    ):
         return failure(
             "tooling-python-projection",
             "Python closure projection is missing or non-regular",
@@ -172,13 +178,18 @@ def _projection_drift_failures(
                 manifest_path,
             )
         ]
-    selected_lock_path = PYTHON_PROJECT_LOCK_PATH if project_scoped else PYTHON_TOOL_LOCK_PATH
-    selected_lock_digest = hashlib.sha256((repo_root / selected_lock_path).read_bytes()).hexdigest()
+    selected_lock_path = (
+        PYTHON_PROJECT_LOCK_PATH if project_scoped else PYTHON_TOOL_LOCK_PATH
+    )
+    selected_lock_digest = hashlib.sha256(
+        (repo_root / selected_lock_path).read_bytes()
+    ).hexdigest()
     bound = (
         manifest.get("python_closure_profile_id") == profile_id
         and manifest.get("lock_path") == selected_lock_path
         and manifest.get("lock_sha256") == selected_lock_digest
-        and manifest.get("requirements_sha256") == hashlib.sha256(requirements).hexdigest()
+        and manifest.get("requirements_sha256")
+        == hashlib.sha256(requirements).hexdigest()
     )
     if bound:
         return []
@@ -224,7 +235,9 @@ def _closure_profile_failures(
     """Validate every reviewed Python closure profile and its projection."""
 
     host_ids = {
-        str(value.get("host_profile_id")) for value in profiles.get("host_profiles", []) if isinstance(value, Mapping)
+        str(value.get("host_profile_id"))
+        for value in profiles.get("host_profiles", [])
+        if isinstance(value, Mapping)
     }
     failures: list[PolicyFailure] = []
     seen: set[str] = set()
@@ -269,10 +282,16 @@ def _closure_profile_failures(
     return failures
 
 
-def profile_semantic_failures(repo_root: Path, profiles: Mapping[str, Any]) -> list[PolicyFailure]:
+def profile_semantic_failures(
+    repo_root: Path, profiles: Mapping[str, Any]
+) -> list[PolicyFailure]:
     """Validate acquisition contexts and closure profiles against reviewed policy."""
 
-    contexts = [value for value in profiles.get("python_package_contexts", []) if isinstance(value, Mapping)]
+    contexts = [
+        value
+        for value in profiles.get("python_package_contexts", [])
+        if isinstance(value, Mapping)
+    ]
     context_ids = [str(value.get("context_id", "")) for value in contexts]
     return [
         *_context_set_failures(context_ids),

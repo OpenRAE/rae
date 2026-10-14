@@ -2,12 +2,22 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 
 from raes_backend_protocols.capabilities import BackendManifest
+from raes_backend_protocols.operation_supervision import BackendOperationProvider, require_operation_provider
 from raes_backend_protocols.protocols import Evaluator, Orchestrator, ParticipantRuntime, TimeRuntime
 from raes_backend_protocols.recovery_observation import RecoveryObservationRequest, RecoveryObserver
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.versions import BACKEND_OPERATION_CONTRACT_IDS
+
+
+def validate_operation_provider(provider: BackendOperationProvider | None, declared_contracts: Iterable[str]):
+    declared = tuple(declared_contracts)
+    if provider is not None:
+        require_operation_provider(provider, declared)
+    elif set(BACKEND_OPERATION_CONTRACT_IDS) & set(declared):
+        raise ValueError("declared backend operation protocol requires an installed provider")
 
 
 def validate_optional_component_presence(

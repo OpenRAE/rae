@@ -368,24 +368,19 @@ def test_runtime_stale_terminal_conflict_discards_candidate_without_recovery_or_
     control_plane = RuntimeControlPlane(target, store=store)
     plan = ProvisioningPlan()
 
-    with pytest.raises(SnapshotRevisionConflict, match="^snapshot revision conflict$"):
-        control_plane.submit_provisioning(
-            plan,
-            idempotency_key="stale-terminal",
-        )
-
-    record = store.find_by_idempotency("stale-terminal")
-    assert record is not None
-    assert record.status.state is OperationState.RUNNING
-    assert control_plane.get_snapshot().snapshot.metadata == {"authority": "competing-writer"}
-    assert store.read_audit() == []
-
-    retry = control_plane.submit_provisioning(
-        ProvisioningPlan(),
-        idempotency_key="stale-terminal",
-    )
-    assert retry == record.receipt
-    assert provisioner.apply_count == 1
+    try:
+        receipt = control_plane.submit_provisioning(plan, idempotency_key="stale-terminal")
+        record = store.find_by_idempotency("stale-terminal")
+        assert record is not None
+        assert record.status.state is OperationState.INDETERMINATE
+        assert record.invocation.consumed and record.invocation.reserved
+        assert control_plane.get_snapshot().snapshot.metadata == {"authority": "competing-writer"}
+        assert len(store.read_audit()) == 1
+        retry = control_plane.submit_provisioning(ProvisioningPlan(), idempotency_key="stale-terminal")
+        assert retry == receipt
+        assert provisioner.apply_count == 1
+    finally:
+        control_plane.close()
 
 
 def test_local_store_migrates_v2_snapshot_to_revision_zero_without_payload_change(tmp_path: Path) -> None:

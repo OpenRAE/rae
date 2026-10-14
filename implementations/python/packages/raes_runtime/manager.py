@@ -77,6 +77,7 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
                 time_runtime=target.time_runtime,
                 observation_runtime=target.observation_runtime,
                 recovery_observer=target.recovery_observer,
+                operation_provider=getattr(target, "operation_provider", None),
             ),
         )
         self._target = target
@@ -87,6 +88,9 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
         self._participant_activity_controls = resolve_participant_activity_controls(stochastic_controls)
         self._time_declaration: TimeModelDeclarationModel | None = None
         self._initialize_participant_scheduler()
+        from .runtime_resource_ownership import RuntimeResourceClaim
+
+        self._resource_claim = RuntimeResourceClaim(self, target)
 
     @property
     def snapshot(self) -> RuntimeSnapshot:

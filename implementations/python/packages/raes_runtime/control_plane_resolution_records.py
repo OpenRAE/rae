@@ -8,6 +8,7 @@ from raes_contracts.runtime_state import OperationKind, OperationState
 
 from .control_plane_store import ControlPlaneOperationRecord
 from .mixed_runtime_recovery import has_mixed_resolution_cut
+from .operation_reconciliation_ledger import valid_reconciliation_child
 
 
 class IndeterminateResolutionDisposition(str, Enum):
@@ -23,6 +24,8 @@ def is_valid_resolution_child(
     """Recognize a child only when it can safely discharge its parent."""
 
     context = child.status.context
+    if parent.invocation is not None and parent.invocation.reserved:
+        return valid_reconciliation_child(parent, child)
     same_scope = (context.target_scope, context.run_scope) == (
         parent.status.context.target_scope,
         parent.status.context.run_scope,

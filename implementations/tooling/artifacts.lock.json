@@ -833,6 +833,223 @@
           "profile_ids": ["live-runner-linux-x86_64"]
         }
       ]
+    },
+    {
+      "artifact_id": "postgresql-runtime-test",
+      "artifact_class": "oci-image",
+      "version": "17.11-bookworm",
+      "support_level": "blocking",
+      "owner": "Tooling",
+      "consumers": [
+        "runtime-execution-integration"
+      ],
+      "trust_root_refs": [
+        "docker-official-images-index-digest"
+      ],
+      "availability_class": "N",
+      "retention_class": "supported-input",
+      "license": {
+        "spdx": "NOASSERTION",
+        "redistribution": "not-applicable",
+        "review_ref": "issue-1362"
+      },
+      "authenticity": {
+        "status": "absent-reviewed",
+        "decision_ref": "issue-1362-runtime-test-inputs"
+      },
+      "policy_refs": [
+        "oci-graph-v1"
+      ],
+      "source": {
+        "repository": "https://github.com/docker-library/postgres",
+        "release": "sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826",
+        "asset": "docker.io/library/postgres",
+        "locator_refs": [
+          "docker-official-images-registry"
+        ]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": [
+            "https://registry-1.docker.io/v2/library/postgres/manifests/sha256:66aafa11cf15800a3c94763f7e11d1e7b2e37e5e84bc4ce027cb6e1e4bfaf4df"
+          ],
+          "raw_manifest": [
+            {
+              "path": "postgres-17.11-bookworm-linux-amd64-manifest.json",
+              "sha256": "66aafa11cf15800a3c94763f7e11d1e7b2e37e5e84bc4ce027cb6e1e4bfaf4df",
+              "size": 3641
+            }
+          ],
+          "installed_identity": {
+            "implementation": "OCI image",
+            "version": "17.11-bookworm",
+            "abi": "oci-manifest-v1",
+            "target": "linux-x86_64"
+          },
+          "oci_graph": {
+            "index": {
+              "digest": "sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826",
+              "size": 6496
+            },
+            "manifest": {
+              "digest": "sha256:66aafa11cf15800a3c94763f7e11d1e7b2e37e5e84bc4ce027cb6e1e4bfaf4df",
+              "size": 3641
+            },
+            "config": {
+              "digest": "sha256:589f742565e4f6d22149176b032974f55f8201a8a37b71ed587ec5c6902e689f",
+              "size": 10141
+            },
+            "layers": [
+              {
+                "digest": "sha256:7fd1ebe418b5079d4aa36f416af9b143d127bc75b0155d71cb5fd559b5e04d39",
+                "size": 28249323
+              },
+              {
+                "digest": "sha256:a74c50568115b6e89820bdfbf5901f7ce6193dc073802f26b54647c61a179e59",
+                "size": 1167
+              },
+              {
+                "digest": "sha256:017b31e4ff27a67189c1f7fb9d2f683f7c6d9872574b1691b59b61be936a70fb",
+                "size": 4534265
+              },
+              {
+                "digest": "sha256:146d06bcb57308416713a54503a1c5cb1e39ba66303ea3ef088e6527748d6ed9",
+                "size": 1250070
+              },
+              {
+                "digest": "sha256:e7e8da52359d07630dab93091d323a6f6edc08d467c396e7e2af35d3182a3d3f",
+                "size": 8066434
+              },
+              {
+                "digest": "sha256:d01ea40642915aeeb3a2dc851e5a9e94de9f0e5fd728723270459ecbd5d7ca2b",
+                "size": 1196471
+              },
+              {
+                "digest": "sha256:6d0eb3c6cdb9843d6d94cfdd367d6be85fd83cc3bfeab2c985875953290855d6",
+                "size": 116
+              },
+              {
+                "digest": "sha256:b1cc6947b8a6bf3e8f20ed3a213391cd86f810bd4c9cc38e2861b0230801f77b",
+                "size": 3144
+              },
+              {
+                "digest": "sha256:e96ba86f00e592b341d4f0577161d02aa410d06ac1aeb815b80e307ef444b5dd",
+                "size": 115161333
+              },
+              {
+                "digest": "sha256:a219b7b9b5d4d9b2c4d9b054aff095ab62e8dabff6f08f810f224d60f7b43dce",
+                "size": 10356
+              },
+              {
+                "digest": "sha256:584b3a82e541f31012d6e79ddab3250928ef54a16471875a8f8a7dcd7204fc31",
+                "size": 128
+              },
+              {
+                "digest": "sha256:d254c075f128b3fb40df2f4d55a04bf505ca0ef4cac73767083520fe68e41976",
+                "size": 168
+              },
+              {
+                "digest": "sha256:fb616fac62dea44f7b6882defe0d1d52fa246b7ddb42008a8f93f05426d9155d",
+                "size": 6109
+              },
+              {
+                "digest": "sha256:7f82c3d75427baf7eb5520d02f2e586f959cb568870aaa69a3920d9b1ce93cff",
+                "size": 186
+              }
+            ],
+            "diff_ids": [
+              "sha256:e58989146fcec76699871403b9897b5c014af1ccd85f5a9300a215e7975525d7",
+              "sha256:cc0237a8939675586fcaa9cddab565d6d2394be0ba3d0e627bcf660c1182db9a",
+              "sha256:17d2bdc47ceb25eac99ebcc47a09aa2676e6c7f6416ff38bd700d6aa54a93e7d",
+              "sha256:5942497814fb7d0528685166ad6152e616850cbe99bb5717b5df42965bbc5d82",
+              "sha256:88cbeb54e69a7af2b237ffae0c6180d011e010bef234d37983957a7de88fcb6a",
+              "sha256:0048c25074457238b73f5a4d54cd5f5fa365798d1e743cc4ccff7b0ccee26bb0",
+              "sha256:b86701429362be1890ab3c0f46ead475a134d071bd385739340dce8b82071c8f",
+              "sha256:8ef061dc27ba281c9ffc065180be673cd209daeff724a150770442bd5ee695b4",
+              "sha256:0f7d2902256bfd3f3ede51cbcf67f6504f25354f41865345150b03aafe36205b",
+              "sha256:76980f563b80320bef808c69acef0dd4d2234e40a9e5268658f97c7b49c4e225",
+              "sha256:f6e8749b3f1e1f03e3a35aff3cb51dfe35c6b94aaa1aa0842b338dd2a1b1ad23",
+              "sha256:df69c465eccd5472aa21fcba4001ff9cede03734cf467926f3334b17c95ecd7a",
+              "sha256:619a018da854bd8acf6e502a1260fcb559c969ff2901e74c19623489b108a969",
+              "sha256:ef6a8c44b79f2a934c3180c04b959ba052c53e4dac9c715091faa453c8c354ee"
+            ],
+            "architecture": "amd64",
+            "os": "linux"
+          },
+          "dependencies": [],
+          "profile_ids": [
+            "public-linux-x86_64"
+          ],
+          "host_profile_ids": [
+            "public-ubuntu-24.04-x86_64"
+          ]
+        }
+      ]
+    },
+    {
+      "artifact_id": "temporal-cli-runtime-test",
+      "artifact_class": "generic-cli",
+      "version": "1.9.1",
+      "owner": "Tooling",
+      "consumers": [
+        "runtime-execution-integration"
+      ],
+      "trust_root_refs": [
+        "adr-106-reviewed-upstream-release"
+      ],
+      "availability_class": "N",
+      "retention_class": "supported-input",
+      "license": {
+        "spdx": "MIT",
+        "redistribution": "allowed",
+        "review_ref": "issue-1362"
+      },
+      "authenticity": {
+        "status": "absent-reviewed",
+        "decision_ref": "issue-1362-runtime-test-inputs"
+      },
+      "policy_refs": [
+        "artifact-integrity-v1"
+      ],
+      "source": {
+        "repository": "https://github.com/temporalio/cli",
+        "release": "v1.9.1",
+        "asset": "temporal_cli_{version}_linux_amd64.tar.gz",
+        "locator_refs": [
+          "official-github-release"
+        ]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": [
+            "https://github.com/temporalio/cli/releases/download/v1.9.1/temporal_cli_1.9.1_linux_amd64.tar.gz"
+          ],
+          "raw_manifest": [
+            {
+              "path": "temporal_cli_1.9.1_linux_amd64.tar.gz",
+              "sha256": "09a0326a51db84d02735e53542b9ebd8c4758daf47482a9ab0abce15844e60d5",
+              "size": 45298806
+            }
+          ],
+          "installed_manifest": [
+            {
+              "path": "temporal",
+              "sha256": "712217694cac9f786a72d4b6c876cd15f3dcf1bf31434d9fed6af25242a327a0",
+              "size": 156328098,
+              "executable": true
+            }
+          ],
+          "dependencies": [],
+          "profile_ids": [
+            "public-linux-x86_64"
+          ],
+          "host_profile_ids": [
+            "public-ubuntu-24.04-x86_64"
+          ]
+        }
+      ]
     }
   ]
 }

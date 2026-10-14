@@ -5,15 +5,23 @@ from __future__ import annotations
 import asyncio
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
+from contextvars import ContextVar
+from functools import partial
 from typing import ParamSpec, TypeVar
 
+import anyio
 from fastapi import HTTPException, Request
-from starlette.concurrency import run_in_threadpool
 
 from ..control_plane_mutation import MutationReservationRequired, mutation_probe
+from ..operation_execution_adapter import require_budget_ms
 
 _P = ParamSpec("_P")
 _T = TypeVar("_T")
+_THREAD_LIMITER = ContextVar("raes_http_thread_limiter", default=None)
+
+
+async def run_in_threadpool(call, *args, **kwargs):
+    return await anyio.to_thread.run_sync(partial(call, *args, **kwargs), limiter=_THREAD_LIMITER.get())
 
 
 class _ControlPlaneCallExecutor:
@@ -25,15 +33,23 @@ class _ControlPlaneCallExecutor:
     authentication requests.
     """
 
-    def __init__(self, *, max_pending_mutations: int) -> None:
+    def __init__(self, *, max_pending_mutations: int, call_budget_ms=40000, drain_budget_ms=2000) -> None:
         if max_pending_mutations <= 0:
             raise ValueError("max_pending_mutations must be positive")
-        self._max_pending_mutations = max_pending_mutations
-        self._pending_mutations = 0
         self._active_calls = 0
         self._closing = False
         self._closed = False
         self._condition = asyncio.Condition()
+        self._call_budget_ms = require_budget_ms(call_budget_ms)
+        self._drain_budget_ms = require_budget_ms(drain_budget_ms)
+        self._limiters = {
+            "effect": anyio.CapacityLimiter(max_pending_mutations),
+            "control": anyio.CapacityLimiter(4),
+            "read": anyio.CapacityLimiter(8),
+            "auth": anyio.CapacityLimiter(4),
+        }
+        self._tasks = set()
+        self._pending_lanes = {lane: 0 for lane in self._limiters}
 
     async def run(
         self,
@@ -42,8 +58,7 @@ class _ControlPlaneCallExecutor:
         *args: _P.args,
         **kwargs: _P.kwargs,
     ) -> _T:
-        async with self._admitted():
-            return await run_in_threadpool(call, *args, **kwargs)
+        return await self._start("read", call, args, kwargs)
 
     async def mutate(
         self,
@@ -52,23 +67,58 @@ class _ControlPlaneCallExecutor:
         *args: _P.args,
         **kwargs: _P.kwargs,
     ) -> _T:
-        async with self._admitted():
-            if self._pending_mutations >= self._max_pending_mutations:
+        return await self._start("effect", call, args, kwargs)
+
+    async def _start(self, lane, call, args, kwargs):
+        async with self._condition:
+            if self._closed or self._closing:
+                raise HTTPException(status_code=503, detail="control-plane executor unavailable")
+            if self._pending_lanes[lane] >= self._limiters[lane].total_tokens:
                 raise HTTPException(
-                    status_code=503,
-                    detail="control-plane mutation queue is full",
-                    headers={"Retry-After": "1"},
+                    status_code=503, detail="control-plane capacity unavailable", headers={"Retry-After": "1"}
                 )
-            self._pending_mutations += 1
-            try:
+            self._pending_lanes[lane] += 1
+        stage = {"active": False, "granted": False, "cancelled": False}
+        actor = asyncio.create_task(self._actor(lane, stage, call, args, kwargs))
+        self._tasks.add(actor)
+        actor.add_done_callback(self._finished)
+        budget_ms = self._call_budget_ms if lane == "effect" else min(self._call_budget_ms, 10000)
+        try:
+            return await asyncio.wait_for(asyncio.shield(actor), budget_ms / 1000)
+        except (asyncio.CancelledError, TimeoutError) as error:
+            stage["cancelled"] = True
+            if not stage["active"] and not stage["granted"]:
+                actor.cancel()
+            if isinstance(error, asyncio.CancelledError):
+                raise
+            raise HTTPException(status_code=503, detail="control-plane call deadline exceeded") from None
+
+    def _finished(self, actor):
+        self._tasks.discard(actor)
+        if not actor.cancelled():
+            actor.exception()  # Retrieve an abandoned caller's failure without logging native values.
+
+    async def _actor(self, lane, stage, call, args, kwargs):
+        token = _THREAD_LIMITER.set(self._limiters[lane])
+        try:
+            async with self._admitted():
+                stage["active"] = True
                 try:
-                    with mutation_probe():
-                        return await run_in_threadpool(call, *args, **kwargs)
-                except MutationReservationRequired as reservation:
-                    async with reservation.authority.reserve(reservation.kind):
+                    if lane != "effect":
                         return await self._run_reserved(call, *args, **kwargs)
-            finally:
-                self._pending_mutations -= 1
+                    with mutation_probe():
+                        return await self._run_reserved(call, *args, **kwargs)
+                except MutationReservationRequired as reservation:
+                    stage["active"] = False
+                    if stage["cancelled"]:
+                        raise asyncio.CancelledError from None
+                    async with reservation.authority.reserve(reservation.kind):
+                        stage["granted"] = True
+                        return await self._run_reserved(call, *args, **kwargs)
+        finally:
+            _THREAD_LIMITER.reset(token)
+            async with self._condition:
+                self._pending_lanes[lane] -= 1
 
     @staticmethod
     async def _run_reserved(
@@ -98,6 +148,12 @@ class _ControlPlaneCallExecutor:
                 if self._active_calls == 0:
                     self._condition.notify_all()
 
+    async def control(self, call, /, *args, **kwargs):
+        return await self._start("control", call, args, kwargs)
+
+    async def authenticate(self, call, /, *args, **kwargs):
+        return await self._start("auth", call, args, kwargs)
+
     async def close(self) -> None:
         """Stop admission and drain every queued or active offloaded call."""
 
@@ -105,7 +161,13 @@ class _ControlPlaneCallExecutor:
             if self._closed:
                 return
             self._closing = True
-            await self._condition.wait_for(lambda: self._active_calls == 0)
+            try:
+                await asyncio.wait_for(
+                    self._condition.wait_for(lambda: self._active_calls == 0), self._drain_budget_ms / 1000
+                )
+            except TimeoutError:
+                self._closing = False
+                raise TimeoutError("HTTP drain has unresolved calls") from None
             self._closed = True
 
 

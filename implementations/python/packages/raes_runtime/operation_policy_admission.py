@@ -1,0 +1,21 @@
+"""Admit only apparatus policy choices this composition can actually enforce."""
+
+
+def execution_budget_ms(plan, configuration):
+    budget = configuration.execution_ms
+    for operation in plan.operations:
+        for effective in (operation.execution_policy, *operation.execution_policy_scopes):
+            if effective is None:
+                continue
+            policy = effective.policy
+            if (
+                policy.response != "terminate"
+                or policy.validity != "preserve"
+                or policy.retry.max_attempts != 1
+                or policy.clock_basis != "apparatus"
+                or policy.on_exhausted != "terminate"
+            ):
+                raise ValueError("runtime execution policy is unsupported")
+            if policy.budget_ms is not None:
+                budget = min(budget, policy.budget_ms)
+    return budget

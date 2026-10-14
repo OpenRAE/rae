@@ -1,26 +1,48 @@
-"""Live runtime control surfaces for RAES SDL."""
+"""Live runtime control surfaces for RAES SDL, loaded at their public boundary.
 
-from .control_plane import RuntimeControlPlane
-from .control_plane_profiles import (
-    ControlPlaneActorBoundary,
-    ControlPlaneCapability,
-    ControlPlaneClaim,
-    ControlPlaneProfile,
-    ControlPlaneProfileDeclaration,
-    ControlPlaneStoreCapabilities,
-    RecoveryObservationRequirement,
-    profile_declaration,
-)
-from .manager import RuntimeManager
-from .mixed_runtime import MixedPhaseTransitionEvaluation, MixedRuntimeBinding, MixedRuntimeComponent
-from .registry import BackendRegistry, RuntimeTarget, RuntimeTargetComponents, RuntimeTargetDescriptor
-from .runtime_fact_bindings import (
-    RuntimeFactActionDisposition,
-    RuntimeFactBindingAdmission,
-    RuntimeFactBindingPlane,
-    RuntimeFactBindingResult,
-    RuntimeFactDispatchCommand,
-)
+Lazy exports keep deterministic delivery workers from initializing backend,
+contract-corpus and state-owner integrations merely by importing their package.
+"""
+
+from importlib import import_module
+
+_EXPORT_MODULES = {
+    "control_plane": ("RuntimeControlPlane",),
+    "control_plane_profiles": (
+        "ControlPlaneActorBoundary",
+        "ControlPlaneCapability",
+        "ControlPlaneClaim",
+        "ControlPlaneProfile",
+        "ControlPlaneProfileDeclaration",
+        "ControlPlaneStoreCapabilities",
+        "RecoveryObservationRequirement",
+        "profile_declaration",
+    ),
+    "manager": ("RuntimeManager",),
+    "mixed_runtime": ("MixedPhaseTransitionEvaluation", "MixedRuntimeBinding", "MixedRuntimeComponent"),
+    "registry": ("BackendRegistry", "RuntimeTarget", "RuntimeTargetComponents", "RuntimeTargetDescriptor"),
+    "runtime_fact_bindings": (
+        "RuntimeFactActionDisposition",
+        "RuntimeFactBindingAdmission",
+        "RuntimeFactBindingPlane",
+        "RuntimeFactBindingResult",
+        "RuntimeFactDispatchCommand",
+    ),
+}
+
+
+def __getattr__(name):
+    for module, names in _EXPORT_MODULES.items():
+        if name in names:
+            value = getattr(import_module(f".{module}", __name__), name)
+            globals()[name] = value
+            return value
+    raise AttributeError(name)
+
+
+def __dir__():
+    return sorted(set(globals()) | set(__all__))
+
 
 __all__ = [
     "BackendRegistry",

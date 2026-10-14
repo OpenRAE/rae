@@ -1,8 +1,8 @@
 """Typed keyword configuration for the runtime control plane."""
 
 from collections.abc import Mapping
-from dataclasses import dataclass
-from typing import TypedDict
+from dataclasses import dataclass, field
+from typing import Protocol, TypedDict
 
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.materialization import MaterializationArchive
@@ -13,8 +13,18 @@ from raes_processor.models import ParticipantBehaviorSpecificationRuntime, Runti
 from .control_plane_profiles import ControlPlaneProfile
 from .control_plane_store import ControlPlaneStore
 from .mixed_runtime import MixedRuntimeBinding
+from .operation_supervision_configuration import OperationEvidenceResolver, OperationSupervisionConfiguration
 from .participant_control_binding import ParticipantControlRuntimeBinding
 from .participant_crossing_mediation import ParticipantCrossingPolicyResolver
+
+
+class OperationDispatcher(Protocol):
+    worker_identity: str
+
+    def submit(self, request: object) -> str: ...
+    def binding(self, request: object) -> object: ...
+    def deliver_control(self, request: object, control: object) -> None: ...
+    def close(self) -> None: ...
 
 
 class ControlPlaneOptions(TypedDict, total=False):
@@ -32,6 +42,9 @@ class ControlPlaneOptions(TypedDict, total=False):
     run_scope: str
     mixed_runtime: MixedRuntimeBinding | None
     profile: ControlPlaneProfile | None
+    supervision: OperationSupervisionConfiguration
+    operation_evidence: OperationEvidenceResolver | None
+    distributed_execution: OperationDispatcher | None
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -50,8 +63,26 @@ class ControlPlaneConfiguration:
     run_scope: str = "run:default"
     mixed_runtime: MixedRuntimeBinding | None = None
     profile: ControlPlaneProfile | None = None
+    supervision: OperationSupervisionConfiguration = field(default_factory=OperationSupervisionConfiguration)
+    operation_evidence: OperationEvidenceResolver | None = None
+    distributed_execution: OperationDispatcher | None = None
 
     def __post_init__(self) -> None:
+        if self.distributed_execution is not None and (
+            not isinstance(getattr(self.distributed_execution, "worker_identity", None), str)
+            or not self.distributed_execution.worker_identity
+            or not callable(getattr(self.distributed_execution, "submit", None))
+            or not callable(getattr(self.distributed_execution, "close", None))
+            or not callable(getattr(self.distributed_execution, "binding", None))
+            or not callable(getattr(self.distributed_execution, "deliver_control", None))
+        ):
+            raise TypeError("distributed execution requires a scoped configured adapter")
+        if not isinstance(self.supervision, OperationSupervisionConfiguration):
+            raise TypeError("supervision requires typed apparatus configuration")
+        if self.operation_evidence is not None and not all(
+            callable(getattr(self.operation_evidence, name, None)) for name in ("validate_effects", "resolve_result")
+        ):
+            raise TypeError("operation evidence requires installed scoped validation and resolution")
         if self.participant_outcome_model is not None and not isinstance(self.participant_outcome_model, RuntimeModel):
             raise TypeError("participant_outcome_model must be a compiled RuntimeModel")
         if self.profile is not None and not isinstance(self.profile, ControlPlaneProfile):

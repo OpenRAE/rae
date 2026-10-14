@@ -410,6 +410,10 @@ def execute_operation(
     with control_plane_mutation(control_plane, request.context.operation_kind):
         with control_plane._operation_lock:
             control_plane._reload_derived_state()
+        if getattr(control_plane, "_execution_adapter", None) is not None:
+            from .control_plane_supervised_execution import execute_supervised_operation
+
+            return execute_supervised_operation(control_plane, request)
         return _execute_operation_locked(control_plane, request)
 
 

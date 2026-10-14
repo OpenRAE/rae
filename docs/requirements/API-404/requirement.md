@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-04-03T05:55:58.825305Z
-updated_at: 2026-09-26T00:00:00.000000Z
+updated_at: 2026-10-13T00:00:00.000000Z
 ---
 
 # API-404 — Secure, Durable, And Idempotent Control-Plane Semantics
@@ -134,13 +134,52 @@ C3's bounded authenticated admission also constrains the designed supervisory
 path. C4's nonclaims remain applicable, including unavailable P3.
 
 The existing profile matrix is unchanged. API-404 remains ACTIVE for those
-implemented clauses; the supplement and its finite model establish design
-semantics only. They do not certify that current runtime calls or shutdown are
-bounded, that backend effects can be interrupted, or that a general continuation
-carrier exists. The [decision](../../decisions/issue-1348-operation-lifecycle.md)
-identifies those implementation gaps and the retained canonical requirements.
+implemented clauses. Issue #1362 installs bounded native phase execution,
+retained invocation/control facts, independently admitted supervision, and the
+selected optional Temporal/PostgreSQL adapter composition. The supplement and
+finite model remain design evidence; installed tests cover the concrete runtime
+boundaries. These changes do not certify backend interruption, general
+continuation, external fencing or P3. See the
+[operator guide](../../public/guides/supervised-execution.md) for supported
+policy choices, recovery and composition limits.
 
 ## Traceability
+
+- IMPLEMENTS → GITHUB_ISSUE `1362` (Supervised execution outside state admission)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1362-supervised-execution-preflight.md` (Accepted architecture and implementation guardrails)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_supervised_execution.py` (API-404-C1/C2 short state cuts, confirmed one-use native dispatch and fenced atomic settlement)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_invocation_ledger.py` (API-404-C1/C2 immutable invocation, control, response and exclusion facts)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_transcript_policy.py` (API-404-C1/C2 budget-compatible automatic polling and finite retained history with reserved operator recovery capacity)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_execution_adapter.py` (API-404-C1/C3 independently bounded effect/control/store capacity and physical drain)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_command_commitment.py` (API-404-C1/C2 owner-private exact native command identity without a durable credential verifier)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_result_finalization.py` (API-404-C1/C2 bounded native result and observation finalization with prepared atomic payloads)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_supervision.py` (API-404-C1/C3 independently authorized, actor-bound stop and controls)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_reconciliation.py` (API-404-C1/C2 verified linked absence resolution without parent outcome rewrite)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_worker_authority.py` (API-404-C1/C2 current worker authority, nonrenewable one-use grants and late response fencing)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_supervision_routes.py` (API-404-C3 sealed authenticated supervision and worker RPCs)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_local_invocations.py` (API-404-C2 durable control/audit cuts, stop and owner generation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_postgresql.py` (API-404-C1/C2 single-owner scoped ledger with independent database configuration)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_temporal.py` (API-404-C2 opaque stable engine delivery and separately bounded control delivery)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_temporal_worker.py` (API-404-C1/C2 current grant checks and independent effect/control activity capacity)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/runtime_resource_ownership.py` (API-404-C1 component ownership across stores and direct manager composition)
+- DOCUMENTS → DOCUMENTATION `docs/public/guides/supervised-execution.md` (API-404-C4 explicit supported compositions, policy limits and nonclaims)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_state_authority.py` (API-404-C1 responsive supervision with retained exclusion and copied-context callback guards)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_runtime_supervision.py` (API-404-C1/C3 real blocked native calls, stop/cancel/timeout, late result fencing and unresolved drain)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_invocation_ledger.py` (API-404-C1/C2 strict reopening, one-use and actor-bound atomic control facts)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_provider_execution.py` (API-404-C1 exact admission, validated native outcomes, refusal, scoped controls and replay)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_reconciliation.py` (API-404-C1/C2 administrative snapshot acceptance cannot discharge unknown effects; verified linked absence can)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_distributed_authority.py` (API-404-C1/C2 foreign/stale workers and duplicate grants cannot invoke)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_supervision_http.py` (API-404-C3 target-bound authenticated one-use grants, operator stop and no-store replies)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_http_capacity.py` (API-404-C3 disconnected caller preserves active mutation ownership and independent control capacity)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_lost_ack.py` (API-404-C2 uncertain grant/terminal acknowledgement never grants replay or renewed readback budget)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_commit_authority.py` (API-404-C1 terminal publication requires the current state writer)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_temporal_worker.py` (API-404-C1/C2 real SDK sandbox, duplicate effect activity and sanitized provider failures)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_review_regressions.py` (API-404-C1/C2/C3 writer handoff, independent deadline/store capacity, bounded transient context and available supervision under blocked admission)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_control_budget.py` (API-404-C1/C2 original control allowance across commit, grant delivery and restart; expired controls cannot dispatch)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_review_round_two.py` (API-404-C1/C2/C3 capacity refusal settles acceptance, outer admission retains one allowance, blocked archive work remains physically reserved, and observations join protocol settlement)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_command_privacy.py` (API-404-C1/C2 private exact command commitments protect native and provider persistence while refusing changed credentials)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_observation_retention.py` (API-404-C1/C2 automatic polling preserves cancellation, verified reconciliation and later admission across local execution and durable reopening without discarding consumed authority)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_distributed_integration.py` (API-404-C1/C2/C3 hosted real Temporal/P2/PostgreSQL delivery, control, duplicate and reopening tests)
 
 - DOCUMENTS → GITHUB_ISSUE `1359` (Enforce the accepted runtime API trust boundary)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1359-runtime-api-trust-boundary-preflight.md` (Administrative-only P2 enforcement guardrails and route authority matrix)
