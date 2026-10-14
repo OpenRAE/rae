@@ -56,13 +56,13 @@ def _require_binding_of(item: InjectTargetBindingModel, inject: str) -> None:
 class InjectIndependentPlacementModel(OperationContractModel):
     """Direct request through an admitted independent binding; no schedule is invented."""
 
-    kind: Literal["independent"] = "independent"
+    kind: Literal["independent"]
 
 
 class InjectEventPlacementModel(OperationContractModel):
     """Event-anchored request; the event's precondition assertions remain binding."""
 
-    kind: Literal["event"] = "event"
+    kind: Literal["event"]
     event: CompiledAddress
 
     @model_validator(mode="after")
@@ -74,7 +74,7 @@ class InjectEventPlacementModel(OperationContractModel):
 class InjectSchedulePlacementModel(OperationContractModel):
     """One uniquely identified schedule slot, claimable at most once in its run."""
 
-    kind: Literal["schedule"] = "schedule"
+    kind: Literal["schedule"]
     event: CompiledAddress
     script: CompiledAddress
     story: CompiledAddress | None = None

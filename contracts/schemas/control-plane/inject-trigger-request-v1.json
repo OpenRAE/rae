@@ -16,12 +16,12 @@
         },
         "kind": {
           "const": "event",
-          "default": "event",
           "title": "Kind",
           "type": "string"
         }
       },
       "required": [
+        "kind",
         "event"
       ],
       "title": "InjectEventPlacementModel",
@@ -33,11 +33,13 @@
       "properties": {
         "kind": {
           "const": "independent",
-          "default": "independent",
           "title": "Kind",
           "type": "string"
         }
       },
+      "required": [
+        "kind"
+      ],
       "title": "InjectIndependentPlacementModel",
       "type": "object"
     },
@@ -57,7 +59,6 @@
         },
         "kind": {
           "const": "schedule",
-          "default": "schedule",
           "title": "Kind",
           "type": "string"
         },
@@ -97,6 +98,7 @@
         }
       },
       "required": [
+        "kind",
         "event",
         "script",
         "slot"

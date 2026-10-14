@@ -26,6 +26,11 @@ from ._behavioral_profile_loader import (
 from ._behavioral_profile_loader import (
     load_behavioral_relation_profile_revision as load_behavioral_relation_profile_revision,
 )
+from ._participant_crossing_multi_profile import (
+    MultiParticipantCrossingParametersModel,
+    multi_crossing_profile_schema_join,
+    validate_multi_crossing_profile_join,
+)
 from ._participant_crossing_profile import (
     HIDDEN,
     INPUT_CLASSES,
@@ -358,7 +363,9 @@ class BehavioralRelationProfileModel(ContractModel):
         "abstract-parameterized-theorem-carrier",
     ]
     parameters: Annotated[
-        ParticipantPredicateOpacityParametersModel | ParticipantCrossingParametersModel,
+        ParticipantPredicateOpacityParametersModel
+        | ParticipantCrossingParametersModel
+        | MultiParticipantCrossingParametersModel,
         Field(discriminator="kind"),
     ]
     source_refs: tuple[BehavioralProfileSourceModel, ...] = Field(
@@ -377,6 +384,9 @@ class BehavioralRelationProfileModel(ContractModel):
         _require_sorted_unique(source_ids, "profile source refs")
         if isinstance(self.parameters, ParticipantCrossingParametersModel):
             validate_crossing_profile_join(self)
+            return self
+        if isinstance(self.parameters, MultiParticipantCrossingParametersModel):
+            validate_multi_crossing_profile_join(self)
             return self
         if self.relation_id != "participant-predicate-opacity":
             raise ValueError("opacity parameters require the opacity relation")
@@ -398,6 +408,7 @@ class BehavioralRelationProfileModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler.resolve_ref_schema(handler(core_schema))
         json_schema.setdefault("allOf", []).append(crossing_profile_schema_join())
+        json_schema["allOf"].append(multi_crossing_profile_schema_join())
         json_schema.setdefault("allOf", []).extend(
             [
                 {
@@ -426,6 +437,7 @@ __all__ = [
     "INPUT_CLASSES",
     "VISIBLE",
     "ParticipantCrossingParametersModel",
+    "MultiParticipantCrossingParametersModel",
     "ActiveOpacityStrategyModel",
     "AbstractOpacityCarrierModel",
     "BehavioralRelationProfileModel",
