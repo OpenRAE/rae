@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import timedelta
-from typing import Annotated, Literal
+from typing import TYPE_CHECKING, Annotated, Literal
 
 import anyio
 from anyio.from_thread import start_blocking_portal
@@ -20,6 +21,10 @@ from raes_contracts.contracts.backend_operation import (
 from raes_contracts.contracts.base import ContractModel
 
 from .operation_execution_adapter import require_budget_ms
+
+if TYPE_CHECKING:
+    from raes_contracts.contracts import BackendOperationControlModel
+    from temporalio.client import Client
 
 
 class EngineOperationReference(ContractModel):
@@ -39,7 +44,7 @@ class EngineOperationReference(ContractModel):
     execution_budget_ms: OperationPositive
     control_budget_ms: OperationPositive
 
-    def require_request(self, request):
+    def require_request(self, request: BackendOperationRequestModel) -> None:
         binding = request.binding
         if (
             binding.operation_id,
@@ -99,7 +104,9 @@ class TemporalExecutionAdapter:
     needs the state authority's current one-use invocation grant.
     """
 
-    def __init__(self, configuration: TemporalExecutionConfiguration, *, client_factory) -> None:
+    def __init__(
+        self, configuration: TemporalExecutionConfiguration, *, client_factory: Callable[[], Awaitable[Client]]
+    ) -> None:
         if not isinstance(configuration, TemporalExecutionConfiguration) or not callable(client_factory):
             raise TypeError("Temporal execution requires typed settings and a configured client factory")
         self.configuration = configuration
@@ -138,7 +145,7 @@ class TemporalExecutionAdapter:
         self._portal.call(self._start, delivery.reference, delivery.workflow_id)
         return delivery.workflow_id
 
-    def binding(self, request):
+    def binding(self, request: BackendOperationRequestModel) -> EngineDeliveryBinding:
         reference = self.reference(request)
         workflow_id = "raes-operation-" + canonical_json_digest(
             {
@@ -153,11 +160,11 @@ class TemporalExecutionAdapter:
             reference=reference,
         )
 
-    def deliver_control(self, request, control):
+    def deliver_control(self, request: BackendOperationRequestModel, control: BackendOperationControlModel) -> None:
         delivery = self.binding(request)
         self._portal.call(self._control, delivery.reference, control.control_id)
 
-    async def _control(self, reference, control_id):
+    async def _control(self, reference: EngineOperationReference, control_id: str) -> None:
         from temporalio.common import RetryPolicy, WorkflowIDConflictPolicy, WorkflowIDReusePolicy
         from temporalio.exceptions import WorkflowAlreadyStartedError
 
@@ -184,7 +191,7 @@ class TemporalExecutionAdapter:
                 if retained != payload:
                     raise ValueError("Temporal control binding conflict") from None
 
-    async def _connected(self):
+    async def _connected(self) -> Client:
         if self._client is None:
             with anyio.fail_after(self.configuration.rpc_budget_ms / 1000):
                 self._client = await self._factory()
@@ -193,7 +200,7 @@ class TemporalExecutionAdapter:
                 raise ValueError("Temporal client namespace does not match configuration")
         return self._client
 
-    async def _start(self, reference: EngineOperationReference, workflow_id: str):
+    async def _start(self, reference: EngineOperationReference, workflow_id: str) -> None:
         from temporalio.common import RetryPolicy, WorkflowIDConflictPolicy, WorkflowIDReusePolicy
         from temporalio.exceptions import WorkflowAlreadyStartedError
 

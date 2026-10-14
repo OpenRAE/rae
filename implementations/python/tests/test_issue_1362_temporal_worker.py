@@ -79,8 +79,9 @@ def test_foreign_engine_reference_cannot_select_a_different_worker_or_obtain_a_g
         provider=Provider(), effect_authority=Authority(), control_authority=Authority(), worker_identity="worker-1"
     )
     try:
+        rejected_invocation = activities.invoke({"worker_id": "another-worker"})
         with pytest.raises(ValueError):
-            asyncio.run(activities.invoke({"worker_id": "another-worker"}))
+            asyncio.run(rejected_invocation)
     finally:
         assert activities.close()
 
@@ -124,8 +125,10 @@ def test_native_control_exception_is_not_serialized_into_engine_history():
         provider=provider, effect_authority=authority, control_authority=authority, worker_identity="worker-1"
     )
     try:
+        rejected_payload = reference.model_dump(mode="json")
+        rejected_control = activities.control({"reference": rejected_payload, "control_id": "control-1"})
         with pytest.raises(RuntimeError) as rejected:
-            asyncio.run(activities.control({"reference": reference.model_dump(mode="json"), "control_id": "control-1"}))
+            asyncio.run(rejected_control)
         assert "sensitive-provider-value" not in str(rejected.value)
         assert rejected.value.__suppress_context__
     finally:

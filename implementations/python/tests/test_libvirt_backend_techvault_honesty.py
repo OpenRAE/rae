@@ -376,7 +376,8 @@ def test_failed_techvault_admission_preserves_persisted_runtime_snapshot(tmp_pat
     restarted = RuntimeControlPlane(create_libvirt_target(driver=driver), store=store)
 
     assert receipt.accepted is True
-    assert status is not None and status.state.value == "cancelled"
+    assert status is not None
+    assert status.state.value == "cancelled"
     assert receipt.diagnostics == []
     assert [diagnostic.code for diagnostic in status.diagnostics] == [
         "libvirt-backend.techvault.service-unsupported",

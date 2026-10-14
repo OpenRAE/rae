@@ -22,7 +22,7 @@ def test_foreign_process_owner_refuses_dispatch_before_accessing_inherited_porta
         assert adapter.close(timeout_ms=1000)
 
 
-@pytest.mark.parametrize("failure", [KeyboardInterrupt, SystemExit])
+@pytest.mark.parametrize("failure", [BaseException, KeyboardInterrupt, SystemExit])
 def test_worker_base_exception_reaches_caller_without_stopping_other_lanes(failure):
     from raes_runtime.operation_execution_adapter import LocalExecutionAdapter
 
@@ -39,7 +39,7 @@ def test_worker_base_exception_reaches_caller_without_stopping_other_lanes(failu
         assert adapter.close(timeout_ms=1000)
 
 
-@pytest.mark.parametrize("failure", [KeyboardInterrupt, SystemExit])
+@pytest.mark.parametrize("failure", [BaseException, KeyboardInterrupt, SystemExit])
 def test_deadline_callback_interruption_fences_failure_without_stopping_portal(failure):
     from raes_runtime.operation_execution_adapter import LocalExecutionAdapter
 

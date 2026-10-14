@@ -60,10 +60,11 @@ def test_outer_activity_admission_wait_consumes_the_original_allowance():
         task = asyncio.create_task(holder())
         await held.wait()
         try:
+            rejected_effect_job = activities._job(
+                activities._effect_jobs, "effect", lambda: calls.append(True), budget_ms=50
+            )
             with pytest.raises(RuntimeError):
-                await asyncio.wait_for(
-                    activities._job(activities._effect_jobs, "effect", lambda: calls.append(True), budget_ms=50), 0.3
-                )
+                await asyncio.wait_for(rejected_effect_job, 0.3)
             assert not calls
         finally:
             release.set()

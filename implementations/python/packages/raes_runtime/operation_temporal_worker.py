@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from time import monotonic
+from typing import TYPE_CHECKING, TypeVar
 
 import anyio
 from raes_contracts.contracts import (
@@ -18,6 +20,18 @@ from .operation_control_budget import ControlDeliveryGrant
 from .operation_execution_adapter import LocalExecutionAdapter
 from .operation_temporal import EngineOperationReference
 
+if TYPE_CHECKING:
+    from raes_backend_protocols.operation_supervision import BackendOperationProvider
+    from raes_contracts.contracts import BackendOperationRequestModel
+    from temporalio.client import Client
+    from temporalio.worker import Worker
+
+    from .operation_execution_adapter import Lane
+    from .operation_remote_authority import RemoteOperationAuthority
+    from .operation_temporal import TemporalExecutionConfiguration
+
+_T = TypeVar("_T")
+
 
 class TemporalOperationActivities:
     """Backend integration code only; no ledger credentials or scenario interpreter."""
@@ -25,9 +39,9 @@ class TemporalOperationActivities:
     def __init__(
         self,
         *,
-        provider,
-        effect_authority,
-        control_authority,
+        provider: BackendOperationProvider,
+        effect_authority: RemoteOperationAuthority,
+        control_authority: RemoteOperationAuthority,
         worker_identity: str,
         effect_capacity: int = 1,
         control_capacity: int = 2,
@@ -44,7 +58,7 @@ class TemporalOperationActivities:
             "control": anyio.CapacityLimiter(control_capacity),
         }
 
-    def _reference(self, payload):
+    def _reference(self, payload: dict[str, object]) -> EngineOperationReference:
         try:
             reference = EngineOperationReference.model_validate(payload)
         except Exception:
@@ -53,7 +67,10 @@ class TemporalOperationActivities:
             raise ValueError("engine reference belongs to another worker")
         return reference
 
-    def _request(self, authority, reference):
+    @staticmethod
+    def _request(
+        authority: RemoteOperationAuthority, reference: EngineOperationReference
+    ) -> BackendOperationRequestModel:
         request = authority.get_request(reference)
         binding = request.binding
         if (
@@ -77,18 +94,20 @@ class TemporalOperationActivities:
         return request
 
     @activity.defn(name="raes.invoke")
-    async def invoke(self, payload) -> str:
+    async def invoke(self, payload: dict[str, object]) -> str:
         reference = self._reference(payload)
         return await self._job(
             self._effect_jobs, "effect", self._invoke, reference, budget_ms=reference.execution_budget_ms
         )
 
-    async def _job(self, executor, lane, method, *args, budget_ms):
+    async def _job(
+        self, executor: LocalExecutionAdapter, lane: Lane, method: Callable[..., _T], *args: object, budget_ms: int
+    ) -> _T:
         from .operation_execution_adapter import require_budget_ms
 
         deadline = monotonic() + require_budget_ms(budget_ms) / 1000
 
-        def admitted():
+        def admitted() -> _T:
             remaining = int((deadline - monotonic()) * 1000)
             if remaining <= 0:
                 raise TimeoutError("activity allowance exhausted before admission")
@@ -102,7 +121,7 @@ class TemporalOperationActivities:
         except Exception:
             raise RuntimeError("backend activity could not be established") from None
 
-    def _invoke(self, reference):
+    def _invoke(self, reference: EngineOperationReference) -> str:
         authority, provider = self._effect_authority, self._provider
         try:
             request = self._request(authority, reference)
@@ -138,13 +157,13 @@ class TemporalOperationActivities:
             return self._control_authority.indeterminate(reference)
 
     @activity.defn(name="raes.observe")
-    async def observe(self, payload) -> str:
+    async def observe(self, payload: dict[str, object]) -> str:
         reference = self._reference(payload)
         return await self._job(
             self._control_jobs, "control", self._observe, reference, budget_ms=reference.control_budget_ms
         )
 
-    def _observe(self, reference):
+    def _observe(self, reference: EngineOperationReference) -> str:
         authority = self._control_authority
         try:
             request = self._request(authority, reference)
@@ -169,7 +188,7 @@ class TemporalOperationActivities:
             return authority.indeterminate(reference)
 
     @activity.defn(name="raes.control")
-    async def control(self, payload) -> str:
+    async def control(self, payload: dict[str, object]) -> str:
         reference = self._reference(payload["reference"])
         from pydantic import TypeAdapter
         from raes_contracts.contracts.backend_operation import OperationIdentifier
@@ -179,7 +198,7 @@ class TemporalOperationActivities:
             self._control_jobs, "control", self._control, reference, control_id, budget_ms=reference.control_budget_ms
         )
 
-    def _control(self, reference, control_id):
+    def _control(self, reference: EngineOperationReference, control_id: str) -> str:
         authority = self._control_authority
         request = self._request(authority, reference)
         # Redelivery cannot reacquire a consumed control claim either.
@@ -208,7 +227,7 @@ class TemporalOperationActivities:
         return authority.publish(reference, response)
 
     @staticmethod
-    def _control_allowance(request, grant, began):
+    def _control_allowance(request: BackendOperationRequestModel, grant: ControlDeliveryGrant, began: float) -> int:
         control = grant.control
         if (
             control.binding != request.binding
@@ -222,7 +241,7 @@ class TemporalOperationActivities:
         return remaining
 
     @activity.defn(name="raes.indeterminate")
-    async def indeterminate(self, payload) -> str:
+    async def indeterminate(self, payload: dict[str, object]) -> str:
         reference = self._reference(payload)
         return await self._job(
             self._control_jobs,
@@ -243,8 +262,13 @@ class TemporalOperationActivities:
 
 
 def create_temporal_workers(
-    client, configuration, activities: TemporalOperationActivities, *, effect_capacity=1, control_capacity=2
-):
+    client: Client,
+    configuration: TemporalExecutionConfiguration,
+    activities: TemporalOperationActivities,
+    *,
+    effect_capacity: int = 1,
+    control_capacity: int = 2,
+) -> tuple[Worker, Worker, Worker]:
     from temporalio.worker import Worker
 
     from .operation_temporal_workflow import RaeOperationWorkflow, RaeSupervisionWorkflow

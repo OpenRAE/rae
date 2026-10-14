@@ -1,6 +1,9 @@
 """Verified absence releases exclusion through a linked operator resolution."""
 
+from __future__ import annotations
+
 from dataclasses import replace
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from raes_contracts.canonical import canonical_json_digest
@@ -12,10 +15,17 @@ from .control_plane_operation_context import operation_actor_scope, operation_ad
 from .control_plane_supervision import authorize_supervisor
 from .operation_reconciliation_ledger import InvocationReconciliation
 
+if TYPE_CHECKING:
+    from .control_plane import RuntimeControlPlane
+    from .control_plane_security import ControlPlaneIdentity
+    from .control_plane_store import ControlPlaneOperationRecord
+
 
 class RuntimeInvocationReconciliationMixin:
     @runtime_owned
-    def resolve_backend_absence(self, operation_id, control_id, *, idempotency_key, identity):
+    def resolve_backend_absence(
+        self, operation_id: str, control_id: str, *, idempotency_key: str, identity: ControlPlaneIdentity | None
+    ) -> OperationReceipt:
         authorize_supervisor(self, identity)
         from .control_plane_security import ControlPlaneRole
         from .control_plane_store import ControlPlaneOperationRecord, TerminalCommitMode
@@ -29,46 +39,10 @@ class RuntimeInvocationReconciliationMixin:
             if parent is None or parent.invocation is None:
                 raise KeyError("operation not found")
             authorize_supervisor(self, identity, parent)
-            control = next((item for item in parent.invocation.controls if item.control_id == control_id), None)
-            response = next(
-                (
-                    item
-                    for item in reversed(parent.invocation.responses)
-                    if getattr(item.message, "control_id", None) == control_id and item.message.kind == "reconciliation"
-                ),
-                None,
-            )
-            if (
-                control is None
-                or response is None
-                or (control.actor_id, control.authorization_scope) != operation_actor_scope(identity)
-            ):
-                raise PermissionError("reconciliation authority is unavailable")
-            evidence = InvocationReconciliation(request=parent.invocation.request, control=control, response=response)
-            resolver = self._operation_evidence
-            if resolver is None or parent.status.state is not OperationState.INDETERMINATE:
-                raise ValueError("reconciliation evidence authority is unavailable")
-            with self._mutation_authority.external_call():
-                if (
-                    self._execution_adapter.call(
-                        "control",
-                        resolver.validate_effects,
-                        evidence.request,
-                        response,
-                        timeout_ms=self._supervision.observation_ms,
-                    )
-                    is not True
-                ):
-                    raise ValueError("reconciliation evidence could not be verified")
+            evidence = _verified_absence(self, parent, control_id, identity)
             self._reload_derived_state()
             parent = self._operations[operation_id]
-            if (
-                parent.status.state is not OperationState.INDETERMINATE
-                or evidence.response not in parent.invocation.responses
-            ):
-                raise ValueError("reconciliation cut changed")
-            if idempotency_key == parent.idempotency_key:
-                raise ValueError("reconciliation requires a fresh identity")
+            _require_unchanged_reconciliation_cut(parent, evidence, idempotency_key)
             context = operation_admission_context(
                 self,
                 kind=OperationKind.INDETERMINATE_RESOLUTION,
@@ -107,3 +81,58 @@ class RuntimeInvocationReconciliationMixin:
             )
             self._commit_terminal_operation(self._snapshot, final, mode=TerminalCommitMode.OPERATION_ONLY)
             return receipt
+
+
+def _verified_absence(
+    plane: RuntimeControlPlane,
+    parent: ControlPlaneOperationRecord,
+    control_id: str,
+    identity: ControlPlaneIdentity,
+) -> InvocationReconciliation:
+    evidence = _scoped_reconciliation_evidence(parent, control_id, identity)
+    resolver = plane._operation_evidence
+    if resolver is None or parent.status.state is not OperationState.INDETERMINATE:
+        raise ValueError("reconciliation evidence authority is unavailable")
+    with plane._mutation_authority.external_call():
+        if (
+            plane._execution_adapter.call(
+                "control",
+                resolver.validate_effects,
+                evidence.request,
+                evidence.response,
+                timeout_ms=plane._supervision.observation_ms,
+            )
+            is not True
+        ):
+            raise ValueError("reconciliation evidence could not be verified")
+    return evidence
+
+
+def _scoped_reconciliation_evidence(
+    parent: ControlPlaneOperationRecord, control_id: str, identity: ControlPlaneIdentity
+) -> InvocationReconciliation:
+    control = next((item for item in parent.invocation.controls if item.control_id == control_id), None)
+    response = next(
+        (
+            item
+            for item in reversed(parent.invocation.responses)
+            if getattr(item.message, "control_id", None) == control_id and item.message.kind == "reconciliation"
+        ),
+        None,
+    )
+    if (
+        control is None
+        or response is None
+        or (control.actor_id, control.authorization_scope) != operation_actor_scope(identity)
+    ):
+        raise PermissionError("reconciliation authority is unavailable")
+    return InvocationReconciliation(request=parent.invocation.request, control=control, response=response)
+
+
+def _require_unchanged_reconciliation_cut(
+    parent: ControlPlaneOperationRecord, evidence: InvocationReconciliation, idempotency_key: str
+) -> None:
+    if parent.status.state is not OperationState.INDETERMINATE or evidence.response not in parent.invocation.responses:
+        raise ValueError("reconciliation cut changed")
+    if idempotency_key == parent.idempotency_key:
+        raise ValueError("reconciliation requires a fresh identity")

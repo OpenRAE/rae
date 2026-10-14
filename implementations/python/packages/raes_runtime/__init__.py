@@ -4,6 +4,8 @@ Lazy exports keep deterministic delivery workers from initializing backend,
 contract-corpus and state-owner integrations merely by importing their package.
 """
 
+from __future__ import annotations
+
 from importlib import import_module
 
 _EXPORT_MODULES = {
@@ -31,7 +33,7 @@ _EXPORT_MODULES = {
 }
 
 
-def __getattr__(name):
+def __getattr__(name: str) -> object:
     for module, names in _EXPORT_MODULES.items():
         if name in names:
             value = getattr(import_module(f".{module}", __name__), name)
@@ -40,7 +42,7 @@ def __getattr__(name):
     raise AttributeError(name)
 
 
-def __dir__():
+def __dir__() -> list[str]:
     return sorted(set(globals()) | set(__all__))
 
 

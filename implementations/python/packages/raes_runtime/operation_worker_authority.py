@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from time import monotonic
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import ConfigDict
 from raes_contracts.contracts import (
@@ -34,6 +34,16 @@ from .operation_control_budget import (
 )
 from .operation_transcript_policy import append_control
 
+if TYPE_CHECKING:
+    from raes_contracts.runtime_state import OperationStatus
+
+    from .control_plane import RuntimeControlPlane
+    from .control_plane_execution import OperationExecutionRequest
+    from .control_plane_store import ControlPlaneOperationRecord
+
+
+_OPERATION_NOT_FOUND = "operation not found"
+
 
 class InvocationGrant(ContractModel):
     """Private owner RPC response. Only receipt of this live grant permits a call."""
@@ -44,7 +54,13 @@ class InvocationGrant(ContractModel):
     remaining_budget_ms: OperationPositive
 
 
-def authorize_worker(plane, identity, record=None, *, dispatch=False):
+def authorize_worker(
+    plane: RuntimeControlPlane,
+    identity: ControlPlaneIdentity | None,
+    record: ControlPlaneOperationRecord | None = None,
+    *,
+    dispatch: bool = False,
+) -> None:
     configured = getattr(plane, "_distributed_execution", None)
     if (
         configured is None
@@ -55,24 +71,34 @@ def authorize_worker(plane, identity, record=None, *, dispatch=False):
     ):
         raise PermissionError("invocation service authority is forbidden")
     if record is not None:
-        request = record.invocation.request if record.invocation is not None else None
-        if (
-            request is None
-            or request.binding.worker_id != identity.identity
-            or (request.binding.context.target_scope, request.binding.context.run_scope)
-            != (plane._target_scope, plane._run_scope)
-        ):
-            raise PermissionError("invocation service authority is forbidden")
-        if dispatch and (
-            request.binding.owner_generation != plane._execution_generation
-            or request.binding.deployment_id != plane._deployment_id
-        ):
-            raise ValueError("invocation owner generation is stale")
+        _authorize_worker_record(plane, identity, record, dispatch=dispatch)
+
+
+def _authorize_worker_record(
+    plane: RuntimeControlPlane,
+    identity: ControlPlaneIdentity,
+    record: ControlPlaneOperationRecord,
+    *,
+    dispatch: bool,
+) -> None:
+    request = record.invocation.request if record.invocation is not None else None
+    if (
+        request is None
+        or request.binding.worker_id != identity.identity
+        or (request.binding.context.target_scope, request.binding.context.run_scope)
+        != (plane._target_scope, plane._run_scope)
+    ):
+        raise PermissionError("invocation service authority is forbidden")
+    if dispatch and (
+        request.binding.owner_generation != plane._execution_generation
+        or request.binding.deployment_id != plane._deployment_id
+    ):
+        raise ValueError("invocation owner generation is stale")
 
 
 class RuntimeWorkerAuthorityMixin:
     @runtime_owned
-    def _expire_backend_invocation(self, binding):
+    def _expire_backend_invocation(self, binding: BackendOperationBindingModel) -> None:
         with self._mutation_authority.supervision():
             self._assert_runtime_owner()
             self._reload_derived_state()
@@ -93,12 +119,14 @@ class RuntimeWorkerAuthorityMixin:
                 )
 
     @runtime_owned
-    def get_backend_invocation(self, operation_id: str, *, identity) -> BackendOperationRequestModel:
+    def get_backend_invocation(
+        self, operation_id: str, *, identity: ControlPlaneIdentity | None
+    ) -> BackendOperationRequestModel:
         authorize_worker(self, identity)
         self._reload_derived_state()
         record = self._operations.get(operation_id)
         if record is None:
-            raise KeyError("operation not found")
+            raise KeyError(_OPERATION_NOT_FOUND)
         authorize_worker(self, identity, record)
         return record.invocation.request
 
@@ -109,7 +137,7 @@ class RuntimeWorkerAuthorityMixin:
         capabilities: BackendOperationCapabilitiesModel,
         admission: BackendOperationResponseModel,
         *,
-        identity,
+        identity: ControlPlaneIdentity | None,
     ) -> InvocationGrant:
         binding = BackendOperationBindingModel.model_validate(binding.model_dump(mode="json"))
         capabilities = BackendOperationCapabilitiesModel.model_validate(capabilities.model_dump(mode="json"))
@@ -120,22 +148,9 @@ class RuntimeWorkerAuthorityMixin:
             self._reload_derived_state()
             record = self._operations.get(binding.operation_id)
             if record is None:
-                raise KeyError("operation not found")
+                raise KeyError(_OPERATION_NOT_FOUND)
             authorize_worker(self, identity, record, dispatch=True)
-            if record.invocation.request.binding != binding:
-                raise ValueError("invocation binding mismatch")
-            if record.status.state is not OperationState.ACCEPTED or record.invocation.consumed:
-                raise ValueError("invocation grant is unavailable or already consumed")
-            if self._effect_admission_stopped or self._store.effect_admission_stopped():
-                raise ValueError("effect admission is stopped")
-            deadline = self._execution_deadlines.get(binding.operation_id)
-            admitted = self._admitted_backend_requests.get(binding.operation_id)
-            if deadline is None or admitted is None:
-                raise ValueError("invocation clock or command continuity is unavailable")
-            remaining = int((deadline - monotonic()) * 1000)
-            if remaining <= 0:
-                raise ValueError("invocation budget exhausted")
-            native_request, _predecessor = admitted
+            deadline, native_request = _require_claimable_invocation(self, record, binding)
             require_backend_execution_policy_admission(
                 record.invocation.request,
                 capabilities,
@@ -166,7 +181,9 @@ class RuntimeWorkerAuthorityMixin:
             return InvocationGrant(request=running.invocation.request, remaining_budget_ms=remaining)
 
     @runtime_owned
-    def record_worker_observation(self, control: BackendOperationControlModel, *, identity):
+    def record_worker_observation(
+        self, control: BackendOperationControlModel, *, identity: ControlPlaneIdentity | None
+    ) -> ControlDeliveryGrant:
         control = BackendOperationControlModel.model_validate(control.model_dump(mode="json"))
         authorize_worker(self, identity)
         actor, scopes = operation_actor_scope(identity)
@@ -180,7 +197,7 @@ class RuntimeWorkerAuthorityMixin:
             self._reload_derived_state()
             record = self._operations.get(control.binding.operation_id)
             if record is None:
-                raise KeyError("operation not found")
+                raise KeyError(_OPERATION_NOT_FOUND)
             authorize_worker(self, identity, record)
             from raes_contracts.contracts import backend_operation_request_digest
 
@@ -211,14 +228,16 @@ class RuntimeWorkerAuthorityMixin:
             return self.claim_worker_control(control.binding.operation_id, control.control_id, identity=identity)
 
     @runtime_owned
-    def claim_worker_control(self, operation_id: str, control_id: str, *, identity):
+    def claim_worker_control(
+        self, operation_id: str, control_id: str, *, identity: ControlPlaneIdentity | None
+    ) -> ControlDeliveryGrant:
         authorize_worker(self, identity)
         with self._mutation_authority.supervision():
             self._assert_runtime_owner()
             self._reload_derived_state()
             record = self._operations.get(operation_id)
             if record is None:
-                raise KeyError("operation not found")
+                raise KeyError(_OPERATION_NOT_FOUND)
             authorize_worker(self, identity, record)
             control = next((item for item in record.invocation.controls if item.control_id == control_id), None)
             if control is None:
@@ -241,17 +260,21 @@ class RuntimeWorkerAuthorityMixin:
             return grant
 
     @runtime_owned
-    def get_backend_operation_status(self, operation_id: str, *, identity):
+    def get_backend_operation_status(
+        self, operation_id: str, *, identity: ControlPlaneIdentity | None
+    ) -> OperationStatus:
         authorize_worker(self, identity)
         self._reload_derived_state()
         record = self._operations.get(operation_id)
         if record is None:
-            raise KeyError("operation not found")
+            raise KeyError(_OPERATION_NOT_FOUND)
         authorize_worker(self, identity, record)
         return record.status
 
     @runtime_owned
-    def publish_backend_response(self, response: BackendOperationResponseModel, *, identity):
+    def publish_backend_response(
+        self, response: BackendOperationResponseModel, *, identity: ControlPlaneIdentity | None
+    ) -> OperationStatus:
         response = BackendOperationResponseModel.model_validate(response.model_dump(mode="json"))
         authorize_worker(self, identity)
         with self._mutation_authority.supervision():
@@ -259,7 +282,7 @@ class RuntimeWorkerAuthorityMixin:
             self._reload_derived_state()
             record = self._operations.get(response.binding.operation_id)
             if record is None:
-                raise KeyError("operation not found")
+                raise KeyError(_OPERATION_NOT_FOUND)
             authorize_worker(self, identity, record)
             from .operation_provider_execution import accept_response, validate_outcome
 
@@ -300,14 +323,16 @@ class RuntimeWorkerAuthorityMixin:
             return self._operations[record.receipt.operation_id].status
 
     @runtime_owned
-    def mark_backend_indeterminate(self, binding: BackendOperationBindingModel, *, identity):
+    def mark_backend_indeterminate(
+        self, binding: BackendOperationBindingModel, *, identity: ControlPlaneIdentity | None
+    ) -> OperationStatus:
         authorize_worker(self, identity)
         with self._mutation_authority.supervision():
             self._assert_runtime_owner()
             self._reload_derived_state()
             record = self._operations.get(binding.operation_id)
             if record is None or record.invocation.request.binding != binding:
-                raise KeyError("operation not found")
+                raise KeyError(_OPERATION_NOT_FOUND)
             authorize_worker(self, identity, record)
             if record.status.state in {OperationState.ACCEPTED, OperationState.RUNNING}:
                 settle(
@@ -316,3 +341,23 @@ class RuntimeWorkerAuthorityMixin:
                     OperationState.INDETERMINATE if record.invocation.consumed else OperationState.CANCELLED,
                 )
             return self._operations[record.receipt.operation_id].status
+
+
+def _require_claimable_invocation(
+    plane: RuntimeControlPlane, record: ControlPlaneOperationRecord, binding: BackendOperationBindingModel
+) -> tuple[float, OperationExecutionRequest]:
+    if record.invocation.request.binding != binding:
+        raise ValueError("invocation binding mismatch")
+    if record.status.state is not OperationState.ACCEPTED or record.invocation.consumed:
+        raise ValueError("invocation grant is unavailable or already consumed")
+    if plane._effect_admission_stopped or plane._store.effect_admission_stopped():
+        raise ValueError("effect admission is stopped")
+    deadline = plane._execution_deadlines.get(binding.operation_id)
+    admitted = plane._admitted_backend_requests.get(binding.operation_id)
+    if deadline is None or admitted is None:
+        raise ValueError("invocation clock or command continuity is unavailable")
+    remaining = int((deadline - monotonic()) * 1000)
+    if remaining <= 0:
+        raise ValueError("invocation budget exhausted")
+    native_request, _predecessor = admitted
+    return deadline, native_request

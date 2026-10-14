@@ -68,21 +68,16 @@ class ControlPlaneConfiguration:
     distributed_execution: OperationDispatcher | None = None
 
     def __post_init__(self) -> None:
-        if self.distributed_execution is not None and (
-            not isinstance(getattr(self.distributed_execution, "worker_identity", None), str)
-            or not self.distributed_execution.worker_identity
-            or not callable(getattr(self.distributed_execution, "submit", None))
-            or not callable(getattr(self.distributed_execution, "close", None))
-            or not callable(getattr(self.distributed_execution, "binding", None))
-            or not callable(getattr(self.distributed_execution, "deliver_control", None))
-        ):
-            raise TypeError("distributed execution requires a scoped configured adapter")
+        _require_dispatcher_shape(self.distributed_execution)
         if not isinstance(self.supervision, OperationSupervisionConfiguration):
             raise TypeError("supervision requires typed apparatus configuration")
         if self.operation_evidence is not None and not all(
             callable(getattr(self.operation_evidence, name, None)) for name in ("validate_effects", "resolve_result")
         ):
             raise TypeError("operation evidence requires installed scoped validation and resolution")
+        self._require_state_configuration()
+
+    def _require_state_configuration(self) -> None:
         if self.participant_outcome_model is not None and not isinstance(self.participant_outcome_model, RuntimeModel):
             raise TypeError("participant_outcome_model must be a compiled RuntimeModel")
         if self.profile is not None and not isinstance(self.profile, ControlPlaneProfile):
@@ -96,3 +91,16 @@ class ControlPlaneConfiguration:
                 raise ValueError("mixed runtime run_scope must match the admitted trial entry")
             if self.crossing_policy_resolver is None:
                 raise ValueError("mixed runtime requires a crossing policy resolver")
+
+
+def _require_dispatcher_shape(dispatcher: OperationDispatcher | None) -> None:
+    if dispatcher is None:
+        return
+    if (
+        not isinstance(getattr(dispatcher, "worker_identity", None), str)
+        or not dispatcher.worker_identity
+        or not all(
+            callable(getattr(dispatcher, name, None)) for name in ("submit", "close", "binding", "deliver_control")
+        )
+    ):
+        raise TypeError("distributed execution requires a scoped configured adapter")

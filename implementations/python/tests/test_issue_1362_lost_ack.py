@@ -24,11 +24,13 @@ def test_lost_consumed_write_reply_never_reaches_the_backend():
     store = LostGrant()
     plane = RuntimeControlPlane(target, store=store)
     try:
+        rejected_plan = ProvisioningPlan()
         with pytest.raises(TimeoutError):
-            plane.submit_provisioning(ProvisioningPlan())
+            plane.submit_provisioning(rejected_plan)
         assert not called.is_set()
         retained = next(iter(store.load_records().values()))
-        assert retained.status.state is OperationState.RUNNING and retained.invocation.consumed
+        assert retained.status.state is OperationState.RUNNING
+        assert retained.invocation.consumed
         assert plane._durability_poisoned
     finally:
         plane.close()
@@ -48,8 +50,9 @@ def test_commit_timeout_does_not_award_readback_a_fresh_budget():
         create_stub_target(), store=store, supervision=OperationSupervisionConfiguration(commit_ms=60, drain_ms=60)
     )
     try:
+        rejected_plan_1 = ProvisioningPlan()
         with pytest.raises(TimeoutError):
-            plane.submit_provisioning(ProvisioningPlan())
+            plane.submit_provisioning(rejected_plan_1)
         assert plane._durability_poisoned
         with pytest.raises(TimeoutError):
             plane.close()

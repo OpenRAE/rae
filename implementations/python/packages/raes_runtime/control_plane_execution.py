@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -25,6 +24,7 @@ from .backend_calls import _BackendCallContext, _call_backend_apply, _call_backe
 from .backend_observation_calls import _call_backend_apply_with_observation, _ObservationApplyRequest
 from .control_plane_mutation import control_plane_mutation
 from .control_plane_operation_context import legacy_operation_request_commitment, operation_admission_context
+from .control_plane_participant_apply import apply_authorized_participant_action as apply_authorized_participant_action
 from .control_plane_store import (
     ControlPlaneOperationRecord,
     NewClaimRejected,
@@ -38,29 +38,6 @@ from .participant_effect_authority import participant_effect_authority
 
 def _utc_now() -> str:
     return datetime.now(UTC).isoformat().replace("+00:00", "Z")
-
-
-def apply_authorized_participant_action(
-    *,
-    method: Callable[..., object],
-    request: object,
-    snapshot: RuntimeSnapshot,
-    address: str,
-    information_state_context_resolver: ParticipantInformationStateContextResolver | None = None,
-) -> ApplyResult:
-    """Invoke and validate a participant backend after durable authorization."""
-
-    return _call_backend_apply(
-        method,
-        request,
-        snapshot,
-        address=address,
-        snapshot=snapshot,
-        realization=participant_effect_authority(request, snapshot),
-        call=_BackendCallContext(
-            information_state_context_resolver=information_state_context_resolver,
-        ),
-    )
 
 
 def execute_participant_action(

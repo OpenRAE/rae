@@ -136,13 +136,15 @@ def test_protected_policy_admission_recomputes_the_exact_native_commitment():
             resolved_native_plan_commitment=native_command_commitment(plane, plan),
         )
         changed = credential_plan("credential-fixture-beta-1362")
+        rejected_capabilities = provider.operation_capabilities()
+        rejected_command_commitment = native_command_commitment(plane, changed)
         with pytest.raises(ValueError, match="native plan commitment mismatch"):
             require_backend_execution_policy_admission(
                 request,
-                provider.operation_capabilities(),
+                rejected_capabilities,
                 admission,
                 changed,
-                resolved_native_plan_commitment=native_command_commitment(plane, changed),
+                resolved_native_plan_commitment=rejected_command_commitment,
             )
     finally:
         plane.close()

@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable
 from copy import deepcopy
 from dataclasses import replace
 from time import monotonic
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from raes_contracts.canonical import canonical_json_digest
@@ -28,8 +30,17 @@ from .operation_command_commitment import native_command_commitment
 from .operation_invocation_ledger import InvocationLedger
 from .operation_policy_admission import execution_budget_ms
 
+if TYPE_CHECKING:
+    from raes_contracts.contracts import BackendOperationResponseModel
+    from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
-def invocation_request(plane, request, operation_id, submitted_at) -> BackendOperationRequestModel:
+    from .control_plane import RuntimeControlPlane
+    from .control_plane_execution import OperationExecutionRequest
+
+
+def invocation_request(
+    plane: RuntimeControlPlane, request: OperationExecutionRequest, operation_id: str, submitted_at: str
+) -> BackendOperationRequestModel:
     return BackendOperationRequestModel(
         binding={
             "operation_id": operation_id,
@@ -59,7 +70,14 @@ def invocation_request(plane, request, operation_id, submitted_at) -> BackendOpe
     )
 
 
-def claim_accepted(plane, request, *, backend_request=None, native=True, responses=()):
+def claim_accepted(
+    plane: RuntimeControlPlane,
+    request: OperationExecutionRequest,
+    *,
+    backend_request: BackendOperationRequestModel | None = None,
+    native: bool = True,
+    responses: tuple[BackendOperationResponseModel, ...] = (),
+) -> tuple[ControlPlaneOperationRecord | None, OperationReceipt]:
     submitted_at = _utc_now() if backend_request is None else backend_request.budget.started_at
     operation_id = str(uuid4()) if backend_request is None else backend_request.binding.operation_id
     receipt = OperationReceipt(
@@ -91,16 +109,7 @@ def claim_accepted(plane, request, *, backend_request=None, native=True, respons
         idempotency_key=request.idempotency_key,
         invocation=invocation,
     )
-    options = {}
-    if request.exact_retry_fingerprint is not None:
-        options["exact_retry_fingerprint"] = request.exact_retry_fingerprint
-    if request.legacy_request_fingerprint:
-        options["legacy_request_fingerprint"] = request.legacy_request_fingerprint
-    if request.base_snapshot is not None and request.base_snapshot != plane._snapshot:
-        options["new_claim_blocked"] = "stale-base-snapshot"
-    diagnostics = [] if request.admission_diagnostics is None else request.admission_diagnostics()
-    if diagnostics or plane._effect_admission_stopped or plane._store.effect_admission_stopped():
-        options["new_claim_blocked"] = "current-state"
+    options, diagnostics = _admission_claim_options(plane, request)
     try:
         claimed = plane._claim_record(record, **options)
     except NewClaimRejected:
@@ -120,7 +129,32 @@ def claim_accepted(plane, request, *, backend_request=None, native=True, respons
     return (record if claimed == record else None), claimed.receipt
 
 
-def settle(plane, record, state, *, result=None, diagnostics=(), release_commitment=None, result_payload=None):
+def _admission_claim_options(
+    plane: RuntimeControlPlane, request: OperationExecutionRequest
+) -> tuple[dict[str, object], list[Diagnostic]]:
+    options = {}
+    if request.exact_retry_fingerprint is not None:
+        options["exact_retry_fingerprint"] = request.exact_retry_fingerprint
+    if request.legacy_request_fingerprint:
+        options["legacy_request_fingerprint"] = request.legacy_request_fingerprint
+    if request.base_snapshot is not None and request.base_snapshot != plane._snapshot:
+        options["new_claim_blocked"] = "stale-base-snapshot"
+    diagnostics = [] if request.admission_diagnostics is None else request.admission_diagnostics()
+    if diagnostics or plane._effect_admission_stopped or plane._store.effect_admission_stopped():
+        options["new_claim_blocked"] = "current-state"
+    return options, diagnostics
+
+
+def settle(
+    plane: RuntimeControlPlane,
+    record: ControlPlaneOperationRecord,
+    state: OperationState,
+    *,
+    result: ApplyResult | None = None,
+    diagnostics: Iterable[Diagnostic] = (),
+    release_commitment: str | None = None,
+    result_payload: dict[str, object] | None = None,
+) -> None:
     plane._require_state_writer()
     plane._reload_derived_state()
     current = plane._operations[record.receipt.operation_id]
@@ -161,47 +195,63 @@ def settle(plane, record, state, *, result=None, diagnostics=(), release_commitm
     plane._execution_deadlines.pop(record.receipt.operation_id, None)
 
 
-def execute_supervised_operation(plane, request):
-    if request.idempotency_key:
-        from .control_plane_execution import _claim_running_operation
-
-        exact = (
-            {"exact_retry_fingerprint": request.exact_retry_fingerprint}
-            if request.exact_retry_fingerprint is not None
-            else {}
-        )
+def execute_supervised_operation(plane: RuntimeControlPlane, request: OperationExecutionRequest) -> OperationReceipt:
+    receipt = _existing_supervised_receipt(plane, request)
+    if receipt is None:
         try:
-            candidate_id, _, _, _, incumbent = _claim_running_operation(
-                plane,
-                request,
-                exact,
-                current_state_rejects_new_claim=True,
+            budget = execution_budget_ms(request.plan, plane._supervision)
+        except ValueError:
+            receipt = plane._reject_diagnostics(
+                domain=request.domain,
+                context=request.context,
+                diagnostics=[
+                    Diagnostic(
+                        code="runtime.control-plane.execution-policy-unsupported",
+                        domain="runtime",
+                        address=request.address,
+                        message="The selected execution policy cannot be enforced by this runtime composition.",
+                    )
+                ],
             )
-        except NewClaimRejected:
-            pass
         else:
-            if candidate_id == incumbent.operation_id:
-                raise AssertionError("a replay probe cannot create an invocation")
-            return incumbent
-    try:
-        budget = execution_budget_ms(request.plan, plane._supervision)
-    except ValueError:
-        return plane._reject_diagnostics(
-            domain=request.domain,
-            context=request.context,
-            diagnostics=[
-                Diagnostic(
-                    code="runtime.control-plane.execution-policy-unsupported",
-                    domain="runtime",
-                    address=request.address,
-                    message="The selected execution policy cannot be enforced by this runtime composition.",
-                )
-            ],
-        )
-    if getattr(plane._target, "operation_provider", None) is not None:
-        from .operation_provider_execution import execute_provider_operation
+            if getattr(plane._target, "operation_provider", None) is not None:
+                from .operation_provider_execution import execute_provider_operation
 
-        return execute_provider_operation(plane, request)
+                receipt = execute_provider_operation(plane, request)
+            else:
+                receipt = _execute_admitted_native(plane, request, budget)
+    return receipt
+
+
+def _existing_supervised_receipt(
+    plane: RuntimeControlPlane, request: OperationExecutionRequest
+) -> OperationReceipt | None:
+    if not request.idempotency_key:
+        return None
+    from .control_plane_execution import _claim_running_operation
+
+    exact = (
+        {"exact_retry_fingerprint": request.exact_retry_fingerprint}
+        if request.exact_retry_fingerprint is not None
+        else {}
+    )
+    try:
+        candidate_id, _, _, _, incumbent = _claim_running_operation(
+            plane,
+            request,
+            exact,
+            current_state_rejects_new_claim=True,
+        )
+    except NewClaimRejected:
+        return None
+    if candidate_id == incumbent.operation_id:
+        raise AssertionError("a replay probe cannot create an invocation")
+    return incumbent
+
+
+def _execute_admitted_native(
+    plane: RuntimeControlPlane, request: OperationExecutionRequest, budget: int
+) -> OperationReceipt:
     deadline = monotonic() + budget / 1000
     record, receipt = claim_accepted(plane, request)
     if record is None:
@@ -209,87 +259,17 @@ def execute_supervised_operation(plane, request):
     snapshot = deepcopy(request.base_snapshot if request.base_snapshot is not None else plane._snapshot)
     diagnostics = list(request.diagnostics)
 
-    def remaining():
+    def remaining() -> int:
         budget = int((deadline - monotonic()) * 1000)
         if budget <= 0:
             raise TimeoutError("execution budget exhausted")
         return budget
 
     try:
-        if request.validation_method is not None:
-            with plane._mutation_authority.external_call():
-                validation_diagnostics = plane._execution_adapter.call(
-                    "effect",
-                    _call_backend_diagnostics,
-                    request.validation_method,
-                    request.plan,
-                    address=f"{request.address}.validate",
-                    timeout_ms=remaining(),
-                )
-            diagnostics.extend(validation_diagnostics)
-            if _has_error_diagnostic(validation_diagnostics):
-                settle(plane, record, OperationState.CANCELLED, diagnostics=diagnostics)
-                return receipt
-        plane._reload_derived_state()
-        current = plane._operations[record.receipt.operation_id]
-        if current.status.state is not OperationState.ACCEPTED:
-            return receipt
-        if plane._effect_admission_stopped or plane._store.effect_admission_stopped():
-            settle(plane, record, OperationState.CANCELLED)
-            return receipt
-        remaining()
-        if current.invocation.request.command.digest != native_command_commitment(plane, request.plan):
-            raise ValueError("admitted native command changed before dispatch")
-        running = replace(
-            current,
-            status=replace(current.status, state=OperationState.RUNNING, updated_at=_utc_now()),
-            invocation=current.invocation.model_copy(update={"consumed": True}),
-        )
-        # A confirmed write-ahead cut is the one-use grant. A lost reply never
-        # reaches the callback, even if authoritative readback finds RUNNING.
-        try:
-            plane._store.save_record(running)
-        except BaseException:
-            plane._poison_runtime_durability()
-            raise
-        record = running
-        with plane._mutation_authority.external_call():
-            result, observation = plane._execution_adapter.call(
-                "effect",
-                _call_backend_apply_with_observation,
-                request.method,
-                request.plan,
-                snapshot,
-                timeout_ms=remaining(),
-                request=_ObservationApplyRequest(
-                    materialization_archive=plane._materialization_archive,
-                    address=request.address,
-                    snapshot=snapshot,
-                    plan=request.plan,
-                    manifest=plane._target.manifest,
-                    runtime=plane._target.observation_runtime,
-                    durable_lifecycle_available=plane._store_commits.crash_atomic,
-                    operation_id=record.receipt.operation_id,
-                ),
-                realization=_RealizationApplyContext(plan=request.plan, manifest=plane._target.manifest)
-                if isinstance(request.plan, ProvisioningPlan)
-                else None,
-                information_state_context_resolver=plane._information_state_context_resolver,
-            )
-        if record.invocation.request.command.digest != native_command_commitment(plane, request.plan):
-            raise ValueError("admitted native command changed before finalization")
-        if result.success:
-            settle(
-                plane,
-                record,
-                OperationState.SUCCEEDED,
-                result=result,
-                diagnostics=[*diagnostics, *result.diagnostics],
-                release_commitment=canonical_json_digest(_snapshot_payload(result.snapshot)),
-                result_payload=None if observation is None else observation.result_payload,
-            )
-        else:
-            settle(plane, record, OperationState.INDETERMINATE, diagnostics=[*diagnostics, *result.diagnostics])
+        if _validate_native_invocation(plane, request, record, diagnostics, remaining):
+            running = _dispatch_native_invocation(plane, request, record, remaining)
+            if running is not None:
+                _complete_native_invocation(plane, request, running, snapshot, diagnostics, remaining)
     except Exception:
         if plane._durability_poisoned:
             raise
@@ -297,6 +277,109 @@ def execute_supervised_operation(plane, request):
         record = plane._operations[record.receipt.operation_id]
         settle(plane, record, OperationState.INDETERMINATE if record.invocation.consumed else OperationState.CANCELLED)
     return receipt
+
+
+def _validate_native_invocation(
+    plane: RuntimeControlPlane,
+    request: OperationExecutionRequest,
+    record: ControlPlaneOperationRecord,
+    diagnostics: list[Diagnostic],
+    remaining: Callable[[], int],
+) -> bool:
+    if request.validation_method is None:
+        return True
+    with plane._mutation_authority.external_call():
+        validation_diagnostics = plane._execution_adapter.call(
+            "effect",
+            _call_backend_diagnostics,
+            request.validation_method,
+            request.plan,
+            address=f"{request.address}.validate",
+            timeout_ms=remaining(),
+        )
+    diagnostics.extend(validation_diagnostics)
+    if _has_error_diagnostic(validation_diagnostics):
+        settle(plane, record, OperationState.CANCELLED, diagnostics=diagnostics)
+        return False
+    return True
+
+
+def _dispatch_native_invocation(
+    plane: RuntimeControlPlane,
+    request: OperationExecutionRequest,
+    record: ControlPlaneOperationRecord,
+    remaining: Callable[[], int],
+) -> ControlPlaneOperationRecord | None:
+    plane._reload_derived_state()
+    current = plane._operations[record.receipt.operation_id]
+    if current.status.state is not OperationState.ACCEPTED:
+        return None
+    if plane._effect_admission_stopped or plane._store.effect_admission_stopped():
+        settle(plane, record, OperationState.CANCELLED)
+        return None
+    remaining()
+    if current.invocation.request.command.digest != native_command_commitment(plane, request.plan):
+        raise ValueError("admitted native command changed before dispatch")
+    running = replace(
+        current,
+        status=replace(current.status, state=OperationState.RUNNING, updated_at=_utc_now()),
+        invocation=current.invocation.model_copy(update={"consumed": True}),
+    )
+    # A confirmed write-ahead cut is the one-use grant. A lost reply never
+    # reaches the callback, even if authoritative readback finds RUNNING.
+    try:
+        plane._store.save_record(running)
+    except BaseException:
+        plane._poison_runtime_durability()
+        raise
+    return running
+
+
+def _complete_native_invocation(
+    plane: RuntimeControlPlane,
+    request: OperationExecutionRequest,
+    record: ControlPlaneOperationRecord,
+    snapshot: RuntimeSnapshot,
+    diagnostics: list[Diagnostic],
+    remaining: Callable[[], int],
+) -> None:
+    with plane._mutation_authority.external_call():
+        result, observation = plane._execution_adapter.call(
+            "effect",
+            _call_backend_apply_with_observation,
+            request.method,
+            request.plan,
+            snapshot,
+            timeout_ms=remaining(),
+            request=_ObservationApplyRequest(
+                materialization_archive=plane._materialization_archive,
+                address=request.address,
+                snapshot=snapshot,
+                plan=request.plan,
+                manifest=plane._target.manifest,
+                runtime=plane._target.observation_runtime,
+                durable_lifecycle_available=plane._store_commits.crash_atomic,
+                operation_id=record.receipt.operation_id,
+            ),
+            realization=_RealizationApplyContext(plan=request.plan, manifest=plane._target.manifest)
+            if isinstance(request.plan, ProvisioningPlan)
+            else None,
+            information_state_context_resolver=plane._information_state_context_resolver,
+        )
+    if record.invocation.request.command.digest != native_command_commitment(plane, request.plan):
+        raise ValueError("admitted native command changed before finalization")
+    if result.success:
+        settle(
+            plane,
+            record,
+            OperationState.SUCCEEDED,
+            result=result,
+            diagnostics=[*diagnostics, *result.diagnostics],
+            release_commitment=canonical_json_digest(_snapshot_payload(result.snapshot)),
+            result_payload=None if observation is None else observation.result_payload,
+        )
+    else:
+        settle(plane, record, OperationState.INDETERMINATE, diagnostics=[*diagnostics, *result.diagnostics])
 
 
 __all__ = ("execute_supervised_operation", "invocation_request", "settle")

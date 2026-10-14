@@ -1,26 +1,35 @@
 """Process-local component ownership complements the deployment's external fence."""
 
+from __future__ import annotations
+
+from collections.abc import Iterator
 from contextlib import contextmanager
 from threading import RLock
-from weakref import ref
+from typing import TYPE_CHECKING
+from weakref import ReferenceType, ref
+
+if TYPE_CHECKING:
+    from .registry import RuntimeTarget
 
 _LOCK = RLock()
 _CLAIMS = {}
 
 
-def ledger_identity(store):
+def ledger_identity(store: object) -> tuple[str, tuple[object, ...]]:
     raw = getattr(store, "raw_store", store)
     path = getattr(raw, "_database_path", None)
     if path is not None:
-        return ("local-ledger", str(path.resolve()))
+        return ("local-ledger", (str(path.resolve()),))
     config = getattr(raw, "_configuration", None)
     if config is not None and hasattr(config, "database"):
-        return ("postgresql-ledger", config.host, config.port, config.database, config.user)
-    return ("in-memory-ledger", raw)
+        return ("postgresql-ledger", (config.host, config.port, config.database, config.user))
+    return ("in-memory-ledger", (raw,))
 
 
 class RuntimeResourceClaim:
-    def __init__(self, owner, target, *, ledger=None):
+    def __init__(
+        self, owner: object, target: RuntimeTarget, *, ledger: tuple[str, tuple[object, ...]] | None = None
+    ) -> None:
         self._owner = ref(owner, self._owner_gone)
         self.unresolved = False
         self.ledger = ledger
@@ -53,7 +62,7 @@ class RuntimeResourceClaim:
             for component in self.components:
                 _CLAIMS[id(component)] = self
 
-    def release(self, *, unresolved=False):
+    def release(self, *, unresolved: bool = False) -> None:
         with _LOCK:
             if self.active_calls:
                 raise RuntimeError("runtime callbacks remain active")
@@ -68,11 +77,11 @@ class RuntimeResourceClaim:
                 if _CLAIMS.get(id(component)) is self:
                     del _CLAIMS[id(component)]
 
-    def retain_unresolved(self):
+    def retain_unresolved(self) -> None:
         with _LOCK:
             self.unresolved = True
 
-    def _owner_gone(self, _reference):
+    def _owner_gone(self, _reference: ReferenceType[object]) -> None:
         with _LOCK:
             if not self.unresolved:
                 for component in self.components:
@@ -80,7 +89,7 @@ class RuntimeResourceClaim:
                         del _CLAIMS[id(component)]
 
     @contextmanager
-    def runtime_call(self, owner):
+    def runtime_call(self, owner: object) -> Iterator[None]:
         with _LOCK:
             if self.closed or self.closing or self._owner() is not owner:
                 raise RuntimeError("runtime manager is closed or closing")
@@ -93,7 +102,7 @@ class RuntimeResourceClaim:
             with _LOCK:
                 self.active_calls -= 1
 
-    def begin_close(self):
+    def begin_close(self) -> bool:
         with _LOCK:
             if self.closed:
                 return False
@@ -104,6 +113,6 @@ class RuntimeResourceClaim:
             self.closing = True
             return True
 
-    def abort_close(self):
+    def abort_close(self) -> None:
         with _LOCK:
             self.closing = False

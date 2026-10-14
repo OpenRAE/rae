@@ -32,9 +32,10 @@ def test_only_verified_linked_absence_releases_exclusion_without_rewriting_paren
         assert not plane.submit_provisioning(ProvisioningPlan()).accepted
         # Unknown effect reports remain insufficient even with operator intent.
         plane.supervise_operation(receipt.operation_id, action="reconcile", control_id="unknown", identity=supervisor())
+        rejected_identity = supervisor()
         with pytest.raises(ValueError):
             plane.resolve_backend_absence(
-                receipt.operation_id, "unknown", idempotency_key="unknown-proof", identity=supervisor()
+                receipt.operation_id, "unknown", idempotency_key="unknown-proof", identity=rejected_identity
             )
 
         def reconcile(control):

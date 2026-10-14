@@ -69,9 +69,12 @@ def test_postgresql_terminal_boundary_rejects_stale_revision_before_any_write():
         def _insert_audit(self, connection, event):
             writes.append(event)
 
+    rejected_ledger = Ledger()
+    rejected_snapshot = RuntimeSnapshot()
+    rejected_terminal_record = _terminal_record(running)
     with pytest.raises(SnapshotRevisionConflict):
         mutations.commit_terminal_operation(
-            Ledger(), None, RuntimeSnapshot(), _terminal_record(running), expected_revision=1
+            rejected_ledger, None, rejected_snapshot, rejected_terminal_record, expected_revision=1
         )
     assert writes == []
 

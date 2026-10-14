@@ -214,7 +214,8 @@ def test_provisioning_only_conformance_requires_confirmed_realization():
     receipt = control_plane.submit_provisioning(provisioning_plan)
     status = control_plane.get_operation(receipt.operation_id)
 
-    assert status is not None and status.state.value == "indeterminate"
+    assert status is not None
+    assert status.state.value == "indeterminate"
     assert not status.changed_addresses
     assert not any(entry.domain == RuntimeDomain.PROVISIONING for entry in control_plane.snapshot.entries.values())
 

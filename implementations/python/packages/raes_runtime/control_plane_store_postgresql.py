@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import hashlib
 import re
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
 from threading import Lock
+from typing import TYPE_CHECKING
 
 from pydantic import SecretStr
 
@@ -18,6 +19,12 @@ from .control_plane_store_records import _audit_event_from_payload, _record_from
 from .control_plane_store_revision import SnapshotState
 from .control_plane_store_snapshots import _snapshot_from_payload
 from .operation_execution_adapter import require_budget_ms
+
+if TYPE_CHECKING:
+    from psycopg import Connection
+    from raes_contracts.runtime_state import OperationAdmissionContext, RuntimeSnapshot
+
+    from .control_plane_store import AuditEvent, TerminalCommitMode
 
 _IDENTIFIER = re.compile(r"[A-Za-z][A-Za-z0-9_.-]{0,62}\Z")
 _OWNER_LOCK = int.from_bytes(hashlib.sha256(b"raes.single-owner.ledger/v1").digest()[:8], "big") & ((1 << 63) - 1)
@@ -43,6 +50,9 @@ class PostgreSQLStoreConfiguration:
             or any(c.isspace() or ord(c) < 32 for c in self.host)
         ):
             raise ValueError("PostgreSQL host is invalid")
+        self._require_connection_configuration()
+
+    def _require_connection_configuration(self) -> None:
         if any(not isinstance(value, str) or not _IDENTIFIER.fullmatch(value) for value in (self.database, self.user)):
             raise ValueError("PostgreSQL database and role must be bounded identifiers")
         if type(self.port) is not int or not 1 <= self.port <= 65535:
@@ -56,7 +66,7 @@ class PostgreSQLStoreConfiguration:
 
 
 class _PostgreSQLOwner:
-    def __init__(self, store, connection) -> None:
+    def __init__(self, store: PostgreSQLControlPlaneStore, connection: Connection[tuple[object, ...]]) -> None:
         self._store, self._connection = store, connection
         self._lock = Lock()
         self.closed = False
@@ -117,7 +127,7 @@ class PostgreSQLControlPlaneStore:
     def admitted(self) -> bool:
         return self._owner is not None and not self._owner.closed and not self._closed
 
-    def _connect(self, *, autocommit=False):
+    def _connect(self, *, autocommit: bool = False) -> Connection[tuple[object, ...]]:
         import psycopg
 
         config = self._configuration
@@ -141,7 +151,7 @@ class PostgreSQLControlPlaneStore:
         with self._connect() as connection:
             initialize_schema(connection)
 
-    def admit_runtime(self, *, target_scope: str, run_scope: str):
+    def admit_runtime(self, *, target_scope: str, run_scope: str) -> _PostgreSQLOwner:
         if self._owner is not None:
             raise RuntimeError("PostgreSQL ledger already has runtime admission")
         connection = self._connect(autocommit=True)
@@ -184,7 +194,7 @@ class PostgreSQLControlPlaneStore:
             raise
 
     @contextmanager
-    def _connection(self) -> Iterator:
+    def _connection(self) -> Iterator[Connection[tuple[object, ...]]]:
         if not self.admitted:
             raise RuntimeError("PostgreSQL ledger requires live runtime admission")
         self._owner.assert_owner()
@@ -198,13 +208,14 @@ class PostgreSQLControlPlaneStore:
             yield connection
 
     def close(self) -> None:
-        self._closed = True  # The lease closes separately, after confirmed drain.
+        # The lease closes separately, after confirmed drain.
+        self._closed = True
 
-    def load_snapshot(self):
+    def load_snapshot(self) -> RuntimeSnapshot:
         return self.load_snapshot_state().snapshot
 
     @staticmethod
-    def _load_snapshot_state(connection):
+    def _load_snapshot_state(connection: Connection[tuple[object, ...]]) -> SnapshotState:
         from raes_contracts.runtime_state import RuntimeSnapshot
 
         row = connection.execute(
@@ -219,12 +230,12 @@ class PostgreSQLControlPlaneStore:
             )
         )
 
-    def load_snapshot_state(self):
+    def load_snapshot_state(self) -> SnapshotState:
         with self._connection() as connection:
             return self._load_snapshot_state(connection)
 
     @staticmethod
-    def _load_records(connection):
+    def _load_records(connection: Connection[tuple[object, ...]]) -> dict[str, ControlPlaneOperationRecord]:
         records = {}
         for operation_id, payload, digest in connection.execute(
             "SELECT operation_id, payload, digest FROM raes_ledger_operations ORDER BY operation_id"
@@ -235,17 +246,18 @@ class PostgreSQLControlPlaneStore:
             records[operation_id] = record
         return records
 
-    def load_records(self):
+    def load_records(self) -> dict[str, ControlPlaneOperationRecord]:
         with self._connection() as connection:
             return self._load_records(connection)
 
     @staticmethod
-    def _upsert_record(connection, record: ControlPlaneOperationRecord):
+    def _upsert_record(connection: Connection[tuple[object, ...]], record: ControlPlaneOperationRecord) -> None:
         payload, digest = encode_payload(_record_payload(record))
         context = record.receipt.context
         connection.execute(
-            "INSERT INTO raes_ledger_operations(operation_id, actor_id, operation_kind, idempotency_key, payload, digest) "
-            "VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT(operation_id) DO UPDATE SET payload=excluded.payload, digest=excluded.digest",
+            "INSERT INTO raes_ledger_operations(operation_id, actor_id, operation_kind, "
+            "idempotency_key, payload, digest) VALUES (%s, %s, %s, %s, %s, %s) "
+            "ON CONFLICT(operation_id) DO UPDATE SET payload=excluded.payload, digest=excluded.digest",
             (
                 record.receipt.operation_id,
                 context.actor_id,
@@ -257,14 +269,14 @@ class PostgreSQLControlPlaneStore:
         )
 
     @staticmethod
-    def _insert_audit(connection, event):
+    def _insert_audit(connection: Connection[tuple[object, ...]], event: AuditEvent) -> None:
         from dataclasses import asdict
 
         payload, digest = encode_payload(asdict(event))
         connection.execute("INSERT INTO raes_ledger_audit(payload, digest) VALUES (%s, %s)", (payload, digest))
 
     @staticmethod
-    def _load_audits(connection):
+    def _load_audits(connection: Connection[tuple[object, ...]]) -> list[AuditEvent]:
         return [
             _audit_event_from_payload(decode_payload(payload, digest, kind="audit event"))
             for payload, digest in connection.execute(
@@ -272,21 +284,21 @@ class PostgreSQLControlPlaneStore:
             ).fetchall()
         ]
 
-    def append_audit(self, event):
+    def append_audit(self, event: AuditEvent) -> None:
         with self._connection() as connection:
             self._insert_audit(connection, event)
 
-    def read_audit(self):
+    def read_audit(self) -> list[AuditEvent]:
         with self._connection() as connection:
             return self._load_audits(connection)
 
-    def admit_execution_generation(self):
+    def admit_execution_generation(self) -> int:
         if not self.admitted:
             raise RuntimeError("PostgreSQL ledger requires live runtime admission")
         return self._owner_generation
 
     @staticmethod
-    def _effect_admission_is_stopped(connection):
+    def _effect_admission_is_stopped(connection: Connection[tuple[object, ...]]) -> bool:
         row = connection.execute(
             "SELECT value FROM raes_ledger_metadata WHERE key='effect-admission-stopped'"
         ).fetchone()
@@ -294,11 +306,11 @@ class PostgreSQLControlPlaneStore:
             raise ValueError("effect admission metadata is invalid")
         return row is not None
 
-    def effect_admission_stopped(self):
+    def effect_admission_stopped(self) -> bool:
         with self._connection() as connection:
             return self._effect_admission_is_stopped(connection)
 
-    def stop_effect_admission(self, event):
+    def stop_effect_admission(self, event: AuditEvent) -> None:
         with self._connection() as connection:
             if not self._effect_admission_is_stopped(connection):
                 connection.execute(
@@ -306,7 +318,7 @@ class PostgreSQLControlPlaneStore:
                 )
                 self._insert_audit(connection, event)
 
-    def _mutate(self, action, *args, **kwargs):
+    def _mutate(self, action: str, *args: object, **kwargs: object) -> object:
         from . import control_plane_store_postgresql_mutations as mutations
 
         with self._connection() as connection:
@@ -319,19 +331,31 @@ class PostgreSQLControlPlaneStore:
                     )
             return getattr(mutations, action)(self, connection, *args, **kwargs)
 
-    def claim_record(self, record, **options):
+    def claim_record(
+        self, record: ControlPlaneOperationRecord, **options: object
+    ) -> ControlPlaneOperationRecord | None:
         return self._mutate("claim_record", record, **options)
 
-    def save_record(self, record):
+    def save_record(self, record: ControlPlaneOperationRecord) -> None:
         return self._mutate("save_record", record)
 
-    def save_snapshot(self, snapshot, *, expected_revision):
+    def save_snapshot(self, snapshot: RuntimeSnapshot, *, expected_revision: int) -> SnapshotState:
         return self._mutate("save_snapshot", snapshot, expected_revision=expected_revision)
 
-    def find_by_idempotency(self, key, *, context=None):
+    def find_by_idempotency(
+        self, key: str, *, context: OperationAdmissionContext | None = None
+    ) -> ControlPlaneOperationRecord | None:
         return self._mutate("find_by_idempotency", key, context=context)
 
-    def commit_terminal_operation(self, snapshot, record, *, audit_event=None, mode=None, expected_revision):
+    def commit_terminal_operation(
+        self,
+        snapshot: RuntimeSnapshot,
+        record: ControlPlaneOperationRecord,
+        *,
+        audit_event: AuditEvent | None = None,
+        mode: TerminalCommitMode | None = None,
+        expected_revision: int,
+    ) -> SnapshotState:
         return self._mutate(
             "commit_terminal_operation",
             snapshot,
@@ -341,12 +365,24 @@ class PostgreSQLControlPlaneStore:
             expected_revision=expected_revision,
         )
 
-    def commit_invocation_transition(self, expected, record, *, audit_event):
+    def commit_invocation_transition(
+        self,
+        expected: ControlPlaneOperationRecord,
+        record: ControlPlaneOperationRecord,
+        *,
+        audit_event: AuditEvent | None,
+    ) -> SnapshotState:
         return self._mutate("commit_invocation_transition", expected, record, audit_event=audit_event)
 
     def commit_participant_transition(
-        self, *, expected_history_heads, expected_revision, snapshot, record, audit_event
-    ):
+        self,
+        *,
+        expected_history_heads: Mapping[str, str | None],
+        expected_revision: int,
+        snapshot: RuntimeSnapshot,
+        record: ControlPlaneOperationRecord,
+        audit_event: AuditEvent | None,
+    ) -> SnapshotState:
         return self._mutate(
             "commit_participant_transition",
             expected_history_heads=expected_history_heads,
@@ -357,8 +393,15 @@ class PostgreSQLControlPlaneStore:
         )
 
     def commit_control_transition(
-        self, *, participant_address, expected_head, expected_revision, snapshot, record, audit_event
-    ):
+        self,
+        *,
+        participant_address: str,
+        expected_head: str | None,
+        expected_revision: int,
+        snapshot: RuntimeSnapshot,
+        record: ControlPlaneOperationRecord,
+        audit_event: AuditEvent | None,
+    ) -> SnapshotState:
         return self.commit_participant_transition(
             expected_history_heads={f"participant_control_history:{participant_address}": expected_head},
             expected_revision=expected_revision,

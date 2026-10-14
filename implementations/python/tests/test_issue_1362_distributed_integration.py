@@ -73,8 +73,9 @@ def test_actual_process_loss_never_reissues_a_consumed_grant(phase, tmp_path):
         receipt = plane.submit_provisioning(ProvisioningPlan(operation_id="crash-case"), idempotency_key="crash-retry")
         assert receipt == record.receipt
         if record.invocation.reserved:
+            rejected_plan = ProvisioningPlan()
             with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
-                plane.submit_provisioning(ProvisioningPlan())
+                plane.submit_provisioning(rejected_plan)
         assert calls == []
         assert plane._store.load_records()[record.receipt.operation_id].invocation == record.invocation
         assert len([event for event in plane._store.read_audit() if event.action.endswith("_terminal")]) == 1
@@ -194,7 +195,8 @@ async def _exercise(blocked, tmp_path):
                 assert receipt.accepted
                 await _until(provider.started.is_set)
                 record = await asyncio.to_thread(lambda: store.load_records()[receipt.operation_id])
-                assert record.invocation.consumed and record.invocation.delivery is not None
+                assert record.invocation.consumed
+                assert record.invocation.delivery is not None
                 if blocked:
                     await asyncio.to_thread(
                         plane.cancel_operation, receipt.operation_id, control_id="cancel-ci", identity=supervisor()
@@ -239,12 +241,15 @@ async def _exercise(blocked, tmp_path):
             retained = reopened._store.load_records()[receipt.operation_id]
             assert retained.invocation.consumed
             assert retained.status == original
+            rejected_capabilities = provider.operation_capabilities()
+            rejected_admission = provider.check_operation(retained.invocation.request)
+            rejected_identity = worker()
             with pytest.raises(ValueError):
                 reopened.claim_backend_invocation(
                     retained.invocation.request.binding,
-                    provider.operation_capabilities(),
-                    provider.check_operation(retained.invocation.request),
-                    identity=worker(),
+                    rejected_capabilities,
+                    rejected_admission,
+                    identity=rejected_identity,
                 )
             assert provider.starts == 1
         finally:

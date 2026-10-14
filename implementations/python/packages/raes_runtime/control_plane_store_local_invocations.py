@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import sqlite3
+
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord, SnapshotState
 from .control_plane_store_local_codec import transaction
 from .operation_ledger_transactions import require_supervision_cut
@@ -36,7 +38,7 @@ class LocalInvocationStoreMixin:
             return self._effect_admission_is_stopped(connection)
 
     @staticmethod
-    def _effect_admission_is_stopped(connection) -> bool:
+    def _effect_admission_is_stopped(connection: sqlite3.Connection) -> bool:
         row = connection.execute("SELECT value FROM metadata WHERE key='effect-admission-stopped'").fetchone()
         if row is not None and row[0] != "1":
             raise ValueError("effect admission metadata is invalid")

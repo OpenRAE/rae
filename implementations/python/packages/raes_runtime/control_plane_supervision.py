@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from raes_contracts.contracts import BackendOperationControlModel, backend_operation_request_digest
@@ -17,10 +18,23 @@ from .control_plane_store_bounded import bounded_store_commit
 from .operation_control_budget import admit_control_budget, forget_control_budget, remaining_control_budget
 from .operation_transcript_policy import append_control
 
+if TYPE_CHECKING:
+    from raes_contracts.contracts import BackendOperationResponseModel
 
-def authorize_supervisor(plane, identity, parent=None) -> None:
+    from .control_plane import RuntimeControlPlane
+    from .control_plane_store import ControlPlaneOperationRecord
+    from .operation_invocation_ledger import InvocationLedger
+
+
+_OPERATION_NOT_FOUND = "operation not found"
+
+
+def authorize_supervisor(
+    plane: RuntimeControlPlane, identity: ControlPlaneIdentity | None, parent: ControlPlaneOperationRecord | None = None
+) -> None:
     if identity is None:
-        return  # P0/P1's existing trusted-embedder boundary.
+        # P0/P1's existing trusted-embedder boundary.
+        return
     allowed = (
         isinstance(identity, ControlPlaneIdentity)
         and ControlPlaneRole.OPERATOR in identity.roles
@@ -42,7 +56,13 @@ def authorize_supervisor(plane, identity, parent=None) -> None:
 
 
 @bounded_store_commit
-def persist_invocation_update(plane, expected, invocation, *, actor=None):
+def persist_invocation_update(
+    plane: RuntimeControlPlane,
+    expected: ControlPlaneOperationRecord,
+    invocation: InvocationLedger,
+    *,
+    actor: str | None = None,
+) -> ControlPlaneOperationRecord:
     record = replace(expected, invocation=invocation)
     event = AuditEvent(
         timestamp=_utc_now(),
@@ -69,7 +89,7 @@ def persist_invocation_update(plane, expected, invocation, *, actor=None):
 
 class RuntimeSupervisionMixin:
     @runtime_owned
-    def stop_admission(self, *, identity=None) -> None:
+    def stop_admission(self, *, identity: ControlPlaneIdentity | None = None) -> None:
         authorize_supervisor(self, identity)
         actor, _ = operation_actor_scope(identity)
         with self._mutation_authority.supervision():
@@ -86,13 +106,21 @@ class RuntimeSupervisionMixin:
             self._effect_admission_stopped = True
 
     @runtime_owned
-    def cancel_operation(self, operation_id: str, *, control_id: str, identity=None) -> BackendOperationControlModel:
+    def cancel_operation(
+        self, operation_id: str, *, control_id: str, identity: ControlPlaneIdentity | None = None
+    ) -> BackendOperationControlModel:
         return self.supervise_operation(operation_id, action="cancel", control_id=control_id, identity=identity)
 
     @runtime_owned
     def supervise_operation(
-        self, operation_id: str, *, action: str, control_id: str, identity=None, _automatic_observation=False
-    ):
+        self,
+        operation_id: str,
+        *,
+        action: str,
+        control_id: str,
+        identity: ControlPlaneIdentity | None = None,
+        _automatic_observation: bool = False,
+    ) -> BackendOperationControlModel:
         if _automatic_observation and (identity is not None or action != "observe"):
             raise PermissionError("automatic observation requires core authority")
         authorize_supervisor(self, identity)
@@ -102,7 +130,7 @@ class RuntimeSupervisionMixin:
             self._reload_derived_state()
             parent = self._operations.get(operation_id)
             if parent is None:
-                raise KeyError("operation not found")
+                raise KeyError(_OPERATION_NOT_FOUND)
             authorize_supervisor(self, identity, parent)
             if parent.invocation is None:
                 raise ValueError("historical operation has no supervised invocation binding")
@@ -128,7 +156,9 @@ class RuntimeSupervisionMixin:
             return self._record_supervisor_control(parent, control, automatic=_automatic_observation)
 
     @runtime_owned
-    def submit_operation_control(self, control: BackendOperationControlModel, *, identity=None):
+    def submit_operation_control(
+        self, control: BackendOperationControlModel, *, identity: ControlPlaneIdentity | None = None
+    ) -> BackendOperationControlModel:
         control = BackendOperationControlModel.model_validate(control.model_dump(mode="json"))
         authorize_supervisor(self, identity)
         if (control.actor_id, control.authorization_scope) != operation_actor_scope(identity):
@@ -138,7 +168,7 @@ class RuntimeSupervisionMixin:
             self._reload_derived_state()
             parent = self._operations.get(control.binding.operation_id)
             if parent is None or parent.invocation is None:
-                raise KeyError("operation not found")
+                raise KeyError(_OPERATION_NOT_FOUND)
             authorize_supervisor(self, identity, parent)
             if (
                 control.binding != parent.invocation.request.binding
@@ -154,7 +184,9 @@ class RuntimeSupervisionMixin:
                 raise ValueError("control budget is unsupported")
             return self._record_supervisor_control(parent, control)
 
-    def _record_supervisor_control(self, parent, control, *, automatic=False):
+    def _record_supervisor_control(
+        self, parent: ControlPlaneOperationRecord, control: BackendOperationControlModel, *, automatic: bool = False
+    ) -> BackendOperationControlModel:
         actor, action = control.actor_id, control.action
         invocation = append_control(parent.invocation, control, automatic=automatic)
         admit_control_budget(self, control)
@@ -191,13 +223,15 @@ class RuntimeSupervisionMixin:
         return control
 
     @runtime_owned
-    def get_control_response(self, operation_id: str, control_id: str, *, identity=None):
+    def get_control_response(
+        self, operation_id: str, control_id: str, *, identity: ControlPlaneIdentity | None = None
+    ) -> BackendOperationResponseModel | None:
         authorize_supervisor(self, identity)
         with self._operation_lock:
             self._reload_derived_state()
             parent = self._operations.get(operation_id)
         if parent is None or parent.invocation is None:
-            raise KeyError("operation not found")
+            raise KeyError(_OPERATION_NOT_FOUND)
         authorize_supervisor(self, identity, parent)
         for response in reversed(parent.invocation.responses):
             if getattr(response.message, "control_id", None) == control_id:

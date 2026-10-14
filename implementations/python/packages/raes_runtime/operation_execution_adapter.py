@@ -16,7 +16,8 @@ from .control_plane_mutation import detached_extension
 
 Lane = Literal["effect", "control", "store", "deadline"]
 _T = TypeVar("_T")
-_MAX_BUDGET = 2147483647  # Portable apparatus ceiling, below native wait overflow.
+# Portable apparatus ceiling, below native wait overflow.
+_MAX_BUDGET = 2147483647
 
 
 class _CallbackOutcome(NamedTuple):
@@ -30,6 +31,9 @@ def _capture_callback(method: Callable[[], object]) -> _CallbackOutcome:
     try:
         return _CallbackOutcome(method(), None)
     except BaseException as error:
+        if isinstance(error, Exception):
+            # Ordinary failures use AnyIO's existing exception propagation.
+            raise
         return _CallbackOutcome(None, error)
 
 
@@ -149,14 +153,27 @@ class LocalExecutionAdapter:
             self._timers.clear()
             return self._condition.wait_for(lambda: self._pending == 0, timeout=budget / 1000)
 
-    def arm_deadline(self, key, deadline, callback, *args, failure_handler=None):
+    def arm_deadline(
+        self,
+        key: str,
+        deadline: float,
+        callback: Callable[..., object],
+        *args: object,
+        failure_handler: Callable[[], None] | None = None,
+    ) -> None:
         self._require_owner_process()
         with self._condition:
             if self._closed or self._draining or key in self._timers:
                 raise RuntimeError("invocation deadline is unavailable")
             self._timers[key] = self._portal.start_task_soon(self._deadline, deadline, callback, args, failure_handler)
 
-    async def _deadline(self, deadline, callback, args, failure_handler):
+    async def _deadline(
+        self,
+        deadline: float,
+        callback: Callable[..., object],
+        args: tuple[object, ...],
+        failure_handler: Callable[[], None] | None,
+    ) -> None:
         await anyio.sleep(max(0, deadline - monotonic()))
         # This is an apparatus timer for one admitted invocation, not a queue.
         # The state owner classifies expiry; cancellation never implies cessation.
@@ -174,14 +191,14 @@ class LocalExecutionAdapter:
                 failure_handler()
             raise
 
-    def cancel_deadline(self, key):
+    def cancel_deadline(self, key: str) -> None:
         self._require_owner_process()
         with self._condition:
             future = self._timers.pop(key, None)
             if future is not None:
                 future.cancel()
 
-    def pause(self, duration_ms):
+    def pause(self, duration_ms: int) -> None:
         self._require_owner_process()
         self._portal.call(anyio.sleep, require_budget_ms(duration_ms) / 1000)
 
@@ -190,12 +207,13 @@ class LocalExecutionAdapter:
         if not self.drain(timeout_ms=timeout_ms):
             return False
         with self._condition:
-            if self._closed:
-                return True
-            if self._pending:
-                return False
-            self._closed = True
-        self._portal_context.__exit__(None, None, None)
+            close_portal = not self._closed
+            if close_portal:
+                if self._pending:
+                    return False
+                self._closed = True
+        if close_portal:
+            self._portal_context.__exit__(None, None, None)
         return True
 
 

@@ -7,7 +7,10 @@ from contextlib import contextmanager, suppress
 from functools import wraps
 from threading import Condition, RLock, local
 from time import monotonic
-from typing import Concatenate, ParamSpec, Self, TypeVar
+from typing import TYPE_CHECKING, Concatenate, ParamSpec, Self, TypeVar
+
+if TYPE_CHECKING:
+    from .operation_execution_adapter import LocalExecutionAdapter
 
 _P = ParamSpec("_P")
 _R = TypeVar("_R")
@@ -93,80 +96,100 @@ class RuntimeLifecycleMixin:
         config = getattr(self, "_supervision", None)
         budget = getattr(config, "drain_ms", 2000) / 1000
         deadline = monotonic() + budget
-        with condition:
-            if self._closed:
-                return
-            if getattr(self._lifecycle_local, "depth", 0):
-                raise RuntimeError("cannot close a runtime control plane from one of its active calls")
-            if self._closing and not condition.wait_for(lambda: not self._closing or self._closed, timeout=budget):
-                raise TimeoutError("runtime drain could not be established")
-            if self._closed:
-                return
-            self._closing = True
-            self._runtime_ready = False
-            self._effect_admission_stopped = True
+        if not self._begin_runtime_close(condition, budget):
+            return
         provider_close_started = False
         try:
-            with condition:
-                if not condition.wait_for(
-                    lambda: self._active_runtime_calls == 0, timeout=max(0, deadline - monotonic())
-                ):
-                    raise TimeoutError("runtime drain could not be established")
             adapter = getattr(self, "_execution_adapter", None)
-            remaining_ms = max(1, int((deadline - monotonic()) * 1000))
-            if adapter is not None and not adapter.drain(timeout_ms=remaining_ms):
-                raise TimeoutError("runtime drain has unresolved external calls")
-            dispatcher = getattr(self, "_distributed_execution", None)
-            if dispatcher is not None and adapter is not None:
-                from raes_contracts.runtime_state import OperationState
-
-                from .control_plane_supervised_execution import settle
-
-                with self._mutation_authority.supervision():
-                    self._reload_derived_state()
-                    for record in tuple(self._operations.values()):
-                        if record.invocation is not None and record.status.state in {
-                            OperationState.ACCEPTED,
-                            OperationState.RUNNING,
-                        }:
-                            settle(
-                                self,
-                                record,
-                                OperationState.INDETERMINATE
-                                if record.invocation.consumed
-                                else OperationState.CANCELLED,
-                            )
-                adapter.call("control", dispatcher.close, timeout_ms=max(1, int((deadline - monotonic()) * 1000)))
+            self._drain_runtime_calls(condition, adapter, deadline)
+            self._close_runtime_dispatcher(adapter, deadline)
             provider_close_started = True
             self._close_runtime_provider()
             self._close_runtime_lease()
             if adapter is not None and not adapter.close(timeout_ms=max(1, int((deadline - monotonic()) * 1000))):
                 raise TimeoutError("runtime drain has unresolved external calls")
-            resource_claim = getattr(self, "_resource_claim", None)
-            if resource_claim is not None:
-                from .control_plane_recovery import unresolved_indeterminate_operation_ids_from_records
-
-                records = getattr(self, "_operations", {})
-                unresolved = (
-                    self._durability_poisoned
-                    or bool(unresolved_indeterminate_operation_ids_from_records(records))
-                    or any(record.status.state.value == "running" for record in records.values())
-                )
-                resource_claim.release(unresolved=unresolved)
+            self._release_runtime_resources()
             with condition:
                 self._closed = True
                 self._closing = False
                 condition.notify_all()
         except BaseException:
-            resource_claim = getattr(self, "_resource_claim", None)
-            if resource_claim is not None:
-                resource_claim.retain_unresolved()
-            with condition:
-                if provider_close_started:
-                    self._durability_poisoned = True
-                self._closing = False
-                condition.notify_all()
+            self._abort_runtime_close(condition, provider_close_started)
             raise
+
+    def _begin_runtime_close(self, condition: Condition, budget: float) -> bool:
+        with condition:
+            if self._closed:
+                return False
+            if getattr(self._lifecycle_local, "depth", 0):
+                raise RuntimeError("cannot close a runtime control plane from one of its active calls")
+            if self._closing and not condition.wait_for(lambda: not self._closing or self._closed, timeout=budget):
+                raise TimeoutError("runtime drain could not be established")
+            if self._closed:
+                return False
+            self._closing = True
+            self._runtime_ready = False
+            self._effect_admission_stopped = True
+            return True
+
+    def _drain_runtime_calls(
+        self, condition: Condition, adapter: LocalExecutionAdapter | None, deadline: float
+    ) -> None:
+        with condition:
+            if not condition.wait_for(lambda: self._active_runtime_calls == 0, timeout=max(0, deadline - monotonic())):
+                raise TimeoutError("runtime drain could not be established")
+        remaining_ms = max(1, int((deadline - monotonic()) * 1000))
+        if adapter is not None and not adapter.drain(timeout_ms=remaining_ms):
+            raise TimeoutError("runtime drain has unresolved external calls")
+
+    def _close_runtime_dispatcher(self, adapter: LocalExecutionAdapter | None, deadline: float) -> None:
+        dispatcher = getattr(self, "_distributed_execution", None)
+        if dispatcher is None or adapter is None:
+            return
+        self._settle_shutdown_invocations()
+        adapter.call("control", dispatcher.close, timeout_ms=max(1, int((deadline - monotonic()) * 1000)))
+
+    def _settle_shutdown_invocations(self) -> None:
+        from raes_contracts.runtime_state import OperationState
+
+        from .control_plane_supervised_execution import settle
+
+        with self._mutation_authority.supervision():
+            self._reload_derived_state()
+            for record in tuple(self._operations.values()):
+                if record.invocation is not None and record.status.state in {
+                    OperationState.ACCEPTED,
+                    OperationState.RUNNING,
+                }:
+                    settle(
+                        self,
+                        record,
+                        OperationState.INDETERMINATE if record.invocation.consumed else OperationState.CANCELLED,
+                    )
+
+    def _release_runtime_resources(self) -> None:
+        resource_claim = getattr(self, "_resource_claim", None)
+        if resource_claim is None:
+            return
+        from .control_plane_recovery import unresolved_indeterminate_operation_ids_from_records
+
+        records = getattr(self, "_operations", {})
+        unresolved = (
+            self._durability_poisoned
+            or bool(unresolved_indeterminate_operation_ids_from_records(records))
+            or any(record.status.state.value == "running" for record in records.values())
+        )
+        resource_claim.release(unresolved=unresolved)
+
+    def _abort_runtime_close(self, condition: Condition, provider_close_started: bool) -> None:
+        resource_claim = getattr(self, "_resource_claim", None)
+        if resource_claim is not None:
+            resource_claim.retain_unresolved()
+        with condition:
+            if provider_close_started:
+                self._durability_poisoned = True
+            self._closing = False
+            condition.notify_all()
 
     def _close_runtime_provider(self) -> None:
         store = getattr(self, "_store", None)

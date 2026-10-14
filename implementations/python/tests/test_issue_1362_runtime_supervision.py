@@ -70,8 +70,9 @@ def test_blocked_native_apply_allows_stop_and_cancel_then_fences_its_late_succes
 def test_stop_is_scoped_and_an_unauthorized_actor_cannot_close_admission():
     plane = RuntimeControlPlane(create_stub_target())
     try:
+        rejected_identity = supervisor("another-target")
         with pytest.raises(PermissionError):
-            plane.stop_admission(identity=supervisor("another-target"))
+            plane.stop_admission(identity=rejected_identity)
         assert not plane._store.effect_admission_stopped()
         receipt = plane.submit_provisioning(ProvisioningPlan())
         assert receipt.accepted

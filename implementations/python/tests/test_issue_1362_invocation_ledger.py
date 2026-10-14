@@ -39,8 +39,8 @@ def test_consumed_invocation_survives_strict_codec_readback_and_cannot_be_grante
     store.save_record(running)
     recovered = _record_from_payload(_record_payload(store.load_records()[initial.receipt.operation_id]))
     assert recovered == running
-    with pytest.raises(ValueError):
-        store.save_record(replace(running, invocation=initial.invocation))
+    with pytest.raises(ValueError, match="requires a consumed grant"):
+        replace(running, invocation=initial.invocation)
     assert store.load_records()[initial.receipt.operation_id] == running
 
 
@@ -95,8 +95,9 @@ def test_control_intent_and_its_own_actor_audit_commit_atomically(local, tmp_pat
             operation_id=initial.receipt.operation_id,
             details={"count": 1},
         )
+        rejected_candidate_1 = replace(event, identity="forged")
         with pytest.raises(ValueError):
-            store.commit_invocation_transition(initial, updated, audit_event=replace(event, identity="forged"))
+            store.commit_invocation_transition(initial, updated, audit_event=rejected_candidate_1)
         assert store.load_records()[initial.receipt.operation_id] == initial
         assert store.read_audit() == []
         store.commit_invocation_transition(initial, updated, audit_event=event)
@@ -144,8 +145,9 @@ def test_reopening_retains_controls_stop_and_consumed_invocation(tmp_path):
         assert reopened.effect_admission_stopped()
         assert reopened.admit_execution_generation() > generation
         assert reopened.load_records()[initial.receipt.operation_id] == running
+        rejected_record = _running_record("another-recovered-1362")
         with pytest.raises(RuntimeError):
-            reopened.claim_record(_running_record("another-recovered-1362"))
+            reopened.claim_record(rejected_record)
     finally:
         reopened.close()
         next_owner.close()

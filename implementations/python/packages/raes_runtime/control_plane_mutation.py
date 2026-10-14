@@ -97,27 +97,7 @@ class RuntimeMutationAuthority:
         reservation = _ACTIVE_RESERVATION.get()
         reserved = reservation is not None and reservation.authority is self
         with self._condition:
-            if reserved:
-                if self._reservation is not reservation:
-                    raise RuntimeError("control-plane mutation reservation is no longer active")
-            elif self._owner_thread == thread_id:
-                self._depth += 1
-            else:
-                if _PROBE_MUTATION.get():
-                    raise MutationReservationRequired(self, kind)
-                admitted = self._condition.wait_for(
-                    lambda: (
-                        self._permit_is_free()
-                        and (_SUPERVISORY_CUT.get() or (self._effect_owner is None and not self._async_waiters))
-                    ),
-                    timeout=self._admission_seconds,
-                )
-                if not admitted:
-                    raise TimeoutError("state admission budget exhausted")
-                self._owner_thread = thread_id
-                self._depth = 1
-                if not _SUPERVISORY_CUT.get():
-                    self._effect_owner = thread_id
+            self._admit_mutation_locked(reservation, reserved, thread_id, kind)
             kinds = list(getattr(self._local, "kinds", ()))
             kinds.append(kind)
             self._local.kinds = kinds
@@ -125,24 +105,59 @@ class RuntimeMutationAuthority:
             yield
         finally:
             with self._condition:
-                kinds = list(getattr(self._local, "kinds", ()))
-                if kinds:
-                    kinds.pop()
-                self._local.kinds = kinds
-                if not reserved:
-                    abandoned = getattr(self._local, "abandoned_depth", 0)
-                    if abandoned:
-                        self._local.abandoned_depth = abandoned - 1
-                        if abandoned == 1 and self._effect_owner == thread_id:
-                            self._effect_owner = None
-                            self._grant_next_waiter_locked()
-                    else:
-                        self._depth -= 1
-                        if self._depth == 0:
-                            self._owner_thread = None
-                            if self._effect_owner == thread_id:
-                                self._effect_owner = None
-                            self._grant_next_waiter_locked()
+                self._release_mutation_locked(reserved, thread_id)
+
+    def _admit_mutation_locked(
+        self, reservation: _MutationReservation | None, reserved: bool, thread_id: int, kind: OperationKind
+    ) -> None:
+        if reserved:
+            if self._reservation is not reservation:
+                raise RuntimeError("control-plane mutation reservation is no longer active")
+        elif self._owner_thread == thread_id:
+            self._depth += 1
+        else:
+            self._wait_for_mutation_locked(thread_id, kind)
+
+    def _wait_for_mutation_locked(self, thread_id: int, kind: OperationKind) -> None:
+        if _PROBE_MUTATION.get():
+            raise MutationReservationRequired(self, kind)
+        admitted = self._condition.wait_for(
+            lambda: (
+                self._permit_is_free()
+                and (_SUPERVISORY_CUT.get() or (self._effect_owner is None and not self._async_waiters))
+            ),
+            timeout=self._admission_seconds,
+        )
+        if not admitted:
+            raise TimeoutError("state admission budget exhausted")
+        self._owner_thread = thread_id
+        self._depth = 1
+        if not _SUPERVISORY_CUT.get():
+            self._effect_owner = thread_id
+
+    def _release_mutation_locked(self, reserved: bool, thread_id: int) -> None:
+        kinds = list(getattr(self._local, "kinds", ()))
+        if kinds:
+            kinds.pop()
+        self._local.kinds = kinds
+        if reserved:
+            return
+        abandoned = getattr(self._local, "abandoned_depth", 0)
+        if abandoned:
+            self._release_abandoned_mutation_locked(thread_id, abandoned)
+        else:
+            self._depth -= 1
+            if self._depth == 0:
+                self._owner_thread = None
+                if self._effect_owner == thread_id:
+                    self._effect_owner = None
+                self._grant_next_waiter_locked()
+
+    def _release_abandoned_mutation_locked(self, thread_id: int, abandoned: int) -> None:
+        self._local.abandoned_depth = abandoned - 1
+        if abandoned == 1 and self._effect_owner == thread_id:
+            self._effect_owner = None
+            self._grant_next_waiter_locked()
 
     @contextmanager
     def supervision(self) -> Iterator[None]:

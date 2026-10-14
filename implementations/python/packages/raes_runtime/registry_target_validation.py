@@ -12,7 +12,7 @@ from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_contracts.versions import BACKEND_OPERATION_CONTRACT_IDS
 
 
-def validate_operation_provider(provider: BackendOperationProvider | None, declared_contracts: Iterable[str]):
+def validate_operation_provider(provider: BackendOperationProvider | None, declared_contracts: Iterable[str]) -> None:
     declared = tuple(declared_contracts)
     if provider is not None:
         require_operation_provider(provider, declared)

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from raes_contracts.manifest_authority import PARTICIPANT_RUNTIME_POLICY_FEATURES
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
@@ -12,8 +12,12 @@ from .participant_crossing_mediation import ParticipantCrossingPolicyResolver
 from .participant_flow_sink import ParticipantFlowSinkResolver
 from .registry import RuntimeTarget
 
+if TYPE_CHECKING:
+    from .control_plane import RuntimeControlPlane
+    from .control_plane_configuration import ControlPlaneConfiguration
 
-def compose_operation_execution(control_plane, config) -> None:
+
+def compose_operation_execution(control_plane: RuntimeControlPlane, config: ControlPlaneConfiguration) -> None:
     from secrets import token_bytes
     from uuid import uuid4
 
@@ -35,7 +39,7 @@ def compose_operation_execution(control_plane, config) -> None:
     control_plane._effect_admission_stopped = False
 
 
-def bind_execution_store(control_plane, config) -> None:
+def bind_execution_store(control_plane: RuntimeControlPlane, config: ControlPlaneConfiguration) -> None:
     from .control_plane_store_bounded import BoundedControlPlaneStore
     from .control_plane_store_compatibility import adapt_control_plane_store
     from .operation_execution_adapter import LocalExecutionAdapter

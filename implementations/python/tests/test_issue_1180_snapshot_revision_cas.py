@@ -373,7 +373,8 @@ def test_runtime_stale_terminal_conflict_discards_candidate_without_recovery_or_
         record = store.find_by_idempotency("stale-terminal")
         assert record is not None
         assert record.status.state is OperationState.INDETERMINATE
-        assert record.invocation.consumed and record.invocation.reserved
+        assert record.invocation.consumed
+        assert record.invocation.reserved
         assert control_plane.get_snapshot().snapshot.metadata == {"authority": "competing-writer"}
         assert len(store.read_audit()) == 1
         retry = control_plane.submit_provisioning(ProvisioningPlan(), idempotency_key="stale-terminal")

@@ -26,7 +26,7 @@ class RuntimeDurabilityMixin:
     _operations: dict[str, ControlPlaneOperationRecord]
     _snapshot_projection_depth: int
 
-    def _require_state_writer(self):
+    def _require_state_writer(self) -> None:
         authority = getattr(self, "_mutation_authority", None)
         if authority is not None and not authority.owns_current_thread():
             self._poison_runtime_durability()

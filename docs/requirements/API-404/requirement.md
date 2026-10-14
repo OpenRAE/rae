@@ -317,6 +317,8 @@ policy choices, recovery and composition limits.
 - DOCUMENTS → GITHUB_ISSUE `1092` (Make the local control plane crash-consistent and explicitly single-process)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_mutation.py` (Operation-family-neutral logical mutation authority and guarded extension callback boundary)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_execution.py` (Write-ahead RUNNING claims, guarded backend validation and execution, and terminal commit routing)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_participant_apply.py` (Participant application under retained effect authority)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_ledger_transactions.py` (Actor-bound atomic supervision audit cuts)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store.py` (Provider-neutral store contracts, transition validation, and actor-bound audit provenance)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_memory.py` (In-memory actor-bound atomic terminal commits with explicit revision outcomes)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_types.py` (Explicit portable snapshot-bearing and operation-only terminal commit modes)

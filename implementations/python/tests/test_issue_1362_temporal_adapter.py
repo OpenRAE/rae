@@ -30,7 +30,9 @@ def test_temporal_uses_a_stable_identity_single_attempt_effects_and_opaque_refer
         assert starts[0][2]["id"] == starts[1][2]["id"]
         assert starts[0][2]["retry_policy"].maximum_attempts == 1
         reference = starts[0][1]
-        assert "command" not in reference and "context" not in reference and "credentials" not in reference
+        assert "command" not in reference
+        assert "context" not in reference
+        assert "credentials" not in reference
         assert reference["operation_id"] == operation.binding.operation_id
         assert reference["effect_queue"] != reference["control_queue"]
         assert reference["worker_id"] == "worker-1"

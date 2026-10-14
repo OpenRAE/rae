@@ -1,5 +1,10 @@
 """PostgreSQL mechanical transactions reuse the canonical operation invariants."""
 
+from __future__ import annotations
+
+from collections.abc import Mapping
+from typing import TYPE_CHECKING
+
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
 
 from . import control_plane_store as contracts
@@ -15,8 +20,17 @@ from .control_plane_store_snapshots import _snapshot_payload
 from .operation_invocation_ledger import supervised_claim_conflicts
 from .operation_ledger_transactions import require_supervision_cut
 
+if TYPE_CHECKING:
+    from psycopg import Connection
+    from raes_contracts.runtime_state import OperationAdmissionContext, RuntimeSnapshot
 
-def expected_state(store, connection, revision):
+    from .control_plane_store import AuditEvent, ControlPlaneOperationRecord, TerminalCommitMode
+    from .control_plane_store_postgresql import PostgreSQLControlPlaneStore
+
+
+def expected_state(
+    store: PostgreSQLControlPlaneStore, connection: Connection[tuple[object, ...]], revision: int
+) -> SnapshotState:
     require_snapshot_revision(revision)
     current = store._load_snapshot_state(connection)
     if current.revision != revision:
@@ -24,7 +38,13 @@ def expected_state(store, connection, revision):
     return current
 
 
-def save_snapshot(store, connection, snapshot, *, expected_revision):
+def save_snapshot(
+    store: PostgreSQLControlPlaneStore,
+    connection: Connection[tuple[object, ...]],
+    snapshot: RuntimeSnapshot,
+    *,
+    expected_revision: int,
+) -> SnapshotState:
     require_participant_autonomous_runtime_snapshot(snapshot)
     expected_state(store, connection, expected_revision)
     revision = next_snapshot_revision(expected_revision)
@@ -37,7 +57,13 @@ def save_snapshot(store, connection, snapshot, *, expected_revision):
     return SnapshotState(snapshot, revision)
 
 
-def find_by_idempotency(store, connection, key, *, context=None):
+def find_by_idempotency(
+    store: PostgreSQLControlPlaneStore,
+    connection: Connection[tuple[object, ...]],
+    key: str,
+    *,
+    context: OperationAdmissionContext | None = None,
+) -> ControlPlaneOperationRecord | None:
     contracts.require_idempotency_key(key)
     if not key:
         return None
@@ -56,7 +82,14 @@ def find_by_idempotency(store, connection, key, *, context=None):
     return candidates[0] if candidates else None
 
 
-def claim_record(store, connection, record, *, legacy_request_fingerprint="", new_claim_blocked=None):
+def claim_record(
+    store: PostgreSQLControlPlaneStore,
+    connection: Connection[tuple[object, ...]],
+    record: ControlPlaneOperationRecord,
+    *,
+    legacy_request_fingerprint: str = "",
+    new_claim_blocked: str | None = None,
+) -> ControlPlaneOperationRecord | None:
     existing = find_by_idempotency(store, connection, record.idempotency_key, context=record.receipt.context)
     if existing is not None:
         contracts._require_same_idempotency_replay(
@@ -82,13 +115,23 @@ def claim_record(store, connection, record, *, legacy_request_fingerprint="", ne
     return prior
 
 
-def save_record(store, connection, record):
+def save_record(
+    store: PostgreSQLControlPlaneStore, connection: Connection[tuple[object, ...]], record: ControlPlaneOperationRecord
+) -> None:
     existing = store._load_records(connection).get(record.receipt.operation_id)
     if contracts._require_operation_record_transition(existing, record):
         store._upsert_record(connection, record)
 
 
-def require_retry(store, connection, snapshot, record, event, mode, expected_revision):
+def require_retry(
+    store: PostgreSQLControlPlaneStore,
+    connection: Connection[tuple[object, ...]],
+    snapshot: RuntimeSnapshot,
+    record: ControlPlaneOperationRecord,
+    event: AuditEvent,
+    mode: TerminalCommitMode | None,
+    expected_revision: int,
+) -> SnapshotState:
     current = store._load_snapshot_state(connection)
     contracts._require_terminal_retry_mode(
         current_revision=current.revision, expected_revision=expected_revision, mode=mode
@@ -105,7 +148,16 @@ def require_retry(store, connection, snapshot, record, event, mode, expected_rev
     return current
 
 
-def commit_terminal_operation(store, connection, snapshot, record, *, audit_event=None, mode=None, expected_revision):
+def commit_terminal_operation(
+    store: PostgreSQLControlPlaneStore,
+    connection: Connection[tuple[object, ...]],
+    snapshot: RuntimeSnapshot,
+    record: ControlPlaneOperationRecord,
+    *,
+    audit_event: AuditEvent | None = None,
+    mode: TerminalCommitMode | None = None,
+    expected_revision: int,
+) -> SnapshotState:
     mode = contracts.TerminalCommitMode.SNAPSHOT_BEARING if mode is None else mode
     contracts._require_terminal_commit_mode(mode)
     event = audit_event or contracts.terminal_operation_audit(record)
@@ -125,7 +177,14 @@ def commit_terminal_operation(store, connection, snapshot, record, *, audit_even
     return committed
 
 
-def commit_invocation_transition(store, connection, expected, record, *, audit_event):
+def commit_invocation_transition(
+    store: PostgreSQLControlPlaneStore,
+    connection: Connection[tuple[object, ...]],
+    expected: ControlPlaneOperationRecord,
+    record: ControlPlaneOperationRecord,
+    *,
+    audit_event: AuditEvent | None,
+) -> SnapshotState:
     require_supervision_cut(expected, record, audit_event)
     current = store._load_records(connection).get(expected.receipt.operation_id)
     if current == record and audit_event in store._load_audits(connection):
@@ -138,8 +197,15 @@ def commit_invocation_transition(store, connection, expected, record, *, audit_e
 
 
 def commit_participant_transition(
-    store, connection, *, expected_history_heads, expected_revision, snapshot, record, audit_event
-):
+    store: PostgreSQLControlPlaneStore,
+    connection: Connection[tuple[object, ...]],
+    *,
+    expected_history_heads: Mapping[str, str | None],
+    expected_revision: int,
+    snapshot: RuntimeSnapshot,
+    record: ControlPlaneOperationRecord,
+    audit_event: AuditEvent | None,
+) -> SnapshotState:
     existing = store._load_records(connection).get(record.receipt.operation_id)
     contracts._require_operation_audit_binding(record, audit_event)
     if existing == record:

@@ -1,7 +1,14 @@
 """Admit only apparatus policy choices this composition can actually enforce."""
 
+from __future__ import annotations
 
-def execution_budget_ms(plan, configuration):
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .operation_supervision_configuration import OperationSupervisionConfiguration
+
+
+def execution_budget_ms(plan: object, configuration: OperationSupervisionConfiguration) -> int:
     budget = configuration.execution_ms
     for operation in plan.operations:
         for effective in (operation.execution_policy, *operation.execution_policy_scopes):

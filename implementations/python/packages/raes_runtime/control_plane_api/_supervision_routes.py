@@ -1,5 +1,10 @@
 """Sealed P2 supervision and live worker authority RPCs."""
 
+from __future__ import annotations
+
+from collections.abc import Callable
+from typing import TYPE_CHECKING, TypeVar
+
 from fastapi import FastAPI, HTTPException, Request, Response
 from pydantic import BaseModel, ConfigDict
 from raes_contracts.contracts import (
@@ -8,6 +13,7 @@ from raes_contracts.contracts import (
     BackendOperationControlModel,
     BackendOperationRequestModel,
     BackendOperationResponseModel,
+    OperationReceiptModel,
     OperationStatusModel,
 )
 from raes_contracts.contracts.backend_operation import OperationIdentifier
@@ -17,6 +23,16 @@ from ..operation_control_budget import ControlDeliveryGrant
 from ..operation_worker_authority import InvocationGrant
 from ._auth import _AdministrativeMutationIdentity, _AdministrativeReadIdentity, _OperatorResolutionIdentity
 from ._offload import _control_plane_calls
+
+if TYPE_CHECKING:
+    from ..control_plane import RuntimeControlPlane
+
+_T = TypeVar("_T")
+_SUPERVISION_RESPONSES = {
+    404: {"description": "Operation not found"},
+    409: {"description": "Operation supervision conflict"},
+    503: {"description": "Operation supervision unavailable"},
+}
 
 
 class _GrantRequest(BaseModel):
@@ -31,7 +47,7 @@ class _AbsenceResolutionRequest(BaseModel):
     control_id: OperationIdentifier
 
 
-async def _call(request, method, *args, **kwargs):
+async def _call(request: Request, method: Callable[..., _T], *args: object, **kwargs: object) -> _T:
     try:
         return await _control_plane_calls(request).control(method, *args, **kwargs)
     except (KeyError, PermissionError):
@@ -42,18 +58,18 @@ async def _call(request, method, *args, **kwargs):
         raise HTTPException(status_code=503, detail="operation supervision unavailable") from None
 
 
-def _bound_path(operation_id, binding):
+def _bound_path(operation_id: str, binding: BackendOperationBindingModel) -> None:
     if operation_id != binding.operation_id:
         raise HTTPException(status_code=409, detail="operation supervision conflict")
 
 
-def register_supervision_routes(app: FastAPI, plane):
-    @app.post("/execution/stop", status_code=204)
-    async def stop(request: Request, identity: _OperatorResolutionIdentity):
+def register_supervision_routes(app: FastAPI, plane: RuntimeControlPlane) -> None:
+    @app.post("/execution/stop", status_code=204, responses=_SUPERVISION_RESPONSES)
+    async def stop(request: Request, identity: _OperatorResolutionIdentity) -> Response:
         await _call(request, plane.stop_admission, identity=identity)
         return Response(status_code=204)
 
-    @app.post("/operations/{operation_id}/controls")
+    @app.post("/operations/{operation_id}/controls", responses=_SUPERVISION_RESPONSES)
     async def control(
         operation_id: str,
         request: Request,
@@ -63,16 +79,16 @@ def register_supervision_routes(app: FastAPI, plane):
         _bound_path(operation_id, command.binding)
         return await _call(request, plane.submit_operation_control, command, identity=identity)
 
-    @app.get("/operations/{operation_id}/controls/{control_id}")
+    @app.get("/operations/{operation_id}/controls/{control_id}", responses=_SUPERVISION_RESPONSES)
     async def control_response(
         operation_id: str, control_id: str, request: Request, identity: _AdministrativeReadIdentity
     ) -> BackendOperationResponseModel | None:
         return await _call(request, plane.get_control_response, operation_id, control_id, identity=identity)
 
-    @app.post("/operations/{operation_id}/absence-resolution")
+    @app.post("/operations/{operation_id}/absence-resolution", responses=_SUPERVISION_RESPONSES)
     async def absence(
         operation_id: str, request: Request, command: _AbsenceResolutionRequest, identity: _OperatorResolutionIdentity
-    ):
+    ) -> OperationReceiptModel:
         from ._responses import _receipt_response
 
         return _receipt_response(
@@ -86,13 +102,13 @@ def register_supervision_routes(app: FastAPI, plane):
             )
         )
 
-    @app.get("/operations/{operation_id}/invocation")
+    @app.get("/operations/{operation_id}/invocation", responses=_SUPERVISION_RESPONSES)
     async def invocation(
         operation_id: str, request: Request, identity: _AdministrativeReadIdentity
     ) -> BackendOperationRequestModel:
         return await _call(request, plane.get_backend_invocation, operation_id, identity=identity)
 
-    @app.post("/operations/{operation_id}/invocation/grant")
+    @app.post("/operations/{operation_id}/invocation/grant", responses=_SUPERVISION_RESPONSES)
     async def grant(
         operation_id: str, request: Request, command: _GrantRequest, identity: _AdministrativeMutationIdentity
     ) -> InvocationGrant:
@@ -106,7 +122,7 @@ def register_supervision_routes(app: FastAPI, plane):
             identity=identity,
         )
 
-    @app.post("/operations/{operation_id}/invocation/observations")
+    @app.post("/operations/{operation_id}/invocation/observations", responses=_SUPERVISION_RESPONSES)
     async def observation(
         operation_id: str,
         request: Request,
@@ -116,13 +132,13 @@ def register_supervision_routes(app: FastAPI, plane):
         _bound_path(operation_id, command.binding)
         return await _call(request, plane.record_worker_observation, command, identity=identity)
 
-    @app.post("/operations/{operation_id}/invocation/controls/{control_id}")
+    @app.post("/operations/{operation_id}/invocation/controls/{control_id}", responses=_SUPERVISION_RESPONSES)
     async def worker_control(
         operation_id: str, control_id: str, request: Request, identity: _AdministrativeMutationIdentity
     ) -> ControlDeliveryGrant:
         return await _call(request, plane.claim_worker_control, operation_id, control_id, identity=identity)
 
-    @app.post("/operations/{operation_id}/invocation/responses")
+    @app.post("/operations/{operation_id}/invocation/responses", responses=_SUPERVISION_RESPONSES)
     async def publish(
         operation_id: str,
         request: Request,
@@ -132,7 +148,7 @@ def register_supervision_routes(app: FastAPI, plane):
         _bound_path(operation_id, command.binding)
         return _operation_status_model(await _call(request, plane.publish_backend_response, command, identity=identity))
 
-    @app.post("/operations/{operation_id}/invocation/indeterminate")
+    @app.post("/operations/{operation_id}/invocation/indeterminate", responses=_SUPERVISION_RESPONSES)
     async def uncertain(
         operation_id: str,
         request: Request,

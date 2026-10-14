@@ -4,11 +4,9 @@ from __future__ import annotations
 
 from enum import Enum
 
-from raes_contracts.runtime_state import OperationKind, OperationState
-
 from .control_plane_store import ControlPlaneOperationRecord
 from .mixed_runtime_recovery import has_mixed_resolution_cut
-from .operation_reconciliation_ledger import valid_reconciliation_child
+from .operation_reconciliation_ledger import _matches_resolution_parent, valid_reconciliation_child
 
 
 class IndeterminateResolutionDisposition(str, Enum):
@@ -23,21 +21,11 @@ def is_valid_resolution_child(
 ) -> bool:
     """Recognize a child only when it can safely discharge its parent."""
 
-    context = child.status.context
     if parent.invocation is not None and parent.invocation.reserved:
         return valid_reconciliation_child(parent, child)
-    same_scope = (context.target_scope, context.run_scope) == (
-        parent.status.context.target_scope,
-        parent.status.context.run_scope,
-    )
     return (
         not has_mixed_resolution_cut(parent)
-        and parent.status.state is OperationState.INDETERMINATE
-        and child.status.state is OperationState.SUCCEEDED
-        and context.operation_kind is OperationKind.INDETERMINATE_RESOLUTION
-        and context.parent_operation_id == parent.receipt.operation_id
-        and same_scope
-        and "role:operator" in context.authorization_scope
+        and _matches_resolution_parent(parent, child)
         and bool(child.idempotency_key)
         and child.idempotency_key != parent.idempotency_key
         and child.result_payload

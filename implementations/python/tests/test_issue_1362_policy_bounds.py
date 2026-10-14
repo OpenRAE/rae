@@ -32,8 +32,8 @@ def test_authored_budget_caps_the_execution_origin_and_unsupported_clock_is_refu
     semantic = policy.model_copy(
         update={"policy": policy.policy.model_copy(update={"clock_basis": "semantic", "clock_ref": "semantic-clock"})}
     )
+    rejected_candidate = replace(operation, execution_policy=semantic)
+    rejected_candidate_1 = replace(plan, operations=[rejected_candidate])
+    rejected_supervision = OperationSupervisionConfiguration()
     with pytest.raises(ValueError):
-        execution_budget_ms(
-            replace(plan, operations=[replace(operation, execution_policy=semantic)]),
-            OperationSupervisionConfiguration(),
-        )
+        execution_budget_ms(rejected_candidate_1, rejected_supervision)

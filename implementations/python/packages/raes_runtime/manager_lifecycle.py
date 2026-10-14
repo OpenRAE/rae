@@ -1,14 +1,23 @@
 """Direct manager ownership ends only after synchronous work and clock drain."""
 
+from __future__ import annotations
+
+from collections.abc import Callable
 from functools import wraps
+from typing import TYPE_CHECKING, Self, TypeVar
 
 from .participant_execution_control import RuntimeParticipantExecutionMixin
 from .time_control import RuntimeTimeControlMixin
 
+if TYPE_CHECKING:
+    from .manager import RuntimeManager
 
-def manager_owned(method):
+_T = TypeVar("_T")
+
+
+def manager_owned(method: Callable[..., _T]) -> Callable[..., _T]:
     @wraps(method)
-    def guarded(manager, *args, **kwargs):
+    def guarded(manager: RuntimeManager, *args: object, **kwargs: object) -> _T:
         with manager._resource_claim.runtime_call(manager):
             return method(manager, *args, **kwargs)
 
@@ -37,9 +46,9 @@ class RuntimeManagerLifecycleMixin(RuntimeParticipantExecutionMixin, RuntimeTime
             self._resource_claim.abort_close()
             raise
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         with self._resource_claim.runtime_call(self):
             return self
 
-    def __exit__(self, *_args):
+    def __exit__(self, *_args: object) -> None:
         self.close()

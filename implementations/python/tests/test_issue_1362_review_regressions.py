@@ -142,8 +142,9 @@ def test_failed_deadline_classification_closes_runtime_authority():
         plane.submit_provisioning(ProvisioningPlan())
         assert poisoned.wait(1)
         assert plane._durability_poisoned
+        rejected_plan = ProvisioningPlan()
         with pytest.raises(RuntimeError):
-            plane.submit_provisioning(ProvisioningPlan())
+            plane.submit_provisioning(rejected_plan)
     finally:
         plane.close()
 

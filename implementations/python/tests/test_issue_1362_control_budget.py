@@ -25,8 +25,9 @@ def test_a_delayed_control_claim_refuses_expiry_before_consuming_delivery(monkey
         control = plane.cancel_operation(receipt.operation_id, control_id="delayed", identity=supervisor())
         future = monotonic() + 10
         monkeypatch.setattr("raes_runtime.operation_control_budget.monotonic", lambda: future)
+        rejected_identity = worker()
         with pytest.raises((ValueError, TimeoutError)):
-            plane.claim_worker_control(receipt.operation_id, control.control_id, identity=worker())
+            plane.claim_worker_control(receipt.operation_id, control.control_id, identity=rejected_identity)
         assert control.control_id not in plane._store.load_records()[receipt.operation_id].invocation.delivered_controls
     finally:
         plane.close()
@@ -55,8 +56,9 @@ def test_reopened_control_has_no_dispatch_clock_continuity(tmp_path):
         operation_evidence=Evidence(),
     )
     try:
+        rejected_identity_1 = worker()
         with pytest.raises((ValueError, TimeoutError)):
-            plane.claim_worker_control(receipt.operation_id, control.control_id, identity=worker())
+            plane.claim_worker_control(receipt.operation_id, control.control_id, identity=rejected_identity_1)
         assert control.control_id not in plane._store.load_records()[receipt.operation_id].invocation.delivered_controls
     finally:
         plane.close()
@@ -85,8 +87,9 @@ def test_worker_observation_returns_a_remaining_grant_without_changing_the_contr
         grant = plane.record_worker_observation(control, identity=worker())
         assert grant.control == control
         assert 0 < grant.remaining_budget_ms < 800
+        rejected_identity_2 = worker()
         with pytest.raises(ValueError):
-            plane.record_worker_observation(control, identity=worker())
+            plane.record_worker_observation(control, identity=rejected_identity_2)
     finally:
         plane.close()
 
@@ -196,8 +199,9 @@ def test_expired_observation_is_not_recorded_or_granted():
                 "remaining_ms": 1000,
             },
         )
+        rejected_identity_3 = worker()
         with pytest.raises(TimeoutError):
-            plane.record_worker_observation(control, identity=worker())
+            plane.record_worker_observation(control, identity=rejected_identity_3)
         assert not plane._store.load_records()[receipt.operation_id].invocation.controls
     finally:
         plane.close()

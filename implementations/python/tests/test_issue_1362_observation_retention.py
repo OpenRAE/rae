@@ -136,8 +136,10 @@ def test_worker_observation_limit_retains_operator_recovery_after_reopen(tmp_pat
                 provider.report(request, {"kind": "progress", "phase": "executing"}), identity=worker()
             )
             assert grant.control.control_id == f"poll-{index}"
+        rejected_observation = observer(AUTOMATIC_LIMIT)
+        rejected_identity = worker()
         with pytest.raises(ValueError):
-            plane.record_worker_observation(observer(AUTOMATIC_LIMIT), identity=worker())
+            plane.record_worker_observation(rejected_observation, identity=rejected_identity)
         plane.mark_backend_indeterminate(request.binding, identity=worker())
         retained = plane._store.load_records()[receipt.operation_id].invocation
         plane.close()
@@ -188,12 +190,11 @@ def test_ordinary_response_limit_preserves_recovery_dispositions_and_terminal_ou
         controls=(cancel, reconcile),
         delivered_controls=(cancel.control_id, reconcile.control_id),
     )
+    rejected_response = response({"kind": "progress", "phase": "executing"}, sequence=769)
+    rejected_candidate = ledger.model_copy(update={"responses": (*responses, rejected_response)})
+    rejected_payload = rejected_candidate.model_dump(mode="json")
     with pytest.raises(ValueError, match="ordinary response capacity"):
-        InvocationLedger.model_validate(
-            ledger.model_copy(
-                update={"responses": (*responses, response({"kind": "progress", "phase": "executing"}, sequence=769))}
-            ).model_dump(mode="json")
-        )
+        InvocationLedger.model_validate(rejected_payload)
     disposition = response(
         {
             "kind": "control",
@@ -223,12 +224,10 @@ def test_ordinary_response_limit_preserves_recovery_dispositions_and_terminal_ou
     )
     assert recovered.responses[-2:] == (disposition, evidence)
     repeated_disposition = disposition.model_copy(update={"sequence": 771})
+    rejected_candidate_1 = recovered.model_copy(update={"responses": (*recovered.responses, repeated_disposition)})
+    rejected_payload_1 = rejected_candidate_1.model_dump(mode="json")
     with pytest.raises(ValueError, match="control response identity"):
-        InvocationLedger.model_validate(
-            recovered.model_copy(update={"responses": (*recovered.responses, repeated_disposition)}).model_dump(
-                mode="json"
-            )
-        )
+        InvocationLedger.model_validate(rejected_payload_1)
     terminal = response(outcome(), sequence=771)
     assert (
         InvocationLedger.model_validate(
@@ -246,8 +245,10 @@ def test_manual_observation_cannot_consume_cancellation_or_reconciliation_slots(
     ledger = InvocationLedger(request=request())
     for index in range(64):
         ledger = append_control(ledger, control("observe").model_copy(update={"control_id": f"manual-{index}"}))
+    rejected_control = control("observe")
+    rejected_candidate_2 = rejected_control.model_copy(update={"control_id": "overflow"})
     with pytest.raises(ValueError):
-        append_control(ledger, control("observe").model_copy(update={"control_id": "overflow"}))
+        append_control(ledger, rejected_candidate_2)
     for action in ("cancel", "reconcile"):
         for index in range(32):
             ledger = append_control(ledger, control(action).model_copy(update={"control_id": f"{action}-{index}"}))
@@ -260,10 +261,12 @@ def test_retained_authority_cannot_be_reclassified_or_discarded_to_free_capacity
     from test_issue_1360_backend_operations import control, request
 
     retained = append_control(InvocationLedger(request=request()), control("observe"))
+    rejected_candidate_3 = retained.model_copy(update={"automatic_controls": ("control-1",)})
     with pytest.raises(ValueError, match="reclassified"):
-        require_invocation_transition(retained, retained.model_copy(update={"automatic_controls": ("control-1",)}))
+        require_invocation_transition(retained, rejected_candidate_3)
+    rejected_candidate_4 = retained.model_copy(update={"controls": ()})
     with pytest.raises(ValueError, match="append-only"):
-        require_invocation_transition(retained, retained.model_copy(update={"controls": ()}))
+        require_invocation_transition(retained, rejected_candidate_4)
 
 
 def test_temporal_polling_cadence_fits_a_long_admitted_execution(monkeypatch):

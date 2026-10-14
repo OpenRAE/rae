@@ -7,7 +7,7 @@ from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
 from functools import partial
-from typing import ParamSpec, TypeVar
+from typing import Literal, ParamSpec, TypeVar, cast
 
 import anyio
 from fastapi import HTTPException, Request
@@ -17,10 +17,11 @@ from ..operation_execution_adapter import _capture_callback, require_budget_ms
 
 _P = ParamSpec("_P")
 _T = TypeVar("_T")
+HttpCallLane = Literal["effect", "control", "read", "auth"]
 _THREAD_LIMITER = ContextVar("raes_http_thread_limiter", default=None)
 
 
-async def run_in_threadpool(call, *args, **kwargs):
+async def run_in_threadpool(call: Callable[..., _T], *args: object, **kwargs: object) -> _T:
     outcome = await anyio.to_thread.run_sync(
         partial(_capture_callback, partial(call, *args, **kwargs)), limiter=_THREAD_LIMITER.get()
     )
@@ -28,7 +29,7 @@ async def run_in_threadpool(call, *args, **kwargs):
         if isinstance(outcome.error, Exception):
             raise outcome.error
         raise RuntimeError("control-plane worker interrupted") from None
-    return outcome.value
+    return cast(_T, outcome.value)
 
 
 class _ControlPlaneCallExecutor:
@@ -40,7 +41,7 @@ class _ControlPlaneCallExecutor:
     authentication requests.
     """
 
-    def __init__(self, *, max_pending_mutations: int, call_budget_ms=40000, drain_budget_ms=2000) -> None:
+    def __init__(self, *, max_pending_mutations: int, call_budget_ms: int = 40000, drain_budget_ms: int = 2000) -> None:
         if max_pending_mutations <= 0:
             raise ValueError("max_pending_mutations must be positive")
         self._active_calls = 0
@@ -56,7 +57,7 @@ class _ControlPlaneCallExecutor:
             "auth": anyio.CapacityLimiter(4),
         }
         self._tasks = set()
-        self._pending_lanes = {lane: 0 for lane in self._limiters}
+        self._pending_lanes = dict.fromkeys(self._limiters, 0)
 
     async def run(
         self,
@@ -76,7 +77,9 @@ class _ControlPlaneCallExecutor:
     ) -> _T:
         return await self._start("effect", call, args, kwargs)
 
-    async def _start(self, lane, call, args, kwargs):
+    async def _start(
+        self, lane: HttpCallLane, call: Callable[..., _T], args: tuple[object, ...], kwargs: dict[str, object]
+    ) -> _T:
         async with self._condition:
             if self._closed or self._closing:
                 raise HTTPException(status_code=503, detail="control-plane executor unavailable")
@@ -100,12 +103,20 @@ class _ControlPlaneCallExecutor:
                 raise
             raise HTTPException(status_code=503, detail="control-plane call deadline exceeded") from None
 
-    def _finished(self, actor):
+    def _finished(self, actor: asyncio.Task[object]) -> None:
         self._tasks.discard(actor)
         if not actor.cancelled():
-            actor.exception()  # Retrieve an abandoned caller's failure without logging native values.
+            # Retrieve an abandoned caller's failure without logging native values.
+            actor.exception()
 
-    async def _actor(self, lane, stage, call, args, kwargs):
+    async def _actor(
+        self,
+        lane: HttpCallLane,
+        stage: dict[str, bool],
+        call: Callable[..., _T],
+        args: tuple[object, ...],
+        kwargs: dict[str, object],
+    ) -> _T:
         token = _THREAD_LIMITER.set(self._limiters[lane])
         try:
             async with self._admitted():
@@ -155,10 +166,10 @@ class _ControlPlaneCallExecutor:
                 if self._active_calls == 0:
                     self._condition.notify_all()
 
-    async def control(self, call, /, *args, **kwargs):
+    async def control(self, call: Callable[..., _T], /, *args: object, **kwargs: object) -> _T:
         return await self._start("control", call, args, kwargs)
 
-    async def authenticate(self, call, /, *args, **kwargs):
+    async def authenticate(self, call: Callable[..., _T], /, *args: object, **kwargs: object) -> _T:
         return await self._start("auth", call, args, kwargs)
 
     async def close(self) -> None:

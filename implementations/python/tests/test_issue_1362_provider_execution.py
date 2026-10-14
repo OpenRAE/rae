@@ -148,7 +148,8 @@ def test_a_consumed_grant_requires_evidence_even_when_start_reports_refusal():
         receipt = plane.submit_provisioning(ProvisioningPlan())
         record = plane._store.load_records()[receipt.operation_id]
         assert record.status.state is OperationState.INDETERMINATE
-        assert record.invocation.consumed and record.invocation.reserved
+        assert record.invocation.consumed
+        assert record.invocation.reserved
         assert not plane.submit_provisioning(ProvisioningPlan()).accepted
     finally:
         plane.close()
@@ -180,7 +181,8 @@ def test_provider_outcome_is_validated_and_atomic_receipt_replay_never_starts_tw
         assert plane.submit_provisioning(ProvisioningPlan(), idempotency_key="provider-1362") == receipt
         assert provider.starts == 1
         record = plane._store.load_records()[receipt.operation_id]
-        assert record.invocation.consumed and not record.invocation.reserved
+        assert record.invocation.consumed
+        assert not record.invocation.reserved
         assert record.invocation.responses[-1].message.kind == "outcome"
     finally:
         plane.close()

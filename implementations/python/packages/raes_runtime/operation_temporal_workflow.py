@@ -1,5 +1,7 @@
 """Deterministic delivery workflow; RAE's state authority owns every outcome."""
 
+from __future__ import annotations
+
 from datetime import timedelta
 
 from temporalio import workflow
@@ -16,11 +18,11 @@ class RaeOperationWorkflow:
         self._reference = None
 
     @workflow.query(name="operation_reference")
-    def operation_reference(self):
+    def operation_reference(self) -> dict[str, object] | None:
         return self._reference
 
     @workflow.run
-    async def run(self, payload: dict) -> str:
+    async def run(self, payload: dict[str, object]) -> str:
         reference = EngineOperationReference.model_validate(payload)
         self._reference = reference.model_dump(mode="json")
         single_attempt = RetryPolicy(maximum_attempts=1)
@@ -67,15 +69,15 @@ class RaeOperationWorkflow:
 class RaeSupervisionWorkflow:
     """Controls remain deliverable after an effect workflow reaches a terminal cut."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._payload = None
 
     @workflow.query(name="control_reference")
-    def control_reference(self):
+    def control_reference(self) -> dict[str, object] | None:
         return self._payload
 
     @workflow.run
-    async def run(self, payload: dict) -> str:
+    async def run(self, payload: dict[str, object]) -> str:
         reference = EngineOperationReference.model_validate(payload["reference"])
         self._payload = payload
         return await workflow.execute_activity(

@@ -1,11 +1,23 @@
 """Control delivery has its own one-use identity and independently bounded lane."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from .control_plane_supervision import persist_invocation_update
 from .operation_control_budget import forget_control_budget, remaining_control_budget
 from .operation_provider_execution import accept_response, provider_call
 
+if TYPE_CHECKING:
+    from raes_contracts.contracts import BackendOperationControlModel
 
-def deliver_control(plane, parent, control):
+    from .control_plane import RuntimeControlPlane
+    from .control_plane_store import ControlPlaneOperationRecord
+
+
+def deliver_control(
+    plane: RuntimeControlPlane, parent: ControlPlaneOperationRecord, control: BackendOperationControlModel
+) -> None:
     from time import monotonic
 
     provider = plane._target.operation_provider
@@ -38,7 +50,6 @@ def deliver_control(plane, parent, control):
         response = provider_call(
             plane,
             method,
-            control,
             budget_ms=budget,
             allowed=allowed,
             lane="control",

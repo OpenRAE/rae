@@ -1,5 +1,9 @@
 """One bounded native validation and observation boundary for protocol results."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.runtime_state import OperationState
 
@@ -7,8 +11,23 @@ from .backend_calls import _validated_backend_result
 from .backend_observation_calls import _apply_observation_result
 from .control_plane_store_snapshots import _snapshot_payload
 
+if TYPE_CHECKING:
+    from raes_contracts.contracts import OperationArtifactReferenceModel
+    from raes_contracts.runtime_state import ApplyResult
 
-def finalize_protocol_result(result, reference, state, *, observation_request, realization, call):
+    from .backend_calls import _BackendCallContext, _RealizationApplyContext
+    from .backend_observation_calls import _ObservationApplyRequest
+
+
+def finalize_protocol_result(
+    result: ApplyResult,
+    reference: OperationArtifactReferenceModel,
+    state: OperationState,
+    *,
+    observation_request: _ObservationApplyRequest,
+    realization: _RealizationApplyContext,
+    call: _BackendCallContext,
+) -> tuple[ApplyResult, dict[str, object] | None]:
     if canonical_json_digest(_snapshot_payload(result.snapshot)) != reference.digest:
         raise ValueError("native result artifact commitment mismatch")
     accepted = _validated_backend_result(

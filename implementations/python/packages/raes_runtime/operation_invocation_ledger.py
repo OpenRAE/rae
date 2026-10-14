@@ -82,18 +82,30 @@ def require_invocation_transition(prior: InvocationLedger | None, replacement: I
         return
     if replacement is None:
         raise ValueError("retained invocation authority cannot be dropped")
+    _require_immutable_invocation_binding(prior, replacement)
+    _require_monotonic_invocation_authority(prior, replacement)
+    _require_append_only_invocation_history(prior, replacement)
+
+
+def _require_immutable_invocation_binding(prior: InvocationLedger, replacement: InvocationLedger) -> None:
     if prior.request != replacement.request or prior.native != replacement.native:
         raise ValueError("invocation binding and command commitment are immutable")
     if prior.delivery is not None and prior.delivery != replacement.delivery:
         raise ValueError("engine delivery binding is immutable")
     if prior.consumed and prior.delivery != replacement.delivery:
         raise ValueError("consumed invocation cannot acquire another delivery binding")
+
+
+def _require_monotonic_invocation_authority(prior: InvocationLedger, replacement: InvocationLedger) -> None:
     if prior.consumed and not replacement.consumed:
         raise ValueError("consumed invocation cannot be granted again")
     if not prior.reserved and replacement.reserved:
         raise ValueError("released invocation cannot acquire another effect reservation")
     if prior.release_commitment is not None and prior.release_commitment != replacement.release_commitment:
         raise ValueError("release evidence is immutable")
+
+
+def _require_append_only_invocation_history(prior: InvocationLedger, replacement: InvocationLedger) -> None:
     for name in ("responses", "controls", "delivered_controls", "automatic_controls"):
         before, after = getattr(prior, name), getattr(replacement, name)
         if after[: len(before)] != before:

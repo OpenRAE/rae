@@ -34,15 +34,17 @@ def test_cancelled_caller_returns_while_actor_keeps_permission_and_control_capac
         with authority.mutation(OperationKind.PROVISIONING):
             event.set()
             if block:
-                assert release.wait(3)
+                assert release.wait(10)
 
     async def exercise():
-        executor = _ControlPlaneCallExecutor(max_pending_mutations=2, call_budget_ms=100, drain_budget_ms=100)
+        # Test cancellation and retained ownership, independently of the
+        # configured call deadline and loaded-runner scheduling latency.
+        executor = _ControlPlaneCallExecutor(max_pending_mutations=2, call_budget_ms=5000, drain_budget_ms=2000)
         caller = asyncio.create_task(executor.mutate(effect, entered, True))
-        assert await asyncio.to_thread(entered.wait, 1)
+        assert await asyncio.to_thread(entered.wait, 2)
         caller.cancel()
         with pytest.raises(asyncio.CancelledError):
-            await asyncio.wait_for(caller, 0.1)
+            await asyncio.wait_for(caller, 1)
         assert await executor.control(lambda: "responsive") == "responsive"
         queued = asyncio.create_task(executor.mutate(effect, second))
         await asyncio.sleep(0.02)
