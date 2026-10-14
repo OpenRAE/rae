@@ -194,6 +194,8 @@ completion, loss/reopening, actor-bound intent, reconciliation and the actual
 SDK sandbox. CI's `runtime-supervision` job runs real Temporal delivery through
 P2 against PostgreSQL, including blocked effects and duplicate delivery. Its
 development engine uses a separate SQLite history file. The host still owns
-production service persistence. Repository-wide, service integration and fuzz
+production service persistence. The canonical integration lane also executes
+these service cases and includes their coverage in the combined quality report.
+Repository-wide, service integration and fuzz
 suites run in CI/CD. The tests supply scoped synthetic no-op witnesses.
 They do not certify interruption or cessation for arbitrary backends.

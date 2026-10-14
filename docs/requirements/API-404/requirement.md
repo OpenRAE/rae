@@ -145,6 +145,8 @@ policy choices, recovery and composition limits.
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `.github/workflows/canonical-verification.yml` (API-404-C2 service-backed execution and ledger coverage in the canonical verification graph)
+
 - DOCUMENTS → GITHUB_ISSUE `1362` (Supervised execution outside state admission)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1362-supervised-execution-preflight.md` (Accepted architecture and implementation guardrails)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_supervised_execution.py` (API-404-C1/C2 short state cuts, confirmed one-use native dispatch and fenced atomic settlement)
