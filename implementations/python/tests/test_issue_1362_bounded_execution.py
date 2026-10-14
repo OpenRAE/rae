@@ -1,8 +1,45 @@
 """Physical worker limits and independent control survive abandoned calls."""
 
 from threading import Event
+from time import monotonic
 
 import pytest
+
+
+@pytest.mark.parametrize("failure", [KeyboardInterrupt, SystemExit])
+def test_worker_base_exception_reaches_caller_without_stopping_other_lanes(failure):
+    from raes_runtime.operation_execution_adapter import LocalExecutionAdapter
+
+    def interrupted():
+        raise failure("worker interruption")
+
+    adapter = LocalExecutionAdapter()
+    try:
+        with pytest.raises(failure, match="worker interruption"):
+            adapter.call("effect", interrupted, timeout_ms=1000)
+        assert adapter.pending_calls == 0
+        assert adapter.call("control", lambda: "available", timeout_ms=1000) == "available"
+    finally:
+        assert adapter.close(timeout_ms=1000)
+
+
+@pytest.mark.parametrize("failure", [KeyboardInterrupt, SystemExit])
+def test_deadline_callback_interruption_fences_failure_without_stopping_portal(failure):
+    from raes_runtime.operation_execution_adapter import LocalExecutionAdapter
+
+    fenced = Event()
+
+    def interrupted():
+        raise failure("deadline interruption")
+
+    adapter = LocalExecutionAdapter()
+    try:
+        adapter.arm_deadline("invocation", monotonic(), interrupted, failure_handler=fenced.set)
+        assert fenced.wait(1)
+        assert adapter.call("control", lambda: "available", timeout_ms=1000) == "available"
+        assert adapter.pending_calls == 0
+    finally:
+        assert adapter.close(timeout_ms=1000)
 
 
 def test_blocked_effect_times_out_without_using_control_capacity_or_releasing_its_slot():

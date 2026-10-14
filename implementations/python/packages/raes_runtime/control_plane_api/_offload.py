@@ -13,7 +13,7 @@ import anyio
 from fastapi import HTTPException, Request
 
 from ..control_plane_mutation import MutationReservationRequired, mutation_probe
-from ..operation_execution_adapter import require_budget_ms
+from ..operation_execution_adapter import _capture_callback, require_budget_ms
 
 _P = ParamSpec("_P")
 _T = TypeVar("_T")
@@ -21,7 +21,14 @@ _THREAD_LIMITER = ContextVar("raes_http_thread_limiter", default=None)
 
 
 async def run_in_threadpool(call, *args, **kwargs):
-    return await anyio.to_thread.run_sync(partial(call, *args, **kwargs), limiter=_THREAD_LIMITER.get())
+    outcome = await anyio.to_thread.run_sync(
+        partial(_capture_callback, partial(call, *args, **kwargs)), limiter=_THREAD_LIMITER.get()
+    )
+    if outcome.error is not None:
+        if isinstance(outcome.error, Exception):
+            raise outcome.error
+        raise RuntimeError("control-plane worker interrupted") from None
+    return outcome.value
 
 
 class _ControlPlaneCallExecutor:

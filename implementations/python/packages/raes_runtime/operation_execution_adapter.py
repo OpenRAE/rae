@@ -6,7 +6,7 @@ from collections.abc import Callable
 from functools import partial
 from threading import BoundedSemaphore, Condition, Lock
 from time import monotonic
-from typing import Literal, TypeVar
+from typing import Literal, NamedTuple, TypeVar, cast
 
 import anyio
 from anyio.from_thread import start_blocking_portal
@@ -16,6 +16,20 @@ from .control_plane_mutation import detached_extension
 Lane = Literal["effect", "control", "store", "deadline"]
 _T = TypeVar("_T")
 _MAX_BUDGET = 2147483647  # Portable apparatus ceiling, below native wait overflow.
+
+
+class _CallbackOutcome(NamedTuple):
+    value: object
+    error: BaseException | None
+
+
+def _capture_callback(method: Callable[[], object]) -> _CallbackOutcome:
+    # Fatal exception types must reach the synchronous caller without being
+    # raised inside the shared asyncio portal and stopping unrelated lanes.
+    try:
+        return _CallbackOutcome(method(), None)
+    except BaseException as error:
+        return _CallbackOutcome(None, error)
 
 
 def require_budget_ms(value: object) -> int:
@@ -31,14 +45,14 @@ class _CallSlot:
         self._started = False
         self._cancelled = False
 
-    def invoke(self, method: Callable[[], _T], *, extension: bool) -> _T | None:
+    def invoke(self, method: Callable[[], _T], *, extension: bool) -> _CallbackOutcome | None:
         with self._lock:
             if self._cancelled:
                 return None
             self._started = True
         try:
             with detached_extension(extension=extension):
-                return method()
+                return _capture_callback(method)
         finally:
             self._release()
 
@@ -100,11 +114,14 @@ class LocalExecutionAdapter:
 
         slot = _CallSlot(release)
         try:
-            return self._portal.call(self._invoke, lane, slot, partial(method, *args, **kwargs), budget)
+            outcome = self._portal.call(self._invoke, lane, slot, partial(method, *args, **kwargs), budget)
+            if outcome.error is not None:
+                raise outcome.error
+            return cast(_T, outcome.value)
         finally:
             slot.abandon_unstarted()
 
-    async def _invoke(self, lane: Lane, slot: _CallSlot, method: Callable[[], _T], budget: int) -> _T:
+    async def _invoke(self, lane: Lane, slot: _CallSlot, method: Callable[[], _T], budget: int) -> _CallbackOutcome:
         with anyio.fail_after(budget / 1000):
             return await anyio.to_thread.run_sync(
                 partial(slot.invoke, method, extension=lane not in {"store", "deadline"}),
@@ -134,9 +151,14 @@ class LocalExecutionAdapter:
         # This is an apparatus timer for one admitted invocation, not a queue.
         # The state owner classifies expiry; cancellation never implies cessation.
         try:
-            await anyio.to_thread.run_sync(
-                partial(self.call, "deadline", callback, *args, timeout_ms=5000), abandon_on_cancel=True
+            outcome = await anyio.to_thread.run_sync(
+                partial(_capture_callback, partial(self.call, "deadline", callback, *args, timeout_ms=5000)),
+                abandon_on_cancel=True,
             )
+            if outcome.error is not None:
+                if isinstance(outcome.error, Exception):
+                    raise outcome.error
+                raise RuntimeError("invocation deadline callback interrupted") from None
         except Exception:
             if failure_handler is not None:
                 failure_handler()

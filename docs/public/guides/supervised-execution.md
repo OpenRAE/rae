@@ -8,6 +8,8 @@ those calls.
 ## Local composition
 
 Local execution uses AnyIO with separate effect, control and store capacity.
+Worker interruptions leave independent controls and drain available. HTTP
+callers receive a redacted failure.
 Use one runtime owner for each backend component. A direct `RuntimeManager`
 supports `with` and `close()`. Close refuses while a synchronous callback is
 active. It stops the internal clock driver before releasing ownership. Later

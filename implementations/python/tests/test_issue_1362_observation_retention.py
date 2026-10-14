@@ -94,12 +94,17 @@ def test_local_automatic_poll_limit_preserves_cancel_reconciliation_and_later_ad
 def test_worker_observation_limit_retains_operator_recovery_after_reopen(tmp_path):
     provider, dispatcher = Provider(), Dispatcher()
     configured = target(provider)
+    # This exercises retained capacity, not the default latency bound. Each
+    # control still uses a finite, nonrenewable budget under loaded CI runners.
+    supervision = OperationSupervisionConfiguration(
+        execution_ms=600000, admission_ms=10000, observation_ms=10000, commit_ms=10000, drain_ms=10000
+    )
     plane = RuntimeControlPlane(
         configured,
         store=LocalControlPlaneStore(tmp_path / "ledger"),
         distributed_execution=dispatcher,
         operation_evidence=Evidence(),
-        supervision=OperationSupervisionConfiguration(execution_ms=600000),
+        supervision=supervision,
     )
     try:
         receipt = plane.submit_provisioning(ProvisioningPlan())
@@ -120,8 +125,8 @@ def test_worker_observation_limit_retains_operator_recovery_after_reopen(tmp_pat
                 budget={
                     "origin_id": f"poll-clock-{index}",
                     "started_at": datetime.now(UTC).isoformat(),
-                    "limit_ms": 2000,
-                    "remaining_ms": 2000,
+                    "limit_ms": 10000,
+                    "remaining_ms": 10000,
                 },
             )
 
@@ -141,6 +146,7 @@ def test_worker_observation_limit_retains_operator_recovery_after_reopen(tmp_pat
             store=LocalControlPlaneStore(tmp_path / "ledger"),
             distributed_execution=Dispatcher(),
             operation_evidence=Evidence(),
+            supervision=supervision,
         )
         assert plane._store.load_records()[receipt.operation_id].invocation == retained
         cancel = plane.cancel_operation(receipt.operation_id, control_id="cancel-reopened", identity=supervisor())

@@ -9,6 +9,23 @@ from raes_runtime.control_plane_api._offload import _ControlPlaneCallExecutor
 from raes_runtime.control_plane_mutation import RuntimeMutationAuthority
 
 
+@pytest.mark.parametrize("failure", [KeyboardInterrupt, SystemExit])
+def test_worker_interruption_is_redacted_without_stopping_http_control(failure):
+    def interrupted():
+        raise failure("private worker interruption")
+
+    async def exercise():
+        executor = _ControlPlaneCallExecutor(max_pending_mutations=1)
+        try:
+            with pytest.raises(RuntimeError, match="^control-plane worker interrupted$"):
+                await executor.mutate(interrupted)
+            assert await executor.control(lambda: "responsive") == "responsive"
+        finally:
+            await executor.close()
+
+    asyncio.run(exercise())
+
+
 def test_cancelled_caller_returns_while_actor_keeps_permission_and_control_capacity():
     entered, release, second = Event(), Event(), Event()
     authority = RuntimeMutationAuthority()
