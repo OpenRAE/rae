@@ -13,7 +13,8 @@ from collections.abc import Mapping
 from pathlib import Path
 from types import SimpleNamespace
 
-from libvirt_native_shapes import CAPTURE, libvirt_readback
+import pytest
+from libvirt_native_shapes import CAPTURE, LibvirtError, libvirt_readback, lookup
 from raes_backend_libvirt.driver import DomainSpec, DriverResult, NetworkSpec, RealizationObservation
 from raes_backend_libvirt.techvault_concerns import techvault_observation_diagnostics
 from raes_backend_libvirt.techvault_matrix import domain_xml, native_matrix, network_xml
@@ -111,3 +112,19 @@ def test_fake_readback_reports_the_shape_libvirt_reports() -> None:
             real_domain.find(tag).text,
         ), tag
     assert _values(_observations(fake)) == _values(_observations(CAPTURE["readback"]))
+
+
+@pytest.mark.parametrize(
+    ("objects", "method_name", "message"),
+    (
+        pytest.param(
+            {}, "networkLookupByName", "Network not found: no network with matching name 'raes-x'", id="missing"
+        ),
+        pytest.param({"raes-x": SimpleNamespace(undefined=True)}, "lookupByName", "Domain not found", id="undefined"),
+    ),
+)
+def test_fake_lookup_reports_libvirt_absence_for_the_requested_name(objects, method_name, message) -> None:
+    with pytest.raises(LibvirtError) as raised:
+        lookup(objects, "raes-x", method_name)
+
+    assert (raised.value.get_error_code(), str(raised.value)) == (CAPTURE["absence"][method_name]["code"], message)

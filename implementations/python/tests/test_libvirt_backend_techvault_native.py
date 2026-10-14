@@ -150,6 +150,15 @@ class _FailingLookupConnection(_FakeConnection):
         raise LibvirtError(_VIR_ERR_INTERNAL_ERROR, "internal error")
 
 
+def _raise_key_error(name: str) -> object:
+    # libvirt reports a missing name with code 42 (see the capture), so a KeyError is some other failure.
+    raise KeyError(name)
+
+
+class _KeyErrorLookupConnection(_FakeConnection):
+    lookupByName = staticmethod(_raise_key_error)  # noqa: N815 - mirrors libvirt API
+
+
 class _InactiveDomainConnection(_FakeConnection):
     def defineXML(self, xml: str):  # noqa: N802 - mirrors libvirt API
         native = super().defineXML(xml)
@@ -888,6 +897,26 @@ def test_native_driver_destroy_is_idempotent_only_for_verified_absence(tmp_path)
     assert uncertain.domains[0].realized is True
 
 
+def test_native_driver_does_not_create_when_a_name_lookup_raises_key_error(tmp_path):
+    connection = _KeyErrorLookupConnection()
+    kernel = tmp_path / "vmlinuz"
+    kernel.write_bytes(b"kernel")
+    driver = TechVaultNativeLibvirtDriver(
+        state_dir=tmp_path / "state",
+        connection=connection,
+        kernel_path=kernel,
+        initramfs_builder=_Builder(),
+    )
+    domain = DomainSpec(address="provision.node.demo", name="demo", image_ref=None, memory_mib=128, vcpus=1)
+
+    realized = driver.realize(networks=(), domains=(domain,))
+
+    assert [diagnostic.code for diagnostic in realized.diagnostics] == [
+        "libvirt-backend.techvault-native.operation-failed"
+    ]
+    assert connection.domain_xml == []
+
+
 def _delete_domain(connection: _FakeConnection, name: str) -> None:
     del connection.domains[name]
 
@@ -903,6 +932,11 @@ def _rename_stopped_domain(connection: _FakeConnection, name: str) -> None:
     connection.domains[native.name()] = native
 
 
+def _delete_domain_behind_key_error(connection: _FakeConnection, name: str) -> None:
+    _delete_domain(connection, name)
+    connection.lookupByName = _raise_key_error
+
+
 @pytest.mark.parametrize(
     ("change", "codes", "realized"),
     (
@@ -912,6 +946,12 @@ def _rename_stopped_domain(connection: _FakeConnection, name: str) -> None:
             ["libvirt-backend.techvault-native.residual-state"],
             True,
             id="renamed-out-of-band",
+        ),
+        pytest.param(
+            _delete_domain_behind_key_error,
+            ["libvirt-backend.techvault-native.residual-state"],
+            True,
+            id="lookup-key-error",
         ),
     ),
 )

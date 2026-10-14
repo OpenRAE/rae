@@ -88,7 +88,7 @@ class _NativeObject:
         self._name = name
         self._xml = xml
         self._active = False
-        self._undefined = False
+        self.undefined = False
 
     def name(self) -> str:
         return self._name
@@ -100,7 +100,7 @@ class _NativeObject:
         self._active = False
 
     def undefine(self) -> None:  # pragma: no cover - structural stub
-        self._undefined = True
+        self.undefined = True
 
     def isActive(self):  # noqa: N802 - mirrors libvirt API
         return int(self._active)
@@ -138,10 +138,10 @@ class _FakeConnection:
         return lookup(self.domains, name, "lookupByName")
 
     def listAllDomains(self):  # noqa: N802 - mirrors libvirt API
-        return [item for item in self.domains.values() if not item._undefined]
+        return [item for item in self.domains.values() if not item.undefined]
 
     def listAllNetworks(self):  # noqa: N802 - mirrors libvirt API
-        return [item for item in self.networks.values() if not item._undefined]
+        return [item for item in self.networks.values() if not item.undefined]
 
 
 class _InitramfsBuilder:

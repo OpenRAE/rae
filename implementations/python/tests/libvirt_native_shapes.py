@@ -21,6 +21,7 @@ import pytest
 
 CAPTURE_PATH = Path(__file__).parent / "data" / "boundary_captures" / "libvirt-test-driver.json"
 CAPTURE = json.loads(CAPTURE_PATH.read_text(encoding="utf-8"))
+_CAPTURED_MISSING_NETWORK = CAPTURE["absence"]["networkLookupByName"]["message"].rsplit("'", 2)[1]
 _KIB_PER_UNIT = {"KiB": 1, "MiB": 1024, "GiB": 1024 * 1024}
 
 
@@ -44,13 +45,15 @@ def install_libvirt_error_type(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def lookup(objects: Mapping[str, object], name: str, method_name: str) -> object:
-    """Return ``objects[name]`` or raise the error libvirt raised for ``method_name`` on a missing name."""
+    """Return ``objects[name]`` unless it is missing or undefined; then raise libvirt's error for ``method_name``."""
 
-    try:
-        return objects[name]
-    except KeyError:
-        missing = CAPTURE["absence"][method_name]
-        raise LibvirtError(missing["code"], missing["message"]) from None
+    native = objects.get(name)
+    if native is not None and not getattr(native, "undefined", False):
+        return native
+    missing = CAPTURE["absence"][method_name]
+    # The captured network message quotes the name that was looked up; quote this one instead.
+    message = missing["message"].replace(_CAPTURED_MISSING_NETWORK, name)
+    raise LibvirtError(missing["code"], message)
 
 
 def libvirt_readback(defined_xml: str) -> str:
