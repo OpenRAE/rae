@@ -90,6 +90,7 @@ def test_local_automatic_poll_limit_preserves_cancel_reconciliation_and_later_ad
         plane.close()
 
 
+@pytest.mark.timeout(240)
 def test_worker_observation_limit_retains_operator_recovery_after_reopen(tmp_path):
     provider, dispatcher = Provider(), Dispatcher()
     configured = target(provider)

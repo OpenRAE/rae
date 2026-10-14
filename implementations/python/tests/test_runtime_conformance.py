@@ -243,11 +243,11 @@ def test_live_probe_catches_participant_runtime_that_does_not_populate_snapshot(
         def history(self):
             return {}
 
-    manifest = create_stub_manifest()
+    manifest = create_stub_manifest(with_realization_envelope=True)
     target = RuntimeTarget(
         name="silent-participant",
         manifest=manifest,
-        provisioner=StubProvisioner(),
+        provisioner=StubProvisioner(manifest.realization_envelope),
         orchestrator=StubOrchestrator(),
         evaluator=StubEvaluator(),
         participant_runtime=_SilentParticipantRuntime(),

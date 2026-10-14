@@ -1,5 +1,6 @@
 """Process-local component ownership complements the deployment's external fence."""
 
+from contextlib import contextmanager
 from threading import RLock
 from weakref import ref
 
@@ -24,6 +25,8 @@ class RuntimeResourceClaim:
         self.unresolved = False
         self.ledger = ledger
         self.closed = False
+        self.closing = False
+        self.active_calls = 0
         self.components = tuple(
             component
             for name in (
@@ -52,7 +55,10 @@ class RuntimeResourceClaim:
 
     def release(self, *, unresolved=False):
         with _LOCK:
+            if self.active_calls:
+                raise RuntimeError("runtime callbacks remain active")
             self.closed = True
+            self.closing = False
             self.unresolved = unresolved
             if unresolved:
                 # An uncertain resource may be reopened only with the same ledger,
@@ -72,3 +78,32 @@ class RuntimeResourceClaim:
                 for component in self.components:
                     if _CLAIMS.get(id(component)) is self:
                         del _CLAIMS[id(component)]
+
+    @contextmanager
+    def runtime_call(self, owner):
+        with _LOCK:
+            if self.closed or self.closing or self._owner() is not owner:
+                raise RuntimeError("runtime manager is closed or closing")
+            if any(_CLAIMS.get(id(component)) is not self for component in self.components):
+                raise RuntimeError("backend runtime ownership has changed")
+            self.active_calls += 1
+        try:
+            yield
+        finally:
+            with _LOCK:
+                self.active_calls -= 1
+
+    def begin_close(self):
+        with _LOCK:
+            if self.closed:
+                return False
+            if self.active_calls:
+                raise RuntimeError("runtime callbacks remain active")
+            if self.closing:
+                raise RuntimeError("runtime shutdown is already in progress")
+            self.closing = True
+            return True
+
+    def abort_close(self):
+        with _LOCK:
+            self.closing = False

@@ -10,6 +10,7 @@ from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_store import InMemoryControlPlaneStore
 from raes_runtime.manager import RuntimeManager
 from realization_authority_fixtures import with_compute_substrate_collection_demand
+from runtime_plan_fixtures import plan_for_target
 from test_cross_backend_minimal_scenario import _targets
 
 _SCENARIO = """
@@ -61,7 +62,7 @@ def test_failed_post_creation_readback_remains_in_recoverable_inventory(backend,
 
     monkeypatch.setattr(driver, "observe", fail_observe)
     monkeypatch.setattr(driver, "realize", realize)
-    execution = RuntimeManager(target).plan(parse_sdl(_SCENARIO))
+    execution = plan_for_target(target, parse_sdl(_SCENARIO))
     plan = with_compute_substrate_collection_demand(
         execution.provisioning,
         semantic_scope="/nodes/vm",
@@ -73,16 +74,19 @@ def test_failed_post_creation_readback_remains_in_recoverable_inventory(backend,
     receipt = cp.submit_provisioning(plan)
     assert receipt.accepted
     status = cp.get_operation(receipt.operation_id)
-    assert status.state.value == "failed"
+    assert status.state.value == "indeterminate"
     assert calls == ["observe"]
     assert "private native output" not in repr(status)
-    assert "provision.node.vm" in cp.snapshot.entries
+    assert "provision.node.vm" not in cp.snapshot.entries
     assert "provision.node.vm" in driver.realized_addresses()
-    assert "provision.node.vm" in status.changed_addresses
+    assert status.changed_addresses == []
     assert cp.snapshot.realization_observations == ()
     assert cp.snapshot.realization_provenance == ()
+    predecessor = cp.snapshot
+    cp.close()
     recovered = RuntimeControlPlane(target, store=store)
-    assert recovered.snapshot.entries == cp.snapshot.entries
+    assert recovered.snapshot.entries == predecessor.entries
+    assert store.load_records()[receipt.operation_id].invocation.reserved
     cleanup_plan = ProvisioningPlan(
         realization_envelope=target.manifest.realization_envelope.identity,
         operations=[
@@ -90,10 +94,11 @@ def test_failed_post_creation_readback_remains_in_recoverable_inventory(backend,
         ],
     )
     recovered.register_planner_produced_plan(replace(execution, provisioning=cleanup_plan))
-    cleanup = recovered.submit_provisioning(cleanup_plan)
-    assert recovered.get_operation(cleanup.operation_id).state.value == "succeeded"
+    with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
+        recovered.submit_provisioning(cleanup_plan)
     assert recovered.snapshot.entries == {}
-    assert not driver.realized_addresses()
+    assert "provision.node.vm" in driver.realized_addresses()
+    recovered.close()
 
 
 @pytest.mark.parametrize("backend", ["reference", "libvirt"])
@@ -151,13 +156,15 @@ evidence_requirements:
     )
     store = InMemoryControlPlaneStore()
     cp = RuntimeControlPlane(target, store=store)
-    execution = RuntimeManager(target).plan(scenario)
+    execution = plan_for_target(target, scenario)
     cp.register_planner_produced_plan(execution)
     receipt = cp.submit_provisioning(execution.provisioning)
     assert receipt.accepted
     assert cp.get_operation(receipt.operation_id).state.value == "succeeded"
     assert cp.snapshot.realization_observations == ()
-    description = RuntimeControlPlane(target, store=store).observation_execution(receipt.operation_id)
+    cp.close()
+    with RuntimeControlPlane(target, store=store) as reopened:
+        description = reopened.observation_execution(receipt.operation_id)
     assert len(description.realized_form_disclosures) == 1
     assert description.realized_form_disclosures[0].basis == "backend-realized"
     assert description.realized_form_disclosures[0].evidence_refs == []
@@ -181,11 +188,11 @@ def test_failed_readback_inventory_still_enforces_materialization_authority(back
 
     monkeypatch.setattr(target.provisioner, "apply", altered_failed_apply)
     cp = RuntimeControlPlane(target)
-    execution = RuntimeManager(target).plan(parse_sdl(_SCENARIO))
+    execution = plan_for_target(target, parse_sdl(_SCENARIO))
     cp.register_planner_produced_plan(execution)
     receipt = cp.submit_provisioning(execution.provisioning)
     assert receipt.accepted
     status = cp.get_operation(receipt.operation_id)
-    assert status.state.value == "failed"
+    assert status.state.value == "indeterminate"
     assert any(diagnostic.code == "runtime.backend-contract-invalid" for diagnostic in status.diagnostics)
     assert cp.snapshot.entries == {}

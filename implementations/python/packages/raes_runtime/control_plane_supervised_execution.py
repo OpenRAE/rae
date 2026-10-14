@@ -61,11 +61,7 @@ def invocation_request(plane, request, operation_id, submitted_at) -> BackendOpe
 
 def claim_accepted(plane, request, *, backend_request=None, native=True, responses=()):
     submitted_at = _utc_now() if backend_request is None else backend_request.budget.started_at
-    operation_id = (
-        (getattr(request.plan, "operation_id", None) or str(uuid4()))
-        if backend_request is None
-        else backend_request.binding.operation_id
-    )
+    operation_id = str(uuid4()) if backend_request is None else backend_request.binding.operation_id
     receipt = OperationReceipt(
         operation_id=operation_id,
         domain=request.domain,
@@ -211,6 +207,7 @@ def execute_supervised_operation(plane, request):
     if record is None:
         return receipt
     snapshot = deepcopy(request.base_snapshot if request.base_snapshot is not None else plane._snapshot)
+    diagnostics = list(request.diagnostics)
 
     def remaining():
         budget = int((deadline - monotonic()) * 1000)
@@ -221,7 +218,7 @@ def execute_supervised_operation(plane, request):
     try:
         if request.validation_method is not None:
             with plane._mutation_authority.external_call():
-                diagnostics = plane._execution_adapter.call(
+                validation_diagnostics = plane._execution_adapter.call(
                     "effect",
                     _call_backend_diagnostics,
                     request.validation_method,
@@ -229,7 +226,8 @@ def execute_supervised_operation(plane, request):
                     address=f"{request.address}.validate",
                     timeout_ms=remaining(),
                 )
-            if _has_error_diagnostic(diagnostics):
+            diagnostics.extend(validation_diagnostics)
+            if _has_error_diagnostic(validation_diagnostics):
                 settle(plane, record, OperationState.CANCELLED, diagnostics=diagnostics)
                 return receipt
         plane._reload_derived_state()
@@ -286,12 +284,12 @@ def execute_supervised_operation(plane, request):
                 record,
                 OperationState.SUCCEEDED,
                 result=result,
-                diagnostics=result.diagnostics,
+                diagnostics=[*diagnostics, *result.diagnostics],
                 release_commitment=canonical_json_digest(_snapshot_payload(result.snapshot)),
                 result_payload=None if observation is None else observation.result_payload,
             )
         else:
-            settle(plane, record, OperationState.INDETERMINATE, diagnostics=result.diagnostics)
+            settle(plane, record, OperationState.INDETERMINATE, diagnostics=[*diagnostics, *result.diagnostics])
     except Exception:
         if plane._durability_poisoned:
             raise

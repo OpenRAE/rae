@@ -8,6 +8,13 @@ those calls.
 ## Local composition
 
 Local execution uses AnyIO with separate effect, control and store capacity.
+Use one runtime owner for each backend component. A direct `RuntimeManager`
+supports `with` and `close()`. Close refuses while a synchronous callback is
+active. It stops the internal clock driver before releasing ownership. Later
+effect or time calls through that manager are refused. This allows a host to
+hand the components to a control plane after close. It does not destroy backend
+resources or prove that external effects stopped.
+
 Configure apparatus bounds through `OperationSupervisionConfiguration` in
 `raes_runtime.operation_supervision_configuration` and pass it as `supervision=`.
 The default execution limit is 30 seconds. Admission, observation, store calls

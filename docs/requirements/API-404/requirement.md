@@ -145,7 +145,7 @@ policy choices, recovery and composition limits.
 
 ## Traceability
 
-- IMPLEMENTS → GITHUB_ISSUE `1362` (Supervised execution outside state admission)
+- DOCUMENTS → GITHUB_ISSUE `1362` (Supervised execution outside state admission)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1362-supervised-execution-preflight.md` (Accepted architecture and implementation guardrails)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_supervised_execution.py` (API-404-C1/C2 short state cuts, confirmed one-use native dispatch and fenced atomic settlement)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_invocation_ledger.py` (API-404-C1/C2 immutable invocation, control, response and exclusion facts)
@@ -162,6 +162,7 @@ policy choices, recovery and composition limits.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_temporal.py` (API-404-C2 opaque stable engine delivery and separately bounded control delivery)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_temporal_worker.py` (API-404-C1/C2 current grant checks and independent effect/control activity capacity)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/runtime_resource_ownership.py` (API-404-C1 component ownership across stores and direct manager composition)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager_lifecycle.py` (API-404-C1 direct manager drain and guarded component handoff)
 - DOCUMENTS → DOCUMENTATION `docs/public/guides/supervised-execution.md` (API-404-C4 explicit supported compositions, policy limits and nonclaims)
 - TESTS → TEST `implementations/python/tests/test_issue_1362_state_authority.py` (API-404-C1 responsive supervision with retained exclusion and copied-context callback guards)
 - TESTS → TEST `implementations/python/tests/test_issue_1362_runtime_supervision.py` (API-404-C1/C3 real blocked native calls, stop/cancel/timeout, late result fencing and unresolved drain)
@@ -174,6 +175,7 @@ policy choices, recovery and composition limits.
 - TESTS → TEST `implementations/python/tests/test_issue_1362_lost_ack.py` (API-404-C2 uncertain grant/terminal acknowledgement never grants replay or renewed readback budget)
 - TESTS → TEST `implementations/python/tests/test_issue_1362_commit_authority.py` (API-404-C1 terminal publication requires the current state writer)
 - TESTS → TEST `implementations/python/tests/test_issue_1362_temporal_worker.py` (API-404-C1/C2 real SDK sandbox, duplicate effect activity and sanitized provider failures)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_runtime_imports.py` (API-404-C1 lazy public runtime exports remain valid in a fresh process without implicit backend initialization)
 - TESTS → TEST `implementations/python/tests/test_issue_1362_review_regressions.py` (API-404-C1/C2/C3 writer handoff, independent deadline/store capacity, bounded transient context and available supervision under blocked admission)
 - TESTS → TEST `implementations/python/tests/test_issue_1362_control_budget.py` (API-404-C1/C2 original control allowance across commit, grant delivery and restart; expired controls cannot dispatch)
 - TESTS → TEST `implementations/python/tests/test_issue_1362_review_round_two.py` (API-404-C1/C2/C3 capacity refusal settles acceptance, outer admission retains one allowance, blocked archive work remains physically reserved, and observations join protocol settlement)

@@ -44,7 +44,9 @@ def test_typed_description_uses_existing_retention_and_recovery(retention):
     assert receipt.accepted
     assert control.get_operation(receipt.operation_id).state.value == "succeeded"
     assert calls == [selector]
-    recovered = RuntimeControlPlane(target, store=store).observation_execution(receipt.operation_id)
+    control.close()
+    with RuntimeControlPlane(target, store=store) as reopened:
+        recovered = reopened.observation_execution(receipt.operation_id)
     payload = store.load_records()[receipt.operation_id].result_payload
     assert ("linux" in _stored_scalar_values(payload)) == (retention == "require")
     if retention == "require":
@@ -242,9 +244,11 @@ def test_runtime_description_profiles_preserve_explicit_host_policy(allow_opaque
     control = RuntimeControlPlane(target, store=store)
     receipt = control.submit_provisioning(ProvisioningPlan(observation_demands=demands))
     assert receipt.accepted
-    assert control.get_operation(receipt.operation_id).state.value == ("succeeded" if allow_opaque else "failed")
+    assert control.get_operation(receipt.operation_id).state.value == ("succeeded" if allow_opaque else "indeterminate")
     if allow_opaque:
-        recovered = RuntimeControlPlane(target, store=store).observation_execution(receipt.operation_id)
+        control.close()
+        with RuntimeControlPlane(target, store=store) as reopened:
+            recovered = reopened.observation_execution(receipt.operation_id)
         assert (
             recovered.realized_form_disclosures[0].typed_description.facts[0].profile_bindings
             == supplied.facts[0].profile_bindings

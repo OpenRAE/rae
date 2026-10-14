@@ -61,7 +61,7 @@ def test_actual_process_loss_never_reissues_a_consumed_grant(phase, tmp_path):
     reopened_target.provisioner.apply = apply
     plane = RuntimeControlPlane(reopened_target, store=PostgreSQLControlPlaneStore(config))
     try:
-        record = plane._store.load_records()["crash-case"]
+        (record,) = plane._store.load_records().values()
         expected = (
             OperationState.CANCELLED
             if phase == "before-grant"
@@ -76,7 +76,7 @@ def test_actual_process_loss_never_reissues_a_consumed_grant(phase, tmp_path):
             with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
                 plane.submit_provisioning(ProvisioningPlan())
         assert calls == []
-        assert plane._store.load_records()["crash-case"].invocation == record.invocation
+        assert plane._store.load_records()[record.receipt.operation_id].invocation == record.invocation
         assert len([event for event in plane._store.read_audit() if event.action.endswith("_terminal")]) == 1
     finally:
         plane.close()
