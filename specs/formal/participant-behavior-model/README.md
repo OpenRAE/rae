@@ -652,6 +652,61 @@ governed SDL schema publication, valid/invalid fixtures, typed compiler
 projection, and negative/state-transition evidence. Issues #252 and #255 own
 portable occurrence contracts and runtime mediation/persistence respectively.
 
+## ACT-619 - Reusable Participant Tool Profiles
+
+A participant tool profile is the `tool_affordances` of one behavior
+specification `S` together with its participant and role selection. It has no
+separate section, model family, or contract name. Identity is the ADR-076
+address `participant.behavior-specification.<name>`, and each binding keeps
+`participant.behavior-specification.<name>.tool-affordance.<id>`. A binding `f`
+may carry `participant_ref*` and `participant_role_ref*`, the same selector
+item shape as the specification. Let `Sel(X)` be the PI-03 resolver of
+[participant identity](../../sdl/participant-identity.md) applied to the
+selector of `X` over the composed scenario, and let `A_f` and `B_f` be the
+binding's action and boundary refs.
+
+| ID | Rule |
+| --- | --- |
+| TP-1 | `f` is scoped iff either authored selector list is non-empty. Every layer decides this from the raw lists, never from resolved addresses. An unscoped `f` has `Sel(f) = Sel(S)`, and every rule that applied before ACT-619 is unchanged. |
+| TP-2 | A scoped `f` is authored only for `p in Sel(f)` and is absent for `p in Sel(S) \ Sel(f)`. The narrowing is explicit, so it is not validator narrowing. |
+| TP-3 | `Sel(f) ⊆ Sel(S)`, `A_f ⊆ S.action_contract_refs`, and `B_f ⊆ S.observation_boundary_refs`. `Sel(f)` uses the same resolver as `Sel(S)` over the whole scenario (absolute selector semantics), so a role selector that reaches a participant outside `Sel(S)` is rejected rather than intersected. |
+| TP-4 | For every `p in Sel(f)`, `A_f ⊆ agents[p].actions` and `B_f ⊆ agents[p].observation_boundaries`. |
+| TP-5 | Each binding address carries one fixed relation `(tool_ref, A_f, B_f, Sel(f))`. A participant selected by several bindings receives each under its own address, with no order, precedence, merge, or override. |
+| TP-6 | Invocation constraints are exactly the preconditions, argument shapes, and temporal contracts of the contracts in `A_f`; a binding copies none of them. |
+| TP-7 | In a projection for `p` at boundary `b`, the action and every binding that selects `p` and names it share one participant-visible disposition, or the projection is rejected. Bindings that do not select `p` take no part in this check. |
+| TP-8 | Nothing but `Sel(f)` makes `f` available to `p`: not manifest tool expectations, interactive access, installed content, `tool_ref`, visibility, an exposure policy, or a role or affiliation outside the selector. Exposure policy may withhold a projected binding but never adds one. |
+| TP-9 | If `Sel(f) = Sel(S)`, a scoped `f` has the same validation result, v2 entries, affordance refs, and participant-view digest as the same binding without a selector. Only the compiled selector fields, dependencies, and dumped spec differ, and `participant-decision-surface-v1` refuses the scoped form. |
+
+Conflict classes:
+
+- K1, import or namespace collision: two declarations of one specification name
+  in one namespace fail the ADR-053 merge-collision rule.
+- K2, duplicate relation: two bindings of one specification with the same
+  `(tool_ref, A_f, B_f)` are duplicates whatever their selectors.
+- K3, selector outside the profile or dangling: a participant outside
+  `Sel(S)`, an undeclared participant, a role no participant has, or an
+  authored `__private` selector ref is rejected.
+- K4, participant-inconsistent scoped binding: TP-4 fails for a selected
+  participant.
+- K5, cross-specification: two specifications may select one participant.
+  PI-06 ownership still runs on specification selection, and a surface for
+  `(p, S)` carries only the bindings of `S`.
+
+Admission is independent of bindings. A participant may invoke any action it
+declares and its specification admits, with or without a binding, so a tool
+profile is not a permission profile. Evidence identifies the profile by its
+address; its version label and content are pinned only through the
+instantiated-snapshot digest.
+
+| Row | Verification |
+| --- | --- |
+| ACT-619 A | Selection and narrowing: two roles share one profile with different availability, visibility, and invocation constraints; the full-coverage selector equals no selector; a scoped binding that resolves to nobody is offered to nobody. |
+| ACT-619 B | Conflict classes K1-K5 each have one rejected fixture, plus the TP-7 disposition conflict and the twice-imported module seam. |
+| ACT-619 C | No inference: manifest expectations, interactive access, affiliation, visibility, and exposure policy never add a binding, and admission outcomes do not depend on bindings. |
+
+The [tool-profile decision](../../../docs/decisions/issue-301-participant-tool-profiles.md)
+records the alternatives, the #294 reconciliation, and the unsupported cases.
+
 ## Cross-Clause Invariants
 
 | ID | Invariant | Primary clauses |
@@ -668,6 +723,7 @@ portable occurrence contracts and runtime mediation/persistence respectively.
 | PBM-10 | Defensive behavior refs classify intent or outcome domains and do not prove incident existence, effectiveness, recovery, or CSF conformance. | ACT-610 |
 | PBM-11 | Mixed-control authority and ordered control facts are explicit, fail closed, and remain distinct from admission, execution, and observation. | ACT-617 |
 | PBM-12 | Autonomous behavior vocabulary terms are external assertions about exact behavior specifications and do not create native or executable behavior meaning. | ACT-611 |
+| PBM-13 | Tool-profile bindings only narrow their behavior specification, add up without precedence, and never grant availability, visibility, or admission by themselves. | ACT-619 |
 
 ## Child-Issue Mapping
 
@@ -682,6 +738,7 @@ portable occurrence contracts and runtime mediation/persistence respectively.
 | #210 | ACT-610 | Defensive behavior vocabulary declaration, validation, source integrity, and compiler carry-through. |
 | #211 | ACT-611 | Pinned autonomous behavior schemes, exact behavior-specification assertions, offline resolution, and conformance. |
 | #251 | ACT-617 | Authored controller/authority state, ordered fail-closed control transitions, composition, and typed compiler projection. |
+| #301 | ACT-619 | Reusable tool profiles: binding participant selectors, conflict rejection, compilation, v2 projection filtering, and the v1 refusal. |
 
 ## Verification Expectations
 

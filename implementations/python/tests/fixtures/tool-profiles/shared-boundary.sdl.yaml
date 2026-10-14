@@ -1,0 +1,94 @@
+# Two scoped bindings on one action at one shared boundary (issue #301, ACT-619).
+# `ops-view` shows `probe-blue` and hides `probe-white`. The participant filter
+# runs before the one-disposition check, so only the participant whose own
+# binding disagrees with the action fails to project.
+name: shared-boundary-toolkit
+nodes:
+  web:
+    type: compute
+    resources: {ram: 1 GiB, cpu: 1}
+entities:
+  blue-team:
+    role: blue
+  white-team:
+    role: white
+content:
+  nmap:
+    type: file
+    target: web
+    path: /opt/raes/tools/nmap
+  masscan:
+    type: file
+    target: web
+    path: /opt/raes/tools/masscan
+agents:
+  analyst:
+    affiliations: [blue-team]
+    actions: [scan-active]
+    observation_boundaries: [ops-view]
+  observer:
+    affiliations: [white-team]
+    actions: [scan-active]
+    observation_boundaries: [ops-view]
+action_contracts:
+  scan-active:
+    semantic_version: 1.0.0
+    lifecycle_state: active
+    behavioral_granularity: atomic
+    procedure_basis: active service discovery against the web node
+    realization_profile: backend-declared
+    fidelity_claim: records participant discovery intent
+    preconditions:
+      - precondition_id: authority-in-scope
+        precondition_class: authority
+        description: the participant is authorized to scan the web service
+    effects:
+      - effect_id: no-effect
+        effect_class: no_effect
+        description: the fixture declares no environment effect
+    failure_classes: [unknown]
+observation_boundaries:
+  ops-view:
+    projection_basis: shared operations view
+    observable_refs:
+      - context.public
+      - participant.action-contract.scan-active
+      - behavior_specifications.probes.tool_affordances.probe-blue
+    hidden_refs:
+      - behavior_specifications.probes.tool_affordances.probe-white
+    redaction_policy: the white probe stays hidden
+    latency_profile: immediate
+    view_rules:
+      - information_ref: context.public
+        boundary_class: public_task_statement
+        disposition: observable
+        visibility_basis: the public task statement is always visible
+      - information_ref: participant.action-contract.scan-active
+        boundary_class: observable_resource
+        disposition: observable
+        visibility_basis: active scanning is visible
+      - information_ref: behavior_specifications.probes.tool_affordances.probe-blue
+        boundary_class: observable_resource
+        disposition: observable
+        visibility_basis: authored classification of the blue probe
+      - information_ref: behavior_specifications.probes.tool_affordances.probe-white
+        boundary_class: observable_resource
+        disposition: hidden
+        visibility_basis: authored classification of the white probe
+behavior_specifications:
+  probes:
+    semantic_version: 1.0.0
+    participant_role_refs: [blue, white]
+    action_contract_refs: [scan-active]
+    observation_boundary_refs: [ops-view]
+    tool_affordances:
+      probe-blue:
+        tool_ref: nmap
+        participant_role_refs: [blue]
+        action_contract_refs: [scan-active]
+        observation_boundary_refs: [ops-view]
+      probe-white:
+        tool_ref: masscan
+        participant_role_refs: [white]
+        action_contract_refs: [scan-active]
+        observation_boundary_refs: [ops-view]

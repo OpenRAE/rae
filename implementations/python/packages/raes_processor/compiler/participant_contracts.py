@@ -26,7 +26,9 @@ from .addresses import (
 from .support import _dedupe, _dump
 from .view_relations import (
     _compile_view_relation_timeline,
+    _information_keys,
     _initial_view_relation,
+    _keyed_view_inputs,
     _ordered_view_transitions,
     _view_relation_refs,
 )
@@ -135,10 +137,15 @@ def _compile_action_contracts(scenario: InstantiatedScenario) -> dict[str, Parti
 
 def _compile_observation_boundaries(scenario: InstantiatedScenario) -> dict[str, ParticipantObservationBoundaryRuntime]:
     observation_boundaries: dict[str, ParticipantObservationBoundaryRuntime] = {}
+    information_keys = _information_keys(scenario)
     for name, boundary in scenario.observation_boundaries.items():
         boundary_spec = _dump(boundary)
-        view_rules = boundary_spec.get("view_rules", [])
-        view_transitions = boundary_spec.get("view_transitions", [])
+        view_rules, view_transitions = _keyed_view_inputs(
+            name,
+            view_rules=boundary_spec.get("view_rules", []),
+            view_transitions=boundary_spec.get("view_transitions", []),
+            keys=information_keys,
+        )
         initial_view_relation = _initial_view_relation(view_rules=view_rules)
         disclosed_refs = _view_relation_refs(initial_view_relation, {"disclosed"})
         evidence_only_refs = _view_relation_refs(initial_view_relation, {"evidence_only"})

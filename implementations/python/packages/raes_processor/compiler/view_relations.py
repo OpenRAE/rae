@@ -2,7 +2,80 @@
 
 from typing import Any
 
+from raes.participant_behavior_specification import tool_affordance_reference
+from raes.scenario import InstantiatedScenario
+
+from .addresses import _action_contract_address, _tool_affordance_address
+from .alias_index import _runtime_addressable_ref_index
+
 _VISIBLE_VIEW_DISPOSITIONS = frozenset({"observable", "discovered", "inferred", "disclosed", "deceptive"})
+
+
+def _information_keys(scenario: InstantiatedScenario) -> dict[str, frozenset[str]]:
+    """Map authored action-contract and tool-affordance refs to compiled address candidates.
+
+    Only the section-qualified authoring address of a declared action contract or
+    tool-affordance binding is keyed. Every other information ref stays an opaque,
+    boundary-local token. The existing runtime alias index contributes any other
+    declaration the same token names, so an ambiguous token keeps every candidate.
+    """
+
+    candidates: dict[str, set[str]] = {}
+    for name in scenario.action_contracts:
+        candidates.setdefault(f"action_contracts.{name}", set()).add(_action_contract_address(name))
+    for spec_name, behavior_spec in scenario.behavior_specifications.items():
+        for affordance_id in behavior_spec.tool_affordances:
+            candidates.setdefault(tool_affordance_reference(spec_name, affordance_id), set()).add(
+                _tool_affordance_address(spec_name, affordance_id)
+            )
+    aliases = _runtime_addressable_ref_index(scenario)
+    return {ref: frozenset(addresses | aliases.get(ref, set())) for ref, addresses in candidates.items()}
+
+
+def _information_key(boundary_name: str, ref: str, keys: dict[str, frozenset[str]]) -> str:
+    addresses = keys.get(ref)
+    if addresses is None:
+        return ref
+    if len(addresses) != 1:
+        raise ValueError(f"observation boundary {boundary_name} information_ref {ref} is ambiguous")
+    return next(iter(addresses))
+
+
+def _keyed_view_items(boundary_name: str, items: list[Any], keys: dict[str, frozenset[str]]) -> list[Any]:
+    return [
+        {**item, "information_ref": _information_key(boundary_name, str(item["information_ref"]), keys)}
+        if isinstance(item, dict) and item.get("information_ref")
+        else item
+        for item in items
+    ]
+
+
+def _keyed_view_inputs(
+    boundary_name: str,
+    *,
+    view_rules: list[Any],
+    view_transitions: list[Any],
+    keys: dict[str, frozenset[str]],
+) -> tuple[list[Any], list[Any]]:
+    """Key one boundary's view rules and transitions by compiled address.
+
+    Two authored view rules that compile to one key would let one disposition
+    silently replace the other, so they fail compilation instead.
+    """
+
+    keyed_rules = _keyed_view_items(boundary_name, view_rules, keys)
+    authored_by_key: dict[str, str] = {}
+    for rule, keyed_rule in zip(view_rules, keyed_rules, strict=True):
+        if not isinstance(rule, dict) or not rule.get("information_ref"):
+            continue
+        authored = str(rule["information_ref"])
+        key = str(keyed_rule["information_ref"])
+        previous = authored_by_key.setdefault(key, authored)
+        if previous != authored:
+            raise ValueError(
+                f"observation boundary {boundary_name} classifies {key} more than once: {previous}, {authored}"
+            )
+    return keyed_rules, _keyed_view_items(boundary_name, view_transitions, keys)
 
 
 def _initial_view_relation(*, view_rules: list[Any]) -> dict[str, str]:

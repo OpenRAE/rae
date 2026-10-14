@@ -1,9 +1,9 @@
 {
-  "content_hash": "c2eaca0b3c50d7c8f9d559abe63762a8fee61227d6322c685e0b5868bc52cc8b",
+  "content_hash": "8b16d6207ac96a5c3f17b97700531f7ded0fef5c53221096f031a9e588f43a88",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "content_hash": "c2eaca0b3c50d7c8f9d559abe63762a8fee61227d6322c685e0b5868bc52cc8b",
-    "summary": "Reject empty and whitespace-only behavior specification version labels, matching existing parser validity; DSL-116 issue #297."
+    "content_hash": "8b16d6207ac96a5c3f17b97700531f7ded0fef5c53221096f031a9e588f43a88",
+    "summary": "Add optional participant_refs and participant_role_refs selectors to behavior-specification tool-affordance bindings, so one participant tool profile can narrow each binding to some of its participants; ACT-619 issue #301."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"

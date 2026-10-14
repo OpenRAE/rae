@@ -1,0 +1,130 @@
+# Authored-only view classifications for one participant (issue #1572).
+# It mirrors the hand-built runtime model in test_sem_220_participant_decision_surface.py.
+# red-view classifies the action contracts and tool-affordance bindings only by
+# their authored references, and the reveal-1 observation discloses the
+# exfiltration action and its binding.
+name: authored-view-classifications
+nodes:
+  web:
+    type: compute
+    resources: {ram: 1 GiB, cpu: 1}
+    services: [{port: 80, name: http}]
+entities:
+  red-team:
+    role: red
+agents:
+  red-agent:
+    affiliations: [red-team]
+    actions: [scan, exfiltrate]
+    observation_boundaries: [red-view]
+action_contracts:
+  scan:
+    semantic_version: 1.0.0
+    lifecycle_state: active
+    behavioral_granularity: atomic
+    procedure_basis: service discovery against the web node
+    realization_profile: backend-declared
+    fidelity_claim: records participant discovery intent
+    preconditions:
+      - precondition_id: authority-in-scope
+        precondition_class: authority
+        description: the participant is authorized to scan the web service
+    effects:
+      - effect_id: no-effect
+        effect_class: no_effect
+        description: the fixture declares no environment effect
+    failure_classes: [unknown]
+  exfiltrate:
+    semantic_version: 1.0.0
+    lifecycle_state: active
+    behavioral_granularity: atomic
+    procedure_basis: bounded data transfer from the web node
+    realization_profile: backend-declared
+    fidelity_claim: records participant transfer intent
+    preconditions:
+      - precondition_id: authority-in-scope
+        precondition_class: authority
+        description: the participant is authorized to transfer data from the web service
+    effects:
+      - effect_id: no-effect
+        effect_class: no_effect
+        description: the fixture declares no environment effect
+    failure_classes: [unknown]
+observation_boundaries:
+  red-view:
+    projection_basis: participant-local view of the red toolkit
+    observable_refs:
+      - context.public
+      - action_contracts.scan
+      - behavior_specifications.red-surface.tool_affordances.scanner
+    hidden_refs:
+      - action_contracts.exfiltrate
+      - behavior_specifications.red-surface.tool_affordances.exfiltration
+    evidence_refs: [evidence.scan-output]
+    redaction_policy: exfiltration stays hidden until the reveal-1 observation
+    latency_profile: immediate
+    view_rules:
+      - information_ref: context.public
+        boundary_class: public_task_statement
+        disposition: observable
+        visibility_basis: the public task statement is always visible
+      - information_ref: action_contracts.scan
+        boundary_class: observable_resource
+        disposition: observable
+        visibility_basis: red participants see scanning from the start
+      - information_ref: behavior_specifications.red-surface.tool_affordances.scanner
+        boundary_class: observable_resource
+        disposition: observable
+        visibility_basis: the scanner binding is visible with its action
+      - information_ref: action_contracts.exfiltrate
+        boundary_class: observable_resource
+        disposition: hidden
+        visibility_basis: exfiltration is disclosed by the reveal-1 observation
+      - information_ref: behavior_specifications.red-surface.tool_affordances.exfiltration
+        boundary_class: observable_resource
+        disposition: hidden
+        visibility_basis: the exfiltration binding is disclosed with its action
+    view_transitions:
+      - transition_id: reveal-exfiltration
+        transition_kind: disclosure
+        information_ref: action_contracts.exfiltrate
+        trigger: the red participant's reveal-1 observation
+        effective_from: episode-step:reveal-1:terminal-observation
+        effective_order: 1
+        history_event_type: observation_emitted
+        action_instance_id: reveal-1
+        from_disposition: hidden
+        to_disposition: disclosed
+        disclosure_rule: the exercise discloses exfiltration to red
+        evidence_refs: [evidence.scan-output]
+        certainty: high
+        latency_profile: terminal observation latency
+      - transition_id: reveal-exfiltration-affordance
+        transition_kind: disclosure
+        information_ref: behavior_specifications.red-surface.tool_affordances.exfiltration
+        trigger: the red participant's reveal-1 observation
+        effective_from: episode-step:reveal-1:terminal-observation
+        effective_order: 2
+        history_event_type: observation_emitted
+        action_instance_id: reveal-1
+        from_disposition: hidden
+        to_disposition: disclosed
+        disclosure_rule: the exfiltration binding is disclosed with its action
+        evidence_refs: [evidence.scan-output]
+        certainty: high
+        latency_profile: terminal observation latency
+behavior_specifications:
+  red-surface:
+    semantic_version: 1.0.0
+    lifecycle_state: active
+    participant_refs: [red-agent]
+    action_contract_refs: [scan, exfiltrate]
+    observation_boundary_refs: [red-view]
+    behavior_mode: autonomous
+    tool_affordances:
+      scanner:
+        action_contract_refs: [scan]
+        observation_boundary_refs: [red-view]
+      exfiltration:
+        action_contract_refs: [exfiltrate]
+        observation_boundary_refs: [red-view]
