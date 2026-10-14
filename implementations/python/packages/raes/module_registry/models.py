@@ -8,10 +8,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import yaml
-from pydantic import Field
+from pydantic import Field, ValidationError
 
 from .._base import SDLModel
 from .._errors import SDLParseError
+from .._model_diagnostics import _model_parse_error
 from ..scenario import ImportDecl, ModuleDescriptor, Scenario
 from ._constants import (
     LOCKFILE_NAME,
@@ -78,19 +79,48 @@ def _scenario_module_descriptor(scenario: Scenario, *, source_id: str) -> Module
     )
 
 
+def _read_policy_file(path: Path) -> str:
+    """Read a lockfile or trust policy, failing closed without OS error text."""
+
+    try:
+        return path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise SDLParseError(f"{path.name} could not be read as a UTF-8 file", path=path) from exc
+
+
+def _policy_model_error(error: ValidationError, *, path: Path) -> SDLParseError:
+    """Render a policy-file model failure through the bounded SDL envelope, naming the file."""
+
+    rendered = _model_parse_error(error, path=path, source_ranges={})
+    return SDLParseError(f"{path.name}: {rendered.details}", path=path, diagnostics=rendered.diagnostics)
+
+
 def load_trust_policy(base_dir: Path) -> TrustPolicy:
     path = base_dir / TRUST_POLICY_NAME
     if not path.exists():
         return TrustPolicy()
-    payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    return TrustPolicy.model_validate(payload)
+    text = _read_policy_file(path)
+    try:
+        payload = yaml.safe_load(text) or {}
+    except yaml.YAMLError as exc:
+        mark = getattr(exc, "problem_mark", None)
+        where = f" at line {mark.line + 1}, column {mark.column + 1}" if mark is not None else ""
+        raise SDLParseError(f"{path.name} is not valid YAML{where}", path=path) from exc
+    try:
+        return TrustPolicy.model_validate(payload)
+    except ValidationError as exc:
+        raise _policy_model_error(exc, path=path) from exc
 
 
 def load_lockfile(base_dir: Path) -> Lockfile | None:
     path = base_dir / LOCKFILE_NAME
     if not path.exists():
         return None
-    return Lockfile.model_validate_json(path.read_text(encoding="utf-8"))
+    text = _read_policy_file(path)
+    try:
+        return Lockfile.model_validate_json(text)
+    except ValidationError as exc:
+        raise _policy_model_error(exc, path=path) from exc
 
 
 def write_lockfile(base_dir: Path, lockfile: Lockfile) -> Path:

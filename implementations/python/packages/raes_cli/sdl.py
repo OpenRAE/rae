@@ -64,13 +64,20 @@ def resolve(
     ),
 ) -> None:
     """Resolve SDL imports and write/update the lockfile."""
-    resolved = resolve_lock_records(path)
+    try:
+        resolved = resolve_lock_records(path)
+    except SDLParseError as exc:
+        # The failure can sit in the trust policy or an imported unit, so keep the file it names.
+        raise typer.BadParameter(str(exc)) from exc
     output_path = lockfile or (path.parent / LOCKFILE_NAME)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(
-        json.dumps(resolved.model_dump(mode="python"), indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    try:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(
+            json.dumps(resolved.model_dump(mode="python"), indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+    except OSError as exc:
+        raise typer.BadParameter(f"Lockfile could not be written: {output_path}") from exc
     typer.echo(str(output_path))
 
 
