@@ -258,8 +258,12 @@ The portable chain has three distinct parts:
 check these execution and apparatus joins, together with the existing content
 proof. Run/apparatus and augmentation-producer references may omit a version;
 when supplied it must match. Digest/path qualifiers on those references cannot
-be verified from the supplied in-memory identities and are rejected. The
-separate content references retain checksums and locators for byte validation.
+be verified from the supplied in-memory identities and are rejected. A record's
+capture-spec reference may also omit its version; a supplied version must
+match. Run traceability pins the exact supplied capture specifications, and
+capture requirement ids are unambiguous across them, so the requirement resolves
+to one versioned binding. The separate content references retain checksums and
+locators for byte validation.
 Consumers also run `observability_evidence_conformance_diagnostics()` for
 portable affected-carrier and purpose-dependent evidence requirements.
 
