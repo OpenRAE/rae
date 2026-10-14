@@ -79,12 +79,18 @@ a new schema. Choose the owner by evidence, strongest first:
    requirement that also links the contract's defining module, tests, or
    governing ADR.
 
-On a branch that requirement governance checks, the edited record is a changed
-file like any other. Where `tools/policy/requirement_order.yaml` maps ownership
-roots to the phase of a requirement governing the branch, including one a scope
-file binds the record to, the record must fall inside them. Otherwise
-governance reports `requirement-ownership-mismatch`. Some phases, such as
-`runtime-core`, own schema paths but not their own requirement records.
+Requirement governance admits the evaluated requirement's exact canonical
+record, `docs/requirements/<UID>/requirement.md`, alongside its phase's mapped
+ownership roots. A contract owner can therefore add its traceability link in
+the publishing change even when its phase, such as `runtime-core`, does not
+list that record. Other requirement records and files still need the phase's
+existing ownership permissions. Requirement status, prerequisite order, and
+code/test traceability checks still apply.
+
+When an issue-bound scope file assigns the edited record, bind it to its own
+requirement UID. Each assigned owner is checked independently. The self-record
+permission applies only to that owner's exact record; other assignments must
+satisfy the phase's existing mapped ownership roots.
 
 Do not link a requirement only to turn the gate green. Do not waive a finding
 through `tools/policy/exceptions.yaml` because a repair is inconvenient. The

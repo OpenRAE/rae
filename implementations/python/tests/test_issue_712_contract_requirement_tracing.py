@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import importlib
 import json
+import shutil
 import sys
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
@@ -32,6 +33,9 @@ from tools.check_contract_requirement_tracing import (  # noqa: E402
 )
 from tools.check_schema_publication import load_schema_publication_catalog  # noqa: E402
 from tools.policy.common import PolicyFailure  # noqa: E402
+from tools.policy.repository_requirements import RepositoryRequirementClient  # noqa: E402
+from tools.policy.requirement_governance import evaluate_requirement_governance  # noqa: E402
+from tools.policy.requirement_scope import evaluate_requirement_scope, parse_requirement_scope  # noqa: E402
 
 _STAGE = "policy / published contract requirement tracing"
 _SCRIPT = "tools/check_contract_requirement_tracing.py"
@@ -249,6 +253,154 @@ def test_policy_lane_runs_the_gate_on_the_working_tree_and_skips_it_when_staged(
     assert _SCRIPT in scripts
     assert _STAGE in staged.skips
     assert _STAGE not in staged.runs
+
+
+# --- owner-record governance -------------------------------------------------
+
+
+@pytest.fixture
+def governed_repo(tmp_path: Path) -> Path:
+    policy_dir = tmp_path / "tools" / "policy"
+    policy_dir.mkdir(parents=True)
+    shutil.copyfile(REPO_ROOT / "tools/policy/requirement_order.yaml", policy_dir / "requirement_order.yaml")
+    (policy_dir / "exceptions.yaml").write_text("exceptions: []\n", encoding="utf-8")
+    for uid in (
+        "GOV-917",
+        "GOV-918",
+        "GOV-919",
+        "GOV-920",
+        "GOV-921",
+        "GOV-922",
+        "API-412",
+        "API-413",
+        "RUN-300",
+        "RUN-311",
+        "RUN-313",
+        "RUN-314",
+        "RUN-315",
+    ):
+        _requirement(tmp_path, uid)
+    return tmp_path
+
+
+@pytest.mark.parametrize(
+    ("uid", "schema_path"),
+    [
+        ("RUN-300", _SCHEMA),
+        ("RUN-311", _SCHEMA),
+        ("API-412", "contracts/schemas/processor-manifest/processor-manifest-v2.json"),
+        ("GOV-918", "contracts/schemas/concept-authority/semantic-projection-report-v1.json"),
+        ("DSL-105", "contracts/schemas/sdl/sdl-authoring-input-v1.json"),
+        ("SEM-209", "contracts/schemas/sdl/sdl-authoring-input-v1.json"),
+        ("EXP-701", "contracts/schemas/experiment-core/experiment-run-v1.json"),
+    ],
+)
+def test_a_new_contract_and_its_owner_record_pass_both_gates(governed_repo: Path, uid: str, schema_path: str) -> None:
+    _publish(governed_repo, schema_path)
+    assert _paths(evaluate_contract_tracing(governed_repo), MISSING_RULE_ID) == {schema_path}
+    record = _requirement(governed_repo, uid, _link(schema_path)).relative_to(governed_repo).as_posix()
+
+    assert evaluate_contract_tracing(governed_repo) == []
+    assert (
+        evaluate_requirement_governance(
+            governed_repo,
+            [schema_path, record],
+            client=RepositoryRequirementClient(governed_repo),
+            requirement_uid=uid,
+        )
+        == []
+    )
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "docs/requirements/RUN-300/requirement.md",
+        "docs/requirements/RUN-311/notes.md",
+        "docs/requirements/RUN-311/requirement.md/extra.md",
+        "contracts/schemas/experiment-core/experiment-run-v1.json",
+    ],
+)
+def test_owner_record_permission_does_not_admit_other_records_or_files(governed_repo: Path, path: str) -> None:
+    failures = evaluate_requirement_governance(
+        governed_repo,
+        [path],
+        client=RepositoryRequirementClient(governed_repo),
+        requirement_uid="RUN-311",
+    )
+
+    assert [(failure.rule_id, failure.path) for failure in failures] == [("requirement-ownership-mismatch", path)]
+
+
+@pytest.mark.parametrize("assigned_uid", ["RUN-311", "RUN-300"])
+def test_scoped_owner_record_edits_require_the_correct_owner(governed_repo: Path, assigned_uid: str) -> None:
+    record = "docs/requirements/RUN-311/requirement.md"
+    scope = parse_requirement_scope(
+        {
+            "schema_version": "requirement-scope/v1",
+            "issue_number": 712,
+            "primary_requirement_uid": "RUN-311",
+            "requirement_uids": ["RUN-311", "RUN-300"],
+            "bindings": {record: [assigned_uid]},
+        },
+        issue_number=712,
+    )
+
+    failures = evaluate_requirement_scope(
+        governed_repo,
+        [record],
+        client=RepositoryRequirementClient(governed_repo),
+        scope=scope,
+    )
+
+    assert [(failure.rule_id, failure.path) for failure in failures] == (
+        [] if assigned_uid == "RUN-311" else [("requirement-ownership-mismatch", record)]
+    )
+
+
+@pytest.mark.parametrize("status", ["DEPRECATED", "ARCHIVED"])
+def test_owner_record_edits_do_not_admit_retired_requirements(governed_repo: Path, status: str) -> None:
+    record = _requirement(governed_repo, "RUN-311", status=status).relative_to(governed_repo).as_posix()
+
+    failures = evaluate_requirement_governance(
+        governed_repo,
+        [record],
+        client=RepositoryRequirementClient(governed_repo),
+        requirement_uid="RUN-311",
+    )
+
+    assert [failure.rule_id for failure in failures] == ["requirement-invalid-status"]
+
+
+@pytest.mark.parametrize(
+    ("path", "rule_id"),
+    [
+        ("implementations/python/packages/raes_contracts/new_contract.py", "traceability-missing-implements"),
+        ("implementations/python/tests/test_new_contract.py", "traceability-missing-tests"),
+    ],
+)
+def test_owner_record_edits_still_require_code_and_test_links(governed_repo: Path, path: str, rule_id: str) -> None:
+    failures = evaluate_requirement_governance(
+        governed_repo,
+        ["docs/requirements/RUN-311/requirement.md", path],
+        client=RepositoryRequirementClient(governed_repo),
+        requirement_uid="RUN-311",
+    )
+
+    assert [(failure.rule_id, failure.path) for failure in failures] == [(rule_id, path)]
+
+
+def test_owner_record_edits_still_require_completed_prerequisites(governed_repo: Path) -> None:
+    _requirement(governed_repo, "API-412", status="DRAFT")
+
+    failures = evaluate_requirement_governance(
+        governed_repo,
+        ["docs/requirements/RUN-311/requirement.md"],
+        client=RepositoryRequirementClient(governed_repo),
+        requirement_uid="RUN-311",
+    )
+
+    assert [failure.rule_id for failure in failures] == ["requirement-order-blocked"]
 
 
 # --- the live tree -----------------------------------------------------------
