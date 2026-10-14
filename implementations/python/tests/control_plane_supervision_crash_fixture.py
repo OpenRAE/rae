@@ -49,9 +49,9 @@ def main():
             sslmode="disable",
         )
     )
-    plane = RuntimeControlPlane(target, store=store)
-    plane.submit_provisioning(ProvisioningPlan(operation_id="crash-case"), idempotency_key="crash-retry")
-    raise RuntimeError("configured crash cut was not reached")
+    with RuntimeControlPlane(target, store=store) as plane:
+        plane.submit_provisioning(ProvisioningPlan(operation_id="crash-case"), idempotency_key="crash-retry")
+        raise RuntimeError("configured crash cut was not reached")
 
 
 if __name__ == "__main__":

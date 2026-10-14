@@ -74,3 +74,35 @@ def test_postgresql_terminal_boundary_rejects_stale_revision_before_any_write():
             Ledger(), None, RuntimeSnapshot(), _terminal_record(running), expected_revision=1
         )
     assert writes == []
+
+
+@pytest.mark.parametrize("field", ["target_scope", "run_scope"])
+def test_postgresql_mutation_admits_exact_record_scope_before_writing(monkeypatch, field):
+    from contextlib import nullcontext
+    from dataclasses import replace
+
+    from raes_runtime import control_plane_store_postgresql_mutations as mutations
+    from raes_runtime.control_plane_store_postgresql import PostgreSQLControlPlaneStore, PostgreSQLStoreConfiguration
+    from test_issue_1181_unified_control_plane_mutations import _running_record
+
+    store = PostgreSQLControlPlaneStore(
+        PostgreSQLStoreConfiguration(host="ledger.example", database="rae_ledger", user="rae_ledger")
+    )
+    record = _running_record("postgres-scoped")
+    context = record.status.context
+    store._scope = (context.target_scope, context.run_scope)
+    monkeypatch.setattr(store, "_connection", lambda: nullcontext(None))
+    writes = []
+    monkeypatch.setattr(mutations, "save_record", lambda store, connection, record: writes.append(record))
+
+    store.save_record(record)
+    assert writes == [record]
+    foreign_context = context.model_copy(update={field: "foreign-scope"})
+    foreign = replace(
+        record,
+        receipt=replace(record.receipt, context=foreign_context),
+        status=replace(record.status, context=foreign_context),
+    )
+    with pytest.raises(RuntimeError, match="scope"):
+        store.save_record(foreign)
+    assert writes == [record]

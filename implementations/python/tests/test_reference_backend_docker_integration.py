@@ -33,10 +33,13 @@ from raes_conformance.conformance import (
     run_target_conformance,
 )
 from raes_conformance.conformance.reference_participant_opacity import ReferenceParticipantOpacityHarness
+from raes_contracts.planning import PlanScope
+from raes_processor.compiler import compile_scenario_runtime_model
+from raes_processor.planner import plan
 from raes_reference_backend import create_reference_backend_target
 from raes_reference_backend.drivers.oci import ImageTrustPolicy, OciDeploymentDriver
 from raes_runtime.control_plane import RuntimeControlPlane
-from raes_runtime.manager import RuntimeManager
+
 from tools import oci_release_image
 from tools.oci_release_selection import LockedPlatformGraph
 
@@ -225,11 +228,17 @@ def test_real_container_provision_inventory_and_teardown(container_runtime: Cont
     )
     target = create_reference_backend_target(driver=driver)
 
-    manager = RuntimeManager(target)
-    execution_plan = manager.plan(parse_sdl(textwrap.dedent(_scenario(image))))
+    execution_plan = plan(
+        compile_scenario_runtime_model(parse_sdl(textwrap.dedent(_scenario(image)))),
+        target.manifest,
+        scope=PlanScope(target_name=target.name),
+        profile_context=getattr(target.provisioner, "domain_profile_context", None),
+    )
 
-    control_plane = RuntimeControlPlane(target)
-    with realized(driver, workspace=workspace, runtime=container_runtime.runtime):
+    with (
+        realized(driver, workspace=workspace, runtime=container_runtime.runtime),
+        RuntimeControlPlane(target) as control_plane,
+    ):
         control_plane.register_planner_produced_plan(execution_plan)
         receipt = control_plane.submit_provisioning(execution_plan.provisioning)
         status = control_plane.get_operation(receipt.operation_id)

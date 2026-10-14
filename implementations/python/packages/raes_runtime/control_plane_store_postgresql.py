@@ -314,7 +314,9 @@ class PostgreSQLControlPlaneStore:
 
             for value in (*args, *kwargs.values()):
                 if isinstance(value, ControlPlaneOperationRecord):
-                    require_operation_record_scopes(value, target_scope=self._scope[0], run_scope=self._scope[1])
+                    require_operation_record_scopes(
+                        {value.receipt.operation_id: value}, target_scope=self._scope[0], run_scope=self._scope[1]
+                    )
             return getattr(mutations, action)(self, connection, *args, **kwargs)
 
     def claim_record(self, record, **options):
