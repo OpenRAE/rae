@@ -39,7 +39,6 @@ from raes_processor.planner import plan
 from raes_reference_backend import create_reference_backend_target
 from raes_reference_backend.drivers.oci import ImageTrustPolicy, OciDeploymentDriver
 from raes_runtime.control_plane import RuntimeControlPlane
-
 from tools import oci_release_image
 from tools.oci_release_selection import LockedPlatformGraph
 

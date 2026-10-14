@@ -50,7 +50,16 @@ def test_actual_process_loss_never_reissues_a_consumed_grant(phase, tmp_path):
     fixture = Path(__file__).with_name("control_plane_supervision_crash_fixture.py")
     stopped = subprocess.run([sys.executable, str(fixture), phase, str(marker)], timeout=25, capture_output=True)
     assert stopped.returncode == 86
-    plane = RuntimeControlPlane(create_stub_target(), store=PostgreSQLControlPlaneStore(config))
+    reopened_target = create_stub_target()
+    calls = []
+    original_apply = reopened_target.provisioner.apply
+
+    def apply(plan, snapshot):
+        calls.append(plan)
+        return original_apply(plan, snapshot)
+
+    reopened_target.provisioner.apply = apply
+    plane = RuntimeControlPlane(reopened_target, store=PostgreSQLControlPlaneStore(config))
     try:
         record = plane._store.load_records()["crash-case"]
         expected = (
@@ -64,7 +73,10 @@ def test_actual_process_loss_never_reissues_a_consumed_grant(phase, tmp_path):
         receipt = plane.submit_provisioning(ProvisioningPlan(operation_id="crash-case"), idempotency_key="crash-retry")
         assert receipt == record.receipt
         if record.invocation.reserved:
-            assert not plane.submit_provisioning(ProvisioningPlan()).accepted
+            with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
+                plane.submit_provisioning(ProvisioningPlan())
+        assert calls == []
+        assert plane._store.load_records()["crash-case"].invocation == record.invocation
         assert len([event for event in plane._store.read_audit() if event.action.endswith("_terminal")]) == 1
     finally:
         plane.close()
