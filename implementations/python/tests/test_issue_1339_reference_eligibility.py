@@ -305,6 +305,12 @@ def test_a_targeted_participant_gains_no_participation_authority_or_visibility()
     red = model.participant_behaviors["participant.behavior.red"]
     assert red.action_contract_addresses == ("participant.action-contract.probe",)
     assert red.authority_anchor_refs == ()
+    # The surfaces that carry red's participation, visibility and authority are not targets themselves.
+    for surface in ("action_contracts.probe", "observation_boundaries.view", "behavior_specifications.red-behavior"):
+        targeted = _set(deepcopy(payload), FIELDS["interaction"], surface)
+        with pytest.raises(SDLValidationError) as caught:
+            _parse(targeted)
+        assert any(_refusal("an action target", surface) in error for error in caught.value.errors)
     payload["relationships"]["pair"] = {**_PAIR, "target": "entities.org"}
     with pytest.raises(SDLValidationError, match="target participant endpoint must resolve unambiguously"):
         _parse(payload)
