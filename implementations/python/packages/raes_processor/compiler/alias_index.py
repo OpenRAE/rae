@@ -1,10 +1,11 @@
 """Runtime-addressable reference index and initial-knowledge address resolution."""
 
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 
 from raes.nodes import NodeType
 from raes.scenario import InstantiatedScenario
 
+from ..models import Diagnostic
 from .addresses import (
     _account_address,
     _action_contract_address,
@@ -21,73 +22,77 @@ from .addresses import (
 from .support import _dedupe
 
 
-def _add_alias(index: dict[str, set[str]], alias: str, address: str) -> None:
-    if alias:
-        index.setdefault(alias, set()).add(address)
+class _RuntimeAddressIndex:
+    """Runtime addresses keyed by canonical SDL declaration address, plus their lookup aliases."""
+
+    def __init__(self) -> None:
+        self.aliases: dict[str, set[str]] = {}
+        self.canonical: dict[str, str] = {}
+
+    def alias(self, alias: str, address: str) -> None:
+        if alias:
+            self.aliases.setdefault(alias, set()).add(address)
+
+    def declare(self, declaration: str, address: str, *, bare: str) -> None:
+        self.canonical[declaration] = address
+        self.alias(bare, address)
+        self.alias(declaration, address)
 
 
-def _add_node_aliases(index: dict[str, set[str]], scenario: InstantiatedScenario) -> None:
+def _add_node_aliases(index: _RuntimeAddressIndex, scenario: InstantiatedScenario) -> None:
     for node_name, node in scenario.nodes.items():
         address = _resource_address_for_node(scenario, node_name)
-        _add_alias(index, node_name, address)
-        _add_alias(index, f"nodes.{node_name}", address)
+        index.declare(f"nodes.{node_name}", address, bare=node_name)
         if node.type == NodeType.SWITCH:
-            _add_alias(index, f"infrastructure.{node_name}", address)
+            index.alias(f"infrastructure.{node_name}", address)
 
         for service in node.services:
             service_name = service.name
             if not service_name:
                 continue
             service_address = _service_address(node_name, service_name)
-            _add_alias(index, service_name, service_address)
-            _add_alias(index, f"nodes.{node_name}.services.{service_name}", service_address)
+            index.declare(f"nodes.{node_name}.services.{service_name}", service_address, bare=service_name)
 
 
-def _add_infrastructure_aliases(index: dict[str, set[str]], scenario: InstantiatedScenario) -> None:
+def _add_infrastructure_aliases(index: _RuntimeAddressIndex, scenario: InstantiatedScenario) -> None:
     for infra_name in scenario.infrastructure:
         node = scenario.nodes.get(infra_name)
         if node is None:
             continue
         address = _resource_address_for_node(scenario, infra_name)
-        _add_alias(index, f"infrastructure.{infra_name}", address)
-        if node.type == NodeType.SWITCH:
-            _add_alias(index, infra_name, address)
+        index.declare(
+            f"infrastructure.{infra_name}",
+            address,
+            bare=infra_name if node.type == NodeType.SWITCH else "",
+        )
 
 
-def _add_content_aliases(index: dict[str, set[str]], scenario: InstantiatedScenario) -> None:
+def _add_content_aliases(index: _RuntimeAddressIndex, scenario: InstantiatedScenario) -> None:
     for content_name, content in scenario.content.items():
-        content_address = _content_address(content_name)
-        _add_alias(index, content_name, content_address)
-        _add_alias(index, f"content.{content_name}", content_address)
+        index.declare(f"content.{content_name}", _content_address(content_name), bare=content_name)
         for item in content.items:
             if not item.name:
                 continue
-            item_address = _content_item_address(content_name, item.name)
-            _add_alias(index, item.name, item_address)
-            _add_alias(index, f"content.{content_name}.items.{item.name}", item_address)
+            index.declare(
+                f"content.{content_name}.items.{item.name}",
+                _content_item_address(content_name, item.name),
+                bare=item.name,
+            )
 
 
 def _add_qualified_aliases(
-    index: dict[str, set[str]],
+    index: _RuntimeAddressIndex,
     names: Iterable[str],
     *,
     address_for: Callable[[str], str],
     qualified_prefix: str,
 ) -> None:
     for name in names:
-        address = address_for(name)
-        _add_alias(index, name, address)
-        _add_alias(index, f"{qualified_prefix}.{name}", address)
+        index.declare(f"{qualified_prefix}.{name}", address_for(name), bare=name)
 
 
-def _runtime_addressable_ref_index(scenario: InstantiatedScenario) -> dict[str, set[str]]:
-    """Map SDL authority/scope refs to compiled runtime addresses.
-
-    This deliberately omits semantic-only anchors such as entities and
-    relationships. The raw refs stay on participant runtime records; only
-    refs backed by runtime-addressable surfaces become addresses/dependencies.
-    """
-    index: dict[str, set[str]] = {}
+def _build_runtime_address_index(scenario: InstantiatedScenario) -> _RuntimeAddressIndex:
+    index = _RuntimeAddressIndex()
     _add_node_aliases(index, scenario)
     _add_infrastructure_aliases(index, scenario)
     _add_content_aliases(index, scenario)
@@ -136,6 +141,26 @@ def _runtime_addressable_ref_index(scenario: InstantiatedScenario) -> dict[str, 
     return index
 
 
+def _runtime_addressable_ref_index(scenario: InstantiatedScenario) -> dict[str, set[str]]:
+    """Map SDL authority/scope refs to compiled runtime addresses.
+
+    This deliberately omits semantic-only anchors such as entities and
+    relationships. The raw refs stay on participant runtime records; only
+    refs backed by runtime-addressable surfaces become addresses/dependencies.
+    """
+    return _build_runtime_address_index(scenario).aliases
+
+
+def _runtime_canonical_addresses(scenario: InstantiatedScenario) -> dict[str, str]:
+    """Map each runtime-addressable SDL declaration's canonical address to its runtime address.
+
+    Keys are canonical declaration addresses, as the declaration index names
+    them; they are never re-derived from an authored spelling. A declaration
+    that is absent here carries no runtime address.
+    """
+    return _build_runtime_address_index(scenario).canonical
+
+
 def _runtime_addresses_for_refs(
     refs: list[str],
     *,
@@ -146,6 +171,44 @@ def _runtime_addresses_for_refs(
         matches = addressable_ref_index.get(ref, ())
         if len(matches) == 1:
             addresses.extend(matches)
+    return _dedupe(addresses)
+
+
+def _declared_runtime_addresses(
+    refs: list[str],
+    *,
+    resolve: Callable[[str], set[str]],
+    canonical_addresses: Mapping[str, str],
+    owner_address: str,
+    diagnostic_code: str,
+    diagnostics: list[Diagnostic],
+) -> tuple[str, ...]:
+    """Bind each ref to the runtime address of the one declaration that *resolve* names.
+
+    *resolve* must be the resolution semantic validation used, so compilation
+    never resolves the spelling again. A declaration without a canonical
+    runtime address constrains only the semantic record and adds nothing. A ref
+    that does not resolve to exactly one declaration is an error diagnostic.
+    """
+    addresses: list[str] = []
+    for ref in dict.fromkeys(refs):
+        declarations = resolve(ref)
+        if len(declarations) != 1:
+            diagnostics.append(
+                Diagnostic(
+                    code=diagnostic_code,
+                    domain="participant",
+                    address=owner_address,
+                    message=(
+                        f"Reference '{ref}' resolves to {len(declarations)} declarations; "
+                        "it must resolve to exactly one."
+                    ),
+                )
+            )
+            continue
+        (declaration,) = declarations
+        if declaration in canonical_addresses:
+            addresses.append(canonical_addresses[declaration])
     return _dedupe(addresses)
 
 

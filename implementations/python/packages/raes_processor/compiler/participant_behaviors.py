@@ -1,6 +1,7 @@
 """Participant behavior and behavior-specification compilation."""
 
 from collections.abc import Callable, Mapping
+from typing import Protocol
 
 from raes.agents import Agent
 from raes.entities import Entity, flatten_entities
@@ -30,9 +31,11 @@ from .addresses import (
 )
 from .alias_index import (
     _account_addresses_for_refs,
+    _declared_runtime_addresses,
     _initial_knowledge_addresses,
     _runtime_addressable_ref_index,
     _runtime_addresses_for_refs,
+    _runtime_canonical_addresses,
 )
 from .participant_autonomous_execution import _compile_autonomous_execution
 from .support import _dedupe, _dump
@@ -245,12 +248,23 @@ def _resolve_behavior_spec_refs(
     return tuple(addresses)
 
 
+class _TargetableAliasIndex(Protocol):
+    """The declaration-index projection that validation uses for targetable refs."""
+
+    def reference_aliases(self, *, targetable: bool = False) -> dict[str, set[str]]: ...
+
+
 def _compile_behavior_specifications(
     scenario: InstantiatedScenario,
     diagnostics: list[Diagnostic],
+    *,
+    declaration_index: _TargetableAliasIndex,
 ) -> dict[str, ParticipantBehaviorSpecificationRuntime]:
     behavior_specifications: dict[str, ParticipantBehaviorSpecificationRuntime] = {}
     addressable_ref_index = _runtime_addressable_ref_index(scenario)
+    canonical_addresses = _runtime_canonical_addresses(scenario)
+    # The validator's own authority-scope projection: compilation binds what validation resolved.
+    targetable = declaration_index.reference_aliases(targetable=True)
     entities = flatten_entities(scenario.entities)
     roles = {name: agent.effective_role(entities) for name, agent in scenario.agents.items()}
     for name, behavior_spec in scenario.behavior_specifications.items():
@@ -292,9 +306,13 @@ def _compile_behavior_specifications(
             diagnostic_label="participant outcome interpretation rule",
             diagnostics=diagnostics,
         )
-        authority_scope_addresses = _runtime_addresses_for_refs(
+        authority_scope_addresses = _declared_runtime_addresses(
             list(behavior_spec.authority_scope_refs),
-            addressable_ref_index=addressable_ref_index,
+            resolve=lambda ref: targetable.get(ref, set()),
+            canonical_addresses=canonical_addresses,
+            owner_address=address,
+            diagnostic_code="participant.behavior-specification-authority-scope-ref-unbound",
+            diagnostics=diagnostics,
         )
         (
             mixed_control_participant_address,
