@@ -172,7 +172,7 @@ handles. Fixture counts were not recorded for this class.
 | coverage.py JSON | `tools/nox_support/test_lanes.py` | coverage fixtures | inferred | coverage.py 7.13.5 JSON has `totals.covered_lines` and `totals.num_statements` | match | L |
 | `check-jsonschema` | schema checks | - | - | not captured before the audit stopped | unverified | L |
 
-## SQLite control-plane store and the Ground Control client
+## Control-plane store and the requirements client
 
 The observations come from probes that run the store's SQL and the production
 `LocalControlPlaneStore` against SQLite 3.50.4 under CPython 3.14.4 on macOS.

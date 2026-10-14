@@ -234,7 +234,7 @@ docs/with space.md
 git ls-files -z: contracts/schemas/naïve.json | contracts/schemas/plain.json | docs/renamed.md | docs/tab<TAB>name.md | docs/with space.md
 ```
 
-## SQLite store and Ground Control client
+## Control-plane store and requirements client
 
 ST-1. `flock`, observed through a forked child and a separate probe process. The
 first two lines come from an OS-level `flock` probe. The last two run the
