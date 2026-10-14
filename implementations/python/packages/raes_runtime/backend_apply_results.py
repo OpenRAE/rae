@@ -6,8 +6,11 @@ from copy import deepcopy
 from dataclasses import replace
 from typing import cast
 
+from pydantic_core import to_jsonable_python
+from raes_contracts.canonical import jsonable_fallback
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import ApplyResult, RealizationProvenanceEntry, RuntimeSnapshot
 from raes_processor.models import CompiledRealizationRequirement
 from raes_processor.planner import (
@@ -176,6 +179,24 @@ def _post_apply_contract_result(
     return _realization_disclosure_result(result, realization)
 
 
+def _portable(payload: object) -> object:
+    return to_jsonable_python(payload, fallback=jsonable_fallback)
+
+
+def _portable_payloads(plan: ProvisioningPlan, snapshot: RuntimeSnapshot) -> tuple[ProvisioningPlan, RuntimeSnapshot]:
+    """Present declared and returned payloads as portable JSON to disclosure and sanitization.
+
+    Admission accepts tuple, enum, dataclass and model carriers that the portable
+    codec serializes. The disclosure readers and the safe-persistence sanitizer
+    traverse JSON objects and arrays, so a carrier would otherwise hide the
+    realization concern it encloses.
+    """
+
+    operations = [replace(operation, payload=_portable(operation.payload)) for operation in plan.operations]
+    entries = {address: replace(entry, payload=_portable(entry.payload)) for address, entry in snapshot.entries.items()}
+    return replace(plan, operations=operations), snapshot.with_entries(entries)
+
+
 def _realization_disclosure_result(
     result: ApplyResult, realization: _RealizationApplyContext
 ) -> tuple[list[Diagnostic], tuple[RealizationProvenanceEntry, ...]]:
@@ -185,10 +206,12 @@ def _realization_disclosure_result(
     # Still check materialization authority and sanitize the snapshot; requiring
     # the failed readback here would erase recoverable resources.
     plan = realization.plan
-    validation_plan = plan if result.success else replace(plan, observation_demands=())
+    validation_plan, returned = _portable_payloads(
+        plan if result.success else replace(plan, observation_demands=()), result.snapshot
+    )
     diagnostics, provenance = realization_authority_disclosure(
         validation_plan,
-        result.snapshot,
+        returned,
         manifest=realization.manifest,
     )
     supplemental = _supplemental_realization_requirements(realization)
@@ -197,7 +220,7 @@ def _realization_disclosure_result(
     supplemental_diagnostics, supplemental_provenance = realization_disclosure(
         supplemental,
         validation_plan,
-        result.snapshot,
+        returned,
         manifest=realization.manifest,
         artifact_availability=realization.artifact_availability,
     )
@@ -253,11 +276,7 @@ def _sanitize_backend_realization(
             )
     if realization_plan is not None and (realization_plan.realization_authority or realization_requirements):
         try:
-            safe_snapshot = (
-                sanitize_plan_realization_snapshot(realization_plan, sanitized.snapshot)
-                if realization_plan.realization_authority
-                else sanitize_realization_snapshot(realization_requirements, sanitized.snapshot)
-            )
+            safe_snapshot = _safe_realization_snapshot(realization_plan, realization_requirements, sanitized.snapshot)
         except (TypeError, ValueError):
             return _failed_apply_result(
                 baseline_snapshot,
@@ -276,6 +295,45 @@ def _sanitize_backend_realization(
             ),
         )
     return cast("ApplyResult", replace(sanitized, operational_realization_observations=()))
+
+
+def _sanitized_realization(
+    plan: ProvisioningPlan,
+    requirements: tuple[CompiledRealizationRequirement, ...],
+    snapshot: RuntimeSnapshot,
+) -> RuntimeSnapshot:
+    if plan.realization_authority:
+        return sanitize_plan_realization_snapshot(plan, snapshot)
+    return sanitize_realization_snapshot(requirements, snapshot)
+
+
+def _safe_realization_snapshot(
+    plan: ProvisioningPlan,
+    requirements: tuple[CompiledRealizationRequirement, ...],
+    snapshot: RuntimeSnapshot,
+) -> RuntimeSnapshot:
+    """Sanitize the portable view that the disclosure readers judged.
+
+    An entry keeps the backend's own representation, sanitized in place, when
+    that serializes to its sanitized view. Otherwise, as when an admitted carrier
+    encloses a registered concern, the sanitized view is committed in its place.
+    """
+
+    view_plan, view = _portable_payloads(plan, snapshot)
+    safe_view = _sanitized_realization(view_plan, requirements, view)
+    try:
+        kept = _sanitized_realization(plan, requirements, snapshot)
+    except (TypeError, ValueError):
+        # The sanitized view is authoritative; an entry the sanitizer cannot
+        # rewrite in place is replaced by its view below.
+        kept = snapshot
+    entries = {
+        address: entry
+        if _portable(entry.payload) == _portable(safe_view.entries[address].payload)
+        else safe_view.entries[address]
+        for address, entry in kept.entries.items()
+    }
+    return kept.with_entries(entries)
 
 
 def _supplemental_realization_requirements(
