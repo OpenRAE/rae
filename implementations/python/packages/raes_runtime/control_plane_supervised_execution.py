@@ -6,7 +6,7 @@ from collections.abc import Callable, Iterable
 from copy import deepcopy
 from dataclasses import replace
 from time import monotonic
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from uuid import uuid4
 
 from raes_contracts.canonical import canonical_json_digest
@@ -320,10 +320,13 @@ def _dispatch_native_invocation(
     remaining()
     if current.invocation.request.command.digest != native_command_commitment(plane, request.plan):
         raise ValueError("admitted native command changed before dispatch")
-    running = replace(
-        current,
-        status=replace(current.status, state=OperationState.RUNNING, updated_at=_utc_now()),
-        invocation=current.invocation.model_copy(update={"consumed": True}),
+    running = cast(
+        ControlPlaneOperationRecord,
+        replace(
+            current,
+            status=replace(current.status, state=OperationState.RUNNING, updated_at=_utc_now()),
+            invocation=current.invocation.model_copy(update={"consumed": True}),
+        ),
     )
     # A confirmed write-ahead cut is the one-use grant. A lost reply never
     # reaches the callback, even if authoritative readback finds RUNNING.

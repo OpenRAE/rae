@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from uuid import uuid4
 
 from raes_contracts.contracts import BackendOperationControlModel, backend_operation_request_digest
@@ -13,7 +13,7 @@ from .control_plane_execution import _utc_now
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_operation_context import operation_actor_scope
 from .control_plane_security import ControlPlaneIdentity, ControlPlaneRole
-from .control_plane_store import AuditEvent
+from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
 from .control_plane_store_bounded import bounded_store_commit
 from .operation_control_budget import admit_control_budget, forget_control_budget, remaining_control_budget
 from .operation_transcript_policy import append_control
@@ -22,7 +22,6 @@ if TYPE_CHECKING:
     from raes_contracts.contracts import BackendOperationResponseModel
 
     from .control_plane import RuntimeControlPlane
-    from .control_plane_store import ControlPlaneOperationRecord
     from .operation_invocation_ledger import InvocationLedger
 
 
@@ -63,7 +62,7 @@ def persist_invocation_update(
     *,
     actor: str | None = None,
 ) -> ControlPlaneOperationRecord:
-    record = replace(expected, invocation=invocation)
+    record = cast(ControlPlaneOperationRecord, replace(expected, invocation=invocation))
     event = AuditEvent(
         timestamp=_utc_now(),
         action="operation_supervision",

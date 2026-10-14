@@ -145,3 +145,34 @@ def test_installed_workflows_are_accepted_by_the_real_sdk_sandbox():
             SandboxedWorkflowRunner().prepare_workflow(workflow._Definition.must_from_class(definition))
 
     asyncio.run(exercise())
+
+
+@pytest.mark.parametrize("entrypoint", ["operation", "supervision", "invoke", "observe", "control", "indeterminate"])
+def test_sdk_decodes_opaque_payload_using_registered_entrypoint_annotations(entrypoint):
+    from typing import get_type_hints
+
+    from raes_runtime.operation_temporal_worker import TemporalOperationActivities
+    from raes_runtime.operation_temporal_workflow import RaeOperationWorkflow, RaeSupervisionWorkflow
+    from temporalio.converter import JSONPlainPayloadConverter
+
+    if entrypoint == "operation":
+        method = RaeOperationWorkflow.run
+    elif entrypoint == "supervision":
+        method = RaeSupervisionWorkflow.run
+    else:
+        method = getattr(TemporalOperationActivities, entrypoint)
+    reference = {
+        "operation_id": "sdk-wire-operation",
+        "owner_generation": 1,
+        "execution_generation": 2,
+        "control_budget_ms": 1000,
+    }
+    payload = (
+        {"reference": reference, "control_id": "sdk-wire-control"}
+        if entrypoint in {"supervision", "control"}
+        else reference
+    )
+    converter = JSONPlainPayloadConverter()
+    encoded = converter.to_payload(payload)
+    decoded = converter.from_payload(encoded, get_type_hints(method)["payload"])
+    assert decoded == payload

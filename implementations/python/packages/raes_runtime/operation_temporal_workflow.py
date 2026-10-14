@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from typing import Any
 
 from temporalio import workflow
 from temporalio.common import RetryPolicy
@@ -12,17 +13,18 @@ with workflow.unsafe.imports_passed_through():
     from .operation_transcript_policy import automatic_poll_interval_ms
 
 
+# Keep SDK JSON decoding separate from strict EngineOperationReference validation.
 @workflow.defn(name="raes.operation")
 class RaeOperationWorkflow:
     def __init__(self) -> None:
         self._reference = None
 
     @workflow.query(name="operation_reference")
-    def operation_reference(self) -> dict[str, object] | None:
+    def operation_reference(self) -> dict[str, Any] | None:
         return self._reference
 
     @workflow.run
-    async def run(self, payload: dict[str, object]) -> str:
+    async def run(self, payload: dict[str, Any]) -> str:
         reference = EngineOperationReference.model_validate(payload)
         self._reference = reference.model_dump(mode="json")
         single_attempt = RetryPolicy(maximum_attempts=1)
@@ -73,11 +75,11 @@ class RaeSupervisionWorkflow:
         self._payload = None
 
     @workflow.query(name="control_reference")
-    def control_reference(self) -> dict[str, object] | None:
+    def control_reference(self) -> dict[str, Any] | None:
         return self._payload
 
     @workflow.run
-    async def run(self, payload: dict[str, object]) -> str:
+    async def run(self, payload: dict[str, Any]) -> str:
         reference = EngineOperationReference.model_validate(payload["reference"])
         self._payload = payload
         return await workflow.execute_activity(

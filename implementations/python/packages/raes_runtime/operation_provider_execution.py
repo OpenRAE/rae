@@ -23,6 +23,7 @@ from raes_contracts.runtime_state import OperationState
 from .backend_calls import _BackendCallContext, _RealizationApplyContext
 from .backend_observation_calls import _ObservationApplyRequest
 from .control_plane_execution import _utc_now
+from .control_plane_store import ControlPlaneOperationRecord
 from .control_plane_supervised_execution import claim_accepted, invocation_request, settle
 from .control_plane_supervision import persist_invocation_update
 from .operation_command_commitment import native_command_commitment
@@ -35,7 +36,6 @@ if TYPE_CHECKING:
 
     from .control_plane import RuntimeControlPlane
     from .control_plane_execution import OperationExecutionRequest
-    from .control_plane_store import ControlPlaneOperationRecord
     from .operation_execution_adapter import Lane
     from .operation_supervision_configuration import OperationEvidenceResolver
 
@@ -327,10 +327,13 @@ def _start_local_provider(
         settle(plane, record, OperationState.CANCELLED)
         return None
     remaining()
-    running = replace(
-        record,
-        status=replace(record.status, state=OperationState.RUNNING, updated_at=_utc_now()),
-        invocation=record.invocation.model_copy(update={"consumed": True}),
+    running = cast(
+        ControlPlaneOperationRecord,
+        replace(
+            record,
+            status=replace(record.status, state=OperationState.RUNNING, updated_at=_utc_now()),
+            invocation=record.invocation.model_copy(update={"consumed": True}),
+        ),
     )
     try:
         plane._store.save_record(running)

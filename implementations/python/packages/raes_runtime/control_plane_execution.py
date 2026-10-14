@@ -35,6 +35,8 @@ from .diagnostics import _has_error_diagnostic
 from .observation_results import PreparedObservationExecution
 from .participant_effect_authority import participant_effect_authority
 
+__all__ = ("apply_authorized_participant_action",)
+
 
 def _utc_now() -> str:
     return datetime.now(UTC).isoformat().replace("+00:00", "Z")

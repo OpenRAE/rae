@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from time import monotonic
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import anyio
 from raes_contracts.contracts import (
@@ -33,6 +33,8 @@ if TYPE_CHECKING:
 _T = TypeVar("_T")
 
 
+# The SDK decodes raw JSON using these annotations. Carrier models validate
+# the wire values immediately afterward; object is not an SDK JSON value type.
 class TemporalOperationActivities:
     """Backend integration code only; no ledger credentials or scenario interpreter."""
 
@@ -58,7 +60,7 @@ class TemporalOperationActivities:
             "control": anyio.CapacityLimiter(control_capacity),
         }
 
-    def _reference(self, payload: dict[str, object]) -> EngineOperationReference:
+    def _reference(self, payload: dict[str, Any]) -> EngineOperationReference:
         try:
             reference = EngineOperationReference.model_validate(payload)
         except Exception:
@@ -94,7 +96,7 @@ class TemporalOperationActivities:
         return request
 
     @activity.defn(name="raes.invoke")
-    async def invoke(self, payload: dict[str, object]) -> str:
+    async def invoke(self, payload: dict[str, Any]) -> str:
         reference = self._reference(payload)
         return await self._job(
             self._effect_jobs, "effect", self._invoke, reference, budget_ms=reference.execution_budget_ms
@@ -157,7 +159,7 @@ class TemporalOperationActivities:
             return self._control_authority.indeterminate(reference)
 
     @activity.defn(name="raes.observe")
-    async def observe(self, payload: dict[str, object]) -> str:
+    async def observe(self, payload: dict[str, Any]) -> str:
         reference = self._reference(payload)
         return await self._job(
             self._control_jobs, "control", self._observe, reference, budget_ms=reference.control_budget_ms
@@ -188,7 +190,7 @@ class TemporalOperationActivities:
             return authority.indeterminate(reference)
 
     @activity.defn(name="raes.control")
-    async def control(self, payload: dict[str, object]) -> str:
+    async def control(self, payload: dict[str, Any]) -> str:
         reference = self._reference(payload["reference"])
         from pydantic import TypeAdapter
         from raes_contracts.contracts.backend_operation import OperationIdentifier
@@ -241,7 +243,7 @@ class TemporalOperationActivities:
         return remaining
 
     @activity.defn(name="raes.indeterminate")
-    async def indeterminate(self, payload: dict[str, object]) -> str:
+    async def indeterminate(self, payload: dict[str, Any]) -> str:
         reference = self._reference(payload)
         return await self._job(
             self._control_jobs,

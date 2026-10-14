@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from time import monotonic
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, cast
 
 from pydantic import ConfigDict
 from raes_contracts.contracts import (
@@ -23,6 +23,7 @@ from .control_plane_execution import _utc_now
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_operation_context import operation_actor_scope
 from .control_plane_security import ControlPlaneIdentity, ControlPlaneRole
+from .control_plane_store import ControlPlaneOperationRecord
 from .control_plane_supervised_execution import settle
 from .control_plane_supervision import persist_invocation_update
 from .operation_command_commitment import native_command_commitment
@@ -39,7 +40,6 @@ if TYPE_CHECKING:
 
     from .control_plane import RuntimeControlPlane
     from .control_plane_execution import OperationExecutionRequest
-    from .control_plane_store import ControlPlaneOperationRecord
 
 
 _OPERATION_NOT_FOUND = "operation not found"
@@ -161,10 +161,13 @@ class RuntimeWorkerAuthorityMixin:
             from .operation_provider_execution import accept_response
 
             record = accept_response(self, record, admission)
-            running = replace(
-                record,
-                status=replace(record.status, state=OperationState.RUNNING, updated_at=_utc_now()),
-                invocation=record.invocation.model_copy(update={"consumed": True}),
+            running = cast(
+                ControlPlaneOperationRecord,
+                replace(
+                    record,
+                    status=replace(record.status, state=OperationState.RUNNING, updated_at=_utc_now()),
+                    invocation=record.invocation.model_copy(update={"consumed": True}),
+                ),
             )
             try:
                 self._store.save_record(running)
