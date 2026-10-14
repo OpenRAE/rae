@@ -6,6 +6,22 @@ from time import monotonic
 import pytest
 
 
+def test_foreign_process_owner_refuses_dispatch_before_accessing_inherited_portal(monkeypatch):
+    from raes_runtime.operation_execution_adapter import LocalExecutionAdapter
+
+    adapter = LocalExecutionAdapter()
+    try:
+        with monkeypatch.context() as changes:
+            changes.setattr(adapter, "_owner_pid", -1)
+            changes.setattr(adapter._portal, "call", lambda *args: pytest.fail("inherited portal accessed"))
+            with pytest.raises(RuntimeError, match="cannot be used after fork"):
+                adapter.call("effect", lambda: pytest.fail("foreign process dispatched"), timeout_ms=1000)
+        assert adapter.pending_calls == 0
+        assert adapter.call("control", lambda: "parent available", timeout_ms=1000) == "parent available"
+    finally:
+        assert adapter.close(timeout_ms=1000)
+
+
 @pytest.mark.parametrize("failure", [KeyboardInterrupt, SystemExit])
 def test_worker_base_exception_reaches_caller_without_stopping_other_lanes(failure):
     from raes_runtime.operation_execution_adapter import LocalExecutionAdapter

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from functools import partial
+from os import getpid
 from threading import BoundedSemaphore, Condition, Lock
 from time import monotonic
 from typing import Literal, NamedTuple, TypeVar, cast
@@ -76,6 +77,7 @@ class LocalExecutionAdapter:
         capacities = {"effect": effect_capacity, "control": control_capacity, "store": store_capacity, "deadline": 1}
         if any(type(value) is not int or not 1 <= value <= 64 for value in capacities.values()):
             raise ValueError("execution capacity must be a strict integer between 1 and 64")
+        self._owner_pid = getpid()
         self._condition = Condition()
         self._pending = 0
         self._closed = False
@@ -92,10 +94,16 @@ class LocalExecutionAdapter:
 
     @property
     def pending_calls(self) -> int:
+        self._require_owner_process()
         with self._condition:
             return self._pending
 
+    def _require_owner_process(self) -> None:
+        if getpid() != self._owner_pid:
+            raise RuntimeError("execution adapter cannot be used after fork; create a fresh runtime")
+
     def call(self, lane: Lane, method: Callable[..., _T], *args: object, timeout_ms: int, **kwargs: object) -> _T:
+        self._require_owner_process()
         budget = require_budget_ms(timeout_ms)
         if lane not in self._slots:
             raise ValueError("unknown execution lane")
@@ -130,6 +138,7 @@ class LocalExecutionAdapter:
             )
 
     def drain(self, *, timeout_ms: int) -> bool:
+        self._require_owner_process()
         budget = require_budget_ms(timeout_ms)
         with self._condition:
             if self._closed:
@@ -141,6 +150,7 @@ class LocalExecutionAdapter:
             return self._condition.wait_for(lambda: self._pending == 0, timeout=budget / 1000)
 
     def arm_deadline(self, key, deadline, callback, *args, failure_handler=None):
+        self._require_owner_process()
         with self._condition:
             if self._closed or self._draining or key in self._timers:
                 raise RuntimeError("invocation deadline is unavailable")
@@ -165,15 +175,18 @@ class LocalExecutionAdapter:
             raise
 
     def cancel_deadline(self, key):
+        self._require_owner_process()
         with self._condition:
             future = self._timers.pop(key, None)
             if future is not None:
                 future.cancel()
 
     def pause(self, duration_ms):
+        self._require_owner_process()
         self._portal.call(anyio.sleep, require_budget_ms(duration_ms) / 1000)
 
     def close(self, *, timeout_ms: int) -> bool:
+        self._require_owner_process()
         if not self.drain(timeout_ms=timeout_ms):
             return False
         with self._condition:

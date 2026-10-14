@@ -10,6 +10,8 @@ those calls.
 Local execution uses AnyIO with separate effect, control and store capacity.
 Worker interruptions leave independent controls and drain available. HTTP
 callers receive a redacted failure.
+Create the runtime in its serving process. An inherited execution adapter
+refuses calls after a fork.
 Use one runtime owner for each backend component. A direct `RuntimeManager`
 supports `with` and `close()`. Close refuses while a synchronous callback is
 active. It stops the internal clock driver before releasing ownership. Later
