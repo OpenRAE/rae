@@ -25,6 +25,7 @@ from ._references import (
     _rewrite_section_ref,
     _rewrite_stateful_dependency_ref,
 )
+from ._runtime_references import _rewrite_security_monitoring_references
 
 
 def _validate_descriptor_exports(
@@ -117,6 +118,7 @@ def _rewrite_node(payload: dict[str, Any], symbols: dict[str, dict[str, str] | s
     if isinstance(runtime, dict):
         _rewrite_node_network_namespace(runtime, symbols)
         _rewrite_generated_environment_sources(runtime, symbols)
+        _rewrite_security_monitoring_references(runtime, symbols)
         for service in runtime.get("mail_services", []):
             for mailbox in service.get("mailboxes", []):
                 if mailbox.get("account_ref"):
@@ -128,6 +130,10 @@ def _rewrite_node(payload: dict[str, Any], symbols: dict[str, dict[str, str] | s
 def _rewrite_infrastructure(payload: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
     payload["dependencies"] = [_maybe_rename(name, symbols["named"]) for name in payload.get("dependencies", [])]
     payload["links"] = [_maybe_rename(name, symbols["named"]) for name in payload.get("links", [])]
+    for acl in payload.get("acls", []):
+        for field_name in ("from_net", "to_net"):
+            if isinstance(acl, dict) and acl.get(field_name):
+                acl[field_name] = _maybe_rename(str(acl[field_name]), symbols["infrastructure"])
     properties = payload.get("properties")
     if isinstance(properties, list):
         rewritten: list[dict[str, Any]] = []
