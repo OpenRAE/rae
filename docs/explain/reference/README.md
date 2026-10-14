@@ -1,44 +1,47 @@
-# Reference Notes
+# Reference notes
 
-This directory contains implementation-facing reference notes that are not
-themselves normative specifications or ADRs.
+These notes are for people who work on the code. They are not normative
+specs or ADRs.
 
 - [coding-standards.md](coding-standards.md)
-  - Reference coding expectations for the repo
+  - Coding rules for the repo
 - [canonical-reference-map.md](canonical-reference-map.md)
-  - Current canonical locations for SDL, contract, processor, runtime, and
-    experiment reference material
+  - Where the main source for SDL, contract, processor, runtime, and
+    experiment reference material lives now
 - [documentation-style-guide.md](documentation-style-guide.md)
-  - Repo-wide documentation style, citation, and tone expectations
+  - Repo-wide style, citation, and tone rules for docs
+- [fixture-provenance.md](fixture-provenance.md)
+  - How a test fixture that stands in for an external system shows
+    where its shape came from
 - [glossary.md](glossary.md)
-  - Current terminology for SDL, contracts, processing, runtime, experiments,
+  - Current terms for SDL, contracts, processing, runtime, experiments,
     and ecosystem concepts
 - [shared-concept-model.md](shared-concept-model.md)
-  - Design guidance for `GOV-917` and related shared-concept-model work
+  - Design guidance for `GOV-917` and related shared concept model work
 - [shared-semantic-integrity.md](shared-semantic-integrity.md)
-  - Architecture guardrails for `SEM-200` shared semantic integrity work
+  - Design rules for `SEM-200` shared semantic integrity work
 - [backend-conformance.md](backend-conformance.md)
-  - Architecture guardrails for `ASR-502` backend conformance work
+  - Design rules for `ASR-502` backend conformance work
 - [normative-artifact-authority.md](normative-artifact-authority.md)
-  - Architecture guardrails for `ASR-517` normative authority-boundary work
+  - Design rules for `ASR-517` normative authority boundary work
 - [published-schema-coverage.md](published-schema-coverage.md)
-  - The `ASR-501` rule requiring every published schema to carry corpus,
+  - The `ASR-501` rule that each published schema must carry corpus,
     formal, or declared coverage evidence
 - [assessment-semantics.md](assessment-semantics.md)
-  - Architecture guardrails for `SEM-206` assessment semantics work
+  - Design rules for `SEM-206` assessment semantics work
 - [objective-semantics.md](objective-semantics.md)
-  - Implementer-facing reference for `SEM-207` declarative-objective semantics
+  - Reference for those who build `SEM-207` declarative objective semantics
 - [explicitness-realization-semantics.md](explicitness-realization-semantics.md)
-  - Architecture guardrails for `SEM-218` explicitness and realization work
+  - Design rules for `SEM-218` explicitness and realization work
 - [domain-profiles.md](domain-profiles.md)
-  - Portable typed profile identity, offline resolution, support negotiation,
-    opaque preservation, and provenance boundaries
+  - Portable typed profile names, offline lookup, support checks, opaque
+    data kept as is, and where data came from
 - [scenario-variation-and-trial-realization.md](scenario-variation-and-trial-realization.md)
-  - Complete SCE-002 phase, ownership, identity, random-stream, trial-plan,
-    runtime-fact, migration, and follow-on architecture
+  - The full SCE-002 design: phases, owners, names, random streams, trial
+    plans, runtime facts, migration, and follow-on design
 - [experiment-binding-contracts.md](experiment-binding-contracts.md)
-  - Authoritative experiment-to-scenario, participant, and apparatus binding
-    contracts and configuration realization
+  - The contracts that bind an experiment to its scenario, participants,
+    and apparatus, and how its settings are realized
 - [participant-decision-surface-v2-migration.md](participant-decision-surface-v2-migration.md)
-  - Reprojection, delivery, capability declaration, admission, reset, memory,
-    and evidence guidance for participant decision surface v2
+  - How to move to version 2 of the participant decision surface: how it
+    is shown, sent, declared, admitted, reset, kept in memory, and logged
