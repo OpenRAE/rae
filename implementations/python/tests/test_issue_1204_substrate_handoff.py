@@ -32,13 +32,15 @@ def test_portable_substrate_constraints_have_the_same_result_gate(owner, deliver
         target.provisioner._driver, realization_envelope=target.provisioner._realization_envelope
     )
     target = replace(target, provisioner=backend)
-    manager = RuntimeManager(target)
-    execution = manager.plan(parse_sdl(_SCENARIO))
+    from runtime_plan_fixtures import plan_for_target
+
+    execution = plan_for_target(target, parse_sdl(_SCENARIO))
     portable = _provisioning_plan(
         ProvisioningPlanModel.model_validate_json(provisioning_plan_model(execution.provisioning).model_dump_json())
     )
     assert portable.realization_constraints
     if owner == "manager":
+        manager = RuntimeManager(target)
         predecessor = manager.snapshot
         result = manager.apply(replace(execution, provisioning=portable))
         assert result.success is deliver_binding
@@ -50,7 +52,7 @@ def test_portable_substrate_constraints_have_the_same_result_gate(owner, deliver
         control_plane.register_planner_produced_plan(execution)
         receipt = control_plane.submit_provisioning(portable)
         status = control_plane.get_operation(receipt.operation_id)
-        assert status.state is (OperationState.SUCCEEDED if deliver_binding else OperationState.FAILED)
+        assert status.state is (OperationState.SUCCEEDED if deliver_binding else OperationState.INDETERMINATE)
         if not deliver_binding:
             assert control_plane.snapshot == predecessor
             assert (

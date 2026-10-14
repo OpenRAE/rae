@@ -109,6 +109,14 @@ Hashes detect drift; they do not establish correspondence. A status read after
 key conflict does not deliver a participant payload. A fresh key after response
 loss may duplicate an already completed effect.
 
+Issue #1362 changes the recorded runtime sources. The retained `multi-rev1`
+source inventory matches `348c4903322da1d4dbe0d65cb2e687cfad172290`.
+Current sources reconstruct every retained graph, state map and ledger artifact
+exactly, with unchanged model counts and profile pins. The read-only CLI reports
+source drift in this checkout. The published bundle remains unchanged; it does
+not establish a current mapping to the supervised runtime. This follows the
+same historical integrity boundary as the earlier #971 bundle.
+
 SEM-232 remains DRAFT. Model construction does not establish bisimulation, live
 realization, backend conformance, noninterference, opacity, arbitrary-history,
 latency, throughput, concurrency or universal recovery result. SEM-230/API-423/

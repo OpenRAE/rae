@@ -95,7 +95,6 @@ def test_profile_authentication_and_rejected_delivery_preserve_durable_predecess
     from raes_runtime.control_plane_api import create_control_plane_app
     from raes_runtime.control_plane_store import _snapshot_payload
     from raes_runtime.control_plane_store_local import LocalControlPlaneStore
-    from raes_runtime.manager import RuntimeManager
     from starlette.testclient import TestClient
     from test_runtime_control_plane_api import _test_security
 
@@ -104,8 +103,9 @@ def test_profile_authentication_and_rejected_delivery_preserve_durable_predecess
     store = LocalControlPlaneStore(tmp_path / "profile-state")
     control = RuntimeControlPlane(target, store=store)
     scenario = parse_sdl("name: profiles\nnodes:\n  host: {type: compute, resources: {cpu: 1, ram: 1 gib}}\n")
-    manager = RuntimeManager(target)
-    execution = manager.plan(scenario, profile_authority=authority)
+    from runtime_plan_fixtures import plan_for_target
+
+    execution = plan_for_target(target, scenario, profile_authority=authority)
     control.register_planner_produced_plan(execution)
     wire = provisioning_plan_model(execution.provisioning).model_dump(mode="json", exclude_none=True)
     altered = deepcopy(wire)
@@ -124,7 +124,8 @@ def test_profile_authentication_and_rejected_delivery_preserve_durable_predecess
         receipt = accepted.json()
         assert control.get_operation(receipt["operation_id"]).state is OperationState.SUCCEEDED
         before = _snapshot_payload(control.snapshot)
-        second = manager.plan(
+        second = plan_for_target(
+            target,
             parse_sdl("name: profiles\nnodes:\n  host: {type: compute, resources: {cpu: 2, ram: 1 gib}}\n"),
             snapshot=control.snapshot,
             profile_authority=authority,
@@ -146,9 +147,9 @@ def test_profile_authentication_and_rejected_delivery_preserve_durable_predecess
             lambda self, request, snapshot: reject_delivery(request, snapshot), target.provisioner
         )
         receipt = control.submit_provisioning(second.provisioning)
-        assert control.get_operation(receipt.operation_id).state is OperationState.FAILED
+        assert control.get_operation(receipt.operation_id).state is OperationState.INDETERMINATE
         assert _snapshot_payload(control.snapshot) == before
     recovered = RuntimeControlPlane(target, store=LocalControlPlaneStore(tmp_path / "profile-state"))
     assert _snapshot_payload(recovered.snapshot) == before
-    assert recovered.get_operation(receipt.operation_id).state is OperationState.FAILED
+    assert recovered.get_operation(receipt.operation_id).state is OperationState.INDETERMINATE
     recovered.close()
