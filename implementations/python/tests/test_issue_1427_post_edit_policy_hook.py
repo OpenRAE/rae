@@ -205,11 +205,9 @@ def test_a_checkout_outside_the_project_is_refused(project: Path) -> None:
 # An alias of the main checkout's or the worktree's root outside the project gets the same checker call as the
 # canonical path, so the checker reports the same findings.
 @pytest.mark.parametrize("checkout", ["main-checkout", "claude-worktree"])
-def test_a_checkout_root_alias_is_checked_as_the_canonical_path(
-    project: Path, tmp_path_factory: pytest.TempPathFactory, checkout: str
-) -> None:
+def test_a_checkout_root_alias_is_checked_as_the_canonical_path(project: Path, tmp_path: Path, checkout: str) -> None:
     root = project / CHECKOUTS[checkout]
-    alias = tmp_path_factory.mktemp("alias") / "root"
+    alias = tmp_path / "root"
     alias.symlink_to(root, target_is_directory=True)
     canonical = _run_hook(str(root / "tools" / "new_tool.py"), project)
     assert _outcome(_run_hook(str(alias / "tools" / "new_tool.py"), project)) == _outcome(canonical)
