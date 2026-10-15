@@ -124,7 +124,7 @@ Participant declarations are unnecessary for world execution. Correlation grants
 no participant disclosure, delivery, observation or controller authority; existing
 participant consumers must separately authorize their exact join and final sink.
 Legacy plan-start receipts, authoring and participant anchors retain their
-original meaning. See the [contract reference](../../explain/reference/inject-occurrence-contracts.md)
+original meaning. See the [contract reference](https://github.com/OpenRAE/rae/blob/dev/docs/explain/reference/inject-occurrence-contracts.md)
 and [control-plane guide](control-plane.md) for the transport/host boundary.
 
 ## Evidence

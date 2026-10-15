@@ -34,16 +34,21 @@ from raes_runtime.control_plane_profiles import ControlPlaneProfile
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
 
 AFTER = b"authored-world-content"
-_SERVER = r"""mkdir -p /tmp/inject-www/cgi-bin
+_SERVER = r"""command -v nc >/dev/null || exit 1
 printf '%s' before > /tmp/world-state
-printf '%s' ready > /tmp/inject-www/index.html
-cat > /tmp/inject-www/cgi-bin/inject <<'RAES_CGI'
+cat > /tmp/inject-receive <<'RAES_RECEIVE'
 #!/bin/sh
-printf '%s' "$QUERY_STRING" > /tmp/world-state
-printf 'Content-Type: text/plain\r\n\r\nok\n'
-RAES_CGI
-chmod 755 /tmp/inject-www/cgi-bin/inject
-exec httpd -f -p 19067 -h /tmp/inject-www
+read -r method path version
+while IFS= read -r header; do
+    [ "$header" = "$(printf '\r')" ] && break
+done
+case "$path" in
+    /inject\?*) printf '%s' "${path#/inject?}" > /tmp/world-state ;;
+esac
+printf 'HTTP/1.0 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\nok'
+RAES_RECEIVE
+chmod 755 /tmp/inject-receive
+while :; do nc -l -s 127.0.0.1 -p 19067 -e /tmp/inject-receive; done
 """
 
 
@@ -113,7 +118,7 @@ def concrete_inject_run(container_runtime, tmp_path, *, failed_entrypoint=False)
     native = OciInjectDriver(driver)
     context = tmp_path / "inject-image-context"
     context.mkdir()
-    url = "http://127.0.0.1:19067/cgi-bin/inject?" + AFTER.decode("ascii")
+    url = "http://127.0.0.1:19067/inject?" + AFTER.decode("ascii")
     command = ["wget", "-q", "-T", "5", "-O", "/dev/null", url]
     if failed_entrypoint:
         command = ["/bin/sh", "-c", " ".join(command) + "; exit 7"]

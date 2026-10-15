@@ -55,3 +55,4 @@ The ecosystem needs at least one concrete infrastructure-backed backend so its p
 - TESTS → TEST `implementations/python/tests/test_issue_1367_oci_process.py` (Actual local CLI bounds and credential isolation; not native effect evidence)
 - TESTS → TEST `implementations/python/tests/test_issue_1367_oci_inject_driver.py` (Substituted daemon target/source trust, native isolation and readback checks)
 - TESTS → TEST `implementations/python/tests/test_issue_1367_reference_injects.py` (Configured executing provider and durable outcome/recovery using a substituted daemon)
+- TESTS → TEST `implementations/python/tests/reference_inject_integration_support.py` (Existing real-container CI composition with admitted source, live target and durable recovery)
