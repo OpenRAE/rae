@@ -12,6 +12,7 @@ from raes_backend_libvirt import create_libvirt_target
 from raes_backend_libvirt.driver import DomainHandle, DriverResult, NetworkHandle
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.manager import RuntimeManager
+from runtime_plan_fixtures import plan_for_target
 
 _TECHVAULT_PARAMETERS = {
     "app_py_sha256": "a" * 64,
@@ -70,10 +71,9 @@ class _RecordingLibvirtDriver:
 def test_techvault_runtime_inventory_is_honestly_rejected_by_libvirt():
     driver = _RecordingLibvirtDriver()
     target = create_libvirt_target(driver=driver, name_prefix="techvault-unsupported")
-    manager = RuntimeManager(target)
     scenario = _without_os_identity((EXAMPLES_DIR / "techvault.sdl.yaml").read_text(encoding="utf-8"))
 
-    execution_plan = manager.plan(scenario, parameters=_TECHVAULT_PARAMETERS)
+    execution_plan = plan_for_target(target, scenario, parameters=_TECHVAULT_PARAMETERS)
 
     assert not execution_plan.is_valid
     assert any(
@@ -87,12 +87,11 @@ def test_techvault_runtime_inventory_is_honestly_rejected_by_libvirt():
 def test_techvault_scenario_plans_and_applies_supported_surface_through_libvirt_provisioning():
     driver = _RecordingLibvirtDriver()
     target = create_libvirt_target(driver=driver, name_prefix="techvault-test")
-    manager = RuntimeManager(target)
     scenario = _without_unsupported_runtime_realization(
         (EXAMPLES_DIR / "techvault.sdl.yaml").read_text(encoding="utf-8")
     )
 
-    execution_plan = manager.plan(scenario, parameters=_TECHVAULT_PARAMETERS)
+    execution_plan = plan_for_target(target, scenario, parameters=_TECHVAULT_PARAMETERS)
 
     assert execution_plan.is_valid
     assert execution_plan.model.scenario_name == "techvault-runtime-parity"
@@ -142,10 +141,9 @@ def test_techvault_scenario_plans_and_applies_supported_surface_through_libvirt_
 def test_techvault_operational_scenario_drives_full_libvirt_surface():
     driver = _RecordingLibvirtDriver()
     target = create_libvirt_target(driver=driver, name_prefix="techvault-operational")
-    manager = RuntimeManager(target)
     scenario = _without_os_identity((EXAMPLES_DIR / "techvault-operational.sdl.yaml").read_text(encoding="utf-8"))
 
-    admission_plan = manager.plan(scenario)
+    admission_plan = plan_for_target(target, scenario)
 
     assert not admission_plan.is_valid
     assert any(diagnostic.code == "evaluator.missing" for diagnostic in admission_plan.diagnostics)
@@ -156,7 +154,7 @@ def test_techvault_operational_scenario_drives_full_libvirt_surface():
             "nodes": {name: node.model_copy(update={"conditions": {}}) for name, node in scenario.nodes.items()},
         }
     )
-    execution_plan = manager.plan(provisioning_projection)
+    execution_plan = plan_for_target(target, provisioning_projection)
 
     assert execution_plan.is_valid
     assert execution_plan.model.scenario_name == "techvault"

@@ -46,6 +46,7 @@ dependencies = [
     # engine_version 4.16.0, so bumping this without re-pinning that governed
     # profile makes formal satisfiability evidence unreproducible.
     "z3-solver==4.16.0.0",
+    "anyio>=4.14.2,<5",
 ]
 
 [project.optional-dependencies]
@@ -66,6 +67,10 @@ docs = [
     "sphinx-copybutton>=0.5.2",
     "sphinx-autobuild>=2024.4.16",
     "sphinx-reredirects==1.1.0",
+]
+distributed = [
+    "psycopg[binary]==3.3.6",
+    "temporalio==1.33.0",
 ]
 
 [project.scripts]

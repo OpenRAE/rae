@@ -455,7 +455,7 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     # dev/main branch protection requires the `verify` and `sonar` contexts. Both
     # are now decoupled joins over the reusable graph's outcomes (#935).
     verify = workflow["jobs"]["verify"]
-    assert verify["needs"] == "canonical"
+    assert verify["needs"] == ["canonical", "runtime-supervision"]
     assert verify["if"] == "always()"
     verify_join = _named_step(verify, "Preserve the required canonical verification status")
     assert verify_join["env"]["GATE_OUTCOME"] == "${{ needs.canonical.outputs.gate-outcome }}"

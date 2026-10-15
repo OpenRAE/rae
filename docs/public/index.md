@@ -42,6 +42,7 @@ participant-control
 guides/python
 guides/cli
 guides/control-plane
+guides/supervised-execution
 backends
 research
 limitations
