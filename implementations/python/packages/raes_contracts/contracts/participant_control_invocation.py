@@ -170,6 +170,75 @@ def _satisfied(result: ControlMechanismResultV2Model) -> bool:
     )
 
 
+def control_predecessors_satisfied_v2(results: tuple[ControlMechanismResultV2Model, ...]) -> bool:
+    """The published required-input satisfaction relation, without a new reducer."""
+    return all(_satisfied(item) for item in results)
+
+
+def normalize_optional_control_result_v2(
+    request: ParticipantControlRequestV2Model,
+    invocation: ControlInvocationV2Model,
+    result: ControlMechanismResultV2Model,
+    *,
+    evidence: ControlArtifactReferenceModel,
+    competing_state_scopes: tuple[ControlStateScopeV2Model, ...] = (),
+    reserved_result_ids: frozenset[str] = frozenset(),
+    executable_effects_supported: bool,
+) -> tuple[ControlMechanismResultV2Model, ControlLostAdviceV2Model | None]:
+    """Isolate optional loss before exposing the result to another invocation.
+
+    Required availability is immutable. Conservative omission of an optional
+    shared-state candidate is recorded rather than arbitrating competing writers.
+    Effect execution capability is supplied by the consumer, never the provider.
+    """
+    if len(invocation.requested_slot_ids) != 1 or result.slot_id in request.applicability.required_slot_ids:
+        raise ValueError("optional normalization cannot discard required work")
+    reason = None
+    if result.result_id in reserved_result_ids:
+        reason = "malformed"
+    elif not _satisfied(result):
+        reason = result.status if result.status != "resolved" else "failed"
+    elif result.next_provider_state is not None and invocation.state_input.scope in competing_state_scopes:
+        reason = "conflict"
+    elif result.payload is not None and result.payload.kind == "effect-request" and not executable_effects_supported:
+        reason = "unsupported"
+    if reason is None:
+        return result, None
+    normalized, _ = normalize_optional_result_failure_v2(
+        request,
+        invocation,
+        None,
+        result_id=_optional_failure_identity(invocation, result.result_id, reserved_result_ids),
+        evidence=evidence,
+    )
+    return normalized, ControlLostAdviceV2Model(slot_id=result.slot_id, reason=reason, evidence=(evidence,))
+
+
+def _optional_failure_identity(invocation: ControlInvocationV2Model, original: str, reserved: frozenset[str]) -> str:
+    if original not in reserved:
+        return original
+    base = "lost:" + control_digest(invocation)
+    # At most 256 admitted results; one of these bounded candidates is free.
+    return next(f"{base}:{index}" for index in range(len(reserved) + 1) if f"{base}:{index}" not in reserved)
+
+
+def validate_control_stage_result_v2(
+    request: ParticipantControlRequestV2Model,
+    call: ControlInvocationV2Model,
+    result: ControlMechanismResultV2Model,
+    predecessors: tuple[ControlMechanismResultV2Model, ...],
+) -> None:
+    """Validate one output before exposing it as an input to a dependent stage."""
+    bindings = {item.instance_id: item for item in request.selection.bindings}
+    slots = {item.slot_id: item for item in request.selection.slots}
+    _validate_call_identity(call, bindings.get(call.instance_id), control_digest(request.context))
+    by_slot = {item.slot_id: item for item in (*predecessors, result)}
+    if tuple(call.requested_slot_ids) != (result.slot_id,):
+        raise ValueError("stage result differs from the requested slot")
+    _validate_call_predecessors(call, slots, by_slot)
+    _validate_call_results(call, slots, by_slot)
+
+
 def validate_control_invocations_v2(
     request: ParticipantControlRequestV2Model,
     invocations: tuple[ControlInvocationV2Model, ...] | list[ControlInvocationV2Model | dict],
