@@ -204,6 +204,69 @@ fabricate occurrence IDs, order tokens, readback evidence or results. The four
 contracts are draft v1 publications under ADR-009 and ADR-061, and each
 publication entry records its content hash and contract-facing change.
 
+## Adoption boundaries
+
+ADR-112 defines the semantics; executable adoption is tracked by #1367. Reuse
+ADR-104's operation authority, ADR-110's participant composition and ADR-113's
+execution machinery. The following owners apply to consumers of these carriers;
+Python paths are relative to `implementations/python/packages/`.
+
+| Boundary | Existing owner and adoption rule |
+| --- | --- |
+| Input | `raes_contracts/json_ingress.py::parse_bounded_json_object` rejects duplicate members and nonfinite numbers; select explicit byte/depth bounds before decoding. Reuse `OperationContractModel`, scalar bounds and contextual validators for direct calls and restored records too. Schema validation alone cannot check cross-message joins. |
+| Authority and configuration | Reuse `ControlPlaneSecurityConfig`, `control_plane_api/_auth.py`, `ControlPlaneConfiguration` and `OperationSupervisionConfiguration`. Mutation requires target-bound administrative authority; carried admission context authenticates nobody. Authorize actor/scope readback through `RuntimeControlPlane._operation_read_allowed` before disclosure, with indistinguishable unknown/unauthorized claims. Preserve typed scope/profile/budget checks and bounded HTTP offload. P0 remains a trusted embedder boundary. |
+| Intent and targets | Reuse the authoring validators, compiler/address helpers and `control_plane_plan_authorization.py`. Resolve the exact authorized plan, binding/node/instance revisions, source, realization and placement. Intrinsic/event/schedule assertions and shared-time validity remain independent admission checks; unknown truth refuses. |
+| Artifacts and secrets | Artifact references supply identity/integrity, not authenticity or fetch permission. Use admitted artifact owners and ADR-071/077 provenance, a closed realization input contract and `SecretReferenceId` for operator-secret references. Omitted input permits no parameters. Keep credentials and guessable secret digests out of identifiers and carriers. |
+| Provider | Reuse `manifest_authority.py`, `require_inject_occurrence_provider`, `require_backend_operation_admission` and `validate_backend_operation_response`. Allowlisting, declaration, installed call shapes and current willingness remain separate checks. Unsupported guarantees refuse explicitly. |
+| Claims and recovery | Existing admission, supervised execution, invocation ledger and `ControlPlaneStore` owners retain atomic claims, running intent, generation fences, effect reservations and terminal state/audit. `validate_inject_occurrence_claims` supplies neither concurrent persistence nor complete head-chain verification. Adoption must extend versioned codecs and occurrence/slot/order uniqueness across restart; truncated lists or process-local sets cannot provide it. Uncertainty retains claims and exclusion without redispatch. |
+| Results and participants | Reuse the outcome/correlation validators, `OperationEvidenceResolver`, result finalization and backend diagnostics to verify evidence content, native integrity, predecessor isolation and every binding. Resource narrowing needs admitted independence. Existing participant delivery/control/crossing owners additionally enforce audience, policy, control-occurrence, episode/time/flow and delivery reservations. Correlation grants none of that authority; legacy anchors and ADR-066 evidence ownership remain intact. |
+| Errors and release | Reuse existing validation errors, diagnostics, redacted HTTP handlers and action-specific audit fields. Preserve bounded denial audit, fixed log labels and `Cache-Control: no-store`. Arbitrary payloads are not valid audit details; raw exceptions, validation inputs, credentials and provider locators must not escape. |
+
+Two existing execution boundaries require deliberate integration:
+
+- `require_backend_execution_policy_admission` accepts native plan commands.
+  `operation_provider_execution.py` checks native commitments and
+  `operation_result_finalization.py` checks native snapshot results. An
+  occurrence reference cannot replace a plan reference unchanged. Extend the
+  owning resolution boundary while preserving its policy and result checks.
+- `control_plane_operation_context.py` and `control_plane_store_payloads.py`
+  redact account credentials, not arbitrary inject inputs. RFC 8785 commits
+  the actual carrier, including references. Sensitive adoption must cover
+  commitments, ephemeral exact-retry proof, snapshots, audit and restore;
+  loss of retry proof never permits redispatch.
+
+`Inject.environment` remains a string list, with no assignment or shell grammar.
+Runtime environment bindings use `RuntimeEnvironmentVariable` and
+`runtime_generated_value.py`, retaining name validation, literal/`value_from`
+exclusivity and `redacted`/`operator_secret` omission. ADR-057 separates scenario
+fixture values from operator secrets. Backend owners retain native execution
+and secret resolution; portable IDs never become paths or callbacks. Keep
+operator credentials out of argv, URLs, shell strings, dumps and artifacts.
+P2 adoption preserves the existing [host/service boundary](../../public/guides/control-plane.md),
+including TLS/proxy and connection limits, counted request bytes, bounded
+offload, worker/profile checks, private storage and service credentials.
+
+Extensions belong in versioned realization/input/target contracts and admitted
+backend guarantees. V1 selects compiled `Node.injects` bindings; non-node targets
+need an explicit versioned interpretation. Preserve omission/null/default and
+ordering commitments, historical readers and ADR-061/075 publication rules.
+Accepted ADRs retain ADR-059 amendment/pin protection. Keep the schema bundle,
+per-contract publication entries, facade exports, versions, backend allowlists
+and installed `raes_contracts.corpus` aligned through existing generation and
+packaging tools. Allowlist changes also affect SDL behavior evidence references
+without advertising backend support.
+
+JSON Schema does not execute `x-raes-invariants`, and the current
+`raes_conformance/conformance/validators.py` registry does not register these
+contracts. Direct helper tests and publication are not conformance-CLI adoption.
+Existing fixture tests establish structural/contextual joins and participant-free
+parser/compiler agreement. Executable consumers additionally need evidence at
+authentication, ingress, store, provider and final-sink boundaries, including
+competing claims, failed commits and crash/late outcomes. This publication adds
+no dispatch, endpoint, operation kind, backend implementation, SDL grammar,
+participant registration/delivery or store migration. Acceptance, willingness,
+installation, effects, delivery and observation remain separate facts.
+
 ## Participant-free example
 
 This environment declares no agents, behaviors, scripts or stories, and the
