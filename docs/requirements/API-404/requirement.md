@@ -402,3 +402,5 @@ policy choices, recovery and composition limits.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_provider_execution.py` (C1 current provider willingness and one-use dispatch with typed inject settlement)
 - TESTS → TEST `implementations/python/tests/inject_execution_fixtures.py` (Executing world-file witness for shared-runtime tests; not concrete backend evidence)
 - TESTS → TEST `implementations/python/tests/test_release_workflows.py` (Mandatory PR and exact-SHA release container gates)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-5d274941b97b738f9f2b70d0efd0269f131e26694e1712bf4c807b96d5101b71/manifest.json` (Fresh bounded source-bound witness; retained research claim limits)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-a566be978d1c4991f1cba201477c741e49ef98cca9bb6298de1509873538c337/manifest.json` (Fresh bounded source-bound witness; retained research claim limits)
