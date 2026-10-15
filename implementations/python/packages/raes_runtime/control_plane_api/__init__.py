@@ -58,6 +58,7 @@ from ._participant_routes import (
     _register_participant_execution_routes,
 )
 from ._responses import _receipt_response
+from ._supervision_routes import register_supervision_routes
 from ._workflow_routes import _register_workflow_routes
 
 _HTTP_CAPABILITIES = frozenset(
@@ -121,7 +122,12 @@ def create_control_plane_app(
         )
     require_single_worker_configuration()
     security = security or ControlPlaneSecurityConfig.strict_defaults()
-    executor = _ControlPlaneCallExecutor(max_pending_mutations=security.max_pending_mutations)
+    bounds = control_plane._supervision
+    executor = _ControlPlaneCallExecutor(
+        max_pending_mutations=security.max_pending_mutations,
+        call_budget_ms=bounds.execution_ms + bounds.admission_ms + 4 * bounds.commit_ms,
+        drain_budget_ms=bounds.drain_ms,
+    )
 
     @asynccontextmanager
     async def lifespan(served: FastAPI) -> AsyncIterator[None]:
@@ -144,6 +150,7 @@ def create_control_plane_app(
     _register_health_routes(app, control_plane)
     _install_request_guards(app, control_plane, security)
     _register_operation_routes(app, control_plane)
+    register_supervision_routes(app, control_plane)
     _register_workflow_routes(app, control_plane)
     _register_participant_episode_routes(app, control_plane)
     _register_participant_control_routes(app, control_plane)

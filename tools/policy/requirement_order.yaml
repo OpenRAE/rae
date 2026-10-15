@@ -390,6 +390,12 @@ ownership:
     - docs/governance/requirement-scopes/1353.json
     - docs/requirements/DSL-111/requirement.md
     - docs/requirements/DSL-142/requirement.md
+    # Issue #297 completes DSL-116 and republishes source-bound verification.
+    - docs/requirements/DSL-116/requirement.md
+    - docs/decisions/issue-297-behavior-authoring.md
+    - docs/research/formal-semantic-validation
+    - tools/check_specification_coverage.py
+    - tools/formal_semantic_validation
     - docs/requirements/DSL-435
     - docs/explain/sdl
     - docs/index.md
@@ -658,8 +664,16 @@ ownership:
     - implementations/python/tests/test_sem_235_modular_control.py
     - implementations/python/tests/test_sem_235_governance.py
   modular-control-runtime:
+    - docs/research/formal-semantic-validation/capture-records/capture-76a22200630a0f623823cce738ef5d90a5984d9d4a69208005548975c980698b.json
+    - docs/research/formal-semantic-validation/captures/capture-76a22200630a0f623823cce738ef5d90a5984d9d4a69208005548975c980698b
+    - docs/research/specification-coverage/capture-records/capture-c5e6610f7d0058be6715fe2f5c7ef89ebd468a8ea7177b1ee58298f2b12a9b81.json
+    - docs/research/specification-coverage/captures/capture-c5e6610f7d0058be6715fe2f5c7ef89ebd468a8ea7177b1ee58298f2b12a9b81
     # RUN-320 orchestrates the published API-424 contracts in the reference
     # runtime (#1069). Contracts, semantics and conformance keep their own phases.
+    - docs/research/formal-semantic-validation/captures/capture-76fee14b79cd734502e7498d05fbf5c8d17c34e46dc2ba55bbb94f57d213bec7
+    - docs/research/formal-semantic-validation/capture-records/capture-76fee14b79cd734502e7498d05fbf5c8d17c34e46dc2ba55bbb94f57d213bec7.json
+    - docs/research/specification-coverage/captures/capture-08a9c99e27c3f7d197d6564c8a5c5852833b33625c2d265ecac7775566b7cde9
+    - docs/research/specification-coverage/capture-records/capture-08a9c99e27c3f7d197d6564c8a5c5852833b33625c2d265ecac7775566b7cde9.json
     - contracts/schema-publication/entries/runtime-snapshot-v1.json
     - contracts/schemas/snapshots/runtime-snapshot-v1.json
     - docs/decisions/issue-1069-run-320-runtime-orchestration-preflight.md
@@ -725,6 +739,10 @@ ownership:
     - tools/formal_semantic_validation/_releases.py
     - tools/formal_semantic_validation/_retest.py
     - tools/policy/requirement_order.yaml
+    - implementations/python/packages/raes_runtime/participant_control_evaluation_v2.py
+    - implementations/python/packages/raes_runtime/participant_control_provider_state.py
+    - implementations/python/tests/participant_control_v2_fixtures.py
+    - implementations/python/tests/test_issue_1069_provider_evaluation_v2.py
   modular-control-contracts:
     # Issue #1352 semantic-design publication; no expanded runtime ownership.
     - docs/migration/control-applicability-and-evaluation.md
@@ -1133,6 +1151,7 @@ ownership:
     - implementations/python/packages/raes_mcp
     - implementations/python/tests/test_project_positioning.py
     - implementations/python/tests/test_public_docs_policy.py
+    - implementations/python/tests/test_issue_954_docs_publication_boundary.py
     - implementations/python/tests/test_public_project_readiness.py
     - implementations/python/tests/test_repo_policy_tools.py
     - implementations/python/tests/test_vale_tool.py
@@ -1145,6 +1164,8 @@ ownership:
     - styles/config/vocabularies/RAES
     - tools/check_project_positioning.py
     - tools/check_public_docs.py
+    - tools/public_docs_guard.py
+    - tools/public_docs_markup.py
     - tools/policy/requirement_order.yaml
     - tools/tool_versions.py
     - tools/vale_tool.py

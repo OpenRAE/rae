@@ -9,6 +9,7 @@ This delivery defines the target and program. It does not claim the result.
 - [Architecture preflight](../../decisions/issue-811-participant-bisimulation-preflight.md)
 - [Independent model preflight (#971)](../../decisions/issue-971-participant-crossing-models-preflight.md)
 - [Executable model construction (#971)](model-construction.md)
+- [Multi-operation model construction (#1395)](multi-operation-construction.md)
 - [ADR-100](../../decisions/adrs/adr-100-participant-crossing-bisimulation.md)
 - [Current-state assessment](current-state-assessment.md)
 - [Candidate comparison](candidate-comparison.md)

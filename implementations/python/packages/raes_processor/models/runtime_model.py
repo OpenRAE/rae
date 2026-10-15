@@ -10,6 +10,7 @@ from raes_contracts.addressing import require_compiled_address
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.evaluation import EvaluationExecutionContract, EvaluationResultContract
+from raes_contracts.execution_policy import EffectiveExecutionPolicy
 from raes_contracts.observation_demand import EffectiveObservationDemand
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.realization_profiles import PlanProfileAuthority
@@ -110,6 +111,7 @@ class RuntimeModel:
     """
 
     scenario_name: str
+    execution_policies: dict[str, tuple[EffectiveExecutionPolicy, ...]] = field(default_factory=dict)
     feature_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)
     condition_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)
     inject_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)

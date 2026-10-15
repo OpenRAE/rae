@@ -1933,6 +1933,38 @@
       ]
     },
     {
+      "subject_id": "sdl-field:execution_policy",
+      "subject_kind": "top_level_field",
+      "disposition": "current",
+      "authority": {
+        "artifact": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
+        "pointer": "#/properties/execution_policy",
+        "contract_id": "sdl-authoring-input-v1"
+      },
+      "claims": [
+        {
+          "plane": "semantics",
+          "classification": "raes_native",
+          "source_refs": [],
+          "raes_boundaries": [
+            {
+              "artifact": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
+              "symbol_or_pointer": "#/properties/execution_policy"
+            }
+          ],
+          "source_boundaries": [],
+          "divergence": "RAES defines complete lexical execution and recovery requirements, preserving native operation retry separately from trial allocation and rejecting unsupported realizations at backend admission.",
+          "compatibility": "not_applicable",
+          "citation_refs": [],
+          "internal_authority_refs": [
+            "docs/decisions/adrs/adr-113-reusable-execution-machinery.md",
+            "specs/sdl/execution-recovery.md"
+          ],
+          "compatibility_direction": "not_applicable"
+        }
+      ]
+    },
+    {
       "subject_id": "sdl-field:features",
       "subject_kind": "top_level_field",
       "disposition": "current",

@@ -63,6 +63,8 @@ class BackendPreparationResponseModel(ContractModel):
                     ordering_dependencies=tuple(operation.ordering_dependencies),
                     refresh_dependencies=tuple(operation.refresh_dependencies),
                     profile_bindings=operation.profile_bindings,
+                    execution_policy=operation.execution_policy,
+                    execution_policy_scopes=operation.execution_policy_scopes,
                 )
                 for operation in self.operations
             ),

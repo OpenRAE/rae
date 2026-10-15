@@ -12,14 +12,25 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Protocol
+from typing import Literal, Protocol
 
-from raes_backend_protocols.protocols import ParticipantControlProvider
+from raes_backend_protocols.protocols import ParticipantControlProvider, ParticipantControlProviderV2
+from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.contracts import schema_bundle
+from raes_contracts.contracts.participant_control_applicability import (
+    ParticipantControlRequestV2Model,
+    ParticipantControlSelectionV2Model,
+)
 from raes_contracts.contracts.participant_control_composition import ParticipantControlRequestModel
-from raes_contracts.contracts.participant_control_coordinates import ControlArtifactReferenceModel
-from raes_contracts.contracts.participant_control_resolution import ParticipantControlValidationContext
+from raes_contracts.contracts.participant_control_coordinates import ControlArtifactReferenceModel, require_kind
+from raes_contracts.contracts.participant_control_invocation import ControlMechanismResultV2Model
+from raes_contracts.contracts.participant_control_resolution import (
+    ParticipantControlValidationContext,
+    ParticipantControlValidationContextV2,
+)
 from raes_contracts.contracts.participant_control_results import ControlEffectiveSupportModel
 from raes_contracts.contracts.participant_control_selection import ParticipantControlSelectionModel
+from raes_contracts.contracts.participant_control_support_v2 import ControlSupportAssessmentV2Model
 
 from .control_plane_mutation import external_control_plane_call
 
@@ -30,8 +41,8 @@ PARTICIPANT_CONTROL_PROTOCOL_REVISION = "participant-control-provider/v1"
 class ParticipantControlResolution:
     """Owner-resolved admitted request, support and incumbent gate for one cut."""
 
-    request: ParticipantControlRequestModel
-    support: tuple[ControlEffectiveSupportModel, ...]
+    request: ParticipantControlRequestModel | ParticipantControlRequestV2Model
+    support: tuple[ControlEffectiveSupportModel, ...] | tuple[ControlSupportAssessmentV2Model, ...]
     incumbent_gate_disposition: str
     incumbent_gate_evidence: ControlArtifactReferenceModel
 
@@ -50,30 +61,103 @@ class ParticipantControlRuntimeResolver(Protocol):
 
     def resolve(self, **coordinates: object) -> ParticipantControlResolution | None: ...
 
-    def validation_context(self, evaluation: object) -> ParticipantControlValidationContext: ...
+    def validation_context(
+        self, evaluation: object
+    ) -> ParticipantControlValidationContext | ParticipantControlValidationContextV2: ...
 
     def effect_operation(self, request: object, context: object) -> object | None: ...
+
+
+class ParticipantControlRuntimeResolverV2(ParticipantControlRuntimeResolver, Protocol):
+    """Trusted disclosure owner for one exact content-addressed projection.
+
+    Before returning a projection, independently validate the supplied predecessor
+    results and authorize disclosure to this slot. The installed provider's
+    scoped content resolver must resolve that reference to those exact detached
+    inputs. Failure supplies no projection or provider invocation.
+    """
+
+    def projection(
+        self,
+        request: ParticipantControlRequestV2Model,
+        slot_id: str,
+        predecessors: tuple[ControlMechanismResultV2Model, ...],
+    ) -> ControlArtifactReferenceModel: ...
+
+
+@dataclass(frozen=True, kw_only=True)
+class ParticipantControlStageBinding:
+    """Operator-admitted state policy for one v2 slot, never provider claims."""
+
+    unavailable_projection: ControlArtifactReferenceModel
+    commit_on: Literal["evaluation", "parent-release"] | None = None
+    state_predecessor_slot_id: str | None = None
+
+    def __post_init__(self) -> None:
+        projection = ControlArtifactReferenceModel.model_validate(self.unavailable_projection.model_dump(mode="json"))
+        require_kind(projection, "projection")
+        object.__setattr__(self, "unavailable_projection", projection)
+        if self.commit_on not in {None, "evaluation", "parent-release"}:
+            raise ValueError("invalid participant control state commit condition")
 
 
 @dataclass(frozen=True)
 class ParticipantControlRuntimeBinding:
     """Immutable admitted selection joined to its exact provider instances."""
 
-    selection: ParticipantControlSelectionModel
-    providers: Mapping[str, ParticipantControlProvider]
-    resolver: ParticipantControlRuntimeResolver
+    selection: ParticipantControlSelectionModel | ParticipantControlSelectionV2Model
+    providers: Mapping[str, ParticipantControlProvider | ParticipantControlProviderV2]
+    resolver: ParticipantControlRuntimeResolver | ParticipantControlRuntimeResolverV2
+    stages: Mapping[str, ParticipantControlStageBinding] | None = None
+    contract_digests: Mapping[str, str] | None = None
 
     def __post_init__(self) -> None:
-        selection = ParticipantControlSelectionModel.model_validate(self.selection.model_dump(mode="python"))
+        model = (
+            ParticipantControlSelectionV2Model
+            if isinstance(self.selection, ParticipantControlSelectionV2Model)
+            else ParticipantControlSelectionModel
+        )
+        selection = model.model_validate(self.selection.model_dump(mode="python"))
         _require_published_protocol(selection)
         _require_exact_providers(selection, self.providers)
         _require_declared_resolver(self.resolver)
         object.__setattr__(self, "selection", selection)
         object.__setattr__(self, "providers", MappingProxyType(dict(self.providers)))
+        if isinstance(selection, ParticipantControlSelectionV2Model):
+            self._require_v2_inputs(selection)
+        elif self.stages is not None or self.contract_digests is not None:
+            raise ValueError("v2 participant control options require explicit v2 selection")
+
+    def _require_v2_inputs(self, selection: ParticipantControlSelectionV2Model) -> None:
+        contracts = ("participant-control-selection-v2", "participant-control-evaluation-v2")
+        expected = {name: canonical_json_digest(schema_bundle()[name]) for name in contracts}
+        if self.contract_digests != expected:
+            raise ValueError("participant control v2 requires exact published contract content pins")
+        slots = {item.slot_id: item for item in selection.slots}
+        if self.stages is None or self.stages.keys() != slots.keys():
+            raise ValueError("participant control v2 requires every admitted stage policy")
+        for identity, stage in self.stages.items():
+            if type(stage) is not ParticipantControlStageBinding:
+                raise TypeError("participant control stage policy must use its typed binding")
+            predecessor = stage.state_predecessor_slot_id
+            if predecessor is not None and (
+                predecessor not in {dep.slot_id for dep in slots[identity].dependencies}
+                or slots[predecessor].instance_id != slots[identity].instance_id
+            ):
+                raise ValueError("tentative state must name a same-instance declared input predecessor")
+        if not callable(getattr(self.resolver, "projection", None)):
+            raise TypeError("participant control v2 requires a scoped projection resolver")
+        object.__setattr__(self, "stages", MappingProxyType(dict(self.stages)))
+        object.__setattr__(self, "contract_digests", MappingProxyType(dict(expected)))
 
 
 def _require_published_protocol(selection: ParticipantControlSelectionModel) -> None:
-    if any(binding.protocol_revision != PARTICIPANT_CONTROL_PROTOCOL_REVISION for binding in selection.bindings):
+    revision = (
+        "participant-control-provider/v2"
+        if isinstance(selection, ParticipantControlSelectionV2Model)
+        else PARTICIPANT_CONTROL_PROTOCOL_REVISION
+    )
+    if any(binding.protocol_revision != revision for binding in selection.bindings):
         raise ValueError("participant control selection names an unpublished provider protocol revision")
 
 
@@ -83,8 +167,9 @@ def _require_exact_providers(
 ) -> None:
     if set(providers) != {binding.instance_id for binding in selection.bindings}:
         raise ValueError("participant control providers must exactly match the admitted selection instances")
+    method = "resolve_stage" if isinstance(selection, ParticipantControlSelectionV2Model) else "resolve"
     for provider in providers.values():
-        if not callable(getattr(provider, "resolve", None)):
+        if not callable(getattr(provider, method, None)):
             raise TypeError("participant control provider must implement the published resolve protocol")
 
 
@@ -123,5 +208,7 @@ __all__ = (
     "ParticipantControlResolution",
     "ParticipantControlRuntimeBinding",
     "ParticipantControlRuntimeResolver",
+    "ParticipantControlRuntimeResolverV2",
+    "ParticipantControlStageBinding",
     "fenced_validation_context",
 )

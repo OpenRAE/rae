@@ -8,6 +8,7 @@ from pydantic import Field, GetJsonSchemaHandler, SerializerFunctionWrapHandler,
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ..execution_policy import ExecutionPolicyCapabilities
 from ..manifest_authority import (
     BACKEND_SUPPORTED_CONTRACT_IDS,
     PARTICIPANT_IMPLEMENTATION_SUPPORTED_CONTRACT_IDS,
@@ -45,6 +46,7 @@ from .validators import (
 
 
 class BackendManifestV2Model(ContractModel):
+    execution_policy: ExecutionPolicyCapabilities | None = Field(default=None, exclude_if=lambda value: value is None)
     schema_version: Literal[BACKEND_MANIFEST_V2_SCHEMA_VERSION] = BACKEND_MANIFEST_V2_SCHEMA_VERSION
     identity: ApparatusIdentityModel
     supported_contract_versions: list[NonEmptyString] = Field(min_length=1)

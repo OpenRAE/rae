@@ -1,5 +1,79 @@
 {
   "$defs": {
+    "ExecutionPolicyCapabilities": {
+      "additionalProperties": false,
+      "description": "Installed support declaration; each invocation still needs contextual willingness.",
+      "properties": {
+        "after_effect_policies": {
+          "default": [
+            "disallow"
+          ],
+          "items": {
+            "enum": [
+              "disallow",
+              "idempotent",
+              "reset",
+              "compensate"
+            ],
+            "type": "string"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "title": "After Effect Policies",
+          "type": "array"
+        },
+        "max_attempts": {
+          "default": 1,
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "title": "Max Attempts",
+          "type": "integer"
+        },
+        "responses": {
+          "items": {
+            "enum": [
+              "terminate",
+              "hold",
+              "reconcile",
+              "continue",
+              "retry",
+              "resume",
+              "new-trial"
+            ],
+            "type": "string"
+          },
+          "maxItems": 7,
+          "minItems": 1,
+          "title": "Responses",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "execution-policy/v1",
+          "default": "execution-policy/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "responses"
+      ],
+      "title": "ExecutionPolicyCapabilities",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+          "id": "execution-policy-executionpolicycapabilities",
+          "inputs": [
+            {
+              "contract_id": "backend-operation-capabilities-v1",
+              "instance_path": "#/execution_policy"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.execution_policy.ExecutionPolicyCapabilities.model_validate"
+        }
+      ]
+    },
     "OperationKind": {
       "description": "Closed kinds of work admitted by the runtime control plane.",
       "enum": [
@@ -28,6 +102,17 @@
       "minLength": 1,
       "title": "Backend Id",
       "type": "string"
+    },
+    "execution_policy": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExecutionPolicyCapabilities"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "guarantees": {
       "default": [],

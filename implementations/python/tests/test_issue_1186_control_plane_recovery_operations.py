@@ -13,7 +13,7 @@ import raes_runtime.control_plane_store_maintenance as maintenance_module
 from fastapi.testclient import TestClient
 from raes_backend_stubs.stubs import create_stub_target
 from raes_cli.main import app as cli_app
-from raes_contracts.planning import RuntimeDomain
+from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
     OperationAdmissionContext,
     OperationKind,
@@ -213,6 +213,7 @@ def _create_local_store(path: Path, *, run_scope: str = "run:ops") -> None:
         store=LocalControlPlaneStore(path),
         run_scope=run_scope,
     )
+    assert control_plane_readiness(control_plane).status is ControlPlaneHealthStatus.READY
     control_plane.record_audit(
         action="maintenance-fixture",
         identity="operator-1186",
@@ -261,8 +262,12 @@ def test_local_maintenance_check_backup_and_restore_preserve_scope_and_state(tmp
     reopened_store = LocalControlPlaneStore(restored)
     reopened = RuntimeControlPlane(create_stub_target(), store=reopened_store, run_scope="run:ops")
     try:
-        assert control_plane_readiness(reopened).status is ControlPlaneHealthStatus.READY
+        readiness = control_plane_readiness(reopened)
+        assert readiness.status is ControlPlaneHealthStatus.UNREADY
+        assert readiness.reasons == ("effect-admission-stopped",)
+        assert reopened_store.effect_admission_stopped()
         assert [event.action for event in reopened_store.read_audit()] == ["maintenance-fixture"]
+        assert not reopened.submit_provisioning(ProvisioningPlan()).accepted
     finally:
         reopened.close()
 

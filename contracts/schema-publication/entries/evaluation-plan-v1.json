@@ -1,9 +1,9 @@
 {
-  "content_hash": "cf76df1286058ff5dd35f44cdcbcac91d0cd45178b5006f70f509fd25948003b",
+  "content_hash": "6dc63ad6f10055bee937f2b13cef3e17804a123a5d7fd07881fb502a2f516a88",
   "contract_id": "evaluation-plan-v1",
   "last_change": {
-    "content_hash": "cf76df1286058ff5dd35f44cdcbcac91d0cd45178b5006f70f509fd25948003b",
-    "summary": "Bind explicit augmentation-scope negotiation to the canonical phase plan independently of diagnostics (#1242)."
+    "content_hash": "6dc63ad6f10055bee937f2b13cef3e17804a123a5d7fd07881fb502a2f516a88",
+    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
   },
   "schema_path": "contracts/schemas/plans/evaluation-plan-v1.json",
   "stability": "draft"

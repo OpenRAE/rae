@@ -11,7 +11,7 @@ from raes_contracts.participant_episode import (
 )
 from raes_reference_backend import create_reference_backend_target
 from raes_runtime.control_plane import RuntimeControlPlane
-from raes_runtime.manager import RuntimeManager
+from runtime_plan_fixtures import plan_for_target
 
 _SCENARIO = """
 name: ref-components
@@ -58,8 +58,7 @@ workflows:
 
 def _control_plane():
     target = create_reference_backend_target()
-    manager = RuntimeManager(target)
-    execution_plan = manager.plan(parse_sdl(textwrap.dedent(_SCENARIO)))
+    execution_plan = plan_for_target(target, parse_sdl(textwrap.dedent(_SCENARIO)))
     control_plane = RuntimeControlPlane(target)
     return target, control_plane, execution_plan
 

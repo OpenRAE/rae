@@ -5132,6 +5132,331 @@
       "title": "ExactRatio",
       "type": "object"
     },
+    "ExecutionPolicy": {
+      "additionalProperties": false,
+      "description": "A complete local choice; omitted fields never inherit from another policy.",
+      "properties": {
+        "budget_ms": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Budget Ms"
+        },
+        "clock_basis": {
+          "default": "apparatus",
+          "enum": [
+            "apparatus",
+            "semantic"
+          ],
+          "title": "Clock Basis",
+          "type": "string"
+        },
+        "clock_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Clock Ref"
+        },
+        "delay_ms": {
+          "default": 0,
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Delay Ms",
+          "type": "integer"
+        },
+        "effect_classes": {
+          "default": [],
+          "items": {
+            "enum": [
+              "absent",
+              "applied",
+              "partial"
+            ],
+            "type": "string"
+          },
+          "maxItems": 3,
+          "title": "Effect Classes",
+          "type": "array"
+        },
+        "evidence_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "failure_classes": {
+          "default": [
+            "operation"
+          ],
+          "items": {
+            "enum": [
+              "delivery",
+              "backend-refusal",
+              "operation",
+              "intentional-fault",
+              "continuity",
+              "invalid-evidence"
+            ],
+            "type": "string"
+          },
+          "maxItems": 6,
+          "minItems": 1,
+          "title": "Failure Classes",
+          "type": "array"
+        },
+        "fresh_trial_limit": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fresh Trial Limit"
+        },
+        "on_exhausted": {
+          "default": "terminate",
+          "enum": [
+            "terminate",
+            "new-trial"
+          ],
+          "title": "On Exhausted",
+          "type": "string"
+        },
+        "policy_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Policy Id",
+          "type": "string"
+        },
+        "response": {
+          "enum": [
+            "terminate",
+            "hold",
+            "reconcile",
+            "continue",
+            "retry",
+            "resume",
+            "new-trial"
+          ],
+          "title": "Response",
+          "type": "string"
+        },
+        "retry": {
+          "$ref": "#/$defs/ExecutionRetryPolicyModel"
+        },
+        "revision": {
+          "default": "1",
+          "maxLength": 256,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Revision",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "execution-policy/v1",
+          "default": "execution-policy/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "validity": {
+          "default": "preserve",
+          "enum": [
+            "preserve",
+            "qualify",
+            "invalidate"
+          ],
+          "title": "Validity",
+          "type": "string"
+        }
+      },
+      "required": [
+        "policy_id",
+        "response"
+      ],
+      "title": "ExecutionPolicy",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+          "id": "execution-policy-executionpolicy",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#/execution_policy"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.execution_policy.ExecutionPolicy.model_validate"
+        }
+      ]
+    },
+    "ExecutionPolicyDocument": {
+      "additionalProperties": false,
+      "description": "Convenience defaults with complete lexical overrides, independent of realization closure.",
+      "properties": {
+        "default": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExecutionPolicy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scopes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ExecutionPolicyScope"
+          },
+          "maxItems": 256,
+          "title": "Scopes",
+          "type": "array"
+        }
+      },
+      "title": "ExecutionPolicyDocument",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+          "id": "execution-policy-executionpolicydocument",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#/execution_policy"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.execution_policy.ExecutionPolicyDocument.model_validate"
+        }
+      ]
+    },
+    "ExecutionPolicyScope": {
+      "additionalProperties": false,
+      "properties": {
+        "namespace": {
+          "default": [],
+          "items": {
+            "maxLength": 64,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)$",
+            "type": "string"
+          },
+          "maxItems": 31,
+          "title": "Namespace",
+          "type": "array"
+        },
+        "policy": {
+          "$ref": "#/$defs/ExecutionPolicy"
+        },
+        "scope": {
+          "default": "",
+          "maxLength": 4096,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "policy"
+      ],
+      "title": "ExecutionPolicyScope",
+      "type": "object"
+    },
+    "ExecutionRetryPolicyModel": {
+      "additionalProperties": false,
+      "description": "Retry posture after an execution attempt may have produced effects.",
+      "properties": {
+        "after_effect_policy": {
+          "enum": [
+            "disallow",
+            "idempotent",
+            "reset",
+            "compensate"
+          ],
+          "title": "After Effect Policy",
+          "type": "string"
+        },
+        "compensation_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "title": "Compensation Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "max_attempts": {
+          "minimum": 1,
+          "title": "Max Attempts",
+          "type": "integer"
+        },
+        "reset_obligation_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "title": "Reset Obligation Refs",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "max_attempts",
+        "after_effect_policy"
+      ],
+      "title": "ExecutionRetryPolicyModel",
+      "type": "object"
+    },
     "ExerciseRole": {
       "description": "Role in the exercise.",
       "enum": [
@@ -6627,6 +6952,18 @@
           "title": "Evidence Requirements",
           "type": "object"
         },
+        "execution_policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExecutionPolicyDocument"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "x-raes-realization-dimension": false
+        },
         "features": {
           "additionalProperties": {
             "$ref": "#/$defs/Feature"
@@ -6892,6 +7229,14 @@
             "$ref": "#/$defs/ResolvedImportProvenance"
           },
           "title": "Imports",
+          "type": "array"
+        },
+        "parameter_derivations": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ParameterDerivation"
+          },
+          "title": "Parameter Derivations",
           "type": "array"
         },
         "realization_constraints": {
@@ -9192,6 +9537,142 @@
       "title": "ParameterBinding",
       "type": "object"
     },
+    "ParameterDerivation": {
+      "additionalProperties": false,
+      "description": "Portable substitution evidence for a publication-safe runtime scalar.\n\nA whole-field reference preserves its input type; an interpolation renders\neach input with the incumbent single-pass string conversion. An input with\nno finite domain binds its selected value, not all values of its type.",
+      "properties": {
+        "field_pointer": {
+          "maxLength": 4096,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^/nodes/[^/]+/runtime/",
+          "title": "Field Pointer",
+          "type": "string"
+        },
+        "segments": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "literal": "#/$defs/ParameterLiteralSegment",
+                "parameter": "#/$defs/ParameterReferenceSegment"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/ParameterLiteralSegment"
+              },
+              {
+                "$ref": "#/$defs/ParameterReferenceSegment"
+              }
+            ]
+          },
+          "maxItems": 128,
+          "minItems": 1,
+          "title": "Segments",
+          "type": "array"
+        }
+      },
+      "required": [
+        "field_pointer",
+        "segments"
+      ],
+      "title": "ParameterDerivation",
+      "type": "object"
+    },
+    "ParameterLiteralSegment": {
+      "additionalProperties": false,
+      "description": "Literal part of a substitution, without unresolved token syntax.",
+      "properties": {
+        "kind": {
+          "const": "literal",
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "maxLength": 4096,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "value"
+      ],
+      "title": "ParameterLiteralSegment",
+      "type": "object"
+    },
+    "ParameterReferenceSegment": {
+      "additionalProperties": false,
+      "description": "One typed input, distinct from the derived field's output.",
+      "properties": {
+        "allowed_values": {
+          "default": [],
+          "items": {
+            "anyOf": [
+              {
+                "not": {
+                  "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+                },
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "title": "Allowed Values",
+          "type": "array"
+        },
+        "kind": {
+          "const": "parameter",
+          "title": "Kind",
+          "type": "string"
+        },
+        "parameter": {
+          "items": {
+            "allOf": [
+              {
+                "not": {
+                  "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+                }
+              }
+            ],
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Parameter",
+          "type": "array"
+        },
+        "variable_type": {
+          "$ref": "#/$defs/VariableType"
+        }
+      },
+      "required": [
+        "kind",
+        "parameter",
+        "variable_type"
+      ],
+      "title": "ParameterReferenceSegment",
+      "type": "object"
+    },
     "ParticipantActionArgumentCardinality": {
       "description": "Whether an action argument carries one value or a bounded collection.",
       "enum": [
@@ -10533,9 +11014,11 @@
           "title": "Realization Profile Ref"
         },
         "semantic_version": {
+          "minLength": 1,
           "not": {
             "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
           },
+          "pattern": "\\S",
           "title": "Semantic Version",
           "type": "string"
         },
@@ -13032,7 +13515,7 @@
           }
         }
       ],
-      "description": "A typed directed edge between two named scenario elements.\n\nSource and target can reference any named element in the scenario:\nnodes, features, accounts, entities, or infrastructure entries.\nThe validator checks that both endpoints resolve.\n\nThe ``properties`` dict carries type-specific metadata (e.g.,\n``trust_type: parent-child`` for AD trusts, ``protocol: SAML``\nfor federation). It's a flat dict rather than typed sub-models\nbecause relationship properties vary widely and we don't want\nto gate expressiveness on pre-modeling every variant.\n\n``database_access`` and ``mail_access`` are typed exceptions where\nprotocol/auth details need structural validation rather than prose.\n``forwarding_edge``, ``service_integration``, and ``proxy_upstream`` are\nthe same kind of typed exception for, respectively, a forwarding /\nintel-sync agent's inter-node trust edge (SCN-010 \u00a75.7), a platform\nconsumer-to-engine service integration, and a reverse-proxy/gateway\nroute-to-origin upstream hop. Each keeps protocol/auth/topology facts\nstructurally validated and cross-referable rather than buried in prose.",
+      "description": "A typed directed edge between two named scenario elements.\n\n``source`` and ``target`` must each resolve to exactly one declaration\neligible as a relationship endpoint (SDL references \u00a77). Typed relationship\ntypes and typed details narrow the eligible declaration kinds (\u00a75 and \u00a77);\nwhere several apply, an endpoint must satisfy all of them.\n\nThe ``properties`` dict carries type-specific metadata (e.g.,\n``trust_type: parent-child`` for AD trusts, ``protocol: SAML``\nfor federation). It's a flat dict rather than typed sub-models\nbecause relationship properties vary widely and we don't want\nto gate expressiveness on pre-modeling every variant.\n\n``database_access`` and ``mail_access`` are typed exceptions where\nprotocol/auth details need structural validation rather than prose.\n``forwarding_edge``, ``service_integration``, and ``proxy_upstream`` are\nthe same kind of typed exception for, respectively, a forwarding /\nintel-sync agent's inter-node trust edge (SCN-010 \u00a75.7), a platform\nconsumer-to-engine service integration, and a reverse-proxy/gateway\nroute-to-origin upstream hop. Each keeps protocol/auth/topology facts\nstructurally validated and cross-referable rather than buried in prose.",
       "properties": {
         "carrier_placement": {
           "anyOf": [
@@ -30960,6 +31443,17 @@
       ],
       "title": "UnsupportedAnalysisModel",
       "type": "object"
+    },
+    "VariableType": {
+      "description": "Data type of a variable.",
+      "enum": [
+        "string",
+        "integer",
+        "boolean",
+        "number"
+      ],
+      "title": "VariableType",
+      "type": "string"
     },
     "VersionDomain": {
       "additionalProperties": false,

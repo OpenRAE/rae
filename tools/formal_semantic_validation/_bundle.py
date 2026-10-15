@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from tools.formal_semantic_validation._analysis import _validate_analysis
+from tools.formal_semantic_validation._analysis import _AnalysisContext, _validate_analysis
 from tools.formal_semantic_validation._corpus import _validate_corpus
 from tools.formal_semantic_validation._protocol import _validate_protocol
 from tools.formal_semantic_validation._shape import _closed_object
@@ -51,5 +51,5 @@ def validate_bundle(
         snapshot_path,
         replay_cases=replay_cases,
     )
-    _validate_analysis(repo_root, protocol, corpus, snapshot, analysis, failures, analysis_path)
+    _validate_analysis(_AnalysisContext(repo_root, analysis_path), protocol, corpus, snapshot, analysis, failures)
     return failures

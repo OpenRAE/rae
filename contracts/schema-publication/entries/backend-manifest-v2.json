@@ -1,9 +1,9 @@
 {
-  "content_hash": "a54f1d52cc08499c8ad50fc230c16f88f46da75a493c593c9faf8f463e4afd1f",
+  "content_hash": "bedf1036a4e02b8b6eeb5759eac23c50ed021916a0173fca4cc3677e3b22be2b",
   "contract_id": "backend-manifest-v2",
   "last_change": {
-    "summary": "Retain participant-control v2 declarations after reverting operation-supervision guarantees (#1365, #1400).",
-    "content_hash": "a54f1d52cc08499c8ad50fc230c16f88f46da75a493c593c9faf8f463e4afd1f"
+    "summary": "Allow explicit declarations of both mixed-backend execution binding/stage report and inject occurrence/outcome contracts; shipped backends retain their declared support boundaries (#1371, #1366).",
+    "content_hash": "bedf1036a4e02b8b6eeb5759eac23c50ed021916a0173fca4cc3677e3b22be2b"
   },
   "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
   "stability": "draft"

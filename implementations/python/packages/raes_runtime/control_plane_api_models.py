@@ -85,6 +85,8 @@ def _provisioning_plan(model: ProvisioningPlanModel) -> ProvisioningPlan:
         profile_authority=model.profile_authority,
         operations=[
             ProvisionOp(
+                execution_policy=op.execution_policy,
+                execution_policy_scopes=op.execution_policy_scopes,
                 action=ChangeAction(str(op.action)),
                 address=op.address,
                 resource_type=op.resource_type,
@@ -151,6 +153,8 @@ def _orchestration_plan(model: OrchestrationPlanModel) -> OrchestrationPlan:
         purpose=model.purpose,
         operations=[
             OrchestrationOp(
+                execution_policy=op.execution_policy,
+                execution_policy_scopes=op.execution_policy_scopes,
                 action=ChangeAction(str(op.action)),
                 address=op.address,
                 resource_type=op.resource_type,
@@ -174,6 +178,8 @@ def _evaluation_plan(model: EvaluationPlanModel) -> EvaluationPlan:
         purpose=model.purpose,
         operations=[
             EvaluationOp(
+                execution_policy=op.execution_policy,
+                execution_policy_scopes=op.execution_policy_scopes,
                 action=ChangeAction(str(op.action)),
                 address=op.address,
                 resource_type=op.resource_type,

@@ -12,7 +12,6 @@ from ..addressing import CompiledAddress
 from ..artifact_requirements import ArtifactSatisfactionDisclosureModel
 from ..bounded_domains import DomainDescriptor
 from ..compute_substrate import validate_compute_substrate_constraint, validate_planned_substrate_targets
-from ..domain_profiles import DomainProfileBindingModel
 from ..materialization import require_materialization_records
 from ..observation_demand import EffectiveObservationDemand
 from ..planning import (
@@ -58,22 +57,11 @@ from .participant_runtime import (
     ParticipantEpisodeHistoryEventModel,
     ParticipantEpisodeStateModel,
 )
+from .plan_operation import PlanOperationModel as PlanOperationModel
 from .realization_observation_validation import validate_realization_observation_disclosure
 from .snapshot_budget_validation import validate_execution_service_budget_projection
 from .snapshot_entry import SnapshotEntryModel as SnapshotEntryModel
 from .time_model import TimeRuntimeStateModel
-
-
-class PlanOperationModel(ContractModel):
-    action: str
-    address: CompiledAddress
-    resource_type: str
-    payload: dict[str, Any] = Field(default_factory=dict)
-    ordering_dependencies: list[CompiledAddress] = Field(default_factory=list)
-    refresh_dependencies: list[CompiledAddress] = Field(default_factory=list)
-    profile_bindings: tuple[DomainProfileBindingModel, ...] = Field(
-        default=(), max_length=256, exclude_if=lambda value: not value
-    )
 
 
 def _require_unique_operation_addresses(operations: list[PlanOperationModel]) -> None:

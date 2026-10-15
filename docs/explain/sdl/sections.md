@@ -2142,7 +2142,10 @@ Refs fail closed: participants must resolve to declared `agents`, roles must
 match roles of agent-bound entities, action contracts and observation
 boundaries must resolve to their registries, outcome rules must resolve to
 `outcome_interpretation_rules`, and `authority_scope_refs` must resolve to
-targetable named scenario elements. `behavior_mode` is validated against the
+eligible authority scopes: participants, organizations, resources,
+relationships, or behavior surfaces such as action contracts and observation
+boundaries, never propositions, assertions, conditions, narrative entries, or
+variation points. `behavior_mode` is validated against the
 governed `participant-decision-surface-modes` vocabulary.
 External behavior classifications use standalone concept binding documents.
 ATT&CK, ATLAS and NIST CSF remain optional pinned source catalogs, not governed
@@ -2153,6 +2156,19 @@ realization or conformance.
 authored affordance bindings; each value may name one governed scenario
 `content` identity and must name non-empty action-contract and observation-
 boundary sets. The binding reference
+Behavior specifications may be declared locally or exported by a reusable
+module. References to the unit's declarations are rewritten into each import's
+namespace. Other references resolve against the complete composed scenario;
+missing or ambiguous targets fail validation. `participant_role_refs` selects
+all matching participants across that scenario, including unexported ones.
+Use explicit `participant_refs` when a reusable tool binding must select only
+the unit's own participants. Namespacing does not silently narrow a role.
+Authored refs must use exported names; `__private` is reserved for composition.
+Behavior `semantic_version` labels must be nonblank. See the
+[composition decision and migration guidance](../../decisions/issue-297-behavior-authoring.md).
+Declaration reuse does not imply repeatable mixed-control occurrences or live
+runtime authorization.
+
 `behavior_specifications.<spec>.tool_affordances.<id>` must be explicitly
 classified by each referenced observation boundary. Presence means authored
 availability only: visibility, apparatus support, eligibility, admission,
@@ -2301,7 +2317,7 @@ objectives:
     owner: red-team                    # organizational responsibility
     assigned_participant: red-agent    # explicit pursuit assignment
     actions: [Scan, Exploit]           # global contracts, also available to assignee
-    targets:                           # any named scenario elements except variables/objectives/workflows
+    targets:                           # participants, organizations, resources, relationships, propositions, or assertions
       - web-server
       - app-to-db
       - nodes.web-server.services.https
@@ -2330,10 +2346,17 @@ declared action contract, including on unassigned objectives. When assigned,
 the actions must also be available to that participant. Shared affiliation never
 assigns an objective; unassigned organizational intent creates no runtime work.
 `success` is required and must reference at least one declared invariant or
-postcondition assertion. `targets` are optional, but when present they must
-resolve to named scenario elements. Bare target refs work when unambiguous;
+postcondition assertion. `targets` are optional, but when present each must
+resolve to an eligible objective subject: a participant, organization,
+resource, relationship, proposition, or assertion
+([reference purposes and eligibility](../../../specs/sdl/references.md#7-reference-purposes-and-eligibility)).
+Conditions, narrative entries, behavior surfaces such as action contracts,
+variation points, and support declarations such as variables, objectives, and
+workflows are refused. Bare target refs work when unambiguous;
 otherwise use a qualified ref such as `nodes.web-server`, `features.app-to-db`,
-or `content.mailbox.items.invoice.eml`. `window` is optional; when supplied,
+or `content.mailbox.items.invoice.eml`. A bare name that a refused declaration
+shares, such as a node and a condition both named `web`, stays ambiguous.
+`window` is optional; when supplied,
 referenced stories/scripts/events/workflows must exist and remain internally
 consistent. Workflow steps use qualified refs of the form `<workflow>.<step>`.
 

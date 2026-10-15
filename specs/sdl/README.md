@@ -71,6 +71,7 @@ tests, rather than a prose rewrite. The catalogs are:
 | File | Catalog | Covers |
 |------|---------|--------|
 | [`document-model.md`](document-model.md) | — | Document encoding, the metadata/composition vs. authoring-section split, requiredness, identifier rules, structural closure, and the normalized -> expanded -> instantiated -> snapshot phases. |
+| [`execution-recovery.md`](execution-recovery.md) | — | Complete lexical execution policies, bounded retry, recovery selection, native plan preservation and explicit admission refusal. |
 | [`sections.md`](sections.md) | **1. Section catalog** | Every top-level field: kind, value shape (map-keyed vs. list-valued vs. scalar), requiredness, key shape, and the sections it references. |
 | [`references.md`](references.md) | **2. Reference-resolution catalog** | Reference forms (bare, qualified, nested runtime-family, workflow-step, module-composed), the resolution algorithm, the fail-closed ambiguity rule, and the cross-section reference-edge catalog. |
 | [`variables-and-instantiation.md`](variables-and-instantiation.md) | **3. Variable / instantiation catalog** | Variable types, defaults, `allowed_values`, `${…}` substitution, the instantiation algorithm, and post-instantiation exclusions. |

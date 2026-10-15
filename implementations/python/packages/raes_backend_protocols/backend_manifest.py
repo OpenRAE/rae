@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import TypedDict, TypeVar, Unpack
 
 from raes_contracts.apparatus import ApparatusIdentity, ConceptBinding, RealizationSupportDeclaration
+from raes_contracts.execution_policy import ExecutionPolicyCapabilities
 from raes_contracts.manifest_authority import validate_backend_supported_contract_versions
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 
@@ -56,6 +57,7 @@ class _BackendManifestOptions(TypedDict, total=False):
     time: TimeCapabilities | None
     recovery_observation: RecoveryObservationCapabilities | None
     realization_envelope: BackendRealizationEnvelopeModel | None
+    execution_policy: ExecutionPolicyCapabilities | None
     domain_profile_context_digest: str | None
 
 
@@ -71,6 +73,7 @@ class BackendManifest:
     constraints: dict[str, str]
     capabilities: BackendCapabilitySet
     realization_envelope: BackendRealizationEnvelopeModel | None
+    execution_policy: ExecutionPolicyCapabilities | None
     domain_profile_context_digest: str | None
 
     def __init__(self, **options: Unpack[_BackendManifestOptions]) -> None:
@@ -94,6 +97,10 @@ class BackendManifest:
         constraints = options.get("constraints")
         object.__setattr__(self, "constraints", {} if constraints is None else dict(constraints))
         object.__setattr__(self, "capabilities", capabilities)
+        execution_policy = options.get("execution_policy")
+        if execution_policy is not None and not isinstance(execution_policy, ExecutionPolicyCapabilities):
+            raise TypeError("execution policy capabilities must be a validated contract")
+        object.__setattr__(self, "execution_policy", execution_policy)
         object.__setattr__(self, "realization_envelope", realization_envelope)
         profile_digest = options.get("domain_profile_context_digest")
         if profile_digest is not None and (

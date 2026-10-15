@@ -1,5 +1,6 @@
 """Mixed-control participant behavior compilation helpers."""
 
+from raes import ReferencePurpose
 from raes.participant_behavior_specification import (
     MixedControlDispositionRules,
     MixedControlParticipantOperation,
@@ -38,10 +39,12 @@ def _compile_controller_states(
         authority_addresses = _runtime_addresses_for_refs(
             list(state.authority_basis_refs),
             addressable_ref_index=addressable_ref_index,
+            purpose=ReferencePurpose.AUTHORITY_ANCHOR,
         )
         scope_addresses = _runtime_addresses_for_refs(
             list(state.scope_refs),
             addressable_ref_index=addressable_ref_index,
+            purpose=ReferencePurpose.AUTHORITY_SCOPE,
         )
         evidence_addresses = _runtime_addresses_for_refs(
             list(state.evidence_refs),

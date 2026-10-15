@@ -26,6 +26,7 @@ from raes_conformance.conformance.diagnostics import (
 )
 from raes_conformance.conformance.participant_execution_probes import (
     _drive_participant_execution_probe,
+    _isolated_control_cases,
     _participant_execution_probe_snapshot,
 )
 from raes_conformance.conformance.profiles import (
@@ -444,22 +445,33 @@ def _target_runtime_cases(
         crossing_policy_resolver=_conformance_crossing_policy_resolver(target),
         enforce_final_sink_flow_control=False,
     )
-    control_plane.register_planner_produced_plan(execution_plan)
-    cases.append(_provisioning_probe_case(control_plane, execution_plan.provisioning))
-    if known != BackendCapabilityProfile.PROVISIONING_ONLY:
-        if target.orchestrator is not None:
-            control_plane.submit_orchestration(execution_plan.orchestration)
-        if target.evaluator is not None:
-            control_plane.submit_evaluation(execution_plan.evaluation)
-        if target.participant_runtime is not None:
-            cases.extend(
-                _drive_participant_episode_probe(
-                    control_plane,
-                    participant_address="participant.conformance",
+    controls = frozenset()
+    with control_plane:
+        control_plane.register_planner_produced_plan(execution_plan)
+        provisioning = _provisioning_probe_case(control_plane, execution_plan.provisioning)
+        cases.append(provisioning)
+        if not provisioning.passed:
+            cases.append(_hermetic_snapshot_case(control_plane))
+            return tuple(cases)
+        if known != BackendCapabilityProfile.PROVISIONING_ONLY:
+            if target.orchestrator is not None:
+                control_plane.submit_orchestration(execution_plan.orchestration)
+            if target.evaluator is not None:
+                control_plane.submit_evaluation(execution_plan.evaluation)
+            if target.participant_runtime is not None:
+                cases.extend(
+                    _drive_participant_episode_probe(control_plane, participant_address="participant.conformance")
                 )
+                capability = target.manifest.participant_runtime
+                if capability is not None and capability.supports_autonomous_execution:
+                    cases.extend(_drive_participant_execution_probe(target, control_plane))
+                    controls = capability.supported_execution_control_actions
+        cases.append(_hermetic_snapshot_case(control_plane))
+        snapshot = control_plane.snapshot
+    if controls and controls != {"start", "pause", "resume", "drain", "reset", "teardown"}:
+        cases.extend(
+            _isolated_control_cases(
+                target, snapshot, "participant.autonomous-execution.conformance", controls - {"start"}
             )
-            capability = target.manifest.participant_runtime
-            if capability is not None and capability.supports_autonomous_execution:
-                cases.extend(_drive_participant_execution_probe(target, control_plane))
-    cases.append(_hermetic_snapshot_case(control_plane))
+        )
     return tuple(cases)

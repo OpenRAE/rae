@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from .addressing import require_compiled_address
+from .execution_policy import validate_effective_execution_policies
 
 if TYPE_CHECKING:
     from .planning import PlannedResource, PlanOperation, ResolvedRealizationAuthority, RuntimeDomain
@@ -58,3 +59,7 @@ def _validate_realization_authority(
     stale = sorted({entry.address for entry in authority} - admitted_addresses)
     if stale:
         raise ValueError("Provisioning plan realization authority must reference non-delete operations")
+
+
+def _validate_operation_policy(operation: PlanOperation) -> None:
+    validate_effective_execution_policies(operation.execution_policy, operation.execution_policy_scopes)

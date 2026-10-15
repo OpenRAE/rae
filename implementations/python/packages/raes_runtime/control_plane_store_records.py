@@ -12,6 +12,8 @@ from raes_contracts.runtime_state import OperationReceipt, OperationStatus
 
 from .control_plane_audit import require_audit_event_fields
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
+from .operation_invocation_ledger import InvocationLedger
+from .operation_reconciliation_ledger import InvocationReconciliation
 
 
 def _diagnostics_payload(diagnostics: list[Diagnostic]) -> list[dict[str, Any]]:
@@ -42,6 +44,8 @@ class _OperationRecordModel(ContractModel):
     decision_history_heads: dict[str, str | None]
     result_history_heads: dict[str, str | None]
     legacy_request_commitment: bool = False
+    invocation: InvocationLedger | None = None
+    reconciliation: InvocationReconciliation | None = None
 
     @model_validator(mode="after")
     def _validate_shared_carrier_identity(self) -> _OperationRecordModel:
@@ -115,6 +119,8 @@ def _record_payload(record: ControlPlaneOperationRecord) -> dict[str, Any]:
         "decision_history_heads": dict(record.decision_history_heads),
         "result_history_heads": dict(record.result_history_heads),
         "legacy_request_commitment": record.legacy_request_commitment,
+        "invocation": None if record.invocation is None else record.invocation.model_dump(mode="json"),
+        "reconciliation": None if record.reconciliation is None else record.reconciliation.model_dump(mode="json"),
     }
 
 
@@ -149,6 +155,8 @@ def _record_from_payload(payload: dict[str, Any]) -> ControlPlaneOperationRecord
         decision_history_heads=dict(carrier.decision_history_heads),
         result_history_heads=dict(carrier.result_history_heads),
         legacy_request_commitment=carrier.legacy_request_commitment,
+        invocation=carrier.invocation,
+        reconciliation=carrier.reconciliation,
     )
 
 

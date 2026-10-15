@@ -22,6 +22,7 @@ SUPPORTED_BEHAVIORAL_RELATION_PROFILE_IDS = frozenset(
         "participant-opacity-runtime-reference-v1",
         "participant-opacity-theorem-v1",
         "participant-crossing-dpbb-finite-v1",
+        "participant-crossing-multi-operation-dpbb-finite-v1",
     }
 )
 

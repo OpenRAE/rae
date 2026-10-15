@@ -37,15 +37,17 @@ bounded triggered execution while retaining those boundaries.
 
 ## Fulfillment boundary
 
-DRAFT through #1068. #1069 delivers the reference-runtime orchestration against
-the published API-424 contracts: the implicit SEM-233 resolver hook is replaced
-by an explicitly selected adapter, providers are invoked only through
-`participant-control-provider/v1`, and the composed evaluation commits to the
-ADR-104 store before any backend effect or participant disclosure. ACTIVE is
-proposed in this delivery diff and becomes authoritative on merge. Synthetic
-providers are runtime evidence only; downstream providers own real
-instrumentation, and this delivery claims no production mechanism, external
-exactly-once effect, or backend equivalence.
+The reference runtime retains the explicitly selected provider/v1 path and
+adds explicitly negotiated provider/v2 evaluation under ADR-111. V2 preserves
+the complete apparatus, resolves total applicability/required support and
+invokes slots in dependency order through bounded supervision. Accepted scoped
+state, evaluation, causal consumption, operation and audit share the incumbent
+atomic crossing transaction. Prepared wire records are immutable; store
+readback supplies durable acceptance. Versioned readers preserve v1 evidence.
+V2 effect execution is reported unsupported by the legacy drain; no effect
+permission or backend realization is inferred from evaluation eligibility.
+Synthetic providers establish reference-runtime behavior, not production
+mechanisms, distributed atomicity or external exactly-once execution.
 
 ## Traceability
 
@@ -97,9 +99,18 @@ exactly-once effect, or backend equivalence.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_records.py` (Append-only realization transitions for dispatched effects)
 - TESTS → TEST `implementations/python/tests/test_issue_1069_control_evaluation_authority.py` (A backend result can neither erase a committed evaluation nor forge a realization)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_receipts.py` (Each effect acts for, and is claimed under, the operation that admitted it)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_record_migration.py` (Schema 6 records the evaluation carrier; older builds refuse the store)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_record_migration.py` (Versioned evaluation carrier migration and v2 reader admission)
 - TESTS → TEST `implementations/python/tests/test_issue_1092_control_plane_crash_consistency.py` (Migration reaches the current schema)
 - TESTS → TEST `implementations/python/tests/test_issue_1180_snapshot_revision_cas.py` (Migration reaches the current schema)
 - TESTS → TEST `implementations/python/tests/test_issue_1184_atomic_idempotency_claims.py` (Migration reaches the current schema)
 - TESTS → TEST `implementations/python/tests/test_issue_1186_control_plane_recovery_operations.py` (Migration reaches the current schema)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_cut.py` (Exact-cut binding to the committed crossing and retained consumption)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_evaluation_v2.py` (Supervised applicable-slot dependency evaluation at a pinned state cut)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_provider_state.py` (Scoped provider-state version and atomic history extension validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_execution_adapter.py` (Physically bounded pure-provider resolution without consuming effect or supervisory capacity)
+- TESTS → TEST `implementations/python/tests/participant_control_v2_fixtures.py` (Synthetic scoped predecessor projections and installed v2 providers)
+- TESTS → TEST `implementations/python/tests/test_issue_1069_provider_evaluation_v2.py` (Public v2 runtime ordering, support, state, failure, concurrency and replay witnesses)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-08a9c99e27c3f7d197d6564c8a5c5852833b33625c2d265ecac7775566b7cde9/manifest.json` (Fresh offline source-bound research replay for dependency-ordered provider evaluation; retained protocol limits)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-76fee14b79cd734502e7498d05fbf5c8d17c34e46dc2ba55bbb94f57d213bec7/manifest.json` (Fresh offline source-bound research replay for dependency-ordered provider evaluation; retained protocol limits)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-76a22200630a0f623823cce738ef5d90a5984d9d4a69208005548975c980698b/manifest.json` (Offline research replay after provider-evaluation quality cleanup; retained protocol limits)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-c5e6610f7d0058be6715fe2f5c7ef89ebd468a8ea7177b1ee58298f2b12a9b81/manifest.json` (Offline research replay after provider-evaluation quality cleanup; retained protocol limits)

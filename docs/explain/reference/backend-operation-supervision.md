@@ -3,8 +3,8 @@
 The optional `operation-supervision` profile publishes messages for one
 admitted backend invocation. It lets a backend report acceptance, progress,
 refusal, effects and cancellation evidence while RAE retains scenario execution
-and terminal publication. It does not enable supervision in today's
-`RuntimeTarget` or change the runtime P0–P3 profile matrix.
+and terminal publication. Install it through `RuntimeTarget.operation_provider`.
+The runtime P0–P3 profile matrix remains unchanged.
 
 The [normative contract](../../../specs/formal/runtime-contracts/backend-operation-supervision.md)
 defines field meaning, guarantees, identity, budgets and validation. Import
@@ -15,6 +15,21 @@ on `raes_runtime`. Schemas, profile and examples ship in the existing packaged
 contract corpus; use `raes_contracts.corpus` to locate them in an installed wheel.
 
 ## Provider responsibilities
+
+Native phase commands can carry authored execution requirements. Resolve the
+exact native artifact and use `require_backend_execution_policy_admission`
+to check its policy commitment/support and request-bound willingness. See
+[execution requirement migration](execution-recovery-migration.md). Capability
+support is not authorization to repeat effects; no general continuation or
+trial allocator is introduced by this optional protocol.
+
+The default policy helper checks the canonical native-plan digest. A protected
+artifact owner can instead supply `resolved_native_plan_commitment`, freshly
+computed from its exact authorized native plan. Never copy that proof from the
+request. RAE's installed adapter uses a process-private HMAC-SHA256 commitment
+so durable invocation metadata does not expose a credential-dependent unkeyed
+plan digest. Request/control commitments and native snapshot digests retain
+their existing canonical rules.
 
 1. Declare all four `backend-operation-*-v1` contracts in the existing backend
    manifest. Implement the six protocol methods and return the current
@@ -53,9 +68,19 @@ caller uncertain; callers never infer no effects from a failed call.
 
 The shape checker does not authenticate callers, grant claims, exercise the
 backend or certify liveness. Independent integrations must implement those
-normative duties before claiming support. The existing runtime remains on its
-incumbent synchronous protocol until a separate integration delivery wires and
-verifies the new path.
+normative duties before claiming support. `RuntimeControlPlane` uses this path
+for native provisioning, orchestration and evaluation plans when a provider is
+installed. Configure a trusted `OperationEvidenceResolver` to validate scoped
+effect/cessation witnesses and resolve committed native results. Returning a
+well-shaped backend assertion alone cannot establish success.
+
+The local adapter bounds extension calls with AnyIO and reserves independent
+effect, control and store capacity. A timeout abandons the wait while retaining
+the physical slot until the callback exits. Native synchronous backends also
+use this bounded phase path; an unsuccessful dispatched native call becomes
+indeterminate because `ApplyResult.success=False` supplies no cessation proof.
+See [supervised execution](../../public/guides/supervised-execution.md) for
+configuration, shutdown and the optional distributed composition.
 
 ## Migration and compatibility
 
@@ -64,7 +89,7 @@ verifies the new path.
 | `operation-receipt-v1`, `operation-status-v1` | Preserve their shared `runtime-operation/v1` discriminator, six states and existing readers. New backend records are separate evidence for the runtime authority. Do not inject unknown fields into old closed readers. |
 | `ApplyResult` | Preserve native result admission. A false success flag or predecessor snapshot cannot be converted to effect absence, known failure or cessation. Without independently validated new evidence, the new outcome is indeterminate. |
 | `RecoveryObservationResult` | Its absent/applied/indeterminate vocabulary has no general cessation or partial-effect witness. Conversion cannot invent one. Keep legacy reports on the old observer, or obtain fresh evidence before constructing a new report. |
-| P1/P2 stored operation records | No store migration in this publication. Existing strict codecs keep their existing shape. A later integration must explicitly version/persist the new facts and test lossless readback before it claims supervision across restart. |
+| P1/P2 stored operation records | SQLite schema 7 adds a strict versioned invocation ledger and linked reconciliation evidence. Historical records retain `invocation=None`; migration invents no grant, generation or cessation witness. Preserve the schema-7 database and its retained reservations. |
 | Backend manifests/profiles | New draft schemas expand the backend contract-ID allowlist. Old manifests and profiles remain valid under the new reader; old closed readers can reject new IDs. Negotiate support before sending new messages. Never strip IDs or fields to disguise incompatibility. |
 | P0–P3 runtime profiles | Unchanged guarantees. This backend profile is a separate axis; schema availability cannot activate distributed operation, interruption, recovery, or P3. |
 
@@ -79,8 +104,9 @@ database or restarting a timer is not a migration strategy.
 The four new contracts are draft v1 publications under ADR-009/061. Incompatible
 future changes follow the existing evolution policy; the reference bundle must
 match each normative schema and each publication entry records its content hash
-and contract-facing change. This publication changes no existing store/HTTP
-projection and does not silently upgrade any backend declaration.
+and contract-facing change. Receipt/status projections keep their existing
+shape. Private worker RPCs and persisted invocation carriers are separate
+integration surfaces; installing them does not upgrade a backend declaration.
 
 ## Examples and evidence limits
 

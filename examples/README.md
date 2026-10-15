@@ -26,13 +26,16 @@ backends, and evidence requirements.
 | [`scenarios/cross-backend-minimal.sdl.yaml`](scenarios/cross-backend-minimal.sdl.yaml) | Smallest scenario resolving inside more than one provisioning backend's realization envelope | Hermetic admission and apply on the reference in-process and recording-libvirt configurations, with resource correspondence and different bound substrate disclosures asserted | Does not exercise an OCI runtime or live libvirt/QEMU daemon and makes no infrastructure-equivalence or fidelity claim |
 | [`scenarios/reconciliation-demo-v1.sdl.yaml`](scenarios/reconciliation-demo-v1.sdl.yaml) | Baseline version of the reconciliation demonstration pair | Planner reconciliation across scenario versions, exercised end to end through `raes processor reconcile` | Plans only; the projected snapshot is assumed state, never backend readback or proof of realization |
 | [`scenarios/reconciliation-demo-v2.sdl.yaml`](scenarios/reconciliation-demo-v2.sdl.yaml) | Modified version that creates, updates, deletes, and leaves resources unchanged in one plan | Exact `create`/`update`/`delete`/`unchanged` outcomes across provisioning, orchestration, and evaluation | Same limits as the baseline; the pair demonstrates planner behavior, not a deployable environment |
+| [`scenarios/guided-web-probe.sdl.yaml`](scenarios/guided-web-probe.sdl.yaml) | Finished file of the public [validate, compile, and inspect a scenario plan](../docs/public/sdl/validate-compile-plan.md) guide | Disk-backed example test; focused checks that the guide's steps rebuild this file, each step validates, and the guide's outputs and diagnostics match the CLI | Plans with a `capture.offer-missing` error against the reference dry-run manifest, which declares no capture offers; realizes nothing |
 
 The corpus tests are in
 [`../implementations/python/tests/test_scenarios.py`](../implementations/python/tests/test_scenarios.py),
 with the focused cross-backend checks in
-[`../implementations/python/tests/test_cross_backend_minimal_scenario.py`](../implementations/python/tests/test_cross_backend_minimal_scenario.py)
-and the reconciliation-pair checks in
-[`../implementations/python/tests/test_reconciliation_demonstration.py`](../implementations/python/tests/test_reconciliation_demonstration.py).
+[`../implementations/python/tests/test_cross_backend_minimal_scenario.py`](../implementations/python/tests/test_cross_backend_minimal_scenario.py),
+the reconciliation-pair checks in
+[`../implementations/python/tests/test_reconciliation_demonstration.py`](../implementations/python/tests/test_reconciliation_demonstration.py),
+and the guide checks in
+[`../implementations/python/tests/test_issue_613_scenario_plan_guide.py`](../implementations/python/tests/test_issue_613_scenario_plan_guide.py).
 
 ## Reconciliation Demonstration
 
@@ -81,8 +84,29 @@ machine-readable catalog for the current non-normative authoring library.
 
 Each template has metadata plus a complete current-SDL `body`. The
 `tools/check_example_library.py` policy gate validates catalog shape, stable
-IDs, referenced paths, AUT-806 requirement references, and every template body
-through the SDL parser and semantic validator.
+IDs, referenced paths, AUT-806 requirement references, entry metadata, and
+every template body and validated worked example through the SDL parser and
+semantic validator.
+
+### Catalog entry metadata
+
+Every `worked_examples`, `templates`, and `patterns` entry in the catalog
+records four fields. The policy gate rejects an entry that omits a field or
+breaks these rules.
+
+| Field | Allowed values | What the gate checks |
+|-------|----------------|----------------------|
+| `validation_status` | `validated` or `guidance` | For `validated`, the gate runs the SDL parser and semantic validator on the worked-example file, or on the template body as the `sdl-yaml/v1` loader reads it from the template file, and fails on any error or advisory they report. That loader rejects duplicate keys, merge keys, and explicit tags in the template file. A `guidance` file is not parsed as SDL. Templates must be `validated`; patterns must be `guidance`. |
+| `sdl_sections` | Top-level section names from [`../specs/sdl/sections.md`](../specs/sdl/sections.md), such as `nodes` or `workflows` | Each name is a current SDL section, not a metadata or composition field such as `name` or `imports`. For a `validated` entry, each listed section is present in the validated SDL. |
+| `intended_user` | `sdl-author` | The value is in the allowed list. |
+| `limits` | One or more short statements of what the entry does not show | The list is present and not empty. Reviewers check the wording. |
+
+`sdl_sections` names the sections that an entry shows for its surface, so a
+large worked example lists only some of the sections it uses. `validated`
+means that current SDL validation accepts the file or template body. It does
+not mean that a backend can realize the scenario or that anything has run. A
+`guidance` entry is reading material, such as a prose pattern or a test
+module, and the gate does not parse it as SDL.
 
 ## Validate The Examples
 

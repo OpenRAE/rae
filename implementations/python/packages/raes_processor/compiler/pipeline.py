@@ -19,6 +19,7 @@ from ..models import (
     RuntimeModel,
 )
 from .evaluation import _compile_assertions, _compile_condition_bindings, _compile_propositions
+from .execution_policy import compile_execution_policies
 from .objectives import _compile_objectives
 from .observation_demands import compile_observation_demands
 from .orchestration import (
@@ -199,6 +200,7 @@ def compile_runtime_model(
     )
     return RuntimeModel(
         scenario_name=scenario.name,
+        execution_policies=compile_execution_policies(scenario, {**structure, **behavior}),
         profile_authority=authority,
         realization_instance=scenario if isinstance(scenario, InstantiatedScenario) else None,
         materialization_description=scenario if isinstance(scenario, MaterializedScenario) else None,

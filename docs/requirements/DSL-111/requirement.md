@@ -66,3 +66,6 @@ by the [compatibility contract](../../explain/sdl/external-inject-compatibility.
 - TESTS → TEST `implementations/python/tests/test_runtime_models.py` (Runtime model tests for inject bindings and orchestration window resolution)
 - TESTS → TEST `implementations/python/tests/test_runtime_planner.py` (Planner tests for inject, event, script, and story scheduling behavior)
 - TESTS → TEST `implementations/python/tests/test_sdl_realworld.py` (Real-world scenarios exercising nested entities and timeline orchestration together)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/inject-trigger-request-v1.json` (inject-trigger-request-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/inject-occurrence-v1.json` (inject-occurrence-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/inject-occurrence-outcome-v1.json` (inject-occurrence-outcome-v1 published schema)
