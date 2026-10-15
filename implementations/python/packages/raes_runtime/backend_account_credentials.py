@@ -112,6 +112,23 @@ def _closed_plan_entry(
     entry = snapshot.entries.get(operation.address)
     if entry is None:
         raise ValueError("credential-bearing backend omitted a submitted plan entry")
+    expected_status = "unchanged" if operation.action is ChangeAction.UNCHANGED else "applied"
+    if (
+        entry.domain is not RuntimeDomain.PROVISIONING
+        or entry.resource_type != operation.resource_type
+        or entry.ordering_dependencies != operation.ordering_dependencies
+        or entry.refresh_dependencies != operation.refresh_dependencies
+        or entry.status != expected_status
+    ):
+        raise ValueError("credential-bearing backend entry does not match the submitted plan")
+    return cast(SnapshotEntry, replace(entry, payload=_closed_plan_payload(entry, operation, artifact_addresses)))
+
+
+def _closed_plan_payload(
+    entry: SnapshotEntry, operation: ProvisionOp, artifact_addresses: set[str]
+) -> dict[str, object]:
+    """Project only admitted evidence and canonical account credential posture."""
+
     observed_payload = dict(entry.payload)
     evidence = {}
     if (
@@ -123,21 +140,13 @@ def _closed_plan_entry(
         # Initial and repeat realization checks own identity, route and trust.
         disclosure = ArtifactSatisfactionDisclosureModel.model_validate(observed_payload.pop("artifact_satisfaction"))
         evidence["artifact_satisfaction"] = disclosure.model_dump(mode="json")
-    expected_status = "unchanged" if operation.action is ChangeAction.UNCHANGED else "applied"
-    if (
-        entry.domain is not RuntimeDomain.PROVISIONING
-        or entry.resource_type != operation.resource_type
-        or entry.ordering_dependencies != operation.ordering_dependencies
-        or entry.refresh_dependencies != operation.refresh_dependencies
-        or entry.status != expected_status
-        or not snapshot_values_equal(observed_payload, operation.payload)
-    ):
-        raise ValueError("credential-bearing backend entry does not match the submitted plan")
+    if not snapshot_values_equal(observed_payload, operation.payload):
+        raise ValueError("credential-bearing backend payload does not match the submitted plan")
     payload = deepcopy(operation.payload)
     if operation.resource_type == "account-placement":
         payload = value_free_account_placement_payload(operation.payload)
     payload.update(evidence)
-    return cast(SnapshotEntry, replace(entry, payload=payload))
+    return payload
 
 
 def _closed_plan_entries(
