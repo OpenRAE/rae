@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-04-05T01:46:39.033909Z
-updated_at: 2026-08-11T00:00:00Z
+updated_at: 2026-10-15T00:00:00Z
 ---
 
 # RUN-314 — Reference Emulation Backend
@@ -42,3 +42,16 @@ The ecosystem needs at least one concrete infrastructure-backed backend so its p
 - IMPLEMENTS → GITHUB_ISSUE `1110` (Exact-SHA real-container release admission)
 - IMPLEMENTS → CODE_FILE `.github/workflows/release-please.yml` (Required release-only Docker integration before artifact build)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1110-required-container-release-gate.md` (Release evidence architecture and limitations)
+
+- IMPLEMENTS → GITHUB_ISSUE `1367` (Opt-in concrete OCI inject entrypoint execution and independent readback)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/inject_execution.py` (Declared configured provider with pinned admission, durable dispatch checks and conservative reconciliation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/inject_bindings.py` (Closed operator-admitted source, target, probe and permit contracts)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/inject_evidence.py` (Independent per-binding native readback and retained associated artifacts)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/drivers/oci_inject.py` (Bounded ownership-checked native entrypoint execution and world probes)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/drivers/oci_process.py` (Bounded isolated CLI process, shrinking deadline and physical reaping)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/drivers/oci_image_trust.py` (Valid image syntax before operator allowlist or digest trust)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/manifest.py` (Contract declarations require an installed compatible executing provider)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/target.py` (Driver-identical explicit registry/direct provider composition)
+- TESTS → TEST `implementations/python/tests/test_issue_1367_oci_process.py` (Actual local CLI bounds and credential isolation; not native effect evidence)
+- TESTS → TEST `implementations/python/tests/test_issue_1367_oci_inject_driver.py` (Substituted daemon target/source trust, native isolation and readback checks)
+- TESTS → TEST `implementations/python/tests/test_issue_1367_reference_injects.py` (Configured executing provider and durable outcome/recovery using a substituted daemon)

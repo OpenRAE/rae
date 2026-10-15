@@ -382,6 +382,17 @@ def create_reference_backend_manifest(*, with_time: bool = False, **config) -> B
         ):
             raise ValueError("The protected mailbox sink requires the in-process reference target")
     profile_contracts = frozenset()
+    if config.get("inject_execution") is not None:
+        from .inject_execution import ReferenceOciInjectExecutor
+
+        executor = config["inject_execution"]
+        if (
+            not isinstance(executor, ReferenceOciInjectExecutor)
+            or mode is not ReferenceDriverMode.OCI_CONTAINER
+            or executor.deployment is not driver
+        ):
+            raise ValueError("Reference inject execution requires the same admitted OCI driver")
+        profile_contracts |= frozenset((*BACKEND_OPERATION_CONTRACT_IDS, *INJECT_OCCURRENCE_BACKEND_CONTRACT_IDS))
     profile_digest = None
     if config.get("domain_profile_context") is not None:
         from raes_contracts.realization_profiles import profile_context_digest
@@ -389,7 +400,7 @@ def create_reference_backend_manifest(*, with_time: bool = False, **config) -> B
         from .profile_preparation import reference_profile_configuration
 
         reference_profile_configuration(config["domain_profile_context"], config.get("profile_choices", {}))
-        profile_contracts = frozenset({"backend-realization-preparation-v1", "plan-realization-profiles-v1"})
+        profile_contracts |= frozenset({"backend-realization-preparation-v1", "plan-realization-profiles-v1"})
         profile_digest = profile_context_digest(config["domain_profile_context"])
     return BackendManifest(
         name=REFERENCE_BACKEND_NAME,

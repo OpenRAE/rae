@@ -162,12 +162,12 @@ jobs:
       - name: Test exact interpreter and clean distribution
         run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s python-compatibility
 
-  # Opt-in, non-blocking, runtime-gated container integration tests (RUN-314).
-  # Kept out of the hermetic `verify` graph; the `docker` marker tests self-skip
-  # when no runtime is present, and this whole job never fails the build.
+  # Concrete backend evidence (RUN-314): unavailable execution cannot pass as
+  # a skipped fixture-only claim. The hermetic verify graph remains separate.
   integration-docker:
     runs-on: ubuntu-24.04
-    continue-on-error: true
+    env:
+      RAES_DOCKER_INTEGRATION_REQUIRED: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -180,17 +180,7 @@ jobs:
         with:
           enable-cache: false
           version: "0.12.4"
-      - name: Probe for a container runtime
-        id: runtime
-        run: |
-          if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
-            echo "available=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "No container runtime available; skipping docker integration session."
-          fi
       - name: Run docker integration session
-        if: steps.runtime.outputs.available == 'true'
         run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s integration_docker
 
   # Gating OSV-scanner sweep over the Python dependency lockfile (issue #1098).

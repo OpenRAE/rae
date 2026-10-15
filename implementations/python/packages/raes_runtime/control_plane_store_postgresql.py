@@ -164,7 +164,14 @@ class PostgreSQLControlPlaneStore:
             self._scope = (target_scope, run_scope)
             with self._connection() as ledger:
                 metadata = dict(ledger.execute("SELECT key, value FROM raes_ledger_metadata FOR UPDATE").fetchall())
-                if metadata.get("schema-version") != "1":
+                from .control_plane_store_postgresql_schema import POSTGRES_LEDGER_SCHEMA_VERSION
+
+                # The sole owner upgrades the record interpretation before any
+                # newer fields can be written; older binaries refuse version 2.
+                if metadata.get("schema-version") == "1":
+                    ledger.execute("UPDATE raes_ledger_metadata SET value='2' WHERE key='schema-version'")
+                    metadata["schema-version"] = POSTGRES_LEDGER_SCHEMA_VERSION
+                if metadata.get("schema-version") != POSTGRES_LEDGER_SCHEMA_VERSION:
                     raise ValueError("PostgreSQL ledger schema is missing or unsupported")
                 prior = (metadata.get("target-scope"), metadata.get("run-scope"))
                 if prior == (None, None):
@@ -236,6 +243,8 @@ class PostgreSQLControlPlaneStore:
 
     @staticmethod
     def _load_records(connection: Connection[tuple[object, ...]]) -> dict[str, ControlPlaneOperationRecord]:
+        from .inject_claims import require_inject_history
+
         records = {}
         for operation_id, payload, digest in connection.execute(
             "SELECT operation_id, payload, digest FROM raes_ledger_operations ORDER BY operation_id"
@@ -244,6 +253,7 @@ class PostgreSQLControlPlaneStore:
             if record.receipt.operation_id != operation_id:
                 raise ValueError("operation record does not match its durable identity")
             records[operation_id] = record
+        require_inject_history(records.values())
         return records
 
     def load_records(self) -> dict[str, ControlPlaneOperationRecord]:
@@ -252,6 +262,14 @@ class PostgreSQLControlPlaneStore:
 
     @staticmethod
     def _upsert_record(connection: Connection[tuple[object, ...]], record: ControlPlaneOperationRecord) -> None:
+        from .inject_claims import require_inject_claim
+
+        if record.inject_occurrence is not None:
+            require_inject_claim(
+                record,
+                PostgreSQLControlPlaneStore._load_records(connection).values(),
+                revision=PostgreSQLControlPlaneStore._load_snapshot_state(connection).revision,
+            )
         payload, digest = encode_payload(_record_payload(record))
         context = record.receipt.context
         connection.execute(

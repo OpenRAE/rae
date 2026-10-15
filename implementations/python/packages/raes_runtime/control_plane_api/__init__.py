@@ -50,6 +50,7 @@ from ._auth import (
     _seal_app_composition,
 )
 from ._health_routes import _register_health_routes
+from ._inject_routes import register_inject_routes
 from ._offload import _ControlPlaneCallExecutor
 from ._operation_routes import _install_request_guards, _register_operation_routes
 from ._participant_routes import (
@@ -150,6 +151,7 @@ def create_control_plane_app(
     _register_health_routes(app, control_plane)
     _install_request_guards(app, control_plane, security)
     _register_operation_routes(app, control_plane)
+    register_inject_routes(app, control_plane)
     register_supervision_routes(app, control_plane)
     _register_workflow_routes(app, control_plane)
     _register_participant_episode_routes(app, control_plane)

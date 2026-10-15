@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-04-03T05:55:58.825305Z
-updated_at: 2026-10-13T00:00:00.000000Z
+updated_at: 2026-10-15T00:00:00Z
 ---
 
 # API-404 — Secure, Durable, And Idempotent Control-Plane Semantics
@@ -382,3 +382,16 @@ policy choices, recovery and composition limits.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_snapshot_contracts.py` (Runtime ownership of the participant-control evaluation carrier)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api_models.py` (Participant-control evaluation history in the control-plane projection)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_action_validation.py` (Runtime-owned evaluation carrier protected from backend rewrite)
+
+- IMPLEMENTS → GITHUB_ISSUE `1367` (Secure shared-runtime external inject execution)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_injects.py` (C1 actor-scoped admission and independently authorized occurrence readback)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/inject_claims.py` (C1/C2 immutable occurrence pins and atomic retry, slot and full order-chain claims)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/inject_execution.py` (C1 exact authorized plan and binding resolution with required-obligation refusal)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/inject_outcomes.py` (C1 bounded independent artifact validation and terminal operation-only settlement)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_inject_routes.py` (C3 strict authenticated bounded trigger and actor-scoped evidence reads)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_postgresql_schema.py` (C2 PostgreSQL single-owner schema migration)
+- DOCUMENTS → DOCUMENTATION `docs/public/guides/external-injects.md` (C1–C4 operating profiles, host duties, supported realization and recovery limits)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1367-external-inject-execution-preflight.md` (Accepted owner boundaries and implementation guardrails)
+- TESTS → TEST `implementations/python/tests/test_issue_1367_inject_claims.py` (Atomic competing claims, schedule slots, full chain and durable reopening)
+- TESTS → TEST `implementations/python/tests/test_issue_1367_inject_execution.py` (Executing fixture, actor isolation, original budget, refusal and typed evidence; not concrete OCI evidence)
+- TESTS → TEST `implementations/python/tests/test_issue_1367_inject_http.py` (Actual HTTP authorization, strict bounded ingress, retry and retained artifact disclosure)

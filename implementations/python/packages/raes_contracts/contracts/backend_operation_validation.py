@@ -115,16 +115,25 @@ def require_backend_execution_policy_admission(
     commitment. It must never copy that proof from the untrusted request.
     Omitting it retains canonical native-plan SHA-256 validation.
     """
+    _validate_native_plan_commitment(request, native_plan, resolved_native_plan_commitment)
+    require_backend_plan_policy_capabilities(native_plan, capabilities)
+    require_backend_operation_admission(request, capabilities, response)
+
+
+def require_backend_plan_policy_capabilities(
+    native_plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+    capabilities: BackendOperationCapabilitiesModel,
+) -> None:
+    """Reuse the exact authored policy checks after a trusted owner resolves its command."""
+
     from ..execution_policy import execution_policy_capability_gaps
 
-    _validate_native_plan_commitment(request, native_plan, resolved_native_plan_commitment)
     for operation in native_plan.operations:
         for effective in (operation.execution_policy, *operation.execution_policy_scopes):
             if effective is not None and execution_policy_capability_gaps(
                 effective.policy, capabilities.execution_policy
             ):
                 raise ValueError("execution policy is unsupported by the installed provider")
-    require_backend_operation_admission(request, capabilities, response)
 
 
 def _validate_native_plan_commitment(

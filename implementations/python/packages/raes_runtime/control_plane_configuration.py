@@ -4,6 +4,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Protocol, TypedDict
 
+from raes_backend_protocols.inject_execution import InjectExecutionResolver, require_inject_resolver
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.materialization import MaterializationArchive
 from raes_contracts.planning import PlanScope
@@ -45,6 +46,7 @@ class ControlPlaneOptions(TypedDict, total=False):
     supervision: OperationSupervisionConfiguration
     operation_evidence: OperationEvidenceResolver | None
     distributed_execution: OperationDispatcher | None
+    inject_execution: InjectExecutionResolver | None
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -66,8 +68,10 @@ class ControlPlaneConfiguration:
     supervision: OperationSupervisionConfiguration = field(default_factory=OperationSupervisionConfiguration)
     operation_evidence: OperationEvidenceResolver | None = None
     distributed_execution: OperationDispatcher | None = None
+    inject_execution: InjectExecutionResolver | None = None
 
     def __post_init__(self) -> None:
+        require_inject_resolver(self.inject_execution)
         _require_dispatcher_shape(self.distributed_execution)
         if not isinstance(self.supervision, OperationSupervisionConfiguration):
             raise TypeError("supervision requires typed apparatus configuration")

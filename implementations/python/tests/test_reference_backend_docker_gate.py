@@ -9,15 +9,29 @@ make the release gate meaningless.
 
 from __future__ import annotations
 
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 import test_reference_backend_docker_integration as docker_integration
+import yaml
 from tools import oci_release_image
 from tools.oci_release_selection import LockedPlatformGraph, OciDescriptor
 
 _RUNTIME = "docker"
 _REPOSITORY = "docker.io/library/alpine"
+
+
+def test_pr_container_evidence_cannot_pass_by_skipping_runtime_admission(monkeypatch):
+    root = Path(__file__).resolve().parents[3]
+    job = yaml.safe_load((root / ".github/workflows/ci.yml").read_text())["jobs"]["integration-docker"]
+    assert job.get("continue-on-error", False) is False
+    monkeypatch.setenv(docker_integration._REQUIRED_MODE_ENV, job["env"][docker_integration._REQUIRED_MODE_ENV])
+    monkeypatch.setattr(docker_integration, "_available_runtime", lambda: None)
+    with pytest.raises(pytest.fail.Exception, match="required real-container"):
+        docker_integration._require_container_runtime()
+    step = next(item for item in job["steps"] if item.get("name") == "Run docker integration session")
+    assert "if" not in step
 
 
 def _graph() -> LockedPlatformGraph:

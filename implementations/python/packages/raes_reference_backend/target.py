@@ -44,7 +44,15 @@ def create_reference_backend_components(
     envelope = manifest.realization_envelope
     if envelope is None or envelope.configuration.mode != mode.value:
         raise ValueError("reference manifest realization envelope does not match deployment driver mode")
+    executor = config.get("inject_execution")
+    if executor is not None:
+        from .inject_execution import ReferenceOciInjectExecutor
+
+        if not isinstance(executor, ReferenceOciInjectExecutor) or executor.deployment is not deployment_driver:
+            raise ValueError("Reference inject execution requires the same admitted OCI driver")
+        executor.bind_manifest(manifest)
     return RuntimeTargetComponents(
+        operation_provider=executor,
         provisioner=ReferenceProvisioner(
             deployment_driver,
             envelope,
@@ -75,6 +83,7 @@ def create_reference_backend_target(**config) -> RuntimeTarget:
         participant_runtime=components.participant_runtime,
         time_runtime=components.time_runtime,
         observation_runtime=components.observation_runtime,
+        operation_provider=components.operation_provider,
     )
 
 

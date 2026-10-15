@@ -30,6 +30,7 @@ from .control_plane_execution import (
     execute_operation,
     reject_new_operation_if_admission_fails,
 )
+from .control_plane_injects import RuntimeInjectMixin
 from .control_plane_lifecycle import RuntimeLifecycleMixin, runtime_owned, store_authoritative_state
 from .control_plane_mutation import (
     RuntimeMutationAuthority,
@@ -113,6 +114,7 @@ def _require_selected_store_capabilities(declaration: ControlPlaneProfileDeclara
 
 
 class RuntimeControlPlane(
+    RuntimeInjectMixin,
     RuntimeLifecycleMixin,
     RuntimeSupervisionMixin,
     RuntimeWorkerAuthorityMixin,
