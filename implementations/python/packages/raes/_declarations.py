@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING
 
 from ._declaration_sources import DeclarationSource
@@ -36,9 +36,9 @@ class Declaration:
     kind: str
     address: str
     model_path: str
-    source: str | None = None
+    source: str | None = field(default=None, compare=False)
     model_tokens: tuple[str, ...] = ()
-    source_location: DeclarationSource | None = None
+    source_location: DeclarationSource | None = field(default=None, compare=False)
 
     @property
     def referenceable(self) -> bool:
@@ -131,7 +131,7 @@ class DeclarationIndex:
     def add(self, declaration: Declaration, *, aliases: Iterable[str] = ()) -> None:
         require_eligibility_decision(declaration.kind)
         previous = self._declarations.get(declaration.address)
-        if previous is not None and previous != declaration:
+        if previous is not None and (previous != declaration or previous.source != declaration.source):
             self._collisions.append(
                 f"Canonical address '{declaration.address}' collides between "
                 f"{previous.kind} declaration at {previous.model_path} and "

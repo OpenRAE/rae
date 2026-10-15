@@ -14,9 +14,19 @@ from raes._mapping_scopes import HASHMAP_SECTIONS
 from raes._relationship_endpoint_policy import RELATIONSHIP_DETAIL_BINDINGS, relationship_endpoint_purposes
 from raes.language_service import language_completions, language_diagnostics, language_references
 from raes.scenario import ExpandedScenario, Scenario
+from raes.validator import SemanticValidator
 from test_issue_1339_relationship_endpoints import DETAILS, fixture_index, fixture_payload, structural, typed
 
 _BROKEN = {"command": "true", "interval": "soon"}
+
+
+def _semantic_errors(payload: dict) -> set[str]:
+    """Check every candidate's structure and full semantics without repeated YAML rendering."""
+    try:
+        SemanticValidator(structural(payload)).validate()
+    except SDLValidationError as error:
+        return set(error.errors)
+    return set()
 
 
 def _with(relationship: dict, *, broken: bool = False) -> dict:
@@ -88,19 +98,38 @@ def test_typed_endpoint_completion_narrows_eligible_declarations_without_adding_
     }
     assert {declaration.address for _spelling, declaration in index.reference_completions(purposes)} == eligible
     assert {item["detail"] for item in result["items"]}.issubset(eligible)
-    baseline = {item["message"] for item in language_diagnostics(yaml.safe_dump(complete))["diagnostics"]}
+    baseline = _semantic_errors(complete)
     for item in result["items"]:
         candidate = deepcopy(complete)
         candidate["relationships"]["probe"][side] = item["label"]
-        errors = {entry["message"] for entry in language_diagnostics(yaml.safe_dump(candidate))["diagnostics"]}
+        errors = _semantic_errors(candidate)
         assert errors.issubset(baseline)
     assert result["context"] == f"reference:{policy.reference_domain(purposes)}"
+
+
+@pytest.mark.parametrize("side", ["source", "target"])
+@pytest.mark.parametrize(("relationship_type", "detail"), _ROWS, ids=lambda value: value or "-")
+def test_typed_endpoint_completion_is_consistent_in_incomplete_documents(
+    relationship_type: str | None, detail: str | None, side: str
+) -> None:
+    relationship = typed(relationship_type, source="dc", target="corp") if relationship_type else _twin(detail)
+    result = _completions(_with(relationship), side)
     assert _completions(_with(relationship, broken=True), side) == result
-    if detail is not None:
-        # A detail written before its type selects the rule that its type would.
-        untyped = {key: value for key, value in relationship.items() if key != "type"}
-        assert _completions(_with(untyped), side)["context"] == result["context"]
-        assert {item["detail"] for item in _completions(_with(untyped), side)["items"]}.issubset(eligible)
+
+
+@pytest.mark.parametrize("side", ["source", "target"])
+@pytest.mark.parametrize("detail", sorted(DETAILS))
+def test_a_detail_written_before_its_type_keeps_the_endpoint_purpose(detail: str, side: str) -> None:
+    relationship = _twin(detail)
+    purposes = relationship_endpoint_purposes(relationship, side)
+    index = build_declaration_index(structural(_with(relationship)))
+    eligible = {
+        declaration.address for declaration in index.declarations if policy.declaration_eligible(declaration, purposes)
+    }
+    untyped = {key: value for key, value in relationship.items() if key != "type"}
+    result = _completions(_with(untyped), side)
+    assert result["context"] == f"reference:{policy.reference_domain(purposes)}"
+    assert {item["detail"] for item in result["items"]}.issubset(eligible)
 
 
 def test_a_mail_listener_is_a_mail_access_target_and_a_monitoring_listener_is_not() -> None:

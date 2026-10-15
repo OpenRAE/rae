@@ -71,7 +71,12 @@ def _candidate_allowed(
     typed = scenario or partial
     if typed is None:
         return True
-    candidate = typed.model_copy(deep=True)
+    # Only the edited relationship changes. Other declarations and provenance
+    # remain read-only during validation; copying them per suggestion is costly.
+    relationships = dict(typed.relationships)
+    if name in relationships:
+        relationships[name] = relationships[name].model_copy(deep=True)
+    candidate = typed.model_copy(update={"relationships": relationships})
     owner: Any = candidate.relationships.get(name)
     if owner is None:
         return True

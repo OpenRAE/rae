@@ -272,6 +272,15 @@ class ScenarioContent(LegacyClassificationGuard):
     def _set_declaration_sources(self, sources: Mapping[str, DeclarationSource]) -> None:
         self._declaration_sources = dict(sources)
 
+    def __eq__(self, other: object) -> bool:
+        """Authored locations do not change the scenario's semantic equality."""
+        if not isinstance(other, ScenarioContent):
+            return super().__eq__(other)
+        left, right = self.model_copy(), other.model_copy()
+        for model in (left, right):
+            model.__pydantic_private__.pop("_declaration_sources", None)
+        return super(ScenarioContent, left).__eq__(right)
+
     @model_validator(mode="before")
     @classmethod
     def _validate_declaration_keys(cls, value: object) -> object:

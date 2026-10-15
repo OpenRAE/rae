@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import hashlib
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
 import yaml
-from raes import instantiate_scenario, parse_sdl_file
-from raes._declarations import build_declaration_index
+from raes import instantiate_scenario, parse_sdl, parse_sdl_file
+from raes._declarations import DeclarationIndex, build_declaration_index
 from raes._language_context import reference_context
 from raes.language_service import language_diagnostics, language_references
 from test_issue_1339_editor_imports import _MODULE, _root, _write
@@ -123,3 +124,27 @@ def test_a_failed_namespace_collision_does_not_fabricate_an_imported_definition(
     text, path = _write(tmp_path, _root("first", "first"))
     assert language_diagnostics(text, path=path)["status"] == "invalid"
     assert language_references(text, "nodes.first.vm", path=path)["definitions"] == []
+
+
+def test_source_locations_do_not_change_semantic_equality_or_disappear_during_comparison(tmp_path: Path) -> None:
+    text = "name: source-equality\nnodes:\n  web:\n    type: compute\n"
+    path = tmp_path / "source.yaml"
+    path.write_text(text, encoding="utf-8")
+    authored = parse_sdl_file(path)
+    relocated = parse_sdl("\n" + text)
+    native = authored.model_copy()
+    native._set_declaration_sources({})
+    assert authored.declaration_sources != relocated.declaration_sources
+    assert authored == relocated == native
+    assert authored.declaration_sources
+    assert relocated.declaration_sources
+    assert not native.declaration_sources
+    left = build_declaration_index(authored).declaration_for("nodes.web")
+    right = build_declaration_index(relocated).declaration_for("nodes.web")
+    assert left == right
+    assert left.source_location != right.source_location
+    assert authored != authored.model_copy(update={"name": "different"})
+    index = DeclarationIndex()
+    index.add(left)
+    index.add(replace(left, source="another.yaml"))
+    assert index.collision_errors
