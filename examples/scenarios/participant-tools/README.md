@@ -38,13 +38,18 @@ The paragraph above describes `tool_ref`. A stateful resource's
 `ordering_dependencies` and `refresh_dependencies` have their own check. A bare
 dependency name that the module gives to both a generated artifact and a
 persistent volume fails composition with a "dependency reference ... is
-ambiguous; use one of" diagnostic. Composition renames some other references,
-such as `authority_scope_refs`, through the module's combined name map without
-such a check. There, a bare name that the module gives to two declarations still
-composes and binds one of them without a diagnostic; see
+ambiguous; use one of" diagnostic. Behavior `authority_scope_refs` also reject
+ambiguous unit-local names before rewriting, with the standalone diagnostic.
+Use a qualified scope such as `nodes.web` when another declaration shares its
+bare name. Other reference families remain tracked in
 [#1575](https://github.com/OpenRAE/rae/issues/1575). Reference-typed action
 argument values are neither resolved nor namespaced on import; see
 [#1574](https://github.com/OpenRAE/rae/issues/1574).
+
+Tool identities and tool action/observation relations cannot contain authored
+`__private` segments, including values supplied by parameters. Export the
+intended declaration and name its public import address. Generated private
+references inside a module remain valid through composition and instantiation.
 
 An importing scenario cannot add a tool affordance for an imported
 participant: the affordance must be classified by one of that participant's own

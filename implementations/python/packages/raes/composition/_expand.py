@@ -59,7 +59,7 @@ from ..scenario import ExpandedScenario, ImportDecl, ModuleDescriptor, ScenarioC
 from ._augmentation import merge_augmentation_scope, rewrite_augmentation_scope
 from ._behavior import (
     _behavior_reference_maps,
-    _reject_ambiguous_unit_tool_refs,
+    _reject_ambiguous_unit_behavior_refs,
     _rewrite_agent_sections,
     _rewrite_behavior_sections,
 )
@@ -328,7 +328,7 @@ def _expand_one_import(
         restrict_to_descriptor=True,
     )
 
-    _reject_ambiguous_unit_tool_refs(bound.content, path=import_path)
+    _reject_ambiguous_unit_behavior_refs(bound.content, path=import_path)
     namespaced_payload = _namespace_payload(
         bound.content.model_dump(mode="python", by_alias=True),
         bound.content,

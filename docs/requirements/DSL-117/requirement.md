@@ -5,7 +5,7 @@ status: ACTIVE
 type: FUNCTIONAL
 priority: MUST
 created_at: 2026-04-05T01:24:06.514527Z
-updated_at: 2026-10-13T02:45:14.000000Z
+updated_at: 2026-10-15T04:57:10.841468+00:00
 ---
 
 # DSL-117 — Participant Tool And Affordance Modeling
@@ -32,7 +32,9 @@ Primary-source refresh shows that tool-using participants require an explicit au
   name through the import's content symbols and any other spelling, such as
   `content.<name>`, through its named symbols. Before that rewrite,
   `raes/composition/_expand.py` rejects a unit `tool_ref` that the unit's own
-  declaration index finds ambiguous, with the standalone diagnostic. Compiler:
+  declaration index finds ambiguous, with the standalone diagnostic. Authored
+  private tool references and relations fail before expansion or parameter
+  binding; generated private references remain valid. Compiler:
   `raes_processor/compiler/participant_behaviors.py` emits the resolved
   `provision.content.<name>` address.
 - Affordances: `behavior_specifications.<spec>.tool_affordances.<id>` binds
@@ -82,6 +84,8 @@ Primary-source refresh shows that tool-using participants require an explicit au
   a role-scoped affordance must hold for every participant with that role in
   every import. Compiler: the specification's `participant_addresses` record
   the selection.
+  Before rewriting, composition rejects ambiguous unit authority scopes using
+  the same reference purpose and diagnostic as standalone validation.
 - Declaring or displaying a tool authorizes no invocation and proves no
   execution. Runtime admission in `raes_runtime/participant_control.py` checks
   the compiled participant's own action set and requires an
@@ -98,8 +102,9 @@ field.
 ## Fulfillment boundary
 
 ACTIVE. #298 verified the #294 and #805 surfaces through parsing, semantic
-validation, composition, declaration rename, compilation and runtime admission,
-and fixed two gaps in the composition of an imported unit's `tool_ref`. The
+validation, composition, declaration rename, compilation and runtime admission.
+It fixes imported tool identities and authority-scope ambiguity, and rejects
+authored private tool references before composition and parameter binding. The
 [tool authoring decision](../../decisions/issue-298-tool-authoring.md) records
 the semantics and the migration.
 
@@ -135,8 +140,11 @@ Adjacent defects outside DSL-117 are tracked separately:
 
 - #1573: rename of nested node-service and content-item refs.
 - #1574: reference-typed action argument values across imports.
-- #1575: ambiguous bare refs in other reference families.
-- #1498: authored `__private` refs in importing scenarios.
+- #1575 retains other reference families; this delivery rejects ambiguous
+  behavior `authority_scope_refs` before import rewriting, as it does tool refs.
+- #1498 retains agent-field authoring checks; this delivery rejects authored
+  `__private` tool identities and tool action/observation relations before
+  composition or parameter binding, while preserving generated private refs.
 
 ## Traceability
 
@@ -154,7 +162,8 @@ Adjacent defects outside DSL-117 are tracked separately:
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/semantics/participant_interactive_access.py` (Interactive-access target, account and endpoint analyzer)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_content_objectives.py` (Semantic validation entry for participant tool and access checks)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_behavior.py` (Namespaced tool, affordance and access references for imports)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_expand.py` (Import-time rejection of an ambiguous unit tool_ref)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_expand.py` (Import-time rejection of ambiguous unit tool identities and behavior authority scopes)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_behavior_authoring.py` (Authored tool references reject reserved private namespace segments before composition and binding)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_sections.py` (Observation-boundary classification rewritten to the namespaced affordance refs)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/participant_behaviors.py` (Compiled tool affordance and interactive-access records)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control.py` (Runtime admission that a tool declaration does not bypass)

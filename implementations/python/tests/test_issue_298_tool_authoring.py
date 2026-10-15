@@ -206,6 +206,125 @@ def test_imported_tool_ref_that_names_only_root_content_binds_the_root_content(t
     assert _imported_tool_addresses(model) == ["provision.content.console-scanner"] * len(NAMESPACES)
 
 
+@pytest.mark.parametrize("scope_ref", ["web", "nodes.web"], ids=["ambiguous", "qualified"])
+def test_imported_authority_scope_preserves_the_units_resolution(tmp_path: Path, scope_ref: str):
+    edits = (
+        (
+            "\nbehavior_specifications:\n",
+            "\nrelationships:\n  web: {type: connects_to, source: nodes.web, target: nodes.lan}\n"
+            "behavior_specifications:\n",
+        ),
+        ("authority_scope_refs: [nodes.web.services.http]", f"authority_scope_refs: [{scope_ref}]"),
+    )
+    if scope_ref == "web":
+        with pytest.raises(SDLValidationError) as standalone:
+            parse_sdl(_rewritten(UNIT, edits))
+        with pytest.raises(SDLValidationError) as composed:
+            _parse_pair(tmp_path, unit_edits=edits)
+        assert (
+            standalone.value.errors
+            == composed.value.errors
+            == [
+                f"Behavior specification '{REUSABLE}' authority_scope_ref 'web' "
+                "is ambiguous; use one of: nodes.web, relationships.web"
+            ]
+        )
+        assert composed.value.path == tmp_path / UNIT.name
+    else:
+        model = compile_runtime_model(_parse_pair(tmp_path, unit_edits=edits))
+        for namespace in NAMESPACES:
+            assert model.behavior_specifications[f"{SPEC_ADDRESS}{namespace}.{REUSABLE}"].authority_scope_refs == (
+                f"nodes.{namespace}.web",
+            )
+
+
+@pytest.mark.parametrize("spelling", ["alpha.__private.scanner-package", "content.alpha.__private.scanner-package"])
+def test_importer_cannot_author_a_private_tool_ref(tmp_path: Path, spelling: str):
+    with pytest.raises(SDLParseError) as excinfo:
+        _parse_pair(
+            tmp_path,
+            unit_edits=(("    content: [scanner-package]\n", ""),),
+            root_edits=(_tool_ref_edit("alpha.scanner-package", spelling),),
+        )
+    (diagnostic,) = excinfo.value.diagnostics
+    assert diagnostic.code == "sdl.identifier.invalid"
+    assert diagnostic.pointer == f"/behavior_specifications/{LOCAL}/tool_affordances/{SHARED}/tool_ref"
+    assert diagnostic.source == str(tmp_path / ROOT.name)
+
+
+@pytest.mark.parametrize("spelling", ["scanner-package", "content.scanner-package"])
+def test_composition_and_instantiation_preserve_generated_private_tool_refs(tmp_path: Path, spelling: str):
+    from raes import instantiate_scenario
+
+    scenario = _parse_pair(
+        tmp_path,
+        unit_edits=(("    content: [scanner-package]\n", ""), _tool_ref_edit("scanner-package", spelling)),
+        root_edits=(_tool_ref_edit("alpha.scanner-package", "scanner-package"),),
+    )
+    model = compile_runtime_model(instantiate_scenario(scenario))
+    assert _imported_tool_addresses(model) == [
+        f"provision.content.{namespace}.__private.scanner-package" for namespace in NAMESPACES
+    ]
+
+
+def test_instantiation_cannot_mint_a_private_tool_ref(tmp_path: Path):
+    from raes import SDLInstantiationError, instantiate_scenario
+
+    scenario = _parse_pair(
+        tmp_path,
+        unit_edits=(("    content: [scanner-package]\n", ""),),
+        root_edits=(
+            (
+                "\nbehavior_specifications:\n",
+                "\nvariables:\n  selected-tool:\n    type: string\n    default: alpha.__private.scanner-package\n"
+                "behavior_specifications:\n",
+            ),
+            _tool_ref_edit("alpha.scanner-package", "'${selected-tool}'"),
+        ),
+    )
+    with pytest.raises(SDLInstantiationError, match=f"tool_affordances/{SHARED}/tool_ref"):
+        instantiate_scenario(scenario)
+
+
+@pytest.mark.parametrize("field", ["action_contract_refs", "observation_boundary_refs"])
+def test_private_tool_relations_are_rejected_before_semantic_validation(tmp_path: Path, field: str):
+    authored = "alpha.scan" if field == "action_contract_refs" else "operator-view"
+    with pytest.raises(SDLParseError) as excinfo:
+        _parse_pair(
+            tmp_path,
+            root_edits=((f"        {field}: [{authored}]", f"        {field}: [alpha.__private.binding]"),),
+        )
+    (diagnostic,) = excinfo.value.diagnostics
+    assert diagnostic.code == "sdl.identifier.invalid"
+    assert diagnostic.pointer == f"/behavior_specifications/{LOCAL}/tool_affordances/{SHARED}/{field}/0"
+
+
+@pytest.mark.parametrize("affordances", [None, []])
+def test_malformed_affordances_retain_structural_diagnostics(affordances):
+    payload = yaml.safe_load(UNIT.read_text(encoding="utf-8"))
+    payload["behavior_specifications"][REUSABLE]["tool_affordances"] = affordances
+    with pytest.raises(SDLParseError) as excinfo:
+        parse_sdl(yaml.safe_dump(payload))
+    assert excinfo.value.diagnostics[0].code == "sdl.model.invalid"
+
+
+def test_issue_branch_resolves_dsl_117_and_enforces_all_delivery_ownership(monkeypatch):
+    from tools.policy.repository_requirements import RepositoryRequirementClient
+    from tools.policy.requirement_scope import evaluate_requirement_scope
+    from tools.requirement_context import resolve_requirement_context
+
+    monkeypatch.delenv("RAES_REQUIREMENT_UID", raising=False)
+    uid, scope = resolve_requirement_context(REPO_ROOT, "298-tool-authoring-verification")
+    assert uid == "DSL-117"
+    assert scope is not None
+    assert (
+        evaluate_requirement_scope(
+            REPO_ROOT, list(scope.bindings), client=RepositoryRequirementClient(REPO_ROOT), scope=scope
+        )
+        == []
+    )
+
+
 @pytest.mark.parametrize(
     ("document", "carrier", "pointer"),
     [

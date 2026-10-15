@@ -35,6 +35,20 @@ def _private_locations(document: Mapping[str, object]) -> Iterator[tuple[tuple[s
         if isinstance(specification, Mapping):
             for field, index, ref in _private_refs(specification):
                 yield ("behavior_specifications", name, field, index), ref
+            affordances = specification.get("tool_affordances", {})
+            if not isinstance(affordances, Mapping):
+                continue
+            for affordance_id, binding in affordances.items():
+                if isinstance(binding, BaseModel):
+                    binding = binding.model_dump(mode="python")
+                if not isinstance(binding, Mapping):
+                    continue
+                prefix = ("behavior_specifications", name, "tool_affordances", affordance_id)
+                tool_ref = binding.get("tool_ref")
+                if isinstance(tool_ref, str) and PRIVATE_NAMESPACE_SEGMENT in tool_ref.split("."):
+                    yield (*prefix, "tool_ref"), tool_ref
+                for field, index, ref in _private_refs(binding):
+                    yield (*prefix, field, index), ref
 
 
 def validate_authored_behavior_references(

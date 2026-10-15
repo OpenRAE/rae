@@ -282,15 +282,22 @@ def test_authored_private_references_are_rejected_before_composition(
     ],
     ids=["dangling", "ambiguous"],
 )
-def test_reused_unit_reports_each_broken_reference_once_per_namespace(
+def test_reused_unit_reports_broken_references_at_their_validation_boundary(
     tmp_path: Path, unit_edits: tuple[tuple[str, str], ...], message: str
 ):
-    """The importing scenario declares nothing the broken ref names; the next test covers the case where it does."""
+    """Ambiguity fails before rewriting; dangling refs resolve against the composed scenario."""
 
     with pytest.raises(SDLValidationError) as excinfo:
         _compose(tmp_path, unit_edits=unit_edits)
 
-    assert excinfo.value.errors == list(_per_namespace(f"Behavior specification '{{ns}}.{REUSABLE}' {message}"))
+    if "is ambiguous" in message:
+        assert excinfo.value.errors == [
+            f"Behavior specification '{REUSABLE}' authority_scope_ref 'web' "
+            "is ambiguous; use one of: content.web, nodes.web"
+        ]
+        assert excinfo.value.path == tmp_path / UNIT.name
+    else:
+        assert excinfo.value.errors == list(_per_namespace(f"Behavior specification '{{ns}}.{REUSABLE}' {message}"))
 
 
 @pytest.mark.parametrize(
