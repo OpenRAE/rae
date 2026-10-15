@@ -82,3 +82,4 @@ runtime admission refuse that form, so no executable adoption is claimed.
 - TESTS → TEST `implementations/python/tests/test_issue_1363_delivery_and_admission.py` (Rev1 planning, admission and construction refusals)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_language_metadata.py` (Shared mixed-control reference domains for completion and navigation)
 - TESTS → TEST `implementations/python/tests/test_issue_1363_identity_integration.py` (Canonical identity integration across control forms and editor references)
+- TESTS → TEST `implementations/python/tests/test_issue_1363_projection_integration.py` (Canonical semantic-only and runtime authority anchors in both rev1 forms)

@@ -82,6 +82,40 @@ MIXED_CONTROL_CASES: list[tuple[str, Callable[[], dict], Callable[[dict], None] 
     ),
     ("finite-without-steps", lambda: rev1_policy(form="finite-script"), lambda p: p.pop("script_steps"), False),
     ("finite-empty-steps", lambda: rev1_policy(form="finite-script"), lambda p: p.update(script_steps=[]), False),
+    *(
+        (
+            f"finite-window-{field}-{other}",
+            lambda: rev1_policy(form="finite-script"),
+            lambda p, field=field, other=other: p["script_steps"][0].update({field: 3, **other}),
+            False,
+        )
+        for field, other in (
+            ("valid_from_order", {}),
+            ("valid_until_order", {}),
+            ("valid_from_order", {"valid_until_order": None}),
+            ("valid_until_order", {"valid_from_order": None}),
+        )
+    ),
+    (
+        "finite-complete-window",
+        lambda: rev1_policy(form="finite-script"),
+        lambda p: p["script_steps"][0].update(valid_from_order=3, valid_until_order=8),
+        True,
+    ),
+    *(
+        (
+            f"map-key-{form}-{field}-{key}",
+            build,
+            lambda p, field=field, key=key, value=value: p[field].update({key: value}),
+            False,
+        )
+        for form, build, transition_field in (
+            ("rev1", rev1_policy, "permitted_transitions"),
+            ("legacy", _legacy, "transitions"),
+        )
+        for field in ("controller_states", transition_field)
+        for key, value in (("_bad", None), ("-bad", 42))
+    ),
     ("direction-no-kinds", rev1_policy, lambda p: _edges(p)["direct"].pop("target_kinds"), False),
     ("direction-empty-kinds", rev1_policy, lambda p: _edges(p)["direct"].update(target_kinds=[]), False),
     (

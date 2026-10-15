@@ -95,7 +95,7 @@ def _add_qualified_aliases(
         _add_alias(index, f"{qualified_prefix}.{name}", address)
 
 
-def _runtime_addressable_ref_index(scenario: InstantiatedScenario) -> dict[str, set[str]]:
+def _runtime_addressable_ref_index(scenario: InstantiatedScenario) -> _RuntimeAddressableRefIndex:
     """Map SDL authority/scope refs to compiled runtime addresses.
 
     This deliberately omits semantic-only anchors such as entities and

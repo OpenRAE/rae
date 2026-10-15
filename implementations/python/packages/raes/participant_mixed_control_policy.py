@@ -16,7 +16,7 @@ from typing import Annotated, Any, Literal
 from pydantic import ConfigDict, Field, StrictInt, field_validator, model_validator
 
 from ._base import SDLModel
-from ._identifiers import PortableIdentifier
+from ._identifiers import PortableIdentifier, portable_identifier_map_schema
 from .participant_mixed_control_vocabulary import (
     MIXED_CONTROL_COORDINATE_LIMIT,
     MixedControlControllerState,
@@ -154,10 +154,23 @@ class MixedControlPermittedTransition(SDLModel):
         return MIXED_CONTROL_KIND_TARGETS[MixedControlTransitionKind(self.transition_kind)]
 
 
+def _script_step_schema(schema: dict[str, Any]) -> None:
+    omit_property_titles(schema)
+    bounds = ("valid_from_order", "valid_until_order")
+    non_null = {"not": {"type": "null"}}
+    schema[_ALL_OF] = [
+        {
+            "if": {_PROPERTIES: {first: non_null}, "required": [first]},
+            "then": {_PROPERTIES: {second: non_null}, "required": [second]},
+        }
+        for first, second in (bounds, bounds[::-1])
+    ]
+
+
 class MixedControlScriptStep(SDLModel):
     """One finite-script step; it only narrows its edge."""
 
-    model_config = ConfigDict(json_schema_extra=omit_property_titles)
+    model_config = ConfigDict(json_schema_extra=_script_step_schema)
 
     step_id: PortableIdentifier
     permitted_transition_ref: PortableIdentifier
@@ -208,8 +221,12 @@ class MixedControlPolicy(SDLModel):
     order_strategy: MixedControlOrderStrategy
     initial_state_ref: PortableIdentifier
     dispositions: MixedControlDispositionRules
-    controller_states: dict[PortableIdentifier, MixedControlControllerState] = Field(min_length=1)
-    permitted_transitions: dict[PortableIdentifier, MixedControlPermittedTransition] = Field(min_length=1)
+    controller_states: dict[PortableIdentifier, MixedControlControllerState] = Field(
+        min_length=1, json_schema_extra=portable_identifier_map_schema
+    )
+    permitted_transitions: dict[PortableIdentifier, MixedControlPermittedTransition] = Field(
+        min_length=1, json_schema_extra=portable_identifier_map_schema
+    )
     script_steps: _ScriptSteps | None = None
 
     @field_validator("participant_ref", "policy_revision")

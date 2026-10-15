@@ -2225,6 +2225,10 @@ evidence anchors retain their authored references without gaining runtime
 addresses. Required source and result items must each project to exactly one
 runtime address; otherwise compilation reports a diagnostic and withholds the
 delivery record.
+The trusted occurrence-policy projection uses the compilation declaration index
+to resolve each authority and scope reference individually. It retains canonical
+semantic-only anchors alongside runtime addresses, including when both occur in
+one field; authored aliases do not become distinct authority identities.
 The temporal and evidence declarations must bind the delivery declaration
 itself. Environment-only injects remain orchestration input and do not create a
 delivery implicitly. Compilation retains canonical participant, inject,

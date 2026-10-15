@@ -539,6 +539,19 @@ def test_mixed_archives_select_each_episode_reader_and_report_missing_v1_context
         validate_participant_control_occurrence_context([legacy], declarations=())
 
 
+def test_a_same_episode_declaration_cannot_substitute_for_missing_v1_context() -> None:
+    legacy = v1_record(1)
+    history = History(start=1)
+    history.accept("take")
+    other = v1_declaration().model_copy(update={"declaration_ref": "participant.behavior-specification.other"})
+    archive = [legacy, *history.records]
+    report = participant_control_history_verifiability(archive, declarations=[other], policies=[history.projection])
+    assert not report.verifiable
+    assert report.entries[0].missing == ("missing-policy",)
+    with pytest.raises(ValueError, match=PARTICIPANT_CONTROL_HISTORY_UNVERIFIABLE):
+        validate_participant_control_occurrence_context(archive, declarations=[other], policies=[history.projection])
+
+
 def test_mixed_archives_refuse_gaps_and_episodes_that_mix_lineages() -> None:
     legacy = v1_record(1)
     declarations = [v1_declaration()]

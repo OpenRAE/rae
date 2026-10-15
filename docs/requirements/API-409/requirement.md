@@ -86,3 +86,4 @@ and runtime admission refuse the rev1 form, so no executable adoption is claimed
 - TESTS → TEST `implementations/python/tests/test_issue_1363_occurrence_v2_contract.py` (v2 carrier, range and reader tests)
 - TESTS → TEST `implementations/python/tests/test_issue_1363_occurrence_v2_context.py` (v2 contextual joins, liveness, unverifiable and model differential tests)
 - TESTS → TEST `implementations/python/tests/test_issue_1363_schema_parity.py` (Python and published-schema parity for the v2 carrier)
+- TESTS → TEST `implementations/python/tests/test_issue_1363_projection_integration.py` (Complete canonical authority and owner-scope identities in trusted occurrence policies)

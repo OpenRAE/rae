@@ -51,7 +51,9 @@ def test_one_compiled_child_per_permission_and_per_script_step() -> None:
         ("h1", 1, f"{SPEC_ADDRESS}.permitted-transition.take"),
         ("h2", 2, f"{SPEC_ADDRESS}.permitted-transition.return"),
     ]
-    projection = occurrence_policy_projection(spec, episode_id="episode-1")
+    projection = occurrence_policy_projection(
+        spec, episode_id="episode-1", addressable_ref_index=_runtime_addressable_ref_index(parse(rev1_scenario()))
+    )
     assert projection.pin.policy_ref == policy.address
     assert {item.transition_ref for item in projection.transitions} == {
         item.address for item in policy.permitted_transitions

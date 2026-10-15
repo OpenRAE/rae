@@ -11,7 +11,7 @@ from typing_extensions import TypeAliasType
 
 from ._base import SDLModel
 from ._classification_guard import LegacyClassificationGuard
-from ._identifiers import PortableIdentifier
+from ._identifiers import PortableIdentifier, portable_identifier_map_schema
 from .participant_execution import ParticipantAutonomousExecutionPolicy
 from .participant_inject_delivery import ParticipantInjectDelivery
 from .participant_mixed_control_policy import MIXED_CONTROL_POLICY_SEMANTICS, MixedControlPolicy
@@ -153,8 +153,12 @@ class MixedControlParticipantOperation(SDLModel):
     order_strategy: MixedControlOrderStrategy
     initial_state_ref: PortableIdentifier
     dispositions: MixedControlDispositionRules
-    controller_states: dict[PortableIdentifier, MixedControlControllerState]
-    transitions: dict[PortableIdentifier, MixedControlTransition]
+    controller_states: dict[PortableIdentifier, MixedControlControllerState] = Field(
+        json_schema_extra=portable_identifier_map_schema
+    )
+    transitions: dict[PortableIdentifier, MixedControlTransition] = Field(
+        json_schema_extra=portable_identifier_map_schema
+    )
 
     @field_validator("participant_ref", "policy_revision")
     @classmethod

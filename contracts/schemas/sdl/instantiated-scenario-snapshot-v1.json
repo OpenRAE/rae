@@ -7689,6 +7689,7 @@
       "description": "Closed authored mixed-control policy for exactly one participant.",
       "properties": {
         "controller_states": {
+          "additionalProperties": false,
           "patternProperties": {
             "^[a-z0-9]": {
               "$ref": "#/$defs/MixedControlControllerState"
@@ -7699,7 +7700,9 @@
             "minLength": 1,
             "not": {
               "pattern": "[^a-z0-9_-]"
-            }
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
           },
           "title": "Controller States",
           "type": "object"
@@ -7742,6 +7745,7 @@
           "type": "string"
         },
         "transitions": {
+          "additionalProperties": false,
           "patternProperties": {
             "^[a-z0-9]": {
               "$ref": "#/$defs/MixedControlTransition"
@@ -7752,7 +7756,9 @@
             "minLength": 1,
             "not": {
               "pattern": "[^a-z0-9_-]"
-            }
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
           },
           "title": "Transitions",
           "type": "object"
@@ -7971,6 +7977,7 @@
       "description": "A rev1 reusable policy or finite script (MC-01, MC-02).",
       "properties": {
         "controller_states": {
+          "additionalProperties": false,
           "minProperties": 1,
           "patternProperties": {
             "^[a-z0-9]": {
@@ -7996,7 +8003,9 @@
             "minLength": 1,
             "not": {
               "pattern": "[^a-z0-9_-]"
-            }
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
           },
           "type": "object"
         },
@@ -8036,6 +8045,7 @@
           "type": "string"
         },
         "permitted_transitions": {
+          "additionalProperties": false,
           "minProperties": 1,
           "patternProperties": {
             "^[a-z0-9]": {
@@ -8047,7 +8057,9 @@
             "minLength": 1,
             "not": {
               "pattern": "[^a-z0-9_-]"
-            }
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
           },
           "type": "object"
         },
@@ -8100,6 +8112,60 @@
     },
     "MixedControlScriptStep": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "valid_from_order": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "valid_from_order"
+            ]
+          },
+          "then": {
+            "properties": {
+              "valid_until_order": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "valid_until_order"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "valid_until_order": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "valid_until_order"
+            ]
+          },
+          "then": {
+            "properties": {
+              "valid_from_order": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "valid_from_order"
+            ]
+          }
+        }
+      ],
       "description": "One finite-script step; it only narrows its edge.",
       "properties": {
         "expected_state_revision": {

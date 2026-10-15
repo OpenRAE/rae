@@ -71,11 +71,12 @@ def _context_supplied(
     lineage: str,
     record: object,
     key: tuple[str, str],
-    declared: set[tuple[str, str]],
+    declared: set[tuple[str, str, str]],
     pinned: set[tuple[object, ...]],
 ) -> bool:
     if lineage == "v1":
-        return key in declared
+        declaration_ref = getattr(getattr(record, "occurrence", None), "declaration_ref", None)
+        return (declaration_ref, *key) in declared
     return (*key, getattr(record, "semantics", None), policy_pin_key(getattr(record, "policy", None))) in pinned
 
 
@@ -87,7 +88,7 @@ def participant_control_history_verifiability(
 ) -> ParticipantControlHistoryVerifiability:
     """Report each episode as verifiable or unverifiable without evaluating any occurrence."""
 
-    declared = {(item.participant_address, item.episode_id) for item in declarations}
+    declared = {(item.declaration_ref, item.participant_address, item.episode_id) for item in declarations}
     pinned = {
         (item.participant_address, item.episode_id, item.semantics, policy_pin_key(item.pin)) for item in policies
     }

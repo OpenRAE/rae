@@ -24,6 +24,7 @@ from raes_contracts.contracts import (
 )
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.compiler._mixed_control_policy import occurrence_policy_projection
+from raes_processor.compiler.alias_index import _runtime_addressable_ref_index
 from test_dsl_142_participant_inject_delivery import _external_direction_yaml
 
 SPEC = "participant.behavior-specification.controlled-red"
@@ -297,7 +298,9 @@ def _converted_projection(payload: dict[str, Any]):
     result = migrate_mixed_control_to_finite_script(_source(payload))
     assert result.succeeded, [(item.code, item.address) for item in result.report.diagnostics]
     spec = compile_runtime_model(result.output).behavior_specifications[SPEC]
-    return occurrence_policy_projection(spec, episode_id="episode-1"), result
+    return occurrence_policy_projection(
+        spec, episode_id="episode-1", addressable_ref_index=_runtime_addressable_ref_index(result.output)
+    ), result
 
 
 @pytest.mark.parametrize("chain", [HANDOFF_CHAIN, DECISION_CHAIN, CANCEL_CHAIN], ids=["handoff", "decisions", "cancel"])

@@ -34,7 +34,7 @@ from .addresses import (
     _participant_behavior_address,
     _section_ref_name,
 )
-from .alias_index import _runtime_addresses_for_refs
+from .alias_index import _runtime_addresses_for_refs, _RuntimeAddressableRefIndex
 from .support import _address, _dedupe, _dump
 
 FIXED_COORDINATE_SEMANTICS = "fixed-coordinate-v1"
@@ -266,12 +266,31 @@ def _compile_delivery_policy_control(
     )
 
 
+def _occurrence_identity_refs(
+    refs: tuple[str, ...],
+    *,
+    addressable_ref_index: _RuntimeAddressableRefIndex,
+    purpose: ReferencePurpose,
+) -> list[str]:
+    """Project each resolved identity, preserving anchors without runtime records."""
+
+    identities: set[str] = set()
+    for ref in refs:
+        candidates = addressable_ref_index.declarations.resolve_for(ref, purpose)
+        if len(candidates) != 1:
+            raise ValueError("occurrence policy references must resolve to one declared identity")
+        canonical = next(iter(candidates))
+        identities.update(addressable_ref_index.get(canonical) or {canonical})
+    return sorted(identities)
+
+
 def occurrence_policy_projection(
     specification: ParticipantBehaviorSpecificationRuntime,
     *,
     episode_id: str,
+    addressable_ref_index: _RuntimeAddressableRefIndex,
 ) -> ParticipantControlOccurrencePolicyModel:
-    """Build the trusted, non-wire policy projection one v2 episode is validated against."""
+    """Build a trusted episode policy with the declaration context used for compilation."""
 
     policy = specification.mixed_control_policy
     if policy is None:
@@ -289,13 +308,25 @@ def occurrence_policy_projection(
             },
             "order_strategy": policy.order_strategy,
             "initial_state_ref": policy.initial_state_address,
-            "behavior_scope_refs": list(specification.authority_scope_addresses or specification.authority_scope_refs),
+            "behavior_scope_refs": _occurrence_identity_refs(
+                specification.authority_scope_refs,
+                addressable_ref_index=addressable_ref_index,
+                purpose=ReferencePurpose.AUTHORITY_SCOPE,
+            ),
             "states": [
                 {
                     "state_ref": state.address,
                     "controller_ref": state.controller_address,
-                    "authority_basis_refs": list(state.authority_basis_addresses or state.authority_basis_refs),
-                    "scope_refs": list(state.scope_addresses or state.scope_refs),
+                    "authority_basis_refs": _occurrence_identity_refs(
+                        state.authority_basis_refs,
+                        addressable_ref_index=addressable_ref_index,
+                        purpose=ReferencePurpose.AUTHORITY_ANCHOR,
+                    ),
+                    "scope_refs": _occurrence_identity_refs(
+                        state.scope_refs,
+                        addressable_ref_index=addressable_ref_index,
+                        purpose=ReferencePurpose.AUTHORITY_SCOPE,
+                    ),
                     "authority_status": state.authority_status,
                     **_window(state),
                 }
