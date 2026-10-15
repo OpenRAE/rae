@@ -24,7 +24,8 @@ _REPOSITORY = "docker.io/library/alpine"
 
 def test_pr_container_evidence_cannot_pass_by_skipping_runtime_admission(monkeypatch):
     root = Path(__file__).resolve().parents[3]
-    job = yaml.safe_load((root / ".github/workflows/ci.yml").read_text())["jobs"]["integration-docker"]
+    jobs = yaml.safe_load((root / ".github/workflows/ci.yml").read_text())["jobs"]
+    job = jobs["integration-docker"]
     assert job.get("continue-on-error", False) is False
     monkeypatch.setenv(docker_integration._REQUIRED_MODE_ENV, job["env"][docker_integration._REQUIRED_MODE_ENV])
     monkeypatch.setattr(docker_integration, "_available_runtime", lambda: None)
@@ -32,6 +33,10 @@ def test_pr_container_evidence_cannot_pass_by_skipping_runtime_admission(monkeyp
         docker_integration._require_container_runtime()
     step = next(item for item in job["steps"] if item.get("name") == "Run docker integration session")
     assert "if" not in step
+    assert "integration-docker" in jobs["verify"]["needs"]
+    joined = jobs["verify"]["steps"][0]
+    assert joined["env"]["DOCKER_OUTCOME"] == "${{ needs.integration-docker.result }}"
+    assert '"${DOCKER_OUTCOME}" != "success"' in joined["run"]
 
 
 def _graph() -> LockedPlatformGraph:

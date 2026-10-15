@@ -51,7 +51,7 @@ jobs:
   # and cannot turn a failed or skipped reusable job into success. A red quality
   # gate no longer blocks the `verify` context and vice versa (#935).
   verify:
-    needs: [canonical, runtime-supervision]
+    needs: [canonical, runtime-supervision, integration-docker]
     if: always()
     runs-on: ubuntu-24.04
     permissions:
@@ -61,6 +61,7 @@ jobs:
         env:
           GATE_OUTCOME: ${{ needs.canonical.outputs.gate-outcome }}
           EXECUTION_OUTCOME: ${{ needs.runtime-supervision.result }}
+          DOCKER_OUTCOME: ${{ needs.integration-docker.result }}
         run: |
           if [ "${GATE_OUTCOME}" != "success" ]; then
             echo "Canonical verification gate concluded with '${GATE_OUTCOME}'" >&2
@@ -68,6 +69,10 @@ jobs:
           fi
           if [ "${EXECUTION_OUTCOME}" != "success" ]; then
             echo "Runtime execution integration did not pass" >&2
+            exit 1
+          fi
+          if [ "${DOCKER_OUTCOME}" != "success" ]; then
+            echo "Concrete container integration did not pass" >&2
             exit 1
           fi
 
