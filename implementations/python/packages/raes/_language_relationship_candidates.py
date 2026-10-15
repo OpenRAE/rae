@@ -12,7 +12,7 @@ from ._language_context import PurposeResolver
 from ._reference_targetability import ReferencePurpose
 from ._relationship_endpoint_policy import RELATIONSHIP_DETAIL_BINDINGS
 from .nodes import Node
-from .participant_behavior_specification import MixedControlParticipantOperation
+from .participant_behavior_specification import MixedControlDeclaration
 from .scenario import ScenarioContent
 from .semantics._domain_topology_types import resolve_section_ref
 from .semantics.deployment_tenancy import placement_context_allowed, placement_node_allowed
@@ -160,7 +160,7 @@ def _policy_scope_allowed(address: str, context: _RelationshipContext) -> bool:
     }
 
 
-def _scope_control(context: _RelationshipContext) -> MixedControlParticipantOperation | None:
+def _scope_control(context: _RelationshipContext) -> MixedControlDeclaration | None:
     pointer, relationship, scenario = context.pointer, context.relationship, context.scenario
     field = pointer[-2] if pointer[-1].isdecimal() else pointer[-1]
     detail = relationship.get("participant")

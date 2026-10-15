@@ -25,6 +25,7 @@ from raes_processor.models import (
     MixedControlTransitionRuntime,
     ParticipantBehaviorSpecificationRuntime,
 )
+from raes_processor.planner.mixed_control_admission import mixed_control_policy_addresses
 
 from .control_plane_mutation import control_plane_mutation
 from .control_plane_operation_context import operation_admission_context
@@ -239,6 +240,8 @@ def _specification_for_participant(
         if specification.mixed_control_participant_address == participant_address
         and any(state.controller_address in authorized_controllers for state in specification.controller_states)
     ]
+    if mixed_control_policy_addresses(candidates):
+        raise ValueError("participant control cannot execute a mixed-control-policy-occurrence/rev1 specification")
     if len(candidates) != 1:
         raise ValueError("participant must resolve exactly one trusted mixed-control specification")
     return candidates[0]

@@ -2,13 +2,15 @@
 
 from .._reference_targetability import ReferencePurpose
 from ..participant_behavior_specification import (
-    MixedControlAuthorityStatus,
     MixedControlControllerState,
+    MixedControlDeclaration,
     MixedControlParticipantOperation,
     MixedControlTransition,
     MixedControlTransitionKind,
     ParticipantBehaviorSpecification,
 )
+from ..participant_mixed_control_policy import MixedControlPolicy
+from ..participant_mixed_control_vocabulary import MixedControlAuthorityStatus
 
 
 class _MixedControlMixin:
@@ -20,7 +22,13 @@ class _MixedControlMixin:
                 behavior_mode=behavior_spec.behavior_mode,
                 declaration=declaration,
             )
-            if declaration is not None:
+            if isinstance(declaration, MixedControlPolicy):
+                self._verify_mixed_control_policy(
+                    spec_name=spec_name,
+                    behavior_spec=behavior_spec,
+                    declaration=declaration,
+                )
+            elif declaration is not None:
                 self._verify_mixed_control_declaration(
                     spec_name=spec_name,
                     behavior_spec=behavior_spec,
@@ -32,7 +40,7 @@ class _MixedControlMixin:
         *,
         spec_name: str,
         behavior_mode: str | None,
-        declaration: MixedControlParticipantOperation | None,
+        declaration: object | None,
     ) -> None:
         if behavior_mode == "mixed-control" and declaration is None:
             self._err(f"Behavior specification '{spec_name}' mixed-control mode requires mixed_control")
@@ -85,7 +93,7 @@ class _MixedControlMixin:
         *,
         state_id: str,
         state: MixedControlControllerState,
-        declaration: MixedControlParticipantOperation,
+        declaration: MixedControlDeclaration,
         label: str,
         named_index: dict[str, set[str]],
         scope_index: dict[str, set[str]],

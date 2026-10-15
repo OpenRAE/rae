@@ -85,6 +85,18 @@ def _rewrite_mixed_control_transition(
         transition[field_name] = [_maybe_rename(name, symbols["named"]) for name in transition.get(field_name, [])]
 
 
+def _rewrite_present_named_lists(
+    payload: dict[str, Any],
+    field_names: tuple[str, ...],
+    symbols: dict[str, dict[str, str] | set[str]],
+) -> None:
+    """Rewrite authored named-ref lists without adding fields a closed rev1 shape forbids."""
+
+    for field_name in field_names:
+        if isinstance(payload.get(field_name), list):
+            payload[field_name] = [_maybe_rename(name, symbols["named"]) for name in payload[field_name]]
+
+
 def _rewrite_mixed_control(
     mixed_control: object,
     symbols: dict[str, dict[str, str] | set[str]],
@@ -102,6 +114,9 @@ def _rewrite_mixed_control(
     for transition in mixed_control.get("transitions", {}).values():
         if isinstance(transition, dict):
             _rewrite_mixed_control_transition(transition, symbols)
+    for transition in mixed_control.get("permitted_transitions", {}).values():
+        if isinstance(transition, dict):
+            _rewrite_present_named_lists(transition, ("evidence_refs", "completion_evidence_refs"), symbols)
 
 
 def _unit_authority_scope_ambiguities(unit: ScenarioContent, index: DeclarationIndex) -> list[str]:
@@ -210,6 +225,17 @@ def _rewrite_participant_inject_delivery(
     binding["control_evidence_refs"] = [
         _maybe_rename(ref, symbols["named"]) for ref in binding.get("control_evidence_refs", [])
     ]
+    _rewrite_delivery_control_block(binding.get("control"), symbols)
+
+
+def _rewrite_delivery_control_block(control: object, symbols: dict[str, dict[str, str] | set[str]]) -> None:
+    """Rewrite a rev1 directed-delivery ``control`` block; its permitted-transition ref stays local."""
+
+    if not isinstance(control, dict):
+        return
+    if control.get("controller_ref") and control["controller_ref"] != "self":
+        control["controller_ref"] = _maybe_rename(str(control["controller_ref"]), symbols["agents"])
+    _rewrite_present_named_lists(control, ("authority_scope_refs", "evidence_refs"), symbols)
 
 
 def _behavior_reference_maps(

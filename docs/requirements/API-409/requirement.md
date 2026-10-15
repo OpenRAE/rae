@@ -43,6 +43,10 @@ the legacy fixed-coordinate form; the new bounded tests evidence a design
 projection. Executable adoption and historical readers must meet the
 [migration contract](../../migration/reusable-mixed-control.md).
 
+Issue #1363 publishes `participant-control-occurrence-v2` and its contextual
+joins in the owning validator. No runtime produces v2 occurrences, and planning
+and runtime admission refuse the rev1 form, so no executable adoption is claimed.
+
 ## Traceability
 
 - IMPLEMENTS → SPEC `specs/formal/participant-semantics/reusable-mixed-control.md` (Exact occurrence/target/rejection semantic amendment; not runtime conformance)
@@ -70,3 +74,16 @@ projection. Executable adoption and historical readers must meet the
 - TESTS → TEST `implementations/python/tests/test_api_409_participant_control_occurrences.py` (API-409 contract, schema, and fail-closed validation tests)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-252-api-409-participant-intervention-contracts-preflight.md` (API-409 architecture preflight)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/lineage.md` (API-409 participant-control lineage and nonclaims)
+
+- IMPLEMENTS → GITHUB_ISSUE `1363` (API-409 v2 occurrence carrier and contextual joins; executable adoption not claimed)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_occurrence_v2.py` (API-409 v2 occurrence carrier and lineage reader)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_occurrence_v2_policy.py` (Trusted v2 policy projection and owner targets)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_occurrence_v2_state.py` (v2 live state and eligibility predicates)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_occurrence_v2_validation.py` (v2 episode fold behind the owning validator)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_history_verifiability.py` (Typed unverifiable result for mixed archives)
+- IMPLEMENTS → CONFIG `contracts/schema-publication/entries/participant-control-occurrence-v2.json` (API-409 v2 schema publication entry)
+- IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-control-occurrence-v2.json` (API-409 participant control occurrence v2 schema)
+- TESTS → TEST `implementations/python/tests/test_issue_1363_occurrence_v2_contract.py` (v2 carrier, range and reader tests)
+- TESTS → TEST `implementations/python/tests/test_issue_1363_occurrence_v2_context.py` (v2 contextual joins, liveness, unverifiable and model differential tests)
+- TESTS → TEST `implementations/python/tests/test_issue_1363_schema_parity.py` (Python and published-schema parity for the v2 carrier)
+- TESTS → TEST `implementations/python/tests/test_issue_1363_projection_integration.py` (Complete canonical authority and owner-scope identities in trusted occurrence policies)

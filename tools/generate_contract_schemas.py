@@ -59,6 +59,7 @@ _EXACT_SCHEMA_DIRECTORIES = (
             "participant-joint-action-record-v1",
             "participant-time-management-context-v1",
             "participant-control-occurrence-v1",
+            "participant-control-occurrence-v2",
             "participant-control-selection-v1",
             "participant-control-evaluation-v1",
             "participant-control-selection-v2",

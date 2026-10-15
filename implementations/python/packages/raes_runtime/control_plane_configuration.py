@@ -13,6 +13,7 @@ from raes_processor.models import ParticipantBehaviorSpecificationRuntime, Runti
 
 from .control_plane_profiles import ControlPlaneProfile
 from .control_plane_store import ControlPlaneStore
+from .mixed_control_admission import refuse_unsupported_mixed_control
 from .mixed_runtime import MixedRuntimeBinding
 from .operation_supervision_configuration import OperationEvidenceResolver, OperationSupervisionConfiguration
 from .participant_control_binding import ParticipantControlRuntimeBinding
@@ -89,6 +90,7 @@ class ControlPlaneConfiguration:
         if not self.run_scope.startswith("run:"):
             raise ValueError("control-plane run_scope must use the normalized run:<id> form")
         PlanScope(run_id=self.run_scope.removeprefix("run:"))
+        refuse_unsupported_mixed_control(self.behavior_specifications)
         if self.mixed_runtime is not None:
             admitted_run_scope = f"run:{self.mixed_runtime.entry.run_id}"
             if self.run_scope != admitted_run_scope:
