@@ -98,7 +98,7 @@ required owner kind and candidate kind; authors cannot widen either with data.
 | `stories.scripts` | `stories` | `scripts` |
 | `agents.starting_accounts` | `agents` | `accounts` |
 | `agents.starting_assertions` | `agents` | precondition `assertions` |
-| `objectives.targets` | `objectives` | targetable declarations |
+| `objectives.targets` | `objectives` | eligible objective subjects ([reference purposes](references.md#7-reference-purposes-and-eligibility)) |
 | `objectives.depends_on` | `objectives` | `objectives` |
 
 ### Logical-timing slots

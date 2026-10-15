@@ -103,16 +103,21 @@ def require_backend_execution_policy_admission(
     capabilities: BackendOperationCapabilitiesModel,
     response: BackendOperationResponseModel,
     native_plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+    *,
+    resolved_native_plan_commitment: str | None = None,
 ) -> None:
     """Validate a native plan resolved by its owner, then exact-context willingness.
 
     The caller authenticates and authorizes separately, resolves the artifact
     through its owning authority, and consumes the one-use effect claim. This
     pure validator supplies none of that authority and performs no recovery.
+    A protected artifact owner may supply its freshly computed content
+    commitment. It must never copy that proof from the untrusted request.
+    Omitting it retains canonical native-plan SHA-256 validation.
     """
     from ..execution_policy import execution_policy_capability_gaps
 
-    _validate_native_plan_commitment(request, native_plan)
+    _validate_native_plan_commitment(request, native_plan, resolved_native_plan_commitment)
     for operation in native_plan.operations:
         for effective in (operation.execution_policy, *operation.execution_policy_scopes):
             if effective is not None and execution_policy_capability_gaps(
@@ -123,7 +128,9 @@ def require_backend_execution_policy_admission(
 
 
 def _validate_native_plan_commitment(
-    request: BackendOperationRequestModel, native_plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan
+    request: BackendOperationRequestModel,
+    native_plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+    resolved_commitment: str | None = None,
 ) -> None:
     from ..plan_projection import runtime_plan_digest
     from ..planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
@@ -134,7 +141,9 @@ def _validate_native_plan_commitment(
         raise ValueError("execution policy requires its exact native plan contract")
     if request.binding.context.operation_kind.value != kind:
         raise ValueError("execution policy native plan kind mismatch")
-    if request.command.digest != runtime_plan_digest(native_plan):
+    if request.command.digest != (
+        runtime_plan_digest(native_plan) if resolved_commitment is None else resolved_commitment
+    ):
         raise ValueError("execution policy native plan commitment mismatch")
     _validate_native_plan_identity(request, native_plan)
     if native_plan.purpose != "execution" or any(diagnostic.is_error for diagnostic in native_plan.diagnostics):

@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 
+from raes import ReferencePurpose
 from raes.participant_inject_delivery import ParticipantInjectDelivery
 from raes.scenario import InstantiatedScenario
 
@@ -111,10 +112,12 @@ def _delivery_addresses(
         source_item=_runtime_addresses_for_refs(
             [binding.source_item_ref],
             addressable_ref_index=addressable_ref_index,
+            purpose=ReferencePurpose.TARGETABLE,
         )[0],
         result_item=_runtime_addresses_for_refs(
             [binding.result_item_ref],
             addressable_ref_index=addressable_ref_index,
+            purpose=ReferencePurpose.TARGETABLE,
         )[0],
         observation_boundary=_observation_boundary_address(boundary_name),
         temporal=tuple(
@@ -161,6 +164,7 @@ def _delivery_control_addresses(
         authority_scope=_runtime_addresses_for_refs(
             binding.control_authority_scope_refs,
             addressable_ref_index=addressable_ref_index,
+            purpose=ReferencePurpose.AUTHORITY_SCOPE,
         ),
         evidence=_runtime_addresses_for_refs(
             binding.control_evidence_refs,

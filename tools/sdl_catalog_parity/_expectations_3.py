@@ -51,13 +51,13 @@ EXPECTATIONS_PART_3: dict[str, tuple[str, str, str, str]] = {
         _EXECUTION_POLICY_VALIDATOR,
     ),
     "evidence_requirements.*.source_refs[]": (
-        "targetable",
+        "eligible:observation_subject",
         _SEMANTIC,
         _DANGLING,
         _EVIDENCE_VALIDATOR,
     ),
     "evidence_requirements.*.scope_refs[]": (
-        "targetable",
+        "eligible:observation_subject",
         _SEMANTIC,
         _DANGLING,
         _EVIDENCE_VALIDATOR,
@@ -111,7 +111,7 @@ EXPECTATIONS_PART_3: dict[str, tuple[str, str, str, str]] = {
         _TIME_MODEL_VALIDATOR,
     ),
     "temporal_constraints.*.subject_refs[]": (
-        "targetable",
+        "declared",
         _SEMANTIC,
         "fatal dangling or ambiguous",
         _TIME_MODEL_VALIDATOR,
@@ -226,7 +226,7 @@ EXPECTATIONS_PART_3: dict[str, tuple[str, str, str, str]] = {
         _OBJECTIVE_SEMANTICS,
     ),
     "objectives.*.targets[]": (
-        "targetable",
+        "eligible:objective_subject",
         _SEMANTIC,
         _DANGLING,
         _OBJECTIVE_SEMANTICS,

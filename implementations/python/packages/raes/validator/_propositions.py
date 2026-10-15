@@ -1,5 +1,6 @@
 """Semantic validation for proposition, assertion, and probe references."""
 
+from .._reference_targetability import ReferencePurpose
 from ..propositions import AssertionRole
 
 
@@ -18,7 +19,7 @@ class _PropositionsMixin:
                         subject,
                         owner_label=label,
                         ref_label="subject",
-                        targetable=True,
+                        purpose=ReferencePurpose.OBSERVATION_SUBJECT,
                     )
             self._verify_membership_refs(
                 proposition.evidence_requirements,

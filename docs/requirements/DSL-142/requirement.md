@@ -94,3 +94,4 @@ backend execution, delivery or observation.
 - TESTS → TEST `implementations/python/tests/test_dsl_142_participant_inject_delivery.py` (DSL-142 participant inject delivery tests)
 - IMPLEMENTS → SPEC `contracts/schemas/sdl/instantiated-scenario-v1.json` (DSL-142 governed instantiated scenario schema)
 - TESTS → TEST `implementations/python/tests/test_sdl_catalog_parity.py` (DSL-142 SDL catalog parity tests)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/inject-occurrence-correlation-v1.json` (inject-occurrence-correlation-v1 published schema)

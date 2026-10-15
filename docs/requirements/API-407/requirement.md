@@ -79,3 +79,5 @@ Requirement inventory expansion. Participant-feature boundaries need to be expli
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_handoff_execution.py` (Effective native transfer and time-service readback enforcement)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_result.py` (Evidence-bounded outcome settlement)
 - TESTS → TEST `implementations/python/tests/test_issue_1355_mixed_mapping_time.py` (Missing support, stale time, mapped execution, and evidenced stage witnesses)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/mixed-backend-execution-binding-v1.json` (mixed-backend-execution-binding-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/mixed-backend-stage-report-v1.json` (mixed-backend-stage-report-v1 published schema)

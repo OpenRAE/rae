@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from raes_contracts.manifest_authority import PARTICIPANT_RUNTIME_POLICY_FEATURES
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
@@ -11,6 +11,58 @@ from .participant_control_binding import ParticipantControlRuntimeBinding
 from .participant_crossing_mediation import ParticipantCrossingPolicyResolver
 from .participant_flow_sink import ParticipantFlowSinkResolver
 from .registry import RuntimeTarget
+
+if TYPE_CHECKING:
+    from .control_plane import RuntimeControlPlane
+    from .control_plane_configuration import ControlPlaneConfiguration
+
+
+def compose_operation_execution(control_plane: RuntimeControlPlane, config: ControlPlaneConfiguration) -> None:
+    from secrets import token_bytes
+    from uuid import uuid4
+
+    from .registry_target_validation import validate_operation_provider
+
+    control_plane._supervision = config.supervision
+    control_plane._operation_evidence = config.operation_evidence
+    control_plane._distributed_execution = config.distributed_execution
+    control_plane._admitted_backend_requests = {}
+    control_plane._execution_deadlines = {}
+    control_plane._control_deadlines = {}
+    control_plane._command_commitment_key = token_bytes(32)
+    provider = getattr(control_plane._target, "operation_provider", None)
+    declared = control_plane._target.manifest.supported_contract_versions
+    validate_operation_provider(provider, declared)
+    if config.distributed_execution is not None and getattr(control_plane._target, "operation_provider", None) is None:
+        raise ValueError("distributed execution requires an installed operation provider")
+    control_plane._deployment_id = str(uuid4())
+    control_plane._effect_admission_stopped = False
+
+
+def bind_execution_store(control_plane: RuntimeControlPlane, config: ControlPlaneConfiguration) -> None:
+    from .control_plane_store_bounded import BoundedControlPlaneStore
+    from .control_plane_store_compatibility import adapt_control_plane_store
+    from .operation_execution_adapter import LocalExecutionAdapter
+    from .runtime_resource_ownership import RuntimeResourceClaim, ledger_identity
+
+    bounds = config.supervision
+    control_plane._resource_claim = RuntimeResourceClaim(
+        control_plane, control_plane._target, ledger=ledger_identity(control_plane._store)
+    )
+    control_plane._execution_adapter = LocalExecutionAdapter(
+        effect_capacity=bounds.effect_capacity,
+        control_capacity=bounds.control_capacity,
+        store_capacity=bounds.store_capacity,
+    )
+    control_plane._store = BoundedControlPlaneStore(
+        control_plane._store, control_plane._execution_adapter, bounds.commit_ms
+    )
+    control_plane._store_commits = adapt_control_plane_store(control_plane._store)
+    generation = getattr(control_plane._store, "admit_execution_generation", None)
+    control_plane._execution_generation = generation() if callable(generation) else 0
+    stopped = getattr(control_plane._store, "effect_admission_stopped", None)
+    control_plane._effect_admission_stopped = stopped() if callable(stopped) else False
+
 
 PARTICIPANT_MODULAR_CONTROL_FEATURE = "participant_modular_control"
 

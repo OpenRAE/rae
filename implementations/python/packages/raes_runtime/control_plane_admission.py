@@ -154,6 +154,11 @@ class RuntimeAdmissionMixin:
     ) -> ControlPlaneOperationRecord:
         self._assert_runtime_owner()
         require_idempotency_key(record.idempotency_key)
+        if (
+            getattr(self, "_effect_admission_stopped", False)
+            and record.status.context.operation_kind is not OperationKind.INDETERMINATE_RESOLUTION
+        ):
+            new_claim_blocked = "current-state"
         if record.status.context.operation_kind is not OperationKind.INDETERMINATE_RESOLUTION:
             from .control_plane_recovery import unresolved_indeterminate_operation_ids
 

@@ -1,9 +1,9 @@
 {
-  "content_hash": "561545be507a1e79632488702c1fb322c62d38fb3cbb49953fb9b24771eae6af",
+  "content_hash": "ae8f25ba32be85afefcef17e83e37ddcc739df9a49bad069b90e087fc5f10744",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "561545be507a1e79632488702c1fb322c62d38fb3cbb49953fb9b24771eae6af",
-    "summary": "Reject empty and whitespace-only behavior specification version labels, matching existing parser validity; DSL-116 issue #297."
+    "content_hash": "ae8f25ba32be85afefcef17e83e37ddcc739df9a49bad069b90e087fc5f10744",
+    "summary": "Describe relationship endpoint eligibility and typed narrowing; description only; issue #1339."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

@@ -787,4 +787,12 @@ def test_language_service_completes_domain_fields_and_references() -> None:
         "domain-admin",
         "web-service",
     }
-    assert {item["label"] for item in join_controllers["items"]} == {"dc", "workstation"}
+    assert {item["label"] for item in join_controllers["items"]} == {"dc"}
+    for item in join_controllers["items"]:
+        candidate = _valid_payload()
+        candidate["relationships"]["workstation-join"]["domain_join"]["controller_refs"] = [item["label"]]
+        _parse_payload(candidate)
+    invalid = _valid_payload()
+    invalid["relationships"]["workstation-join"]["domain_join"]["controller_refs"] = ["workstation"]
+    with pytest.raises(SDLValidationError, match="controller"):
+        _parse_payload(invalid)

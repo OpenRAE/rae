@@ -115,9 +115,16 @@ For a credential-bearing plan, backend egress uses a closed result contract.
 Account snapshot entries are reconstructed from the admitted plan and expose a
 typed binding projection containing only `credential_id`, purpose, method,
 classification, and value/reference presence. Arbitrary apply-result details
-and backend-authored diagnostic prose are not admitted. Only the existing typed
-realization provenance, observation, and envelope carriers may supplement the
-reconstructed snapshot. A protected resolver or native transformer MUST keep
+and backend-authored diagnostic prose are not admitted. Supplemental realization
+data is limited to the existing typed provenance, observation, and envelope
+carriers and closed evidence fields consumed by the applicable admitted
+realization contract, including entry payload `artifact_satisfaction`. Such
+evidence MUST pass its canonical structural and semantic validators, remain
+bound to the admitted requirement and resource address, and survive projection
+so that post-sanitization validation checks the same meaning. This permission
+does not admit arbitrary payload additions or changes to plan-owned values.
+See the [credential/artifact boundary guidance](../../docs/decisions/issue-1603-credential-artifact-evidence-preflight.md).
+A protected resolver or native transformer MUST keep
 resolved and material-derived bytes outside `ApplyResult` entirely.
 
 Projection follows the canonical account-placement `spec.credential_bindings`

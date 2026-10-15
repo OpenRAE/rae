@@ -6,6 +6,7 @@ from inspect import signature
 from typing import Any
 
 from raes_backend_protocols.capabilities import BackendManifest
+from raes_backend_protocols.operation_supervision import BackendOperationProvider
 from raes_backend_protocols.protocols import (
     Evaluator,
     Orchestrator,
@@ -24,6 +25,7 @@ from .observation_execution import ObservationRuntime
 from .observation_native import backend_selection_observation_runtime as _backend_selection_observation_runtime
 from .registry_probes import sample_participant_action_admission_request
 from .registry_target_validation import (
+    validate_operation_provider,
     validate_optional_component_presence,
     validate_recovery_observer_contract,
 )
@@ -55,6 +57,7 @@ class RuntimeTargetComponents:
     time_runtime: TimeRuntime | None = None
     observation_runtime: ObservationRuntime | None = None
     recovery_observer: RecoveryObserver | None = None
+    operation_provider: BackendOperationProvider | None = None
 
 
 def _participant_runtime_method_requirements(manifest: BackendManifest) -> _ParticipantRuntimeMethodRequirements:
@@ -105,6 +108,7 @@ def _validate_runtime_target_shape(
         raise ValueError("RuntimeTarget requires an explicit manifest.")
     if components.provisioner is None:
         raise ValueError("RuntimeTarget requires a provisioner.")
+    validate_operation_provider(components.operation_provider, manifest.supported_contract_versions)
     validate_profile_target(manifest, components.provisioner)
     validate_optional_component_presence(
         manifest,
@@ -397,6 +401,7 @@ class RuntimeTarget:
     time_runtime: TimeRuntime | None = None
     observation_runtime: ObservationRuntime | None = None
     recovery_observer: RecoveryObserver | None = None
+    operation_provider: BackendOperationProvider | None = None
 
     def __post_init__(self) -> None:
         _validate_runtime_target_shape(
@@ -409,6 +414,7 @@ class RuntimeTarget:
                 time_runtime=self.time_runtime,
                 observation_runtime=self.observation_runtime,
                 recovery_observer=self.recovery_observer,
+                operation_provider=self.operation_provider,
             ),
         )
 
@@ -474,6 +480,7 @@ class BackendRegistry:
             time_runtime=components.time_runtime,
             observation_runtime=components.observation_runtime,
             recovery_observer=components.recovery_observer,
+            operation_provider=components.operation_provider,
         )
 
     def list_backends(self) -> list[str]:
