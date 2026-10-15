@@ -114,13 +114,14 @@ class _ParticipantInjectDeliveriesMixin:
         result_ref = binding.result_item_ref
         if self._is_unresolved_var(result_ref):
             return
-        matching_rules = [
-            rule for rule in boundary.view_rules if self._references_overlap(rule.information_ref, result_ref)
-        ]
         allowed = {"observable", "disclosed"}
-        if not matching_rules or not any(
-            str(getattr(rule.disposition, "value", rule.disposition)) in allowed for rule in matching_rules
-        ):
+        matching_rules = [
+            rule
+            for rule in boundary.view_rules
+            if self._references_overlap(rule.information_ref, result_ref)
+            and str(getattr(rule.disposition, "value", rule.disposition)) in allowed
+        ]
+        if not matching_rules:
             self._err(
                 f"{label} result_item_ref '{result_ref}' must be disclosed or observable "
                 f"through observation_boundary_ref '{boundary_ref}'"
@@ -128,9 +129,7 @@ class _ParticipantInjectDeliveriesMixin:
             return
         policy = binding.delivery_policy
         if not any(
-            str(getattr(rule.disposition, "value", rule.disposition)) in allowed
-            and rule.visibility_basis == policy.visibility_basis_ref
-            and rule.disclosure_rule == policy.disclosure_basis_ref
+            rule.visibility_basis == policy.visibility_basis_ref and rule.disclosure_rule == policy.disclosure_basis_ref
             for rule in matching_rules
         ):
             self._err(
