@@ -30,11 +30,14 @@ from raes_contracts.contracts.participant_control_composition import (
     ParticipantControlEvaluationModel,
     admitted_effect_phase,
 )
+from raes_contracts.contracts.participant_control_composition_v2 import admitted_control_effect_ids_v2
 from raes_contracts.contracts.participant_control_coordinates import (
     ControlLogicalEffectKeyModel,
 )
 from raes_contracts.contracts.participant_control_effects import ControlEffectRequestModel
+from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
 from raes_contracts.contracts.participant_control_results import ControlRealizationBindingModel
+from raes_contracts.participant_control_evaluation_history import participant_control_evaluation_from_payload
 from raes_contracts.runtime_state import OperationKind
 
 from .control_plane_mutation import control_plane_mutation, external_control_plane_call
@@ -109,7 +112,14 @@ def dispatch_participant_control_effects(
     with control_plane_mutation(control_plane, OperationKind.PARTICIPANT_CONTROL):
         control_plane._reload_derived_state()
         history = control_plane._snapshot.participant_control_evaluation_history.get(participant_address, ())
-        evaluations = [ParticipantControlEvaluationModel.model_validate(record) for record in history]
+        retained = [participant_control_evaluation_from_payload(record) for record in history]
+        evaluations = [record for record in retained if isinstance(record, ParticipantControlEvaluationModel)]
+        unsupported = tuple(
+            ParticipantControlEffectRealization(effect_id=effect_id, disposition=_UNSUPPORTED, receipt_ref="")
+            for record in retained
+            if isinstance(record, ParticipantControlEvaluationV2Model)
+            for effect_id in sorted(admitted_control_effect_ids_v2(record.composition, record.effect_plan))
+        )
         origins = originating_operations(control_plane, participant_address)
         drain = _DrainState(realized=_realized_keys(evaluations))
         for evaluation in evaluations:
@@ -125,7 +135,7 @@ def dispatch_participant_control_effects(
                 origin=origins.get(evaluation.evaluation_id),
                 phase=phase,
             )
-        return tuple(drain.outcomes.values())
+        return (*drain.outcomes.values(), *unsupported)
 
 
 @dataclass

@@ -731,6 +731,10 @@ ownership:
     - tools/formal_semantic_validation/_releases.py
     - tools/formal_semantic_validation/_retest.py
     - tools/policy/requirement_order.yaml
+    - implementations/python/packages/raes_runtime/participant_control_evaluation_v2.py
+    - implementations/python/packages/raes_runtime/participant_control_provider_state.py
+    - implementations/python/tests/participant_control_v2_fixtures.py
+    - implementations/python/tests/test_issue_1069_provider_evaluation_v2.py
   modular-control-contracts:
     # Issue #1352 semantic-design publication; no expanded runtime ownership.
     - docs/migration/control-applicability-and-evaluation.md

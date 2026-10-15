@@ -67,9 +67,7 @@ def derive_control_composition_v2(
     require_unique(tuple(item.slot_id for item in results))
     require_unique(tuple((item.obligation_id, item.instance_id) for item in support))
     require_unique(tuple(item.slot_id for item in lost_advice))
-    if {(item.obligation_id, item.instance_id) for item in support} != _required_support_keys(request):
-        raise ValueError("participant control required support coverage is incomplete")
-    _validate_support_bindings(request, support)
+    validate_control_support_v2(request, support)
     failed_optional = _validate_lost_advice(request, results, lost_advice)
     blockers, causes = _composition_causes(request, results, support, effect_plan)
     disposition = next(
@@ -87,6 +85,40 @@ def derive_control_composition_v2(
         contributing_result_ids=tuple(sorted(item.result_id for item in results)),
         lost_advice_slot_ids=tuple(sorted(failed_optional)),
     )
+
+
+def validate_control_support_v2(
+    request: ParticipantControlRequestV2Model, support: tuple[ControlSupportAssessmentV2Model, ...]
+) -> None:
+    """Validate total required support before any provider consumes an input."""
+    require_unique(tuple((item.obligation_id, item.instance_id) for item in support))
+    if {(item.obligation_id, item.instance_id) for item in support} != _required_support_keys(request):
+        raise ValueError("participant control required support coverage is incomplete")
+    _validate_support_bindings(request, support)
+
+
+def control_slot_support_failure_v2(
+    request: ParticipantControlRequestV2Model,
+    slot_id: str,
+    support: tuple[ControlSupportAssessmentV2Model, ...],
+) -> str | None:
+    """Use the canonical support cause for a required slot's invocation gate."""
+    if slot_id not in request.applicability.required_slot_ids:
+        return None
+    slot = next(item for item in request.selection.slots if item.slot_id == slot_id)
+    owners = {
+        item.obligation_id
+        for item in request.applicability.coverage
+        if item.status == "applies" and slot_id in item.slot_ids
+    }
+    if not owners:
+        owners = {_INPUT_PREFIX + slot_id}
+    causes = {
+        _support_cause(item)
+        for item in support
+        if item.instance_id == slot.instance_id and item.obligation_id in owners and not item.satisfied
+    }
+    return next((cause for cause in ("stale", "unsupported", "weakened", "failed") if cause in causes), None)
 
 
 def _validate_support_bindings(

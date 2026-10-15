@@ -31,6 +31,9 @@
     "docs/governance/requirement-scopes/1069.json": [
       "RUN-320"
     ],
+    "docs/migration/control-applicability-and-evaluation.md": [
+      "API-424"
+    ],
     "docs/public/participant-control.md": [
       "RUN-320"
     ],
@@ -79,10 +82,16 @@
     "implementations/python/packages/raes_contracts/contracts/participant_control_composition.py": [
       "API-424"
     ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_composition_v2.py": [
+      "API-424"
+    ],
     "implementations/python/packages/raes_contracts/contracts/participant_control_coordinates.py": [
       "API-424"
     ],
     "implementations/python/packages/raes_contracts/contracts/participant_control_effect_composition.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_invocation.py": [
       "API-424"
     ],
     "implementations/python/packages/raes_contracts/contracts/realization_plans.py": [
@@ -121,6 +130,9 @@
     "implementations/python/packages/raes_runtime/control_plane_store_snapshots.py": [
       "RUN-320"
     ],
+    "implementations/python/packages/raes_runtime/operation_execution_adapter.py": [
+      "API-404"
+    ],
     "implementations/python/packages/raes_runtime/participant_action_validation.py": [
       "RUN-320"
     ],
@@ -139,7 +151,13 @@
     "implementations/python/packages/raes_runtime/participant_control_effects.py": [
       "RUN-320"
     ],
+    "implementations/python/packages/raes_runtime/participant_control_evaluation_v2.py": [
+      "RUN-320"
+    ],
     "implementations/python/packages/raes_runtime/participant_control_orchestration.py": [
+      "RUN-320"
+    ],
+    "implementations/python/packages/raes_runtime/participant_control_provider_state.py": [
       "RUN-320"
     ],
     "implementations/python/packages/raes_runtime/participant_control_receipts.py": [
@@ -164,6 +182,9 @@
       "RUN-320"
     ],
     "implementations/python/tests/participant_control_runtime_fixtures.py": [
+      "RUN-320"
+    ],
+    "implementations/python/tests/participant_control_v2_fixtures.py": [
       "RUN-320"
     ],
     "implementations/python/tests/participant_crossing_fixtures.py": [
@@ -197,6 +218,9 @@
       "RUN-320"
     ],
     "implementations/python/tests/test_issue_1069_participant_control_orchestration.py": [
+      "RUN-320"
+    ],
+    "implementations/python/tests/test_issue_1069_provider_evaluation_v2.py": [
       "RUN-320"
     ],
     "implementations/python/tests/test_issue_1092_control_plane_crash_consistency.py": [

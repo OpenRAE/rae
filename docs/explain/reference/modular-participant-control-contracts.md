@@ -94,6 +94,69 @@ claim RUN-320 adoption or backend realization. The
 [migration contract](../../migration/control-applicability-and-evaluation.md)
 specifies exact reader/protocol negotiation and retained-history treatment.
 
+## Reference runtime v2 evaluation
+
+`ParticipantControlRuntimeBinding` explicitly selects either the retained v1
+protocol or v2. A v2 binding pins both published contract-content digests and
+the complete `ParticipantControlSelectionV2Model`. Its `stages` map contains
+one `ParticipantControlStageBinding` per admitted slot: the safe unavailable
+projection descriptor, authorized state commit condition (`evaluation` or
+`parent-release`, or no write), and any same-instance tentative-state
+predecessor. That predecessor must also be a declared slot dependency.
+
+`ParticipantControlRuntimeResolverV2` resolves total exact-cut coverage and
+requirement-relative support, then authorizes each stage projection. Its
+`projection(request, slot_id, predecessors)` independently verifies predecessor
+facts and disclosure authority and materializes those exact detached inputs
+behind a scoped content-addressed reference. The installed provider resolves
+that reference through its own explicitly bound content resolver. Shared ambient
+lookup is not an input contract. `validation_context` independently supplies the
+API-424 v2 owner facts, including state-write and commit-timing authorization.
+
+The runtime traverses the admitted slot DAG, including A → B → A. Inputs bind
+predecessor result identities/digests and committed or declared tentative state.
+The required dependency closure finishes before optional work, so optional
+result IDs cannot reserve a future mandatory identity. Colliding optional IDs
+become uniquely identified safe loss records. Blocked descriptors account for missing work and are not evidence a provider
+ran. Calls use the existing execution adapter and supervision limits. Its
+single-slot resolution lane retains physical occupancy after timeout while
+leaving effect, control and store capacity available. No late result can commit;
+shutdown still requires physical drain. This is not provider sandboxing or hard
+cancellation.
+
+Every callback is fenced against re-entry and the original snapshot revision,
+owner generation and stop state are checked after external work. All shared
+state is represented in the same snapshot, so its original global CAS covers
+run, participant and episode scopes. Competing writers need an explicit serial
+chain; optional competing candidates are discarded with loss evidence.
+Refused parents retain only independently authorized evaluation-state changes.
+
+The immutable v2 evaluation, accepted state proposals, coverage, result and
+intent digests, causal consumption, operation and audit join the incumbent
+atomic participant transition. Its wire `commit.status="prepared"` describes
+transaction content; authoritative store snapshot/operation/audit readback
+establishes durable acceptance. The runtime does not manufacture a committed
+wire receipt or rewrite an appended evaluation. A failed or uncertain commit
+permits no dispatch or disclosure.
+
+History readers select the recorded v1/v2 discriminator. SQLite reader version
+8 admits the new interpretation while preserving legacy bytes, claims and
+budgets. Valid retained evaluations consume attempts across interpretation
+changes; v2 shared causal roots include all participant histories in this store,
+including later v1 work after a binding change.
+V2 executable effects are recorded with canonical admitted intent digests, but
+the legacy effect drain returns `unsupported` for them with zero execution.
+Optional effect requests without an installed v2 execution path are discarded
+as unsupported advice. V1 effects keep their original owner admission and
+realization rules; an unsupported v2 effect never becomes a v1 request.
+
+The public-runtime witnesses are
+[`test_issue_1069_provider_evaluation_v2.py`](../../../implementations/python/tests/test_issue_1069_provider_evaluation_v2.py):
+disjoint ingress/egress under unchanged apparatus, content-sensitive A → B → A,
+required dependency/support loss, optional failures and timeout, serial/conflicting
+state, stale callbacks, failed commits, and mixed durable replay. Synthetic
+providers establish runtime behavior only, not production mechanism support.
+
 ## Validation and authority
 
 ```python
