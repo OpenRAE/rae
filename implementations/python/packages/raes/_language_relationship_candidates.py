@@ -132,7 +132,7 @@ def _apply_candidate(owner: object, token: str, label: str) -> bool | None:
     return applied
 
 
-def _apply_list_candidate(owner: list, token: str, label: str) -> bool | None:
+def _apply_list_candidate(owner: list[object], token: str, label: str) -> bool | None:
     position = _list_position(token)
     if position is None:
         return None
