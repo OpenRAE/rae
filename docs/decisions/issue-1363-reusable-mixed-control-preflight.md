@@ -233,3 +233,139 @@ Use targeted local checks; full suites stay in CI. No new harness, workflow engi
 version edit or changelog. This preflight changes guidance only; runtime realization,
 backend cancellation, new controller kinds, persistence migration and operational
 support claims are outside its scope and outside this authoring/contract delivery.
+
+
+## Historical-record interpretation
+
+The dated #252 and #797 preflights are immutable historical records. Current
+#1363 adoption guidance belongs in this note; their classified content digests
+remain unchanged. For DSL-142, the dated #797 note records the legacy fixed-coordinate form.
+Its equal policy-revision, destination-controller and fixed-order guidance does
+not govern `mixed-control-policy-occurrence/rev1`. For that form, use the
+[#1363 delivery preflight](issue-1363-reusable-mixed-control-preflight.md#dsl-142-delivery-boundary),
+[MC-09](../../specs/formal/participant-semantics/reusable-mixed-control.md#mc-09--participant-directed-injects)
+and [EI-05](../../specs/sdl/external-injects.md#ei-05--optional-participant-composition).
+Retain the original reader and historical meaning; this notice changes neither.
+
+## API-409 detailed adoption boundary
+
+For reusable-policy adoption, read the historical guidance below through
+[ADR-110](adrs/adr-110-reusable-mixed-control-policies-and-occurrences.md),
+[MC-01–MC-09](../../specs/formal/participant-semantics/reusable-mixed-control.md)
+and the [migration contract](../migration/reusable-mixed-control.md). Those
+authorities supersede the earlier fixed-coordinate assumptions and prospective
+delivery statements. No new ADR is needed; the implementation plan is recorded on issue #1363.
+
+The working tree already contains the API-409 v2 carrier, contextual reader,
+published schema and publication record. Authoring/compilation and archive
+validation are the supported boundary. Planning, runtime admission,
+control-plane construction and control mediation explicitly refuse rev1 live
+execution. `participant_control_history.py`, runtime target projection and
+SEM-233 incumbent joins still read v1; API-424's inject resolver also refuses
+rev1 delivery bindings. Preserve these gates and `manifest_authority.py`
+support restrictions until each selected consumer has its own adoption
+evidence. A wire version of `2.0.0` is not executable support or the independent
+`mixed-control-policy-occurrence/rev1` semantic pin.
+
+Package paths in this amendment are relative to
+`implementations/python/packages/`.
+
+- Reuse `raes_contracts/contracts/participant_control_occurrence_v2.py`, the
+  unchanged `ParticipantRuntimeBaseEnvelopeModel`, shared control coordinates
+  and `raes/participant_mixed_control_vocabulary.py`. Preserve closed accepted
+  variants and the separate rejected-attempt shape. Attempted coordinates must
+  not be replaced with observed state or acquire valid-application assertions.
+  Rejection may append history but advances no accepted state, order or script
+  cursor. Direction targets proposal/action/control; intervention targets
+  action/control/attempt. Proposal identities never identify policy edges.
+  Every accepted kind, including denial and same-state transitions, advances
+  state revision exactly once. `ContractModel` closure does not freeze models
+  or nested lists: detach and revalidate owner inputs and retain canonical
+  snapshot serialization/integrity checks, without globally tightening the base.
+- Keep `raes_contracts/contracts/participant_control_validation.py` as the contextual entry
+  point. Its v2 path checks complete participant-wide prefixes, event identity,
+  per-episode lineage/pins and cross-episode handoff-evidence reuse before or
+  around the shared fold. Do not expose
+  `fold_participant_control_episode_v2()` as a replacement archive validator:
+  it does not perform all those surrounding checks. Retain rejection records
+  in prefixes. `participant_control_history_verifiability()` reports context
+  availability, not semantic validity or permission to advance state.
+- Trusted policy/target projections in
+  `raes_contracts/contracts/participant_control_occurrence_v2_policy.py` are non-wire inputs.
+  `available_at` establishes preceding existence, not external action/attempt
+  lifecycle eligibility. The current target-authorization helper checks
+  lifecycles produced by its fold; it does not independently establish those
+  external lifecycles. Compiler-projected authority status is not a live grant
+  lookup. Rejected-record validation checks the observed state and limited
+  consistency, not independent proof of every rejection reason. Any future
+  live adapter must resolve episode status, grants/revocation, evidence,
+  target eligibility and time from their owners at the same fenced commit cut.
+  Neither caller-supplied indexes nor a successful archive fold supplies that
+  authority. Preserve runtime refusal until those joins exist.
+- Preserve source-controller authority, handoff-only controller changes and
+  independently valid destination authority. Approval/denial resolve one live
+  proposal revision; competing decisions stay explicit rejected/conflicting
+  historical facts rather than a second acceptance.
+  Historical reference, current authorizing eligibility and accepted-state
+  advancement use the separate predicates in
+  `raes_contracts/contracts/participant_control_occurrence_v2_state.py`. Accepted denial
+  advances control state but authorizes no action. Control acceptance, action
+  admission, execution, cancellation outcome, delivery and observation retain
+  their separate owners and evidence.
+
+The repository boundaries beyond these models remain binding:
+
+| Layer and canonical incumbent | Required guardrail |
+| --- | --- |
+| SDL ingress/composition: `raes/parser.py`, `_yaml_loader.py`, `_source_profile.py`, `_mapping_scopes.py`, `validator/_mixed_control_policy.py`, `composition/_behavior.py` | Preserve safe YAML, duplicate/normalized-key checks and resource limits before construction. Revalidate instantiated/imported models, rewrite external refs through existing symbol maps and retain local edge/step identities. Check expanded canonical addresses against consumer bounds. |
+| Serialized contracts: `raes_contracts/json_ingress.py`, `ContractModel`, `participant_control_coordinates.py`, lineage parser and public contextual validator | Reject duplicate JSON members before conversion to a mapping; set byte/depth bounds and reject non-finite numbers. Apply strict integer/ref limits to Python and schema readers alike. Existing HTTP body-size limits and FastAPI DTO parsing do not establish duplicate-member rejection. Do not reuse the legacy intent DTO as proof of rev1 scalar validation. |
+| Auth/configuration: `ControlPlaneSecurityConfig`, `control_plane_api/_auth.py`, `ParticipantControlSubjectBinding`, `ControlPlaneOptions`/`ControlPlaneConfiguration` | Preserve sealed administrative route authority, immutable validated principal maps, role/target/run and subject binding, then independently check semantic controller authority. Principal actor/scope strings must fit `OperationAdmissionContext`; subject-binding participant addresses cannot contain `:` even though a generic control ref can. Keep canonical addresses; do not encode authority in arbitrary strings or add a configuration bag. |
+| Secrets/environment/host: `SecretReferenceId`, `raes/runtime_environment.py::RuntimeEnvironmentVariable`, `runtime_values.py::enforce_observed_value_redaction` | This change needs no secret loader, environment binding, socket or subprocess. Refs are logical identities, never executable selectors or credentials. Any later binding retains name, provenance/classification and literal/value-from exclusivity checks; no credentials or rejected payload in argv, shell interpolation, diagnostics or artifacts. Host TLS/proxy stripping and worker isolation stay with their owners. |
+| Errors/observability: `raes/_errors.py`, `raes_contracts/diagnostics.py`, `AuditEvent`, `control_plane_api/_participant_routes.py`, `_operation_routes.py`, `control_plane_api_guards.py` | Reuse existing errors, typed reasons and bounded rejection audits. Preserve coarse 403/409, redacted 422/500 and `no-store` responses, including retries. Diagnostic shape does not sanitize values. Never serialize raw validation input, exception text or model representations. Keep operational logs, participant disclosure and experiment evidence separate under ADR-066. |
+| Persistence/recovery: `RuntimeSnapshot.participant_control_history`, `control_plane_mutation.py`, `control_plane_operation_context.py::operation_admission_context`, `ControlPlaneStore.commit_control_transition`/`commit_participant_transition`, store profile/path/lease checks | Reuse exact heads, snapshot CAS, canonical request commitments and atomic state/history/receipt/actor-bound audit commits in every selected store. Current snapshot readers remain v1-only. No metadata authority, controller database or lock-only ordering. Preserve private local-store/SQLite-sidecar permissions, ownership/link checks, worker admission and recovery without blind effect redispatch. |
+
+The extension seam is `raes_processor/compiler/_mixed_control_policy.py::occurrence_policy_projection`,
+parameterized by episode and explicit policy/form/semantic pin, composed with
+owner-supplied exact-cut targets. Repeated cycles supply fresh occurrence,
+proposal and decision identities without editing or unrolling an edge.
+Keep state revision, append position, proposal revision, policy revision, schema
+hash and store version separate. Retain closed `total-effective-order`; order
+is not time. A future target/order variation belongs in the existing versioned
+vocabulary and typed owner join, with consumer admission, not an open map or
+another evaluator. DSL-142 pins disclosure policy independently and binds one
+exact accepted application; API-423/424 and final-sink authorization remain
+independent gates.
+
+Retain store-scoped `(principal, operation kind, client key)` retry identity.
+Participant/episode/policy belong in the request commitment; changing episode
+under the same key conflicts. An authorized exact retry returns the retained
+receipt, while a new cycle needs fresh operation identity. Neither permits
+effect redispatch or resets causal budgets. Reject coordinate overflow and
+reference exhaustion before commit; never wrap, truncate or silently rebase.
+
+Published schemas remain normative. Reuse `schema_bundle()`,
+`tools/generate_contract_schemas.py`, generated/schema-coverage/catalog checks
+and the existing split publication index, per-contract `entries/` hashes and
+removal tombstones. Include embedded authoring, instantiated scenario/snapshot,
+materialized scenario and satisfiability definitions when affected. Preserve
+legacy readers and bytes; ambiguous conversion requires author decisions via
+`raes/mixed_control_migration.py`, and missing historical context is explicitly
+unverifiable. Conformance's v2 registry entry performs model validation, not
+the contextual history join.
+
+Reuse `test_issue_1363_occurrence_v2_contract.py`,
+`test_issue_1363_occurrence_v2_context.py`, `test_issue_1363_schema_parity.py`,
+their existing support fixtures, legacy API-409/ACT-617/DSL-142 cases and the
+#1351 bounded model. Carrier/schema parity and abstract cycles cannot establish
+live authorization, durable atomicity, delivery or exactly-once external effects.
+Use `.ground-control.yaml`, `.gc/plan-rules.md`, `tools/policy/` and
+`tools/nox_support/` for workflow; set `RAES_REQUIREMENT_UID=API-409` for this
+requirement and run targeted local checks only. The current merge conflicts
+include publication records, materialized SDL and participant validators;
+resolve them semantically before claiming a coherent implementation baseline.
+
+This amendment adds guidance only. New DTO bases, schemas for trusted indexes,
+policy languages, validator/error hierarchies, stores, log channels and workflow
+engines are unnecessary. Runtime adoption, backend cancellation, new controller
+kinds, persistence migration, live policy replacement and operational support
+claims remain outside this authoring/portable-contract delivery.
