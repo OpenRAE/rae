@@ -21,6 +21,12 @@ Current admission, retrieval, lifecycle, and persistence surfaces do not yet for
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1395` (Independent bounded formal representation; runtime enforcement remains unchanged)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/multi_concrete.py` (Separate policy/history, current-candidate replay and completed-result restart model)
+- DOCUMENTS → DOCUMENTATION `docs/research/participant-bisimulation/multi-operation-construction.md` (Runtime correspondence exclusions and source-drift invalidation)
+- TESTS → TEST `implementations/python/tests/test_issue_1395_crossing_models.py` (No repeat effect/commit on replay, head-sensitive conflicts and bounded restart)
+- TESTS → TEST `implementations/python/tests/test_issue_1395_crossing_export.py` (Runtime/contract source-drift rejection)
+
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#971` (Independent single-operation formal model construction)
 
 - DOCUMENTS → DOCUMENTATION `docs/research/participant-bisimulation/model-construction.md` (Construction boundary and source derivation)

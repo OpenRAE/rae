@@ -152,7 +152,17 @@ def test_symlink_input_and_output_are_rejected(tmp_path):
 
 
 def test_published_repository_bundle_matches_sources():
-    export.check(ROOT)
+    # Retained rev2 evidence is immutable. Shared profile/export evolution is
+    # honest source drift, while its independently owned graphs remain exact.
+    retained = ROOT / export.OUTPUT_PATH
+    manifest = json.loads((retained / "manifest.json").read_bytes())
+    current = export.build_bundle(ROOT)
+    for name, expected in manifest["artifact_digests"].items():
+        content = (retained / name).read_bytes()
+        assert export.digest(content) == expected
+        assert current[name] == content
+    with pytest.raises(ValueError, match="drift"):
+        export.check(ROOT)
 
 
 def test_symlink_output_cannot_publish_outside_root(tmp_path):

@@ -1,9 +1,9 @@
 {
-  "content_hash": "f50506f1dcc113b3e61a2a259b89951431dd88ca1fcd950d4339fe62dd37f9d7",
+  "content_hash": "814a1d2d5e45d8233b510e039b8f4dd75335af75b4c8dc8a9b7e8a62063a0fdd",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "content_hash": "f50506f1dcc113b3e61a2a259b89951431dd88ca1fcd950d4339fe62dd37f9d7",
-    "summary": "Publish the mixed-control-policy-occurrence/rev1 behavior form (reusable-policy and finite-script permitted transitions) and the rev1 DSL-142 control block; issue #1363."
+    "content_hash": "814a1d2d5e45d8233b510e039b8f4dd75335af75b4c8dc8a9b7e8a62063a0fdd",
+    "summary": "Publish reusable and finite-script mixed-control rev1 policies and directed-delivery control blocks, including disclosure restrictions; retain canonical relationship endpoint eligibility from #1339; issue #1363."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"

@@ -1,9 +1,9 @@
 {
-  "content_hash": "4ab2c81c3dfdd477a0ebcce254ca05c0793490237d289356707cc215d38217c7",
+  "content_hash": "4ed6d5e7e04cae1d4bfa790d4c3355361bab01a0d3b37e78c11c82ac6da311b0",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "4ab2c81c3dfdd477a0ebcce254ca05c0793490237d289356707cc215d38217c7",
-    "summary": "Publish the mixed-control-policy-occurrence/rev1 behavior form (reusable-policy and finite-script permitted transitions) and the rev1 DSL-142 control block; issue #1363."
+    "content_hash": "4ed6d5e7e04cae1d4bfa790d4c3355361bab01a0d3b37e78c11c82ac6da311b0",
+    "summary": "Publish reusable and finite-script mixed-control rev1 policies and directed-delivery control blocks, including disclosure restrictions; retain canonical relationship endpoint eligibility from #1339; issue #1363."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

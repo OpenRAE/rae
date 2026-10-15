@@ -20,8 +20,8 @@ from raes_contracts.realization_envelope import ObservationStrength, Realization
 from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_store import LocalControlPlaneStore
-from raes_runtime.manager import RuntimeManager
 from realization_authority_fixtures import complete_test_realization_authority
+from runtime_plan_fixtures import plan_for_target
 
 
 class _RecordingTechVaultDriver:
@@ -367,9 +367,7 @@ def test_failed_techvault_admission_preserves_persisted_runtime_snapshot(tmp_pat
     control_plane = RuntimeControlPlane(target, store=store)
     invalid = _node_resource(services=[{"name": "api", "port": 8443, "protocol": "tcp"}])
     invalid_plan = _plan(invalid)
-    authorization_plan = RuntimeManager(target, initial_snapshot=baseline).plan(
-        parse_sdl("name: techvault-admission-authorization")
-    )
+    authorization_plan = plan_for_target(target, parse_sdl("name: techvault-admission-authorization"), baseline)
     control_plane.register_planner_produced_plan(replace(authorization_plan, provisioning=invalid_plan))
 
     receipt = control_plane.submit_provisioning(invalid_plan)
@@ -378,11 +376,12 @@ def test_failed_techvault_admission_preserves_persisted_runtime_snapshot(tmp_pat
     restarted = RuntimeControlPlane(create_libvirt_target(driver=driver), store=store)
 
     assert receipt.accepted is True
-    assert status is not None and status.state.value == "failed"
+    assert status is not None
+    assert status.state.value == "cancelled"
     assert receipt.diagnostics == []
     assert [diagnostic.code for diagnostic in status.diagnostics] == [
         "libvirt-backend.techvault.service-unsupported",
-        "runtime.control-plane.operation-failed",
+        "runtime.control-plane.operation-cancelled",
     ]
     assert restarted.snapshot == baseline
     assert driver.realize_calls == []

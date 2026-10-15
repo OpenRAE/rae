@@ -150,6 +150,13 @@ evidence must be covered by the named evidence requirements. An inject without
 that binding remains ordinary orchestration input; `injects.*.environment`
 never implies participant delivery.
 
+The view rule that admits the result must itself agree with the delivery's
+visibility and disclosure bases. Every control scope and evidence reference
+must resolve individually. Required source and result items must each project
+to one runtime address; an unaddressable item prevents compilation of that
+delivery and produces a diagnostic. Semantic-only authority and evidence
+references remain valid anchors without acquiring runtime addresses.
+
 The field-level description above is the legacy fixed-coordinate form, which a
 `mixed_control` without `semantics` keeps. The parser also accepts the reusable
 form of [ADR-110](../../docs/decisions/adrs/adr-110-reusable-mixed-control-policies-and-occurrences.md),

@@ -80,3 +80,5 @@ runtime admission refuse that form, so no executable adoption is claimed.
 - TESTS → TEST `implementations/python/tests/test_issue_1363_schema_parity.py` (Python and published-schema parity for the rev1 shapes)
 - TESTS → TEST `implementations/python/tests/test_issue_1363_mixed_control_migration.py` (Finite-script conversion and bounded legacy differential)
 - TESTS → TEST `implementations/python/tests/test_issue_1363_delivery_and_admission.py` (Rev1 planning, admission and construction refusals)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_language_metadata.py` (Shared mixed-control reference domains for completion and navigation)
+- TESTS → TEST `implementations/python/tests/test_issue_1363_identity_integration.py` (Canonical identity integration across control forms and editor references)

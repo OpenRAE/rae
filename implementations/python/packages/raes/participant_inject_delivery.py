@@ -66,6 +66,7 @@ class ParticipantInjectDeliveryPolicy(SDLModel):
 
 
 _UNIQUE_ITEMS = {"uniqueItems": True}
+_CONTROL_REF_LIST = {**_UNIQUE_ITEMS, "items": {"type": "string", "pattern": r"\S"}}
 
 
 class ParticipantInjectDeliveryControl(SDLModel):
@@ -80,8 +81,8 @@ class ParticipantInjectDeliveryControl(SDLModel):
     policy_revision: str = Field(min_length=1, pattern=r"\S")
     permitted_transition_ref: PortableIdentifier
     controller_ref: str = Field(min_length=1, pattern=r"\S")
-    authority_scope_refs: list[str] = Field(min_length=1, json_schema_extra=_UNIQUE_ITEMS)
-    evidence_refs: list[str] = Field(min_length=1, json_schema_extra=_UNIQUE_ITEMS)
+    authority_scope_refs: list[str] = Field(min_length=1, json_schema_extra=_CONTROL_REF_LIST)
+    evidence_refs: list[str] = Field(min_length=1, json_schema_extra=_CONTROL_REF_LIST)
 
     @field_validator("authority_scope_refs", "evidence_refs")
     @classmethod
@@ -111,6 +112,28 @@ def _control_block_exclusivity_schema(schema: dict[str, Any]) -> None:
     absent.update({name: {"maxItems": 0} for name in _FLAT_CONTROL_LISTS})
     schema.setdefault("allOf", []).append(
         {"if": {"properties": {"control": {"type": "object"}}, "required": ["control"]}, "then": {"properties": absent}}
+    )
+    schema["allOf"].append(
+        {
+            "if": {"properties": {"delivery_kind": {"const": "disclosure"}}, "required": ["delivery_kind"]},
+            "then": {"properties": {"control": {"type": "null"}, **absent}},
+        }
+    )
+    flat = {name: {"not": {"type": "null"}} for name in _FLAT_CONTROL_SCALARS}
+    flat.update({name: {"minItems": 1} for name in _FLAT_CONTROL_LISTS})
+    schema["allOf"].append(
+        {
+            "if": {
+                "properties": {"delivery_kind": {"enum": ["external-direction", "intervention"]}},
+                "required": ["delivery_kind"],
+            },
+            "then": {
+                "oneOf": [
+                    {"properties": {"control": {"type": "object"}}, "required": ["control"]},
+                    {"properties": flat, "required": list(_FLAT_CONTROL_FIELDS)},
+                ]
+            },
+        }
     )
 
 

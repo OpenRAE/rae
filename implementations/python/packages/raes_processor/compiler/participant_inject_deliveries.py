@@ -2,10 +2,11 @@
 
 from dataclasses import dataclass, replace
 
+from raes import ReferencePurpose
 from raes.participant_inject_delivery import ParticipantInjectDelivery
 from raes.scenario import InstantiatedScenario
 
-from ..models import ParticipantInjectDeliveryRuntime
+from ..models import Diagnostic, ParticipantInjectDeliveryRuntime
 from ._mixed_control_policy import _compile_delivery_policy_control
 from .addresses import (
     _behavior_specification_address,
@@ -43,6 +44,7 @@ class _DeliveryControlAddresses:
 
 def _compile_participant_inject_deliveries(
     scenario: InstantiatedScenario,
+    diagnostics: list[Diagnostic],
 ) -> dict[str, ParticipantInjectDeliveryRuntime]:
     """Compile admitted delivery declarations as participant metadata."""
 
@@ -56,8 +58,10 @@ def _compile_participant_inject_deliveries(
                 binding_id,
                 binding,
                 addressable_ref_index,
+                diagnostics,
             )
-            deliveries[runtime.address] = runtime
+            if runtime is not None:
+                deliveries[runtime.address] = runtime
     return deliveries
 
 
@@ -67,8 +71,11 @@ def _compile_participant_inject_delivery(
     binding_id: str,
     binding: ParticipantInjectDelivery,
     addressable_ref_index: dict[str, set[str]],
-) -> ParticipantInjectDeliveryRuntime:
-    addresses = _delivery_addresses(scenario, spec_name, binding, addressable_ref_index)
+    diagnostics: list[Diagnostic],
+) -> ParticipantInjectDeliveryRuntime | None:
+    addresses = _delivery_addresses(scenario, spec_name, binding_id, binding, addressable_ref_index, diagnostics)
+    if addresses is None:
+        return None
     control = _delivery_control_addresses(
         scenario,
         spec_name,
@@ -105,9 +112,31 @@ def _compile_participant_inject_delivery(
 def _delivery_addresses(
     scenario: InstantiatedScenario,
     spec_name: str,
+    binding_id: str,
     binding: ParticipantInjectDelivery,
     addressable_ref_index: dict[str, set[str]],
-) -> _DeliveryAddresses:
+    diagnostics: list[Diagnostic],
+) -> _DeliveryAddresses | None:
+    items = {
+        field: _runtime_addresses_for_refs(
+            [getattr(binding, field)],
+            addressable_ref_index=addressable_ref_index,
+            purpose=ReferencePurpose.TARGETABLE,
+        )
+        for field in ("source_item_ref", "result_item_ref")
+    }
+    invalid = [field for field, addresses in items.items() if len(addresses) != 1]
+    if invalid:
+        diagnostics.extend(
+            Diagnostic(
+                code="participant.inject-delivery-item-unaddressable",
+                domain="participant",
+                address=_participant_inject_delivery_address(spec_name, binding_id),
+                message=f"Delivery {field} must project to exactly one runtime address; no delivery is compiled.",
+            )
+            for field in invalid
+        )
+        return None
     participant_name = _section_ref_name(binding.participant_ref, "agents", scenario.agents)
     inject_name = _section_ref_name(binding.inject_ref, "injects", scenario.injects)
     event_name = _section_ref_name(binding.occurrence.event_ref, "events", scenario.events)
@@ -125,14 +154,8 @@ def _delivery_addresses(
         event=_address("orchestration", "event", event_name),
         script=_address("orchestration", "script", script_name),
         story=_address("orchestration", "story", story_name),
-        source_item=_runtime_addresses_for_refs(
-            [binding.source_item_ref],
-            addressable_ref_index=addressable_ref_index,
-        )[0],
-        result_item=_runtime_addresses_for_refs(
-            [binding.result_item_ref],
-            addressable_ref_index=addressable_ref_index,
-        )[0],
+        source_item=items["source_item_ref"][0],
+        result_item=items["result_item_ref"][0],
         observation_boundary=_observation_boundary_address(boundary_name),
         temporal=tuple(
             _address(
@@ -178,10 +201,12 @@ def _delivery_control_addresses(
         authority_scope=_runtime_addresses_for_refs(
             binding.control_authority_scope_refs,
             addressable_ref_index=addressable_ref_index,
+            purpose=ReferencePurpose.AUTHORITY_SCOPE,
         ),
         evidence=_runtime_addresses_for_refs(
             binding.control_evidence_refs,
             addressable_ref_index=addressable_ref_index,
+            purpose=ReferencePurpose.TARGETABLE,
         ),
     )
 

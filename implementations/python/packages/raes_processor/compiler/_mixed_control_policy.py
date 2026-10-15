@@ -8,6 +8,7 @@ permitted transition and one per finite-script step, nested in
 
 import re
 
+from raes import ReferencePurpose
 from raes.participant_behavior_specification import ParticipantBehaviorSpecification
 from raes.participant_inject_delivery import ParticipantInjectDelivery
 from raes.participant_mixed_control_policy import (
@@ -252,11 +253,15 @@ def _compile_delivery_policy_control(
         controller_address=controller_address,
         authority_scope_refs=tuple(control.authority_scope_refs),
         authority_scope_addresses=_runtime_addresses_for_refs(
-            control.authority_scope_refs, addressable_ref_index=addressable_ref_index
+            control.authority_scope_refs,
+            addressable_ref_index=addressable_ref_index,
+            purpose=ReferencePurpose.AUTHORITY_SCOPE,
         ),
         evidence_refs=tuple(control.evidence_refs),
         evidence_addresses=_runtime_addresses_for_refs(
-            control.evidence_refs, addressable_ref_index=addressable_ref_index
+            control.evidence_refs,
+            addressable_ref_index=addressable_ref_index,
+            purpose=ReferencePurpose.TARGETABLE,
         ),
     )
 

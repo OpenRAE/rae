@@ -1,9 +1,9 @@
 {
-  "content_hash": "6d146c2bcbb988a0eaf41e054a9a19deb79b74c9a2867bf7f28ef7aeb1b97069",
+  "content_hash": "368281ecb7424ee31b8981ae9466178ce53a0022bf36f28fb7542be18c1204c9",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "6d146c2bcbb988a0eaf41e054a9a19deb79b74c9a2867bf7f28ef7aeb1b97069",
-    "summary": "Publish the mixed-control-policy-occurrence/rev1 behavior form (reusable-policy and finite-script permitted transitions) and the rev1 DSL-142 control block; issue #1363."
+    "content_hash": "368281ecb7424ee31b8981ae9466178ce53a0022bf36f28fb7542be18c1204c9",
+    "summary": "Publish reusable and finite-script mixed-control rev1 policies and directed-delivery control blocks, including disclosure restrictions; retain canonical relationship endpoint eligibility from #1339; issue #1363."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

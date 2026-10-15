@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from .._reference_targetability import ReferencePurpose
 from ..participant_behavior_specification import ParticipantBehaviorSpecification
 from ..participant_mixed_control_policy import (
     MixedControlPermittedTransition,
@@ -49,9 +50,9 @@ class _MixedControlPolicyMixin:
             self._err(f"{label} must bind exactly one participant_ref owned by the behavior specification")
         if declaration.policy_revision != behavior_spec.semantic_version:
             self._err(f"{label} policy_revision must match the behavior specification semantic_version")
-        named_index = self._named_ref_index()
-        targetable_index = self._named_ref_index(targetable=True)
-        owner_scope = self._resolved_mixed_control_refs(behavior_spec.authority_scope_refs, index=targetable_index)
+        named_index = self._named_ref_index(ReferencePurpose.AUTHORITY_ANCHOR)
+        scope_index = self._named_ref_index(ReferencePurpose.AUTHORITY_SCOPE)
+        owner_scope = self._resolved_mixed_control_refs(behavior_spec.authority_scope_refs, index=scope_index)
         for state_id, state in declaration.controller_states.items():
             self._verify_mixed_control_state(
                 state_id=state_id,
@@ -59,7 +60,7 @@ class _MixedControlPolicyMixin:
                 declaration=declaration,
                 label=label,
                 named_index=named_index,
-                targetable_index=targetable_index,
+                scope_index=scope_index,
                 owner_scope=owner_scope,
             )
         if declaration.controller_states[declaration.initial_state_ref].authority_status is _REVOKED:

@@ -1,9 +1,9 @@
 {
-  "content_hash": "37eef3008a587586572d3a05401c2f2c1adc6673c350d20ed6016612d49f748f",
+  "content_hash": "556e0b5a67eb8bee81bf623242ce8b61720b032480b5c684c8a9379e1119142d",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "37eef3008a587586572d3a05401c2f2c1adc6673c350d20ed6016612d49f748f",
-    "summary": "Publish the mixed-control-policy-occurrence/rev1 behavior form (reusable-policy and finite-script permitted transitions) and the rev1 DSL-142 control block; issue #1363."
+    "content_hash": "556e0b5a67eb8bee81bf623242ce8b61720b032480b5c684c8a9379e1119142d",
+    "summary": "Publish reusable and finite-script mixed-control rev1 policies and directed-delivery control blocks, including disclosure restrictions; retain canonical relationship endpoint eligibility from #1339; issue #1363."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

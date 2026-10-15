@@ -7,6 +7,7 @@ state's scope, and the control and delivery policies are pinned independently.
 
 from __future__ import annotations
 
+from .._reference_targetability import ReferencePurpose
 from ..participant_mixed_control_policy import MixedControlPolicy
 
 
@@ -61,8 +62,9 @@ class _ParticipantInjectDeliveryControlMixin:
         bound_controller = binding.participant_ref if control.controller_ref == "self" else control.controller_ref
         if bound_controller != expected_controller:
             self._err(f"{label} control controller_ref must be the permitted transition's source-state controller")
-        bound_scope = self._resolved_control_refs(control.authority_scope_refs)
-        if not bound_scope or not bound_scope.issubset(self._resolved_control_refs(source_state.scope_refs)):
+        bound_scope = self._resolved_control_refs(control.authority_scope_refs, ReferencePurpose.AUTHORITY_SCOPE)
+        source_scope = self._resolved_control_refs(source_state.scope_refs, ReferencePurpose.AUTHORITY_SCOPE)
+        if not bound_scope or not bound_scope.issubset(source_scope):
             self._err(f"{label} control authority scope widens the source-state scope")
 
     def _verify_delivery_policy_evidence(
@@ -72,7 +74,7 @@ class _ParticipantInjectDeliveryControlMixin:
         transition: object,
         source_state: object,
     ) -> None:
-        bound_evidence = self._resolved_control_refs(binding.control.evidence_refs)
+        bound_evidence = self._resolved_control_refs(binding.control.evidence_refs, ReferencePurpose.TARGETABLE)
         permitted = self._resolved_control_refs((*transition.evidence_refs, *source_state.evidence_refs))
         if not bound_evidence or not bound_evidence.issubset(permitted):
             self._err(f"{label} control evidence lies outside the permitted transition and source-state evidence")

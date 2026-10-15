@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 
+from .._reference_targetability import ReferencePurpose
 from ..participant_mixed_control_policy import MixedControlPolicy
 
 _DECLARATION_INDEX_REQUIRED = "declaration index must be built before reference validation"
@@ -100,7 +101,7 @@ class _ParticipantInjectDeliveriesMixin:
                 ref,
                 owner_label=label,
                 ref_label=field_name,
-                targetable=True,
+                purpose=ReferencePurpose.TARGETABLE,
             )
 
     def _verify_delivery_observation(self, label: str, binding: object) -> None:
@@ -127,7 +128,9 @@ class _ParticipantInjectDeliveriesMixin:
             return
         policy = binding.delivery_policy
         if not any(
-            rule.visibility_basis == policy.visibility_basis_ref and rule.disclosure_rule == policy.disclosure_basis_ref
+            str(getattr(rule.disposition, "value", rule.disposition)) in allowed
+            and rule.visibility_basis == policy.visibility_basis_ref
+            and rule.disclosure_rule == policy.disclosure_basis_ref
             for rule in matching_rules
         ):
             self._err(
@@ -191,6 +194,7 @@ class _ParticipantInjectDeliveriesMixin:
         delivery_kind = str(getattr(binding.delivery_kind, "value", binding.delivery_kind))
         if delivery_kind == "disclosure":
             return
+        self._verify_delivery_control_refs(label, binding)
         if binding.control is not None or isinstance(behavior_spec.mixed_control, MixedControlPolicy):
             self._verify_delivery_policy_control(label, behavior_spec, binding, delivery_kind)
             return
@@ -270,9 +274,9 @@ class _ParticipantInjectDeliveriesMixin:
         delivered_controller = binding.participant_ref if binding.controller_ref == "self" else binding.controller_ref
         if delivered_controller != expected_controller:
             self._err(f"{label} controller_ref disagrees with the control transition target state")
-        if self._resolved_control_refs(binding.control_authority_scope_refs) != self._resolved_control_refs(
-            target_state.scope_refs
-        ):
+        if self._resolved_control_refs(
+            binding.control_authority_scope_refs, ReferencePurpose.AUTHORITY_SCOPE
+        ) != self._resolved_control_refs(target_state.scope_refs, ReferencePurpose.AUTHORITY_SCOPE):
             self._err(f"{label} control authority scope disagrees with the control transition target state")
 
     def _verify_delivery_control_bounds(
@@ -292,12 +296,21 @@ class _ParticipantInjectDeliveriesMixin:
         if not target_state.valid_from_order <= binding.control_effective_order <= target_state.valid_until_order:
             self._err(f"{label} control effective order falls outside the target controller-state validity interval")
 
-    def _resolved_control_refs(self, refs: Iterable[str]) -> set[str]:
+    def _verify_delivery_control_refs(self, label: str, binding: object) -> None:
+        control = binding.control
+        scope = control.authority_scope_refs if control is not None else binding.control_authority_scope_refs
+        evidence = control.evidence_refs if control is not None else binding.control_evidence_refs
+        self._verify_purpose_refs(label, "control authority scope", scope, ReferencePurpose.AUTHORITY_SCOPE)
+        self._verify_purpose_refs(label, "control evidence", evidence, ReferencePurpose.TARGETABLE)
+
+    def _resolved_control_refs(
+        self, refs: Iterable[str], purpose: ReferencePurpose = ReferencePurpose.DECLARED
+    ) -> set[str]:
         if self._declaration_index is None:
             raise RuntimeError(_DECLARATION_INDEX_REQUIRED)
         resolved: set[str] = set()
         for ref in refs:
-            resolved.update(self._declaration_index.resolve(ref))
+            resolved.update(self._declaration_index.resolve_for(ref, purpose))
         return resolved
 
     def _verify_delivery_control_time(self, label: str, binding: object) -> None:
@@ -325,7 +338,7 @@ class _ParticipantInjectDeliveriesMixin:
         transition: object,
         target_state: object,
     ) -> None:
-        delivered_evidence = self._resolved_control_refs(binding.control_evidence_refs)
+        delivered_evidence = self._resolved_control_refs(binding.control_evidence_refs, ReferencePurpose.TARGETABLE)
         transition_evidence = self._resolved_control_refs(transition.evidence_refs)
         target_state_evidence = self._resolved_control_refs(target_state.evidence_refs)
         if delivered_evidence != transition_evidence or delivered_evidence != target_state_evidence:

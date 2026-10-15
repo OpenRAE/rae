@@ -103,3 +103,5 @@ backend execution, delivery or observation.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_participant_inject_delivery_control.py` (Rev1 delivery binding validation)
 - TESTS → TEST `implementations/python/tests/test_issue_1363_delivery_and_admission.py` (Rev1 delivery binding and refusal tests)
 - TESTS → TEST `implementations/python/tests/test_issue_1363_schema_parity.py` (Control-block exclusivity parity across published schemas)
+- TESTS → TEST `implementations/python/tests/test_issue_1363_identity_integration.py` (Unknown control references, disclosure basis, required runtime projection and nested editor references)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/inject-occurrence-correlation-v1.json` (inject-occurrence-correlation-v1 published schema)

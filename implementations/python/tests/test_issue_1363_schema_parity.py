@@ -122,6 +122,11 @@ def test_mixed_control_python_and_published_schema_verdicts_agree(schema_path, c
 
 DELIVERY_CASES = [
     ("control-block", None, True),
+    ("disclosure-with-control", lambda b: b.update(delivery_kind="disclosure"), False),
+    ("direction-without-control", lambda b: b.pop("control"), False),
+    ("direction-with-null-control", lambda b: b.update(control=None), False),
+    ("control-block-blank-scope", lambda b: b["control"].update(authority_scope_refs=[" "]), False),
+    ("control-block-blank-evidence", lambda b: b["control"].update(evidence_refs=[" "]), False),
     ("control-and-flat-ref", lambda b: b.update(control_transition_ref="direct-briefing"), False),
     ("control-and-flat-scope", lambda b: b.update(control_authority_scope_refs=["nodes.web"]), False),
     ("control-and-flat-order", lambda b: b.update(control_effective_order=11), False),

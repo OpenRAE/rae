@@ -4,6 +4,14 @@ Date: 2026-07-25
 
 Issue: #797. Requirement: DSL-142.
 
+Interpretation boundary: this note records the legacy fixed-coordinate form.
+Its equal policy-revision, destination-controller and fixed-order guidance does
+not govern `mixed-control-policy-occurrence/rev1`. For that form, use the
+[#1363 delivery preflight](issue-1363-reusable-mixed-control-preflight.md#dsl-142-delivery-boundary),
+[MC-09](../../specs/formal/participant-semantics/reusable-mixed-control.md#mc-09--participant-directed-injects)
+and [EI-05](../../specs/sdl/external-injects.md#ei-05--optional-participant-composition).
+Retain the original reader and historical meaning; this notice changes neither.
+
 This note fixes the repository-wide boundary for authored and compiled
 participant-directed inject delivery. It does not implement SDL syntax,
 schemas, validation, compilation, runtime delivery, migration, or tests, and

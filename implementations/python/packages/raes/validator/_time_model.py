@@ -98,5 +98,4 @@ class _TimeModelMixin:
                     subject_ref,
                     owner_label=f"Temporal constraint '{name}'",
                     ref_label="subject_ref",
-                    targetable=False,
                 )
