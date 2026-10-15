@@ -371,8 +371,17 @@ def test_bare_mixed_control_and_delivery_scopes_shared_with_a_condition_are_refu
 
     refusal = _ambiguous_web("an authority scope")
     assert [error for error in caught.value.errors if error.endswith(refusal)] == [
+        f"Behavior specification 'red-briefing' participant inject delivery 'briefing' control authority scope {refusal}",
+    ] + [
         f"Behavior specification 'red-briefing' mixed_control controller state '{state}' scope_ref {refusal}"
         for state in ("autonomous", "pending", "directed")
+    ]
+
+    delivery_only = source.replace("control_authority_scope_refs: [nodes.web]", "control_authority_scope_refs: [web]")
+    with pytest.raises(SDLValidationError) as caught:
+        parse_sdl(delivery_only)
+    assert [error for error in caught.value.errors if error.endswith(refusal)] == [
+        f"Behavior specification 'red-briefing' participant inject delivery 'briefing' control authority scope {refusal}"
     ]
 
 

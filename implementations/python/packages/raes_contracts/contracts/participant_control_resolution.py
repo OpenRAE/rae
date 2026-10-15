@@ -139,6 +139,8 @@ def _validate_inject(
     delivery = context.inject_deliveries.get(target.delivery_ref.ref)
     if delivery is None or control_digest(delivery) != target.delivery_ref.digest:
         raise ValueError("inject request has no exact owning delivery")
+    if delivery.control is not None:
+        raise ValueError("inject request cannot join a mixed-control-policy-occurrence/rev1 delivery binding")
     expected = (
         target.participant_address,
         target.inject_ref,

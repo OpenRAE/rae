@@ -14,7 +14,7 @@ from ._identifiers import QualifiedName
 from ._language_context import EndpointPurposes, PurposeResolver
 from ._language_definitions import indexed_definitions
 from ._language_diagnostics import parse_error as _parse_error
-from ._language_metadata import REFERENCE_COMPLETION_TARGETS, RELATIONSHIP_ENDPOINT_DOMAIN, VARIATION_SLOT_TARGETS
+from ._language_metadata import RELATIONSHIP_ENDPOINT_DOMAIN, VARIATION_SLOT_TARGETS, reference_completion_target
 from ._reference_targetability import ReferencePurpose, purposes_for_domain, reference_domain
 from ._yaml_loader import compose_sdl_yaml
 
@@ -420,7 +420,7 @@ def _reference_target_for_path(path: list[str], *, mapping_key: bool, scope: _Sy
     if len(path) < 3:
         return None
     field = path[-2] if mapping_key or path[-1].isdigit() else path[-1]
-    target = REFERENCE_COMPLETION_TARGETS.get((path[0], field))
+    target = reference_completion_target(path, field)
     if target == RELATIONSHIP_ENDPOINT_DOMAIN and len(path) == 3:
         purposes = scope.endpoint_purposes.get((path[1], path[2]), (ReferencePurpose.RELATIONSHIP_ENDPOINT,))
         target = reference_domain(purposes)

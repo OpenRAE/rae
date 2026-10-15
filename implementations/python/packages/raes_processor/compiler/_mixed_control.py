@@ -2,6 +2,7 @@
 
 from raes import ReferencePurpose
 from raes.participant_behavior_specification import (
+    MixedControlDeclaration,
     MixedControlDispositionRules,
     MixedControlParticipantOperation,
     ParticipantBehaviorSpecification,
@@ -22,7 +23,7 @@ from .support import _dedupe, _dump
 
 
 def _compile_controller_states(
-    declaration: MixedControlParticipantOperation,
+    declaration: MixedControlDeclaration,
     *,
     spec_name: str,
     participant_address: str,
