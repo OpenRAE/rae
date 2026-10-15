@@ -664,6 +664,10 @@ ownership:
     - implementations/python/tests/test_sem_235_modular_control.py
     - implementations/python/tests/test_sem_235_governance.py
   modular-control-runtime:
+    - docs/research/formal-semantic-validation/capture-records/capture-76a22200630a0f623823cce738ef5d90a5984d9d4a69208005548975c980698b.json
+    - docs/research/formal-semantic-validation/captures/capture-76a22200630a0f623823cce738ef5d90a5984d9d4a69208005548975c980698b
+    - docs/research/specification-coverage/capture-records/capture-c5e6610f7d0058be6715fe2f5c7ef89ebd468a8ea7177b1ee58298f2b12a9b81.json
+    - docs/research/specification-coverage/captures/capture-c5e6610f7d0058be6715fe2f5c7ef89ebd468a8ea7177b1ee58298f2b12a9b81
     # RUN-320 orchestrates the published API-424 contracts in the reference
     # runtime (#1069). Contracts, semantics and conformance keep their own phases.
     - docs/research/formal-semantic-validation/captures/capture-76fee14b79cd734502e7498d05fbf5c8d17c34e46dc2ba55bbb94f57d213bec7

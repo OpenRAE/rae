@@ -100,8 +100,10 @@ def resolve_participant_control_outcome(
     if isinstance(binding.selection, ParticipantControlSelectionV2Model):
         from .participant_control_evaluation_v2 import resolve_v2_outcome
 
-        return resolve_v2_outcome(control_plane, binding, crossing, sink_kind)
-    return _resolved_outcome(control_plane, binding, crossing, sink_kind)
+        outcome = resolve_v2_outcome(control_plane, binding, crossing, sink_kind)
+    else:
+        outcome = _resolved_outcome(control_plane, binding, crossing, sink_kind)
+    return outcome
 
 
 def _resolved_outcome(

@@ -6,7 +6,7 @@ orders admitted slots and joins owner resolution to the runtime's pinned cut.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from copy import deepcopy
 from dataclasses import dataclass
 from graphlib import TopologicalSorter
@@ -14,7 +14,12 @@ from time import monotonic
 from typing import TYPE_CHECKING, TypeVar
 
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts.participant_control_applicability import ParticipantControlRequestV2Model, control_digest
+from raes_contracts.contracts.participant_control_applicability import (
+    ControlMechanismBindingV2Model,
+    ControlResultSlotV2Model,
+    ParticipantControlRequestV2Model,
+    control_digest,
+)
 from raes_contracts.contracts.participant_control_composition_v2 import (
     control_slot_support_failure_v2,
     validate_control_support_v2,
@@ -29,6 +34,7 @@ from raes_contracts.contracts.participant_control_evaluation_v2 import (
 )
 from raes_contracts.contracts.participant_control_invocation import (
     ControlInvocationV2Model,
+    ControlLostAdviceV2Model,
     ControlMechanismResultV2Model,
     control_predecessors_satisfied_v2,
     normalize_optional_control_result_v2,
@@ -110,7 +116,7 @@ def resolve_v2_outcome(
     heads = control_history_head_refs(plane._snapshot, crossing.intent.participant_address)
     try:
 
-        def resolve():
+        def resolve() -> ParticipantControlResolution:
             resolution = binding.resolver.resolve(
                 snapshot=deepcopy(plane._snapshot),
                 intent=deepcopy(crossing.intent),
@@ -156,8 +162,15 @@ def resolve_v2_outcome(
 
 
 def _evaluate_slots(
-    cut: _EvaluationCut, binding: ParticipantControlRuntimeBinding, request: ParticipantControlRequestV2Model, support
-):
+    cut: _EvaluationCut,
+    binding: ParticipantControlRuntimeBinding,
+    request: ParticipantControlRequestV2Model,
+    support: tuple[ControlSupportAssessmentV2Model, ...],
+) -> tuple[
+    tuple[ControlInvocationV2Model, ...],
+    tuple[ControlMechanismResultV2Model, ...],
+    tuple[ControlLostAdviceV2Model, ...],
+]:
     slots = {item.slot_id: item for item in request.selection.slots}
     instances = {item.instance_id: item for item in request.selection.bindings}
     applicable = set(request.applicability.applicable_slot_ids)
@@ -193,14 +206,26 @@ def _evaluate_slots(
     return tuple(calls), tuple(results.values()), tuple(losses)
 
 
-def _stage_invocation(cut, binding, request, slot, instances, predecessors, previous_results):
+def _stage_invocation(
+    cut: _EvaluationCut,
+    binding: ParticipantControlRuntimeBinding,
+    request: ParticipantControlRequestV2Model,
+    slot: ControlResultSlotV2Model,
+    instances: Mapping[str, ControlMechanismBindingV2Model],
+    predecessors: tuple[ControlMechanismResultV2Model, ...],
+    previous_results: Mapping[str, ControlMechanismResultV2Model],
+) -> tuple[ControlInvocationV2Model, bool]:
     """Construct a ready or blocked descriptor without granting a provider call."""
     slot_id = slot.slot_id
     stage = binding.stages[slot_id]
     available = True
     try:
 
-        def resolve_projection(detached_request, identity, inputs):
+        def resolve_projection(
+            detached_request: ParticipantControlRequestV2Model,
+            identity: str,
+            inputs: tuple[ControlMechanismResultV2Model, ...],
+        ) -> ControlArtifactReferenceModel:
             value = binding.resolver.projection(detached_request, identity, inputs)
             value = ControlArtifactReferenceModel.model_validate(value.model_dump(mode="json"))
             if value.kind != "projection":
@@ -221,15 +246,22 @@ def _stage_invocation(cut, binding, request, slot, instances, predecessors, prev
         binding_digest=control_digest(instances[slot.instance_id]),
         context_digest=control_digest(request.context),
         predecessor_inputs=tuple(
-            dict(slot_id=item.slot_id, kind=dep.kind, result_id=item.result_id, result_digest=control_digest(item))
+            {
+                "slot_id": item.slot_id,
+                "kind": dep.kind,
+                "result_id": item.result_id,
+                "result_digest": control_digest(item),
+            }
             for dep, item in zip(slot.dependencies, predecessors, strict=True)
         ),
-        state_input=dict(
-            scope=instances[slot.instance_id].state_scope,
-            state=next(item.state for item in request.context.provider_states if item.instance_id == slot.instance_id),
-            source="committed",
-            predecessor_invocation_id=None,
-        ),
+        state_input={
+            "scope": instances[slot.instance_id].state_scope,
+            "state": next(
+                item.state for item in request.context.provider_states if item.instance_id == slot.instance_id
+            ),
+            "source": "committed",
+            "predecessor_invocation_id": None,
+        },
         projection=ControlArtifactReferenceModel.model_validate(projection.model_dump(mode="json")),
     )
     if stage.state_predecessor_slot_id is not None:
@@ -240,18 +272,24 @@ def _stage_invocation(cut, binding, request, slot, instances, predecessors, prev
             invocation = ControlInvocationV2Model.model_validate(
                 {
                     **invocation.model_dump(mode="json"),
-                    "state_input": dict(
-                        scope=invocation.state_input.scope,
-                        state=predecessor.next_provider_state,
-                        source="tentative",
-                        predecessor_invocation_id=_stage_id(request, predecessor.slot_id),
-                    ),
+                    "state_input": {
+                        "scope": invocation.state_input.scope,
+                        "state": predecessor.next_provider_state,
+                        "source": "tentative",
+                        "predecessor_invocation_id": _stage_id(request, predecessor.slot_id),
+                    },
                 }
             )
     return invocation, available
 
 
-def _optional_result(binding, request, invocation, result, previous_results):
+def _optional_result(
+    binding: ParticipantControlRuntimeBinding,
+    request: ParticipantControlRequestV2Model,
+    invocation: ControlInvocationV2Model,
+    result: ControlMechanismResultV2Model,
+    previous_results: Mapping[str, ControlMechanismResultV2Model],
+) -> tuple[ControlMechanismResultV2Model, ControlLostAdviceV2Model | None]:
     """Normalize only this slot; mandatory availability is unchanged."""
     slot_id = invocation.requested_slot_ids[0]
     if slot_id in request.applicability.required_slot_ids:
@@ -288,7 +326,7 @@ def _stage_result(
     admitted = next(item for item in request.selection.bindings if item.instance_id == invocation.instance_id)
     try:
 
-        def resolve():
+        def resolve() -> ControlMechanismResultV2Model:
             returned = binding.providers[invocation.instance_id].resolve_stage(
                 ControlInvocationV2Model.model_validate(invocation.model_dump(mode="json"))
             )
@@ -332,27 +370,41 @@ def _failure(
     )
 
 
-def _compose(binding, crossing, request, resolution, calls, results, losses):
-    from .participant_control_orchestration import _evaluation_id
-
+def _required_decisions(
+    request: ParticipantControlRequestV2Model,
+    results: tuple[ControlMechanismResultV2Model, ...],
+) -> list[dict[str, object]]:
     required = set(request.applicability.required_slot_ids)
-    decisions = [
-        dict(
-            decision_id=item.result_id,
-            disposition=item.payload.disposition,
-            rule=item.payload.rule,
-            reasons=item.evidence,
-        )
+    return [
+        {
+            "decision_id": item.result_id,
+            "disposition": item.payload.disposition,
+            "rule": item.payload.rule,
+            "reasons": item.evidence,
+        }
         for item in results
         if item.slot_id in required
         and item.payload is not None
         and item.payload.kind == "decision"
         and item.payload.disposition != "abstain"
     ]
+
+
+def _compose(
+    binding: ParticipantControlRuntimeBinding,
+    crossing: PreparedParticipantCrossing,
+    request: ParticipantControlRequestV2Model,
+    resolution: ParticipantControlResolution,
+    calls: tuple[ControlInvocationV2Model, ...],
+    results: tuple[ControlMechanismResultV2Model, ...],
+    losses: tuple[ControlLostAdviceV2Model, ...],
+) -> ParticipantControlEvaluationV2Model:
+    from .participant_control_orchestration import _evaluation_id
+
     effects = [item.payload for item in results if item.payload is not None and item.payload.kind == "effect-request"]
     plan = derive_control_effect_plan_v2(
         parent_crossing=request.context.crossing,
-        decisions=decisions,
+        decisions=_required_decisions(request, results),
         effects=effects,
         incumbent_gate_disposition=resolution.incumbent_gate_disposition,
         realized_effect_ids=(),
@@ -388,18 +440,18 @@ def _compose(binding, crossing, request, resolution, calls, results, losses):
         effect_plan=plan,
         state_proposals=proposals,
         composition=composition,
-        commit=dict(
-            expected_history_heads=request.context.expected_history_heads,
-            coverage_digest=control_digest(request.applicability),
-            result_digests=tuple(control_digest(item) for item in results),
-            decision_digest=control_digest(plan),
-            state_proposal_digests=tuple(control_digest(item) for item in proposals),
-            effect_intent_digests=tuple(control_digest(item) for item in plan.effects if item.effect_id in admitted),
-            effects_consumed=request.context.effects_consumed,
-            status="prepared",
-            receipt=None,
-            dispatchable_effect_ids=(),
-        ),
+        commit={
+            "expected_history_heads": request.context.expected_history_heads,
+            "coverage_digest": control_digest(request.applicability),
+            "result_digests": tuple(control_digest(item) for item in results),
+            "decision_digest": control_digest(plan),
+            "state_proposal_digests": tuple(control_digest(item) for item in proposals),
+            "effect_intent_digests": tuple(control_digest(item) for item in plan.effects if item.effect_id in admitted),
+            "effects_consumed": request.context.effects_consumed,
+            "status": "prepared",
+            "receipt": None,
+            "dispatchable_effect_ids": (),
+        },
     )
 
 

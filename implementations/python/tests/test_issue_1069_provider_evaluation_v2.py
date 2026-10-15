@@ -567,7 +567,8 @@ def test_public_stop_during_provider_call_fences_late_evaluation():
         release.set()
         worker.join(3)
     assert not worker.is_alive()
-    assert len(failures) == 1 and isinstance(failures[0], SnapshotRevisionConflict)
+    assert len(failures) == 1
+    assert isinstance(failures[0], SnapshotRevisionConflict)
     assert count["calls"] == 0
     assert _evaluations(plane) == []
 
@@ -623,7 +624,8 @@ def test_optional_result_identity_collision_cannot_veto_required_work(monkeypatc
     assert record["composition"]["disposition"] == "eligible"
     assert len({item["result_id"] for item in record["results"]}) == len(record["results"])
     optional = next(item for item in record["results"] if item["slot_id"] == "assessment")
-    assert optional["payload"] is None and optional["next_provider_state"] is None
+    assert optional["payload"] is None
+    assert optional["next_provider_state"] is None
     assert record["lost_advice"][0]["reason"] == "malformed"
     assert record["state_proposals"] == []
 
