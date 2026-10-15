@@ -335,7 +335,11 @@ def _purpose_completion_items(
         offered = [
             (spelling, declaration.address) for spelling, declaration in resolver.index.reference_completions(purposes)
         ]
-    held = _endpoint_held(pointer, scenario, resolver)
+    held = (
+        _controller_state_held(pointer, scenario, resolver)
+        if pointer[0] == "behavior_specifications"
+        else _endpoint_held(pointer, scenario, resolver)
+    )
     return _sorted_items(
         _reference_item(spelling, address) for spelling, address in offered if held is None or address in held
     )
@@ -371,6 +375,43 @@ def _endpoint_refs(scenario: ScenarioContent, resolver: PurposeResolver, endpoin
     candidates = resolver.resolve(endpoint, ReferencePurpose.PARTICIPANT_ENDPOINT)
     declaration = resolver.index.declaration_for(next(iter(candidates))) if len(candidates) == 1 else None
     return None if declaration is None else list(getattr(scenario.agents[declaration.model_tokens[1]], field))
+
+
+def _controller_state_held(
+    pointer: list[str], scenario: ScenarioContent | None, resolver: PurposeResolver
+) -> set[str] | None:
+    """Apply the controller's authority and the owner/controller scope intersection."""
+
+    if scenario is None or len(pointer) != 6 or pointer[2:4] != ["mixed_control", "controller_states"]:
+        return None
+    owner = scenario.behavior_specifications.get(pointer[1])
+    declaration = None if owner is None else owner.mixed_control
+    state = None if declaration is None else declaration.controller_states.get(pointer[4])
+    if state is None:
+        return None
+    controller_ref = declaration.participant_ref if state.controller_ref == "self" else state.controller_ref
+    controller = scenario.agents.get(controller_ref)
+    if controller is None:
+        return None
+    if pointer[-1] == "authority_basis_refs":
+        return {
+            address
+            for ref in controller.authority_anchors
+            for address in resolver.resolve(ref, ReferencePurpose.AUTHORITY_ANCHOR)
+        }
+    if pointer[-1] == "scope_refs":
+        owner_scope = {
+            address
+            for ref in owner.authority_scope_refs
+            for address in resolver.resolve(ref, ReferencePurpose.AUTHORITY_SCOPE)
+        }
+        controller_scope = {
+            address
+            for ref in controller.operating_scope
+            for address in resolver.resolve(ref, ReferencePurpose.OPERATING_SCOPE)
+        }
+        return owner_scope & controller_scope
+    return None
 
 
 def _workflow_step_completion_items(data: dict[str, Any]) -> list[dict[str, str]]:

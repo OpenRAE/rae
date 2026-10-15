@@ -13,6 +13,10 @@ _OBSERVATION_SUBJECT = reference_domain(ReferencePurpose.OBSERVATION_SUBJECT)
 _AUTHORITY_ANCHOR = reference_domain(ReferencePurpose.AUTHORITY_ANCHOR)
 _AUTHORITY_SCOPE = reference_domain(ReferencePurpose.AUTHORITY_SCOPE)
 _OPERATING_SCOPE = reference_domain(ReferencePurpose.OPERATING_SCOPE)
+_DERIVED_COMPLETION_DOMAINS = {
+    "derived:controller_authority_anchors": _AUTHORITY_ANCHOR,
+    "derived:behavior-and-controller-scope": _AUTHORITY_SCOPE,
+}
 
 
 def reference_completion_target(path: list[str], field: str) -> str | None:
@@ -26,7 +30,8 @@ def reference_completion_target(path: list[str], field: str) -> str | None:
         and field == "evidence_refs"
     ):
         return reference_domain(ReferencePurpose.TARGETABLE)
-    return REFERENCE_COMPLETION_TARGETS.get((path[0], field))
+    target = REFERENCE_COMPLETION_TARGETS.get((path[0], field))
+    return _DERIVED_COMPLETION_DOMAINS.get(target, target) if target is not None else None
 
 
 # Relationship subtypes narrow this domain; the language service selects the subtype purpose.
@@ -108,8 +113,8 @@ REFERENCE_COMPLETION_TARGETS = {
     ("behavior_specifications", "observation_boundary_refs"): "observation_boundaries",
     ("behavior_specifications", "outcome_interpretation_rule_refs"): "outcome_interpretation_rules",
     ("behavior_specifications", "authority_scope_refs"): _AUTHORITY_SCOPE,
-    ("behavior_specifications", "authority_basis_refs"): _AUTHORITY_ANCHOR,
-    ("behavior_specifications", "scope_refs"): _AUTHORITY_SCOPE,
+    ("behavior_specifications", "authority_basis_refs"): "derived:controller_authority_anchors",
+    ("behavior_specifications", "scope_refs"): "derived:behavior-and-controller-scope",
     ("behavior_specifications", "evidence_refs"): reference_domain(ReferencePurpose.DECLARED),
     ("behavior_specifications", "completion_evidence_refs"): reference_domain(ReferencePurpose.DECLARED),
     ("behavior_specifications", "tool_ref"): "content",

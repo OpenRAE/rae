@@ -101,3 +101,23 @@ def test_controller_state_references_share_editor_domains_in_every_form(form: st
     items = language_completions(source, cursor_path=pointer)["items"]
     assert reference in {item["detail"] for item in items}
     assert pointer + "/0" in {item["path"] for item in language_references(source, reference)["occurrences"]}
+
+
+@pytest.mark.parametrize("form", ["legacy", "reusable-policy", "finite-script"])
+@pytest.mark.parametrize("suffix", ["", "/0"])
+@pytest.mark.parametrize(
+    "field, expected", [("authority_basis_refs", "entities.red-team"), ("scope_refs", "nodes.web")]
+)
+def test_controller_state_completion_offers_only_references_held_by_its_owners(
+    form: str, suffix: str, field: str, expected: str
+) -> None:
+    payload = legacy_scenario() if form == "legacy" else rev1_scenario(form=form)
+    pointer = f"/behavior_specifications/controlled-red/mixed_control/controller_states/autonomous/{field}{suffix}"
+    items = language_completions(yaml.safe_dump(payload), cursor_path=pointer)["items"]
+    assert {item["detail"] for item in items} == {expected}
+    for item in items:
+        candidate = copy.deepcopy(payload)
+        candidate["behavior_specifications"]["controlled-red"]["mixed_control"]["controller_states"]["autonomous"][
+            field
+        ] = [item["label"]]
+        parse(candidate)
