@@ -2155,7 +2155,8 @@ realization or conformance.
 `tool_affordances` is a closed, participant-local mapping. Its keys identify
 authored affordance bindings; each value may name one governed scenario
 `content` identity and must name non-empty action-contract and observation-
-boundary sets. The binding reference
+boundary sets.
+
 Behavior specifications may be declared locally or exported by a reusable
 module. References to the unit's declarations are rewritten into each import's
 namespace. Other references resolve against the complete composed scenario;
@@ -2169,11 +2170,15 @@ Behavior `semantic_version` labels must be nonblank. See the
 Declaration reuse does not imply repeatable mixed-control occurrences or live
 runtime authorization.
 
-`behavior_specifications.<spec>.tool_affordances.<id>` must be explicitly
-classified by each referenced observation boundary. Presence means authored
-availability only: visibility, apparatus support, eligibility, admission,
-realization, effects, constraints, and evidence remain on their existing
-contracts and do not follow from the binding.
+The binding reference `behavior_specifications.<spec>.tool_affordances.<id>`
+must be explicitly classified by each referenced observation boundary. Presence
+means authored availability only: visibility, apparatus support, eligibility,
+admission, realization, effects, constraints, and evidence remain on their
+existing contracts and do not follow from the binding. An imported unit's
+`tool_ref` binds the unit's own content, bare or as `content.<name>`, and a bare
+name that the unit gives to two declarations fails composition as it fails in
+the unit alone. See the
+[tool authoring decision](../../decisions/issue-298-tool-authoring.md).
 
 Compiled behavior specifications use stable
 `participant.behavior-specification.<name>` addresses and preserve dependency
