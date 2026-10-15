@@ -4,15 +4,21 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import fields, replace
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from raes_contracts.account_credentials import (
     account_placement_has_credential_bindings,
     value_free_account_placement_payload,
 )
+from raes_contracts.artifact_requirements import ArtifactSatisfactionDisclosureModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp, RuntimeDomain
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotEntry
+
+from .backend_snapshot_contracts import snapshot_values_equal
+
+if TYPE_CHECKING:
+    from raes_processor.models import CompiledRealizationRequirement
 
 _APPROVED_REALIZATION_FIELDS = frozenset(
     {
@@ -50,6 +56,8 @@ def sanitize_account_credential_result(
     result: ApplyResult,
     plan: ProvisioningPlan,
     baseline: RuntimeSnapshot,
+    *,
+    requirements: tuple[CompiledRealizationRequirement, ...] = (),
 ) -> ApplyResult:
     """Validate and construct the closed value-free result for a credential plan."""
 
@@ -65,7 +73,7 @@ def sanitize_account_credential_result(
     # cleanup inventory only through the same closed, value-free projection as
     # successful results; arbitrary partial entries remain unsupported.
     _require_only_approved_snapshot_changes(result.snapshot, baseline)
-    safe_entries = _closed_plan_entries(result.snapshot, baseline, plan)
+    safe_entries = _closed_plan_entries(result.snapshot, baseline, plan, requirements)
     safe_snapshot = baseline.with_entries(
         safe_entries,
         realization_provenance=result.snapshot.realization_provenance,
@@ -98,10 +106,23 @@ def _expected_entry_addresses(baseline: RuntimeSnapshot, plan: ProvisioningPlan)
     return expected_addresses
 
 
-def _closed_plan_entry(snapshot: RuntimeSnapshot, operation: ProvisionOp) -> SnapshotEntry:
+def _closed_plan_entry(
+    snapshot: RuntimeSnapshot, operation: ProvisionOp, artifact_addresses: set[str]
+) -> SnapshotEntry:
     entry = snapshot.entries.get(operation.address)
     if entry is None:
         raise ValueError("credential-bearing backend omitted a submitted plan entry")
+    observed_payload = dict(entry.payload)
+    evidence = {}
+    if (
+        operation.address in artifact_addresses
+        and "artifact_satisfaction" in observed_payload
+        and "artifact_satisfaction" not in operation.payload
+    ):
+        # Permission comes from admitted address-scoped artifact requirements.
+        # Initial and repeat realization checks own identity, route and trust.
+        disclosure = ArtifactSatisfactionDisclosureModel.model_validate(observed_payload.pop("artifact_satisfaction"))
+        evidence["artifact_satisfaction"] = disclosure.model_dump(mode="json")
     expected_status = "unchanged" if operation.action is ChangeAction.UNCHANGED else "applied"
     if (
         entry.domain is not RuntimeDomain.PROVISIONING
@@ -109,12 +130,13 @@ def _closed_plan_entry(snapshot: RuntimeSnapshot, operation: ProvisionOp) -> Sna
         or entry.ordering_dependencies != operation.ordering_dependencies
         or entry.refresh_dependencies != operation.refresh_dependencies
         or entry.status != expected_status
-        or entry.payload != operation.payload
+        or not snapshot_values_equal(observed_payload, operation.payload)
     ):
         raise ValueError("credential-bearing backend entry does not match the submitted plan")
     payload = deepcopy(operation.payload)
     if operation.resource_type == "account-placement":
         payload = value_free_account_placement_payload(operation.payload)
+    payload.update(evidence)
     return cast(SnapshotEntry, replace(entry, payload=payload))
 
 
@@ -122,16 +144,20 @@ def _closed_plan_entries(
     snapshot: RuntimeSnapshot,
     baseline: RuntimeSnapshot,
     plan: ProvisioningPlan,
+    requirements: tuple[CompiledRealizationRequirement, ...],
 ) -> dict[str, SnapshotEntry]:
     if set(snapshot.entries) != _expected_entry_addresses(baseline, plan):
         raise ValueError("credential-bearing backend returned entries outside the submitted plan")
 
+    artifact_addresses = {
+        requirement.address for requirement in requirements if requirement.artifact_requirement is not None
+    }
     safe_entries = deepcopy(dict(baseline.entries))
     for operation in plan.operations:
         if operation.action is ChangeAction.DELETE:
             safe_entries.pop(operation.address, None)
             continue
-        safe_entries[operation.address] = _closed_plan_entry(snapshot, operation)
+        safe_entries[operation.address] = _closed_plan_entry(snapshot, operation, artifact_addresses)
     return safe_entries
 
 
