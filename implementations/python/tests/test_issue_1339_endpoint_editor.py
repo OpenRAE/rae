@@ -23,7 +23,7 @@ _BROKEN = {"command": "true", "interval": "soon"}
 def _semantic_errors(payload: dict) -> set[str]:
     """Check every candidate's structure and full semantics without repeated YAML rendering."""
     try:
-        SemanticValidator(structural(payload)).validate()
+        SemanticValidator(Scenario.model_validate(payload)).validate()
     except SDLValidationError as error:
         return set(error.errors)
     return set()
