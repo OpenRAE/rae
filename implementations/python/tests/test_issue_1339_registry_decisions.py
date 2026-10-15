@@ -31,5 +31,7 @@ def test_every_existing_family_and_nested_registration_records_its_reference_pol
 
 
 def test_direct_special_registration_does_not_bypass_the_new_kind_guard() -> None:
+    index = DeclarationIndex()
+    declaration = Declaration(kind="future-kind", address="future.record", model_path="future.record")
     with pytest.raises(RuntimeError, match="no explicit reference-eligibility decision"):
-        DeclarationIndex().add(Declaration(kind="future-kind", address="future.record", model_path="future.record"))
+        index.add(declaration)

@@ -103,9 +103,7 @@ def _reference_result(
         ]
     occurrences: list[dict[str, Any]] = []
     # Spellings come from the resolver's index, complete or partial, as completion's do.
-    spellings = frozenset({symbol, _bare_symbol(symbol)}) if resolver is None else resolver.index.spellings_for(symbol)
-    if resolver is not None and _is_variation_member_symbol(symbol):
-        spellings = frozenset({*spellings, _bare_symbol(symbol)})
+    spellings = _symbol_spellings(symbol, resolver)
     scope = _symbol_scope(root, symbol, resolver, endpoint_purposes)
     _collect_occurrences(root, spellings, [], occurrences, scope=scope)
     return {
@@ -114,6 +112,13 @@ def _reference_result(
         "definitions": [item for item in definitions if _definition_matches_symbol(item, symbol)],
         "occurrences": occurrences,
     }
+
+
+def _symbol_spellings(symbol: str, resolver: PurposeResolver | None) -> frozenset[str]:
+    spellings = frozenset({symbol, _bare_symbol(symbol)}) if resolver is None else resolver.index.spellings_for(symbol)
+    if resolver is not None and _is_variation_member_symbol(symbol):
+        spellings = frozenset({*spellings, _bare_symbol(symbol)})
+    return spellings
 
 
 def _symbol_scope(

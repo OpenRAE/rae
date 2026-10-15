@@ -117,18 +117,22 @@ def _rewrite_node(payload: dict[str, Any], symbols: dict[str, dict[str, str] | s
     if isinstance(runtime, dict):
         _rewrite_node_network_namespace(runtime, symbols)
         _rewrite_generated_environment_sources(runtime, symbols)
-        for service in runtime.get("mail_services", []):
-            for mailbox in service.get("mailboxes", []):
-                if mailbox.get("account_ref"):
-                    mailbox["account_ref"] = _rewrite_section_ref(
-                        mailbox["account_ref"], "accounts", symbols["accounts"]
-                    )
-        for manager in runtime.get("security_monitoring_managers", []):
-            for definition in manager.get("detection_definitions", []):
-                if definition.get("source_artifact_ref"):
-                    definition["source_artifact_ref"] = _maybe_rename(
-                        definition["source_artifact_ref"], symbols["named"]
-                    )
+        _rewrite_runtime_account_refs(runtime, symbols)
+        _rewrite_detection_artifact_refs(runtime, symbols)
+
+
+def _rewrite_runtime_account_refs(runtime: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
+    for service in runtime.get("mail_services", []):
+        for mailbox in service.get("mailboxes", []):
+            if mailbox.get("account_ref"):
+                mailbox["account_ref"] = _rewrite_section_ref(mailbox["account_ref"], "accounts", symbols["accounts"])
+
+
+def _rewrite_detection_artifact_refs(runtime: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
+    for manager in runtime.get("security_monitoring_managers", []):
+        for definition in manager.get("detection_definitions", []):
+            if definition.get("source_artifact_ref"):
+                definition["source_artifact_ref"] = _maybe_rename(definition["source_artifact_ref"], symbols["named"])
 
 
 def _rewrite_infrastructure(payload: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:

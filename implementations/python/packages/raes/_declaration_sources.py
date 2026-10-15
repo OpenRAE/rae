@@ -33,6 +33,18 @@ def model_pointer(tokens: tuple[str, ...]) -> str:
     return "".join(f"/{token.replace('~', '~0').replace('/', '~1')}" for token in tokens)
 
 
+def _declaration_value(scenario: ScenarioContent, tokens: tuple[str, ...]) -> object:
+    value = scenario
+    for token in tokens:
+        if isinstance(value, list):
+            value = value[int(token)]
+        elif isinstance(value, Mapping):
+            value = value[token]
+        else:
+            value = getattr(value, token)
+    return value
+
+
 def capture_declaration_sources(
     scenario: ScenarioContent,
     content: str,
@@ -48,13 +60,7 @@ def capture_declaration_sources(
     sources = {}
     for declaration in build_declaration_index(scenario, raise_on_collision=False).declarations:
         pointer = model_pointer(declaration.model_tokens)
-        value = scenario
-        for token in declaration.model_tokens:
-            value = (
-                value[int(token)]
-                if isinstance(value, list)
-                else (value[token] if isinstance(value, Mapping) else getattr(value, token))
-            )
+        value = _declaration_value(scenario, declaration.model_tokens)
         source_range = key_ranges.get(pointer) if isinstance(value, Mapping | BaseModel) else value_ranges.get(pointer)
         if source_range is not None:
             sources[declaration.address] = DeclarationSource(

@@ -70,5 +70,8 @@ def _definition_node(root: Node, tokens: tuple[str, ...]) -> Node | None:
             return None
     # Dictionary declarations are defined by their literal key; list records
     # and the scenario name are defined by their authored identifier value.
-    identifier_value = tokens == ("name",) or len(tokens) > 1 and tokens[-2].isdecimal()
-    return current if identifier_value else key
+    return current if _is_identifier_value(tokens) else key
+
+
+def _is_identifier_value(tokens: tuple[str, ...]) -> bool:
+    return tokens == ("name",) or len(tokens) > 1 and tokens[-2].isdecimal()

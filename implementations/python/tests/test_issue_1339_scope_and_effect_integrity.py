@@ -192,8 +192,9 @@ def test_nonreferenceable_declarations_cannot_be_opaque_effect_targets(
             instantiate_scenario(scenario, parameters={"effect_target": reference})
     else:
         effect["target_refs"] = [reference]
+        parse = (lambda: _compose(tmp_path, payload)) if stage == "composed" else (lambda: _parse(payload))
         with pytest.raises(SDLValidationError, match="eligible as an action target"):
-            _compose(tmp_path, payload) if stage == "composed" else _parse(payload)
+            parse()
 
 
 def test_the_scenario_declaration_cannot_be_an_opaque_effect_target() -> None:

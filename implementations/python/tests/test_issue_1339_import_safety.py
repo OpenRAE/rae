@@ -80,12 +80,13 @@ def test_locked_chain_uses_the_configured_budget_and_resolves_valid_local_source
         source_options=SDLSourceParseOptions(limits=SDLParserLimits(max_composition_depth=2)),
     )
     assert resolved.module_descriptor.id == "example/hosts"
+    limited_options = SDLSourceParseOptions(limits=SDLParserLimits(max_composition_depth=1))
     with pytest.raises(SDLParseError, match="Locked import chain"):
         resolve_import(
             decl,
             base_dir=tmp_path,
             lockfile=lock,
-            source_options=SDLSourceParseOptions(limits=SDLParserLimits(max_composition_depth=1)),
+            source_options=limited_options,
         )
 
 

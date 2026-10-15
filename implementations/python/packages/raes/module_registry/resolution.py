@@ -25,6 +25,8 @@ from .models import (
     load_trust_policy,
 )
 
+_LOCKED_PREFIX = "locked:"
+
 # The private digest/signature seams (``_sha256_digest``, ``_json_request``,
 # ``_bytes_request``, ``_extract_bundle_to_cache``, ``_verify_signatures``,
 # ``_OCI_LIMITS``) are resolved through the package facade with function-local
@@ -140,7 +142,7 @@ def resolve_import(
 
 def _resolve_import_with_context(import_decl: ImportDecl, context: _ResolutionContext) -> ResolvedModule:
     source = import_decl.normalized_source
-    if source.startswith("locked:"):
+    if source.startswith(_LOCKED_PREFIX):
         return _resolve_locked_import(import_decl, source, context=context)
     if source.startswith("local:"):
         return _resolve_local_import(import_decl, source, context=context)
@@ -172,13 +174,13 @@ def _resolve_locked_import(
     if lockfile is None:
         raise SDLParseError(f"Locked import '{source}' requires {LOCKFILE_NAME}")
     visited: set[str] = set()
-    while source.startswith("locked:"):
+    while source.startswith(_LOCKED_PREFIX):
         if source in visited:
             raise SDLParseError("Locked import cycle detected", path=context.base_dir / LOCKFILE_NAME)
         if len(visited) >= context.source_options.limits.max_composition_depth:
             raise SDLParseError("Locked import chain budget exceeded", path=context.base_dir / LOCKFILE_NAME)
         visited.add(source)
-        record = lockfile.locked_record(source.removeprefix("locked:"))
+        record = lockfile.locked_record(source.removeprefix(_LOCKED_PREFIX))
         if record is None:
             raise SDLParseError(f"Locked import '{source}' is not present in {LOCKFILE_NAME}")
         try:

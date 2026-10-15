@@ -44,7 +44,7 @@ from ._source_profile import (
     SDLSourceParseOptions,
 )
 from ._source_validation import _raise_source_limit
-from ._yaml_loader import load_sdl_yaml
+from ._yaml_loader import SDLSourceLocations, load_sdl_yaml
 from .materialization import MaterializedScenario
 from .scenario import ExpandedScenario, Scenario
 from .validator import SemanticValidator
@@ -464,8 +464,7 @@ def _load_normalized_data(
         path=path,
         source_options=source_options,
         source_diagnostics=source_diagnostics,
-        source_ranges=source_ranges,
-        source_key_ranges=source_key_ranges,
+        source_locations=SDLSourceLocations(source_ranges, source_key_ranges),
     )
 
     if not isinstance(raw, dict):

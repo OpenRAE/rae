@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
@@ -39,6 +40,14 @@ class _SDLSafeLoader(yaml.SafeLoader):
 install_yaml_12_core_resolvers(_SDLSafeLoader)
 
 
+@dataclass(frozen=True)
+class SDLSourceLocations:
+    """Optional collectors for value and declaration-key locations in one source."""
+
+    value_ranges: dict[str, SDLSourceRange] | None = None
+    key_ranges: dict[str, SDLSourceRange] | None = None
+
+
 def load_sdl_yaml(
     content: str,
     *,
@@ -47,8 +56,7 @@ def load_sdl_yaml(
     base_pointer: str = "",
     source_options: SDLSourceParseOptions = DEFAULT_SOURCE_PARSE_OPTIONS,
     source_diagnostics: list[SDLParseDiagnostic] | None = None,
-    source_ranges: dict[str, SDLSourceRange] | None = None,
-    source_key_ranges: dict[str, SDLSourceRange] | None = None,
+    source_locations: SDLSourceLocations | None = None,
 ) -> object:
     """Validate and safely construct one SDL YAML document or fragment."""
     prepared = prepare_content(content, path=path)
@@ -69,8 +77,7 @@ def load_sdl_yaml(
             base_pointer=base_pointer,
             migration_policy=policy,
             source_diagnostics=source_diagnostics,
-            source_ranges=source_ranges,
-            source_key_ranges=source_key_ranges,
+            source_locations=source_locations,
         )
         constructed = loader.construct_document(root)
         validate_constructed_domain(constructed, path=path)
@@ -118,7 +125,7 @@ def compose_sdl_yaml(
             base_pointer=base_pointer,
             migration_policy=policy,
             source_diagnostics=source_diagnostics,
-            source_ranges=source_ranges,
+            source_locations=SDLSourceLocations(value_ranges=source_ranges),
         )
         return root
     except SDLParseError:
@@ -147,14 +154,14 @@ def _validate_mapping_keys(
     base_pointer: str,
     migration_policy: SDLMigrationPolicy,
     source_diagnostics: list[SDLParseDiagnostic] | None,
-    source_ranges: dict[str, SDLSourceRange] | None,
-    source_key_ranges: dict[str, SDLSourceRange] | None = None,
+    source_locations: SDLSourceLocations | None,
 ) -> None:
+    locations = source_locations or SDLSourceLocations()
     diagnostics = _MappingAnalyzer(
         migration_policy=migration_policy,
         path=path,
-        source_ranges=source_ranges,
-        source_key_ranges=source_key_ranges,
+        source_ranges=locations.value_ranges,
+        source_key_ranges=locations.key_ranges,
         materialized=_is_materialized_mapping(root, scope, base_pointer),
     ).analyze(
         root,
