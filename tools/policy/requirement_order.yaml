@@ -666,6 +666,10 @@ ownership:
   modular-control-runtime:
     # RUN-320 orchestrates the published API-424 contracts in the reference
     # runtime (#1069). Contracts, semantics and conformance keep their own phases.
+    - docs/research/formal-semantic-validation/captures/capture-76fee14b79cd734502e7498d05fbf5c8d17c34e46dc2ba55bbb94f57d213bec7
+    - docs/research/formal-semantic-validation/capture-records/capture-76fee14b79cd734502e7498d05fbf5c8d17c34e46dc2ba55bbb94f57d213bec7.json
+    - docs/research/specification-coverage/captures/capture-08a9c99e27c3f7d197d6564c8a5c5852833b33625c2d265ecac7775566b7cde9
+    - docs/research/specification-coverage/capture-records/capture-08a9c99e27c3f7d197d6564c8a5c5852833b33625c2d265ecac7775566b7cde9.json
     - contracts/schema-publication/entries/runtime-snapshot-v1.json
     - contracts/schemas/snapshots/runtime-snapshot-v1.json
     - docs/decisions/issue-1069-run-320-runtime-orchestration-preflight.md

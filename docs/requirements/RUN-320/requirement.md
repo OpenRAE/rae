@@ -110,3 +110,5 @@ mechanisms, distributed atomicity or external exactly-once execution.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_execution_adapter.py` (Physically bounded pure-provider resolution without consuming effect or supervisory capacity)
 - TESTS → TEST `implementations/python/tests/participant_control_v2_fixtures.py` (Synthetic scoped predecessor projections and installed v2 providers)
 - TESTS → TEST `implementations/python/tests/test_issue_1069_provider_evaluation_v2.py` (Public v2 runtime ordering, support, state, failure, concurrency and replay witnesses)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-08a9c99e27c3f7d197d6564c8a5c5852833b33625c2d265ecac7775566b7cde9/manifest.json` (Fresh offline source-bound research replay for dependency-ordered provider evaluation; retained protocol limits)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-76fee14b79cd734502e7498d05fbf5c8d17c34e46dc2ba55bbb94f57d213bec7/manifest.json` (Fresh offline source-bound research replay for dependency-ordered provider evaluation; retained protocol limits)
