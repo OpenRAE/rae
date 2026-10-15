@@ -393,6 +393,9 @@ ownership:
     # Issue #297 completes DSL-116 and republishes source-bound verification.
     - docs/requirements/DSL-116/requirement.md
     - docs/decisions/issue-297-behavior-authoring.md
+    # Issue #298 binds participant tool authoring to DSL-117 governance.
+    - docs/decisions/issue-298-tool-authoring.md
+    - docs/governance/requirement-scopes/298.json
     - docs/research/formal-semantic-validation
     - tools/check_specification_coverage.py
     - tools/formal_semantic_validation
