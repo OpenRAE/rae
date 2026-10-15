@@ -8,6 +8,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [7.0.0](https://github.com/OpenRAE/rae/compare/v6.0.1...v7.0.0) (2026-10-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* make reference eligibility explicit per purpose and align the editor with validation ([#1446](https://github.com/OpenRAE/rae/issues/1446))
+
+### Features
+
+* carry authored execution and recovery requirements ([#1413](https://github.com/OpenRAE/rae/issues/1413)) ([3512210](https://github.com/OpenRAE/rae/commit/35122105b0c1bb648754625d8e3920eafa9bc599))
+* **contracts:** publish inject readback, correlation and backend declaration contracts ([#1449](https://github.com/OpenRAE/rae/issues/1449)) ([b22f3b6](https://github.com/OpenRAE/rae/commit/b22f3b63579734df36154f5b0f2fd4e6ec5c0f8d))
+* **contracts:** publish inject trigger request and occurrence contracts ([#1436](https://github.com/OpenRAE/rae/issues/1436)) ([a391904](https://github.com/OpenRAE/rae/commit/a391904a7ceaced035be2c90d54e2660679de6bb))
+* **contracts:** publish mixed-backend execution and readback contracts ([#1442](https://github.com/OpenRAE/rae/issues/1442)) ([35e9559](https://github.com/OpenRAE/rae/commit/35e9559c07dcbc99150fad733f4b9ffb2630f99f))
+* evaluate applicable control providers in dependency order ([#1605](https://github.com/OpenRAE/rae/issues/1605)) ([4e9274b](https://github.com/OpenRAE/rae/commit/4e9274b043d84db9dd4be0d18040cb41d41d0912))
+* **examples:** add machine-checked metadata to example library entries ([#1438](https://github.com/OpenRAE/rae/issues/1438)) ([792d037](https://github.com/OpenRAE/rae/commit/792d037afb50d7998d9c07b61ef06a538d7b584c))
+* **formal:** model participant crossings across two operations ([#1581](https://github.com/OpenRAE/rae/issues/1581)) ([348c490](https://github.com/OpenRAE/rae/commit/348c4903322da1d4dbe0d65cb2e687cfad172290))
+* make reference eligibility explicit per purpose and align the editor with validation ([#1446](https://github.com/OpenRAE/rae/issues/1446)) ([9ce3c3c](https://github.com/OpenRAE/rae/commit/9ce3c3c56ee9830fd9d6847bf5b3ec22e5f2aafa))
+* **runtime:** supervise native execution with scoped one-use authority ([#1601](https://github.com/OpenRAE/rae/issues/1601)) ([ec1cdce](https://github.com/OpenRAE/rae/commit/ec1cdce923963267ced8e383af79f262a05b2e65))
+
+
+### Bug Fixes
+
+* **planner:** preserve configurable runtime parameter authority ([#1485](https://github.com/OpenRAE/rae/issues/1485)) ([5508f43](https://github.com/OpenRAE/rae/commit/5508f434513249aa8e2b82e98028a20519c44a46))
+* realize relayed provisioning plans from their published operations ([#1433](https://github.com/OpenRAE/rae/issues/1433)) ([cf8b430](https://github.com/OpenRAE/rae/commit/cf8b4308395c8e840ead43b9f7c769274d820dda))
+* **release:** name the repository when publish-github uploads release assets ([#1415](https://github.com/OpenRAE/rae/issues/1415)) ([0d2ccac](https://github.com/OpenRAE/rae/commit/0d2ccac82e6e00590094a371247928e0a9373da0))
+* **runtime:** isolate the snapshot that shared-time readback hands the time runtime ([#1429](https://github.com/OpenRAE/rae/issues/1429)) ([03e9e01](https://github.com/OpenRAE/rae/commit/03e9e01c4e985691d8f56a763ed92bb81bcbacd9))
+* **runtime:** preserve artifact evidence in credential-bearing plans ([#1604](https://github.com/OpenRAE/rae/issues/1604)) ([9de55ef](https://github.com/OpenRAE/rae/commit/9de55ef6bc06deff310283ba27246563436324d8))
+* **runtime:** stop dispatching control-plane requests abandoned before their body completes ([#1431](https://github.com/OpenRAE/rae/issues/1431)) ([5d55556](https://github.com/OpenRAE/rae/commit/5d5555620cd0cfb426c6bdd8db6f2241ced91368))
+* **sdl:** complete reusable behavior authoring (DSL-116) ([#1426](https://github.com/OpenRAE/rae/issues/1426)) ([39ab829](https://github.com/OpenRAE/rae/commit/39ab829b12d26c1e77262a0348705133a4a61849))
+
 ## [6.0.1](https://github.com/OpenRAE/rae/compare/v6.0.0...v6.0.1) (2026-10-02)
 
 
