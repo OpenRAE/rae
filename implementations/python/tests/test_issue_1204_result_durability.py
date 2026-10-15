@@ -55,18 +55,18 @@ def test_rejected_success_preserves_the_immediate_predecessor_across_reload(tmp_
     backend.reject_next = True
     receipt = control_plane.submit_provisioning(second.provisioning)
     status = control_plane.get_operation(receipt.operation_id)
-    assert status.state is OperationState.FAILED
+    assert status.state is OperationState.INDETERMINATE
     assert status.changed_addresses == []
     assert status.diagnostics[0].code == "runtime.backend-contract-invalid"
     assert status.diagnostics[0].message == "Backend changed a plan-owned resource type."
     assert _snapshot_payload(control_plane.snapshot) == predecessor
-    assert store.load_snapshot_state().revision > revision
+    assert store.load_snapshot_state().revision == revision
     control_plane.close()
 
     recovered_store = LocalControlPlaneStore(tmp_path / "state") if durable else store
     recovered = RuntimeControlPlane(target, store=recovered_store)
     assert _snapshot_payload(recovered.snapshot) == predecessor
-    assert recovered.get_operation(receipt.operation_id).state is OperationState.FAILED
+    assert recovered.get_operation(receipt.operation_id).state is OperationState.INDETERMINATE
     assert "private-candidate" not in repr(recovered_store.load_records())
     assert "not-accepted" not in repr(recovered.get_snapshot())
     recovered.close()
@@ -98,7 +98,7 @@ def test_control_plane_respects_backend_validation_before_apply(severity):
     assert backend.applies == int(severity is not Severity.ERROR)
     assert receipt.accepted
     assert receipt.diagnostics == []
-    assert status.state is (OperationState.FAILED if severity is Severity.ERROR else OperationState.SUCCEEDED)
+    assert status.state is (OperationState.CANCELLED if severity is Severity.ERROR else OperationState.SUCCEEDED)
     assert status.diagnostics[0].code == "test.support"
     if severity is Severity.ERROR:
         assert _snapshot_payload(control_plane.snapshot) == predecessor

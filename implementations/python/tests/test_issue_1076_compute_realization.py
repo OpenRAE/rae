@@ -42,8 +42,8 @@ from raes_processor.semantics.realization import realization_disclosure
 from raes_reference_backend.manifest import create_reference_backend_manifest
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_api_models import _provisioning_plan
-from raes_runtime.manager import RuntimeManager
 from realization_authority_fixtures import with_compute_substrate_collection_demand
+from runtime_plan_fixtures import plan_for_target
 
 _FORMAL_ROOT = Path(__file__).resolve().parents[3] / "docs/research/formal-semantic-validation"
 
@@ -343,16 +343,17 @@ def test_stub_noop_does_not_bootstrap_unrequested_substrate_disclosure() -> None
           endpoint: {type: compute, resources: {ram: 1 gib, cpu: 1}}
         """
     )
-    first_execution_plan = RuntimeManager(target).plan(scenario)
+    first_execution_plan = plan_for_target(target, scenario)
     first_plan = first_execution_plan.provisioning
     first = RuntimeControlPlane(target)
     first.register_planner_produced_plan(first_execution_plan)
     first.submit_provisioning(first_plan)
     legacy_snapshot = replace(first.snapshot, realization_observations=())
-    unchanged_execution_plan = RuntimeManager(target).plan(scenario, legacy_snapshot)
+    unchanged_execution_plan = plan_for_target(target, scenario, legacy_snapshot)
     unchanged_plan = unchanged_execution_plan.provisioning
     assert all(operation.action.value == "unchanged" for operation in unchanged_plan.operations)
 
+    first.close()
     upgraded = RuntimeControlPlane(target, initial_snapshot=legacy_snapshot)
     upgraded.register_planner_produced_plan(unchanged_execution_plan)
     receipt = upgraded.submit_provisioning(unchanged_plan)

@@ -19,9 +19,9 @@ from raes_reference_backend import (
 )
 from raes_reference_backend.drivers.inprocess import InProcessDriver
 from raes_runtime.control_plane import RuntimeControlPlane
-from raes_runtime.manager import RuntimeManager
 from raes_runtime.registry import RuntimeTarget
 from realization_authority_fixtures import with_compute_substrate_collection_demand
+from runtime_plan_fixtures import plan_for_target
 
 _SCENARIO = """
 name: ref-provisioner
@@ -46,8 +46,7 @@ def _target_with_driver(driver: InProcessDriver) -> RuntimeTarget:
 
 
 def _provisioning_plan(target: RuntimeTarget) -> ProvisioningPlan:
-    manager = RuntimeManager(target)
-    execution_plan = manager.plan(parse_sdl(textwrap.dedent(_SCENARIO)))
+    execution_plan = plan_for_target(target, parse_sdl(textwrap.dedent(_SCENARIO)))
     return execution_plan.provisioning
 
 
@@ -58,7 +57,7 @@ def _register_provisioning_plan(
 ) -> None:
     """Forge component authorization where planner validity is explicitly out of scope."""
 
-    execution_plan = RuntimeManager(target).plan(parse_sdl(textwrap.dedent(_SCENARIO)))
+    execution_plan = plan_for_target(target, parse_sdl(textwrap.dedent(_SCENARIO)))
     control_plane.register_planner_produced_plan(replace(execution_plan, provisioning=provisioning_plan))
 
 
@@ -179,14 +178,14 @@ def test_unchanged_inprocess_compute_rejects_non_authoritative_readback() -> Non
     driver = _ObservationRecordingDriver()
     target = _target_with_driver(driver)
     scenario = parse_sdl(textwrap.dedent(_SCENARIO))
-    create_plan = RuntimeManager(target).plan(scenario).provisioning
+    create_plan = plan_for_target(target, scenario).provisioning
     first = RuntimeControlPlane(target)
     _register_provisioning_plan(first, target, create_plan)
     first.submit_provisioning(create_plan)
     legacy_snapshot = replace(first.snapshot, realization_observations=())
     realizes_before = tuple(op for op in driver.recorded_ops if op.verb == "realize")
     observes_before = len(observe_calls)
-    unchanged_plan = RuntimeManager(target).plan(scenario, legacy_snapshot).provisioning
+    unchanged_plan = plan_for_target(target, scenario, legacy_snapshot).provisioning
     assert all(operation.action is ChangeAction.UNCHANGED for operation in unchanged_plan.operations)
     unchanged_plan = with_compute_substrate_collection_demand(
         unchanged_plan,
@@ -194,11 +193,12 @@ def test_unchanged_inprocess_compute_rejects_non_authoritative_readback() -> Non
         address="provision.node.web",
     )
 
+    first.close()
     upgraded = RuntimeControlPlane(target, initial_snapshot=legacy_snapshot)
     _register_provisioning_plan(upgraded, target, unchanged_plan)
     receipt = upgraded.submit_provisioning(unchanged_plan)
 
-    assert upgraded.get_operation(receipt.operation_id).state.value == "failed"
+    assert upgraded.get_operation(receipt.operation_id).state.value == "indeterminate"
     assert "provision.node.web" in upgraded.snapshot.entries
     assert "reference-backend.driver.compute-substrate-unobserved" in {
         item.code for item in upgraded.get_operation(receipt.operation_id).diagnostics

@@ -98,7 +98,7 @@ def _closure_binding_failures(
                 PROFILES_PATH,
             )
         )
-    expected_extras = {"dev", "docs"} if project_scoped else set()
+    expected_extras = {"dev", "docs", "distributed"} if project_scoped else set()
     if set(value.get("project_extras", [])) != expected_extras:
         failures.append(
             failure(

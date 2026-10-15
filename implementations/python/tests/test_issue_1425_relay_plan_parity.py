@@ -29,7 +29,7 @@ from raes_reference_backend.realization import interpret_provisioning_plan as in
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_api import create_control_plane_app
 from raes_runtime.control_plane_api_models import _provisioning_plan
-from raes_runtime.manager import RuntimeManager
+from runtime_plan_fixtures import plan_for_target
 from starlette.testclient import TestClient
 from test_runtime_control_plane_api import _test_security
 
@@ -128,7 +128,7 @@ def recording():
     driver = _RecordingDriver()
     target = create_reference_backend_target(driver=driver)
     control = RuntimeControlPlane(target)
-    execution = RuntimeManager(target).plan(parse_sdl(_SCENARIO))
+    execution = plan_for_target(target, parse_sdl(_SCENARIO))
     control.register_planner_produced_plan(execution)
     yield control, driver, execution.provisioning
     control.close()

@@ -19,6 +19,7 @@ from .control_plane_store_revision import (
     next_snapshot_revision,
     require_snapshot_revision,
 )
+from .operation_invocation_ledger import supervised_claim_conflicts
 
 
 class _InMemoryRuntimeOwner:
@@ -62,6 +63,8 @@ class InMemoryControlPlaneStore:
         self._audit: list[_store.AuditEvent] = []
         self._bound_scope: tuple[str, str] | None = None
         self._runtime_owner_token: object | None = None
+        self._execution_generation = 0
+        self._effect_admission_stopped = False
 
     def bind_scope(self, *, target_scope: str, run_scope: str) -> _InMemoryRuntimeOwner:
         """Admit one active owner and pin the store's target/run scope."""
@@ -133,10 +136,51 @@ class InMemoryControlPlaneStore:
                     return existing
             if new_claim_blocked:
                 _store._raise_new_claim_block(new_claim_blocked)
+            if (
+                self._effect_admission_stopped
+                and record.status.context.operation_kind.value != "indeterminate-resolution"
+            ):
+                _store._raise_new_claim_block("current-state")
             if _store.mixed_claim_conflicts(record, self._records.values()):
+                _store._raise_new_claim_block("current-state")
+            if supervised_claim_conflicts(record, self._records.values()):
                 _store._raise_new_claim_block("current-state")
             self._save_record(record)
             return record
+
+    def admit_execution_generation(self) -> int:
+        with self._lock:
+            self._execution_generation = next_snapshot_revision(self._execution_generation)
+            return self._execution_generation
+
+    def effect_admission_stopped(self) -> bool:
+        with self._lock:
+            return self._effect_admission_stopped
+
+    def stop_effect_admission(self, event: _store.AuditEvent) -> None:
+        with self._lock:
+            if not self._effect_admission_stopped:
+                self._effect_admission_stopped = True
+                self._audit.append(event)
+
+    def commit_invocation_transition(
+        self,
+        expected: _store.ControlPlaneOperationRecord,
+        record: _store.ControlPlaneOperationRecord,
+        *,
+        audit_event: _store.AuditEvent,
+    ) -> SnapshotState:
+        from .operation_ledger_transactions import require_supervision_cut
+
+        require_supervision_cut(expected, record, audit_event)
+        with self._lock:
+            current = self._records.get(expected.receipt.operation_id)
+            if current == record and audit_event in self._audit:
+                return self._snapshot_state
+            if current != expected:
+                raise ValueError("invocation revision conflict")
+            self._publish(record, audit_event, self._snapshot_state)
+            return self._snapshot_state
 
     def commit_terminal_operation(
         self,

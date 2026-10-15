@@ -20,6 +20,8 @@ from raes_contracts.runtime_state import (
 )
 
 from .control_plane_audit import require_audit_event_fields
+from .operation_invocation_ledger import InvocationLedger, require_invocation_transition, require_record_invocation
+from .operation_reconciliation_ledger import InvocationReconciliation
 from .control_plane_store_revision import (
     SnapshotRevisionConflict,
     SnapshotState,
@@ -117,6 +119,8 @@ class ControlPlaneOperationRecord:
     decision_history_heads: dict[str, str | None] = field(default_factory=dict)
     result_history_heads: dict[str, str | None] = field(default_factory=dict)
     legacy_request_commitment: bool = False
+    invocation: InvocationLedger | None = None
+    reconciliation: InvocationReconciliation | None = None
 
     def __post_init__(self) -> None:
         _require_operation_record_identity(self)
@@ -137,6 +141,11 @@ def _require_operation_record_identity(record: ControlPlaneOperationRecord) -> N
         raise ValueError("operation receipt and status contexts do not match")
     if not record.receipt.accepted:
         raise ValueError("denied operation receipts cannot be persisted")
+    require_record_invocation(record)
+    if record.reconciliation is not None:
+        InvocationReconciliation.model_validate(record.reconciliation.model_dump(mode="json"))
+        if record.status.context.parent_operation_id != record.reconciliation.request.binding.operation_id:
+            raise ValueError("reconciliation parent binding mismatch")
 
 
 def idempotency_claim_identity(
@@ -203,6 +212,9 @@ def _require_same_operation_identity(
 ) -> None:
     _require_operation_record_identity(existing)
     _require_operation_record_identity(replacement)
+    require_invocation_transition(existing.invocation, replacement.invocation)
+    if existing.reconciliation is not None and existing.reconciliation != replacement.reconciliation:
+        raise ValueError("reconciliation evidence is immutable")
     if existing.receipt != replacement.receipt:
         raise ValueError("operation receipt is immutable after its durable claim")
     if (
