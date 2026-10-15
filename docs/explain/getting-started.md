@@ -38,7 +38,7 @@ RAES can currently support:
 - parsing and validating SDL through the Python implementation
 - instantiating variables and compiling runtime models in the reference stack
 - checking backend contract fixtures and conformance profiles
-- browsing validated, non-normative examples, templates, and reusable patterns
+- browsing non-normative examples, templates, and reusable patterns
   for scenarios, workflows, participant behavior, tasks, runs, and studies
 - reviewing the specifications, ADRs, and examples that define current claims
 
@@ -219,7 +219,7 @@ Do not use examples to claim:
 
 ## Template And Pattern Boundary
 
-The current library provides validated authoring aids, not new runtime
+The current library provides authoring aids, not new runtime
 authority.
 
 Current status:
