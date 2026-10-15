@@ -14,7 +14,7 @@ from anyio.from_thread import start_blocking_portal
 
 from .control_plane_mutation import detached_extension
 
-Lane = Literal["effect", "control", "store", "deadline"]
+Lane = Literal["effect", "control", "store", "deadline", "resolution"]
 _T = TypeVar("_T")
 # Portable apparatus ceiling, below native wait overflow.
 _MAX_BUDGET = 2147483647
@@ -78,7 +78,13 @@ class LocalExecutionAdapter:
     """
 
     def __init__(self, *, effect_capacity: int = 1, control_capacity: int = 2, store_capacity: int = 1) -> None:
-        capacities = {"effect": effect_capacity, "control": control_capacity, "store": store_capacity, "deadline": 1}
+        capacities = {
+            "effect": effect_capacity,
+            "control": control_capacity,
+            "store": store_capacity,
+            "deadline": 1,
+            "resolution": 1,
+        }
         if any(type(value) is not int or not 1 <= value <= 64 for value in capacities.values()):
             raise ValueError("execution capacity must be a strict integer between 1 and 64")
         self._owner_pid = getpid()
@@ -112,7 +118,7 @@ class LocalExecutionAdapter:
         if lane not in self._slots:
             raise ValueError("unknown execution lane")
         with self._condition:
-            if self._closed or (self._draining and lane == "effect"):
+            if self._closed or (self._draining and lane in {"effect", "resolution"}):
                 raise RuntimeError("execution adapter is closed to effect admission")
             if not self._slots[lane].acquire(blocking=False):
                 raise RuntimeError("execution capacity unavailable")

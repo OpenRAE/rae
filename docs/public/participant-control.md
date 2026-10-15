@@ -35,9 +35,13 @@ dependency inputs. Those contracts keep the complete admitted apparatus
 separate from the slots applicable at one state cut, require profile-owned
 coverage and explicit input support, and separate parent decisions from
 effect prerequisites. They require exact protocol/schema negotiation and a
-trusted operator resolver. The current reference runtime and retained v1
-history continue to use provider/v1; v2 publication alone does not activate
-v2 scheduling, state commit or effect dispatch. See the
+trusted operator resolver. The reference runtime can explicitly admit a v2
+binding and evaluate its applicable slots in dependency order. Required inputs
+and support must be satisfied; optional failure is recorded without blocking
+an otherwise permitted crossing. Scoped state and the evaluation join the
+existing atomic crossing commit. Retained v1 records keep their original
+interpretation. The v2 effect drain reports unsupported effects without
+executing them; evaluation eligibility supplies no effect permission. See the
 [migration rules](https://github.com/OpenRAE/rae/blob/dev/docs/migration/control-applicability-and-evaluation.md).
 
 | Plane | What it contains | What it does not imply |
