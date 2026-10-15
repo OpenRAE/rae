@@ -217,8 +217,9 @@ def test_imported_authority_scope_preserves_the_units_resolution(tmp_path: Path,
         ("authority_scope_refs: [nodes.web.services.http]", f"authority_scope_refs: [{scope_ref}]"),
     )
     if scope_ref == "web":
+        unit_text = _rewritten(UNIT, edits)
         with pytest.raises(SDLValidationError) as standalone:
-            parse_sdl(_rewritten(UNIT, edits))
+            parse_sdl(unit_text)
         with pytest.raises(SDLValidationError) as composed:
             _parse_pair(tmp_path, unit_edits=edits)
         assert (
@@ -240,11 +241,12 @@ def test_imported_authority_scope_preserves_the_units_resolution(tmp_path: Path,
 
 @pytest.mark.parametrize("spelling", ["alpha.__private.scanner-package", "content.alpha.__private.scanner-package"])
 def test_importer_cannot_author_a_private_tool_ref(tmp_path: Path, spelling: str):
+    root_edits = (_tool_ref_edit("alpha.scanner-package", spelling),)
     with pytest.raises(SDLParseError) as excinfo:
         _parse_pair(
             tmp_path,
             unit_edits=(("    content: [scanner-package]\n", ""),),
-            root_edits=(_tool_ref_edit("alpha.scanner-package", spelling),),
+            root_edits=root_edits,
         )
     (diagnostic,) = excinfo.value.diagnostics
     assert diagnostic.code == "sdl.identifier.invalid"
@@ -303,8 +305,9 @@ def test_private_tool_relations_are_rejected_before_semantic_validation(tmp_path
 def test_malformed_affordances_retain_structural_diagnostics(affordances):
     payload = yaml.safe_load(UNIT.read_text(encoding="utf-8"))
     payload["behavior_specifications"][REUSABLE]["tool_affordances"] = affordances
+    source = yaml.safe_dump(payload)
     with pytest.raises(SDLParseError) as excinfo:
-        parse_sdl(yaml.safe_dump(payload))
+        parse_sdl(source)
     assert excinfo.value.diagnostics[0].code == "sdl.model.invalid"
 
 

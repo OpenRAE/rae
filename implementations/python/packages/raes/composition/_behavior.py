@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from .._base import is_variable_ref
-from .._declarations import build_declaration_index
+from .._declarations import DeclarationIndex, build_declaration_index
 from .._errors import SDLValidationError
 from .._reference_targetability import PURPOSE_LABELS, ReferencePurpose
 from ..participant_behavior_specification import tool_affordance_reference
@@ -104,6 +104,26 @@ def _rewrite_mixed_control(
             _rewrite_mixed_control_transition(transition, symbols)
 
 
+def _unit_authority_scope_ambiguities(unit: ScenarioContent, index: DeclarationIndex) -> list[str]:
+    """Use the standalone authority-scope purpose and diagnostic candidate order."""
+
+    errors = []
+    purpose = ReferencePurpose.AUTHORITY_SCOPE
+    for spec_name, behavior_spec in unit.behavior_specifications.items():
+        for ref in behavior_spec.authority_scope_refs:
+            candidates = index.resolve_for(ref, purpose) if not is_variable_ref(ref) else set()
+            if len(candidates) <= 1:
+                continue
+            eligible = index.eligible(candidates, purpose)
+            refused = sorted(candidates - eligible)
+            detail = f"; not eligible as {PURPOSE_LABELS[purpose]}: {', '.join(refused)}" if refused else ""
+            errors.append(
+                f"Behavior specification '{spec_name}' authority_scope_ref '{ref}' "
+                f"is ambiguous; use one of: {', '.join(sorted(eligible))}{detail}"
+            )
+    return errors
+
+
 def _reject_ambiguous_unit_behavior_refs(unit: ScenarioContent, *, path: Path) -> None:
     """Reject ambiguous tool identities and behavior authority scopes before rewriting.
 
@@ -112,20 +132,14 @@ def _reject_ambiguous_unit_behavior_refs(unit: ScenarioContent, *, path: Path) -
     candidate by section order. The check binds nothing.
     """
 
+    if not unit.behavior_specifications:
+        return
     bindings = [
         (spec_name, affordance_id, binding.tool_ref)
         for spec_name, behavior_spec in unit.behavior_specifications.items()
         for affordance_id, binding in behavior_spec.tool_affordances.items()
         if binding.tool_ref is not None and not is_variable_ref(binding.tool_ref)
     ]
-    scopes = [
-        (spec_name, ref)
-        for spec_name, behavior_spec in unit.behavior_specifications.items()
-        for ref in behavior_spec.authority_scope_refs
-        if not is_variable_ref(ref)
-    ]
-    if not bindings and not scopes:
-        return
     index = build_declaration_index(unit, raise_on_collision=False)
     errors = [
         f"Behavior specification '{spec_name}' tool affordance '{affordance_id}' tool_ref '{tool_ref}' "
@@ -133,18 +147,7 @@ def _reject_ambiguous_unit_behavior_refs(unit: ScenarioContent, *, path: Path) -
         for spec_name, affordance_id, tool_ref in bindings
         if len(candidates := index.resolve(tool_ref)) > 1
     ]
-    purpose = ReferencePurpose.AUTHORITY_SCOPE
-    for spec_name, ref in scopes:
-        candidates = index.resolve_for(ref, purpose)
-        if len(candidates) <= 1:
-            continue
-        eligible = index.eligible(candidates, purpose)
-        refused = sorted(candidates - eligible)
-        detail = f"; not eligible as {PURPOSE_LABELS[purpose]}: {', '.join(refused)}" if refused else ""
-        errors.append(
-            f"Behavior specification '{spec_name}' authority_scope_ref '{ref}' "
-            f"is ambiguous; use one of: {', '.join(sorted(eligible))}{detail}"
-        )
+    errors.extend(_unit_authority_scope_ambiguities(unit, index))
     if errors:
         raise SDLValidationError(errors, path=path)
 

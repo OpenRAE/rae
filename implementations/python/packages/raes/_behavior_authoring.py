@@ -25,30 +25,31 @@ def _private_refs(specification: Mapping[str, object]) -> Iterator[tuple[str, in
                 yield field, index, ref
 
 
+def _authoring_mapping(value: object) -> Mapping[str, object]:
+    if isinstance(value, BaseModel):
+        return value.model_dump(mode="python")
+    return value if isinstance(value, Mapping) else {}
+
+
+def _private_tool_locations(specification: Mapping[str, object]) -> Iterator[tuple[tuple[str | int, ...], str]]:
+    for affordance_id, value in _authoring_mapping(specification.get("tool_affordances")).items():
+        binding = _authoring_mapping(value)
+        prefix = ("tool_affordances", affordance_id)
+        tool_ref = binding.get("tool_ref")
+        if isinstance(tool_ref, str) and PRIVATE_NAMESPACE_SEGMENT in tool_ref.split("."):
+            yield (*prefix, "tool_ref"), tool_ref
+        for field, index, ref in _private_refs(binding):
+            yield (*prefix, field, index), ref
+
+
 def _private_locations(document: Mapping[str, object]) -> Iterator[tuple[tuple[str | int, ...], str]]:
-    specifications = document.get("behavior_specifications", {})
-    if not isinstance(specifications, Mapping):
-        return
-    for name, specification in specifications.items():
-        if isinstance(specification, BaseModel):
-            specification = specification.model_dump(mode="python")
-        if isinstance(specification, Mapping):
-            for field, index, ref in _private_refs(specification):
-                yield ("behavior_specifications", name, field, index), ref
-            affordances = specification.get("tool_affordances", {})
-            if not isinstance(affordances, Mapping):
-                continue
-            for affordance_id, binding in affordances.items():
-                if isinstance(binding, BaseModel):
-                    binding = binding.model_dump(mode="python")
-                if not isinstance(binding, Mapping):
-                    continue
-                prefix = ("behavior_specifications", name, "tool_affordances", affordance_id)
-                tool_ref = binding.get("tool_ref")
-                if isinstance(tool_ref, str) and PRIVATE_NAMESPACE_SEGMENT in tool_ref.split("."):
-                    yield (*prefix, "tool_ref"), tool_ref
-                for field, index, ref in _private_refs(binding):
-                    yield (*prefix, field, index), ref
+    for name, value in _authoring_mapping(document.get("behavior_specifications")).items():
+        specification = _authoring_mapping(value)
+        prefix = ("behavior_specifications", name)
+        for field, index, ref in _private_refs(specification):
+            yield (*prefix, field, index), ref
+        for location, ref in _private_tool_locations(specification):
+            yield (*prefix, *location), ref
 
 
 def validate_authored_behavior_references(
