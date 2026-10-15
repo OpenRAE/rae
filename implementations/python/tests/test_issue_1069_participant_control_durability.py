@@ -332,7 +332,7 @@ def test_upgrading_a_pre_carrier_store_records_the_carrier_explicitly(tmp_path: 
     upgraded.close()
 
     assert _stored_schema_and_carrier(store_path) == (LOCAL_OPERATION_SCHEMA_VERSION, True)
-    assert LOCAL_OPERATION_SCHEMA_VERSION == "8"
+    assert LOCAL_OPERATION_SCHEMA_VERSION == "9"
     assert crossings  # the participant history the upgrade preserved
 
 

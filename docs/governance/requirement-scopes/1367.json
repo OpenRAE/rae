@@ -164,7 +164,16 @@
     "implementations/python/tests/reference_inject_integration_support.py": [
       "RUN-314"
     ],
+    "implementations/python/tests/test_issue_1069_participant_control_durability.py": [
+      "API-404"
+    ],
+    "implementations/python/tests/test_issue_1185_api_404_profile_alignment.py": [
+      "API-404"
+    ],
     "implementations/python/tests/test_issue_1359_runtime_api_trust_boundary.py": [
+      "API-404"
+    ],
+    "implementations/python/tests/test_issue_1362_command_privacy.py": [
       "API-404"
     ],
     "implementations/python/tests/test_issue_1367_inject_claims.py": [
