@@ -94,7 +94,7 @@ EXPECTATIONS_PART_2: dict[str, tuple[str, str, str, str]] = {
         _PARTICIPANT_VALIDATOR,
     ),
     "agents.*.authority_anchors[]": (
-        "declared",
+        "eligible:authority_anchor",
         _SEMANTIC,
         _DANGLING,
         _PARTICIPANT_VALIDATOR,
@@ -118,15 +118,21 @@ EXPECTATIONS_PART_2: dict[str, tuple[str, str, str, str]] = {
         _PARTICIPANT_SEMANTICS,
     ),
     "action_contracts.*.interactions.*.target": (
-        "targetable",
+        "eligible:action_target",
         _SEMANTIC,
         _DANGLING,
         _PARTICIPANT_VALIDATOR,
     ),
     "action_contracts.*.interactions.*.shared_state_refs[]": (
-        "targetable",
+        "eligible:shared_state",
         _SEMANTIC,
         _DANGLING,
+        _PARTICIPANT_VALIDATOR,
+    ),
+    "action_contracts.*.effects.*.target_refs[]": (
+        "eligible:action_target",
+        _SEMANTIC,
+        "fatal dangling or ambiguous when it names a declaration; other refs are boundary information",
         _PARTICIPANT_VALIDATOR,
     ),
     "action_contracts.*.temporal_contracts.*.backend_disclosure_refs[]": (
@@ -208,7 +214,7 @@ EXPECTATIONS_PART_2: dict[str, tuple[str, str, str, str]] = {
         _BEHAVIOR_SEMANTICS,
     ),
     "behavior_specifications.*.authority_scope_refs[]": (
-        "targetable",
+        "eligible:authority_scope",
         _SEMANTIC,
         _DANGLING,
         _BEHAVIOR_VALIDATOR,
@@ -304,7 +310,7 @@ EXPECTATIONS_PART_2: dict[str, tuple[str, str, str, str]] = {
         _PARTICIPANT_INJECT_DELIVERY_VALIDATOR,
     ),
     "behavior_specifications.*.participant_inject_deliveries.*.control_authority_scope_refs[]": (
-        "targetable",
+        "eligible:authority_scope",
         _SEMANTIC,
         "fatal dangling, ambiguous, or disagreement with the selected target-state scope",
         _PARTICIPANT_INJECT_DELIVERY_VALIDATOR,

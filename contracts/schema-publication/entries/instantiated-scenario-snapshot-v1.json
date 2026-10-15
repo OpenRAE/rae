@@ -1,9 +1,9 @@
 {
-  "content_hash": "c2eaca0b3c50d7c8f9d559abe63762a8fee61227d6322c685e0b5868bc52cc8b",
+  "content_hash": "584c5e6359415dc5034a09b7debd2efd310db45b1d0cd1c6cb4fc41f00500291",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "content_hash": "c2eaca0b3c50d7c8f9d559abe63762a8fee61227d6322c685e0b5868bc52cc8b",
-    "summary": "Reject empty and whitespace-only behavior specification version labels, matching existing parser validity; DSL-116 issue #297."
+    "content_hash": "584c5e6359415dc5034a09b7debd2efd310db45b1d0cd1c6cb4fc41f00500291",
+    "summary": "Describe relationship endpoint eligibility and typed narrowing; description only; issue #1339."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"

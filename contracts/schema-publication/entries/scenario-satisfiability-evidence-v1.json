@@ -1,9 +1,9 @@
 {
-  "content_hash": "1ad4ff17d19657f15deace6663c54ea90c44c24a2916fb26e51029455f73ba88",
+  "content_hash": "213a2411c11cdfa30e8a8aff8c9e63286bcac2aafe870a53562ef2a88c0fde7f",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "1ad4ff17d19657f15deace6663c54ea90c44c24a2916fb26e51029455f73ba88",
-    "summary": "Reject empty and whitespace-only behavior specification version labels, matching existing parser validity; DSL-116 issue #297."
+    "content_hash": "213a2411c11cdfa30e8a8aff8c9e63286bcac2aafe870a53562ef2a88c0fde7f",
+    "summary": "Describe relationship endpoint eligibility and typed narrowing; description only; issue #1339."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

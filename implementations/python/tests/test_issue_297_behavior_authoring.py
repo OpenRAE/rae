@@ -176,7 +176,8 @@ def test_published_authoring_schema_admits_both_declaration_forms(document: Path
         (
             "authority_scope_refs: [nodes.alpha.web.services.http, nodes.bravo.web.services.http]",
             "authority_scope_refs: [nodes.web.services.http]",
-            "authority_scope_ref 'nodes.web.services.http' does not reference any defined targetable element",
+            "authority_scope_ref 'nodes.web.services.http' does not reference any defined element "
+            "eligible as an authority scope",
         ),
     ],
     ids=["participant", "role", "action", "observation", "outcome", "authority"],
