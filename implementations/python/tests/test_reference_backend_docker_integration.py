@@ -237,7 +237,8 @@ def test_real_inject_public_trigger_changes_world_and_duplicate_executes_once(co
         with TestClient(app) as client:
             body = run.request.model_dump(mode="json")
             first = client.post("/injects/trigger", json=body, headers=headers)
-            assert first.status_code == 200 and first.json()["accepted"], first.text
+            assert first.status_code == 200, first.text
+            assert first.json()["accepted"], first.text
             operation_id = first.json()["operation_id"]
             assert client.post("/injects/trigger", json=body, headers=headers).json() == first.json()
             outcome = client.get(f"/operations/{operation_id}/inject-outcome", headers=headers)
@@ -310,14 +311,16 @@ def test_real_inject_process_loss_after_effect_reconciles_without_new_execution(
         assert os.waitstatus_to_exitcode(status) == 72
         parent = next(iter(recovered._store.load_records().values()))
         assert parent.status.state is OperationState.INDETERMINATE
-        assert parent.invocation.consumed and parent.invocation.reserved
+        assert parent.invocation.consumed
+        assert parent.invocation.reserved
         assert run.executor.native.read_probe(run.program.probes[0], deadline=monotonic() + 5) == AFTER
         assert recovered.submit_inject(run.request) == parent.receipt
         control = recovered.supervise_operation(
             parent.receipt.operation_id, action="reconcile", control_id="concrete-reconcile"
         )
         evidence = recovered.get_control_response(parent.receipt.operation_id, control.control_id)
-        assert evidence.message.effects.effect == "complete" and evidence.message.effects.cessation_established
+        assert evidence.message.effects.effect == "complete"
+        assert evidence.message.effects.cessation_established
         assert recovered.get_operation(parent.receipt.operation_id).state is OperationState.INDETERMINATE
         assert recovered.get_inject_correlation(parent.receipt.operation_id) is None
         source_objects = run.executor.native.call(
@@ -359,7 +362,8 @@ def test_real_container_provision_inventory_and_teardown(container_runtime: Cont
         control_plane.register_planner_produced_plan(execution_plan)
         receipt = control_plane.submit_provisioning(execution_plan.provisioning)
         status = control_plane.get_operation(receipt.operation_id)
-        assert status is not None and status.state.value == "succeeded"
+        assert status is not None
+        assert status.state.value == "succeeded"
         # The driver records realization against the real runtime; the portable
         # snapshot shows the realized node.
         assert "provision.node.web" in control_plane.snapshot.entries

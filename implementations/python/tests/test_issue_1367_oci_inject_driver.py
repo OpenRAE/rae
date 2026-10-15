@@ -117,20 +117,26 @@ def test_target_selection_is_bound_to_native_ownership_and_revision():
     assert binding.node == NODE
     assert daemon.native_id not in binding.model_dump_json()
     daemon.native_id = "c" * 64
+    check_started_at_1 = monotonic()
     with pytest.raises(ValueError, match="revision"):
-        native.require_target(binding, deadline=monotonic() + 2)
+        native.require_target(binding, deadline=check_started_at_1 + 2)
     daemon.workspace = "another-run"
+    check_started_at_2 = monotonic()
     with pytest.raises(ValueError, match="ownership"):
-        native.binding(BINDING, NODE, deadline=monotonic() + 2)
+        native.binding(BINDING, NODE, deadline=check_started_at_2 + 2)
 
 
 def test_source_requires_operator_trust_and_exact_installed_image_content():
     native, daemon = configured()
     assert native.image(descriptor(), deadline=monotonic() + 2) == CONFIG_DIGEST
+    checked_source_3 = descriptor(image="untrusted/image:latest")
+    check_started_at_4 = monotonic()
     with pytest.raises(ValueError, match="trust"):
-        native.image(descriptor(image="untrusted/image:latest"), deadline=monotonic() + 2)
+        native.image(checked_source_3, deadline=check_started_at_4 + 2)
+    checked_source_5 = descriptor(image_config_digest="sha256:" + "d" * 64)
+    check_started_at_6 = monotonic()
     with pytest.raises(ValueError, match="image"):
-        native.image(descriptor(image_config_digest="sha256:" + "d" * 64), deadline=monotonic() + 2)
+        native.image(checked_source_5, deadline=check_started_at_6 + 2)
 
 
 def test_native_probe_reader_never_extracts_archives_or_accepts_links():
@@ -147,10 +153,12 @@ def test_native_probe_reader_never_extracts_archives_or_accepts_links():
         return output.getvalue()
 
     assert read_probe_archive(archive(), "/tmp/world-state", 64) == b"effect"
+    probe_bundle_7 = archive(link=True)
     with pytest.raises(ValueError, match="probe"):
-        read_probe_archive(archive(link=True), "/tmp/world-state", 64)
+        read_probe_archive(probe_bundle_7, "/tmp/world-state", 64)
+    probe_bundle_8 = archive()
     with pytest.raises(ValueError, match="probe"):
-        read_probe_archive(archive(), "/tmp/world-state", 2)
+        read_probe_archive(probe_bundle_8, "/tmp/world-state", 2)
 
 
 def test_source_descriptor_has_no_request_supplied_command_or_environment():
@@ -174,21 +182,25 @@ def test_authored_image_entrypoint_is_isolated_and_requires_independent_world_re
     assert native.read_probe(probe, deadline=monotonic() + 2) == b"before"
     native.start(request, probe, descriptor(), deadline=monotonic() + 2)
     observed = native.observe(request, probe, descriptor(), deadline=monotonic() + 2)
-    assert observed.ceased and observed.exit_code == 0
+    assert observed.ceased
+    assert observed.exit_code == 0
     assert observed.readback == b"after"
     created = next(argv for argv, _ in daemon.calls if argv[1] == "create")
     assert created[-1] == CONFIG_DIGEST
     assert created[created.index("--network") + 1] == "container:" + daemon.native_id
     assert created[created.index("--user") + 1] == "65534:65534"
-    assert "--read-only" in created and "--pull=never" in created
+    assert "--read-only" in created
+    assert "--pull=never" in created
     assert created[created.index("--cap-drop") + 1] == "ALL"
     assert not {"--privileged", "--volume", "--mount", "--env"}.intersection(created)
     daemon.probe = b"different-world-content"
     assert native.observe(request, probe, descriptor(), deadline=monotonic() + 2).readback != probe.after
     effect = next(iter(daemon.effects.values()))
     effect["invocation"] = backend_operation_request_digest(request).replace("a", "0")
+    checked_source_9 = descriptor()
+    check_started_at_10 = monotonic()
     with pytest.raises(ValueError, match="ownership"):
-        native.observe(request, probe, descriptor(), deadline=monotonic() + 2)
+        native.observe(request, probe, checked_source_9, deadline=check_started_at_10 + 2)
 
 
 @pytest.mark.parametrize(

@@ -101,6 +101,12 @@ class OciInjectProgram:
         require_instantiated_scenario_reference(
             self.scenario, self.scenario_reference, instantiated=self.instantiated_scenario
         )
+        self._require_source_manifest()
+        pairs = [(probe.binding.binding, probe.binding.instance) for probe in self.probes]
+        if len(pairs) != len(set(pairs)):
+            raise ValueError("OCI inject probes require unique selected binding instances")
+
+    def _require_source_manifest(self) -> None:
         if len(self.source_manifest.artifacts) != 1:
             raise ValueError("OCI inject source must have one exact descriptor artifact")
         artifact_id, artifact = next(iter(self.source_manifest.artifacts.items()))
@@ -117,9 +123,6 @@ class OciInjectProgram:
         OciInjectSourceModel.model_validate(
             parse_bounded_json_object(self.source_descriptor, max_bytes=4096, max_depth=4)
         )
-        pairs = [(probe.binding.binding, probe.binding.instance) for probe in self.probes]
-        if len(pairs) != len(set(pairs)):
-            raise ValueError("OCI inject probes require unique selected binding instances")
 
     @property
     def source(self) -> OciInjectSourceModel:

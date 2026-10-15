@@ -6,6 +6,11 @@ import asyncio
 import os
 from contextlib import suppress
 from time import monotonic
+from typing import Protocol
+
+
+class NativeProcessRunner(Protocol):
+    def __call__(self, argv: list[str], *, deadline: float, max_output_bytes: int) -> bytes: ...
 
 
 def run_bounded_process(argv: list[str], *, deadline: float, max_output_bytes: int) -> bytes:
@@ -52,13 +57,22 @@ async def _run(argv: list[str], seconds: float, limit: int) -> bytes:
                 raise ValueError("native command did not succeed")
             return bytes(output)
     finally:
-        if process is not None and process.returncode is None:
-            with suppress(ProcessLookupError):
-                process.kill()
-            async with asyncio.timeout(1):
-                # A paused stdout transport can otherwise keep wait() blocked
-                # even after kill. Discard bounded chunks while reaping it.
-                if process.stdout is not None:
-                    while await process.stdout.read(4096):
-                        pass
-                await process.wait()
+        if process is not None:
+            await _reap_process(process)
+
+
+async def _reap_process(process: asyncio.subprocess.Process) -> None:
+    if process.returncode is not None:
+        return
+    with suppress(ProcessLookupError):
+        process.kill()
+    async with asyncio.timeout(1):
+        # Drain a paused transport before wait(), including after a kill.
+        if process.stdout is not None:
+            await _discard_output(process.stdout)
+        await process.wait()
+
+
+async def _discard_output(stream: asyncio.StreamReader) -> None:
+    while not stream.at_eof():
+        await stream.read(4096)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable
 from copy import deepcopy
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from time import monotonic
 from typing import TYPE_CHECKING, cast
 from uuid import uuid4
@@ -31,8 +31,8 @@ from .operation_invocation_ledger import InvocationLedger
 from .operation_policy_admission import execution_budget_ms
 
 if TYPE_CHECKING:
-    from raes_backend_protocols.inject_execution import InjectExecutionEvidence
-    from raes_contracts.contracts import BackendOperationResponseModel, InjectOccurrenceOutcomeModel
+    from raes_backend_protocols.inject_execution import ResolvedInjectOutcome
+    from raes_contracts.contracts import BackendOperationResponseModel
     from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
     from .control_plane import RuntimeControlPlane
@@ -151,6 +151,16 @@ def _admission_claim_options(
     return options, diagnostics
 
 
+@dataclass(frozen=True)
+class OperationSettlement:
+    state: OperationState
+    result: ApplyResult | None = None
+    diagnostics: tuple[Diagnostic, ...] = ()
+    release_commitment: str | None = None
+    result_payload: dict[str, object] | None = None
+    inject_resolution: ResolvedInjectOutcome | None = None
+
+
 def settle(
     plane: RuntimeControlPlane,
     record: ControlPlaneOperationRecord,
@@ -160,9 +170,30 @@ def settle(
     diagnostics: Iterable[Diagnostic] = (),
     release_commitment: str | None = None,
     result_payload: dict[str, object] | None = None,
-    inject_outcome: InjectOccurrenceOutcomeModel | None = None,
-    inject_evidence: InjectExecutionEvidence | None = None,
 ) -> None:
+    plane._require_state_writer()
+    commit_settlement(
+        plane,
+        record,
+        OperationSettlement(
+            state=state,
+            result=result,
+            diagnostics=tuple(diagnostics),
+            release_commitment=release_commitment,
+            result_payload=result_payload,
+        ),
+    )
+
+
+def commit_settlement(
+    plane: RuntimeControlPlane, record: ControlPlaneOperationRecord, outcome: OperationSettlement
+) -> None:
+    state, result = outcome.state, outcome.result
+    diagnostics, release_commitment = outcome.diagnostics, outcome.release_commitment
+    result_payload, inject_resolution = outcome.result_payload, outcome.inject_resolution
+    inject_outcome, inject_evidence = (
+        (None, None) if inject_resolution is None else (inject_resolution.outcome, inject_resolution.evidence)
+    )
     plane._require_state_writer()
     plane._reload_derived_state()
     current = plane._operations[record.receipt.operation_id]

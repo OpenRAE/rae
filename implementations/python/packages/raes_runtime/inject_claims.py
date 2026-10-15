@@ -21,6 +21,7 @@ from raes_contracts.runtime_state import OperationState
 
 if TYPE_CHECKING:
     from .control_plane_store import ControlPlaneOperationRecord
+    from .operation_invocation_ledger import InvocationLedger
 
 INJECT_GENESIS_HEAD = "inject-order:genesis"
 
@@ -38,16 +39,33 @@ def inject_order_head(occurrence: InjectOccurrenceModel) -> str:
 
 
 def require_inject_record(record: ControlPlaneOperationRecord) -> None:
-    occurrence, outcome, invocation = record.inject_occurrence, record.inject_outcome, record.invocation
+    occurrence = record.inject_occurrence
     if occurrence is None:
-        if (
-            outcome is not None
-            or record.inject_evidence is not None
-            or (invocation is not None and invocation.request.command.contract_id == "inject-occurrence-v1")
-        ):
-            raise ValueError("inject invocation requires its retained occurrence")
+        _require_no_unbound_inject_evidence(record)
         return
+    invocation = _require_occurrence_record(record, occurrence)
+    outcome = record.inject_outcome
+    if outcome is not None:
+        _require_outcome_record(record, occurrence, invocation, outcome)
+    elif record.inject_evidence is not None:
+        raise ValueError("inject artifact evidence requires its validated occurrence outcome")
+
+
+def _require_no_unbound_inject_evidence(record: ControlPlaneOperationRecord) -> None:
+    invocation = record.invocation
+    if (
+        record.inject_outcome is not None
+        or record.inject_evidence is not None
+        or (invocation is not None and invocation.request.command.contract_id == "inject-occurrence-v1")
+    ):
+        raise ValueError("inject invocation requires its retained occurrence")
+
+
+def _require_occurrence_record(
+    record: ControlPlaneOperationRecord, occurrence: InjectOccurrenceModel
+) -> InvocationLedger:
     InjectOccurrenceModel.model_validate(occurrence.model_dump(mode="json"))
+    invocation = record.invocation
     if invocation is None:
         raise ValueError("inject occurrence requires its invocation ledger")
     if invocation.native or record.receipt.domain is not RuntimeDomain.ORCHESTRATION:
@@ -58,46 +76,59 @@ def require_inject_record(record: ControlPlaneOperationRecord) -> None:
         or record.request_fingerprint != occurrence.admission.request_commitment
     ):
         raise ValueError("inject occurrence must retain its retry claim and admission commitment")
-    if record.status.state is OperationState.SUCCEEDED and outcome is None:
+    if record.status.state is OperationState.SUCCEEDED and record.inject_outcome is None:
         raise ValueError("inject success requires its independently validated outcome")
-    if outcome is not None:
-        InjectOccurrenceOutcomeModel.model_validate(outcome.model_dump(mode="json"))
-        validate_inject_occurrence_outcome(occurrence, invocation.request, outcome)
-        if outcome.response not in invocation.responses:
-            raise ValueError("inject outcome requires retained backend evidence")
-        message = outcome.response.message
-        expected = getattr(message, "proposed_state", OperationState.FAILED)
-        if record.status.state is not expected:
-            raise ValueError("inject outcome disagrees with terminal operation state")
-        evidence = record.inject_evidence
-        if evidence is None:
-            raise ValueError("inject outcome requires its durable artifact evidence")
-        InjectExecutionEvidence.model_validate(evidence.model_dump(mode="json"))
-        parent = evidence.manifest.parent_ref
-        if (
-            evidence.manifest.scope != "scenario"
-            or parent.ref_kind != "scenario"
-            or parent.ref_id != occurrence.scenario.artifact_id
-        ):
-            raise ValueError("inject artifact parent does not match the admitted occurrence scenario")
-        reference = OperationArtifactReferenceModel(
-            contract_id="associated-artifact-manifest-v1",
-            artifact_id=evidence.manifest.manifest_id,
-            digest=canonical_json_digest(evidence.manifest.model_dump(mode="json")),
-        )
-        message_effects = getattr(outcome.response.message, "effects", None)
-        produced = [] if message_effects is None else [*message_effects.evidence_refs]
-        result_reference = getattr(outcome.response.message, "result", None)
-        if result_reference is not None:
-            produced.append(result_reference)
-        for item in outcome.bindings:
-            produced.extend(item.effects.evidence_refs)
-            if item.readback is not None:
-                produced.append(item.readback)
-        if not produced or any(item != reference for item in produced):
-            raise ValueError("inject readback must resolve to its independently validated durable evidence")
-    elif record.inject_evidence is not None:
-        raise ValueError("inject artifact evidence requires its validated occurrence outcome")
+    return invocation
+
+
+def _require_outcome_record(
+    record: ControlPlaneOperationRecord,
+    occurrence: InjectOccurrenceModel,
+    invocation: InvocationLedger,
+    outcome: InjectOccurrenceOutcomeModel,
+) -> None:
+    InjectOccurrenceOutcomeModel.model_validate(outcome.model_dump(mode="json"))
+    validate_inject_occurrence_outcome(occurrence, invocation.request, outcome)
+    if outcome.response not in invocation.responses:
+        raise ValueError("inject outcome requires retained backend evidence")
+    expected = getattr(outcome.response.message, "proposed_state", OperationState.FAILED)
+    if record.status.state is not expected:
+        raise ValueError("inject outcome disagrees with terminal operation state")
+    evidence = record.inject_evidence
+    if evidence is None:
+        raise ValueError("inject outcome requires its durable artifact evidence")
+    InjectExecutionEvidence.model_validate(evidence.model_dump(mode="json"))
+    _require_evidence_parent(evidence, occurrence)
+    _require_evidence_references(evidence, outcome)
+
+
+def _require_evidence_parent(evidence: InjectExecutionEvidence, occurrence: InjectOccurrenceModel) -> None:
+    parent = evidence.manifest.parent_ref
+    if (
+        evidence.manifest.scope != "scenario"
+        or parent.ref_kind != "scenario"
+        or parent.ref_id != occurrence.scenario.artifact_id
+    ):
+        raise ValueError("inject artifact parent does not match the admitted occurrence scenario")
+
+
+def _require_evidence_references(evidence: InjectExecutionEvidence, outcome: InjectOccurrenceOutcomeModel) -> None:
+    reference = OperationArtifactReferenceModel(
+        contract_id="associated-artifact-manifest-v1",
+        artifact_id=evidence.manifest.manifest_id,
+        digest=canonical_json_digest(evidence.manifest.model_dump(mode="json")),
+    )
+    message_effects = getattr(outcome.response.message, "effects", None)
+    produced = [] if message_effects is None else [*message_effects.evidence_refs]
+    result_reference = getattr(outcome.response.message, "result", None)
+    if result_reference is not None:
+        produced.append(result_reference)
+    for item in outcome.bindings:
+        produced.extend(item.effects.evidence_refs)
+        if item.readback is not None:
+            produced.append(item.readback)
+    if not produced or any(item != reference for item in produced):
+        raise ValueError("inject readback must resolve to its independently validated durable evidence")
 
 
 def require_inject_transition(prior: ControlPlaneOperationRecord, replacement: ControlPlaneOperationRecord) -> None:

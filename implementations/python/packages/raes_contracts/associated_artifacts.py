@@ -375,7 +375,9 @@ def validate_associated_artifact_payloads(
     return (*_set_digest_diagnostics(manifest), *_payload_bindings_diagnostics(manifest, artifact_readers))
 
 
-def _payload_bindings_diagnostics(manifest, artifact_readers) -> tuple[Diagnostic, ...]:
+def _payload_bindings_diagnostics(
+    manifest: AssociatedArtifactManifestModel, artifact_readers: Mapping[str, BinaryIO]
+) -> tuple[Diagnostic, ...]:
     diagnostics = []
     manifest_ids = set(manifest.artifacts)
     supplied_ids = set(artifact_readers)

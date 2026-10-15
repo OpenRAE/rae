@@ -404,3 +404,5 @@ policy choices, recovery and composition limits.
 - TESTS → TEST `implementations/python/tests/test_release_workflows.py` (Mandatory PR and exact-SHA release container gates)
 - DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-5d274941b97b738f9f2b70d0efd0269f131e26694e1712bf4c807b96d5101b71/manifest.json` (Fresh bounded source-bound witness; retained research claim limits)
 - DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-a566be978d1c4991f1cba201477c741e49ef98cca9bb6298de1509873538c337/manifest.json` (Fresh bounded source-bound witness; retained research claim limits)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-89feff1317c49aebbc096e7f8cb0a4e2235ea10ae386d15f47e33851b28a742e/manifest.json` (Fresh bounded witness after inject contract refactoring; retained research claim limits)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-7f7166d1912b9a05d105277585776c5e773b17446e0cd8b582a33c079d016eb7/manifest.json` (Fresh bounded witness after inject contract refactoring; retained research claim limits)

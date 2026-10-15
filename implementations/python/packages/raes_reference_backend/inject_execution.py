@@ -2,20 +2,25 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from copy import deepcopy
 from datetime import UTC, datetime
 from threading import Lock
 from time import monotonic
 
+from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_protocols.inject_execution import InjectAdmission, ResolvedInjectOutcome
 from raes_backend_protocols.manifest import backend_manifest_payload
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
     BackendOperationCapabilitiesModel,
+    BackendOperationControlModel,
     BackendOperationOutcomeModel,
+    BackendOperationRequestModel,
     BackendOperationResponseModel,
     InjectOccurrenceModel,
     InjectOccurrenceOutcomeModel,
+    InjectTriggerRequestModel,
     OperationArtifactReferenceModel,
     backend_operation_control_digest,
     backend_operation_request_digest,
@@ -25,12 +30,15 @@ from raes_contracts.contracts import (
     inject_trigger_request_digest,
     require_inject_occurrence_invocation,
 )
+from raes_contracts.contracts.backend_operation_response import BackendOperationMessage
 from raes_contracts.plan_projection import runtime_plan_digest
+from raes_contracts.runtime_state import OperationAdmissionContext, RuntimeSnapshot
 
+from .drivers.oci import OciDeploymentDriver
 from .drivers.oci_inject import OciInjectDriver
-from .drivers.oci_process import run_bounded_process
-from .inject_bindings import OciInjectProgram
-from .inject_evidence import evidence_requirement, read_world_effect
+from .drivers.oci_process import NativeProcessRunner, run_bounded_process
+from .inject_bindings import OciInjectPermit, OciInjectProbe, OciInjectProgram
+from .inject_evidence import OciInjectReadback, evidence_requirement, read_world_effect
 
 
 class ReferenceOciInjectExecutor:
@@ -42,7 +50,13 @@ class ReferenceOciInjectExecutor:
     this realization. Retained native containers support observation after loss.
     """
 
-    def __init__(self, deployment, *, programs: tuple[OciInjectProgram, ...], runner=run_bounded_process):
+    def __init__(
+        self,
+        deployment: OciDeploymentDriver,
+        *,
+        programs: tuple[OciInjectProgram, ...],
+        runner: NativeProcessRunner = run_bounded_process,
+    ) -> None:
         if not 1 <= len(programs) <= 32 or any(not isinstance(item, OciInjectProgram) for item in programs):
             raise ValueError("OCI inject execution requires bounded admitted programs")
         self.deployment, self.native = deployment, OciInjectDriver(deployment, runner=runner)
@@ -53,7 +67,7 @@ class ReferenceOciInjectExecutor:
         self._sequences, self._lock = {}, Lock()
         self._deadlines = {}
 
-    def bind_manifest(self, manifest):
+    def bind_manifest(self, manifest: BackendManifest) -> None:
         reference = OperationArtifactReferenceModel(
             contract_id="backend-manifest-v2",
             artifact_id=manifest.name,
@@ -63,12 +77,12 @@ class ReferenceOciInjectExecutor:
             raise ValueError("OCI inject realization pins cannot change")
         self._realization = reference
 
-    def bind_record_reader(self, reader):
+    def bind_record_reader(self, reader: Callable[[str], object | None]) -> None:
         if not callable(reader) or self._reader is not None:
             raise ValueError("OCI inject execution requires one protected operation reader")
         self._reader = reader
 
-    def _program(self, request):
+    def _program(self, request: InjectTriggerRequestModel) -> tuple[OciInjectProgram, OciInjectPermit]:
         matches = [
             (program, permit)
             for program in self._programs
@@ -79,7 +93,13 @@ class ReferenceOciInjectExecutor:
             raise ValueError("OCI inject request has no unique trusted ordering permit")
         return matches[0]
 
-    def _require_program(self, program, request):
+    def _require_program(self, program: OciInjectProgram, request: InjectTriggerRequestModel) -> list[OciInjectProbe]:
+        self._require_supported_request(program, request)
+        self._require_authored_source(program, request)
+        self._require_placement(program, request)
+        return self._selected_probes(program, request)
+
+    def _require_supported_request(self, program: OciInjectProgram, request: InjectTriggerRequestModel) -> None:
         if (
             self._reader is None
             or self._realization is None
@@ -88,6 +108,9 @@ class ReferenceOciInjectExecutor:
             or request.placement.kind == "schedule"
         ):
             raise ValueError("OCI inject realization or input/time contract is unsupported")
+
+    @staticmethod
+    def _require_authored_source(program: OciInjectProgram, request: InjectTriggerRequestModel) -> None:
         operations = {item.address: item for item in program.plan.operations}
         inject = operations.get(request.inject)
         spec = {} if inject is None else inject.payload.get("spec", {})
@@ -101,6 +124,9 @@ class ReferenceOciInjectExecutor:
             or spec.get("environment")
         ):
             raise ValueError("OCI inject authored source requires its exact supported artifact association")
+
+    @staticmethod
+    def _require_placement(program: OciInjectProgram, request: InjectTriggerRequestModel) -> None:
         events = [
             op
             for op in program.plan.operations
@@ -112,6 +138,9 @@ class ReferenceOciInjectExecutor:
             raise ValueError("OCI inject assertion evidence is unsupported")
         if request.placement.kind == "event" and request.placement.event not in {op.address for op in events}:
             raise ValueError("OCI inject event does not contain the selected inject")
+
+    @staticmethod
+    def _selected_probes(program: OciInjectProgram, request: InjectTriggerRequestModel) -> list[OciInjectProbe]:
         selected = {(probe.binding.binding, probe.binding.instance): probe for probe in program.probes}
         if any(
             selected.get((item.binding, item.instance)) is None
@@ -121,14 +150,21 @@ class ReferenceOciInjectExecutor:
             raise ValueError("OCI inject target instance or revision is not admitted")
         return [selected[(item.binding, item.instance)] for item in request.bindings]
 
-    def _live(self, program, request, *, deadline):
+    def _live(self, program: OciInjectProgram, request: InjectTriggerRequestModel, *, deadline: float) -> None:
         probes = self._require_program(program, request)
         self.native.image(program.source, deadline=deadline)
         for probe in probes:
             if self.native.read_probe(probe, deadline=deadline) != probe.before:
                 raise ValueError("OCI inject world predecessor does not match its admitted readback")
 
-    def admit(self, request, context, operation_id, revision, snapshot):
+    def admit(
+        self,
+        request: InjectTriggerRequestModel,
+        context: OperationAdmissionContext,
+        operation_id: str,
+        revision: int,
+        _snapshot: RuntimeSnapshot,
+    ) -> InjectAdmission:
         program, permit = self._program(request)
         self._live(program, request, deadline=monotonic() + 2)
         claim = InjectOccurrenceModel(
@@ -148,7 +184,7 @@ class ReferenceOciInjectExecutor:
         self._candidates[operation_id] = claim
         return InjectAdmission(program.plan, claim)
 
-    def revalidate(self, occurrence, snapshot):
+    def revalidate(self, occurrence: InjectOccurrenceModel, _snapshot: RuntimeSnapshot) -> None:
         program, _ = self._program(occurrence.request)
         if (
             occurrence.source != program.source_reference
@@ -158,7 +194,7 @@ class ReferenceOciInjectExecutor:
             raise ValueError("OCI inject immutable realization pins do not resolve")
         self._live(program, occurrence.request, deadline=monotonic() + 2)
 
-    def operation_capabilities(self):
+    def operation_capabilities(self) -> BackendOperationCapabilitiesModel:
         return BackendOperationCapabilitiesModel(
             backend_id="reference-emulation",
             revision=self._realization.digest,
@@ -166,19 +202,16 @@ class ReferenceOciInjectExecutor:
             guarantees=("effect-observation", "cessation-evidence"),
         )
 
-    def _claim(self, request, *, dispatch=False):
+    def _claim(
+        self, request: BackendOperationRequestModel, *, dispatch: bool = False
+    ) -> tuple[InjectOccurrenceModel, OciInjectProgram]:
         record = None if self._reader is None else self._reader(request.binding.operation_id)
         claim = self._candidates.get(request.binding.operation_id) if record is None else record.inject_occurrence
         if claim is None or (record is not None and record.invocation.request != request):
             raise ValueError("OCI inject occurrence command does not resolve")
         require_inject_occurrence_invocation(claim, request)
-        if dispatch and (
-            record is None
-            or record.status.state.value != "running"
-            or not record.invocation.consumed
-            or not record.invocation.reserved
-        ):
-            raise ValueError("OCI inject invocation has no retained running permission")
+        if dispatch:
+            self._require_running_record(record)
         program, _ = self._program(claim.request)
         if (
             claim.source != program.source_reference
@@ -188,7 +221,19 @@ class ReferenceOciInjectExecutor:
             raise ValueError("OCI inject historical pins no longer resolve")
         return claim, program
 
-    def _report(self, request, message):
+    @staticmethod
+    def _require_running_record(record: object | None) -> None:
+        if (
+            record is None
+            or record.status.state.value != "running"
+            or not record.invocation.consumed
+            or not record.invocation.reserved
+        ):
+            raise ValueError("OCI inject invocation has no retained running permission")
+
+    def _report(
+        self, request: BackendOperationRequestModel, message: BackendOperationMessage | dict[str, object]
+    ) -> BackendOperationResponseModel:
         record = None if self._reader is None else self._reader(request.binding.operation_id)
         previous = [] if record is None else record.invocation.responses
         with self._lock:
@@ -207,7 +252,7 @@ class ReferenceOciInjectExecutor:
             message=message,
         )
 
-    def check_operation(self, request):
+    def check_operation(self, request: BackendOperationRequestModel) -> BackendOperationResponseModel:
         disposition, reason = "willing", None
         try:
             claim, program = self._claim(request)
@@ -231,7 +276,7 @@ class ReferenceOciInjectExecutor:
             },
         )
 
-    def start_operation(self, request):
+    def start_operation(self, request: BackendOperationRequestModel) -> BackendOperationResponseModel:
         claim, program = self._claim(request, dispatch=True)
         deadline = self._deadlines.get(request.binding.operation_id)
         if deadline is None or deadline <= monotonic():
@@ -240,12 +285,14 @@ class ReferenceOciInjectExecutor:
             self.native.start(request, probe, program.source, deadline=deadline)
         return self._report(request, {"kind": "acknowledgement", "disposition": "accepted"})
 
-    def _read(self, request, *, deadline):
+    def _read(
+        self, request: BackendOperationRequestModel, *, deadline: float
+    ) -> tuple[InjectOccurrenceModel, OciInjectReadback]:
         claim, program = self._claim(request)
         return claim, read_world_effect(self.native, program, claim, request, deadline=deadline)
 
     @staticmethod
-    def _outcome(readback):
+    def _outcome(readback: OciInjectReadback) -> BackendOperationOutcomeModel:
         return BackendOperationOutcomeModel(
             kind="outcome",
             proposed_state=readback.state,
@@ -258,7 +305,7 @@ class ReferenceOciInjectExecutor:
             result=readback.result,
         )
 
-    def _request_for_control(self, control):
+    def _request_for_control(self, control: BackendOperationControlModel) -> BackendOperationRequestModel:
         record = self._reader(control.binding.operation_id)
         if record is None or record.invocation is None or record.invocation.request.binding != control.binding:
             raise ValueError("OCI inject control has no exact retained invocation")
@@ -267,14 +314,14 @@ class ReferenceOciInjectExecutor:
             raise ValueError("OCI inject control commitment mismatch")
         return request
 
-    def observe_operation(self, control):
+    def observe_operation(self, control: BackendOperationControlModel) -> BackendOperationResponseModel:
         request = self._request_for_control(control)
         _, readback = self._read(request, deadline=monotonic() + control.budget.remaining_ms / 1000)
         if readback.state == "running":
             return self._report(request, {"kind": "progress", "phase": "executing"})
         return self._report(request, self._outcome(readback))
 
-    def cancel_operation(self, control):
+    def cancel_operation(self, control: BackendOperationControlModel) -> BackendOperationResponseModel:
         return self._report(
             self._request_for_control(control),
             {
@@ -285,7 +332,7 @@ class ReferenceOciInjectExecutor:
             },
         )
 
-    def reconcile_operation(self, control):
+    def reconcile_operation(self, control: BackendOperationControlModel) -> BackendOperationResponseModel:
         request = self._request_for_control(control)
         _, readback = self._read(request, deadline=monotonic() + control.budget.remaining_ms / 1000)
         return self._report(
@@ -298,13 +345,18 @@ class ReferenceOciInjectExecutor:
             },
         )
 
-    def validate_effects(self, request, response):
+    def validate_effects(self, request: BackendOperationRequestModel, response: BackendOperationResponseModel) -> bool:
         _, readback = self._read(request, deadline=monotonic() + 2)
         if response.message.kind == "reconciliation":
             return response.message.effects == readback.effects
         return readback.state != "running" and response.message == self._outcome(readback)
 
-    def resolve_outcome(self, occurrence, request, response):
+    def resolve_outcome(
+        self,
+        occurrence: InjectOccurrenceModel,
+        request: BackendOperationRequestModel,
+        response: BackendOperationResponseModel,
+    ) -> ResolvedInjectOutcome:
         claim, readback = self._read(request, deadline=monotonic() + 2)
         if claim != occurrence or readback.state == "running" or response.message != self._outcome(readback):
             raise ValueError("OCI inject produced artifact or readback changed during validation")
@@ -316,5 +368,8 @@ class ReferenceOciInjectExecutor:
         )
         return ResolvedInjectOutcome(outcome, readback.evidence)
 
-    def resolve_result(self, request, response, predecessor):
+    @staticmethod
+    def resolve_result(
+        _request: BackendOperationRequestModel, _response: BackendOperationResponseModel, _predecessor: RuntimeSnapshot
+    ) -> RuntimeSnapshot:
         raise ValueError("OCI inject provider resolves artifact outcomes, not native plan snapshots")

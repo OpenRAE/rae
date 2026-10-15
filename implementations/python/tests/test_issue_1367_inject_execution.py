@@ -98,8 +98,9 @@ def test_persisted_outcome_models_are_contextually_revalidated_before_use(tmp_pa
     try:
         receipt = plane.submit_inject(request)
         record = plane._store.load_records()[receipt.operation_id]
+        copied_model_1 = record.inject_outcome.model_copy(update={"effect": "effect-absent"})
         with pytest.raises(ValueError):
-            replace(record, inject_outcome=record.inject_outcome.model_copy(update={"effect": "effect-absent"}))
+            replace(record, inject_outcome=copied_model_1)
         with pytest.raises(ValueError):
             replace(record, inject_outcome=None)
     finally:
@@ -166,7 +167,8 @@ def test_provider_refusal_before_or_after_claim_never_dispatches(tmp_path, after
     backend.check_operation = admission
     try:
         receipt = plane.submit_inject(request)
-        assert backend.starts == 0 and not backend.path.exists()
+        assert backend.starts == 0
+        assert not backend.path.exists()
         assert receipt.accepted is after_claim
         if after_claim:
             assert plane.get_operation(receipt.operation_id).state is OperationState.CANCELLED
@@ -186,7 +188,8 @@ def test_selected_binding_must_resolve_in_the_exact_pinned_plan(tmp_path):
     try:
         receipt = plane.submit_inject(request.model_copy(update={"bindings": (binding,)}))
         assert not receipt.accepted
-        assert plane._store.load_records() == {} and backend.starts == 0
+        assert plane._store.load_records() == {}
+        assert backend.starts == 0
     finally:
         plane.close()
 
@@ -207,5 +210,26 @@ def test_artifact_only_inject_cannot_omit_native_augmentation_obligations(tmp_pa
     try:
         assert not plane.submit_inject(changed).accepted
         assert backend.starts == 0
+    finally:
+        plane.close()
+
+
+def test_settlement_checks_state_authority_before_evaluating_diagnostics(tmp_path):
+    from raes_runtime.control_plane_supervised_execution import settle
+
+    plane, _, request = configured_plane(tmp_path)
+    evaluated = []
+
+    def diagnostics():
+        evaluated.append(True)
+        yield from ()
+
+    try:
+        receipt = plane.submit_inject(request)
+        record = plane._store.load_records()[receipt.operation_id]
+        pending = diagnostics()
+        with pytest.raises(RuntimeError):
+            settle(plane, record, OperationState.FAILED, diagnostics=pending)
+        assert not evaluated
     finally:
         plane.close()

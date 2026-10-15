@@ -112,10 +112,9 @@ def reference_program(native, *, image=IMAGE, image_digest=CONFIG_DIGEST):
 def test_program_scenario_pin_must_resolve_to_the_admitted_instantiated_content():
     native, _ = configured()
     program, _, _ = reference_program(native)
+    copied_model_1 = program.scenario_reference.model_copy(update={"digest": "sha256:" + "0" * 64})
     with pytest.raises(ValueError, match="scenario"):
-        replace(
-            program, scenario_reference=program.scenario_reference.model_copy(update={"digest": "sha256:" + "0" * 64})
-        )
+        replace(program, scenario_reference=copied_model_1)
 
 
 def test_configured_provider_executes_the_authored_image_and_validates_world_artifact():
@@ -217,7 +216,8 @@ def test_crash_after_world_effect_before_terminal_commit_reopens_without_redispa
         assert daemon.probe == b"after"
         parent = next(iter(plane._store.load_records().values()))
         assert parent.status.state is OperationState.RUNNING
-        assert parent.invocation.consumed and parent.invocation.reserved
+        assert parent.invocation.consumed
+        assert parent.invocation.reserved
     finally:
         plane.close()
     with reopen() as recovered:

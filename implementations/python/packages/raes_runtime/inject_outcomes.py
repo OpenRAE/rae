@@ -1,24 +1,39 @@
 """Bounded typed artifact-outcome admission, without fabricating a native snapshot."""
 
+from __future__ import annotations
+
+from collections.abc import Callable
 from time import monotonic
+from typing import TYPE_CHECKING
 
 from raes_backend_protocols.inject_execution import InjectExecutionEvidence, ResolvedInjectOutcome
 from raes_contracts.contracts import (
+    BackendOperationResponseModel,
     InjectOccurrenceOutcomeModel,
     inject_occurrence_outcome_digest,
     validate_inject_occurrence_outcome,
 )
 from raes_contracts.runtime_state import OperationState
 
+from .control_plane_store import ControlPlaneOperationRecord
 
-def settle_inject_outcome(plane, record, response, remaining):
-    from .control_plane_supervised_execution import settle
+if TYPE_CHECKING:
+    from .control_plane import RuntimeControlPlane
+
+
+def settle_inject_outcome(
+    plane: RuntimeControlPlane,
+    record: ControlPlaneOperationRecord,
+    response: BackendOperationResponseModel,
+    remaining: Callable[[], int],
+) -> None:
+    from .control_plane_supervised_execution import OperationSettlement, commit_settlement
 
     resolver = plane._operation_evidence
     observation_deadline = monotonic() + plane._supervision.observation_ms / 1000
     execution_remaining = remaining
 
-    def remaining():
+    def remaining() -> int:
         budget = min(execution_remaining(), int((observation_deadline - monotonic()) * 1000))
         if budget <= 0:
             raise TimeoutError("inject evidence observation budget exhausted")
@@ -62,11 +77,12 @@ def settle_inject_outcome(plane, record, response, remaining):
         if response.message.proposed_state is OperationState.INDETERMINATE
         else inject_occurrence_outcome_digest(outcome)
     )
-    settle(
+    commit_settlement(
         plane,
         record,
-        response.message.proposed_state,
-        release_commitment=release,
-        inject_outcome=outcome,
-        inject_evidence=evidence,
+        OperationSettlement(
+            state=response.message.proposed_state,
+            release_commitment=release,
+            inject_resolution=ResolvedInjectOutcome(outcome, evidence),
+        ),
     )

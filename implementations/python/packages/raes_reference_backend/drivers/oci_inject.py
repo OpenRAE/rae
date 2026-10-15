@@ -11,13 +11,17 @@ from pathlib import PurePosixPath
 
 from raes_backend_protocols.naming import provider_resource_name
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts import InjectTargetBindingModel, backend_operation_request_digest
+from raes_contracts.contracts import (
+    BackendOperationRequestModel,
+    InjectTargetBindingModel,
+    backend_operation_request_digest,
+)
 from raes_contracts.json_ingress import parse_bounded_json_object
 
-from ..inject_bindings import OciInjectSourceModel
+from ..inject_bindings import OciInjectProbe, OciInjectSourceModel
 from .oci import OciDeploymentDriver
 from .oci_observation import ownership_fields_match
-from .oci_process import run_bounded_process
+from .oci_process import NativeProcessRunner, run_bounded_process
 
 _TARGET_FORMAT = (
     '{"id":{{json .Id}},"workspace":{{json (index .Config.Labels "raes.workspace")}},'
@@ -69,7 +73,7 @@ def read_probe_archive(content: bytes, path: str, limit: int) -> bytes:
 
 
 class OciInjectDriver:
-    def __init__(self, deployment: OciDeploymentDriver, *, runner=run_bounded_process):
+    def __init__(self, deployment: OciDeploymentDriver, *, runner: NativeProcessRunner = run_bounded_process) -> None:
         if not isinstance(deployment, OciDeploymentDriver):
             raise TypeError("OCI inject execution requires the admitted OCI deployment driver")
         executable = shutil.which(deployment._runtime)
@@ -77,10 +81,10 @@ class OciInjectDriver:
             raise ValueError("OCI inject runtime is unavailable")
         self.deployment, self._runner, self._executable = deployment, runner, executable
 
-    def call(self, arguments, *, deadline, max_output_bytes=4096):
+    def call(self, arguments: list[str], *, deadline: float, max_output_bytes: int = 4096) -> bytes:
         return self._runner([self._executable, *arguments], deadline=deadline, max_output_bytes=max_output_bytes)
 
-    def _target(self, node, *, deadline):
+    def _target(self, node: str, *, deadline: float) -> str:
         name = self.deployment._name_for(node)
         content = self.call(["inspect", "--format", _TARGET_FORMAT, "--", name], deadline=deadline)
         data = parse_bounded_json_object(content, max_bytes=4096, max_depth=4)
@@ -97,7 +101,7 @@ class OciInjectDriver:
             raise ValueError("OCI inject target ownership is unavailable")
         return fields[0]
 
-    def binding(self, binding, node, *, deadline):
+    def binding(self, binding: str, node: str, *, deadline: float) -> InjectTargetBindingModel:
         native_id = self._target(node, deadline=deadline)
         return InjectTargetBindingModel(
             binding=binding,
@@ -106,7 +110,7 @@ class OciInjectDriver:
             revision=canonical_json_digest({"domain": "raes.oci-inject-target/v1", "native_id": native_id}),
         )
 
-    def require_target(self, binding, *, deadline):
+    def require_target(self, binding: InjectTargetBindingModel, *, deadline: float) -> str:
         native_id = self._target(binding.node, deadline=deadline)
         expected_instance = provider_resource_name(
             binding.node, prefix="instance", namespace=self.deployment._workspace
@@ -116,7 +120,7 @@ class OciInjectDriver:
             raise ValueError("OCI inject target instance or revision is stale")
         return native_id
 
-    def image(self, source: OciInjectSourceModel, *, deadline):
+    def image(self, source: OciInjectSourceModel, *, deadline: float) -> str:
         if not self.deployment._image_policy.permits(source.image):
             raise ValueError("OCI inject source does not satisfy image trust policy")
         content = self.call(["image", "inspect", "--format", _IMAGE_FORMAT, "--", source.image], deadline=deadline)
@@ -129,7 +133,7 @@ class OciInjectDriver:
             raise ValueError("OCI inject image content or volume contract is unsupported")
         return source.image_config_digest
 
-    def read_probe(self, probe, *, deadline):
+    def read_probe(self, probe: OciInjectProbe, *, deadline: float) -> bytes:
         native_id = self.require_target(probe.binding, deadline=deadline)
         content = self.call(
             ["cp", "--", f"{native_id}:{probe.path}", "-"], deadline=deadline, max_output_bytes=128 * 1024
@@ -140,7 +144,7 @@ class OciInjectDriver:
         return result
 
     @staticmethod
-    def effect_name(request, binding):
+    def effect_name(request: BackendOperationRequestModel, binding: InjectTargetBindingModel) -> str:
         return provider_resource_name(
             binding.binding,
             prefix="raes-inject",
@@ -152,7 +156,14 @@ class OciInjectDriver:
             ),
         )
 
-    def start(self, request, probe, source, *, deadline):
+    def start(
+        self,
+        request: BackendOperationRequestModel,
+        probe: OciInjectProbe,
+        source: OciInjectSourceModel,
+        *,
+        deadline: float,
+    ) -> None:
         target = self.require_target(probe.binding, deadline=deadline)
         image = self.image(source, deadline=deadline)
         name = self.effect_name(request, probe.binding)
@@ -190,14 +201,22 @@ class OciInjectDriver:
                 "--log-driver",
                 "none",
                 "--tmpfs",
-                "/tmp:rw,nosuid,nodev,noexec,size=16m",  # noqa: S108 -- private container tmpfs, never a host path.
+                # Private container tmpfs, never a host path.
+                "/tmp:rw,nosuid,nodev,noexec,size=16m",  # noqa: S108
                 image,
             ],
             deadline=deadline,
         )
         self.call(["start", "--", name], deadline=deadline)
 
-    def _effect(self, request, probe, source, *, deadline):
+    def _effect(
+        self,
+        request: BackendOperationRequestModel,
+        probe: OciInjectProbe,
+        source: OciInjectSourceModel,
+        *,
+        deadline: float,
+    ) -> dict[str, object]:
         name = self.effect_name(request, probe.binding)
         content = self.call(["inspect", "--format", _EFFECT_FORMAT, "--", name], deadline=deadline)
         data = parse_bounded_json_object(content, max_bytes=4096, max_depth=4)
@@ -233,7 +252,14 @@ class OciInjectDriver:
             raise ValueError("OCI inject execution ownership is unavailable")
         return data
 
-    def observe(self, request, probe, source, *, deadline):
+    def observe(
+        self,
+        request: BackendOperationRequestModel,
+        probe: OciInjectProbe,
+        source: OciInjectSourceModel,
+        *,
+        deadline: float,
+    ) -> NativeInjectObservation:
         target = self.require_target(probe.binding, deadline=deadline)
         data = self._effect(request, probe, source, deadline=deadline)
         if data["network"] != "container:" + target:
@@ -248,6 +274,13 @@ class OciInjectDriver:
             readback = None
         return NativeInjectObservation(True, data["exit_code"], data["finished_at"], readback)
 
-    def remove(self, request, probe, source, *, deadline):
+    def remove(
+        self,
+        request: BackendOperationRequestModel,
+        probe: OciInjectProbe,
+        source: OciInjectSourceModel,
+        *,
+        deadline: float,
+    ) -> None:
         self._effect(request, probe, source, deadline=deadline)
         self.call(["rm", "--force", "--", self.effect_name(request, probe.binding)], deadline=deadline)

@@ -74,11 +74,11 @@ class ImageTrustPolicy:
     def permits(self, image: str) -> bool:
         if not is_image_reference(image):
             return False
-        if self.default_image is not None and image == self.default_image:
-            return True
-        if image in self.allowed_images:
-            return True
-        return self.allow_digest_pinned and _DIGEST_PINNED_REF.fullmatch(image) is not None
+        return (
+            (self.default_image is not None and image == self.default_image)
+            or image in self.allowed_images
+            or (self.allow_digest_pinned and _DIGEST_PINNED_REF.fullmatch(image) is not None)
+        )
 
 
 __all__ = ["ImageTrustPolicy", "is_image_reference"]

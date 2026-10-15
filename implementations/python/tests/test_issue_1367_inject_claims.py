@@ -89,15 +89,17 @@ def test_occurrence_identity_is_claimed_atomically_with_the_operation(store):
     first = claimed_record()
     assert store.claim_record(first) == first
     assert store.claim_record(first) == first
+    candidate_record_1 = claimed_record(key="another-key", operation_id="another-operation")
     with pytest.raises(ValueError, match="occurrence.*claimed"):
-        store.claim_record(claimed_record(key="another-key", operation_id="another-operation"))
+        store.claim_record(candidate_record_1)
     assert store.load_records() == {first.receipt.operation_id: first}
 
 
 def test_stale_snapshot_revision_or_order_head_cannot_claim_an_occurrence(store):
     for kwargs in ({"revision": "1"}, {"predecessor": "foreign-head"}, {"position": 2}):
+        candidate_record_9 = claimed_record(**kwargs)
         with pytest.raises(ValueError, match="inject.*(revision|head|position)"):
-            store.claim_record(claimed_record(**kwargs))
+            store.claim_record(candidate_record_9)
         assert store.load_records() == {}
 
 
@@ -134,18 +136,17 @@ def test_occurrence_pins_cannot_change_after_the_durable_claim(store):
     first = claimed_record()
     store.claim_record(first)
     forged = first.inject_occurrence.model_copy(update={"store_revision": "9"})
+    request = first.invocation.request.model_copy(update={"command": inject_occurrence_reference(forged)})
+    copied_model_2 = first.invocation.model_copy(update={"request": request})
+    replacement_3 = replace(first, inject_occurrence=forged, invocation=copied_model_2)
     with pytest.raises(ValueError, match="inject.*immutable"):
-        request = first.invocation.request.model_copy(update={"command": inject_occurrence_reference(forged)})
-        store.save_record(
-            replace(
-                first, inject_occurrence=forged, invocation=first.invocation.model_copy(update={"request": request})
-            )
-        )
+        store.save_record(replacement_3)
 
 
 def test_direct_record_creation_cannot_bypass_atomic_inject_claim_checks(store):
+    candidate_record_4 = claimed_record(revision="8")
     with pytest.raises(ValueError, match="inject.*revision"):
-        store.save_record(claimed_record(revision="8"))
+        store.save_record(candidate_record_4)
     assert store.load_records() == {}
 
 
@@ -189,17 +190,17 @@ def test_a_scheduled_slot_cannot_be_reclaimed_under_a_fresh_occurrence(store):
     store.commit_terminal_operation(
         store.load_snapshot(), replacement, expected_revision=0, mode=TerminalCommitMode.OPERATION_ONLY
     )
+    checked_value_5 = inject_order_head(first.inject_occurrence)
+    candidate_record_6 = claimed_record(
+        key="request-2",
+        occurrence_id="occurrence-2",
+        operation_id="operation-2",
+        position=2,
+        predecessor=checked_value_5,
+        placement=placement,
+    )
     with pytest.raises(ValueError, match="schedule slot.*claimed"):
-        store.claim_record(
-            claimed_record(
-                key="request-2",
-                occurrence_id="occurrence-2",
-                operation_id="operation-2",
-                position=2,
-                predecessor=inject_order_head(first.inject_occurrence),
-                placement=placement,
-            )
-        )
+        store.claim_record(candidate_record_6)
 
 
 def test_sqlite_reopen_retains_the_occurrence_and_retry_claim(tmp_path):
@@ -213,8 +214,9 @@ def test_sqlite_reopen_retains_the_occurrence_and_retry_claim(tmp_path):
                 store.claim_record(first)
             assert store.claim_record(first) == first
             assert store.load_records()[first.receipt.operation_id].inject_occurrence == first.inject_occurrence
+            candidate_record_10 = claimed_record(key="different-key", operation_id="different-operation")
             with pytest.raises(ValueError, match="occurrence.*claimed"):
-                store.claim_record(claimed_record(key="different-key", operation_id="different-operation"))
+                store.claim_record(candidate_record_10)
         finally:
             store.close()
             lease.close()
@@ -235,5 +237,7 @@ def test_postgresql_claim_checks_the_same_snapshot_cut_before_any_write():
         def _upsert_record(self, *args):
             raise AssertionError("a stale inject reached a PostgreSQL write")
 
+    ledger_7 = Ledger()
+    candidate_record_8 = claimed_record(revision="2")
     with pytest.raises(ValueError, match="inject.*revision"):
-        claim_record(Ledger(), None, claimed_record(revision="2"))
+        claim_record(ledger_7, None, candidate_record_8)

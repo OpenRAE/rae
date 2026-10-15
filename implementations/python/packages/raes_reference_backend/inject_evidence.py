@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Sequence
 from dataclasses import dataclass
 from io import BytesIO
 
@@ -16,13 +17,23 @@ from raes_contracts.canonical import canonical_json_bytes, canonical_json_digest
 from raes_contracts.contracts import (
     AssociatedArtifactManifestModel,
     BackendOperationEffectsModel,
+    BackendOperationRequestModel,
     InjectBindingOutcomeModel,
+    InjectOccurrenceModel,
+    InjectTargetBindingModel,
     OperationArtifactReferenceModel,
     backend_operation_request_digest,
 )
 
+from .drivers.oci_inject import OciInjectDriver
+from .inject_bindings import OciInjectProbe, OciInjectProgram
 
-def artifact_manifest(scenario, manifest_id, contents, created_at):
+_SHA256_PREFIX = "sha256:"
+
+
+def artifact_manifest(
+    scenario: object, manifest_id: str, contents: dict[str, bytes], created_at: str
+) -> AssociatedArtifactManifestModel:
     artifacts = {
         key: {
             "artifact_id": key,
@@ -45,7 +56,7 @@ def artifact_manifest(scenario, manifest_id, contents, created_at):
         scope="scenario",
         parent_ref={"ref_kind": "scenario", "ref_id": scenario.name},
         artifacts=artifacts,
-        set_digest="sha256:" + "0" * 64,
+        set_digest=_SHA256_PREFIX + "0" * 64,
     )
     manifest = manifest.model_copy(update={"set_digest": associated_artifact_set_digest(manifest)})
     diagnostics = validate_associated_artifact_manifest(
@@ -61,7 +72,7 @@ def artifact_manifest(scenario, manifest_id, contents, created_at):
     return manifest
 
 
-def manifest_reference(manifest):
+def manifest_reference(manifest: AssociatedArtifactManifestModel) -> OperationArtifactReferenceModel:
     return OperationArtifactReferenceModel(
         contract_id="associated-artifact-manifest-v1",
         artifact_id=manifest.manifest_id,
@@ -69,7 +80,7 @@ def manifest_reference(manifest):
     )
 
 
-def evidence_requirement(program):
+def evidence_requirement(program: OciInjectProgram) -> OperationArtifactReferenceModel:
     content = canonical_json_bytes(
         {
             "profile": "reference-oci-inject-readback/v1",
@@ -78,8 +89,8 @@ def evidence_requirement(program):
                 {
                     "binding": probe.binding.model_dump(mode="json"),
                     "target_path": probe.path,
-                    "before": "sha256:" + hashlib.sha256(probe.before).hexdigest(),
-                    "after": "sha256:" + hashlib.sha256(probe.after).hexdigest(),
+                    "before": _SHA256_PREFIX + hashlib.sha256(probe.before).hexdigest(),
+                    "after": _SHA256_PREFIX + hashlib.sha256(probe.after).hexdigest(),
                 }
                 for probe in program.probes
             ],
@@ -105,57 +116,115 @@ class OciInjectReadback:
     evidence: InjectExecutionEvidence
 
 
-def read_world_effect(native, program, occurrence, request, *, deadline):
+@dataclass(frozen=True)
+class _BindingFacts:
+    binding: InjectTargetBindingModel
+    ceased: bool
+    applied: bool
+    exit_code: int | None
+    finished_at: str
+    running: bool
+
+
+def _read_binding(
+    native: OciInjectDriver,
+    program: OciInjectProgram,
+    request: BackendOperationRequestModel,
+    probe: OciInjectProbe,
+    deadline: float,
+    binding: InjectTargetBindingModel,
+) -> _BindingFacts:
+    try:
+        fact = native.observe(request, probe, program.source, deadline=deadline)
+    except ValueError:
+        fact = None
+    ceased = fact is not None and fact.ceased
+    applied = ceased and fact.readback == probe.after
+    exit_code = None if fact is None else fact.exit_code
+    finished_at = request.budget.started_at if fact is None else fact.finished_at
+    return _BindingFacts(binding, ceased, applied, exit_code, finished_at, fact is not None and not ceased)
+
+
+def _binding_artifacts(
+    fact: _BindingFacts,
+    program: OciInjectProgram,
+    request: BackendOperationRequestModel,
+    probe: OciInjectProbe,
+    index: int,
+) -> dict[str, bytes]:
+    witness = {
+        "profile": "reference-oci-inject-readback/v1",
+        "request": backend_operation_request_digest(request),
+        "binding": fact.binding.model_dump(mode="json"),
+        "source": program.source_reference.model_dump(mode="json"),
+        "ceased": fact.ceased,
+        "expected_effect_read_back": fact.applied,
+        "exit_code": fact.exit_code,
+    }
+    contents = {f"binding-{index}-witness": canonical_json_bytes(witness)}
+    if fact.applied:
+        contents[f"binding-{index}-result"] = probe.after
+    return contents
+
+
+def _binding_outcome(fact: _BindingFacts, reference: OperationArtifactReferenceModel) -> InjectBindingOutcomeModel:
+    return InjectBindingOutcomeModel(
+        binding=fact.binding,
+        effects=BackendOperationEffectsModel(
+            effect="complete" if fact.applied else "unknown",
+            cessation_established=fact.ceased,
+            evidence_refs=(reference,),
+        ),
+        readback=reference if fact.applied else None,
+    )
+
+
+def _world_state(facts: Sequence[_BindingFacts], all_applied: bool, all_ceased: bool) -> str:
+    if all_applied and all_ceased:
+        return "succeeded" if all(item.exit_code == 0 for item in facts) else "failed"
+    if any(item.running for item in facts):
+        return "running"
+    return "indeterminate"
+
+
+def read_world_effect(
+    native: OciInjectDriver,
+    program: OciInjectProgram,
+    occurrence: InjectOccurrenceModel,
+    request: BackendOperationRequestModel,
+    *,
+    deadline: float,
+) -> OciInjectReadback:
     probes = {(probe.binding.binding, probe.binding.instance): probe for probe in program.probes}
-    facts, contents, times = [], {}, []
+    facts, contents = [], {}
     for index, binding in enumerate(occurrence.request.bindings):
         probe = probes[(binding.binding, binding.instance)]
-        try:
-            fact = native.observe(request, probe, program.source, deadline=deadline)
-        except ValueError:
-            fact = None
-        ceased = fact is not None and fact.ceased
-        applied = ceased and fact.readback == probe.after
-        exit_code = None if fact is None else fact.exit_code
-        finished_at = request.budget.started_at if fact is None else fact.finished_at
-        times.append(finished_at)
-        witness = {
-            "profile": "reference-oci-inject-readback/v1",
-            "request": backend_operation_request_digest(request),
-            "binding": binding.model_dump(mode="json"),
-            "source": program.source_reference.model_dump(mode="json"),
-            "ceased": ceased,
-            "expected_effect_read_back": applied,
-            "exit_code": exit_code,
-        }
-        contents[f"binding-{index}-witness"] = canonical_json_bytes(witness)
-        if applied:
-            contents[f"binding-{index}-result"] = probe.after
-        facts.append((binding, ceased, applied, exit_code, fact is not None and not ceased))
+        fact = _read_binding(native, program, request, probe, deadline, binding)
+        facts.append(fact)
+        contents.update(_binding_artifacts(fact, program, request, probe, index))
     manifest = artifact_manifest(
-        program.scenario, "inject-result-" + backend_operation_request_digest(request)[7:], contents, max(times)
+        program.scenario,
+        "inject-result-" + backend_operation_request_digest(request)[7:],
+        contents,
+        max(item.finished_at for item in facts),
     )
     reference = manifest_reference(manifest)
-    bindings = tuple(
-        InjectBindingOutcomeModel(
-            binding=binding,
-            effects=BackendOperationEffectsModel(
-                effect="complete" if applied else "unknown", cessation_established=ceased, evidence_refs=(reference,)
-            ),
-            readback=reference if applied else None,
-        )
-        for binding, ceased, applied, _, _ in facts
-    )
-    all_applied, all_ceased = all(item[2] for item in facts), all(item[1] for item in facts)
-    state = "indeterminate"
-    if all_applied and all_ceased:
-        state = "succeeded" if all(item[3] == 0 for item in facts) else "failed"
-    elif any(item[4] for item in facts):
-        state = "running"
+    bindings = tuple(_binding_outcome(fact, reference) for fact in facts)
+    all_applied, all_ceased = all(item.applied for item in facts), all(item.ceased for item in facts)
     effects = BackendOperationEffectsModel(
-        effect="complete" if all_applied else "unknown", cessation_established=all_ceased, evidence_refs=(reference,)
+        effect="complete" if all_applied else "unknown",
+        cessation_established=all_ceased,
+        evidence_refs=(reference,),
     )
     evidence = InjectExecutionEvidence(
-        manifest=manifest, contents=tuple({"artifact_id": key, "content": value} for key, value in contents.items())
+        manifest=manifest,
+        contents=tuple({"artifact_id": key, "content": value} for key, value in contents.items()),
     )
-    return OciInjectReadback(bindings, effects, reference if all_applied else None, state, manifest, evidence)
+    return OciInjectReadback(
+        bindings,
+        effects,
+        reference if all_applied else None,
+        _world_state(facts, all_applied, all_ceased),
+        manifest,
+        evidence,
+    )

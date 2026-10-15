@@ -378,6 +378,31 @@ def _start_local_provider(
     return record
 
 
+def _settle_provider_outcome(
+    plane: RuntimeControlPlane,
+    native_request: OperationExecutionRequest,
+    record: ControlPlaneOperationRecord,
+    predecessor: RuntimeSnapshot,
+    response: BackendOperationResponseModel,
+    remaining: Callable[[], int],
+) -> None:
+    if record.inject_occurrence is not None:
+        from .inject_outcomes import settle_inject_outcome
+
+        settle_inject_outcome(plane, record, response, remaining)
+        return
+    result, commitment, payload = validate_outcome(plane, record, response, native_request, predecessor)
+    settle(
+        plane,
+        record,
+        response.message.proposed_state,
+        result=result,
+        release_commitment=commitment,
+        diagnostics=() if result is None else result.diagnostics,
+        result_payload=payload,
+    )
+
+
 def _poll_provider_outcome(
     plane: RuntimeControlPlane,
     native_request: OperationExecutionRequest,
@@ -406,21 +431,7 @@ def _poll_provider_outcome(
         if control.control_id not in record.invocation.delivered_controls or response is None:
             raise ValueError("operation observation is unavailable")
         if response.message.kind == "outcome":
-            if record.inject_occurrence is not None:
-                from .inject_outcomes import settle_inject_outcome
-
-                settle_inject_outcome(plane, record, response, remaining)
-                return
-            result, commitment, payload = validate_outcome(plane, record, response, native_request, predecessor)
-            settle(
-                plane,
-                record,
-                response.message.proposed_state,
-                result=result,
-                release_commitment=commitment,
-                diagnostics=() if result is None else result.diagnostics,
-                result_payload=payload,
-            )
+            _settle_provider_outcome(plane, native_request, record, predecessor, response, remaining)
             return
         if response.message.kind in {"control", "reconciliation"}:
             raise ValueError("operation outcome could not be established")

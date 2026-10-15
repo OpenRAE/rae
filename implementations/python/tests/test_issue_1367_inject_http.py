@@ -53,7 +53,8 @@ def test_public_trigger_and_readback_are_actor_scoped_and_retry_does_not_refire(
             assert client.get(f"/operations/unknown/{suffix}", headers=bearer("other-token")).status_code == 404
         path = f"/operations/{operation_id}/inject-artifacts/world-result"
         artifact = client.get(path, headers=bearer())
-        assert artifact.status_code == 200 and artifact.content == backend.content
+        assert artifact.status_code == 200
+        assert artifact.content == backend.content
         assert artifact.headers["cache-control"] == "no-store"
         assert artifact.headers["x-content-type-options"] == "nosniff"
         assert client.get(path, headers=bearer("other-token")).status_code == 404

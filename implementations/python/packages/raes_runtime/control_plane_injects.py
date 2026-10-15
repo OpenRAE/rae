@@ -5,27 +5,33 @@ from __future__ import annotations
 from copy import deepcopy
 from uuid import uuid4
 
+from raes_backend_protocols.inject_execution import InjectAdmission
 from raes_backend_protocols.operation_supervision import require_inject_occurrence_provider
 from raes_contracts.contracts import (
+    AssociatedArtifactManifestModel,
+    InjectOccurrenceCorrelationModel,
     InjectOccurrenceModel,
+    InjectOccurrenceOutcomeModel,
     InjectTriggerRequestModel,
     inject_occurrence_correlation,
     require_inject_trigger_retry,
 )
 from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.runtime_state import OperationKind, RuntimeDomain
+from raes_contracts.runtime_state import OperationAdmissionContext, OperationKind, OperationReceipt, RuntimeDomain
 
 from .control_plane_execution import OperationExecutionRequest, execute_operation
 from .control_plane_lifecycle import runtime_owned, store_authoritative_state
 from .control_plane_mutation import control_plane_mutation, mutation_entry
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_security import ControlPlaneIdentity, ControlPlaneRole
+from .control_plane_store import ControlPlaneOperationRecord
 from .inject_execution import require_inject_plan
 
 
 def _authorize_trigger(plane: object, identity: object | None) -> None:
     if identity is None:
-        return  # P0/P1 trusted embedder boundary.
+        # P0/P1 trusted embedder boundary.
+        return
     if (
         not isinstance(identity, ControlPlaneIdentity)
         or identity.target_name != plane._target.name
@@ -47,7 +53,7 @@ class RuntimeInjectMixin:
     @runtime_owned
     @mutation_entry(OperationKind.ORCHESTRATION)
     @store_authoritative_state
-    def submit_inject(self, request: InjectTriggerRequestModel, *, identity: object | None = None):
+    def submit_inject(self, request: InjectTriggerRequestModel, *, identity: object | None = None) -> OperationReceipt:
         self._assert_runtime_owner()
         _authorize_trigger(self, identity)
         if not isinstance(request, InjectTriggerRequestModel):
@@ -56,7 +62,9 @@ class RuntimeInjectMixin:
         with control_plane_mutation(self, OperationKind.ORCHESTRATION):
             return self._submit_inject(request, identity=identity)
 
-    def _submit_inject(self, request, *, identity):
+    def _submit_inject(
+        self, request: InjectTriggerRequestModel, *, identity: ControlPlaneIdentity | None
+    ) -> OperationReceipt:
         context = operation_admission_context(
             self, kind=OperationKind.ORCHESTRATION, request=request, identity=identity
         )
@@ -69,40 +77,12 @@ class RuntimeInjectMixin:
             require_inject_trigger_retry(incumbent.inject_occurrence, request, actor_id=context.actor_id)
             return incumbent.receipt
         try:
-            if (
-                self._inject_execution is None
-                or self._distributed_execution is not None
-                or self._target.orchestrator is None
-            ):
-                raise ValueError("inject execution is unavailable in this composition")
-            require_inject_occurrence_provider(
-                self._target.operation_provider, self._target.manifest.supported_contract_versions
-            )
-            operation_id, revision = str(uuid4()), self._snapshot_state.revision
-            with self._mutation_authority.external_call():
-                admission = self._execution_adapter.call(
-                    "effect",
-                    self._inject_execution.admit,
-                    request,
-                    context,
-                    operation_id,
-                    revision,
-                    deepcopy(self._snapshot),
-                    timeout_ms=self._supervision.admission_ms,
-                )
-            require_inject_plan(self, admission)
-            occurrence = InjectOccurrenceModel.model_validate(admission.occurrence.model_dump(mode="json"))
-            if (
-                occurrence.request != request
-                or occurrence.admission != context
-                or occurrence.operation_id != operation_id
-                or occurrence.store_revision != str(revision)
-            ):
-                raise ValueError("inject resolver changed the requested admission")
+            admission = self._admit_inject(request, context)
         except Exception:
             return self._reject_diagnostics(
                 domain=RuntimeDomain.ORCHESTRATION, context=context, diagnostics=[_inject_diagnostic()]
             )
+        occurrence = admission.occurrence
         execution = OperationExecutionRequest(
             domain=RuntimeDomain.ORCHESTRATION,
             method=self._target.orchestrator.start,
@@ -118,7 +98,40 @@ class RuntimeInjectMixin:
         )
         return execute_operation(self, execution)
 
-    def _inject_live_diagnostics(self, occurrence):
+    def _admit_inject(self, request: InjectTriggerRequestModel, context: OperationAdmissionContext) -> InjectAdmission:
+        if (
+            self._inject_execution is None
+            or self._distributed_execution is not None
+            or self._target.orchestrator is None
+        ):
+            raise ValueError("inject execution is unavailable in this composition")
+        require_inject_occurrence_provider(
+            self._target.operation_provider, self._target.manifest.supported_contract_versions
+        )
+        operation_id, revision = str(uuid4()), self._snapshot_state.revision
+        with self._mutation_authority.external_call():
+            admission = self._execution_adapter.call(
+                "effect",
+                self._inject_execution.admit,
+                request,
+                context,
+                operation_id,
+                revision,
+                deepcopy(self._snapshot),
+                timeout_ms=self._supervision.admission_ms,
+            )
+        require_inject_plan(self, admission)
+        occurrence = InjectOccurrenceModel.model_validate(admission.occurrence.model_dump(mode="json"))
+        if (
+            occurrence.request != request
+            or occurrence.admission != context
+            or occurrence.operation_id != operation_id
+            or occurrence.store_revision != str(revision)
+        ):
+            raise ValueError("inject resolver changed the requested admission")
+        return InjectAdmission(admission.plan, occurrence)
+
+    def _inject_live_diagnostics(self, occurrence: InjectOccurrenceModel) -> list[Diagnostic]:
         try:
             with self._mutation_authority.external_call():
                 self._execution_adapter.call(
@@ -132,35 +145,47 @@ class RuntimeInjectMixin:
             return [_inject_diagnostic()]
         return []
 
-    def _read_inject_record(self, operation_id, identity):
+    def _read_inject_record(
+        self, operation_id: str, identity: ControlPlaneIdentity | None
+    ) -> ControlPlaneOperationRecord | None:
         self._assert_runtime_owner()
         record = self._store.load_records().get(operation_id)
         return record if record is not None and self._operation_read_allowed(record, identity) else None
 
     @runtime_owned
-    def get_inject_occurrence(self, operation_id: str, *, identity: object | None = None):
+    def get_inject_occurrence(
+        self, operation_id: str, *, identity: object | None = None
+    ) -> InjectOccurrenceModel | None:
         record = self._read_inject_record(operation_id, identity)
         return None if record is None else record.inject_occurrence
 
     @runtime_owned
-    def get_inject_outcome(self, operation_id: str, *, identity: object | None = None):
+    def get_inject_outcome(
+        self, operation_id: str, *, identity: object | None = None
+    ) -> InjectOccurrenceOutcomeModel | None:
         record = self._read_inject_record(operation_id, identity)
         return None if record is None else record.inject_outcome
 
     @runtime_owned
-    def get_inject_result(self, operation_id: str, *, identity: object | None = None):
+    def get_inject_result(
+        self, operation_id: str, *, identity: object | None = None
+    ) -> AssociatedArtifactManifestModel | None:
         record = self._read_inject_record(operation_id, identity)
         return None if record is None or record.inject_evidence is None else deepcopy(record.inject_evidence.manifest)
 
     @runtime_owned
-    def get_inject_artifact(self, operation_id: str, artifact_id: str, *, identity: object | None = None):
+    def get_inject_artifact(
+        self, operation_id: str, artifact_id: str, *, identity: object | None = None
+    ) -> bytes | None:
         record = self._read_inject_record(operation_id, identity)
         if record is None or record.inject_evidence is None:
             return None
         return next((item.content for item in record.inject_evidence.contents if item.artifact_id == artifact_id), None)
 
     @runtime_owned
-    def get_inject_correlation(self, operation_id: str, *, identity: object | None = None):
+    def get_inject_correlation(
+        self, operation_id: str, *, identity: object | None = None
+    ) -> InjectOccurrenceCorrelationModel | None:
         record = self._read_inject_record(operation_id, identity)
         if record is None or record.inject_outcome is None:
             return None

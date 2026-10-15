@@ -1,5 +1,10 @@
 """Strict serialized inject ingress and independently authorized occurrence readback."""
 
+from __future__ import annotations
+
+from collections.abc import Callable
+from typing import TypeVar
+
 from fastapi import FastAPI, HTTPException, Request, Response
 from raes_contracts.contracts import (
     AssociatedArtifactManifestModel,
@@ -12,10 +17,13 @@ from raes_contracts.contracts import (
 from raes_contracts.json_ingress import StrictJsonIngressError, parse_bounded_json_object
 
 from ..control_plane import RuntimeControlPlane
+from ..control_plane_security import ControlPlaneIdentity
 from ._auth import _AdministrativeMutationIdentity, _AdministrativeReadIdentity
 from ._offload import _control_plane_calls
 from ._operation_routes import _record_admission_denial_best_effort
 from ._responses import _conflict_detail, _receipt_response
+
+_Readback = TypeVar("_Readback")
 
 _MAX_TRIGGER_BYTES = 256 * 1024
 _TRIGGER_SCHEMA = InjectTriggerRequestModel.model_json_schema()
@@ -55,7 +63,9 @@ def register_inject_routes(app: FastAPI, control_plane: RuntimeControlPlane) -> 
             raise HTTPException(status_code=409, detail=_conflict_detail(error)) from None
         return _receipt_response(receipt)
 
-    async def read(request, operation_id, identity, reader):
+    async def read(
+        request: Request, operation_id: str, identity: ControlPlaneIdentity, reader: Callable[..., _Readback | None]
+    ) -> _Readback:
         result = await _control_plane_calls(request).run(reader, operation_id, identity=identity)
         if result is None:
             raise HTTPException(status_code=404, detail="inject record not found")
