@@ -622,21 +622,66 @@ def test_cli_rejects_missing_or_malformed_events(
     assert "configuration error" in capsys.readouterr().err
 
 
+@pytest.mark.parametrize("body", ["", None])
 def test_cli_exempts_trusted_automation_before_api_configuration(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], body: str | None
 ) -> None:
     event = tmp_path / "event.json"
     event.write_text(
         json.dumps(
             {
                 "sender": {"login": "maintainer"},
-                "pull_request": {"body": "", "user": {"login": "dependabot[bot]"}},
+                "pull_request": {"body": body, "user": {"login": "dependabot[bot]"}},
             }
         ),
         encoding="utf-8",
     )
     assert main(["--event-path", str(event)]) == 0
     assert "exempt trusted automation" in capsys.readouterr().out
+
+
+def _cli_outcome(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], pull_request: dict[str, object], *extra: str
+) -> tuple[int, str, str]:
+    event = tmp_path / "event.json"
+    issues = tmp_path / "issues.json"
+    event.write_text(
+        json.dumps({"repository": {"full_name": REPOSITORY}, "pull_request": {"number": 25, **pull_request}}),
+        encoding="utf-8",
+    )
+    issues.write_text("{}", encoding="utf-8")
+    result = main(["--event-path", str(event), "--issues-file", str(issues), *extra])
+    captured = capsys.readouterr()
+    return result, captured.out, captured.err
+
+
+@pytest.mark.parametrize(
+    ("extra", "expected"), [((), 1), (("--report-open-closing-issues",), 0)], ids=["guard", "audit"]
+)
+def test_cli_reports_a_null_body_as_an_empty_description(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], extra: tuple[str, ...], expected: int
+) -> None:
+    # GitHub sends an empty pull request description as null, not "" (#1525).
+    empty = _cli_outcome(tmp_path, capsys, {"body": ""}, *extra)
+    null = _cli_outcome(tmp_path, capsys, {"body": None}, *extra)
+    assert null == empty
+    assert null[0] == expected
+    assert "configuration error" not in null[2]
+
+
+def test_cli_null_body_gets_the_missing_section_report(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    _result, _out, err = _cli_outcome(tmp_path, capsys, {"body": None})
+    for heading in REQUIRED_SECTIONS:
+        assert f"exactly one '## {heading}' section; found 0" in err
+
+
+@pytest.mark.parametrize("pull_request", [{}, {"body": []}, {"body": 7}], ids=["absent", "list", "number"])
+def test_cli_keeps_a_non_string_body_a_configuration_error(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], pull_request: dict[str, object]
+) -> None:
+    result, _out, err = _cli_outcome(tmp_path, capsys, pull_request)
+    assert result == 2
+    assert "configuration error: event pull_request" in err
 
 
 def test_cli_renders_rejections_and_stdout_report(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
