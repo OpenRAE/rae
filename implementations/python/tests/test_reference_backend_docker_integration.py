@@ -215,6 +215,127 @@ nodes:
 """
 
 
+def test_real_inject_public_trigger_changes_world_and_duplicate_executes_once(container_runtime, tmp_path):
+    from time import monotonic
+
+    from raes_runtime.control_plane_api import create_control_plane_app
+    from raes_runtime.control_plane_profiles import ControlPlaneProfile
+    from raes_runtime.control_plane_security import ControlPlaneIdentity, ControlPlaneRole, ControlPlaneSecurityConfig
+    from reference_inject_integration_support import AFTER, concrete_inject_run
+    from starlette.testclient import TestClient
+
+    with concrete_inject_run(container_runtime, tmp_path) as run:
+        operator = ControlPlaneIdentity(
+            "concrete-operator", frozenset({ControlPlaneRole.OPERATOR}), "reference-emulation"
+        )
+        app = create_control_plane_app(
+            run.plane,
+            profile=ControlPlaneProfile.P2,
+            security=ControlPlaneSecurityConfig(bearer_tokens={"concrete-token": operator}),
+        )
+        headers = {"Authorization": "Bearer concrete-token"}
+        with TestClient(app) as client:
+            body = run.request.model_dump(mode="json")
+            first = client.post("/injects/trigger", json=body, headers=headers)
+            assert first.status_code == 200, first.text
+            assert first.json()["accepted"], first.text
+            operation_id = first.json()["operation_id"]
+            assert client.post("/injects/trigger", json=body, headers=headers).json() == first.json()
+            outcome = client.get(f"/operations/{operation_id}/inject-outcome", headers=headers)
+            assert outcome.status_code == 200, outcome.text
+            assert outcome.json()["effect"] == "effect-applied"
+            assert run.executor.native.read_probe(run.program.probes[0], deadline=monotonic() + 5) == AFTER
+            assert not run.plane.snapshot.participant_episode_results
+            assert len(run.plane._store.load_records()) == 1
+
+
+def test_real_inject_failed_entrypoint_retains_world_effect_without_success(container_runtime, tmp_path):
+    from time import monotonic
+
+    from raes_contracts.runtime_state import OperationState
+    from reference_inject_integration_support import AFTER, concrete_inject_run
+
+    with concrete_inject_run(container_runtime, tmp_path, failed_entrypoint=True) as run:
+        receipt = run.plane.submit_inject(run.request)
+        assert run.plane.get_operation(receipt.operation_id).state is OperationState.FAILED
+        assert run.plane.get_inject_outcome(receipt.operation_id).effect == "effect-applied"
+        assert run.plane.get_inject_correlation(receipt.operation_id) is None
+        assert run.executor.native.read_probe(run.program.probes[0], deadline=monotonic() + 5) == AFTER
+
+
+def test_real_inject_refusal_has_no_claim_or_effect(container_runtime, tmp_path):
+    from time import monotonic
+
+    from reference_inject_integration_support import concrete_inject_run
+
+    with concrete_inject_run(container_runtime, tmp_path) as run:
+        changed = run.request.model_copy(update={"request_key": "unadmitted-request"})
+        assert not run.plane.submit_inject(changed).accepted
+        assert run.plane._store.load_records() == {}
+        assert run.executor.native.read_probe(run.program.probes[0], deadline=monotonic() + 5) == b"before"
+
+
+def test_real_inject_process_loss_after_effect_reconciles_without_new_execution(container_runtime, tmp_path):
+    import signal
+    from time import monotonic, sleep
+
+    from raes_contracts.runtime_state import OperationState
+    from reference_inject_integration_support import AFTER, concrete_inject_run
+
+    with concrete_inject_run(container_runtime, tmp_path) as run:
+        run.plane.close()
+        child = os.fork()
+        if child == 0:
+            try:
+                child_plane = run.reopen()
+                # Restore exact planner registration only for this fresh child
+                # admission. The parent's recovery below restores no grant.
+                child_plane.register_planner_produced_plan(run.execution_plan)
+                child_plane._commit_terminal_operation = lambda *args, **kwargs: os._exit(72)
+                child_plane.submit_inject(run.request)
+            except BaseException:
+                os._exit(73)
+            os._exit(74)
+        deadline = monotonic() + 90
+        status = None
+        while monotonic() < deadline:
+            observed, status = os.waitpid(child, os.WNOHANG)
+            if observed == child:
+                break
+            sleep(0.05)
+        else:
+            os.kill(child, signal.SIGKILL)
+            os.waitpid(child, 0)
+            pytest.fail("concrete inject crash child exceeded its bounded deadline")
+        recovered = run.reopen()
+        assert os.waitstatus_to_exitcode(status) == 72
+        parent = next(iter(recovered._store.load_records().values()))
+        assert parent.status.state is OperationState.INDETERMINATE
+        assert parent.invocation.consumed
+        assert parent.invocation.reserved
+        assert run.executor.native.read_probe(run.program.probes[0], deadline=monotonic() + 5) == AFTER
+        assert recovered.submit_inject(run.request) == parent.receipt
+        control = recovered.supervise_operation(
+            parent.receipt.operation_id, action="reconcile", control_id="concrete-reconcile"
+        )
+        evidence = recovered.get_control_response(parent.receipt.operation_id, control.control_id)
+        assert evidence.message.effects.effect == "complete"
+        assert evidence.message.effects.cessation_established
+        assert recovered.get_operation(parent.receipt.operation_id).state is OperationState.INDETERMINATE
+        assert recovered.get_inject_correlation(parent.receipt.operation_id) is None
+        source_objects = run.executor.native.call(
+            [
+                "ps",
+                "--all",
+                "--quiet",
+                "--filter",
+                f"label=raes.inject-invocation={parent.invocation.responses[0].request_digest}",
+            ],
+            deadline=monotonic() + 5,
+        )
+        assert len(source_objects.splitlines()) == 1
+
+
 def test_real_container_provision_inventory_and_teardown(container_runtime: ContainerRuntime):
     image = container_runtime.image.reference
     # The scenario pins an explicit image source, so the operator allowlists it
@@ -241,7 +362,8 @@ def test_real_container_provision_inventory_and_teardown(container_runtime: Cont
         control_plane.register_planner_produced_plan(execution_plan)
         receipt = control_plane.submit_provisioning(execution_plan.provisioning)
         status = control_plane.get_operation(receipt.operation_id)
-        assert status is not None and status.state.value == "succeeded"
+        assert status is not None
+        assert status.state.value == "succeeded"
         # The driver records realization against the real runtime; the portable
         # snapshot shows the realized node.
         assert "provision.node.web" in control_plane.snapshot.entries

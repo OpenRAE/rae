@@ -8,6 +8,11 @@ default driver is the hermetic :class:`InProcessDriver`.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .inject_execution import ReferenceOciInjectExecutor
+
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_runtime.registry import (
     BackendRegistry,
@@ -27,6 +32,19 @@ from .participant_runtime import ReferenceParticipantRuntime
 from .provisioner import ReferenceProvisioner
 
 
+def _bind_inject_executor(
+    manifest: BackendManifest, driver: DeploymentDriver, executor: object | None
+) -> ReferenceOciInjectExecutor | None:
+    if executor is None:
+        return None
+    from .inject_execution import ReferenceOciInjectExecutor
+
+    if not isinstance(executor, ReferenceOciInjectExecutor) or executor.deployment is not driver:
+        raise ValueError("Reference inject execution requires the same admitted OCI driver")
+    executor.bind_manifest(manifest)
+    return executor
+
+
 def create_reference_backend_components(
     *,
     manifest: BackendManifest,
@@ -44,7 +62,9 @@ def create_reference_backend_components(
     envelope = manifest.realization_envelope
     if envelope is None or envelope.configuration.mode != mode.value:
         raise ValueError("reference manifest realization envelope does not match deployment driver mode")
+    executor = _bind_inject_executor(manifest, deployment_driver, config.get("inject_execution"))
     return RuntimeTargetComponents(
+        operation_provider=executor,
         provisioner=ReferenceProvisioner(
             deployment_driver,
             envelope,
@@ -75,6 +95,7 @@ def create_reference_backend_target(**config) -> RuntimeTarget:
         participant_runtime=components.participant_runtime,
         time_runtime=components.time_runtime,
         observation_runtime=components.observation_runtime,
+        operation_provider=components.operation_provider,
     )
 
 

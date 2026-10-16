@@ -360,6 +360,20 @@ def _capabilities(
     )
 
 
+def _inject_contracts(executor: object | None, mode: ReferenceDriverMode, driver: object | None) -> frozenset[str]:
+    if executor is None:
+        return frozenset()
+    from .inject_execution import ReferenceOciInjectExecutor
+
+    if (
+        not isinstance(executor, ReferenceOciInjectExecutor)
+        or mode is not ReferenceDriverMode.OCI_CONTAINER
+        or executor.deployment is not driver
+    ):
+        raise ValueError("Reference inject execution requires the same admitted OCI driver")
+    return frozenset((*BACKEND_OPERATION_CONTRACT_IDS, *INJECT_OCCURRENCE_BACKEND_CONTRACT_IDS))
+
+
 def create_reference_backend_manifest(*, with_time: bool = False, **config) -> BackendManifest:
     """Return the fully capable reference emulation backend manifest.
 
@@ -381,7 +395,7 @@ def create_reference_backend_manifest(*, with_time: bool = False, **config) -> B
             or mode is not ReferenceDriverMode.IN_PROCESS_EMULATION
         ):
             raise ValueError("The protected mailbox sink requires the in-process reference target")
-    profile_contracts = frozenset()
+    profile_contracts = _inject_contracts(config.get("inject_execution"), mode, driver)
     profile_digest = None
     if config.get("domain_profile_context") is not None:
         from raes_contracts.realization_profiles import profile_context_digest
@@ -389,7 +403,7 @@ def create_reference_backend_manifest(*, with_time: bool = False, **config) -> B
         from .profile_preparation import reference_profile_configuration
 
         reference_profile_configuration(config["domain_profile_context"], config.get("profile_choices", {}))
-        profile_contracts = frozenset({"backend-realization-preparation-v1", "plan-realization-profiles-v1"})
+        profile_contracts |= frozenset({"backend-realization-preparation-v1", "plan-realization-profiles-v1"})
         profile_digest = profile_context_digest(config["domain_profile_context"])
     return BackendManifest(
         name=REFERENCE_BACKEND_NAME,

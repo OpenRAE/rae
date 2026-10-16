@@ -12,8 +12,11 @@ contracts carry that path as portable data with pure validators:
 | `inject-occurrence-outcome-v1` | Per-binding readback for one claimed occurrence and its settlement. |
 | `inject-occurrence-correlation-v1` | The exact applied occurrence, outcome and produced result that a participant consumer joins. |
 
-They add no trigger route, store, scheduler, operation kind or backend call, and
-the existing runtime does not accept them.
+The shared runtime accepts these carriers through `submit_inject` and the P2
+trigger route when a trusted realization resolver and an explicitly declared
+executing provider are installed. The reference OCI realization is opt-in;
+see the [operator guide](../../public/guides/external-injects.md). The contracts
+add no scheduler or operation kind.
 
 Import the models and helpers from `raes_contracts.contracts`, and
 `require_inject_occurrence_provider` from
@@ -116,9 +119,9 @@ ID, the occurrence ID and the occurrence's RFC 8785 digest.
   operation and schedule slot;
 - a narrowed `resources` effect scope covers every selected binding.
 
-The check grants no dispatch. A runtime that adopts these contracts (issue
-#1367) must still confirm the claim, current authority, preconditions and
-backend willingness before it starts the work.
+The check grants no dispatch. The runtime confirms the durable claim, current
+authority, preconditions and backend willingness before its existing one-use
+dispatch grant starts the work.
 
 ## Readback and settlement
 
@@ -185,8 +188,9 @@ A backend that executes inject occurrences declares `inject-occurrence-v1` and
 `backend-operation-*-v1` contracts, and installs `BackendOperationProvider`.
 `require_inject_occurrence_provider` checks both declarations and the
 installed call shapes without invoking anything. Inject-binding support and a
-successful plan start are not this declaration (EI-06). The stub and
-reference backends do not declare these contracts.
+successful plan start are not this declaration (EI-06). The stub and default
+reference backend do not declare these contracts. A reference target configured
+with `ReferenceOciInjectExecutor` declares them and installs that provider.
 
 ## Migration and compatibility
 
@@ -197,7 +201,7 @@ reference backends do not declare these contracts.
 | DSL-142 deliveries and API-424 inject effects | Unchanged. Legacy fixed anchors keep their required fields; a consumer that adopts these contracts joins a correlation explicitly. |
 | Backend manifests and profiles | The allowlist gains the two backend-facing IDs. Existing manifests and profiles stay valid; old closed readers can reject the new IDs. |
 | SDL participant behavior specifications | `evidence_contract_refs` may cite `inject-occurrence-v1` and `inject-occurrence-outcome-v1`, which previously raised `participant.behavior-spec-evidence-contract-unbound`. The compiler copies them through, and no runtime path reads them. `inject-occurrence-correlation-v1` still raises that diagnostic. |
-| `operation-receipt-v1`, `operation-status-v1` and stored operations | Unchanged. This publication adds no operation kind, store record or HTTP route. |
+| `operation-receipt-v1` and `operation-status-v1` | Unchanged status meaning and no new operation kind. Typed occurrence/outcome/evidence fields extend the internal record codec; local schema 9 and PostgreSQL schema 2 retain historical records without inventing evidence. |
 
 No lossless conversion produces these carriers from legacy records. Do not
 fabricate occurrence IDs, order tokens, readback evidence or results. The four
@@ -206,10 +210,18 @@ publication entry records its content hash and contract-facing change.
 
 ## Adoption boundaries
 
-ADR-112 defines the semantics; executable adoption is tracked by #1367. Reuse
+ADR-112 defines the semantics; #1367 implements the selected runtime slice. Reuse
 ADR-104's operation authority, ADR-110's participant composition and ADR-113's
 execution machinery. The following owners apply to consumers of these carriers;
 Python paths are relative to `implementations/python/packages/`.
+
+The [#1367 execution preflight](../../decisions/issue-1367-external-inject-execution-preflight.md)
+identifies the current native-plan/policy and typed-result assumptions,
+missing durable occurrence/order claims, operation-only settlement, API-404
+profile limits, restart/ingress trust boundaries, and configuration-bound
+executing-adapter evidence requirements.
+It records the constraints applied by the implementation. The operator guide
+separates supported realization behavior from the broader portable carriers.
 
 | Boundary | Existing owner and adoption rule |
 | --- | --- |
@@ -262,9 +274,10 @@ contracts. Direct helper tests and publication are not conformance-CLI adoption.
 Existing fixture tests establish structural/contextual joins and participant-free
 parser/compiler agreement. Executable consumers additionally need evidence at
 authentication, ingress, store, provider and final-sink boundaries, including
-competing claims, failed commits and crash/late outcomes. This publication adds
-no dispatch, endpoint, operation kind, backend implementation, SDL grammar,
-participant registration/delivery or store migration. Acceptance, willingness,
+competing claims, failed commits and crash/late outcomes. The #1367 implementation
+adds the selected execution path, endpoints and internal store migration described
+in the operator guide, with no new operation kind, SDL grammar or participant
+registration/delivery. Acceptance, willingness,
 installation, effects, delivery and observation remain separate facts.
 
 ## Participant-free example

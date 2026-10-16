@@ -25,6 +25,7 @@ def compose_operation_execution(control_plane: RuntimeControlPlane, config: Cont
 
     control_plane._supervision = config.supervision
     control_plane._operation_evidence = config.operation_evidence
+    control_plane._inject_execution = config.inject_execution
     control_plane._distributed_execution = config.distributed_execution
     control_plane._admitted_backend_requests = {}
     control_plane._execution_deadlines = {}

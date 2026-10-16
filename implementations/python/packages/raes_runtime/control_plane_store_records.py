@@ -5,7 +5,13 @@ from __future__ import annotations
 from typing import Annotated, Any
 
 from pydantic import ConfigDict, Field, model_validator
-from raes_contracts.contracts import OperationReceiptModel, OperationStatusModel
+from raes_backend_protocols.inject_execution import InjectExecutionEvidence
+from raes_contracts.contracts import (
+    InjectOccurrenceModel,
+    InjectOccurrenceOutcomeModel,
+    OperationReceiptModel,
+    OperationStatusModel,
+)
 from raes_contracts.contracts.base import ContractModel, Rfc3339DateTimeString
 from raes_contracts.diagnostics import Diagnostic, DiagnosticModel, portable_diagnostic_payload
 from raes_contracts.runtime_state import OperationReceipt, OperationStatus
@@ -46,6 +52,9 @@ class _OperationRecordModel(ContractModel):
     legacy_request_commitment: bool = False
     invocation: InvocationLedger | None = None
     reconciliation: InvocationReconciliation | None = None
+    inject_occurrence: InjectOccurrenceModel | None = None
+    inject_outcome: InjectOccurrenceOutcomeModel | None = None
+    inject_evidence: InjectExecutionEvidence | None = None
 
     @model_validator(mode="after")
     def _validate_shared_carrier_identity(self) -> _OperationRecordModel:
@@ -121,6 +130,11 @@ def _record_payload(record: ControlPlaneOperationRecord) -> dict[str, Any]:
         "legacy_request_commitment": record.legacy_request_commitment,
         "invocation": None if record.invocation is None else record.invocation.model_dump(mode="json"),
         "reconciliation": None if record.reconciliation is None else record.reconciliation.model_dump(mode="json"),
+        "inject_occurrence": None
+        if record.inject_occurrence is None
+        else record.inject_occurrence.model_dump(mode="json"),
+        "inject_outcome": None if record.inject_outcome is None else record.inject_outcome.model_dump(mode="json"),
+        "inject_evidence": None if record.inject_evidence is None else record.inject_evidence.model_dump(mode="json"),
     }
 
 
@@ -157,6 +171,9 @@ def _record_from_payload(payload: dict[str, Any]) -> ControlPlaneOperationRecord
         legacy_request_commitment=carrier.legacy_request_commitment,
         invocation=carrier.invocation,
         reconciliation=carrier.reconciliation,
+        inject_occurrence=carrier.inject_occurrence,
+        inject_outcome=carrier.inject_outcome,
+        inject_evidence=carrier.inject_evidence,
     )
 
 

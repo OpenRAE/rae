@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from uuid import uuid4
 
+from raes_contracts.contracts import InjectOccurrenceModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -238,6 +239,7 @@ class OperationExecutionRequest:
     exact_retry_fingerprint: str | None = None
     validation_method: Callable[..., object] | None = None
     admission_diagnostics: Callable[[], list[Diagnostic]] | None = None
+    inject_occurrence: InjectOccurrenceModel | None = None
 
 
 @dataclass(frozen=True)

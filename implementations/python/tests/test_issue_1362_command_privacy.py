@@ -39,6 +39,7 @@ def credential_plan(value):
 def native_request(plane, plan):
     return SimpleNamespace(
         plan=plan,
+        inject_occurrence=None,
         domain=RuntimeDomain.PROVISIONING,
         context=operation_admission_context(plane, kind=OperationKind.PROVISIONING, request=plan),
     )

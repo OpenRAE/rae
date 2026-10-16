@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-04-03T05:55:58.251562Z
-updated_at: 2026-09-22T05:55:00Z
+updated_at: 2026-10-15T00:00:00Z
 ---
 
 # DSL-111 — Entity And Exercise Timeline Modeling
@@ -42,6 +42,10 @@ ACTIVE records the accepted contract; it does not certify executable adoption.
 Existing model/compiler evidence covers legacy narrative authoring. The new
 bounded tests exercise a design projection, with production adoption governed
 by the [compatibility contract](../../explain/sdl/external-inject-compatibility.md).
+Issue #1367 implements the shared-runtime path and opt-in synchronous OCI
+entrypoint realization. Its operator guide records supported admission, native
+readback and recovery boundaries; broader portable carriers do not imply that
+every realization is installed.
 
 ## Traceability
 
@@ -69,3 +73,10 @@ by the [compatibility contract](../../explain/sdl/external-inject-compatibility.
 - IMPLEMENTS → SPEC `contracts/schemas/control-plane/inject-trigger-request-v1.json` (inject-trigger-request-v1 published schema)
 - IMPLEMENTS → SPEC `contracts/schemas/control-plane/inject-occurrence-v1.json` (inject-occurrence-v1 published schema)
 - IMPLEMENTS → SPEC `contracts/schemas/control-plane/inject-occurrence-outcome-v1.json` (inject-occurrence-outcome-v1 published schema)
+
+- IMPLEMENTS → GITHUB_ISSUE `1367` (Authored external occurrences through shared runtime execution)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/inject_execution.py` (Typed authored admission and independent durable evidence resolution)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/associated_artifacts.py` (Bounded content integrity for occurrence-associated artifacts)
+- TESTS → TEST `implementations/python/tests/test_issue_1367_inject_execution.py` (Participant-free world execution and distinct refusal, indeterminate and applied outcomes using an executing fixture)
+- TESTS → TEST `implementations/python/tests/test_issue_1367_inject_claims.py` (Retry, occurrence, slot and trusted order claims preserve distinct logical executions)
+- TESTS → TEST `implementations/python/tests/test_reference_backend_docker_integration.py` (CI concrete participant-free world effects, duplicate, failed execution, refusal and crash/reconciliation)

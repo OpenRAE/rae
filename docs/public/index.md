@@ -190,6 +190,7 @@ guides/python
 guides/cli
 guides/control-plane
 guides/supervised-execution
+guides/external-injects
 backends
 research
 limitations

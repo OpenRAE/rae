@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-04-03T05:55:58.825305Z
-updated_at: 2026-10-13T00:00:00.000000Z
+updated_at: 2026-10-15T00:00:00Z
 ---
 
 # API-404 — Secure, Durable, And Idempotent Control-Plane Semantics
@@ -382,3 +382,27 @@ policy choices, recovery and composition limits.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_snapshot_contracts.py` (Runtime ownership of the participant-control evaluation carrier)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api_models.py` (Participant-control evaluation history in the control-plane projection)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_action_validation.py` (Runtime-owned evaluation carrier protected from backend rewrite)
+
+- IMPLEMENTS → GITHUB_ISSUE `1367` (Secure shared-runtime external inject execution)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_injects.py` (C1 actor-scoped admission and independently authorized occurrence readback)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/inject_claims.py` (C1/C2 immutable occurrence pins and atomic retry, slot and full order-chain claims)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/inject_execution.py` (C1 exact authorized plan and binding resolution with required-obligation refusal)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/inject_outcomes.py` (C1 bounded independent artifact validation and terminal operation-only settlement)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_inject_routes.py` (C3 strict authenticated bounded trigger and actor-scoped evidence reads)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_postgresql_schema.py` (C2 PostgreSQL single-owner schema migration)
+- DOCUMENTS → DOCUMENTATION `docs/public/guides/external-injects.md` (C1–C4 operating profiles, host duties, supported realization and recovery limits)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1367-external-inject-execution-preflight.md` (Accepted owner boundaries and implementation guardrails)
+- TESTS → TEST `implementations/python/tests/test_issue_1367_inject_claims.py` (Atomic competing claims, schedule slots, full chain and durable reopening)
+- TESTS → TEST `implementations/python/tests/test_issue_1367_inject_execution.py` (Executing fixture, actor isolation, original budget, refusal and typed evidence; not concrete OCI evidence)
+- TESTS → TEST `implementations/python/tests/test_issue_1367_inject_http.py` (Actual HTTP authorization, strict bounded ingress, retry and retained artifact disclosure)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/associated_artifacts.py` (C1 independent bounded artifact content and admitted scenario-reference validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/backend_operation_validation.py` (C1 shared authored policy capability checks for native and inject commands)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_composition.py` (C1 explicitly installed trusted inject resolver)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_postgresql_mutations.py` (C2 occurrence claim checks within the existing authoritative transaction)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_provider_execution.py` (C1 current provider willingness and one-use dispatch with typed inject settlement)
+- TESTS → TEST `implementations/python/tests/inject_execution_fixtures.py` (Executing world-file witness for shared-runtime tests; not concrete backend evidence)
+- TESTS → TEST `implementations/python/tests/test_release_workflows.py` (Mandatory PR and exact-SHA release container gates)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-5d274941b97b738f9f2b70d0efd0269f131e26694e1712bf4c807b96d5101b71/manifest.json` (Fresh bounded source-bound witness; retained research claim limits)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-a566be978d1c4991f1cba201477c741e49ef98cca9bb6298de1509873538c337/manifest.json` (Fresh bounded source-bound witness; retained research claim limits)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-89feff1317c49aebbc096e7f8cb0a4e2235ea10ae386d15f47e33851b28a742e/manifest.json` (Fresh bounded witness after inject contract refactoring; retained research claim limits)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-7f7166d1912b9a05d105277585776c5e773b17446e0cd8b582a33c079d016eb7/manifest.json` (Fresh bounded witness after inject contract refactoring; retained research claim limits)

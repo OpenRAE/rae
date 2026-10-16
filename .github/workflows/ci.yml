@@ -51,7 +51,7 @@ jobs:
   # and cannot turn a failed or skipped reusable job into success. A red quality
   # gate no longer blocks the `verify` context and vice versa (#935).
   verify:
-    needs: [canonical, runtime-supervision]
+    needs: [canonical, runtime-supervision, integration-docker]
     if: always()
     runs-on: ubuntu-24.04
     permissions:
@@ -61,6 +61,7 @@ jobs:
         env:
           GATE_OUTCOME: ${{ needs.canonical.outputs.gate-outcome }}
           EXECUTION_OUTCOME: ${{ needs.runtime-supervision.result }}
+          DOCKER_OUTCOME: ${{ needs.integration-docker.result }}
         run: |
           if [ "${GATE_OUTCOME}" != "success" ]; then
             echo "Canonical verification gate concluded with '${GATE_OUTCOME}'" >&2
@@ -68,6 +69,10 @@ jobs:
           fi
           if [ "${EXECUTION_OUTCOME}" != "success" ]; then
             echo "Runtime execution integration did not pass" >&2
+            exit 1
+          fi
+          if [ "${DOCKER_OUTCOME}" != "success" ]; then
+            echo "Concrete container integration did not pass" >&2
             exit 1
           fi
 
@@ -162,12 +167,12 @@ jobs:
       - name: Test exact interpreter and clean distribution
         run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s python-compatibility
 
-  # Opt-in, non-blocking, runtime-gated container integration tests (RUN-314).
-  # Kept out of the hermetic `verify` graph; the `docker` marker tests self-skip
-  # when no runtime is present, and this whole job never fails the build.
+  # Concrete backend evidence (RUN-314): unavailable execution cannot pass as
+  # a skipped fixture-only claim. The hermetic verify graph remains separate.
   integration-docker:
     runs-on: ubuntu-24.04
-    continue-on-error: true
+    env:
+      RAES_DOCKER_INTEGRATION_REQUIRED: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -180,17 +185,7 @@ jobs:
         with:
           enable-cache: false
           version: "0.12.4"
-      - name: Probe for a container runtime
-        id: runtime
-        run: |
-          if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
-            echo "available=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "No container runtime available; skipping docker integration session."
-          fi
       - name: Run docker integration session
-        if: steps.runtime.outputs.available == 'true'
         run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s integration_docker
 
   # Gating OSV-scanner sweep over the Python dependency lockfile (issue #1098).

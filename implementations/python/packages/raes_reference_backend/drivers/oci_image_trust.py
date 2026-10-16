@@ -27,6 +27,18 @@ _REF_TAG = r"[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}"
 # that never actually pins content -- ``evil/img@sha256:x/pull-me:latest``,
 # ``foo@sha256:short`` -- is rejected rather than trusted.
 _DIGEST_PINNED_REF = re.compile(rf"{_REF_NAME}(?::{_REF_TAG})?@sha256:[0-9a-f]{{64}}")
+_NAMED_REF = re.compile(rf"{_REF_NAME}(?::{_REF_TAG})?")
+
+
+def is_image_reference(image: str) -> bool:
+    """Admit only image names, never URLs, credentials, or CLI options."""
+
+    return (
+        isinstance(image, str)
+        and len(image) <= 512
+        and (_NAMED_REF.fullmatch(image) is not None or _DIGEST_PINNED_REF.fullmatch(image) is not None)
+    )
+
 
 # The interpreter synthesizes ``raes-reference/<os-family>`` (or
 # ``raes-reference/base``) for a node that pins no image source. Match that
@@ -60,11 +72,13 @@ class ImageTrustPolicy:
         return image_ref
 
     def permits(self, image: str) -> bool:
-        if self.default_image is not None and image == self.default_image:
-            return True
-        if image in self.allowed_images:
-            return True
-        return self.allow_digest_pinned and _DIGEST_PINNED_REF.fullmatch(image) is not None
+        if not is_image_reference(image):
+            return False
+        return (
+            (self.default_image is not None and image == self.default_image)
+            or image in self.allowed_images
+            or (self.allow_digest_pinned and _DIGEST_PINNED_REF.fullmatch(image) is not None)
+        )
 
 
-__all__ = ["ImageTrustPolicy"]
+__all__ = ["ImageTrustPolicy", "is_image_reference"]

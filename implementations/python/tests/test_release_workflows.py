@@ -455,7 +455,7 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     # dev/main branch protection requires the `verify` and `sonar` contexts. Both
     # are now decoupled joins over the reusable graph's outcomes (#935).
     verify = workflow["jobs"]["verify"]
-    assert verify["needs"] == ["canonical", "runtime-supervision"]
+    assert verify["needs"] == ["canonical", "runtime-supervision", "integration-docker"]
     assert verify["if"] == "always()"
     verify_join = _named_step(verify, "Preserve the required canonical verification status")
     assert verify_join["env"]["GATE_OUTCOME"] == "${{ needs.canonical.outputs.gate-outcome }}"
@@ -696,9 +696,9 @@ def test_release_requires_skip_free_real_docker_tests_at_the_exact_sha() -> None
     assert "sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc" not in fixture
     assert "oci_release_image.locked_platform_graphs()" in fixture
 
-    optional = _load(CI_PATH)["jobs"]["integration-docker"]
-    assert optional["continue-on-error"] is True
-    assert "RAES_DOCKER_INTEGRATION_REQUIRED" not in str(optional)
+    pull_request = _load(CI_PATH)["jobs"]["integration-docker"]
+    assert "continue-on-error" not in pull_request
+    assert pull_request["env"]["RAES_DOCKER_INTEGRATION_REQUIRED"] == "1"
 
 
 def test_publication_is_split_retry_safe_and_finalizes_the_same_release() -> None:

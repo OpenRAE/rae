@@ -19,6 +19,7 @@ from .control_plane_store_revision import (
     next_snapshot_revision,
     require_snapshot_revision,
 )
+from .inject_claims import require_inject_claim, require_inject_history
 from .operation_invocation_ledger import supervised_claim_conflicts
 
 
@@ -105,6 +106,7 @@ class InMemoryControlPlaneStore:
 
     def load_records(self) -> dict[str, _store.ControlPlaneOperationRecord]:
         with self._lock:
+            require_inject_history(self._records.values())
             return dict(self._records)
 
     def save_record(self, record: _store.ControlPlaneOperationRecord) -> None:
@@ -136,6 +138,7 @@ class InMemoryControlPlaneStore:
                     return existing
             if new_claim_blocked:
                 _store._raise_new_claim_block(new_claim_blocked)
+            require_inject_claim(record, self._records.values(), revision=self._snapshot_state.revision)
             if (
                 self._effect_admission_stopped
                 and record.status.context.operation_kind.value != "indeterminate-resolution"
@@ -383,6 +386,7 @@ class InMemoryControlPlaneStore:
             raise SnapshotRevisionConflict()
 
     def _save_record(self, record: _store.ControlPlaneOperationRecord) -> None:
+        require_inject_claim(record, self._records.values(), revision=self._snapshot_state.revision)
         existing = self._records.get(record.receipt.operation_id)
         if not _store._require_operation_record_transition(existing, record):
             return

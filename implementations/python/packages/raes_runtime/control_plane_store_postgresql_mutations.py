@@ -17,6 +17,7 @@ from .control_plane_store_revision import (
     require_snapshot_revision,
 )
 from .control_plane_store_snapshots import _snapshot_payload
+from .inject_claims import require_inject_claim
 from .operation_invocation_ledger import supervised_claim_conflicts
 from .operation_ledger_transactions import require_supervision_cut
 
@@ -99,6 +100,7 @@ def claim_record(
     if new_claim_blocked:
         contracts._raise_new_claim_block(new_claim_blocked)
     records = store._load_records(connection)
+    require_inject_claim(record, records.values(), revision=store._load_snapshot_state(connection).revision)
     if (
         store._effect_admission_is_stopped(connection)
         and record.status.context.operation_kind.value != "indeterminate-resolution"
