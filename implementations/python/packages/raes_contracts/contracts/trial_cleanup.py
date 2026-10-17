@@ -346,33 +346,44 @@ def _validate_triggered_cleanup_results(plan: TrialCleanupPlanModel, receipt: Tr
 
     trigger = _OUTCOME_TRIGGER[receipt.trial_outcome]
     for obligation_id, obligation in sorted(plan.cleanup_obligations.items()):
-        if obligation.requirement != "required" or trigger not in obligation.triggers:
-            continue
-        result = receipt.obligation_results.get(obligation_id)
-        if result is None or result.status in _UNATTEMPTED_RESULT_STATUSES:
-            reported = "no result" if result is None else f"'{result.status}'"
-            raise ValueError(
-                f"required cleanup obligation '{obligation_id}' is owed for trigger '{trigger}' "
-                f"and must report an attempted outcome, not {reported}"
-            )
-        if receipt.cleanup_status == "succeeded" and result.status != "succeeded":
-            raise ValueError(
-                f"succeeded cleanup status requires required cleanup obligation '{obligation_id}' "
-                f"to succeed for trigger '{trigger}'"
-            )
+        if obligation.requirement == "required" and trigger in obligation.triggers:
+            _validate_owed_required_result(obligation_id, trigger, receipt)
     for obligation_id, result in sorted(receipt.obligation_results.items()):
         triggered = trigger in plan.cleanup_obligations[obligation_id].triggers
-        if triggered and result.status == "not-triggered":
-            raise ValueError(
-                f"cleanup obligation '{obligation_id}' is triggered by '{trigger}' and cannot be reported 'not-triggered'"
-            )
-        if not triggered and result.status != "not-triggered":
-            raise ValueError(
-                f"cleanup obligation '{obligation_id}' is not triggered by '{trigger}' "
-                "and can only be reported 'not-triggered'"
-            )
+        _validate_result_trigger_consistency(obligation_id, trigger, triggered, result.status)
         if receipt.cleanup_status == "succeeded" and result.status not in {"succeeded", "not-triggered"}:
             raise ValueError(f"succeeded cleanup status cannot include unsuccessful result for '{obligation_id}'")
+
+
+def _validate_owed_required_result(
+    obligation_id: str, trigger: CleanupTrigger, receipt: TrialCleanupReceiptModel
+) -> None:
+    result = receipt.obligation_results.get(obligation_id)
+    if result is None or result.status in _UNATTEMPTED_RESULT_STATUSES:
+        reported = "no result" if result is None else f"'{result.status}'"
+        raise ValueError(
+            f"required cleanup obligation '{obligation_id}' is owed for trigger '{trigger}' "
+            f"and must report an attempted outcome, not {reported}"
+        )
+    if receipt.cleanup_status == "succeeded" and result.status != "succeeded":
+        raise ValueError(
+            f"succeeded cleanup status requires required cleanup obligation '{obligation_id}' "
+            f"to succeed for trigger '{trigger}'"
+        )
+
+
+def _validate_result_trigger_consistency(
+    obligation_id: str, trigger: CleanupTrigger, triggered: bool, status: str
+) -> None:
+    if triggered and status == "not-triggered":
+        raise ValueError(
+            f"cleanup obligation '{obligation_id}' is triggered by '{trigger}' and cannot be reported 'not-triggered'"
+        )
+    if not triggered and status != "not-triggered":
+        raise ValueError(
+            f"cleanup obligation '{obligation_id}' is not triggered by '{trigger}' "
+            "and can only be reported 'not-triggered'"
+        )
 
 
 def _validate_clean_state_claim_boundaries(plan: TrialCleanupPlanModel, receipt: TrialCleanupReceiptModel) -> None:

@@ -353,18 +353,20 @@ def test_failed_cleanup_cannot_be_reported_as_a_clean_successful_trial() -> None
     # model_copy skips model validation, so the public join must reject the false success itself.
     false_success = _failed_cleanup_receipt().model_copy(update={"cleanup_status": "succeeded"})
 
+    receipt = _receipt(plan)
     with pytest.raises(
         ValueError, match="succeeded cleanup status requires required cleanup obligation 'destroy-range'"
     ):
-        validate_batch_execution_receipt(plan, _receipt(plan), cleanup_receipt=false_success)
+        validate_batch_execution_receipt(plan, receipt, cleanup_receipt=false_success)
 
 
 def test_batch_receipt_rejects_suppressed_required_cleanup_result() -> None:
     plan = _plan("minimal")
     suppressed = _failed_cleanup_receipt(obligation_results={})
 
+    receipt = _receipt(plan)
     with pytest.raises(ValueError, match="required cleanup obligation 'destroy-range' is owed for trigger 'success'"):
-        validate_batch_execution_receipt(plan, _receipt(plan), cleanup_receipt=suppressed)
+        validate_batch_execution_receipt(plan, receipt, cleanup_receipt=suppressed)
 
 
 # --- receipt builder ---------------------------------------------------------

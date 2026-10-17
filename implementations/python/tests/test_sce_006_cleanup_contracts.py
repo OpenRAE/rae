@@ -276,10 +276,11 @@ def test_owed_required_cleanup_result_cannot_disappear(trial_outcome: str, clean
     )
 
     trigger = _TERMINAL_TRIGGERS[trial_outcome]
+    plan = _plan()
     with pytest.raises(
         ValueError, match=f"required cleanup obligation 'destroy-range' is owed for trigger '{trigger}'"
     ):
-        validate_trial_cleanup_receipt(_plan(), receipt)
+        validate_trial_cleanup_receipt(plan, receipt)
 
 
 @pytest.mark.parametrize("trial_outcome", sorted(_TERMINAL_TRIGGERS))
@@ -291,8 +292,9 @@ def test_not_required_cleanup_cannot_hide_an_owed_required_obligation(trial_outc
         clean_state_claim=None,
     )
 
+    plan = _plan()
     with pytest.raises(ValueError, match="required cleanup obligation 'destroy-range' is owed"):
-        validate_trial_cleanup_receipt(_plan(), receipt)
+        validate_trial_cleanup_receipt(plan, receipt)
 
 
 @pytest.mark.parametrize("result_status", ["failed", "unsupported", "unverified"])
@@ -303,10 +305,11 @@ def test_succeeded_cleanup_cannot_report_unsuccessful_required_result(result_sta
         update={"obligation_results": {"destroy-range": _unsuccessful_result(result_status)}}
     )
 
+    plan = _plan()
     with pytest.raises(
         ValueError, match="succeeded cleanup status requires required cleanup obligation 'destroy-range'"
     ):
-        validate_trial_cleanup_receipt(_plan(), receipt)
+        validate_trial_cleanup_receipt(plan, receipt)
 
 
 def test_succeeded_cleanup_cannot_report_unsuccessful_best_effort_result() -> None:
@@ -455,8 +458,9 @@ def test_failed_cleanup_receipt_still_binds_plan_identity(overrides: dict[str, o
         **overrides,
     )
 
+    plan = _plan()
     with pytest.raises(ValueError, match=message):
-        validate_trial_cleanup_receipt(_plan(), receipt)
+        validate_trial_cleanup_receipt(plan, receipt)
 
 
 def test_failed_cleanup_receipt_rejects_unknown_obligation_results() -> None:
@@ -470,8 +474,9 @@ def test_failed_cleanup_receipt_rejects_unknown_obligation_results() -> None:
         clean_state_claim=None,
     )
 
+    plan = _plan()
     with pytest.raises(ValueError, match="unknown obligations: ghost"):
-        validate_trial_cleanup_receipt(_plan(), receipt)
+        validate_trial_cleanup_receipt(plan, receipt)
 
 
 def test_reusable_state_requires_bounded_evidence() -> None:
