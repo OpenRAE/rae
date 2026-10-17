@@ -183,16 +183,14 @@ def test_defense_in_depth_guards_hold() -> None:
         _validate_inject(target, None, context)
 
 
-def test_no_run_310_path_reads_a_v2_record() -> None:
+def test_lineage_readers_preserve_v2_but_legacy_context_cannot_validate_it() -> None:
     history = History()
     payload = history.accepted_payload("take")
     participant = payload["participant_address"]
     violations = iter_participant_control_history_snapshot_violations({participant: [payload]})
-    assert violations
-    assert "not a valid API-409 occurrence" in violations[0][1]
+    assert violations == []
     snapshot = RuntimeSnapshot(participant_control_history={participant: [payload]})
-    with pytest.raises(ValueError):
-        participant_control_targets(snapshot)
+    assert participant_control_targets(snapshot)[0].predecessor_ref == payload["event_id"]
     legacy = compile_runtime_model(parse(legacy_scenario())).behavior_specifications[SPEC_ADDRESS]
     with pytest.raises(ValueError):
         _validate_candidate_history(legacy, [payload], known_targets=())
