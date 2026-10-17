@@ -447,3 +447,16 @@ This is design authority, not a delivered robustness claim. Runtime and
 backend enforcement, attack evaluations, monitor honesty, model alignment,
 private reasoning, and undeclared covert channels remain unclaimed. See the
 [issue #812 design record](https://github.com/OpenRAE/rae/issues/812).
+
+## Finite owner-qualified information flow profiles
+
+The governed `participant-owner-flow-policy-v1@rev1` profile preserves two
+independent owners' confidentiality and integrity clauses. Each owner can release
+only its own obligations through independently resolved authority. Combined
+information retains both owners' restrictions and its source provenance.
+
+An operator must admit the exact profile and supported implementation, coverage
+and guarantees before use. Unsupported owner distinctions are rejected; losing
+an admitted guarantee blocks the affected operation. The original security
+profile keeps its existing meaning. Selecting a profile does not install a
+provider or establish that an external release operation has occurred.

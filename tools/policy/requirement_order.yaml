@@ -747,6 +747,57 @@ ownership:
     - implementations/python/tests/participant_control_v2_fixtures.py
     - implementations/python/tests/test_issue_1069_provider_evaluation_v2.py
   modular-control-contracts:
+    # Issue #1370 current-source replay after the patched MCP prerequisite.
+    - docs/research/formal-semantic-validation/capture-records/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08.json
+    - docs/research/formal-semantic-validation/captures/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08/analysis.json
+    - docs/research/formal-semantic-validation/captures/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08/manifest.json
+    - docs/research/formal-semantic-validation/captures/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08/snapshot.json
+    - docs/research/specification-coverage/capture-records/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96.json
+    - docs/research/specification-coverage/captures/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96/analysis.json
+    - docs/research/specification-coverage/captures/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96/manifest.json
+    - docs/research/specification-coverage/captures/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96/snapshot.json
+    # Issue #1370 finite IFC publication, admission and immutable source captures.
+    - contracts/fixtures/participant-runtime/participant-control-evaluation-v2/valid/owner-flow.json
+    - contracts/fixtures/participant-runtime/participant-control-selection-v2/context-invalid/owner-missing-promise.json
+    - contracts/fixtures/participant-runtime/participant-control-selection-v2/valid/owner-flow.json
+    - contracts/fixtures/profiles/participant-owner-flow-policy-v1/invalid/reference.json
+    - contracts/fixtures/profiles/participant-owner-flow-policy-v1/valid/reference.json
+    - contracts/profiles/participant-boundary-flow-policy/participant-owner-flow-policy-v1.json
+    - contracts/schema-publication/entries/participant-flow-control-relation-v1.json
+    - contracts/schema-publication/entries/participant-owner-flow-policy-v1.json
+    - contracts/schemas/participant-runtime/participant-flow-control-relation-v1.json
+    - contracts/schemas/profiles/participant-owner-flow-policy-v1.json
+    - docs/decisions/issue-1370-ifc-profile-admission-preflight.md
+    - docs/explain/reference/owner-qualified-ifc.md
+    - docs/governance/requirement-scopes/1370.json
+    - docs/migration/ifc-profile-variability.md
+    - docs/research/formal-semantic-validation/capture-records/capture-7c2d72b89e8c354d612d925a006a81b21d52e8cf2e4272f47084e05f292cae53.json
+    - docs/research/formal-semantic-validation/capture-records/capture-8761c418d053e7f343f4102fba809b62cf2db8664801f58fee9124fe8d8f642c.json
+    - docs/research/formal-semantic-validation/captures/capture-7c2d72b89e8c354d612d925a006a81b21d52e8cf2e4272f47084e05f292cae53/analysis.json
+    - docs/research/formal-semantic-validation/captures/capture-7c2d72b89e8c354d612d925a006a81b21d52e8cf2e4272f47084e05f292cae53/manifest.json
+    - docs/research/formal-semantic-validation/captures/capture-7c2d72b89e8c354d612d925a006a81b21d52e8cf2e4272f47084e05f292cae53/snapshot.json
+    - docs/research/formal-semantic-validation/captures/capture-8761c418d053e7f343f4102fba809b62cf2db8664801f58fee9124fe8d8f642c/analysis.json
+    - docs/research/formal-semantic-validation/captures/capture-8761c418d053e7f343f4102fba809b62cf2db8664801f58fee9124fe8d8f642c/manifest.json
+    - docs/research/formal-semantic-validation/captures/capture-8761c418d053e7f343f4102fba809b62cf2db8664801f58fee9124fe8d8f642c/snapshot.json
+    - docs/research/specification-coverage/capture-records/capture-60235550915502fe06d6eff38d1179868ac31286fb797d05df470e81d8c42aa2.json
+    - docs/research/specification-coverage/capture-records/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584.json
+    - docs/research/specification-coverage/captures/capture-60235550915502fe06d6eff38d1179868ac31286fb797d05df470e81d8c42aa2/analysis.json
+    - docs/research/specification-coverage/captures/capture-60235550915502fe06d6eff38d1179868ac31286fb797d05df470e81d8c42aa2/manifest.json
+    - docs/research/specification-coverage/captures/capture-60235550915502fe06d6eff38d1179868ac31286fb797d05df470e81d8c42aa2/snapshot.json
+    - docs/research/specification-coverage/captures/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584/analysis.json
+    - docs/research/specification-coverage/captures/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584/manifest.json
+    - docs/research/specification-coverage/captures/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584/snapshot.json
+    - implementations/python/packages/raes_contracts/contracts/bundle.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_security_resolution.py
+    - implementations/python/packages/raes_contracts/contracts/participant_flow_control.py
+    - implementations/python/packages/raes_contracts/contracts/participant_flow_control_context.py
+    - implementations/python/packages/raes_contracts/contracts/participant_flow_control_semantics.py
+    - implementations/python/packages/raes_contracts/contracts/participant_flow_control_validation.py
+    - implementations/python/packages/raes_contracts/contracts/participant_owner_flow.py
+    - implementations/python/packages/raes_contracts/contracts/participant_owner_flow_admission.py
+    - implementations/python/tests/test_issue_1370_ifc_admission.py
+    - implementations/python/tests/test_issue_1370_ifc_profiles.py
+    - implementations/python/tests/test_issue_1370_ifc_runtime.py
     # Issue #1352 semantic-design publication; no expanded runtime ownership.
     - docs/migration/control-applicability-and-evaluation.md
     - implementations/python/tests/test_issue_1352_governance.py

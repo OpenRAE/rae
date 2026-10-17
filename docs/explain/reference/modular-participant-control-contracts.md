@@ -422,3 +422,12 @@ not runtime-delivery claims.
 - [x] RUN-320: a known outcome closes its claim and appends its realization in one commit → `implementations/python/packages/raes_runtime/participant_control_records.py:52`.
 - [x] SEM-235: one definition of what a composition admits serves every consumer → `implementations/python/packages/raes_contracts/contracts/participant_control_composition.py:363`.
 - [x] RUN-320: the implicit SEM-233 resolver hook is replaced by an explicitly selected adapter → `implementations/python/packages/raes_runtime/control_plane_composition.py:38`.
+
+## Finite owner-qualified IFC profiles
+
+Issue #1370 publishes a separate, exact two-owner profile and provider/v2
+IFC facts with profile-owned obligations and admitted support promises. See
+[owner-qualified IFC](owner-qualified-ifc.md) for token meanings, trusted source/sink
+and per-obligation release resolution, negotiation, migration and exact limits.
+The original security profile is unchanged. Publication does not install a
+provider or imply external release realization.

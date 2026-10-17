@@ -1,0 +1,269 @@
+{
+  "schema_version": "requirement-scope/v1",
+  "issue_number": 1370,
+  "primary_requirement_uid": "API-424",
+  "requirement_uids": [
+    "API-424",
+    "GOV-913"
+  ],
+  "bindings": {
+    "contracts/fixtures/participant-runtime/participant-control-evaluation-v2/valid/owner-flow.json": [
+      "API-424"
+    ],
+    "contracts/fixtures/participant-runtime/participant-control-selection-v2/context-invalid/owner-missing-promise.json": [
+      "API-424"
+    ],
+    "contracts/fixtures/participant-runtime/participant-control-selection-v2/valid/owner-flow.json": [
+      "API-424"
+    ],
+    "contracts/fixtures/profiles/participant-owner-flow-policy-v1/invalid/reference.json": [
+      "API-424"
+    ],
+    "contracts/fixtures/profiles/participant-owner-flow-policy-v1/valid/reference.json": [
+      "API-424"
+    ],
+    "contracts/profiles/participant-boundary-flow-policy/participant-owner-flow-policy-v1.json": [
+      "API-424"
+    ],
+    "contracts/schema-publication/entries/participant-control-evaluation-v2.json": [
+      "API-424"
+    ],
+    "contracts/schema-publication/entries/participant-control-selection-v2.json": [
+      "API-424"
+    ],
+    "contracts/schema-publication/entries/participant-flow-control-relation-v1.json": [
+      "API-424"
+    ],
+    "contracts/schema-publication/entries/participant-owner-flow-policy-v1.json": [
+      "API-424"
+    ],
+    "contracts/schemas/participant-runtime/participant-control-evaluation-v2.json": [
+      "API-424"
+    ],
+    "contracts/schemas/participant-runtime/participant-control-selection-v2.json": [
+      "API-424"
+    ],
+    "contracts/schemas/participant-runtime/participant-flow-control-relation-v1.json": [
+      "API-424"
+    ],
+    "contracts/schemas/profiles/participant-owner-flow-policy-v1.json": [
+      "API-424"
+    ],
+    "docs/decisions/issue-1370-ifc-profile-admission-preflight.md": [
+      "API-424"
+    ],
+    "docs/explain/reference/modular-participant-control-contracts.md": [
+      "API-424"
+    ],
+    "docs/explain/reference/owner-qualified-ifc.md": [
+      "API-424"
+    ],
+    "docs/governance/requirement-scopes/1370.json": [
+      "API-424"
+    ],
+    "docs/migration/ifc-profile-variability.md": [
+      "API-424"
+    ],
+    "docs/public/participant-control.md": [
+      "API-424"
+    ],
+    "docs/requirements/API-424/requirement.md": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/capture-records/capture-7c2d72b89e8c354d612d925a006a81b21d52e8cf2e4272f47084e05f292cae53.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/capture-records/capture-8761c418d053e7f343f4102fba809b62cf2db8664801f58fee9124fe8d8f642c.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-7c2d72b89e8c354d612d925a006a81b21d52e8cf2e4272f47084e05f292cae53/analysis.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-7c2d72b89e8c354d612d925a006a81b21d52e8cf2e4272f47084e05f292cae53/manifest.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-7c2d72b89e8c354d612d925a006a81b21d52e8cf2e4272f47084e05f292cae53/snapshot.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-8761c418d053e7f343f4102fba809b62cf2db8664801f58fee9124fe8d8f642c/analysis.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-8761c418d053e7f343f4102fba809b62cf2db8664801f58fee9124fe8d8f642c/manifest.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-8761c418d053e7f343f4102fba809b62cf2db8664801f58fee9124fe8d8f642c/snapshot.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/capture-records/capture-60235550915502fe06d6eff38d1179868ac31286fb797d05df470e81d8c42aa2.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/capture-records/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/captures/capture-60235550915502fe06d6eff38d1179868ac31286fb797d05df470e81d8c42aa2/analysis.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/captures/capture-60235550915502fe06d6eff38d1179868ac31286fb797d05df470e81d8c42aa2/manifest.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/captures/capture-60235550915502fe06d6eff38d1179868ac31286fb797d05df470e81d8c42aa2/snapshot.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/captures/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584/analysis.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/captures/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584/manifest.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/captures/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584/snapshot.json": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_conformance/conformance/validators.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/__init__.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/_exports.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/bundle.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_applicability.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_composition.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_composition_v2.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_invocation.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_profiles.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_resolution.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_results.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_security_resolution.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_selection.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_support_v2.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_flow_control.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_flow_control_context.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_flow_control_semantics.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_flow_control_validation.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_owner_flow.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_owner_flow_admission.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/participant_flow_policy_profiles.py": [
+      "API-424"
+    ],
+    "implementations/python/tests/test_issue_1370_ifc_admission.py": [
+      "API-424"
+    ],
+    "implementations/python/tests/test_issue_1370_ifc_profiles.py": [
+      "API-424"
+    ],
+    "implementations/python/tests/test_issue_1370_ifc_runtime.py": [
+      "API-424"
+    ],
+    "tools/generate_contract_schemas.py": [
+      "API-424"
+    ],
+    "tools/policy/requirement_order.yaml": [
+      "API-424"
+    ],
+    "implementations/python/pyproject.toml": [
+      "GOV-913"
+    ],
+    "implementations/python/uv.lock": [
+      "GOV-913"
+    ],
+    "docs/requirements/GOV-913/requirement.md": [
+      "GOV-913"
+    ],
+    "docs/research/formal-semantic-validation/capture-records/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08/analysis.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08/manifest.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08/snapshot.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/capture-records/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/captures/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96/analysis.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/captures/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96/manifest.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/captures/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96/snapshot.json": [
+      "API-424"
+    ],
+    "implementations/tooling/python/smoke/linux-arm64-cp314.txt": [
+      "GOV-913"
+    ],
+    "implementations/tooling/python/smoke/linux-arm64-cp314.wheelhouse-manifest.json": [
+      "GOV-913"
+    ],
+    "implementations/tooling/python/smoke/linux-x86_64-cp311.txt": [
+      "GOV-913"
+    ],
+    "implementations/tooling/python/smoke/linux-x86_64-cp311.wheelhouse-manifest.json": [
+      "GOV-913"
+    ],
+    "implementations/tooling/python/smoke/linux-x86_64-cp312.txt": [
+      "GOV-913"
+    ],
+    "implementations/tooling/python/smoke/linux-x86_64-cp312.wheelhouse-manifest.json": [
+      "GOV-913"
+    ],
+    "implementations/tooling/python/smoke/linux-x86_64-cp313.txt": [
+      "GOV-913"
+    ],
+    "implementations/tooling/python/smoke/linux-x86_64-cp313.wheelhouse-manifest.json": [
+      "GOV-913"
+    ],
+    "implementations/tooling/python/smoke/linux-x86_64-cp314.txt": [
+      "GOV-913"
+    ],
+    "implementations/tooling/python/smoke/linux-x86_64-cp314.wheelhouse-manifest.json": [
+      "GOV-913"
+    ],
+    "implementations/tooling/python/smoke/macos-arm64-cp314.txt": [
+      "GOV-913"
+    ],
+    "implementations/tooling/python/smoke/macos-arm64-cp314.wheelhouse-manifest.json": [
+      "GOV-913"
+    ]
+  }
+}

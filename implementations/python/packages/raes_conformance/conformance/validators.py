@@ -60,6 +60,7 @@ from raes_contracts.contracts import (
     ParticipantLifecycleEventModel,
     ParticipantObservationEnvelopeModel,
     ParticipantOutcomeReportV2Model,
+    ParticipantOwnerFlowPolicyProfileModel,
     ParticipantSharedStateRecordModel,
     ProvisioningPlanModel,
     RuntimeFactBindingPlaneModel,
@@ -142,6 +143,7 @@ _MODEL_VALIDATORS = {
         ParticipantInformationReconstructionProfileModel.model_validate
     ),
     "participant-boundary-flow-policy-v1": ParticipantBoundaryFlowPolicyProfileModel.model_validate,
+    "participant-owner-flow-policy-v1": ParticipantOwnerFlowPolicyProfileModel.model_validate,
     "participant-shared-state-record-v1": ParticipantSharedStateRecordModel.model_validate,
     "participant-control-occurrence-v1": ParticipantControlOccurrenceModel.model_validate,
     "participant-crossing-occurrence-v1": ParticipantCrossingOccurrenceModel.model_validate,
