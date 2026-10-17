@@ -336,7 +336,7 @@ def _collect_stages(plane: RuntimeControlPlane, execution: MixedInvocation) -> N
     # Supervision owns and persists the observation control, its one-use
     # delivery and the shared outcome; the mixed services use that same control.
     _record, execution.outcome, control = observe_provider_outcome(plane, record, execution.remaining)
-    record = _reload(plane, execution)
+    _reload(plane, execution)
     if execution.outcome is not None:
         execution.effects_verified = (
             _external(

@@ -5,13 +5,14 @@ from __future__ import annotations
 from copy import deepcopy
 from dataclasses import replace
 from functools import partial
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.mixed_runtime import MixedCompositionRuntimeEventModel
 from raes_contracts.runtime_state import ApplyResult, OperationReceipt, OperationState, RuntimeSnapshot
 
 from .control_plane_participant_apply import apply_authorized_participant_action
+from .control_plane_store import ControlPlaneOperationRecord
 from .control_plane_store_snapshots import _snapshot_payload
 from .mixed_backend_invocation import MixedInvocation, _external, run_mixed_invocation
 from .mixed_runtime_state import append_runtime_events, runtime_state
@@ -23,7 +24,6 @@ if TYPE_CHECKING:
     from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 
     from .control_plane import RuntimeControlPlane
-    from .control_plane_store import ControlPlaneOperationRecord
     from .mixed_backend_installation import MixedBackendInstallation
     from .participant_crossing_boundary import _PreparedActionEffect
     from .participant_crossing_mediation import PreparedParticipantCrossing
@@ -41,7 +41,7 @@ def replay_action(plane: RuntimeControlPlane, crossing: PreparedParticipantCross
         heads = dict(crossing.record.decision_history_heads)
         state = runtime_state(plane._mixed_runtime, plane._snapshot)
         heads[f"mixed_composition_history:{state.run_id}"] = state.history_head
-        replay: ControlPlaneOperationRecord = replace(crossing.record, decision_history_heads=heads)
+        replay = cast(ControlPlaneOperationRecord, replace(crossing.record, decision_history_heads=heads))
         _require_same_idempotency_replay(existing, replay)
         return existing.receipt
     return None
@@ -233,4 +233,4 @@ def retain_mixed_invocation(
     released = not ledger.consumed or execution.release_commitment is not None
     ledger = ledger.model_copy(update={"reserved": not released, "release_commitment": execution.release_commitment})
     plane._execution_deadlines.pop(record.receipt.operation_id, None)
-    return replace(record, invocation=ledger)
+    return cast(ControlPlaneOperationRecord, replace(record, invocation=ledger))

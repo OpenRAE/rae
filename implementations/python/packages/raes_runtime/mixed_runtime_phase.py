@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import replace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from uuid import uuid4
 
 from raes_contracts.contracts.mixed_composition import MixedCompositionTransitionModel
@@ -317,7 +317,7 @@ def advance_mixed_composition(
     if invocation is not None:
         from .mixed_backend_action import retain_mixed_invocation
 
-        terminal = retain_mixed_invocation(control_plane, terminal, invocation)
+        terminal = retain_mixed_invocation(control_plane, cast(ControlPlaneOperationRecord, terminal), invocation)
     audit = AuditEvent(
         timestamp=terminal.status.updated_at,
         action="advance_mixed_composition",

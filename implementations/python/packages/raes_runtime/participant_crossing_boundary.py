@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from typing import cast
 
 from raes_contracts.contracts import ParticipantFlowSinkKind
 from raes_contracts.contracts.participant_crossing import (
@@ -16,6 +17,7 @@ from .control_plane_execution import apply_authorized_participant_action
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_mutation import control_plane_mutation, external_control_plane_call, mutation_entry
 from .control_plane_security import ControlPlaneIdentity
+from .control_plane_store import ControlPlaneOperationRecord
 from .mixed_runtime_dispatch import (
     PreparedMixedActionDispatch,
     prepare_mixed_action_dispatch,
@@ -412,6 +414,7 @@ def _commit_action_effect(
         decision_history_heads=authorization_expected_heads,
         result_history_heads=result_history_heads,
     )
+    record = cast(ControlPlaneOperationRecord, record)
     record = retain_action_invocation(control_plane, record, mixed_dispatch)
     audit = combined_crossing_audit(
         crossing.audit_event,
