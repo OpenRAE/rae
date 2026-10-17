@@ -747,6 +747,15 @@ ownership:
     - implementations/python/tests/participant_control_v2_fixtures.py
     - implementations/python/tests/test_issue_1069_provider_evaluation_v2.py
   modular-control-contracts:
+    # Issue #1370 replay against the synchronized development source.
+    - docs/research/formal-semantic-validation/capture-records/capture-f09d1363de99493a5b8584576cf7714d5ef7c56a990da8897ff774a416f7d0c8.json
+    - docs/research/formal-semantic-validation/captures/capture-f09d1363de99493a5b8584576cf7714d5ef7c56a990da8897ff774a416f7d0c8/analysis.json
+    - docs/research/formal-semantic-validation/captures/capture-f09d1363de99493a5b8584576cf7714d5ef7c56a990da8897ff774a416f7d0c8/manifest.json
+    - docs/research/formal-semantic-validation/captures/capture-f09d1363de99493a5b8584576cf7714d5ef7c56a990da8897ff774a416f7d0c8/snapshot.json
+    - docs/research/specification-coverage/capture-records/capture-496cb62f25e5257736f5f1f1a58ac39ac550346e7e69f7a0b900b9ef085709f2.json
+    - docs/research/specification-coverage/captures/capture-496cb62f25e5257736f5f1f1a58ac39ac550346e7e69f7a0b900b9ef085709f2/analysis.json
+    - docs/research/specification-coverage/captures/capture-496cb62f25e5257736f5f1f1a58ac39ac550346e7e69f7a0b900b9ef085709f2/manifest.json
+    - docs/research/specification-coverage/captures/capture-496cb62f25e5257736f5f1f1a58ac39ac550346e7e69f7a0b900b9ef085709f2/snapshot.json
     # Exact ownership of the authorized invalid-candidate removals in issue #1370.
     - docs/research/formal-semantic-validation/captures/capture-7c2d72b89e8c354d612d925a006a81b21d52e8cf2e4272f47084e05f292cae53/analysis.json
     - docs/research/formal-semantic-validation/captures/capture-7c2d72b89e8c354d612d925a006a81b21d52e8cf2e4272f47084e05f292cae53/manifest.json
