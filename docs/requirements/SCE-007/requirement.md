@@ -29,3 +29,7 @@ SCE-006 schedulers need a portable, falsifiable contract for clean initial state
 - IMPLEMENTS → SPEC `contracts/schemas/backend-manifest/backend-manifest-v2.json` (Backend manifest v2 cleanup capability schema)
 - TESTS → TEST `implementations/python/tests/test_sce_006_cleanup_contracts.py` (SCE-007 cleanup contract conformance tests)
 - IMPLEMENTS → GITHUB_ISSUE `658` (SCE-007 — Portable clean-state and cleanup contracts for trials)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/trial_cleanup.py` (Cleanup plan, receipt, and isolation models and the plan/receipt validator)
+- TESTS → TEST `implementations/python/tests/test_sce_006_batch_scheduler.py` (Batch receipt join accepts truthful cleanup failure and rejects false success)
+- TESTS → TEST `implementations/python/tests/test_sce_002_trial_realization.py` (Archival run join keeps truthful cleanup failure separate from the primary outcome)
+- IMPLEMENTS → GITHUB_ISSUE `1612` (fix(contracts): accept truthful required-cleanup failure receipts)

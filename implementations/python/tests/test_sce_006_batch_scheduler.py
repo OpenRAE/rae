@@ -317,26 +317,54 @@ def test_receipt_cross_artifact_validation_rejects(
         validate_batch_execution_receipt(plan, receipt, cleanup_receipt=cleanup_receipt)
 
 
-def test_failed_cleanup_cannot_be_reported_as_a_clean_successful_trial() -> None:
-    plan = _plan("minimal")
-    failed_cleanup = TrialCleanupReceiptModel(
-        schema_version="trial-cleanup-receipt/v1",
-        receipt_id="cleanup-receipt-1",
-        cleanup_plan_ref="cleanup-a",
-        plan_entry_id="entry-a",
-        run_id="run-a",
-        execution_attempt_id="attempt-1",
-        trial_outcome="succeeded",
-        cleanup_status="failed",
-        obligation_results={
+def _failed_cleanup_receipt(**overrides: object) -> TrialCleanupReceiptModel:
+    fields: dict[str, object] = {
+        "schema_version": "trial-cleanup-receipt/v1",
+        "receipt_id": "cleanup-receipt-1",
+        "cleanup_plan_ref": "cleanup-a",
+        "plan_entry_id": "entry-a",
+        "run_id": "run-a",
+        "execution_attempt_id": "attempt-1",
+        "trial_outcome": "succeeded",
+        "cleanup_status": "failed",
+        "obligation_results": {
             "destroy-range": CleanupObligationResultModel(
                 obligation_id="destroy-range", status="failed", residual_state_refs=["residual:node.vm-a"]
             )
         },
-    )
-    receipt = _receipt(plan)
-    with pytest.raises(ValueError, match="required cleanup obligation 'destroy-range' must succeed"):
-        validate_batch_execution_receipt(plan, receipt, cleanup_receipt=failed_cleanup)
+    }
+    fields.update(overrides)
+    return TrialCleanupReceiptModel(**fields)
+
+
+def test_successful_trial_with_truthful_failed_cleanup_is_reported_without_clean_state() -> None:
+    plan = _plan("minimal")
+    failed_cleanup = _failed_cleanup_receipt()
+
+    validate_batch_execution_receipt(plan, _receipt(plan), cleanup_receipt=failed_cleanup)
+
+    assert failed_cleanup.trial_outcome == "succeeded"
+    assert failed_cleanup.cleanup_status == "failed"
+    assert failed_cleanup.clean_state_claim is None
+
+
+def test_failed_cleanup_cannot_be_reported_as_a_clean_successful_trial() -> None:
+    plan = _plan("minimal")
+    # model_copy skips model validation, so the public join must reject the false success itself.
+    false_success = _failed_cleanup_receipt().model_copy(update={"cleanup_status": "succeeded"})
+
+    with pytest.raises(
+        ValueError, match="succeeded cleanup status requires required cleanup obligation 'destroy-range'"
+    ):
+        validate_batch_execution_receipt(plan, _receipt(plan), cleanup_receipt=false_success)
+
+
+def test_batch_receipt_rejects_suppressed_required_cleanup_result() -> None:
+    plan = _plan("minimal")
+    suppressed = _failed_cleanup_receipt(obligation_results={})
+
+    with pytest.raises(ValueError, match="required cleanup obligation 'destroy-range' is owed for trigger 'success'"):
+        validate_batch_execution_receipt(plan, _receipt(plan), cleanup_receipt=suppressed)
 
 
 # --- receipt builder ---------------------------------------------------------

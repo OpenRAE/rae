@@ -299,7 +299,9 @@ class TrialCleanupReceiptModel(ContractModel):
             json_schema,
             "trial-cleanup-receipt-binds-plan-and-required-outcomes",
             "A cleanup receipt keeps attempt identity distinct, reports cleanup independently from trial outcome, "
-            "covers every triggered required obligation, and permits clean-state claims only after verified success.",
+            "reports an attempted result for every required obligation owed by the terminal trigger, keeps results "
+            "consistent with obligation triggers, requires successful required results when cleanup succeeded, and "
+            "permits clean-state claims only after verified success.",
             validator="raes_contracts.contracts.validate_trial_cleanup_receipt",
             inputs=[
                 {"contract_id": "trial-cleanup-plan-v1", "instance_path": "#"},
@@ -316,6 +318,7 @@ _OUTCOME_TRIGGER: dict[TrialOutcome, CleanupTrigger] = {
     "timed-out": "timeout",
     "aborted": "abort",
 }
+_UNATTEMPTED_RESULT_STATUSES = frozenset({"skipped", "not-triggered"})
 
 
 def validate_trial_cleanup_receipt(plan: TrialCleanupPlanModel, receipt: TrialCleanupReceiptModel) -> None:
@@ -333,16 +336,43 @@ def validate_trial_cleanup_receipt(plan: TrialCleanupPlanModel, receipt: TrialCl
 
 
 def _validate_triggered_cleanup_results(plan: TrialCleanupPlanModel, receipt: TrialCleanupReceiptModel) -> None:
+    """Check result coverage and trigger consistency without assuming cleanup succeeded.
+
+    A receipt may truthfully report failed, partial, unsupported, or unverified
+    cleanup. Every required obligation owed by the terminal trigger still needs
+    an attempted result, and a successful cleanup status still needs every owed
+    required result to succeed.
+    """
+
     trigger = _OUTCOME_TRIGGER[receipt.trial_outcome]
-    triggered_required = {
-        obligation_id
-        for obligation_id, obligation in plan.cleanup_obligations.items()
-        if obligation.requirement == "required" and trigger in obligation.triggers
-    }
-    for obligation_id in sorted(triggered_required):
+    for obligation_id, obligation in sorted(plan.cleanup_obligations.items()):
+        if obligation.requirement != "required" or trigger not in obligation.triggers:
+            continue
         result = receipt.obligation_results.get(obligation_id)
-        if result is None or result.status != "succeeded":
-            raise ValueError(f"required cleanup obligation '{obligation_id}' must succeed for trigger '{trigger}'")
+        if result is None or result.status in _UNATTEMPTED_RESULT_STATUSES:
+            reported = "no result" if result is None else f"'{result.status}'"
+            raise ValueError(
+                f"required cleanup obligation '{obligation_id}' is owed for trigger '{trigger}' "
+                f"and must report an attempted outcome, not {reported}"
+            )
+        if receipt.cleanup_status == "succeeded" and result.status != "succeeded":
+            raise ValueError(
+                f"succeeded cleanup status requires required cleanup obligation '{obligation_id}' "
+                f"to succeed for trigger '{trigger}'"
+            )
+    for obligation_id, result in sorted(receipt.obligation_results.items()):
+        triggered = trigger in plan.cleanup_obligations[obligation_id].triggers
+        if triggered and result.status == "not-triggered":
+            raise ValueError(
+                f"cleanup obligation '{obligation_id}' is triggered by '{trigger}' and cannot be reported 'not-triggered'"
+            )
+        if not triggered and result.status != "not-triggered":
+            raise ValueError(
+                f"cleanup obligation '{obligation_id}' is not triggered by '{trigger}' "
+                "and can only be reported 'not-triggered'"
+            )
+        if receipt.cleanup_status == "succeeded" and result.status not in {"succeeded", "not-triggered"}:
+            raise ValueError(f"succeeded cleanup status cannot include unsuccessful result for '{obligation_id}'")
 
 
 def _validate_clean_state_claim_boundaries(plan: TrialCleanupPlanModel, receipt: TrialCleanupReceiptModel) -> None:
