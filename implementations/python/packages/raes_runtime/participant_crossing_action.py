@@ -2,6 +2,14 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from raes_contracts.runtime_state import OperationReceipt
+
+    from .control_plane import RuntimeControlPlane
+
+
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from typing import cast
@@ -10,6 +18,36 @@ from raes_contracts.runtime_state import OperationState, OperationStatus, operat
 
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
 from .participant_crossing_mediation import ParticipantCrossingEvidence, PreparedParticipantCrossing
+
+
+def commit_stale_action_result(
+    control_plane: RuntimeControlPlane, crossing: PreparedParticipantCrossing
+) -> OperationReceipt:
+    """Preserve intervening supervisory facts when native effect knowledge is stale."""
+
+    from raes_contracts.diagnostics import Diagnostic
+    from raes_contracts.runtime_state import ApplyResult
+
+    from .control_plane_store import TerminalCommitMode
+
+    result = ApplyResult(
+        False,
+        control_plane._snapshot,
+        diagnostics=[
+            Diagnostic(
+                code="runtime.participant-control.stale-effect-cut",
+                domain="runtime",
+                address=crossing.intent.participant_address,
+                message=(
+                    "The native result was evaluated before an intervening supervisory transition; "
+                    "its effects require resolution."
+                ),
+            )
+        ],
+    )
+    record = action_operation_record(crossing, result, terminal_state=OperationState.INDETERMINATE)
+    control_plane._commit_terminal_operation(control_plane._snapshot, record, mode=TerminalCommitMode.OPERATION_ONLY)
+    return record.receipt
 
 
 @dataclass(frozen=True)

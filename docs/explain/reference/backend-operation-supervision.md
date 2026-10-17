@@ -125,3 +125,8 @@ The packaged `fixtures/control-plane/` corpus groups exchanges by filename:
 relationships. Fixture evidence references are synthetic. A real implementation
 must resolve and validate actual evidence and pass runtime/backend conformance
 before these examples can support stronger claims.
+
+RUN-310 [reusable participant control](reusable-participant-control.md) joins an
+accepted cancellation occurrence to this invocation/control ledger. Its readback
+keeps control acceptance, backend disposition and validated work outcome
+separate, retaining unknown effects and the original one-use delivery budget.

@@ -20,7 +20,7 @@ from .control_plane_store_local_codec import encode_payload as _encode_payload
 from .control_plane_store_local_codec import transaction as _transaction
 from .control_plane_store_records import _record_from_payload, _record_payload
 from .inject_claims import require_inject_claim, require_inject_history
-from .operation_invocation_ledger import supervised_claim_conflicts
+from .operation_invocation_ledger import control_record_is_supervisory, supervised_claim_conflicts
 
 _OPERATION_RECORD_KIND = "operation record"
 
@@ -81,6 +81,7 @@ class LocalOperationRecordStoreMixin:
             if (
                 self._effect_admission_is_stopped(connection)
                 and record.status.context.operation_kind.value != "indeterminate-resolution"
+                and not control_record_is_supervisory(record)
             ):
                 _raise_new_claim_block("current-state")
             if mixed_claim_conflicts(record, self._load_records(connection).values()):

@@ -90,6 +90,7 @@ class ParticipantControlEpisodeFoldV2:
 
     state: ParticipantControlEpisodeStateV2
     violation: str | None = None
+    rejection_code: str | None = None
 
 
 def participant_control_record_advances_state(record: ParticipantControlOccurrenceV2Model) -> bool:

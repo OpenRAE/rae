@@ -4,8 +4,21 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SerializerFunctionWrapHandler,
+    TypeAdapter,
+    model_serializer,
+    model_validator,
+)
 from raes_contracts.contracts.participant_control import ParticipantControlTargetKind
+from raes_contracts.contracts.participant_control_coordinates import ControlCount
+
+from .participant_control_applications import ParticipantControlApplicationCoordinates
+
+_COUNT = TypeAdapter(ControlCount)
 
 
 class ParticipantControlIntentBase(BaseModel):
@@ -22,6 +35,23 @@ class ParticipantControlIntentBase(BaseModel):
     evidence_refs: list[str] = Field(min_length=1)
     object_marking_refs: list[str] = Field(min_length=1)
     limitation_refs: list[str] = Field(min_length=1)
+    application: ParticipantControlApplicationCoordinates | None = None
+
+    @model_serializer(mode="wrap")
+    def _serialize_intent(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        payload = handler(self)
+        if self.application is None:
+            payload.pop("application", None)
+        return payload
+
+    @model_validator(mode="before")
+    @classmethod
+    def _strict_application_revisions(cls, value: object) -> object:
+        if isinstance(value, dict) and value.get("application") is not None:
+            for field, coordinate in value.items():
+                if field.endswith("revision") and field != "policy_revision" and coordinate is not None:
+                    _COUNT.validate_python(coordinate)
+        return value
 
 
 class ParticipantProposalControlIntent(ParticipantControlIntentBase):
@@ -122,6 +152,14 @@ ParticipantControlIntent = Annotated[
     | ParticipantCancellationControlIntent,
     Field(discriminator="kind"),
 ]
+
+_INTENT_ADAPTER = TypeAdapter(ParticipantControlIntent)
+
+
+def detached_control_intent(intent: ParticipantControlIntent) -> ParticipantControlIntent:
+    """Revalidate closed alternatives and detach nested in-process caller data."""
+
+    return _INTENT_ADAPTER.validate_python(intent.model_dump(mode="json"))
 
 
 __all__ = (
