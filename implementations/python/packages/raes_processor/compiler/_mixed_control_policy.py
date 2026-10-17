@@ -26,6 +26,7 @@ from ..models import (
     MixedControlScriptStepRuntime,
     ParticipantBehaviorSpecificationRuntime,
     ParticipantInjectDeliveryControlRuntime,
+    RuntimeModel,
 )
 from ._mixed_control import _compile_controller_states, _compile_dispositions, _compile_mixed_control
 from .addresses import (
@@ -358,4 +359,25 @@ def occurrence_policy_projection(
     )
 
 
-__all__ = ["FIXED_COORDINATE_SEMANTICS", "mixed_control_semantics", "occurrence_policy_projection"]
+def project_control_episode_policy(
+    model: RuntimeModel, specification_ref: str, *, episode_id: str
+) -> ParticipantControlOccurrencePolicyModel:
+    """Project an admitted episode without exposing compiler-private identity indexes."""
+
+    from .alias_index import _runtime_addressable_ref_index
+
+    if model.realization_instance is None:
+        raise ValueError("control policy projection requires retained instantiated compiler context")
+    return occurrence_policy_projection(
+        model.behavior_specifications[specification_ref],
+        episode_id=episode_id,
+        addressable_ref_index=_runtime_addressable_ref_index(model.realization_instance),
+    )
+
+
+__all__ = [
+    "FIXED_COORDINATE_SEMANTICS",
+    "mixed_control_semantics",
+    "occurrence_policy_projection",
+    "project_control_episode_policy",
+]

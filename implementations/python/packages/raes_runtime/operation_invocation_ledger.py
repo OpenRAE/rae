@@ -120,7 +120,7 @@ def supervised_claim_conflicts(new: ControlPlaneOperationRecord, records: object
 
     records = tuple(records)
     context = new.status.context
-    if context.operation_kind.value == "indeterminate-resolution":
+    if context.operation_kind.value == "indeterminate-resolution" or control_record_is_supervisory(new):
         return False
     return any(
         record.invocation is not None
@@ -130,6 +130,16 @@ def supervised_claim_conflicts(new: ControlPlaneOperationRecord, records: object
         and (record.status.context.target_scope, record.status.context.run_scope)
         == (context.target_scope, context.run_scope)
         for record in records
+    )
+
+
+def control_record_is_supervisory(record: ControlPlaneOperationRecord) -> bool:
+    """A cancellation fact can claim no new dispatch grant or external effect."""
+
+    return (
+        record.receipt.context.operation_kind.value == "participant-control"
+        and record.invocation is None
+        and isinstance((record.result_payload or {}).get("participant_control_cancellation"), dict)
     )
 
 
