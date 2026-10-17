@@ -209,20 +209,20 @@ production provider installation or external release effect.
 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_flow_control_semantics.py` (Finite IFC contract publication and inherited flow validation)
 
-- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-7c2d72b89e8c354d612d925a006a81b21d52e8cf2e4272f47084e05f292cae53/manifest.json` (Fresh bounded corpus replay against the IFC contract source; no production realization claim)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-67ecf23e1e0070cc5bcedd0c14ff2a5ce55d1490695ccaf51eb6c4edc533ac78/manifest.json` (Fresh bounded corpus replay against the IFC contract source; no production realization claim)
 
 - DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584/manifest.json` (Fresh bounded corpus replay against the IFC contract source; no production realization claim)
 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_security_resolution.py` (Canonical exact security-fact joins shared by both protocol readers)
 
-- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-8761c418d053e7f343f4102fba809b62cf2db8664801f58fee9124fe8d8f642c/manifest.json` (Current source capture after extracting shared security-fact validation; bounded replay only)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-0f19062299f2723522ec155fe496249ce721fb1f38593c42079e01801c5d074e/manifest.json` (Current source capture after extracting shared security-fact validation; bounded replay only)
 
 - DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-60235550915502fe06d6eff38d1179868ac31286fb797d05df470e81d8c42aa2/manifest.json` (Current source capture after extracting shared security-fact validation; bounded replay only)
 
-- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/capture-records/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08.json` (Fresh bounded retained-corpus replay after the MCP SDK prerequisite repair; no new runtime realization claim)
-- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08/analysis.json` (Fresh bounded retained-corpus replay after the MCP SDK prerequisite repair; no new runtime realization claim)
-- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08/manifest.json` (Fresh bounded retained-corpus replay after the MCP SDK prerequisite repair; no new runtime realization claim)
-- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08/snapshot.json` (Fresh bounded retained-corpus replay after the MCP SDK prerequisite repair; no new runtime realization claim)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/capture-records/capture-35052af226b5ed96d6f7361467ef40b19d23bfcfc8b2d3c18288c101f6ebc4c7.json` (Fresh bounded retained-corpus replay after the MCP SDK prerequisite repair; no new runtime realization claim)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-35052af226b5ed96d6f7361467ef40b19d23bfcfc8b2d3c18288c101f6ebc4c7/analysis.json` (Fresh bounded retained-corpus replay after the MCP SDK prerequisite repair; no new runtime realization claim)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-35052af226b5ed96d6f7361467ef40b19d23bfcfc8b2d3c18288c101f6ebc4c7/manifest.json` (Fresh bounded retained-corpus replay after the MCP SDK prerequisite repair; no new runtime realization claim)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-35052af226b5ed96d6f7361467ef40b19d23bfcfc8b2d3c18288c101f6ebc4c7/snapshot.json` (Fresh bounded retained-corpus replay after the MCP SDK prerequisite repair; no new runtime realization claim)
 - DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/capture-records/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96.json` (Fresh bounded retained-corpus replay after the MCP SDK prerequisite repair; no new runtime realization claim)
 - DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96/analysis.json` (Fresh bounded retained-corpus replay after the MCP SDK prerequisite repair; no new runtime realization claim)
 - DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96/manifest.json` (Fresh bounded retained-corpus replay after the MCP SDK prerequisite repair; no new runtime realization claim)

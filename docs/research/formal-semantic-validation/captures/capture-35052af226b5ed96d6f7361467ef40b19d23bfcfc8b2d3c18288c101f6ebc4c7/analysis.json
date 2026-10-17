@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-1370-formal-analysis-7a2bff35b1f0",
+  "analysis_id": "issue-1370-formal-analysis-9244089e860f",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -40,6 +40,9 @@
       "case_count": 2,
       "claim_class_id": "schema-validity",
       "evidence_status": "demonstrated",
+      "limitations": [
+        "Bounded to the named source/model structural controls."
+      ],
       "matching_case_count": 2,
       "participant_obligation_count": 0,
       "replayable_case_count": 2,
@@ -49,6 +52,9 @@
       "case_count": 4,
       "claim_class_id": "semantic-consistency",
       "evidence_status": "partial",
+      "limitations": [
+        "Partial coverage of named static semantics and participant obligations, not universal consistency."
+      ],
       "matching_case_count": 4,
       "participant_obligation_count": 7,
       "replayable_case_count": 4,
@@ -58,6 +64,9 @@
       "case_count": 2,
       "claim_class_id": "graph-reachability",
       "evidence_status": "partial",
+      "limitations": [
+        "Partial workflow control-flow reachability only; not network, service, or exploit reachability."
+      ],
       "matching_case_count": 2,
       "participant_obligation_count": 0,
       "replayable_case_count": 2,
@@ -67,6 +76,9 @@
       "case_count": 4,
       "claim_class_id": "constraint-satisfiability",
       "evidence_status": "demonstrated",
+      "limitations": [
+        "Demonstrated only for raes-finite-domain-satisfiability-v1 and its pinned solver configuration."
+      ],
       "matching_case_count": 4,
       "participant_obligation_count": 0,
       "replayable_case_count": 2,
@@ -76,6 +88,9 @@
       "case_count": 4,
       "claim_class_id": "exploit-path-validity",
       "evidence_status": "demonstrated",
+      "limitations": [
+        "Demonstrated only for the admitted snapshot, typed graph, query, semantics, and bounded search profile."
+      ],
       "matching_case_count": 4,
       "participant_obligation_count": 0,
       "replayable_case_count": 2,
@@ -85,6 +100,9 @@
       "case_count": 2,
       "claim_class_id": "determinism-stability",
       "evidence_status": "partial",
+      "limitations": [
+        "Partial parse-to-compile repeatability only; runtime and backend determinism are untested."
+      ],
       "matching_case_count": 2,
       "participant_obligation_count": 0,
       "replayable_case_count": 2,
@@ -94,6 +112,9 @@
       "case_count": 2,
       "claim_class_id": "counterfactual-necessity",
       "evidence_status": "untested",
+      "limitations": [
+        "Untested because no governed intervention or ablation entrypoint ran."
+      ],
       "matching_case_count": 2,
       "participant_obligation_count": 0,
       "replayable_case_count": 0,
@@ -102,8 +123,8 @@
   ],
   "corpus_revision": "4.0.0",
   "evidence_status": "partial",
-  "execution_id": "issue-1370-formal-7a2bff35b1f0",
-  "generated_at": "2026-10-16T04:29:30.089268+00:00",
+  "execution_id": "issue-1370-formal-9244089e860f",
+  "generated_at": "2026-10-17T03:27:01.473520+00:00",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
     "The subset-minimal unsatisfiable core is not a universal proof certificate.",
