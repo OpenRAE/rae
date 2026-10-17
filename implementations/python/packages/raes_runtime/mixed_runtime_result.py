@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from raes_contracts.contracts.mixed_runtime import MixedCompositionRuntimeEventModel
 from raes_contracts.runtime_state import ApplyResult, OperationState, RuntimeSnapshot
@@ -11,6 +11,11 @@ from .mixed_runtime_dispatch import PreparedMixedActionDispatch, _runtime_event_
 from .mixed_runtime_edge import MixedBridgeExecutionEvidence, MixedEdgeExecutionCapture
 from .mixed_runtime_state import append_runtime_events, runtime_state
 from .participant_crossing_mediation import PreparedParticipantCrossing
+
+if TYPE_CHECKING:
+    from .control_plane import RuntimeControlPlane
+    from .control_plane_store import ControlPlaneOperationRecord
+    from .participant_crossing_boundary import _PreparedActionEffect
 
 _EventKind = Literal["result", "delivery", "observation", "weakening", "failure"]
 _Disposition = Literal["committed", "succeeded", "failed", "indeterminate"]
@@ -177,7 +182,12 @@ def mixed_action_terminal_state(
     return state
 
 
-def record_action_result(plane, snapshot, prepared, result):
+def record_action_result(
+    plane: RuntimeControlPlane,
+    snapshot: RuntimeSnapshot,
+    prepared: _PreparedActionEffect,
+    result: ApplyResult,
+) -> tuple[RuntimeSnapshot, OperationState]:
     """Keep each installed protocol's result validation with its owning contract."""
 
     dispatch = prepared.mixed_dispatch
@@ -194,7 +204,11 @@ def record_action_result(plane, snapshot, prepared, result):
     ), mixed_action_terminal_state(dispatch, result)
 
 
-def retain_action_invocation(plane, record, dispatch):
+def retain_action_invocation(
+    plane: RuntimeControlPlane,
+    record: ControlPlaneOperationRecord,
+    dispatch: PreparedMixedActionDispatch | None,
+) -> ControlPlaneOperationRecord:
     if dispatch is not None and dispatch.invocation is not None:
         from .mixed_backend_action import retain_mixed_invocation
 

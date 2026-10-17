@@ -78,7 +78,8 @@ class ControlPlaneConfiguration:
             and self.mixed_runtime.backend_installations
         ):
             raise ValueError(
-                "portable mixed execution requires local pinned services; remote mixed worker authority is not installed"
+                "portable mixed execution requires local pinned services; "
+                "remote mixed worker authority is not installed"
             )
         require_inject_resolver(self.inject_execution)
         _require_dispatcher_shape(self.distributed_execution)

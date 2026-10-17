@@ -5,18 +5,31 @@ from __future__ import annotations
 from copy import deepcopy
 from dataclasses import replace
 from functools import partial
+from typing import TYPE_CHECKING
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.mixed_runtime import MixedCompositionRuntimeEventModel
-from raes_contracts.runtime_state import ApplyResult, OperationState
+from raes_contracts.runtime_state import ApplyResult, OperationReceipt, OperationState, RuntimeSnapshot
 
 from .control_plane_participant_apply import apply_authorized_participant_action
 from .control_plane_store_snapshots import _snapshot_payload
-from .mixed_backend_invocation import _external, run_mixed_invocation
+from .mixed_backend_invocation import MixedInvocation, _external, run_mixed_invocation
 from .mixed_runtime_state import append_runtime_events, runtime_state
 
+if TYPE_CHECKING:
+    from raes_contracts.contracts.mixed_backend_stages import MixedBackendStage
+    from raes_contracts.contracts.mixed_composition import MixedCompositionAllocationModel
+    from raes_contracts.contracts.mixed_runtime import MixedCompositionRuntimeStateModel
+    from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 
-def replay_action(plane, crossing):
+    from .control_plane import RuntimeControlPlane
+    from .control_plane_store import ControlPlaneOperationRecord
+    from .mixed_backend_installation import MixedBackendInstallation
+    from .participant_crossing_boundary import _PreparedActionEffect
+    from .participant_crossing_mediation import PreparedParticipantCrossing
+
+
+def replay_action(plane: RuntimeControlPlane, crossing: PreparedParticipantCrossing) -> OperationReceipt | None:
     from .control_plane_store import _require_same_idempotency_replay
 
     if not crossing.record.idempotency_key:
@@ -28,12 +41,19 @@ def replay_action(plane, crossing):
         heads = dict(crossing.record.decision_history_heads)
         state = runtime_state(plane._mixed_runtime, plane._snapshot)
         heads[f"mixed_composition_history:{state.run_id}"] = state.history_head
-        _require_same_idempotency_replay(existing, replace(crossing.record, decision_history_heads=heads))
+        replay: ControlPlaneOperationRecord = replace(crossing.record, decision_history_heads=heads)
+        _require_same_idempotency_replay(existing, replay)
         return existing.receipt
     return None
 
 
-def prepare_backend_action(plane, portable, crossing, request, allocation):
+def prepare_backend_action(
+    plane: RuntimeControlPlane,
+    portable: MixedBackendInstallation,
+    crossing: PreparedParticipantCrossing,
+    request: ParticipantActionAdmissionRequest,
+    allocation: MixedCompositionAllocationModel,
+) -> MixedInvocation | None:
     from .mixed_backend_invocation import prepare_mixed_invocation
 
     subject = portable.binding.subject
@@ -46,7 +66,7 @@ def prepare_backend_action(plane, portable, crossing, request, allocation):
     return prepare_mixed_invocation(plane, portable, crossing.record, crossing.next_snapshot)
 
 
-def apply_mixed_backend_action(plane, prepared):
+def apply_mixed_backend_action(plane: RuntimeControlPlane, prepared: _PreparedActionEffect) -> ApplyResult:
     execution = prepared.mixed_dispatch.invocation
     predecessor = deepcopy(plane._snapshot)
     run_mixed_invocation(plane, execution)
@@ -58,38 +78,7 @@ def apply_mixed_backend_action(plane, prepared):
     )
     if execution.effects_verified and reference is not None:
         try:
-            native = _external(
-                plane,
-                execution,
-                execution.installation.evidence.resolve_result,
-                execution.ledger.request,
-                execution.outcome,
-                predecessor,
-                limit=plane._supervision.observation_ms,
-            )
-            if (
-                not isinstance(native, ApplyResult)
-                or reference.contract_id != "runtime-snapshot-v1"
-                or canonical_json_digest(_snapshot_payload(native.snapshot)) != reference.digest
-            ):
-                raise ValueError("mixed native result commitment mismatch")
-            result = _external(
-                plane,
-                execution,
-                partial(
-                    apply_authorized_participant_action,
-                    method=lambda _request, _snapshot: native,
-                    request=prepared.request,
-                    snapshot=predecessor,
-                    address=prepared.mixed_dispatch.address,
-                    information_state_context_resolver=plane._information_state_context_resolver,
-                ),
-                limit=plane._supervision.observation_ms,
-            )
-            if canonical_json_digest(_snapshot_payload(result.snapshot)) != reference.digest:
-                raise ValueError("mixed native result was rejected")
-            if execution.state is OperationState.SUCCEEDED and not result.success:
-                raise ValueError("mixed native release gates failed")
+            result = _validated_native_action(plane, prepared, predecessor, reference.contract_id, reference.digest)
             execution.native_validated = True
         except Exception:
             execution.state, execution.release_commitment = OperationState.INDETERMINATE, None
@@ -99,7 +88,56 @@ def apply_mixed_backend_action(plane, prepared):
     return result
 
 
-def record_mixed_backend_action(plane, snapshot, prepared):
+def _validated_native_action(
+    plane: RuntimeControlPlane,
+    prepared: _PreparedActionEffect,
+    predecessor: RuntimeSnapshot,
+    contract_id: str,
+    digest: str,
+) -> ApplyResult:
+    execution = prepared.mixed_dispatch.invocation
+    if execution.outcome is None:
+        raise ValueError("mixed native result requires its invocation outcome")
+    native = _external(
+        plane,
+        execution,
+        execution.installation.evidence.resolve_result,
+        execution.ledger.request,
+        execution.outcome,
+        predecessor,
+        limit=plane._supervision.observation_ms,
+    )
+    if (
+        not isinstance(native, ApplyResult)
+        or contract_id != "runtime-snapshot-v1"
+        or canonical_json_digest(_snapshot_payload(native.snapshot)) != digest
+    ):
+        raise ValueError("mixed native result commitment mismatch")
+    result = _external(
+        plane,
+        execution,
+        partial(
+            apply_authorized_participant_action,
+            method=lambda _request, _snapshot: native,
+            request=prepared.request,
+            snapshot=predecessor,
+            address=prepared.mixed_dispatch.address,
+            information_state_context_resolver=plane._information_state_context_resolver,
+        ),
+        limit=plane._supervision.observation_ms,
+    )
+    if canonical_json_digest(_snapshot_payload(result.snapshot)) != digest:
+        raise ValueError("mixed native result was rejected")
+    if execution.state is OperationState.SUCCEEDED and not result.success:
+        raise ValueError("mixed native release gates failed")
+    return result
+
+
+def record_mixed_backend_action(
+    plane: RuntimeControlPlane,
+    snapshot: RuntimeSnapshot,
+    prepared: _PreparedActionEffect,
+) -> RuntimeSnapshot:
     execution = prepared.mixed_dispatch.invocation
     binding = plane._mixed_runtime
     state = runtime_state(binding, snapshot)
@@ -129,12 +167,40 @@ def record_mixed_backend_action(plane, snapshot, prepared):
             "order_ref",
         )
     }
+    events = _action_events(execution, state, common)
+    return append_runtime_events(binding, snapshot, state, events)
+
+
+def _action_events(
+    execution: MixedInvocation,
+    state: MixedCompositionRuntimeStateModel,
+    common: dict[str, object],
+) -> list[MixedCompositionRuntimeEventModel]:
     stages = {report.stage.stage: report.stage for report in execution.ledger.mixed_reports}
     grant = stages.get("time-grant")
     if grant is not None and execution.post_time is not None:
         common["order_ref"] = grant.order_ref
     report = stages.get("execution")
     events = []
+    for kind, disposition, refs in _stage_specifications(execution, stages):
+        event = MixedCompositionRuntimeEventModel(
+            event_id=f"composition:{execution.ledger.request.binding.operation_id}:{kind}",
+            event_kind=kind,
+            disposition=disposition,
+            predecessor_event_id=events[-1].event_id if events else state.history_head,
+            evidence_refs=refs,
+            mapping_loss_refs=[] if report is None else list(report.mapping_loss_refs),
+            **common,
+        )
+        events.append(event)
+    return events
+
+
+def _stage_specifications(
+    execution: MixedInvocation,
+    stages: dict[str, MixedBackendStage],
+) -> list[tuple[str, str, list[str]]]:
+    report = stages.get("execution")
     disposition = {OperationState.SUCCEEDED: "succeeded", OperationState.FAILED: "failed"}.get(
         execution.state, "indeterminate"
     )
@@ -149,21 +215,14 @@ def record_mixed_backend_action(plane, snapshot, prepared):
         specifications.append(("delivery", "succeeded", list(stages["delivery"].evidence_refs)))
     if execution.native_validated and "observation" in stages:
         specifications.append(("observation", "committed", list(stages["observation"].evidence_refs)))
-    for kind, disposition, refs in specifications:
-        event = MixedCompositionRuntimeEventModel(
-            event_id=f"composition:{execution.ledger.request.binding.operation_id}:{kind}",
-            event_kind=kind,
-            disposition=disposition,
-            predecessor_event_id=events[-1].event_id if events else state.history_head,
-            evidence_refs=refs,
-            mapping_loss_refs=[] if report is None else list(report.mapping_loss_refs),
-            **common,
-        )
-        events.append(event)
-    return append_runtime_events(binding, snapshot, state, events)
+    return specifications
 
 
-def retain_mixed_invocation(plane, record, execution):
+def retain_mixed_invocation(
+    plane: RuntimeControlPlane,
+    record: ControlPlaneOperationRecord,
+    execution: MixedInvocation,
+) -> ControlPlaneOperationRecord:
     """Preserve concurrent controls and release only a fully validated terminal cut."""
 
     plane._reload_derived_state()

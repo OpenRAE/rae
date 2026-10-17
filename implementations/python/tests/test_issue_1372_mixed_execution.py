@@ -233,20 +233,22 @@ def test_retained_mixed_stages_and_cut_cannot_be_rewritten():
     try:
         receipt = execute(plane)
         ledger = plane._store.load_records()[receipt.operation_id].invocation
+        truncated = ledger.model_copy(update={"mixed_reports": ledger.mixed_reports[:-1]})
         with pytest.raises(ValueError, match="append-only"):
-            require_invocation_transition(
-                ledger, ledger.model_copy(update={"mixed_reports": ledger.mixed_reports[:-1]})
-            )
+            require_invocation_transition(ledger, truncated)
+        replaced_time = ledger.model_copy(update={"mixed_time_state": None})
         with pytest.raises(ValueError, match="immutable"):
-            require_invocation_transition(ledger, ledger.model_copy(update={"mixed_time_state": None}))
+            require_invocation_transition(ledger, replaced_time)
+        replaced_post_time = ledger.model_copy(update={"mixed_post_time_state": None})
         with pytest.raises(ValueError, match="immutable"):
-            require_invocation_transition(ledger, ledger.model_copy(update={"mixed_post_time_state": None}))
+            require_invocation_transition(ledger, replaced_post_time)
         report = ledger.mixed_reports[-1]
         changed = report.model_copy(update={"stage": report.stage.model_copy(update={"evidence_refs": ("forged",)})})
+        replaced_report = ledger.model_copy(update={"mixed_reports": (*ledger.mixed_reports, changed)})
+        payload = replaced_report.model_dump(mode="json")
+        model = type(ledger)
         with pytest.raises(ValueError, match="duplicate"):
-            type(ledger).model_validate(
-                ledger.model_copy(update={"mixed_reports": (*ledger.mixed_reports, changed)}).model_dump(mode="json")
-            )
+            model.model_validate(payload)
     finally:
         plane.close()
 
@@ -311,12 +313,13 @@ def test_mixed_distributed_installation_refuses_without_worker_authority():
 
     plane, _, _, _, _ = portable_plane()
     try:
+        dispatcher = Dispatcher()
         with pytest.raises(ValueError, match="mixed.*worker"):
             ControlPlaneConfiguration(
                 mixed_runtime=plane._mixed_runtime,
                 run_scope=plane._run_scope,
                 crossing_policy_resolver=plane._crossing_policy_resolver,
-                distributed_execution=Dispatcher(),
+                distributed_execution=dispatcher,
             )
     finally:
         plane.close()

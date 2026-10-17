@@ -414,7 +414,11 @@ def _poll_provider_outcome(
     _settle_provider_outcome(plane, native_request, record, predecessor, response, remaining)
 
 
-def observe_provider_outcome(plane, record, remaining):
+def observe_provider_outcome(
+    plane: RuntimeControlPlane,
+    record: ControlPlaneOperationRecord,
+    remaining: Callable[[], int],
+) -> tuple[ControlPlaneOperationRecord, BackendOperationResponseModel, BackendOperationControlModel]:
     """Observe through retained one-use controls under the caller's remaining budget."""
 
     while True:

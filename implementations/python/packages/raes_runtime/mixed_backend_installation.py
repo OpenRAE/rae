@@ -5,11 +5,17 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
+from typing import TYPE_CHECKING
 
 from raes_backend_protocols.mixed_backend import require_mixed_backend_service
 from raes_contracts.contracts import MixedBackendExecutionBindingModel, MixedBackendServiceModel
 
 from .operation_supervision_configuration import OperationEvidenceResolver
+
+if TYPE_CHECKING:
+    from raes_contracts.contracts.mixed_composition import MixedCompositionEdgeModel
+
+    from .mixed_runtime import MixedRuntimeBinding
 
 
 @dataclass(frozen=True)
@@ -82,3 +88,21 @@ def mixed_installation(plane: object, invocation: object) -> MixedBackendInstall
     if installed is None or installed.binding != declaration:
         raise ValueError("original mixed invocation installation is unavailable")
     return installed
+
+
+def action_installation(
+    binding: MixedRuntimeBinding,
+    edge: MixedCompositionEdgeModel | None,
+) -> MixedBackendInstallation | None:
+    """Select only the installation pinned to the admitted edge."""
+
+    if edge is None:
+        return None
+    return next(
+        (
+            item
+            for item in binding.backend_installations.values()
+            if item.binding.subject.kind == "edge" and item.binding.subject.edge_id == edge.edge_id
+        ),
+        None,
+    )

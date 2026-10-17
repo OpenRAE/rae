@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import replace
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from raes_contracts.contracts.mixed_composition import MixedCompositionTransitionModel
@@ -33,6 +34,9 @@ from .operation_reconciliation_ledger import valid_reconciliation_child
 
 _OUTSTANDING_STATES = {OperationState.ACCEPTED, OperationState.RUNNING, OperationState.INDETERMINATE}
 
+if TYPE_CHECKING:
+    from .mixed_backend_invocation import MixedInvocation
+
 
 def _mixed_runtime_is_quiescent(control_plane: object, run_id: str, history_key: str) -> bool:
     """Read the authoritative operation ledger for unresolved mixed effects."""
@@ -55,7 +59,10 @@ def _mixed_runtime_is_quiescent(control_plane: object, run_id: str, history_key:
 
 
 def _evaluate(
-    control_plane: object, transition: object, state: object, invocation=None
+    control_plane: object,
+    transition: object,
+    state: object,
+    invocation: MixedInvocation | None = None,
 ) -> MixedPhaseTransitionEvaluation:
     binding = control_plane._mixed_runtime
     evaluator = binding.transition_evaluators[transition.evaluator_ref]
@@ -274,29 +281,16 @@ def advance_mixed_composition(
     receipt, running, context = _phase_operation(
         control_plane, binding, transition_id, identity, idempotency_key, state, history_key
     )
-    if idempotency_key:
-        from .control_plane_store import _require_same_idempotency_replay
-
-        existing = control_plane._store.find_by_idempotency(idempotency_key, context=context)
-        if existing is not None:
-            _require_same_idempotency_replay(existing, running)
-            return existing.receipt
-    portable = next(
-        (
-            item
-            for item in binding.backend_installations.values()
-            if item.binding.subject.kind == "handoff" and item.binding.subject.transition_id == transition_id
-        ),
-        None,
+    running, invocation, refusal = _prepare_phase_start(
+        control_plane,
+        binding,
+        transition_id,
+        running,
+        context,
+        idempotency_key,
     )
-    invocation = None
-    if portable is not None:
-        from .mixed_backend_invocation import prepare_mixed_invocation, reject_mixed_admission
-
-        invocation = prepare_mixed_invocation(control_plane, portable, running, control_plane._snapshot)
-        if invocation is None:
-            return reject_mixed_admission(control_plane, running)
-        running = replace(running, invocation=invocation.ledger.model_copy(update={"consumed": True}))
+    if refusal is not None:
+        return refusal
     operation_id = receipt.operation_id
     source_matches = state.phase_id == transition.source_phase_id
     quiescent = _mixed_runtime_is_quiescent(control_plane, state.run_id, history_key)
@@ -307,28 +301,7 @@ def advance_mixed_composition(
     if claimed.receipt.operation_id != operation_id:
         return claimed.receipt
     evaluation = _evaluate(control_plane, transition, state, invocation)
-    if invocation is not None:
-        from .mixed_backend_invocation import confirm_no_dispatch, run_mixed_invocation
-
-        if evaluation.permitted:
-            run_mixed_invocation(control_plane, invocation)
-        else:
-            invocation.state = OperationState.INDETERMINATE if invocation.uncertain else OperationState.FAILED
-            if not invocation.uncertain:
-                confirm_no_dispatch(invocation)
-        reports = [item.stage for item in invocation.ledger.mixed_reports]
-        grant = next((stage for stage in reports if stage.stage == "time-grant"), None)
-        refs = tuple(dict.fromkeys(ref for stage in reports for ref in getattr(stage, "evidence_refs", ())))
-        handoff = _HandoffResolution(
-            invocation.state,
-            grant.order_ref if grant else "order:handoff-refused",
-            refs,
-            portable.binding.subject.destination_component_id if invocation.state is OperationState.SUCCEEDED else None,
-        )
-    else:
-        handoff = (
-            _perform_handoff(control_plane, binding, transition, state, operation_id) if evaluation.permitted else None
-        )
+    handoff = _execute_phase_handoff(control_plane, binding, transition, state, operation_id, evaluation, invocation)
     events, terminal_state, diagnostic = _phase_outcome(binding, transition, state, evaluation, operation_id, handoff)
     snapshot = append_runtime_events(binding, control_plane._snapshot, state, events)
     terminal = replace(
@@ -361,3 +334,74 @@ def advance_mixed_composition(
         audit_event=audit,
     )
     return receipt
+
+
+def _prepare_phase_start(
+    plane: object,
+    binding: MixedRuntimeBinding,
+    transition_id: str,
+    running: ControlPlaneOperationRecord,
+    context: OperationAdmissionContext,
+    idempotency_key: str,
+) -> tuple[ControlPlaneOperationRecord, MixedInvocation | None, OperationReceipt | None]:
+    if idempotency_key:
+        from .control_plane_store import _require_same_idempotency_replay
+
+        existing = plane._store.find_by_idempotency(idempotency_key, context=context)
+        if existing is not None:
+            _require_same_idempotency_replay(existing, running)
+            return running, None, existing.receipt
+    portable = next(
+        (
+            item
+            for item in binding.backend_installations.values()
+            if item.binding.subject.kind == "handoff" and item.binding.subject.transition_id == transition_id
+        ),
+        None,
+    )
+    invocation, refusal = None, None
+    if portable is not None:
+        from .mixed_backend_invocation import prepare_mixed_invocation, reject_mixed_admission
+
+        invocation = prepare_mixed_invocation(plane, portable, running, plane._snapshot)
+        if invocation is None:
+            refusal = reject_mixed_admission(plane, running)
+        else:
+            running = replace(running, invocation=invocation.ledger.model_copy(update={"consumed": True}))
+    return running, invocation, refusal
+
+
+def _execute_phase_handoff(
+    plane: object,
+    binding: MixedRuntimeBinding,
+    transition: MixedCompositionTransitionModel,
+    state: MixedCompositionRuntimeStateModel,
+    operation_id: str,
+    evaluation: MixedPhaseTransitionEvaluation,
+    invocation: MixedInvocation | None,
+) -> _HandoffResolution | None:
+    if invocation is None:
+        return _perform_handoff(plane, binding, transition, state, operation_id) if evaluation.permitted else None
+    from .mixed_backend_invocation import confirm_no_dispatch, run_mixed_invocation
+
+    if evaluation.permitted:
+        run_mixed_invocation(plane, invocation)
+    else:
+        invocation.state = OperationState.INDETERMINATE if invocation.uncertain else OperationState.FAILED
+        if not invocation.uncertain:
+            confirm_no_dispatch(invocation)
+    return _portable_handoff_resolution(invocation)
+
+
+def _portable_handoff_resolution(invocation: MixedInvocation) -> _HandoffResolution:
+    reports = [item.stage for item in invocation.ledger.mixed_reports]
+    grant = next((stage for stage in reports if stage.stage == "time-grant"), None)
+    refs = tuple(dict.fromkeys(ref for stage in reports for ref in getattr(stage, "evidence_refs", ())))
+    return _HandoffResolution(
+        invocation.state,
+        grant.order_ref if grant else "order:handoff-refused",
+        refs,
+        invocation.installation.binding.subject.destination_component_id
+        if invocation.state is OperationState.SUCCEEDED
+        else None,
+    )

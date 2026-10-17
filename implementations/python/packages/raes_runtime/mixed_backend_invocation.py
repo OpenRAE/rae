@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import dataclass
 from time import monotonic
+from typing import TYPE_CHECKING, TypeVar, cast
 from uuid import uuid4
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
+    BackendOperationCapabilitiesModel,
     BackendOperationRequestModel,
+    BackendOperationResponseModel,
     MixedBackendStageContext,
     MixedBackendStageReportModel,
     mixed_backend_binding_reference,
@@ -19,7 +23,7 @@ from raes_contracts.contracts import (
 from raes_contracts.contracts.mixed_backend_transcript import established_mixed_backend_state
 from raes_contracts.contracts.time_model import TimeRuntimeStateModel, validate_time_runtime_state
 from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.runtime_state import OperationState
+from raes_contracts.runtime_state import OperationReceipt, OperationState
 
 from .control_plane_execution import _utc_now
 from .control_plane_store_history import require_expected_history_heads
@@ -28,6 +32,16 @@ from .mixed_backend_installation import MixedBackendInstallation
 from .mixed_runtime_state import runtime_state
 from .operation_invocation_ledger import InvocationLedger
 from .operation_provider_execution import accept_response, observe_provider_outcome, provider_call
+
+if TYPE_CHECKING:
+    from raes_contracts.contracts import BackendOperationControlModel, MixedBackendServiceModel
+    from raes_contracts.runtime_state import RuntimeSnapshot
+
+    from .control_plane import RuntimeControlPlane
+    from .control_plane_store import ControlPlaneOperationRecord
+    from .operation_execution_adapter import Lane
+
+_T = TypeVar("_T")
 
 
 @dataclass
@@ -39,7 +53,7 @@ class MixedInvocation:
     deadline: float
     state: OperationState = OperationState.INDETERMINATE
     release_commitment: str | None = None
-    outcome: object | None = None
+    outcome: BackendOperationResponseModel | None = None
     post_time: TimeRuntimeStateModel | None = None
     dispatched: bool = False
     effects_verified: bool = False
@@ -53,7 +67,15 @@ class MixedInvocation:
         return budget if limit is None else min(limit, budget)
 
 
-def _external(plane, execution, method, *args, lane="effect", limit=None, uncertain_on_timeout=True):
+def _external(
+    plane: RuntimeControlPlane,
+    execution: MixedInvocation,
+    method: Callable[..., _T],
+    *args: object,
+    lane: Lane = "effect",
+    limit: int | None = None,
+    uncertain_on_timeout: bool = True,
+) -> _T:
     try:
         with plane._mutation_authority.external_call():
             return plane._execution_adapter.call(lane, method, *deepcopy(args), timeout_ms=execution.remaining(limit))
@@ -63,40 +85,50 @@ def _external(plane, execution, method, *args, lane="effect", limit=None, uncert
         raise
 
 
-def _context(plane, execution, *, post=None):
+def _context(
+    plane: RuntimeControlPlane,
+    execution: MixedInvocation,
+    *,
+    post: TimeRuntimeStateModel | None = None,
+) -> MixedBackendStageContext:
     ledger = execution.ledger
     time = execution.installation.binding.subject.time
     return MixedBackendStageContext(
         time_model=plane._mixed_runtime.context.time_models[time.time_model_ref],
         time_model_ref=time.time_model_ref,
         time_model_digest=time.time_model_digest,
-        time_state=ledger.mixed_time_state,
+        time_state=cast(TimeRuntimeStateModel, ledger.mixed_time_state),
         post_time_state=post,
         composition_state=ledger.mixed_composition_state,
     )
 
 
-def prepare_mixed_invocation(plane, installation, record, snapshot) -> MixedInvocation | None:
+def prepare_mixed_invocation(
+    plane: RuntimeControlPlane,
+    installation: MixedBackendInstallation,
+    record: ControlPlaneOperationRecord,
+    snapshot: RuntimeSnapshot,
+) -> MixedInvocation | None:
     declaration = installation.binding
     subject = declaration.subject
     pin = subject.bridge if subject.kind == "edge" else subject.transfer
     budget = plane._supervision.execution_ms
     request = BackendOperationRequestModel(
-        binding=dict(
-            operation_id=record.receipt.operation_id,
-            invocation_id=str(uuid4()),
-            attempt_id=str(uuid4()),
-            worker_id=f"local:{plane._deployment_id}",
-            deployment_id=plane._deployment_id,
-            owner_generation=plane._execution_generation,
-            execution_generation=1,
-            backend_id=pin.service_ref,
-            baseline_revision=str(plane._snapshot_state.revision),
-            context=record.receipt.context,
-        ),
+        binding={
+            "operation_id": record.receipt.operation_id,
+            "invocation_id": str(uuid4()),
+            "attempt_id": str(uuid4()),
+            "worker_id": f"local:{plane._deployment_id}",
+            "deployment_id": plane._deployment_id,
+            "owner_generation": plane._execution_generation,
+            "execution_generation": 1,
+            "backend_id": pin.service_ref,
+            "baseline_revision": str(plane._snapshot_state.revision),
+            "context": record.receipt.context,
+        },
         command=mixed_backend_binding_reference(declaration),
         required_guarantees=("effect-observation", "cessation-evidence"),
-        budget=dict(origin_id=str(uuid4()), started_at=_utc_now(), limit_ms=budget, remaining_ms=budget),
+        budget={"origin_id": str(uuid4()), "started_at": _utc_now(), "limit_ms": budget, "remaining_ms": budget},
     )
     time_state = snapshot.time_model_state
     if time_state is None:
@@ -118,7 +150,7 @@ def prepare_mixed_invocation(plane, installation, record, snapshot) -> MixedInvo
     return execution
 
 
-def reject_mixed_admission(plane, record):
+def reject_mixed_admission(plane: RuntimeControlPlane, record: ControlPlaneOperationRecord) -> OperationReceipt:
     return plane._reject_diagnostics(
         domain=record.receipt.domain,
         context=record.receipt.context,
@@ -133,7 +165,12 @@ def reject_mixed_admission(plane, record):
     )
 
 
-def _admit(plane, execution, *, record=None):
+def _admit(
+    plane: RuntimeControlPlane,
+    execution: MixedInvocation,
+    *,
+    record: ControlPlaneOperationRecord | None = None,
+) -> None:
     provider, request = execution.installation.provider, execution.ledger.request
     installed = _external(plane, execution, provider.execution_binding, limit=plane._supervision.admission_ms)
     if installed != execution.installation.binding:
@@ -152,6 +189,8 @@ def _admit(plane, execution, *, record=None):
         allowed={"admission"},
         budget_ms=execution.remaining(plane._supervision.admission_ms),
     )
+    caps = cast(BackendOperationCapabilitiesModel, caps)
+    response = cast(BackendOperationResponseModel, response)
     require_mixed_backend_admission(execution.installation.binding, request, caps, response)
     if record is None:
         execution.ledger = execution.ledger.model_copy(update={"responses": (response,)})
@@ -159,7 +198,7 @@ def _admit(plane, execution, *, record=None):
         accept_response(plane, record, response)
 
 
-def _reload(plane, execution):
+def _reload(plane: RuntimeControlPlane, execution: MixedInvocation) -> ControlPlaneOperationRecord:
     plane._reload_derived_state()
     record = plane._operations[execution.ledger.request.binding.operation_id]
     if (
@@ -174,7 +213,12 @@ def _reload(plane, execution):
     return record
 
 
-def _probe(plane, execution, method, **kwargs):
+def _probe(
+    plane: RuntimeControlPlane,
+    execution: MixedInvocation,
+    method: Callable[..., object],
+    **kwargs: object,
+) -> BackendOperationCapabilitiesModel | BackendOperationResponseModel:
     try:
         return provider_call(plane, method, **kwargs)
     except TimeoutError:
@@ -182,7 +226,7 @@ def _probe(plane, execution, method, **kwargs):
         raise
 
 
-def _time_readback(plane, execution):
+def _time_readback(plane: RuntimeControlPlane, execution: MixedInvocation) -> TimeRuntimeStateModel:
     value = _external(
         plane,
         execution,
@@ -198,64 +242,19 @@ def _time_readback(plane, execution):
     return value
 
 
-def run_mixed_invocation(plane, execution):
+def run_mixed_invocation(plane: RuntimeControlPlane, execution: MixedInvocation) -> None:
     """Consume once, collect independent evidence and leave publication to the owning path."""
 
-    record = _reload(plane, execution)
+    _reload(plane, execution)
     try:
-        try:
-            _admit(plane, execution, record=record)
-        except Exception:
-            execution.state = OperationState.INDETERMINATE if execution.uncertain else OperationState.CANCELLED
-            return
-        record = _reload(plane, execution)
-        if record.status.state is not OperationState.RUNNING or plane._effect_admission_stopped:
-            execution.state = OperationState.INDETERMINATE if execution.uncertain else OperationState.CANCELLED
-            return
-        if _time_readback(plane, execution) != execution.ledger.mixed_time_state:
-            raise ValueError("mixed time cut changed before dispatch")
-        subject = execution.installation.binding.subject
-        grant = _external(
-            plane,
-            execution,
-            execution.installation.service(subject.time.coordinator).grant,
-            execution.ledger.request,
-            execution.ledger.mixed_time_state,
-            limit=plane._supervision.admission_ms,
-        )
-        _retain(plane, execution, grant, subject.time.coordinator, "time-grant")
-        if grant.stage.comparison != "ordered":
-            execution.state = OperationState.FAILED
-            return
-        try:
-            _admit(plane, execution, record=_reload(plane, execution))
-        except Exception:
-            execution.state = OperationState.INDETERMINATE if execution.uncertain else OperationState.CANCELLED
-            return
-        record = _reload(plane, execution)
-        if record.status.state is not OperationState.RUNNING or plane._effect_admission_stopped:
-            execution.state = OperationState.CANCELLED
-            return
-        running = record
-        plane._execution_deadlines[record.receipt.operation_id] = execution.deadline
-        execution.dispatched = True
-        response = provider_call(
-            plane,
-            execution.installation.provider.start_operation,
-            request=execution.ledger.request,
-            allowed={"acknowledgement"},
-            budget_ms=execution.remaining(),
-        )
-        accept_response(plane, running, response)
-        if response.message.disposition != "accepted":
-            return
-        _collect_stages(plane, execution)
+        if _admit_running(plane, execution) and _coordinate_dispatch(plane, execution):
+            _dispatch(plane, execution)
     except Exception:
         if plane._durability_poisoned:
             raise
         # A non-consumed grant proves no invocation; consumed or timed-out work
         # retains its reservation and every authenticated fact collected so far.
-        record = _reload(plane, execution)
+        _reload(plane, execution)
         execution.state = (
             OperationState.INDETERMINATE if execution.dispatched or execution.uncertain else OperationState.FAILED
         )
@@ -265,7 +264,65 @@ def run_mixed_invocation(plane, execution):
             confirm_no_dispatch(execution)
 
 
-def confirm_no_dispatch(execution):
+def _admit_running(
+    plane: RuntimeControlPlane,
+    execution: MixedInvocation,
+    *,
+    uncertain_state: bool = True,
+) -> bool:
+    try:
+        _admit(plane, execution, record=_reload(plane, execution))
+    except Exception:
+        execution.state = OperationState.INDETERMINATE if execution.uncertain else OperationState.CANCELLED
+        return False
+    record = _reload(plane, execution)
+    if record.status.state is not OperationState.RUNNING or plane._effect_admission_stopped:
+        execution.state = (
+            OperationState.INDETERMINATE if uncertain_state and execution.uncertain else OperationState.CANCELLED
+        )
+        return False
+    return True
+
+
+def _coordinate_dispatch(plane: RuntimeControlPlane, execution: MixedInvocation) -> bool:
+    if _time_readback(plane, execution) != execution.ledger.mixed_time_state:
+        raise ValueError("mixed time cut changed before dispatch")
+    subject = execution.installation.binding.subject
+    grant = _external(
+        plane,
+        execution,
+        execution.installation.service(subject.time.coordinator).grant,
+        execution.ledger.request,
+        execution.ledger.mixed_time_state,
+        limit=plane._supervision.admission_ms,
+    )
+    _retain(plane, execution, grant, subject.time.coordinator, "time-grant")
+    if grant.stage.comparison != "ordered":
+        execution.state = OperationState.FAILED
+        return False
+    return _admit_running(plane, execution, uncertain_state=False)
+
+
+def _dispatch(plane: RuntimeControlPlane, execution: MixedInvocation) -> None:
+    record = _reload(plane, execution)
+    plane._execution_deadlines[record.receipt.operation_id] = execution.deadline
+    execution.dispatched = True
+    response = cast(
+        BackendOperationResponseModel,
+        provider_call(
+            plane,
+            execution.installation.provider.start_operation,
+            request=execution.ledger.request,
+            allowed={"acknowledgement"},
+            budget_ms=execution.remaining(),
+        ),
+    )
+    accept_response(plane, record, response)
+    if response.message.disposition == "accepted":
+        _collect_stages(plane, execution)
+
+
+def confirm_no_dispatch(execution: MixedInvocation) -> None:
     execution.release_commitment = canonical_json_digest(
         {
             "request": execution.ledger.request.model_dump(mode="json"),
@@ -274,7 +331,7 @@ def confirm_no_dispatch(execution):
     )
 
 
-def _collect_stages(plane, execution):
+def _collect_stages(plane: RuntimeControlPlane, execution: MixedInvocation) -> None:
     record = _reload(plane, execution)
     # Supervision owns and persists the observation control, its one-use
     # delivery and the shared outcome; the mixed services use that same control.
@@ -304,11 +361,14 @@ def _collect_stages(plane, execution):
     if not isinstance(reports, tuple) or len(reports) > 64:
         raise ValueError("mixed provider stage reports exceed the transcript bound")
     # Validate the stages before checking a provider's proposed terminal state.
-    outcome = execution.outcome
     producer = subject.bridge if subject.kind == "edge" else subject.transfer
     for report in reports:
         _retain(plane, execution, report, producer, "execution" if subject.kind == "edge" else "handoff")
     _read_stages(plane, execution, control, reports)
+    _settle_stages(plane, execution)
+
+
+def _settle_stages(plane: RuntimeControlPlane, execution: MixedInvocation) -> None:
     try:
         execution.post_time = _time_readback(plane, execution)
     except Exception:
@@ -326,19 +386,24 @@ def _collect_stages(plane, execution):
         context=_context(plane, execution, post=execution.post_time),
         controls=execution.ledger.controls,
     )
-    if outcome is None:
-        execution.state = OperationState.INDETERMINATE
-        return
-    if not execution.effects_verified or execution.uncertain:
-        execution.state = OperationState.INDETERMINATE
-        return
-    if outcome.message.proposed_state is not execution.state:
+    outcome = execution.outcome
+    if (
+        outcome is None
+        or not execution.effects_verified
+        or execution.uncertain
+        or outcome.message.proposed_state is not execution.state
+    ):
         execution.state = OperationState.INDETERMINATE
     if execution.state in {OperationState.SUCCEEDED, OperationState.FAILED}:
         execution.release_commitment = canonical_json_digest(outcome.message.effects.model_dump(mode="json"))
 
 
-def _read_stages(plane, execution, control, reports):
+def _read_stages(
+    plane: RuntimeControlPlane,
+    execution: MixedInvocation,
+    control: BackendOperationControlModel,
+    reports: tuple[MixedBackendStageReportModel, ...],
+) -> None:
     subject = execution.installation.binding.subject
     if not reports or (subject.kind == "edge" and reports[0].stage.status == "failed"):
         return
@@ -367,7 +432,13 @@ def _read_stages(plane, execution, control, reports):
         _retain(plane, execution, report, pin, kind)
 
 
-def _retain(plane, execution, report, producer, kind):
+def _retain(
+    plane: RuntimeControlPlane,
+    execution: MixedInvocation,
+    report: MixedBackendStageReportModel,
+    producer: MixedBackendServiceModel,
+    kind: str,
+) -> None:
     # Terminal proposals are retained honestly but cannot erase earlier stages
     # when an overclaim or missing later reader is detected.
     record = _reload(plane, execution)

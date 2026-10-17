@@ -14,6 +14,7 @@ from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.runtime_state import ApplyResult, OperationReceipt, RuntimeSnapshot
 
 from .control_plane_security import ControlPlaneIdentity
+from .mixed_backend_installation import action_installation
 from .mixed_backend_invocation import MixedInvocation, reject_mixed_admission
 from .mixed_runtime_edge import MixedEdgeExecutionCapture
 from .mixed_runtime_edge_execution import _edge_action_dispatch
@@ -268,14 +269,7 @@ def prepare_mixed_action_dispatch(
     operation_id = crossing.record.receipt.operation_id
     capture = None
     stage_readback = None
-    portable = next(
-        (
-            item
-            for item in binding.backend_installations.values()
-            if item.binding.subject.kind == "edge" and edge is not None and item.binding.subject.edge_id == edge.edge_id
-        ),
-        None,
-    )
+    portable = action_installation(binding, edge)
     invocation = None
     if portable is not None:
         from .mixed_backend_action import prepare_backend_action
