@@ -177,6 +177,31 @@ def mixed_action_terminal_state(
     return state
 
 
+def record_action_result(plane, snapshot, prepared, result):
+    """Keep each installed protocol's result validation with its owning contract."""
+
+    dispatch = prepared.mixed_dispatch
+    if dispatch is not None and dispatch.invocation is not None:
+        from .mixed_backend_action import record_mixed_backend_action
+
+        return record_mixed_backend_action(plane, snapshot, prepared), dispatch.invocation.state
+    return record_mixed_action_result(
+        plane,
+        snapshot,
+        prepared.crossing,
+        success=result.success,
+        capture=dispatch.capture if dispatch is not None else None,
+    ), mixed_action_terminal_state(dispatch, result)
+
+
+def retain_action_invocation(plane, record, dispatch):
+    if dispatch is not None and dispatch.invocation is not None:
+        from .mixed_backend_action import retain_mixed_invocation
+
+        return retain_mixed_invocation(plane, record, dispatch.invocation)
+    return record
+
+
 def _captured_action_terminal_state(capture: MixedEdgeExecutionCapture, result: ApplyResult) -> OperationState:
     report = capture.bridge
     if report is None:

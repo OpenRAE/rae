@@ -410,6 +410,13 @@ def _poll_provider_outcome(
     predecessor: RuntimeSnapshot,
     remaining: Callable[[], int],
 ) -> None:
+    record, response, _control = observe_provider_outcome(plane, record, remaining)
+    _settle_provider_outcome(plane, native_request, record, predecessor, response, remaining)
+
+
+def observe_provider_outcome(plane, record, remaining):
+    """Observe through retained one-use controls under the caller's remaining budget."""
+
     while True:
         response_cursor = len(record.invocation.responses)
         control = plane.supervise_operation(
@@ -431,8 +438,7 @@ def _poll_provider_outcome(
         if control.control_id not in record.invocation.delivered_controls or response is None:
             raise ValueError("operation observation is unavailable")
         if response.message.kind == "outcome":
-            _settle_provider_outcome(plane, native_request, record, predecessor, response, remaining)
-            return
+            return record, response, control
         if response.message.kind in {"control", "reconciliation"}:
             raise ValueError("operation outcome could not be established")
         with plane._mutation_authority.external_call():

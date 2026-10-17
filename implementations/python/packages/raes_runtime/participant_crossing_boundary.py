@@ -20,7 +20,7 @@ from .mixed_runtime_dispatch import (
     PreparedMixedActionDispatch,
     prepare_mixed_action_dispatch,
 )
-from .mixed_runtime_result import mixed_action_terminal_state, record_mixed_action_result
+from .mixed_runtime_result import record_action_result, retain_action_invocation
 from .participant_control_intents import ParticipantControlIntent, ParticipantControlIntentBase
 from .participant_control_mediation import (
     bind_participant_control_request,
@@ -299,11 +299,18 @@ def _prepare_action_effect(
     governed = _governed_action_request(control_plane, crossing, request)
     _require_action_binding(behavior, governed)
     _require_governed_subject(crossing, _action_subject(control_plane, governed))
+    from .mixed_backend_action import replay_action
+
+    replay = replay_action(control_plane, crossing)
+    if replay is not None:
+        return _PreparedActionEffect(crossing=crossing, early_receipt=replay)
+    dispatch = prepare_mixed_action_dispatch(control_plane, governed, crossing, sink_decision)
     return _PreparedActionEffect(
         crossing=crossing,
         request=governed,
-        mixed_dispatch=prepare_mixed_action_dispatch(control_plane, governed, crossing, sink_decision),
+        mixed_dispatch=dispatch,
         sink_decision=sink_decision,
+        early_receipt=dispatch.refusal if dispatch is not None else None,
     )
 
 
@@ -313,18 +320,21 @@ def _authorize_action_effect(
 ) -> tuple[OperationReceipt | None, dict[str, str | None]]:
     crossing = prepared.crossing
     mixed = prepared.mixed_dispatch
+    portable = mixed.invocation if mixed is not None else None
     snapshot = mixed.snapshot if mixed is not None else crossing.next_snapshot
     expected_heads = mixed.expected_history_heads if mixed is not None else crossing.expected_history_heads
     result_heads = mixed.committed_history_heads if mixed is not None else crossing.record.result_history_heads
     authorization = replace(
         crossing.record,
         status=replace(crossing.record.status, state=OperationState.RUNNING),
+        invocation=portable.ledger.model_copy(update={"consumed": True}) if portable else None,
         decision_history_heads=expected_heads,
         result_history_heads=result_heads,
     )
     accepted = replace(
         authorization,
         status=replace(authorization.status, state=OperationState.ACCEPTED, diagnostics=[], changed_addresses=[]),
+        invocation=portable.ledger if portable else None,
     )
     claimed = control_plane._claim_record(accepted)
     if claimed.receipt.operation_id != accepted.receipt.operation_id:
@@ -353,6 +363,10 @@ def _apply_action_effect(
     execution: ActionIngressExecution,
 ) -> ApplyResult:
     mixed = prepared.mixed_dispatch
+    if mixed is not None and mixed.invocation is not None:
+        from .mixed_backend_action import apply_mixed_backend_action
+
+        return apply_mixed_backend_action(control_plane, prepared)
     with control_plane._mutation_authority.external_call():
         result = apply_authorized_participant_action(
             method=mixed.method if mixed is not None else execution.method,
@@ -387,14 +401,7 @@ def _commit_action_effect(
         dict(result.snapshot.entries),
         participant_crossing_history=crossing.next_snapshot.participant_crossing_history,
     )
-    next_snapshot = record_mixed_action_result(
-        control_plane,
-        next_snapshot,
-        crossing,
-        success=result.success,
-        capture=mixed_dispatch.capture if mixed_dispatch is not None else None,
-    )
-    terminal_state = mixed_action_terminal_state(mixed_dispatch, result)
+    next_snapshot, terminal_state = record_action_result(control_plane, next_snapshot, prepared, result)
     result_history_heads = _expected_history_heads(next_snapshot, request.participant_address)
     if mixed_dispatch is not None:
         result_history_heads[f"mixed_composition_history:{control_plane._mixed_runtime.entry.run_id}"] = (
@@ -405,6 +412,7 @@ def _commit_action_effect(
         decision_history_heads=authorization_expected_heads,
         result_history_heads=result_history_heads,
     )
+    record = retain_action_invocation(control_plane, record, mixed_dispatch)
     audit = combined_crossing_audit(
         crossing.audit_event,
         crossing,

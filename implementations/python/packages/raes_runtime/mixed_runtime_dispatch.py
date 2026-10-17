@@ -11,11 +11,12 @@ from raes_contracts.contracts.mixed_runtime import (
     MixedCompositionRuntimeStateModel,
 )
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
-from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
+from raes_contracts.runtime_state import ApplyResult, OperationReceipt, RuntimeSnapshot
 
 from .control_plane_security import ControlPlaneIdentity
+from .mixed_backend_invocation import MixedInvocation, reject_mixed_admission
 from .mixed_runtime_edge import MixedEdgeExecutionCapture
-from .mixed_runtime_edge_execution import _mapped_edge_method, _stage_readback_method
+from .mixed_runtime_edge_execution import _edge_action_dispatch
 from .mixed_runtime_state import append_runtime_events, runtime_state
 from .participant_crossing_mediation import PreparedParticipantCrossing
 from .participant_flow_sink import ParticipantFlowSinkDecision
@@ -33,6 +34,8 @@ class PreparedMixedActionDispatch:
     committed_history_heads: dict[str, str | None]
     capture: MixedEdgeExecutionCapture | None = None
     stage_readback: Callable[[ApplyResult], None] | None = None
+    invocation: MixedInvocation | None = None
+    refusal: OperationReceipt | None = None
 
 
 @dataclass(frozen=True)
@@ -265,7 +268,29 @@ def prepare_mixed_action_dispatch(
     operation_id = crossing.record.receipt.operation_id
     capture = None
     stage_readback = None
-    if edge is not None:
+    portable = next(
+        (
+            item
+            for item in binding.backend_installations.values()
+            if item.binding.subject.kind == "edge" and edge is not None and item.binding.subject.edge_id == edge.edge_id
+        ),
+        None,
+    )
+    invocation = None
+    if portable is not None:
+        from .mixed_backend_action import prepare_backend_action
+
+        invocation = prepare_backend_action(control_plane, portable, crossing, request, allocation)
+        if invocation is None:
+            return PreparedMixedActionDispatch(
+                method,
+                "runtime.control-plane",
+                crossing.next_snapshot,
+                {},
+                {},
+                refusal=reject_mixed_admission(control_plane, crossing.record),
+            )
+    elif edge is not None:
         method, capture, stage_readback = _edge_action_dispatch(
             binding, edge, request, allocation, method, operation_id
         )
@@ -308,29 +333,8 @@ def prepare_mixed_action_dispatch(
         committed_history_heads=committed,
         capture=capture,
         stage_readback=stage_readback,
+        invocation=invocation,
     )
-
-
-def _edge_action_dispatch(
-    binding: object,
-    edge: object,
-    request: ParticipantActionAdmissionRequest,
-    allocation: MixedCompositionAllocationModel,
-    method: Callable[..., object],
-    operation_id: str,
-) -> tuple[Callable[..., object], MixedEdgeExecutionCapture, Callable[[ApplyResult], None]]:
-    if edge.edge_id not in binding.edge_bindings:
-        raise ValueError("mixed action dispatch requires an executable edge binding")
-    installed = binding.edge_bindings[edge.edge_id]
-    if (installed.source_action_address, installed.destination_action_address) != (
-        request.action_contract_address,
-        allocation.target_address,
-    ):
-        raise ValueError("mixed destination action differs from admitted policy and provider allocation")
-    capture = MixedEdgeExecutionCapture()
-    mapped = _mapped_edge_method(binding, edge, installed, method, operation_id, capture)
-    readback = _stage_readback_method(binding, edge, installed, request, operation_id, capture)
-    return mapped, capture, readback
 
 
 def _require_edge_crossing_authority(
