@@ -15,7 +15,8 @@ from .participant_control_invocation import (
     ControlMechanismResultV2Model,
     _satisfied,
 )
-from .participant_control_support_v2 import ControlSupportAssessmentV2Model
+from .participant_control_results import ControlOwnerSecurityFactModel
+from .participant_control_support_v2 import ControlSupportAssessmentV2Model, admitted_control_support_preserved
 
 _INPUT_PREFIX = "input:"
 
@@ -114,9 +115,9 @@ def control_slot_support_failure_v2(
     if not owners:
         owners = {_INPUT_PREFIX + slot_id}
     causes = {
-        _support_cause(item)
+        _admitted_support_cause(request, item)
         for item in support
-        if item.instance_id == slot.instance_id and item.obligation_id in owners and not item.satisfied
+        if item.instance_id == slot.instance_id and item.obligation_id in owners
     }
     return next((cause for cause in ("stale", "unsupported", "weakened", "failed") if cause in causes), None)
 
@@ -176,7 +177,7 @@ def _composition_causes(
             blockers.add("coverage:" + coverage.obligation_id)
             causes.add("withhold")
     _required_result_causes(request, results, blockers, causes)
-    _support_causes(support, blockers, causes)
+    _support_causes(request, support, blockers, causes)
     if effect_plan.parent_disposition != "permit":
         blockers.add("parent:" + effect_plan.parent_disposition)
         causes.add(effect_plan.parent_disposition)
@@ -210,17 +211,40 @@ def _required_result_causes(
 
 def _required_result_cause(result: ControlMechanismResultV2Model) -> str:
     if result.status in {"stale", "unsupported", "weakened"}:
-        return result.status
-    if result.payload is not None and result.payload.kind == "decision":
-        return result.payload.disposition if result.payload.disposition != "abstain" else "failed"
-    return "failed"
+        cause = result.status
+    elif isinstance(result.payload, ControlOwnerSecurityFactModel):
+        cause = result.payload.sink_disposition if result.payload.sink_disposition != "unresolved" else "withhold"
+    elif result.payload is not None and result.payload.kind == "decision":
+        cause = result.payload.disposition if result.payload.disposition != "abstain" else "failed"
+    else:
+        cause = "failed"
+    return cause
 
 
-def _support_causes(support: tuple[ControlSupportAssessmentV2Model, ...], blockers: set[str], causes: set[str]) -> None:
+def _support_causes(
+    request: ParticipantControlRequestV2Model,
+    support: tuple[ControlSupportAssessmentV2Model, ...],
+    blockers: set[str],
+    causes: set[str],
+) -> None:
     for item in support:
-        if not item.satisfied:
+        cause = _admitted_support_cause(request, item)
+        if cause is not None:
             blockers.add("support:" + item.obligation_id + ":" + item.instance_id)
-            causes.add(_support_cause(item))
+            causes.add(cause)
+
+
+def _admitted_support_cause(
+    request: ParticipantControlRequestV2Model, item: ControlSupportAssessmentV2Model
+) -> str | None:
+    if not item.satisfied:
+        return _support_cause(item)
+    obligation = next((o for o in request.selection.obligations if o.obligation_id == item.obligation_id), None)
+    if obligation is not None:
+        promise = next((p for p in obligation.admitted_support if p.instance_id == item.instance_id), None)
+        if promise is not None and not admitted_control_support_preserved(promise, item.effective_support):
+            return "weakened"
+    return None
 
 
 def _support_cause(item: ControlSupportAssessmentV2Model) -> str:

@@ -55,6 +55,7 @@ from .participant_manifests import (
     ParticipantImplementationManifestModel,
     ParticipantImplementationProvenanceModel,
 )
+from .participant_owner_flow import ParticipantOwnerFlowPolicyProfileModel
 from .random_stream import RandomStreamProfileModel, RandomStreamVectorModel
 from .realization_plans import (
     EvaluationPlanModel,
@@ -243,6 +244,7 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
             ParticipantInformationReconstructionProfileModel.model_json_schema()
         ),
         "participant-boundary-flow-policy-v1": ParticipantBoundaryFlowPolicyProfileModel.model_json_schema(),
+        "participant-owner-flow-policy-v1": ParticipantOwnerFlowPolicyProfileModel.model_json_schema(),
         "random-stream-vector-v1": RandomStreamVectorModel.model_json_schema(),
         **_experiment_schema_bundle(),
     }
