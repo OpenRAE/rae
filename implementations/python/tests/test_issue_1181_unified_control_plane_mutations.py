@@ -712,7 +712,6 @@ def test_accepted_indeterminate_resolution_reaches_the_shared_authority() -> Non
 
 
 def test_accepted_participant_action_and_control_entries_reach_the_shared_authority() -> None:
-    control_plane = RuntimeControlPlane(create_stub_target())
     intent = ParticipantHandoffControlIntent(
         declaration_ref="transition:handoff",
         episode_id="episode:1181",
@@ -726,20 +725,21 @@ def test_accepted_participant_action_and_control_entries_reach_the_shared_author
         completion_evidence_ref="evidence:handoff:1181",
     )
 
-    _assert_requests_mutation_reservation(
-        control_plane,
-        lambda: control_plane.admit_participant_action(behavior(), admission_request()),
-        OperationKind.PARTICIPANT_ACTION,
-    )
-    _assert_requests_mutation_reservation(
-        control_plane,
-        lambda: control_plane.record_participant_control(
-            PARTICIPANT,
-            intent,
-            identity=identity(),
-        ),
-        OperationKind.PARTICIPANT_CONTROL,
-    )
+    with RuntimeControlPlane(create_stub_target()) as control_plane:
+        _assert_requests_mutation_reservation(
+            control_plane,
+            lambda: control_plane.admit_participant_action(behavior(), admission_request()),
+            OperationKind.PARTICIPANT_ACTION,
+        )
+        _assert_requests_mutation_reservation(
+            control_plane,
+            lambda: control_plane.record_participant_control(
+                PARTICIPANT,
+                intent,
+                identity=identity(),
+            ),
+            OperationKind.PARTICIPANT_CONTROL,
+        )
 
 
 def test_accepted_decision_surface_entries_reach_the_shared_authority(
