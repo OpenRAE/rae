@@ -9,6 +9,7 @@ from pathlib import Path
 
 _EXACT_SCHEMA_DIRECTORIES = (
     {
+        "participant-owner-flow-policy-v1": "profiles",
         "raes-semantic-invariants-v1": "profiles",
         "reusable-asset-trust-policy-v1": "asset-trust",
         "sdl-lineage-ledger-v1": "provenance",
@@ -176,7 +177,8 @@ def _serialize_schema(name: str, schema: dict[str, object]) -> str:
     for key, value in sorted(schema.items()):
         if key == "$defs":
             definitions = ",\n".join(
-                f"    {json.dumps(label)}: {compact(body)}" for label, body in sorted(value.items())
+                f"    {json.dumps(label)}: {compact(body)}"
+                for label, body in sorted(value.items())
             )
             members.append(f'  "$defs": {{\n{definitions}\n  }}')
         else:

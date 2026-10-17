@@ -6,7 +6,7 @@ type: INTERFACE
 priority: MUST
 wave: 4
 created_at: 2026-09-06T00:00:00Z
-updated_at: 2026-09-22T00:00:00Z
+updated_at: 2026-10-16T00:00:00Z
 ---
 
 # API-424 — Participant-Control Provider, Composition and Effect Contracts
@@ -65,6 +65,19 @@ the new model is bounded design evidence. The
 [migration contract](../../migration/control-applicability-and-evaluation.md)
 requires explicit coordinated producer/protocol/reader adoption and preserves
 legacy history without inventing new coverage or realization evidence.
+
+## Finite IFC publication (#1370)
+
+The separate digest-pinned two-owner profile and provider/v2 owner fact preserve
+independent confidentiality/integrity clauses and release authority. Existing
+SEM-233 relations resolve sources, per-obligation full-release grants, sinks and
+incumbent gates. API-424/v2 obligations pin admitted support promises; current
+assessments cannot silently discard them even when an earlier floor still holds.
+The historical security profile and provider/v1 interpretation remain unchanged.
+See [owner-qualified IFC](../../explain/reference/owner-qualified-ifc.md) for
+exact identities, limits, negotiation, migration and evidence. ACTIVE continues
+to denote contract publication; synthetic consumer/runtime tests certify no
+production provider installation or external release effect.
 
 ## Traceability
 - IMPLEMENTS → GITHUB_ISSUE `1365` (Publish applicable-provider and dependency-evaluation contracts)
@@ -172,3 +185,36 @@ legacy history without inventing new coverage or realization evidence.
 - TESTS → TEST `implementations/python/tests/test_api_424_composition_derivation.py` (Derived compositions always satisfy the published validator)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_coordinates.py` (Exact-cut subject coordinate expresses a digest-only crossing subject)
 - IMPLEMENTS → CONFIG `contracts/schemas/participant-runtime/participant-control-evaluation-v1.json` (Published evaluation schema for the exact-cut coordinates)
+
+- IMPLEMENTS → GITHUB_ISSUE `1370` (Finite owner IFC contract and admission evidence)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_owner_flow.py` (Finite owner IFC contract and admission evidence)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_owner_flow_admission.py` (Finite owner IFC contract and admission evidence)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_flow_control_profile_validation.py` (Finite owner IFC contract and admission evidence)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_flow_control_validation.py` (Finite owner IFC contract and admission evidence)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_flow_control_context.py` (Finite owner IFC contract and admission evidence)
+- IMPLEMENTS → SPEC `contracts/schemas/profiles/participant-owner-flow-policy-v1.json` (Finite owner IFC contract and admission evidence)
+- IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-flow-control-relation-v1.json` (Finite owner IFC contract and admission evidence)
+- IMPLEMENTS → CONFIG `contracts/profiles/participant-boundary-flow-policy/participant-owner-flow-policy-v1.json` (Finite owner IFC contract and admission evidence)
+- IMPLEMENTS → CONFIG `contracts/schema-publication/entries/participant-owner-flow-policy-v1.json` (Finite owner IFC contract and admission evidence)
+- IMPLEMENTS → CONFIG `docs/governance/requirement-scopes/1370.json` (Finite owner IFC contract and admission evidence)
+- IMPLEMENTS → DOCUMENTATION `docs/explain/reference/owner-qualified-ifc.md` (Finite owner IFC contract and admission evidence)
+- IMPLEMENTS → DOCUMENTATION `docs/migration/ifc-profile-variability.md` (Finite owner IFC contract and admission evidence)
+- TESTS → TEST `implementations/python/tests/test_issue_1370_ifc_profiles.py` (Finite owner IFC contract and admission evidence)
+- TESTS → TEST `implementations/python/tests/test_issue_1370_ifc_admission.py` (Finite owner IFC contract and admission evidence)
+- TESTS → TEST `implementations/python/tests/test_issue_1370_ifc_runtime.py` (Finite owner IFC contract and admission evidence)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/bundle.py` (Finite IFC contract publication and inherited flow validation)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_flow_control.py` (Finite IFC contract publication and inherited flow validation)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_flow_control_semantics.py` (Finite IFC contract publication and inherited flow validation)
+
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-7c2d72b89e8c354d612d925a006a81b21d52e8cf2e4272f47084e05f292cae53/manifest.json` (Fresh bounded corpus replay against the IFC contract source; no production realization claim)
+
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584/manifest.json` (Fresh bounded corpus replay against the IFC contract source; no production realization claim)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_security_resolution.py` (Canonical exact security-fact joins shared by both protocol readers)
+
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-8761c418d053e7f343f4102fba809b62cf2db8664801f58fee9124fe8d8f642c/manifest.json` (Current source capture after extracting shared security-fact validation; bounded replay only)
+
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-60235550915502fe06d6eff38d1179868ac31286fb797d05df470e81d8c42aa2/manifest.json` (Current source capture after extracting shared security-fact validation; bounded replay only)

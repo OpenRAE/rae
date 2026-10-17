@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Collection, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from .participant_control import (
@@ -24,6 +24,7 @@ from .participant_flow_control import (
     ParticipantFlowReleaseKind,
     ParticipantFlowSinkKind,
 )
+from .participant_owner_flow import ParticipantFlowObligationAuthorityCoordinate, ParticipantOwnerFlowSinkResolution
 from .runtime_facts import RuntimeFactBindingPlaneModel
 
 if TYPE_CHECKING:
@@ -114,3 +115,7 @@ class ParticipantFlowControlValidationContext:
     crossing_policies: Sequence[ParticipantCrossingPolicyReferenceModel]
     known_evidence_refs: Collection[str]
     known_authority_refs: Collection[str]
+    owner_release_authorities: Collection[ParticipantFlowObligationAuthorityCoordinate] = ()
+    owner_sink_resolutions: Mapping[ParticipantFlowSinkCoordinate, ParticipantOwnerFlowSinkResolution] = field(
+        default_factory=dict
+    )
