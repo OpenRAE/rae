@@ -67,6 +67,8 @@ _RESOLVE = ControlPlaneRouteAuthority.OPERATOR_RESOLUTION
 # table fails the inventory test; a route added without a transport authority
 # fails app construction.
 _EXPECTED_ROUTE_AUTHORITY = {
+    ("GET", "/operations/{operation_id}/participant-cancellation"): _READ,
+    ("POST", "/operations/{operation_id}/participant-cancellation/dispatch"): _RESOLVE,
     ("POST", "/injects/trigger"): _MUTATE,
     ("GET", "/operations/{operation_id}/inject-occurrence"): _READ,
     ("GET", "/operations/{operation_id}/inject-outcome"): _READ,
@@ -108,6 +110,18 @@ _EXPECTED_ROUTE_AUTHORITY = {
 
 # One concrete request per authenticated route: (method, template, path, json).
 _ROUTE_REQUESTS: tuple[tuple[str, str, str, object], ...] = (
+    (
+        "GET",
+        "/operations/{operation_id}/participant-cancellation",
+        "/operations/op-unknown/participant-cancellation",
+        None,
+    ),
+    (
+        "POST",
+        "/operations/{operation_id}/participant-cancellation/dispatch",
+        "/operations/op-unknown/participant-cancellation/dispatch",
+        None,
+    ),
     ("POST", "/injects/trigger", "/injects/trigger", {}),
     ("GET", "/operations/{operation_id}/inject-occurrence", "/operations/op-unknown/inject-occurrence", None),
     ("GET", "/operations/{operation_id}/inject-outcome", "/operations/op-unknown/inject-outcome", None),

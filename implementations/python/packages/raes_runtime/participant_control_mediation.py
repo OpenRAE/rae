@@ -22,6 +22,7 @@ from raes_contracts.runtime_state import (
 )
 from raes_processor.models import (
     MixedControlControllerStateRuntime,
+    MixedControlPermittedTransitionRuntime,
     MixedControlTransitionRuntime,
     ParticipantBehaviorSpecificationRuntime,
 )
@@ -30,7 +31,8 @@ from raes_processor.planner.mixed_control_admission import mixed_control_policy_
 from .control_plane_mutation import control_plane_mutation
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_security import ControlPlaneIdentity
-from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
+from .control_plane_store import IDEMPOTENCY_CLAIM_CONFLICT, AuditEvent, ControlPlaneOperationRecord
+from .participant_control_cancellation import control_supervision
 from .participant_control_intents import ParticipantControlIntent
 from .participant_control_occurrences import (
     ParticipantControlOccurrenceContext,
@@ -41,6 +43,7 @@ from .participant_control_operation import (
     participant_control_operation_artifacts,
 )
 from .participant_control_rejections import participant_control_rejection_reason
+from .participant_control_request import control_application_context
 from .participant_control_targets import (
     participant_control_target_contexts,
     resolve_participant_control_target,
@@ -50,10 +53,11 @@ from .participant_control_targets import (
 @dataclass(frozen=True)
 class _BoundControlRequest:
     specification: ParticipantBehaviorSpecificationRuntime
-    transition: MixedControlTransitionRuntime
+    transition: MixedControlTransitionRuntime | MixedControlPermittedTransitionRuntime
     state: MixedControlControllerStateRuntime
     idempotency_key: str
     context: OperationAdmissionContext
+    effective_order: int
 
 
 @dataclass(frozen=True)
@@ -83,6 +87,7 @@ def record_participant_control(
         raise PermissionError("participant control identity is not authorized for this target")
     _require_participant_binding(identity, participant_address)
     with (
+        control_supervision(control_plane, intent),
         control_plane_mutation(control_plane, OperationKind.PARTICIPANT_CONTROL),
         control_plane._participant_control_lock,
     ):
@@ -94,6 +99,18 @@ def record_participant_control(
             identity,
             idempotency_key,
         )
+        existing = (
+            control_plane._store.find_by_idempotency(idempotency_key, context=bound.context)
+            if idempotency_key
+            else None
+        )
+        if existing is not None:
+            if (
+                existing.receipt.context != bound.context
+                or existing.request_fingerprint != bound.context.request_commitment
+            ):
+                raise ValueError(IDEMPOTENCY_CLAIM_CONFLICT)
+            return existing.receipt
         prepared = prepare_participant_control_transition(
             control_plane,
             participant_address,
@@ -129,8 +146,10 @@ def bind_participant_control_request(
     intent: ParticipantControlIntent,
     identity: ControlPlaneIdentity,
     idempotency_key: str,
+    crossing_evidence=None,
 ) -> _BoundControlRequest:
     specification = _specification_for_participant(control_plane, participant_address, identity)
+    intent = type(intent).model_validate(intent.model_dump(mode="json"))
     transition = _transition_for_intent(specification, intent, identity)
     state = _state_by_address(specification, transition.from_state_address)
     return _BoundControlRequest(
@@ -138,17 +157,22 @@ def bind_participant_control_request(
         transition=transition,
         state=state,
         idempotency_key=idempotency_key,
-        context=operation_admission_context(
+        context=control_application_context(control_plane, participant_address, intent, identity, crossing_evidence)
+        if intent.application is not None
+        else operation_admission_context(
             control_plane,
             kind=OperationKind.PARTICIPANT_CONTROL,
             request={
                 "intent": intent.model_dump(mode="json"),
                 "participant_address": participant_address,
                 "specification": specification.address,
-                "transition": asdict(transition),
+                **({"transition": asdict(transition)} if intent.application is None else {}),
             },
             identity=identity,
         ),
+        effective_order=transition.effective_order
+        if intent.application is None
+        else intent.application.effective_order,
     )
 
 
@@ -159,6 +183,10 @@ def prepare_participant_control_transition(
     identity: ControlPlaneIdentity,
     bound: _BoundControlRequest,
 ) -> PreparedParticipantControlTransition:
+    if intent.application is not None:
+        from .participant_control_application_mediation import prepare_control_application
+
+        return prepare_control_application(control_plane, participant_address, intent, identity, bound)
     history = list(control_plane._snapshot.participant_control_history.get(participant_address, ()))
     current_state, current_revision = _fold_controller_state(
         bound.specification,
@@ -240,7 +268,7 @@ def _specification_for_participant(
         if specification.mixed_control_participant_address == participant_address
         and any(state.controller_address in authorized_controllers for state in specification.controller_states)
     ]
-    if mixed_control_policy_addresses(candidates):
+    if mixed_control_policy_addresses(candidates) and getattr(control_plane, "_mixed_control", None) is None:
         raise ValueError("participant control cannot execute a mixed-control-policy-occurrence/rev1 specification")
     if len(candidates) != 1:
         raise ValueError("participant must resolve exactly one trusted mixed-control specification")
@@ -251,15 +279,19 @@ def _transition_for_intent(
     specification: ParticipantBehaviorSpecificationRuntime,
     intent: ParticipantControlIntent,
     identity: ControlPlaneIdentity,
-) -> MixedControlTransitionRuntime:
+) -> MixedControlTransitionRuntime | MixedControlPermittedTransitionRuntime:
     authorized_controllers = _authorized_controller_refs(
         identity,
         specification.mixed_control_participant_address,
     )
     states = {state.address: state for state in specification.controller_states}
+    policy = specification.mixed_control_policy
+    if (policy is None) != (intent.application is None):
+        raise ValueError("control intent interpretation must match its compiled policy")
+    transitions = specification.control_transitions if policy is None else policy.permitted_transitions
     candidates = [
         transition
-        for transition in specification.control_transitions
+        for transition in transitions
         if transition.address == intent.declaration_ref
         and transition.transition_kind == intent.kind
         and transition.from_state_address in states

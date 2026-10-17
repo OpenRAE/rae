@@ -189,6 +189,10 @@ class RuntimeControlPlane(
         self._crossing_policy_resolver = config.crossing_policy_resolver
         self._information_state_context_resolver = config.information_state_context_resolver
         self._participant_control = config.participant_control
+        self._mixed_control = config.mixed_control
+        from .participant_control_replay import validate_restored_control_archive
+
+        validate_restored_control_archive(self)
         self._ephemeral_idempotency_fingerprints: dict[IdempotencyClaimIdentity, str] = {}
         self._participant_control_lock = SubordinateMutationGate(self._mutation_authority)
         self._trusted_runtime_plan_lock = RLock()

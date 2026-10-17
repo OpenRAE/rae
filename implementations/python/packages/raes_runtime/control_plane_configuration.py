@@ -17,6 +17,7 @@ from .mixed_control_admission import refuse_unsupported_mixed_control
 from .mixed_runtime import MixedRuntimeBinding
 from .operation_supervision_configuration import OperationEvidenceResolver, OperationSupervisionConfiguration
 from .participant_control_binding import ParticipantControlRuntimeBinding
+from .participant_control_runtime import MixedControlRuntimeBinding
 from .participant_crossing_mediation import ParticipantCrossingPolicyResolver
 
 
@@ -48,6 +49,7 @@ class ControlPlaneOptions(TypedDict, total=False):
     operation_evidence: OperationEvidenceResolver | None
     distributed_execution: OperationDispatcher | None
     inject_execution: InjectExecutionResolver | None
+    mixed_control: MixedControlRuntimeBinding | None
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -70,6 +72,7 @@ class ControlPlaneConfiguration:
     operation_evidence: OperationEvidenceResolver | None = None
     distributed_execution: OperationDispatcher | None = None
     inject_execution: InjectExecutionResolver | None = None
+    mixed_control: MixedControlRuntimeBinding | None = None
 
     def __post_init__(self) -> None:
         require_inject_resolver(self.inject_execution)
@@ -90,7 +93,23 @@ class ControlPlaneConfiguration:
         if not self.run_scope.startswith("run:"):
             raise ValueError("control-plane run_scope must use the normalized run:<id> form")
         PlanScope(run_id=self.run_scope.removeprefix("run:"))
-        refuse_unsupported_mixed_control(self.behavior_specifications)
+        if self.mixed_control is None:
+            refuse_unsupported_mixed_control(self.behavior_specifications)
+        elif not isinstance(self.mixed_control, MixedControlRuntimeBinding):
+            raise TypeError("mixed control requires an installed runtime binding")
+        elif any(
+            self.mixed_control.model.behavior_specifications.get(ref) != spec
+            for ref, spec in (self.behavior_specifications or {}).items()
+        ):
+            raise ValueError("mixed-control binding must match installed compiler context")
+        elif self.mixed_runtime is not None:
+            raise ValueError("reusable control cannot install an unsupported mixed-runtime participant path")
+        elif any(
+            self.mixed_control.model.participant_inject_deliveries[address].control is not None
+            for spec in (self.behavior_specifications or {}).values()
+            for address in spec.participant_inject_delivery_addresses
+        ):
+            raise ValueError("reusable control cannot install an unsupported directed delivery path")
         if self.mixed_runtime is not None:
             admitted_run_scope = f"run:{self.mixed_runtime.entry.run_id}"
             if self.run_scope != admitted_run_scope:

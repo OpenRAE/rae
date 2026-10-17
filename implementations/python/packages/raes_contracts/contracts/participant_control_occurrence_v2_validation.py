@@ -76,6 +76,7 @@ class _EpisodeFold:
     available_targets: Sequence[ParticipantControlOccurrenceTarget]
     state: ParticipantControlEpisodeStateV2 = field(init=False)
     records: dict[str, ParticipantControlOccurrenceV2Model] = field(default_factory=dict)
+    rejection_code: str | None = None
 
     def __post_init__(self) -> None:
         self.state = ParticipantControlEpisodeStateV2(
@@ -138,6 +139,7 @@ class _EpisodeFold:
             lambda: self._kind_rejection(occurrence),
         )
         if code is not None:
+            self.rejection_code = code
             return f"accepted participant control occurrence fails {code}"
         return _first_violation(
             lambda: self._transformation_violation(record, occurrence),
@@ -375,7 +377,7 @@ def fold_participant_control_episode_v2(
     for record in records:
         violation = fold.apply(record)
         if violation is not None:
-            return ParticipantControlEpisodeFoldV2(fold.state, violation)
+            return ParticipantControlEpisodeFoldV2(fold.state, violation, fold.rejection_code)
     return ParticipantControlEpisodeFoldV2(fold.state)
 
 

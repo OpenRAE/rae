@@ -18,7 +18,7 @@ from .control_plane_store_revision import (
 )
 from .control_plane_store_snapshots import _snapshot_payload
 from .inject_claims import require_inject_claim
-from .operation_invocation_ledger import supervised_claim_conflicts
+from .operation_invocation_ledger import control_record_is_supervisory, supervised_claim_conflicts
 from .operation_ledger_transactions import require_supervision_cut
 
 if TYPE_CHECKING:
@@ -104,6 +104,7 @@ def claim_record(
     if (
         store._effect_admission_is_stopped(connection)
         and record.status.context.operation_kind.value != "indeterminate-resolution"
+        and not control_record_is_supervisory(record)
     ):
         contracts._raise_new_claim_block("current-state")
     if supervised_claim_conflicts(record, records.values()) or contracts.mixed_claim_conflicts(

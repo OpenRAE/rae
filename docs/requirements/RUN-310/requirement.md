@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: SHOULD
 wave: 3
 created_at: 2026-04-03T06:15:47.797106Z
-updated_at: 2026-09-22T01:33:58.710054Z
+updated_at: 2026-10-16T04:49:52.126621Z
 ---
 
 # RUN-310 — Intervention, Handoff, And Supervisory Lifecycle
@@ -44,6 +44,13 @@ the legacy fixed-coordinate form; the new bounded tests evidence a design
 projection. Executable adoption and historical readers must meet the
 [migration contract](../../migration/reusable-mixed-control.md).
 
+Issue #1364 supplies the explicitly installed reusable control owner, original-policy
+recovery and evidenced cancellation projection. The linked runtime tests cover
+repeated applications, exact-cut rejection, episode lifecycle and supervised
+cancellation races. Planning and unsupported delivery/native-batch joins retain
+their admission refusals; the [runtime reference](../../explain/reference/reusable-participant-control.md)
+states the supported-path and evidence boundary.
+
 ## Traceability
 
 - IMPLEMENTS → SPEC `specs/formal/participant-semantics/reusable-mixed-control.md` (Revision-fenced application/replay semantic amendment; not runtime conformance)
@@ -75,3 +82,47 @@ projection. Executable adoption and historical readers must meet the
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_effects.py` (Admitted effects routed to their incumbent lifecycle owners)
 - TESTS → TEST `implementations/python/tests/test_issue_1069_participant_control_effects.py` (Governed handoff effect with idempotent replay)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control.py` (Runtime entry point for separately admitted effect dispatch)
+
+- IMPLEMENTS → GITHUB_ISSUE `1364` (Reusable control applications and evidenced cancellation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_crossing_intents.py` (Explicit caller-intent lineage at governed control ingress)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/__init__.py` (Public episode-policy projection facade)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/_mixed_control_policy.py` (Canonical projection with compiler-owned identity resolution)
+- TESTS → TEST `implementations/python/tests/test_issue_1359_runtime_api_trust_boundary.py` (Sealed administrative authority for cancellation dispatch and readback)
+- IMPLEMENTS → CONFIG `contracts/schema-publication/entries/runtime-snapshot-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/snapshots/runtime-snapshot-v1.json`
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1364-repeatable-control-cancellation-preflight.md`
+- DOCUMENTS → DOCUMENTATION `docs/explain/reference/reusable-participant-control.md`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_occurrence_v2_state.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_occurrence_v2_validation.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_plans.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_admission.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_participant_routes.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_supervision_routes.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_configuration.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_execution.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_local_records.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_memory.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_postgresql_mutations.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_invocation_ledger.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_action_admission.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_application_mediation.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_applications.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_batch.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_cancellation.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_episode_admission.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_intents.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_operation.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_replay.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_request.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_runtime.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_crossing_action.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_crossing_transform.py`
+- TESTS → TEST `implementations/python/tests/reusable_control_runtime_fixtures.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1363_delivery_and_admission.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1364_cancellation.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1364_cancellation_evidence.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1364_control_history.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1364_http.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1364_reusable_runtime.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1364_review_regressions.py`
