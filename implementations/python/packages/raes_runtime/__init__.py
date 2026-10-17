@@ -22,6 +22,7 @@ _EXPORT_MODULES = {
     ),
     "manager": ("RuntimeManager",),
     "mixed_runtime": ("MixedPhaseTransitionEvaluation", "MixedRuntimeBinding", "MixedRuntimeComponent"),
+    "mixed_backend_installation": ("MixedBackendInstallation", "MixedBackendService"),
     "registry": ("BackendRegistry", "RuntimeTarget", "RuntimeTargetComponents", "RuntimeTargetDescriptor"),
     "runtime_fact_bindings": (
         "RuntimeFactActionDisposition",
@@ -64,6 +65,8 @@ __all__ = [
     "RuntimeManager",
     "MixedPhaseTransitionEvaluation",
     "MixedRuntimeBinding",
+    "MixedBackendInstallation",
+    "MixedBackendService",
     "MixedRuntimeComponent",
     "RuntimeTarget",
     "RuntimeTargetComponents",

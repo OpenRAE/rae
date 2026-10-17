@@ -68,7 +68,14 @@ def mixed_claim_conflicts(
     }
     if not mixed_keys:
         return False
-    return any(_active_mixed_claim_overlaps(context, mixed_keys, existing) for existing in existing_records)
+    from .operation_reconciliation_ledger import valid_reconciliation_child
+
+    records = tuple(existing_records)
+    return any(
+        _active_mixed_claim_overlaps(context, mixed_keys, existing)
+        and not any(valid_reconciliation_child(existing, child) for child in records)
+        for existing in records
+    )
 
 
 def _active_mixed_claim_overlaps(
