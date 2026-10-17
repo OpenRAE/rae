@@ -193,3 +193,5 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 
 - IMPLEMENTS → GITHUB_ISSUE `1370` (Hosted OSV prerequisite repair: lock MCP SDK 1.30.0 and exclude vulnerable 1.x and 2.x versions)
 - TESTS → TEST `implementations/python/tests/test_mcp_server.py` (Reference, authoring, language, inspection, operations and server-construction regressions on the patched SDK)
+
+- IMPLEMENTS → CONFIG `implementations/tooling/python/smoke` (Regenerated hash-complete CPython 3.11–3.14 and Linux/macOS closures for patched MCP SDK 1.30.0)
