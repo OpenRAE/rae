@@ -3,7 +3,8 @@
   "issue_number": 1370,
   "primary_requirement_uid": "API-424",
   "requirement_uids": [
-    "API-424"
+    "API-424",
+    "GOV-913"
   ],
   "bindings": {
     "contracts/fixtures/participant-runtime/participant-control-evaluation-v2/valid/owner-flow.json": [
@@ -193,6 +194,39 @@
       "API-424"
     ],
     "tools/policy/requirement_order.yaml": [
+      "API-424"
+    ],
+    "implementations/python/pyproject.toml": [
+      "GOV-913"
+    ],
+    "implementations/python/uv.lock": [
+      "GOV-913"
+    ],
+    "docs/requirements/GOV-913/requirement.md": [
+      "GOV-913"
+    ],
+    "docs/research/formal-semantic-validation/capture-records/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08/analysis.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08/manifest.json": [
+      "API-424"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08/snapshot.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/capture-records/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/captures/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96/analysis.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/captures/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96/manifest.json": [
+      "API-424"
+    ],
+    "docs/research/specification-coverage/captures/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96/snapshot.json": [
       "API-424"
     ]
   }

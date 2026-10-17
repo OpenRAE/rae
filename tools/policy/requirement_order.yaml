@@ -747,6 +747,15 @@ ownership:
     - implementations/python/tests/participant_control_v2_fixtures.py
     - implementations/python/tests/test_issue_1069_provider_evaluation_v2.py
   modular-control-contracts:
+    # Issue #1370 current-source replay after the patched MCP prerequisite.
+    - docs/research/formal-semantic-validation/capture-records/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08.json
+    - docs/research/formal-semantic-validation/captures/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08/analysis.json
+    - docs/research/formal-semantic-validation/captures/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08/manifest.json
+    - docs/research/formal-semantic-validation/captures/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08/snapshot.json
+    - docs/research/specification-coverage/capture-records/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96.json
+    - docs/research/specification-coverage/captures/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96/analysis.json
+    - docs/research/specification-coverage/captures/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96/manifest.json
+    - docs/research/specification-coverage/captures/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96/snapshot.json
     # Issue #1370 finite IFC publication, admission and immutable source captures.
     - contracts/fixtures/participant-runtime/participant-control-evaluation-v2/valid/owner-flow.json
     - contracts/fixtures/participant-runtime/participant-control-selection-v2/context-invalid/owner-missing-promise.json

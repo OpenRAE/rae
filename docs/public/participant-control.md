@@ -448,7 +448,7 @@ backend enforcement, attack evaluations, monitor honesty, model alignment,
 private reasoning, and undeclared covert channels remain unclaimed. See the
 [issue #812 design record](https://github.com/OpenRAE/rae/issues/812).
 
-## Finite owner-qualified IFC profiles
+## Finite owner-qualified information flow profiles
 
 The governed `participant-owner-flow-policy-v1@rev1` profile preserves two
 independent owners' confidentiality and integrity clauses. Each owner can release
