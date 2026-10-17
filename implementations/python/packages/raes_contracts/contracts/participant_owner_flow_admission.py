@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 from .participant_control_results import ControlOwnerSecurityFactModel
@@ -9,41 +10,66 @@ from .participant_control_support_v2 import ControlSupportAssessmentV2Model
 from .participant_owner_flow import OWNER_FLOW_OBLIGATION_IDS, OWNER_FLOW_PROFILE_ID
 
 if TYPE_CHECKING:
-    from .participant_control_applicability import ParticipantControlRequestV2Model, ParticipantControlSelectionV2Model
+    from .participant_control_applicability import (
+        ControlMechanismBindingV2Model,
+        ControlProfileObligationV2Model,
+        ParticipantControlRequestV2Model,
+        ParticipantControlSelectionV2Model,
+    )
+    from .participant_control_coordinates import ControlArtifactReferenceModel
     from .participant_control_invocation import ControlMechanismResultV2Model
+    from .participant_control_results import ControlEffectiveSupportModel
+
+
+def _validate_owner_profile_obligations(
+    profile: ControlArtifactReferenceModel, obligations: tuple[ControlProfileObligationV2Model, ...]
+) -> None:
+    owned = [item for item in obligations if item.profile == profile]
+    if {item.obligation_id for item in owned} != OWNER_FLOW_OBLIGATION_IDS:
+        raise ValueError("owner flow profile requires both exact profile-owned obligations")
+    if any(item.required_kind != "ifc-fact" or not item.admitted_support for item in owned):
+        raise ValueError("owner flow obligations require IFC facts and admitted support promises")
+
+
+def _validate_admitted_support_promise(
+    obligation: ControlProfileObligationV2Model,
+    promise: ControlEffectiveSupportModel,
+    bindings: Mapping[str, ControlMechanismBindingV2Model],
+) -> None:
+    binding = bindings.get(promise.instance_id)
+    if binding is None or obligation.profile not in binding.profiles:
+        raise ValueError("admitted support promise must resolve its exact profile and instance")
+    # Reuse the published CA-04 relation; the trusted resolver still
+    # establishes constraint/coverage evidence before release.
+    relation = {
+        "exact": "exact",
+        "bounded": "bounded-compatible",
+        "disclosed_weak": "disclosed-weak-compatible",
+    }[promise.effective_level]
+    ControlSupportAssessmentV2Model(
+        obligation_id=obligation.obligation_id,
+        instance_id=promise.instance_id,
+        required_strength=obligation.required_strength,
+        required_constraints=obligation.constraints,
+        effective_support=promise,
+        relation=relation,
+        evidence=promise.evidence,
+    )
 
 
 def validate_owner_flow_selection(selection: ParticipantControlSelectionV2Model) -> None:
     bindings = {binding.instance_id: binding for binding in selection.bindings}
-    selected = {profile for binding in selection.bindings for profile in binding.profiles}
-    owner_profiles = {profile for profile in selected if profile.ref == OWNER_FLOW_PROFILE_ID}
+    owner_profiles = {
+        profile
+        for binding in selection.bindings
+        for profile in binding.profiles
+        if profile.ref == OWNER_FLOW_PROFILE_ID
+    }
     for profile in owner_profiles:
-        obligations = [item for item in selection.obligations if item.profile == profile]
-        if {item.obligation_id for item in obligations} != OWNER_FLOW_OBLIGATION_IDS:
-            raise ValueError("owner flow profile requires both exact profile-owned obligations")
-        if any(item.required_kind != "ifc-fact" or not item.admitted_support for item in obligations):
-            raise ValueError("owner flow obligations require IFC facts and admitted support promises")
+        _validate_owner_profile_obligations(profile, selection.obligations)
     for obligation in selection.obligations:
         for promise in obligation.admitted_support:
-            binding = bindings.get(promise.instance_id)
-            if binding is None or obligation.profile not in binding.profiles:
-                raise ValueError("admitted support promise must resolve its exact profile and instance")
-            # Reuse the published CA-04 relation; the trusted resolver still
-            # establishes constraint/coverage evidence before release.
-            relation = {
-                "exact": "exact",
-                "bounded": "bounded-compatible",
-                "disclosed_weak": "disclosed-weak-compatible",
-            }[promise.effective_level]
-            ControlSupportAssessmentV2Model(
-                obligation_id=obligation.obligation_id,
-                instance_id=promise.instance_id,
-                required_strength=obligation.required_strength,
-                required_constraints=obligation.constraints,
-                effective_support=promise,
-                relation=relation,
-                evidence=promise.evidence,
-            )
+            _validate_admitted_support_promise(obligation, promise, bindings)
 
 
 def validate_owner_flow_result_coverage(

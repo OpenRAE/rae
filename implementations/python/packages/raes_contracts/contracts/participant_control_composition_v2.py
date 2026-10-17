@@ -211,12 +211,14 @@ def _required_result_causes(
 
 def _required_result_cause(result: ControlMechanismResultV2Model) -> str:
     if result.status in {"stale", "unsupported", "weakened"}:
-        return result.status
-    if isinstance(result.payload, ControlOwnerSecurityFactModel):
-        return result.payload.sink_disposition if result.payload.sink_disposition != "unresolved" else "withhold"
-    if result.payload is not None and result.payload.kind == "decision":
-        return result.payload.disposition if result.payload.disposition != "abstain" else "failed"
-    return "failed"
+        cause = result.status
+    elif isinstance(result.payload, ControlOwnerSecurityFactModel):
+        cause = result.payload.sink_disposition if result.payload.sink_disposition != "unresolved" else "withhold"
+    elif result.payload is not None and result.payload.kind == "decision":
+        cause = result.payload.disposition if result.payload.disposition != "abstain" else "failed"
+    else:
+        cause = "failed"
+    return cause
 
 
 def _support_causes(

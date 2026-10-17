@@ -7,9 +7,9 @@ or make an untrusted applicability proof authoritative.
 from __future__ import annotations
 
 from graphlib import TopologicalSorter
-from typing import Annotated, Literal, Self
+from typing import Annotated, Any, Literal, Self
 
-from pydantic import ConfigDict, Field, model_serializer, model_validator
+from pydantic import ConfigDict, Field, SerializerFunctionWrapHandler, model_serializer, model_validator
 
 from .base import ContractModel, PrefixedDigestString
 from .participant_control_composition import control_digest
@@ -73,7 +73,7 @@ class ControlProfileObligationV2Model(ContractModel):
     admitted_support: Annotated[tuple[ControlEffectiveSupportModel, ...], Field(max_length=64)] = ()
 
     @model_serializer(mode="wrap")
-    def _preserve_original_interpretation(self, handler):
+    def _preserve_original_interpretation(self, handler: SerializerFunctionWrapHandler) -> dict[str, Any]:
         payload = handler(self)
         if not self.admitted_support:
             payload.pop("admitted_support", None)

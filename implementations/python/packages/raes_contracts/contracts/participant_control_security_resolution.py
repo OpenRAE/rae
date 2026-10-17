@@ -50,13 +50,7 @@ def _validate_security_sink(
         raise ValueError("security fact has no exact crossing and sink binding")
 
 
-def _validate_security_fact(
-    fact: ControlSecurityFactModel, cut: ParticipantControlContextModel, context: ParticipantControlValidationContext
-) -> None:
-    relation = context.flow_relations.get(fact.relation.ref)
-    flow_context = context.flow_contexts.get(fact.relation.ref)
-    if relation is None or flow_context is None or control_digest(relation) != fact.relation.digest:
-        raise ValueError("security fact requires its exact incumbent relation and context")
+def _validate_security_profile(relation: ParticipantFlowControlRelationModel, fact: ControlSecurityFactModel) -> None:
     if isinstance(fact, ControlOwnerSecurityFactModel):
         if (relation.profile.profile_id, relation.profile.profile_revision, relation.profile.profile_digest) != (
             fact.profile.ref,
@@ -66,6 +60,16 @@ def _validate_security_fact(
             raise ValueError("owner security fact profile differs from its owning relation")
     elif relation.profile.profile_id != "participant-boundary-flow-policy-v1":
         raise ValueError("legacy security fact cannot substitute an owner-aware profile")
+
+
+def _validate_security_fact(
+    fact: ControlSecurityFactModel, cut: ParticipantControlContextModel, context: ParticipantControlValidationContext
+) -> None:
+    relation = context.flow_relations.get(fact.relation.ref)
+    flow_context = context.flow_contexts.get(fact.relation.ref)
+    if relation is None or flow_context is None or control_digest(relation) != fact.relation.digest:
+        raise ValueError("security fact requires its exact incumbent relation and context")
+    _validate_security_profile(relation, fact)
     validate_participant_flow_control_context(relation, flow_context)
     label = next((label for label in relation.labels if label.label_id == fact.label_ref), None)
     if label is None or label.resolution_status != "resolved":

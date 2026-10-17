@@ -163,8 +163,9 @@ def test_owner_grants_are_per_obligation_and_bind_the_entire_release(change):
             policy_cuts={relation.labels[0].policy.decision_cut_ref: relation.labels[0].policy},
             source_labels={label.label_id: label for label in relation.labels[:2]},
         )
+    context = replace(context, owner_release_authorities=grants)
     with pytest.raises(ValueError, match="owner|obligation"):
-        validate_participant_flow_control_context(relation, replace(context, owner_release_authorities=grants))
+        validate_participant_flow_control_context(relation, context)
 
 
 def test_provider_cannot_self_certify_audience_or_accept_untrusted_action_influence():
@@ -173,10 +174,12 @@ def test_provider_cannot_self_certify_audience_or_accept_untrusted_action_influe
     forged["sink_decisions"][0].update(
         confidentiality_result="satisfied", integrity_result="satisfied", final_disposition="permit"
     )
+    forged_relation = ParticipantFlowControlRelationModel.model_validate(forged)
     with pytest.raises(ValueError, match="owner.*sink|owner.*coordinate"):
-        validate_participant_flow_control_context(ParticipantFlowControlRelationModel.model_validate(forged), context)
+        validate_participant_flow_control_context(forged_relation, context)
+    missing_sink_context = replace(context, owner_sink_resolutions={})
     with pytest.raises(ValueError, match="owner.*sink"):
-        validate_participant_flow_control_context(relation, replace(context, owner_sink_resolutions={}))
+        validate_participant_flow_control_context(relation, missing_sink_context)
 
 
 def test_owner_endorsement_cannot_replace_a_with_b_or_clear_provenance():
@@ -208,8 +211,9 @@ def test_unpublished_third_owner_and_unknown_source_never_gain_support():
     profile = next(iter(context.profiles.values()))
     changed = deepcopy(profile.model_dump(mode="json"))
     changed["owner_clauses"][0]["reader_refs"] = ["reader:carol"]
+    profile_model = type(profile)
     with pytest.raises(ValueError, match="exact published"):
-        type(profile).model_validate(changed)
+        profile_model.model_validate(changed)
 
 
 def test_api_424_owner_fact_resolves_exact_relation_profile_label_and_sink():
@@ -239,8 +243,9 @@ def test_api_424_owner_fact_resolves_exact_relation_profile_label_and_sink():
     forged = fact.model_copy(update={"sink_disposition": "deny"})
     with pytest.raises(ValueError, match="sink binding"):
         _validate_security_fact(forged, legacy.request.context, context)
+    missing_flow_context = replace(context, flow_contexts={})
     with pytest.raises(ValueError, match="exact incumbent relation"):
-        _validate_security_fact(fact, legacy.request.context, replace(context, flow_contexts={}))
+        _validate_security_fact(fact, legacy.request.context, missing_flow_context)
 
 
 def test_owner_schema_publication_and_conformance_use_the_exact_profile_reader():
