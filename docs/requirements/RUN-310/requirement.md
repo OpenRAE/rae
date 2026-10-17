@@ -126,3 +126,4 @@ states the supported-path and evidence boundary.
 - TESTS → TEST `implementations/python/tests/test_issue_1364_http.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1364_reusable_runtime.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1364_review_regressions.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1181_unified_control_plane_mutations.py`

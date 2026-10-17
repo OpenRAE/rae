@@ -52,6 +52,7 @@ from raes_runtime.control_plane_store import (
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
 from raes_runtime.control_plane_store_records import _audit_event_from_payload
 from raes_runtime.manager import RuntimeManager
+from raes_runtime.participant_control_intents import ParticipantHandoffControlIntent
 from raes_runtime.participant_crossing_egress import ParticipantViewSerialization, serialize_participant_view
 
 pytestmark = pytest.mark.control_plane_conformance
@@ -712,6 +713,18 @@ def test_accepted_indeterminate_resolution_reaches_the_shared_authority() -> Non
 
 def test_accepted_participant_action_and_control_entries_reach_the_shared_authority() -> None:
     control_plane = RuntimeControlPlane(create_stub_target())
+    intent = ParticipantHandoffControlIntent(
+        declaration_ref="transition:handoff",
+        episode_id="episode:1181",
+        client_correlation_id="handoff:1181",
+        policy_revision="1.0.0",
+        expected_state_revision=0,
+        provenance_refs=["provenance:1181"],
+        evidence_refs=["evidence:handoff:1181"],
+        object_marking_refs=["marking:1181"],
+        limitation_refs=["limitation:1181"],
+        completion_evidence_ref="evidence:handoff:1181",
+    )
 
     _assert_requests_mutation_reservation(
         control_plane,
@@ -722,7 +735,7 @@ def test_accepted_participant_action_and_control_entries_reach_the_shared_author
         control_plane,
         lambda: control_plane.record_participant_control(
             PARTICIPANT,
-            object(),  # type: ignore[arg-type]
+            intent,
             identity=identity(),
         ),
         OperationKind.PARTICIPANT_CONTROL,
