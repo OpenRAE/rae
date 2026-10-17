@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import replace
 from typing import cast
 
 from raes_contracts.contracts import ParticipantFlowSinkKind
@@ -19,7 +19,6 @@ from .control_plane_mutation import control_plane_mutation, external_control_pla
 from .control_plane_security import ControlPlaneIdentity
 from .control_plane_store import ControlPlaneOperationRecord
 from .mixed_runtime_dispatch import (
-    PreparedMixedActionDispatch,
     prepare_mixed_action_dispatch,
 )
 from .mixed_runtime_result import record_action_result, retain_action_invocation
@@ -32,6 +31,7 @@ from .participant_control_mediation import (
 from .participant_control_orchestration import admit_ingress_sinks
 from .participant_crossing_action import (
     ActionIngressExecution,
+    _PreparedActionEffect,
     action_operation_record,
     combined_crossing_audit,
 )
@@ -55,18 +55,8 @@ from .participant_crossing_mediation import (
 )
 from .participant_crossing_records import _expected_history_heads
 from .participant_flow_sink import (
-    ParticipantFlowSinkDecision,
     apply_flow_sink_details,
 )
-
-
-@dataclass(frozen=True)
-class _PreparedActionEffect:
-    crossing: PreparedParticipantCrossing
-    request: ParticipantActionAdmissionRequest | None = None
-    mixed_dispatch: PreparedMixedActionDispatch | None = None
-    sink_decision: ParticipantFlowSinkDecision | None = None
-    early_receipt: OperationReceipt | None = None
 
 
 class ParticipantCrossingControlIngressMixin:

@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
     from .control_plane import RuntimeControlPlane
     from .mixed_backend_installation import MixedBackendInstallation
-    from .participant_crossing_boundary import _PreparedActionEffect
+    from .participant_crossing_action import _PreparedActionEffect
     from .participant_crossing_mediation import PreparedParticipantCrossing
 
 

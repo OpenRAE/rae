@@ -15,7 +15,7 @@ from .participant_crossing_mediation import PreparedParticipantCrossing
 if TYPE_CHECKING:
     from .control_plane import RuntimeControlPlane
     from .control_plane_store import ControlPlaneOperationRecord
-    from .participant_crossing_boundary import _PreparedActionEffect
+    from .participant_crossing_action import _PreparedActionEffect
 
 _EventKind = Literal["result", "delivery", "observation", "weakening", "failure"]
 _Disposition = Literal["committed", "succeeded", "failed", "indeterminate"]
