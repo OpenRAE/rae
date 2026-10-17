@@ -152,14 +152,20 @@ class RuntimeAdmissionMixin:
         legacy_request_fingerprint: str = "",
         new_claim_blocked: NewClaimBlock = None,
     ) -> ControlPlaneOperationRecord:
+        from .operation_invocation_ledger import control_record_is_supervisory
+
         self._assert_runtime_owner()
         require_idempotency_key(record.idempotency_key)
         if (
             getattr(self, "_effect_admission_stopped", False)
             and record.status.context.operation_kind is not OperationKind.INDETERMINATE_RESOLUTION
+            and not control_record_is_supervisory(record)
         ):
             new_claim_blocked = "current-state"
-        if record.status.context.operation_kind is not OperationKind.INDETERMINATE_RESOLUTION:
+        if (
+            record.status.context.operation_kind is not OperationKind.INDETERMINATE_RESOLUTION
+            and not control_record_is_supervisory(record)
+        ):
             from .control_plane_recovery import unresolved_indeterminate_operation_ids
 
             if unresolved_indeterminate_operation_ids(

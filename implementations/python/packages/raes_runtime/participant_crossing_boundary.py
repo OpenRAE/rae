@@ -6,34 +6,34 @@ from dataclasses import replace
 from typing import cast
 
 from raes_contracts.contracts import ParticipantFlowSinkKind
-from raes_contracts.contracts.participant_crossing import (
-    ParticipantCrossingSubjectReferenceModel,
-)
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.runtime_state import ApplyResult, OperationKind, OperationReceipt, OperationState
 from raes_processor.models import ParticipantBehaviorRuntime
 
 from .control_plane_execution import apply_authorized_participant_action
 from .control_plane_lifecycle import runtime_owned
-from .control_plane_mutation import control_plane_mutation, external_control_plane_call, mutation_entry
+from .control_plane_mutation import control_plane_mutation, mutation_entry
 from .control_plane_security import ControlPlaneIdentity
 from .control_plane_store import ControlPlaneOperationRecord
 from .mixed_runtime_dispatch import (
     prepare_mixed_action_dispatch,
 )
 from .mixed_runtime_result import record_action_result, retain_action_invocation
-from .participant_control_intents import ParticipantControlIntent, ParticipantControlIntentBase
+from .participant_control_cancellation import control_supervision
+from .participant_control_intents import ParticipantControlIntent, detached_control_intent
 from .participant_control_mediation import (
     bind_participant_control_request,
     prepare_participant_control_transition,
     record_participant_control,
 )
 from .participant_control_orchestration import admit_ingress_sinks
+from .participant_control_request import control_application_retry
 from .participant_crossing_action import (
     ActionIngressExecution,
     _PreparedActionEffect,
     action_operation_record,
     combined_crossing_audit,
+    commit_stale_action_result,
 )
 from .participant_crossing_intents import (
     action_crossing_intent as _action_crossing_intent,
@@ -50,10 +50,14 @@ from .participant_crossing_intents import (
 from .participant_crossing_mediation import (
     ParticipantCrossingEvidence,
     ParticipantCrossingIntent,
-    PreparedParticipantCrossing,
     prepare_participant_crossing,
 )
 from .participant_crossing_records import _expected_history_heads
+from .participant_crossing_transform import (
+    _governed_action_request,
+    _governed_control_intent,
+    _require_governed_subject,
+)
 from .participant_flow_sink import (
     apply_flow_sink_details,
 )
@@ -73,6 +77,12 @@ class ParticipantCrossingControlIngressMixin:
         idempotency_key: str = "",
         crossing_evidence: ParticipantCrossingEvidence | None = None,
     ) -> OperationReceipt:
+        intent = detached_control_intent(intent)
+        replay = control_application_retry(
+            self, participant_address, intent, identity, idempotency_key, crossing_evidence
+        )
+        if replay is not None:
+            return replay
         if getattr(self, "_crossing_policy_resolver", None) is None:
             if crossing_evidence is not None:
                 raise ValueError("participant crossing policy resolver is required")
@@ -106,7 +116,7 @@ class ParticipantCrossingControlIngressMixin:
             raise ValueError("configured participant ingress requires crossing evidence")
         if not isinstance(identity, ControlPlaneIdentity):
             raise PermissionError("participant control requires an authenticated identity")
-        with control_plane_mutation(self, OperationKind.PARTICIPANT_CONTROL):
+        with control_supervision(self, intent), control_plane_mutation(self, OperationKind.PARTICIPANT_CONTROL):
             return self._record_governed_participant_control_authorized(
                 participant_address,
                 intent,
@@ -132,6 +142,7 @@ class ParticipantCrossingControlIngressMixin:
                 intent,
                 identity,
                 idempotency_key,
+                crossing_evidence,
             )
             canonical = _control_crossing_intent(
                 participant_address,
@@ -139,7 +150,7 @@ class ParticipantCrossingControlIngressMixin:
                 crossing_evidence,
                 controller_ref=bound.state.controller_address,
                 authority_basis_refs=tuple(bound.state.authority_basis_addresses or bound.state.authority_basis_refs),
-                effective_order=bound.transition.effective_order,
+                effective_order=bound.effective_order,
             )
             crossing = prepare_participant_crossing(
                 self,
@@ -157,14 +168,17 @@ class ParticipantCrossingControlIngressMixin:
             if settled is not None:
                 return settled
 
-            governed_intent = _governed_control_intent(self, crossing, intent)
+            governed_intent = detached_control_intent(_governed_control_intent(self, crossing, intent))
             governed_bound = bind_participant_control_request(
                 self,
                 participant_address,
                 governed_intent,
                 identity,
                 idempotency_key,
+                crossing_evidence,
             )
+            if intent.application is not None:
+                governed_bound = replace(governed_bound, context=bound.context)
             _require_governed_subject(
                 crossing,
                 _control_subject(participant_address, governed_intent),
@@ -256,8 +270,9 @@ def _execute_action_ingress_crossing_authorized(
         replay, authorization_heads = _authorize_action_effect(control_plane, prepared)
         if replay is not None:
             return replay
+        baseline_revision = control_plane._snapshot_state.revision
         result = _apply_action_effect(control_plane, prepared, execution)
-        return _commit_action_effect(control_plane, request, prepared, result, authorization_heads)
+        return _commit_action_effect(control_plane, request, prepared, result, authorization_heads, baseline_revision)
 
 
 def _prepare_action_effect(
@@ -354,6 +369,11 @@ def _apply_action_effect(
     prepared: _PreparedActionEffect,
     execution: ActionIngressExecution,
 ) -> ApplyResult:
+    from .participant_control_action_admission import linked_action_refusal
+
+    refusal = linked_action_refusal(control_plane, prepared.request)
+    if refusal is not None:
+        return refusal
     mixed = prepared.mixed_dispatch
     if mixed is not None and mixed.invocation is not None:
         from .mixed_backend_action import apply_mixed_backend_action
@@ -386,9 +406,13 @@ def _commit_action_effect(
     prepared: _PreparedActionEffect,
     result: ApplyResult,
     authorization_expected_heads: dict[str, str | None],
+    baseline_revision: int,
 ) -> OperationReceipt:
     crossing = prepared.crossing
     mixed_dispatch = prepared.mixed_dispatch
+    control_plane._reload_derived_state()
+    if control_plane._snapshot_state.revision != baseline_revision:
+        return commit_stale_action_result(control_plane, crossing)
     next_snapshot = result.snapshot.with_entries(
         dict(result.snapshot.entries),
         participant_crossing_history=crossing.next_snapshot.participant_crossing_history,
@@ -426,48 +450,6 @@ def _commit_action_effect(
         audit_event=audit,
     )
     return record.receipt
-
-
-def _governed_control_intent(
-    control_plane: object,
-    crossing: PreparedParticipantCrossing,
-    incumbent: ParticipantControlIntent,
-) -> ParticipantControlIntent:
-    if crossing.governed_subject == crossing.intent.subject:
-        return incumbent
-    transformer = getattr(control_plane._crossing_policy_resolver, "transform_ingress", None)
-    if not callable(transformer):
-        raise ValueError("transformed participant ingress requires a trusted carrier transformer")
-    with external_control_plane_call(control_plane):
-        governed = transformer(crossing.intent, crossing.governed_subject, incumbent)
-    if not isinstance(governed, ParticipantControlIntentBase):
-        raise ValueError("participant control transformation returned an invalid governed carrier")
-    return governed
-
-
-def _governed_action_request(
-    control_plane: object,
-    crossing: PreparedParticipantCrossing,
-    incumbent: ParticipantActionAdmissionRequest,
-) -> ParticipantActionAdmissionRequest:
-    if crossing.governed_subject == crossing.intent.subject:
-        return incumbent
-    transformer = getattr(control_plane._crossing_policy_resolver, "transform_ingress", None)
-    if not callable(transformer):
-        raise ValueError("transformed participant ingress requires a trusted carrier transformer")
-    with external_control_plane_call(control_plane):
-        governed = transformer(crossing.intent, crossing.governed_subject, incumbent)
-    if not isinstance(governed, ParticipantActionAdmissionRequest):
-        raise ValueError("participant action transformation returned an invalid governed carrier")
-    return governed
-
-
-def _require_governed_subject(
-    crossing: PreparedParticipantCrossing,
-    actual: ParticipantCrossingSubjectReferenceModel,
-) -> None:
-    if actual != crossing.governed_subject:
-        raise ValueError("trusted transformation result does not match the governed carrier identity")
 
 
 def _require_action_binding(

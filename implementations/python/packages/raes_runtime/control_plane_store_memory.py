@@ -20,7 +20,7 @@ from .control_plane_store_revision import (
     require_snapshot_revision,
 )
 from .inject_claims import require_inject_claim, require_inject_history
-from .operation_invocation_ledger import supervised_claim_conflicts
+from .operation_invocation_ledger import control_record_is_supervisory, supervised_claim_conflicts
 
 
 class _InMemoryRuntimeOwner:
@@ -142,6 +142,7 @@ class InMemoryControlPlaneStore:
             if (
                 self._effect_admission_stopped
                 and record.status.context.operation_kind.value != "indeterminate-resolution"
+                and not control_record_is_supervisory(record)
             ):
                 _store._raise_new_claim_block("current-state")
             if _store.mixed_claim_conflicts(record, self._records.values()):
