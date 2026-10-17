@@ -91,6 +91,10 @@ def _verified_absence(
 ) -> InvocationReconciliation:
     evidence = _scoped_reconciliation_evidence(parent, control_id, identity)
     resolver = plane._operation_evidence
+    if parent.invocation.mixed_binding is not None:
+        from .mixed_backend_installation import mixed_installation
+
+        resolver = mixed_installation(plane, parent.invocation).evidence
     if resolver is None or parent.status.state is not OperationState.INDETERMINATE:
         raise ValueError("reconciliation evidence authority is unavailable")
     with plane._mutation_authority.external_call():

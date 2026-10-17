@@ -75,6 +75,15 @@ class ControlPlaneConfiguration:
     mixed_control: MixedControlRuntimeBinding | None = None
 
     def __post_init__(self) -> None:
+        if (
+            self.distributed_execution is not None
+            and self.mixed_runtime is not None
+            and self.mixed_runtime.backend_installations
+        ):
+            raise ValueError(
+                "portable mixed execution requires local pinned services; "
+                "remote mixed worker authority is not installed"
+            )
         require_inject_resolver(self.inject_execution)
         _require_dispatcher_shape(self.distributed_execution)
         if not isinstance(self.supervision, OperationSupervisionConfiguration):

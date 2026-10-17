@@ -2,22 +2,37 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from raes_contracts.runtime_state import OperationReceipt
-
-    from .control_plane import RuntimeControlPlane
-
-
 from collections.abc import Callable
 from dataclasses import dataclass, replace
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
-from raes_contracts.runtime_state import OperationState, OperationStatus, operation_terminal_diagnostics
+from raes_contracts.runtime_state import (
+    OperationReceipt,
+    OperationState,
+    OperationStatus,
+    operation_terminal_diagnostics,
+)
 
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
 from .participant_crossing_mediation import ParticipantCrossingEvidence, PreparedParticipantCrossing
+
+if TYPE_CHECKING:
+    from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
+
+    from .control_plane import RuntimeControlPlane
+    from .mixed_runtime_dispatch import PreparedMixedActionDispatch
+    from .participant_flow_sink import ParticipantFlowSinkDecision
+
+
+@dataclass(frozen=True)
+class _PreparedActionEffect:
+    """The authorized crossing and its admitted native action dispatch."""
+
+    crossing: PreparedParticipantCrossing
+    request: ParticipantActionAdmissionRequest | None = None
+    mixed_dispatch: PreparedMixedActionDispatch | None = None
+    sink_decision: ParticipantFlowSinkDecision | None = None
+    early_receipt: OperationReceipt | None = None
 
 
 def commit_stale_action_result(

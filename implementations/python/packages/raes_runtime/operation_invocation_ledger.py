@@ -9,10 +9,14 @@ from raes_contracts.contracts import (
     BackendOperationControlModel,
     BackendOperationRequestModel,
     BackendOperationResponseModel,
+    MixedBackendExecutionBindingModel,
+    MixedBackendStageReportModel,
     validate_backend_operation_history,
 )
 from raes_contracts.contracts.backend_operation import OperationDigest, OperationIdentifier
 from raes_contracts.contracts.base import ContractModel
+from raes_contracts.contracts.mixed_runtime import MixedCompositionRuntimeStateModel
+from raes_contracts.contracts.time_model import TimeRuntimeStateModel
 from raes_contracts.runtime_state import OperationState
 
 from .operation_temporal import EngineDeliveryBinding
@@ -38,15 +42,51 @@ class InvocationLedger(ContractModel):
     controls: tuple[BackendOperationControlModel, ...] = Field(default=(), max_length=256)
     delivered_controls: tuple[OperationIdentifier, ...] = Field(default=(), max_length=256)
     automatic_controls: tuple[OperationIdentifier, ...] = Field(default=(), max_length=AUTOMATIC_CONTROL_LIMIT)
+    mixed_binding: MixedBackendExecutionBindingModel | None = None
+    mixed_time_state: TimeRuntimeStateModel | None = None
+    mixed_post_time_state: TimeRuntimeStateModel | None = None
+    mixed_composition_state: MixedCompositionRuntimeStateModel | None = None
+    mixed_reports: tuple[MixedBackendStageReportModel, ...] = Field(default=(), max_length=64)
 
     @model_validator(mode="after")
     def _valid_history(self) -> Self:
         require_transcript_capacity(self)
         validate_backend_operation_history(self.request, self.responses, controls=self.controls)
+        self._require_mixed_history()
         if self.delivery is not None:
             self.delivery.reference.require_request(self.request)
             if self.native:
                 raise ValueError("native invocation cannot carry an engine delivery")
+        self._require_control_history()
+        if not self.reserved and self.consumed and self.release_commitment is None:
+            raise ValueError("a consumed invocation requires a validated release commitment")
+        return self
+
+    def _require_mixed_history(self) -> None:
+        if self.mixed_binding is not None:
+            from raes_contracts.contracts import backend_operation_request_digest, require_mixed_backend_request
+
+            require_mixed_backend_request(self.mixed_binding, self.request)
+            if self.mixed_time_state is None or self.mixed_composition_state is None:
+                raise ValueError("mixed invocation requires its committed time and composition cut")
+            digest = backend_operation_request_digest(self.request)
+            seen = {}
+            for report in self.mixed_reports:
+                if report.binding != self.request.binding or report.request_digest != digest:
+                    raise ValueError("mixed evidence belongs to another invocation")
+                if seen.setdefault(report.sequence, report) != report:
+                    raise ValueError("duplicate mixed stage changed content")
+        elif any(
+            (
+                self.mixed_reports,
+                self.mixed_time_state is not None,
+                self.mixed_composition_state is not None,
+                self.mixed_post_time_state is not None,
+            )
+        ):
+            raise ValueError("mixed evidence requires its original binding")
+
+    def _require_control_history(self) -> None:
         control_ids = [control.control_id for control in self.controls]
         if len(control_ids) != len(set(control_ids)):
             raise ValueError("control identities must be unique")
@@ -54,9 +94,6 @@ class InvocationLedger(ContractModel):
             raise ValueError("control delivery claims must be unique")
         if not set(self.delivered_controls) <= set(control_ids):
             raise ValueError("control delivery requires retained intent")
-        if not self.reserved and self.consumed and self.release_commitment is None:
-            raise ValueError("a consumed invocation requires a validated release commitment")
-        return self
 
 
 def require_record_invocation(record: ControlPlaneOperationRecord) -> None:
@@ -90,6 +127,15 @@ def require_invocation_transition(prior: InvocationLedger | None, replacement: I
 def _require_immutable_invocation_binding(prior: InvocationLedger, replacement: InvocationLedger) -> None:
     if prior.request != replacement.request or prior.native != replacement.native:
         raise ValueError("invocation binding and command commitment are immutable")
+    for name in ("mixed_binding", "mixed_time_state", "mixed_composition_state"):
+        if getattr(prior, name) != getattr(replacement, name):
+            raise ValueError("mixed invocation cut is immutable")
+    if prior.mixed_post_time_state is not None and replacement.mixed_post_time_state != prior.mixed_post_time_state:
+        raise ValueError("mixed post-effect readback is immutable")
+    _require_immutable_delivery_binding(prior, replacement)
+
+
+def _require_immutable_delivery_binding(prior: InvocationLedger, replacement: InvocationLedger) -> None:
     if prior.delivery is not None and prior.delivery != replacement.delivery:
         raise ValueError("engine delivery binding is immutable")
     if prior.consumed and prior.delivery != replacement.delivery:
@@ -106,7 +152,7 @@ def _require_monotonic_invocation_authority(prior: InvocationLedger, replacement
 
 
 def _require_append_only_invocation_history(prior: InvocationLedger, replacement: InvocationLedger) -> None:
-    for name in ("responses", "controls", "delivered_controls", "automatic_controls"):
+    for name in ("responses", "controls", "delivered_controls", "automatic_controls", "mixed_reports"):
         before, after = getattr(prior, name), getattr(replacement, name)
         if after[: len(before)] != before:
             raise ValueError("invocation history is append-only")

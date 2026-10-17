@@ -145,6 +145,12 @@ policy choices, recovery and composition limits.
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_issue_1372_review_regressions.py` (C1/C2 original mixed absence authority, linked-resolution quiescence and optional-read timeout isolation)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_backend_invocation.py` (C1/C2 original mixed invocation authority, bounded calls and retained readback facts)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_backend_action.py` (C1/C2 validated native/residual state, replay and owning history CAS)
+- TESTS → TEST `implementations/python/tests/test_issue_1372_mixed_execution.py` (Responsive supervision, bounded callbacks, durable stage retention and no effect replay)
+
 - IMPLEMENTS → CODE_FILE `.github/workflows/canonical-verification.yml` (API-404-C2 service-backed execution and ledger coverage in the canonical verification graph)
 
 - DOCUMENTS → GITHUB_ISSUE `1362` (Supervised execution outside state admission)
