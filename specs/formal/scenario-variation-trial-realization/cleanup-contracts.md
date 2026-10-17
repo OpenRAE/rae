@@ -107,10 +107,33 @@ trial_outcome in {succeeded, failed, cancelled, timed-out, aborted}
 cleanup_status in {succeeded, failed, partial, unsupported, unverified, not-required}
 ```
 
-For the trigger selected by the primary outcome, every required obligation has
-a successful result. Failed or unverified results carry bounded failure
-evidence or residual-state references. A successful result carries verification
-evidence and cannot disclose residual state.
+The primary outcome selects one terminal trigger `T`:
+
+```text
+succeeded -> success      failed  -> failure     cancelled -> cancellation
+timed-out -> timeout      aborted -> abort
+```
+
+`retry` is not a terminal trigger. A terminal receipt never owes a
+retry-only obligation.
+
+A valid receipt reports cleanup truthfully. It does not assert that cleanup
+succeeded. `validate_trial_cleanup_receipt()` applies these rules:
+
+| Condition | Rule |
+| --- | --- |
+| A required obligation has `T` in its triggers | Its result must exist. The status must be `succeeded`, `failed`, `unsupported`, or `unverified`. `skipped`, `not-triggered`, and an omitted result are rejected. |
+| `cleanup_status` is `succeeded` | Every owed required result is `succeeded`. Each reported result is `succeeded` or `not-triggered`. |
+| `cleanup_status` is `failed`, `partial`, `unsupported`, or `unverified` | An owed required result can have any attempted status. The aggregate status is a producer disclosure. It is not a reduction over the result statuses. |
+| `cleanup_status` is `not-required` | The receipt has no results. A plan that owes a required obligation for `T` rejects it. |
+| An obligation has `T` in its triggers | Its result cannot be `not-triggered`. |
+| An obligation does not have `T` in its triggers | Omit its result, or report it as `not-triggered`. |
+| A result is `succeeded` | It carries evidence and cannot disclose residual state. |
+| A result is `failed` or `unverified` | It carries bounded failure evidence or residual-state references. |
+
+A truthful failure report keeps the admitted obligation. It does not downgrade
+the obligation, remove it, or mark it as not triggered. Acceptance of a
+failure receipt does not certify resource reuse or retry safety.
 
 A `clean_state_claim` is permitted only when cleanup succeeded. Failed,
 partial, unsupported, or unverified cleanup therefore invalidates clean or
