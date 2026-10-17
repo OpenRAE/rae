@@ -1,5 +1,17 @@
 """Admit controller authority before invoking the existing episode owner."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from raes_contracts.runtime_state import RuntimeSnapshot
+
+    from .control_plane import RuntimeControlPlane
+
+
 from dataclasses import replace
 from uuid import uuid4
 
@@ -12,21 +24,29 @@ from raes_contracts.participant_episode import (
 from raes_contracts.runtime_state import ApplyResult, OperationState
 
 from .backend_calls import _BackendCallContext, _call_backend_apply
-from .participant_control_runtime import archived_policies, episode_policy_admissions, resolve_live_cut
+from .participant_control_runtime import (
+    archived_policies,
+    episode_policy_admissions,
+    participant_policy_specifications,
+    require_initial_authority,
+    resolve_live_cut,
+)
 from .participant_effect_authority import participant_effect_authority
 
 
-def _prepare_episode_request(plane, request):
+def _prepare_episode_request(plane: RuntimeControlPlane, request: object) -> object:
     if plane._mixed_control is None or not isinstance(
         request, (ParticipantEpisodeInitializeRequest, ParticipantEpisodeResetRequest, ParticipantEpisodeRestartRequest)
     ):
         return request
-    specifications = [
-        spec
-        for spec in plane._behavior_specifications.values()
-        if spec.mixed_control_policy is not None
-        and spec.mixed_control_participant_address == request.participant_address
-    ]
+    return _prepare_bound_episode_request(plane, request)
+
+
+def _prepare_bound_episode_request(
+    plane: RuntimeControlPlane,
+    request: ParticipantEpisodeInitializeRequest | ParticipantEpisodeResetRequest | ParticipantEpisodeRestartRequest,
+) -> object:
+    specifications = participant_policy_specifications(plane, request.participant_address)
     if not specifications:
         return request
     if len(specifications) != 1:
@@ -36,18 +56,13 @@ def _prepare_episode_request(plane, request):
     if any(item.episode_id == request.episode_id for item in archived_policies(plane, request.participant_address)):
         raise ValueError("mixed-control episode identity cannot be reused")
     cut = resolve_live_cut(plane, policy, None)
-    initial = policy.state(policy.initial_state_ref)
-    if (
-        initial.authority_status != "active"
-        or not set(initial.authority_basis_refs) <= set(cut.active_authority_basis_refs)
-        or not set(initial.scope_refs) <= set(cut.authorized_scope_refs)
-        or not initial.valid_from_order <= cut.effective_order <= initial.valid_until_order
-    ):
-        raise ValueError("initial mixed-control authority is invalid")
+    require_initial_authority(policy, cut, "initial mixed-control authority is invalid")
     return request
 
 
-def execute_participant_policy_call(plane, *, method, request, address):
+def execute_participant_policy_call(
+    plane: RuntimeControlPlane, *, method: Callable[..., ApplyResult], request: object, address: str
+) -> tuple[ApplyResult, OperationState, dict[str, object] | None]:
     """Return native result, terminal knowledge and any atomically retained pin."""
 
     try:
@@ -57,6 +72,12 @@ def execute_participant_policy_call(plane, *, method, request, address):
         request = _prepare_episode_request(plane, request)
     except (ValueError, PermissionError, TimeoutError):
         return _unverified(plane, address), OperationState.FAILED, None
+    return _execute_prepared_policy_call(plane, method, request, address)
+
+
+def _execute_prepared_policy_call(
+    plane: RuntimeControlPlane, method: Callable[..., ApplyResult], request: object, address: str
+) -> tuple[ApplyResult, OperationState, dict[str, object] | None]:
     predecessor = plane._snapshot
     baseline_revision = plane._snapshot_state.revision
     with plane._mutation_authority.external_call():
@@ -74,6 +95,12 @@ def execute_participant_policy_call(plane, *, method, request, address):
         return _unverified(plane, address), OperationState.INDETERMINATE, None
     if not result.success:
         return result, OperationState.FAILED, None
+    return _retain_episode_admissions(plane, predecessor, result, address)
+
+
+def _retain_episode_admissions(
+    plane: RuntimeControlPlane, predecessor: RuntimeSnapshot, result: ApplyResult, address: str
+) -> tuple[ApplyResult, OperationState, dict[str, object] | None]:
     try:
         admissions = episode_policy_admissions(plane, predecessor, result.snapshot)
     except (ValueError, PermissionError, TimeoutError):
@@ -83,7 +110,7 @@ def execute_participant_policy_call(plane, *, method, request, address):
     return result, OperationState.SUCCEEDED, admissions
 
 
-def _unverified(plane, address):
+def _unverified(plane: RuntimeControlPlane, address: str) -> ApplyResult:
     return ApplyResult(
         False,
         plane._snapshot,
@@ -92,7 +119,10 @@ def _unverified(plane, address):
                 code="runtime.participant-control.admission-unverified",
                 domain="runtime",
                 address=address,
-                message="Participant control authority or native effect knowledge could not be established at the admitted cut.",
+                message=(
+                    "Participant control authority or native effect knowledge could not be established "
+                    "at the admitted cut."
+                ),
             )
         ],
     )

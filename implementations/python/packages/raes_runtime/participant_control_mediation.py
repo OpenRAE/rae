@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .participant_crossing_mediation import ParticipantCrossingEvidence
+
+
 from dataclasses import asdict, dataclass, replace
 
 from raes_contracts.contracts import (
@@ -146,33 +152,35 @@ def bind_participant_control_request(
     intent: ParticipantControlIntent,
     identity: ControlPlaneIdentity,
     idempotency_key: str,
-    crossing_evidence=None,
+    crossing_evidence: ParticipantCrossingEvidence | None = None,
 ) -> _BoundControlRequest:
     specification = _specification_for_participant(control_plane, participant_address, identity)
     intent = type(intent).model_validate(intent.model_dump(mode="json"))
     transition = _transition_for_intent(specification, intent, identity)
     state = _state_by_address(specification, transition.from_state_address)
-    return _BoundControlRequest(
-        specification=specification,
-        transition=transition,
-        state=state,
-        idempotency_key=idempotency_key,
-        context=control_application_context(control_plane, participant_address, intent, identity, crossing_evidence)
-        if intent.application is not None
-        else operation_admission_context(
+    if intent.application is None:
+        context = operation_admission_context(
             control_plane,
             kind=OperationKind.PARTICIPANT_CONTROL,
             request={
                 "intent": intent.model_dump(mode="json"),
                 "participant_address": participant_address,
                 "specification": specification.address,
-                **({"transition": asdict(transition)} if intent.application is None else {}),
+                "transition": asdict(transition),
             },
             identity=identity,
-        ),
-        effective_order=transition.effective_order
-        if intent.application is None
-        else intent.application.effective_order,
+        )
+        effective_order = transition.effective_order
+    else:
+        context = control_application_context(control_plane, participant_address, intent, identity, crossing_evidence)
+        effective_order = intent.application.effective_order
+    return _BoundControlRequest(
+        specification=specification,
+        transition=transition,
+        state=state,
+        idempotency_key=idempotency_key,
+        context=context,
+        effective_order=effective_order,
     )
 
 

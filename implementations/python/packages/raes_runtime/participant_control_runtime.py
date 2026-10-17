@@ -7,6 +7,17 @@ authority and a restart never substitutes today's policy for an archived one.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from raes_processor.models import ParticipantBehaviorSpecificationRuntime
+
+    from .control_plane import RuntimeControlPlane
+    from .control_plane_store import ControlPlaneOperationRecord
+
+
 from copy import deepcopy
 from dataclasses import dataclass
 from typing import Protocol
@@ -84,13 +95,20 @@ class MixedControlRuntimeBinding:
         return project_control_episode_policy(self.model, specification_ref, episode_id=episode_id)
 
 
-def resolve_live_cut(plane, policy, intent):
+def resolve_live_cut(
+    plane: RuntimeControlPlane, policy: ParticipantControlOccurrencePolicyModel, intent: ParticipantControlIntent | None
+) -> ParticipantControlLiveCut:
     """Run the installed owner outside state authority and fence its evaluated cut."""
 
     return resolve_owner_cut(plane, policy, intent, plane._mixed_control.resolver.resolve_cut)
 
 
-def resolve_owner_cut(plane, policy, request, method):
+def resolve_owner_cut(
+    plane: RuntimeControlPlane,
+    policy: ParticipantControlOccurrencePolicyModel,
+    request: object,
+    method: Callable[..., ParticipantControlLiveCut],
+) -> ParticipantControlLiveCut:
     """Use one bounded, detached callback boundary for all live policy cuts."""
 
     revision = plane._snapshot_state.revision
@@ -112,9 +130,34 @@ def resolve_owner_cut(plane, policy, request, method):
     return cut
 
 
-def episode_policy_admissions(plane, previous, snapshot):
-    """Attach initial authority/policy evidence to the lifecycle's atomic operation."""
+def require_initial_authority(
+    policy: ParticipantControlOccurrencePolicyModel, cut: ParticipantControlLiveCut, message: str
+) -> None:
+    """Validate the initial state at its retained or newly admitted live cut."""
+    initial = policy.state(policy.initial_state_ref)
+    if (
+        initial.authority_status != "active"
+        or not set(initial.authority_basis_refs) <= set(cut.active_authority_basis_refs)
+        or not set(initial.scope_refs) <= set(cut.authorized_scope_refs)
+        or not initial.valid_from_order <= cut.effective_order <= initial.valid_until_order
+    ):
+        raise ValueError(message)
 
+
+def participant_policy_specifications(
+    plane: RuntimeControlPlane, participant: str
+) -> list[ParticipantBehaviorSpecificationRuntime]:
+    return [
+        spec
+        for spec in plane._behavior_specifications.values()
+        if spec.mixed_control_policy is not None and spec.mixed_control_participant_address == participant
+    ]
+
+
+def episode_policy_admissions(
+    plane: RuntimeControlPlane, previous: RuntimeSnapshot, snapshot: RuntimeSnapshot
+) -> dict[str, object] | None:
+    """Attach initial authority/policy evidence to the lifecycle's atomic operation."""
     if plane._mixed_control is None:
         return None
     admissions = []
@@ -122,50 +165,50 @@ def episode_policy_admissions(plane, previous, snapshot):
         old = previous.participant_episode_results.get(participant, {})
         if old.get("episode_id") == state.get("episode_id"):
             continue
-        specifications = [
-            spec
-            for spec in plane._behavior_specifications.values()
-            if spec.mixed_control_policy is not None and spec.mixed_control_participant_address == participant
-        ]
-        if not specifications:
-            continue
-        if len(specifications) != 1 or state.get("status") != "running":
-            raise ValueError("mixed-control episode must have one running admitted policy")
-        policy = plane._mixed_control.policy(specifications[0].address, state["episode_id"])
-        if any(item.episode_id == policy.episode_id for item in archived_policies(plane, participant)):
-            raise ValueError("mixed-control episode identity cannot be reused")
-        cut = resolve_live_cut(plane, policy, None)
-        initial = policy.state(policy.initial_state_ref)
-        if (
-            initial.authority_status != "active"
-            or not set(initial.authority_basis_refs) <= set(cut.active_authority_basis_refs)
-            or not set(initial.scope_refs) <= set(cut.authorized_scope_refs)
-            or not initial.valid_from_order <= cut.effective_order <= initial.valid_until_order
-        ):
-            raise ValueError("initial mixed-control authority is not valid")
-        admissions.append({"policy": policy.model_dump(mode="json"), "cut": cut.model_dump(mode="json")})
+        admission = _episode_policy_admission(plane, participant, state)
+        if admission is not None:
+            admissions.append(admission)
     return {_ADMISSIONS: admissions} if admissions else None
 
 
-def archived_policies(plane, participant):
-    """Read the original scoped successful lifecycle records, never current grants."""
+def _episode_policy_admission(
+    plane: RuntimeControlPlane, participant: str, state: dict[str, object]
+) -> dict[str, object] | None:
+    specifications = participant_policy_specifications(plane, participant)
+    if not specifications:
+        return None
+    if len(specifications) != 1 or state.get("status") != "running":
+        raise ValueError("mixed-control episode must have one running admitted policy")
+    policy = plane._mixed_control.policy(specifications[0].address, state["episode_id"])
+    if any(item.episode_id == policy.episode_id for item in archived_policies(plane, participant)):
+        raise ValueError("mixed-control episode identity cannot be reused")
+    cut = resolve_live_cut(plane, policy, None)
+    require_initial_authority(policy, cut, "initial mixed-control authority is not valid")
+    return {"policy": policy.model_dump(mode="json"), "cut": cut.model_dump(mode="json")}
 
+
+def _archived_policy(
+    record: ControlPlaneOperationRecord, admission: dict[str, object]
+) -> ParticipantControlOccurrencePolicyModel:
+    policy = ParticipantControlOccurrencePolicyModel.model_validate(admission["policy"])
+    cut = ParticipantControlLiveCut.model_validate(admission["cut"])
+    message = "retained mixed-control admission evidence is unverifiable"
+    if record.receipt.context.operation_kind.value != "participant-action":
+        raise ValueError(message)
+    require_initial_authority(policy, cut, message)
+    return policy
+
+
+def archived_policies(
+    plane: RuntimeControlPlane, participant: str
+) -> tuple[ParticipantControlOccurrencePolicyModel, ...]:
+    """Read the original scoped successful lifecycle records, never current grants."""
     policies = {}
     for record in plane._operations.values():
         if record.status.state is not OperationState.SUCCEEDED:
             continue
         for admission in (record.result_payload or {}).get(_ADMISSIONS, ()):
-            policy = ParticipantControlOccurrencePolicyModel.model_validate(admission["policy"])
-            cut = ParticipantControlLiveCut.model_validate(admission["cut"])
-            initial = policy.state(policy.initial_state_ref)
-            if (
-                record.receipt.context.operation_kind.value != "participant-action"
-                or initial.authority_status != "active"
-                or not set(initial.authority_basis_refs) <= set(cut.active_authority_basis_refs)
-                or not set(initial.scope_refs) <= set(cut.authorized_scope_refs)
-                or not initial.valid_from_order <= cut.effective_order <= initial.valid_until_order
-            ):
-                raise ValueError("retained mixed-control admission evidence is unverifiable")
+            policy = _archived_policy(record, admission)
             if policy.participant_address != participant:
                 continue
             digest = canonical_json_digest(policy.model_dump(mode="json"))
@@ -176,7 +219,9 @@ def archived_policies(plane, participant):
     return tuple(item[1] for item in policies.values())
 
 
-def admitted_policy(plane, participant, episode):
+def admitted_policy(
+    plane: RuntimeControlPlane, participant: str, episode: str
+) -> ParticipantControlOccurrencePolicyModel:
     """Resolve exactly one retained admission for this participant episode."""
 
     matches = [policy for policy in archived_policies(plane, participant) if policy.episode_id == episode]

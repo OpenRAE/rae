@@ -4,7 +4,15 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_serializer, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SerializerFunctionWrapHandler,
+    TypeAdapter,
+    model_serializer,
+    model_validator,
+)
 from raes_contracts.contracts.participant_control import ParticipantControlTargetKind
 from raes_contracts.contracts.participant_control_coordinates import ControlCount
 
@@ -30,7 +38,7 @@ class ParticipantControlIntentBase(BaseModel):
     application: ParticipantControlApplicationCoordinates | None = None
 
     @model_serializer(mode="wrap")
-    def _serialize_intent(self, handler) -> dict[str, object]:
+    def _serialize_intent(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
         payload = handler(self)
         if self.application is None:
             payload.pop("application", None)

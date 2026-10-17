@@ -168,8 +168,9 @@ def test_retry_resumes_a_retained_control_only_if_its_delivery_was_never_claimed
                 raise RuntimeError("interrupted before delivery claim")
 
             patch.setattr(controls, "deliver_control", interrupted)
+            caller = identity()
             with pytest.raises(RuntimeError, match="interrupted"):
-                plane.dispatch_participant_cancellation(receipt.operation_id, identity=identity())
+                plane.dispatch_participant_cancellation(receipt.operation_id, identity=caller)
 
         status = plane.dispatch_participant_cancellation(receipt.operation_id, identity=identity())
 

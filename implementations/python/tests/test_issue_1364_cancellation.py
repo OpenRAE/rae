@@ -56,6 +56,9 @@ def test_cancelling_a_pending_proposal_records_a_durable_prevention_witness():
         assert status.cancellation_effect.value == "prevented"
         assert status.evidence_refs
         assert "cancellation_effect" not in plane.snapshot.participant_control_history[PARTICIPANT][-1]["occurrence"]
+        expected = status.model_copy(deep=True)
+        status.evidence_refs.append("caller-owned-note")
+        assert plane.participant_cancellation_status(receipt.operation_id, identity=identity()) == expected
 
 
 def admitted_attempt(plane, *, native=True):

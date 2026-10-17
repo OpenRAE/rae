@@ -19,8 +19,9 @@ def test_installed_policy_children_must_match_the_retained_compiler_source():
     model.behavior_specifications[SPEC] = replace(
         specification, mixed_control_policy=replace(specification.mixed_control_policy, policy_revision="forged")
     )
+    owner = CutOwner()
     with pytest.raises(ValueError, match="compiler context"):
-        MixedControlRuntimeBinding(model=model, resolver=CutOwner())
+        MixedControlRuntimeBinding(model=model, resolver=owner)
 
 
 def test_configured_control_does_not_admit_an_unsupported_directed_delivery_path():
@@ -31,10 +32,11 @@ def test_configured_control_does_not_admit_an_unsupported_directed_delivery_path
     from reusable_control_runtime_fixtures import CutOwner
 
     model = compile_runtime_model(parse(rev1_delivery_scenario()))
+    binding = MixedControlRuntimeBinding(model=model, resolver=CutOwner())
     with pytest.raises(ValueError, match="delivery"):
         ControlPlaneConfiguration(
             behavior_specifications=model.behavior_specifications,
-            mixed_control=MixedControlRuntimeBinding(model=model, resolver=CutOwner()),
+            mixed_control=binding,
         )
 
 
@@ -105,11 +107,10 @@ def test_ambiguous_group_has_no_winner():
         owner = plane._mixed_control.resolver
         plane.initialize_participant_episode(PARTICIPANT, episode_id="episode-1", identity=identity())
         intents = [handoff(plane, owner, "take", revision=0, head=0, order=1, key=key) for key in ("one", "two")]
-
+        applications = [(intent, intent.client_correlation_id) for intent in intents]
+        caller = identity()
         with pytest.raises(ValueError, match="ambiguous"):
-            plane.record_participant_controls(
-                PARTICIPANT, [(intent, intent.client_correlation_id) for intent in intents], identity=identity()
-            )
+            plane.record_participant_controls(PARTICIPANT, applications, identity=caller)
 
         assert plane.snapshot.participant_control_history.get(PARTICIPANT, []) == []
 
@@ -150,8 +151,9 @@ def test_lost_commit_acknowledgement_returns_the_original_receipt_without_a_new_
         owner = plane._mixed_control.resolver
         plane.initialize_participant_episode(PARTICIPANT, episode_id="episode-1", identity=identity())
         intent = handoff(plane, owner, "take", revision=0, head=0, order=1, key="handoff")
+        caller = identity()
         with pytest.raises(ConnectionError):
-            plane.record_participant_control(PARTICIPANT, intent, identity=identity(), idempotency_key="handoff")
+            plane.record_participant_control(PARTICIPANT, intent, identity=caller, idempotency_key="handoff")
         owner.orders.clear()
         receipt = plane.record_participant_control(PARTICIPANT, intent, identity=identity(), idempotency_key="handoff")
         assert plane.get_operation(receipt.operation_id).state is OperationState.SUCCEEDED
@@ -201,10 +203,9 @@ def test_read_only_principal_is_refused_before_live_owner_evaluation_without_a_r
             return original(*args)
 
         owner.resolve_cut = spy
+        reader = replace(identity(), roles=frozenset({ControlPlaneRole.AUDITOR}))
         with pytest.raises(PermissionError):
-            plane.record_participant_control(
-                PARTICIPANT, intent, identity=replace(identity(), roles=frozenset({ControlPlaneRole.AUDITOR}))
-            )
+            plane.record_participant_control(PARTICIPANT, intent, identity=reader)
         assert called == []
 
 

@@ -1,5 +1,13 @@
 """Complete-prefix replay requires each episode's retained original context."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .control_plane import RuntimeControlPlane
+
+
 from raes_contracts.contracts import validate_participant_control_occurrence_context
 from raes_contracts.contracts.participant_control_occurrence_v2 import parse_participant_control_occurrence
 
@@ -7,7 +15,7 @@ from .participant_control_runtime import archived_policies
 from .participant_control_targets import archived_control_targets
 
 
-def validate_restored_control_archive(plane):
+def validate_restored_control_archive(plane: RuntimeControlPlane) -> None:
     """Refuse unverifiable v2 archives before exposing a recovered runtime."""
 
     for participant, history in plane._snapshot.participant_control_history.items():

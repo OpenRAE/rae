@@ -2,6 +2,15 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Any
+
+    from .control_plane import RuntimeControlPlane
+    from .control_plane_store import ControlPlaneOperationRecord
+
+
 from dataclasses import dataclass
 
 from pydantic import TypeAdapter
@@ -253,7 +262,9 @@ def _intent_target(
     return target
 
 
-def external_control_targets(snapshot, participant, episode, history_head, intent):
+def external_control_targets(
+    snapshot: RuntimeSnapshot, participant: str, episode: str, history_head: int, intent: ParticipantControlIntent
+) -> tuple[ParticipantControlOccurrenceTarget, ...]:
     """Attest targets visible at this cut; API-409 owns internal control targets."""
 
     requested = _intent_target(intent)
@@ -280,9 +291,10 @@ def external_control_targets(snapshot, participant, episode, history_head, inten
     )
 
 
-def archived_control_targets(plane, participant):
+def archived_control_targets(
+    plane: RuntimeControlPlane, participant: str
+) -> tuple[ParticipantControlOccurrenceTarget, ...]:
     """Retain the original visibility cut instead of backdating later targets."""
-
     targets = []
     events = {event["event_id"]: event for event in plane._snapshot.participant_control_history.get(participant, ())}
     for record in plane._operations.values():
@@ -290,26 +302,32 @@ def archived_control_targets(plane, participant):
             continue
         for payload in (record.result_payload or {}).get("participant_control_available_targets", ()):
             if payload["participant_address"] == participant:
-                TypeAdapter(ControlPosition).validate_python(payload["target_revision"])
-                TypeAdapter(ControlCount).validate_python(payload["available_at"])
-                for field in ("target_ref", "participant_address", "episode_id"):
-                    TypeAdapter(ControlRef).validate_python(payload[field])
-                event = events.get((record.result_payload or {}).get("participant_control_occurrence_ref"))
-                if (
-                    event is None
-                    or payload["episode_id"] != event["episode_id"]
-                    or payload["available_at"] != event["occurrence"]["occurrence_revision"] - 1
-                ):
-                    raise ValueError("stored target visibility is not bound to its committed control cut")
-                targets.append(
-                    ParticipantControlOccurrenceTarget(
-                        **{**payload, "target_kind": ParticipantControlTargetKind(payload["target_kind"])}
-                    )
-                )
+                targets.append(_archived_target(record, payload, events))
     return tuple(targets)
 
 
-def control_target_identity(target):
+def _archived_target(
+    record: ControlPlaneOperationRecord, payload: dict[str, Any], events: dict[str, dict[str, Any]]
+) -> ParticipantControlOccurrenceTarget:
+    TypeAdapter(ControlPosition).validate_python(payload["target_revision"])
+    TypeAdapter(ControlCount).validate_python(payload["available_at"])
+    for field in ("target_ref", "participant_address", "episode_id"):
+        TypeAdapter(ControlRef).validate_python(payload[field])
+    event = events.get((record.result_payload or {}).get("participant_control_occurrence_ref"))
+    if (
+        event is None
+        or payload["episode_id"] != event["episode_id"]
+        or payload["available_at"] != event["occurrence"]["occurrence_revision"] - 1
+    ):
+        raise ValueError("stored target visibility is not bound to its committed control cut")
+    return ParticipantControlOccurrenceTarget(
+        **{**payload, "target_kind": ParticipantControlTargetKind(payload["target_kind"])}
+    )
+
+
+def control_target_identity(
+    target: ParticipantControlOccurrenceTarget,
+) -> tuple[ParticipantControlTargetKind, str, int, str, str]:
     """Return target identity independently of its original visibility position."""
 
     return (
@@ -321,13 +339,23 @@ def control_target_identity(target):
     )
 
 
-def cancellation_target_operation(plane, participant, intent):
+def cancellation_target_operation(
+    plane: RuntimeControlPlane, participant: str, intent: ParticipantCancellationControlIntent
+) -> ControlPlaneOperationRecord | None:
     """Join a lifecycle target to its exact operation; native batches stay unsupported."""
-
     if intent.target_kind not in {ParticipantControlTargetKind.ADMITTED_ACTION, ParticipantControlTargetKind.ATTEMPT}:
         return None
+    refs = _cancellation_operation_refs(plane._snapshot, participant, intent)
+    if len(refs) != 1:
+        return None
+    return _scoped_target_operation(plane, participant, next(iter(refs)))
+
+
+def _cancellation_operation_refs(
+    snapshot: RuntimeSnapshot, participant: str, intent: ParticipantCancellationControlIntent
+) -> set[str]:
     refs = set()
-    for payload in plane._snapshot.participant_behavior_history.get(participant, ()):
+    for payload in snapshot.participant_behavior_history.get(participant, ()):
         event = ParticipantBehaviorHistoryEventModel.model_validate(payload)
         if event.episode_id != intent.episode_id or event.event_type.value != "action_attempted":
             continue
@@ -338,9 +366,13 @@ def cancellation_target_operation(plane, participant, intent):
         )
         if matches and event.operation_ref:
             refs.add(event.operation_ref)
-    if len(refs) != 1:
-        return None
-    record = plane._operations.get(next(iter(refs)))
+    return refs
+
+
+def _scoped_target_operation(
+    plane: RuntimeControlPlane, participant: str, operation_ref: str
+) -> ControlPlaneOperationRecord | None:
+    record = plane._operations.get(operation_ref)
     if record is None or record.invocation is None:
         return None
     context = record.receipt.context
