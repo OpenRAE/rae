@@ -143,8 +143,8 @@ def _validate_inject(
     if delivery is None or control_digest(delivery) != target.delivery_ref.digest:
         raise ValueError("inject request has no exact owning delivery")
     if delivery.control is not None:
-        application = context.inject_applications.get(target.delivery_ref.ref)
-        canonical = context.inject_coordinates.get(target.delivery_ref.ref)
+        application = getattr(context, "inject_applications", {}).get(target.delivery_ref.ref)
+        canonical = getattr(context, "inject_coordinates", {}).get(target.delivery_ref.ref)
         if application is None or canonical != target or application.application.control is None:
             raise ValueError(
                 "inject request cannot join a mixed-control-policy-occurrence/rev1 delivery binding without its exact owner application"
