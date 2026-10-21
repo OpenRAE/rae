@@ -7,6 +7,7 @@ from raes_contracts.addressing import require_compiled_address
 from raes_contracts.canonical import jsonable_fallback
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileBindingModel
+from raes_contracts.planning import RuntimeDomain
 from raes_contracts.realization_structure import (
     ExactRealizationValue,
     structure_matches,
@@ -199,13 +200,26 @@ def _dependency_violation(entry: SnapshotEntry) -> str | None:
     return None
 
 
+def _domain_violation(entry: SnapshotEntry) -> str | None:
+    """Admit one entry's runtime domain only as a ``RuntimeDomain`` member.
+
+    ``RuntimeDomain`` is a ``str`` enum, so an equal-valued string would pass a
+    value comparison and then fail the identity comparisons runtime readers use.
+    """
+
+    if type(entry.domain) is not RuntimeDomain:
+        return "Backend snapshot contains an untyped runtime domain."
+    return None
+
+
 def _entry_violation(entry: object) -> str | None:
     """Admit one snapshot resource entry against its bounded shape contract."""
 
     if not isinstance(entry, SnapshotEntry):
         return "Backend snapshot contains a non-SnapshotEntry resource."
     return (
-        _profile_binding_violation(entry)
+        _domain_violation(entry)
+        or _profile_binding_violation(entry)
         or _payload_violation(entry)
         or _status_violation(entry)
         or _dependency_violation(entry)
