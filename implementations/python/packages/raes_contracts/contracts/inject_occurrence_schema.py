@@ -23,19 +23,22 @@ _LOCAL = (
         {"contract_id": "participant-inject-delivery-receipt-v1", "instance_path": "#"},
         ParticipantInjectDeliveryReceiptModel,
         "participant-inject-delivery-receipt-local-consistency",
-        "Bind the durable operation identity to its governed local delivery result; this is neither participant observation nor external transport acknowledgement.",
+        "Bind the durable operation identity to its governed local delivery result; this is neither "
+        "participant observation nor external transport acknowledgement.",
     ),
     (
         {"contract_id": "participant-inject-application-v1", "instance_path": "#"},
         ParticipantInjectApplicationModel,
         "participant-inject-application-local-consistency",
-        "Pin an authored delivery, world operation, exact participant episode and snapshot cut, and optional exact control event; shape grants no delivery authority.",
+        "Pin an authored delivery, world operation, exact participant episode and snapshot cut, and "
+        "optional exact control event; shape grants no delivery authority.",
     ),
     (
         {"contract_id": "participant-inject-delivery-v1", "instance_path": "#"},
         ParticipantInjectContentModel,
         "participant-inject-delivery-local-consistency",
-        "Retain the application recipient, snapshot cut, successful world correlation and bounded owner-projected content; emitted content proves no participant observation.",
+        "Retain the application recipient, snapshot cut, successful world correlation and bounded "
+        "owner-projected content; emitted content proves no participant observation.",
     ),
     (
         _REQUEST,

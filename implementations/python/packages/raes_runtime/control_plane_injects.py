@@ -28,6 +28,7 @@ from .control_plane_mutation import control_plane_mutation, mutation_entry
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_security import ControlPlaneIdentity, ControlPlaneRole
 from .control_plane_store import ControlPlaneOperationRecord
+from .inject_capture import InjectCaptureResult
 from .inject_execution import require_inject_plan
 
 
@@ -159,7 +160,7 @@ class RuntimeInjectMixin:
             return [_inject_diagnostic()]
         return []
 
-    def _require_inject_schedule(self, request):
+    def _require_inject_schedule(self, request: InjectTriggerRequestModel) -> None:
         if request.placement.kind == "schedule":
             from .inject_schedule import require_schedule
 
@@ -236,7 +237,7 @@ class RuntimeInjectMixin:
         return deepcopy(record.inject_delivery)
 
     @runtime_owned
-    def get_inject_capture(self, operation_id: str, *, identity: object | None = None):
+    def get_inject_capture(self, operation_id: str, *, identity: object | None = None) -> InjectCaptureResult | None:
         from .inject_capture import InjectCaptureResult
 
         record = self._read_inject_record(operation_id, identity)

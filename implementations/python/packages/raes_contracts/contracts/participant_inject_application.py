@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import base64
-import binascii
 from typing import Literal
 
 from pydantic import Field, StrictInt, model_validator
@@ -55,7 +54,7 @@ class ParticipantInjectContentModel(OperationContractModel):
     content: str = Field(max_length=87_384)
 
     @model_validator(mode="after")
-    def _recipient(self):
+    def _recipient(self) -> ParticipantInjectContentModel:
         if (self.participant_address, self.episode_id) != (
             self.application.participant_address,
             self.application.episode_id,
@@ -67,7 +66,7 @@ class ParticipantInjectContentModel(OperationContractModel):
                 if self.content_encoding == "utf-8"
                 else base64.b64decode(self.content, validate=True)
             )
-        except (ValueError, binascii.Error):
+        except ValueError:
             raise ValueError("inject content encoding is invalid") from None
         if len(data) > 65_536:
             raise ValueError("inject content exceeds its byte bound")
@@ -84,7 +83,7 @@ class ParticipantInjectDeliveryReceiptModel(OperationContractModel):
     delivery: ParticipantInjectContentModel
 
     @model_validator(mode="after")
-    def _operation_identity(self):
+    def _operation_identity(self) -> ParticipantInjectDeliveryReceiptModel:
         if self.operation_id == self.delivery.application.world_operation_id:
             raise ValueError("world and delivery operations must remain distinct")
         return self

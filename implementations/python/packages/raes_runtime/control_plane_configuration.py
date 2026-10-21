@@ -98,6 +98,9 @@ class ControlPlaneConfiguration:
         if self.inject_delivery is not None and not isinstance(self.inject_delivery, ParticipantInjectRuntimeBinding):
             raise TypeError("inject delivery requires a typed runtime binding")
         self._require_state_configuration()
+        self._require_inject_projection_configuration()
+
+    def _require_inject_projection_configuration(self) -> None:
         if self.inject_delivery is not None:
             if self.crossing_policy_resolver is None:
                 raise ValueError("inject delivery requires its crossing policy owner")

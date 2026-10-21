@@ -143,26 +143,7 @@ def _validate_inject(
     if delivery is None or control_digest(delivery) != target.delivery_ref.digest:
         raise ValueError("inject request has no exact owning delivery")
     if delivery.control is not None:
-        application = getattr(context, "inject_applications", {}).get(target.delivery_ref.ref)
-        canonical = getattr(context, "inject_coordinates", {}).get(target.delivery_ref.ref)
-        if application is None or canonical != target or application.application.control is None:
-            raise ValueError(
-                "inject request cannot join a mixed-control-policy-occurrence/rev1 delivery binding without its exact owner application"
-            )
-        application = ParticipantInjectContentModel.model_validate(application.model_dump(mode="json"))
-        selected = application.application
-        if (
-            selected.delivery_address != target.delivery_ref.ref
-            or selected.delivery_digest != target.delivery_ref.digest
-            or (
-                application.participant_address,
-                application.episode_id,
-                application.disclosed_item.artifact_id,
-                application.visibility_projection_ref,
-            )
-            != (target.participant_address, cut.episode_id, target.result_item_ref, target.disclosure_ref.ref)
-        ):
-            raise ValueError("inject request exact owner application differs")
+        _validate_control_inject(target, cut, context, delivery)
         return
     expected = (
         target.participant_address,
@@ -190,6 +171,35 @@ def _validate_inject(
         or delivery.delivery_policy.audience_scope_ref != cut.audience_ref
     ):
         raise ValueError("inject request owner coordinates differ")
+
+
+def _validate_control_inject(
+    target: ControlInjectEffectModel,
+    cut: ParticipantControlContextModel,
+    context: ParticipantControlValidationContext,
+    delivery: ParticipantInjectDelivery,
+) -> None:
+    application = getattr(context, "inject_applications", {}).get(target.delivery_ref.ref)
+    canonical = getattr(context, "inject_coordinates", {}).get(target.delivery_ref.ref)
+    if application is None or canonical != target or application.application.control is None:
+        raise ValueError(
+            "inject request cannot join a mixed-control-policy-occurrence/rev1 delivery binding "
+            "without its exact owner application"
+        )
+    application = ParticipantInjectContentModel.model_validate(application.model_dump(mode="json"))
+    selected = application.application
+    if (
+        selected.delivery_address != target.delivery_ref.ref
+        or selected.delivery_digest != target.delivery_ref.digest
+        or (
+            application.participant_address,
+            application.episode_id,
+            application.disclosed_item.artifact_id,
+            application.visibility_projection_ref,
+        )
+        != (target.participant_address, cut.episode_id, target.result_item_ref, target.disclosure_ref.ref)
+    ):
+        raise ValueError("inject request exact owner application differs")
 
 
 def _validate_incumbents(

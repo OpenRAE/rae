@@ -10,7 +10,8 @@ from raes_contracts.plan_effects import plan_can_mutate
 from raes_contracts.plan_projection import runtime_plan_digest
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
 from raes_contracts.runtime_state import RuntimeSnapshot
-from raes_processor.models import ExecutionPlan
+from raes_processor.models import ExecutionPlan, RuntimeModel
+from raes_processor.planner.mixed_control_admission import MixedControlPlanningAdmission
 
 from .control_plane_lifecycle import runtime_owned
 
@@ -48,7 +49,7 @@ class RuntimePlanAuthorizationMixin:
             self._trusted_runtime_plan_digests.update(digests)
         return digests[0]
 
-    def _require_mixed_control_planning_model(self, model):
+    def _require_mixed_control_planning_model(self, model: RuntimeModel) -> None:
         controlled_deliveries = any(item.control is not None for item in model.participant_inject_deliveries.values())
         if (
             self._mixed_control is None
@@ -58,7 +59,7 @@ class RuntimePlanAuthorizationMixin:
             raise ValueError("reusable-control plan requires its exact installed consumer context")
 
     @runtime_owned
-    def mixed_control_planning_admission(self):
+    def mixed_control_planning_admission(self) -> MixedControlPlanningAdmission:
         from raes_processor.planner.mixed_control_admission import MixedControlPlanningAdmission
 
         if self._mixed_control is None:
@@ -117,7 +118,7 @@ class RuntimePlanAuthorizationMixin:
         raise NotImplementedError
 
 
-def _schedule_context(model):
+def _schedule_context(model: RuntimeModel) -> tuple[object, object, object, object]:
     """Only schedule semantics bind a schedule's orchestration-plan digest."""
 
     return model.events, model.scripts, model.stories, model.time_model

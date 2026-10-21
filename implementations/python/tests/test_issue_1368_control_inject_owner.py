@@ -67,8 +67,9 @@ def test_context_requires_exact_owner_application_and_canonical_coordinates(tmp_
         )
         cut = SimpleNamespace(episode_id=request.episode_id)
         _validate_inject(target, cut, context)
+        wrong_target = target.model_copy(update={"inject_ref": "orchestration.inject.wrong"})
         with pytest.raises(ValueError):
-            _validate_inject(target.model_copy(update={"inject_ref": "orchestration.inject.wrong"}), cut, context)
+            _validate_inject(wrong_target, cut, context)
         context.inject_applications = {}
         with pytest.raises(ValueError):
             _validate_inject(target, cut, context)
@@ -94,3 +95,12 @@ def test_effect_owner_submits_through_the_real_world_result_delivery_boundary(tm
         assert len(deliveries) == 1
         assert deliveries[0].idempotency_key == "control-effect-owner:effect-claim-1"
         assert backend.starts == 1
+
+
+def test_planning_rejects_unknown_owner_context_keywords(tmp_path):
+    from raes_processor.planner import plan
+
+    plane, _, _, _ = configured_plane(tmp_path)
+    with plane:
+        with pytest.raises(TypeError, match="unsupported planning owner context"):
+            plan(plane._inject_delivery.model, plane._target.manifest, unsupported_owner_context=True)

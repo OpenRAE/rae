@@ -24,7 +24,7 @@ class MixedControlPlanningAdmission:
 
     model: RuntimeModel
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         object.__setattr__(self, "model", deepcopy(self.model))
 
 

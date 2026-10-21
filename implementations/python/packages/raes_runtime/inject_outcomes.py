@@ -78,9 +78,9 @@ def settle_inject_outcome(
         if response.message.proposed_state is OperationState.INDETERMINATE
         else inject_occurrence_outcome_digest(outcome)
     )
-    from .inject_capture import capture_inject
+    from .inject_capture import capture_payload
 
-    captured = capture_inject(plane, record, plan, remaining)
+    captured = capture_payload(plane, record, plan, remaining)
     commit_settlement(
         plane,
         record,
@@ -88,6 +88,6 @@ def settle_inject_outcome(
             state=response.message.proposed_state,
             release_commitment=release,
             inject_resolution=ResolvedInjectOutcome(outcome, evidence),
-            result_payload=None if captured is None else captured.model_dump(mode="json"),
+            result_payload=captured,
         ),
     )

@@ -37,9 +37,15 @@ _TRIGGER_SCHEMA["$id"] = "urn:raes:control-plane:inject-trigger-request-v1"
 
 
 def register_inject_routes(app: FastAPI, control_plane: RuntimeControlPlane) -> None:
+    _register_delivery_route(app, control_plane)
+    _register_trigger_route(app, control_plane)
+    _register_readback_routes(app, control_plane)
+
+
+def _register_delivery_route(app: FastAPI, control_plane: RuntimeControlPlane) -> None:
     @app.post(
         "/injects/deliver",
-        responses={409: {}, 413: {}, 422: {}},
+        responses={403: {}, 409: {}, 413: {}, 422: {}},
         openapi_extra={
             "requestBody": {
                 "required": True,
@@ -75,6 +81,8 @@ def register_inject_routes(app: FastAPI, control_plane: RuntimeControlPlane) -> 
         except ValueError:
             raise HTTPException(status_code=409, detail="delivery conflict") from None
 
+
+def _register_trigger_route(app: FastAPI, control_plane: RuntimeControlPlane) -> None:
     @app.post(
         "/injects/trigger",
         responses={409: {}, 413: {}, 422: {}},
@@ -107,6 +115,8 @@ def register_inject_routes(app: FastAPI, control_plane: RuntimeControlPlane) -> 
             raise HTTPException(status_code=409, detail=_conflict_detail(error)) from None
         return _receipt_response(receipt)
 
+
+def _register_readback_routes(app: FastAPI, control_plane: RuntimeControlPlane) -> None:
     async def read(
         request: Request, operation_id: str, identity: ControlPlaneIdentity, reader: Callable[..., _Readback | None]
     ) -> _Readback:

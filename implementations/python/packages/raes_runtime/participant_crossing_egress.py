@@ -65,7 +65,7 @@ def _serialize_participant_view_authorized(
     view: _ViewT,
     serialization: ParticipantViewSerialization,
 ) -> _ViewT:
-    from .participant_inject_application import retained_delivery_control
+    from .participant_inject_application import require_delivery_policy_pin, retained_delivery_control
 
     with control_plane._participant_control_lock:
         control_plane._reload_derived_state_if_unpinned()
@@ -101,13 +101,7 @@ def _serialize_participant_view_authorized(
             idempotency_key=serialization.idempotency_key,
             incumbent_carrier=view,
         )
-        if serialization.inject_application is not None and prepared.decision is not None:
-            delivery = control_plane._inject_delivery.model.participant_inject_deliveries[
-                serialization.inject_application.delivery_address
-            ]
-            policy = prepared.decision.occurrence.policy
-            if (policy.policy_id, policy.policy_revision) != (delivery.policy_ref, delivery.policy_revision):
-                raise ValueError("inject delivery policy pin differs")
+        require_delivery_policy_pin(control_plane, serialization, prepared)
         if prepared.existing_receipt is not None:
             return _replayed_projection_view(view, prepared.record)
         if not participant_crossing_permitted(prepared):

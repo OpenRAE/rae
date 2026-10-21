@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from typing import TYPE_CHECKING
 
 from raes_backend_protocols.inject_execution import InjectExecutionEvidence
@@ -191,38 +191,20 @@ def _require_delivery_claims(records: tuple[ControlPlaneOperationRecord, ...]) -
         if content is None:
             continue
         application = content.application
-        world = by_id.get(application.world_operation_id)
-        if world is None or world.inject_outcome is None or world.invocation is None:
-            raise ValueError("inject delivery world predecessor is unavailable")
-        from raes_contracts.contracts import validate_inject_occurrence_correlation
-
-        validate_inject_occurrence_correlation(
-            world.inject_occurrence, world.invocation.request, world.inject_outcome, content.correlation
-        )
-        if (world.receipt.context.target_scope, world.receipt.context.run_scope) != (
-            record.receipt.context.target_scope,
-            record.receipt.context.run_scope,
-        ):
-            raise ValueError("inject delivery predecessor scope differs")
+        _require_delivery_predecessor(record, by_id)
         pair = (content.correlation.occurrence, application.delivery_address, application.control)
         if pair in worlds:
             raise ValueError("inject result delivery is already claimed")
         worlds.add(pair)
         if application.control is not None:
-            if not any(
-                (candidate.result_payload or {}).get("participant_control_occurrence_ref")
-                == application.control.event_id
-                and candidate.status.state is OperationState.SUCCEEDED
-                for candidate in records
-            ):
-                raise ValueError("inject delivery accepted control predecessor is unavailable")
+            _require_control_predecessor(application.control.event_id, records)
             pair = (application.control.event_id, application.delivery_address)
             if pair in controls:
                 raise ValueError("control occurrence delivery is already claimed")
             controls.add(pair)
 
 
-def require_delivery_record(record):
+def require_delivery_record(record: ControlPlaneOperationRecord) -> None:
     if record.inject_delivery is not None:
         delivery = ParticipantInjectContentModel.model_validate(record.inject_delivery.model_dump(mode="json"))
         if record.receipt.context.operation_kind is not OperationKind.PARTICIPANT_CROSSING:
@@ -236,3 +218,32 @@ def require_delivery_record(record):
         require_retained_delivery_control(delivery.application, record.inject_delivery_control)
     elif record.inject_delivery_control is not None:
         raise ValueError("inject control join requires its delivery application")
+
+
+def _require_delivery_predecessor(
+    record: ControlPlaneOperationRecord, by_id: Mapping[str, ControlPlaneOperationRecord]
+) -> None:
+    content = record.inject_delivery
+    application = content.application
+    world = by_id.get(application.world_operation_id)
+    if world is None or world.inject_outcome is None or world.invocation is None:
+        raise ValueError("inject delivery world predecessor is unavailable")
+    from raes_contracts.contracts import validate_inject_occurrence_correlation
+
+    validate_inject_occurrence_correlation(
+        world.inject_occurrence, world.invocation.request, world.inject_outcome, content.correlation
+    )
+    if (world.receipt.context.target_scope, world.receipt.context.run_scope) != (
+        record.receipt.context.target_scope,
+        record.receipt.context.run_scope,
+    ):
+        raise ValueError("inject delivery predecessor scope differs")
+
+
+def _require_control_predecessor(event_id: str, records: tuple[ControlPlaneOperationRecord, ...]) -> None:
+    if not any(
+        (candidate.result_payload or {}).get("participant_control_occurrence_ref") == event_id
+        and candidate.status.state is OperationState.SUCCEEDED
+        for candidate in records
+    ):
+        raise ValueError("inject delivery accepted control predecessor is unavailable")
