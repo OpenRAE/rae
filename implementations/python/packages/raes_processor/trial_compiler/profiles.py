@@ -26,6 +26,12 @@ RANDOM_STREAM_PROFILE_VERSION: Final = RANDOM_STREAM_PROFILE_SCHEMA_VERSION
 def admitted_profiles(*, mixed_composition: bool = False, replacement: bool = False) -> AdmittedTrialPlanProfilesModel:
     """Return the single exact profile set implemented by this compiler."""
 
+    if replacement:
+        compiler_profile = "trial-compiler-replacement-v1"
+        if mixed_composition:
+            compiler_profile = "trial-compiler-replacement-mixed-composition-v1"
+    else:
+        compiler_profile = "trial-compiler-mixed-composition-v1" if mixed_composition else "trial-compiler-v1"
     return AdmittedTrialPlanProfilesModel(
         coordinate_profile="trial-coordinate-v1",
         entry_identity_profile=(
@@ -36,15 +42,7 @@ def admitted_profiles(*, mixed_composition: bool = False, replacement: bool = Fa
         ),
         canonicalization_profile="jcs-sha256-v1",
         integrity_profile="acyclic-digest-chain-v1",
-        compiler_profile=(
-            (
-                "trial-compiler-replacement-mixed-composition-v1"
-                if mixed_composition
-                else "trial-compiler-replacement-v1"
-            )
-            if replacement
-            else ("trial-compiler-mixed-composition-v1" if mixed_composition else "trial-compiler-v1")
-        ),
+        compiler_profile=compiler_profile,
         selection_policy_profile="experiment-selection-v1",
         random_stream_profile=RANDOM_STREAM_PROFILE_ID,
         execution_control_profile="attempt-control-v1",

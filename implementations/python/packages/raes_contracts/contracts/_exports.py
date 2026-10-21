@@ -134,6 +134,8 @@ PUBLIC_EXPORTS = [
     "reconcile_admitted_trial_plan",
     "validate_admitted_trial_run",
     "validate_admitted_trial_study",
+    "TrialReplacementStudyInputs",
+    "validate_replacement_trial_study",
     "NIST_CSF_DEFENSIVE_CATEGORIES_SOURCE_SCHEMA_VERSION",
     "NistCsfDefensiveCategorySourceModel",
     "NistCsfDefensiveCategorySourceTermModel",

@@ -275,7 +275,13 @@ def test_analysis_rejects_dangling_supersession_and_duplicate_child_plans():
 
 def test_study_analysis_joins_replacement_plans_without_counting_retained_parents():
     from raes_contracts.canonical import canonical_json_digest
-    from raes_contracts.contracts import ExperimentStudyModel, ExperimentTaskModel, validate_admitted_trial_study
+    from raes_contracts.contracts import (
+        ExperimentStudyModel,
+        ExperimentTaskModel,
+        TrialReplacementStudyInputs,
+        validate_admitted_trial_study,
+        validate_replacement_trial_study,
+    )
 
     request = _replacement_request()
     task_payload = request.task.model_dump(mode="json")
@@ -327,28 +333,28 @@ def test_study_analysis_joins_replacement_plans_without_counting_retained_parent
         },
     }
     study = ExperimentStudyModel.model_validate(payload)
-    validate_admitted_trial_study(
+    with pytest.raises(ValueError, match="complete retained replacement history"):
+        validate_admitted_trial_study(root, study, [task], [child])
+    validate_replacement_trial_study(
         root,
         study,
         [task],
         [run, allocation.superseded_run, child],
-        replacement_plans=[allocation.plan],
-        cleanup_receipts=[receipt, child_receipt],
-        evidence_by_run=evidence(),
+        inputs=TrialReplacementStudyInputs([allocation.plan], [receipt, child_receipt], evidence()),
     )
     payload["membership"]["old"] = {
         "role": "evaluation-run",
         "target_ref": {"ref_kind": "run", "ref_id": run.run_id, "ref_version": run.run_version},
     }
+    invalid_study = ExperimentStudyModel.model_validate(payload)
+    study_inputs = TrialReplacementStudyInputs([allocation.plan], [receipt, child_receipt], evidence())
     with pytest.raises(ValueError):
-        validate_admitted_trial_study(
+        validate_replacement_trial_study(
             root,
-            ExperimentStudyModel.model_validate(payload),
+            invalid_study,
             [task],
             [run, allocation.superseded_run, child],
-            replacement_plans=[allocation.plan],
-            cleanup_receipts=[receipt, child_receipt],
-            evidence_by_run=evidence(),
+            inputs=study_inputs,
         )
 
 
@@ -540,10 +546,11 @@ def test_intermediate_replacement_must_resolve_the_reserved_first_archive_versio
     )
     forged = _compile(request, None, ReplacementCompilationContext(origin, 0))
     final_run, final_receipt = _archive(request, forged, status="completed")
+    superseded = build_superseded_trial_run(unresolved, forged)
     with pytest.raises(ValueError):
         reconcile_replacement_trials(
             root,
             [first.plan, forged],
-            [run, first.superseded_run, unresolved, build_superseded_trial_run(unresolved, forged), final_run],
+            [run, first.superseded_run, unresolved, superseded, final_run],
             [receipt, child_receipt, final_receipt],
         )

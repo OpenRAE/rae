@@ -96,8 +96,10 @@ remain shortfalls at exhaustion. Invalidated, superseded and not-evaluated
 leaves are excluded. Do not
 select the best descendant or delete negative results.
 
-Call `validate_admitted_trial_study` with `replacement_plans`, `cleanup_receipts`
-and full retained run history. Evaluation membership names eligible leaves;
+Call `validate_replacement_trial_study` with full retained run history and
+`TrialReplacementStudyInputs` containing `replacement_plans`, `cleanup_receipts`
+and ordinary study evidence. The ordinary `validate_admitted_trial_study` entry
+point refuses replacement-enabled plans without this retained-history join. Evaluation membership names eligible leaves;
 parents need no calibration membership. Task, condition, stochastic-control,
 content-backed evidence, metric and target-coverage checks remain enforced.
 Original slots remain the scientific target. Membership counting a replaced

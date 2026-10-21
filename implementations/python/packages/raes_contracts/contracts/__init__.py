@@ -448,9 +448,11 @@ from .semantic_profiles import (
 from .semantic_projection import *
 from .trial_analysis import (
     AdmittedTrialPlanReconciliation,
+    TrialReplacementStudyInputs,
     reconcile_admitted_trial_plan,
     validate_admitted_trial_run,
     validate_admitted_trial_study,
+    validate_replacement_trial_study,
 )
 from .trial_cleanup import CleanStateClaimModel as CleanStateClaimModel
 from .trial_cleanup import CleanStateRequirementModel as CleanStateRequirementModel

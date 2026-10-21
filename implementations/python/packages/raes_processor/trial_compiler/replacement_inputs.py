@@ -58,8 +58,9 @@ class ReplacementCompilationContext:
             assignments[realization_assignment_key(coordinate)] = assignments.pop(realization_assignment_key(original))
         return replace(request, realization_assignments=assignments), updated
 
+    @staticmethod
     def input_refs(
-        self, request: TrialCompilationRequest, entries: Mapping[str, AdmittedTrialEntryModel]
+        request: TrialCompilationRequest, entries: Mapping[str, AdmittedTrialEntryModel]
     ) -> AdmittedTrialPlanInputRefsModel:
         refs = canonical_input_refs(request)
         if not request.realization_assignments:

@@ -111,14 +111,12 @@ def _validated_receipts(receipts: Sequence[TrialCleanupReceiptModel]) -> tuple[T
     )
 
 
-def _allocate(
+def _validated_root(
     request: TrialCompilationRequest,
     original_plan: AdmittedTrialPlanModel,
     root_entry_id: str,
     history: Sequence[TrialReplacementResult],
-    failed_run: ExperimentRunModel,
-    cleanup_receipts: Sequence[TrialCleanupReceiptModel],
-) -> TrialReplacementResult:
+) -> AdmittedTrialPlanModel:
     root = revalidate_admitted_trial_plan(original_plan)
     if root.replacement_origin is not None or root_entry_id not in root.entries:
         raise _refuse("root-invalid", "replacement requires an original admitted allocation slot")
@@ -133,37 +131,88 @@ def _allocate(
     expected_root = _compile(request, None)
     if expected_root.plan_digest != root.plan_digest:
         raise _refuse("root-invalid", "replacement inputs differ from the original admitted experiment")
-    run = _validated_run(failed_run)
-    receipts = _validated_receipts(cleanup_receipts)
+    return root
+
+
+def _prior_plan_bytes(prior: TrialReplacementResult) -> int:
+    if prior.plan is None or prior.parent_run is None or prior.superseded_run is None or prior.diagnostics:
+        raise _refuse("history-invalid", "replacement history contains an uncommitted allocation")
+    return len(canonical_json_bytes(prior.plan.model_dump(mode="json")))
+
+
+def _validated_prior(
+    request: TrialCompilationRequest,
+    root: AdmittedTrialPlanModel,
+    root_entry_id: str,
+    parent: AdmittedTrialPlanModel,
+    prior: TrialReplacementResult,
+    ordinal: int,
+) -> tuple[AdmittedTrialPlanModel, ExperimentRunModel, tuple[TrialCleanupReceiptModel, ...]]:
+    child = revalidate_admitted_trial_plan(prior.plan)
+    old_run = _validated_run(prior.parent_run)
+    old_receipts = _validated_receipts(prior.cleanup_receipts)
+    context = _context(root, root_entry_id, parent, old_run, old_receipts, ordinal, request)
+    # Recompilation prevents forged/forked/cyclic history from minting budget.
+    expected_child = _compile(request, None, context)
+    if child.plan_digest != expected_child.plan_digest or prior.superseded_run.model_dump(mode="json") != _supersede(
+        old_run, child
+    ).model_dump(mode="json"):
+        raise _refuse("history-invalid", "replacement history does not match its exact admitted lineage")
+    return expected_child, old_run, old_receipts
+
+
+def _replayed_decision(
+    run: ExperimentRunModel,
+    receipts: tuple[TrialCleanupReceiptModel, ...],
+    child: AdmittedTrialPlanModel,
+    old_run: ExperimentRunModel,
+    old_receipts: tuple[TrialCleanupReceiptModel, ...],
+) -> TrialReplacementResult | None:
+    if run.run_id != old_run.run_id:
+        return None
+    if run.model_dump(mode="json") != old_run.model_dump(mode="json") or [
+        item.model_dump(mode="json") for item in receipts
+    ] != [item.model_dump(mode="json") for item in old_receipts]:
+        raise _refuse("decision-conflict", "a committed replacement has different parent evidence")
+    return TrialReplacementResult(child, _supersede(old_run, child), (), old_run, old_receipts)
+
+
+def _replay_history(
+    request: TrialCompilationRequest,
+    root: AdmittedTrialPlanModel,
+    root_entry_id: str,
+    history: Sequence[TrialReplacementResult],
+    run: ExperimentRunModel,
+    receipts: tuple[TrialCleanupReceiptModel, ...],
+) -> tuple[AdmittedTrialPlanModel, TrialReplacementResult | None]:
     parent = root
     replay = None
     total_bytes = 0
     for ordinal, prior in enumerate(history, 1):
-        if prior.plan is None or prior.parent_run is None or prior.superseded_run is None or prior.diagnostics:
-            raise _refuse("history-invalid", "replacement history contains an uncommitted allocation")
-        total_bytes += len(canonical_json_bytes(prior.plan.model_dump(mode="json")))
+        total_bytes += _prior_plan_bytes(prior)
         if total_bytes > request.limits.max_plan_bytes:
             raise _refuse("history-limit-exceeded", "replacement history exceeds the compilation byte limit")
-        child = revalidate_admitted_trial_plan(prior.plan)
-        old_run = _validated_run(prior.parent_run)
-        old_receipts = _validated_receipts(prior.cleanup_receipts)
-        context = _context(root, root_entry_id, parent, old_run, old_receipts, ordinal, request)
-        # Recompilation prevents forged/forked/cyclic history from minting budget.
-        expected_child = _compile(request, None, context)
-        if child.plan_digest != expected_child.plan_digest or prior.superseded_run.model_dump(
-            mode="json"
-        ) != _supersede(old_run, child).model_dump(mode="json"):
-            raise _refuse("history-invalid", "replacement history does not match its exact admitted lineage")
-        if run.run_id == old_run.run_id:
-            if run.model_dump(mode="json") != old_run.model_dump(mode="json") or [
-                item.model_dump(mode="json") for item in receipts
-            ] != [item.model_dump(mode="json") for item in old_receipts]:
-                raise _refuse("decision-conflict", "a committed replacement has different parent evidence")
-            replay = TrialReplacementResult(expected_child, _supersede(old_run, child), (), old_run, old_receipts)
+        child, old_run, old_receipts = _validated_prior(request, root, root_entry_id, parent, prior, ordinal)
+        replay = _replayed_decision(run, receipts, child, old_run, old_receipts) or replay
         parent = child
+    return parent, replay
+
+
+def _allocate(
+    request: TrialCompilationRequest,
+    original_plan: AdmittedTrialPlanModel,
+    root_entry_id: str,
+    history: Sequence[TrialReplacementResult],
+    failed_run: ExperimentRunModel,
+    cleanup_receipts: Sequence[TrialCleanupReceiptModel],
+) -> TrialReplacementResult:
+    root = _validated_root(request, original_plan, root_entry_id, history)
+    run = _validated_run(failed_run)
+    receipts = _validated_receipts(cleanup_receipts)
+    parent, replay = _replay_history(request, root, root_entry_id, history, run, receipts)
     if replay is not None:
         return replay
-    if len(history) >= policy.max_replacements:
+    if len(history) >= root.replacement_policy.max_replacements:
         raise _refuse("limit-exhausted", "the original allocation slot has exhausted its replacement limit")
     context = _context(root, root_entry_id, parent, run, receipts, len(history) + 1, request)
     child = _compile(request, None, context)

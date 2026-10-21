@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import replace
 
 from raes import (
     validate_experiment_selection_against_family,
@@ -261,25 +262,7 @@ def _compile_entries(
     return entries, cleanup_plans, used_control_ids
 
 
-def _compile(
-    request: TrialCompilationRequest,
-    coordinate_partitions: tuple[tuple[int, ...], ...] | None,
-    replacement: ReplacementCompilationContext | None = None,
-) -> AdmittedTrialPlanModel:
-    validate_input_identities(request)
-    try:
-        validate_experiment_selection_against_family(request.experiment, family=request.family)
-    except ValueError as exc:
-        raise _fail(
-            "selection-intent-rejected",
-            "/run_plan/selection_policies",
-            "selection policy intent failed scenario-family admission",
-        ) from exc
-    planned_coordinates = coordinates(request)
-    validate_realization_assignments(request, planned_coordinates)
-    if replacement is not None:
-        request, planned_coordinates = replacement.prepare(request, planned_coordinates)
-    mixed = bool(request.realization_assignments)
+def _compilation_authority(request: TrialCompilationRequest, mixed: bool) -> compiler_models._EntryCompilationAuthority:
     if mixed:
         authority = validate_mixed_authority(request)
         apparatus_manifests_by_profile = authority.apparatus_manifests_by_root
@@ -311,13 +294,47 @@ def _compile(
                 )
             )
         }
+    return compiler_models._EntryCompilationAuthority(
+        descriptors=None,
+        observations_by_profile=observations_by_profile,
+        apparatus_manifests_by_profile=apparatus_manifests_by_profile,
+        participant_manifests=participant_manifests,
+    )
+
+
+def _compile(
+    request: TrialCompilationRequest,
+    coordinate_partitions: tuple[tuple[int, ...], ...] | None,
+    replacement: ReplacementCompilationContext | None = None,
+) -> AdmittedTrialPlanModel:
+    validate_input_identities(request)
+    try:
+        validate_experiment_selection_against_family(request.experiment, family=request.family)
+    except ValueError as exc:
+        raise _fail(
+            "selection-intent-rejected",
+            "/run_plan/selection_policies",
+            "selection policy intent failed scenario-family admission",
+        ) from exc
+    planned_coordinates = coordinates(request)
+    validate_realization_assignments(request, planned_coordinates)
+    if replacement is not None:
+        request, planned_coordinates = replacement.prepare(request, planned_coordinates)
+    mixed = bool(request.realization_assignments)
+    authority = _compilation_authority(request, mixed)
     rows = compile_coordinate_selections(
         family=request.family,
         spec=request.experiment,
         coordinates=planned_coordinates,
         limits=request.limits,
     )
-    descriptors = None if mixed else _admitted_descriptors(request, apparatus_manifests, participant_manifests)
+    descriptors = (
+        None
+        if mixed
+        else _admitted_descriptors(
+            request, authority.apparatus_manifests_by_profile[""], authority.participant_manifests
+        )
+    )
     plan_id = derive_identity(
         "trial-plan",
         plan_intent(request, planned_coordinates),
@@ -334,12 +351,7 @@ def _compile(
         planned_coordinates,
         rows,
         traversal,
-        compiler_models._EntryCompilationAuthority(
-            descriptors=descriptors,
-            observations_by_profile=observations_by_profile,
-            apparatus_manifests_by_profile=apparatus_manifests_by_profile,
-            participant_manifests=participant_manifests,
-        ),
+        replace(authority, descriptors=descriptors),
     )
     controls = {
         control.control_id: control

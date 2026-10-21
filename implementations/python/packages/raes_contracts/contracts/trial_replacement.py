@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Annotated, Literal, Self
 
 from pydantic import Field, GetJsonSchemaHandler, model_validator
+from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
@@ -29,7 +30,7 @@ class TrialReplacementPolicyModel(ContractModel):
         return self
 
     @classmethod
-    def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler):
+    def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
         schema = handler.resolve_ref_schema(handler(core_schema))
         schema.setdefault("allOf", []).append(
             {

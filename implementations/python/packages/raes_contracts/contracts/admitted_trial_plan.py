@@ -397,7 +397,8 @@ class AdmittedTrialPlanModel(ContractModel):
             "incumbent authorities (random-stream profile, "
             "binding condition/family) to agree, forbids bounded-parallel entries from sharing resources, matches "
             "admission cardinality, binds a replacement profile to a distinct single-entry child within the "
-            "original replacement budget, and binds the complete plan with a recomputed plan_digest over the entry set.",
+            "original replacement budget, and binds the complete plan with a recomputed plan_digest "
+            "over the entry set.",
             validator="raes_contracts.contracts.admitted_trial_plan.AdmittedTrialPlanModel._validate_plan",
             inputs=[{"contract_id": "admitted-trial-plan-v1", "instance_path": "#"}],
         )
