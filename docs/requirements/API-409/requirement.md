@@ -121,3 +121,4 @@ explicit matching installed-owner admission retains its refusal.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_inject_delivery.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_inject_temporal.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_view_serialization.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1359_runtime_api_trust_boundary.py` (Transport authority inventory and authentication matrix include inject delivery and capture routes)
