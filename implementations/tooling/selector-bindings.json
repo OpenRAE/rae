@@ -237,17 +237,6 @@
       ]
     },
     {
-      "binding_id": "cirros-guest-disk-version",
-      "artifact_id": "cirros-guest-disk",
-      "authority_field": "version",
-      "consumers": [
-        {
-          "path": "tools/tool_versions.py",
-          "template": "CIRROS_GUEST_DISK_VERSION = \"{selector}\""
-        }
-      ]
-    },
-    {
       "binding_id": "temporal-runtime-ci-archive",
       "artifact_id": "temporal-cli-runtime-test",
       "authority_field": "version",

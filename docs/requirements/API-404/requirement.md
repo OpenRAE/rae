@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-04-03T05:55:58.825305Z
-updated_at: 2026-10-15T00:00:00Z
+updated_at: 2026-10-21T00:00:00Z
 ---
 
 # API-404 — Secure, Durable, And Idempotent Control-Plane Semantics
@@ -372,7 +372,6 @@ policy choices, recovery and composition limits.
 - TESTS → TEST `implementations/python/tests/test_realization_envelope_contract.py` (Realization envelope persistence under explicit local-store admission)
 - TESTS → TEST `implementations/python/tests/test_run_310_supervisory_lifecycle.py` (Supervisory lifecycle persistence under explicit local-store admission)
 - TESTS → TEST `implementations/python/tests/test_sem_211_participant_action_semantics.py` (Participant action persistence under explicit local-store admission)
-- TESTS → TEST `implementations/python/tests/test_libvirt_backend_techvault_honesty.py` (Backend admission preserves the explicitly admitted durable predecessor)
 - TESTS → TEST `implementations/python/tests/test_issue_1204_reference_profiles.py` (API lifespan ownership preserves durable profile-validation predecessors)
 - TESTS → TEST `implementations/python/tests/test_issue_1212_runtime_boundaries.py` (API lifespan ownership preserves rejected-evaluation predecessors)
 - TESTS → TEST `implementations/python/tests/test_issue_802_participant_control_migration.py` (Legacy snapshot migration under explicit local-store admission)

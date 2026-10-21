@@ -32,16 +32,13 @@ def test_checked_in_host_profiles_join_locked_payloads_and_evidence() -> None:
         "public-macos-arm64",
         "proof-ubuntu-22.04-x86_64",
         "container-ubuntu-24.04-x86_64",
-        "live-runner-ubuntu-24.04-x86_64",
     }
     proof = profiles["proof-ubuntu-22.04-x86_64"]
     assert proof["proof_support"] == "linux-x86_64-required"
     assert {"bubblewrap", "fontconfig", "fonts", "locale-c-utf-8"} <= set(proof["required_capability_ids"])
     assert proof["host_security_control_changes"] == "prohibited"
     linux = profiles["public-ubuntu-24.04-x86_64"]
-    assert {"container-cli", "container-daemon", "libvirt-client", "libvirt-daemon", "qemu", "kvm-access"} <= set(
-        linux["optional_capability_ids"]
-    )
+    assert {"container-cli", "container-daemon"} <= set(linux["optional_capability_ids"])
     for profile in profiles.values():
         assert "offline_kit" not in profile
         assert "qualification_record_ids" not in profile

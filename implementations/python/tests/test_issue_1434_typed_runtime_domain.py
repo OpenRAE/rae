@@ -11,11 +11,12 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-import pytest
 from raes import parse_sdl
+from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import OperationState
-from raes_reference_backend import create_reference_backend_target
+from raes_processor.compiler import compile_runtime_model
+from raes_processor.planner import plan
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.manager import RuntimeManager
 
@@ -36,11 +37,14 @@ infrastructure:
   lab: {count: 1, properties: {cidr: 10.0.0.0/24, gateway: 10.0.0.1}}
 """
 _UNTYPED_DOMAIN = ("runtime.backend-contract-invalid", "Backend snapshot contains an untyped runtime domain.")
-_OPERATION_FAILED = ("runtime.control-plane.operation-failed", "Operation completed with a known failure.")
+_OPERATION_INDETERMINATE = (
+    "runtime.control-plane.operation-indeterminate",
+    "Operation outcome could not be established; explicit resolution is required.",
+)
 
 
 class _StringDomainsOnce:
-    """Delegates to the reference provisioner; its first successful result names changed domains as strings."""
+    """Delegates to the stub provisioner; its first successful result names changed domains as strings."""
 
     def __init__(self, inner):
         self._inner = inner
@@ -62,7 +66,7 @@ class _StringDomainsOnce:
 
 
 def _target(*, string_domains: bool):
-    target = create_reference_backend_target()
+    target = create_stub_target()
     if not string_domains:
         return target
     return replace(target, provisioner=_StringDomainsOnce(target.provisioner))
@@ -81,32 +85,46 @@ def test_manager_refuses_a_successful_result_with_a_string_domain():
     assert _pairs(result.diagnostics) == [_UNTYPED_DOMAIN]
     assert manager.snapshot.entries == {}
 
+    # The refused result committed nothing, so the next planned operation is coherent.
+    retry = manager.apply(manager.plan(parse_sdl(_WITH_WEB)))
+    assert retry.success is True, _pairs(retry.diagnostics)
+    assert manager.snapshot.entries
+    assert all(type(entry.domain) is RuntimeDomain for entry in manager.snapshot.entries.values())
 
-@pytest.mark.parametrize(
-    ("string_domains", "first_outcome"),
-    [
-        (False, (OperationState.SUCCEEDED, [])),
-        (True, (OperationState.FAILED, [_UNTYPED_DOMAIN, _OPERATION_FAILED])),
-    ],
-    ids=["typed", "string-domain"],
-)
-def test_a_string_domain_cannot_wedge_the_next_planned_operation(string_domains, first_outcome):
-    target = _target(string_domains=string_domains)
+
+def _submit(control: RuntimeControlPlane, target, scenario: str):
+    execution = plan(compile_runtime_model(parse_sdl(scenario)), target.manifest, control.snapshot)
+    control.register_planner_produced_plan(execution)
+    receipt = control.submit_provisioning(execution.provisioning)
+    assert receipt.accepted, _pairs(receipt.diagnostics)
+    operation = control.get_operation(receipt.operation_id)
+    return operation, (operation.state, _pairs(operation.diagnostics))
+
+
+def test_control_plane_commits_no_untyped_domain():
+    target = _target(string_domains=True)
     control = RuntimeControlPlane(target)
-    planner = RuntimeManager(target)
-    outcomes = []
     try:
-        for scenario in (_WITH_WEB, _LAB_ONLY):
-            execution = planner.plan(parse_sdl(scenario), snapshot=control.snapshot)
-            control.register_planner_produced_plan(execution)
-            receipt = control.submit_provisioning(execution.provisioning)
-            assert receipt.accepted, _pairs(receipt.diagnostics)
-            operation = control.get_operation(receipt.operation_id)
-            outcomes.append((operation.state, _pairs(operation.diagnostics)))
+        _, observed = _submit(control, target, _WITH_WEB)
         entries = control.snapshot.entries
     finally:
         control.close()
 
-    assert outcomes == [first_outcome, (OperationState.SUCCEEDED, [])]
+    # A native invocation that dispatched and then returned an invalid result has
+    # unknown effects, so the supervised runtime records it as indeterminate.
+    assert observed == (OperationState.INDETERMINATE, [_UNTYPED_DOMAIN, _OPERATION_INDETERMINATE])
+    assert entries == {}
+
+
+def test_typed_domains_keep_the_next_planned_operation_coherent():
+    target = _target(string_domains=False)
+    control = RuntimeControlPlane(target)
+    try:
+        outcomes = [_submit(control, target, scenario)[1] for scenario in (_WITH_WEB, _LAB_ONLY)]
+        entries = control.snapshot.entries
+    finally:
+        control.close()
+
+    assert outcomes == [(OperationState.SUCCEEDED, []), (OperationState.SUCCEEDED, [])]
     assert sorted(entries) == ["provision.network.lab"]
     assert all(type(entry.domain) is RuntimeDomain for entry in entries.values())

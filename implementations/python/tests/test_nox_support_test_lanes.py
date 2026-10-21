@@ -88,7 +88,6 @@ def test_fuzz_and_integration_lanes_select_their_markers_and_coverage(
         append_coverage=True,
         finalize_coverage=True,
     )
-    test_lanes._run_docker_integration_tests(SimpleNamespace(posargs=["--junitxml", "docker.xml"]), reporter)
 
     assert calls == [
         (("-m", "fuzz", "-v"), {}),
@@ -96,12 +95,10 @@ def test_fuzz_and_integration_lanes_select_their_markers_and_coverage(
             ("-m", "integration", "-v"),
             {"coverage_file": Path("integration-coverage"), "append_coverage": True, "finalize_coverage": True},
         ),
-        (("-m", "docker", "-v", "--junitxml", "docker.xml"), {}),
     ]
     assert [name for name, _detail in reporter.stages] == [
         "tests / pytest fuzz",
         "tests / pytest integration",
-        "tests / pytest docker integration",
     ]
 
 
@@ -234,7 +231,7 @@ def test_shard_lane_constructs_the_deterministic_partition_invocation(
         "--shard-source-sha",
         "deadbeef",
         "--shard-suite-expression",
-        "not fuzz and not integration and not docker",
+        "not fuzz and not integration",
     )
     assert kwargs["coverage_file"] == Path("cov/.coverage.shard-1")
     assert kwargs["finalize_coverage"] is False

@@ -188,9 +188,10 @@ A backend that executes inject occurrences declares `inject-occurrence-v1` and
 `backend-operation-*-v1` contracts, and installs `BackendOperationProvider`.
 `require_inject_occurrence_provider` checks both declarations and the
 installed call shapes without invoking anything. Inject-binding support and a
-successful plan start are not this declaration (EI-06). The stub and default
-reference backend do not declare these contracts. A reference target configured
-with `ReferenceOciInjectExecutor` declares them and installs that provider.
+successful plan start are not this declaration (EI-06). The stub test double
+does not declare these contracts. RAES ships no executing provider; a backend
+distribution supplies one (see
+[ADR-115](../../decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md)).
 
 ## Migration and compatibility
 

@@ -2,8 +2,7 @@
 
 ``provisioner_account_features`` is the single spec->feature-term mapping shared
 by the processor planner gate (``raes_processor.planner._validate_manifest``) and
-the libvirt backend's capability-envelope diagnostics (issue #605), so the two
-never diverge. It is kept out of ``capabilities`` (which declares *what a backend
+backend capability-envelope diagnostics (issue #605), so the two never diverge. It is kept out of ``capabilities`` (which declares *what a backend
 supports*) because it reads *what a plan's account spec uses* — a plan-payload
 semantics concern, not a capability declaration.
 """

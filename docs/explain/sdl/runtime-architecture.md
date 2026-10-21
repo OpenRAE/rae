@@ -333,7 +333,7 @@ not just a shape:
 - backend capability blocks must declare concrete provisioning and orchestration
   support, not empty concern shells
 
-The reference backend, reference processor, and backend conformance profiles use
+The stub double, reference processor, and backend conformance profiles use
 the shared `v2` apparatus manifests. Legacy `v1` manifest schemas remain in the
 repo as deprecated reference artifacts, not as the current conformance target.
 Participant implementations use `participant-implementation-manifest-v1`

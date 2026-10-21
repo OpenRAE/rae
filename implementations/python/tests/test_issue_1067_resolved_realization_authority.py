@@ -12,9 +12,6 @@ from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes.instantiate import instantiate_scenario
 from raes.parser import parse_sdl
-from raes_backend_libvirt.driver import DriverResult as LibvirtDriverResult
-from raes_backend_libvirt.manifest import create_libvirt_manifest
-from raes_backend_libvirt.provisioner import LibvirtProvisioner
 from raes_backend_protocols.capabilities import (
     BackendManifest,
     OperatingSystemCompatibility,
@@ -51,8 +48,6 @@ from raes_processor.planner import (
     realization_authority_disclosure,
 )
 from raes_processor.planner.realization_authority_materialization import materialize_realization_authority
-from raes_reference_backend.drivers.inprocess import InProcessDriver
-from raes_reference_backend.target import create_reference_backend_target
 from raes_runtime.backend_calls import _call_backend_apply, _RealizationApplyContext
 from raes_runtime.control_plane import RuntimeControlPlane
 
@@ -74,7 +69,7 @@ def _scenario(realization: str = "", *, web_os: str = ""):
 
 
 def _manifest(mode: RealizationSupportMode = RealizationSupportMode.OPEN_REALIZATION) -> BackendManifest:
-    base = create_libvirt_manifest()
+    base = create_stub_target().manifest
     support = replace(
         base.realization_support[0],
         support_mode=mode,
@@ -763,81 +758,26 @@ def _unauthorized_os_selection(plan_value: ProvisioningPlan, mode: RealizationAu
     "mode",
     (RealizationAuthorityMode.CLOSED, RealizationAuthorityMode.CONSTRAINED),
 )
-def test_reference_adapter_rejects_unauthorized_selection_before_driver(mode: RealizationAuthorityMode) -> None:
-    driver = InProcessDriver()
-    target = create_reference_backend_target(driver=driver)
-    execution = plan(compile_runtime_model(_scenario(web_os="linux")), target.manifest)
+def test_adapter_selection_check_rejects_unauthorized_selection(mode: RealizationAuthorityMode) -> None:
+    """Provisioning adapters run this shared check before any native effect."""
+
+    execution = plan(compile_runtime_model(_scenario(web_os="linux")), create_stub_target().manifest)
     unauthorized = _unauthorized_os_selection(execution.provisioning, mode)
 
-    result = target.provisioner.apply(unauthorized, RuntimeSnapshot())
+    diagnostics = planned_realization_selection_diagnostics(unauthorized)
 
-    assert result.success is False
-    assert result.diagnostics[0].code == "realization.authority-selection-invalid"
-    assert driver.recorded_ops == []
-
-
-def test_reference_adapter_sends_in_bound_constrained_selection_to_driver() -> None:
-    driver = InProcessDriver()
-    target = create_reference_backend_target(driver=driver)
-    execution = plan(compile_runtime_model(_scenario(web_os="linux")), target.manifest)
-    authorized = _constrained_os_selection(
-        execution.provisioning,
-        allowed_values=["linux", "windows"],
-    )
-    authorized = replace(authorized, operation_id="issue-1067-reference-apply")
-
-    result = target.provisioner.apply(authorized, RuntimeSnapshot())
-
-    assert result.success is True
-    assert any(operation.verb == "realize" for operation in driver.recorded_ops)
+    assert [diagnostic.code for diagnostic in diagnostics] == ["realization.authority-selection-invalid"]
+    assert diagnostics[0].address == "provision.node.web"
 
 
-class _RecordingLibvirtDriver:
-    driver_mode = "generic"
-
-    def __init__(self) -> None:
-        self.realize_calls: list[dict[str, object]] = []
-
-    def realize(self, *, networks, domains):
-        self.realize_calls.append({"networks": networks, "domains": domains})
-        return LibvirtDriverResult()
-
-    def destroy(self, *, networks, domains):
-        return LibvirtDriverResult()
-
-    def realized_addresses(self):
-        return frozenset()
-
-
-@pytest.mark.parametrize(
-    "mode",
-    (RealizationAuthorityMode.CLOSED, RealizationAuthorityMode.CONSTRAINED),
-)
-def test_libvirt_adapter_rejects_unauthorized_selection_before_driver(mode: RealizationAuthorityMode) -> None:
-    driver = _RecordingLibvirtDriver()
-    manifest = create_libvirt_manifest()
-    execution = plan(compile_runtime_model(_scenario(web_os="linux")), manifest)
-    unauthorized = _unauthorized_os_selection(execution.provisioning, mode)
-
-    result = LibvirtProvisioner(driver).apply(unauthorized, RuntimeSnapshot())
-
-    assert result.success is False
-    assert result.diagnostics[0].code == "realization.authority-selection-invalid"
-    assert driver.realize_calls == []
-
-
-def test_libvirt_adapter_sends_in_bound_constrained_selection_to_driver() -> None:
-    driver = _RecordingLibvirtDriver()
-    manifest = create_libvirt_manifest()
-    execution = plan(compile_runtime_model(_scenario(web_os="linux")), manifest)
+def test_adapter_selection_check_admits_in_bound_constrained_selection() -> None:
+    execution = plan(compile_runtime_model(_scenario(web_os="linux")), create_stub_target().manifest)
     authorized = _constrained_os_selection(
         execution.provisioning,
         allowed_values=["linux", "windows"],
     )
 
-    LibvirtProvisioner(driver).apply(authorized, RuntimeSnapshot())
-
-    assert len(driver.realize_calls) == 1
+    assert planned_realization_selection_diagnostics(authorized) == []
 
 
 def test_nonclosed_authority_requires_a_selected_plan_and_manifest_envelope() -> None:

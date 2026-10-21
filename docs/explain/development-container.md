@@ -201,8 +201,8 @@ while working and let continuous integration, or a native Linux x86_64 proof
 host, run the full gate.
 
 **No container daemon.** The image supplies development tools, not a Docker or
-Podman daemon, and mounts no daemon socket. The optional
-`nox -s integration_docker` lane remains a host-capability test.
+Podman daemon, and mounts no daemon socket. No repository lane needs a
+container daemon.
 
 **Not a production runtime.** The image exists to develop and verify the
 repository.

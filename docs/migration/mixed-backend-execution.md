@@ -233,7 +233,7 @@ settling it.
 Both contracts are new IDs with draft stability under ADR-061. The
 `supported_contract_versions` enums of `backend-manifest-v2` and
 `backend-profile-v1` gain the two IDs. Existing manifests and profiles remain
-valid. The stub and reference backends do not declare the new IDs.
+valid. The stub test double does not declare the new IDs.
 
 The meaning of a published `sem-234/rev1` profile is unchanged. Historical
 reference-only records stay reference-only: no reader may reinterpret their

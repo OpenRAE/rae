@@ -411,12 +411,10 @@ ownership:
     - docs/research/specification-coverage
     - docs/research/lineage/source-audit-2026-07-12.md
     - docs/research/participant-interactive-access
-    - implementations/python/packages/raes_backend_libvirt
     - implementations/python/packages/raes_backend_protocols
     - implementations/python/packages/raes_backend_stubs
     - implementations/python/packages/raes_contracts
     - implementations/python/packages/raes_processor
-    - implementations/python/packages/raes_reference_backend
     - implementations/python/packages/raes
     # Issue #1276 threads value-free run/instantiation scope identity through the
     # runtime plan API round-trip and RuntimeManager, and rejoins direct-plan
@@ -602,7 +600,6 @@ ownership:
     - implementations/python/packages/raes_contracts
     - implementations/python/packages/raes_operations/run_artifacts.py
     - implementations/python/packages/raes_processor
-    - implementations/python/packages/raes_reference_backend/manifest.py
     - implementations/python/packages/raes_runtime/backend_calls.py
     - implementations/python/packages/raes_runtime/backend_effect_transitions.py
     - implementations/python/packages/raes_runtime/backend_input_contracts.py

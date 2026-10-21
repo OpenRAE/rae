@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-04-03T05:55:58.251562Z
-updated_at: 2026-10-15T00:00:00Z
+updated_at: 2026-10-21T00:00:00Z
 ---
 
 # DSL-111 — Entity And Exercise Timeline Modeling
@@ -79,4 +79,3 @@ every realization is installed.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/associated_artifacts.py` (Bounded content integrity for occurrence-associated artifacts)
 - TESTS → TEST `implementations/python/tests/test_issue_1367_inject_execution.py` (Participant-free world execution and distinct refusal, indeterminate and applied outcomes using an executing fixture)
 - TESTS → TEST `implementations/python/tests/test_issue_1367_inject_claims.py` (Retry, occurrence, slot and trusted order claims preserve distinct logical executions)
-- TESTS → TEST `implementations/python/tests/test_reference_backend_docker_integration.py` (CI concrete participant-free world effects, duplicate, failed execution, refusal and crash/reconciliation)
