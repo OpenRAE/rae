@@ -101,6 +101,5 @@ def test_planning_rejects_unknown_owner_context_keywords(tmp_path):
     from raes_processor.planner import plan
 
     plane, _, _, _ = configured_plane(tmp_path)
-    with plane:
-        with pytest.raises(TypeError, match="unsupported planning owner context"):
-            plan(plane._inject_delivery.model, plane._target.manifest, unsupported_owner_context=True)
+    with plane, pytest.raises(TypeError, match="unsupported planning owner context"):
+        plan(plane._inject_delivery.model, plane._target.manifest, unsupported_owner_context=True)
