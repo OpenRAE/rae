@@ -72,7 +72,8 @@ def test_orchestrator_start_records_workflow_result_and_history():
     receipt = control_plane.submit_orchestration(execution_plan.orchestration)
     status = control_plane.get_operation(receipt.operation_id)
 
-    assert status is not None and status.state.value == "succeeded"
+    assert status is not None
+    assert status.state.value == "succeeded"
     assert control_plane.snapshot.orchestration_results
     assert control_plane.snapshot.orchestration_history
 
@@ -85,7 +86,8 @@ def test_evaluator_start_records_results_and_history():
     receipt = control_plane.submit_evaluation(execution_plan.evaluation)
     status = control_plane.get_operation(receipt.operation_id)
 
-    assert status is not None and status.state.value == "succeeded"
+    assert status is not None
+    assert status.state.value == "succeeded"
     assert control_plane.snapshot.evaluation_results
 
 
