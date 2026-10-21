@@ -40,7 +40,7 @@ jobs:
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
         with:
           enable-cache: false
-          version: "0.12.4"
+          version: "0.13.4"
       - name: Validate and build public docs
         run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s docs-local
       - name: Check external documentation links

@@ -609,7 +609,7 @@
     {
       "artifact_id": "uv",
       "artifact_class": "bootstrap",
-      "version": "0.12.4",
+      "version": "0.13.4",
       "support_level": "blocking",
       "owner": "Tooling",
       "consumers": ["bootstrap", "python-environment", "workflow-setup"],
@@ -619,31 +619,31 @@
       "license": {"spdx": "Apache-2.0 OR MIT", "redistribution": "allowed", "review_ref": "ADR-106"},
       "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
       "policy_refs": ["artifact-integrity-v1"],
-      "source": {"repository": "https://github.com/astral-sh/uv", "release": "0.12.4", "asset": "uv-{target}.tar.gz", "locator_refs": ["official-github-release"]},
+      "source": {"repository": "https://github.com/astral-sh/uv", "release": "0.13.4", "asset": "uv-{target}.tar.gz", "locator_refs": ["official-github-release"]},
       "platforms": [
         {
           "platform_id": "linux-x86_64",
-          "source_urls": ["https://github.com/astral-sh/uv/releases/download/0.12.4/uv-x86_64-unknown-linux-gnu.tar.gz"],
-          "raw_manifest": [{"path": "uv-x86_64-unknown-linux-gnu.tar.gz", "sha256": "c8c60f47e6f88d18dbf6f33d7279fb1fbf7ae76631768152cf5578c3d65729b4", "size": 22913818}],
-          "installed_identity": {"implementation": "uv", "version": "0.12.4", "abi": "native", "target": "x86_64-unknown-linux-gnu"},
+          "source_urls": ["https://github.com/astral-sh/uv/releases/download/0.13.4/uv-x86_64-unknown-linux-gnu.tar.gz"],
+          "raw_manifest": [{"path": "uv-x86_64-unknown-linux-gnu.tar.gz", "sha256": "2b428396f12572d4429cf210ca234dd599a33b3af0958a4d5ed569d63e3f344f", "size": 16653835}],
+          "installed_identity": {"implementation": "uv", "version": "0.13.4", "abi": "native", "target": "x86_64-unknown-linux-gnu"},
           "dependencies": [],
           "profile_ids": ["public-linux-x86_64"],
           "host_profile_ids": ["container-ubuntu-24.04-x86_64", "public-ubuntu-24.04-x86_64", "proof-ubuntu-22.04-x86_64"]
         },
         {
           "platform_id": "linux-arm64",
-          "source_urls": ["https://github.com/astral-sh/uv/releases/download/0.12.4/uv-aarch64-unknown-linux-gnu.tar.gz"],
-          "raw_manifest": [{"path": "uv-aarch64-unknown-linux-gnu.tar.gz", "sha256": "49d881b3403187e1f1789720881e77e4251ad4259d86c4844862657d2a35d13f", "size": 21476892}],
-          "installed_identity": {"implementation": "uv", "version": "0.12.4", "abi": "native", "target": "aarch64-unknown-linux-gnu"},
+          "source_urls": ["https://github.com/astral-sh/uv/releases/download/0.13.4/uv-aarch64-unknown-linux-gnu.tar.gz"],
+          "raw_manifest": [{"path": "uv-aarch64-unknown-linux-gnu.tar.gz", "sha256": "1ae72b4718729e2ccc4f1ae2c6d1e531ca8467800e0546e9130b3886023a60ab", "size": 15769557}],
+          "installed_identity": {"implementation": "uv", "version": "0.13.4", "abi": "native", "target": "aarch64-unknown-linux-gnu"},
           "dependencies": [],
           "profile_ids": ["public-linux-arm64"],
           "host_profile_ids": ["public-linux-arm64"]
         },
         {
           "platform_id": "macos-arm64",
-          "source_urls": ["https://github.com/astral-sh/uv/releases/download/0.12.4/uv-aarch64-apple-darwin.tar.gz"],
-          "raw_manifest": [{"path": "uv-aarch64-apple-darwin.tar.gz", "sha256": "99a913b606194867b43086404412c1afe079547fee72ecfb6af7e7b0dd54b0c6", "size": 18632192}],
-          "installed_identity": {"implementation": "uv", "version": "0.12.4", "abi": "native", "target": "aarch64-apple-darwin"},
+          "source_urls": ["https://github.com/astral-sh/uv/releases/download/0.13.4/uv-aarch64-apple-darwin.tar.gz"],
+          "raw_manifest": [{"path": "uv-aarch64-apple-darwin.tar.gz", "sha256": "e0b1d4743ce64c55d9f0f4a444afa6b81125680070ee04e853fcd0f6c1ebf8f1", "size": 14326193}],
+          "installed_identity": {"implementation": "uv", "version": "0.13.4", "abi": "native", "target": "aarch64-apple-darwin"},
           "dependencies": [],
           "profile_ids": ["public-macos-arm64"],
           "host_profile_ids": ["public-macos-arm64"]

@@ -106,7 +106,7 @@ are not a support matrix, and they do not qualify another client or platform.
 Inside the container the checkout was writable and owned by `raes` at uid 1000.
 `uv`, `python`, `nox`, `pre-commit`, `ruff`, `git`, `gh`, `ssh`, `gpg`, `make`,
 `jq`, `less` and `nano` were all on the path. The run recorded Python 3.14.7,
-uv 0.12.4, ruff 0.15.9, nox 2026.4.10, git 2.43.0 and gh 2.45.0. It also
+uv 0.13.4, ruff 0.15.9, nox 2026.4.10, git 2.43.0 and gh 2.45.0. It also
 recorded Conftest 0.68.0, Gitleaks 8.30.1, OSV-Scanner 2.4.0 and Vale 3.15.2.
 The interpreter and formatter paths that `devcontainer.json` gives an editor
 all resolved.
