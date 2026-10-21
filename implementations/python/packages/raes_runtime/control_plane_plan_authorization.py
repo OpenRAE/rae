@@ -40,10 +40,11 @@ class RuntimePlanAuthorizationMixin:
             runtime_plan_digest(phase) for phase in (plan.provisioning, plan.orchestration, plan.evaluation)
         )
         with self._trusted_runtime_plan_lock:
-            previous = self._trusted_orchestration_models.get(digests[1])
-            if previous is not None and previous != plan.model:
-                raise ValueError("orchestration plan has ambiguous compiler context")
-            self._trusted_orchestration_models[digests[1]] = deepcopy(plan.model)
+            if plan.model.events and plan.model.scripts:
+                previous = self._trusted_orchestration_models.get(digests[1])
+                if previous is not None and _schedule_context(previous) != _schedule_context(plan.model):
+                    raise ValueError("orchestration plan has ambiguous compiler context")
+                self._trusted_orchestration_models[digests[1]] = deepcopy(plan.model)
             self._trusted_runtime_plan_digests.update(digests)
         return digests[0]
 
@@ -114,3 +115,9 @@ class RuntimePlanAuthorizationMixin:
         """Provided by RuntimeLifecycleMixin on the concrete control plane."""
 
         raise NotImplementedError
+
+
+def _schedule_context(model):
+    """Only schedule semantics bind a schedule's orchestration-plan digest."""
+
+    return model.events, model.scripts, model.stories, model.time_model

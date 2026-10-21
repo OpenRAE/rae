@@ -57,6 +57,7 @@ def execute_observation_lifecycle(
     producers: Mapping[str, Callable[[], tuple[object, ...]]],
     supported: frozenset[str],
     protector: Callable[[ObservationLifecycleItem, EffectiveObservationDemand], ObservationLifecycleItem] | None = None,
+    optional_failure_is_loss: bool = False,
 ) -> ObservationLifecycleResult:
     """Apply an admitted finite lifecycle plan, checking all gates first."""
 
@@ -71,7 +72,7 @@ def execute_observation_lifecycle(
                 if item is not None:
                     accumulator.add(demand, item, protector)
             except Exception:
-                if demand.required:
+                if demand.required or not optional_failure_is_loss:
                     raise
                 # An optional failed collection/protection contributes no evidence.
                 # Preserve independently achieved mandatory selector results.

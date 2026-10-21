@@ -71,6 +71,7 @@ def capture_inject(plane, record, plan, remaining) -> InjectCaptureResult | None
                 plane._target.observation_runtime,
                 durable_lifecycle_available=True,
                 operation_id=record.receipt.operation_id,
+                optional_failure_is_loss=True,
                 timeout_ms=remaining(),
             )
         if diagnostic is not None or execution is None:

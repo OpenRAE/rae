@@ -73,6 +73,9 @@
     "docs/research/formal-semantic-validation/capture-records/capture-7ec65961fe7d03a84444d7ab6f3485c8c069e10c4ffb2884070e4dfa0ca04fb1.json": [
       "API-409"
     ],
+    "docs/research/formal-semantic-validation/capture-records/capture-edea393eb05c18845562b35abd655a3d1df8385032946caf8cc4758352049e32.json": [
+      "API-409"
+    ],
     "docs/research/formal-semantic-validation/captures/capture-7ec65961fe7d03a84444d7ab6f3485c8c069e10c4ffb2884070e4dfa0ca04fb1/analysis.json": [
       "API-409"
     ],
@@ -82,7 +85,28 @@
     "docs/research/formal-semantic-validation/captures/capture-7ec65961fe7d03a84444d7ab6f3485c8c069e10c4ffb2884070e4dfa0ca04fb1/snapshot.json": [
       "API-409"
     ],
+    "docs/research/formal-semantic-validation/captures/capture-edea393eb05c18845562b35abd655a3d1df8385032946caf8cc4758352049e32/analysis.json": [
+      "API-409"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-edea393eb05c18845562b35abd655a3d1df8385032946caf8cc4758352049e32/manifest.json": [
+      "API-409"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-edea393eb05c18845562b35abd655a3d1df8385032946caf8cc4758352049e32/snapshot.json": [
+      "API-409"
+    ],
+    "docs/research/specification-coverage/capture-records/capture-a91f9ce2dd49a6ba4a735c50553512e847c8a77ab72183426f28de07f43e70e8.json": [
+      "API-409"
+    ],
     "docs/research/specification-coverage/capture-records/capture-ab8ee0db918d3cc590f07cf7ec1f506683ca45695d58f401750870bb35a05dd5.json": [
+      "API-409"
+    ],
+    "docs/research/specification-coverage/captures/capture-a91f9ce2dd49a6ba4a735c50553512e847c8a77ab72183426f28de07f43e70e8/analysis.json": [
+      "API-409"
+    ],
+    "docs/research/specification-coverage/captures/capture-a91f9ce2dd49a6ba4a735c50553512e847c8a77ab72183426f28de07f43e70e8/manifest.json": [
+      "API-409"
+    ],
+    "docs/research/specification-coverage/captures/capture-a91f9ce2dd49a6ba4a735c50553512e847c8a77ab72183426f28de07f43e70e8/snapshot.json": [
       "API-409"
     ],
     "docs/research/specification-coverage/captures/capture-ab8ee0db918d3cc590f07cf7ec1f506683ca45695d58f401750870bb35a05dd5/analysis.json": [
@@ -107,6 +131,9 @@
       "DSL-142"
     ],
     "implementations/python/packages/raes_contracts/contracts/participant_inject_application.py": [
+      "DSL-142"
+    ],
+    "implementations/python/packages/raes_contracts/observation_demand.py": [
       "DSL-142"
     ],
     "implementations/python/packages/raes_contracts/observation_lifecycle.py": [
@@ -169,6 +196,9 @@
     "implementations/python/packages/raes_runtime/observation_admission.py": [
       "API-409"
     ],
+    "implementations/python/packages/raes_runtime/observation_execution.py": [
+      "API-409"
+    ],
     "implementations/python/packages/raes_runtime/operation_provider_execution.py": [
       "API-409"
     ],
@@ -202,6 +232,9 @@
     "implementations/python/tests/reference_inject_integration_support.py": [
       "DSL-142"
     ],
+    "implementations/python/tests/test_issue_1069_participant_control_durability.py": [
+      "API-409"
+    ],
     "implementations/python/tests/test_issue_1359_runtime_api_trust_boundary.py": [
       "API-409"
     ],
@@ -216,6 +249,9 @@
     ],
     "implementations/python/tests/test_issue_1368_inject_delivery_http.py": [
       "DSL-142"
+    ],
+    "implementations/python/tests/test_issue_1434_typed_runtime_domain.py": [
+      "API-409"
     ],
     "implementations/python/tests/test_reference_backend_docker_integration.py": [
       "DSL-142"

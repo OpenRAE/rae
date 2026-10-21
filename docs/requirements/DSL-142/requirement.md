@@ -142,3 +142,5 @@ backend execution, delivery or observation.
 - TESTS → TEST `implementations/python/tests/reference_inject_integration_support.py`
 - TESTS → TEST `implementations/python/tests/test_reference_backend_docker_integration.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/observation_lifecycle.py` (Preserve independent mandatory capture when an optional selector fails)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/observation_demand.py`
