@@ -469,6 +469,7 @@ from .trial_compilation import TrialExecutionAuthorityModel as TrialExecutionAut
 from .trial_provenance import ProcessorPlanKind, TrialExecutionAttemptReferenceModel
 from .trial_provenance import TrialProcessorPlanReferenceModel as TrialProcessorPlanReferenceModel
 from .trial_provenance import TrialRunProvenanceModel as TrialRunProvenanceModel
+from .trial_replacement import TrialReplacementOriginModel, TrialReplacementPolicyModel
 from .validation_disclosure import ValidationBasisDisclosureDocumentModel
 from .validators import _collapse_nullable_optional_schema as _collapse_nullable_optional_schema
 from .validators import _resolve_instance_path_schema as _resolve_instance_path_schema

@@ -486,4 +486,6 @@ PUBLIC_EXPORTS = [
     "TrialExecutionAttemptReferenceModel",
     "TrialProcessorPlanReferenceModel",
     "TrialRunProvenanceModel",
+    "TrialReplacementOriginModel",
+    "TrialReplacementPolicyModel",
 ]

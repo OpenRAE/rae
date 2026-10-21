@@ -239,12 +239,23 @@ def validate_admitted_trial_study(
     tasks: list[ExperimentTaskModel],
     runs: list[ExperimentRunModel],
     *,
+    replacement_plans: list[AdmittedTrialPlanModel] | None = None,
+    cleanup_receipts: list[TrialCleanupReceiptModel] | None = None,
     evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None = None,
     relation_scenarios: Mapping[str, Any] | None = None,
     relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None = None,
 ) -> None:
     """Join admitted coordinates and archival runs to the existing study authority."""
 
+    if (
+        replacement_plans
+        or any(run.run_status == "superseded" for run in runs)
+        or (plan.replacement_policy is not None and plan.replacement_policy.max_replacements)
+    ):
+        from .trial_replacement_analysis import reconcile_replacement_trials
+
+        accounting = reconcile_replacement_trials(plan, replacement_plans or [], runs, cleanup_receipts or [])
+        runs = list(accounting.analysis_runs)
     validate_experiment_study_against_tasks_and_runs(
         study,
         tasks,

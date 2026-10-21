@@ -23,7 +23,7 @@ RANDOM_STREAM_PROFILE_ID: Final = "blake3-xof-v1"
 RANDOM_STREAM_PROFILE_VERSION: Final = RANDOM_STREAM_PROFILE_SCHEMA_VERSION
 
 
-def admitted_profiles(*, mixed_composition: bool = False) -> AdmittedTrialPlanProfilesModel:
+def admitted_profiles(*, mixed_composition: bool = False, replacement: bool = False) -> AdmittedTrialPlanProfilesModel:
     """Return the single exact profile set implemented by this compiler."""
 
     return AdmittedTrialPlanProfilesModel(
@@ -36,7 +36,15 @@ def admitted_profiles(*, mixed_composition: bool = False) -> AdmittedTrialPlanPr
         ),
         canonicalization_profile="jcs-sha256-v1",
         integrity_profile="acyclic-digest-chain-v1",
-        compiler_profile=("trial-compiler-mixed-composition-v1" if mixed_composition else "trial-compiler-v1"),
+        compiler_profile=(
+            (
+                "trial-compiler-replacement-mixed-composition-v1"
+                if mixed_composition
+                else "trial-compiler-replacement-v1"
+            )
+            if replacement
+            else ("trial-compiler-mixed-composition-v1" if mixed_composition else "trial-compiler-v1")
+        ),
         selection_policy_profile="experiment-selection-v1",
         random_stream_profile=RANDOM_STREAM_PROFILE_ID,
         execution_control_profile="attempt-control-v1",
