@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from threading import RLock
 
 from raes_contracts.diagnostics import Diagnostic
@@ -29,12 +30,40 @@ class RuntimePlanAuthorizationMixin:
             raise TypeError("planner authorization requires a composite ExecutionPlan")
         if not plan.is_valid:
             raise ValueError("invalid composite execution plans cannot be authorized")
+        from raes_processor.planner.mixed_control_admission import mixed_control_policy_addresses
+
+        if mixed_control_policy_addresses(
+            plan.model.behavior_specifications.values(), plan.model.participant_inject_deliveries.values()
+        ):
+            self._require_mixed_control_planning_model(plan.model)
         digests = tuple(
             runtime_plan_digest(phase) for phase in (plan.provisioning, plan.orchestration, plan.evaluation)
         )
         with self._trusted_runtime_plan_lock:
+            previous = self._trusted_orchestration_models.get(digests[1])
+            if previous is not None and previous != plan.model:
+                raise ValueError("orchestration plan has ambiguous compiler context")
+            self._trusted_orchestration_models[digests[1]] = deepcopy(plan.model)
             self._trusted_runtime_plan_digests.update(digests)
         return digests[0]
+
+    def _require_mixed_control_planning_model(self, model):
+        controlled_deliveries = any(item.control is not None for item in model.participant_inject_deliveries.values())
+        if (
+            self._mixed_control is None
+            or self._mixed_control.model != model
+            or (controlled_deliveries and (self._inject_delivery is None or self._inject_delivery.model != model))
+        ):
+            raise ValueError("reusable-control plan requires its exact installed consumer context")
+
+    @runtime_owned
+    def mixed_control_planning_admission(self):
+        from raes_processor.planner.mixed_control_admission import MixedControlPlanningAdmission
+
+        if self._mixed_control is None:
+            raise ValueError("reusable-control planning context is unavailable")
+        self._require_mixed_control_planning_model(self._mixed_control.model)
+        return MixedControlPlanningAdmission(self._mixed_control.model)
 
     @runtime_owned
     def is_planner_authorized_plan(

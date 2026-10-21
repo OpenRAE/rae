@@ -1,18 +1,31 @@
-"""Backend-agnostic refusal of rev1 mixed-control semantics before execution.
+"""Require explicit installed-owner admission for rev1 mixed-control planning.
 
-The migration contract requires refusing admission of a new live episode until
-every selected compiler, runtime and downstream consumer path supports the rev1
-semantics. No backend executes them yet, so planning refuses every rev1
-behavior specification and every rev1 directed-delivery binding, whatever any
-manifest declares. Validation and compilation of the form are unaffected.
+Manifest declarations alone cannot establish the runtime consumer path.
+Without an exact host admission, planning retains the migration refusal.
 """
 
 from collections.abc import Iterable
+from copy import deepcopy
+from dataclasses import dataclass
 
 from raes.participant_mixed_control_policy import MIXED_CONTROL_POLICY_SEMANTICS
 from raes_contracts.diagnostics import Diagnostic
 
 from ..models import ParticipantBehaviorSpecificationRuntime, ParticipantInjectDeliveryRuntime, RuntimeModel
+
+
+@dataclass(frozen=True)
+class MixedControlPlanningAdmission:
+    """Explicit host context for the installed reusable-control consumer path.
+
+    Planning alone grants no execution: the runtime also checks this retained
+    model against its installed owners before registering the result.
+    """
+
+    model: RuntimeModel
+
+    def __post_init__(self):
+        object.__setattr__(self, "model", deepcopy(self.model))
 
 
 def mixed_control_policy_addresses(
@@ -35,7 +48,7 @@ def mixed_control_policy_addresses(
 
 
 def mixed_control_semantics_diagnostics(model: RuntimeModel) -> list[Diagnostic]:
-    """Refuse planning for every rev1 mixed-control address, for every backend."""
+    """Describe rev1 paths lacking explicit installed-owner admission."""
 
     addresses = mixed_control_policy_addresses(
         model.behavior_specifications.values(),
@@ -46,10 +59,7 @@ def mixed_control_semantics_diagnostics(model: RuntimeModel) -> list[Diagnostic]
             code="participant.mixed-control-semantics-unsupported",
             domain="participant",
             address=address,
-            message=(
-                "Reusable mixed-control policy and occurrence semantics validate and compile, but no runtime "
-                "executes them; planning refuses this path for every backend."
-            ),
+            message=("Reusable mixed-control planning requires an explicit matching installed-owner admission."),
         )
         for address in addresses
     ]

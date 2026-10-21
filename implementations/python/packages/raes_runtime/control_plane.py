@@ -197,6 +197,7 @@ class RuntimeControlPlane(
         self._participant_control_lock = SubordinateMutationGate(self._mutation_authority)
         self._trusted_runtime_plan_lock = RLock()
         self._trusted_runtime_plan_digests: set[str] = set()
+        self._trusted_orchestration_models: dict[str, object] = {}
         require_participant_information_state_snapshot(self._snapshot, config.information_state_context_resolver)
         if self._snapshot.participant_crossing_history:
             if config.crossing_policy_resolver is None:

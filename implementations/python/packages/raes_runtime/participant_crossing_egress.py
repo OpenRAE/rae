@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass, replace
+from dataclasses import replace
 from typing import TypeVar, cast
 from uuid import uuid4
 
@@ -12,7 +12,6 @@ from raes_contracts.contracts import ParticipantFlowSinkKind
 from raes_contracts.contracts.base import ContractModel
 from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingDirection,
-    ParticipantCrossingInteractionKind,
     ParticipantCrossingOccurrenceModel,
     ParticipantCrossingOperation,
     ParticipantCrossingSubjectKind,
@@ -28,7 +27,6 @@ from .control_plane_store import ControlPlaneOperationRecord
 from .participant_control_orchestration import admit_participant_control
 from .participant_crossing_commit import commit_prepared_crossing, participant_crossing_permitted
 from .participant_crossing_mediation import (
-    ParticipantCrossingEvidence,
     ParticipantCrossingIntent,
     PreparedParticipantCrossing,
     prepare_participant_crossing,
@@ -41,43 +39,11 @@ from .participant_flow_sink import (
     flow_sink_denied_record,
     resolve_participant_flow_sink_decision,
 )
+from .participant_view_serialization import ParticipantViewSerialization
 
 _ViewT = TypeVar("_ViewT", bound=ContractModel)
 
 _PROJECTION_NOT_PERMITTED = "participant projection was not permitted"
-
-
-@dataclass(frozen=True)
-class ParticipantViewSerialization:
-    """Exact projection and authorization context for one egress operation."""
-
-    participant_address: str
-    episode_id: str
-    subject_kind: ParticipantCrossingSubjectKind
-    interaction_kind: ParticipantCrossingInteractionKind
-    projection_ref: str
-    identity: object
-    crossing_evidence: ParticipantCrossingEvidence | None
-    idempotency_key: str
-    runtime_owned_revision_paths: tuple[RuntimeRevisionPath, ...] = ()
-
-    def with_crossing_evidence(
-        self,
-        crossing_evidence: ParticipantCrossingEvidence,
-    ) -> ParticipantViewSerialization:
-        """Return this immutable context with trusted evidence attached."""
-
-        return ParticipantViewSerialization(
-            participant_address=self.participant_address,
-            episode_id=self.episode_id,
-            subject_kind=self.subject_kind,
-            interaction_kind=self.interaction_kind,
-            projection_ref=self.projection_ref,
-            identity=self.identity,
-            crossing_evidence=crossing_evidence,
-            idempotency_key=self.idempotency_key,
-            runtime_owned_revision_paths=self.runtime_owned_revision_paths,
-        )
 
 
 @mutation_entry(OperationKind.PARTICIPANT_CROSSING)
@@ -99,6 +65,8 @@ def _serialize_participant_view_authorized(
     view: _ViewT,
     serialization: ParticipantViewSerialization,
 ) -> _ViewT:
+    from .participant_inject_application import retained_delivery_control
+
     with control_plane._participant_control_lock:
         control_plane._reload_derived_state_if_unpinned()
         subject = _view_subject(
@@ -120,7 +88,9 @@ def _serialize_participant_view_authorized(
                 "authority_basis_refs": ["runtime.authority:participant-projection"],
                 "requested_operation": ParticipantCrossingOperation.PROJECTION,
                 "action_or_projection_ref": serialization.projection_ref,
-                "effective_order": _next_effective_order(control_plane, serialization.participant_address),
+                "effective_order": serialization.effective_order
+                if serialization.effective_order is not None
+                else _next_effective_order(control_plane, serialization.participant_address),
                 "order_model": "logical_clock",
             },
         )
@@ -131,6 +101,13 @@ def _serialize_participant_view_authorized(
             idempotency_key=serialization.idempotency_key,
             incumbent_carrier=view,
         )
+        if serialization.inject_application is not None and prepared.decision is not None:
+            delivery = control_plane._inject_delivery.model.participant_inject_deliveries[
+                serialization.inject_application.delivery_address
+            ]
+            policy = prepared.decision.occurrence.policy
+            if (policy.policy_id, policy.policy_revision) != (delivery.policy_ref, delivery.policy_revision):
+                raise ValueError("inject delivery policy pin differs")
         if prepared.existing_receipt is not None:
             return _replayed_projection_view(view, prepared.record)
         if not participant_crossing_permitted(prepared):
@@ -146,6 +123,10 @@ def _serialize_participant_view_authorized(
         prepared = _enforce_egress_participant_control(control_plane, prepared)
 
         governed = _governed_egress_view(control_plane, prepared, view, serialization, subject)
+        if serialization.inject_application is not None:
+            from .participant_inject_application import revalidate_delivery_egress
+
+            governed = revalidate_delivery_egress(control_plane, serialization, prepared, governed, view.correlation)
         prepared = _with_opacity_egress_observation(
             control_plane,
             prepared,
@@ -160,6 +141,8 @@ def _serialize_participant_view_authorized(
                 record=replace(
                     prepared.record,
                     result_payload=governed.model_dump(mode="json"),
+                    inject_delivery=governed if serialization.inject_application is not None else None,
+                    inject_delivery_control=retained_delivery_control(control_plane, serialization.inject_application),
                 ),
             ),
         )
@@ -295,7 +278,8 @@ def _with_opacity_egress_observation(
     """Append supported delivery/observation facts to the same atomic write."""
 
     decision = prepared.decision
-    if decision is None or getattr(decision.occurrence, "opacity_enforcement", None) is None:
+    inject = prepared.intent.subject.subject_kind is ParticipantCrossingSubjectKind.PARTICIPANT_INJECT_DELIVERY
+    if decision is None or (not inject and getattr(decision.occurrence, "opacity_enforcement", None) is None):
         return prepared
     participant_address = prepared.intent.participant_address
     history = list(prepared.next_snapshot.participant_crossing_history.get(participant_address, ()))
@@ -306,6 +290,7 @@ def _with_opacity_egress_observation(
         prepared,
         predecessor,
         delivered=delivered,
+        record_observation=not inject,
     )
     candidate = [
         *history,
@@ -348,6 +333,7 @@ def _egress_observation_records(
     predecessor: ParticipantCrossingOccurrenceModel,
     *,
     delivered: bool,
+    record_observation: bool = True,
 ) -> list[ParticipantCrossingOccurrenceModel]:
     decision = prepared.decision
     assert decision is not None
@@ -419,6 +405,8 @@ def _egress_observation_records(
             },
         }
     )
+    if not record_observation:
+        return [attempt, delivery]
     observation_order = delivery_order + 1
     observed = ParticipantCrossingOccurrenceModel.model_validate(
         {

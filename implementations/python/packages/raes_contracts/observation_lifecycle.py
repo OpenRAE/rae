@@ -66,10 +66,15 @@ def execute_observation_lifecycle(
         if not _collects_data(demand):
             continue
         for selector in demand.selectors:
-            item = _produce_item(resolution, demand, selector, producers, supported)
-            if item is None:
-                continue
-            accumulator.add(demand, item, protector)
+            try:
+                item = _produce_item(resolution, demand, selector, producers, supported)
+                if item is not None:
+                    accumulator.add(demand, item, protector)
+            except Exception:
+                if demand.required:
+                    raise
+                # An optional failed collection/protection contributes no evidence.
+                # Preserve independently achieved mandatory selector results.
     return accumulator.result()
 
 

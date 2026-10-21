@@ -105,7 +105,6 @@ class ReferenceOciInjectExecutor:
             or self._realization is None
             or request.input_ref is not None
             or runtime_plan_digest(program.plan) != request.plan.digest
-            or request.placement.kind == "schedule"
         ):
             raise ValueError("OCI inject realization or input/time contract is unsupported")
 

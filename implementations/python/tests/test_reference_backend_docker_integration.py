@@ -397,3 +397,18 @@ def test_real_driver_conformance_executes_native_cases_and_fails_closed_for_nonc
             "realization-envelope.positive-probe.no-witness",
             "realization-envelope.negative-probe.no-witness",
         }
+
+
+def test_real_inject_executes_at_its_authored_schedule_cut_without_participants(container_runtime, tmp_path):
+    from time import monotonic
+
+    from raes_contracts.runtime_state import OperationState
+    from reference_inject_integration_support import AFTER, concrete_inject_run
+
+    with concrete_inject_run(container_runtime, tmp_path, scheduled=True) as run:
+        receipt = run.plane.submit_inject(run.request)
+        assert run.plane.get_operation(receipt.operation_id).state is OperationState.SUCCEEDED
+        assert run.plane.get_inject_outcome(receipt.operation_id).effect == "effect-applied"
+        assert not run.plane.snapshot.participant_episode_results
+        assert run.executor.native.read_probe(run.program.probes[0], deadline=monotonic() + 5) == AFTER
+        assert run.plane.submit_inject(run.request) == receipt

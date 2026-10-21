@@ -1,0 +1,197 @@
+{
+  "schema_version": "requirement-scope/v1",
+  "issue_number": 1368,
+  "primary_requirement_uid": "DSL-142",
+  "requirement_uids": [
+    "DSL-142",
+    "API-409"
+  ],
+  "bindings": {
+    "contracts/fixtures/control-plane/participant-inject-application-v1/invalid/coordinate-mismatch.json": [
+      "API-409"
+    ],
+    "contracts/fixtures/control-plane/participant-inject-application-v1/invalid/unknown-field.json": [
+      "API-409"
+    ],
+    "contracts/fixtures/control-plane/participant-inject-application-v1/valid/basic.json": [
+      "API-409"
+    ],
+    "contracts/fixtures/control-plane/participant-inject-delivery-receipt-v1/context-invalid/coordinate-mismatch.json": [
+      "API-409"
+    ],
+    "contracts/fixtures/control-plane/participant-inject-delivery-receipt-v1/invalid/unknown-field.json": [
+      "API-409"
+    ],
+    "contracts/fixtures/control-plane/participant-inject-delivery-receipt-v1/valid/basic.json": [
+      "API-409"
+    ],
+    "contracts/fixtures/control-plane/participant-inject-delivery-v1/context-invalid/coordinate-mismatch.json": [
+      "API-409"
+    ],
+    "contracts/fixtures/control-plane/participant-inject-delivery-v1/invalid/unknown-field.json": [
+      "API-409"
+    ],
+    "contracts/fixtures/control-plane/participant-inject-delivery-v1/valid/basic.json": [
+      "API-409"
+    ],
+    "contracts/schema-publication/entries/participant-inject-application-v1.json": [
+      "DSL-142"
+    ],
+    "contracts/schema-publication/entries/participant-inject-delivery-receipt-v1.json": [
+      "DSL-142"
+    ],
+    "contracts/schema-publication/entries/participant-inject-delivery-v1.json": [
+      "DSL-142"
+    ],
+    "contracts/schemas/control-plane/participant-inject-application-v1.json": [
+      "API-409"
+    ],
+    "contracts/schemas/control-plane/participant-inject-delivery-receipt-v1.json": [
+      "API-409"
+    ],
+    "contracts/schemas/control-plane/participant-inject-delivery-v1.json": [
+      "API-409"
+    ],
+    "docs/decisions/issue-1368-directed-inject-occurrence-preflight.md": [
+      "API-409"
+    ],
+    "docs/explain/reference/inject-occurrence-contracts.md": [
+      "API-409"
+    ],
+    "docs/governance/requirement-scopes/1368.json": [
+      "API-409"
+    ],
+    "docs/public/guides/external-injects.md": [
+      "API-409"
+    ],
+    "docs/requirements/API-409/requirement.md": [
+      "API-409"
+    ],
+    "docs/requirements/DSL-142/requirement.md": [
+      "DSL-142"
+    ],
+    "implementations/python/packages/raes_contracts/associated_artifacts.py": [
+      "DSL-142"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/_inject_occurrence_exports.py": [
+      "DSL-142"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/inject_occurrence_schema.py": [
+      "DSL-142"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_resolution.py": [
+      "DSL-142"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_inject_application.py": [
+      "DSL-142"
+    ],
+    "implementations/python/packages/raes_contracts/observation_lifecycle.py": [
+      "DSL-142"
+    ],
+    "implementations/python/packages/raes_processor/planner/core.py": [
+      "DSL-142"
+    ],
+    "implementations/python/packages/raes_processor/planner/mixed_control_admission.py": [
+      "DSL-142"
+    ],
+    "implementations/python/packages/raes_reference_backend/inject_execution.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_api/_inject_routes.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_composition.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_configuration.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_injects.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_plan_authorization.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_store.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_store_postgresql_schema.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_store_record_migration.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_store_records.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/inject_capture.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/inject_claims.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/inject_execution.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/inject_outcomes.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/inject_schedule.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/observation_admission.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/operation_provider_execution.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/participant_control_effects.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/participant_control_replay.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/participant_crossing_egress.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/participant_inject_application.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/participant_inject_control.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/participant_inject_delivery.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/participant_inject_temporal.py": [
+      "API-409"
+    ],
+    "implementations/python/packages/raes_runtime/participant_view_serialization.py": [
+      "API-409"
+    ],
+    "implementations/python/tests/participant_inject_runtime_fixtures.py": [
+      "DSL-142"
+    ],
+    "implementations/python/tests/reference_inject_integration_support.py": [
+      "DSL-142"
+    ],
+    "implementations/python/tests/test_issue_1368_control_inject_owner.py": [
+      "DSL-142"
+    ],
+    "implementations/python/tests/test_issue_1368_delivery_contracts.py": [
+      "DSL-142"
+    ],
+    "implementations/python/tests/test_issue_1368_inject_delivery.py": [
+      "DSL-142"
+    ],
+    "implementations/python/tests/test_issue_1368_inject_delivery_http.py": [
+      "DSL-142"
+    ],
+    "implementations/python/tests/test_reference_backend_docker_integration.py": [
+      "DSL-142"
+    ]
+  }
+}

@@ -29,3 +29,7 @@ def validate_restored_control_archive(plane: RuntimeControlPlane) -> None:
             policies=archived_policies(plane, participant),
             available_targets=archived_control_targets(plane, participant),
         )
+
+    from .participant_inject_control import validate_restored_inject_deliveries
+
+    validate_restored_inject_deliveries(plane)

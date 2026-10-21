@@ -16,8 +16,9 @@ from raes_contracts.contracts import (
     validate_inject_occurrence_claims,
     validate_inject_occurrence_outcome,
 )
+from raes_contracts.contracts.participant_inject_application import ParticipantInjectContentModel
 from raes_contracts.planning import RuntimeDomain
-from raes_contracts.runtime_state import OperationState
+from raes_contracts.runtime_state import OperationKind, OperationState
 
 if TYPE_CHECKING:
     from .control_plane_store import ControlPlaneOperationRecord
@@ -44,6 +45,12 @@ def require_inject_record(record: ControlPlaneOperationRecord) -> None:
         _require_no_unbound_inject_evidence(record)
         return
     invocation = _require_occurrence_record(record, occurrence)
+    if record.result_payload is not None:
+        from .inject_capture import InjectCaptureResult
+
+        capture = InjectCaptureResult.model_validate(record.result_payload)
+        if capture.observation is not None and capture.observation.get("operation_id") != record.receipt.operation_id:
+            raise ValueError("inject capture must retain its world operation identity")
     outcome = record.inject_outcome
     if outcome is not None:
         _require_outcome_record(record, occurrence, invocation, outcome)
@@ -138,9 +145,13 @@ def require_inject_transition(prior: ControlPlaneOperationRecord, replacement: C
         raise ValueError("inject outcome is immutable")
     if prior.inject_evidence is not None and prior.inject_evidence != replacement.inject_evidence:
         raise ValueError("inject artifact evidence is immutable")
+    if prior.inject_outcome is not None and prior.result_payload != replacement.result_payload:
+        raise ValueError("inject capture result is immutable")
 
 
 def require_inject_history(records: Iterable[ControlPlaneOperationRecord]) -> None:
+    records = tuple(records)
+    _require_delivery_claims(records)
     claims = sorted(
         (record.inject_occurrence for record in records if record.inject_occurrence is not None),
         key=lambda item: item.order.position,
@@ -160,11 +171,68 @@ def require_inject_claim(
 ) -> None:
     """Called under the store lock/transaction, never as a preflight-only lookup."""
 
-    if record.inject_occurrence is None:
-        return
     existing = tuple(records)
     if any(item.receipt.operation_id == record.receipt.operation_id for item in existing):
+        return
+    _require_delivery_claims((*existing, record))
+    if record.inject_occurrence is None:
         return
     if record.inject_occurrence.store_revision != str(revision):
         raise ValueError("inject claim snapshot revision is stale")
     require_inject_history((*existing, record))
+
+
+def _require_delivery_claims(records: tuple[ControlPlaneOperationRecord, ...]) -> None:
+    """Called inside each store's existing atomic claim, including restored history."""
+    by_id = {record.receipt.operation_id: record for record in records}
+    worlds, controls = set(), set()
+    for record in records:
+        content = record.inject_delivery
+        if content is None:
+            continue
+        application = content.application
+        world = by_id.get(application.world_operation_id)
+        if world is None or world.inject_outcome is None or world.invocation is None:
+            raise ValueError("inject delivery world predecessor is unavailable")
+        from raes_contracts.contracts import validate_inject_occurrence_correlation
+
+        validate_inject_occurrence_correlation(
+            world.inject_occurrence, world.invocation.request, world.inject_outcome, content.correlation
+        )
+        if (world.receipt.context.target_scope, world.receipt.context.run_scope) != (
+            record.receipt.context.target_scope,
+            record.receipt.context.run_scope,
+        ):
+            raise ValueError("inject delivery predecessor scope differs")
+        pair = (content.correlation.occurrence, application.delivery_address, application.control)
+        if pair in worlds:
+            raise ValueError("inject result delivery is already claimed")
+        worlds.add(pair)
+        if application.control is not None:
+            if not any(
+                (candidate.result_payload or {}).get("participant_control_occurrence_ref")
+                == application.control.event_id
+                and candidate.status.state is OperationState.SUCCEEDED
+                for candidate in records
+            ):
+                raise ValueError("inject delivery accepted control predecessor is unavailable")
+            pair = (application.control.event_id, application.delivery_address)
+            if pair in controls:
+                raise ValueError("control occurrence delivery is already claimed")
+            controls.add(pair)
+
+
+def require_delivery_record(record):
+    if record.inject_delivery is not None:
+        delivery = ParticipantInjectContentModel.model_validate(record.inject_delivery.model_dump(mode="json"))
+        if record.receipt.context.operation_kind is not OperationKind.PARTICIPANT_CROSSING:
+            raise ValueError("inject delivery requires its crossing operation")
+        if record.status.state is OperationState.SUCCEEDED and record.result_payload != delivery.model_dump(
+            mode="json"
+        ):
+            raise ValueError("inject delivery must retain its exact disclosed result")
+        from .participant_inject_control import require_retained_delivery_control
+
+        require_retained_delivery_control(delivery.application, record.inject_delivery_control)
+    elif record.inject_delivery_control is not None:
+        raise ValueError("inject control join requires its delivery application")

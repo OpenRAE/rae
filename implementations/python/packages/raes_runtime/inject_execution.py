@@ -22,13 +22,17 @@ def require_inject_plan(plane: RuntimeControlPlane, admission: InjectAdmission) 
     if plan.operation_id is not None and claim.request.plan.artifact_id != plan.operation_id:
         raise ValueError("inject plan artifact identity is inconsistent")
     _require_plan_purpose(plan)
+    if plan.observation_demands:
+        from .inject_capture import require_capture_admission
+
+        require_capture_admission(plane, plan)
     _require_selected_operations(admission)
 
 
 def _require_plan_purpose(plan: OrchestrationPlan) -> None:
     if plan.purpose != "execution" or any(item.is_error for item in plan.diagnostics):
         raise ValueError("inject plan is not executable")
-    if plan.observation_demands or plan.augmentation_scope_required or plan.materialization_source is not None:
+    if plan.augmentation_scope_required or plan.materialization_source is not None:
         raise ValueError("artifact-only inject execution cannot omit required native plan obligations")
 
 

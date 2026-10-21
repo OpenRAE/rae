@@ -105,7 +105,7 @@ class ConcreteInjectRun:
 
 
 @contextlib.contextmanager
-def concrete_inject_run(container_runtime, tmp_path, *, failed_entrypoint=False):
+def concrete_inject_run(container_runtime, tmp_path, *, failed_entrypoint=False, scheduled=False):
     from test_reference_backend_docker_integration import realized, run_workspace
 
     workspace = run_workspace("inject")
@@ -135,7 +135,7 @@ def concrete_inject_run(container_runtime, tmp_path, *, failed_entrypoint=False)
             .decode()
             .strip()
         )
-        scenario = parse_sdl(f"""name: concrete-inject-world
+        source = f"""name: concrete-inject-world
 nodes:
   host:
     type: compute
@@ -146,7 +146,22 @@ nodes:
 injects:
   release:
     source: {{name: inject-source, version: '1'}}
-""")
+"""
+        if scheduled:
+            source += """events:
+  release-event: {injects: [release]}
+scripts:
+  release-script: {start_time: 0, end_time: 10, speed: 1, events: {release-event: 5}}
+stories:
+  release-story: {scripts: [release-script]}
+time_domains:
+  exercise: {kind: logical, tick_period_seconds: {numerator: 1, denominator: 1}, epoch: scenario_start, visibility: runtime_only, description: CI clock}
+clocks:
+  exercise: {time_domain_ref: exercise, authority_kind: runtime, authority_ref: runtime.scheduler, monotonicity: non_decreasing, supports_reset: true, description: CI clock}
+time_progression_policies:
+  exercise: {clock_ref: exercise, advancement_mode: stepped, synchronization_mode: barrier, step_ticks: 5, reset_behavior: new_segment_zero, replay_behavior: restore_recorded_advances, description: CI clock}
+"""
+        scenario = parse_sdl(source)
         target = create_reference_backend_target(driver=driver)
         execution_plan = plan(compile_scenario_runtime_model(scenario), target.manifest)
         with realized(driver, workspace=workspace, runtime=container_runtime.runtime):
@@ -155,6 +170,11 @@ injects:
                 receipt = provisioner.submit_provisioning(execution_plan.provisioning)
                 assert provisioner.get_operation(receipt.operation_id).state is OperationState.SUCCEEDED
                 snapshot = provisioner.snapshot
+            if scheduled:
+                from raes_runtime.time_coordinator import TimeCoordinator
+
+                coordinator = TimeCoordinator(compile_scenario_runtime_model(scenario).time_model)
+                snapshot = coordinator.advance(coordinator.initialize(snapshot), "time.clock.exercise", ticks=5)
             node_id = driver._native_ids["provision.node.host"]
             native.call(["exec", "--detach", "--", node_id, "/bin/sh", "-c", _SERVER], deadline=monotonic() + 5)
             for attempt in range(30):
@@ -178,7 +198,15 @@ injects:
                 run_scope="run:default",
                 inject="orchestration.inject.release",
                 bindings=(binding,),
-                placement={"kind": "independent"},
+                placement={
+                    "kind": "schedule",
+                    "event": "orchestration.event.release-event",
+                    "script": "orchestration.script.release-script",
+                    "story": "orchestration.story.release-story",
+                    "slot": "release-slot-1",
+                }
+                if scheduled
+                else {"kind": "independent"},
                 expected_head="inject-order:genesis",
                 plan={
                     "contract_id": "orchestration-plan-v1",

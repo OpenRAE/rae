@@ -26,6 +26,7 @@ def settle_inject_outcome(
     record: ControlPlaneOperationRecord,
     response: BackendOperationResponseModel,
     remaining: Callable[[], int],
+    plan: object,
 ) -> None:
     from .control_plane_supervised_execution import OperationSettlement, commit_settlement
 
@@ -77,6 +78,9 @@ def settle_inject_outcome(
         if response.message.proposed_state is OperationState.INDETERMINATE
         else inject_occurrence_outcome_digest(outcome)
     )
+    from .inject_capture import capture_inject
+
+    captured = capture_inject(plane, record, plan, remaining)
     commit_settlement(
         plane,
         record,
@@ -84,5 +88,6 @@ def settle_inject_outcome(
             state=response.message.proposed_state,
             release_commitment=release,
             inject_resolution=ResolvedInjectOutcome(outcome, evidence),
+            result_payload=None if captured is None else captured.model_dump(mode="json"),
         ),
     )
