@@ -11,11 +11,12 @@ from __future__ import annotations
 
 from dataclasses import replace
 
+import pytest
 from raes import parse_sdl
 from raes_backend_stubs.stubs import create_stub_target
-from raes_contracts.planning import RuntimeDomain
+from raes_contracts.planning import PlanScope, RuntimeDomain
 from raes_contracts.runtime_state import OperationState
-from raes_processor.compiler import compile_runtime_model
+from raes_processor.compiler import compile_scenario_runtime_model
 from raes_processor.planner import plan
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.manager import RuntimeManager
@@ -92,39 +93,39 @@ def test_manager_refuses_a_successful_result_with_a_string_domain():
     assert all(type(entry.domain) is RuntimeDomain for entry in manager.snapshot.entries.values())
 
 
-def _submit(control: RuntimeControlPlane, target, scenario: str):
-    execution = plan(compile_runtime_model(parse_sdl(scenario)), target.manifest, control.snapshot)
-    control.register_planner_produced_plan(execution)
-    receipt = control.submit_provisioning(execution.provisioning)
-    assert receipt.accepted, _pairs(receipt.diagnostics)
-    operation = control.get_operation(receipt.operation_id)
-    return operation, (operation.state, _pairs(operation.diagnostics))
-
-
-def test_control_plane_commits_no_untyped_domain():
-    target = _target(string_domains=True)
+@pytest.mark.parametrize(
+    ("string_domains", "first_outcome"),
+    [
+        (False, (OperationState.SUCCEEDED, [])),
+        (True, (OperationState.INDETERMINATE, [_UNTYPED_DOMAIN, _OPERATION_INDETERMINATE])),
+    ],
+    ids=["typed", "string-domain"],
+)
+def test_control_plane_keeps_untyped_domains_out_of_its_snapshot(string_domains, first_outcome):
+    target = _target(string_domains=string_domains)
     control = RuntimeControlPlane(target)
+    outcomes = []
     try:
-        _, observed = _submit(control, target, _WITH_WEB)
+        for scenario in (_WITH_WEB, _LAB_ONLY):
+            execution = plan(
+                compile_scenario_runtime_model(parse_sdl(scenario)),
+                target.manifest,
+                control.snapshot,
+                scope=PlanScope(target_name=target.name),
+            )
+            control.register_planner_produced_plan(execution)
+            if string_domains and outcomes:
+                with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
+                    control.submit_provisioning(execution.provisioning)
+                break
+            receipt = control.submit_provisioning(execution.provisioning)
+            assert receipt.accepted, _pairs(receipt.diagnostics)
+            operation = control.get_operation(receipt.operation_id)
+            outcomes.append((operation.state, _pairs(operation.diagnostics)))
         entries = control.snapshot.entries
     finally:
         control.close()
 
-    # A native invocation that dispatched and then returned an invalid result has
-    # unknown effects, so the supervised runtime records it as indeterminate.
-    assert observed == (OperationState.INDETERMINATE, [_UNTYPED_DOMAIN, _OPERATION_INDETERMINATE])
-    assert entries == {}
-
-
-def test_typed_domains_keep_the_next_planned_operation_coherent():
-    target = _target(string_domains=False)
-    control = RuntimeControlPlane(target)
-    try:
-        outcomes = [_submit(control, target, scenario)[1] for scenario in (_WITH_WEB, _LAB_ONLY)]
-        entries = control.snapshot.entries
-    finally:
-        control.close()
-
-    assert outcomes == [(OperationState.SUCCEEDED, []), (OperationState.SUCCEEDED, [])]
-    assert sorted(entries) == ["provision.network.lab"]
+    assert outcomes == ([first_outcome] if string_domains else [first_outcome, (OperationState.SUCCEEDED, [])])
+    assert sorted(entries) == ([] if string_domains else ["provision.network.lab"])
     assert all(type(entry.domain) is RuntimeDomain for entry in entries.values())
