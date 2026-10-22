@@ -33,6 +33,7 @@ from raes_contracts.planning import (
     RealizationAuthorityMode,
     RealizationResolutionSource,
     ResolvedRealizationAuthority,
+    RuntimeDomain,
     planned_realization_authority,
 )
 from raes_contracts.realization_authority import planned_realization_selection_diagnostics
@@ -402,7 +403,7 @@ def _snapshot_from_plan(plan_value: ProvisioningPlan) -> RuntimeSnapshot:
         entries={
             operation.address: SnapshotEntry(
                 address=operation.address,
-                domain="provisioning",
+                domain=RuntimeDomain.PROVISIONING,
                 resource_type=operation.resource_type,
                 payload=deepcopy(operation.payload),
             )
@@ -898,6 +899,7 @@ def test_backend_apply_uses_plan_authority_and_restores_baseline_on_closed_exces
     assert result.success is False
     assert result.snapshot == baseline
     assert result.diagnostics[0].code == "runtime.backend-contract-invalid"
+    assert result.diagnostics[0].message == "Backend materialized closed realization concern 'runtime-environment'."
 
 
 def test_apparatus_owned_state_is_not_reclassified_as_scenario_provenance() -> None:

@@ -35,8 +35,8 @@ from raes_conformance.conformance import (
 from raes_contracts.planning import RuntimeDomain
 from raes_processor.reference import run_reference_processor
 from raes_runtime.control_plane import RuntimeControlPlane
-from raes_runtime.manager import RuntimeManager
 from realization_authority_fixtures import with_compute_substrate_collection_demand
+from runtime_plan_fixtures import plan_for_target
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 COMMITTED_REPORT = REPO_ROOT / "docs" / "conformance" / "libvirt-qemu.provisioning-only.report.json"
@@ -56,7 +56,7 @@ def _execution_plan(target, snapshot=None):
     scenario = parse_sdl(_PROVISIONING_SCENARIO)
     if snapshot is None:
         return run_reference_processor(scenario, target.manifest).execution_plan
-    return RuntimeManager(target, initial_snapshot=snapshot).plan(scenario)
+    return plan_for_target(target, scenario, snapshot)
 
 
 def _bounded_report_payload(report) -> dict:
@@ -173,6 +173,7 @@ def test_libvirt_conformance_driver_uses_non_retained_operational_readback():
     unchanged = unchanged_execution_plan.provisioning
     assert all(operation.action.value == "unchanged" for operation in unchanged.operations)
 
+    first.close()
     without_demand = RuntimeControlPlane(target, initial_snapshot=legacy_snapshot)
     without_demand.register_planner_produced_plan(unchanged_execution_plan)
     receipt = without_demand.submit_provisioning(unchanged)
@@ -186,6 +187,7 @@ def test_libvirt_conformance_driver_uses_non_retained_operational_readback():
         address="provision.node.vm",
     )
 
+    without_demand.close()
     upgraded = RuntimeControlPlane(target, initial_snapshot=legacy_snapshot)
     upgraded.register_planner_produced_plan(replace(unchanged_execution_plan, provisioning=unchanged))
     receipt = upgraded.submit_provisioning(unchanged)
@@ -212,7 +214,8 @@ def test_provisioning_only_conformance_requires_confirmed_realization():
     receipt = control_plane.submit_provisioning(provisioning_plan)
     status = control_plane.get_operation(receipt.operation_id)
 
-    assert status is not None and status.state.value == "failed"
+    assert status is not None
+    assert status.state.value == "indeterminate"
     assert not status.changed_addresses
     assert not any(entry.domain == RuntimeDomain.PROVISIONING for entry in control_plane.snapshot.entries.values())
 

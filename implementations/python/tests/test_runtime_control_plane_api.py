@@ -1343,7 +1343,7 @@ def test_control_plane_rejects_mutation_queue_overload(
                     timeout=1,
                 )
                 assert overloaded.status_code == 503
-                assert overloaded.json() == {"detail": "control-plane mutation queue is full"}
+                assert overloaded.json() == {"detail": "control-plane capacity unavailable"}
                 assert overloaded.headers["retry-after"] == "1"
             finally:
                 release.set()

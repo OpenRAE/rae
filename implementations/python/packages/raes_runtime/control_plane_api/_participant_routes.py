@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from fastapi import FastAPI, HTTPException, Request, Response
+from pydantic import TypeAdapter
 from raes_contracts.contracts import OperationReceiptModel
 from raes_contracts.contracts.participant_execution import (
     ParticipantExecutionControlRequestModel,
     ParticipantExecutionServiceStateModel,
 )
+from raes_contracts.json_ingress import StrictJsonIngressError, parse_bounded_json_object
 from raes_contracts.participant_episode import ParticipantEpisodeTerminalReason
 
 from ..control_plane import RuntimeControlPlane
@@ -21,6 +23,7 @@ from ..control_plane_api_models import (
 from ..participant_control_intents import ParticipantControlIntent
 from ._auth import _AdministrativeMutationIdentity, _AdministrativeReadIdentity
 from ._offload import _control_plane_calls
+from ._operation_routes import _record_admission_denial_best_effort
 from ._responses import (
     _BAD_REQUEST_CONFLICT_RESPONSES,
     _CONFLICT_RESPONSES,
@@ -29,6 +32,8 @@ from ._responses import (
     _receipt_response,
     _set_snapshot_revision_header,
 )
+
+_CONTROL_INTENT_ADAPTER = TypeAdapter(ParticipantControlIntent)
 
 
 def _register_participant_execution_routes(
@@ -107,16 +112,37 @@ def _register_participant_control_routes(
     @app.post(
         "/participants/{participant_address}/control-occurrences",
         responses=_BAD_REQUEST_CONFLICT_RESPONSES,
+        openapi_extra={
+            "requestBody": {
+                "required": True,
+                "content": {"application/json": {"schema": _CONTROL_INTENT_ADAPTER.json_schema()}},
+            }
+        },
     )
     async def record_participant_control(
         participant_address: str,
         request: Request,
-        body: ParticipantControlIntent,
         identity: _AdministrativeMutationIdentity,
     ) -> OperationReceiptModel:
         calls = _control_plane_calls(request)
         try:
-            receipt = await calls.mutate(
+            body = _CONTROL_INTENT_ADAPTER.validate_python(
+                parse_bounded_json_object(await request.body(), max_bytes=256 * 1024, max_depth=16)
+            )
+        except ValueError as error:
+            await _record_admission_denial_best_effort(
+                request,
+                control_plane,
+                action="http-request-validation-failed",
+                identity=identity.identity,
+                reason="request-validation-failed",
+            )
+            status = 413 if isinstance(error, StrictJsonIngressError) and error.code == "input-too-large" else 422
+            raise HTTPException(status_code=status, detail="request validation failed") from None
+        try:
+            receipt = await (
+                calls.control if body.kind == "cancellation" and body.application is not None else calls.mutate
+            )(
                 control_plane.record_participant_control,
                 participant_address,
                 body,

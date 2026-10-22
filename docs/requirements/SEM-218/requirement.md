@@ -21,6 +21,12 @@ Current state: identified gap. Honest portability requires normative semantics f
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/parameter_derivations.py` (Public typed parameter derivations and finite interpolation images)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_phase_base.py` (Immutable phase records and JSON scalar equality)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_scenario_instantiation.py` (Selected output and whole-field provenance admission)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_provenance.py` (Namespaced portable derivation evidence)
+- TESTS → TEST `implementations/python/tests/test_issue_1481_parameter_authority.py` (Configurable runtime strings, safe mailbox interpolation and runtime non-approximation)
+
 - IMPLEMENTS → GITHUB_ISSUE `1237` (Canonical source sufficiency at substrate admission boundaries)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_compute_substrate.py` (Independent scope and exact-source runtime admission)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_operational_observation.py` (Authoritative native readback and prior-disclosure reuse)
@@ -110,7 +116,7 @@ Current state: identified gap. Honest portability requires normative semantics f
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_compatibility_downgrade_helpers.py` (Lossless recursive-to-legacy projection helpers)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/bounded_domains.py` (Nullable scalar-domain support for recursive realization constraints)
 - IMPLEMENTS → SPEC `specs/sdl/recursive-realization-constraints.md` (Normative recursive authority, collection, reference, limit, and provenance semantics)
-- IMPLEMENTS → SCHEMA `contracts/schemas/realization-constraints/recursive-realization-constraint-v1.json` (Published recursive realization constraint contract)
+- IMPLEMENTS → SPEC `contracts/schemas/realization-constraints/recursive-realization-constraint-v1.json` (Published recursive realization constraint contract)
 - TESTS → TEST `implementations/python/tests/test_issue_1203_recursive_normal_form.py` (Nested authority, presence, collections, references, limits, refinement, and abstract-model acceptance coverage)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/realization_structure.py` (Authored leaf and scoped collection lowering for mixed runtime constraints)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/realization_concern_explicitness.py` (Concern-owned leaf selection with non-authoritative aggregate support summaries)
@@ -324,3 +330,5 @@ Current state: identified gap. Honest portability requires normative semantics f
 - TESTS → TEST `implementations/python/tests/test_issue_1208_profile_boundaries.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1208_self_review.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1208_overcap.py`
+- IMPLEMENTS → SPEC `contracts/schemas/plans/backend-realization-preparation-v1.json` (backend-realization-preparation-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/plans/plan-realization-profiles-v1.json` (plan-realization-profiles-v1 published schema)

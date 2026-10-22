@@ -77,6 +77,13 @@ Provider membership does not create a controller or disclosure permission.
 
 ## Reference runtime coordination
 
+The shared runtime can explicitly install the portable bridge/coordinator/reader
+protocols through `MixedRuntimeBinding.backend_installations`. See the
+[installation and execution model](../../migration/mixed-backend-execution.md#runtime-installation)
+for independent stage evidence, native result validation, supervision and restart
+behavior. This is a trusted local installation, not evidence inferred from topology
+references or historical callback results.
+
 `RuntimeControlPlane` accepts an immutable `MixedRuntimeBinding` only when its
 plan entry, profile digest, trusted resolution context, component manifests,
 realization envelopes, runtime targets, run scope, and transition evaluators
@@ -160,6 +167,34 @@ from the repository root. The stub receipts and native owner are test services;
 they are not conformance evidence for a deployed apparatus. Linked inter-trial
 identity remains covered by the admitted-trial tests and never becomes a
 within-run fallback.
+
+## Published execution and readback contracts
+
+Issue #1371 publishes a portable form of the trusted executable inputs above.
+A [`mixed-backend-execution-binding-v1`](../../../contracts/schemas/control-plane/mixed-backend-execution-binding-v1.json)
+record pins one edge bridge or native transfer service, its time coordinator
+and its readers to one admitted edge or component-changing transition. Each
+role is a distinct service. An edge binding preserves the compiled action
+address and names the destination provider's action allocation as the effect
+owner. A
+[`mixed-backend-stage-report-v1`](../../../contracts/schemas/control-plane/mixed-backend-stage-report-v1.json)
+record carries one time-grant, execution, delivery, observation, handoff or
+owner-readback fact. Each report belongs to one invocation of the shared
+[backend operation protocol](backend-operation-supervision.md).
+
+Pure validators join bindings to the sealed profile, requests to shared
+contextual admission, and stage reports to the response transcript and to the
+caller's committed time and composition readbacks. Each stage must name the
+service pinned for its role. A proposed success or known failure must equal
+the state that the published stage and settlement model establishes; that
+model governs the carriers, not the coordinator above. Optional
+`raes_backend_protocols` interfaces describe bridges, time coordinators and
+stage readers; method presence and contract declarations are not effective
+support. The coordinator above does not read these carriers. It still executes
+its in-process bindings, and no runtime adoption is claimed. The
+[migration note](../../migration/mixed-backend-execution.md) records producer
+and reader obligations, the stage and settlement model, compatibility,
+examples and limits.
 
 ## Four worked realizations
 

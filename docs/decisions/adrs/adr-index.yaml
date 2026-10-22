@@ -568,6 +568,9 @@ adrs:
       - date: 2026-09-27
         ref: "#971"
         summary: "Select executable rev2 and close single-operation retry, history, ordering, and completion semantics."
+      - date: 2026-10-13
+        ref: "#1395"
+        summary: "Add the separate two-operation construction profile and projection, history-sensitive retries and bounded completed-result response loss; preserve single-operation evidence and separate equivalence and realization."
   - id: ADR-101
     path: docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md
     pin: 7a579c1f66ee66285465e261f5e740414986c393fd57fbde3c490be3653711b9

@@ -35,9 +35,13 @@ dependency inputs. Those contracts keep the complete admitted apparatus
 separate from the slots applicable at one state cut, require profile-owned
 coverage and explicit input support, and separate parent decisions from
 effect prerequisites. They require exact protocol/schema negotiation and a
-trusted operator resolver. The current reference runtime and retained v1
-history continue to use provider/v1; v2 publication alone does not activate
-v2 scheduling, state commit or effect dispatch. See the
+trusted operator resolver. The reference runtime can explicitly admit a v2
+binding and evaluate its applicable slots in dependency order. Required inputs
+and support must be satisfied; optional failure is recorded without blocking
+an otherwise permitted crossing. Scoped state and the evaluation join the
+existing atomic crossing commit. Retained v1 records keep their original
+interpretation. The v2 effect drain reports unsupported effects without
+executing them; evaluation eligibility supplies no effect permission. See the
 [migration rules](https://github.com/OpenRAE/rae/blob/dev/docs/migration/control-applicability-and-evaluation.md).
 
 | Plane | What it contains | What it does not imply |
@@ -443,3 +447,16 @@ This is design authority, not a delivered robustness claim. Runtime and
 backend enforcement, attack evaluations, monitor honesty, model alignment,
 private reasoning, and undeclared covert channels remain unclaimed. See the
 [issue #812 design record](https://github.com/OpenRAE/rae/issues/812).
+
+## Finite owner-qualified information flow profiles
+
+The governed `participant-owner-flow-policy-v1@rev1` profile preserves two
+independent owners' confidentiality and integrity clauses. Each owner can release
+only its own obligations through independently resolved authority. Combined
+information retains both owners' restrictions and its source provenance.
+
+An operator must admit the exact profile and supported implementation, coverage
+and guarantees before use. Unsupported owner distinctions are rejected; losing
+an admitted guarantee blocks the affected operation. The original security
+profile keeps its existing meaning. Selecting a profile does not install a
+provider or establish that an external release operation has occurred.

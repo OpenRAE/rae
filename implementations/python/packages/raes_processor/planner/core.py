@@ -40,6 +40,7 @@ from ..semantics.realization import (
 from .execution_policy import DomainPlan, attach_execution_policies
 from .manifest_validation import _validate_manifest
 from .materialization import planned_materialization_source
+from .mixed_control_admission import mixed_control_semantics_diagnostics
 from .operations import (
     _build_evaluation_plan,
     _build_operations,
@@ -100,6 +101,7 @@ def _participant_execution_diagnostics(
                     message=gap,
                 )
             )
+    diagnostics.extend(mixed_control_semantics_diagnostics(model))
     return diagnostics
 
 

@@ -1,0 +1,10 @@
+{
+  "contract_id": "inject-trigger-request-v1",
+  "schema_path": "contracts/schemas/control-plane/inject-trigger-request-v1.json",
+  "stability": "draft",
+  "content_hash": "9fdf57a62449ea4f5c2018a422023f7d72e5bc3ab501f0bbac5abae23e31cac9",
+  "last_change": {
+    "summary": "Require an explicit placement kind in the ADR-112 inject contract (#1423, #1366).",
+    "content_hash": "9fdf57a62449ea4f5c2018a422023f7d72e5bc3ab501f0bbac5abae23e31cac9"
+  }
+}

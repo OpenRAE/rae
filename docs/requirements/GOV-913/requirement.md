@@ -39,7 +39,7 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - TESTS → TEST `implementations/python/tests/test_reusable_asset_trust_policy.py` (Reusable-asset trust policy contract tests)
 - IMPLEMENTS → GITHUB_ISSUE `115` (Trust & integrity of reusable assets (GOV-913))
 - IMPLEMENTS → GITHUB_ISSUE `1098` (Upgrade vulnerable Click and cryptography locks and gate OSV findings)
-- IMPLEMENTS → CONFIG `implementations/python/pyproject.toml` (Fixed Click and cryptography dependency floors)
+- IMPLEMENTS → CONFIG `implementations/python/pyproject.toml` (Fixed Click, cryptography and MCP SDK dependency floors; MCP excludes GHSA-84m7-p3x7-pcfv ranges)
 - IMPLEMENTS → CONFIG `implementations/python/uv.lock` (Reviewed frozen dependency resolution)
 - IMPLEMENTS → CONFIG `.github/workflows/ci.yml` (Required OSV dependency-vulnerability gate)
 - IMPLEMENTS → CONFIG `noxfile.py` (Explicit OSV findings and scanner-error enforcement)
@@ -189,3 +189,9 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - TESTS → TEST `implementations/python/tests/test_issue_1205_repository_governance.py` (Retained contract ownership checks without the retired tooling-inventory exception)
 
 - IMPLEMENTS → SPEC `specs/formal/participant-semantics/participant-opacity-proof-evidence.json` (Replayed proof evidence bound to the current selected-input and private installer sources)
+- IMPLEMENTS → SPEC `contracts/schemas/associated-artifacts/associated-artifact-manifest-v1.json` (associated-artifact-manifest-v1 published schema)
+
+- IMPLEMENTS → GITHUB_ISSUE `1370` (Hosted OSV prerequisite repair: lock MCP SDK 1.30.0 and exclude vulnerable 1.x and 2.x versions)
+- TESTS → TEST `implementations/python/tests/test_mcp_server.py` (Reference, authoring, language, inspection, operations and server-construction regressions on the patched SDK)
+
+- IMPLEMENTS → CONFIG `implementations/tooling/python/smoke` (Regenerated hash-complete CPython 3.11–3.14 and Linux/macOS closures for patched MCP SDK 1.30.0)

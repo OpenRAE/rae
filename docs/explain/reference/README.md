@@ -24,6 +24,9 @@ themselves normative specifications or ADRs.
 - [published-schema-coverage.md](published-schema-coverage.md)
   - The `ASR-501` rule requiring every published schema to carry corpus,
     formal, or declared coverage evidence
+- [published-contract-requirement-tracing.md](published-contract-requirement-tracing.md)
+  - The rule requiring every published schema to trace to a live governing
+    requirement through an `IMPLEMENTS → SPEC` link
 - [assessment-semantics.md](assessment-semantics.md)
   - Architecture guardrails for `SEM-206` assessment semantics work
 - [objective-semantics.md](objective-semantics.md)

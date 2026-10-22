@@ -24,3 +24,4 @@ Requirement inventory expansion. Consumers need explicit disclosure of what vali
 - IMPLEMENTS → ADR `docs/decisions/adrs/adr-072-validation-and-admission-profiles.md` (ADR-072 validation and admission profiles)
 - IMPLEMENTS → SPEC `specs/formal/validation-admission-profiles/README.md` (Validation and admission profiles formal specification)
 - IMPLEMENTS → SPEC `specs/formal/assurance-fulfillment.yaml` (Assurance fulfillment mapping for validation-admission profiles)
+- IMPLEMENTS → SPEC `contracts/schemas/profiles/validation-basis-disclosure-v1.json` (validation-basis-disclosure-v1 published schema)

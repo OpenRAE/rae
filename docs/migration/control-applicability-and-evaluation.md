@@ -3,8 +3,9 @@
 This is the adoption contract for [ADR-111](../decisions/adrs/adr-111-control-applicability-and-effect-decisions.md)
 and [CA-01–CA-09](../../specs/formal/participant-semantics/control-applicability-and-evaluation.md).
 It defines producer/reader obligations, not a working migrator. Issue #1365
-publishes the v2 contract representation described below; runtime and history
-adoption remain separate.
+publishes the v2 contract representation described below. The reference-runtime
+evaluation/history adoption is described in the
+[contract reference](../explain/reference/modular-participant-control-contracts.md#reference-runtime-v2-evaluation).
 
 ## Explicit interpretation boundary
 
@@ -79,12 +80,17 @@ capability. Producers must negotiate the v2 IDs, their content hashes, the
 semantic interpretation and provider/v2 before emitting v2 records. Readers
 must route by the recorded contract ID; there is no global reducer switch.
 
-This publication does not change `RuntimeSnapshot`, the RUN-320 provider
-scheduler, store/history folds or effect dispatcher. A live apparatus must
-wait for coordinated consumer and backend evidence before adopting v2. No
-legacy selection, result, claim, budget or pending intent is converted by
-importing these models, and a v2 reader must not infer missing coverage from a
-v1 record.
+The #1365 publication itself does not change `RuntimeSnapshot`, scheduling,
+store/history folds or dispatch. The #1069 consumer explicitly admits v2
+binding/content pins, supervised dependency evaluation and scope-bound state
+through the existing atomic evaluation-history carrier. Readers select the
+recorded discriminator; SQLite reader version 8 excludes v1-only readers.
+Prepared wire evaluations remain immutable transaction content, with durable
+acceptance established by the incumbent store's snapshot/operation/audit.
+Legacy claims and budgets are retained without conversion. The v2 effect drain
+reports unsupported execution and does not reinterpret v2 intents through v1.
+No production provider or distributed atomicity claim follows from these
+synthetic reference-runtime witnesses.
 
 | Artifact | Legacy reader | Amendment-aware reader |
 | --- | --- | --- |

@@ -81,12 +81,12 @@
       "version": "1.0.9"
     },
     {
-      "filename": "certifi-2026.2.25-py3-none-any.whl",
+      "filename": "certifi-2026.10.19-py3-none-any.whl",
       "name": "certifi",
-      "sha256": "027692e4402ad994f1c42e52a4997a9763c646b73e4096e4d5d6db8af1d6f0fa",
-      "size": 153684,
-      "url": "https://files.pythonhosted.org/packages/9a/3c/c17fb3ca2d9c3acff52e30b309f538586f9f5b9c9cf454f3845fc9af4881/certifi-2026.2.25-py3-none-any.whl",
-      "version": "2026.2.25"
+      "sha256": "42d35340cc5b9ba78e818ddbff0c5b1c2b779de448a340fd1b989f5fa8670e1b",
+      "size": 136464,
+      "url": "https://files.pythonhosted.org/packages/c4/51/29046e48f693c54e5b7412216d447a1d8362c9653148d98c02cdf65fa733/certifi-2026.10.19-py3-none-any.whl",
+      "version": "2026.10.19"
     },
     {
       "filename": "cffi-2.0.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
@@ -289,12 +289,12 @@
       "version": "3.0.3"
     },
     {
-      "filename": "mcp-1.28.1-py3-none-any.whl",
+      "filename": "mcp-1.30.0-py3-none-any.whl",
       "name": "mcp",
-      "sha256": "2726bca5e7193f61c5dde8b12500a6de2d9acf6d1a1c0be9e8c2e706437991df",
-      "size": 222620,
-      "url": "https://files.pythonhosted.org/packages/e2/5e/d118fce19f87a2e7d8101c35c8ae0ec289098a4df0ff244cec23e415aca0/mcp-1.28.1-py3-none-any.whl",
-      "version": "1.28.1"
+      "sha256": "666edb5009503e1047c9d60346a756f94b261f05cc2625f23d41c728ffc484d0",
+      "size": 234581,
+      "url": "https://files.pythonhosted.org/packages/f5/f4/e58bc33317c92a0203664daaf00bf6f41166cc0149e5d6870a03f7cd004a/mcp-1.30.0-py3-none-any.whl",
+      "version": "1.30.0"
     },
     {
       "filename": "mdit_py_plugins-0.6.0-py3-none-any.whl",
@@ -321,6 +321,14 @@
       "version": "5.0.0"
     },
     {
+      "filename": "nexus_rpc-1.4.0-py3-none-any.whl",
+      "name": "nexus-rpc",
+      "sha256": "14c953d3519113f8ccec533a9efdb6b10c28afef75d11cdd6d422640c40b3a49",
+      "size": 29645,
+      "url": "https://files.pythonhosted.org/packages/11/52/6327a5f4fda01207205038a106a99848a41c83e933cd23ea2cab3d2ebc6c/nexus_rpc-1.4.0-py3-none-any.whl",
+      "version": "1.4.0"
+    },
+    {
       "filename": "packaging-26.0-py3-none-any.whl",
       "name": "packaging",
       "sha256": "b36f1fef9334a5588b4166f8bcd26a14e521f2b55e6b9de3aaa80d3ff7a37529",
@@ -335,6 +343,30 @@
       "size": 20538,
       "url": "https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl",
       "version": "1.6.0"
+    },
+    {
+      "filename": "protobuf-7.36.2-cp310-abi3-manylinux2014_x86_64.whl",
+      "name": "protobuf",
+      "sha256": "89f23aa53c24553a2416fd4fd1ec06f74fa42b14b546d8883128813f775bbfd2",
+      "size": 343223,
+      "url": "https://files.pythonhosted.org/packages/db/f3/3996583dd2906297a637af12114deddf7658af6e683fedb83be061983fb5/protobuf-7.36.2-cp310-abi3-manylinux2014_x86_64.whl",
+      "version": "7.36.2"
+    },
+    {
+      "filename": "psycopg-3.3.6-py3-none-any.whl",
+      "name": "psycopg",
+      "sha256": "a1db9f7148b06a28606767efaca51fa6f9398c5c0a3810519be69d7000bdb631",
+      "size": 215490,
+      "url": "https://files.pythonhosted.org/packages/4e/de/748bd7609c71cae5d737f0ba9192f19329f70180ecda8fff3cac02c5abe3/psycopg-3.3.6-py3-none-any.whl",
+      "version": "3.3.6"
+    },
+    {
+      "filename": "psycopg_binary-3.3.6-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "name": "psycopg-binary",
+      "sha256": "cec5ea900390897d0b46130f60bc2883bf19c314f9044235217c8be88b0ef269",
+      "size": 5237855,
+      "url": "https://files.pythonhosted.org/packages/de/b0/c6f8a0585a5dacbea74e130bcfc66629390e8f5bbc79d2a8e806e8952150/psycopg_binary-3.3.6-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "version": "3.3.6"
     },
     {
       "filename": "pycparser-3.0-py3-none-any.whl",
@@ -649,12 +681,28 @@
       "version": "1.3.1"
     },
     {
+      "filename": "temporalio-1.33.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "name": "temporalio",
+      "sha256": "efba3fec8735c4592c57a1a7aa4c2e4acf5a0765f53bd7366b94540755dbab0f",
+      "size": 14322659,
+      "url": "https://files.pythonhosted.org/packages/7a/12/63e13f93b5772f5bd2128990bfeec050f7de9e80ce4d8504d99f7f794b10/temporalio-1.33.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "version": "1.33.0"
+    },
+    {
       "filename": "typer-0.24.1-py3-none-any.whl",
       "name": "typer",
       "sha256": "112c1f0ce578bfb4cab9ffdabc68f031416ebcc216536611ba21f04e9aa84c9e",
       "size": 56085,
       "url": "https://files.pythonhosted.org/packages/4a/91/48db081e7a63bb37284f9fbcefda7c44c277b18b0e13fbc36ea2335b71e6/typer-0.24.1-py3-none-any.whl",
       "version": "0.24.1"
+    },
+    {
+      "filename": "types_protobuf-7.35.1.20260906-py3-none-any.whl",
+      "name": "types-protobuf",
+      "sha256": "5155e48569e0dabff303fdf578db96cd31ea9a4a63b18018a4ceac6b0ae17462",
+      "size": 86419,
+      "url": "https://files.pythonhosted.org/packages/44/4e/f63e826c68f77ef875506d72f225918800346545ee99847bc28f3394f18d/types_protobuf-7.35.1.20260906-py3-none-any.whl",
+      "version": "7.35.1.20260906"
     },
     {
       "filename": "typing_extensions-4.15.0-py3-none-any.whl",
@@ -730,8 +778,8 @@
     }
   ],
   "lock_path": "implementations/python/uv.lock",
-  "lock_sha256": "5d18f781062a6181e2a55d3f7d55911474005f091ba9babcfec40d4030276dad",
+  "lock_sha256": "15ae8ec8a7f2266f9a102d8549be4fd6679140c90041b0780c8baaec2c282a9e",
   "python_closure_profile_id": "public-linux-x86_64-cp313-all-extras",
-  "requirements_sha256": "1c8a1e29b7d69659a0f61e26c2616ce18c0a7460b4f3e2895ad56b480f128a66",
+  "requirements_sha256": "d5976a145f72b66834afbdc03ef50aaa1476edb0f7d122ec230e54e2fc67fc37",
   "schema_version": "raes-python-wheelhouse-manifest/v1"
 }

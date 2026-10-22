@@ -29,12 +29,15 @@ from raes_contracts.contracts.participant_control_composition import (
     admitted_effect_requests,
     control_digest,
 )
+from raes_contracts.contracts.participant_control_composition_v2 import admitted_control_effect_ids_v2
 from raes_contracts.contracts.participant_control_coordinates import (
     ControlLogicalEffectKeyModel,
     ControlPriorEffectClaimModel,
     ParticipantControlContextModel,
 )
 from raes_contracts.contracts.participant_control_effects import ControlEffectRequestModel
+from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
+from raes_contracts.participant_control_evaluation_history import participant_control_evaluation_from_payload
 
 
 @dataclass(frozen=True)
@@ -53,6 +56,22 @@ class ParticipantControlCausalState:
         return self.attempts + 1
 
 
+def root_has_shared_consumption(
+    history: Sequence[Mapping[str, object]],
+    *,
+    run_ref: str,
+    trigger_root: str,
+) -> bool:
+    """A root's explicit v2 sharing survives later binding/participant changes."""
+    for payload in history:
+        if payload.get("schema_version") != "participant-control-evaluation/v2":
+            continue
+        context = participant_control_evaluation_from_payload(payload).request.context
+        if (context.run.ref, context.trigger_root) == (run_ref, trigger_root):
+            return True
+    return False
+
+
 def causal_state_from_history(
     history: Sequence[Mapping[str, object]],
     *,
@@ -66,7 +85,7 @@ def causal_state_from_history(
     attempts = 0
     consumed = 0
     for record in history:
-        evaluation = ParticipantControlEvaluationModel.model_validate(record)
+        evaluation = participant_control_evaluation_from_payload(record)
         context = evaluation.request.context
         if (context.run.ref, context.trigger_root) != (run_ref, trigger_root):
             continue
@@ -80,7 +99,7 @@ def causal_state_from_history(
         consumed = max(consumed, context.effects_consumed + len(admitted))
         # A realization transition records the outcome of an evaluation that
         # already spent its attempt; counting it again would double-charge.
-        if not evaluation.realizations:
+        if isinstance(evaluation, ParticipantControlEvaluationV2Model) or not evaluation.realizations:
             attempts = max(attempts, context.attempt)
         _fold_retained(context, claims, firings)
         for effect in _admitted_effects(evaluation):
@@ -121,6 +140,9 @@ def _admitted_effects(evaluation: ParticipantControlEvaluationModel) -> Iterable
     and a proposal nobody admitted would spend the root's effect budget.
     """
 
+    if isinstance(evaluation, ParticipantControlEvaluationV2Model):
+        admitted = admitted_control_effect_ids_v2(evaluation.composition, evaluation.effect_plan)
+        return tuple(item for item in evaluation.effect_plan.effects if item.effect_id in admitted)
     return admitted_effect_requests(evaluation)
 
 

@@ -242,7 +242,10 @@ def _sanitize_backend_realization(
     if realization_plan is not None:
         try:
             sanitized = sanitize_account_credential_result(
-                sanitized, realization.completion_plan or realization_plan, baseline_snapshot
+                sanitized,
+                realization.completion_plan or realization_plan,
+                baseline_snapshot,
+                requirements=_supplemental_realization_requirements(realization),
             )
         except ValueError:
             return _failed_apply_result(

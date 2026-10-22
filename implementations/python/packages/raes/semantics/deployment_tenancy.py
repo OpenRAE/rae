@@ -168,6 +168,19 @@ def _placement_issues(
     return issues
 
 
+def placement_node_allowed(node: object, side: str) -> bool:
+    """The compute/carrier predicate used by placement validation and authoring."""
+    return getattr(node, "type", None) == NodeType.COMPUTE and (
+        side != "target" or enum_value(getattr(node, "endpoint_persona", "")) == EndpointPersona.CARRIER.value
+    )
+
+
+def placement_context_allowed(source: str, target: str, scenario: object) -> bool:
+    """Apply the existing placement bindings when both endpoint identities are known."""
+    index = _build_cell_index(scenario.deployment_tenants, scenario.deployment_cells, scenario.nodes, lambda _v: False)
+    return not _placement_binding_issues("candidate", source, target, scenario.nodes, index, {})
+
+
 def _placement_endpoint_issue(
     relationship_name: str,
     source: str | None,
@@ -177,8 +190,8 @@ def _placement_endpoint_issue(
     if (
         source is None
         or target is None
-        or getattr(nodes.get(source), "type", None) != NodeType.COMPUTE
-        or getattr(nodes.get(target), "type", None) != NodeType.COMPUTE
+        or not placement_node_allowed(nodes.get(source), "source")
+        or not placement_node_allowed(nodes.get(target), "source")
     ):
         return issue(
             "deployment-tenancy.placement.endpoint-invalid",
@@ -211,8 +224,7 @@ def _placement_binding_issues(
                 f"Node '{source}' has multiple carrier placements",
             )
         )
-    persona = enum_value(getattr(nodes[target], "endpoint_persona", ""))
-    if persona != EndpointPersona.CARRIER.value:
+    if not placement_node_allowed(nodes[target], "target"):
         issues.append(
             issue(
                 "deployment-tenancy.placement.target-not-carrier",

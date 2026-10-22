@@ -54,6 +54,10 @@ the legacy fixed-coordinate form; the new bounded tests evidence a design
 projection. Executable adoption and historical readers must meet the
 [migration contract](../../migration/reusable-mixed-control.md).
 
+Issue #1363 adds the rev1 nested `control` binding with its validation and
+compilation. API-424 inject validation and planning refuse rev1 bindings, so
+no executable adoption is claimed.
+
 [ADR-112](../../decisions/adrs/adr-112-external-inject-triggering-and-execution.md)
 and [EI-05](../../../specs/sdl/external-injects.md#ei-05--optional-participant-composition)
 add #1353's world-effect/delivery composition boundary. They preserve ADR-110's
@@ -94,3 +98,10 @@ backend execution, delivery or observation.
 - TESTS → TEST `implementations/python/tests/test_dsl_142_participant_inject_delivery.py` (DSL-142 participant inject delivery tests)
 - IMPLEMENTS → SPEC `contracts/schemas/sdl/instantiated-scenario-v1.json` (DSL-142 governed instantiated scenario schema)
 - TESTS → TEST `implementations/python/tests/test_sdl_catalog_parity.py` (DSL-142 SDL catalog parity tests)
+
+- IMPLEMENTS → GITHUB_ISSUE `1363` (Rev1 directed-delivery control binding; executable adoption not claimed)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_participant_inject_delivery_control.py` (Rev1 delivery binding validation)
+- TESTS → TEST `implementations/python/tests/test_issue_1363_delivery_and_admission.py` (Rev1 delivery binding and refusal tests)
+- TESTS → TEST `implementations/python/tests/test_issue_1363_schema_parity.py` (Control-block exclusivity parity across published schemas)
+- TESTS → TEST `implementations/python/tests/test_issue_1363_identity_integration.py` (Unknown control references, disclosure basis, required runtime projection and nested editor references)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/inject-occurrence-correlation-v1.json` (inject-occurrence-correlation-v1 published schema)

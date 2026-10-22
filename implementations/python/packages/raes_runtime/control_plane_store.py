@@ -8,6 +8,9 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Any, Literal, Protocol, runtime_checkable
 
+from raes_contracts.contracts import InjectOccurrenceModel, InjectOccurrenceOutcomeModel
+from raes_backend_protocols.inject_execution import InjectExecutionEvidence
+
 from raes_contracts.runtime_state import (
     OperationAdmissionContext,
     OperationKind,
@@ -20,6 +23,8 @@ from raes_contracts.runtime_state import (
 )
 
 from .control_plane_audit import require_audit_event_fields
+from .operation_invocation_ledger import InvocationLedger, require_invocation_transition, require_record_invocation
+from .operation_reconciliation_ledger import InvocationReconciliation
 from .control_plane_store_revision import (
     SnapshotRevisionConflict,
     SnapshotState,
@@ -63,7 +68,14 @@ def mixed_claim_conflicts(
     }
     if not mixed_keys:
         return False
-    return any(_active_mixed_claim_overlaps(context, mixed_keys, existing) for existing in existing_records)
+    from .operation_reconciliation_ledger import valid_reconciliation_child
+
+    records = tuple(existing_records)
+    return any(
+        _active_mixed_claim_overlaps(context, mixed_keys, existing)
+        and not any(valid_reconciliation_child(existing, child) for child in records)
+        for existing in records
+    )
 
 
 def _active_mixed_claim_overlaps(
@@ -117,6 +129,11 @@ class ControlPlaneOperationRecord:
     decision_history_heads: dict[str, str | None] = field(default_factory=dict)
     result_history_heads: dict[str, str | None] = field(default_factory=dict)
     legacy_request_commitment: bool = False
+    invocation: InvocationLedger | None = None
+    reconciliation: InvocationReconciliation | None = None
+    inject_occurrence: InjectOccurrenceModel | None = None
+    inject_outcome: InjectOccurrenceOutcomeModel | None = None
+    inject_evidence: InjectExecutionEvidence | None = None
 
     def __post_init__(self) -> None:
         _require_operation_record_identity(self)
@@ -127,6 +144,8 @@ _NON_TERMINAL_OPERATION_STATES = {OperationState.ACCEPTED, OperationState.RUNNIN
 
 
 def _require_operation_record_identity(record: ControlPlaneOperationRecord) -> None:
+    from .inject_claims import require_inject_record
+
     if record.receipt.operation_id != record.status.operation_id:
         raise ValueError("operation receipt and status identities do not match")
     if record.receipt.domain != record.status.domain:
@@ -137,6 +156,12 @@ def _require_operation_record_identity(record: ControlPlaneOperationRecord) -> N
         raise ValueError("operation receipt and status contexts do not match")
     if not record.receipt.accepted:
         raise ValueError("denied operation receipts cannot be persisted")
+    require_record_invocation(record)
+    require_inject_record(record)
+    if record.reconciliation is not None:
+        InvocationReconciliation.model_validate(record.reconciliation.model_dump(mode="json"))
+        if record.status.context.parent_operation_id != record.reconciliation.request.binding.operation_id:
+            raise ValueError("reconciliation parent binding mismatch")
 
 
 def idempotency_claim_identity(
@@ -201,8 +226,14 @@ def _require_same_operation_identity(
     existing: ControlPlaneOperationRecord,
     replacement: ControlPlaneOperationRecord,
 ) -> None:
+    from .inject_claims import require_inject_transition
+
     _require_operation_record_identity(existing)
     _require_operation_record_identity(replacement)
+    require_inject_transition(existing, replacement)
+    require_invocation_transition(existing.invocation, replacement.invocation)
+    if existing.reconciliation is not None and existing.reconciliation != replacement.reconciliation:
+        raise ValueError("reconciliation evidence is immutable")
     if existing.receipt != replacement.receipt:
         raise ValueError("operation receipt is immutable after its durable claim")
     if (

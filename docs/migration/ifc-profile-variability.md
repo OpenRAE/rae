@@ -2,7 +2,31 @@
 
 This is the adoption contract for [ADR-114](../decisions/adrs/adr-114-ifc-profile-variability-and-publication.md)
 and [IFC-01–IFC-07](../../specs/formal/participant-semantics/ifc-profile-variability.md).
-It publishes no converter, schema, profile artifact or deprecation window.
+The original semantic amendment publishes no converter or deprecation window.
+Issue #1370 adds the [finite owner publication](../explain/reference/owner-qualified-ifc.md).
+
+## Finite publication adoption (#1370)
+
+Negotiate the new profile ID/revision/digest, updated draft flow-relation schema
+and API-424/v2 schema-content pins before use. Legacy provider/v1 rejects the new
+profile and fact domain. Old profile bytes and interpretations remain unchanged;
+mixed archives dispatch by exact identity. The updated flow reader bounds each
+graph collection to 256 records. Larger historical graphs need their original
+supported reader; never truncate them.
+
+The v2 obligation field `admitted_support` retains independently admitted support.
+Empty snapshots are omitted from historical v2 serialization, preserving original
+selection digests. New owner obligations require populated snapshots; fresh-cut
+assessments cannot silently replace their promises. Historical obligations do
+not acquire invented promises or owners.
+
+Re-admit at a new cut to change profile, installation, configuration or constraint
+interpretation. Preserve old labels, memory, releases, source/writer provenance,
+pending effect identities, receipts and consumed budgets. Coarse restricted
+labels need independent historical evidence and a separately authorized
+published mapping before deriving owner A/B values; no automatic converter is
+supplied. New authorization never replays old effects. V2 effect dispatch remains
+unsupported and cannot turn an unexecuted release intent into an applied result.
 
 ## Interpretation and historical data
 
