@@ -293,17 +293,19 @@ def test_selected_p1_admits_one_postgresql_ledger_owner(monkeypatch: pytest.Monk
     database = _LedgerDatabase(_scoped_ledger_metadata())
     database.lock_holder = object()
     ledger = _ledger(database, monkeypatch)
+    target = create_stub_target()
 
     with pytest.raises(RuntimeError, match="PostgreSQL ledger already has a runtime owner"):
-        RuntimeControlPlane(create_stub_target(), store=ledger, run_scope=RUN_SCOPE, profile=ControlPlaneProfile.P1)
+        RuntimeControlPlane(target, store=ledger, run_scope=RUN_SCOPE, profile=ControlPlaneProfile.P1)
     assert database.metadata == _scoped_ledger_metadata()
     assert all(connection.closed for connection in database.connections)
     assert not ledger.admitted
 
     database.lock_holder = None
-    ledger.admit_runtime(target_scope=runtime_target_scope("stub"), run_scope=RUN_SCOPE)
+    target_scope = runtime_target_scope("stub")
+    ledger.admit_runtime(target_scope=target_scope, run_scope=RUN_SCOPE)
     with pytest.raises(RuntimeError, match="PostgreSQL ledger already has runtime admission"):
-        ledger.admit_runtime(target_scope=runtime_target_scope("stub"), run_scope=RUN_SCOPE)
+        ledger.admit_runtime(target_scope=target_scope, run_scope=RUN_SCOPE)
     assert database.metadata["owner-generation"] == "2"
 
 
