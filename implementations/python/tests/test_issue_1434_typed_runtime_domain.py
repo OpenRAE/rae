@@ -13,8 +13,10 @@ from dataclasses import replace
 
 import pytest
 from raes import parse_sdl
-from raes_contracts.planning import RuntimeDomain
+from raes_contracts.planning import PlanScope, RuntimeDomain
 from raes_contracts.runtime_state import OperationState
+from raes_processor.compiler import compile_scenario_runtime_model
+from raes_processor.planner import plan
 from raes_reference_backend import create_reference_backend_target
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.manager import RuntimeManager
@@ -36,7 +38,10 @@ infrastructure:
   lab: {count: 1, properties: {cidr: 10.0.0.0/24, gateway: 10.0.0.1}}
 """
 _UNTYPED_DOMAIN = ("runtime.backend-contract-invalid", "Backend snapshot contains an untyped runtime domain.")
-_OPERATION_FAILED = ("runtime.control-plane.operation-failed", "Operation completed with a known failure.")
+_OPERATION_INDETERMINATE = (
+    "runtime.control-plane.operation-indeterminate",
+    "Operation outcome could not be established; explicit resolution is required.",
+)
 
 
 class _StringDomainsOnce:
@@ -86,19 +91,27 @@ def test_manager_refuses_a_successful_result_with_a_string_domain():
     ("string_domains", "first_outcome"),
     [
         (False, (OperationState.SUCCEEDED, [])),
-        (True, (OperationState.FAILED, [_UNTYPED_DOMAIN, _OPERATION_FAILED])),
+        (True, (OperationState.INDETERMINATE, [_UNTYPED_DOMAIN, _OPERATION_INDETERMINATE])),
     ],
     ids=["typed", "string-domain"],
 )
-def test_a_string_domain_cannot_wedge_the_next_planned_operation(string_domains, first_outcome):
+def test_control_plane_keeps_untyped_domains_out_of_its_snapshot(string_domains, first_outcome):
     target = _target(string_domains=string_domains)
     control = RuntimeControlPlane(target)
-    planner = RuntimeManager(target)
     outcomes = []
     try:
         for scenario in (_WITH_WEB, _LAB_ONLY):
-            execution = planner.plan(parse_sdl(scenario), snapshot=control.snapshot)
+            execution = plan(
+                compile_scenario_runtime_model(parse_sdl(scenario)),
+                target.manifest,
+                control.snapshot,
+                scope=PlanScope(target_name=target.name),
+            )
             control.register_planner_produced_plan(execution)
+            if string_domains and outcomes:
+                with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
+                    control.submit_provisioning(execution.provisioning)
+                break
             receipt = control.submit_provisioning(execution.provisioning)
             assert receipt.accepted, _pairs(receipt.diagnostics)
             operation = control.get_operation(receipt.operation_id)
@@ -107,6 +120,6 @@ def test_a_string_domain_cannot_wedge_the_next_planned_operation(string_domains,
     finally:
         control.close()
 
-    assert outcomes == [first_outcome, (OperationState.SUCCEEDED, [])]
-    assert sorted(entries) == ["provision.network.lab"]
+    assert outcomes == ([first_outcome] if string_domains else [first_outcome, (OperationState.SUCCEEDED, [])])
+    assert sorted(entries) == ([] if string_domains else ["provision.network.lab"])
     assert all(type(entry.domain) is RuntimeDomain for entry in entries.values())

@@ -448,9 +448,11 @@ from .semantic_profiles import (
 from .semantic_projection import *
 from .trial_analysis import (
     AdmittedTrialPlanReconciliation,
+    TrialReplacementStudyInputs,
     reconcile_admitted_trial_plan,
     validate_admitted_trial_run,
     validate_admitted_trial_study,
+    validate_replacement_trial_study,
 )
 from .trial_cleanup import CleanStateClaimModel as CleanStateClaimModel
 from .trial_cleanup import CleanStateRequirementModel as CleanStateRequirementModel
@@ -469,6 +471,7 @@ from .trial_compilation import TrialExecutionAuthorityModel as TrialExecutionAut
 from .trial_provenance import ProcessorPlanKind, TrialExecutionAttemptReferenceModel
 from .trial_provenance import TrialProcessorPlanReferenceModel as TrialProcessorPlanReferenceModel
 from .trial_provenance import TrialRunProvenanceModel as TrialRunProvenanceModel
+from .trial_replacement import TrialReplacementOriginModel, TrialReplacementPolicyModel
 from .validation_disclosure import ValidationBasisDisclosureDocumentModel
 from .validators import _collapse_nullable_optional_schema as _collapse_nullable_optional_schema
 from .validators import _resolve_instance_path_schema as _resolve_instance_path_schema

@@ -1,9 +1,9 @@
 {
-  "content_hash": "a7196c336041aba73cbb7cbad3895d086d39b0a9445e6389d58756d2844df6f2",
+  "content_hash": "2401de6945388e185facb3bfc3929e607a9d81f80f0678904e7d505b5bfe573a",
   "contract_id": "admitted-trial-plan-v1",
   "last_change": {
-    "content_hash": "a7196c336041aba73cbb7cbad3895d086d39b0a9445e6389d58756d2844df6f2",
-    "summary": "Add exact mixed-composition profile, participant-manifest authority, and immediate-source bindings to admitted trial entries while preserving legacy single-realizer serialization (#1015)."
+    "content_hash": "2401de6945388e185facb3bfc3929e607a9d81f80f0678904e7d505b5bfe573a",
+    "summary": "Add optional bounded author-directed trial replacement policy and separately sealed child lineage; preserve legacy omission and identity profiles (#1396)."
   },
   "schema_path": "contracts/schemas/plans/admitted-trial-plan-v1.json",
   "stability": "draft"
