@@ -13,9 +13,9 @@ from dataclasses import replace
 
 import pytest
 from raes import parse_sdl
-from raes_contracts.planning import RuntimeDomain
+from raes_contracts.planning import PlanScope, RuntimeDomain
 from raes_contracts.runtime_state import OperationState
-from raes_processor.compiler import compile_runtime_model
+from raes_processor.compiler import compile_scenario_runtime_model
 from raes_processor.planner import plan
 from raes_reference_backend import create_reference_backend_target
 from raes_runtime.control_plane import RuntimeControlPlane
@@ -100,10 +100,15 @@ def test_string_domain_refusal_preserves_typed_snapshot_and_effect_uncertainty(s
     control = RuntimeControlPlane(target)
     outcomes = []
     try:
-        for index, scenario in enumerate((_WITH_WEB, _LAB_ONLY)):
-            execution = plan(compile_runtime_model(parse_sdl(scenario)), target.manifest, snapshot=control.snapshot)
+        for scenario in (_WITH_WEB, _LAB_ONLY):
+            execution = plan(
+                compile_scenario_runtime_model(parse_sdl(scenario)),
+                target.manifest,
+                control.snapshot,
+                scope=PlanScope(target_name=target.name),
+            )
             control.register_planner_produced_plan(execution)
-            if index and string_domains:
+            if string_domains and outcomes:
                 # An unverifiable backend result cannot release the effect claim.
                 with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
                     control.submit_provisioning(execution.provisioning)

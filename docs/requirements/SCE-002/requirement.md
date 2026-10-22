@@ -21,6 +21,14 @@ Static scenarios become predictable after one run. CALDERA's fact-based variable
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/bindings.py` (Canonical descriptor admission extracted from the trial compiler)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/replacement.py` (Explicit bounded replacement admission through the incumbent compiler)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/replacement_inputs.py` (Replacement coordinate intervals and stable allocation identity)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/trial_replacement.py` (Closed experiment-owned replacement policy and lineage)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/trial_replacement_analysis.py` (Cross-plan lineage and original-slot analysis accounting)
+- TESTS → TEST `implementations/python/tests/test_issue_1396_trial_replacement.py` (Fresh identity, cleanup refusal, bounds, duplicate decisions and single-count analysis)
+- VERIFIES → SPEC `contracts/fixtures/plans/trial-compiler-replacement-v1/identity-vectors.json` (Replacement compiler identity conformance)
+
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1014` (Compose selected scenario authority into the portable mixed-composition profile)
 - IMPLEMENTS → SPEC `contracts/schemas/plans/mixed-participant-composition-profile-v1.json` (Digest-pinned scenario snapshot and compiled allocation carrier)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition.py` (Composition profile reusing incumbent selection and compiled-address authority)

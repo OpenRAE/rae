@@ -1,5 +1,8 @@
 # Scenario Variation And Deterministic Trial Realization
 
+For executable bounded replacement of failed or invalid trials, see
+[trial replacement and author migration](trial-replacement-migration.md).
+
 This reference defines the cohesive RAES path from an authored scenario family
 to archival experiment provenance. It applies ADR-084 to the package and
 artifact boundaries already established by ADR-036, ADR-053, ADR-055, ADR-065,

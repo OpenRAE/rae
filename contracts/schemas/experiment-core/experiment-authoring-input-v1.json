@@ -2802,6 +2802,17 @@
           "title": "Red Variant Selections",
           "type": "object"
         },
+        "replacement_policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TrialReplacementPolicyModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "selection_policies": {
           "additionalProperties": {
             "discriminator": {
@@ -4509,6 +4520,89 @@
       ],
       "title": "SecretReferenceBindingValueModel",
       "type": "object"
+    },
+    "TrialReplacementPolicyModel": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "replace_on": {
+                "minItems": 1
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "max_replacements": {
+                "const": 0
+              }
+            },
+            "required": [
+              "max_replacements"
+            ]
+          },
+          "then": {
+            "properties": {
+              "replace_on": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ],
+      "description": "Additional trials per original allocation slot, never an attempt budget.",
+      "properties": {
+        "max_replacements": {
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Max Replacements",
+          "type": "integer"
+        },
+        "replace_on": {
+          "items": {
+            "enum": [
+              "failed",
+              "invalidated"
+            ],
+            "type": "string"
+          },
+          "maxItems": 2,
+          "title": "Replace On",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "schema_version": {
+          "const": "trial-replacement-policy/v1",
+          "default": "trial-replacement-policy/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "max_replacements",
+        "replace_on"
+      ],
+      "title": "TrialReplacementPolicyModel",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Replacement triggers are unique; a positive additional-trial bound requires selected triggers, and zero requires none. Omission supplies no allocation permission.",
+          "id": "trial-replacement-policy-explicit-and-bounded",
+          "inputs": [
+            {
+              "contract_id": "experiment-authoring-input-v1",
+              "instance_path": "#/run_plan/replacement_policy"
+            },
+            {
+              "contract_id": "admitted-trial-plan-v1",
+              "instance_path": "#/replacement_policy"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.trial_replacement.TrialReplacementPolicyModel._validate_policy"
+        }
+      ]
     }
   },
   "$id": "https://openrae.github.io/rae/schemas/experiment-authoring-input-v1.json",
