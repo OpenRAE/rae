@@ -4,14 +4,19 @@
 clause to the landed code, conformance cases and operator guidance of the
 profiles it binds. These cases add the run binding no profile case exercised:
 a request for another run through each composition, and a selected P0 store
-rebound to another run. They also keep that map tied to its clauses, the
-profiles' declared guarantees and its cited files.
+rebound to another run. They add the actor, scope and owner bindings of a
+selected P1 core over the PostgreSQL ledger, through an in-memory stand-in for
+its database connection. They also keep that map tied to its clauses, the
+profiles' declared guarantees, the requirement's clause-tagged trace lines and
+its cited files.
 """
 
 from __future__ import annotations
 
 import ast
 import re
+from contextlib import contextmanager
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -28,10 +33,20 @@ from control_plane_conformance_fixtures import (
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.plan_projection import evaluation_plan_model
 from raes_contracts.planning import ChangeAction, EvaluationOp, EvaluationPlan
+from raes_runtime import control_plane_store_postgresql_mutations as ledger_mutations
 from raes_runtime.control_plane import RuntimeControlPlane
+from raes_runtime.control_plane_operation_context import runtime_target_scope
 from raes_runtime.control_plane_profiles import ControlPlaneProfile, profile_declaration
 from raes_runtime.control_plane_store_memory import InMemoryControlPlaneStore
-from test_issue_1185_api_404_profile_alignment import COMMON_GUARANTEES, DURABLE_GUARANTEES, TRANSPORT_GUARANTEES
+from raes_runtime.control_plane_store_postgresql import PostgreSQLControlPlaneStore, PostgreSQLStoreConfiguration
+from raes_runtime.control_plane_store_postgresql_schema import POSTGRES_LEDGER_SCHEMA_VERSION
+from test_issue_1181_unified_control_plane_mutations import _running_record
+from test_issue_1185_api_404_profile_alignment import (
+    COMMON_GUARANTEES,
+    DURABLE_GUARANTEES,
+    REQUIREMENT_PATH,
+    TRANSPORT_GUARANTEES,
+)
 
 pytestmark = pytest.mark.control_plane_conformance
 
@@ -78,6 +93,17 @@ _CITED_FILE = re.compile(r"`([\w/]+\.py)(?:::(\w+))?`")
 _LINK_TARGET = re.compile(r"\]\(([^)#\s]*)(?:#([^)\s]*))?\)")
 _HEADING = re.compile(r"^#+ (.+)$", re.MULTILINE)
 _NOT_IN_ANCHOR = re.compile(r"[^\w -]")
+# A trace line that names its clauses, such as "(API-404-C1/C3 ...".
+_CLAUSE_TRACE = re.compile(
+    r"^- (?:IMPLEMENTS → CODE_FILE|TESTS → TEST|DOCUMENTS → DOCUMENTATION) `([^`]+)` \(API-404-(C\d(?:/C\d)*)\b",
+    re.MULTILINE,
+)
+# The table cell that holds each kind of traced artifact, and its path prefix.
+_TRACE_CELLS = (
+    ("implementations/python/packages/raes_runtime/", 2),
+    ("implementations/python/tests/", 3),
+    ("docs/", 4),
+)
 
 
 def _evaluate(harness: ProfileHarness, plan: EvaluationPlan) -> str:
@@ -144,6 +170,155 @@ def test_selected_p0_store_cannot_be_rebound_to_another_run() -> None:
 
     # The refusal leaves the store bound to its first scope, which reopens.
     RuntimeControlPlane(create_stub_target(), store=store, run_scope=RUN_SCOPE, profile=ControlPlaneProfile.P0).close()
+
+
+class _Rows:
+    def __init__(self, rows: list[tuple[object, ...]]) -> None:
+        self._rows = rows
+
+    def fetchone(self) -> tuple[object, ...] | None:
+        return self._rows[0] if self._rows else None
+
+    def fetchall(self) -> list[tuple[object, ...]]:
+        return self._rows
+
+
+class _LedgerDatabase:
+    """The ledger metadata and owner lock that runtime admission reads and writes."""
+
+    def __init__(self, metadata: dict[str, str]) -> None:
+        self.metadata = dict(metadata)
+        self.lock_holder: object | None = None
+        self.connections: list[_LedgerConnection] = []
+
+    def connect(self, *, autocommit: bool = False) -> _LedgerConnection:
+        connection = _LedgerConnection(self)
+        self.connections.append(connection)
+        return connection
+
+
+class _LedgerConnection:
+    """Answers only the statements of ``PostgreSQLControlPlaneStore.admit_runtime``."""
+
+    def __init__(self, database: _LedgerDatabase) -> None:
+        self.database = database
+        self.closed = False
+        self._pending: dict[str, str] | None = None
+
+    def __enter__(self) -> _LedgerConnection:
+        return self
+
+    def __exit__(self, *_exc: object) -> None:
+        self.close()
+
+    def close(self) -> None:
+        if self.database.lock_holder is self:
+            self.database.lock_holder = None
+        self.closed = True
+
+    @contextmanager
+    def transaction(self):
+        # Metadata changes land only when the transaction body completes.
+        self._pending = dict(self.database.metadata)
+        try:
+            yield
+            self.database.metadata = self._pending
+        finally:
+            self._pending = None
+
+    @contextmanager
+    def cursor(self):
+        yield self
+
+    def executemany(self, statement: str, rows) -> None:
+        assert statement.startswith("INSERT INTO raes_ledger_metadata")
+        self._pending.update(rows)
+
+    def execute(self, statement: str, params: tuple[object, ...] = ()) -> _Rows:
+        if statement.startswith("SELECT pg_try_advisory_lock"):
+            if self.database.lock_holder is None:
+                self.database.lock_holder = self
+            return _Rows([(self.database.lock_holder is self,)])
+        if statement.startswith("SELECT EXISTS(SELECT 1 FROM pg_locks"):
+            return _Rows([(self.database.lock_holder is self,)])
+        if statement.startswith("SELECT key, value FROM raes_ledger_metadata"):
+            return _Rows(sorted(self._pending.items()))
+        if statement.startswith("INSERT INTO raes_ledger_metadata(key, value) VALUES ('owner-generation'"):
+            self._pending["owner-generation"] = params[0]
+            return _Rows([])
+        raise AssertionError(f"unexpected ledger statement: {statement}")
+
+
+def _ledger(database: _LedgerDatabase, monkeypatch: pytest.MonkeyPatch) -> PostgreSQLControlPlaneStore:
+    ledger = PostgreSQLControlPlaneStore(
+        PostgreSQLStoreConfiguration(host="ledger.example", database="rae_ledger", user="rae_ledger")
+    )
+    monkeypatch.setattr(ledger, "_connect", database.connect)
+    return ledger
+
+
+def _scoped_ledger_metadata() -> dict[str, str]:
+    return {
+        "schema-version": POSTGRES_LEDGER_SCHEMA_VERSION,
+        "target-scope": runtime_target_scope(create_stub_target().name),
+        "run-scope": RUN_SCOPE,
+        "owner-generation": "1",
+    }
+
+
+@pytest.mark.parametrize(("target_name", "run"), [("other", RUN_SCOPE), ("stub", "run:another")])
+def test_selected_p1_refuses_a_postgresql_ledger_for_another_scope(
+    target_name: str, run: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    database = _LedgerDatabase(_scoped_ledger_metadata())
+    ledger = _ledger(database, monkeypatch)
+    target = replace(create_stub_target(), name=target_name)
+
+    # P1 selection accepts the ledger, so the refusal comes from its admission.
+    with pytest.raises(RuntimeError, match="PostgreSQL ledger scope does not match runtime admission"):
+        RuntimeControlPlane(target, store=ledger, run_scope=run, profile=ControlPlaneProfile.P1)
+
+    assert database.metadata == _scoped_ledger_metadata()
+    assert database.lock_holder is None
+    assert all(connection.closed for connection in database.connections)
+    assert not ledger.admitted
+
+    # The ledger's own scope is still admitted, and admission advances its owner generation.
+    ledger.admit_runtime(target_scope=runtime_target_scope("stub"), run_scope=RUN_SCOPE)
+    assert ledger.admitted
+    assert database.metadata["owner-generation"] == "2"
+
+
+def test_selected_p1_admits_one_postgresql_ledger_owner(monkeypatch: pytest.MonkeyPatch) -> None:
+    database = _LedgerDatabase(_scoped_ledger_metadata())
+    database.lock_holder = object()
+    ledger = _ledger(database, monkeypatch)
+
+    with pytest.raises(RuntimeError, match="PostgreSQL ledger already has a runtime owner"):
+        RuntimeControlPlane(create_stub_target(), store=ledger, run_scope=RUN_SCOPE, profile=ControlPlaneProfile.P1)
+    assert database.metadata == _scoped_ledger_metadata()
+    assert all(connection.closed for connection in database.connections)
+    assert not ledger.admitted
+
+    database.lock_holder = None
+    ledger.admit_runtime(target_scope=runtime_target_scope("stub"), run_scope=RUN_SCOPE)
+    with pytest.raises(RuntimeError, match="PostgreSQL ledger already has runtime admission"):
+        ledger.admit_runtime(target_scope=runtime_target_scope("stub"), run_scope=RUN_SCOPE)
+    assert database.metadata["owner-generation"] == "2"
+
+
+def test_postgresql_ledger_claims_stay_with_the_submitting_actor() -> None:
+    record = _running_record("ledger-actor")
+    context = record.receipt.context
+    other_actor = context.model_copy(update={"actor_id": f"{context.actor_id}-other"})
+
+    class Ledger:
+        def _load_records(self, connection):
+            return {record.receipt.operation_id: record}
+
+    key = record.idempotency_key
+    assert ledger_mutations.find_by_idempotency(Ledger(), None, key, context=context) == record
+    assert ledger_mutations.find_by_idempotency(Ledger(), None, key, context=other_actor) is None
 
 
 def _clause_section() -> str:
@@ -215,3 +390,27 @@ def test_clause_map_links_resolve() -> None:
 
     assert links
     assert [link for link in links if not _link_resolves(*link)] == []
+
+
+def test_clause_map_cites_each_clause_tagged_trace_line() -> None:
+    rows = _clause_rows()
+    traced = _CLAUSE_TRACE.findall(REQUIREMENT_PATH.read_text(encoding="utf-8"))
+    missing = []
+    for path, clauses in traced:
+        for prefix, cell in _TRACE_CELLS:
+            if not path.startswith(prefix):
+                continue
+            for clause in clauses.split("/"):
+                cells = rows[f"API-404-{clause}"]
+                if prefix == "docs/":
+                    pages = {
+                        (CONFORMANCE_PAGE.parent / target).resolve() for target, _ in _LINK_TARGET.findall(cells[cell])
+                    }
+                    cited = (ROOT / path).resolve() in pages
+                else:
+                    cited = path.removeprefix(prefix) in {file for file, _ in _CITED_FILE.findall(cells[cell])}
+                if not cited:
+                    missing.append((clause, path))
+
+    assert traced
+    assert missing == []
