@@ -188,8 +188,25 @@ and response shapes.
 See [Agent Guidance Profile](sdl/agent-guidance.md) for the structured guidance
 payload agents can cite in plans and reviews.
 
-The CLI does not expose a separate general-purpose `validate` command today.
-Use the Python parser boundary or the test suite for direct validation.
+To validate an SDL file from the command line, run `raes semantic validate`
+from the repository root:
+
+```shell
+uv run --project implementations/python raes semantic validate \
+  examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml \
+  --contract sdl-yaml/v1
+```
+
+The command runs the structural and semantic SDL checks. It is offline and
+read-only. An accepted file prints `validate: success` and exits `0`. A
+rejected file prints its diagnostics and exits `1`. The command parses the
+file as in-memory text, so it rejects SDL that uses top-level `imports:` even
+when the composed scenario is valid. It also reports semantic errors only as a
+count. Use `parse_sdl_file()`, as in the Python example above, to validate a
+composed scenario or to see each error.
+[SDL Parser Behavior](sdl/parser.md) describes file-backed import expansion.
+The [CLI guide](../public/guides/cli.md) covers JSON output, stdin input,
+portable JSON contracts, and the other exit codes.
 
 ## Current Example Use
 
