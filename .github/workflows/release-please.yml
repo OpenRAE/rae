@@ -208,7 +208,7 @@ jobs:
           python-version: "3.12.14"
 
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v8
         with:
           enable-cache: false
           version: "0.13.4"
@@ -535,7 +535,7 @@ jobs:
           python-version: "3.12.14"
 
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v8
         with:
           enable-cache: false
           version: "0.13.4"
@@ -788,7 +788,7 @@ jobs:
 
       - name: Publish to PyPI (OIDC trusted publishing)
         if: steps.pypi-destination.outputs.pending == 'true'
-        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
         with:
           packages-dir: dist
           # Reconciliation above proved that any file already on PyPI is
