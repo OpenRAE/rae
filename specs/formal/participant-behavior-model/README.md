@@ -9,6 +9,10 @@ This document is the issue #77 formal design artifact for:
 - `ACT-608` - Participant Behavior Modes
 - `ACT-609` - Offensive Behavior Vocabularies
 
+Later issues add the `ACT-610` - Defensive Behavior Vocabularies, `ACT-611` -
+Autonomous Service And Agent Behavior Vocabularies, and `ACT-617` -
+Mixed-Control Participant Operation sections below.
+
 It is governed by ADR-067. It composes the participant semantics from ADR-022
 with SDL participant framing, participant runtime records, backend-facing
 contracts, controlled vocabularies, and participant implementation provenance.
@@ -45,8 +49,14 @@ Remaining child-issue boundaries:
 - child issues must not publish local behavior semantics outside this model;
 - authority/scope and mode work beyond ACT-606 must continue to bind through
   the governed refs and vocabularies defined here; and
-- executable behavior-model gates for ACT-602, ACT-607, and ACT-608 remain
-  owned by their child issues.
+- issues #204, #207, and #208 delivered the executable behavior-model gates for
+  ACT-602, ACT-607, and ACT-608.
+
+Current disposition (issue #219): every issue in the child-issue mapping below
+is closed. The
+[participant semantic coverage matrix](../participant-semantics/semantic-coverage.md)
+maps PBM-01 to PBM-12 to their current contracts, implementation, tests, and
+coverage, and names the open owner of each remaining gap.
 
 ## Model Summary
 
@@ -229,8 +239,8 @@ Required executable properties:
   disclosure refs, and diagnostics; and
 - conformance cannot rely on schema acceptance alone.
 
-Implementation issue #204 owns executable contract bindings, validators,
-fixtures, and conformance evidence for this requirement.
+Implementation issue #204 (PR #588) delivered executable contract bindings,
+validators, fixtures, and conformance evidence for this requirement.
 
 ## ACT-606 - First-Class Participant Behavior Specifications
 
@@ -248,13 +258,15 @@ BehaviorSpecification =
   outcome_interpretation_rule_ref*
   authority_scope_ref*
   behavior_mode?
-  ai_offensive_behavior_ref*
-  defensive_behavior_ref*
-  offensive_behavior_ref*
+  autonomous_execution?
+  mixed_control?
   realization_profile_ref?
   backend_feature_support_ref*
   evidence_contract_ref*
+  tool_affordance*
+  participant_inject_delivery*
   extension_policy
+  extension*
 ```
 
 Rules:
@@ -265,11 +277,22 @@ Rules:
   contracts, observation boundaries, outcome rules, manifests, backend
   capabilities, or runtime evidence.
 - `behavior_mode` binds to the controlled vocabulary described in ACT-608.
-- `offensive_behavior_ref` values bind to the ACT-609 offensive behavior
-  vocabulary for attack-oriented participant tasks, goals, or activities.
-- `defensive_behavior_ref` values bind to the ACT-610 defensive behavior
-  vocabulary for detection, investigation, response, mitigation, and recovery
-  classifications.
+- `autonomous_execution` is defined by
+  [autonomous execution](../participant-semantics/autonomous-execution.md)
+  (ADR-092 Decision 1).
+- `mixed_control` is the controller policy defined in the ACT-617 section
+  below.
+- `tool_affordance` entries are the affordance bindings defined by SEM-219 in
+  the [participant-semantics design](../participant-semantics/README.md).
+- `participant_inject_delivery` entries are the DSL-142 participant-directed
+  inject deliveries defined in `specs/sdl/sections.md` and MC-09 of
+  [reusable mixed control](../participant-semantics/reusable-mixed-control.md).
+- Offensive (ACT-609) and defensive (ACT-610) behavior classifications are not
+  aggregate fields. They use generic concept bindings against the exact
+  behavior specification. SDL parsing rejects the retired
+  `offensive_behavior_refs`, `ai_offensive_behavior_refs`, and
+  `defensive_behavior_refs` fields with `sdl.classification-migration-required`;
+  see [classification migration](../../concept-authority/classification-migration.md).
 - `realization_profile_ref` records how the behavior can be realized without
   exposing private implementation configuration.
 - `evidence_contract_ref` names the contracts needed to prove the behavior
@@ -313,8 +336,8 @@ Rules:
 - Runtime denial, backend sandboxing, or control-plane authorization may enforce
   a boundary, but they do not define the authored boundary by themselves.
 
-Implementation issue #207 owns executable authority/scope extensions beyond
-the ACT-601 fields already shipped.
+Implementation issue #207 (PR #596) delivered executable authority/scope
+extensions beyond the ACT-601 fields.
 
 ### ACT-607 Implementation Preflight Guardrails
 
@@ -420,13 +443,14 @@ Rules:
 - `mixed-control` mode identifies combined control over one participant
   decision surface. It is not multi-participant interaction semantics.
 
-Implementation issue #208 owns executable declaration, selection, validation,
-and conformance for behavior modes.
+Implementation issue #208 (PR #616) delivered executable declaration,
+selection, validation, and conformance for behavior modes.
 
 ## ACT-609 - Offensive Behavior Vocabularies
 
-Offensive behavior refs declare attack-oriented participant tasks, goals, or
-activities as governed vocabulary values on a behavior specification.
+Offensive classifications of attack-oriented participant tasks, goals, or
+activities use generic bindings against the exact behavior-specification
+subject.
 
 The base terms in `participant-offensive-behavior-activities` are a direct
 adoption of MITRE ATT&CK Enterprise tactics v19.1. The pinned source artifact is
@@ -546,12 +570,14 @@ exists, a detection or investigation is correct, mitigation contains an event,
 recovery completed, or an organization conforms to NIST CSF. Those claims use
 the existing action, observation, outcome, evidence, runtime, and conformance
 surfaces. D3FEND tactics and techniques remain distinct external mappings and
-are not aliases for these categories. Governed local extensions use the shared
-`x-<owner>:<term>` syntax.
+are not aliases for these categories. The catalog's term set is
+closed; additional schemes require explicit source context.
 
-Implementation issue #210 owns the executable SDL field, governed validation,
-source-integrity checker, generated schemas, documentation, and compiler
-carry-through for defensive behavior refs.
+Issue #210 originally implemented native defensive behavior refs. Issue #989
+retires that field and its compiler carry-through in favor of
+[generic concept bindings](../../concept-authority/external-concept-bindings.md).
+The pinned source artifact, catalog terms, and source-integrity checker that
+#210 added remain.
 
 ## ACT-611 - Autonomous Service And Agent Behavior Vocabularies
 
@@ -652,8 +678,10 @@ Rules:
 
 Issue #251 provides the authored model, semantic validation, composition,
 governed SDL schema publication, valid/invalid fixtures, typed compiler
-projection, and negative/state-transition evidence. Issues #252 and #255 own
-portable occurrence contracts and runtime mediation/persistence respectively.
+projection, and negative/state-transition evidence. Issues #252 (PR #868) and
+#255 (PR #911) delivered portable occurrence contracts and runtime
+mediation/persistence for this fixed-coordinate form; #1363 owns executable
+adoption of the reusable amendment.
 
 ## Cross-Clause Invariants
 
@@ -667,12 +695,15 @@ portable occurrence contracts and runtime mediation/persistence respectively.
 | PBM-06 | Backend support claims require governed feature terms, support levels, disclosure refs, and evidence contracts. | ACT-602, ACT-608 |
 | PBM-07 | Hidden prompts, credentials, answer keys, raw command output, backend-private objects, and adjudication assets stay out of portable behavior artifacts. | ACT-606, ACT-607 |
 | PBM-08 | Unknown, opaque, unsupported, not applicable, bounded, lossy, and exact are distinct claims. | ACT-602, ACT-603, ACT-608 |
-| PBM-09 | Offensive behavior refs are governed vocabulary classifications, not raw action names, roles, goals, tasks, commands, or external technique labels. | ACT-609 |
-| PBM-10 | Defensive behavior refs classify intent or outcome domains and do not prove incident existence, effectiveness, recovery, or CSF conformance. | ACT-610 |
+| PBM-09 | Offensive behavior classifications are generic concept bindings against an exact behavior specification, not behavior-specification fields, raw action names, roles, goals, tasks, commands, or external technique labels. | ACT-609 |
+| PBM-10 | Defensive behavior classifications are generic concept bindings against an exact behavior specification; they classify intent or outcome domains and do not prove incident existence, effectiveness, recovery, or CSF conformance. | ACT-610 |
 | PBM-11 | Mixed-control authority and ordered control facts are explicit, fail closed, and remain distinct from admission, execution, and observation. | ACT-617 |
 | PBM-12 | Autonomous behavior vocabulary terms are external assertions about exact behavior specifications and do not create native or executable behavior meaning. | ACT-611 |
 
 ## Child-Issue Mapping
+
+This table records the original executable ownership. Every issue in it is
+closed; the coverage matrix names the open owner of each remaining gap.
 
 | Issue | UID | Executable ownership |
 | --- | --- | --- |
@@ -702,5 +733,5 @@ Any executable issue that claims this model must provide:
   to the artifact.
 
 Issue #77 satisfies the design requirement by publishing ADR-067 and this
-formal spec. Child issues provide executable SDL syntax, schema, fixture,
-runtime emission, and conformance implementation for #204 through #208.
+formal spec. Child issues #204 through #208 provided executable SDL syntax,
+schema, fixture, runtime emission, and conformance implementation.
