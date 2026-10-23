@@ -4,6 +4,7 @@ import json
 import os
 import re
 from dataclasses import dataclass
+from http.client import HTTPException
 from pathlib import Path
 from typing import Protocol
 from urllib.error import HTTPError, URLError
@@ -35,8 +36,9 @@ class GroundControlError(RuntimeError):
 class GroundControlUnavailable(GroundControlError):
     """The endpoint could not be reached or returned a non-auth error.
 
-    Covers connection refusal, DNS failure, read/connect timeout, and any HTTP
-    status other than the auth-rejection codes. Governance was *not* evaluated.
+    Covers connection refusal, DNS failure, read/connect timeout, a dropped or
+    truncated reply, a reply that is not UTF-8 JSON, and any HTTP status other
+    than the auth-rejection codes. Governance was *not* evaluated.
     """
 
 
@@ -114,6 +116,14 @@ class RequirementClient(Protocol):
     def get_traceability(self, requirement_id: str) -> list[dict[str, object]]: ...
 
 
+def _http_error_body(exc: HTTPError) -> str:
+    """Return an HTTP error's body for the message, tolerating a truncated or dropped body."""
+    try:
+        return exc.read().decode("utf-8", errors="replace")
+    except (HTTPException, OSError) as read_exc:
+        return f"<body unreadable: {type(read_exc).__name__}>"
+
+
 class GroundControlHttpClient:
     def __init__(
         self,
@@ -138,9 +148,9 @@ class GroundControlHttpClient:
                 request,
                 timeout=self.timeout_seconds,
             ) as response:
-                return json.loads(response.read().decode("utf-8"))
+                payload = response.read()
         except HTTPError as exc:
-            body = exc.read().decode("utf-8", errors="replace")
+            body = _http_error_body(exc)
             if exc.code in {401, 403}:
                 raise GroundControlAuthRequired(f"{exc.code}: {body}") from exc
             raise GroundControlUnavailable(f"{exc.code}: {body}") from exc
@@ -150,6 +160,16 @@ class GroundControlHttpClient:
             raise GroundControlUnavailable(str(exc.reason)) from exc
         except TimeoutError as exc:
             raise GroundControlUnavailable("request timed out") from exc
+        except (HTTPException, OSError) as exc:
+            # A dropped connection (RemoteDisconnected), a truncated body
+            # (IncompleteRead) or a reset socket reaches here, not as URLError.
+            raise GroundControlUnavailable(f"transport failure: {type(exc).__name__}: {exc}") from exc
+        try:
+            return json.loads(payload.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            # A proxy login page or a mis-encoded reply: the governance answer
+            # was not received, so this is unavailability, not a policy result.
+            raise GroundControlUnavailable(f"response is not UTF-8 JSON: {type(exc).__name__}: {exc}") from exc
 
     def get_requirement(self, project: str, uid: str) -> dict[str, object]:
         return self._request(f"/api/v1/requirements/uid/{uid}", params={"project": project})
