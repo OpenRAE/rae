@@ -1391,8 +1391,15 @@ def _run_pypi_reconciliation(
     *,
     status: str,
     body: str,
+    curl_exit: int = 0,
+    curl_error: str = "",
 ) -> subprocess.CompletedProcess[str]:
-    """Execute the PyPI destination reconciliation against a stubbed registry."""
+    """Execute the PyPI destination reconciliation against a stubbed registry.
+
+    A non-zero ``curl_exit`` is a transport failure as real curl reports one:
+    no body is written, ``--write-out`` still prints the status, the error goes
+    to stderr and curl exits with its own code.
+    """
 
     if shutil.which("bash") is None or shutil.which("jq") is None:
         pytest.skip("the PyPI reconciliation shell policy requires bash and jq")
@@ -1414,8 +1421,13 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 test -n "$destination"
-printf '%s' "$PYPI_BODY" > "$destination"
+if [ "$PYPI_CURL_EXIT" -eq 0 ]; then
+  printf '%s' "$PYPI_BODY" > "$destination"
+else
+  printf 'curl: (%s) %s\\n' "$PYPI_CURL_EXIT" "$PYPI_CURL_ERROR" >&2
+fi
 printf '%s' "$PYPI_STATUS"
+exit "$PYPI_CURL_EXIT"
 """,
         encoding="utf-8",
     )
@@ -1441,6 +1453,8 @@ printf '%s' "$PYPI_STATUS"
             "SDIST_SHA256": "2" * 64,
             "PYPI_STATUS": status,
             "PYPI_BODY": body,
+            "PYPI_CURL_EXIT": str(curl_exit),
+            "PYPI_CURL_ERROR": curl_error,
         },
     )
     return completed
@@ -1509,7 +1523,7 @@ def test_pypi_reconciliation_refuses_a_same_name_digest_mismatch(tmp_path: Path)
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("status", ["403", "500", "000"])
+@pytest.mark.parametrize("status", ["403", "500"])
 def test_pypi_reconciliation_refuses_an_uncertain_destination(tmp_path: Path, status: str) -> None:
     """An ambiguous destination answer is never read as "not published"."""
 
@@ -1517,6 +1531,30 @@ def test_pypi_reconciliation_refuses_an_uncertain_destination(tmp_path: Path, st
 
     assert result.returncode != 0
     assert f"HTTP {status}" in result.stderr
+    assert "pending" not in _pypi_outputs(tmp_path)
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ("curl_exit", "curl_error"),
+    # The exit codes and message forms curl 8.7.1 printed for an unresolvable
+    # host, a refused connection and a connect timeout; host, port and elapsed
+    # time differ.
+    [
+        (6, "Could not resolve host: pypi.org"),
+        (7, "Failed to connect to pypi.org port 443 after 0 ms: Couldn't connect to server"),
+        (28, "Connection timed out after 60002 milliseconds"),
+    ],
+    ids=["resolve", "connect", "timeout"],
+)
+def test_pypi_reconciliation_stops_at_a_transport_failure(tmp_path: Path, curl_exit: int, curl_error: str) -> None:
+    """``set -e`` ends the step on curl's exit, so its ``000`` never reaches the status check."""
+
+    result = _run_pypi_reconciliation(tmp_path, status="000", body="", curl_exit=curl_exit, curl_error=curl_error)
+
+    assert result.returncode == curl_exit
+    assert f"curl: ({curl_exit}) {curl_error}" in result.stderr
+    assert "HTTP 000" not in result.stderr
     assert "pending" not in _pypi_outputs(tmp_path)
 
 
