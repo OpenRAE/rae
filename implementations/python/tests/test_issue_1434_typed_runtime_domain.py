@@ -95,7 +95,7 @@ def test_manager_refuses_a_successful_result_with_a_string_domain():
     ],
     ids=["typed", "string-domain"],
 )
-def test_control_plane_keeps_untyped_domains_out_of_its_snapshot(string_domains, first_outcome):
+def test_string_domain_refusal_preserves_typed_snapshot_and_effect_uncertainty(string_domains, first_outcome):
     target = _target(string_domains=string_domains)
     control = RuntimeControlPlane(target)
     outcomes = []
@@ -109,6 +109,7 @@ def test_control_plane_keeps_untyped_domains_out_of_its_snapshot(string_domains,
             )
             control.register_planner_produced_plan(execution)
             if string_domains and outcomes:
+                # An unverifiable backend result cannot release the effect claim.
                 with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
                     control.submit_provisioning(execution.provisioning)
                 break

@@ -13,6 +13,9 @@ from raes_contracts.contracts import (
     InjectOccurrenceModel,
     InjectOccurrenceOutcomeModel,
     InjectTriggerRequestModel,
+    ParticipantInjectApplicationModel,
+    ParticipantInjectContentModel,
+    ParticipantInjectDeliveryReceiptModel,
     inject_occurrence_correlation,
     require_inject_trigger_retry,
 )
@@ -25,6 +28,7 @@ from .control_plane_mutation import control_plane_mutation, mutation_entry
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_security import ControlPlaneIdentity, ControlPlaneRole
 from .control_plane_store import ControlPlaneOperationRecord
+from .inject_capture import InjectCaptureResult
 from .inject_execution import require_inject_plan
 
 
@@ -50,6 +54,15 @@ def _inject_diagnostic() -> Diagnostic:
 
 
 class RuntimeInjectMixin:
+    @runtime_owned
+    @mutation_entry(OperationKind.PARTICIPANT_CROSSING)
+    def deliver_participant_inject(
+        self, application: ParticipantInjectApplicationModel, *, identity: object | None = None
+    ) -> ParticipantInjectDeliveryReceiptModel:
+        from .participant_inject_application import deliver_participant_inject
+
+        return deliver_participant_inject(self, application, identity=identity)
+
     @runtime_owned
     @mutation_entry(OperationKind.ORCHESTRATION)
     @store_authoritative_state
@@ -121,6 +134,7 @@ class RuntimeInjectMixin:
                 timeout_ms=self._supervision.admission_ms,
             )
         require_inject_plan(self, admission)
+        self._require_inject_schedule(request)
         occurrence = InjectOccurrenceModel.model_validate(admission.occurrence.model_dump(mode="json"))
         if (
             occurrence.request != request
@@ -133,6 +147,7 @@ class RuntimeInjectMixin:
 
     def _inject_live_diagnostics(self, occurrence: InjectOccurrenceModel) -> list[Diagnostic]:
         try:
+            self._require_inject_schedule(occurrence.request)
             with self._mutation_authority.external_call():
                 self._execution_adapter.call(
                     "effect",
@@ -144,6 +159,16 @@ class RuntimeInjectMixin:
         except Exception:
             return [_inject_diagnostic()]
         return []
+
+    def _require_inject_schedule(self, request: InjectTriggerRequestModel) -> None:
+        if request.placement.kind == "schedule":
+            from .inject_schedule import require_schedule
+
+            with self._trusted_runtime_plan_lock:
+                model = self._trusted_orchestration_models.get(request.plan.digest)
+            if model is None:
+                raise ValueError("inject schedule compiler context is unavailable")
+            require_schedule(model, request, self._snapshot)
 
     def _read_inject_record(
         self, operation_id: str, identity: ControlPlaneIdentity | None
@@ -195,3 +220,27 @@ class RuntimeInjectMixin:
             )
         except ValueError:
             return None
+
+    @runtime_owned
+    def get_inject_delivery(
+        self, operation_id: str, *, identity: object | None = None
+    ) -> ParticipantInjectContentModel | None:
+        from .participant_inject_application import _authorized_binding
+
+        record = self._read_inject_record(operation_id, identity)
+        if record is None or record.inject_delivery is None or record.status.state.value != "succeeded":
+            return None
+        try:
+            _authorized_binding(self, record.inject_delivery.application, identity)
+        except (ValueError, PermissionError):
+            return None
+        return deepcopy(record.inject_delivery)
+
+    @runtime_owned
+    def get_inject_capture(self, operation_id: str, *, identity: object | None = None) -> InjectCaptureResult | None:
+        from .inject_capture import InjectCaptureResult
+
+        record = self._read_inject_record(operation_id, identity)
+        if record is None or record.inject_occurrence is None or record.result_payload is None:
+            return None
+        return InjectCaptureResult.model_validate(deepcopy(record.result_payload))

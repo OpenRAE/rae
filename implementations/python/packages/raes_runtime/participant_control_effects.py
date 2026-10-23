@@ -22,7 +22,7 @@ append all happen under one held mutation.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from graphlib import TopologicalSorter
 
@@ -37,6 +37,7 @@ from raes_contracts.contracts.participant_control_coordinates import (
 from raes_contracts.contracts.participant_control_effects import ControlEffectRequestModel
 from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
 from raes_contracts.contracts.participant_control_results import ControlRealizationBindingModel
+from raes_contracts.contracts.participant_inject_application import ParticipantInjectApplicationModel
 from raes_contracts.participant_control_evaluation_history import participant_control_evaluation_from_payload
 from raes_contracts.runtime_state import OperationKind
 
@@ -81,6 +82,7 @@ class ParticipantControlEffectOperation:
     view: object | None = None
     intent: ParticipantControlIntent | None = None
     crossing_evidence: ParticipantCrossingEvidence | None = None
+    inject_application: ParticipantInjectApplicationModel | None = None
 
 
 @dataclass(frozen=True)
@@ -391,18 +393,26 @@ def _binds_request(
 
 
 # Pairs of (the owner input's coordinate, the admitted target's coordinate).
-_Bindings = tuple[tuple[object, object], ...]
+_Bindings = Sequence[tuple[object, object]]
 
 
 def _inject_bindings(operation: ParticipantControlEffectOperation, target: object, context: object) -> _Bindings:
+    if operation.inject_application is not None:
+        application = operation.inject_application
+        return [
+            (application.participant_address, target.participant_address),
+            (application.episode_id, target.episode_id),
+            (application.delivery_address, target.delivery_ref.ref),
+            (application.delivery_digest, target.delivery_ref.digest),
+        ]
     view = operation.view
-    return (
+    return [
         (getattr(view, "participant_address", None), target.participant_address),
         (getattr(view, "episode_id", None), target.episode_id),
         (getattr(view, "view_id", None), target.result_item_ref),
         (getattr(view, "source_snapshot_ref", None), context.state_cut.cut_ref),
         (getattr(view, "visibility_projection_ref", None), target.disclosure_ref.ref),
-    )
+    ]
 
 
 def _handoff_bindings(operation: ParticipantControlEffectOperation, target: object, context: object) -> _Bindings:
@@ -438,6 +448,13 @@ def _submit(
 
     idempotency_key = owner_idempotency_key(claim)
     if operation.kind == "inject":
+        if operation.inject_application is not None:
+            from .participant_inject_application import submit_inject_effect
+
+            submit_inject_effect(
+                control_plane, operation.inject_application, request.target, principal, idempotency_key
+            )
+            return
         control_plane.deliver_participant_directed_view(
             request.target.participant_address,
             operation.view,

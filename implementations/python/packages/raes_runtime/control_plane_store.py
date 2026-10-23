@@ -9,6 +9,8 @@ from dataclasses import dataclass, field
 from typing import Any, Literal, Protocol, runtime_checkable
 
 from raes_contracts.contracts import InjectOccurrenceModel, InjectOccurrenceOutcomeModel
+from raes_contracts.contracts.participant_inject_application import ParticipantInjectContentModel
+from raes_contracts.contracts.participant_control_occurrence_v2 import ParticipantControlOccurrenceV2Model
 from raes_backend_protocols.inject_execution import InjectExecutionEvidence
 
 from raes_contracts.runtime_state import (
@@ -134,6 +136,8 @@ class ControlPlaneOperationRecord:
     inject_occurrence: InjectOccurrenceModel | None = None
     inject_outcome: InjectOccurrenceOutcomeModel | None = None
     inject_evidence: InjectExecutionEvidence | None = None
+    inject_delivery: ParticipantInjectContentModel | None = None
+    inject_delivery_control: ParticipantControlOccurrenceV2Model | None = None
 
     def __post_init__(self) -> None:
         _require_operation_record_identity(self)
@@ -144,7 +148,7 @@ _NON_TERMINAL_OPERATION_STATES = {OperationState.ACCEPTED, OperationState.RUNNIN
 
 
 def _require_operation_record_identity(record: ControlPlaneOperationRecord) -> None:
-    from .inject_claims import require_inject_record
+    from .inject_claims import require_delivery_record, require_inject_record
 
     if record.receipt.operation_id != record.status.operation_id:
         raise ValueError("operation receipt and status identities do not match")
@@ -158,6 +162,7 @@ def _require_operation_record_identity(record: ControlPlaneOperationRecord) -> N
         raise ValueError("denied operation receipts cannot be persisted")
     require_record_invocation(record)
     require_inject_record(record)
+    require_delivery_record(record)
     if record.reconciliation is not None:
         InvocationReconciliation.model_validate(record.reconciliation.model_dump(mode="json"))
         if record.status.context.parent_operation_id != record.reconciliation.request.binding.operation_id:
@@ -231,6 +236,11 @@ def _require_same_operation_identity(
     _require_operation_record_identity(existing)
     _require_operation_record_identity(replacement)
     require_inject_transition(existing, replacement)
+    if (
+        existing.inject_delivery != replacement.inject_delivery
+        or existing.inject_delivery_control != replacement.inject_delivery_control
+    ):
+        raise ValueError("inject delivery binding is immutable")
     require_invocation_transition(existing.invocation, replacement.invocation)
     if existing.reconciliation is not None and existing.reconciliation != replacement.reconciliation:
         raise ValueError("reconciliation evidence is immutable")

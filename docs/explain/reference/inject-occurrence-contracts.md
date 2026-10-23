@@ -333,3 +333,33 @@ observation. Authentication, admission, binding resolution against the pinned
 plan, ordering, claims, dispatch, outcome validation and terminal commits
 belong to the runtime and backend adoption that the
 [compatibility contract](../sdl/external-inject-compatibility.md) describes.
+
+## Installed participant delivery
+
+Issue #1368 adds three draft contracts: `participant-inject-application-v1`
+pins the world operation, authored binding digest, recipient/episode and snapshot
+cut, with an exact reusable-control event reference when required;
+`participant-inject-delivery-v1` carries the successful world correlation,
+authored result/disclosure/observation coordinates and bounded projected content;
+`participant-inject-delivery-receipt-v1` names the separate delivery operation.
+Validate their models as well as their published schemas. Local validation grants
+no authority and cannot resolve their cross-message joins.
+
+The installed runtime reader uses the original compiled schedule anchors and
+rechecks the exact world/result and accepted-control history, audience, shared
+time, independent delivery policy and final crossing after transformation. It
+refuses unsupported independent participant joins and legacy-flat control
+composition. Participant-free world triggering retains its existing meaning.
+The durable claim is unique per occurrence/binding and per control-event/binding;
+retries retrieve the retained result without executing the world again.
+
+Authored capture obligations use the existing observation lifecycle after world
+readback. Capture failure does not reverse an applied effect and withholds
+participant delivery. Actor-authorized `inject-capture` readback exposes that
+separate result. Audience-authorized `inject-delivery` readback exposes the
+retained governed carrier. The receipt proves the admitted local return boundary,
+without asserting external acknowledgement or participant observation. Local
+record schema 10 and PostgreSQL ledger schema 3 retain these typed joins and
+migrate predecessor records without manufacturing them. See the
+[operator guide](../../public/guides/external-injects.md) for owner installation,
+authentication, schedule mappings, recovery and evidence limits.

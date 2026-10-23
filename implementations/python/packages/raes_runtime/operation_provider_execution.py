@@ -389,7 +389,7 @@ def _settle_provider_outcome(
     if record.inject_occurrence is not None:
         from .inject_outcomes import settle_inject_outcome
 
-        settle_inject_outcome(plane, record, response, remaining)
+        settle_inject_outcome(plane, record, response, remaining, native_request.plan)
         return
     result, commitment, payload = validate_outcome(plane, record, response, native_request, predecessor)
     settle(

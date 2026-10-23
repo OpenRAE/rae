@@ -19,6 +19,7 @@ from .operation_supervision_configuration import OperationEvidenceResolver, Oper
 from .participant_control_binding import ParticipantControlRuntimeBinding
 from .participant_control_runtime import MixedControlRuntimeBinding
 from .participant_crossing_mediation import ParticipantCrossingPolicyResolver
+from .participant_inject_delivery import ParticipantInjectRuntimeBinding
 
 
 class OperationDispatcher(Protocol):
@@ -50,6 +51,7 @@ class ControlPlaneOptions(TypedDict, total=False):
     distributed_execution: OperationDispatcher | None
     inject_execution: InjectExecutionResolver | None
     mixed_control: MixedControlRuntimeBinding | None
+    inject_delivery: ParticipantInjectRuntimeBinding | None
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -73,6 +75,7 @@ class ControlPlaneConfiguration:
     distributed_execution: OperationDispatcher | None = None
     inject_execution: InjectExecutionResolver | None = None
     mixed_control: MixedControlRuntimeBinding | None = None
+    inject_delivery: ParticipantInjectRuntimeBinding | None = None
 
     def __post_init__(self) -> None:
         if (
@@ -92,7 +95,20 @@ class ControlPlaneConfiguration:
             callable(getattr(self.operation_evidence, name, None)) for name in ("validate_effects", "resolve_result")
         ):
             raise TypeError("operation evidence requires installed scoped validation and resolution")
+        if self.inject_delivery is not None and not isinstance(self.inject_delivery, ParticipantInjectRuntimeBinding):
+            raise TypeError("inject delivery requires a typed runtime binding")
         self._require_state_configuration()
+        self._require_inject_projection_configuration()
+
+    def _require_inject_projection_configuration(self) -> None:
+        if self.inject_delivery is not None:
+            if self.crossing_policy_resolver is None:
+                raise ValueError("inject delivery requires its crossing policy owner")
+            if any(
+                self.inject_delivery.model.behavior_specifications.get(ref) != specification
+                for ref, specification in (self.behavior_specifications or {}).items()
+            ):
+                raise ValueError("inject delivery must match installed behavior specifications")
 
     def _require_state_configuration(self) -> None:
         if self.participant_outcome_model is not None and not isinstance(self.participant_outcome_model, RuntimeModel):
@@ -117,7 +133,12 @@ class ControlPlaneConfiguration:
             raise ValueError("mixed-control binding must match installed compiler context")
         elif self.mixed_runtime is not None:
             raise ValueError("reusable control cannot install an unsupported mixed-runtime participant path")
-        elif self._has_controlled_delivery():
+        elif self._has_controlled_delivery() and (
+            self.inject_delivery is None
+            or self.inject_delivery.model != self.mixed_control.model
+            or self.crossing_policy_resolver is None
+            or not callable(getattr(self.mixed_control.resolver, "resolve_delivery_cut", None))
+        ):
             raise ValueError("reusable control cannot install an unsupported directed delivery path")
 
     def _has_controlled_delivery(self) -> bool:

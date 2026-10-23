@@ -13,6 +13,8 @@ from raes_contracts.contracts import (
     OperationStatusModel,
 )
 from raes_contracts.contracts.base import ContractModel, Rfc3339DateTimeString
+from raes_contracts.contracts.participant_control_occurrence_v2 import ParticipantControlOccurrenceV2Model
+from raes_contracts.contracts.participant_inject_application import ParticipantInjectContentModel
 from raes_contracts.diagnostics import Diagnostic, DiagnosticModel, portable_diagnostic_payload
 from raes_contracts.runtime_state import OperationReceipt, OperationStatus
 
@@ -55,6 +57,8 @@ class _OperationRecordModel(ContractModel):
     inject_occurrence: InjectOccurrenceModel | None = None
     inject_outcome: InjectOccurrenceOutcomeModel | None = None
     inject_evidence: InjectExecutionEvidence | None = None
+    inject_delivery: ParticipantInjectContentModel | None = None
+    inject_delivery_control: ParticipantControlOccurrenceV2Model | None = None
 
     @model_validator(mode="after")
     def _validate_shared_carrier_identity(self) -> _OperationRecordModel:
@@ -135,6 +139,10 @@ def _record_payload(record: ControlPlaneOperationRecord) -> dict[str, Any]:
         else record.inject_occurrence.model_dump(mode="json"),
         "inject_outcome": None if record.inject_outcome is None else record.inject_outcome.model_dump(mode="json"),
         "inject_evidence": None if record.inject_evidence is None else record.inject_evidence.model_dump(mode="json"),
+        "inject_delivery": None if record.inject_delivery is None else record.inject_delivery.model_dump(mode="json"),
+        "inject_delivery_control": None
+        if record.inject_delivery_control is None
+        else record.inject_delivery_control.model_dump(mode="json"),
     }
 
 
@@ -174,6 +182,8 @@ def _record_from_payload(payload: dict[str, Any]) -> ControlPlaneOperationRecord
         inject_occurrence=carrier.inject_occurrence,
         inject_outcome=carrier.inject_outcome,
         inject_evidence=carrier.inject_evidence,
+        inject_delivery=carrier.inject_delivery,
+        inject_delivery_control=carrier.inject_delivery_control,
     )
 
 
