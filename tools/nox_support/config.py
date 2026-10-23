@@ -20,6 +20,7 @@ PUBLIC_DOCS_ENTRYPOINTS = (
 )
 PUBLIC_DOCS_EXAMPLE_TESTS = (
     "implementations/python/tests/test_public_docs_policy.py::test_checked_in_quickstart_scenario_parses",
+    "implementations/python/tests/test_sdl_reference_quick_example.py::test_quick_example_passes_semantic_validation",
     "implementations/python/tests/test_public_docs_policy.py::test_readme_quickstart_matches_checked_in_scenario",
     "implementations/python/tests/test_public_docs_policy.py::test_participant_control_claim_example_is_bounded",
     "implementations/python/tests/test_issue_938_landing_page.py::test_quickstart_prints_the_output_each_page_shows",
