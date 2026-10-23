@@ -77,8 +77,6 @@ def _resolve_by_name(
     resolved: NativeResolution | None = None
     try:
         native = lookup(name)
-    except KeyError:
-        resolved = _resolve_verified_absence(connection, list_method, address)
     except Exception as exc:
         code = _error_code(exc)
         if code in _list_absence_error_codes(list_method):
