@@ -29,7 +29,10 @@ Ground Control, so it cannot become flaky in CI):
   same change (``adr-amendment-unrecorded``) — this is what stops a bare pin bump
   from blessing an undocumented edit. (Status transitions to
   superseded/deprecated and superseding ADRs naturally leave the accepted set, so
-  they are not flagged.)
+  they are not flagged.) The base copy is read at the path the base revision's
+  manifest records for the same ADR id, so renaming the file does not hide an
+  edit, and a ``--base-rev`` that names no commit fails
+  (``adr-base-rev-unresolved``) instead of comparing nothing.
 
 Failures use ``tools.policy.common.PolicyFailure``; the CLI honours ``--json`` and
 the shared ``tools/policy/exceptions.yaml`` waiver mechanism like the other
@@ -40,10 +43,13 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import posixpath
 import re
 import subprocess
 import sys
 from pathlib import Path
+
+import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
@@ -75,6 +81,7 @@ RULE_PIN_MISSING = "adr-pin-missing"
 RULE_PIN_ORPHAN = "adr-pin-orphan"
 RULE_AMENDMENT_MISMATCH = "adr-amendment-record-mismatch"
 RULE_AMENDMENT_UNRECORDED = "adr-amendment-unrecorded"
+RULE_BASE_UNRESOLVED = "adr-base-rev-unresolved"
 
 
 def _amendments_section_bounds(text: str) -> tuple[int, int] | None:
@@ -260,6 +267,51 @@ def _git_show(repo_root: Path, gitref: str) -> str | None:
     return proc.stdout
 
 
+def _resolve_commit(repo_root: Path, rev: str) -> str | None:
+    """Full SHA of the commit ``rev`` names, or None when it names no commit.
+    ``--end-of-options`` keeps a ``rev`` that starts with ``-`` from being read
+    as a git option."""
+    proc = subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", "--end-of-options", f"{rev}^{{commit}}"],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0:
+        return None
+    return proc.stdout.strip()
+
+
+def _base_manifest_paths(repo_root: Path, base: str) -> dict[str, str]:
+    """``ADR-NNN`` → path recorded in the base revision's manifest, normalized
+    (``./`` and ``//`` segments removed) because ``git show`` needs the literal
+    tree path. Empty when the base has no readable manifest (for example a
+    revision before ADR-059)."""
+    text = _git_show(repo_root, f"{base}:{MANIFEST_PATH}")
+    try:
+        raw = yaml.safe_load(text) if text is not None else None
+    except yaml.YAMLError:
+        raw = None
+    entries = raw.get("adrs") if isinstance(raw, dict) else None
+    if not isinstance(entries, list):
+        return {}
+    return {
+        entry["id"]: posixpath.normpath(entry["path"])
+        for entry in entries
+        if isinstance(entry, dict) and isinstance(entry.get("id"), str) and isinstance(entry.get("path"), str)
+    }
+
+
+def _base_copy(repo_root: Path, base: str, recorded: str | None, rel: str) -> str | None:
+    """The ADR's text at ``base``: at the base manifest's ``recorded`` path, else
+    at its current path ``rel``. None only when neither exists at ``base``."""
+    for path in dict.fromkeys((recorded or rel, rel)):
+        text = _git_show(repo_root, f"{base}:{path}")
+        if text is not None:
+            return text
+    return None
+
+
 def _check_unrecorded_edits(
     repo_root: Path,
     accepted: dict[str, Path],
@@ -269,12 +321,28 @@ def _check_unrecorded_edits(
 ) -> list[PolicyFailure]:
     """A pin bump alone must not bless an edit: when an accepted ADR's canonical
     content changed versus the base, the same change must also have added a
-    ``## Amendments`` record."""
+    ``## Amendments`` record. The base copy is the file at the path the base
+    manifest records for the same ADR id, or at the current path when the base
+    manifest has none or git stores nothing there, so a rename cannot hide an
+    edit."""
+    if staged:
+        base = "HEAD"
+    else:
+        resolved = _resolve_commit(repo_root, str(base_rev))
+        if resolved is None:
+            return [
+                PolicyFailure(
+                    RULE_BASE_UNRESOLVED,
+                    f"--base-rev {base_rev!r} does not name a commit in this repository, so no "
+                    "accepted ADR can be compared against its base; fetch the base or pass a valid revision",
+                )
+            ]
+        base = resolved
+    base_paths = _base_manifest_paths(repo_root, base)
     failures: list[PolicyFailure] = []
     for adr_id, disk_path in accepted.items():
         rel = _rel(repo_root, disk_path)
-        base_ref = f"HEAD:{rel}" if staged else f"{base_rev}:{rel}"
-        base_text = _git_show(repo_root, base_ref)
+        base_text = _base_copy(repo_root, base, base_paths.get(adr_id), rel)
         if base_text is None:
             continue  # not present at base (newly added) — nothing to compare
         head_text = _git_show(repo_root, f":{rel}") if staged else disk_path.read_text(encoding="utf-8")
