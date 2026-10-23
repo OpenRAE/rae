@@ -6,7 +6,7 @@ type: INTERFACE
 priority: SHOULD
 wave: 3
 created_at: 2026-04-03T06:16:04.587331Z
-updated_at: 2026-10-21T00:00:00Z
+updated_at: 2026-10-23T00:00:00Z
 ---
 
 # API-409 — Participant External Input And Intervention Contracts
@@ -97,7 +97,6 @@ explicit matching installed-owner admission retains its refusal.
 - TESTS → TEST `implementations/python/tests/test_issue_1368_control_inject_owner.py` (Exact API-424 owner joins and public delivery execution)
 - DOCUMENTS → DOCUMENTATION `docs/public/guides/external-injects.md` (Installed control/delivery context and evidence limits)
 
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/inject_execution.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_inject_routes.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_composition.py`

@@ -6,7 +6,7 @@ type: NON_FUNCTIONAL
 priority: MUST
 wave: 3
 created_at: 2026-04-03T07:58:36.322037Z
-updated_at: 2026-09-18T00:00:00.000000Z
+updated_at: 2026-10-21T00:00:00Z
 ---
 
 # GOV-913 — Trust And Integrity Of Reusable Assets
@@ -152,17 +152,10 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - IMPLEMENTS → CONFIG `implementations/tooling/selector-bindings.json` (Release-test image consumer binding and lock-anchored digest authority)
 - IMPLEMENTS → CODE_FILE `tools/tooling_artifact_policy_oci.py` (OCI graph admission: index identity, layer arity, platform, and policy binding)
 - IMPLEMENTS → CODE_FILE `tools/tooling_artifact_policy_artifacts.py` (Platform graph evidence joined to its admission policy)
-- IMPLEMENTS → CODE_FILE `tools/oci_release_image.py` (Native pinned pull and daemon OS, architecture, and layer identity readback)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/naming.py` (Run-namespaced provider resource names for concurrent realization)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/drivers/oci.py` (Workspace-scoped native resource naming for owned teardown)
-- IMPLEMENTS → CONFIG `.github/workflows/release-please.yml` (Direct pinned image pull and required real-container lane)
 - IMPLEMENTS → DOCUMENTATION `docs/decisions/package-artifacts/operations.md` (Issue #1223 OCI mirror and pre-seed evidence)
 - IMPLEMENTS → DOCUMENTATION `docs/decisions/package-artifacts/inventory.md` (Locked I11 container input and disposable C04 layout carrier)
 - IMPLEMENTS → DOCUMENTATION `docs/explain/releasing.md` (Exact-SHA verification, pinned real-container input, and exact-distribution release contract)
-- TESTS → TEST `implementations/python/tests/test_oci_release_image.py` (Pinned identity and daemon readback regressions)
-- TESTS → TEST `implementations/python/tests/test_reference_backend_docker_gate.py` (Optional availability versus required integrity failures, namespaces, and owned teardown)
-- TESTS → TEST `implementations/python/tests/test_reference_backend_docker_integration.py` (Lock-selected real-container realization with per-run namespaces and owned teardown)
-- TESTS → TEST `implementations/python/tests/test_reference_backend_oci_driver.py` (Workspace-scoped container and network naming)
 - TESTS → TEST `implementations/python/tests/test_sdl_identifiers.py` (Namespaced provider-name isolation and default-name preservation)
 - TESTS → TEST `implementations/python/tests/test_release_workflows.py` (Frozen release build, required real-container lane, and fail-closed checks)
 - TESTS → TEST `implementations/python/tests/test_tooling_artifact_policy.py` (OCI graph admission, policy binding, and denied-digest regressions)
@@ -172,7 +165,6 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (Current retest release binds live reference-implementation source)
 - TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (Versioned capture history, source-profile binding, and stale-digest rejection)
 - IMPLEMENTS → CODE_FILE `tools/tooling_oci_selection.py` (Closed projection of a locked OCI image's platform graph)
-- IMPLEMENTS → CODE_FILE `tools/oci_release_selection.py` (Reviewed release-test image projection and required-platform set)
 
 - IMPLEMENTS → GITHUB_ISSUE `1313` (Connected single-maintainer tooling scope with retained trust boundaries)
 - IMPLEMENTS → CODE_FILE `tools/tooling_artifact_selection.py` (Bounded selected artifact and dependency validation independent of unrelated policy)
@@ -184,7 +176,6 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - TESTS → TEST `implementations/python/tests/issue_1219_installation_harness.py` (Real-process private installation concurrency and crash recovery)
 - TESTS → TEST `implementations/python/tests/issue_1220_proof_input_harness.py` (Proof-tree integrity, crash recovery, and egress-denied admission)
 - TESTS → TEST `implementations/python/tests/test_issue_1220_isabelle_acquisition.py` (Proof input selection, safe tree installation, and sandbox regressions)
-- TESTS → TEST `implementations/python/tests/test_issue_1222_live_runner_acquisition.py` (Verified online live-runner bootstrap and preserved SSH and VM trust boundaries)
 
 - TESTS → TEST `implementations/python/tests/test_issue_1205_repository_governance.py` (Retained contract ownership checks without the retired tooling-inventory exception)
 

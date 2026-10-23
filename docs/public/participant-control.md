@@ -225,9 +225,9 @@ target may test. Keep the target and profile in the report. Keep the probe-set
 digest and case IDs. Keep the finite scope, errors, and real support. A feature
 without an allowed probe result is `unsupported`. It is not conformant.
 
-The shipped reference backend currently declares all six participant-policy
-features `unsupported`. Some tests use stronger manifests. Those tests do not
-turn the reference backend into a native implementation. Start with the
+The stub test double declares all six participant-policy features
+`unsupported`. Some tests use stronger manifests. Those tests do not make the
+stub a native implementation. RAES ships no concrete backend. Start with the
 [backend guide](backends.md). Then read the
 [feature-admission implementation](https://github.com/OpenRAE/rae/blob/main/implementations/python/packages/raes_backend_protocols/participant_feature_admission.py),
 and
@@ -383,7 +383,7 @@ examples in this guide:
     "implementations/python/tests/test_asr_535_participant_flow_assurance.py"
   ],
   "limitations": [
-    "The reference backend declares all participant-policy features unsupported; positive paths use explicit test manifests."
+    "The stub test double declares all participant-policy features unsupported; positive paths use explicit test manifests."
   ],
   "explicit_non_claims": [
     "Does not establish universal participant-policy noninterference or participant-projected history equivalence.",

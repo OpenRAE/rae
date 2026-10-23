@@ -129,7 +129,7 @@ uv run raes processor plan ../../examples/scenarios/techvault-defensive-min.sdl.
 ```
 
 This is a read-only dry run: it parses, compiles, and plans the scenario against
-the reference backend manifest and prints the resulting provisioning,
+the reference stub dry-run manifest and prints the resulting provisioning,
 orchestration, and evaluation plans as published-contract JSON. It does not
 apply or start anything. Pass `--manifest <backend-manifest-v2.json>` to plan
 against an explicitly supplied backend manifest.

@@ -32,16 +32,13 @@ def test_checked_in_host_profiles_join_locked_payloads_and_evidence() -> None:
         "public-macos-arm64",
         "proof-ubuntu-22.04-x86_64",
         "container-ubuntu-24.04-x86_64",
-        "live-runner-ubuntu-24.04-x86_64",
     }
     proof = profiles["proof-ubuntu-22.04-x86_64"]
     assert proof["proof_support"] == "linux-x86_64-required"
     assert {"bubblewrap", "fontconfig", "fonts", "locale-c-utf-8"} <= set(proof["required_capability_ids"])
     assert proof["host_security_control_changes"] == "prohibited"
     linux = profiles["public-ubuntu-24.04-x86_64"]
-    assert {"container-cli", "container-daemon", "libvirt-client", "libvirt-daemon", "qemu", "kvm-access"} <= set(
-        linux["optional_capability_ids"]
-    )
+    assert {"container-cli", "container-daemon"} <= set(linux["optional_capability_ids"])
     for profile in profiles.values():
         assert "offline_kit" not in profile
         assert "qualification_record_ids" not in profile
@@ -74,7 +71,7 @@ def test_standard_python_and_uv_payloads_are_exact_and_preview_is_advisory() -> 
         if item["platform_id"] == "linux-x86_64"
     } == {"ubuntu-22.04", "ubuntu-24.04"}
     assert artifacts["cpython-3.14t"]["support_level"] == "advisory"
-    assert artifacts["uv"]["version"] == "0.12.4"
+    assert artifacts["uv"]["version"] == "0.13.4"
     assert {item["platform_id"] for item in artifacts["uv"]["platforms"]} == {
         "linux-x86_64",
         "linux-arm64",
@@ -100,7 +97,7 @@ def test_workflow_action_source_and_payload_selectors_are_separate() -> None:
     setup_python = next(step for step in job["steps"] if str(step.get("uses", "")).startswith("actions/setup-python@"))
     setup_uv = next(step for step in job["steps"] if str(step.get("uses", "")).startswith("astral-sh/setup-uv@"))
     assert setup_python["with"]["python-version"] == "${{ matrix.python.payload }}"
-    assert setup_uv["with"]["version"] == "0.12.4"
+    assert setup_uv["with"]["version"] == "0.13.4"
     assert "@" in setup_python["uses"]
     assert len(setup_python["uses"].rsplit("@", 1)[1].split()[0]) == 40
 
@@ -119,7 +116,7 @@ def test_every_setup_action_uses_an_exact_admitted_payload() -> None:
                 if uses.startswith("actions/setup-python@"):
                     assert step.get("with", {}).get("python-version") in allowed_python, path
                 if uses.startswith("astral-sh/setup-uv@"):
-                    assert step.get("with", {}).get("version") == "0.12.4", path
+                    assert step.get("with", {}).get("version") == "0.13.4", path
 
 
 def test_qualification_and_python_consumers_select_reviewed_host_labels() -> None:

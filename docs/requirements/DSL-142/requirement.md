@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 3
 created_at: 2026-07-15T05:45:06.862070Z
-updated_at: 2026-10-21T00:00:00Z
+updated_at: 2026-10-23T00:00:00Z
 ---
 
 # DSL-142 — Participant-Directed Inject Binding And Delivery
@@ -139,8 +139,6 @@ backend execution, delivery or observation.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/inject_occurrence_schema.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/core.py`
 - TESTS → TEST `implementations/python/tests/participant_inject_runtime_fixtures.py`
-- TESTS → TEST `implementations/python/tests/reference_inject_integration_support.py`
-- TESTS → TEST `implementations/python/tests/test_reference_backend_docker_integration.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/observation_lifecycle.py` (Preserve independent mandatory capture when an optional selector fails)
 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/observation_demand.py`

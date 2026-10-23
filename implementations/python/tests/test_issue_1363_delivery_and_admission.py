@@ -27,7 +27,6 @@ from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.models import ParticipantInjectDeliveryControlRuntime
 from raes_processor.planner import plan
-from raes_reference_backend.manifest import create_reference_backend_manifest
 from raes_runtime.control_plane_configuration import ControlPlaneConfiguration
 from raes_runtime.manager import RuntimeManager
 from raes_runtime.participant_control_mediation import _specification_for_participant, _validate_candidate_history
@@ -126,7 +125,15 @@ def test_a_disclosure_carries_no_control_block() -> None:
         parse(payload)
 
 
-@pytest.mark.parametrize("manifest", [create_stub_manifest, create_reference_backend_manifest])
+@pytest.mark.parametrize(
+    "manifest",
+    [
+        create_stub_manifest,
+        lambda: create_stub_manifest(with_time=True, with_realization_envelope=True),
+        lambda: create_stub_manifest(with_participant_runtime=False),
+    ],
+    ids=["default", "time-and-envelope", "no-participant-runtime"],
+)
 def test_planning_refuses_every_rev1_path_for_every_backend(manifest) -> None:
     for payload, address in (
         (rev1_scenario(), SPEC_ADDRESS),
@@ -139,7 +146,7 @@ def test_planning_refuses_every_rev1_path_for_every_backend(manifest) -> None:
     assert PLANNER_CODE not in {item.code for item in legacy_plan.diagnostics}
 
 
-def test_the_reference_runtime_refuses_rev1_admission_before_any_episode() -> None:
+def test_the_runtime_refuses_rev1_admission_before_any_episode() -> None:
     target = create_stub_target()
     manager = RuntimeManager(target)
     execution_plan = manager.plan(parse(rev1_scenario()))

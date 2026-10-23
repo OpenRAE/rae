@@ -233,3 +233,138 @@ def test_settlement_checks_state_authority_before_evaluating_diagnostics(tmp_pat
         assert not evaluated
     finally:
         plane.close()
+
+
+class _DurableFixture(ExecutingFixture):
+    """Reads its retained invocation from the store, so controls survive a reopen."""
+
+    def __init__(self, path):
+        super().__init__(path)
+        self.reader = None
+        self.fail = False
+
+    def _retained_request(self, control):
+        return self.reader(control.binding.operation_id).invocation.request
+
+    def observe_operation(self, control):
+        self.request = getattr(self, "request", None) or self._retained_request(control)
+        response = super().observe_operation(control)
+        if not self.fail:
+            return response
+        failed = response.message.model_copy(
+            update={"proposed_state": "failed", "satisfaction": "unsatisfied", "release_gates_satisfied": False}
+        )
+        self.failed_message = failed
+        return self.report(self.request, failed.model_dump(mode="json"))
+
+    def validate_effects(self, request, response):
+        if response.message.kind == "reconciliation":
+            return self.path.read_bytes() == self.content
+        if self.fail:
+            return self.path.read_bytes() == self.content and response.message == self.failed_message
+        return super().validate_effects(request, response)
+
+    def reconcile_operation(self, control):
+        from raes_contracts.contracts import backend_operation_control_digest
+
+        request = self._retained_request(control)
+        self.request = request
+        super().observe_operation(control)  # independent readback of the retained world artifact
+        return self.report(
+            request,
+            {
+                "kind": "reconciliation",
+                "control_id": control.control_id,
+                "control_digest": backend_operation_control_digest(control),
+                "effects": {"effect": "complete", "cessation_established": True, "evidence_refs": [self.readback]},
+            },
+        )
+
+
+def _durable_plane(tmp_path, backend):
+    from raes_runtime.control_plane_profiles import ControlPlaneProfile
+    from raes_runtime.control_plane_store_local import LocalControlPlaneStore
+
+    selected = fixture_target(backend)
+    backend.plan, backend.scenario = fixture_plan(selected)
+    plane = RuntimeControlPlane(
+        selected,
+        inject_execution=backend,
+        operation_evidence=backend,
+        store=LocalControlPlaneStore(tmp_path / "durable-inject-ledger"),
+        profile=ControlPlaneProfile.P1,
+    )
+    backend.reader = lambda operation_id: plane._store.load_records().get(operation_id)
+    return plane
+
+
+def test_failed_world_effect_retains_the_applied_outcome_without_successful_correlation(tmp_path):
+    backend = _DurableFixture(tmp_path / "world")
+    backend.fail = True
+    with _durable_plane(tmp_path, backend) as plane:
+        plane.register_planner_produced_plan(backend.plan)
+        receipt = plane.submit_inject(trigger_request(backend.plan))
+        assert plane.get_operation(receipt.operation_id).state is OperationState.FAILED
+        assert plane.get_inject_outcome(receipt.operation_id).effect == "effect-applied"
+        assert plane.get_inject_correlation(receipt.operation_id) is None
+        assert not plane._store.load_records()[receipt.operation_id].invocation.reserved
+
+
+def test_crash_after_world_effect_before_terminal_commit_reopens_without_redispatch(tmp_path, monkeypatch):
+    backend = _DurableFixture(tmp_path / "world")
+    plane = _durable_plane(tmp_path, backend)
+    request = trigger_request(backend.plan)
+    plane.register_planner_produced_plan(backend.plan)
+
+    def crash(*args, **kwargs):
+        raise KeyboardInterrupt("simulated process loss at the terminal-commit boundary")
+
+    monkeypatch.setattr(plane, "_commit_terminal_operation", crash)
+    try:
+        with pytest.raises(KeyboardInterrupt):
+            plane.submit_inject(request)
+        assert backend.path.read_bytes() == backend.content
+        parent = next(iter(plane._store.load_records().values()))
+        assert parent.status.state is OperationState.RUNNING
+        assert parent.invocation.consumed
+        assert parent.invocation.reserved
+    finally:
+        plane.close()
+    restarted = _DurableFixture(tmp_path / "world")
+    restarted.sequence = backend.sequence  # a backend's response sequence is durable across restart
+    with _durable_plane(tmp_path, restarted) as recovered:
+        assert recovered.get_operation(parent.receipt.operation_id).state is OperationState.INDETERMINATE
+        assert recovered.submit_inject(request) == parent.receipt
+        assert backend.starts == 1
+        assert restarted.starts == 0
+        control = recovered.supervise_operation(
+            parent.receipt.operation_id, action="reconcile", control_id="recover-world"
+        )
+        response = recovered.get_control_response(parent.receipt.operation_id, control.control_id)
+        assert response.message.effects.effect == "complete"
+        assert response.message.effects.cessation_established
+        assert recovered.get_operation(parent.receipt.operation_id).state is OperationState.INDETERMINATE
+        assert recovered.get_inject_correlation(parent.receipt.operation_id) is None
+
+
+def test_produced_artifact_content_survives_reopen_and_later_world_changes(tmp_path):
+    from raes_contracts.canonical import canonical_json_digest
+
+    backend = _DurableFixture(tmp_path / "world")
+    with _durable_plane(tmp_path, backend) as plane:
+        request = trigger_request(backend.plan)
+        plane.register_planner_produced_plan(backend.plan)
+        receipt = plane.submit_inject(request)
+        assert plane.get_inject_artifact(receipt.operation_id, "world-result") == backend.content
+        result = plane.get_inject_result(receipt.operation_id)
+        assert (
+            canonical_json_digest(result.model_dump(mode="json"))
+            == plane.get_inject_correlation(receipt.operation_id).result.digest
+        )
+    (tmp_path / "world").write_bytes(b"a different later world state")
+    restarted = _DurableFixture(tmp_path / "world")
+    with _durable_plane(tmp_path, restarted) as restored:
+        assert restored.submit_inject(request) == receipt
+        assert restored.get_inject_result(receipt.operation_id) == result
+        assert restored.get_inject_artifact(receipt.operation_id, "world-result") == backend.content
+        assert restarted.starts == 0

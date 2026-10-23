@@ -110,14 +110,17 @@ def test_phase_quiescence_recognizes_a_reconciled_nonmixed_parent(durable, tmp_p
 
 
 def test_optional_observation_timeout_preserves_verified_success_and_no_observation():
+    # The observation budget bounds every observation-lane call (time readback,
+    # effect validation, stage reports and delivery reads). Keep enough headroom
+    # for those healthy calls on a loaded runner; only the reader below overruns.
     plane, state, roles, _, _ = portable_plane(
-        supervision=OperationSupervisionConfiguration(observation_ms=250, execution_ms=5000)
+        supervision=OperationSupervisionConfiguration(observation_ms=1000, execution_ms=10000)
     )
     release = Event()
     original = roles["observation"].read_stage
 
     def blocked(control):
-        release.wait(2)
+        release.wait(4)
         return original(control)
 
     roles["observation"].read_stage = blocked

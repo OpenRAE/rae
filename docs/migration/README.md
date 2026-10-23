@@ -39,6 +39,10 @@ declaration to a rev1 finite script is documented in
 The [reusable mixed-control adoption contract](reusable-mixed-control.md)
 remains the producer and reader boundary.
 
+The removal of the bundled reference and libvirt backends, and the move of
+concrete realization to backend distributions such as LilRAE, is documented in
+[Concrete Backends Migration](concrete-backends.md).
+
 The reorganization moved existing material into the current long-term buckets:
 
 - root `schemas/` -> `contracts/schemas/`

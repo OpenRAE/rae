@@ -323,3 +323,78 @@ assert callable(resolve_participant_control_support)
 """
     result = _run([str(installed_python), "-c", script], cwd=tmp_path, env=_sanitized_runtime_env(tmp_path))
     assert result.returncode == 0, result.stderr
+
+
+# Concrete backends live in their own distributions (issue #967). RAES ships the
+# portable run-archive helper but no backend implementation or lifecycle code.
+_REMOVED_BACKEND_PACKAGES = ("raes_reference_backend", "raes_backend_libvirt")
+_RETAINED_OPERATIONS_MODULES = {"raes_operations/__init__.py", "raes_operations/run_artifacts.py"}
+
+
+@pytest.fixture(scope="module")
+def built_sdist(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    out_dir = tmp_path_factory.mktemp("sdist")
+    result = _run(
+        [
+            _UV,
+            "build",
+            "--sdist",
+            "--build-constraints",
+            str(REPO_ROOT / "implementations" / "tooling" / "python" / "build-constraints.txt"),
+            "--require-hashes",
+            "--out-dir",
+            str(out_dir),
+        ],
+        cwd=PROJECT_ROOT,
+    )
+    assert result.returncode == 0, f"sdist build failed:\n{result.stdout}\n{result.stderr}"
+    sdists = list(out_dir.glob("raes-*.tar.gz"))
+    assert len(sdists) == 1, f"expected exactly one sdist, found {sdists}"
+    return sdists[0]
+
+
+@requires_uv
+def test_built_wheel_ships_no_concrete_backend(built_wheel: Path):
+    with zipfile.ZipFile(built_wheel) as zf:
+        names = zf.namelist()
+
+    shipped = sorted(name for name in names if name.startswith(tuple(f"{p}/" for p in _REMOVED_BACKEND_PACKAGES)))
+    operations = {name for name in names if name.startswith("raes_operations/")}
+    assert shipped == [], f"wheel ships concrete backend modules: {shipped[:5]}"
+    assert operations == _RETAINED_OPERATIONS_MODULES
+
+
+@requires_uv
+def test_built_sdist_ships_no_concrete_backend(built_sdist: Path):
+    import tarfile
+
+    with tarfile.open(built_sdist) as archive:
+        names = archive.getnames()
+
+    markers = (*(f"/packages/{p}/" for p in _REMOVED_BACKEND_PACKAGES), "/raes_cli/libvirt.py", "/raes_cli/corpus.py")
+    shipped = sorted(name for name in names if any(marker in name for marker in markers))
+    assert shipped == [], f"sdist ships concrete backend sources: {shipped[:5]}"
+
+
+@requires_uv
+def test_installed_cli_offers_no_backend_lifecycle_commands(installed_python: Path, tmp_path: Path):
+    environment = _sanitized_runtime_env(tmp_path)
+    raes = installed_python.parent / ("raes.exe" if sys.platform == "win32" else "raes")
+    result = _run([str(raes), "--help"], cwd=tmp_path, env=environment)
+    assert result.returncode == 0, result.stderr
+
+    for command in ("libvirt", "corpus"):
+        removed = _run([str(raes), command, "--help"], cwd=tmp_path, env=environment)
+        assert removed.returncode != 0, f"`raes {command}` is still installed:\n{removed.stdout}"
+    for command in ("sdl", "processor", "conformance", "runtime"):
+        assert _run([str(raes), command, "--help"], cwd=tmp_path, env=environment).returncode == 0
+
+    probe = (
+        "import importlib.util\n"
+        f"missing = [name for name in {_REMOVED_BACKEND_PACKAGES!r} if importlib.util.find_spec(name) is not None]\n"
+        "assert not missing, missing\n"
+        "from raes_operations.run_artifacts import RunMaterializationArchive\n"
+        "assert RunMaterializationArchive\n"
+    )
+    inspected = _run([str(installed_python), "-c", probe], cwd=tmp_path, env=environment)
+    assert inspected.returncode == 0, f"installed import closure check failed:\n{inspected.stdout}\n{inspected.stderr}"

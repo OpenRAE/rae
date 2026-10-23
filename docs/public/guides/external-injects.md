@@ -6,52 +6,31 @@ P2 `POST /injects/trigger`. The runtime uses its existing operation ledger,
 supervision and store. A queued snapshot or accepted receipt proves no world
 effect on its own.
 
-## Configure the reference OCI realization
+## Configure an executing provider
 
-OCI here means the existing Docker/Podman container driver. The host must opt in.
-The default reference and stub targets refuse occurrence commands.
-Set up these objects from `raes_reference_backend`:
+RAES ships no executing inject provider. The default stub target refuses
+occurrence commands. A backend distribution supplies the provider. RAES 7.0.0
+was the last release to bundle the reference OCI provider. Read the
+[concrete backends migration](https://github.com/OpenRAE/rae/blob/main/docs/migration/concrete-backends.md).
 
-1. Provision the scenario's selected nodes using `OciDeploymentDriver` and the
-   ordinary reference target. Retain their live snapshot and target/run scope.
-2. Admit an `OciInjectProgram`. Supply the actual scenario and its canonical
-   instantiated reference. Pin the exact plan from the planner. Include the
-   source manifest and its checksummed descriptor bytes. Add concrete
-   `OciInjectProbe` bindings and trusted `OciInjectPermit` order decisions.
-3. The descriptor is closed JSON: `profile: reference-oci-entrypoint/v1`,
-   `image`, and `image_config_digest`. Associate its artifact ID and manifest
-   version with the authored `Inject.source.name` and `.version`. The operator
-   approves the local image through `ImageTrustPolicy`. Execution never pulls
-   it. Inspect the local image and pin its configuration digest. Images that
-   declare volumes are refused.
-4. Create `ReferenceOciInjectExecutor(driver, programs=(program,))` and pass it
-   as `inject_execution` to `create_reference_backend_target` using that same
-   driver. Pass it as both `inject_execution` and `operation_evidence` to the
-   control plane, with the retained snapshot/store. Bind its record reader to
-   that plane's store. Register the original execution plan through
+Configure the provider through the existing control-plane seams:
+
+1. Provision the selected nodes with the backend's own target. Keep their live
+   snapshot and target/run scope.
+2. Pass the backend's `InjectExecutionResolver` as `inject_execution` to the
+   control plane. Pass its `OperationEvidenceResolver` as
+   `operation_evidence`. Use the same retained snapshot and store.
+3. Register the original execution plan through
    `register_planner_produced_plan`.
 
-The executor acts as this target's operation provider. It refuses other commands.
-Provision the targets before selecting it. The host checks who supplied the
-source, issues permits and keeps scopes apart. Use one ledger and owner for the
-driver's workspace. Keep the store, executor setup and record reader private.
-`reference_inject_integration_support.py` in the Python tests is a complete
-CI composition example, including provisioning and durable reopening.
+The provider acts as the target's operation provider. It must refuse other
+commands. The host checks who supplied the source, issues permits and keeps
+scopes apart. Keep the store, provider setup and record reader private.
 
-The program runs the admitted image's authored entrypoint. It shares the chosen
-target's network namespace. The request supplies no command, arguments,
-environment, mounts or host socket. The process runs as UID/GID 65534.
-It drops capabilities and has a read-only root. CPU, memory, process count and
-temporary storage have fixed limits. The local CLI has a shrinking deadline and
-bounded output. It inherits no credentials. Killing the CLI does not prove that
-remote effects stopped.
-
-Each probe pins one explicit target path and approved, non-secret before/after
-bytes. The backend checks native ownership and target revision. It reads the
-before state, starts the source and checks its exit status. Then it reads the
-target again. An applied effect needs the expected after state and proof that
-the source stopped. Admit only synchronous programs whose probes prove both
-facts. This contract does not cover arbitrary asynchronous programs.
+A provider must read each binding's target state before and after the source
+runs. An applied effect needs the expected after state and proof that the
+source stopped. A provider that cannot prove both facts must report an unknown
+effect. It must not report success.
 
 ## Trigger and read back
 
@@ -101,18 +80,13 @@ evidence and startup state in the existing store. Local records migrate to
 schema 10. PostgreSQL records use schema 3 with one owner. Older records gain no
 invented occurrence or readback. Reopening never reruns an effect on its own.
 Reconciliation can append checked, linked facts. It cannot rewrite an immutable
-indeterminate outcome or grant another dispatch. This OCI provider does not
-support cancellation. An accepted control request or local timeout does not
-prove that native effects stopped.
+indeterminate outcome or grant another dispatch. An accepted control request or
+local timeout does not prove that native effects stopped.
 
-This initial realization supports independent bindings and assertion-free event
-placement with no runtime parameters. It refuses assertion-bearing
-events, `Inject.environment`, source builds/artifact requirements, distributed
-delivery and native snapshot results/residual state. It also refuses plans with
-uninstalled observation demand, augmentation or materialization. Those obligations need
-their own admitted realization and the existing native finalizers. The portable
-contracts cover more cases. The store still checks unique occurrences, schedule
-slots and the full order chain for other admitted providers. History holds at
+Each provider declares the bindings, placements and parameters it supports.
+The portable contracts cover more cases than one provider can realize. The
+store checks unique occurrences, schedule slots and the full order chain for
+every admitted provider. History holds at
 most 1024 claims. It is never truncated to admit more work. P3, multiple owners
 and exactly-once backend effects are unavailable.
 
@@ -125,15 +99,10 @@ and [control-plane guide](control-plane.md) for the transport/host boundary.
 
 ## Evidence
 
-The issue-1367 unit tests use an executing local file fixture or a substituted
-daemon. They check runtime and binding behavior, not concrete OCI support.
-The existing `test_reference_backend_docker_integration.py` CI family executes
-real container entrypoints and reads changed world bytes. It tests the public
-P2 trigger, duplicates, refusal and failed entrypoints. It also tests process
-loss before commit, reconciliation and no redispatch. Its PR Docker job must
-succeed. Missing runtime/image admission makes it fail. The existing release
-gate also needs container evidence for the exact release SHA. Full integration
-runs remain in CI/CD.
+The RAES unit tests use substituted providers. They check runtime and binding
+behavior, not concrete native support.
+Concrete provider evidence belongs to the backend distribution's own release
+gate. Full integration runs remain in CI/CD.
 
 ## Compose an explicit participant delivery
 
@@ -193,9 +162,10 @@ participant observation; no observed occurrence is synthesized for this path.
 
 ## Scheduled execution and capture
 
-The reference OCI executor now admits fixed scheduled placements when the exact
-compiled event/script/story chain resolves, there are no unevaluated assertions,
-and one shared clock gives an unambiguous event cut. The supported mapping uses
+The runtime admits a fixed scheduled placement for a provider that declares
+schedule support. The exact compiled event/script/story chain must resolve, no
+assertion may remain unevaluated, and one shared clock must give an unambiguous
+event cut. The supported mapping uses
 a `scenario_start` epoch, unit script/story speed, the initial clock segment and the authored event time
 inside its script window. It revalidates before dispatch. Missing clocks,
 ambiguous mappings, reset segments, changed membership and expired cuts refuse.

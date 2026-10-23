@@ -4,11 +4,10 @@ from dataclasses import replace
 
 import pytest
 from raes import parse_sdl
+from raes_backend_stubs.stubs import StubProvisioner, create_stub_target
 from raes_contracts.contracts import ProvisioningPlanModel
 from raes_contracts.plan_projection import provisioning_plan_model
 from raes_contracts.runtime_state import OperationState
-from raes_reference_backend import create_reference_backend_target
-from raes_reference_backend.provisioner import ReferenceProvisioner
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_api_models import _provisioning_plan
 from raes_runtime.manager import RuntimeManager
@@ -18,7 +17,7 @@ from test_issue_158_runtime_result_integrity import _SCENARIO
 @pytest.mark.parametrize("owner", ["manager", "control-plane"])
 @pytest.mark.parametrize("deliver_binding", [True, False])
 def test_portable_substrate_constraints_have_the_same_result_gate(owner, deliver_binding):
-    class BindingReference(ReferenceProvisioner):
+    class BindingStub(StubProvisioner):
         def apply(self, request, snapshot):
             result = super().apply(request, snapshot)
             return (
@@ -27,10 +26,8 @@ def test_portable_substrate_constraints_have_the_same_result_gate(owner, deliver
                 else replace(result, snapshot=replace(result.snapshot, realization_envelope=None))
             )
 
-    target = create_reference_backend_target()
-    backend = BindingReference(
-        target.provisioner._driver, realization_envelope=target.provisioner._realization_envelope
-    )
+    target = create_stub_target()
+    backend = BindingStub(target.manifest.realization_envelope)
     target = replace(target, provisioner=backend)
     from runtime_plan_fixtures import plan_for_target
 
@@ -66,7 +63,7 @@ def test_portable_substrate_admission_rejects_known_unsupported_choice_before_ap
     from raes_contracts.bounded_domains import ExactDomain
     from raes_runtime.backend_calls import _call_backend_apply, _RealizationApplyContext
 
-    target = create_reference_backend_target()
+    target = create_stub_target()
     manager = RuntimeManager(target)
     execution = manager.plan(parse_sdl(_SCENARIO))
     request = replace(
@@ -100,7 +97,7 @@ def test_constraint_only_authority_requires_manifest_before_backend_call():
     from raes_contracts.runtime_state import ApplyResult
     from raes_runtime.backend_calls import _call_backend_apply, _RealizationApplyContext
 
-    manager = RuntimeManager(create_reference_backend_target())
+    manager = RuntimeManager(create_stub_target())
     execution = manager.plan(parse_sdl(_SCENARIO))
     request = replace(
         execution.provisioning,
@@ -148,7 +145,7 @@ def test_constraint_only_authority_requires_manifest_before_backend_call():
 def test_substrate_constraints_require_a_live_node_operation(target, portable):
     from raes_contracts.planning import ChangeAction
 
-    manager = RuntimeManager(create_reference_backend_target())
+    manager = RuntimeManager(create_stub_target())
     request = manager.plan(parse_sdl(_SCENARIO)).provisioning
     node_address = request.realization_constraints[0].address
     operations = [

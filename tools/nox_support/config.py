@@ -82,7 +82,7 @@ COVERAGE_REDUCE_DIR_ENV = "RAES_COVERAGE_REDUCE_DIR"
 # before the ini ``pythonpath`` is applied.
 SHARD_PLUGIN = "tools.pytest_shard_plugin"
 # The incumbent default-marker selection recorded in every shard manifest.
-DEFAULT_SUITE_EXPRESSION = "not fuzz and not integration and not docker"
+DEFAULT_SUITE_EXPRESSION = "not fuzz and not integration"
 EXPECTED_PYTHON_ENV = "RAES_EXPECTED_PYTHON"
 EXPECT_FREE_THREADED_ENV = "RAES_EXPECT_FREE_THREADED"
 PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV = "RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY"

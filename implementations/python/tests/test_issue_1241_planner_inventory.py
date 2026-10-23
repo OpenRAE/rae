@@ -69,12 +69,12 @@ def _projected_plan(kind):
 
 def test_profile_preparation_and_attestation_share_the_real_apply_pipeline(tmp_path):
     from raes_operations.run_artifacts import RunMaterializationArchive
-    from raes_reference_backend import create_reference_backend_target
     from raes_runtime.manager import RuntimeManager
-    from test_issue_1204_reference_profiles import _reference_profiles
+    from t1_profile_targets import profile_stub_target
+    from test_issue_1204_reference_profiles import _profile_case
 
-    authority, context, choices = _reference_profiles()
-    target = create_reference_backend_target(domain_profile_context=context, profile_choices=choices)
+    authority, context, choices = _profile_case()
+    target = profile_stub_target(context, choices)
     manifest = replace(
         target.manifest,
         supported_contract_versions=target.manifest.supported_contract_versions

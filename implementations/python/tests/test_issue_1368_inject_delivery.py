@@ -142,6 +142,21 @@ def test_schedule_is_revalidated_before_world_dispatch(tmp_path):
         assert not backend.path.exists()
 
 
+def test_a_scheduled_world_inject_executes_at_its_cut_without_participants(tmp_path):
+    from participant_inject_runtime_fixtures import caller, configured_plane
+    from raes_contracts.runtime_state import OperationState
+
+    plane, backend, _, application = configured_plane(tmp_path, participants=False)
+    with plane:
+        world = application.world_operation_id
+        assert plane.get_operation(world).state is OperationState.SUCCEEDED
+        assert plane.get_inject_outcome(world).effect == "effect-applied"
+        assert not plane.snapshot.participant_episode_results
+        assert backend.starts == 1
+        assert plane.submit_inject(backend.world_request, identity=caller()).operation_id == world
+        assert backend.starts == 1
+
+
 def test_a_changed_cut_during_revalidation_withdraws_before_world_dispatch(tmp_path):
     from participant_inject_runtime_fixtures import configured_plane
 

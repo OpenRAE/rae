@@ -12,9 +12,19 @@ RAES separates three questions:
 A valid scenario can still exceed a backend's declared capabilities. Read the
 backend report and keep unsupported or degraded results with the run evidence.
 
-The repository includes contracts, stubs, a reference emulation backend, and
-conformance tests. It does not ship a production deployment backend or managed
-environment service.
+The repository includes contracts, stubs, and conformance tests. It does not
+ship a concrete deployment backend or a managed environment service. A backend
+distribution, such as [LilRAE](https://github.com/OpenRAE/lilrae), owns
+concrete realization, credentials, allocation, and teardown. RAES 7.0.0 was the
+last release to bundle the reference and libvirt backends. Read the
+[concrete backends migration](https://github.com/OpenRAE/rae/blob/main/docs/migration/concrete-backends.md)
+for the removed imports and commands.
+
+Run conformance from an installed release. Use `raes conformance backend` or
+`run_fixture_suite(profile=...)` for fixture conformance of a backend profile.
+Use `run_target_conformance(target)` with your own runtime target to check the
+surface that the target declares. Fixture conformance does not prove a live
+deployment.
 
 Start with the [backend schemas](https://github.com/OpenRAE/rae/tree/main/contracts/schemas/backend-manifest)
 and the [conformance API](api/contracts.rst).

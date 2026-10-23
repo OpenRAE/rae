@@ -100,6 +100,7 @@ def configured_plane(
     epoch="scenario_start",
     profile=None,
     world_identity=None,
+    participants=True,
 ):
     from mixed_control_rev1_scenarios import rev1_delivery_scenario
 
@@ -316,7 +317,7 @@ def configured_plane(
             )
 
         backend.revalidate = revalidate
-    if PARTICIPANT not in plane.snapshot.participant_episode_results:
+    if participants and PARTICIPANT not in plane.snapshot.participant_episode_results:
         plane.initialize_participant_episode(PARTICIPANT, episode_id="episode-1", identity=caller())
     request = InjectTriggerRequestModel(
         request_key="world-key-1",
@@ -347,6 +348,7 @@ def configured_plane(
         expected_head="inject-order:genesis",
     )
     receipt = plane.submit_inject(request, identity=world_identity or caller())
+    backend.world_request = request
     application = ParticipantInjectApplicationModel(
         request_key="delivery-1",
         world_operation_id=receipt.operation_id,

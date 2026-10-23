@@ -12,8 +12,6 @@ import yaml
 from jsonschema import Draft202012Validator
 from raes import SDLParseError, SDLValidationError, parse_sdl, parse_sdl_file
 from raes.language_service import language_completions
-from raes_backend_libvirt.capability_envelope import capability_envelope_diagnostics
-from raes_backend_libvirt.manifest import LIBVIRT_PROVISIONER_CAPABILITIES
 from raes_backend_protocols.backend_manifest import BackendManifest
 from raes_backend_protocols.domain_topology import domain_topology_plan_diagnostics
 from raes_backend_stubs.stubs import create_stub_manifest, create_stub_target
@@ -24,7 +22,6 @@ from raes_processor.compiler import compile_runtime_model
 from raes_processor.models import resource_payload
 from raes_processor.planner import plan
 from raes_processor.semantics.realization import realization_disclosure
-from raes_reference_backend import create_reference_backend_manifest
 from raes_runtime.control_plane import RuntimeControlPlane
 
 _INSTANTIATION_PROVENANCE = {
@@ -529,35 +526,45 @@ def test_planner_accepts_explicitly_supported_domain_profile() -> None:
     assert not any("domain-profile" in diagnostic.code for diagnostic in execution_plan.diagnostics)
 
 
-def test_reference_backend_rejects_unrealized_domain_topology_and_spn() -> None:
+def test_backend_without_domain_or_spn_support_rejects_unrealized_topology_and_spn() -> None:
     model = compile_runtime_model(_parse_payload(_valid_payload()))
+    base = _manifest_with_domain_profiles()
+    manifest = replace(
+        base,
+        capabilities=replace(
+            base.capabilities,
+            provisioner=replace(
+                base.provisioner,
+                supported_account_features=base.provisioner.supported_account_features - {"spn"},
+            ),
+        ),
+    )
 
-    execution_plan = plan(model, create_reference_backend_manifest())
+    execution_plan = plan(model, manifest)
 
     codes = {diagnostic.code for diagnostic in execution_plan.diagnostics}
     assert "provisioner.unsupported-domain-profile" in codes
     assert "provisioner.unsupported-account-feature" in codes
 
 
-def test_libvirt_capability_envelope_rejects_domain_profile_independently() -> None:
+def test_shared_plan_analysis_rejects_unsupported_domain_profile_independently() -> None:
     model = compile_runtime_model(_parse_payload(_valid_payload()))
     provisioning = plan(model, _manifest_with_domain_profiles("active_directory")).provisioning
 
-    diagnostics = capability_envelope_diagnostics(provisioning, LIBVIRT_PROVISIONER_CAPABILITIES)
+    diagnostics = domain_topology_plan_diagnostics(provisioning, supported_domain_profiles=frozenset())
 
     assert any(
-        diagnostic.code == "libvirt-backend.realization.unsupported-domain-profile"
-        and diagnostic.address == "provision.node.dc"
+        diagnostic.code == "provisioner.unsupported-domain-profile" and diagnostic.address == "provision.node.dc"
         for diagnostic in diagnostics
     )
     assert any(
-        diagnostic.code == "libvirt-backend.realization.unsupported-domain-profile"
+        diagnostic.code == "provisioner.unsupported-domain-profile"
         and diagnostic.address == "provision.domain-controller.corp.dc"
         for diagnostic in diagnostics
     )
 
 
-def test_libvirt_capability_envelope_ignores_resources_without_domain_topology() -> None:
+def test_shared_plan_analysis_ignores_resources_without_domain_topology() -> None:
     scenario = _scenario(
         """
         name: ordinary-workstation
@@ -569,11 +576,9 @@ def test_libvirt_capability_envelope_ignores_resources_without_domain_topology()
     )
     provisioning = plan(compile_runtime_model(scenario), _manifest_with_domain_profiles()).provisioning
 
-    diagnostics = capability_envelope_diagnostics(provisioning, LIBVIRT_PROVISIONER_CAPABILITIES)
+    diagnostics = domain_topology_plan_diagnostics(provisioning, supported_domain_profiles=frozenset())
 
-    assert not any(
-        diagnostic.code == "libvirt-backend.realization.unsupported-domain-profile" for diagnostic in diagnostics
-    )
+    assert diagnostics == []
 
 
 def test_shared_plan_analysis_accepts_compiler_emitted_topology() -> None:

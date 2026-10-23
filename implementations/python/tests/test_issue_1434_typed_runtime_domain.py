@@ -13,11 +13,11 @@ from dataclasses import replace
 
 import pytest
 from raes import parse_sdl
+from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.planning import PlanScope, RuntimeDomain
 from raes_contracts.runtime_state import OperationState
 from raes_processor.compiler import compile_scenario_runtime_model
 from raes_processor.planner import plan
-from raes_reference_backend import create_reference_backend_target
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.manager import RuntimeManager
 
@@ -45,7 +45,7 @@ _OPERATION_INDETERMINATE = (
 
 
 class _StringDomainsOnce:
-    """Delegates to the reference provisioner; its first successful result names changed domains as strings."""
+    """Delegates to the stub provisioner; its first successful result names changed domains as strings."""
 
     def __init__(self, inner):
         self._inner = inner
@@ -67,7 +67,7 @@ class _StringDomainsOnce:
 
 
 def _target(*, string_domains: bool):
-    target = create_reference_backend_target()
+    target = create_stub_target()
     if not string_domains:
         return target
     return replace(target, provisioner=_StringDomainsOnce(target.provisioner))
@@ -85,6 +85,12 @@ def test_manager_refuses_a_successful_result_with_a_string_domain():
     assert result.success is False
     assert _pairs(result.diagnostics) == [_UNTYPED_DOMAIN]
     assert manager.snapshot.entries == {}
+
+    # The refused result committed nothing, so the next planned operation is coherent.
+    retry = manager.apply(manager.plan(parse_sdl(_WITH_WEB)))
+    assert retry.success is True, _pairs(retry.diagnostics)
+    assert manager.snapshot.entries
+    assert all(type(entry.domain) is RuntimeDomain for entry in manager.snapshot.entries.values())
 
 
 @pytest.mark.parametrize(
