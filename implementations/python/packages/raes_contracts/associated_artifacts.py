@@ -45,11 +45,13 @@ def require_instantiated_scenario_reference(
 ) -> None:
     """Join a trusted scenario association to its admitted instantiated content."""
 
-    if not isinstance(parent, Scenario) or reference.contract_id != "instantiated-scenario-v1":
+    if not isinstance(parent, (Scenario, InstantiatedScenario)) or reference.contract_id != "instantiated-scenario-v1":
         raise ValueError("artifact association requires its admitted scenario reference")
     if instantiated is not None and not isinstance(instantiated, InstantiatedScenario):
         raise ValueError("artifact association requires an instantiated scenario")
-    admitted = admit_instantiated_scenario(instantiated if instantiated is not None else instantiate_scenario(parent))
+    if instantiated is None:
+        instantiated = parent if isinstance(parent, InstantiatedScenario) else instantiate_scenario(parent)
+    admitted = admit_instantiated_scenario(instantiated)
     if reference.artifact_id != admitted.name or reference.digest != canonical_instantiated_sdl_digest(admitted).value:
         raise ValueError("scenario reference does not bind its admitted instantiated content")
 

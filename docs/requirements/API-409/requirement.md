@@ -6,7 +6,7 @@ type: INTERFACE
 priority: SHOULD
 wave: 3
 created_at: 2026-04-03T06:16:04.587331Z
-updated_at: 2026-09-22T01:33:58.710054Z
+updated_at: 2026-10-23T00:00:00Z
 ---
 
 # API-409 — Participant External Input And Intervention Contracts
@@ -44,8 +44,9 @@ projection. Executable adoption and historical readers must meet the
 [migration contract](../../migration/reusable-mixed-control.md).
 
 Issue #1363 publishes `participant-control-occurrence-v2` and its contextual
-joins in the owning validator. No runtime produces v2 occurrences, and planning
-and runtime admission refuse the rev1 form, so no executable adoption is claimed.
+joins in the owning validator. The installed #1364 reusable-control path produces v2 occurrences; #1368 joins
+those exact accepted events to independently governed delivery. Planning without
+explicit matching installed-owner admission retains its refusal.
 
 ## Traceability
 
@@ -87,3 +88,40 @@ and runtime admission refuse the rev1 form, so no executable adoption is claimed
 - TESTS → TEST `implementations/python/tests/test_issue_1363_occurrence_v2_context.py` (v2 contextual joins, liveness, unverifiable and model differential tests)
 - TESTS → TEST `implementations/python/tests/test_issue_1363_schema_parity.py` (Python and published-schema parity for the v2 carrier)
 - TESTS → TEST `implementations/python/tests/test_issue_1363_projection_integration.py` (Complete canonical authority and owner-scope identities in trusted occurrence policies)
+
+- IMPLEMENTS → GITHUB_ISSUE `1368` (Exact accepted-control application in installed participant inject delivery)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_inject_control.py` (Independent controller authority, exact v2 policy/event/target and live validity join)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/inject_claims.py` (Durable one-delivery claim for an accepted control event and binding)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_inject_application.py` (Versioned exact accepted-control reference in the delivery application)
+- TESTS → TEST `implementations/python/tests/test_issue_1368_inject_delivery.py` (Repeated direction/intervention applications, stale/revoked authority and independent policy revisions)
+- TESTS → TEST `implementations/python/tests/test_issue_1368_control_inject_owner.py` (Exact API-424 owner joins and public delivery execution)
+- DOCUMENTS → DOCUMENTATION `docs/public/guides/external-injects.md` (Installed control/delivery context and evidence limits)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_inject_routes.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_composition.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_configuration.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_injects.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_plan_authorization.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_postgresql_schema.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_record_migration.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_records.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/inject_capture.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/inject_execution.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/inject_outcomes.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/inject_schedule.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/observation_admission.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_provider_execution.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_effects.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_replay.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_crossing_egress.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_inject_application.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_inject_delivery.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_inject_temporal.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_view_serialization.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1359_runtime_api_trust_boundary.py` (Transport authority inventory and authentication matrix include inject delivery and capture routes)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/observation_execution.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1069_participant_control_durability.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1434_typed_runtime_domain.py`

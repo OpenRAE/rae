@@ -77,7 +77,7 @@ reservation. They never restore consumed dispatch authority.
 
 P0 holds process-lifetime state. P1 and served P2 retain claims, ordering,
 evidence and startup state in the existing store. Local records migrate to
-schema 9. PostgreSQL records use schema 2 with one owner. Older records gain no
+schema 10. PostgreSQL records use schema 3 with one owner. Older records gain no
 invented occurrence or readback. Reopening never reruns an effect on its own.
 Reconciliation can append checked, linked facts. It cannot rewrite an immutable
 indeterminate outcome or grant another dispatch. An accepted control request or
@@ -103,3 +103,91 @@ The RAES unit tests use substituted providers. They check runtime and binding
 behavior, not concrete native support.
 Concrete provider evidence belongs to the backend distribution's own release
 gate. Full integration runs remain in CI/CD.
+
+## Compose an explicit participant delivery
+
+World execution and participant delivery use separate operations. Install
+`ParticipantInjectRuntimeBinding(model=compiled_model, resolver=owner)` as the
+control plane's `inject_delivery` option, alongside its crossing-policy owner
+and `behavior_specifications=compiled_model.behavior_specifications`.
+The model must retain the original instantiated compiler context. The projection
+owner implements `resolve_delivery(delivery, application, correlation, snapshot)`
+and returns `ParticipantInjectResolution`: a governed content carrier, crossing
+evidence and the trusted logical-order cut. The carrier pins the declared result
+item, observation boundary and disclosure basis. It supports bounded UTF-8 or
+base64 content with an explicit media type. The owner approves the entire carrier,
+including correlation references; world read authorization alone grants no
+participant disclosure.
+
+After `submit_inject` has settled, submit a
+`ParticipantInjectApplicationModel` through
+`deliver_participant_inject(application, identity=...)` or
+`POST /injects/deliver`. Pin the world operation, compiled delivery address and
+original authored-binding digest, participant, episode and expected snapshot
+revision. Disclosure carries no control reference and needs no controller
+binding. The caller needs both world read authority and an authenticated audience
+binding for the authored audience. The return value names the delivery operation
+and its governed carrier. `GET /operations/{id}/inject-delivery` and
+`get_inject_delivery` read that retained carrier under current authorization.
+
+External direction and intervention additionally pin the exact accepted API-409
+v2 event ID, occurrence revision and digest. Install the matching
+`MixedControlRuntimeBinding`; its owner implements `resolve_delivery_cut(policy,
+application, snapshot)` using the same admitted logical order as the projection
+owner. The runtime checks the original episode policy, exact edge/kind/controller,
+state and target history, live grants, evidence and validity. Audience authority
+and source-controller authority remain separate. Delivery and control policy
+revisions can differ. To plan this opt-in composition, pass
+`mixed_control_admission=plane.mixed_control_planning_admission()` to `plan`.
+Plan registration independently checks the installed compiler context. Planning
+without this explicit context retains its refusal of unsupported reusable paths.
+
+The existing crossing, IFC and modular-control gates apply at delivery, including
+after transformation. API-424 owner contexts supply `inject_applications` and
+`inject_coordinates` alongside the original `inject_deliveries` binding; these
+are trusted owner resolutions, never provider-supplied indexes. A generated inject
+effect requires distinct authored source/result items and the exact compiled
+coordinates. Its owner operation supplies `inject_application`. Required
+predecessors continue to withhold their parent through the existing API-424
+rules. A successful world operation does not satisfy that delivery obligation.
+
+Each control-event/binding pair authorizes at most one logical delivery across
+actors, world operations and retry keys. The existing stores claim that pair
+before returning content. An exact authorized retry reads its original operation;
+it cannot execute the world again. An unsettled claim remains withheld after
+restart. Delivery failure preserves accepted control and the settled world
+outcome. The recorded delivery boundary is the governed local return of the
+carrier. It proves no external transport acknowledgement, consumption or
+participant observation; no observed occurrence is synthesized for this path.
+
+## Scheduled execution and capture
+
+The runtime admits a fixed scheduled placement for a provider that declares
+schedule support. The exact compiled event/script/story chain must resolve, no
+assertion may remain unevaluated, and one shared clock must give an unambiguous
+event cut. The supported mapping uses
+a `scenario_start` epoch, unit script/story speed, the initial clock segment and the authored event time
+inside its script window. It revalidates before dispatch. Missing clocks,
+ambiguous mappings, reset segments, changed membership and expired cuts refuse.
+Existing schedule-slot claims still prevent replay. This support adds no scheduler
+or automatic world repetition.
+
+When a plan has authored observation demands, install a target observation runtime
+with the required capture offers, selector capabilities, protection and retention
+policies. The runtime admits required capture before dispatch and executes capture
+through the existing observation lifecycle after world readback. It preserves
+authored mandatory and optional selectors. World effects and capture are separate
+facts: required capture failure retains the actual world outcome and withholds
+dependent delivery; optional unavailability or failure does not veto execution
+or delivery. `get_inject_capture` or
+`GET /operations/{world_id}/inject-capture` reads the retained capture result.
+Capture, emission and participant observation have distinct evidence. This does
+not relax the generic atomicity guard for native mutating plans.
+
+The delivery reader in this version requires the original authored schedule
+anchors. An independent world occurrence remains valid without participants, but
+its participant join is explicitly refused. A future schedule-free authored join
+needs its own discriminated contract and reader admission; no anchors are
+fabricated. Legacy flat-control bindings retain their original interpretation
+and are not silently converted to reusable occurrences. Local stores migrate to
+schema 10 and PostgreSQL ledgers to schema 3; older readers refuse the new records.
