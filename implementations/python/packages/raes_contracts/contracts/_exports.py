@@ -471,6 +471,7 @@ PUBLIC_EXPORTS = [
     "WorkflowStepStateModel",
     "WORKFLOW_STATE_SCHEMA_VERSION",
     "validate_raes_semantic_invariant_annotations",
+    "processor_backend_manifests_are_mutually_compatible",
     "validate_experiment_apparatus_context_against_manifests",
     "validate_experiment_apparatus_context_archival_datetimes",
     "validate_experiment_run_against_task",

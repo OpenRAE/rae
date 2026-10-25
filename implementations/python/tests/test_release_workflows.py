@@ -396,6 +396,8 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
     )
     assert "fetch-inputs" in carrier["run"]
     assert "proof-ubuntu-22.04-x86_64 .canonical-tool-inputs --artifact-id isabelle" in carrier["run"]
+    assert "--locator-ref official-isabelle-release" in carrier["run"]
+    assert "official-isabelle-cambridge-mirror" not in carrier["run"]
     acquire = _named_step(proof, "Admit the carried Isabelle archive with egress denied")["run"]
     assert acquire.startswith("bwrap --dev-bind / / --unshare-net --die-with-parent ")
     assert "implementations/tooling/python/.venv/bin/python -m tools.isabelle_tool acquire" in acquire
