@@ -44,7 +44,7 @@ def _outcome_binding_value(
         point = request.family.variation_points[selection.point_id]
         alternatives = getattr(point, "alternatives", {})
         member = alternatives.get(outcome.member_id)
-        value = member.reference if member is not None else None
+        value = getattr(member, "reference", None)
     else:
         value = None
     return value

@@ -12,6 +12,7 @@ from typing import Any
 from .._module_symbols import FORWARDING_AGENTS_SECTION
 from .._module_symbols import HASHMAP_SECTIONS as _HASHMAP_SECTIONS
 from .._module_symbols import rewrite_objective_window_ref as _rewrite_objective_window_ref
+from ..variation import STRUCTURAL_TARGET_SPECS
 from ._references import (
     _COLLECTION_TARGET_SPECS_BY_VALUE,
     _REFERENCE_TARGET_SPECS_BY_VALUE,
@@ -136,6 +137,7 @@ def _rewrite_variation_target(
             _REFERENCE_TARGET_SPECS_BY_VALUE.get(slot)
             or _COLLECTION_TARGET_SPECS_BY_VALUE.get(slot)
             or _TIMING_TARGET_SPECS_BY_VALUE.get(slot)
+            or STRUCTURAL_TARGET_SPECS.get(slot)
         )
         if owner_spec is not None and isinstance(target.get("owner"), str):
             target["owner"] = _rewrite_variation_reference(str(target["owner"]), owner_spec[0], symbols)
@@ -175,15 +177,27 @@ def _rewrite_variation_members(
     members = payload.get(member_field)
     if isinstance(members, dict):
         for member in members.values():
-            if not isinstance(member, dict):
-                continue
-            if target_section is not None and isinstance(member.get("reference"), str):
-                member["reference"] = _rewrite_variation_reference(
-                    str(member["reference"]),
-                    target_section,
-                    symbols,
-                )
-            _rewrite_member_relations(member, symbols)
+            if isinstance(member, dict):
+                _rewrite_variation_member(member, target_section, symbols)
+
+
+def _rewrite_variation_member(
+    member: dict[str, Any],
+    target_section: str | None,
+    symbols: dict[str, dict[str, str] | set[str]],
+) -> None:
+    if target_section is not None and isinstance(member.get("reference"), str):
+        member["reference"] = _rewrite_variation_reference(str(member["reference"]), target_section, symbols)
+    if isinstance(member.get("references"), list):
+        member["references"] = [
+            _rewrite_variation_reference(reference, "targetable", symbols) for reference in member["references"]
+        ]
+    if isinstance(member.get("inventory"), dict):
+        member["inventory"] = {
+            slot: [_rewrite_variation_reference(reference, "targetable", symbols) for reference in refs]
+            for slot, refs in member["inventory"].items()
+        }
+    _rewrite_member_relations(member, symbols)
 
 
 def _rewrite_variation_point(
