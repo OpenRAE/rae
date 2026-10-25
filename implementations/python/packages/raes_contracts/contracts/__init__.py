@@ -132,6 +132,7 @@ from .experiment_apparatus import (
     ExperimentClockContextModel,
     ExperimentStochasticControlModel,
     ExperimentTaskModel,
+    processor_backend_manifests_are_mutually_compatible,
     validate_experiment_apparatus_context_against_manifests,
 )
 from .experiment_archival import (
