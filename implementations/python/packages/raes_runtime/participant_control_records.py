@@ -140,6 +140,9 @@ def _linked_carrier(
     control_plane: object,
     claim: ControlPlaneOperationRecord,
     transition: ParticipantControlEvaluationModel,
+    *,
+    idempotency_key: str = "",
+    result_payload: dict | None = None,
 ) -> ControlPlaneOperationRecord:
     """Claim the record that carries a terminal claim's proven outcome.
 
@@ -179,6 +182,8 @@ def _linked_carrier(
             context=context,
         ),
         request_fingerprint=context.request_commitment,
+        idempotency_key=idempotency_key,
+        result_payload=result_payload,
     )
     return control_plane._claim_record(running)
 

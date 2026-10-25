@@ -40,8 +40,11 @@ binding and evaluate its applicable slots in dependency order. Required inputs
 and support must be satisfied; optional failure is recorded without blocking
 an otherwise permitted crossing. Scoped state and the evaluation join the
 existing atomic crossing commit. Retained v1 records keep their original
-interpretation. The v2 effect drain reports unsupported effects without
-executing them; evaluation eligibility supplies no effect permission. See the
+interpretation. V2 admits only effects with an installed, exactly bound owner.
+Its drain supports fresh world injects, compiled handoffs and evidenced
+cancellation of execution attempts. Parent denial applies before execution;
+independent consequences need their own authority. Evaluation eligibility
+supplies no effect permission. See the
 [migration rules](https://github.com/OpenRAE/rae/blob/dev/docs/migration/control-applicability-and-evaluation.md).
 
 | Plane | What it contains | What it does not imply |

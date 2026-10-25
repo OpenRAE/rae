@@ -145,6 +145,15 @@ def _validate_inject(
     if delivery.control is not None:
         _validate_control_inject(target, cut, context, delivery)
         return
+    canonical = getattr(context, "inject_coordinates", {}).get(target.delivery_ref.ref)
+    if canonical is not None:
+        if (
+            canonical != target
+            or target.episode_id != cut.episode_id
+            or delivery.delivery_policy.audience_scope_ref != cut.audience_ref
+        ):
+            raise ValueError("inject request canonical owner coordinates differ")
+        return
     expected = (
         target.participant_address,
         target.inject_ref,
@@ -350,6 +359,8 @@ def validate_participant_control_resolved_context_v2(
 def _validate_v2_trusted_context(
     record: ParticipantControlEvaluationV2Model, context: ParticipantControlValidationContextV2
 ) -> None:
+    if record.continuation is not None:
+        raise ValueError("continuation requires exact committed source validation")
     _validate_admitted_v2_identity(record, context)
     _validate_v2_results_and_support(record, context)
     _validate_v2_effect_authority(record, context)
@@ -394,14 +405,17 @@ def _validate_v2_results_and_support(
 
 
 def _validate_v2_effect_authority(
-    record: ParticipantControlEvaluationV2Model, context: ParticipantControlValidationContextV2
+    record: ParticipantControlEvaluationV2Model,
+    context: ParticipantControlValidationContextV2,
+    *,
+    same_cut: bool = False,
 ) -> None:
     if {item.invocation_id: item for item in record.state_proposals} != context.authorized_state_proposals:
         raise ValueError("state write and commit timing differ from owner authorization")
     effects = {item.effect_id: item for item in record.effect_plan.effects}
     current_outcomes = {item.effect_id: item for item in record.effect_plan.effect_outcomes}
     for effect_id in record.effect_plan.realized_effect_ids:
-        _validate_prior_effect(record, context, effects[effect_id], current_outcomes.get(effect_id))
+        _validate_prior_effect(record, context, effects[effect_id], current_outcomes.get(effect_id), same_cut=same_cut)
     for effect_id in admitted_control_effect_ids_v2(record.composition, record.effect_plan):
         effect = effects[effect_id]
         if context.authorized_effects.get(control_digest(effect)) != record.request.context:
@@ -415,12 +429,14 @@ def _validate_prior_effect(
     context: ParticipantControlValidationContextV2,
     effect: ControlEffectRequestV2Model,
     current_outcome: ControlRealizationBindingModel | None,
+    *,
+    same_cut: bool = False,
 ) -> None:
     prior = context.committed_effect_intents.get(effect.effect_id)
     if not isinstance(prior, ControlCommittedEffectIntentV2):
         raise ValueError("realized effect lacks an owner-resolved committed intent")
     origin = ParticipantControlEvaluationV2Model.model_validate(prior.evaluation.model_dump(mode="python"))
-    _validate_prior_identity(record, origin, effect)
+    _validate_prior_identity(record, origin, effect, same_cut=same_cut)
     _validate_prior_commit(origin, effect.effect_id)
     if (
         context.authorized_effects.get(control_digest(effect)) != origin.request.context
@@ -436,15 +452,22 @@ def _validate_prior_identity(
     record: ParticipantControlEvaluationV2Model,
     origin: ParticipantControlEvaluationV2Model,
     effect: ControlEffectRequestV2Model,
+    *,
+    same_cut: bool = False,
 ) -> None:
     origin_effects = {item.effect_id: item for item in origin.effect_plan.effects}
     if (
         origin_effects.get(effect.effect_id) != effect
         or origin.request.context.run != record.request.context.run
         or origin.request.context.trigger_root != record.request.context.trigger_root
-        or origin.request.context.crossing != record.request.context.crossing
+        or origin.request.context.subject != record.request.context.subject
+        or origin.request.context.participant_address != record.request.context.participant_address
+        or origin.request.context.episode_id != record.request.context.episode_id
         or origin.request.context.order > record.request.context.order
-        or origin.request.context.effects_consumed >= record.request.context.effects_consumed
+        or (
+            origin.request.context.effects_consumed >= record.request.context.effects_consumed
+            and not (same_cut and origin.request == record.request)
+        )
     ):
         raise ValueError(_COMMITTED_EFFECT_MISMATCH)
 

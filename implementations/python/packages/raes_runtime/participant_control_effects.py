@@ -1,39 +1,28 @@
-"""RUN-320 governed dispatch of admitted participant-control effects.
+"""Dispatch governed effects through their separately admitted operation owners.
 
-PC-09/PC-11: a requested effect is neither permission nor execution. Each
-admitted *subsequent* effect becomes a separately admitted operation through
-the incumbent owner of its closed target kind, executed only after its parent
-committed, and recorded as an append-only realization transition. A required
-predecessor never reaches this path: it withholds its parent, so the parent's
-composition is not eligible.
-
-The runtime never synthesizes an effect's content. The trusted resolver returns
-the incumbent operation input the owner already accepts, and the runtime
-verifies that input is the exact effect the request names. There is no
-universal executor, callback registry, or backend-name branch: an owner the
-resolver cannot supply is reported ``unsupported`` with zero dispatch.
-
-Whose effect it is, and how its outcome is known, is decided in
-``participant_control_receipts``: the drain caller is authorized before any
-committed state is read, each effect acts for the principal of the operation
-that admitted it, and the scan, claims, owner submissions and realization
-append all happen under one held mutation.
+The drain caller is authorized before committed state is read. Effects retain
+originating principals, logical claims and causal budgets. V1 and v2 records
+keep their recorded interpretations; required predecessors, parent outcomes
+and independent consequences use their respective contract-owned rules.
+An admitted intent, an owner submission and an observed effect remain distinct.
 """
 
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from contextlib import ExitStack
 from dataclasses import dataclass, field
 from graphlib import TopologicalSorter
 
+from raes_contracts.contracts import InjectTriggerRequestModel
 from raes_contracts.contracts.participant_control_composition import (
     ParticipantControlEvaluationModel,
     admitted_effect_phase,
 )
-from raes_contracts.contracts.participant_control_composition_v2 import admitted_control_effect_ids_v2
 from raes_contracts.contracts.participant_control_coordinates import (
     ControlLogicalEffectKeyModel,
 )
+from raes_contracts.contracts.participant_control_decisions_v2 import ControlEffectRequestV2Model
 from raes_contracts.contracts.participant_control_effects import ControlEffectRequestModel
 from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
 from raes_contracts.contracts.participant_control_results import ControlRealizationBindingModel
@@ -50,7 +39,6 @@ from .participant_control_receipts import (
     never_dispatched,
     origin_principal,
     originating_operations,
-    owner_idempotency_key,
     owner_record,
     realization,
     require_drain_authority,
@@ -83,6 +71,8 @@ class ParticipantControlEffectOperation:
     intent: ParticipantControlIntent | None = None
     crossing_evidence: ParticipantCrossingEvidence | None = None
     inject_application: ParticipantInjectApplicationModel | None = None
+    inject_request: InjectTriggerRequestModel | None = None
+    participant_address: str | None = None
 
 
 @dataclass(frozen=True)
@@ -100,7 +90,7 @@ def dispatch_participant_control_effects(
     *,
     identity: object,
 ) -> tuple[ParticipantControlEffectRealization, ...]:
-    """Dispatch every committed, unrealized effect claim for one participant.
+    """Dispatch a governed pass, prioritizing committed cancellation work.
 
     The caller is authorized before anything committed is read. It requests
     execution; it never becomes the principal an effect acts for.
@@ -110,34 +100,45 @@ def dispatch_participant_control_effects(
     if binding is None:
         raise ValueError("participant control effect dispatch requires a bound participant control configuration")
     require_drain_authority(control_plane, participant_address, identity)
-    # One mutation: two drains can never both observe an effect as unrealized.
-    with control_plane_mutation(control_plane, OperationKind.PARTICIPANT_CONTROL):
-        control_plane._reload_derived_state()
-        history = control_plane._snapshot.participant_control_evaluation_history.get(participant_address, ())
-        retained = [participant_control_evaluation_from_payload(record) for record in history]
-        evaluations = [record for record in retained if isinstance(record, ParticipantControlEvaluationModel)]
-        unsupported = tuple(
-            ParticipantControlEffectRealization(effect_id=effect_id, disposition=_UNSUPPORTED, receipt_ref="")
-            for record in retained
-            if isinstance(record, ParticipantControlEvaluationV2Model)
-            for effect_id in sorted(admitted_control_effect_ids_v2(record.composition, record.effect_plan))
-        )
-        origins = originating_operations(control_plane, participant_address)
-        drain = _DrainState(realized=_realized_keys(evaluations))
+    from .participant_control_effect_drain import has_pending_cancellation
+
+    drain = _DrainState(realized={})
+    cancellation_pending = has_pending_cancellation(control_plane, participant_address)
+    if cancellation_pending:
+        with (
+            control_plane._mutation_authority.supervision(),
+            control_plane_mutation(control_plane, OperationKind.PARTICIPANT_CONTROL),
+        ):
+            _drain_pass(control_plane, binding, participant_address, drain, cancellation_only=True)
+    ordinary = ExitStack()
+    try:
+        ordinary.enter_context(control_plane_mutation(control_plane, OperationKind.PARTICIPANT_CONTROL))
+    except TimeoutError:
+        if cancellation_pending:
+            return tuple(drain.outcomes.values())
+        raise
+    with ordinary:
+        _drain_pass(control_plane, binding, participant_address, drain)
+    return tuple(drain.outcomes.values())
+
+
+def _drain_pass(control_plane, binding, participant_address, drain, *, cancellation_only=False):
+    from .participant_control_effect_drain import dispatch_v2_effects
+
+    control_plane._reload_derived_state()
+    history = control_plane._snapshot.participant_control_evaluation_history.get(participant_address, ())
+    retained = [participant_control_evaluation_from_payload(record) for record in history]
+    evaluations = [record for record in retained if isinstance(record, ParticipantControlEvaluationModel)]
+    origins = originating_operations(control_plane, participant_address)
+    drain.realized.update(_realized_keys(evaluations))
+    dispatch_v2_effects(control_plane, binding, retained, drain, cancellation_only=cancellation_only)
+    if not cancellation_only:
         for evaluation in evaluations:
             phase = admitted_effect_phase(evaluation)
-            if phase is None or evaluation.realizations:
-                # A realization transition records outcomes; it admits nothing.
-                continue
-            _dispatch_evaluation(
-                control_plane,
-                binding,
-                evaluation,
-                drain,
-                origin=origins.get(evaluation.evaluation_id),
-                phase=phase,
-            )
-        return (*drain.outcomes.values(), *unsupported)
+            if phase is not None and not evaluation.realizations:
+                _dispatch_evaluation(
+                    control_plane, binding, evaluation, drain, origin=origins.get(evaluation.evaluation_id), phase=phase
+                )
 
 
 @dataclass
@@ -241,7 +242,17 @@ def _dispatched(
     if claim is not None:
         # Recorded as soon as it is known, so a predecessor's outcome is
         # durable before any dependent is dispatched on the strength of it.
-        commit_participant_control_realization(control_plane, binding, evaluation, outcome, claim=claim)
+        if isinstance(evaluation, ParticipantControlEvaluationV2Model):
+            from .participant_control_effect_evidence import commit_effect_outcome
+
+            owner = owner_record(control_plane, claim, request)
+            if owner is not None:
+                outcome = outcome.model_copy(
+                    update={"receipt": outcome.receipt.model_copy(update={"ref": owner.receipt.operation_id})}
+                )
+            commit_effect_outcome(control_plane, evaluation, outcome, claim)
+        else:
+            commit_participant_control_realization(control_plane, binding, evaluation, outcome, claim=claim)
     return ParticipantControlEffectRealization(
         effect_id=outcome.effect_id,
         disposition=outcome.disposition,
@@ -283,6 +294,12 @@ def _effect_outcome(
     withheld = _withheld_dependent(request, applied)
     operation = None
     if withheld is None and origin is not None:
+        if isinstance(request, ControlEffectRequestV2Model):
+            from .participant_control_effect_owners import prepare_v2_effect_dispatch
+
+            prepared = prepare_v2_effect_dispatch(control_plane, binding, evaluation, origin, request)
+            if prepared is not None:
+                return prepared
         operation = _effect_operation(control_plane, binding, evaluation, request)
     if operation is None:
         # No provable originating operation means no principal to act for, and
@@ -311,11 +328,16 @@ def _claimed_outcome(
             claim.record,
             request,
             operation,
-            principal=origin_principal(control_plane, origin, request.target.participant_address),
+            principal=origin_principal(
+                control_plane, origin, getattr(request.target, "participant_address", operation.participant_address)
+            ),
         )
     else:
         # An earlier drain's dispatch may have begun: classify that attempt
         # from its durable records, never repeat it.
+        from .participant_control_effect_owners import resume_owned_effect
+
+        resume_owned_effect(control_plane, claim.record, request)
         disposition = claim_outcome(control_plane, claim.record, request)
     return realization(request, disposition, claim.record.receipt.operation_id), claim.record
 
@@ -341,7 +363,10 @@ def _submitted_outcome(
     """
 
     try:
-        _submit(control_plane, claim, request, operation, principal=principal)
+        from .control_plane_operation_context import effect_operation_parent
+
+        with effect_operation_parent(claim.receipt.operation_id):
+            _submit(control_plane, claim, request, operation, principal=principal)
     except Exception as error:
         if owner_record(control_plane, claim, request) is None:
             if isinstance(error, (PermissionError, ValueError)):
@@ -359,12 +384,28 @@ def _effect_operation(
     """Resolve the incumbent operation input, or ``None`` for an unsupported owner."""
 
     try:
-        with external_control_plane_call(control_plane):
-            operation = binding.resolver.effect_operation(request, evaluation.request.context)
+        if isinstance(evaluation, ParticipantControlEvaluationV2Model):
+            from .participant_control_evaluation_v2 import _EvaluationCut
+
+            operation = _EvaluationCut.capture(control_plane).call(
+                binding.resolver.effect_operation, request, evaluation.request.context
+            )
+        else:
+            with external_control_plane_call(control_plane):
+                operation = binding.resolver.effect_operation(request, evaluation.request.context)
     except Exception:
         return None
     if not isinstance(operation, ParticipantControlEffectOperation) or operation.kind != request.target.kind:
         return None
+    if isinstance(request, ControlEffectRequestV2Model):
+        from .participant_control_effect_owners import supports_effect_operation
+
+        origin = control_plane._store.load_records().get(evaluation.commit.receipt.ref)
+        return (
+            operation
+            if supports_effect_operation(control_plane, request, operation, evaluation.request.context, origin)
+            else None
+        )
     return operation if _binds_request(operation, request, evaluation.request.context) else None
 
 
@@ -381,6 +422,10 @@ def _binds_request(
     the closed target declares is bound to the owner input before submission.
     """
 
+    if isinstance(request, ControlEffectRequestV2Model) and operation.kind in {"inject", "interrupt"}:
+        from .participant_control_effect_owners import binds_owned_effect
+
+        return binds_owned_effect(operation, request, context)
     evidence = operation.crossing_evidence
     if not isinstance(evidence, ParticipantCrossingEvidence):
         return False
@@ -431,45 +476,10 @@ def _handoff_bindings(operation: ParticipantControlEffectOperation, target: obje
 _OWNER_INPUT_BINDINGS = {"inject": _inject_bindings, "handoff": _handoff_bindings}
 
 
-def _submit(
-    control_plane: object,
-    claim: ControlPlaneOperationRecord,
-    request: ControlEffectRequestModel,
-    operation: ParticipantControlEffectOperation,
-    *,
-    principal: object,
-) -> None:
-    """Submit through the incumbent owner of this closed effect kind.
+def _submit(control_plane, claim, request, operation, *, principal):
+    from .participant_control_effect_owners import submit_effect_operation
 
-    The owner re-authorizes the principal it is given and claims its own
-    operation under a key derived from this effect's claim, so its durable
-    record — not the value returned here — carries the outcome.
-    """
-
-    idempotency_key = owner_idempotency_key(claim)
-    if operation.kind == "inject":
-        if operation.inject_application is not None:
-            from .participant_inject_application import submit_inject_effect
-
-            submit_inject_effect(
-                control_plane, operation.inject_application, request.target, principal, idempotency_key
-            )
-            return
-        control_plane.deliver_participant_directed_view(
-            request.target.participant_address,
-            operation.view,
-            identity=principal,
-            crossing_evidence=operation.crossing_evidence,
-            idempotency_key=idempotency_key,
-        )
-        return
-    control_plane.record_participant_control(
-        request.target.participant_address,
-        operation.intent,
-        identity=principal,
-        crossing_evidence=operation.crossing_evidence,
-        idempotency_key=idempotency_key,
-    )
+    submit_effect_operation(control_plane, claim, request, operation, principal=principal)
 
 
 __all__ = (

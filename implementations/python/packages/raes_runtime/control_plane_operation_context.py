@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import asdict, is_dataclass
 from enum import Enum
 
@@ -22,6 +24,17 @@ from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, Provision
 from raes_contracts.runtime_state import RuntimeSnapshot
 
 _MAX_CONTEXT_LENGTH = 256
+_EFFECT_PARENT: ContextVar[str | None] = ContextVar("raes_control_effect_parent", default=None)
+
+
+@contextmanager
+def effect_operation_parent(operation_id: str):
+    """Link owner submissions to the runtime's held effect claim."""
+    token = _EFFECT_PARENT.set(operation_id)
+    try:
+        yield
+    finally:
+        _EFFECT_PARENT.reset(token)
 
 
 def runtime_target_scope(target_name: object) -> str:
@@ -68,7 +81,7 @@ def operation_admission_context(
         run_scope=resolved_run_scope,
         operation_kind=kind,
         request_commitment=commitment,
-        parent_operation_id=parent_operation_id,
+        parent_operation_id=parent_operation_id or _EFFECT_PARENT.get(),
     )
 
 

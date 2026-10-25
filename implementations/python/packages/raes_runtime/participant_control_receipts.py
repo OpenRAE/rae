@@ -210,18 +210,11 @@ def claim_effect(
     same key rather than returning it.
     """
 
-    context = OperationAdmissionContext.model_validate(
-        {
-            **origin.status.context.model_dump(mode="python"),
-            "operation_kind": OperationKind.PARTICIPANT_CONTROL,
-            "request_commitment": canonical_json_digest(
-                {"domain": "participant-control-effect/v1", "effect": request.model_dump(mode="json")}
-            ),
-            "parent_operation_id": origin.receipt.operation_id,
-        }
-    )
+    context = _effect_claim_context(origin, request)
     operation_id = str(uuid4())
     timestamp = _utc_now()
+    from raes_contracts.contracts.participant_control_decisions_v2 import ControlEffectRequestV2Model
+
     record = ControlPlaneOperationRecord(
         receipt=OperationReceipt(
             operation_id=operation_id,
@@ -240,14 +233,48 @@ def claim_effect(
         ),
         request_fingerprint=context.request_commitment,
         idempotency_key=effect_idempotency_key(request),
+        result_payload=request.model_dump(mode="json") if isinstance(request, ControlEffectRequestV2Model) else None,
     )
     try:
         claimed = control_plane._claim_record(record)
     except ValueError as error:
         if str(error) == IDEMPOTENCY_CLAIM_CONFLICT:
+            if isinstance(request, ControlEffectRequestV2Model):
+                existing = retained_effect_claim(control_plane, origin, request)
+                if existing is not None:
+                    return EffectClaim(record=existing, fresh=False)
             return None
         raise
     return EffectClaim(record=claimed, fresh=claimed.receipt.operation_id == operation_id)
+
+
+def _effect_claim_context(origin, request):
+    return OperationAdmissionContext.model_validate(
+        {
+            **origin.status.context.model_dump(mode="python"),
+            "operation_kind": OperationKind.PARTICIPANT_CONTROL,
+            "request_commitment": canonical_json_digest(
+                {"domain": "participant-control-effect/v1", "effect": request.model_dump(mode="json")}
+            ),
+            "parent_operation_id": origin.receipt.operation_id,
+        }
+    )
+
+
+def retained_effect_claim(plane, origin, request):
+    """Find only the exact claim whose immutable admission actually owns it."""
+    from .participant_control_effect_evidence import claim_has_committed_intent
+
+    context = _effect_claim_context(origin, request)
+    existing = plane._store.find_by_idempotency(effect_idempotency_key(request), context=context)
+    if (
+        existing is not None
+        and existing.request_fingerprint == context.request_commitment
+        and existing.receipt.context.model_copy(update={"parent_operation_id": context.parent_operation_id}) == context
+        and claim_has_committed_intent(plane, existing, request)
+    ):
+        return existing
+    return None
 
 
 def owner_record(
@@ -264,16 +291,32 @@ def owner_record(
     is outside that scope and can never answer for the effect.
     """
 
+    from raes_contracts.contracts.participant_control_decisions_v2 import ControlEffectRequestV2Model
+
+    v2 = isinstance(request, ControlEffectRequestV2Model)
     kind = _OWNER_OPERATION_KINDS.get(request.target.kind)
+    if v2:
+        kind = {"inject": OperationKind.ORCHESTRATION, "interrupt": OperationKind.PARTICIPANT_CONTROL}.get(
+            request.target.kind, kind
+        )
     if kind is None:
         return None
     key = owner_idempotency_key(claim)
-    scope = (claim.status.context.actor_id, kind, key)
+    if v2 and request.target.kind == "inject":
+        if request.target.world_request is None:
+            return None
+        key = request.target.world_request.request_key
+    scopes = {(claim.status.context.actor_id, kind, key)}
+    if v2 and kind is OperationKind.PARTICIPANT_CONTROL:
+        scopes.add((claim.status.context.actor_id, OperationKind.PARTICIPANT_CROSSING, key))
     return next(
         (
             record
             for record in control_plane._store.load_records().values()
-            if record.idempotency_key == key and idempotency_claim_identity(record.receipt.context, key) == scope
+            if record.idempotency_key == key
+            and idempotency_claim_identity(record.receipt.context, key) in scopes
+            and (not v2 or record.receipt.context.parent_operation_id == claim.receipt.operation_id)
+            and (record.receipt.context.operation_kind is kind or record.status.state is OperationState.FAILED)
         ),
         None,
     )
@@ -296,6 +339,16 @@ def claim_outcome(
     if state in _TERMINAL_DISPOSITIONS:
         return _TERMINAL_DISPOSITIONS[state]
     owner = owner_record(control_plane, claim, request)
+    from raes_contracts.contracts.participant_control_decisions_v2 import ControlEffectRequestV2Model
+
+    if (
+        owner is not None
+        and isinstance(request, ControlEffectRequestV2Model)
+        and request.target.kind in {"inject", "interrupt"}
+    ):
+        from .participant_control_effect_owners import owned_effect_outcome
+
+        return owned_effect_outcome(control_plane, claim, request, owner)
     if owner is not None and owner.status.state in _TERMINAL_DISPOSITIONS:
         return _TERMINAL_DISPOSITIONS[owner.status.state]
     return _INDETERMINATE
