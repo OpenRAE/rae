@@ -14,6 +14,7 @@ from raes_contracts.contracts import (
     ExperimentSpecModel,
     ExperimentStochasticControlModel,
     ExperimentStratifiedSelectionPolicyModel,
+    LiteralBindingValueModel,
     PublicRandomOutcomeModel,
     PublicSeedModel,
     RandomStreamControlBindingModel,
@@ -278,6 +279,39 @@ def compile_coordinate_selections(
     """Compile the closed policy graph into one complete selection set per coordinate."""
 
     policies = spec.run_plan.selection_policies
+    if spec.factorial_design is not None:
+        if policies:
+            raise CompilationFailure(
+                "factorial-selection-conflict",
+                _SELECTION_POLICIES_ADDRESS,
+                "factorial binding selection cannot also declare selection policies",
+            )
+        descriptors_by_condition = {}
+        for descriptor in spec.binding_descriptors.descriptors:
+            descriptors_by_condition.setdefault(descriptor.source_condition_id, []).append(descriptor)
+        output = []
+        for coordinate in coordinates:
+            selections = tuple(
+                ResolvedSelection(
+                    descriptor.target.variation_point_id, "factorial-bindings-v1", "stratified", descriptor.value
+                )
+                for descriptor in descriptors_by_condition.get(coordinate.condition_id, ())
+                if descriptor.target.plane == "scenario"
+            )
+            if any(not isinstance(selection.outcome, LiteralBindingValueModel) for selection in selections):
+                raise CompilationFailure(
+                    "factorial-scenario-value-unsupported",
+                    "/factorial_design",
+                    "factorial scenario bindings require literal scalar outcomes",
+                )
+            if {selection.point_id for selection in selections} != set(family.variation_points):
+                raise CompilationFailure(
+                    "variation-points-uncovered",
+                    "/factorial_design",
+                    "factorial bindings must cover every scenario variation point exactly once",
+                )
+            output.append(CoordinateSelections(tuple(sorted(selections, key=lambda selection: selection.point_id))))
+        return output
     referenced = {
         child
         for policy in policies.values()

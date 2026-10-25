@@ -126,8 +126,11 @@
       "type": "string"
     },
     "scheduling_policy_id": {
-      "const": "trial-coordinate-canonical-v1",
       "default": "trial-coordinate-canonical-v1",
+      "enum": [
+        "trial-coordinate-canonical-v1",
+        "experiment-recorded-allocation-v1"
+      ],
       "title": "Scheduling Policy Id",
       "type": "string"
     },

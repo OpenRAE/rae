@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 
 from raes import ExpandedScenarioBindingTargetResolver
+from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
     AdmittedBindingModel,
+    AdmittedParticipantManifestReferenceModel,
     ExperimentBindingDescriptorModel,
     ExperimentSelectionMemberOutcomeModel,
     ExperimentSelectionReferenceOutcomeModel,
@@ -14,12 +16,14 @@ from raes_contracts.contracts import (
     ParticipantImplementationManifestModel,
     TrialCoordinateModel,
 )
+from raes_contracts.contracts.experiment_bindings import ParticipantConfigurationResultModel
 from raes_contracts.experiment_bindings import (
     ApparatusManifest,
     ApparatusManifestKey,
     ParticipantManifestKey,
     validate_experiment_binding_targets,
 )
+from raes_contracts.participant_configuration import ConfigurationOverrideModel, realize_participant_configuration
 
 from .models import CompilationFailure, TrialCompilationRequest
 from .policies import CoordinateSelections, ResolvedSelection
@@ -97,7 +101,22 @@ def _entry_bindings(
     descriptors: Mapping[str, ExperimentBindingDescriptorModel],
 ) -> list[AdmittedBindingModel]:
     bindings: list[AdmittedBindingModel] = []
+    if request.experiment.factorial_design is not None:
+        for descriptor in sorted(descriptors.values(), key=lambda descriptor: descriptor.binding_id):
+            if descriptor.source_condition_id != coordinate.condition_id:
+                continue
+            if descriptor.target.plane == "scenario" and not any(
+                _descriptor_matches_selection(request, descriptor, selection) for selection in row.selections
+            ):
+                raise CompilationFailure(
+                    "binding-selection-mismatch",
+                    _BINDING_DESCRIPTORS_ADDRESS,
+                    "factorial binding differs from the selected scenario outcome",
+                )
+            bindings.append(AdmittedBindingModel(descriptor=descriptor, origin="selection"))
     for selection in row.selections:
+        if request.experiment.factorial_design is not None:
+            continue
         policy = request.experiment.run_plan.selection_policies[selection.policy_id]
         for descriptor_id in sorted(getattr(policy, "binding_descriptor_refs", ())):
             descriptor = descriptors.get(descriptor_id)
@@ -123,3 +142,73 @@ def _entry_bindings(
             "entry bindings exceed the compilation limit",
         )
     return bindings
+
+
+def entry_participant_configurations(
+    request: TrialCompilationRequest,
+    bindings: list[AdmittedBindingModel],
+    participant_manifest_refs: Sequence[AdmittedParticipantManifestReferenceModel],
+) -> list[ParticipantConfigurationResultModel]:
+    """Realize each bound participant's complete configuration atomically."""
+
+    grouped = {}
+    selected = {
+        (ref.participant_address, ref.implementation_name, ref.implementation_version, ref.manifest_version)
+        for ref in participant_manifest_refs
+    }
+    if request.experiment.factorial_design is not None:
+        for descriptor in request.experiment.binding_descriptors.descriptors:
+            target = descriptor.target
+            if target.plane == "participant-implementation":
+                key = (
+                    target.participant_address,
+                    target.implementation_name,
+                    target.implementation_version,
+                    target.manifest_version,
+                )
+                if key in selected:
+                    grouped.setdefault(key, [])
+    for binding in bindings:
+        descriptor = binding.descriptor
+        target = descriptor.target
+        if target.plane != "participant-implementation":
+            continue
+        key = (
+            target.participant_address,
+            target.implementation_name,
+            target.implementation_version,
+            target.manifest_version,
+        )
+        grouped.setdefault(key, []).append(
+            ConfigurationOverrideModel(target_id=target.target_id, value=descriptor.value)
+        )
+    if len(grouped) > request.limits.max_bindings_per_entry:
+        raise CompilationFailure(
+            "participant-configuration-limit-exceeded",
+            _BINDING_DESCRIPTORS_ADDRESS,
+            "participant configuration count exceeds the compilation limit",
+        )
+    results = []
+    for key, overrides in sorted(grouped.items()):
+        manifest = request.participant_manifests[key]
+        registry = manifest.configuration_registry
+        try:
+            results.append(
+                realize_participant_configuration(
+                    participant_address=key[0],
+                    manifest=manifest,
+                    manifest_ref=manifest.identity.name,
+                    manifest_digest=canonical_json_digest(manifest.model_dump(mode="json")),
+                    overrides=overrides,
+                    validator=request.participant_configuration_validators.get(
+                        (registry.owner.validator_id, registry.owner.validator_version)
+                    ),
+                )
+            )
+        except ValueError as exc:
+            raise CompilationFailure(
+                "participant-configuration-rejected",
+                _BINDING_DESCRIPTORS_ADDRESS,
+                "participant complete configuration failed owner validation",
+            ) from exc
+    return results

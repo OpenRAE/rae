@@ -545,6 +545,57 @@ validator runs regardless of the embedding contract.
     order, or logical-timing domain. Exhaustive and sampled populations MUST be
     finite and exactly bounded.
 
+### Factorial condition generation (EXP-719)
+
+`factorial_design` is an optional authoring child under
+`experiment-authoring-input-v1`. The `factorial-bindings-v1` profile crosses
+only its explicitly named `factor_ids`; each must resolve to a declared
+factor with nonempty unique levels, and `level_bindings` must cover exactly
+those levels. Templates reuse the binding contract's target, value, scalar
+type, and owner shapes for scenario and participant implementation planes.
+One level may bind multiple targets. Apparatus bindings retain their separate
+authority. No target is inferred from a parameter name.
+
+Before materialization, reject more than 16 dimensions, 64 levels per
+dimension, 16 bindings per level, the declared `condition_bound` (at most
+10000), more than 10000 logical runs, or more than 10000 generated bindings.
+Counts are strict integers. Empty, duplicate, unknown, conflicting, or
+operationally indistinguishable conditions fail atomically. Owner admission
+must also reject canonical/alias collisions and conditions that become
+indistinguishable after target resolution.
+Participant comparisons use complete effective values, including defaults,
+and exclude default/override origin. Every selected participant referenced
+anywhere in the design receives a complete configuration in each condition,
+even when that condition supplies no override for it. Configuration identity
+and manifest version must match the selected manifest authority.
+
+Sort factor and level identities by code point and generate their complete
+Cartesian product. A condition identity is `condition-` followed by the first
+48 lowercase hexadecimal characters of the JCS/SHA-256 digest of its
+factor-to-level map. A binding identity is `binding-` followed by the full
+JCS/SHA-256 hexadecimal digest of `[condition_id, factor_id, target.canonical_key()]`.
+Any identity collision fails the design. Emit the existing allocation and
+binding-descriptor children, sort conditions and descriptors by identity,
+select `explicit-required`, and preserve generation intent. Supplied children
+must equal the generated children; they cannot override them. Compact input
+may omit these generated children. Serialization records the materialization.
+
+Condition `required_bindings` are archival matching criteria. Their factor,
+level, and condition joins must agree with the assignment. Matching requires
+actual realized descriptor values and owners across both planes; source
+factor/condition labels alone are insufficient. When owner admission resolves
+aliases, archival study criteria use the canonical descriptors from admitted
+entries. Plan-aware run validation requires every admitted binding, exact
+participant configuration digest, selected implementation/manifest, and the
+allocation control. Existing ref/parameter and difficulty criteria continue
+to apply.
+
+`run_plan.allocation_policy` names the executable randomized allocation
+procedure and stochastic control. Descriptive `allocation_method` and
+`blocking_factors` do not execute allocation. The exact plan-scope algorithm,
+sealed record, replay rules, and dispatch/receipt joins are specified in
+[trial realization](../scenario-variation-trial-realization/README.md#designed-compiler-and-allocation-profiles-exp-719).
+
 ### Provenance
 
 1. Experiment artifacts MUST have stable identifiers and schema versions.

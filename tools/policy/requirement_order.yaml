@@ -160,6 +160,9 @@ phases:
       - EXP-715
     blocked_until:
       - experiment-core
+  - id: experiment-controlled-variation
+    requirements:
+      - EXP-719
   - id: decision-record-governance
     requirements:
       - GOV-941
