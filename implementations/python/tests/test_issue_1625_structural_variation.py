@@ -85,7 +85,8 @@ def test_node_presence_and_coupled_inventory_preserve_family_identity() -> None:
     assert complete.infrastructure["host"].count == 1
     assert canonical_sdl_bytes(family) == before
     assert canonical_sdl_digest(family) == digest
-    assert baseline.semantic_validated and absent.semantic_validated
+    assert baseline.semantic_validated
+    assert absent.semantic_validated
     assert "variation_points" not in baseline.model_dump()
     InstantiatedScenario.model_validate(baseline.model_dump())
     assert canonical_instantiated_sdl_digest(complete) != canonical_instantiated_sdl_digest(baseline)
@@ -142,8 +143,9 @@ def test_absence_does_not_remove_surviving_incoming_references() -> None:
     payload = _payload()
     payload["content"] = {"file": {"type": "file", "target": "host", "path": "/opt/file"}}
     family = _family(payload)
+    outcomes = {"host-state": _outcome("absent")}
     with pytest.raises(ValueError, match="whole-scenario semantic admission"):
-        select_scenario_family(family, {"host-state": _outcome("absent")})
+        select_scenario_family(family, outcomes)
 
 
 @pytest.mark.parametrize("reverse", [False, True])
@@ -153,15 +155,18 @@ def test_absence_conflicts_with_descendant_writes_before_application(reverse: bo
     if reverse:
         payload["variation_points"] = dict(reversed(payload["variation_points"].items()))
     family = _family(payload)
+    outcomes = {"host-state": _outcome("absent"), "jobs": _outcome("chosen")}
     with pytest.raises(ValueError, match="conflict"):
-        select_scenario_family(family, {"host-state": _outcome("absent"), "jobs": _outcome("chosen")})
+        select_scenario_family(family, outcomes)
 
 
 def test_coupled_and_separate_inventory_writes_must_agree() -> None:
     payload = _payload()
     payload["variation_points"]["jobs"] = _inventory_point([])
+    family = _family(payload)
+    outcomes = {"host-state": _outcome("baseline"), "jobs": _outcome("chosen")}
     with pytest.raises(ValueError, match="conflict"):
-        select_scenario_family(_family(payload), {"host-state": _outcome("baseline"), "jobs": _outcome("chosen")})
+        select_scenario_family(family, outcomes)
 
 
 def test_imported_private_node_and_inventory_use_composed_identity(tmp_path: Path) -> None:
@@ -429,8 +434,9 @@ def test_dependent_reference_choice_can_make_node_absence_valid() -> None:
     selected = select_scenario_family(family, {"host-state": _outcome("absent"), "where": _outcome("other")})
     assert selected.content["file"].target == "other"
     assert set(selected.nodes) == {"other"}
+    invalid_outcomes = {"host-state": _outcome("absent"), "where": _outcome("original")}
     with pytest.raises(ValueError, match="violates requires"):
-        select_scenario_family(family, {"host-state": _outcome("absent"), "where": _outcome("original")})
+        select_scenario_family(family, invalid_outcomes)
 
 
 def test_qualified_node_name_is_not_a_descendant_write() -> None:

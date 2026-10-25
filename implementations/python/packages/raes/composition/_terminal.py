@@ -177,24 +177,27 @@ def _rewrite_variation_members(
     members = payload.get(member_field)
     if isinstance(members, dict):
         for member in members.values():
-            if not isinstance(member, dict):
-                continue
-            if target_section is not None and isinstance(member.get("reference"), str):
-                member["reference"] = _rewrite_variation_reference(
-                    str(member["reference"]),
-                    target_section,
-                    symbols,
-                )
-            if isinstance(member.get("references"), list):
-                member["references"] = [
-                    _rewrite_variation_reference(reference, "targetable", symbols) for reference in member["references"]
-                ]
-            if isinstance(member.get("inventory"), dict):
-                member["inventory"] = {
-                    slot: [_rewrite_variation_reference(reference, "targetable", symbols) for reference in refs]
-                    for slot, refs in member["inventory"].items()
-                }
-            _rewrite_member_relations(member, symbols)
+            if isinstance(member, dict):
+                _rewrite_variation_member(member, target_section, symbols)
+
+
+def _rewrite_variation_member(
+    member: dict[str, Any],
+    target_section: str | None,
+    symbols: dict[str, dict[str, str] | set[str]],
+) -> None:
+    if target_section is not None and isinstance(member.get("reference"), str):
+        member["reference"] = _rewrite_variation_reference(str(member["reference"]), target_section, symbols)
+    if isinstance(member.get("references"), list):
+        member["references"] = [
+            _rewrite_variation_reference(reference, "targetable", symbols) for reference in member["references"]
+        ]
+    if isinstance(member.get("inventory"), dict):
+        member["inventory"] = {
+            slot: [_rewrite_variation_reference(reference, "targetable", symbols) for reference in refs]
+            for slot, refs in member["inventory"].items()
+        }
+    _rewrite_member_relations(member, symbols)
 
 
 def _rewrite_variation_point(

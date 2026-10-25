@@ -318,6 +318,33 @@ def _resolved_target_value(
     return value
 
 
+def _target_write_path(family: ExpandedScenario, point: VariationPoint) -> tuple[str, ...]:
+    target = point.target
+    if isinstance(target, VariableTarget):
+        return "variables", target.variable
+    if isinstance(target, ReferenceTarget):
+        specs = REFERENCE_TARGET_SPECS
+    elif isinstance(target, CollectionTarget):
+        specs = COLLECTION_TARGET_SPECS
+    else:
+        specs = TIMING_TARGET_SPECS
+    section = specs[target.slot][0]
+    owner = _canonical_owner_address(family, target.owner, section).removeprefix(f"{section}.")
+    target_id = _canonical_target_id(family, point)
+    return section, owner, target_id.removeprefix(f"{section}.{owner}.")
+
+
+def _record_target_write(
+    writes: dict[tuple[str, ...], tuple[type[object], bytes]], path: tuple[str, ...], value: object
+) -> bool:
+    fingerprint = (type(value), canonical_json_bytes(value))
+    prior = writes.get(path)
+    if prior is not None and prior != fingerprint:
+        raise ValueError("multiple variation points resolve conflicting values for one canonical target")
+    writes[path] = fingerprint
+    return len(path) == 3 and path[0] == "nodes" and path[2] == "presence" and value is False
+
+
 def _validate_target_writes(
     payload: dict[str, object],
     family: ExpandedScenario,
@@ -330,27 +357,10 @@ def _validate_target_writes(
         if isinstance(point.target, StructuralTarget):
             resolved = structural_writes(family, point.target, point.alternatives[outcomes[point_id].member_id])
         else:
-            target_id = _canonical_target_id(family, point)
-            target = point.target
-            if isinstance(target, VariableTarget):
-                path = ("variables", target.variable)
-            else:
-                specs = (
-                    REFERENCE_TARGET_SPECS
-                    if isinstance(target, ReferenceTarget)
-                    else (COLLECTION_TARGET_SPECS if isinstance(target, CollectionTarget) else TIMING_TARGET_SPECS)
-                )
-                section = specs[target.slot][0]
-                owner = _canonical_owner_address(family, target.owner, section).removeprefix(f"{section}.")
-                path = (section, owner, target_id.removeprefix(f"{section}.{owner}."))
+            path = _target_write_path(family, point)
             resolved = {path: _resolved_target_value(payload, family, point, outcomes[point_id])}
         for path, value in resolved.items():
-            fingerprint = (type(value), canonical_json_bytes(value))
-            prior = writes.get(path)
-            if prior is not None and prior != fingerprint:
-                raise ValueError("multiple variation points resolve conflicting values for one canonical target")
-            writes[path] = fingerprint
-            if len(path) == 3 and path[0] == "nodes" and path[2] == "presence" and value is False:
+            if _record_target_write(writes, path, value):
                 absent.add(path[1])
     if any(path[0] == "nodes" and path[1] in absent and path[2:] != ("presence",) for path in writes):
         raise ValueError("node absence conflicts with a descendant variation write")

@@ -20,6 +20,7 @@ from ._declarations import DeclarationIndex, preferred_spelling
 from ._errors import SDLParseError, SDLValidationError
 from ._language_context import (
     SECTION_FIELDS,
+    DocumentContext,
     PurposeResolver,
     document_context,
     endpoint_purposes,
@@ -96,10 +97,7 @@ def language_completions(
         items = filter_relationship_candidates(
             items, pointer, data, document.scenario, document.partial_scenario, document.resolver
         )
-        inventory_scope = inventory_reference_scope(data, reference_pointer)
-        if inventory_scope is not None:
-            candidates = inventory_reference_candidates(document.scenario or document.partial_scenario, inventory_scope)
-            items = [_reference_item(address, address) for address in sorted(candidates)]
+        items = _inventory_completion_items(document, reference_pointer, items)
         context = f"reference:{target_section}"
     elif len(pointer) == 1 and pointer[0] in SECTION_FIELD_COMPLETIONS:
         section = pointer[0]
@@ -142,6 +140,16 @@ def language_completions(
 
     filtered = _filter_items(items, prefix)
     return {"status": "ok", "context": context, "items": filtered}
+
+
+def _inventory_completion_items(
+    document: DocumentContext, pointer: list[str], items: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    scope = inventory_reference_scope(document.data, pointer)
+    if scope is None:
+        return items
+    candidates = inventory_reference_candidates(document.scenario or document.partial_scenario, scope)
+    return [_reference_item(address, address) for address in sorted(candidates)]
 
 
 def language_references(sdl_content: str, symbol: str, *, path: Path | None = None) -> dict[str, Any]:

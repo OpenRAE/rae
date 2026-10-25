@@ -29,7 +29,7 @@ class _SymbolScope:
     section: str
     endpoint_purposes: EndpointPurposes
     variation_slots: Mapping[str, str]
-    variation_targets: dict
+    variation_targets: dict[str, Any]
     address: str | None = None
     resolver: PurposeResolver | None = None
 
@@ -148,7 +148,7 @@ def _section_entries(root: Node, section: str) -> Iterator[tuple[str, MappingNod
             yield name, value_node
 
 
-def _variation_targets(root: Node) -> dict:
+def _variation_targets(root: Node) -> dict[str, Any]:
     points = {}
     for name, node in _section_entries(root, "variation_points"):
         target = _mapping_child(node, "target")
@@ -378,12 +378,13 @@ def _is_matching_occurrence(
     if scope is None:
         return value in spellings
     inventory_scope = inventory_reference_scope(scope.variation_targets, path)
-    if inventory_scope is not None:
-        if scope.resolver is None or not inventory_reference_admitted(
-            scope.resolver.index, scope.address, inventory_scope
-        ):
-            return False
-    return scope.admits(value, _reference_target_for_path(path, mapping_key=mapping_key, scope=scope), spellings)
+    inventory_admitted = inventory_scope is None or (
+        scope.resolver is not None
+        and inventory_reference_admitted(scope.resolver.index, scope.address, inventory_scope)
+    )
+    return inventory_admitted and scope.admits(
+        value, _reference_target_for_path(path, mapping_key=mapping_key, scope=scope), spellings
+    )
 
 
 def _append_occurrence(

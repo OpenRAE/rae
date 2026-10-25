@@ -2,8 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
+from typing import Any
+
 from ._runtime_service_families import RUNTIME_SERVICE_FAMILIES
+from .nodes import RuntimeConfiguration
 from .scenario import ExpandedScenario
+
+PathChanges = list[tuple[str, str | None]]
 
 
 def _segment(value: str) -> str:
@@ -17,11 +23,26 @@ def _remap(path: str, changes: list[tuple[str, str | None]], separators: tuple[s
     return path
 
 
-def reconcile_selection_provenance(family: ExpandedScenario, payload: dict) -> None:
-    """Remove evidence only with its owner; retain surviving bounds at their new positions."""
+def _inventory_path_changes(
+    name: str, original: RuntimeConfiguration, selected: dict[str, Any]
+) -> tuple[PathChanges, PathChanges]:
+    pointer_changes: PathChanges = []
+    model_changes: PathChanges = []
+    for spec in RUNTIME_SERVICE_FAMILIES:
+        rows = selected[spec.collection_name]
+        positions = {row[spec.id_field]: position for position, row in enumerate(rows)}
+        for before, row in enumerate(getattr(original, spec.collection_name)):
+            after = positions.get(getattr(row, spec.id_field))
+            pointer = f"/nodes/{_segment(name)}/runtime/{spec.collection_name}/"
+            model = f"nodes.{name}.runtime.{spec.collection_name}"
+            pointer_changes.append((pointer + str(before), None if after is None else pointer + str(after)))
+            model_changes.append((f"{model}[{before}]", None if after is None else f"{model}[{after}]"))
+    return pointer_changes, model_changes
 
-    pointer_changes: list[tuple[str, str | None]] = []
-    model_changes: list[tuple[str, str | None]] = []
+
+def _selection_path_changes(family: ExpandedScenario, payload: dict[str, Any]) -> tuple[PathChanges, PathChanges]:
+    pointer_changes: PathChanges = []
+    model_changes: PathChanges = []
     for name, original in family.nodes.items():
         node = payload["nodes"].get(name)
         if node is None:
@@ -32,17 +53,28 @@ def reconcile_selection_provenance(family: ExpandedScenario, payload: dict) -> N
         # Protect nodes with qualified names from a removed shorter node's model-path prefix.
         model_changes.append((f"nodes.{name}", f"nodes.{name}"))
         model_changes.append((f"infrastructure.{name}", f"infrastructure.{name}"))
-        if original.runtime is None:
-            continue
-        for spec in RUNTIME_SERVICE_FAMILIES:
-            rows = node["runtime"][spec.collection_name]
-            positions = {row[spec.id_field]: position for position, row in enumerate(rows)}
-            for before, row in enumerate(getattr(original.runtime, spec.collection_name)):
-                after = positions.get(getattr(row, spec.id_field))
-                pointer = f"/nodes/{_segment(name)}/runtime/{spec.collection_name}/"
-                model = f"nodes.{name}.runtime.{spec.collection_name}"
-                pointer_changes.append((pointer + str(before), None if after is None else pointer + str(after)))
-                model_changes.append((f"{model}[{before}]", None if after is None else f"{model}[{after}]"))
+        if original.runtime is not None:
+            pointers, models = _inventory_path_changes(name, original.runtime, node["runtime"])
+            pointer_changes.extend(pointers)
+            model_changes.extend(models)
+    return pointer_changes, model_changes
+
+
+def _remap_records(
+    records: Iterable[dict[str, Any]], key: str, changes: PathChanges, separators: tuple[str, ...]
+) -> tuple[dict[str, Any], ...]:
+    remapped = []
+    for record in records:
+        path = _remap(record[key], changes, separators)
+        if path is not None:
+            remapped.append({**record, key: path})
+    return tuple(remapped)
+
+
+def reconcile_selection_provenance(family: ExpandedScenario, payload: dict[str, Any]) -> None:
+    """Remove evidence only with its owner; retain surviving bounds at their new positions."""
+
+    pointer_changes, model_changes = _selection_path_changes(family, payload)
     provenance = payload["expansion_provenance"]
     for field in (
         "capability_constraints",
@@ -50,15 +82,5 @@ def reconcile_selection_provenance(family: ExpandedScenario, payload: dict) -> N
         "realization_designations",
         "realization_constraints",
     ):
-        records = []
-        for record in provenance.get(field, ()):
-            pointer = _remap(record["field_pointer"], pointer_changes, ("/",))
-            if pointer is not None:
-                records.append({**record, "field_pointer": pointer})
-        provenance[field] = tuple(records)
-    explicitness = []
-    for record in provenance["explicitness"]:
-        model_path = _remap(record["model_path"], model_changes, (".", "["))
-        if model_path is not None:
-            explicitness.append({**record, "model_path": model_path})
-    provenance["explicitness"] = tuple(explicitness)
+        provenance[field] = _remap_records(provenance.get(field, ()), "field_pointer", pointer_changes, ("/",))
+    provenance["explicitness"] = _remap_records(provenance["explicitness"], "model_path", model_changes, (".", "["))

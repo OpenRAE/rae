@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from ._declarations import build_declaration_index
 from .scenario import ExpandedScenario
 from .variation_structure import (
@@ -42,7 +44,7 @@ def structural_writes(
     return writes
 
 
-def apply_structural_writes(payload: dict, writes: dict[WritePath, object]) -> None:
+def apply_structural_writes(payload: dict[str, Any], writes: dict[WritePath, object]) -> None:
     for path, value in writes.items():
         _, owner, field, *rest = path
         if field == "presence":

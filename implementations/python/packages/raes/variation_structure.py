@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import AfterValidator, ConfigDict, Field, StrictBool, WithJsonSchema, model_validator
 from raes_contracts.canonical import canonical_json_bytes
@@ -155,7 +155,7 @@ def alternative_value(member: AlternativeMember) -> bytes:
 
 def selected_inventory_rows(
     family: object, owner: str, slot: RuntimeInventorySlot, references: list[str]
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Resolve existing top-level records; preserve their authored order and content."""
 
     collection = slot.value.removeprefix("nodes.runtime.")
