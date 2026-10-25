@@ -31,7 +31,7 @@ def _manifests(nodeids: list[str], shard_count: int, *, source_sha: str = "abc")
         ShardManifest(
             algorithm_version=SHARD_ALGORITHM_VERSION,
             source_sha=source_sha,
-            suite_expression="not fuzz and not integration and not docker",
+            suite_expression="not fuzz and not integration",
             shard_count=shard_count,
             shard_index=index,
             node_ids=tuple(owned_nodeids(nodeids, shard_count, index)),

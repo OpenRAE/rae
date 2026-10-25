@@ -36,6 +36,18 @@ from raes_processor.planner import (
 
 from .observation_execution import ObservationRuntime, observation_submission_diagnostic
 
+
+def unavailable_backend_diagnostics(domain: RuntimeDomain, component: str) -> list[Diagnostic]:
+    return [
+        Diagnostic(
+            code="runtime.control-plane.rejected",
+            domain="runtime",
+            address=f"runtime.control-plane.{domain.value}",
+            message=f"Target does not provide {component}.",
+        )
+    ]
+
+
 _STATEFUL_ADMISSION_BY_RESOURCE_TYPE = {
     "generated-artifact": (
         "supports_generated_artifacts",

@@ -6,6 +6,7 @@ stores, mailboxes, aliases, routing rules, queues, and settings) aggregated by
 """
 
 import re
+from typing import ClassVar
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
 
@@ -197,6 +198,10 @@ class RuntimeMailMailbox(SDLModel):
     Raw credentials are intentionally unrepresentable. The model records only
     authentication mechanisms and credential-strength classification.
     """
+
+    # The typed concern projection publishes the address verbatim. Credential
+    # classification is posture only; it never makes raw credentials public.
+    realization_public_parameter_fields: ClassVar[frozenset[str]] = frozenset({"address"})
 
     mailbox_id: str
     address: str

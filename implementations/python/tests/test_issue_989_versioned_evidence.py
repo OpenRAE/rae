@@ -236,42 +236,23 @@ def _stub_release(revision: str, *, protocol_revision: str = "2.0.0"):
     )
 
 
-@pytest.mark.parametrize(
-    ("releases", "message"),
-    [
-        pytest.param([], "selects no v2 retest release", id="no-release"),
-        pytest.param(
-            [_stub_release("67.0.0"), _stub_release("68.0.0")],
-            "must be the explicit 69.0.0 retest",
-            id="stale-current",
-        ),
-        pytest.param(
-            [_stub_release("68.0.0"), _stub_release("70.0.0")],
-            "must be the explicit 69.0.0 retest",
-            id="unsupported-future",
-        ),
-        pytest.param(
-            [_stub_release("69.0.0", protocol_revision="1.0.0")],
-            "must be the explicit 69.0.0 retest",
-            id="wrong-protocol",
-        ),
-    ],
-)
-def test_current_formal_release_selection_is_explicit(monkeypatch, releases, message):
+@pytest.mark.parametrize("protocol_revision", ["1.0.0", "unknown"])
+def test_current_formal_capture_requires_the_retest_protocol(monkeypatch, protocol_revision):
     from tools.formal_semantic_validation import _loading
 
-    monkeypatch.setattr(_loading, "load_release_bundles", lambda _root: releases)
-
-    with pytest.raises(ValueError, match=message):
+    current = _stub_release("77.0.0", protocol_revision=protocol_revision)
+    monkeypatch.setattr(_loading, "load_release_bundles", lambda _root: [current])
+    monkeypatch.setattr(_loading, "current_release_path", lambda *_args: current.manifest_path)
+    with pytest.raises(ValueError, match="must bind retest protocol 2.0.0"):
         _loading.load_retest_bundle(ROOT)
 
 
-def test_current_formal_release_selection_returns_the_explicit_retest(monkeypatch):
+def test_current_formal_release_selection_follows_manifest_selection(monkeypatch):
     from tools.formal_semantic_validation import _loading
 
-    current = _stub_release("69.0.0")
-    monkeypatch.setattr(_loading, "load_release_bundles", lambda _root: [_stub_release("68.0.0"), current])
-
+    current = _stub_release("capture-" + "a" * 64)
+    monkeypatch.setattr(_loading, "load_release_bundles", lambda _root: [_stub_release("76.0.0"), current])
+    monkeypatch.setattr(_loading, "current_release_path", lambda *_args: current.manifest_path)
     assert _loading.load_retest_bundle(ROOT)[0] is current
 
 
@@ -282,7 +263,7 @@ def test_latest_current_release_is_versioned_and_strict(monkeypatch):
     from tools.formal_semantic_validation._releases import validate_retest_bundle
 
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, ROOT)
-    assert release.manifest["revision"] == "69.0.0"
+    assert release.manifest["revision"].startswith("capture-")
     original = _retest.replay_case
 
     def changed_result(root, case):
@@ -335,7 +316,7 @@ def test_specification_current_capture_does_not_accept_old_artifact_digest(artif
     from tools.check_specification_coverage import load_bundle, validate_bundle
 
     manifest, protocol, snapshot, analysis = copy_bundle(load_bundle, ROOT)
-    assert manifest["revision"] == "68.0.0"
+    assert manifest["revision"].startswith("capture-")
     snapshot = deepcopy(snapshot)
     artifact = next(a for a in snapshot["artifacts"] if a["artifact_id"] == artifact_id)
     artifact["sha256"] = old_digest
@@ -500,159 +481,25 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
     from tools.formal_semantic_validation import _loading
 
     module = _loading if family == "formal" else check_specification_coverage
-    revisions = (
-        [
-            "1.0.0",
-            "1.1.0",
-            "1.2.0",
-            "2.0.0",
-            "3.0.0",
-            "4.0.0",
-            "5.0.0",
-            "6.0.0",
-            "7.0.0",
-            "8.0.0",
-            "9.0.0",
-            "10.0.0",
-            "11.0.0",
-            "12.0.0",
-            "13.0.0",
-            "14.0.0",
-            "15.0.0",
-            "16.0.0",
-            "17.0.0",
-            "18.0.0",
-            "19.0.0",
-            "20.0.0",
-            "21.0.0",
-            "22.0.0",
-            "23.0.0",
-            "24.0.0",
-            "25.0.0",
-            "26.0.0",
-            "27.0.0",
-            "28.0.0",
-            "29.0.0",
-            "30.0.0",
-            "31.0.0",
-            "32.0.0",
-            "33.0.0",
-            "34.0.0",
-            "35.0.0",
-            "36.0.0",
-            "37.0.0",
-            "38.0.0",
-            "39.0.0",
-            "40.0.0",
-            "41.0.0",
-            "42.0.0",
-            "43.0.0",
-            "44.0.0",
-            "45.0.0",
-            "46.0.0",
-            "47.0.0",
-            "48.0.0",
-            "49.0.0",
-            "50.0.0",
-            "51.0.0",
-            "52.0.0",
-            "53.0.0",
-            "54.0.0",
-            "55.0.0",
-            "56.0.0",
-            "57.0.0",
-            "58.0.0",
-            "59.0.0",
-            "60.0.0",
-            "61.0.0",
-            "62.0.0",
-            "63.0.0",
-            "64.0.0",
-            "65.0.0",
-            "66.0.0",
-            "67.0.0",
-            "68.0.0",
-            "69.0.0",
-        ]
-        if family == "formal"
-        else [
-            "1.0.0",
-            "1.1.0",
-            "2.0.0",
-            "3.0.0",
-            "4.0.0",
-            "5.0.0",
-            "6.0.0",
-            "7.0.0",
-            "8.0.0",
-            "9.0.0",
-            "10.0.0",
-            "11.0.0",
-            "12.0.0",
-            "13.0.0",
-            "14.0.0",
-            "15.0.0",
-            "16.0.0",
-            "17.0.0",
-            "18.0.0",
-            "19.0.0",
-            "20.0.0",
-            "21.0.0",
-            "22.0.0",
-            "23.0.0",
-            "24.0.0",
-            "25.0.0",
-            "26.0.0",
-            "27.0.0",
-            "28.0.0",
-            "29.0.0",
-            "30.0.0",
-            "31.0.0",
-            "32.0.0",
-            "33.0.0",
-            "34.0.0",
-            "35.0.0",
-            "36.0.0",
-            "37.0.0",
-            "38.0.0",
-            "39.0.0",
-            "40.0.0",
-            "41.0.0",
-            "42.0.0",
-            "43.0.0",
-            "44.0.0",
-            "45.0.0",
-            "46.0.0",
-            "47.0.0",
-            "48.0.0",
-            "49.0.0",
-            "50.0.0",
-            "51.0.0",
-            "52.0.0",
-            "53.0.0",
-            "54.0.0",
-            "55.0.0",
-            "56.0.0",
-            "57.0.0",
-            "58.0.0",
-            "59.0.0",
-            "60.0.0",
-            "61.0.0",
-            "62.0.0",
-            "63.0.0",
-            "64.0.0",
-            "65.0.0",
-            "66.0.0",
-            "67.0.0",
-            "68.0.0",
-        ]
+    records = module.load_index_records(
+        ROOT,
+        index_path=(
+            "docs/research/formal-semantic-validation/bundle-manifest.json"
+            if family == "formal"
+            else "docs/research/specification-coverage/bundle-manifest.json"
+        ),
+        schema_version=(
+            "formal-semantic-validation-bundle-index/v2"
+            if family == "formal"
+            else "specification-coverage-bundle-index/v1"
+        ),
+        directory_key="bundles_directory",
+        max_bytes=2 * 1024 * 1024,
     )
-    revisions.pop(-1 if removed == "current" else 0)
-    monkeypatch.setattr(
-        module,
-        "load_index_records",
-        lambda *args, **kwargs: [(revision, {"revision": revision}) for revision in revisions],
-    )
+    published = [(path, manifest) for path, manifest in records if "/bundles/" in path]
+    removed_path = published[-1 if removed == "current" else 0][0]
+    records = [(path, manifest) for path, manifest in records if path != removed_path]
+    monkeypatch.setattr(module, "load_index_records", lambda *args, **kwargs: records)
     loader = _loading.load_release_bundles if family == "formal" else check_specification_coverage.load_bundles
     with pytest.raises(ValueError, match="supported|current"):
         loader(ROOT)

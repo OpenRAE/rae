@@ -17,18 +17,22 @@ from pydantic import ConfigDict, Field, PrivateAttr, model_validator
 from raes_contracts.augmentation_scope import OptionalAugmentationScope
 from raes_contracts.execution_policy import OptionalExecutionPolicy
 
-from ._base import SDLModel
-from ._capability_binding_normalization import normalize_capability_binding
 from ._classification_guard import LegacyClassificationGuard
+from ._declaration_sources import DeclarationSource
 from ._errors import SDLParseDiagnostic
 from ._identifiers import (
     PortableIdentifier,
     QualifiedName,
-    require_module_identifier,
     require_portable_identifier,
 )
 from ._mapping_scopes import HASHMAP_SECTIONS
-from ._scenario_instantiation import collect_variable_tokens, resolve_json_pointer
+from ._module_declarations import ImportDecl as ImportDecl
+from ._module_declarations import ModuleDescriptor as ModuleDescriptor
+from ._scenario_instantiation import (
+    collect_variable_tokens,
+    validate_capability_constraint_outputs,
+    validate_parameter_derivation_outputs,
+)
 from .accounts import Account
 from .agents import Agent
 from .conditions import Condition
@@ -54,7 +58,6 @@ from .phase_contracts import (
     CapabilityConstraint,
     ExpansionProvenance,
     InstantiationProvenance,
-    _json_value_equal,
 )
 from .propositions import Assertion, Proposition
 from .realization_designation import RealizationDesignation
@@ -198,54 +201,6 @@ def _validate_runtime_forwarding_agent_identifiers(value: Mapping[object, object
         )
 
 
-class ModuleDescriptor(SDLModel):
-    """Published module metadata for SDL composition."""
-
-    id: str
-    version: str
-    parameters: list[PortableIdentifier] = Field(default_factory=list)
-    exports: dict[str, list[str]] = Field(default_factory=dict)
-    description: str = ""
-
-    @model_validator(mode="after")
-    def validate_descriptor(self) -> "ModuleDescriptor":
-        require_module_identifier(self.id)
-        if len(self.parameters) != len(set(self.parameters)):
-            raise ValueError("module.parameters must be unique")
-        for section, names in self.exports.items():
-            if len(names) != len(set(names)):
-                raise ValueError(f"module.exports.{section} entries must be unique")
-        return self
-
-
-class ImportDecl(SDLModel):
-    """A module import expanded before full semantic validation."""
-
-    source: str = ""
-    path: str = ""
-    namespace: str = ""
-    version: str = "*"
-    parameters: dict[PortableIdentifier, object] = Field(default_factory=dict)
-    digest: str = ""
-
-    @model_validator(mode="after")
-    def validate_source_fields(self) -> "ImportDecl":
-        if not self.source and not self.path:
-            raise ValueError("Import requires either 'source' or deprecated 'path'")
-        if self.source and self.path:
-            raise ValueError("Import may specify only one of 'source' or 'path'")
-        if not self.namespace:
-            raise ValueError("Import requires an explicit namespace")
-        require_portable_identifier(self.namespace, field_name="namespace")
-        return self
-
-    @property
-    def normalized_source(self) -> str:
-        if self.source:
-            return self.source
-        return f"local:{self.path}"
-
-
 class ScenarioContent(LegacyClassificationGuard):
     """Executable SDL content shared by the closed document-phase types."""
 
@@ -307,6 +262,24 @@ class ScenarioContent(LegacyClassificationGuard):
     _source_diagnostics: tuple[SDLParseDiagnostic, ...] = PrivateAttr(default=())
     _semantic_validated: bool = PrivateAttr(default=False)
     _explicitness: dict[str, ExplicitnessRecord] = PrivateAttr(default_factory=dict)
+    _declaration_sources: dict[str, DeclarationSource] = PrivateAttr(default_factory=dict)
+
+    @property
+    def declaration_sources(self) -> dict[str, DeclarationSource]:
+        """Original authored locations, never serialized as scenario authority."""
+        return dict(self._declaration_sources)
+
+    def _set_declaration_sources(self, sources: Mapping[str, DeclarationSource]) -> None:
+        self._declaration_sources = dict(sources)
+
+    def __eq__(self, other: object) -> bool:
+        """Authored locations do not change the scenario's semantic equality."""
+        if not isinstance(other, ScenarioContent):
+            return super().__eq__(other)
+        left, right = self.model_copy(), other.model_copy()
+        for model in (left, right):
+            model.__pydantic_private__.pop("_declaration_sources", None)
+        return super(ScenarioContent, left).__eq__(right)
 
     @model_validator(mode="before")
     @classmethod
@@ -385,6 +358,15 @@ class Scenario(ScenarioContent):
         json_schema_extra={"additionalProperties": False},
     )
     variation_points: dict[str, VariationPoint] = Field(default_factory=dict)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _reject_private_behavior_references(cls, value: object) -> object:
+        from ._behavior_authoring import validate_authored_behavior_references
+
+        if isinstance(value, Mapping):
+            validate_authored_behavior_references(value)
+        return value
 
     @property
     def module_variable_specs(self) -> dict[str, dict[str, object]]:
@@ -482,18 +464,10 @@ class InstantiatedScenario(ScenarioContent):
         for imported in self.instantiation_provenance.imports:
             for binding in imported.bindings:
                 binding_values[(*imported.namespace, *binding.parameter)] = binding.value
-        for constraint in self.instantiation_provenance.capability_constraints:
-            try:
-                concrete_value = resolve_json_pointer(payload, constraint.field_pointer)
-            except (KeyError, IndexError, TypeError, ValueError) as exc:
-                raise ValueError(
-                    f"Capability constraint field_pointer does not resolve: {constraint.field_pointer}"
-                ) from exc
-            if constraint.parameter not in binding_values:
-                raise ValueError("Capability constraint references an unresolved parameter identity")
-            binding = binding_values[constraint.parameter]
-            if not _json_value_equal(concrete_value, binding):
-                binding = normalize_capability_binding(self, constraint.field_pointer, binding)
-                if not _json_value_equal(concrete_value, binding):
-                    raise ValueError("Capability constraint binding does not match the concrete field value")
+        validate_capability_constraint_outputs(
+            self, payload, self.instantiation_provenance.capability_constraints, binding_values
+        )
+        validate_parameter_derivation_outputs(
+            self, payload, self.instantiation_provenance.parameter_derivations, binding_values
+        )
         return self

@@ -51,6 +51,8 @@ class SDLParseDiagnostic:
     stage: str = "parse"
     severity: str = "error"
     source: str | None = None
+    original_pointer: str | None = None
+    canonical_address: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
         payload: dict[str, Any] = {
@@ -63,6 +65,10 @@ class SDLParseDiagnostic:
         }
         if self.source is not None:
             payload["source"] = self.source
+        if self.original_pointer is not None:
+            payload["original_path"] = self.original_pointer
+        if self.canonical_address is not None:
+            payload["canonical_address"] = self.canonical_address
         if self.authored_keys is not None:
             payload["authored_keys"] = list(self.authored_keys)
         if self.related_range is not None:
@@ -111,6 +117,7 @@ class SDLValidationError(SDLError):
     def __init__(self, errors: list[str], path: Path | None = None) -> None:
         self.errors = errors
         self.path = path
+        self.diagnostics: tuple[SDLParseDiagnostic | None, ...] = ()
         prefix = f"{path}: " if path else ""
         count = len(errors)
         summary = f"{count} validation error{'s' if count != 1 else ''}"

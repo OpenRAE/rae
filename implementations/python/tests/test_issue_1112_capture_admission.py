@@ -31,7 +31,6 @@ from raes_contracts.evidence_satisfaction import validate_experiment_run_evidenc
 from raes_contracts.planning import PlanScope
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
-from raes_reference_backend.manifest import create_reference_backend_manifest
 from raes_runtime.control_plane import RuntimeControlPlane
 
 FIXTURES = REPO_ROOT / "contracts" / "fixtures" / "experiment-core"
@@ -596,14 +595,11 @@ def test_sdl_scope_refs_require_exact_offer_scope_targets() -> None:
         _offer(scope_refs=wildcard_scope)
 
 
-def test_reference_backends_publish_no_unimplemented_capture_offers() -> None:
+def test_stub_backend_publishes_no_unimplemented_capture_offers() -> None:
     stub = create_stub_manifest()
-    reference = create_reference_backend_manifest()
 
     assert stub.observation is not None
     assert stub.observation.capture_offers == ()
-    assert reference.observation is not None
-    assert reference.observation.capture_offers == ()
     rejected = plan(compile_runtime_model(_capture_scenario()), stub)
     assert any(diagnostic.code == "capture.offer-missing" for diagnostic in rejected.diagnostics)
 

@@ -591,9 +591,12 @@ preserves historical meaning and states the required reader boundary.
 
 ### Legacy fixed-coordinate form
 
-The following describes the currently published SDL/compiler form and its
-retained historical interpretation. It is not evidence of executable adoption
-of the reusable amendment.
+The SDL and compiler publish two forms. The following describes the legacy
+form, selected when `mixed_control` has no `semantics`, and its retained
+historical interpretation. The other published form is the reusable
+`mixed-control-policy-occurrence/rev1` form, which validates and compiles but
+which planning and runtime admission refuse. Neither description is evidence
+of executable adoption of the reusable amendment.
 
 A behavior specification in `mixed-control` mode carries one explicit
 `mixed_control` policy for one of its `participant_refs`. The policy is a

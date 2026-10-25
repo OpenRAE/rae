@@ -1,5 +1,21 @@
 # Explicitness And Realization Semantics
 
+Public configurable runtime strings retain constrained author specificity after
+substitution. Portable `parameter_derivations` identify typed inputs and literal
+segments, using qualified identities through imports. Admission reproduces the
+selected output and checks it against the concrete field; the owning runtime
+validator still checks path, name or address validity. An unenumerated parameter
+compiles as a processor-origin literal for the selected binding, not permission
+to choose any string. Whole-field finite parameters retain their full domain;
+single-input interpolation retains its finite image with repeated references
+correlated. Multiple independent finite inputs fail closed pending a relational
+image contract; no Cartesian product is expanded.
+
+The mailbox owner approves its public address for derivation capture. This does
+not publish credential or classified setting alternatives, and the compiler
+must still use the registered safe projection. Backend support, observation and
+runtime non-approximation checks apply independently to all these forms.
+
 This note is the implementer-facing architecture companion to `SEM-218`. It
 records the architecture guardrails for the implementation that realizes
 the spec; it is implementation guidance, **not normative**. The normative
@@ -224,9 +240,9 @@ resource-kind claim.
 
 Runtime selection is a separate observation. The backend must bind the observed
 governed mechanism to the operation, selected envelope, and configuration. A
-plan echo or provisioner handle is not evidence. OCI and libvirt modes use
-daemon readback; the in-process reference mode reports an extension term and is
-not presented as a second native isolation mechanism. The runtime gate rejects
+plan echo or provisioner handle is not evidence. Native modes use daemon
+readback. An in-process test double reports an extension term and is not
+presented as a native isolation mechanism. The runtime gate rejects
 missing readback, weak evidence for bounded demand, envelope/domain mismatch,
 and unverified execution binding before snapshot persistence.
 

@@ -39,6 +39,7 @@ from .control_plane_store_local_codec import (
 from .control_plane_store_local_codec import (
     transaction as _transaction,
 )
+from .control_plane_store_local_invocations import LocalInvocationStoreMixin
 from .control_plane_store_local_records import LocalOperationRecordStoreMixin
 from .control_plane_store_local_scope import LocalStoreScopeMigrationMixin
 from .control_plane_store_local_snapshot import LocalSnapshotRevisionStoreMixin
@@ -70,6 +71,7 @@ def _participant_transition_count(snapshot: RuntimeSnapshot) -> int:
 
 
 class LocalControlPlaneStore(
+    LocalInvocationStoreMixin,
     LocalOperationRecordStoreMixin,
     LocalStoreScopeMigrationMixin,
     LocalSnapshotRevisionStoreMixin,

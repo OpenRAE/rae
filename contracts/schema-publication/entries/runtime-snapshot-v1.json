@@ -1,9 +1,9 @@
 {
-  "content_hash": "61cce2dd5c4e9a964c5354083e1d417a47897ff62e82887bbcb3e7af5aedff48",
+  "content_hash": "aa69a91b09267720676b9da383e47c7db726aa9c5439fae579936f3a0a501c94",
   "contract_id": "runtime-snapshot-v1",
   "last_change": {
-    "summary": "Persist participant-local outcomes alongside bounded shared-time execution state.",
-    "content_hash": "61cce2dd5c4e9a964c5354083e1d417a47897ff62e82887bbcb3e7af5aedff48"
+    "summary": "Preserve explicit API-409 v1 and v2 control-occurrence lineages in runtime snapshot archives.",
+    "content_hash": "aa69a91b09267720676b9da383e47c7db726aa9c5439fae579936f3a0a501c94"
   },
   "schema_path": "contracts/schemas/snapshots/runtime-snapshot-v1.json",
   "stability": "draft"

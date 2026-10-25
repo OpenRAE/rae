@@ -1,9 +1,9 @@
 {
-  "content_hash": "0a5b2ee3ad31c589f30def040783a934fb8855614c9030525f1a648ac27e3ce5",
+  "content_hash": "b4b24248ae4087b13c457303f956a48440a4134828aa34facbec0cee1154c291",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "0a5b2ee3ad31c589f30def040783a934fb8855614c9030525f1a648ac27e3ce5",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "b4b24248ae4087b13c457303f956a48440a4134828aa34facbec0cee1154c291",
+    "summary": "Publish reusable and finite-script mixed-control rev1 policies, paired script windows, closed portable-key maps and directed-delivery control blocks; retain canonical relationship eligibility from #1339; issue #1363."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

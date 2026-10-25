@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from raes_contracts.contracts import ParticipantInformationStateContextResolver
+from raes_contracts.contracts import InjectOccurrenceModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -21,10 +21,11 @@ from raes_contracts.runtime_state import (
     operation_terminal_diagnostics,
 )
 
-from .backend_calls import _BackendCallContext, _call_backend_apply, _call_backend_diagnostics, _RealizationApplyContext
+from .backend_calls import _call_backend_diagnostics, _RealizationApplyContext
 from .backend_observation_calls import _call_backend_apply_with_observation, _ObservationApplyRequest
 from .control_plane_mutation import control_plane_mutation
 from .control_plane_operation_context import legacy_operation_request_commitment, operation_admission_context
+from .control_plane_participant_apply import apply_authorized_participant_action as apply_authorized_participant_action
 from .control_plane_store import (
     ControlPlaneOperationRecord,
     NewClaimRejected,
@@ -33,34 +34,12 @@ from .control_plane_store import (
 )
 from .diagnostics import _has_error_diagnostic
 from .observation_results import PreparedObservationExecution
-from .participant_effect_authority import participant_effect_authority
+
+__all__ = ("apply_authorized_participant_action",)
 
 
 def _utc_now() -> str:
     return datetime.now(UTC).isoformat().replace("+00:00", "Z")
-
-
-def apply_authorized_participant_action(
-    *,
-    method: Callable[..., object],
-    request: object,
-    snapshot: RuntimeSnapshot,
-    address: str,
-    information_state_context_resolver: ParticipantInformationStateContextResolver | None = None,
-) -> ApplyResult:
-    """Invoke and validate a participant backend after durable authorization."""
-
-    return _call_backend_apply(
-        method,
-        request,
-        snapshot,
-        address=address,
-        snapshot=snapshot,
-        realization=participant_effect_authority(request, snapshot),
-        call=_BackendCallContext(
-            information_state_context_resolver=information_state_context_resolver,
-        ),
-    )
 
 
 def execute_participant_action(
@@ -135,23 +114,14 @@ def _execute_participant_action_locked(
     )
     if claimed.receipt.operation_id != operation_id:
         return claimed.receipt
-    with control_plane._mutation_authority.external_call():
-        result = _call_backend_apply(
-            method,
-            request,
-            control_plane._snapshot,
-            address=address,
-            snapshot=control_plane._snapshot,
-            realization=participant_effect_authority(request, control_plane._snapshot),
-            call=_BackendCallContext(
-                information_state_context_resolver=getattr(
-                    control_plane,
-                    "_information_state_context_resolver",
-                    None,
-                ),
-            ),
-        )
-    final_state = OperationState.SUCCEEDED if result.success else OperationState.FAILED
+    from .participant_control_episode_admission import execute_participant_policy_call
+
+    result, final_state, policy_admissions = execute_participant_policy_call(
+        control_plane,
+        method=method,
+        request=request,
+        address=address,
+    )
     final_status = OperationStatus(
         operation_id=operation_id,
         domain=RuntimeDomain.PARTICIPANT,
@@ -172,6 +142,7 @@ def _execute_participant_action_locked(
             status=final_status,
             idempotency_key=idempotency_key,
             request_fingerprint=context.request_commitment,
+            result_payload=policy_admissions,
         ),
     )
     return receipt
@@ -259,6 +230,7 @@ class OperationExecutionRequest:
     exact_retry_fingerprint: str | None = None
     validation_method: Callable[..., object] | None = None
     admission_diagnostics: Callable[[], list[Diagnostic]] | None = None
+    inject_occurrence: InjectOccurrenceModel | None = None
 
 
 @dataclass(frozen=True)
@@ -410,6 +382,10 @@ def execute_operation(
     with control_plane_mutation(control_plane, request.context.operation_kind):
         with control_plane._operation_lock:
             control_plane._reload_derived_state()
+        if getattr(control_plane, "_execution_adapter", None) is not None:
+            from .control_plane_supervised_execution import execute_supervised_operation
+
+            return execute_supervised_operation(control_plane, request)
         return _execute_operation_locked(control_plane, request)
 
 

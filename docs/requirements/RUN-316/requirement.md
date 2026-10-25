@@ -5,7 +5,7 @@ status: ACTIVE
 type: FUNCTIONAL
 priority: MUST
 created_at: 2026-04-05T01:59:50.614372Z
-updated_at: 2026-06-28T18:07:50.939592Z
+updated_at: 2026-10-21T00:00:00Z
 ---
 
 # RUN-316 — Operational Apparatus Observability
@@ -27,5 +27,3 @@ Processors and backends require their own operational observability, but that co
 - IMPLEMENTS → GITHUB_ISSUE `338` (Operational Apparatus Observability (RUN-316))
 - IMPLEMENTS → GITHUB_ISSUE `1173` (Safe and complete libvirt failure observability)
 - IMPLEMENTS → PULL_REQUEST `1163` (Bounded libvirt backend failure observability)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_libvirt/_observability.py` (Bounded operator-side failure classification)
-- TESTS → TEST `implementations/python/tests/test_libvirt_failure_observability.py` (Suppressed-failure coverage, redaction, and expected-absence tests)

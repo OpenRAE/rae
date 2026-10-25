@@ -19,9 +19,6 @@ CANONICAL_PATH = WORKFLOWS / "canonical-verification.yml"
 CI_PATH = WORKFLOWS / "ci.yml"
 RELEASE_PATH = WORKFLOWS / "release-please.yml"
 RELEASE_CONFIG_PATH = REPO_ROOT / "release-please-config.json"
-DOCKER_INTEGRATION_PATH = (
-    REPO_ROOT / "implementations" / "python" / "tests" / "test_reference_backend_docker_integration.py"
-)
 
 LOCAL_CANONICAL_WORKFLOW = "./.github/workflows/canonical-verification.yml"
 
@@ -181,6 +178,17 @@ def _run_github_finalization(
     gh_stub.write_text(
         """#!/bin/sh
 set -eu
+# Like real gh, a repository-scoped call that names no repository falls back
+# to the local git checkout, which this job does not have (#1414).
+case "${1-}" in
+  api) ;;
+  *)
+    case " $* " in
+      *" --repo "*|*" --repo="*|*" -R "*) ;;
+      *) git rev-parse --show-toplevel ;;
+    esac
+    ;;
+esac
 case "${1-}:${2-}" in
   release:view)
     case "$*" in
@@ -444,7 +452,7 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     # dev/main branch protection requires the `verify` and `sonar` contexts. Both
     # are now decoupled joins over the reusable graph's outcomes (#935).
     verify = workflow["jobs"]["verify"]
-    assert verify["needs"] == "canonical"
+    assert verify["needs"] == ["canonical", "runtime-supervision"]
     assert verify["if"] == "always()"
     verify_join = _named_step(verify, "Preserve the required canonical verification status")
     assert verify_join["env"]["GATE_OUTCOME"] == "${{ needs.canonical.outputs.gate-outcome }}"
@@ -613,9 +621,8 @@ def test_release_builds_and_smokes_the_verified_sha_before_publish() -> None:
     workflow = _load(RELEASE_PATH)
     jobs = workflow["jobs"]
     build = jobs["build-release"]
-    assert set(build["needs"]) == {"resolve-release", "verify-release", "integration-docker-release"}
+    assert set(build["needs"]) == {"resolve-release", "verify-release"}
     assert "needs.verify-release.result == 'success'" in build["if"]
-    assert "needs.integration-docker-release.result == 'success'" in build["if"]
     assert build["permissions"] == {"contents": "read"}
 
     checkout = build["steps"][0]
@@ -655,41 +662,6 @@ def test_release_builds_and_smokes_the_verified_sha_before_publish() -> None:
         assert f"installed release {distribution}" in smoke
 
 
-def test_release_requires_skip_free_real_docker_tests_at_the_exact_sha() -> None:
-    release = _load(RELEASE_PATH)
-    docker = release["jobs"]["integration-docker-release"]
-    assert set(docker["needs"]) == {"resolve-release", "verify-release"}
-    assert "needs.verify-release.result == 'success'" in docker["if"]
-    assert docker["permissions"] == {"contents": "read"}
-    assert "continue-on-error" not in docker
-
-    checkout = docker["steps"][0]
-    assert checkout["with"]["ref"] == "${{ needs.resolve-release.outputs.release_sha }}"
-    binding = _named_step(docker, "Bind real-container testing to the exact release commit")["run"]
-    assert 'actual_sha="$(git rev-parse HEAD)"' in binding
-    assert '"${actual_sha}" != "${EXPECTED_SHA}"' in binding
-
-    required = _named_step(docker, "Require real-container release integration")
-    assert required["env"]["RAES_DOCKER_INTEGRATION_REQUIRED"] == "1"
-    required_script = required["run"]
-    assert "-s integration_docker -- --junitxml=" in required_script
-    assert "if not cases:" in required_script
-    assert "if skipped:" in required_script
-    assert "collected zero tests" in required_script
-    assert "skipped tests" in required_script
-
-    fixture = DOCKER_INTEGRATION_PATH.read_text(encoding="utf-8")
-    assert "RAES_DOCKER_INTEGRATION_REQUIRED" in fixture
-    assert "pytest.fail" in fixture
-    # The reviewed image identity is lock data, not a literal in the harness.
-    assert "sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc" not in fixture
-    assert "oci_release_image.locked_platform_graphs()" in fixture
-
-    optional = _load(CI_PATH)["jobs"]["integration-docker"]
-    assert optional["continue-on-error"] is True
-    assert "RAES_DOCKER_INTEGRATION_REQUIRED" not in str(optional)
-
-
 def test_publication_is_split_retry_safe_and_finalizes_the_same_release() -> None:
     workflow = _load(RELEASE_PATH)
     jobs = workflow["jobs"]
@@ -697,14 +669,12 @@ def test_publication_is_split_retry_safe_and_finalizes_the_same_release() -> Non
     assert set(publish_pypi["needs"]) == {
         "resolve-release",
         "verify-release",
-        "integration-docker-release",
         "build-release",
         # Absent or rejected evidence must block the handoff, so admission is a
         # predecessor of publication rather than an optional report (#1226).
         "admit-release",
     }
     assert "needs.verify-release.result == 'success'" in publish_pypi["if"]
-    assert "needs.integration-docker-release.result == 'success'" in publish_pypi["if"]
     assert "needs.build-release.result == 'success'" in publish_pypi["if"]
     assert "github.ref == 'refs/heads/main'" in publish_pypi["if"]
     assert publish_pypi["environment"] == "pypi"
@@ -1199,7 +1169,6 @@ def test_canonical_exact_commit_gate_executes_and_rejects_a_different_checkout(
 @pytest.mark.parametrize(
     ("job_name", "step_name", "mismatch_message"),
     [
-        ("integration-docker-release", "Bind real-container testing to the exact release commit", "checkout mismatch"),
         ("build-release", "Reconfirm the exact verified release checkout", "Publish checkout mismatch"),
     ],
 )
@@ -1595,6 +1564,7 @@ def test_github_attachment_fails_closed_on_an_uncertain_asset_listing(tmp_path: 
     )
 
     assert result.returncode != 0
+    assert "could not list release assets" in result.stderr
     assert "upload" not in (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines()
 
 

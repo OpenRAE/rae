@@ -1,9 +1,9 @@
 {
-  "content_hash": "b51c39ee482a49608a96ce3bdc66f587a2cdff9daf5b8c872a079dd920d88f56",
+  "content_hash": "b43ab9ede2182263b4abea1c5ca8784cef67a68f127c7cc8c3ead1cb6402e161",
   "contract_id": "backend-profile-v1",
   "last_change": {
-    "summary": "Allow exact declarations of participant-control v2 selection and evaluation contracts (#1365).",
-    "content_hash": "b51c39ee482a49608a96ce3bdc66f587a2cdff9daf5b8c872a079dd920d88f56"
+    "summary": "Allow explicit declarations of both mixed-backend execution binding/stage report and inject occurrence/outcome contracts; shipped backends retain their declared support boundaries (#1371, #1366).",
+    "content_hash": "b43ab9ede2182263b4abea1c5ca8784cef67a68f127c7cc8c3ead1cb6402e161"
   },
   "schema_path": "contracts/schemas/profiles/backend-profile-v1.json",
   "stability": "draft"

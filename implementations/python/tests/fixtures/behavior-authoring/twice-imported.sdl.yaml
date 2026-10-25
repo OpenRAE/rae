@@ -1,0 +1,19 @@
+# One reusable behavior unit imported under two namespaces, plus a
+# scenario-local behavior declaration over both imports (issue #297, DSL-116).
+name: twice-imported-behavior
+imports:
+  - source: local:scan-behavior.sdl.yaml
+    namespace: alpha
+    version: 1.2.0
+  - source: local:scan-behavior.sdl.yaml
+    namespace: bravo
+    version: ">=1.2,<2"
+behavior_specifications:
+  joint-oversight:
+    semantic_version: 1.0.0
+    lifecycle_state: draft
+    participant_role_refs: [red]
+    action_contract_refs: [alpha.scan, bravo.scan]
+    observation_boundary_refs: [alpha.red-view, bravo.red-view]
+    outcome_interpretation_rule_refs: [alpha.scan-outcome, bravo.scan-outcome]
+    authority_scope_refs: [nodes.alpha.web.services.http, nodes.bravo.web.services.http]

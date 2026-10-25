@@ -26,7 +26,6 @@ from raes.explicitness import ExplicitnessClass
 from raes.instantiate import instantiate_scenario
 from raes.nodes import NodeType
 from raes.realization_designation import ComputeRealizationConcern, RealizationConstraintPosture
-from raes_backend_libvirt.manifest import create_libvirt_manifest
 from raes_backend_stubs.stubs import create_stub_manifest, create_stub_target
 from raes_contracts.bounded_domains import EnumDomain, ExactDomain
 from raes_contracts.exploit_path import ExploitPathAnalysisInputModel
@@ -39,11 +38,11 @@ from raes_contracts.satisfiability import ScenarioSatisfiabilityEvidenceModel
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
 from raes_processor.semantics.realization import realization_disclosure
-from raes_reference_backend.manifest import create_reference_backend_manifest
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_api_models import _provisioning_plan
-from raes_runtime.manager import RuntimeManager
 from realization_authority_fixtures import with_compute_substrate_collection_demand
+from runtime_plan_fixtures import plan_for_target
+from t2_envelope_manifests import OS_CONTAINER_ENVELOPE, VIRTUAL_MACHINE_ENVELOPE, stub_manifest_with_envelope
 
 _FORMAL_ROOT = Path(__file__).resolve().parents[3] / "docs/research/formal-semantic-validation"
 
@@ -325,7 +324,7 @@ def test_snapshot_and_plan_carriers_reject_domains_that_authoring_cannot_produce
     with pytest.raises(ValidationError, match="compute-substrate|singleton"):
         InstantiatedScenarioSnapshot.model_validate(snapshot_payload)
 
-    execution = plan(compile_runtime_model(instantiated), create_libvirt_manifest())
+    execution = plan(compile_runtime_model(instantiated), stub_manifest_with_envelope(VIRTUAL_MACHINE_ENVELOPE))
     published = provisioning_plan_model(execution.provisioning)
     plan_payload = published.model_dump(mode="json")
     plan_payload["realization_constraints"][0]["value_domain"] = invalid_domain
@@ -343,16 +342,17 @@ def test_stub_noop_does_not_bootstrap_unrequested_substrate_disclosure() -> None
           endpoint: {type: compute, resources: {ram: 1 gib, cpu: 1}}
         """
     )
-    first_execution_plan = RuntimeManager(target).plan(scenario)
+    first_execution_plan = plan_for_target(target, scenario)
     first_plan = first_execution_plan.provisioning
     first = RuntimeControlPlane(target)
     first.register_planner_produced_plan(first_execution_plan)
     first.submit_provisioning(first_plan)
     legacy_snapshot = replace(first.snapshot, realization_observations=())
-    unchanged_execution_plan = RuntimeManager(target).plan(scenario, legacy_snapshot)
+    unchanged_execution_plan = plan_for_target(target, scenario, legacy_snapshot)
     unchanged_plan = unchanged_execution_plan.provisioning
     assert all(operation.action.value == "unchanged" for operation in unchanged_plan.operations)
 
+    first.close()
     upgraded = RuntimeControlPlane(target, initial_snapshot=legacy_snapshot)
     upgraded.register_planner_produced_plan(unchanged_execution_plan)
     receipt = upgraded.submit_provisioning(unchanged_plan)
@@ -472,17 +472,13 @@ def test_bounded_plan_keeps_author_constraint_separate_and_requires_an_apparatus
     assert restored.realization_constraints == execution.provisioning.realization_constraints
 
 
-class _OciMode:
-    driver_mode = "oci-container"
-
-
 @pytest.mark.parametrize(
     ("substrate", "manifest", "observer_version"),
     [
-        ("virtual-machine", create_libvirt_manifest(), "libvirt-test-readback/v1"),
+        ("virtual-machine", stub_manifest_with_envelope(VIRTUAL_MACHINE_ENVELOPE), "vm-test-readback/v1"),
         (
             "operating-system-container",
-            create_reference_backend_manifest(driver=_OciMode()),
+            stub_manifest_with_envelope(OS_CONTAINER_ENVELOPE),
             "oci-test-readback/v1",
         ),
     ],
@@ -581,7 +577,7 @@ def test_compute_substrate_rejects_each_forged_execution_binding(field_name: str
         """
     )
     model = compile_runtime_model(instantiate_scenario(scenario))
-    manifest = create_libvirt_manifest()
+    manifest = stub_manifest_with_envelope(VIRTUAL_MACHINE_ENVELOPE)
     execution = plan(model, manifest)
     bound_plan = replace(execution.provisioning, operation_id="expected-operation")
     bound_plan = with_compute_substrate_collection_demand(
@@ -646,7 +642,7 @@ def test_substrate_observation_is_required_only_by_explicit_collection_demand() 
         """
     )
     model = compile_runtime_model(instantiate_scenario(scenario))
-    manifest = create_libvirt_manifest()
+    manifest = stub_manifest_with_envelope(VIRTUAL_MACHINE_ENVELOPE)
     execution = plan(model, manifest)
     bound_plan = replace(execution.provisioning, operation_id="operation-without-readback")
     snapshot = RuntimeSnapshot(
@@ -738,7 +734,7 @@ def test_apparatus_rejects_authored_substrate_it_cannot_realize() -> None:
 
     execution = plan(
         compile_runtime_model(instantiate_scenario(scenario)),
-        create_libvirt_manifest(),
+        stub_manifest_with_envelope(VIRTUAL_MACHINE_ENVELOPE),
     )
 
     assert any(item.code == "realization.compute-substrate-not-admitted" for item in execution.diagnostics)

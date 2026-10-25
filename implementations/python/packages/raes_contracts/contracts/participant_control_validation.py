@@ -19,19 +19,53 @@ from .participant_control import (
     ParticipantOverrideOccurrenceModel,
     ParticipantProposalOccurrenceModel,
 )
+from .participant_control_history_verifiability import participant_control_occurrence_lineage
+from .participant_control_occurrence_v2 import ParticipantControlOccurrenceV2Model
+from .participant_control_occurrence_v2_policy import (
+    ParticipantControlOccurrencePolicyModel,
+    ParticipantControlOccurrenceTarget,
+)
+from .participant_control_occurrence_v2_validation import validate_participant_control_history_v2
 
 TargetIndex = dict[tuple[ParticipantControlTargetKind, str], ParticipantControlTargetContextModel]
 DeclarationIndex = dict[tuple[str, str, str], ParticipantControlDeclarationModel]
 
 
 def validate_participant_control_occurrence_context(
-    records: Sequence[ParticipantControlOccurrenceModel],
+    records: Sequence[ParticipantControlOccurrenceModel | ParticipantControlOccurrenceV2Model],
     *,
     declarations: Sequence[ParticipantControlDeclarationModel],
     known_targets: Sequence[ParticipantControlTargetContextModel] = (),
+    policies: Sequence[ParticipantControlOccurrencePolicyModel] = (),
+    available_targets: Sequence[ParticipantControlOccurrenceTarget] = (),
 ) -> None:
-    """Fail closed when API-409 occurrences disagree across identity and policy joins."""
+    """Fail closed when API-409 occurrences disagree across identity and policy joins.
 
+    A batch of only v1 records keeps its fixed-coordinate interpretation. Any other
+    batch must be complete participant history prefixes: each episode is read by its
+    own lineage reader and pinned policy, and a missing policy, declaration set or
+    lineage reader raises ``PARTICIPANT_CONTROL_HISTORY_UNVERIFIABLE``.
+    """
+
+    if any(participant_control_occurrence_lineage(record) != "v1" for record in records):
+        validate_participant_control_history_v2(
+            records,
+            declarations=declarations,
+            known_targets=known_targets,
+            policies=policies,
+            available_targets=available_targets,
+            validate_v1=_validate_v1_occurrences,
+        )
+        return
+    _validate_v1_occurrences(records, declarations=declarations, known_targets=known_targets)
+
+
+def _validate_v1_occurrences(
+    records: Sequence[ParticipantControlOccurrenceModel],
+    *,
+    declarations: Sequence[ParticipantControlDeclarationModel],
+    known_targets: Sequence[ParticipantControlTargetContextModel],
+) -> None:
     declarations_by_ref = _index_declarations(declarations)
     records_by_event_id, proposal_records, target_contexts = _index_records(records, known_targets)
     for record in records_by_event_id.values():
