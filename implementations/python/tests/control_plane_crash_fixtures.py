@@ -76,7 +76,10 @@ class CrashHooks:
         def write_record(connection, record, **options):
             upsert_record(connection, record, **options)
             self.operation_id = record.receipt.operation_id
-            self.hit("after-claim-write" if record.status.state is OperationState.RUNNING else "after-record")
+            if record.status.state is OperationState.ACCEPTED:
+                self.hit("after-claim-write")
+            elif record.status.state not in {OperationState.ACCEPTED, OperationState.RUNNING}:
+                self.hit("after-record")
 
         def write_snapshot(connection, snapshot, **options):
             upsert_snapshot(connection, snapshot, **options)

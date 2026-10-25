@@ -2,6 +2,7 @@
 
 from collections.abc import Callable, Mapping
 
+from raes import ReferencePurpose
 from raes.agents import Agent
 from raes.entities import Entity, flatten_entities
 from raes.scenario import InstantiatedScenario
@@ -15,8 +16,9 @@ from ..models import (
     ParticipantInteractiveAccessRuntime,
     ParticipantToolAffordanceRuntime,
 )
-from ._mixed_control import _compile_mixed_control
+from ._mixed_control_policy import _compile_mixed_control_declaration, mixed_control_semantics
 from .addresses import (
+    _account_address,
     _action_contract_address,
     _assertion_address,
     _behavior_specification_address,
@@ -25,6 +27,7 @@ from .addresses import (
     _outcome_interpretation_rule_address,
     _participant_behavior_address,
     _participant_inject_delivery_address,
+    _resource_address_for_node,
     _section_ref_name,
     _tool_affordance_address,
 )
@@ -130,7 +133,7 @@ def _compile_participant_behavior(
         boundary_names=list(agent.observation_boundaries),
         diagnostics=diagnostics,
     )
-    interactive_access, interactive_access_addresses = _participant_interactive_access(agent, addressable_ref_index)
+    interactive_access, interactive_access_addresses = _participant_interactive_access(scenario, agent)
     starting_account_refs = tuple(agent.starting_accounts)
     starting_account_addresses = _account_addresses_for_refs(scenario, list(agent.starting_accounts))
     initial_knowledge_addresses = _initial_knowledge_addresses(scenario, agent.initial_knowledge)
@@ -138,11 +141,15 @@ def _compile_participant_behavior(
     starting_assertion_addresses = tuple(_assertion_address(ref) for ref in agent.starting_assertions)
     authority_anchor_refs = tuple(agent.authority_anchors)
     authority_anchor_addresses = _runtime_addresses_for_refs(
-        list(agent.authority_anchors), addressable_ref_index=addressable_ref_index
+        list(agent.authority_anchors),
+        addressable_ref_index=addressable_ref_index,
+        purpose=ReferencePurpose.AUTHORITY_ANCHOR,
     )
     operating_scope_refs = tuple(agent.operating_scope)
     operating_scope_addresses = _runtime_addresses_for_refs(
-        list(agent.operating_scope), addressable_ref_index=addressable_ref_index
+        list(agent.operating_scope),
+        addressable_ref_index=addressable_ref_index,
+        purpose=ReferencePurpose.OPERATING_SCOPE,
     )
     dependency_addresses = _dedupe(
         [
@@ -189,14 +196,17 @@ def _compile_participant_behavior(
 
 
 def _participant_interactive_access(
-    agent: Agent, addressable_ref_index: Mapping[str, str]
+    scenario: InstantiatedScenario, agent: Agent
 ) -> tuple[list[ParticipantInteractiveAccessRuntime], list[str]]:
     interactive_access: list[ParticipantInteractiveAccessRuntime] = []
     addresses: list[str] = []
     for access_id, access in sorted(agent.interactive_access.items()):
-        target_addresses = _runtime_addresses_for_refs([access.target_ref], addressable_ref_index=addressable_ref_index)
-        account_addresses = _runtime_addresses_for_refs(
-            [access.account_ref] if access.account_ref else [], addressable_ref_index=addressable_ref_index
+        target_name = _section_ref_name(access.target_ref, "nodes", scenario.nodes)
+        target_addresses = (_resource_address_for_node(scenario, target_name),)
+        account_addresses = (
+            (_account_address(_section_ref_name(access.account_ref, "accounts", scenario.accounts)),)
+            if access.account_ref
+            else ()
         )
         channel = (
             access.channel
@@ -295,6 +305,7 @@ def _compile_behavior_specifications(
         authority_scope_addresses = _runtime_addresses_for_refs(
             list(behavior_spec.authority_scope_refs),
             addressable_ref_index=addressable_ref_index,
+            purpose=ReferencePurpose.AUTHORITY_SCOPE,
         )
         (
             mixed_control_participant_address,
@@ -305,10 +316,12 @@ def _compile_behavior_specifications(
             controller_states,
             control_transitions,
             mixed_control_dependencies,
-        ) = _compile_mixed_control(
+            mixed_control_policy,
+        ) = _compile_mixed_control_declaration(
             spec_name=name,
             behavior_spec=behavior_spec,
             addressable_ref_index=addressable_ref_index,
+            diagnostics=diagnostics,
         )
         dependencies = _dedupe(
             [
@@ -355,6 +368,8 @@ def _compile_behavior_specifications(
             mixed_control_dispositions=mixed_control_dispositions,
             controller_states=controller_states,
             control_transitions=control_transitions,
+            mixed_control_semantics=mixed_control_semantics(behavior_spec.mixed_control),
+            mixed_control_policy=mixed_control_policy,
             realization_profile_ref=str(behavior_spec.realization_profile_ref or ""),
             backend_feature_support_refs=tuple(behavior_spec.backend_feature_support_refs),
             evidence_contract_refs=tuple(behavior_spec.evidence_contract_refs),

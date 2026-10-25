@@ -5,7 +5,7 @@ status: ACTIVE
 type: FUNCTIONAL
 priority: MUST
 created_at: 2026-04-05T01:59:50.501378Z
-updated_at: 2026-09-16T00:50:48Z
+updated_at: 2026-10-21T00:00:00Z
 ---
 
 # SEM-225 — Realization Augmentation And Environment-Visibility Semantics
@@ -150,7 +150,6 @@ If processors or backends add instrumentation or other augmentation, the ecosyst
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/models/runtime_model.py` (Descriptive compilation, scoped inventory and authenticated plan provenance)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/__init__.py` (Descriptive compilation, scoped inventory and authenticated plan provenance)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/core.py` (Descriptive compilation, scoped inventory and authenticated plan provenance)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/manifest.py` (Keep unsupported attestation contracts out of the reference declaration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_calls.py` (Attestation admission, execution isolation and durable runtime-owned references)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_effect_transitions.py` (Attestation admission, execution isolation and durable runtime-owned references)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_input_contracts.py` (Attestation admission, execution isolation and durable runtime-owned references)

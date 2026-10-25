@@ -139,15 +139,18 @@ def test_required_cleanup_requires_verification_probe() -> None:
         _obligation(verification_probe_refs=[])
 
 
-def test_required_cleanup_cannot_be_silently_skipped() -> None:
+@pytest.mark.parametrize("status", ["skipped", "not-triggered"])
+def test_required_cleanup_cannot_be_silently_skipped_or_untriggered(status: str) -> None:
     plan = _plan()
     receipt = _receipt(
         cleanup_status="partial",
-        obligation_results={"destroy-range": _result(status="skipped", evidence_refs=[])},
+        obligation_results={"destroy-range": _result(status=status, evidence_refs=[])},
         clean_state_claim=None,
     )
 
-    with pytest.raises(ValueError, match="required cleanup obligation.*must succeed"):
+    with pytest.raises(
+        ValueError, match=f"required cleanup obligation 'destroy-range' is owed for trigger 'success'.*'{status}'"
+    ):
         validate_trial_cleanup_receipt(plan, receipt)
 
 
@@ -180,15 +183,299 @@ def test_partial_cleanup_discloses_residual_state() -> None:
     assert receipt.obligation_results["destroy-range"].residual_state_refs == ["residual:vm-a"]
 
 
-def test_unsupported_required_cleanup_fails_receipt_validation() -> None:
-    plan = _plan()
+_TERMINAL_TRIGGERS = {
+    "succeeded": "success",
+    "failed": "failure",
+    "cancelled": "cancellation",
+    "timed-out": "timeout",
+    "aborted": "abort",
+}
+
+
+def _unsuccessful_result(status: str) -> CleanupObligationResultModel:
+    if status == "unsupported":
+        return _result(status=status, evidence_refs=[])
+    return _result(status=status, evidence_refs=["evidence:failure-a"], residual_state_refs=["residual:vm-a"])
+
+
+@pytest.mark.parametrize("trial_outcome", sorted(_TERMINAL_TRIGGERS))
+@pytest.mark.parametrize(
+    ("cleanup_status", "result_status"),
+    [
+        ("failed", "failed"),
+        ("partial", "failed"),
+        ("unsupported", "unsupported"),
+        ("unverified", "unverified"),
+    ],
+)
+def test_truthful_required_cleanup_failure_is_reportable_for_every_terminal_trigger(
+    trial_outcome: str, cleanup_status: str, result_status: str
+) -> None:
     receipt = _receipt(
-        cleanup_status="unsupported",
-        obligation_results={"destroy-range": _result(status="unsupported", evidence_refs=[])},
+        trial_outcome=trial_outcome,
+        cleanup_status=cleanup_status,
+        obligation_results={"destroy-range": _unsuccessful_result(result_status)},
         clean_state_claim=None,
     )
 
-    with pytest.raises(ValueError, match="required cleanup obligation.*must succeed"):
+    validate_trial_cleanup_receipt(_plan(), receipt)
+
+    assert receipt.trial_outcome == trial_outcome
+    assert receipt.cleanup_status == cleanup_status
+    assert receipt.clean_state_claim is None
+
+
+def test_issue_reproduction_failed_and_interrupted_cleanup_are_accepted() -> None:
+    plan = _plan(cleanup_obligations={"destroy-range": _obligation(triggers=["success", "failure", "cancellation"])})
+    for trial_outcome, status in (("succeeded", "succeeded"), ("failed", "failed"), ("cancelled", "unverified")):
+        result = _result() if status == "succeeded" else _unsuccessful_result(status)
+        receipt = _receipt(
+            receipt_id=f"receipt-{status}",
+            trial_outcome=trial_outcome,
+            cleanup_status=status,
+            obligation_results={"destroy-range": result},
+            clean_state_claim=None,
+        )
+
+        validate_trial_cleanup_receipt(plan, receipt)
+
+
+def test_partial_cleanup_reports_mixed_required_and_best_effort_results() -> None:
+    plan = _plan(
+        cleanup_obligations={
+            "destroy-range": _obligation(),
+            "collect-logs": _obligation(
+                obligation_id="collect-logs",
+                action_kind="verify",
+                requirement="best-effort",
+                verification_probe_refs=[],
+            ),
+        }
+    )
+    receipt = _receipt(
+        trial_outcome="failed",
+        cleanup_status="partial",
+        obligation_results={
+            "destroy-range": _result(),
+            "collect-logs": _unsuccessful_result("failed").model_copy(update={"obligation_id": "collect-logs"}),
+        },
+        clean_state_claim=None,
+    )
+
+    validate_trial_cleanup_receipt(plan, receipt)
+
+
+@pytest.mark.parametrize("trial_outcome", sorted(_TERMINAL_TRIGGERS))
+@pytest.mark.parametrize("cleanup_status", ["succeeded", "failed", "partial", "unsupported", "unverified"])
+def test_owed_required_cleanup_result_cannot_disappear(trial_outcome: str, cleanup_status: str) -> None:
+    receipt = _receipt(
+        trial_outcome=trial_outcome,
+        cleanup_status=cleanup_status,
+        obligation_results={},
+        clean_state_claim=None,
+    )
+
+    trigger = _TERMINAL_TRIGGERS[trial_outcome]
+    plan = _plan()
+    with pytest.raises(
+        ValueError, match=f"required cleanup obligation 'destroy-range' is owed for trigger '{trigger}'"
+    ):
+        validate_trial_cleanup_receipt(plan, receipt)
+
+
+@pytest.mark.parametrize("trial_outcome", sorted(_TERMINAL_TRIGGERS))
+def test_not_required_cleanup_cannot_hide_an_owed_required_obligation(trial_outcome: str) -> None:
+    receipt = _receipt(
+        trial_outcome=trial_outcome,
+        cleanup_status="not-required",
+        obligation_results={},
+        clean_state_claim=None,
+    )
+
+    plan = _plan()
+    with pytest.raises(ValueError, match="required cleanup obligation 'destroy-range' is owed"):
+        validate_trial_cleanup_receipt(plan, receipt)
+
+
+@pytest.mark.parametrize("result_status", ["failed", "unsupported", "unverified"])
+def test_succeeded_cleanup_cannot_report_unsuccessful_required_result(result_status: str) -> None:
+    # ContractModel is not frozen and model_copy skips model validation, so the
+    # public join must reject false success on its own.
+    receipt = _receipt(clean_state_claim=None).model_copy(
+        update={"obligation_results": {"destroy-range": _unsuccessful_result(result_status)}}
+    )
+
+    plan = _plan()
+    with pytest.raises(
+        ValueError, match="succeeded cleanup status requires required cleanup obligation 'destroy-range'"
+    ):
+        validate_trial_cleanup_receipt(plan, receipt)
+
+
+def test_succeeded_cleanup_cannot_report_unsuccessful_best_effort_result() -> None:
+    plan = _plan(
+        cleanup_obligations={
+            "destroy-range": _obligation(),
+            "collect-logs": _obligation(
+                obligation_id="collect-logs",
+                action_kind="verify",
+                requirement="best-effort",
+                verification_probe_refs=[],
+            ),
+        }
+    )
+    receipt = _receipt(clean_state_claim=None).model_copy(
+        update={
+            "obligation_results": {
+                "destroy-range": _result(),
+                "collect-logs": _result(obligation_id="collect-logs", status="skipped", evidence_refs=[]),
+            }
+        }
+    )
+
+    with pytest.raises(
+        ValueError, match="succeeded cleanup status cannot include unsuccessful result for 'collect-logs'"
+    ):
+        validate_trial_cleanup_receipt(plan, receipt)
+
+
+def test_successful_result_cannot_disclose_residual_state() -> None:
+    with pytest.raises(ValidationError, match="successful cleanup results cannot disclose residual state"):
+        _result(residual_state_refs=["residual:vm-a"])
+
+
+def test_triggered_best_effort_obligation_may_be_skipped_without_required_coverage() -> None:
+    plan = _plan(
+        cleanup_obligations={
+            "destroy-range": _obligation(),
+            "collect-logs": _obligation(
+                obligation_id="collect-logs",
+                action_kind="verify",
+                requirement="best-effort",
+                verification_probe_refs=[],
+            ),
+        }
+    )
+    receipt = _receipt(
+        trial_outcome="cancelled",
+        cleanup_status="partial",
+        obligation_results={
+            "destroy-range": _result(),
+            "collect-logs": _result(obligation_id="collect-logs", status="skipped", evidence_refs=[]),
+        },
+        clean_state_claim=None,
+    )
+
+    validate_trial_cleanup_receipt(plan, receipt)
+
+
+def test_triggered_best_effort_obligation_cannot_claim_not_triggered() -> None:
+    plan = _plan(
+        cleanup_obligations={
+            "destroy-range": _obligation(),
+            "collect-logs": _obligation(
+                obligation_id="collect-logs",
+                action_kind="verify",
+                requirement="best-effort",
+                verification_probe_refs=[],
+            ),
+        }
+    )
+    receipt = _receipt(
+        clean_state_claim=None,
+        obligation_results={
+            "destroy-range": _result(),
+            "collect-logs": _result(obligation_id="collect-logs", status="not-triggered", evidence_refs=[]),
+        },
+    )
+
+    with pytest.raises(ValueError, match="cleanup obligation 'collect-logs' is triggered by 'success'"):
+        validate_trial_cleanup_receipt(plan, receipt)
+
+
+def test_untriggered_obligation_may_be_omitted_or_reported_not_triggered() -> None:
+    plan = _plan(cleanup_obligations={"destroy-range": _obligation(triggers=["failure"])})
+
+    validate_trial_cleanup_receipt(plan, _receipt(obligation_results={}, clean_state_claim=None))
+    validate_trial_cleanup_receipt(
+        plan,
+        _receipt(
+            obligation_results={"destroy-range": _result(status="not-triggered", evidence_refs=[])},
+            clean_state_claim=None,
+        ),
+    )
+
+
+@pytest.mark.parametrize("result_status", ["succeeded", "failed"])
+def test_untriggered_obligation_cannot_report_an_execution_result(result_status: str) -> None:
+    plan = _plan(cleanup_obligations={"destroy-range": _obligation(triggers=["failure"])})
+    result = _result() if result_status == "succeeded" else _unsuccessful_result(result_status)
+    cleanup_status = "succeeded" if result_status == "succeeded" else "failed"
+    receipt = _receipt(
+        cleanup_status=cleanup_status,
+        obligation_results={"destroy-range": result},
+        clean_state_claim=None,
+    )
+
+    with pytest.raises(ValueError, match="cleanup obligation 'destroy-range' is not triggered by 'success'"):
+        validate_trial_cleanup_receipt(plan, receipt)
+
+
+@pytest.mark.parametrize("trial_outcome", sorted(_TERMINAL_TRIGGERS))
+def test_retry_only_obligation_is_never_owed_by_a_terminal_outcome(trial_outcome: str) -> None:
+    reset = _obligation(
+        obligation_id="reset-range",
+        action_kind="reset",
+        triggers=["retry"],
+        idempotency="requires-reset",
+    )
+    plan = _plan(
+        cleanup_obligations={"destroy-range": _obligation(), "reset-range": reset},
+        retry_policy=ExecutionRetryPolicyModel(
+            max_attempts=2,
+            after_effect_policy="reset",
+            reset_obligation_refs=["reset-range"],
+        ),
+    )
+
+    validate_trial_cleanup_receipt(plan, _receipt(trial_outcome=trial_outcome))
+
+
+@pytest.mark.parametrize(
+    ("overrides", "message"),
+    [
+        ({"cleanup_plan_ref": "other-plan"}, "cleanup_plan_ref must match plan_id"),
+        ({"plan_entry_id": "other-entry"}, "plan_entry_id and run_id must match"),
+        ({"run_id": "other-run"}, "plan_entry_id and run_id must match"),
+    ],
+)
+def test_failed_cleanup_receipt_still_binds_plan_identity(overrides: dict[str, object], message: str) -> None:
+    receipt = _receipt(
+        trial_outcome="failed",
+        cleanup_status="failed",
+        obligation_results={"destroy-range": _unsuccessful_result("failed")},
+        clean_state_claim=None,
+        **overrides,
+    )
+
+    plan = _plan()
+    with pytest.raises(ValueError, match=message):
+        validate_trial_cleanup_receipt(plan, receipt)
+
+
+def test_failed_cleanup_receipt_rejects_unknown_obligation_results() -> None:
+    receipt = _receipt(
+        trial_outcome="failed",
+        cleanup_status="failed",
+        obligation_results={
+            "destroy-range": _unsuccessful_result("failed"),
+            "ghost": _unsuccessful_result("failed").model_copy(update={"obligation_id": "ghost"}),
+        },
+        clean_state_claim=None,
+    )
+
+    plan = _plan()
+    with pytest.raises(ValueError, match="unknown obligations: ghost"):
         validate_trial_cleanup_receipt(plan, receipt)
 
 
@@ -508,5 +795,22 @@ def test_receipt_fixtures_cover_terminal_outcomes_and_cleanup_failures() -> None
         "timeout.json",
         "abort.json",
         "partial-cleanup.json",
+        "required-cleanup-failed.json",
+        "success-cleanup-failed.json",
+        "cancellation-cleanup-unverified.json",
+        "timeout-cleanup-unsupported.json",
+        "abort-cleanup-failed.json",
     } <= valid_names
     assert {"unverified-clean-claim.json", "unsupported-clean-claim.json"} <= invalid_names
+
+
+def test_valid_receipt_fixtures_cross_validate_against_the_canonical_cleanup_plan() -> None:
+    plan_payload = json.loads(
+        (FIXTURES_ROOT / "plans" / "trial-cleanup-plan-v1" / "valid" / "fresh-range.json").read_text(encoding="utf-8")
+    )
+    plan = TrialCleanupPlanModel.model_validate(plan_payload)
+    fixture_dir = FIXTURES_ROOT / "control-plane" / "trial-cleanup-receipt-v1" / "valid"
+
+    for path in sorted(fixture_dir.glob("*.json")):
+        receipt = TrialCleanupReceiptModel.model_validate_json(path.read_text(encoding="utf-8"))
+        validate_trial_cleanup_receipt(plan, receipt)

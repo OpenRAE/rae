@@ -29,3 +29,4 @@ Current state: implemented. A per-target control-plane contract is required so r
 - CONSTRAINS → SPEC `contracts/schemas/control-plane/workflow-cancellation-request-v1.json` (Workflow Cancellation Request Schema)
 - TESTS → TEST `implementations/python/tests/test_runtime_control_plane.py` (Runtime Control Plane Tests)
 - TESTS → TEST `implementations/python/tests/test_runtime_control_plane_api.py` (Runtime Control Plane API Tests)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/workflow-cancellation-request-v1.json` (workflow-cancellation-request-v1 published schema)

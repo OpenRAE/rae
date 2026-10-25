@@ -1538,6 +1538,7 @@
                   "ifc-fact": {
                     "discriminator": {
                       "mapping": {
+                        "owner-ifc/rev1": "#/$defs/ControlOwnerSecurityFactModel",
                         "sem-233/rev1": "#/$defs/ControlSecurityFactModel",
                         "teaching-influence-domain/rev1": "#/$defs/ControlTeachingFactModel"
                       },
@@ -1549,6 +1550,9 @@
                       },
                       {
                         "$ref": "#/$defs/ControlSecurityFactModel"
+                      },
+                      {
+                        "$ref": "#/$defs/ControlOwnerSecurityFactModel"
                       }
                     ]
                   }
@@ -1559,6 +1563,7 @@
                 {
                   "discriminator": {
                     "mapping": {
+                      "owner-ifc/rev1": "#/$defs/ControlOwnerSecurityFactModel",
                       "sem-233/rev1": "#/$defs/ControlSecurityFactModel",
                       "teaching-influence-domain/rev1": "#/$defs/ControlTeachingFactModel"
                     },
@@ -1570,6 +1575,9 @@
                     },
                     {
                       "$ref": "#/$defs/ControlSecurityFactModel"
+                    },
+                    {
+                      "$ref": "#/$defs/ControlOwnerSecurityFactModel"
                     }
                   ]
                 },
@@ -1693,6 +1701,56 @@
         "evidence"
       ],
       "title": "ControlObligationCoverageV2Model",
+      "type": "object"
+    },
+    "ControlOwnerSecurityFactModel": {
+      "additionalProperties": false,
+      "description": "V2-only owner fact; retains the incumbent relation and label authority.",
+      "properties": {
+        "domain": {
+          "const": "owner-ifc/rev1",
+          "title": "Domain",
+          "type": "string"
+        },
+        "kind": {
+          "const": "ifc-fact",
+          "title": "Kind",
+          "type": "string"
+        },
+        "label_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Label Ref",
+          "type": "string"
+        },
+        "profile": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "relation": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "sink_decision_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Sink Decision Ref",
+          "type": "string"
+        },
+        "sink_disposition": {
+          "$ref": "#/$defs/ParticipantFlowFinalDisposition"
+        }
+      },
+      "required": [
+        "kind",
+        "domain",
+        "relation",
+        "label_ref",
+        "profile",
+        "sink_decision_ref",
+        "sink_disposition"
+      ],
+      "title": "ControlOwnerSecurityFactModel",
       "type": "object"
     },
     "ControlParentDecisionV2Model": {
@@ -1883,6 +1941,15 @@
       "additionalProperties": false,
       "description": "Profile-owned obligation declared before any provider result exists.",
       "properties": {
+        "admitted_support": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ControlEffectiveSupportModel"
+          },
+          "maxItems": 64,
+          "title": "Admitted Support",
+          "type": "array"
+        },
         "constraints": {
           "items": {
             "$ref": "#/$defs/ControlArtifactReferenceModel"
@@ -3042,6 +3109,17 @@
         "experiment-evidence"
       ],
       "title": "ParticipantCrossingSubjectKind",
+      "type": "string"
+    },
+    "ParticipantFlowFinalDisposition": {
+      "enum": [
+        "permit",
+        "deny",
+        "unsupported",
+        "stale",
+        "unresolved"
+      ],
+      "title": "ParticipantFlowFinalDisposition",
       "type": "string"
     }
   },

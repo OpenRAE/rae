@@ -62,6 +62,8 @@ class AdmittedTrialPlanProfilesModel(ContractModel):
     compiler_profile: Literal[
         "trial-compiler-v1",
         "trial-compiler-mixed-composition-v1",
+        "trial-compiler-replacement-v1",
+        "trial-compiler-replacement-mixed-composition-v1",
     ]
     selection_policy_profile: Literal["experiment-selection-v1"]
     random_stream_profile: Literal["blake3-xof-v1"]

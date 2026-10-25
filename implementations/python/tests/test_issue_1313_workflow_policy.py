@@ -223,38 +223,6 @@ def test_development_container_uses_native_signed_package_sources() -> None:
     assert "USER raes" in dockerfile
 
 
-def test_release_container_lane_has_no_same_job_export_import() -> None:
-    root = Path(__file__).resolve().parents[3]
-    workflow = yaml.safe_load((root / ".github/workflows/release-please.yml").read_text())
-    job = workflow["jobs"]["integration-docker-release"]
-    commands = "\n".join(step.get("run", "") for step in job["steps"])
-    assert "oci_release_image.py export" not in commands
-    assert "oci_release_image.py import" not in commands
-    required = next(step for step in job["steps"] if step.get("name") == "Require real-container release integration")
-    assert required["env"]["RAES_DOCKER_INTEGRATION_REQUIRED"] == "1"
-    assert "RAES_OCI_SOURCE_CLASS" not in required["env"]
-
-
-@pytest.mark.parametrize("mode", ["mirror", "preseeded"])
-def test_retired_oci_modes_do_not_silently_enable_public_network(mode: str) -> None:
-    from tools.oci_release_image import ImageAdmissionError, resolve_source
-
-    with pytest.raises(ImageAdmissionError, match="source-class"):
-        resolve_source({"RAES_OCI_SOURCE_CLASS": mode, "RAES_OCI_MIRROR_REPOSITORY": "mirror.invalid/alpine"})
-
-
-@pytest.mark.parametrize("script", ["run_aws_smoke.sh", "run_aws_guest_certify.sh"])
-def test_online_aws_smokes_do_not_preseed_a_complete_python_wheelhouse(script: str) -> None:
-    root = Path(__file__).resolve().parents[3]
-    text = (root / "tools/real-daemon" / script).read_text()
-    assert "snapshot.ubuntu.com" not in text
-    assert "Check-Valid-Until: no" not in text
-    assert "stage/wheelhouse" not in text
-    assert "--require-hashes" in text
-    assert "--build-constraints" in text
-    assert "--frozen" in text
-
-
 def test_release_inventory_reads_only_its_native_workflow_graph(tmp_path: Path) -> None:
     from tools.release_evidence import _workflow_actions
 

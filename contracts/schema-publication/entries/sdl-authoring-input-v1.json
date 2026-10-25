@@ -1,9 +1,9 @@
 {
-  "content_hash": "c89bbbb26022f043fa1b7da27356d4667edd80426c359173c7238820d18ed122",
+  "content_hash": "76b02a73ec0d5f0e5b64513fc24e7aa97fba00369e299f09b6c6405c4e802cbe",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "c89bbbb26022f043fa1b7da27356d4667edd80426c359173c7238820d18ed122",
-    "summary": "Reject empty and whitespace-only behavior specification version labels, matching existing parser validity; DSL-116 issue #297."
+    "content_hash": "76b02a73ec0d5f0e5b64513fc24e7aa97fba00369e299f09b6c6405c4e802cbe",
+    "summary": "Publish reusable and finite-script mixed-control rev1 policies, paired script windows, closed portable-key maps and directed-delivery control blocks; retain canonical relationship eligibility from #1339; issue #1363."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"
