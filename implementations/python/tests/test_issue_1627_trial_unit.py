@@ -187,14 +187,17 @@ def test_result_detaches_execution_snapshot_before_backend_teardown():
 
 @pytest.mark.parametrize("attempt_id", [True, 1, "", " ", "x" * 257])
 def test_request_rejects_non_string_blank_and_unbounded_attempt_identity(attempt_id):
+    request = _request()
     with pytest.raises(ValueError, match="identity"):
-        replace(_request(), execution_attempt_id=attempt_id)
+        replace(request, execution_attempt_id=attempt_id)
 
 
 def test_result_rejects_unbounded_evidence_before_copying():
     request = _request()
+    result = _result(request)
+    evidence = _evidence(request)
     with pytest.raises(ValueError, match="bounded|limits"):
-        replace(_result(request), evidence=(_evidence(request),) * 4097)
+        replace(result, evidence=(evidence,) * 4097)
 
 
 def test_result_validation_reconstructs_nested_models_again():
