@@ -219,15 +219,16 @@ def _git_show(repo_root: Path, gitref: str) -> str | None:
 
 
 def _git_paths(repo_root: Path, revision: str, directory: str) -> list[str] | None:
+    # Bytes, not text mode, so a carriage return in a name survives; names decode as strict UTF-8 (#1473).
     proc = subprocess.run(
         ["git", "ls-tree", "-r", "--name-only", "-z", revision, "--", directory],
         cwd=repo_root,
         capture_output=True,
-        text=True,
     )
     if proc.returncode != 0:
         return None
-    return sorted(path for path in proc.stdout.split("\0") if path.endswith(".json"))
+    paths = (path.decode("utf-8") for path in proc.stdout.split(b"\0"))
+    return sorted(path for path in paths if path.endswith(".json"))
 
 
 def _manifest_entries(payload: dict[str, Any]) -> dict[str, dict[str, Any]]:

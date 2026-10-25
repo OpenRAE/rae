@@ -25,6 +25,7 @@ from tools.nox_support.config import (
     RUFF_CONFIG,
     VERIFY_PROJECT_SYNCED_ENV,
 )
+from tools.policy.common import git_paths
 from tools.policy.requirement_scope import RequirementScopeError
 from tools.python_closure_profiles import frozen_tool_command
 from tools.requirement_context import current_requirement_branch, resolve_requirement_context
@@ -94,15 +95,7 @@ def _run(
 
 
 def _git_paths(command: str, *options: str) -> list[str]:
-    """Run a git path listing with -z, which prints names verbatim that git would otherwise quote (#1473)."""
-    proc = subprocess.run(
-        ["git", command, "-z", *options],
-        cwd=REPO_ROOT,
-        text=True,
-        capture_output=True,
-        check=True,
-    )
-    return [path for path in proc.stdout.split("\0") if path]
+    return git_paths(command, *options, repo_root=REPO_ROOT)
 
 
 _EXCLUDE_DELETED_FILTER = "--diff-filter=d"
