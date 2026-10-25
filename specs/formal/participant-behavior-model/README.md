@@ -620,9 +620,10 @@ preserves historical meaning and states the required reader boundary.
 The SDL and compiler publish two forms. The following describes the legacy
 form, selected when `mixed_control` has no `semantics`, and its retained
 historical interpretation. The other published form is the reusable
-`mixed-control-policy-occurrence/rev1` form, which validates and compiles but
-which planning and runtime admission refuse. Neither description is evidence
-of executable adoption of the reusable amendment.
+`mixed-control-policy-occurrence/rev1` form (issue #1363). Only the explicitly
+installed RUN-310 control path of issue #1364 executes it; planning without
+that path's admission, the runtime manager, and control-plane construction
+without the installed binding refuse it.
 
 A behavior specification in `mixed-control` mode carries one explicit
 `mixed_control` policy for one of its `participant_refs`. The policy is a
@@ -680,8 +681,12 @@ Issue #251 provides the authored model, semantic validation, composition,
 governed SDL schema publication, valid/invalid fixtures, typed compiler
 projection, and negative/state-transition evidence. Issues #252 (PR #868) and
 #255 (PR #911) delivered portable occurrence contracts and runtime
-mediation/persistence for this fixed-coordinate form; #1363 owns executable
-adoption of the reusable amendment.
+mediation/persistence for this fixed-coordinate form. For the reusable
+amendment, issue #1363 (PR #1584) delivered authoring, validation,
+compilation, and the API-409 `participant-control-occurrence-v2` contract, and
+issue #1364 (PR #1613) delivered the installed runtime path. The
+[coverage matrix](../participant-semantics/semantic-coverage.md) row
+`ACT-617.F` names the open owners of the remaining consumer adoption.
 
 ## Cross-Clause Invariants
 

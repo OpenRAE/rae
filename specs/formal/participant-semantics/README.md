@@ -3,8 +3,13 @@
 Issue #1354 and ADR-114 publish [IFC profile variability and publication](ifc-profile-variability.md).
 The amendment separates authored requirements, exact profile expressibility
 and evidenced realization, preserving this document's original revision and
-implementation boundary. It adds no registered owner-aware profile or runtime
-support; its migration contract governs future adoption.
+implementation boundary. The amendment itself registers no owner-aware profile
+or runtime support. Issue #1370 (PR #1614) adopted it under its migration
+contract: the finite two-owner `participant-owner-flow-policy-v1` profile,
+per-obligation release authority, independent sink resolution, and API-424 v2
+admission of the profile's obligations and admitted support. The
+[owner-qualified IFC reference](../../../docs/explain/reference/owner-qualified-ifc.md)
+states its supported cases and nonclaims.
 
 Issue #1352 and ADR-111 publish the
 [control applicability and evaluation amendment](control-applicability-and-evaluation.md)
@@ -17,8 +22,14 @@ categories and evolving participant-local state within the SEM-215 family.
 Issue #1351 and ADR-110 publish the
 [reusable mixed-control policy/occurrence contract](reusable-mixed-control.md)
 for ACT-617, API-409, RUN-310 and DSL-142. Its finite model is design evidence;
-the contract states the fixed-coordinate implementation and historical-reader
-boundary explicitly.
+the contract states the historical-reader boundary explicitly. Issue #1363
+(PR #1584) added the reusable authoring form and the API-409
+`participant-control-occurrence-v2` carrier. Issue #1364 (PR #1613) added the
+explicitly installed RUN-310 control path that executes that form; planning
+without that path's admission, the runtime manager, and control-plane
+construction without the installed binding refuse it. The
+[coverage matrix](semantic-coverage.md) row `ACT-617.F` names the open owners
+of the remaining consumer adoption.
 
 This document is the issue #71 formal design artifact for:
 
@@ -485,7 +496,7 @@ concerns that belong to other RAES design or evidence gates.
 | Machine-checkable semantic validation | Needs cross-gate evidence | #162, #168 | #220 | Provide participant-specific invariants and negative fixtures; do not treat ADR prose as conformance |
 | DSL language adequacy | Needs dedicated evidence | #346 | #221 | Provide ambiguity, usability, maintainability, reviewability, and authoring-profile evidence for concrete syntax |
 
-The "Current open owner(s)" column records the open issues on 2026-10-13. Of
+The "Current open owner(s)" column records the open issues on 2026-10-25. Of
 the original owners, #106, #124, #125, #273, #328, and #333 are still open;
 #165, #166, #170, and #177 were transferred to OpenRAE/research; the rest are
 closed. Every [coverage matrix](semantic-coverage.md) row that defers to one of

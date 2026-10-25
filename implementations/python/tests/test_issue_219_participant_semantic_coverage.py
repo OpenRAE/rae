@@ -1,10 +1,11 @@
 """Guard the participant semantic coverage matrix against drift (issue #219, ASR-506).
 
-The matrix in ``specs/formal/participant-semantics/semantic-coverage.md`` maps every
-participant-semantics clause to contracts, implementation, tests, an evidence class,
-coverage, and an open owner. These checks read the clause sources from the tree and
-require agreement in both directions; whether a cited test exercises the whole clause
-stays a review judgment.
+The matrix indexed by ``specs/formal/participant-semantics/semantic-coverage.md`` maps
+every participant-semantics clause to contracts, implementation, tests, an evidence
+class, coverage, and an open owner; its rows live in the part files under
+``semantic-coverage/``. These checks read the clause sources from the tree and require
+agreement in both directions; whether a cited test exercises the whole clause stays a
+review judgment.
 """
 
 from __future__ import annotations
@@ -24,7 +25,8 @@ from raes_runtime.participant_control import ParticipantControlMixin
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SEMANTICS_DIR = REPO_ROOT / "specs/formal/participant-semantics"
 README = SEMANTICS_DIR / "README.md"
-MATRIX = SEMANTICS_DIR / "semantic-coverage.md"
+INDEX = SEMANTICS_DIR / "semantic-coverage.md"
+PARTS = sorted((SEMANTICS_DIR / "semantic-coverage").glob("*.md"))
 BEHAVIOR_README = REPO_ROOT / "specs/formal/participant-behavior-model/README.md"
 RUNTIME_README = REPO_ROOT / "specs/formal/participant-runtime/README.md"
 TESTS_DIR = REPO_ROOT / "implementations/python/tests"
@@ -59,20 +61,27 @@ def _normalize(text: str) -> str:
     return " ".join(text.replace("`", "").split())
 
 
-def _matrix_rows() -> list[dict[str, str]]:
-    rows: list[dict[str, str]] = []
+def _table_rows(path: Path, header: str) -> list[list[str]]:
+    rows: list[list[str]] = []
     in_table = False
-    for line in MATRIX.read_text(encoding="utf-8").splitlines():
-        if line == HEADER:
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line == header:
             in_table = True
         elif in_table and line.startswith("| ---"):
             continue
         elif in_table and line.startswith("|"):
-            cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
-            rows.append(dict(zip(COLUMNS, cells, strict=True)))
+            rows.append([cell.strip() for cell in line.strip().strip("|").split("|")])
         else:
             in_table = False
     return rows
+
+
+def _matrix_rows() -> list[dict[str, str]]:
+    return [
+        {**dict(zip(COLUMNS, cells, strict=True)), "part": part.name}
+        for part in PARTS
+        for cells in _table_rows(part, HEADER)
+    ]
 
 
 ROWS = _matrix_rows()
@@ -142,8 +151,12 @@ def _evidence(row: dict[str, str]) -> dict[str, list[str]]:
     return {cls: CODE.findall(refs) for cls, _, refs in (part.partition(": ") for part in row["tests"].split("; "))}
 
 
+def _owner_refs(row: dict[str, str]) -> list[str]:
+    return re.findall(r"#(\d+)", row["owner"].split("(", 1)[0])
+
+
 def _owners(row: dict[str, str]) -> set[str]:
-    return set(re.findall(r"#(\d+)", row["owner"].split("(", 1)[0]))
+    return set(_owner_refs(row))
 
 
 @cache
@@ -194,7 +207,7 @@ def test_every_readme_sem_section_has_a_row() -> None:
 
 def test_every_focused_specification_is_named_by_a_family_row() -> None:
     family = " ".join(row["location"] for clause, row in BY_CLAUSE.items() if clause.endswith(".F"))
-    specs = sorted(path.name for path in SEMANTICS_DIR.glob("*.md") if path.name not in {README.name, MATRIX.name})
+    specs = sorted(path.name for path in SEMANTICS_DIR.glob("*.md") if path.name not in {README.name, INDEX.name})
     missing = [name for name in specs if f"specs/formal/participant-semantics/{name}`" not in family]
     assert specs
     assert not missing, f"focused specifications without a family row: {missing}"
@@ -209,6 +222,23 @@ def test_every_declared_scope_uid_has_a_row() -> None:
     mapped = {uid for row in ROWS for uid in UID.findall(row["requirements"])}
     assert declared
     assert not [uid for uid in declared if uid not in mapped]
+
+
+def test_index_lists_every_part_with_its_row_count() -> None:
+    listed = {
+        re.fullmatch(r"\[(.+)\]\(semantic-coverage/\1\)", part).group(1): int(rows)
+        for part, rows, _clauses in _table_rows(INDEX, "| Part | Rows | Clauses |")
+    }
+    counted = {part.name: sum(row["part"] == part.name for row in ROWS) for part in PARTS}
+    assert PARTS
+    assert listed == counted
+    assert not _table_rows(INDEX, HEADER), "matrix rows belong in the part files"
+
+
+def test_index_open_rows_match_the_part_rows() -> None:
+    listed = {clause: (part, owners) for clause, part, owners in _table_rows(INDEX, "| Clause | Part | Owner(s) |")}
+    derived = {row["clause"]: (row["part"], ", ".join(f"#{ref}" for ref in _owner_refs(row))) for row in OPEN_ROWS}
+    assert listed == derived
 
 
 def test_rows_use_closed_vocabularies_and_list_their_evidence_classes() -> None:
