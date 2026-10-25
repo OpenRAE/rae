@@ -148,7 +148,7 @@ def _registry_route(
             return 401, [*headers, ("Content-Type", "application/json")], b'{"errors":[{"code":"UNAUTHORIZED"}]}'
         if path == f"{prefix}tags/list":
             return _json({"name": REPOSITORY, "tags": [layout.tag]})
-        if path == f"{prefix}manifests/{layout.tag}":
+        if path in (f"{prefix}manifests/{layout.tag}", f"{prefix}manifests/{layout.manifest_digest}"):
             return 200, [("Content-Type", module_registry.OCI_LAYOUT_MEDIA_TYPE)], layout.blobs[layout.manifest_digest]
         if path.startswith(f"{prefix}blobs/"):
             digest = path.removeprefix(f"{prefix}blobs/")
@@ -353,6 +353,46 @@ def test_import_uses_one_anonymous_token_and_retries_each_request_once(
         attempt for path in resources for attempt in (_Seen(path, None), _Seen(path, f"Bearer {token}"))
     ]
     assert storage.seen == imports * [
+        _Seen(f"/storage/{digest}?{SIGNED_QUERY}", None) for digest in (layout.config_digest, layout.bundle_digest)
+    ]
+
+
+@pytest.mark.parametrize("hops", [1, 2], ids=["one-locked-hop", "two-locked-hops"])
+def test_locked_import_fetches_the_pinned_manifest_through_the_token_flow(
+    tmp_path: Path, layout: _Layout, serve: Callable[..., _Server], https: ssl.SSLContext, hops: int
+) -> None:
+    token = _new_token()
+    token_server = serve(_fixed_route(_json({"token": token})), tls=https)
+    storage = serve(_storage_route(layout))
+    routes = [_registry_route(layout, token=None, challenges=[], blob_location=storage.origin, anonymous=True)]
+    registry = serve(lambda path, authorization: routes[-1](path, authorization))
+    root = _import_root(tmp_path, registry)
+    # Lock while the registry is anonymous, so only the locked resolution meets the challenge.
+    record = module_registry.resolve_lock_records(root).imports[0]
+    routes.append(
+        _registry_route(layout, token=token, challenges=[_challenge(token_server)], blob_location=storage.origin)
+    )
+    # A locked: chain resolves record by record until it reaches the oci: record that pins the manifest digest.
+    chain = [record.model_copy(update={"source": f"locked:{record.resolved_source}", "resolved_source": "first"})]
+    module_registry.write_lockfile(tmp_path, module_registry.Lockfile(imports=[*chain[: hops - 1], record]))
+    locked_ref = "first" if hops == 2 else record.resolved_source
+    root.write_text(root.read_text(encoding="utf-8").replace(record.source, f"locked:{locked_ref}"), encoding="utf-8")
+    for server in (token_server, registry, storage):
+        server.seen.clear()
+
+    scenario = parse_sdl_file(root)
+
+    assert set(scenario.nodes) == {"shared.vm"}
+    assert token_server.seen == [_Seen(f"/token?{TOKEN_QUERY}", None)]
+    resources = [
+        f"/v2/{REPOSITORY}/manifests/{layout.manifest_digest}",
+        f"/v2/{REPOSITORY}/blobs/{layout.config_digest}",
+        f"/v2/{REPOSITORY}/blobs/{layout.bundle_digest}",
+    ]
+    assert registry.seen == [
+        attempt for path in resources for attempt in (_Seen(path, None), _Seen(path, f"Bearer {token}"))
+    ]
+    assert storage.seen == [
         _Seen(f"/storage/{digest}?{SIGNED_QUERY}", None) for digest in (layout.config_digest, layout.bundle_digest)
     ]
 
