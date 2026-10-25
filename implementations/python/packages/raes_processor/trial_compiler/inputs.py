@@ -283,18 +283,7 @@ def coordinates(request: TrialCompilationRequest) -> list[TrialCoordinateModel]:
 
     run_plan = request.experiment.run_plan
     if run_plan.allocation is None:
-        count = run_plan.target_run_count or 0
-        if count == 0:
-            raise _fail(
-                "coordinate-set-empty", _RUN_PLAN_ADDRESS, "run allocation produced no logical trial coordinates"
-            )
-        if count > request.limits.max_coordinates:
-            raise _fail(
-                "coordinate-limit-exceeded",
-                _RUN_PLAN_ADDRESS,
-                "logical trial coordinates exceed the compilation limit",
-            )
-        return [TrialCoordinateModel(replicate_id=replicate_id(ordinal)) for ordinal in range(1, count + 1)]
+        return _unconditioned_coordinates(request)
 
     per_condition = run_plan.allocation.target_runs_per_condition
     condition_count = len(run_plan.allocation.compared_conditions)
@@ -315,6 +304,19 @@ def coordinates(request: TrialCompilationRequest) -> list[TrialCoordinateModel]:
             for ordinal in range(1, per_condition + 1)
         )
     return output
+
+
+def _unconditioned_coordinates(request: TrialCompilationRequest) -> list[TrialCoordinateModel]:
+    count = request.experiment.run_plan.target_run_count or 0
+    if count == 0:
+        raise _fail("coordinate-set-empty", _RUN_PLAN_ADDRESS, "run allocation produced no logical trial coordinates")
+    if count > request.limits.max_coordinates:
+        raise _fail(
+            "coordinate-limit-exceeded",
+            _RUN_PLAN_ADDRESS,
+            "logical trial coordinates exceed the compilation limit",
+        )
+    return [TrialCoordinateModel(replicate_id=replicate_id(ordinal)) for ordinal in range(1, count + 1)]
 
 
 def plan_intent(request: TrialCompilationRequest, planned_coordinates: list[TrialCoordinateModel]) -> dict[str, object]:

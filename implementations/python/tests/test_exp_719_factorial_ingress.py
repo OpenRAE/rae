@@ -21,8 +21,9 @@ def test_compact_factorial_input_passes_schema_and_loader() -> None:
 def test_malformed_factorial_sections_fail_with_safe_diagnostics(field: str) -> None:
     payload = _payload()
     payload[field] = ["sensitive-canary-value"]
+    source = json.dumps(payload)
     with pytest.raises(ExperimentSpecValidationError) as caught:
-        parse_experiment_spec(json.dumps(payload))
+        parse_experiment_spec(source)
     assert caught.value.code == "contract-invalid"
     assert "sensitive-canary-value" not in str(caught.value)
 

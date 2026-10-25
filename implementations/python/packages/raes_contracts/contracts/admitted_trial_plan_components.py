@@ -17,7 +17,7 @@ from raes.identifiers import PortableIdentifier
 
 from ..diagnostics import DiagnosticModel
 from .base import ContractModel, NonEmptyString, PositiveInteger, PrefixedDigestString
-from .experiment_bindings import ExperimentBindingDescriptorModel
+from .experiment_bindings import ExperimentBindingDescriptorModel, ParticipantConfigurationResultModel
 from .experiment_manifest_references import ExperimentManifestReferenceModel
 from .experiment_references import (
     ExperimentReferenceModel,
@@ -372,32 +372,30 @@ def validate_entry_participant_configurations(entry: AdmittedTrialEntryModel) ->
         ) not in authorities:
             raise ValueError("participant configuration identity must match its admitted manifest authority")
     for descriptor in participant_bindings:
-        target = descriptor.target
-        result = configurations[target.participant_address]
-        values = {value.target_id: value for value in result.configuration.values}
-        value = values.get(target.target_id)
-        if (
-            value is None
-            or value.value != descriptor.value
-            or value.value_type != descriptor.value_type
-            or result.configuration.owner != descriptor.owner
-        ):
-            raise ValueError("participant configuration must realize its admitted binding")
-        if not any(
-            (
-                ref.participant_address,
-                ref.implementation_name,
-                ref.implementation_version,
-                ref.manifest_version,
-                ref.manifest_digest,
-            )
-            == (
-                target.participant_address,
-                target.implementation_name,
-                target.implementation_version,
-                target.manifest_version,
-                result.manifest_digest,
-            )
-            for ref in entry.apparatus.participant_manifest_refs
-        ):
-            raise ValueError("participant configuration must match its admitted manifest authority")
+        _validate_configuration_binding(descriptor, configurations[descriptor.target.participant_address], authorities)
+
+
+def _validate_configuration_binding(
+    descriptor: ExperimentBindingDescriptorModel,
+    result: ParticipantConfigurationResultModel,
+    authorities: set[tuple[str, str, str, str, str]],
+) -> None:
+    target = descriptor.target
+    values = {value.target_id: value for value in result.configuration.values}
+    value = values.get(target.target_id)
+    if (
+        value is None
+        or value.value != descriptor.value
+        or value.value_type != descriptor.value_type
+        or result.configuration.owner != descriptor.owner
+    ):
+        raise ValueError("participant configuration must realize its admitted binding")
+    authority = (
+        target.participant_address,
+        target.implementation_name,
+        target.implementation_version,
+        target.manifest_version,
+        result.manifest_digest,
+    )
+    if authority not in authorities:
+        raise ValueError("participant configuration must match its admitted manifest authority")

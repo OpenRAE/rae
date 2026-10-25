@@ -221,6 +221,19 @@ class AdmittedTrialPlanModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_plan(self) -> AdmittedTrialPlanModel:
+        self._validate_replacement()
+        self._validate_map_keys()
+        self._validate_identity_graph()
+        self._validate_joins()
+        self._validate_authority_agreement()
+        self._validate_isolation()
+        self._validate_allocation()
+        if self.admission.entry_count != len(self.entries):
+            raise ValueError("admission entry_count must equal the number of admitted entries")
+        _verify_self_digest(self, "plan_digest")
+        return self
+
+    def _validate_replacement(self) -> None:
         replacement_profile = self.profiles.compiler_profile.startswith("trial-compiler-replacement-")
         if replacement_profile != (self.replacement_origin is not None):
             raise ValueError("replacement lineage requires the replacement compiler profile")
@@ -232,11 +245,8 @@ class AdmittedTrialPlanModel(ContractModel):
                 raise ValueError("replacement must be a distinct single-entry plan")
             if next(iter(self.entries.values())).run_id == origin.parent_run_id:
                 raise ValueError("replacement cannot reuse its parent run identity")
-        self._validate_map_keys()
-        self._validate_identity_graph()
-        self._validate_joins()
-        self._validate_authority_agreement()
-        self._validate_isolation()
+
+    def _validate_allocation(self) -> None:
         if (self.profiles.allocation_profile != "none") != (self.allocation is not None):
             raise ValueError("allocation profile and recorded allocation must agree")
         if self.allocation is not None:
@@ -253,10 +263,6 @@ class AdmittedTrialPlanModel(ContractModel):
             expected = compile_experiment_allocation(self.allocation.policy, domain, self.stochastic_controls)
             if self.allocation != expected:
                 raise ValueError("recorded allocation does not match deterministic reconstruction")
-        if self.admission.entry_count != len(self.entries):
-            raise ValueError("admission entry_count must equal the number of admitted entries")
-        _verify_self_digest(self, "plan_digest")
-        return self
 
     def _validate_authority_agreement(self) -> None:
         # Values duplicated from incumbent authorities must agree, or a correctly

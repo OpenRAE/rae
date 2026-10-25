@@ -20,12 +20,16 @@ from raes_contracts.contracts import (
     AdmittedTrialPlanModel,
     BackendManifestV2Model,
     ExperimentBindingDescriptorModel,
+    ExperimentStochasticControlModel,
     TrialCleanupPlanModel,
     TrialCoordinateModel,
     seal_admitted_trial_entry,
     seal_admitted_trial_plan,
 )
-from raes_contracts.contracts.experiment_allocation import compile_experiment_allocation
+from raes_contracts.contracts.experiment_allocation import (
+    AdmittedExperimentAllocationModel,
+    compile_experiment_allocation,
+)
 from raes_contracts.contracts.trial_coordinate_order import canonical_coordinate_sort_key
 from raes_contracts.diagnostics import Diagnostic, Severity
 
@@ -361,24 +365,8 @@ def _compile(
     )
     if request.experiment.factorial_design is not None:
         _validate_factorial_distinctness(entries)
-    controls = {
-        control.control_id: control
-        for control in request.experiment.run_plan.stochastic_controls
-        if control.control_id in used_control_ids
-    }
-    allocation = None
+    controls, allocation = _compile_controls_and_allocation(request, entries, used_control_ids)
     policy = request.experiment.run_plan.allocation_policy
-    if policy is not None:
-        controls[policy.stochastic_control_ref] = next(
-            control
-            for control in request.experiment.run_plan.stochastic_controls
-            if control.control_id == policy.stochastic_control_ref
-        )
-        domain = [
-            entry.plan_entry_id
-            for entry in sorted(entries.values(), key=lambda entry: canonical_coordinate_sort_key(entry.coordinate))
-        ]
-        allocation = compile_experiment_allocation(policy, domain, controls)
     plan = seal_admitted_trial_plan(
         plan_id=plan_id,
         profiles=admitted_profiles(
@@ -406,6 +394,31 @@ def _compile(
             "canonical admitted plan bytes exceed the compilation limit",
         )
     return plan
+
+
+def _compile_controls_and_allocation(
+    request: TrialCompilationRequest,
+    entries: Mapping[str, AdmittedTrialEntryModel],
+    used_control_ids: set[str],
+) -> tuple[dict[str, ExperimentStochasticControlModel], AdmittedExperimentAllocationModel | None]:
+    controls = {
+        control.control_id: control
+        for control in request.experiment.run_plan.stochastic_controls
+        if control.control_id in used_control_ids
+    }
+    policy = request.experiment.run_plan.allocation_policy
+    if policy is None:
+        return controls, None
+    controls[policy.stochastic_control_ref] = next(
+        control
+        for control in request.experiment.run_plan.stochastic_controls
+        if control.control_id == policy.stochastic_control_ref
+    )
+    domain = [
+        entry.plan_entry_id
+        for entry in sorted(entries.values(), key=lambda entry: canonical_coordinate_sort_key(entry.coordinate))
+    ]
+    return controls, compile_experiment_allocation(policy, domain, controls)
 
 
 def _validate_factorial_distinctness(entries: Mapping[str, AdmittedTrialEntryModel]) -> None:

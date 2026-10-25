@@ -235,6 +235,19 @@ def _run_satisfies_condition_assignment(
     )
     run_condition = run.difficulty_provenance.policy.condition if run.difficulty_provenance is not None else "fixed"
     run_policy_id = run.difficulty_provenance.policy.policy_id if run.difficulty_provenance is not None else None
+    missing.extend(_missing_required_bindings(run, assignment))
+    if run_condition != assignment.difficulty_condition:
+        missing.append(f"difficulty-condition:{assignment.difficulty_condition}")
+    if assignment.difficulty_policy_id is not None and run_policy_id != assignment.difficulty_policy_id:
+        missing.append(f"difficulty-policy:{assignment.difficulty_policy_id}")
+    return missing
+
+
+def _missing_required_bindings(
+    run: ExperimentRunModel,
+    assignment: ExperimentConditionAssignmentModel,
+) -> list[str]:
+    missing = []
     for required in assignment.required_bindings:
         expected = required.realization_payload()
         if not any(
@@ -243,10 +256,6 @@ def _run_satisfies_condition_assignment(
             for binding in run.realized_bindings
         ):
             missing.append(f"binding:{required.binding_id}")
-    if run_condition != assignment.difficulty_condition:
-        missing.append(f"difficulty-condition:{assignment.difficulty_condition}")
-    if assignment.difficulty_policy_id is not None and run_policy_id != assignment.difficulty_policy_id:
-        missing.append(f"difficulty-policy:{assignment.difficulty_policy_id}")
     return missing
 
 

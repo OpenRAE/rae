@@ -32,6 +32,7 @@ from ..vocabulary import (
 from ._backend_operation_exports import *
 from ._candidate_synthesis_facade import *
 from ._evidence_requirement_exports import *
+from ._experiment_design_exports import *
 from ._exports import PUBLIC_EXPORTS as __all__
 from ._inject_occurrence_exports import *
 from ._mixed_backend_exports import *
@@ -121,8 +122,6 @@ from .execution_state import (
     WorkflowHistoryEventModel,
     WorkflowStepStateModel,
 )
-from .experiment_allocation import AdmittedExperimentAllocationModel as AdmittedExperimentAllocationModel
-from .experiment_allocation import ExperimentAllocationPolicyModel as ExperimentAllocationPolicyModel
 from .experiment_analysis import (
     validate_experiment_study_against_tasks_and_runs,
     validate_experiment_study_structure_against_tasks_and_runs,
@@ -152,8 +151,6 @@ from .experiment_artifacts import (
 from .experiment_bindings import *
 from .experiment_capture import *
 from .experiment_disclosure import *
-from .experiment_factorial import ExperimentFactorialDesignModel as ExperimentFactorialDesignModel
-from .experiment_factorial import ExperimentFactorLevelBindingModel as ExperimentFactorLevelBindingModel
 from .experiment_manifest_references import (
     ExperimentBackendReferenceModel,
     ExperimentCaptureSpecReferenceModel,

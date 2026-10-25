@@ -269,53 +269,7 @@ class ExperimentSpecModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        json_schema.setdefault("allOf", []).extend(
-            [
-                {
-                    "if": {"properties": {"factorial_design": {"type": "null"}}},
-                    "then": {
-                        "properties": {
-                            "run_plan": {
-                                "anyOf": [
-                                    {
-                                        "required": ["allocation"],
-                                        "properties": {"allocation": {"not": {"type": "null"}}},
-                                    },
-                                    {
-                                        "required": ["target_run_count"],
-                                        "properties": {"target_run_count": {"not": {"type": "null"}}},
-                                    },
-                                ]
-                            }
-                        }
-                    },
-                },
-                {
-                    "if": {
-                        "allOf": [
-                            {
-                                "properties": {"binding_semantics": {"const": "explicit-required"}},
-                                "required": ["binding_semantics"],
-                            },
-                            {"properties": {"factorial_design": {"type": "null"}}},
-                        ]
-                    },
-                    "then": {
-                        "required": ["binding_descriptors"],
-                        "properties": {"binding_descriptors": {"not": {"type": "null"}}},
-                    },
-                },
-                {
-                    "if": {
-                        "properties": {"binding_descriptors": {"not": {"type": "null"}}},
-                        "required": ["binding_descriptors"],
-                    },
-                    "then": {
-                        "properties": {"binding_semantics": {"const": "explicit-required"}},
-                    },
-                },
-            ]
-        )
+        _add_authoring_conditionals(json_schema)
         _add_raes_invariant(
             json_schema,
             "experiment-spec-blocking-factors-declared",
@@ -369,3 +323,53 @@ class ExperimentSpecModel(ContractModel):
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
         return json_schema
+
+
+def _add_authoring_conditionals(json_schema: JsonSchemaValue) -> None:
+    json_schema.setdefault("allOf", []).extend(
+        [
+            {
+                "if": {"properties": {"factorial_design": {"type": "null"}}},
+                "then": {
+                    "properties": {
+                        "run_plan": {
+                            "anyOf": [
+                                {
+                                    "required": ["allocation"],
+                                    "properties": {"allocation": {"not": {"type": "null"}}},
+                                },
+                                {
+                                    "required": ["target_run_count"],
+                                    "properties": {"target_run_count": {"not": {"type": "null"}}},
+                                },
+                            ]
+                        }
+                    }
+                },
+            },
+            {
+                "if": {
+                    "allOf": [
+                        {
+                            "properties": {"binding_semantics": {"const": "explicit-required"}},
+                            "required": ["binding_semantics"],
+                        },
+                        {"properties": {"factorial_design": {"type": "null"}}},
+                    ]
+                },
+                "then": {
+                    "required": ["binding_descriptors"],
+                    "properties": {"binding_descriptors": {"not": {"type": "null"}}},
+                },
+            },
+            {
+                "if": {
+                    "properties": {"binding_descriptors": {"not": {"type": "null"}}},
+                    "required": ["binding_descriptors"],
+                },
+                "then": {
+                    "properties": {"binding_semantics": {"const": "explicit-required"}},
+                },
+            },
+        ]
+    )

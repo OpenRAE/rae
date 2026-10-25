@@ -100,35 +100,10 @@ def _entry_bindings(
     coordinate: TrialCoordinateModel,
     descriptors: Mapping[str, ExperimentBindingDescriptorModel],
 ) -> list[AdmittedBindingModel]:
-    bindings: list[AdmittedBindingModel] = []
     if request.experiment.factorial_design is not None:
-        for descriptor in sorted(descriptors.values(), key=lambda descriptor: descriptor.binding_id):
-            if descriptor.source_condition_id != coordinate.condition_id:
-                continue
-            if descriptor.target.plane == "scenario" and not any(
-                _descriptor_matches_selection(request, descriptor, selection) for selection in row.selections
-            ):
-                raise CompilationFailure(
-                    "binding-selection-mismatch",
-                    _BINDING_DESCRIPTORS_ADDRESS,
-                    "factorial binding differs from the selected scenario outcome",
-                )
-            bindings.append(AdmittedBindingModel(descriptor=descriptor, origin="selection"))
-    for selection in row.selections:
-        if request.experiment.factorial_design is not None:
-            continue
-        policy = request.experiment.run_plan.selection_policies[selection.policy_id]
-        for descriptor_id in sorted(getattr(policy, "binding_descriptor_refs", ())):
-            descriptor = descriptors.get(descriptor_id)
-            if descriptor is None or descriptor.source_condition_id != coordinate.condition_id:
-                continue
-            if not _descriptor_matches_selection(request, descriptor, selection):
-                raise CompilationFailure(
-                    "binding-selection-mismatch",
-                    f"{_BINDING_DESCRIPTORS_ADDRESS}/{descriptor_id}",
-                    "a binding descriptor does not equal its selected variation outcome",
-                )
-            bindings.append(AdmittedBindingModel(descriptor=descriptor, origin="selection"))
+        bindings = _factorial_entry_bindings(request, row, coordinate, descriptors)
+    else:
+        bindings = _selection_entry_bindings(request, row, coordinate, descriptors)
     if len({binding.descriptor.binding_id for binding in bindings}) != len(bindings):
         raise CompilationFailure(
             "binding-duplicate",
@@ -144,6 +119,51 @@ def _entry_bindings(
     return bindings
 
 
+def _factorial_entry_bindings(
+    request: TrialCompilationRequest,
+    row: CoordinateSelections,
+    coordinate: TrialCoordinateModel,
+    descriptors: Mapping[str, ExperimentBindingDescriptorModel],
+) -> list[AdmittedBindingModel]:
+    bindings: list[AdmittedBindingModel] = []
+    for descriptor in sorted(descriptors.values(), key=lambda descriptor: descriptor.binding_id):
+        if descriptor.source_condition_id != coordinate.condition_id:
+            continue
+        if descriptor.target.plane == "scenario" and not any(
+            _descriptor_matches_selection(request, descriptor, selection) for selection in row.selections
+        ):
+            raise CompilationFailure(
+                "binding-selection-mismatch",
+                _BINDING_DESCRIPTORS_ADDRESS,
+                "factorial binding differs from the selected scenario outcome",
+            )
+        bindings.append(AdmittedBindingModel(descriptor=descriptor, origin="selection"))
+    return bindings
+
+
+def _selection_entry_bindings(
+    request: TrialCompilationRequest,
+    row: CoordinateSelections,
+    coordinate: TrialCoordinateModel,
+    descriptors: Mapping[str, ExperimentBindingDescriptorModel],
+) -> list[AdmittedBindingModel]:
+    bindings: list[AdmittedBindingModel] = []
+    for selection in row.selections:
+        policy = request.experiment.run_plan.selection_policies[selection.policy_id]
+        for descriptor_id in sorted(getattr(policy, "binding_descriptor_refs", ())):
+            descriptor = descriptors.get(descriptor_id)
+            if descriptor is None or descriptor.source_condition_id != coordinate.condition_id:
+                continue
+            if not _descriptor_matches_selection(request, descriptor, selection):
+                raise CompilationFailure(
+                    "binding-selection-mismatch",
+                    f"{_BINDING_DESCRIPTORS_ADDRESS}/{descriptor_id}",
+                    "a binding descriptor does not equal its selected variation outcome",
+                )
+            bindings.append(AdmittedBindingModel(descriptor=descriptor, origin="selection"))
+    return bindings
+
+
 def entry_participant_configurations(
     request: TrialCompilationRequest,
     bindings: list[AdmittedBindingModel],
@@ -151,23 +171,11 @@ def entry_participant_configurations(
 ) -> list[ParticipantConfigurationResultModel]:
     """Realize each bound participant's complete configuration atomically."""
 
-    grouped = {}
     selected = {
         (ref.participant_address, ref.implementation_name, ref.implementation_version, ref.manifest_version)
         for ref in participant_manifest_refs
     }
-    if request.experiment.factorial_design is not None:
-        for descriptor in request.experiment.binding_descriptors.descriptors:
-            target = descriptor.target
-            if target.plane == "participant-implementation":
-                key = (
-                    target.participant_address,
-                    target.implementation_name,
-                    target.implementation_version,
-                    target.manifest_version,
-                )
-                if key in selected:
-                    grouped.setdefault(key, [])
+    grouped = _factorial_participant_defaults(request, selected)
     for binding in bindings:
         descriptor = binding.descriptor
         target = descriptor.target
@@ -212,3 +220,25 @@ def entry_participant_configurations(
                 "participant complete configuration failed owner validation",
             ) from exc
     return results
+
+
+def _factorial_participant_defaults(
+    request: TrialCompilationRequest,
+    selected: set[ParticipantManifestKey],
+) -> dict[ParticipantManifestKey, list[ConfigurationOverrideModel]]:
+    grouped = {}
+    if request.experiment.factorial_design is None:
+        return grouped
+    for descriptor in request.experiment.binding_descriptors.descriptors:
+        target = descriptor.target
+        if target.plane != "participant-implementation":
+            continue
+        key = (
+            target.participant_address,
+            target.implementation_name,
+            target.implementation_version,
+            target.manifest_version,
+        )
+        if key in selected:
+            grouped.setdefault(key, [])
+    return grouped

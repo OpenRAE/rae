@@ -79,12 +79,10 @@ class ExperimentFactorialDesignModel(ContractModel):
         return self
 
 
-def generate_factorial_conditions(
+def _factorial_condition_count(
     design: ExperimentFactorialDesignModel,
     factors: dict[str, ExperimentStudyFactorModel],
-) -> tuple[ExperimentRunAllocationPlanModel, ExperimentBindingDescriptorSetModel]:
-    """Generate all declared combinations, checking cardinality before expansion."""
-
+) -> int:
     count = 1
     for factor_id in design.factor_ids:
         factor = factors.get(factor_id)
@@ -95,6 +93,14 @@ def generate_factorial_conditions(
         if len(factor.levels) > design.condition_bound // count:
             raise ValueError("factorial condition bound exceeded before expansion")
         count *= len(factor.levels)
+    return count
+
+
+def _validate_factorial_bounds(
+    design: ExperimentFactorialDesignModel,
+    factors: dict[str, ExperimentStudyFactorModel],
+) -> None:
+    count = _factorial_condition_count(design, factors)
     if count * design.target_runs_per_condition > 10000:
         raise ValueError("factorial coordinate bound exceeded before expansion")
     bindings_per_condition = sum(
@@ -102,6 +108,31 @@ def generate_factorial_conditions(
     )
     if count * bindings_per_condition > 10000:
         raise ValueError("factorial binding work bound exceeded before expansion")
+
+
+def _condition_bindings(
+    design: ExperimentFactorialDesignModel,
+    factor_levels: dict[str, str],
+    condition_id: str,
+) -> list[ExperimentBindingDescriptorModel]:
+    bindings = []
+    for factor_id, level_id in factor_levels.items():
+        for template in design.level_bindings[factor_id][level_id]:
+            binding_id = (
+                "binding-"
+                + canonical_json_digest([condition_id, factor_id, template.target.canonical_key()]).split(":", 1)[1]
+            )
+            bindings.append(template.descriptor(binding_id, factor_id, level_id, condition_id))
+    return sorted(bindings, key=lambda binding: binding.binding_id)
+
+
+def generate_factorial_conditions(
+    design: ExperimentFactorialDesignModel,
+    factors: dict[str, ExperimentStudyFactorModel],
+) -> tuple[ExperimentRunAllocationPlanModel, ExperimentBindingDescriptorSetModel]:
+    """Generate all declared combinations, checking cardinality before expansion."""
+
+    _validate_factorial_bounds(design, factors)
     assignments = {}
     descriptors = []
     for levels in product(*(sorted(factors[f].levels) for f in design.factor_ids)):
@@ -109,15 +140,7 @@ def generate_factorial_conditions(
         condition_id = "condition-" + canonical_json_digest(factor_levels).split(":", 1)[1][:48]
         if condition_id in assignments:
             raise ValueError("factorial condition identity collision")
-        condition_bindings = []
-        for factor_id, level_id in factor_levels.items():
-            for template in design.level_bindings[factor_id][level_id]:
-                binding_id = (
-                    "binding-"
-                    + canonical_json_digest([condition_id, factor_id, template.target.canonical_key()]).split(":", 1)[1]
-                )
-                condition_bindings.append(template.descriptor(binding_id, factor_id, level_id, condition_id))
-        condition_bindings.sort(key=lambda binding: binding.binding_id)
+        condition_bindings = _condition_bindings(design, factor_levels, condition_id)
         descriptors.extend(condition_bindings)
         assignments[condition_id] = ExperimentConditionAssignmentModel(
             condition_id=condition_id,
@@ -153,12 +176,9 @@ def expand_factorial_input(value: object) -> object:
     run_plan = dict(payload["run_plan"])
     if run_plan.get("target_run_count") is not None:
         raise ValueError("factorial design cannot also declare target_run_count")
-    supplied = run_plan.get("allocation")
-    if supplied is not None and ExperimentRunAllocationPlanModel.model_validate(supplied) != allocation:
-        raise ValueError("supplied allocation conflicts with generated factorial conditions")
-    supplied = payload.get("binding_descriptors")
-    if supplied is not None and ExperimentBindingDescriptorSetModel.model_validate(supplied) != descriptors:
-        raise ValueError("supplied bindings conflict with generated factorial bindings")
+    _validate_supplied_materializations(
+        run_plan.get("allocation"), payload.get("binding_descriptors"), allocation, descriptors
+    )
     if payload.get("binding_semantics", "descriptive") not in {"descriptive", "explicit-required"}:
         raise ValueError("unsupported factorial binding semantics")
     run_plan["allocation"] = allocation
@@ -169,3 +189,21 @@ def expand_factorial_input(value: object) -> object:
         factorial_design=design,
     )
     return payload
+
+
+def _validate_supplied_materializations(
+    supplied_allocation: object,
+    supplied_bindings: object,
+    allocation: ExperimentRunAllocationPlanModel,
+    descriptors: ExperimentBindingDescriptorSetModel,
+) -> None:
+    if (
+        supplied_allocation is not None
+        and ExperimentRunAllocationPlanModel.model_validate(supplied_allocation) != allocation
+    ):
+        raise ValueError("supplied allocation conflicts with generated factorial conditions")
+    if (
+        supplied_bindings is not None
+        and ExperimentBindingDescriptorSetModel.model_validate(supplied_bindings) != descriptors
+    ):
+        raise ValueError("supplied bindings conflict with generated factorial bindings")

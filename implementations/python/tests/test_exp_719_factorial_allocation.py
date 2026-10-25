@@ -307,12 +307,9 @@ def test_allocation_only_controls_are_retained_and_receipts_follow_recorded_orde
         outcome=AttemptOutcome("attempt-1", "succeeded", cleanup.receipt_id),
     )
     validate_batch_execution_receipt(plan, receipt, cleanup_receipt=cleanup)
+    altered_receipt = receipt.model_copy(update={"scheduling_policy_id": "trial-coordinate-canonical-v1"})
     with pytest.raises(ValueError, match="scheduling policy"):
-        validate_batch_execution_receipt(
-            plan,
-            receipt.model_copy(update={"scheduling_policy_id": "trial-coordinate-canonical-v1"}),
-            cleanup_receipt=cleanup,
-        )
+        validate_batch_execution_receipt(plan, altered_receipt, cleanup_receipt=cleanup)
 
 
 def test_archival_matching_requires_realized_values_from_both_planes() -> None:
