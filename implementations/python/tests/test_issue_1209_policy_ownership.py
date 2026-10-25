@@ -22,8 +22,8 @@ def test_description_semantics_ownership_includes_contracts_and_excludes_backend
     ]
     assert _check_path_ownership(policy, phase, paths) == []
     forbidden = [
-        "implementations/python/packages/raes_reference_backend/target.py",
         "implementations/python/packages/raes_backend_stubs/stubs.py",
+        "implementations/python/packages/raes_backend_stubs/manifest.py",
     ]
     failures = _check_path_ownership(policy, phase, forbidden)
     assert {(failure.rule_id, failure.path) for failure in failures} == {

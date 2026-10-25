@@ -245,6 +245,31 @@ def validate_admitted_trial_study(
 ) -> None:
     """Join admitted coordinates and archival runs to the existing study authority."""
 
+    if (plan.replacement_policy is not None and plan.replacement_policy.max_replacements) or any(
+        run.run_status == "superseded" for run in runs
+    ):
+        raise ValueError("replacement study validation requires complete retained replacement history")
+    _validate_admitted_trial_study(
+        plan,
+        study,
+        tasks,
+        runs,
+        evidence_by_run=evidence_by_run,
+        relation_scenarios=relation_scenarios,
+        relation_capture_specs=relation_capture_specs,
+    )
+
+
+def _validate_admitted_trial_study(
+    plan: AdmittedTrialPlanModel,
+    study: ExperimentStudyModel,
+    tasks: list[ExperimentTaskModel],
+    runs: list[ExperimentRunModel],
+    *,
+    evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None,
+    relation_scenarios: Mapping[str, Any] | None,
+    relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None,
+) -> None:
     validate_experiment_study_against_tasks_and_runs(
         study,
         tasks,
@@ -256,3 +281,37 @@ def validate_admitted_trial_study(
     _validate_study_identity(plan, study)
     _validate_study_run_membership(study, runs)
     _validate_study_allocation(plan, study)
+
+
+@dataclass(frozen=True)
+class TrialReplacementStudyInputs:
+    """Complete retained replacement history and ordinary study evidence."""
+
+    replacement_plans: list[AdmittedTrialPlanModel]
+    cleanup_receipts: list[TrialCleanupReceiptModel]
+    evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None = None
+    relation_scenarios: Mapping[str, Any] | None = None
+    relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None = None
+
+
+def validate_replacement_trial_study(
+    plan: AdmittedTrialPlanModel,
+    study: ExperimentStudyModel,
+    tasks: list[ExperimentTaskModel],
+    runs: list[ExperimentRunModel],
+    *,
+    inputs: TrialReplacementStudyInputs,
+) -> None:
+    """Reconcile retained history before validating single-leaf study membership."""
+    from .trial_replacement_analysis import reconcile_replacement_trials
+
+    accounting = reconcile_replacement_trials(plan, inputs.replacement_plans, runs, inputs.cleanup_receipts)
+    _validate_admitted_trial_study(
+        plan,
+        study,
+        tasks,
+        list(accounting.analysis_runs),
+        evidence_by_run=inputs.evidence_by_run,
+        relation_scenarios=inputs.relation_scenarios,
+        relation_capture_specs=inputs.relation_capture_specs,
+    )

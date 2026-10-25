@@ -6,7 +6,7 @@ type: NON_FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-05-18T04:25:47.598518Z
-updated_at: 2026-08-19T00:00:00Z
+updated_at: 2026-10-21T00:00:00Z
 ---
 
 # ASR-532 — Runtime Backend Result Integrity
@@ -38,8 +38,6 @@ requirement.
 - TESTS → TEST `implementations/python/tests/test_act_604_dynamic_information_state.py`
 - TESTS → TEST `implementations/python/tests/test_backend_manifest.py`
 - TESTS → TEST `implementations/python/tests/test_initial_service_state.py`
-- TESTS → TEST `implementations/python/tests/test_libvirt_backend_techvault_honesty.py`
-- TESTS → TEST `implementations/python/tests/test_libvirt_backend_techvault_native.py`
 - TESTS → TEST `implementations/python/tests/test_realization_honesty_conformance.py`
 - TESTS → TEST `implementations/python/tests/test_run_305_participant_runtime_state_history.py`
 - TESTS → TEST `implementations/python/tests/test_run_307_shared_operational_state.py`
@@ -128,12 +126,6 @@ requirement.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_specialized_projection.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_support.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_typed_runtime_projection.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/evaluator.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/manifest.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/orchestrator.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/profile_preparation.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/provisioner.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/target.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/apply_failure.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_call_contracts.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_calls.py`

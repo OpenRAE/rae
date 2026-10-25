@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-08-02T14:43:12.079794Z
-updated_at: 2026-08-02T15:11:46.298389Z
+updated_at: 2026-10-21T00:00:00Z
 ---
 
 # DSL-438 — Target-Node CPU Architecture Semantics
@@ -38,11 +38,6 @@ Issue #674: the SDL Node model had no CPU architecture attribute — Resources c
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/provisioner_capabilities.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/provisioner_manifest.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_stubs/manifest.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/manifest.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_libvirt/manifest.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_libvirt/target.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_libvirt/capability_envelope.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_libvirt/_payload.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/capabilities.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/base.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_envelope_carrier.py`
@@ -50,7 +45,6 @@ Issue #674: the SDL Node model had no CPU architecture attribute — Resources c
 - TESTS → TEST `implementations/python/tests/test_sdl_models.py`
 - TESTS → TEST `implementations/python/tests/test_controlled_vocabularies.py`
 - TESTS → TEST `implementations/python/tests/test_backend_manifest.py`
-- TESTS → TEST `implementations/python/tests/test_libvirt_backend_manifest_publication.py`
 - TESTS → TEST `implementations/python/tests/test_sem_218_realization_designation.py`
 - IMPLEMENTS → GITHUB_ISSUE `674` (Add target-node CPU architecture semantics to SDL)
 - IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-674-target-node-cpu-architecture-preflight.md` (Issue #674 target-node CPU architecture preflight decision note (defines vocabulary, normalization, compatibility rules, absence semantics))

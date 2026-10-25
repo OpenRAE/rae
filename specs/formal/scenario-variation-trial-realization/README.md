@@ -596,6 +596,53 @@ an experiment design and admitted plan and is archived through the existing
 run/study contracts. Neither form creates a `Campaign` runtime root or derives
 meaning by concatenating mutable runtime state.
 
+## Replacement Compiler Profiles
+
+Issue #1396 adds `trial-compiler-replacement-v1` and its
+`trial-compiler-replacement-mixed-composition-v1` variant. The existing coordinate,
+entry/run identity, random-stream, cleanup and integrity algorithms are reused;
+the new compiler profile owns subsequent allocation and plan identity. Existing
+v1 profiles and conformance vectors retain their exact meanings.
+
+An optional experiment-owned policy selects failed/invalidated triggers and an
+additional-trial limit per original allocation slot. Omission authorizes zero.
+Every admitted descendant consumes the original slot's budget. Admission binds
+the exact root plan/digest/entry, ordinal, immediate parent plan/entry/run/version
+and digest, terminal cleanup receipt, and original policy. It emits one separate
+sealed child; no old entry or plan is re-sealed with a different identity.
+
+Let `i` be the original coordinate's zero-based index in the compiler's canonical
+coordinate list, `M` its maximum original replicate ordinal, `L` the authored
+limit and `k` the one-based replacement ordinal. The new replicate is
+`replicate_id(M + i*L + k)`, with unchanged condition/block. Ordinal overflow is
+refusal. Disjoint slot intervals prevent coordinate collision. Deterministic
+selection uses the original row index; sample selection is addressed to the new
+coordinate. Only that entry is emitted; other entries and streams are unchanged.
+
+The child plan id is `derive_identity("replacement-plan", projection)`, where
+the projection contains `profile="trial-compiler-replacement-v1"`,
+`root_plan_id`, `root_plan_digest`, `root_entry_id`, and `ordinal`. Entry/run and
+cleanup ids then use the existing acyclic algorithms with this new plan id.
+Parent/evidence linkage is sealed in the child digest without a child-to-parent
+digest cycle. Fixed vectors live in
+`contracts/fixtures/plans/trial-compiler-replacement-v1/identity-vectors.json`.
+
+Complete contiguous lineage, exact original inputs and positive scope-complete
+terminal cleanup evidence are required. Failed/partial/unverified cleanup cannot
+authorize reuse. Each child re-enters ordinary fresh instantiation, authorization,
+resource isolation and backend admission. Pure compilation supplies no effects,
+live ownership or physical cessation proof. The embedding coordinator atomically
+claims and retains the decision before dispatch; uncertain acknowledgement needs
+authoritative readback. Recovery and delivery never independently allocate.
+
+Retain exact failed versions and evidence-preserving supersession versions.
+Analysis joins all linked plans but includes at most one eligible leaf per
+original slot; allocation targets count original slots. Scientific failures
+whose trial status is not selected remain eligible. Selected failed leaves
+remain shortfalls on exhaustion. Cleanup refusal preserves shortfall and
+independent failure evidence. See the
+[migration and coordinator contract](../../../docs/explain/reference/trial-replacement-migration.md).
+
 ## Deterministic Failure Properties
 
 For identical invalid inputs, diagnostic records are byte-equivalent after

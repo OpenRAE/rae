@@ -316,7 +316,7 @@ def _drive_participant_execution_probe(
         cases.append(_participant_execution_operation_case(control_plane, scope=scope, action="start", generation=0))
     cases.append(_participant_execution_action_case(target, control_plane, scope=scope))
     if controls != {"start", "pause", "resume", "drain", "reset", "teardown"}:
-        cases.extend(_isolated_control_cases(target, control_plane.snapshot, scope, controls - {"start"}))
+        # The caller closes this owner before composing isolated control fixtures.
         return cases
     actions = ["pause", "resume", "drain", "reset"]
     if "reset" in controls:

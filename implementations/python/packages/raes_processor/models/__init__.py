@@ -152,6 +152,12 @@ from .decision_surface_v2 import (
 from .history_event import (
     ParticipantBehaviorHistoryEvent,
 )
+from .mixed_control_resources import (
+    MixedControlPermittedTransitionRuntime,
+    MixedControlPolicyRuntime,
+    MixedControlScriptStepRuntime,
+    ParticipantInjectDeliveryControlRuntime,
+)
 from .outcome import (
     ParticipantOutcomeInterpretationRecord,
     ParticipantOutcomeSourceRecord,
@@ -257,6 +263,10 @@ __all__ = [
     "MixedControlControllerStateRuntime",
     "MixedControlDispositionRulesRuntime",
     "MixedControlTransitionRuntime",
+    "MixedControlPermittedTransitionRuntime",
+    "MixedControlPolicyRuntime",
+    "MixedControlScriptStepRuntime",
+    "ParticipantInjectDeliveryControlRuntime",
     "OperationReceipt",
     "OperationAdmissionContext",
     "OperationKind",

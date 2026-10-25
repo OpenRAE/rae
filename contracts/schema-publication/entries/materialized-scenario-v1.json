@@ -1,9 +1,9 @@
 {
-  "content_hash": "561545be507a1e79632488702c1fb322c62d38fb3cbb49953fb9b24771eae6af",
+  "content_hash": "299daa23e27d7a735e840a154c9ec26b833fcf3e22d43fde711f09dc61d48d4d",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "561545be507a1e79632488702c1fb322c62d38fb3cbb49953fb9b24771eae6af",
-    "summary": "Reject empty and whitespace-only behavior specification version labels, matching existing parser validity; DSL-116 issue #297."
+    "content_hash": "299daa23e27d7a735e840a154c9ec26b833fcf3e22d43fde711f09dc61d48d4d",
+    "summary": "Publish reusable and finite-script mixed-control rev1 policies, paired script windows, closed portable-key maps and directed-delivery control blocks; retain canonical relationship eligibility from #1339; issue #1363."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

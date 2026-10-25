@@ -2,6 +2,7 @@
 
 from collections.abc import Callable, Iterable
 
+from raes import ReferencePurpose, build_declaration_index, operating_scope_aliases
 from raes.nodes import NodeType
 from raes.scenario import InstantiatedScenario
 
@@ -11,14 +12,28 @@ from .addresses import (
     _behavior_specification_address,
     _content_address,
     _content_item_address,
+    _generated_artifact_address,
     _observation_boundary_address,
     _outcome_interpretation_rule_address,
+    _participant_inject_delivery_address,
+    _persistent_volume_address,
     _resolve_node_service_ref,
     _resource_address_for_node,
     _service_address,
     _template_address,
 )
 from .support import _dedupe
+
+
+class _RuntimeAddressableRefIndex(dict[str, set[str]]):
+    """Runtime projection of canonical declarations; aliases remain owned by SDL."""
+
+    def __init__(self, scenario: InstantiatedScenario, addresses: dict[str, set[str]]) -> None:
+        self.declarations = build_declaration_index(scenario)
+        self.operating_scope = operating_scope_aliases(self.declarations, scenario)
+        super().__init__(
+            (address, addresses[address]) for address in self.declarations.addresses if address in addresses
+        )
 
 
 def _add_alias(index: dict[str, set[str]], alias: str, address: str) -> None:
@@ -80,7 +95,7 @@ def _add_qualified_aliases(
         _add_alias(index, f"{qualified_prefix}.{name}", address)
 
 
-def _runtime_addressable_ref_index(scenario: InstantiatedScenario) -> dict[str, set[str]]:
+def _runtime_addressable_ref_index(scenario: InstantiatedScenario) -> _RuntimeAddressableRefIndex:
     """Map SDL authority/scope refs to compiled runtime addresses.
 
     This deliberately omits semantic-only anchors such as entities and
@@ -133,17 +148,38 @@ def _runtime_addressable_ref_index(scenario: InstantiatedScenario) -> dict[str, 
         address_for=_behavior_specification_address,
         qualified_prefix="behavior_specifications",
     )
-    return index
+    for section, address_for in (
+        ("generated_artifacts", _generated_artifact_address),
+        ("persistent_volumes", _persistent_volume_address),
+    ):
+        _add_qualified_aliases(index, getattr(scenario, section), address_for=address_for, qualified_prefix=section)
+    for specification_name, specification in scenario.behavior_specifications.items():
+        for binding_name in specification.participant_inject_deliveries:
+            _add_alias(
+                index,
+                f"behavior_specifications.{specification_name}.participant_inject_deliveries.{binding_name}",
+                _participant_inject_delivery_address(specification_name, binding_name),
+            )
+    return _RuntimeAddressableRefIndex(scenario, index)
 
 
 def _runtime_addresses_for_refs(
     refs: list[str],
     *,
     addressable_ref_index: dict[str, set[str]],
+    purpose: ReferencePurpose = ReferencePurpose.DECLARED,
 ) -> tuple[str, ...]:
     addresses: list[str] = []
     for ref in dict.fromkeys(refs):
-        matches = addressable_ref_index.get(ref, ())
+        if isinstance(addressable_ref_index, _RuntimeAddressableRefIndex):
+            candidates = (
+                addressable_ref_index.operating_scope.get(ref, set())
+                if purpose == ReferencePurpose.OPERATING_SCOPE
+                else addressable_ref_index.declarations.resolve_for(ref, purpose)
+            )
+            matches = addressable_ref_index.get(next(iter(candidates)), ()) if len(candidates) == 1 else ()
+        else:
+            matches = addressable_ref_index.get(ref, ())
         if len(matches) == 1:
             addresses.extend(matches)
     return _dedupe(addresses)

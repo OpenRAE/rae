@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING, Any, Literal, Self
 
-from pydantic import Field, StrictInt, model_validator
+from pydantic import Field, StrictInt, field_validator, model_validator
 
 from .contracts.base import ContractModel, PrefixedDigestString
 
@@ -106,6 +106,13 @@ class ParticipantCrossingParametersModel(ContractModel):
     controller_handoff: Literal["excluded"]
     completion: Literal["per-crossing-visible-outcome"]
 
+    @field_validator("complete_carrier", mode="before")
+    @classmethod
+    def _require_complete_carrier(cls, value: object) -> bool:
+        if value is not True:
+            raise ValueError("complete_carrier must be the JSON boolean true")
+        return True
+
     @model_validator(mode="after")
     def _independent_sources(self) -> Self:
         if self.left.source_digest == self.right.source_digest:
@@ -152,5 +159,16 @@ def crossing_profile_schema_join() -> dict[str, Any]:
                 }.items()
             }
         },
-        "else": {"properties": {"relation_id": {"const": "participant-predicate-opacity"}}},
+        "else": {
+            "if": {
+                "properties": {
+                    "parameters": {
+                        "properties": {"kind": {"const": "participant-crossing-multi-dpbb/v1"}},
+                        "required": ["kind"],
+                    }
+                },
+                "required": ["parameters"],
+            },
+            "else": {"properties": {"relation_id": {"const": "participant-predicate-opacity"}}},
+        },
     }
