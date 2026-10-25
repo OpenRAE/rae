@@ -34,3 +34,15 @@ def test_altered_allocation_is_structurally_valid_but_fails_ingress_replay() -> 
     with pytest.raises(AdmittedTrialPlanIngressError) as caught:
         parse_admitted_trial_plan_json(source)
     assert caught.value.code == "contract-invalid"
+
+
+def test_unknown_factor_level_is_structurally_valid_but_fails_authoring_ingress() -> None:
+    path = (
+        REPO_ROOT
+        / "contracts/fixtures/experiment-core/experiment-authoring-input-v1/context-invalid/factorial-unknown-level.json"
+    )
+    source = path.read_text(encoding="utf-8")
+    Draft202012Validator(schema_bundle()["experiment-authoring-input-v1"]).validate(json.loads(source))
+    with pytest.raises(ExperimentSpecValidationError) as caught:
+        parse_experiment_spec(source)
+    assert caught.value.code == "contract-invalid"
