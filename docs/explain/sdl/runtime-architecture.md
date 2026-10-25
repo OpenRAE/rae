@@ -625,9 +625,9 @@ make no named profile claim.
 
 | Profile | Guarantee identifiers | Nonclaim identifiers |
 | --- | --- | --- |
-| P0 | in-process-safety, actor-scoped-idempotency, target-run-isolation, revision-cas, atomic-audit | durability, restart-recovery, multi-owner, high-availability, multitenancy |
+| P0 | in-process-safety, actor-scoped-idempotency, target-run-isolation, revision-cas, atomic-audit | durability, restart-recovery, multi-owner, high-availability, exactly-once-effects, multitenancy |
 | P1 | in-process-safety, actor-scoped-idempotency, target-run-isolation, revision-cas, atomic-audit, durable-state, retained-idempotency, lease-admission, startup-reconciliation | multi-owner, high-availability, exactly-once-effects, multitenancy |
-| P2 | in-process-safety, actor-scoped-idempotency, target-run-isolation, revision-cas, atomic-audit, durable-state, retained-idempotency, lease-admission, startup-reconciliation, authenticated-transport, actor-bound-disclosure, owner-serialized-mutation, revision-carrying-reads | multi-worker, tls-proxy-deployment, high-availability, exactly-once-effects, multitenancy |
+| P2 | in-process-safety, actor-scoped-idempotency, target-run-isolation, revision-cas, atomic-audit, durable-state, retained-idempotency, lease-admission, startup-reconciliation, authenticated-transport, actor-bound-disclosure, owner-serialized-mutation, revision-carrying-reads | multi-owner, multi-worker, tls-proxy-deployment, high-availability, exactly-once-effects, multitenancy |
 | P3 | none | future-coordination |
 
 P0 uses an in-memory store for one target and one run, with an actor supplied
