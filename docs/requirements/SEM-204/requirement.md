@@ -32,3 +32,7 @@ Current state: implemented. Compensation behavior must be declared and portable 
 - TESTS → TEST `implementations/python/tests/test_runtime_models.py` (Workflow Compensation Runtime Model Tests)
 - TESTS → TEST `implementations/python/tests/test_runtime_manager.py` (Workflow Compensation Runtime Manager Tests)
 - TESTS → TEST `implementations/python/tests/test_runtime_control_plane_api.py` (Workflow Compensation Control Plane Tests)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_workflows.py` (Automatic compensation in reverse completion-instant order)
+- TESTS → TEST `implementations/python/tests/test_issue_1462_compensation_order.py` (Cancellation and timeout compensation order across admitted timestamp forms)
+- TESTS → TEST `implementations/python/tests/test_issue_1462_policy_ownership.py` (SEM-204 phase routing, bounded ownership and delivery governance)
+- IMPLEMENTS → GITHUB_ISSUE `1462` (fix(runtime): order workflow compensation by completion instant, not timestamp text)

@@ -94,6 +94,12 @@ phases:
       - RUN-319
     blocked_until:
       - mixed-participant-composition
+  # Listed before semantics-expansion so SEM-204 matches here, not ^SEM- (#1510).
+  - id: workflow-compensation-semantics
+    requirements:
+      - SEM-204
+    blocked_until:
+      - reference-implementations
   - id: semantics-expansion
     patterns:
       - ^SEM-
@@ -1170,6 +1176,24 @@ ownership:
     - implementations/python/packages/raes_runtime/participant_episode_control.py
     - implementations/python/packages/raes_runtime/participant_submission_options.py
     - implementations/python/tests/test_issue_1016_mixed_runtime_coordination.py
+  # SEM-204 keeps the shared semantic roots it reached through
+  # semantics-expansion, without the paths named there for SEM-218 and SEM-233,
+  # and adds the runtime module that orders compensation (#1462). Other ^SEM-
+  # requirements stay in the shared phase (#1510).
+  workflow-compensation-semantics:
+    - contracts/schemas/sdl
+    - implementations/python/packages/raes
+    - implementations/python/packages/raes_contracts
+    - implementations/python/packages/raes_processor
+    - implementations/python/packages/raes_runtime/control_plane_workflows.py
+    - implementations/python/tests
+    - specs/formal
+    - docs/explain/reference
+    - docs/research/specification-coverage
+    - docs/research/formal-semantic-validation
+    - CHANGELOG.md
+    # The canonical CI repair carried from #1474 (#1637) documents its locator here.
+    - docs/decisions/package-artifacts/operations.md
   semantics-expansion:
     # Issue #1354 semantic publication; formal specs/tests already belong here.
     - docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md
