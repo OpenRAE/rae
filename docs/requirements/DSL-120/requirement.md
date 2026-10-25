@@ -47,3 +47,4 @@ Primary-source refresh shows that participant-supporting ecosystems frequently t
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/sections.md` (DSL-120 episode policy authoring guide)
 - TESTS → TEST `implementations/python/tests/test_issue_307_dsl_120_participant_episode_policy.py` (DSL-120 authoring, validation, composition, compilation, and schema tests; no episode execution)
 - TESTS → TEST `implementations/python/tests/test_issue_307_policy_ownership.py` (DSL-120 requirement-governance route and ownership bounds)
+- TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (DSL-120 current formal capture: the compiled episode-policy map changes only the compile controls' digests)
