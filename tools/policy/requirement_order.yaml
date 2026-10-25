@@ -185,6 +185,9 @@ phases:
   - id: published-schema-coverage
     requirements:
       - ASR-501
+  - id: isolated-batch-scheduling
+    requirements:
+      - SCE-006
   - id: trial-cleanup-contracts
     requirements:
       - SCE-007
