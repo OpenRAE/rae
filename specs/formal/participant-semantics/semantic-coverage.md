@@ -29,10 +29,10 @@ review on its own:
 | [family-rows.md](semantic-coverage/family-rows.md) | 13 | SEM-214.F to DSL-437.F |
 
 `implementations/python/tests/test_issue_219_participant_semantic_coverage.py`
-reads every part and checks the matrix against the tree in both directions:
+reads every part. It checks the matrix against the tree in both directions:
 every clause has a row, every row resolves to a clause, and every cited path,
 test function, requirement, and relation exists. It also checks that this
-file lists each part with its row count and that the open-row table below
+file lists each part with its row count, and that the open-row table below
 matches the parts. Whether a cited test exercises the whole clause is a review
 judgment.
 
