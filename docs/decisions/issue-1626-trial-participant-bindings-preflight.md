@@ -124,3 +124,14 @@ The existing lock already permits both sources.
 The qualified client still checks exact size and SHA-256.
 No lock identity, digest, transfer budget, or trust root changes.
 No automatic source fallback is added.
+
+## Source-bound research evidence
+
+Fresh branch captures bind the changed compiler source.
+The existing collectors replay six specification artifacts and twenty formal cases.
+Fourteen named participant tests supply the participant observations.
+Unsupported cases retain their recorded limits.
+The analysis uses the existing protocol, corpus, and baseline pins.
+The capture command writes immutable content-addressed records.
+Published history and shared narrative indexes remain unchanged.
+This work adds no stronger backend or proof claim.
