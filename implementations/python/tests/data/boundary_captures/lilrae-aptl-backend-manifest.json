@@ -1,0 +1,961 @@
+{
+  "boundary": "LilRAE's APTL runtime target manifest, bound as one component of a mixed composition by raes_runtime.mixed_runtime",
+  "producer": {
+    "repository": "OpenRAE/lilrae",
+    "commit": "a5833df92ac317f55f3c1335fbce5bf707abbbcb",
+    "functions": [
+      "aptl.backends.raes_manifest.create_aptl_manifest",
+      "aptl.backends.raes_manifest.create_aptl_realization_envelope"
+    ]
+  },
+  "rendered_by": {
+    "repository": "OpenRAE/rae",
+    "commit": "35122105b0c1bb648754625d8e3920eafa9bc599",
+    "function": "raes_backend_protocols.manifest.backend_manifest_payload"
+  },
+  "captured_at": "2026-10-10T19:55:54Z",
+  "procedure": "Run LilRAE's create_aptl_manifest() and create_aptl_realization_envelope() with default RuntimeTargetOptions for its RuntimeTarget (src/aptl/backends/raes.py:147-152), using the rae packages of the rendered_by commit. backend_manifest is backend_manifest_payload() of that manifest, the payload LilRAE records for provenance (src/aptl/core/provenance/providers/apparatus.py:39). realization_envelope is the envelope's model_dump(mode='json'). producer_representation records how the producer's own BackendManifest holds the two sequences that differ from the manifest rebuilt from backend_manifest: the family and distribution order of capabilities.provisioner.operating_systems (src/aptl/backends/raes_operating_systems.py:15-38) and the type of realization_support[0].artifact_mechanisms (src/aptl/backends/raes_manifest.py:387). Applying both to the manifest rebuilt from backend_manifest gives a BackendManifest equal to the producer's, so no other field differs; the capture run checked this, and that the published payload is the producer's manifest rendered by backend_manifest_v2_model().",
+  "limitations": "The capture holds data, not LilRAE's objects. A test rebuilds the producer's manifest from backend_manifest and applies producer_representation. Re-capture when LilRAE's manifest or rae's backend-manifest-v2 rendering changes.",
+  "backend_manifest": {
+    "schema_version": "backend-manifest/v2",
+    "identity": {
+      "name": "aptl",
+      "version": "0.1.0"
+    },
+    "supported_contract_versions": [
+      "backend-manifest-v2",
+      "realization-envelope-v1",
+      "provisioning-plan-v1",
+      "orchestration-plan-v1",
+      "evaluation-plan-v1",
+      "operation-receipt-v1",
+      "operation-status-v1",
+      "runtime-snapshot-v1",
+      "workflow-result-envelope-v1",
+      "workflow-history-event-stream-v1",
+      "evaluation-result-envelope-v1",
+      "evaluation-history-event-stream-v1",
+      "participant-episode-state-envelope-v1",
+      "participant-episode-history-event-stream-v1",
+      "participant-behavior-history-event-stream-v1",
+      "participant-control-occurrence-v1",
+      "participant-crossing-occurrence-v1",
+      "participant-lifecycle-event-v1",
+      "participant-observation-envelope-v1",
+      "participant-shared-state-record-v1",
+      "participant-joint-action-record-v1",
+      "participant-time-management-context-v1"
+    ],
+    "compatibility": {
+      "processors": [
+        "raes-reference-processor"
+      ]
+    },
+    "realization_support": [
+      {
+        "domain": "runtime-realization",
+        "support_mode": "open-realization",
+        "supported_constraint_kinds": [
+          "os-family",
+          "source-artifact"
+        ],
+        "supported_exact_requirement_kinds": [
+          "declared-capability-match",
+          "forwarding-agents",
+          "linux-capabilities",
+          "published-ports",
+          "runtime-app-authorizations",
+          "runtime-applications",
+          "runtime-container-autoremove",
+          "runtime-container-cgroup-parent",
+          "runtime-container-command",
+          "runtime-container-device-cgroup-rules",
+          "runtime-container-devices",
+          "runtime-container-dns",
+          "runtime-container-dns-options",
+          "runtime-container-dns-search",
+          "runtime-container-entrypoint",
+          "runtime-container-extra-hosts",
+          "runtime-container-group-add",
+          "runtime-container-init-process",
+          "runtime-container-log-driver",
+          "runtime-container-log-options",
+          "runtime-container-namespaces",
+          "runtime-container-privileged",
+          "runtime-container-read-only-rootfs",
+          "runtime-container-runtime-name",
+          "runtime-container-seccomp-profile",
+          "runtime-container-security-opt",
+          "runtime-container-shm-size",
+          "runtime-database-services",
+          "runtime-datastore-services",
+          "runtime-dependency-manifests",
+          "runtime-dns-services",
+          "runtime-environment",
+          "runtime-file-services",
+          "runtime-filesystem-inventory",
+          "runtime-identity-authorities",
+          "runtime-local-control-interfaces",
+          "runtime-local-identity",
+          "runtime-mounts",
+          "runtime-network-detection-engines",
+          "runtime-network-sensors",
+          "runtime-node-memory-limit",
+          "runtime-orchestration-authorities",
+          "runtime-packages",
+          "runtime-platform-applications",
+          "runtime-restart-policy",
+          "runtime-security-monitoring-managers",
+          "runtime-service-manager-units",
+          "runtime-software-components",
+          "service-listeners",
+          "service-search-index-schema-materialization"
+        ],
+        "disclosure_kinds": [
+          "backend-manifest-v2",
+          "operation-status-v1",
+          "runtime-snapshot-v1"
+        ],
+        "observation_capabilities": {
+          "forwarding-agents": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "linux-capabilities": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "operating-system": {
+            "verification_scope": "presence",
+            "observation_strength": "guest-observed"
+          },
+          "process-resource-limits": {
+            "verification_scope": "configuration",
+            "observation_strength": "guest-observed"
+          },
+          "published-ports": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-app-authorizations": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-applications": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-autoremove": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-cgroup-parent": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-command": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-device-cgroup-rules": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-devices": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-dns": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-dns-options": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-dns-search": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-entrypoint": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-extra-hosts": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-group-add": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-init-process": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-log-driver": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-log-options": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-namespaces": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-privileged": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-read-only-rootfs": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-runtime-name": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-seccomp-profile": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-security-opt": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-container-shm-size": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-database-services": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-datastore-services": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-dependency-manifests": {
+            "verification_scope": "configuration",
+            "observation_strength": "guest-observed"
+          },
+          "runtime-dns-services": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-environment": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-file-services": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-filesystem-inventory": {
+            "verification_scope": "configuration",
+            "observation_strength": "guest-observed"
+          },
+          "runtime-identity-authorities": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-local-control-interfaces": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-local-identity": {
+            "verification_scope": "configuration",
+            "observation_strength": "guest-observed"
+          },
+          "runtime-mounts": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-network-detection-engines": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-network-sensors": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-node-memory-limit": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-orchestration-authorities": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-packages": {
+            "verification_scope": "configuration",
+            "observation_strength": "guest-observed"
+          },
+          "runtime-platform-applications": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-restart-policy": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-security-monitoring-managers": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "runtime-service-manager-units": {
+            "verification_scope": "configuration",
+            "observation_strength": "guest-observed"
+          },
+          "runtime-software-components": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          },
+          "service-listeners": {
+            "verification_scope": "configuration",
+            "observation_strength": "daemon-observed"
+          }
+        },
+        "process_resource_limits": [
+          {
+            "resource": "open_file_descriptors",
+            "scopes": [
+              "subtree"
+            ],
+            "minimum": 0,
+            "maximum": null,
+            "supports_unlimited": true
+          },
+          {
+            "resource": "locked_memory_bytes",
+            "scopes": [
+              "subtree"
+            ],
+            "minimum": 0,
+            "maximum": null,
+            "supports_unlimited": true
+          }
+        ],
+        "artifact_mechanisms": [
+          {
+            "mechanism": {
+              "mechanism": "exact-artifact",
+              "profile": "aptl-oci-exact-pull",
+              "version": "1",
+              "digest": "sha256:041966e3e607d90c1237bdbbf1a7a8b48de397ea134405094318f41521b8dfea"
+            },
+            "supported_requirement_kinds": [
+              "source-artifact"
+            ],
+            "supported_routes": [
+              {
+                "acquisition": "pull",
+                "timing": "backend-preparation"
+              },
+              {
+                "acquisition": "local-lookup",
+                "timing": "backend-preparation"
+              }
+            ]
+          },
+          {
+            "mechanism": {
+              "mechanism": "materialization-specification",
+              "profile": "aptl-contained-component-build",
+              "version": "1",
+              "digest": "sha256:e728ca8aa2805d5fca152df145d4c331578caffec9b7dfe58d0c86a20b9e9c76"
+            },
+            "supported_requirement_kinds": [
+              "source-artifact"
+            ],
+            "supported_routes": [
+              {
+                "acquisition": "none",
+                "timing": "backend-preparation"
+              }
+            ]
+          },
+          {
+            "mechanism": {
+              "mechanism": "dynamic-composition",
+              "profile": "aptl-generic-substrate-composition",
+              "version": "1",
+              "digest": "sha256:03d504a405e2f91de8ec02d880a5af9567871aa8aa69117cecaf34b4e7135063"
+            },
+            "supported_requirement_kinds": [
+              "source-artifact"
+            ],
+            "supported_routes": [
+              {
+                "acquisition": "local-lookup",
+                "timing": "realization"
+              }
+            ]
+          },
+          {
+            "mechanism": {
+              "mechanism": "exact-artifact",
+              "profile": "raes-env-pack-exact-copy",
+              "version": "1",
+              "digest": "sha256:cf33e4765c4f56532e13f0209fda26a2d3e100b8dead37f75be5a44b51507daa"
+            },
+            "supported_requirement_kinds": [
+              "source-artifact"
+            ],
+            "supported_routes": [
+              {
+                "acquisition": "copy",
+                "timing": "pack-ingestion"
+              }
+            ]
+          }
+        ],
+        "constraints": {}
+      }
+    ],
+    "realization_envelope": {
+      "contract_id": "realization-envelope-v1",
+      "envelope_id": "aptl-docker-compose.v1",
+      "schema_version": "realization-envelope/v1",
+      "digest": "sha256:249a6087436e1b3772f2ddf432d58ccf368ed7c5c6be9681ca97cdec2f6886ee",
+      "configuration_digest": "sha256:af8b536e8968e886bcbbb5e29567350241381eb5dbcf7d386827df872919a414"
+    },
+    "concept_bindings": [
+      {
+        "scope": "capabilities.provisioner.supported_node_types",
+        "family": "assets"
+      },
+      {
+        "scope": "capabilities.provisioner.supported_os_families",
+        "family": "assets"
+      },
+      {
+        "scope": "capabilities.provisioner.supported_content_types",
+        "family": "tools-and-artifacts"
+      },
+      {
+        "scope": "capabilities.provisioner.supported_account_features",
+        "family": "identities"
+      },
+      {
+        "scope": "capabilities.provisioner.supported_domain_profiles",
+        "family": "identities"
+      }
+    ],
+    "constraints": {},
+    "capabilities": {
+      "provisioner": {
+        "name": "aptl-docker-compose-provisioner",
+        "supported_node_types": [
+          "compute",
+          "switch"
+        ],
+        "supported_os_families": [
+          "linux"
+        ],
+        "operating_systems": [
+          {
+            "family": "linux",
+            "distribution": "debian",
+            "versions": [
+              "11",
+              "12",
+              "13"
+            ]
+          },
+          {
+            "family": "linux",
+            "distribution": "rocky-linux",
+            "versions": [
+              "8",
+              "9"
+            ]
+          },
+          {
+            "family": "linux",
+            "distribution": "ubuntu",
+            "versions": [
+              "20.04",
+              "22.04",
+              "24.04",
+              "26.04"
+            ]
+          },
+          {
+            "family": "linux",
+            "distribution": "x-aptl:almalinux",
+            "versions": [
+              "9"
+            ]
+          },
+          {
+            "family": "linux",
+            "distribution": "x-aptl:alpine",
+            "versions": [
+              "3.18",
+              "3.19",
+              "3.20",
+              "3.21",
+              "3.22",
+              "3.24"
+            ]
+          },
+          {
+            "family": "linux",
+            "distribution": "x-aptl:amazon-linux",
+            "versions": [
+              "2",
+              "2023"
+            ]
+          },
+          {
+            "family": "linux",
+            "distribution": "x-aptl:centos",
+            "versions": [
+              "7",
+              "8",
+              "9"
+            ]
+          },
+          {
+            "family": "linux",
+            "distribution": "x-aptl:kali",
+            "versions": [
+              "2024.4",
+              "2025.1",
+              "2025.2",
+              "2025.3"
+            ]
+          }
+        ],
+        "supported_node_architectures": [],
+        "supported_content_types": [
+          "dataset",
+          "directory",
+          "file"
+        ],
+        "supported_account_features": [
+          "disabled",
+          "groups",
+          "mail",
+          "spn"
+        ],
+        "supported_domain_profiles": [
+          "active_directory"
+        ],
+        "supported_service_materialization_profiles": [
+          "service-search-index-schema-v1"
+        ],
+        "max_total_nodes": null,
+        "supports_acls": true,
+        "supports_accounts": true,
+        "supports_generated_artifacts": true,
+        "supported_generated_artifact_kinds": [
+          "certificate_bundle",
+          "rendered_config",
+          "ssh_key_bundle"
+        ],
+        "supported_generated_artifact_delivery_modes": [
+          "environment",
+          "mount"
+        ],
+        "supported_regeneration_scopes": [],
+        "supports_persistent_volumes": true,
+        "constraints": {}
+      },
+      "orchestrator": {
+        "name": "aptl-rte-orchestrator",
+        "supported_sections": [
+          "events",
+          "injects",
+          "scripts",
+          "stories",
+          "workflows"
+        ],
+        "supports_workflows": true,
+        "supports_assertion_refs": true,
+        "supports_inject_bindings": true,
+        "supported_workflow_features": [
+          "decision",
+          "failure-transitions",
+          "parallel-barrier"
+        ],
+        "supported_workflow_state_predicates": [
+          "outcome-matching"
+        ],
+        "constraints": {}
+      },
+      "evaluator": {
+        "name": "aptl-rte-evaluator",
+        "supported_sections": [
+          "assertions",
+          "conditions",
+          "objectives",
+          "propositions"
+        ],
+        "supports_scoring": false,
+        "supports_objectives": true,
+        "supported_predicate_families": [
+          "boolean",
+          "presence"
+        ],
+        "supported_quantifiers": [
+          "all"
+        ],
+        "supported_truth_outcomes": [
+          "false",
+          "true",
+          "unknown",
+          "unsupported"
+        ],
+        "supported_evidence_channels": [
+          "api_response",
+          "file_artifact",
+          "log"
+        ],
+        "supported_time_domains": [
+          "scenario_time"
+        ],
+        "preserves_binding_provenance": true,
+        "supports_deferred_expected_comparison": false,
+        "constraints": {}
+      },
+      "participant_runtime": {
+        "name": "aptl-participant-runtime",
+        "supported_participant_roles": [
+          "blue",
+          "green",
+          "red"
+        ],
+        "supported_behavior_features": [
+          "action_contracts",
+          "behavior_history",
+          "observation_boundaries"
+        ],
+        "supported_interaction_features": [
+          "shared_state_change"
+        ],
+        "feature_support": [
+          {
+            "feature": "x-paper:boundary-negative-evidence",
+            "support_level": "exact",
+            "constraint_refs": [],
+            "limitation_refs": [],
+            "disclosure_refs": [],
+            "evidence_refs": []
+          },
+          {
+            "feature": "x-paper:wazuh-evidence",
+            "support_level": "exact",
+            "constraint_refs": [],
+            "limitation_refs": [],
+            "disclosure_refs": [],
+            "evidence_refs": []
+          }
+        ],
+        "supports_autonomous_execution": false,
+        "supported_autonomous_selection_strategies": [],
+        "supported_autonomous_action_contracts": [],
+        "supported_autonomous_observation_boundaries": [],
+        "supported_autonomous_target_addresses": [],
+        "supported_autonomous_policy_profiles": [],
+        "supported_autonomous_activity_features": [],
+        "supported_autonomous_random_stream_profiles": [],
+        "max_autonomous_participants": null,
+        "max_autonomous_action_attempts": null,
+        "max_autonomous_in_flight": null,
+        "max_autonomous_occurrences": null,
+        "max_autonomous_retries_per_occurrence": null,
+        "max_autonomous_burst_size": null,
+        "execution_bindings": [],
+        "supports_execution_control": false,
+        "supported_execution_control_actions": [],
+        "supports_bounded_concurrency": false,
+        "max_execution_services": null,
+        "max_concurrent_actions": null,
+        "resource_budgets": null,
+        "constraints": {
+          "default_participant_action_address": "participant.behavior.techvault.kali-victim-ssh-probe",
+          "backend_boundary": "DeploymentBackend.container_exec"
+        }
+      },
+      "observation": null,
+      "cleanup": null
+    }
+  },
+  "realization_envelope": {
+    "schema_version": "realization-envelope/v1",
+    "contract_id": "realization-envelope-v1",
+    "id": "aptl-docker-compose.v1",
+    "expression": {
+      "schema_version": "realization-envelope/v1",
+      "id": "aptl-docker-compose.expression.v1",
+      "scope": "scenario",
+      "domains": {},
+      "bindings": [],
+      "closure": [],
+      "witness_policy": null,
+      "source_ref": null,
+      "contract_id": null,
+      "digest": null
+    },
+    "configuration": {
+      "mode": "aptl-docker-compose",
+      "configuration_digest": "sha256:af8b536e8968e886bcbbb5e29567350241381eb5dbcf7d386827df872919a414",
+      "architecture": "x86_64",
+      "image_policy": "oci-exact-pull-or-per-component-build",
+      "network_policy": "docker-compose-managed",
+      "supported_node_types": [
+        "compute",
+        "switch"
+      ],
+      "supported_os_families": [
+        "linux"
+      ],
+      "operating_systems": [
+        {
+          "family": "linux",
+          "distribution": "debian",
+          "versions": [
+            "11",
+            "12",
+            "13"
+          ]
+        },
+        {
+          "family": "linux",
+          "distribution": "ubuntu",
+          "versions": [
+            "20.04",
+            "22.04",
+            "24.04",
+            "26.04"
+          ]
+        },
+        {
+          "family": "linux",
+          "distribution": "rocky-linux",
+          "versions": [
+            "8",
+            "9"
+          ]
+        },
+        {
+          "family": "linux",
+          "distribution": "x-aptl:almalinux",
+          "versions": [
+            "9"
+          ]
+        },
+        {
+          "family": "linux",
+          "distribution": "x-aptl:alpine",
+          "versions": [
+            "3.18",
+            "3.19",
+            "3.20",
+            "3.21",
+            "3.22",
+            "3.24"
+          ]
+        },
+        {
+          "family": "linux",
+          "distribution": "x-aptl:amazon-linux",
+          "versions": [
+            "2",
+            "2023"
+          ]
+        },
+        {
+          "family": "linux",
+          "distribution": "x-aptl:centos",
+          "versions": [
+            "7",
+            "8",
+            "9"
+          ]
+        },
+        {
+          "family": "linux",
+          "distribution": "x-aptl:kali",
+          "versions": [
+            "2024.4",
+            "2025.1",
+            "2025.2",
+            "2025.3"
+          ]
+        }
+      ],
+      "supported_content_types": [
+        "dataset",
+        "directory",
+        "file"
+      ],
+      "supported_account_features": [
+        "disabled",
+        "groups",
+        "mail",
+        "spn"
+      ],
+      "supported_domain_profiles": [
+        "active_directory"
+      ],
+      "process_resource_limits": [
+        {
+          "resource": "open_file_descriptors",
+          "scopes": [
+            "subtree"
+          ],
+          "minimum": 0,
+          "maximum": null,
+          "supports_unlimited": true
+        },
+        {
+          "resource": "locked_memory_bytes",
+          "scopes": [
+            "subtree"
+          ],
+          "minimum": 0,
+          "maximum": null,
+          "supports_unlimited": true
+        }
+      ],
+      "supports_acls": true,
+      "memory_mib": {
+        "minimum": 128,
+        "maximum": null
+      },
+      "vcpus": {
+        "minimum": 1,
+        "maximum": null
+      }
+    },
+    "concerns": [
+      {
+        "concern": "compute-substrate",
+        "disposition": "realized",
+        "observation_strength": "daemon-observed",
+        "mechanism": "operating-system-container",
+        "transformations": []
+      },
+      {
+        "concern": "operating-system",
+        "disposition": "realized",
+        "observation_strength": "guest-observed",
+        "mechanism": "container-os-release-readback",
+        "transformations": []
+      },
+      {
+        "concern": "topology",
+        "disposition": "realized",
+        "observation_strength": "daemon-observed",
+        "mechanism": "docker-compose-networking",
+        "transformations": []
+      },
+      {
+        "concern": "architecture",
+        "disposition": "realized",
+        "observation_strength": "daemon-observed",
+        "mechanism": "container-architecture-readback",
+        "transformations": []
+      },
+      {
+        "concern": "image",
+        "disposition": "realized",
+        "observation_strength": "daemon-observed",
+        "mechanism": "oci-image-inspect-readback",
+        "transformations": []
+      },
+      {
+        "concern": "resource-allocation",
+        "disposition": "realized",
+        "observation_strength": "daemon-observed",
+        "mechanism": "compose-resource-limits-readback",
+        "transformations": []
+      },
+      {
+        "concern": "network",
+        "disposition": "realized",
+        "observation_strength": "daemon-observed",
+        "mechanism": "docker-network-readback",
+        "transformations": []
+      },
+      {
+        "concern": "content-placement",
+        "disposition": "realized",
+        "observation_strength": "daemon-observed",
+        "mechanism": "compose-and-service-materialization-readback",
+        "transformations": []
+      },
+      {
+        "concern": "account-placement",
+        "disposition": "realized",
+        "observation_strength": "daemon-observed",
+        "mechanism": "container-exec-account-readback",
+        "transformations": []
+      },
+      {
+        "concern": "feature-binding",
+        "disposition": "unsupported",
+        "observation_strength": "none",
+        "mechanism": null,
+        "transformations": []
+      },
+      {
+        "concern": "service",
+        "disposition": "realized",
+        "observation_strength": "daemon-observed",
+        "mechanism": "compose-service-readback",
+        "transformations": []
+      },
+      {
+        "concern": "acl",
+        "disposition": "realized",
+        "observation_strength": "daemon-observed",
+        "mechanism": "nftables-owner-scoped-readback",
+        "transformations": []
+      }
+    ],
+    "digest": "sha256:249a6087436e1b3772f2ddf432d58ccf368ed7c5c6be9681ca97cdec2f6886ee"
+  },
+  "producer_representation": {
+    "operating_systems": [
+      [
+        "linux",
+        "debian"
+      ],
+      [
+        "linux",
+        "ubuntu"
+      ],
+      [
+        "linux",
+        "rocky-linux"
+      ],
+      [
+        "linux",
+        "x-aptl:almalinux"
+      ],
+      [
+        "linux",
+        "x-aptl:alpine"
+      ],
+      [
+        "linux",
+        "x-aptl:amazon-linux"
+      ],
+      [
+        "linux",
+        "x-aptl:centos"
+      ],
+      [
+        "linux",
+        "x-aptl:kali"
+      ]
+    ],
+    "artifact_mechanisms": "list"
+  }
+}
