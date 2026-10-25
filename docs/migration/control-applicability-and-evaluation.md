@@ -85,10 +85,21 @@ store/history folds or dispatch. The #1069 consumer explicitly admits v2
 binding/content pins, supervised dependency evaluation and scope-bound state
 through the existing atomic evaluation-history carrier. Readers select the
 recorded discriminator; SQLite reader version 8 excludes v1-only readers.
-Prepared wire evaluations remain immutable transaction content, with durable
-acceptance established by the incumbent store's snapshot/operation/audit.
-Legacy claims and budgets are retained without conversion. The v2 effect drain
-reports unsupported execution and does not reinterpret v2 intents through v1.
+Providers return prepared transaction content. Issue #1369 seals newly appended
+v2 evaluations with the actual operation receipt and committed dispatchable IDs
+inside the incumbent atomic transaction. A failed commit publishes neither.
+Historical prepared evaluations remain unchanged and cannot dispatch. Legacy
+claims and budgets remain intact; v2 intents are never interpreted through v1.
+The optional v2 `continuation` field pins an immutable source evaluation,
+source commit receipt and exact realized claims. Dependency advancement and
+parent-receipt promotion require separate trusted-context admission; fresh
+evaluation validation rejects a continuation without its source. Historical
+records omit an absent continuation field, preserving their canonical bytes.
+Negotiate the updated v2 schema content pin before consuming these records.
+The v2 drain admits only installed, exactly bound effect owners. Supported paths
+are compiled handoff, fresh world inject execution, and execution-attempt
+cancellation with independently observed outcomes. Other required combinations
+refuse at admission; unsupported optional contributions remain isolated advice.
 No production provider or distributed atomicity claim follows from these
 synthetic reference-runtime witnesses.
 
