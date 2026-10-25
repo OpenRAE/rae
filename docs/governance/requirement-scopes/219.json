@@ -1,0 +1,64 @@
+{
+  "schema_version": "requirement-scope/v1",
+  "issue_number": 219,
+  "primary_requirement_uid": "ASR-506",
+  "requirement_uids": [
+    "ASR-506"
+  ],
+  "bindings": {
+    "docs/explain/reference/participant-decision-surface-v2-migration.md": [
+      "ASR-506"
+    ],
+    "docs/explain/reference/shared-semantic-integrity.md": [
+      "ASR-506"
+    ],
+    "docs/governance/requirement-scopes/219.json": [
+      "ASR-506"
+    ],
+    "docs/requirements/ACT-609/requirement.md": [
+      "ASR-506"
+    ],
+    "docs/requirements/ACT-610/requirement.md": [
+      "ASR-506"
+    ],
+    "docs/requirements/ASR-506/requirement.md": [
+      "ASR-506"
+    ],
+    "implementations/python/tests/test_issue_219_participant_semantic_coverage.py": [
+      "ASR-506"
+    ],
+    "specs/formal/assurance-fulfillment.yaml": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-behavior-model/README.md": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-semantics/README.md": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-semantics/reusable-mixed-control.md": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-semantics/semantic-coverage.md": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-semantics/semantic-coverage/behavior-model-and-runtime.md": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-semantics/semantic-coverage/design-commitments-sem-208-to-211.md": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-semantics/semantic-coverage/design-commitments-sem-212-to-215.md": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-semantics/semantic-coverage/family-rows.md": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-semantics/semantic-coverage/invariants-i1-to-i18.md": [
+      "ASR-506"
+    ],
+    "tools/policy/requirement_order.yaml": [
+      "ASR-506"
+    ]
+  }
+}

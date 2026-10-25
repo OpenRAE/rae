@@ -188,6 +188,12 @@ phases:
   - id: trial-cleanup-contracts
     requirements:
       - SCE-007
+  # ASR-506 indexes participant semantic artifacts that already exist and
+  # records each remaining gap with an open owner instead of requiring it
+  # closed, so it depends on no other phase (#219).
+  - id: participant-semantic-artifacts
+    requirements:
+      - ASR-506
 
 ownership:
   authoring-adapter-conformance:
@@ -1346,6 +1352,23 @@ ownership:
     - implementations/python/tests/test_specification_coverage.py
     - tools/generate_contract_schemas.py
     - CHANGELOG.md
+  participant-semantic-artifacts:
+    # Issue #219: the participant semantic specifications, their coverage
+    # matrix and guard test, the family status rows, migration note and
+    # requirement records the matrix reconciles, and the source-bound
+    # evidence captures each branch records.
+    - specs/formal/participant-semantics
+    - specs/formal/participant-behavior-model
+    - specs/formal/participant-runtime
+    - specs/formal/assurance-fulfillment.yaml
+    - docs/explain/reference/shared-semantic-integrity.md
+    - docs/explain/reference/participant-decision-surface-v2-migration.md
+    - docs/requirements/ACT-609/requirement.md
+    - docs/requirements/ACT-610/requirement.md
+    - docs/governance/requirement-scopes/219.json
+    - docs/research/formal-semantic-validation
+    - docs/research/specification-coverage
+    - implementations/python/tests/test_issue_219_participant_semantic_coverage.py
 
 traceability:
   required_code_roots:
