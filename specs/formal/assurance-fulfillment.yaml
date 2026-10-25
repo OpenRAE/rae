@@ -202,6 +202,8 @@ entries:
 
   - subsystem: experiment-core
     delivered_artifacts:
+      - kind: unit_tests
+        path: implementations/python/tests/test_exp_719_factorial_allocation.py
       - kind: invariant_list
         path: specs/formal/experiment-core/README.md
       - kind: unit_tests
@@ -220,6 +222,8 @@ entries:
     # immutable batch execution receipt over the one-entry realization seam).
     # Runtime provenance/fact-binding remains sequenced.
     delivered_artifacts:
+      - kind: unit_tests
+        path: implementations/python/tests/test_exp_719_factorial_allocation.py
       - kind: invariant_list
         path: specs/formal/scenario-variation-trial-realization/README.md
       - kind: unit_tests

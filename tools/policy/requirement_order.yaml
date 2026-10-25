@@ -160,6 +160,9 @@ phases:
       - EXP-715
     blocked_until:
       - experiment-core
+  - id: experiment-controlled-variation
+    requirements:
+      - EXP-719
   - id: decision-record-governance
     requirements:
       - GOV-941
@@ -185,6 +188,9 @@ phases:
   - id: published-schema-coverage
     requirements:
       - ASR-501
+  - id: isolated-batch-scheduling
+    requirements:
+      - SCE-006
   - id: trial-cleanup-contracts
     requirements:
       - SCE-007

@@ -76,6 +76,53 @@ reference identity, never to resolved secret material.
 - `experiment-run-v1` may archive the realized descriptor, its origin, and the
   configuration digest.
 
-Downstream admitted trial-plan and compiler work consumes these surfaces. It
-must not add another target registry, SDL binder, canonicalizer, or secret
-resolver.
+## Factorial designs and randomized allocation
+
+An experiment can declare `factorial_design` with the
+`factorial-bindings-v1` profile, explicit `factor_ids`, a `condition_bound`,
+`target_runs_per_condition`, and `level_bindings[factor_id][level_id]`.
+Each level holds one or more existing typed target/value/owner templates.
+For example, two scenario path levels crossed with two participant temperature
+levels produce four conditions; two replicates produce eight admitted entries.
+A factor may affect targets in both planes. Unnamed factors are not crossed.
+
+The authoring loader generates the existing allocation, condition
+`required_bindings`, and binding descriptors. It rejects inconsistent supplied
+materializations and retains the generation intent on serialization. Scenario
+targets must cover every family variation point with scalar literal outcomes;
+factorial generation cannot also declare selection policies. Participant
+targets resolve against selected manifests and produce complete configuration
+results with defaults and digests. Normalization cannot change the declared
+binding values. Missing owner targets, alias collisions, incomplete
+configurations, and operationally identical conditions fail admission.
+Comparison includes complete effective defaults across the design's selected
+participants and ignores whether an equal value came from a default or override.
+The public one-entry realization result carries those admitted configurations
+to the downstream participant owner alongside the processor plans.
+
+Select executable order explicitly in the existing run plan:
+
+```yaml
+allocation_policy:
+  kind: randomized
+  policy_id: treatment-order
+  algorithm_profile: fisher-yates-allocation-v1
+  stochastic_control_ref: allocation-control
+```
+
+The referenced control needs `role: randomization` and an executable
+`blake3-xof-v1` / `random-stream-profile/v1` binding with a namespace and public
+seed. Compilation seals the policy, permutation, and bounded plan-scope draws;
+dispatch and receipt validation consume that same order. Reconstruction checks
+the whole record. A seed, free-text allocation method, or blocking-factor list
+alone does not activate this behavior.
+
+Archive canonical admitted descriptors as study matching criteria when input
+aliases were used. Runs must preserve every admitted realized binding,
+participant configuration digest, selected manifest, and allocation control.
+Retain actual apparatus evidence and deviations for model/API or host drift:
+random order mitigates confounding and does not certify unchanged conditions.
+
+See the [normative generation rules](../../../specs/formal/experiment-core/README.md#factorial-condition-generation-exp-719),
+[allocation procedure](../../../specs/formal/scenario-variation-trial-realization/README.md#designed-compiler-and-allocation-profiles-exp-719),
+and [architecture guardrails](../../decisions/issue-275-exp-719-treatment-controlled-variation-preflight.md).
