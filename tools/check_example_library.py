@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ruff: noqa: E402, I001
-"""Structural and SDL-validation gate for the AUT-806 example library."""
+"""Structural, SDL, and experiment authoring-input validation gate for the AUT-806 example library."""
 
 from __future__ import annotations
 
@@ -19,6 +19,7 @@ import yaml
 from tools.example_library_checks import (
     check_entry_metadata,
     check_template_body,
+    check_template_validation,
     check_worked_example_file,
     load_template_file,
 )
@@ -62,6 +63,7 @@ REQUIRED_TEMPLATE_FIELDS: tuple[str, ...] = (
     "requirement_refs",
     "source_refs",
     "summary",
+    "validation",
     "body",
 )
 REQUIRED_PATTERN_FIELDS: tuple[str, ...] = (
@@ -262,7 +264,7 @@ def _check_reference_entry(
             )
 
     failures.extend(_check_unique_id(entry.get("id"), f"surfaces.{surface}.{field}[{index}]", seen_ids))
-    failures.extend(check_entry_metadata(field, entry, f"surfaces.{surface}.{field}[{index}]"))
+    failures.extend(check_entry_metadata(field, entry, f"surfaces.{surface}.{field}[{index}]", surface=surface))
     absolute, relative, path_failure = _repo_relative_path(
         entry.get("path"),
         repo_root=repo_root,
@@ -312,7 +314,7 @@ def _check_artifact_entries(
                 )
         entry_id = entry.get("id")
         failures.extend(_check_unique_id(entry_id, f"surfaces.{surface}.{field}[{index}]", seen_ids))
-        failures.extend(check_entry_metadata(field, entry, f"surfaces.{surface}.{field}[{index}]"))
+        failures.extend(check_entry_metadata(field, entry, f"surfaces.{surface}.{field}[{index}]", surface=surface))
         absolute, relative, path_failure = _repo_relative_path(
             entry.get("path"),
             repo_root=repo_root,
@@ -345,7 +347,7 @@ def _check_unique_id(value: Any, owner: str, seen_ids: set[str]) -> list[PolicyF
 
 
 def _check_template_file(path: Path, relative_path: str, *, surface: str, entry: dict[str, Any]) -> list[PolicyFailure]:
-    raw, failures = load_template_file(path, relative_path)
+    raw, failures = load_template_file(path, relative_path, entry.get("contract"))
     if raw is None:
         return failures
     catalog_id = entry.get("id")
@@ -358,6 +360,7 @@ def _check_template_file(path: Path, relative_path: str, *, surface: str, entry:
             failures.append(
                 _fail("example-library-template-field", f"missing required template field: {field}", relative_path)
             )
+    failures.extend(check_template_validation(raw, relative_path))
 
     body = raw.get("body")
     if not isinstance(body, dict):
