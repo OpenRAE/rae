@@ -9,6 +9,7 @@ from pydantic import Field, GetJsonSchemaHandler, field_validator, model_validat
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 from raes.participant_behavior_specification import MixedControlTransitionKind
+from raes.participant_mixed_control_vocabulary import ParticipantControlTargetKind
 
 from .base import (
     ContractModel,
@@ -30,17 +31,6 @@ class ParticipantControlDisposition(str, Enum):
     LIMITED = "limited"
     SUPERSEDED = "superseded"
     CANCELLED = "cancelled"
-
-
-class ParticipantControlTargetKind(str, Enum):
-    """Closed kinds for typed API-409 target relations."""
-
-    PROPOSAL = "proposal"
-    ACTION = "action"
-    CONTROL = "control"
-    DECISION = "decision"
-    ADMITTED_ACTION = "admitted-action"
-    ATTEMPT = "attempt"
 
 
 class ParticipantCancellationEffect(str, Enum):

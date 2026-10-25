@@ -333,7 +333,7 @@ not just a shape:
 - backend capability blocks must declare concrete provisioning and orchestration
   support, not empty concern shells
 
-The reference backend, reference processor, and backend conformance profiles use
+The stub double, reference processor, and backend conformance profiles use
 the shared `v2` apparatus manifests. Legacy `v1` manifest schemas remain in the
 repo as deprecated reference artifacts, not as the current conformance target.
 Participant implementations use `participant-implementation-manifest-v1`
@@ -625,9 +625,9 @@ make no named profile claim.
 
 | Profile | Guarantee identifiers | Nonclaim identifiers |
 | --- | --- | --- |
-| P0 | in-process-safety, actor-scoped-idempotency, target-run-isolation, revision-cas, atomic-audit | durability, restart-recovery, multi-owner, high-availability, multitenancy |
+| P0 | in-process-safety, actor-scoped-idempotency, target-run-isolation, revision-cas, atomic-audit | durability, restart-recovery, multi-owner, high-availability, exactly-once-effects, multitenancy |
 | P1 | in-process-safety, actor-scoped-idempotency, target-run-isolation, revision-cas, atomic-audit, durable-state, retained-idempotency, lease-admission, startup-reconciliation | multi-owner, high-availability, exactly-once-effects, multitenancy |
-| P2 | in-process-safety, actor-scoped-idempotency, target-run-isolation, revision-cas, atomic-audit, durable-state, retained-idempotency, lease-admission, startup-reconciliation, authenticated-transport, actor-bound-disclosure, owner-serialized-mutation, revision-carrying-reads | multi-worker, tls-proxy-deployment, high-availability, exactly-once-effects, multitenancy |
+| P2 | in-process-safety, actor-scoped-idempotency, target-run-isolation, revision-cas, atomic-audit, durable-state, retained-idempotency, lease-admission, startup-reconciliation, authenticated-transport, actor-bound-disclosure, owner-serialized-mutation, revision-carrying-reads | multi-owner, multi-worker, tls-proxy-deployment, high-availability, exactly-once-effects, multitenancy |
 | P3 | none | future-coordination |
 
 P0 uses an in-memory store for one target and one run, with an actor supplied

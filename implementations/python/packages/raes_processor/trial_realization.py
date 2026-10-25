@@ -32,6 +32,7 @@ from raes_contracts.contracts import (
     ExperimentSpecModel,
     ExperimentTaskModel,
     OrchestrationPlanModel,
+    ParticipantConfigurationResultModel,
     ProcessorManifestV2Model,
     ProvisioningPlanModel,
     TrialProcessorPlanReferenceModel,
@@ -70,6 +71,7 @@ class TrialRealization:
     orchestration_plan: OrchestrationPlanModel
     evaluation_plan: EvaluationPlanModel
     processor_plan_refs: tuple[TrialProcessorPlanReferenceModel, ...]
+    participant_configurations: tuple[ParticipantConfigurationResultModel, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -337,6 +339,7 @@ def realize_admitted_trial_entry(
         orchestration_plan=orchestration,
         evaluation_plan=evaluation,
         processor_plan_refs=references,
+        participant_configurations=tuple(entry.participant_configurations),
     )
 
 

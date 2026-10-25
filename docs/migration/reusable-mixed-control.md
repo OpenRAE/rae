@@ -5,6 +5,14 @@ This is the adoption contract for
 and [MC-01–MC-09](../../specs/formal/participant-semantics/reusable-mixed-control.md).
 It publishes rules, not a working migrator, new parser form or wire schema.
 
+Implementation status after #1364: the compiler and API-409 v2 reader are
+available, and an explicitly configured RUN-310 control owner can execute
+reusable applications and retain evidenced cancellation outcomes. See
+[reusable participant control](../explain/reference/reusable-participant-control.md)
+for installation, original-policy recovery and the supported-path boundary.
+Ordinary planning and unsupported delivery/consumer paths retain their refusals;
+this does not claim coordinated adoption by every backend or consumer.
+
 ## Producer and reader boundary
 
 `mixed-control-policy-occurrence/rev1` identifies the new semantic decision.

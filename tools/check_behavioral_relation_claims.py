@@ -63,7 +63,6 @@ _EXCLUDED_PREFIXES = (
     "contracts/schemas/",
     "docs/_build/",
     "implementations/python/tests/",
-    "tools/real-daemon/evidence/",
 )
 
 _CLAIM_PATTERNS: tuple[tuple[re.Pattern[str], frozenset[str]], ...] = (

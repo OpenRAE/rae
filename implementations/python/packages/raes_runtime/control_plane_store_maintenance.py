@@ -182,6 +182,14 @@ def _restore_store(
                 target_scope=target_scope,
                 run_scope=run_scope,
             )
+            # An older backup can omit consumed grants while their effects live.
+            # Restore cannot infer absence from records that are no longer here.
+            with _database_connection(working_path, mode="rw", standalone=True) as restored, transaction(restored):
+                restored.execute(
+                    "INSERT INTO metadata(key, value) VALUES ('effect-admission-stopped', '1') "
+                    "ON CONFLICT(key) DO UPDATE SET value='1'"
+                )
+            _fsync_regular_file(working_path)
             if existing is not None:
                 previous_copy = _retain_pre_restore_copy(
                     database_path,

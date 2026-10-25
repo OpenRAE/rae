@@ -83,7 +83,7 @@ def test_provider_failure_redacts_type_message_chain_and_durable_carriers(tmp_pa
             f"/operations/{response.json()['operation_id']}", headers={"authorization": "Bearer synthetic-token"}
         )
         assert status.status_code == 200
-        assert status.json()["state"] == "failed"
+        assert status.json()["state"] == ("cancelled" if method == "validate" else "indeterminate")
         evidence = repr((response.json(), status.json(), store.load_records(), [asdict(e) for e in store.read_audit()]))
         assert "runtime.backend-call-failed" in evidence
         for secret in (secret_type.__name__, "synthetic-provider-secret-1187", "synthetic-inner-secret-1187"):

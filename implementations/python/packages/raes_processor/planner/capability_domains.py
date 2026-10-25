@@ -373,6 +373,6 @@ def _resource_count_upper_bound(
 
 
 def _account_features(account_spec: dict[str, object]) -> set[str]:
-    # Delegates to the shared canonical extractor so the planner gate and the
-    # libvirt backend's capability-envelope diagnostics never diverge (issue #605).
+    # Delegates to the shared canonical extractor so the planner gate and
+    # backend capability-envelope diagnostics never diverge (issue #605).
     return set(provisioner_account_features(account_spec))

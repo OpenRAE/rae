@@ -24,8 +24,8 @@ media, capture, source, scope, channel, window, integrity, sensitivity,
 availability, fidelity, disclosure, retention, and export terms that are
 actually supported. Legacy `supported_*` lists remain discovery summaries and
 are not an admission fallback. A manifest with no matching offer is rejected
-before effects. The in-repo stub and reference-emulation manifests deliberately
-publish no capture offers because their runtimes do not implement the promised
+before effects. The in-repo stub manifest deliberately publishes no capture
+offers because its runtime does not implement the promised
 artifact production path; tests that exercise admission declare narrow,
 scenario-specific offers explicitly.
 

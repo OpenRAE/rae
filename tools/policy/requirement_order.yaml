@@ -160,6 +160,9 @@ phases:
       - EXP-715
     blocked_until:
       - experiment-core
+  - id: experiment-controlled-variation
+    requirements:
+      - EXP-719
   - id: decision-record-governance
     requirements:
       - GOV-941
@@ -185,6 +188,12 @@ phases:
   - id: published-schema-coverage
     requirements:
       - ASR-501
+  - id: isolated-batch-scheduling
+    requirements:
+      - SCE-006
+  - id: trial-cleanup-contracts
+    requirements:
+      - SCE-007
 
 ownership:
   authoring-adapter-conformance:
@@ -393,6 +402,9 @@ ownership:
     # Issue #297 completes DSL-116 and republishes source-bound verification.
     - docs/requirements/DSL-116/requirement.md
     - docs/decisions/issue-297-behavior-authoring.md
+    # Issue #298 binds participant tool authoring to DSL-117 governance.
+    - docs/decisions/issue-298-tool-authoring.md
+    - docs/governance/requirement-scopes/298.json
     - docs/research/formal-semantic-validation
     - tools/check_specification_coverage.py
     - tools/formal_semantic_validation
@@ -405,12 +417,10 @@ ownership:
     - docs/research/specification-coverage
     - docs/research/lineage/source-audit-2026-07-12.md
     - docs/research/participant-interactive-access
-    - implementations/python/packages/raes_backend_libvirt
     - implementations/python/packages/raes_backend_protocols
     - implementations/python/packages/raes_backend_stubs
     - implementations/python/packages/raes_contracts
     - implementations/python/packages/raes_processor
-    - implementations/python/packages/raes_reference_backend
     - implementations/python/packages/raes
     # Issue #1276 threads value-free run/instantiation scope identity through the
     # runtime plan API round-trip and RuntimeManager, and rejoins direct-plan
@@ -596,7 +606,6 @@ ownership:
     - implementations/python/packages/raes_contracts
     - implementations/python/packages/raes_operations/run_artifacts.py
     - implementations/python/packages/raes_processor
-    - implementations/python/packages/raes_reference_backend/manifest.py
     - implementations/python/packages/raes_runtime/backend_calls.py
     - implementations/python/packages/raes_runtime/backend_effect_transitions.py
     - implementations/python/packages/raes_runtime/backend_input_contracts.py
@@ -664,8 +673,16 @@ ownership:
     - implementations/python/tests/test_sem_235_modular_control.py
     - implementations/python/tests/test_sem_235_governance.py
   modular-control-runtime:
+    - docs/research/formal-semantic-validation/capture-records/capture-76a22200630a0f623823cce738ef5d90a5984d9d4a69208005548975c980698b.json
+    - docs/research/formal-semantic-validation/captures/capture-76a22200630a0f623823cce738ef5d90a5984d9d4a69208005548975c980698b
+    - docs/research/specification-coverage/capture-records/capture-c5e6610f7d0058be6715fe2f5c7ef89ebd468a8ea7177b1ee58298f2b12a9b81.json
+    - docs/research/specification-coverage/captures/capture-c5e6610f7d0058be6715fe2f5c7ef89ebd468a8ea7177b1ee58298f2b12a9b81
     # RUN-320 orchestrates the published API-424 contracts in the reference
     # runtime (#1069). Contracts, semantics and conformance keep their own phases.
+    - docs/research/formal-semantic-validation/captures/capture-76fee14b79cd734502e7498d05fbf5c8d17c34e46dc2ba55bbb94f57d213bec7
+    - docs/research/formal-semantic-validation/capture-records/capture-76fee14b79cd734502e7498d05fbf5c8d17c34e46dc2ba55bbb94f57d213bec7.json
+    - docs/research/specification-coverage/captures/capture-08a9c99e27c3f7d197d6564c8a5c5852833b33625c2d265ecac7775566b7cde9
+    - docs/research/specification-coverage/capture-records/capture-08a9c99e27c3f7d197d6564c8a5c5852833b33625c2d265ecac7775566b7cde9.json
     - contracts/schema-publication/entries/runtime-snapshot-v1.json
     - contracts/schemas/snapshots/runtime-snapshot-v1.json
     - docs/decisions/issue-1069-run-320-runtime-orchestration-preflight.md
@@ -731,7 +748,93 @@ ownership:
     - tools/formal_semantic_validation/_releases.py
     - tools/formal_semantic_validation/_retest.py
     - tools/policy/requirement_order.yaml
+    - implementations/python/packages/raes_runtime/participant_control_evaluation_v2.py
+    - implementations/python/packages/raes_runtime/participant_control_provider_state.py
+    - implementations/python/tests/participant_control_v2_fixtures.py
+    - implementations/python/tests/test_issue_1069_provider_evaluation_v2.py
   modular-control-contracts:
+    # Issue #1370 source-bound evidence after validator maintainability repairs.
+    - docs/research/formal-semantic-validation/capture-records/capture-18d6e4dac262c76b9b27a96b316fb95126d81043ba2c7897388e4966714b1164.json
+    - docs/research/formal-semantic-validation/captures/capture-18d6e4dac262c76b9b27a96b316fb95126d81043ba2c7897388e4966714b1164/analysis.json
+    - docs/research/formal-semantic-validation/captures/capture-18d6e4dac262c76b9b27a96b316fb95126d81043ba2c7897388e4966714b1164/manifest.json
+    - docs/research/formal-semantic-validation/captures/capture-18d6e4dac262c76b9b27a96b316fb95126d81043ba2c7897388e4966714b1164/snapshot.json
+    - docs/research/specification-coverage/capture-records/capture-146a04a89f0d36b543d66b2532699a6da4bf9478a3be607c4d702b7c47cefefd.json
+    - docs/research/specification-coverage/captures/capture-146a04a89f0d36b543d66b2532699a6da4bf9478a3be607c4d702b7c47cefefd/analysis.json
+    - docs/research/specification-coverage/captures/capture-146a04a89f0d36b543d66b2532699a6da4bf9478a3be607c4d702b7c47cefefd/manifest.json
+    - docs/research/specification-coverage/captures/capture-146a04a89f0d36b543d66b2532699a6da4bf9478a3be607c4d702b7c47cefefd/snapshot.json
+    # Issue #1370 replay against the synchronized development source.
+    - docs/research/formal-semantic-validation/capture-records/capture-f09d1363de99493a5b8584576cf7714d5ef7c56a990da8897ff774a416f7d0c8.json
+    - docs/research/formal-semantic-validation/captures/capture-f09d1363de99493a5b8584576cf7714d5ef7c56a990da8897ff774a416f7d0c8/analysis.json
+    - docs/research/formal-semantic-validation/captures/capture-f09d1363de99493a5b8584576cf7714d5ef7c56a990da8897ff774a416f7d0c8/manifest.json
+    - docs/research/formal-semantic-validation/captures/capture-f09d1363de99493a5b8584576cf7714d5ef7c56a990da8897ff774a416f7d0c8/snapshot.json
+    - docs/research/specification-coverage/capture-records/capture-496cb62f25e5257736f5f1f1a58ac39ac550346e7e69f7a0b900b9ef085709f2.json
+    - docs/research/specification-coverage/captures/capture-496cb62f25e5257736f5f1f1a58ac39ac550346e7e69f7a0b900b9ef085709f2/analysis.json
+    - docs/research/specification-coverage/captures/capture-496cb62f25e5257736f5f1f1a58ac39ac550346e7e69f7a0b900b9ef085709f2/manifest.json
+    - docs/research/specification-coverage/captures/capture-496cb62f25e5257736f5f1f1a58ac39ac550346e7e69f7a0b900b9ef085709f2/snapshot.json
+    # Exact ownership of the authorized invalid-candidate removals in issue #1370.
+    - docs/research/formal-semantic-validation/captures/capture-7c2d72b89e8c354d612d925a006a81b21d52e8cf2e4272f47084e05f292cae53/analysis.json
+    - docs/research/formal-semantic-validation/captures/capture-7c2d72b89e8c354d612d925a006a81b21d52e8cf2e4272f47084e05f292cae53/manifest.json
+    - docs/research/formal-semantic-validation/captures/capture-7c2d72b89e8c354d612d925a006a81b21d52e8cf2e4272f47084e05f292cae53/snapshot.json
+    - docs/research/formal-semantic-validation/capture-records/capture-7c2d72b89e8c354d612d925a006a81b21d52e8cf2e4272f47084e05f292cae53.json
+    - docs/research/formal-semantic-validation/captures/capture-8761c418d053e7f343f4102fba809b62cf2db8664801f58fee9124fe8d8f642c/analysis.json
+    - docs/research/formal-semantic-validation/captures/capture-8761c418d053e7f343f4102fba809b62cf2db8664801f58fee9124fe8d8f642c/manifest.json
+    - docs/research/formal-semantic-validation/captures/capture-8761c418d053e7f343f4102fba809b62cf2db8664801f58fee9124fe8d8f642c/snapshot.json
+    - docs/research/formal-semantic-validation/capture-records/capture-8761c418d053e7f343f4102fba809b62cf2db8664801f58fee9124fe8d8f642c.json
+    - docs/research/formal-semantic-validation/captures/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08/analysis.json
+    - docs/research/formal-semantic-validation/captures/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08/manifest.json
+    - docs/research/formal-semantic-validation/captures/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08/snapshot.json
+    - docs/research/formal-semantic-validation/capture-records/capture-d9c04c79aa4447eebff4f186a310c0e97759520a7ea554a239c22976107e7c08.json
+    # Issue #1370 current-source replay after the patched MCP prerequisite.
+    - docs/research/formal-semantic-validation/capture-records/capture-35052af226b5ed96d6f7361467ef40b19d23bfcfc8b2d3c18288c101f6ebc4c7.json
+    - docs/research/formal-semantic-validation/captures/capture-35052af226b5ed96d6f7361467ef40b19d23bfcfc8b2d3c18288c101f6ebc4c7/analysis.json
+    - docs/research/formal-semantic-validation/captures/capture-35052af226b5ed96d6f7361467ef40b19d23bfcfc8b2d3c18288c101f6ebc4c7/manifest.json
+    - docs/research/formal-semantic-validation/captures/capture-35052af226b5ed96d6f7361467ef40b19d23bfcfc8b2d3c18288c101f6ebc4c7/snapshot.json
+    - docs/research/specification-coverage/capture-records/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96.json
+    - docs/research/specification-coverage/captures/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96/analysis.json
+    - docs/research/specification-coverage/captures/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96/manifest.json
+    - docs/research/specification-coverage/captures/capture-56e9c1c939c84e90ca2edebba981a1b33a36bb364c748629a5f13ec9cd296d96/snapshot.json
+    # Issue #1370 finite IFC publication, admission and immutable source captures.
+    - contracts/fixtures/participant-runtime/participant-control-evaluation-v2/valid/owner-flow.json
+    - contracts/fixtures/participant-runtime/participant-control-selection-v2/context-invalid/owner-missing-promise.json
+    - contracts/fixtures/participant-runtime/participant-control-selection-v2/valid/owner-flow.json
+    - contracts/fixtures/profiles/participant-owner-flow-policy-v1/invalid/reference.json
+    - contracts/fixtures/profiles/participant-owner-flow-policy-v1/valid/reference.json
+    - contracts/profiles/participant-boundary-flow-policy/participant-owner-flow-policy-v1.json
+    - contracts/schema-publication/entries/participant-flow-control-relation-v1.json
+    - contracts/schema-publication/entries/participant-owner-flow-policy-v1.json
+    - contracts/schemas/participant-runtime/participant-flow-control-relation-v1.json
+    - contracts/schemas/profiles/participant-owner-flow-policy-v1.json
+    - docs/decisions/issue-1370-ifc-profile-admission-preflight.md
+    - docs/explain/reference/owner-qualified-ifc.md
+    - docs/governance/requirement-scopes/1370.json
+    - docs/migration/ifc-profile-variability.md
+    - docs/research/formal-semantic-validation/capture-records/capture-67ecf23e1e0070cc5bcedd0c14ff2a5ce55d1490695ccaf51eb6c4edc533ac78.json
+    - docs/research/formal-semantic-validation/capture-records/capture-0f19062299f2723522ec155fe496249ce721fb1f38593c42079e01801c5d074e.json
+    - docs/research/formal-semantic-validation/captures/capture-67ecf23e1e0070cc5bcedd0c14ff2a5ce55d1490695ccaf51eb6c4edc533ac78/analysis.json
+    - docs/research/formal-semantic-validation/captures/capture-67ecf23e1e0070cc5bcedd0c14ff2a5ce55d1490695ccaf51eb6c4edc533ac78/manifest.json
+    - docs/research/formal-semantic-validation/captures/capture-67ecf23e1e0070cc5bcedd0c14ff2a5ce55d1490695ccaf51eb6c4edc533ac78/snapshot.json
+    - docs/research/formal-semantic-validation/captures/capture-0f19062299f2723522ec155fe496249ce721fb1f38593c42079e01801c5d074e/analysis.json
+    - docs/research/formal-semantic-validation/captures/capture-0f19062299f2723522ec155fe496249ce721fb1f38593c42079e01801c5d074e/manifest.json
+    - docs/research/formal-semantic-validation/captures/capture-0f19062299f2723522ec155fe496249ce721fb1f38593c42079e01801c5d074e/snapshot.json
+    - docs/research/specification-coverage/capture-records/capture-60235550915502fe06d6eff38d1179868ac31286fb797d05df470e81d8c42aa2.json
+    - docs/research/specification-coverage/capture-records/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584.json
+    - docs/research/specification-coverage/captures/capture-60235550915502fe06d6eff38d1179868ac31286fb797d05df470e81d8c42aa2/analysis.json
+    - docs/research/specification-coverage/captures/capture-60235550915502fe06d6eff38d1179868ac31286fb797d05df470e81d8c42aa2/manifest.json
+    - docs/research/specification-coverage/captures/capture-60235550915502fe06d6eff38d1179868ac31286fb797d05df470e81d8c42aa2/snapshot.json
+    - docs/research/specification-coverage/captures/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584/analysis.json
+    - docs/research/specification-coverage/captures/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584/manifest.json
+    - docs/research/specification-coverage/captures/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584/snapshot.json
+    - implementations/python/packages/raes_contracts/contracts/bundle.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_security_resolution.py
+    - implementations/python/packages/raes_contracts/contracts/participant_flow_control.py
+    - implementations/python/packages/raes_contracts/contracts/participant_flow_control_context.py
+    - implementations/python/packages/raes_contracts/contracts/participant_flow_control_semantics.py
+    - implementations/python/packages/raes_contracts/contracts/participant_flow_control_validation.py
+    - implementations/python/packages/raes_contracts/contracts/participant_owner_flow.py
+    - implementations/python/packages/raes_contracts/contracts/participant_owner_flow_admission.py
+    - implementations/python/tests/test_issue_1370_ifc_admission.py
+    - implementations/python/tests/test_issue_1370_ifc_profiles.py
+    - implementations/python/tests/test_issue_1370_ifc_runtime.py
     # Issue #1352 semantic-design publication; no expanded runtime ownership.
     - docs/migration/control-applicability-and-evaluation.md
     - implementations/python/tests/test_issue_1352_governance.py
