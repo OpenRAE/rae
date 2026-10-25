@@ -20,12 +20,17 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import cast
 
+from raes_contracts.contracts.participant_control_applicability import (
+    ParticipantControlRequestV2Model,
+    ParticipantControlSelectionV2Model,
+)
 from raes_contracts.contracts.participant_control_composition import (
     ParticipantControlEvaluationModel,
     ParticipantControlRequestModel,
     control_digest,
     derive_control_composition,
 )
+from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
 from raes_contracts.contracts.participant_control_resolution import (
     validate_participant_control_resolved_context,
 )
@@ -62,7 +67,7 @@ class ParticipantControlOutcome:
 
     disposition: str
     reason_code: str
-    evaluation: ParticipantControlEvaluationModel | None = None
+    evaluation: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model | None = None
 
     @property
     def eligible(self) -> bool:
@@ -92,7 +97,13 @@ def resolve_participant_control_outcome(
         return None
     if crossing.decision is None:
         return _unresolved(_UNRESOLVED, "control-unresolved")
-    return _resolved_outcome(control_plane, binding, crossing, sink_kind)
+    if isinstance(binding.selection, ParticipantControlSelectionV2Model):
+        from .participant_control_evaluation_v2 import resolve_v2_outcome
+
+        outcome = resolve_v2_outcome(control_plane, binding, crossing, sink_kind)
+    else:
+        outcome = _resolved_outcome(control_plane, binding, crossing, sink_kind)
+    return outcome
 
 
 def _resolved_outcome(
@@ -114,7 +125,7 @@ def _request_refusal(
     control_plane: object,
     binding: ParticipantControlRuntimeBinding,
     crossing: PreparedParticipantCrossing,
-    request: ParticipantControlRequestModel | None,
+    request: ParticipantControlRequestModel | ParticipantControlRequestV2Model | None,
     sink_kind: object,
     head_refs: tuple[str, ...],
 ) -> ParticipantControlOutcome | None:
@@ -336,7 +347,7 @@ def with_participant_control_evaluation(
 
 def _with_appended_evaluation(
     crossing: PreparedParticipantCrossing,
-    evaluation: ParticipantControlEvaluationModel,
+    evaluation: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model,
 ) -> PreparedParticipantCrossing:
     participant_address = crossing.intent.participant_address
     history = crossing.next_snapshot.participant_control_evaluation_history

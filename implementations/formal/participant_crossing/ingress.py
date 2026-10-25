@@ -11,12 +11,7 @@ MAX_BYTES = 2 * 1024 * 1024
 
 def safe_path(root: Path, relative: str) -> Path:
     parts = PurePosixPath(relative).parts
-    if (
-        not parts
-        or len(relative) > 256
-        or "\\" in relative
-        or any(part in {".", ".."} for part in parts)
-    ):
+    if not parts or len(relative) > 256 or "\\" in relative or any(part in {".", ".."} for part in parts):
         raise ValueError("unsafe model artifact path")
     target = safe_repo_path(root, relative)
     if target is None or target != root.resolve() / relative:
@@ -29,26 +24,24 @@ def safe_path(root: Path, relative: str) -> Path:
     return target
 
 
-def read_bytes(root: Path, relative: str) -> bytes:
+def read_bytes(root: Path, relative: str, *, max_bytes: int = MAX_BYTES) -> bytes:
+    if type(max_bytes) is not int or not 0 < max_bytes <= 32 * 1024 * 1024:
+        raise ValueError("invalid model artifact byte limit")
     safe_path(root, relative)
     directory = os.open(root, os.O_RDONLY | os.O_DIRECTORY)
     try:
         parts = PurePosixPath(relative).parts
         for part in parts[:-1]:
-            child = os.open(
-                part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory
-            )
+            child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory)
             os.close(directory)
             directory = child
-        descriptor = os.open(
-            parts[-1], os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory
-        )
+        descriptor = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
         with os.fdopen(descriptor, "rb") as stream:
             info = os.fstat(stream.fileno())
-            if not stat.S_ISREG(info.st_mode) or info.st_size > MAX_BYTES:
+            if not stat.S_ISREG(info.st_mode) or info.st_size > max_bytes:
                 raise ValueError("invalid model artifact file")
-            content = stream.read(MAX_BYTES + 1)
-            if len(content) > MAX_BYTES:
+            content = stream.read(max_bytes + 1)
+            if len(content) > max_bytes:
                 raise ValueError("model artifact exceeds byte limit")
             return content
     except OSError:

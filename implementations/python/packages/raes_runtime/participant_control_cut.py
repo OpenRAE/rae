@@ -10,18 +10,35 @@ from __future__ import annotations
 
 from pydantic import ValidationError
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.contracts.participant_control_applicability import ParticipantControlRequestV2Model
 from raes_contracts.contracts.participant_control_composition import ParticipantControlRequestModel
 from raes_contracts.contracts.participant_crossing import ParticipantCrossingOccurrenceModel
 
-from .participant_control_causal_state import causal_state_from_history, declares_retained_consumption
+from .participant_control_causal_state import (
+    causal_state_from_history,
+    declares_retained_consumption,
+    root_has_shared_consumption,
+)
 from .participant_crossing_mediation import PreparedParticipantCrossing
 
 
-def declares_committed_consumption(control_plane: object, request: ParticipantControlRequestModel) -> bool:
+def declares_committed_consumption(
+    control_plane: object, request: ParticipantControlRequestModel | ParticipantControlRequestV2Model
+) -> bool:
     """Reconcile the admitted context with the consumption already committed."""
 
     context = request.context
-    history = control_plane._snapshot.participant_control_evaluation_history.get(context.participant_address, ())
+    histories = control_plane._snapshot.participant_control_evaluation_history
+    # V1-only runs keep their participant-local interpretation. Retained v2
+    # records carry shared consumption that a binding/participant change cannot
+    # erase; the fold still selects each record's original reducer.
+    history = tuple(record for records in histories.values() for record in records)
+    if not isinstance(request, ParticipantControlRequestV2Model) and not root_has_shared_consumption(
+        history,
+        run_ref=context.run.ref,
+        trigger_root=context.trigger_root,
+    ):
+        history = histories.get(context.participant_address, ())
     state = causal_state_from_history(
         history,
         run_ref=context.run.ref,
@@ -31,7 +48,7 @@ def declares_committed_consumption(control_plane: object, request: ParticipantCo
 
 
 def binds_live_cut(
-    request: ParticipantControlRequestModel,
+    request: ParticipantControlRequestModel | ParticipantControlRequestV2Model,
     crossing: PreparedParticipantCrossing,
     sink_kind: object,
     head_refs: tuple[str, ...],

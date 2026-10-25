@@ -347,12 +347,19 @@ def execute_observation_lifecycle(
     producers: Mapping[str, Callable[[], tuple[object, ...]]],
     supported: frozenset[str],
     protector: Callable[[ObservationLifecycleItem, EffectiveObservationDemand], ObservationLifecycleItem] | None = None,
+    optional_failure_is_loss: bool = False,
 ) -> ObservationLifecycleResult:
     """Execute the admitted lifecycle through the canonical contract owner."""
 
     from .observation_lifecycle import execute_observation_lifecycle as execute
 
-    return execute(resolution, producers=producers, supported=supported, protector=protector)
+    return execute(
+        resolution,
+        producers=producers,
+        supported=supported,
+        protector=protector,
+        optional_failure_is_loss=optional_failure_is_loss,
+    )
 
 
 __all__ = [

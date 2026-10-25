@@ -1,9 +1,9 @@
 {
-  "content_hash": "1ad4ff17d19657f15deace6663c54ea90c44c24a2916fb26e51029455f73ba88",
+  "content_hash": "b4b24248ae4087b13c457303f956a48440a4134828aa34facbec0cee1154c291",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "1ad4ff17d19657f15deace6663c54ea90c44c24a2916fb26e51029455f73ba88",
-    "summary": "Reject empty and whitespace-only behavior specification version labels, matching existing parser validity; DSL-116 issue #297."
+    "content_hash": "b4b24248ae4087b13c457303f956a48440a4134828aa34facbec0cee1154c291",
+    "summary": "Publish reusable and finite-script mixed-control rev1 policies, paired script windows, closed portable-key maps and directed-delivery control blocks; retain canonical relationship eligibility from #1339; issue #1363."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

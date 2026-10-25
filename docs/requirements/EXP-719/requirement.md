@@ -18,3 +18,7 @@ The ecosystem shall support first-class treatment, factor, condition, and contro
 ## Rationale
 
 Requirement inventory expansion. Designed variation is a distinct experiment concern and should not be left implicit inside ad hoc run metadata.
+
+## Traceability
+
+- IMPLEMENTS → SPEC `contracts/schemas/experiment-core/experiment-binding-descriptors-v1.json` (experiment-binding-descriptors-v1 published schema)

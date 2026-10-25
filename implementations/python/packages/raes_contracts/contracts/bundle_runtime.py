@@ -8,6 +8,7 @@ from .associated_artifacts import AssociatedArtifactManifestModel
 from .backend_operation_schema import backend_operation_schema_bundle
 from .execution_state import EvaluationHistoryEventModel
 from .experiment_bindings import ParticipantConfigurationResultModel
+from .inject_occurrence_schema import inject_occurrence_schema_bundle
 from .mixed_backend_schema import mixed_backend_schema_bundle
 from .operation_carriers import OperationReceiptModel, OperationStatusModel
 from .participant_context import ParticipantContextViewModel
@@ -15,6 +16,7 @@ from .participant_control import ParticipantControlOccurrenceModel
 from .participant_control_applicability import ParticipantControlSelectionV2Model
 from .participant_control_composition import ParticipantControlEvaluationModel
 from .participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
+from .participant_control_occurrence_v2 import ParticipantControlOccurrenceV2Model
 from .participant_control_profiles import ParticipantControlTeachingProfileModel
 from .participant_control_selection import ParticipantControlSelectionModel
 from .participant_crossing import ParticipantCrossingOccurrenceModel
@@ -96,6 +98,7 @@ def _participant_control_schema_bundle() -> dict[str, dict[str, Any]]:
 def _runtime_schema_bundle() -> dict[str, dict[str, Any]]:
     return {
         **backend_operation_schema_bundle(),
+        **inject_occurrence_schema_bundle(),
         **_participant_control_schema_bundle(),
         **mixed_backend_schema_bundle(),
         "evaluation-history-event-stream-v1": _event_stream_schema(
@@ -125,6 +128,7 @@ def _runtime_schema_bundle() -> dict[str, dict[str, Any]]:
         "participant-joint-action-record-v1": ParticipantJointActionRecordModel.model_json_schema(),
         "participant-time-management-context-v1": ParticipantTimeManagementContextModel.model_json_schema(),
         "participant-control-occurrence-v1": ParticipantControlOccurrenceModel.model_json_schema(),
+        "participant-control-occurrence-v2": ParticipantControlOccurrenceV2Model.model_json_schema(),
         "participant-crossing-occurrence-v1": ParticipantCrossingOccurrenceModel.model_json_schema(),
         "participant-flow-control-relation-v1": ParticipantFlowControlRelationModel.model_json_schema(),
         "participant-outcome-report-v1": ParticipantOutcomeReportModel.model_json_schema(),

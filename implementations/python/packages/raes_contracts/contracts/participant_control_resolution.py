@@ -43,6 +43,7 @@ from .participant_control_results import (
     ControlRealizationBindingModel,
     ControlSecurityFactModel,
 )
+from .participant_control_security_resolution import _validate_security_fact
 from .participant_control_selection import ControlMechanismBindingModel
 from .participant_control_support_v2 import ControlSupportAssessmentV2Model
 from .participant_control_validation import validate_participant_control_occurrence_context
@@ -52,9 +53,9 @@ from .participant_crossing import (
     ParticipantCrossingSubjectReferenceModel,
 )
 from .participant_crossing_validation import validate_participant_crossing_occurrence_context
-from .participant_flow_control import ParticipantFlowControlRelationModel, ParticipantFlowSinkDecisionModel
+from .participant_flow_control import ParticipantFlowControlRelationModel
 from .participant_flow_control_context import ParticipantFlowControlValidationContext
-from .participant_flow_control_validation import validate_participant_flow_control_context
+from .participant_inject_application import ParticipantInjectContentModel
 
 _COMMITTED_EFFECT_MISMATCH = "realized effect differs from its committed full intent, cut, or prerequisites"
 
@@ -80,6 +81,8 @@ class ParticipantControlValidationContext:
     flow_relations: Mapping[str, ParticipantFlowControlRelationModel] = field(default_factory=dict)
     flow_contexts: Mapping[str, ParticipantFlowControlValidationContext] = field(default_factory=dict)
     inject_deliveries: Mapping[str, ParticipantInjectDelivery] = field(default_factory=dict)
+    inject_applications: Mapping[str, ParticipantInjectContentModel] = field(default_factory=dict)
+    inject_coordinates: Mapping[str, ControlInjectEffectModel] = field(default_factory=dict)
 
 
 def control_references(record: object) -> Iterator[ControlArtifactReferenceModel]:
@@ -139,6 +142,9 @@ def _validate_inject(
     delivery = context.inject_deliveries.get(target.delivery_ref.ref)
     if delivery is None or control_digest(delivery) != target.delivery_ref.digest:
         raise ValueError("inject request has no exact owning delivery")
+    if delivery.control is not None:
+        _validate_control_inject(target, cut, context, delivery)
+        return
     expected = (
         target.participant_address,
         target.inject_ref,
@@ -167,62 +173,33 @@ def _validate_inject(
         raise ValueError("inject request owner coordinates differ")
 
 
-def _security_sink_matches(
-    decision: ParticipantFlowSinkDecisionModel,
-    decision_ids: set[str],
-    fact: ControlSecurityFactModel,
+def _validate_control_inject(
+    target: ControlInjectEffectModel,
     cut: ParticipantControlContextModel,
-) -> bool:
-    return (
-        decision.decision_id in decision_ids
-        and decision.label_ref == fact.label_ref
-        and (decision.sink.sink_ref, decision.sink.destination_ref, decision.sink.audience_scope_ref)
-        == (cut.sink_ref, cut.destination_ref, cut.audience_ref)
-        and set(decision.expected_history_head_refs) == {head.ref for head in cut.expected_history_heads}
-    )
-
-
-def _validate_security_sink(
-    relation: ParticipantFlowControlRelationModel, fact: ControlSecurityFactModel, cut: ParticipantControlContextModel
+    context: ParticipantControlValidationContext,
+    delivery: ParticipantInjectDelivery,
 ) -> None:
-    # The IFC subject may be a derived action argument, whereas the API-423
-    # subject is its enclosing control occurrence. Follow the incumbent
-    # typed carrier relation instead of conflating these identities.
-    decision_ids = {
-        binding.relation_target.target_ref
-        for binding in relation.bindings
-        if binding.kind == "participant-crossing"
-        and binding.event_id == cut.crossing.ref
-        and binding.relation_target.target_kind == "sink-decision"
-    }
-    if not any(_security_sink_matches(decision, decision_ids, fact, cut) for decision in relation.sink_decisions):
-        raise ValueError("security fact has no exact crossing and sink binding")
-
-
-def _validate_security_fact(
-    fact: ControlSecurityFactModel, cut: ParticipantControlContextModel, context: ParticipantControlValidationContext
-) -> None:
-    relation = context.flow_relations.get(fact.relation.ref)
-    flow_context = context.flow_contexts.get(fact.relation.ref)
-    if relation is None or flow_context is None or control_digest(relation) != fact.relation.digest:
-        raise ValueError("security fact requires its exact incumbent relation and context")
-    validate_participant_flow_control_context(relation, flow_context)
-    label = next((label for label in relation.labels if label.label_id == fact.label_ref), None)
-    if label is None or label.resolution_status != "resolved":
-        raise ValueError("security fact label does not resolve")
-    if (relation.document_id, relation.document_revision) != (fact.relation.ref, fact.relation.revision):
-        raise ValueError("security relation identity differs")
-    _validate_security_sink(relation, fact, cut)
-    for name in (
-        "policy_id",
-        "policy_revision",
-        "policy_digest",
-        "policy_decision_ref",
-        "decision_cut_ref",
-        "effective_order",
+    application = getattr(context, "inject_applications", {}).get(target.delivery_ref.ref)
+    canonical = getattr(context, "inject_coordinates", {}).get(target.delivery_ref.ref)
+    if application is None or canonical != target or application.application.control is None:
+        raise ValueError(
+            "inject request cannot join a mixed-control-policy-occurrence/rev1 delivery binding "
+            "without its exact owner application"
+        )
+    application = ParticipantInjectContentModel.model_validate(application.model_dump(mode="json"))
+    selected = application.application
+    if (
+        selected.delivery_address != target.delivery_ref.ref
+        or selected.delivery_digest != target.delivery_ref.digest
+        or (
+            application.participant_address,
+            application.episode_id,
+            application.disclosed_item.artifact_id,
+            application.visibility_projection_ref,
+        )
+        != (target.participant_address, cut.episode_id, target.result_item_ref, target.disclosure_ref.ref)
     ):
-        if getattr(label.policy, name) != getattr(cut.policy, name):
-            raise ValueError("security fact exact policy cut differs")
+        raise ValueError("inject request exact owner application differs")
 
 
 def _validate_incumbents(
@@ -345,6 +322,8 @@ class ParticipantControlValidationContextV2:
     flow_relations: Mapping[str, ParticipantFlowControlRelationModel] = field(default_factory=dict)
     flow_contexts: Mapping[str, ParticipantFlowControlValidationContext] = field(default_factory=dict)
     inject_deliveries: Mapping[str, ParticipantInjectDelivery] = field(default_factory=dict)
+    inject_applications: Mapping[str, ParticipantInjectContentModel] = field(default_factory=dict)
+    inject_coordinates: Mapping[str, ControlInjectEffectModel] = field(default_factory=dict)
 
 
 ParticipantControlContextResolverV2 = Callable[
@@ -395,6 +374,9 @@ def _validate_admitted_v2_identity(
 def _validate_v2_results_and_support(
     record: ParticipantControlEvaluationV2Model, context: ParticipantControlValidationContextV2
 ) -> None:
+    from .participant_owner_flow_admission import validate_owner_flow_result_coverage
+
+    validate_owner_flow_result_coverage(record.request, record.results)
     if {item.slot_id: item for item in record.results} != context.resolved_results:
         raise ValueError("provider results differ")
     bindings = {item.instance_id: item for item in record.request.selection.bindings}

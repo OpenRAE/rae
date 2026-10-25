@@ -40,3 +40,12 @@ These encode the hard rules previously in `AGENTS.md` prose.
   `ci`/`build` do not release. Use `feat:`/`fix:` for consumer-visible changes so
   release-please actually cuts a release. The PR title MUST still pass the
   `title-guard` gate (`tools/check_pr_title.py`).
+
+- Source-bound formal and specification research evidence MUST use immutable,
+  content-addressed branch captures via `python -m tools.research_capture record`.
+  Feature branches MUST NOT allocate the next numbered research release, extend
+  hard-coded revision lists, rewrite published history, or append a capture to
+  shared narrative indexes. Preserve capture retention records and baseline pins.
+  Numbered publication receipts are assigned only on a clean `dev` integration
+  checkout via `python -m tools.research_capture publish`. See
+  `docs/develop/research-captures.md` for collection and integration instructions.

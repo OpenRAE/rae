@@ -1316,7 +1316,7 @@ def test_behavior_classifications_require_external_binding_migration(field):
             "authority_scope_refs: [nodes.web.services.http]",
             "authority_scope_refs: [nodes.missing.services.http]",
             "Behavior specification 'red-scan-behavior' authority_scope_ref 'nodes.missing.services.http' "
-            "does not reference any defined targetable element",
+            "does not reference any defined element eligible as an authority scope",
         ),
     ],
 )
@@ -1474,7 +1474,7 @@ def test_participant_interactions_must_resolve_targets():
 
     assert (
         "Action contract 'scan' interaction[0] target 'nodes.missing.services.http' "
-        "does not reference any defined targetable element"
+        "does not reference any defined element eligible as an action target"
     ) in str(excinfo.value)
 
 
@@ -1489,7 +1489,7 @@ def test_participant_interactions_must_resolve_shared_state_refs():
 
     assert (
         "Action contract 'scan' interaction[0] shared_state_ref 'nodes.missing.services.http' "
-        "does not reference any defined targetable element"
+        "does not reference any defined element eligible as shared state"
     ) in str(excinfo.value)
 
 

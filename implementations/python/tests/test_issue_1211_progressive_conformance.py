@@ -258,9 +258,11 @@ def test_same_scenario_plans_executes_persists_and_recovers_without_collection()
     assert control_plane.observation_execution(receipt.operation_id) is None
     assert all(record.result_payload is None for record in store.load_records().values())
 
+    expected_snapshot = control_plane.snapshot
+    control_plane.close()
     recovered = RuntimeControlPlane(target, store=store)
     assert recovered.get_operation(receipt.operation_id).state is OperationState.SUCCEEDED
-    assert recovered.snapshot == control_plane.snapshot
+    assert recovered.snapshot == expected_snapshot
 
 
 def test_runtime_rejects_private_identity_drift_without_persisting_side_effects() -> None:
@@ -274,7 +276,7 @@ def test_runtime_rejects_private_identity_drift_without_persisting_side_effects(
     receipt = control_plane.submit_provisioning(execution.provisioning)
     assert receipt.accepted
     status = control_plane.get_operation(receipt.operation_id)
-    assert status.state is OperationState.FAILED
+    assert status.state is OperationState.INDETERMINATE
     assert status.changed_addresses == []
     assert status.diagnostics[0].code == "runtime.backend-contract-invalid"
     assert status.diagnostics[0].address == "/provision.node.private"

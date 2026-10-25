@@ -120,7 +120,7 @@ def _inventory(**overrides: object) -> dict:
                 "platform": "x86_64-unknown-linux-gnu",
             },
             build_backend={"name": "hatchling", "version": "1.27.0"},
-            tool_inputs=[{"name": "uv", "version": "0.12.4"}],
+            tool_inputs=[{"name": "uv", "version": "0.13.4"}],
             native_inputs=[],
             actions=[{"action": "actions/checkout", "commit": "c" * 40}],
             runner={"image": "ubuntu-24.04", "architecture": "x86_64", "observed": False},

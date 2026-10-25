@@ -18,6 +18,8 @@ from raes_processor.models import ParticipantBehaviorRuntime
 
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_mutation import control_plane_mutation, external_control_plane_call, mutation_entry
+from .participant_control_batch import ParticipantControlBatchMixin
+from .participant_control_cancellation import ParticipantCancellationMixin
 from .participant_control_diagnostics import (
     _NO_PARTICIPANT_RUNTIME_MESSAGE,
     _participant_binding_address,
@@ -236,6 +238,8 @@ def _bind_participant_decision_surface(
 
 
 class ParticipantControlMixin(
+    ParticipantCancellationMixin,
+    ParticipantControlBatchMixin,
     ParticipantOutcomeControlMixin,
     ParticipantEpisodeControlMixin,
     ParticipantCrossingControlIngressMixin,
