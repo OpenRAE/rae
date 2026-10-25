@@ -63,7 +63,9 @@ It does not certify backend truthfulness or roll back infrastructure effects.
 The result-admission specification and account-credential specification describe this composition.
 ADR-056 and ADR-057 retain their existing observed-value and name-classification decisions.
 No new ADR is needed because ownership and public data shapes do not change.
-No schema, deployment, policy configuration, or infrastructure artifact changes are needed.
+No schema or deployment change is needed.
+The existing CI compatibility job has a bounded 45-minute budget.
+This permits the full unit suite and installed-distribution checks to finish.
 Existing policy tools enforce repository boundaries.
 The regression tests enforce the corrected runtime boundary.
 Fresh content-addressed research captures bind the retained reference checks to the changed source.
@@ -74,6 +76,7 @@ These captures retain their existing limits and do not establish live backend be
 - [Python copy documentation](https://docs.python.org/3.12/library/copy.html), Python 3.12, deep copy: isolated comparison and publication payloads.
 - [OWASP input validation](https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html), current edition, structured data and allowlists: field-specific validation across trust boundaries.
 - [ASD-STE100](https://www.asd-ste100.org/assets/files/ASD-STE100_ISSUE9.pdf), Issue 9, sections 1, 4, and 6: terminology, sentence structure, and descriptive writing.
+- [GitHub workflow syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax), current edition, job timeouts: bounded verification time.
 
 The prose review uses consistent technical nouns and short descriptive sentences.
 The diagram names processes, data flows, the state store, and the trust boundary.
