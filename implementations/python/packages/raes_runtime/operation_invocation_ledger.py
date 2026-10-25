@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from raes_contracts.contracts.participant_control_decisions_v2 import ControlEffectRequestV2Model
+
 from typing import TYPE_CHECKING, Literal, Self
 
 from pydantic import ConfigDict, Field, StrictBool, model_validator
@@ -210,7 +215,13 @@ def _cancellation_effect_claim(record: ControlPlaneOperationRecord) -> bool:
         and record.receipt.context.request_commitment
         == canonical_json_digest({"domain": "participant-control-effect/v1", "effect": payload})
         and record.idempotency_key == "control-effect:" + canonical_json_digest(effect.key.model_dump(mode="json"))
-        and effect.target.kind == "interrupt"
+        and _is_execution_cancellation(effect)
+    )
+
+
+def _is_execution_cancellation(effect: ControlEffectRequestV2Model) -> bool:
+    return (
+        effect.target.kind == "interrupt"
         and effect.target.operation == "cancel"
         and effect.target.target_kind == "execution"
     )

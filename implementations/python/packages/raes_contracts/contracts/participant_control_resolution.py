@@ -36,6 +36,7 @@ from .participant_control_evaluation_v2 import (
     ParticipantControlEvaluationV2Model,
     admitted_control_effect_ids_v2,
 )
+from .participant_control_inject_resolution import _validate_inject
 from .participant_control_invocation import ControlMechanismResultV2Model
 from .participant_control_results import (
     ControlEffectiveSupportModel,
@@ -134,81 +135,6 @@ def _validate_crossing(cut: ParticipantControlContextModel, context: Participant
         or cut.authority.ref not in owner.authority_basis_refs
     ):
         raise ValueError("participant control crossing coordinates differ")
-
-
-def _validate_inject(
-    target: ControlInjectEffectModel, cut: ParticipantControlContextModel, context: ParticipantControlValidationContext
-) -> None:
-    delivery = context.inject_deliveries.get(target.delivery_ref.ref)
-    if delivery is None or control_digest(delivery) != target.delivery_ref.digest:
-        raise ValueError("inject request has no exact owning delivery")
-    if delivery.control is not None:
-        _validate_control_inject(target, cut, context, delivery)
-        return
-    canonical = getattr(context, "inject_coordinates", {}).get(target.delivery_ref.ref)
-    if canonical is not None:
-        if (
-            canonical != target
-            or target.episode_id != cut.episode_id
-            or delivery.delivery_policy.audience_scope_ref != cut.audience_ref
-        ):
-            raise ValueError("inject request canonical owner coordinates differ")
-        return
-    expected = (
-        target.participant_address,
-        target.inject_ref,
-        target.event_ref,
-        target.script_ref,
-        target.story_ref,
-        target.source_item_ref,
-        target.result_item_ref,
-        target.disclosure_ref.ref,
-    )
-    observed = (
-        delivery.participant_ref,
-        delivery.inject_ref,
-        delivery.occurrence.event_ref,
-        delivery.occurrence.script_ref,
-        delivery.occurrence.story_ref,
-        delivery.source_item_ref,
-        delivery.result_item_ref,
-        delivery.delivery_policy.disclosure_basis_ref,
-    )
-    if (
-        expected != observed
-        or target.episode_id != cut.episode_id
-        or delivery.delivery_policy.audience_scope_ref != cut.audience_ref
-    ):
-        raise ValueError("inject request owner coordinates differ")
-
-
-def _validate_control_inject(
-    target: ControlInjectEffectModel,
-    cut: ParticipantControlContextModel,
-    context: ParticipantControlValidationContext,
-    delivery: ParticipantInjectDelivery,
-) -> None:
-    application = getattr(context, "inject_applications", {}).get(target.delivery_ref.ref)
-    canonical = getattr(context, "inject_coordinates", {}).get(target.delivery_ref.ref)
-    if application is None or canonical != target or application.application.control is None:
-        raise ValueError(
-            "inject request cannot join a mixed-control-policy-occurrence/rev1 delivery binding "
-            "without its exact owner application"
-        )
-    application = ParticipantInjectContentModel.model_validate(application.model_dump(mode="json"))
-    selected = application.application
-    if (
-        selected.delivery_address != target.delivery_ref.ref
-        or selected.delivery_digest != target.delivery_ref.digest
-        or (
-            application.participant_address,
-            application.episode_id,
-            application.disclosed_item.artifact_id,
-            application.visibility_projection_ref,
-        )
-        != (target.participant_address, cut.episode_id, target.result_item_ref, target.disclosure_ref.ref)
-    ):
-        raise ValueError("inject request exact owner application differs")
 
 
 def _validate_incumbents(
@@ -464,12 +390,17 @@ def _validate_prior_identity(
         or origin.request.context.participant_address != record.request.context.participant_address
         or origin.request.context.episode_id != record.request.context.episode_id
         or origin.request.context.order > record.request.context.order
-        or (
-            origin.request.context.effects_consumed >= record.request.context.effects_consumed
-            and not (same_cut and origin.request == record.request)
-        )
+        or not _prior_consumption_valid(record, origin, same_cut=same_cut)
     ):
         raise ValueError(_COMMITTED_EFFECT_MISMATCH)
+
+
+def _prior_consumption_valid(
+    record: ParticipantControlEvaluationV2Model, origin: ParticipantControlEvaluationV2Model, *, same_cut: bool
+) -> bool:
+    return origin.request.context.effects_consumed < record.request.context.effects_consumed or (
+        same_cut and origin.request == record.request
+    )
 
 
 def _validate_prior_commit(origin: ParticipantControlEvaluationV2Model, effect_id: str) -> None:

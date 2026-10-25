@@ -87,8 +87,9 @@ def test_unattributed_drain_cannot_read_or_dispatch_effects():
     plane, _ = effect_plane()
     with plane:
         admit(plane, control_identity=identity(audience_bound=True))
+        unbound = identity(bound=False)
         with pytest.raises(PermissionError):
-            plane.dispatch_participant_control_effects(PARTICIPANT, identity=identity(bound=False))
+            plane.dispatch_participant_control_effects(PARTICIPANT, identity=unbound)
         assert not plane.snapshot.participant_control_history.get(PARTICIPANT)
 
 

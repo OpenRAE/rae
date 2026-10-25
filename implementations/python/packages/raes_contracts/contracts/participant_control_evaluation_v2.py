@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Annotated, Literal, Self
 
-from pydantic import ConfigDict, Field, model_serializer, model_validator
+from pydantic import ConfigDict, Field, SerializerFunctionWrapHandler, model_serializer, model_validator
 
 from ..json_ingress import parse_bounded_json_object
 from .base import ContractModel, PrefixedDigestString
@@ -216,7 +216,7 @@ class ParticipantControlEvaluationV2Model(ContractModel):
     continuation: ControlEffectContinuationV2Model | None = None
 
     @model_serializer(mode="wrap")
-    def _legacy_serialization(self, handler):
+    def _legacy_serialization(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
         result = handler(self)
         if self.continuation is None:
             result.pop("continuation", None)

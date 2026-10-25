@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import asdict, is_dataclass
@@ -28,7 +28,7 @@ _EFFECT_PARENT: ContextVar[str | None] = ContextVar("raes_control_effect_parent"
 
 
 @contextmanager
-def effect_operation_parent(operation_id: str):
+def effect_operation_parent(operation_id: str) -> Iterator[None]:
     """Link owner submissions to the runtime's held effect claim."""
     token = _EFFECT_PARENT.set(operation_id)
     try:

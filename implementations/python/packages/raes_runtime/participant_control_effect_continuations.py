@@ -1,6 +1,10 @@
 """Append independently authorized continuations of committed effect graphs."""
 
+from __future__ import annotations
+
+from collections.abc import Mapping
 from dataclasses import replace
+from typing import TYPE_CHECKING
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.participant_control_composition_v2 import (
@@ -25,10 +29,27 @@ from .participant_control_parent_outcomes import parent_outcome_receipts
 from .participant_control_records import _linked_carrier, _realization_audit
 from .participant_crossing_state_cut import expected_participant_history_heads
 
+if TYPE_CHECKING:
+    from raes_contracts.contracts.participant_control_composition_v2 import ControlCompositionV2Model
+    from raes_contracts.contracts.participant_control_decisions_v2 import (
+        ControlEffectPlanV2Model,
+        ControlEffectRequestV2Model,
+    )
+    from raes_contracts.contracts.participant_control_resolution import ControlCommittedEffectIntentV2
+
+    from .control_plane import RuntimeControlPlane
+    from .control_plane_store import ControlPlaneOperationRecord
+    from .participant_control_binding import ParticipantControlRuntimeBinding
+
 CONTINUATION_SUFFIX = ":continuation:"
 
 
-def advance_effect_plan(plane, binding, source, origin):
+def advance_effect_plan(
+    plane: RuntimeControlPlane,
+    binding: ParticipantControlRuntimeBinding,
+    source: ParticipantControlEvaluationV2Model,
+    origin: ControlPlaneOperationRecord,
+) -> ParticipantControlEvaluationV2Model:
     """Preserve the source and atomically admit only owner-proven ready work."""
     if not source.effect_plan.effects:
         return source
@@ -52,14 +73,26 @@ def advance_effect_plan(plane, binding, source, origin):
         parent_admission_receipt=admission,
         parent_application_receipt=application,
     )
-    if plan == source.effect_plan:
-        return source
-    composition = derive_control_composition_v2(
-        source.request, source.results, source.support, source.lost_advice, plan
-    )
+    if plan != source.effect_plan:
+        composition = derive_control_composition_v2(
+            source.request, source.results, source.support, source.lost_advice, plan
+        )
+        admitted = admitted_control_effect_ids_v2(composition, plan)
+        if admitted:
+            return _publish_continuation(plane, binding, source, origin, plan, composition, retained)
+    return source
+
+
+def _publish_continuation(
+    plane: RuntimeControlPlane,
+    binding: ParticipantControlRuntimeBinding,
+    source: ParticipantControlEvaluationV2Model,
+    origin: ControlPlaneOperationRecord,
+    plan: ControlEffectPlanV2Model,
+    composition: ControlCompositionV2Model,
+    retained: Mapping[str, ControlCommittedEffectIntentV2],
+) -> ParticipantControlEvaluationV2Model:
     admitted = admitted_control_effect_ids_v2(composition, plan)
-    if not admitted:
-        return source
     payload = source.model_dump(mode="json")
     transition_id = (
         source.evaluation_id + CONTINUATION_SUFFIX + canonical_json_digest(plan.model_dump(mode="json"))[7:23]
@@ -102,8 +135,8 @@ def advance_effect_plan(plane, binding, source, origin):
         context = with_retained_effect_evidence(context, retained)
         context = replace(
             context,
-            parent_admission_receipt=admission,
-            parent_application_receipt=application,
+            parent_admission_receipt=plan.parent_admission_receipt,
+            parent_application_receipt=plan.parent_application_receipt,
             commit_receipt=source.commit.receipt,
         )
         cut.call(lambda: validate_participant_control_continuation_v2(transition, source, context))
@@ -152,11 +185,11 @@ def advance_effect_plan(plane, binding, source, origin):
     return transition
 
 
-def continuation_key(evaluation):
+def continuation_key(evaluation: ParticipantControlEvaluationV2Model) -> str:
     return "control-effect-continuation:" + canonical_json_digest({"evaluation_id": evaluation.evaluation_id})
 
 
-def cancellation_continuation_claim(record):
+def cancellation_continuation_claim(record: ControlPlaneOperationRecord) -> bool:
     """A typed, actor-bound continuation carries no ordinary dispatch grant."""
     if not record.idempotency_key.startswith("control-effect-continuation:"):
         return False
@@ -178,12 +211,17 @@ def cancellation_continuation_claim(record):
             record.idempotency_key == continuation_key(evaluation)
             or record.idempotency_key.startswith(continuation_key(evaluation) + ":recovery:")
         )
-        and bool(pending)
-        and all(
-            effects[key].originating_principal_ref == record.receipt.context.actor_id
-            and effects[key].target.kind == "interrupt"
-            and effects[key].target.operation == "cancel"
-            and effects[key].target.target_kind == "execution"
-            for key in pending
-        )
+        and _pending_cancellations(record, effects, pending)
+    )
+
+
+def _pending_cancellations(
+    record: ControlPlaneOperationRecord, effects: Mapping[str, ControlEffectRequestV2Model], pending: set[str]
+) -> bool:
+    return bool(pending) and all(
+        effects[key].originating_principal_ref == record.receipt.context.actor_id
+        and effects[key].target.kind == "interrupt"
+        and effects[key].target.operation == "cancel"
+        and effects[key].target.target_kind == "execution"
+        for key in pending
     )

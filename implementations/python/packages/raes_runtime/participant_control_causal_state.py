@@ -23,6 +23,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from raes_contracts.contracts.participant_control_composition import (
     ParticipantControlEvaluationModel,
@@ -38,6 +39,11 @@ from raes_contracts.contracts.participant_control_coordinates import (
 from raes_contracts.contracts.participant_control_effects import ControlEffectRequestModel
 from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
 from raes_contracts.participant_control_evaluation_history import participant_control_evaluation_from_payload
+
+if TYPE_CHECKING:
+    from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
+
+    from .control_plane import RuntimeControlPlane
 
 
 @dataclass(frozen=True)
@@ -169,7 +175,9 @@ def declares_retained_consumption(
     )
 
 
-def validate_incremental_effect_admission(plane, evaluation):
+def validate_incremental_effect_admission(
+    plane: RuntimeControlPlane, evaluation: ParticipantControlEvaluationV2Model
+) -> None:
     """Check a continuation against all work this shared root already admitted."""
     from raes_contracts.contracts.participant_control_continuation import (
         validate_participant_control_incremental_admission_v2,

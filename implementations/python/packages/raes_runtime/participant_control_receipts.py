@@ -29,6 +29,7 @@ on each drain rather than recorded.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from raes_contracts.canonical import canonical_json_digest
@@ -56,6 +57,11 @@ from .control_plane_store import (
     ControlPlaneOperationRecord,
     idempotency_claim_identity,
 )
+
+if TYPE_CHECKING:
+    from raes_contracts.contracts.participant_control_decisions_v2 import ControlEffectRequestV2Model
+
+    from .control_plane import RuntimeControlPlane
 
 _APPLIED = "applied"
 _FAILED = "failed"
@@ -178,7 +184,7 @@ def origin_principal(
     )
 
 
-def effect_idempotency_key(request: ControlEffectRequestModel) -> str:
+def effect_idempotency_key(request: ControlEffectRequestModel | ControlEffectRequestV2Model) -> str:
     """Scope the claim to the logical effect key, never to an attempt."""
 
     return f"control-effect:{canonical_json_digest(request.key.model_dump(mode='json'))}"
@@ -199,7 +205,7 @@ def owner_idempotency_key(claim: ControlPlaneOperationRecord) -> str:
 def claim_effect(
     control_plane: object,
     origin: ControlPlaneOperationRecord,
-    request: ControlEffectRequestModel,
+    request: ControlEffectRequestModel | ControlEffectRequestV2Model,
 ) -> EffectClaim | None:
     """Claim this effect for its originating principal, or ``None`` on conflict.
 
@@ -248,7 +254,9 @@ def claim_effect(
     return EffectClaim(record=claimed, fresh=claimed.receipt.operation_id == operation_id)
 
 
-def _effect_claim_context(origin, request):
+def _effect_claim_context(
+    origin: ControlPlaneOperationRecord, request: ControlEffectRequestModel | ControlEffectRequestV2Model
+) -> OperationAdmissionContext:
     return OperationAdmissionContext.model_validate(
         {
             **origin.status.context.model_dump(mode="python"),
@@ -261,7 +269,11 @@ def _effect_claim_context(origin, request):
     )
 
 
-def retained_effect_claim(plane, origin, request):
+def retained_effect_claim(
+    plane: RuntimeControlPlane,
+    origin: ControlPlaneOperationRecord,
+    request: ControlEffectRequestModel | ControlEffectRequestV2Model,
+) -> ControlPlaneOperationRecord | None:
     """Find only the exact claim whose immutable admission actually owns it."""
     from .participant_control_effect_evidence import claim_has_committed_intent
 
@@ -280,7 +292,7 @@ def retained_effect_claim(plane, origin, request):
 def owner_record(
     control_plane: object,
     claim: ControlPlaneOperationRecord,
-    request: ControlEffectRequestModel,
+    request: ControlEffectRequestModel | ControlEffectRequestV2Model,
 ) -> ControlPlaneOperationRecord | None:
     """The owner operation this claim's dispatch submitted, if it exists.
 
@@ -306,6 +318,17 @@ def owner_record(
         if request.target.world_request is None:
             return None
         key = request.target.world_request.request_key
+    return _find_owner_record(control_plane, claim, kind, key, v2=v2)
+
+
+def _find_owner_record(
+    control_plane: object,
+    claim: ControlPlaneOperationRecord,
+    kind: OperationKind,
+    key: str,
+    *,
+    v2: bool,
+) -> ControlPlaneOperationRecord | None:
     scopes = {(claim.status.context.actor_id, kind, key)}
     if v2 and kind is OperationKind.PARTICIPANT_CONTROL:
         scopes.add((claim.status.context.actor_id, OperationKind.PARTICIPANT_CROSSING, key))
@@ -325,7 +348,7 @@ def owner_record(
 def claim_outcome(
     control_plane: object,
     claim: ControlPlaneOperationRecord,
-    request: ControlEffectRequestModel,
+    request: ControlEffectRequestModel | ControlEffectRequestV2Model,
 ) -> str:
     """Classify an effect from its own claim, falling back to its owner's record.
 
@@ -349,15 +372,16 @@ def claim_outcome(
         from .participant_control_effect_owners import owned_effect_outcome
 
         return owned_effect_outcome(control_plane, claim, request, owner)
+    disposition = _INDETERMINATE
     if owner is not None and owner.status.state in _TERMINAL_DISPOSITIONS:
-        return _TERMINAL_DISPOSITIONS[owner.status.state]
-    return _INDETERMINATE
+        disposition = _TERMINAL_DISPOSITIONS[owner.status.state]
+    return disposition
 
 
 def never_dispatched(
     control_plane: object,
     claim: ControlPlaneOperationRecord,
-    request: ControlEffectRequestModel,
+    request: ControlEffectRequestModel | ControlEffectRequestV2Model,
 ) -> bool:
     """Is there durable proof that this claimed effect's dispatch never began?
 
@@ -373,7 +397,7 @@ def never_dispatched(
 
 
 def realization(
-    request: ControlEffectRequestModel,
+    request: ControlEffectRequestModel | ControlEffectRequestV2Model,
     disposition: str,
     receipt_ref: str,
 ) -> ControlRealizationBindingModel:

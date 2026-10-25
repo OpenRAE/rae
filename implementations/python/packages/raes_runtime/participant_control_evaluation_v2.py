@@ -41,6 +41,7 @@ from raes_contracts.contracts.participant_control_invocation import (
     validate_control_stage_result_v2,
 )
 from raes_contracts.contracts.participant_control_resolution import validate_participant_control_resolved_context_v2
+from raes_contracts.contracts.participant_control_results import ControlRealizationBindingModel
 from raes_contracts.contracts.participant_control_support_v2 import ControlSupportAssessmentV2Model
 from raes_contracts.realization_structure import validate_realization_value
 from raes_contracts.runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
@@ -57,6 +58,11 @@ if TYPE_CHECKING:
     from .participant_control_orchestration import ParticipantControlOutcome
 
 _T = TypeVar("_T")
+_StageResults = tuple[
+    tuple[ControlInvocationV2Model, ...],
+    tuple[ControlMechanismResultV2Model, ...],
+    tuple[ControlLostAdviceV2Model, ...],
+]
 
 
 @dataclass
@@ -146,7 +152,8 @@ def resolve_v2_outcome(
             return refusal
         require_retained_provider_state(plane._snapshot, request)
         validate_control_support_v2(request, resolution.support)
-        calls, results, losses = _evaluate_slots(cut, binding, request, resolution.support)
+        stages = _evaluate_slots(cut, binding, request, resolution.support)
+        _, results, _ = stages
         from .participant_control_effect_evidence import retained_effect_intents, with_retained_effect_evidence
 
         effects = tuple(
@@ -156,7 +163,7 @@ def resolve_v2_outcome(
             raise ValueError("effect principal differs from its originating operation")
         retained = retained_effect_intents(plane, effects)
         outcomes = tuple(item.outcome for item in retained.values() if item.outcome.disposition == "applied")
-        evaluation = _compose(binding, crossing, request, resolution, calls, results, losses, outcomes)
+        evaluation = _compose(binding, crossing, request, resolution, stages, outcomes=outcomes)
         require_provider_state_extension(plane._snapshot, evaluation)
         context = cut.call(binding.resolver.validation_context, evaluation)
         context = with_retained_effect_evidence(context, retained)
@@ -178,11 +185,7 @@ def _evaluate_slots(
     binding: ParticipantControlRuntimeBinding,
     request: ParticipantControlRequestV2Model,
     support: tuple[ControlSupportAssessmentV2Model, ...],
-) -> tuple[
-    tuple[ControlInvocationV2Model, ...],
-    tuple[ControlMechanismResultV2Model, ...],
-    tuple[ControlLostAdviceV2Model, ...],
-]:
+) -> _StageResults:
     slots = {item.slot_id: item for item in request.selection.slots}
     instances = {item.instance_id: item for item in request.selection.bindings}
     applicable = set(request.applicability.applicable_slot_ids)
@@ -352,8 +355,7 @@ def _stage_result(
             if not validate_realization_value(portable, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS).conformant:
                 raise ValueError("provider result exceeds portable material bounds")
             validate_control_stage_result_v2(request, invocation, result, predecessors)
-            if result.next_provider_state is not None and binding.stages[result.slot_id].commit_on is None:
-                raise ValueError("provider has no admitted state write")
+            _require_provider_state_write(binding, result)
             return result
 
         result = cut.call(resolve, provider=True)
@@ -369,6 +371,13 @@ def _stage_result(
         raise
     except Exception:
         return _failure(invocation, admitted.evidence, "failed")
+
+
+def _require_provider_state_write(
+    binding: ParticipantControlRuntimeBinding, result: ControlMechanismResultV2Model
+) -> None:
+    if result.next_provider_state is not None and binding.stages[result.slot_id].commit_on is None:
+        raise ValueError("provider has no admitted state write")
 
 
 def _failure(
@@ -415,13 +424,13 @@ def _compose(
     crossing: PreparedParticipantCrossing,
     request: ParticipantControlRequestV2Model,
     resolution: ParticipantControlResolution,
-    calls: tuple[ControlInvocationV2Model, ...],
-    results: tuple[ControlMechanismResultV2Model, ...],
-    losses: tuple[ControlLostAdviceV2Model, ...],
-    outcomes: tuple = (),
+    stages: _StageResults,
+    *,
+    outcomes: tuple[ControlRealizationBindingModel, ...] = (),
 ) -> ParticipantControlEvaluationV2Model:
     from .participant_control_orchestration import _evaluation_id
 
+    calls, results, losses = stages
     effects = [item.payload for item in results if item.payload is not None and item.payload.kind == "effect-request"]
     plan = derive_control_effect_plan_v2(
         parent_crossing=request.context.crossing,

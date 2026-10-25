@@ -160,10 +160,9 @@ def test_predecessor_continuation_survives_restart_without_repeating_owners(tmp_
         validate_participant_control_continuation_v2(continuation, source, context)
         with pytest.raises(ValueError, match="trusted-context"):
             validate_participant_control_resolved_context_v2(continuation, lambda _: context)
+        foreign_source = source.model_copy(update={"evaluation_id": "foreign-source"})
         with pytest.raises(ValueError, match="trusted continuation"):
-            validate_participant_control_continuation_v2(
-                continuation, source.model_copy(update={"evaluation_id": "foreign-source"}), context
-            )
+            validate_participant_control_continuation_v2(continuation, foreign_source, context)
         assert "continuation" not in source.model_dump(mode="json")
 
 

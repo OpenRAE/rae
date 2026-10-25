@@ -9,10 +9,11 @@ An admitted intent, an owner submission and an observed effect remain distinct.
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from contextlib import ExitStack
 from dataclasses import dataclass, field
 from graphlib import TopologicalSorter
+from typing import TYPE_CHECKING
 
 from raes_contracts.contracts import InjectTriggerRequestModel
 from raes_contracts.contracts.participant_control_composition import (
@@ -45,6 +46,11 @@ from .participant_control_receipts import (
 )
 from .participant_control_records import commit_participant_control_realization
 from .participant_crossing_mediation import ParticipantCrossingEvidence
+
+if TYPE_CHECKING:
+    from .control_plane import RuntimeControlPlane
+    from .control_plane_security import ControlPlaneIdentity
+    from .participant_control_binding import ParticipantControlRuntimeBinding
 
 _APPLIED = "applied"
 _WITHHELD = "withheld"
@@ -122,7 +128,14 @@ def dispatch_participant_control_effects(
     return tuple(drain.outcomes.values())
 
 
-def _drain_pass(control_plane, binding, participant_address, drain, *, cancellation_only=False):
+def _drain_pass(
+    control_plane: RuntimeControlPlane,
+    binding: ParticipantControlRuntimeBinding,
+    participant_address: str,
+    drain: _DrainState,
+    *,
+    cancellation_only: bool = False,
+) -> None:
     from .participant_control_effect_drain import dispatch_v2_effects
 
     control_plane._reload_derived_state()
@@ -233,9 +246,9 @@ def _dispatch_evaluation(
 def _dispatched(
     control_plane: object,
     binding: object,
-    evaluation: ParticipantControlEvaluationModel,
+    evaluation: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model,
     origin: ControlPlaneOperationRecord | None,
-    request: ControlEffectRequestModel,
+    request: ControlEffectRequestModel | ControlEffectRequestV2Model,
     applied: Mapping[str, str],
 ) -> ParticipantControlEffectRealization:
     outcome, claim = _effect_outcome(control_plane, binding, evaluation, origin, request, applied)
@@ -261,7 +274,7 @@ def _dispatched(
 
 
 def _withheld_dependent(
-    request: ControlEffectRequestModel,
+    request: ControlEffectRequestModel | ControlEffectRequestV2Model,
     applied: Mapping[str, str],
 ) -> ControlRealizationBindingModel | None:
     """Withhold an effect whose declared predecessor was not applied.
@@ -284,9 +297,9 @@ def _withheld_dependent(
 def _effect_outcome(
     control_plane: object,
     binding: object,
-    evaluation: ParticipantControlEvaluationModel,
+    evaluation: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model,
     origin: ControlPlaneOperationRecord | None,
-    request: ControlEffectRequestModel,
+    request: ControlEffectRequestModel | ControlEffectRequestV2Model,
     applied: Mapping[str, str],
 ) -> tuple[ControlRealizationBindingModel, ControlPlaneOperationRecord | None]:
     """Decide one effect's outcome, and the claim that carries it if any."""
@@ -313,7 +326,7 @@ def _effect_outcome(
 def _claimed_outcome(
     control_plane: object,
     origin: ControlPlaneOperationRecord,
-    request: ControlEffectRequestModel,
+    request: ControlEffectRequestModel | ControlEffectRequestV2Model,
     operation: ParticipantControlEffectOperation,
 ) -> tuple[ControlRealizationBindingModel, ControlPlaneOperationRecord | None]:
     claim = claim_effect(control_plane, origin, request)
@@ -345,21 +358,15 @@ def _claimed_outcome(
 def _submitted_outcome(
     control_plane: object,
     claim: ControlPlaneOperationRecord,
-    request: ControlEffectRequestModel,
+    request: ControlEffectRequestModel | ControlEffectRequestV2Model,
     operation: ParticipantControlEffectOperation,
     *,
     principal: object,
 ) -> str:
     """Submit through the owner as the originating principal and read the result.
 
-    The owner's durable record decides whenever one exists. With none, the
-    owner stopped before claiming, so nothing began — and only the owner's own
-    refusal of this request (its authority or its validity) is an outcome of
-    the effect. Every input the owner sees is fixed by the admitted effect, its
-    originating principal and the trusted resolver, so that refusal cannot be
-    caused by whoever requested the drain. Any other error is a condition of
-    the moment, not of the effect: it propagates, the claim stays open, and a
-    later drain resumes.
+    A recorded owner decides the outcome. Without one, an admission refusal
+    fails this fixed request; other errors propagate and leave recovery open.
     """
 
     try:
@@ -378,8 +385,8 @@ def _submitted_outcome(
 def _effect_operation(
     control_plane: object,
     binding: object,
-    evaluation: ParticipantControlEvaluationModel,
-    request: ControlEffectRequestModel,
+    evaluation: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model,
+    request: ControlEffectRequestModel | ControlEffectRequestV2Model,
 ) -> ParticipantControlEffectOperation | None:
     """Resolve the incumbent operation input, or ``None`` for an unsupported owner."""
 
@@ -401,17 +408,15 @@ def _effect_operation(
         from .participant_control_effect_owners import supports_effect_operation
 
         origin = control_plane._store.load_records().get(evaluation.commit.receipt.ref)
-        return (
-            operation
-            if supports_effect_operation(control_plane, request, operation, evaluation.request.context, origin)
-            else None
-        )
-    return operation if _binds_request(operation, request, evaluation.request.context) else None
+        supported = supports_effect_operation(control_plane, request, operation, evaluation.request.context, origin)
+    else:
+        supported = _binds_request(operation, request, evaluation.request.context)
+    return operation if supported else None
 
 
 def _binds_request(
     operation: ParticipantControlEffectOperation,
-    request: ControlEffectRequestModel,
+    request: ControlEffectRequestModel | ControlEffectRequestV2Model,
     context: object,
 ) -> bool:
     """The owner input must be the exact effect the admitted request names.
@@ -429,7 +434,9 @@ def _binds_request(
     evidence = operation.crossing_evidence
     if not isinstance(evidence, ParticipantCrossingEvidence):
         return False
-    bound = _OWNER_INPUT_BINDINGS.get(operation.kind)
+    from .participant_control_effect_owners import owner_input_bindings
+
+    bound = owner_input_bindings(operation.kind)
     return (
         bound is not None
         and evidence.audience_scope_ref == context.audience_ref
@@ -437,46 +444,14 @@ def _binds_request(
     )
 
 
-# Pairs of (the owner input's coordinate, the admitted target's coordinate).
-_Bindings = Sequence[tuple[object, object]]
-
-
-def _inject_bindings(operation: ParticipantControlEffectOperation, target: object, context: object) -> _Bindings:
-    if operation.inject_application is not None:
-        application = operation.inject_application
-        return [
-            (application.participant_address, target.participant_address),
-            (application.episode_id, target.episode_id),
-            (application.delivery_address, target.delivery_ref.ref),
-            (application.delivery_digest, target.delivery_ref.digest),
-        ]
-    view = operation.view
-    return [
-        (getattr(view, "participant_address", None), target.participant_address),
-        (getattr(view, "episode_id", None), target.episode_id),
-        (getattr(view, "view_id", None), target.result_item_ref),
-        (getattr(view, "source_snapshot_ref", None), context.state_cut.cut_ref),
-        (getattr(view, "visibility_projection_ref", None), target.disclosure_ref.ref),
-    ]
-
-
-def _handoff_bindings(operation: ParticipantControlEffectOperation, target: object, context: object) -> _Bindings:
-    del context
-    intent = operation.intent
-    return (
-        (getattr(intent, "kind", None), "handoff"),
-        (getattr(intent, "episode_id", None), target.episode_id),
-        (getattr(intent, "declaration_ref", None), target.transition.ref),
-        (getattr(intent, "expected_state_revision", None), target.expected_state_revision),
-        (getattr(intent, "completion_evidence_ref", None), target.completion_obligation.ref),
-    )
-
-
-# Every coordinate the closed target declares, paired with the owner input's own.
-_OWNER_INPUT_BINDINGS = {"inject": _inject_bindings, "handoff": _handoff_bindings}
-
-
-def _submit(control_plane, claim, request, operation, *, principal):
+def _submit(
+    control_plane: RuntimeControlPlane,
+    claim: ControlPlaneOperationRecord,
+    request: ControlEffectRequestModel | ControlEffectRequestV2Model,
+    operation: ParticipantControlEffectOperation,
+    *,
+    principal: ControlPlaneIdentity,
+) -> None:
     from .participant_control_effect_owners import submit_effect_operation
 
     submit_effect_operation(control_plane, claim, request, operation, principal=principal)
