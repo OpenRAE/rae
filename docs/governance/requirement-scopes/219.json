@@ -6,6 +6,12 @@
     "ASR-506"
   ],
   "bindings": {
+    ".github/workflows/canonical-verification.yml": [
+      "ASR-506"
+    ],
+    "docs/decisions/package-artifacts/operations.md": [
+      "ASR-506"
+    ],
     "docs/explain/reference/participant-decision-surface-v2-migration.md": [
       "ASR-506"
     ],
@@ -22,6 +28,30 @@
       "ASR-506"
     ],
     "docs/requirements/ASR-506/requirement.md": [
+      "ASR-506"
+    ],
+    "docs/research/formal-semantic-validation/capture-records/capture-07d8a3564e4c657749a8d5403312543c7253c75b36a130286b434361ccd4ad3e.json": [
+      "ASR-506"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-07d8a3564e4c657749a8d5403312543c7253c75b36a130286b434361ccd4ad3e/analysis.json": [
+      "ASR-506"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-07d8a3564e4c657749a8d5403312543c7253c75b36a130286b434361ccd4ad3e/manifest.json": [
+      "ASR-506"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-07d8a3564e4c657749a8d5403312543c7253c75b36a130286b434361ccd4ad3e/snapshot.json": [
+      "ASR-506"
+    ],
+    "docs/research/specification-coverage/capture-records/capture-5d13883d4d64630b4495667dc0b85db2c87987421371d16e883741383d0c3118.json": [
+      "ASR-506"
+    ],
+    "docs/research/specification-coverage/captures/capture-5d13883d4d64630b4495667dc0b85db2c87987421371d16e883741383d0c3118/analysis.json": [
+      "ASR-506"
+    ],
+    "docs/research/specification-coverage/captures/capture-5d13883d4d64630b4495667dc0b85db2c87987421371d16e883741383d0c3118/manifest.json": [
+      "ASR-506"
+    ],
+    "docs/research/specification-coverage/captures/capture-5d13883d4d64630b4495667dc0b85db2c87987421371d16e883741383d0c3118/snapshot.json": [
       "ASR-506"
     ],
     "implementations/python/tests/test_issue_219_participant_semantic_coverage.py": [
