@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-8-analysis-v71",
+  "analysis_id": "issue-1481-sonar-analysis-v71",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -123,8 +123,8 @@
   ],
   "corpus_revision": "4.0.0",
   "evidence_status": "partial",
-  "execution_id": "issue-8-execution-v71",
-  "generated_at": "2026-10-09T12:33:25.639102+00:00",
+  "execution_id": "issue-1481-sonar-execution-v71",
+  "generated_at": "2026-10-11T04:26:41.388230+00:00",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
     "The subset-minimal unsatisfiable core is not a universal proof certificate.",
@@ -155,10 +155,8 @@
     "Issue #1361 execution and recovery requirements are verified by dedicated policy, composition, and admission tests; this retained corpus establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The issue #1361 maintainability repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The issue #1361 resource type-hint repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
-    "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee.",
-    "Issue #1091 request-boundary admission, including requests abandoned before their body completes, is verified by its dedicated request-boundary suite and adds no new formal-semantic claim to this retained corpus.",
-    "Issue #8 adds explicit P0 exactly-once-effects and P2 multi-owner nonclaims to the control-plane profile declarations, verified by their declaration tests, and adds no new formal-semantic claim to this retained corpus."
+    "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee."
   ],
-  "plain_language_outcome": "The retained formal cases reproduce their prior outcomes after issue #8 made the P0 and P2 control-plane profile declarations name their exactly-once and multi-owner exclusions. The bounded claims and unsupported classes are unchanged.",
+  "plain_language_outcome": "The retained formal controls reproduce their prior outcomes against the combined source. Two exact compiled digest deviations disclose execution-policy metadata against the incoming hatchling-update baseline; bounded claims are unchanged.",
   "protocol_revision": "2.0.0"
 }

@@ -11,8 +11,8 @@ weaker observation from being reported as a stronger behavioral result.
 
 The machine-readable authority is
 `contracts/concept-authority/behavioral-relations-v1.json`, contract
-`behavioral-relations/v1`, taxonomy `raes-behavioral-relations`, revision
-`rev8`. Relation identifiers, formal dimensions, claim-surface defaults,
+`behavioral-relations/v1`, taxonomy `raes-behavioral-relations`. Its revision
+is recorded in the catalog. Relation identifiers, formal dimensions, claim-surface defaults,
 bibliography coordinates, assurance status, and worked transition systems are
 normative there. ADR-081, ADR-095, ADR-099, and ADR-100 govern the
 architecture. This document is the normative reader-facing formalization of
@@ -33,7 +33,8 @@ because the revisioned catalog identity governs the additive vocabulary.
 Revision `rev7` added the closed participant-opacity profile and bounded
 checker. Revision `rev8` adds exact finite-state participant-opacity
 model-check evidence. Revisions `rev1` through `rev7` are historical taxonomy
-identities; current in-repository producers bind `rev8`.
+identities. Consumers bind the exact taxonomy revision selected by their
+profile and load its retained catalog; the crossing profiles below bind `rev8`.
 
 The taxonomy defines claim vocabulary and proof obligations. It does not add a
 model checker, theorem prover, stochastic simulator, game solver, scheduler,
@@ -298,13 +299,20 @@ family, assurance axis, tool and result provenance, limitations, and
 nonclaims.
 
 The first target is
-`participant-crossing-dpbb-finite-v1@rev1`: the complete finite abstract
+`participant-crossing-dpbb-finite-v1@rev2`: the complete finite abstract
 SEM-230 crossing operation versus the independently formalized API-423/RUN-319
 crossing kernel. Only validation, exact-cut resolution, effective-capability
 resolution, record preparation, and atomic commit are hidden. Redacted
 occurrences, decisions, transformations, declassification, delivery,
 observation, replay rejection, policy-cut advance, deadlock, termination, and
 divergence remain visible or explicit.
+
+The [executable rev2 authority](../participant-semantics/participant-crossing-models.md)
+covers one fresh operation and retries. The separate
+[#1395 multi-operation authority](../participant-semantics/participant-crossing-multi-operation-models.md)
+defines `participant-crossing-multi-operation-dpbb-finite-v1@rev1`, with at most
+two fresh identities, history-sensitive retry, cached-result observations and
+bounded response loss. Neither construction establishes equivalence.
 
 Revision `rev6` defines the relation, profile, and proof program. It does not
 run the model check. A future positive finite result uses the `model-check`

@@ -187,6 +187,11 @@ belong to your deployment.
 
 ## Add a route to the adapter
 
+For stop, cancellation, independently authorized worker grants and optional
+Temporal/PostgreSQL delivery, see [supervised execution](supervised-execution.md).
+For authored world effects, explicit OCI configuration and occurrence readback,
+see [external inject execution](external-injects.md).
+
 Register the route inside `create_control_plane_app()`, before the adapter
 checks its route inventory. Do not change the returned app. Its routes,
 middleware, exception handlers, and dependency overrides are sealed at

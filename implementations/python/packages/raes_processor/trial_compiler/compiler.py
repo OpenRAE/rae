@@ -3,16 +3,15 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import replace
 
 from raes import (
-    ExpandedScenarioBindingTargetResolver,
     validate_experiment_selection_against_family,
 )
 from raes_backend_protocols.capabilities import ObservationCapabilities
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope
 from raes_contracts.canonical import canonical_json_bytes
 from raes_contracts.contracts import (
-    AdmittedBindingModel,
     AdmittedExecutionControlModel,
     AdmittedInstantiationProvenanceModel,
     AdmittedSelectionRecordModel,
@@ -21,22 +20,12 @@ from raes_contracts.contracts import (
     AdmittedTrialPlanModel,
     BackendManifestV2Model,
     ExperimentBindingDescriptorModel,
-    ExperimentSelectionMemberOutcomeModel,
-    ExperimentSelectionReferenceOutcomeModel,
-    LiteralBindingValueModel,
-    ParticipantImplementationManifestModel,
     TrialCleanupPlanModel,
     TrialCoordinateModel,
     seal_admitted_trial_entry,
     seal_admitted_trial_plan,
 )
 from raes_contracts.diagnostics import Diagnostic, Severity
-from raes_contracts.experiment_bindings import (
-    ApparatusManifest,
-    ApparatusManifestKey,
-    ParticipantManifestKey,
-    validate_experiment_binding_targets,
-)
 
 from ..capture_admission import (
     CaptureDemand,
@@ -48,6 +37,7 @@ from .apparatus import (
     validate_selected_apparatus,
     validate_selected_participant_manifests,
 )
+from .bindings import _admitted_descriptors, _entry_bindings
 from .inputs import (
     canonical_input_refs,
     canonical_realization_binding,
@@ -59,9 +49,10 @@ from .inputs import (
     visit_indices,
 )
 from .models import CompilationFailure, TrialCompilationRequest, TrialCompilationResult
-from .policies import CoordinateSelections, ResolvedSelection, compile_coordinate_selections
+from .policies import CoordinateSelections, compile_coordinate_selections
 from .profiles import admitted_profiles, coordinate_projection, derive_identity, realization_assignment_key
 from .realization_admission import validate_mixed_authority, validate_mixed_realization, validate_selected_scenario
+from .replacement_inputs import ReplacementCompilationContext
 
 _DOMAIN = "trial-compiler"
 _BINDING_DESCRIPTORS_ADDRESS = "/binding_descriptors"
@@ -88,104 +79,6 @@ def _diagnostic(failure: CompilationFailure) -> Diagnostic:
         message=failure.safe_message,
         severity=Severity.ERROR,
     )
-
-
-def _outcome_binding_value(
-    request: TrialCompilationRequest,
-    selection: ResolvedSelection,
-) -> object | None:
-    outcome = selection.outcome
-    if isinstance(outcome, LiteralBindingValueModel):
-        value = outcome.value
-    elif isinstance(outcome, ExperimentSelectionReferenceOutcomeModel):
-        value = outcome.reference_id
-    elif isinstance(outcome, ExperimentSelectionMemberOutcomeModel):
-        point = request.family.variation_points[selection.point_id]
-        alternatives = getattr(point, "alternatives", {})
-        member = alternatives.get(outcome.member_id)
-        value = member.reference if member is not None else None
-    else:
-        value = None
-    return value
-
-
-def _descriptor_matches_selection(
-    request: TrialCompilationRequest,
-    descriptor: ExperimentBindingDescriptorModel,
-    selection: ResolvedSelection,
-) -> bool:
-    if getattr(descriptor.target, "variation_point_id", None) != selection.point_id:
-        return False
-    selected_value = _outcome_binding_value(request, selection)
-    return isinstance(descriptor.value, LiteralBindingValueModel) and (
-        type(descriptor.value.value) is type(selected_value) and descriptor.value.value == selected_value
-    )
-
-
-def _admitted_descriptors(
-    request: TrialCompilationRequest,
-    apparatus_manifests: Mapping[ApparatusManifestKey, ApparatusManifest],
-    participant_manifests: Mapping[ParticipantManifestKey, ParticipantImplementationManifestModel],
-    *,
-    descriptor_ids: set[str] | None = None,
-) -> dict[str, ExperimentBindingDescriptorModel]:
-    descriptors = request.experiment.binding_descriptors
-    if descriptors is None:
-        return {}
-    if descriptor_ids is not None:
-        selected = [descriptor for descriptor in descriptors.descriptors if descriptor.binding_id in descriptor_ids]
-        if not selected:
-            return {}
-        descriptors = descriptors.model_copy(update={"descriptors": selected})
-    try:
-        admitted = validate_experiment_binding_targets(
-            descriptors,
-            scenario_resolver=ExpandedScenarioBindingTargetResolver(request.family),
-            participant_manifests=participant_manifests,
-            apparatus_manifests=apparatus_manifests,
-        )
-    except ValueError as exc:
-        raise _fail(
-            "binding-target-rejected",
-            _BINDING_DESCRIPTORS_ADDRESS,
-            "a binding descriptor target failed authoritative admission",
-        ) from exc
-    return {descriptor.binding_id: descriptor for descriptor in admitted.descriptors}
-
-
-def _entry_bindings(
-    request: TrialCompilationRequest,
-    row: CoordinateSelections,
-    coordinate: TrialCoordinateModel,
-    descriptors: Mapping[str, ExperimentBindingDescriptorModel],
-) -> list[AdmittedBindingModel]:
-    bindings: list[AdmittedBindingModel] = []
-    for selection in row.selections:
-        policy = request.experiment.run_plan.selection_policies[selection.policy_id]
-        for descriptor_id in sorted(getattr(policy, "binding_descriptor_refs", ())):
-            descriptor = descriptors.get(descriptor_id)
-            if descriptor is None or descriptor.source_condition_id != coordinate.condition_id:
-                continue
-            if not _descriptor_matches_selection(request, descriptor, selection):
-                raise _fail(
-                    "binding-selection-mismatch",
-                    f"{_BINDING_DESCRIPTORS_ADDRESS}/{descriptor_id}",
-                    "a binding descriptor does not equal its selected variation outcome",
-                )
-            bindings.append(AdmittedBindingModel(descriptor=descriptor, origin="selection"))
-    if len({binding.descriptor.binding_id for binding in bindings}) != len(bindings):
-        raise _fail(
-            "binding-duplicate",
-            _BINDING_DESCRIPTORS_ADDRESS,
-            "an admitted binding descriptor is selected more than once",
-        )
-    if len(bindings) > request.limits.max_bindings_per_entry:
-        raise _fail(
-            "binding-limit-exceeded",
-            _BINDING_DESCRIPTORS_ADDRESS,
-            "entry bindings exceed the compilation limit",
-        )
-    return bindings
 
 
 def _selection_records(row: CoordinateSelections) -> list[AdmittedSelectionRecordModel]:
@@ -369,22 +262,7 @@ def _compile_entries(
     return entries, cleanup_plans, used_control_ids
 
 
-def _compile(
-    request: TrialCompilationRequest,
-    coordinate_partitions: tuple[tuple[int, ...], ...] | None,
-) -> AdmittedTrialPlanModel:
-    validate_input_identities(request)
-    try:
-        validate_experiment_selection_against_family(request.experiment, family=request.family)
-    except ValueError as exc:
-        raise _fail(
-            "selection-intent-rejected",
-            "/run_plan/selection_policies",
-            "selection policy intent failed scenario-family admission",
-        ) from exc
-    planned_coordinates = coordinates(request)
-    validate_realization_assignments(request, planned_coordinates)
-    mixed = bool(request.realization_assignments)
+def _compilation_authority(request: TrialCompilationRequest, mixed: bool) -> compiler_models._EntryCompilationAuthority:
     if mixed:
         authority = validate_mixed_authority(request)
         apparatus_manifests_by_profile = authority.apparatus_manifests_by_root
@@ -416,31 +294,64 @@ def _compile(
                 )
             )
         }
+    return compiler_models._EntryCompilationAuthority(
+        descriptors=None,
+        observations_by_profile=observations_by_profile,
+        apparatus_manifests_by_profile=apparatus_manifests_by_profile,
+        participant_manifests=participant_manifests,
+    )
+
+
+def _compile(
+    request: TrialCompilationRequest,
+    coordinate_partitions: tuple[tuple[int, ...], ...] | None,
+    replacement: ReplacementCompilationContext | None = None,
+) -> AdmittedTrialPlanModel:
+    validate_input_identities(request)
+    try:
+        validate_experiment_selection_against_family(request.experiment, family=request.family)
+    except ValueError as exc:
+        raise _fail(
+            "selection-intent-rejected",
+            "/run_plan/selection_policies",
+            "selection policy intent failed scenario-family admission",
+        ) from exc
+    planned_coordinates = coordinates(request)
+    validate_realization_assignments(request, planned_coordinates)
+    if replacement is not None:
+        request, planned_coordinates = replacement.prepare(request, planned_coordinates)
+    mixed = bool(request.realization_assignments)
+    authority = _compilation_authority(request, mixed)
     rows = compile_coordinate_selections(
         family=request.family,
         spec=request.experiment,
         coordinates=planned_coordinates,
         limits=request.limits,
     )
-    descriptors = None if mixed else _admitted_descriptors(request, apparatus_manifests, participant_manifests)
+    descriptors = (
+        None
+        if mixed
+        else _admitted_descriptors(
+            request, authority.apparatus_manifests_by_profile[""], authority.participant_manifests
+        )
+    )
     plan_id = derive_identity(
         "trial-plan",
         plan_intent(request, planned_coordinates),
         mixed_composition=mixed,
     )
+    if replacement is not None:
+        plan_id = replacement.plan_id()
     traversal = visit_indices(len(planned_coordinates), coordinate_partitions)
+    if replacement is not None:
+        traversal = (replacement.coordinate_index,)
     entries, cleanup_plans, used_control_ids = _compile_entries(
         request,
         plan_id,
         planned_coordinates,
         rows,
         traversal,
-        compiler_models._EntryCompilationAuthority(
-            descriptors=descriptors,
-            observations_by_profile=observations_by_profile,
-            apparatus_manifests_by_profile=apparatus_manifests_by_profile,
-            participant_manifests=participant_manifests,
-        ),
+        replace(authority, descriptors=descriptors),
     )
     controls = {
         control.control_id: control
@@ -449,11 +360,13 @@ def _compile(
     }
     plan = seal_admitted_trial_plan(
         plan_id=plan_id,
-        profiles=admitted_profiles(mixed_composition=mixed),
-        input_refs=canonical_input_refs(request),
+        profiles=admitted_profiles(mixed_composition=mixed, replacement=replacement is not None),
+        input_refs=(replacement.input_refs(request, entries) if replacement else canonical_input_refs(request)),
         stochastic_controls=controls,
         cleanup_plans=cleanup_plans,
         entries=entries,
+        replacement_policy=request.experiment.run_plan.replacement_policy,
+        replacement_origin=replacement.origin if replacement else None,
         admission=AdmittedTrialPlanAdmissionModel(
             admitted_at_stage="admitted-sealed",
             entry_count=len(entries),

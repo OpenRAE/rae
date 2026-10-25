@@ -20,12 +20,12 @@ from raes.realization_designation import (
     RealizationScopeDesignation,
     resolve_json_pointer_surface,
 )
-from raes_backend_libvirt.manifest import create_libvirt_manifest
 from raes_backend_protocols.capabilities import (
     BackendManifest,
     OperatingSystemCompatibility,
     ProvisionerCapabilities,
 )
+from raes_backend_stubs.manifest import load_stub_realization_envelope
 from raes_contracts.apparatus import (
     ConceptBinding,
     ProcessResourceLimitCapability,
@@ -107,8 +107,7 @@ def _manifest(mode: RealizationSupportMode) -> BackendManifest:
         scopes=frozenset({"process", "subtree"}),
         supports_unlimited=True,
     )
-    envelope = create_libvirt_manifest().realization_envelope
-    assert envelope is not None
+    envelope = load_stub_realization_envelope()
     return BackendManifest(
         name="designation-test",
         version="1.0.0",
@@ -170,42 +169,13 @@ def _envelope_with_process_limit_capability(
 
 
 def _open_manifest_with_envelope(*, path: str, value: str) -> BackendManifest:
-    manifest = create_libvirt_manifest()
+    manifest = _manifest(RealizationSupportMode.OPEN_REALIZATION)
     assert manifest.realization_envelope is not None
-    capability = ProcessResourceLimitCapability(
-        resource="open_file_descriptors",
-        scopes=frozenset({"process", "subtree"}),
-        supports_unlimited=True,
-    )
-    envelope = _envelope_with_process_limit_capability(manifest.realization_envelope, capability)
-    payload = envelope.model_dump(mode="json")
+    payload = manifest.realization_envelope.model_dump(mode="json")
     payload["expression"]["domains"] = {"fixed": {"kind": "exact", "value": value}}
     payload["expression"]["bindings"] = [{"path": path, "scope": "field", "posture": "exact", "domain": "fixed"}]
     payload["digest"] = realization_envelope_digest(payload)
-    envelope = BackendRealizationEnvelopeModel.model_validate(payload)
-    support = replace(
-        manifest.realization_support[0],
-        support_mode=RealizationSupportMode.OPEN_REALIZATION,
-        observation_capabilities={
-            **manifest.realization_support[0].observation_capabilities,
-            **_runtime_observation_capabilities(),
-            "process-resource-limits": RealizationObservationCapability(
-                verification_scope=RealizationVerificationScope.CONFIGURATION,
-                observation_strength=ObservationStrength.GUEST_OBSERVED,
-            ),
-        },
-        process_resource_limits=(capability,),
-    )
-    provisioner = replace(
-        manifest.provisioner,
-        operating_systems=(OperatingSystemCompatibility("linux", "ubuntu", frozenset({"22.04"})),),
-    )
-    return replace(
-        manifest,
-        realization_support=(support,),
-        capabilities=replace(manifest.capabilities, provisioner=provisioner),
-        realization_envelope=envelope,
-    )
+    return replace(manifest, realization_envelope=BackendRealizationEnvelopeModel.model_validate(payload))
 
 
 def test_root_open_is_typed_and_carried_to_compilation():

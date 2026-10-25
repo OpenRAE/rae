@@ -5,9 +5,11 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
+from functools import cached_property
 
 from pydantic_core import to_jsonable_python
 from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance, ExplicitnessRecord
+from raes.parameter_derivations import ParameterDerivation, finite_derivation_image
 from raes.runtime_software import RuntimeSoftwareComponent
 from raes.runtime_software_repositories import RuntimeSoftwareRepository, RuntimeSoftwareTrustBinding
 from raes.scenario import InstantiatedScenario
@@ -20,6 +22,7 @@ from raes_contracts.realization_structure import (
     RealizationDelegatedValue,
     RealizationDomainValue,
     RealizationKnowledgeValue,
+    RealizationLiteral,
     RealizationNormalizationMetadata,
     RealizationOrigin,
     RealizationPresence,
@@ -149,6 +152,10 @@ class _SourceMetadata:
     collection_profiles: list[RealizationCollectionProfile] = field(default_factory=list)
     member_presence: dict[str, RealizationPresence] = field(default_factory=dict)
 
+    @cached_property
+    def parameter_derivations(self) -> Mapping[str, ParameterDerivation]:
+        return {item.field_pointer: item for item in self.scenario.instantiation_provenance.parameter_derivations}
+
     @property
     def profile(self) -> str:
         return f"raes/{self.registered.descriptor.concern_kind}/v1"
@@ -268,7 +275,7 @@ class _SourceMetadata:
         elif isinstance(projected, list):
             self._collect_sequence(projected, source, pointer, path, source_pointer)
         else:
-            self.leaf(source, pointer, record, source_pointer)
+            self.leaf(source, pointer, record, source_pointer, projected)
 
     def _constrained_domain(self, pointer: str, source_pointer: str) -> EnumDomain:
         """Resolve the publication-safe domain one constrained leaf narrows to."""
@@ -289,7 +296,30 @@ class _SourceMetadata:
             raise ValueError("constrained leaf requires a publication-safe domain")
         return domain
 
-    def leaf(self, source: object, pointer: str, record: ExplicitnessRecord | None, source_pointer: str) -> None:
+    def _parameter_constraint(
+        self, derivation: ParameterDerivation, source: object, pointer: str, projected: object
+    ) -> RealizationLiteral | RealizationDomainValue:
+        # Only a verbatim public leaf approved by the registered safe projection
+        # can consume scalar derivation evidence. Presence and commitment
+        # projections never expose their source value.
+        if (
+            pointer.endswith(("_present", "_commitment"))
+            or not isinstance(source, (str, int, float, bool))
+            or projected != to_jsonable_python(source)
+        ):
+            raise ValueError("parameter derivation requires a public scalar projection")
+        image = finite_derivation_image(derivation, scenario=self.scenario)
+        return (
+            RealizationLiteral(kind="literal", value=projected, origin=RealizationOrigin.PROCESSOR)
+            if image is None
+            else RealizationDomainValue(
+                kind="domain", domain=EnumDomain(values=list(image)), origin=RealizationOrigin.PROCESSOR
+            )
+        )
+
+    def leaf(
+        self, source: object, pointer: str, record: ExplicitnessRecord | None, source_pointer: str, projected: object
+    ) -> None:
         classification = None if record is None else record.classification
         if classification is ExplicitnessClass.OPEN:
             # Legacy authoring specificity calls taxonomy sentinels "open".
@@ -300,6 +330,10 @@ class _SourceMetadata:
                 raise ValueError("taxonomy knowledge must retain its typed source")
             self.leaf_constraints[pointer] = RealizationKnowledgeValue(kind="knowledge", state="unknown")
         elif classification is ExplicitnessClass.CONSTRAINED:
+            derivation = self.parameter_derivations.get(f"{self.root_pointer}{source_pointer}")
+            if derivation is not None:
+                self.leaf_constraints[pointer] = self._parameter_constraint(derivation, source, pointer, projected)
+                return
             self.leaf_constraints[pointer] = RealizationDomainValue(
                 kind="domain", domain=self._constrained_domain(pointer, source_pointer)
             )

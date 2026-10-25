@@ -21,6 +21,10 @@ Requirement inventory expansion. Participant-feature boundaries need to be expli
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_backend_installation.py` (Exact installed mixed-service roles and authenticated implementation pins)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_backend_invocation.py` (Live capability/willingness checks before coordinated dispatch)
+- TESTS → TEST `implementations/python/tests/test_issue_1372_mixed_execution.py` (Contextual refusal, withdrawn willingness, unsupported worker composition and stage identity enforcement)
+
 - TESTS → TEST `implementations/python/tests/test_act_614_temporal_admission.py` (Optional capabilities, exact temporal offers and conditional conformance)
 
 - IMPLEMENTS → GITHUB_ISSUE `1072` (Modular provider declaration and effective support bindings)
@@ -79,3 +83,5 @@ Requirement inventory expansion. Participant-feature boundaries need to be expli
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_handoff_execution.py` (Effective native transfer and time-service readback enforcement)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_result.py` (Evidence-bounded outcome settlement)
 - TESTS → TEST `implementations/python/tests/test_issue_1355_mixed_mapping_time.py` (Missing support, stale time, mapped execution, and evidenced stage witnesses)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/mixed-backend-execution-binding-v1.json` (mixed-backend-execution-binding-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/mixed-backend-stage-report-v1.json` (mixed-backend-stage-report-v1 published schema)

@@ -38,7 +38,7 @@ RAES can currently support:
 - parsing and validating SDL through the Python implementation
 - instantiating variables and compiling runtime models in the reference stack
 - checking backend contract fixtures and conformance profiles
-- browsing validated, non-normative examples, templates, and reusable patterns
+- browsing non-normative examples, templates, and reusable patterns
   for scenarios, workflows, participant behavior, tasks, runs, and studies
 - reviewing the specifications, ADRs, and examples that define current claims
 
@@ -129,7 +129,7 @@ uv run raes processor plan ../../examples/scenarios/techvault-defensive-min.sdl.
 ```
 
 This is a read-only dry run: it parses, compiles, and plans the scenario against
-the reference backend manifest and prints the resulting provisioning,
+the reference stub dry-run manifest and prints the resulting provisioning,
 orchestration, and evaluation plans as published-contract JSON. It does not
 apply or start anything. Pass `--manifest <backend-manifest-v2.json>` to plan
 against an explicitly supplied backend manifest.
@@ -219,7 +219,7 @@ Do not use examples to claim:
 
 ## Template And Pattern Boundary
 
-The current library provides validated authoring aids, not new runtime
+The current library provides authoring aids, not new runtime
 authority.
 
 Current status:

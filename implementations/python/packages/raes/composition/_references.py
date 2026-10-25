@@ -8,6 +8,7 @@ from typing import Any
 from .._base import VARIABLE_TOKEN_RE, is_variable_ref
 from .._errors import SDLValidationError
 from .._identifiers import QualifiedName
+from .._reference_targetability import purpose_for_domain
 from ..variation import COLLECTION_TARGET_SPECS, REFERENCE_TARGET_SPECS, TIMING_TARGET_SPECS
 
 _REFERENCE_TARGET_SPECS_BY_VALUE = {slot.value: spec for slot, spec in REFERENCE_TARGET_SPECS.items()}
@@ -87,7 +88,8 @@ def _rewrite_variation_reference(
     section: str,
     symbols: dict[str, dict[str, str] | set[str]],
 ) -> str:
-    return _maybe_rename(reference, symbols["named"] if section == "targetable" else symbols[section])
+    named = purpose_for_domain(section) is not None
+    return _maybe_rename(reference, symbols["named"] if named else symbols[section])
 
 
 def _variation_slot(target: dict[str, Any]) -> str:

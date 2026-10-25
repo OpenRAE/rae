@@ -26,6 +26,13 @@ PORTABLE_IDENTIFIER_JSON_SCHEMA: dict[str, Any] = {
 }
 
 
+def portable_identifier_map_schema(schema: dict[str, Any]) -> None:
+    """Keep all key constraints when Pydantic moves the pattern to patternProperties."""
+
+    schema["propertyNames"] = dict(PORTABLE_IDENTIFIER_JSON_SCHEMA)
+    schema["additionalProperties"] = False
+
+
 def is_portable_identifier(value: object) -> bool:
     """Return whether *value* is one exact portable local identifier."""
 
@@ -126,6 +133,7 @@ def require_qualified_identifier(value: object, *, field_name: str) -> str:
 
 __all__ = [
     "OptionalPortableIdentifier",
+    "portable_identifier_map_schema",
     "PORTABLE_IDENTIFIER_JSON_SCHEMA",
     "PORTABLE_IDENTIFIER_MAX_LENGTH",
     "PORTABLE_IDENTIFIER_PATTERN",

@@ -16,14 +16,13 @@ import pytest
 import yaml
 from jsonschema import Draft202012Validator
 from raes import parse_sdl
-from raes_backend_libvirt.realization import interpret_provisioning_plan as interpret_libvirt_plan
 from raes_backend_protocols.backend_manifest import BackendManifest
 from raes_backend_protocols.domain_topology import DomainTopologyBinding, domain_topology_plan_diagnostics
 from raes_backend_stubs.stubs import create_stub_manifest
 from raes_conformance._realization_validation import operation_inventory_diagnostics
 from raes_conformance.realization import RealizationProbeEvidence
 from raes_contracts.contracts import ProvisioningPlanModel, schema_bundle
-from raes_contracts.plan_projection import provisioning_plan_model
+from raes_contracts.plan_projection import planned_provisioning_resources, provisioning_plan_model
 from raes_contracts.planning import (
     PLAN_RESOURCE_TYPES_BY_DOMAIN,
     ChangeAction,
@@ -37,7 +36,6 @@ from raes_processor.compiler import compile_runtime_model
 from raes_processor.models import DomainControllerPlacement, resource_payload
 from raes_processor.planner import plan
 from raes_processor.semantics.realization import realization_disclosure
-from raes_reference_backend import interpret_provisioning_plan as interpret_reference_plan
 
 _RESOURCE_TYPE = "domain-controller-placement"
 
@@ -411,24 +409,19 @@ def test_controller_placement_is_exact_and_readback_rejects_approximation() -> N
     )
 
 
-def test_backends_dispatch_controller_placement_without_product_commands() -> None:
+def test_backend_facing_plan_dispatches_controller_placement_without_product_commands() -> None:
     model = _compile()
     provisioning = plan(model, _manifest()).provisioning
 
-    libvirt = interpret_libvirt_plan(
-        provisioning,
-        provisioner_capabilities=_manifest().provisioner,
-    )
-    reference = interpret_reference_plan(provisioning)
     placement_address = "provision.domain-controller.domain-0.dc-0-0"
-    assert not libvirt.diagnostics
-    assert libvirt.placement_targets[placement_address] == "provision.node.dc-0-0"
-    controller = next(domain for domain in libvirt.domains if domain.address == "provision.node.dc-0-0")
-    assert controller.cloud_init.runcmd == ()
-    assert any(
-        placement.address == placement_address and placement.target_address == "provision.node.dc-0-0"
-        for placement in reference.placements
-    )
+    resources = {resource.address: resource for resource in planned_provisioning_resources(provisioning)}
+    placement = resources[placement_address]
+    assert placement.resource_type == _RESOURCE_TYPE
+    assert placement.payload["target_address"] == "provision.node.dc-0-0"
+    assert placement.payload["spec"] == {}
+    assert placement.payload["domain_topology"]["controller_addresses"] == ("provision.node.dc-0-0",)
+    controller = resources["provision.node.dc-0-0"].payload
+    assert not {"runcmd", "commands", "cloud_init"} & set(controller.get("spec", {}))
 
 
 def test_conformance_requires_topology_observation_for_controller_placement() -> None:

@@ -1,5 +1,8 @@
 # Scenario Variation And Deterministic Trial Realization
 
+For executable bounded replacement of failed or invalid trials, see
+[trial replacement and author migration](trial-replacement-migration.md).
+
 This reference defines the cohesive RAES path from an authored scenario family
 to archival experiment provenance. It applies ADR-084 to the package and
 artifact boundaries already established by ADR-036, ADR-053, ADR-055, ADR-065,
@@ -28,7 +31,7 @@ The design covers:
   lineage records.
 
 The reference itself does not add a generator, sampler, trial compiler,
-scheduler, persistence service, API, scenario pack, or adaptive policy. The
+scheduler, persistence service, API, environment pack, or adaptive policy. The
 delivered follow-on slices include the typed run-local fact contract and
 in-process binding plane, deterministic trial compilation, and sealed-entry
 realization; remaining conceptual sketches retain their explicit
@@ -911,7 +914,7 @@ never scenario or experiment selection.
 
 | Consumer | What it may contribute | Required handoff | What it may not own |
 | --- | --- | --- | --- |
-| SCE-001 ATT&CK coverage | Revision-pinned technique inventory, coverage targets, scenario-pack evidence | Valid authored families and/or experiment selection objectives | SDL semantics, hidden candidate execution, or a coverage claim based only on generated count |
+| SCE-001 ATT&CK coverage | Revision-pinned technique inventory, coverage targets, environment-pack evidence | Valid authored families and/or experiment selection objectives | SDL semantics, hidden candidate execution, or a coverage claim based only on generated count |
 | SCE-003 adaptive difficulty | Policy, observations, trigger, intervention, and validity disclosure | Run event/intervention provenance; a new admitted coordinate for a derived follow-up trial | Retroactive factor/topology/identity/stream mutation |
 | SCE-004 goal/tool flexibility | Goal, success criteria, tool/affordance set, decision-surface policy, typed fact sinks | Ordinary SDL/participant semantics and runtime fact bindings | Hidden scenario selection through tool choice or observations |
 | SCE-005 ATT&CK/CTI generation | Revision-pinned inputs, mappings, candidate rationale, confidence and gaps | Candidate SDL that passes ordinary trust, validation, and admission | Direct execution of CTI, bypass of semantic validation, or backend-directed repair |
