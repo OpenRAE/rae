@@ -84,7 +84,7 @@ jobs:
         run: |
           uv run --project implementations/python --frozen python -m tools.bootstrap_profile fetch-inputs \
             proof-ubuntu-22.04-x86_64 .canonical-tool-inputs --artifact-id isabelle \
-            --locator-ref official-isabelle-cambridge-mirror
+            --locator-ref official-isabelle-release
       - name: Carry locked generic-tool inputs to the dependent jobs
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
