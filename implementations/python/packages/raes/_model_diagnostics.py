@@ -81,17 +81,14 @@ def _bounded_model_message(message: str) -> str:
     return escaped[: _MODEL_DIAGNOSTIC_MESSAGE_MAX_LENGTH - 3] + "..."
 
 
-def _field_problems(error: ValidationError, *, field_names: Mapping[str, str] | None = None) -> str:
+def _field_problems(error: ValidationError) -> str:
     """Render each failure as ``field: message`` with bounded prose and no input values."""
 
-    names = field_names or {}
     problems: list[str] = []
     for item in error.errors():
-        location = [str(part) for part in item.get("loc", ())]
-        if location:
-            location[0] = names.get(location[0], location[0])
+        location = ".".join(str(part) for part in item.get("loc", ()))
         message = _bounded_model_message(str(item.get("msg", "")))
-        problems.append(f"{'.'.join(location)}: {message}" if location else message)
+        problems.append(f"{location}: {message}" if location else message)
     return "; ".join(problems)
 
 
