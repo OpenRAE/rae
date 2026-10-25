@@ -236,8 +236,9 @@ at least one of the following:
   assurance and information-state contracts require the same pairing; the
   policy does not supply their values. The authority must resolve to exactly
   one declared targetable element, such as a participant, an entity, or a
-  service. Module composition namespaces it, and compilation records that
-  element's canonical address.
+  service. An imported unit must resolve it to one element on its own before
+  module composition namespaces it, and compilation records that element's
+  canonical address.
 
 A condition holds only when every assertion it names holds. Every condition
 and the reset policy name the evidence requirements that together back the

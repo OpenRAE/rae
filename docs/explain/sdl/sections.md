@@ -2301,9 +2301,10 @@ participant implementation and its participant-visible memory. ADR-095's
 assurance and information-state contracts require the same pairing; the policy
 does not supply their values. The reference must resolve to exactly one
 declared targetable element, for example `agents.analyst` or
-`nodes.siem.services.console`. A dangling or ambiguous reference is rejected,
-module composition namespaces it, and compilation records the element's
-canonical address, such as `sdl.agents.analyst`.
+`nodes.siem.services.console`. A dangling or ambiguous reference is rejected.
+An imported unit must resolve it on its own, before module composition
+namespaces it, and compilation records the element's canonical address, such as
+`sdl.agents.analyst`.
 
 The policy is intent, not an execution record. Fields such as `episode_id`,
 `status`, `initialized_at`, or `decision_epoch` are rejected with a diagnostic
