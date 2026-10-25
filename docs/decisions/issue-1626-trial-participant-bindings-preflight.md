@@ -114,3 +114,13 @@ Mixed-profile admission retains its current authority rules.
 The single-backend realizer still rejects mixed runtime execution.
 No new run builder, artifact store, API, logger, or persistence layer is needed.
 `ControlPlaneStore` must not become a configuration archive.
+
+## Proof archive source
+
+CI uses the reviewed primary Isabelle release locator explicitly.
+The reviewed Cambridge mirror returned HTTP 404.
+The primary source returned the locked archive size.
+The existing lock already permits both sources.
+The qualified client still checks exact size and SHA-256.
+No lock identity, digest, transfer budget, or trust root changes.
+No automatic source fallback is added.
