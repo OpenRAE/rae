@@ -228,6 +228,12 @@ class ExperimentBindingDescriptorModel(ContractModel):
     value: BindingValue
     owner: BindingOwnerModel
 
+    def realization_payload(self) -> dict[str, object]:
+        """Owner/target/value meaning, independent of design-axis labels."""
+        return self.model_dump(
+            mode="json", exclude={"binding_id", "source_factor_id", "source_factor_level_id", "source_condition_id"}
+        )
+
     @model_validator(mode="after")
     def _validate_declared_value_type(self) -> ExperimentBindingDescriptorModel:
         if isinstance(self.value, SecretReferenceBindingValueModel):

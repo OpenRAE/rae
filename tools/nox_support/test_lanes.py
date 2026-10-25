@@ -227,13 +227,6 @@ def _finalize_parallel_coverage(session: nox.Session, coverage_dir: Path) -> Non
         _write_and_check_coverage(session, coverage_env)
 
 
-def _run_docker_integration_tests(session: nox.Session, reporter: SessionReporter) -> None:
-    reporter.run(
-        "tests / pytest docker integration",
-        lambda: _run_pytest(session, "-m", "docker", "-v", *session.posargs),
-    )
-
-
 def _run_osv_scan(_session: nox.Session, reporter: SessionReporter) -> None:
     def _scan() -> None:
         lockfile = OSV_LOCKFILE_PATH

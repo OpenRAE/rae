@@ -35,9 +35,13 @@ dependency inputs. Those contracts keep the complete admitted apparatus
 separate from the slots applicable at one state cut, require profile-owned
 coverage and explicit input support, and separate parent decisions from
 effect prerequisites. They require exact protocol/schema negotiation and a
-trusted operator resolver. The current reference runtime and retained v1
-history continue to use provider/v1; v2 publication alone does not activate
-v2 scheduling, state commit or effect dispatch. See the
+trusted operator resolver. The reference runtime can explicitly admit a v2
+binding and evaluate its applicable slots in dependency order. Required inputs
+and support must be satisfied; optional failure is recorded without blocking
+an otherwise permitted crossing. Scoped state and the evaluation join the
+existing atomic crossing commit. Retained v1 records keep their original
+interpretation. The v2 effect drain reports unsupported effects without
+executing them; evaluation eligibility supplies no effect permission. See the
 [migration rules](https://github.com/OpenRAE/rae/blob/dev/docs/migration/control-applicability-and-evaluation.md).
 
 | Plane | What it contains | What it does not imply |
@@ -226,9 +230,9 @@ target may test. Keep the target and profile in the report. Keep the probe-set
 digest and case IDs. Keep the finite scope, errors, and real support. A feature
 without an allowed probe result is `unsupported`. It is not conformant.
 
-The shipped reference backend currently declares all six participant-policy
-features `unsupported`. Some tests use stronger manifests. Those tests do not
-turn the reference backend into a native implementation. Start with the
+The stub test double declares all six participant-policy features
+`unsupported`. Some tests use stronger manifests. Those tests do not make the
+stub a native implementation. RAES ships no concrete backend. Start with the
 [backend guide](backends.md). Then read the
 [feature-admission implementation](https://github.com/OpenRAE/rae/blob/main/implementations/python/packages/raes_backend_protocols/participant_feature_admission.py),
 and
@@ -384,7 +388,7 @@ examples in this guide:
     "implementations/python/tests/test_asr_535_participant_flow_assurance.py"
   ],
   "limitations": [
-    "The reference backend declares all participant-policy features unsupported; positive paths use explicit test manifests."
+    "The stub test double declares all participant-policy features unsupported; positive paths use explicit test manifests."
   ],
   "explicit_non_claims": [
     "Does not establish universal participant-policy noninterference or participant-projected history equivalence.",
@@ -448,3 +452,16 @@ This is design authority, not a delivered robustness claim. Runtime and
 backend enforcement, attack evaluations, monitor honesty, model alignment,
 private reasoning, and undeclared covert channels remain unclaimed. See the
 [issue #812 design record](https://github.com/OpenRAE/rae/issues/812).
+
+## Finite owner-qualified information flow profiles
+
+The governed `participant-owner-flow-policy-v1@rev1` profile preserves two
+independent owners' confidentiality and integrity clauses. Each owner can release
+only its own obligations through independently resolved authority. Combined
+information retains both owners' restrictions and its source provenance.
+
+An operator must admit the exact profile and supported implementation, coverage
+and guarantees before use. Unsupported owner distinctions are rejected; losing
+an admitted guarantee blocks the affected operation. The original security
+profile keeps its existing meaning. Selecting a profile does not install a
+provider or establish that an external release operation has occurred.

@@ -1,5 +1,8 @@
 # Scenario Variation And Deterministic Trial Realization
 
+For executable bounded replacement of failed or invalid trials, see
+[trial replacement and author migration](trial-replacement-migration.md).
+
 This reference defines the cohesive RAES path from an authored scenario family
 to archival experiment provenance. It applies ADR-084 to the package and
 artifact boundaries already established by ADR-036, ADR-053, ADR-055, ADR-065,
@@ -28,7 +31,7 @@ The design covers:
   lineage records.
 
 The reference itself does not add a generator, sampler, trial compiler,
-scheduler, persistence service, API, scenario pack, or adaptive policy. The
+scheduler, persistence service, API, environment pack, or adaptive policy. The
 delivered follow-on slices include the typed run-local fact contract and
 in-process binding plane, deterministic trial compilation, and sealed-entry
 realization; remaining conceptual sketches retain their explicit
@@ -140,7 +143,7 @@ scheduler state, or backend refusal back into experiment selection.
 | 5. SDL instantiation | Public `raes` selection/instantiation/admission APIs, orchestrated by `raes_processor` | One plan entry and the exact expanded family it pins | Admitted `InstantiatedScenario` and canonical snapshot | Apply only recorded selections/bindings; no new draw, import, query, fallback, or private binder; rerun whole-scenario semantic validation | Existing expansion/instantiation evidence plus point selections and trial-plan/run linkage |
 | 6. Runtime fact binding | `raes_runtime` over compiled slots and neutral fact DTOs | Admitted compiled plans, authorized observations and secret references | Run-local bound operation/action input and binding event evidence | Fill only a declared sink with matching type/source/scope/freshness/sensitivity; never mutate the plan, snapshot, factors, topology, choices, run id, or streams | Slot id, safe fact/source ref, scope, freshness, sensitivity, authorization/evidence refs, binding outcome; no raw secret |
 | 7. Backend realization | Existing planner, manifest, realization-envelope, and backend protocols | Admitted plans plus selected apparatus/envelope/manifests | Existing backend plans, operation receipts/status, runtime snapshots, and realized-form disclosures | Realize only within the selected envelope and capabilities; backend refusal is failure/deviation, never permission to resample | Manifest/envelope/configuration refs/digests, realized forms, transformations, omissions, operation ids, receipts |
-| 8. Orchestration and scheduling | External scheduler, including APTL for SCE-006 | Admitted plan entries and execution/isolation policy | Queue/placement state and dispatch decisions, outside scenario identity | May order, delay, pause, retry transport, and use bounded parallelism after isolation proof; cannot select, instantiate, randomize, compare, or score | Dispatch order, instance/lock/storage allocation, timeouts, clean-state/cleanup evidence, retry reason |
+| 8. Trial orchestration, execution, and scheduling | `raes_processor` and `raes_runtime` own orchestration and execution. External schedulers, including APTL for SCE-006, own placement, isolation, timeouts, and cleanup only. | Admitted plan entries and execution/isolation policy | Existing execution receipts/state; external queue/placement state and dispatch decisions, outside scenario identity | RAE uses the existing single-scenario lifecycle. External scheduling may order, delay, pause, retry transport, and use bounded parallelism after isolation proof. It cannot select, instantiate, randomize, compare, or score. | Dispatch order, instance/lock/storage allocation, timeouts, clean-state/cleanup evidence, retry reason |
 | 9. Archival provenance | `ExperimentRunModel`, `ExperimentStudyModel`, evidence and cross-artifact validators | Sealed execution/evidence plus plan/snapshot refs | One run per started trial and study/allocation records | The preallocated plan-entry `run_id` becomes the archival `run_id`; a genuine re-execution receives a new admitted id; live state is not the run record | Actual parameters/stochastic/apparatus facts, scenario snapshot, realized forms, evidence, deviations, lineage to plan/spec/task and source run where applicable |
 
 ### Why the admitted plan is a separate artifact
@@ -911,7 +914,7 @@ never scenario or experiment selection.
 
 | Consumer | What it may contribute | Required handoff | What it may not own |
 | --- | --- | --- | --- |
-| SCE-001 ATT&CK coverage | Revision-pinned technique inventory, coverage targets, scenario-pack evidence | Valid authored families and/or experiment selection objectives | SDL semantics, hidden candidate execution, or a coverage claim based only on generated count |
+| SCE-001 ATT&CK coverage | Revision-pinned technique inventory, coverage targets, environment-pack evidence | Valid authored families and/or experiment selection objectives | SDL semantics, hidden candidate execution, or a coverage claim based only on generated count |
 | SCE-003 adaptive difficulty | Policy, observations, trigger, intervention, and validity disclosure | Run event/intervention provenance; a new admitted coordinate for a derived follow-up trial | Retroactive factor/topology/identity/stream mutation |
 | SCE-004 goal/tool flexibility | Goal, success criteria, tool/affordance set, decision-surface policy, typed fact sinks | Ordinary SDL/participant semantics and runtime fact bindings | Hidden scenario selection through tool choice or observations |
 | SCE-005 ATT&CK/CTI generation | Revision-pinned inputs, mappings, candidate rationale, confidence and gaps | Candidate SDL that passes ordinary trust, validation, and admission | Direct execution of CTI, bypass of semantic validation, or backend-directed repair |

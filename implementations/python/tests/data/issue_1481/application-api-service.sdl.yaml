@@ -1,0 +1,113 @@
+name: application-api-service
+version: 2.0.0
+description: Reusable static infrastructure for Application/API service. Configures
+  api_base_path through the kit parameter contract.
+module:
+  id: infrastructure/application-api-service
+  version: 2.0.0
+  parameters:
+  - deployment_profile
+  - service_label
+  - api_base_path
+  exports:
+    nodes:
+    - application
+    content:
+    - seed_inventory
+    accounts:
+    - application_service
+  description: Composable Application/API service infrastructure module.
+variables:
+  deployment_profile:
+    type: string
+    default: standard
+    allowed_values:
+    - compact
+    - standard
+  service_label:
+    type: string
+    default: application-api-service
+  api_base_path:
+    type: string
+    default: /api
+    allowed_values:
+    - /api
+    - /v2
+nodes:
+  application:
+    type: compute
+    description: '${deployment_profile} profile for ${service_label} (Application/API
+      service). Configuration: ${api_base_path}.'
+    source:
+      name: application-service
+      version: stable
+    resources:
+      cpu: 2
+      ram: 2 GiB
+    services:
+    - port: 8080
+      protocol: tcp
+      name: http
+      description: Declared http service surface.
+    runtime:
+      applications:
+      - application_id: application_surface
+        service: http
+        protocol: http
+        name: Application surface
+        routes:
+        - route_id: primary
+          path: ${api_base_path}
+          methods:
+          - GET
+          responses:
+          - status_code: 200
+            description: Declared primary response.
+        - route_id: health
+          path: /health
+          methods:
+          - GET
+          responses:
+          - status_code: 200
+            description: Declared health response.
+content:
+  seed_inventory:
+    type: dataset
+    target: application
+    description: Benign infrastructure seed inventory for ${api_base_path}.
+    items:
+    - name: api_routes
+      display_name: Api Routes
+      tags:
+      - infrastructure
+      - seed
+      description: Declared api routes for this reusable service.
+    - name: health_route
+      display_name: Health Route
+      tags:
+      - infrastructure
+      - seed
+      description: Declared health route for this reusable service.
+    - name: seed_records
+      display_name: Seed Records
+      tags:
+      - infrastructure
+      - seed
+      description: Declared seed records for this reusable service.
+    - name: service_account
+      display_name: Service Account
+      tags:
+      - infrastructure
+      - seed
+      description: Declared service account for this reusable service.
+accounts:
+  application_service:
+    username: application-service
+    node: application
+    password_strength: strong
+    description: Declared environment account; credential delivery remains backend-owned.
+realization:
+  constraints:
+  - field_pointer: /nodes/application
+    concern: compute-substrate
+    posture: open

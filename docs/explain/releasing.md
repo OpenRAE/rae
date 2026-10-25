@@ -31,33 +31,24 @@ verification graph to pass for the exact commit named by the release (GOV-928).
    now distributed across concurrent jobs, with the same 90% coverage floor. The
    release caller leaves the SonarCloud quality gate disabled. It does not poll
    branch status or accept a check from another commit.
-5. A separate read-only job checks out that SHA and must complete the RUN-314
-   reference-backend tests against a real container runtime. Before the lane
-   runs, the native runtime pulls the pinned platform manifest from the public
-   registry. The lane verifies daemon OS, architecture, and uncompressed layer
-   identities against `implementations/tooling/artifacts.lock.json`.
-   Release-required mode fails when the runtime or reviewed image is unavailable,
-   its identity differs, pytest collects zero tests, or any selected test skips.
-   Retired mirror/pre-seed environment switches are rejected. The ordinary
-   PR/local Docker lane remains optional.
-6. A read-only job checks out the verified SHA, builds the corpus-bundled wheel
+5. A read-only job checks out the verified SHA, builds the corpus-bundled wheel
    and sdist, checks the corpus in both archives, installs each exact artifact in
    its own fresh environment, and runs `raes conformance backend --profile
    provisioning-only` outside the checkout.
-7. An admission job downloads those distributions and their evidence, runs the
+6. An admission job downloads those distributions and their evidence, runs the
    full evidence admission, and checks that the admitted wheel and sdist
    filenames correspond to the resolved tag version. Because it is the last job
    permitted to run repository code, it is the trust bridge: on success it
    exports only four validated scalars — the wheel and sdist basenames and
    their SHA-256 digests — as job outputs. A refused release exports nothing.
-8. Only those tested distributions cross into the `pypi` environment. Each
+7. Only those tested distributions cross into the `pypi` environment. Each
    publisher independently downloads the artifact, requires exactly the two
    admitted filenames, and rehashes the bytes against the admitted digests
    immediately before its destination operation. Neither publisher checks out
    or executes repository source, so publication credentials never coexist
    with candidate code in the same job; the identity checks they need are made
    over the API.
-9. Each destination is then reconciled independently — this is deliberately
+8. Each destination is then reconciled independently — this is deliberately
    not a transaction:
    - **PyPI.** The workflow queries the release's JSON API before uploading.
      PyPI reports a SHA-256 for every file it stores, so an "already exists"
@@ -257,7 +248,16 @@ destination and complete only what is outstanding:
 | Same version, different bytes at a destination | Fails visibly. See below. |
 
 Actions artifacts are retained for **seven days**. Within that window the
-re-run is the whole procedure.
+re-run is sufficient when the original workflow can complete publication.
+
+**If the failure is a workflow defect.** Re-running the original run uses its
+original workflow definition; it does not pick up a fix merged afterward. For
+example, the missing repository argument on the GitHub asset upload (#1414)
+will fail again on that run even after the fix is merged. If the version is
+already on PyPI, do not dispatch a fresh run to rebuild it. Stop and cut a new
+patch release through the normal reviewed process so the corrected workflow
+publishes a new version. If PyPI publication has not happened, use the existing
+tag dispatch procedure below after the fix reaches `main`.
 
 **If the artifacts have aged out.** The distribution artifact is the only
 source of publishable bytes; no publisher can rebuild. When the download fails,
@@ -288,7 +288,8 @@ while applying the current publication gates, rather than re-running a stale
 workflow definition. Never use manual dispatch for a version already on PyPI:
 it rebuilds instead of reusing the original admitted artifacts, even if the
 resulting bytes happen to match. Re-run failed jobs on the original run while
-its artifacts remain available; otherwise stop and cut a new patch release.
+its artifacts remain available and its workflow can complete publication;
+otherwise stop and cut a new patch release.
 Manual dispatch is not a verification bypass and never builds from the current
 branch head.
 

@@ -8,6 +8,7 @@ history, or terminal facts; those remain ADR-013 runtime contracts.
 
 from collections.abc import Callable, Iterable
 
+from raes import ReferencePurpose
 from raes.entities import flatten_entities
 from raes.participant_episode_policy import (
     ParticipantEpisodePolicy,
@@ -63,7 +64,7 @@ def _reset_authority_address(declaration_index: object, reset: ParticipantEpisod
     ref = reset.memory_reset_authority_ref if reset is not None else None
     if ref is None:
         return ""
-    candidates = declaration_index.reference_aliases(targetable=True).get(ref, set())
+    candidates = declaration_index.resolve_for(ref, ReferencePurpose.TARGETABLE)
     if len(candidates) != 1:
         raise ValueError(f"validated memory_reset_authority_ref did not resolve to one declaration: {ref}")
     section, _, name = next(iter(candidates)).partition(".")

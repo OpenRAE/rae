@@ -103,6 +103,39 @@
       "title": "AdmittedExecutionControlModel",
       "type": "object"
     },
+    "AdmittedExperimentAllocationModel": {
+      "additionalProperties": false,
+      "properties": {
+        "draws": {
+          "items": {
+            "$ref": "#/$defs/AllocationDrawModel"
+          },
+          "maxItems": 9999,
+          "title": "Draws",
+          "type": "array"
+        },
+        "entry_order": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 10000,
+          "minItems": 1,
+          "title": "Entry Order",
+          "type": "array"
+        },
+        "policy": {
+          "$ref": "#/$defs/ExperimentAllocationPolicyModel"
+        }
+      },
+      "required": [
+        "policy",
+        "entry_order",
+        "draws"
+      ],
+      "title": "AdmittedExperimentAllocationModel",
+      "type": "object"
+    },
     "AdmittedInstantiationProvenanceModel": {
       "additionalProperties": false,
       "description": "Plan/run/family linkage that becomes instantiated-snapshot identity (SVR-025).",
@@ -328,6 +361,14 @@
         "instantiation_provenance": {
           "$ref": "#/$defs/AdmittedInstantiationProvenanceModel"
         },
+        "participant_configurations": {
+          "items": {
+            "$ref": "#/$defs/ParticipantConfigurationResultModel"
+          },
+          "maxItems": 256,
+          "title": "Participant Configurations",
+          "type": "array"
+        },
         "plan_entry_id": {
           "minLength": 1,
           "title": "Plan Entry Id",
@@ -498,6 +539,15 @@
       "additionalProperties": false,
       "description": "Exact versioned profile set fixing the plan's compatibility surface.\n\nADR-084 extensibility seam: a new coordinate dimension, identity algorithm,\nrandom transform, cleanup action, or execution-control policy adds one\ngoverned profile version, never a generic parameter bag. Each field is a\nclosed literal of the versions this contract implements, so the *published*\nJSON Schema \u2014 not just the Python validator \u2014 encodes the supported set as a\n``const``/``enum`` and every implementation fails closed on an unknown\ncanonicalization, integrity, isolation, cleanup, or execution-control\nprofile. A new profile version adds a literal alternative here together with\nthe semantics that implement it.",
       "properties": {
+        "allocation_profile": {
+          "default": "none",
+          "enum": [
+            "none",
+            "fisher-yates-allocation-v1"
+          ],
+          "title": "Allocation Profile",
+          "type": "string"
+        },
         "canonicalization_profile": {
           "const": "jcs-sha256-v1",
           "title": "Canonicalization Profile",
@@ -511,7 +561,13 @@
         "compiler_profile": {
           "enum": [
             "trial-compiler-v1",
-            "trial-compiler-mixed-composition-v1"
+            "trial-compiler-mixed-composition-v1",
+            "trial-compiler-replacement-v1",
+            "trial-compiler-replacement-mixed-composition-v1",
+            "trial-compiler-designed-v1",
+            "trial-compiler-designed-mixed-composition-v1",
+            "trial-compiler-replacement-designed-v1",
+            "trial-compiler-replacement-designed-mixed-composition-v1"
           ],
           "title": "Compiler Profile",
           "type": "string"
@@ -621,6 +677,90 @@
       "title": "AdmittedTrialSourceReferenceModel",
       "type": "object"
     },
+    "AllocationDrawModel": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "$ref": "#/$defs/AllocationStreamAddressModel"
+        },
+        "rejection_attempts": {
+          "exclusiveMaximum": 32,
+          "minimum": 0,
+          "title": "Rejection Attempts",
+          "type": "integer"
+        },
+        "value": {
+          "maximum": 999999,
+          "minimum": 0,
+          "title": "Value",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "address",
+        "value",
+        "rejection_attempts"
+      ],
+      "title": "AllocationDrawModel",
+      "type": "object"
+    },
+    "AllocationStreamAddressModel": {
+      "additionalProperties": false,
+      "description": "A plan-scope slot, never an SDL point or a selected trial coordinate.",
+      "properties": {
+        "address_profile": {
+          "const": "allocation-address-v1",
+          "default": "allocation-address-v1",
+          "title": "Address Profile",
+          "type": "string"
+        },
+        "allocation_policy_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Allocation Policy Id",
+          "type": "string"
+        },
+        "draw_purpose": {
+          "const": "condition-assignment",
+          "default": "condition-assignment",
+          "title": "Draw Purpose",
+          "type": "string"
+        },
+        "local_coordinate": {
+          "const": 0,
+          "default": 0,
+          "title": "Local Coordinate",
+          "type": "integer"
+        },
+        "namespace": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Namespace",
+          "type": "string"
+        },
+        "slot": {
+          "maximum": 999999,
+          "minimum": 0,
+          "title": "Slot",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "namespace",
+        "allocation_policy_id",
+        "slot"
+      ],
+      "title": "AllocationStreamAddressModel",
+      "type": "object"
+    },
     "ApparatusBindingTargetModel": {
       "additionalProperties": false,
       "description": "Canonical target declared by a selected portable apparatus manifest.",
@@ -670,6 +810,27 @@
         "target_id"
       ],
       "title": "ApparatusBindingTargetModel",
+      "type": "object"
+    },
+    "ApparatusIdentityModel": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "title": "ApparatusIdentityModel",
       "type": "object"
     },
     "BindingOwnerModel": {
@@ -1020,6 +1181,45 @@
         "after_effect_policy"
       ],
       "title": "ExecutionRetryPolicyModel",
+      "type": "object"
+    },
+    "ExperimentAllocationPolicyModel": {
+      "additionalProperties": false,
+      "description": "One accepted procedure, separate from descriptive allocation_method.",
+      "properties": {
+        "algorithm_profile": {
+          "const": "fisher-yates-allocation-v1",
+          "title": "Algorithm Profile",
+          "type": "string"
+        },
+        "kind": {
+          "const": "randomized",
+          "title": "Kind",
+          "type": "string"
+        },
+        "policy_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Policy Id",
+          "type": "string"
+        },
+        "stochastic_control_ref": {
+          "minLength": 1,
+          "title": "Stochastic Control Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "policy_id",
+        "algorithm_profile",
+        "stochastic_control_ref"
+      ],
+      "title": "ExperimentAllocationPolicyModel",
       "type": "object"
     },
     "ExperimentBindingDescriptorModel": {
@@ -1798,6 +1998,99 @@
       "title": "LiteralBindingValueModel",
       "type": "object"
     },
+    "ParticipantConfigurationModel": {
+      "additionalProperties": false,
+      "description": "Canonical digest payload for one complete participant configuration.",
+      "properties": {
+        "implementation_identity": {
+          "$ref": "#/$defs/ApparatusIdentityModel"
+        },
+        "manifest_version": {
+          "minLength": 1,
+          "title": "Manifest Version",
+          "type": "string"
+        },
+        "owner": {
+          "$ref": "#/$defs/BindingOwnerModel"
+        },
+        "values": {
+          "items": {
+            "$ref": "#/$defs/RealizedConfigurationValueModel"
+          },
+          "minItems": 1,
+          "title": "Values",
+          "type": "array"
+        }
+      },
+      "required": [
+        "implementation_identity",
+        "manifest_version",
+        "owner",
+        "values"
+      ],
+      "title": "ParticipantConfigurationModel",
+      "type": "object"
+    },
+    "ParticipantConfigurationResultModel": {
+      "additionalProperties": false,
+      "description": "Portable result of one complete, atomic participant configuration validation.",
+      "properties": {
+        "configuration": {
+          "$ref": "#/$defs/ParticipantConfigurationModel"
+        },
+        "configuration_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Configuration Digest",
+          "type": "string"
+        },
+        "manifest_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Manifest Digest",
+          "type": "string"
+        },
+        "manifest_ref": {
+          "minLength": 1,
+          "title": "Manifest Ref",
+          "type": "string"
+        },
+        "participant_address": {
+          "minLength": 1,
+          "title": "Participant Address",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "participant-configuration-result/v1",
+          "default": "participant-configuration-result/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "participant_address",
+        "manifest_ref",
+        "manifest_digest",
+        "configuration",
+        "configuration_digest"
+      ],
+      "title": "ParticipantConfigurationResultModel",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "The configuration digest must be the RFC 8785/JCS digest of the complete normalized configuration.",
+          "id": "participant-configuration-digest-valid",
+          "inputs": [
+            {
+              "contract_id": "participant-configuration-result-v1",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.ParticipantConfigurationResultModel._validate_configuration_digest"
+        }
+      ]
+    },
     "ParticipantImplementationBindingTargetModel": {
       "additionalProperties": false,
       "description": "Canonical target declared by one selected participant implementation.",
@@ -2140,6 +2433,54 @@
         "configuration_digest"
       ],
       "title": "RealizationEnvelopeIdentityModel",
+      "type": "object"
+    },
+    "RealizedConfigurationValueModel": {
+      "additionalProperties": false,
+      "description": "One normalized value in a complete participant configuration.",
+      "properties": {
+        "origin": {
+          "enum": [
+            "default",
+            "override"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "target_id": {
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        },
+        "value": {
+          "discriminator": {
+            "mapping": {
+              "literal": "#/$defs/LiteralBindingValueModel",
+              "secret-reference": "#/$defs/SecretReferenceBindingValueModel"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LiteralBindingValueModel"
+            },
+            {
+              "$ref": "#/$defs/SecretReferenceBindingValueModel"
+            }
+          ],
+          "title": "Value"
+        },
+        "value_type": {
+          "$ref": "#/$defs/BindingScalarType"
+        }
+      },
+      "required": [
+        "target_id",
+        "value_type",
+        "origin",
+        "value"
+      ],
+      "title": "RealizedConfigurationValueModel",
       "type": "object"
     },
     "ScenarioBindingTargetModel": {
@@ -2659,6 +3000,169 @@
       },
       "title": "TrialCoordinateModel",
       "type": "object"
+    },
+    "TrialReplacementOriginModel": {
+      "additionalProperties": false,
+      "description": "Acyclic child-to-parent linkage; original sealed plans are never edited.",
+      "properties": {
+        "cleanup_receipt_ref": {
+          "minLength": 1,
+          "title": "Cleanup Receipt Ref",
+          "type": "string"
+        },
+        "ordinal": {
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Ordinal",
+          "type": "integer"
+        },
+        "parent_entry_id": {
+          "minLength": 1,
+          "title": "Parent Entry Id",
+          "type": "string"
+        },
+        "parent_plan_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Parent Plan Digest",
+          "type": "string"
+        },
+        "parent_plan_id": {
+          "minLength": 1,
+          "title": "Parent Plan Id",
+          "type": "string"
+        },
+        "parent_run_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Parent Run Digest",
+          "type": "string"
+        },
+        "parent_run_id": {
+          "minLength": 1,
+          "title": "Parent Run Id",
+          "type": "string"
+        },
+        "parent_run_version": {
+          "minLength": 1,
+          "title": "Parent Run Version",
+          "type": "string"
+        },
+        "root_entry_id": {
+          "minLength": 1,
+          "title": "Root Entry Id",
+          "type": "string"
+        },
+        "root_plan_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Root Plan Digest",
+          "type": "string"
+        },
+        "root_plan_id": {
+          "minLength": 1,
+          "title": "Root Plan Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "root_plan_id",
+        "root_plan_digest",
+        "root_entry_id",
+        "ordinal",
+        "parent_plan_id",
+        "parent_plan_digest",
+        "parent_entry_id",
+        "parent_run_id",
+        "parent_run_version",
+        "parent_run_digest",
+        "cleanup_receipt_ref"
+      ],
+      "title": "TrialReplacementOriginModel",
+      "type": "object"
+    },
+    "TrialReplacementPolicyModel": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "replace_on": {
+                "minItems": 1
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "max_replacements": {
+                "const": 0
+              }
+            },
+            "required": [
+              "max_replacements"
+            ]
+          },
+          "then": {
+            "properties": {
+              "replace_on": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ],
+      "description": "Additional trials per original allocation slot, never an attempt budget.",
+      "properties": {
+        "max_replacements": {
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Max Replacements",
+          "type": "integer"
+        },
+        "replace_on": {
+          "items": {
+            "enum": [
+              "failed",
+              "invalidated"
+            ],
+            "type": "string"
+          },
+          "maxItems": 2,
+          "title": "Replace On",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "schema_version": {
+          "const": "trial-replacement-policy/v1",
+          "default": "trial-replacement-policy/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "max_replacements",
+        "replace_on"
+      ],
+      "title": "TrialReplacementPolicyModel",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Replacement triggers are unique; a positive additional-trial bound requires selected triggers, and zero requires none. Omission supplies no allocation permission.",
+          "id": "trial-replacement-policy-explicit-and-bounded",
+          "inputs": [
+            {
+              "contract_id": "experiment-authoring-input-v1",
+              "instance_path": "#/run_plan/replacement_policy"
+            },
+            {
+              "contract_id": "admitted-trial-plan-v1",
+              "instance_path": "#/replacement_policy"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.trial_replacement.TrialReplacementPolicyModel._validate_policy"
+        }
+      ]
     }
   },
   "$id": "https://openrae.github.io/rae/schemas/admitted-trial-plan-v1.json",
@@ -2668,6 +3172,17 @@
   "properties": {
     "admission": {
       "$ref": "#/$defs/AdmittedTrialPlanAdmissionModel"
+    },
+    "allocation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AdmittedExperimentAllocationModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "cleanup_plans": {
       "additionalProperties": {
@@ -2719,6 +3234,28 @@
     "profiles": {
       "$ref": "#/$defs/AdmittedTrialPlanProfilesModel"
     },
+    "replacement_origin": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TrialReplacementOriginModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "replacement_policy": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TrialReplacementPolicyModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "schema_version": {
       "const": "admitted-trial-plan/v1",
       "default": "admitted-trial-plan/v1",
@@ -2749,7 +3286,7 @@
   "type": "object",
   "x-raes-invariants": [
     {
-      "description": "An admitted trial plan keeps map keys equal to embedded ids, keeps plan/entry/run identities distinct, gives every entry a unique logical coordinate and archival run_id, resolves cleanup and stochastic-control joins (with each draw addressed to its entry coordinate), exact mixed-composition profile inputs, and isolation-proof entries within the sealed plan, requires values duplicated from incumbent authorities (random-stream profile, binding condition/family) to agree, forbids bounded-parallel entries from sharing resources, matches admission cardinality, and binds the complete plan with a recomputed plan_digest over the entry set.",
+      "description": "An admitted trial plan keeps map keys equal to embedded ids, keeps plan/entry/run identities distinct, gives every entry a unique logical coordinate and archival run_id, resolves cleanup and stochastic-control joins (with each draw addressed to its entry coordinate), exact mixed-composition profile inputs, and isolation-proof entries within the sealed plan, requires values duplicated from incumbent authorities (random-stream profile, binding condition/family) to agree, forbids bounded-parallel entries from sharing resources, matches admission cardinality, binds a replacement profile to a distinct single-entry child within the original replacement budget, and binds the complete plan with a recomputed plan_digest over the entry set.",
       "id": "admitted-trial-plan-identity-joins-and-integrity",
       "inputs": [
         {

@@ -6,15 +6,22 @@ import re
 from enum import Enum
 from typing import Annotated
 
-from pydantic import Field, StrictInt, field_validator, model_validator
+from pydantic import Discriminator, Field, StrictInt, Tag, field_validator, model_validator
 from typing_extensions import TypeAliasType
 
 from ._base import SDLModel
 from ._classification_guard import LegacyClassificationGuard
-from ._identifiers import PortableIdentifier
+from ._identifiers import PortableIdentifier, portable_identifier_map_schema
 from .participant_episode_policy import ParticipantEpisodePolicy
 from .participant_execution import ParticipantAutonomousExecutionPolicy
 from .participant_inject_delivery import ParticipantInjectDelivery
+from .participant_mixed_control_policy import MIXED_CONTROL_POLICY_SEMANTICS, MixedControlPolicy
+from .participant_mixed_control_vocabulary import (
+    MixedControlControllerState,
+    MixedControlDispositionRules,
+    MixedControlOrderStrategy,
+    MixedControlTransitionKind,
+)
 
 
 class ParticipantBehaviorSpecificationLifecycle(str, Enum):
@@ -64,96 +71,6 @@ def tool_affordance_reference(spec_name: str, affordance_id: str) -> str:
     """Return the stable authored reference for one nested affordance binding."""
 
     return f"behavior_specifications.{spec_name}.tool_affordances.{affordance_id}"
-
-
-class MixedControlOrderStrategy(str, Enum):
-    """Portable ordering strategies for authored control decisions."""
-
-    TOTAL_EFFECTIVE_ORDER = "total-effective-order"
-
-
-class MixedControlTransitionKind(str, Enum):
-    """Control-owned facts kept distinct from admission and execution."""
-
-    PROPOSAL = "proposal"
-    APPROVAL = "approval"
-    DENIAL = "denial"
-    EXTERNAL_DIRECTION = "external-direction"
-    INTERVENTION = "intervention"
-    HANDOFF = "handoff"
-    OVERRIDE = "override"
-    CANCELLATION = "cancellation"
-
-
-class MixedControlAuthorityStatus(str, Enum):
-    """Authored authority state for one controller binding."""
-
-    ACTIVE = "active"
-    REVOKED = "revoked"
-
-
-class MixedControlDuplicateDisposition(str, Enum):
-    """Disposition for a repeated decision identity."""
-
-    IDEMPOTENT_IF_EQUIVALENT = "idempotent-if-equivalent"
-
-
-class MixedControlRejectDisposition(str, Enum):
-    """Fail-closed disposition that preserves the current state."""
-
-    REJECT_NO_STATE_CHANGE = "reject-no-state-change"
-
-
-class MixedControlConcurrentDisposition(str, Enum):
-    """Disposition for decisions that share a control-state revision."""
-
-    ORDER_THEN_REVALIDATE = "order-then-revalidate"
-
-
-class MixedControlDispositionRules(SDLModel):
-    """Explicit deterministic rules for invalid or competing decisions."""
-
-    duplicate: MixedControlDuplicateDisposition
-    stale: MixedControlRejectDisposition
-    revoked: MixedControlRejectDisposition
-    late: MixedControlRejectDisposition
-    concurrent: MixedControlConcurrentDisposition
-    conflict: MixedControlRejectDisposition
-
-
-class MixedControlControllerState(SDLModel):
-    """One authored controller, authority, scope, and validity binding."""
-
-    controller_ref: str
-    authority_basis_refs: list[str]
-    scope_refs: list[str]
-    policy_revision: str
-    valid_from_order: StrictInt = Field(ge=0)
-    valid_until_order: StrictInt = Field(ge=0)
-    authority_status: MixedControlAuthorityStatus
-    evidence_refs: list[str]
-
-    @field_validator("controller_ref", "policy_revision")
-    @classmethod
-    def _require_non_empty(cls, value: str) -> str:
-        if not value.strip():
-            raise ValueError("mixed-control controller-state fields must be non-empty")
-        return value
-
-    @field_validator("authority_basis_refs", "scope_refs", "evidence_refs")
-    @classmethod
-    def _require_unique_non_empty_refs(cls, values: list[str]) -> list[str]:
-        if not values or any(not value.strip() for value in values):
-            raise ValueError("mixed-control controller-state refs must be non-empty")
-        if len(set(values)) != len(values):
-            raise ValueError("mixed-control controller-state refs must be unique")
-        return values
-
-    @model_validator(mode="after")
-    def _validate_interval(self) -> MixedControlControllerState:
-        if self.valid_until_order < self.valid_from_order:
-            raise ValueError("mixed-control controller-state validity interval must not be inverted")
-        return self
 
 
 _PROPOSAL_TARGETING_KINDS = frozenset(
@@ -237,8 +154,12 @@ class MixedControlParticipantOperation(SDLModel):
     order_strategy: MixedControlOrderStrategy
     initial_state_ref: PortableIdentifier
     dispositions: MixedControlDispositionRules
-    controller_states: dict[PortableIdentifier, MixedControlControllerState]
-    transitions: dict[PortableIdentifier, MixedControlTransition]
+    controller_states: dict[PortableIdentifier, MixedControlControllerState] = Field(
+        json_schema_extra=portable_identifier_map_schema
+    )
+    transitions: dict[PortableIdentifier, MixedControlTransition] = Field(
+        json_schema_extra=portable_identifier_map_schema
+    )
 
     @field_validator("participant_ref", "policy_revision")
     @classmethod
@@ -315,12 +236,38 @@ class MixedControlParticipantOperation(SDLModel):
                 raise ValueError(f"mixed-control transition '{transition_id}' must follow its proposal")
 
 
+_ABSENT = object()
+
+
+def _mixed_control_form(value: object) -> str | None:
+    """Select the legacy form only when ``semantics`` is absent; an unknown pin selects nothing."""
+
+    semantics = value.get("semantics", _ABSENT) if isinstance(value, dict) else getattr(value, "semantics", _ABSENT)
+    if semantics is _ABSENT:
+        return "fixed-coordinate-v1"
+    return MIXED_CONTROL_POLICY_SEMANTICS if semantics == MIXED_CONTROL_POLICY_SEMANTICS else None
+
+
+MixedControlDeclaration = Annotated[
+    Annotated[MixedControlParticipantOperation, Tag("fixed-coordinate-v1")]
+    | Annotated[MixedControlPolicy, Tag(MIXED_CONTROL_POLICY_SEMANTICS)],
+    Discriminator(
+        _mixed_control_form,
+        custom_error_type="mixed_control_semantics",
+        custom_error_message=(
+            "mixed_control semantics must be absent (legacy fixed-coordinate form) or "
+            "mixed-control-policy-occurrence/rev1"
+        ),
+    ),
+]
+
+
 class ParticipantBehaviorSpecification(LegacyClassificationGuard):
     """First-class authored aggregate over participant behavior surfaces."""
 
     legacy_classification_fields = ("ai_offensive_behavior_refs", "defensive_behavior_refs", "offensive_behavior_refs")
 
-    semantic_version: str
+    semantic_version: str = Field(min_length=1, pattern=r"\S")
     lifecycle_state: ParticipantBehaviorSpecificationLifecycle = ParticipantBehaviorSpecificationLifecycle.ACTIVE
     participant_refs: list[str] = Field(default_factory=list)
     participant_role_refs: list[str] = Field(default_factory=list)
@@ -330,7 +277,7 @@ class ParticipantBehaviorSpecification(LegacyClassificationGuard):
     authority_scope_refs: list[str] = Field(default_factory=list)
     behavior_mode: str | None = None
     autonomous_execution: ParticipantAutonomousExecutionPolicy | None = None
-    mixed_control: MixedControlParticipantOperation | None = None
+    mixed_control: MixedControlDeclaration | None = None
     realization_profile_ref: str | None = None
     backend_feature_support_refs: list[str] = Field(default_factory=list)
     evidence_contract_refs: list[str] = Field(default_factory=list)

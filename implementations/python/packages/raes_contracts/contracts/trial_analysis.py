@@ -78,6 +78,8 @@ def _validate_run_stochastic_provenance(
 ) -> None:
     run_controls = {control.control_id: control for control in run.stochastic_controls}
     required_control_ids = {draw.control_id for draw in entry.stochastic_draws}
+    if plan.allocation is not None:
+        required_control_ids.add(plan.allocation.policy.stochastic_control_ref)
     for control_id in sorted(required_control_ids):
         if run_controls.get(control_id) != plan.stochastic_controls.get(control_id):
             raise ValueError("archival run stochastic control does not match the admitted entry")
@@ -85,6 +87,33 @@ def _validate_run_stochastic_provenance(
     run_draws = {canonical_json_digest(draw.model_dump(mode="json")) for draw in run.stochastic_draws}
     if not admitted_draws.issubset(run_draws):
         raise ValueError("archival run stochastic draws do not preserve the admitted entry")
+
+
+def _validate_run_binding_provenance(entry: AdmittedTrialEntryModel, run: ExperimentRunModel) -> None:
+    from ..participant_configuration import validate_participant_configuration_selection
+
+    realized = {binding.descriptor.binding_id: binding for binding in run.realized_bindings}
+    configurations = {result.participant_address: result for result in entry.participant_configurations}
+    for binding in entry.bindings:
+        actual = realized.get(binding.descriptor.binding_id)
+        if actual is None or actual.descriptor != binding.descriptor or actual.origin != binding.origin:
+            raise ValueError("archival run realized binding must preserve the admitted binding")
+        target = binding.descriptor.target
+        if (
+            target.plane == "participant-implementation"
+            and actual.configuration_digest != configurations[target.participant_address].configuration_digest
+        ):
+            raise ValueError("archival run binding configuration digest differs from admission")
+    provenance = run.participant_implementation_provenance
+    selections = (
+        {}
+        if provenance is None
+        else {selection.participant_address: selection for selection in provenance.participant_implementations}
+    )
+    for address, result in configurations.items():
+        if address not in selections:
+            raise ValueError("archival run participant binding requires its implementation selection")
+        validate_participant_configuration_selection(selections[address], result)
 
 
 def _validate_run_attempt_evidence(
@@ -115,6 +144,7 @@ def validate_admitted_trial_run(
     """Join one archival run to its exact admitted entry and attempt evidence."""
 
     entry, linkage = _validate_run_plan_linkage(plan, run)
+    _validate_run_binding_provenance(entry, run)
     _validate_run_stochastic_provenance(plan, entry, run)
     terminal_receipt = _validate_run_attempt_evidence(plan, entry, linkage, cleanup_receipts)
     _validate_trial_terminal_outcome(run, terminal_receipt)
@@ -245,6 +275,31 @@ def validate_admitted_trial_study(
 ) -> None:
     """Join admitted coordinates and archival runs to the existing study authority."""
 
+    if (plan.replacement_policy is not None and plan.replacement_policy.max_replacements) or any(
+        run.run_status == "superseded" for run in runs
+    ):
+        raise ValueError("replacement study validation requires complete retained replacement history")
+    _validate_admitted_trial_study(
+        plan,
+        study,
+        tasks,
+        runs,
+        evidence_by_run=evidence_by_run,
+        relation_scenarios=relation_scenarios,
+        relation_capture_specs=relation_capture_specs,
+    )
+
+
+def _validate_admitted_trial_study(
+    plan: AdmittedTrialPlanModel,
+    study: ExperimentStudyModel,
+    tasks: list[ExperimentTaskModel],
+    runs: list[ExperimentRunModel],
+    *,
+    evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None,
+    relation_scenarios: Mapping[str, Any] | None,
+    relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None,
+) -> None:
     validate_experiment_study_against_tasks_and_runs(
         study,
         tasks,
@@ -256,3 +311,37 @@ def validate_admitted_trial_study(
     _validate_study_identity(plan, study)
     _validate_study_run_membership(study, runs)
     _validate_study_allocation(plan, study)
+
+
+@dataclass(frozen=True)
+class TrialReplacementStudyInputs:
+    """Complete retained replacement history and ordinary study evidence."""
+
+    replacement_plans: list[AdmittedTrialPlanModel]
+    cleanup_receipts: list[TrialCleanupReceiptModel]
+    evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None = None
+    relation_scenarios: Mapping[str, Any] | None = None
+    relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None = None
+
+
+def validate_replacement_trial_study(
+    plan: AdmittedTrialPlanModel,
+    study: ExperimentStudyModel,
+    tasks: list[ExperimentTaskModel],
+    runs: list[ExperimentRunModel],
+    *,
+    inputs: TrialReplacementStudyInputs,
+) -> None:
+    """Reconcile retained history before validating single-leaf study membership."""
+    from .trial_replacement_analysis import reconcile_replacement_trials
+
+    accounting = reconcile_replacement_trials(plan, inputs.replacement_plans, runs, inputs.cleanup_receipts)
+    _validate_admitted_trial_study(
+        plan,
+        study,
+        tasks,
+        list(accounting.analysis_runs),
+        evidence_by_run=inputs.evidence_by_run,
+        relation_scenarios=inputs.relation_scenarios,
+        relation_capture_specs=inputs.relation_capture_specs,
+    )

@@ -2,9 +2,9 @@
   "contract_id": "behavioral-relation-profile-v1",
   "schema_path": "contracts/schemas/profiles/behavioral-relation-profile-v1.json",
   "stability": "draft",
-  "content_hash": "a1cfddabde6cb363e4514808b31110631a4e147bd9e83fe262f4a9763dcd5aa1",
+  "content_hash": "9fcb8068ee35e4e445b7109f04e71994a7727d2a5b54cfb1f28cf6676f2ce099",
   "last_change": {
-    "summary": "Add the closed single-operation DPBB profile variant, complete domains and both carrier identities; preserve opacity profiles (issue #971).",
-    "content_hash": "a1cfddabde6cb363e4514808b31110631a4e147bd9e83fe262f4a9763dcd5aa1"
+    "summary": "Add the separately pinned two-operation DPBB profile, exact retry/history and bounded response-loss domains; preserve the single-operation and opacity variants (issue #1395).",
+    "content_hash": "9fcb8068ee35e4e445b7109f04e71994a7727d2a5b54cfb1f28cf6676f2ce099"
   }
 }

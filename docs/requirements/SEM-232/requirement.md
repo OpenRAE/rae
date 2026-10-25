@@ -21,6 +21,13 @@ SEM-230 defines participant information-flow labels and projection, API-423 and 
 
 ## Traceability
 
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/multi_export.py` (Issue #1395 complete two-operation construction and source drift evidence; equivalence and realization remain unestablished)
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-multi-operation-models.md` (Separate finite profile, projection and failure boundary)
+- DOCUMENTS → DOCUMENTATION `docs/research/participant-bisimulation/multi-operation-construction.md` (Independent construction and historical-source preservation)
+- TESTS → TEST `implementations/python/tests/test_issue_1395_crossing_models.py` (Complete closure, independent history/policy, retry and bounded failure cases)
+- TESTS → TEST `implementations/python/tests/test_issue_1395_crossing_export.py` (Deterministic counts, source pins, drift and no partial publication)
+- TESTS → TEST `implementations/python/tests/test_issue_1395_crossing_profile.py` (Closed profile, schema and carrier joins)
+
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1395` (Model multiple operations and interleaved retries)
 
 - TESTS → TEST `implementations/python/tests/test_issue_971_crossing_profile.py` (Closed carrier and binary profile validation tests)

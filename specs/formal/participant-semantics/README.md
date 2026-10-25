@@ -1789,7 +1789,13 @@ The design selects
 `divergence-preserving-branching-bisimulation` between the complete finite
 abstract SEM-230 crossing operation and an independently formalized
 API-423/RUN-319 crossing kernel under
-`participant-crossing-dpbb-finite-v1@rev1`.
+`participant-crossing-dpbb-finite-v1@rev2`.
+
+The [executable rev2 rules](participant-crossing-models.md) preserve #971's
+single-operation construction. The separately revisioned
+[#1395 multi-operation rules](participant-crossing-multi-operation-models.md)
+cover at most two fresh identities and interleaved retries; neither construction
+establishes a bisimulation or runtime-realization result.
 
 Taxonomy revision `rev6` defines the exact relation and claim surface. Issue
 #811 supplies the closed carrier, label projection, relation clauses, witness
