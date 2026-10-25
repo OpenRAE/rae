@@ -3,7 +3,6 @@
 from pathlib import Path
 
 import pytest
-
 from tools.policy.repository_requirements import RepositoryRequirementClient
 from tools.policy.requirement_governance import evaluate_requirement_governance
 
