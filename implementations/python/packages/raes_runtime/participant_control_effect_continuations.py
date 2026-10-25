@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import replace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.participant_control_composition_v2 import (
@@ -17,6 +17,7 @@ from raes_contracts.contracts.participant_control_evaluation_v2 import Participa
 from raes_contracts.runtime_state import OperationState
 
 from .control_plane_execution import _utc_now
+from .control_plane_store import ControlPlaneOperationRecord
 from .control_plane_store_revision import SnapshotRevisionConflict
 from .participant_control_causal_state import validate_incremental_effect_admission
 from .participant_control_effect_evidence import (
@@ -38,7 +39,6 @@ if TYPE_CHECKING:
     from raes_contracts.contracts.participant_control_resolution import ControlCommittedEffectIntentV2
 
     from .control_plane import RuntimeControlPlane
-    from .control_plane_store import ControlPlaneOperationRecord
     from .participant_control_binding import ParticipantControlRuntimeBinding
 
 CONTINUATION_SUFFIX = ":continuation:"
@@ -170,11 +170,14 @@ def _publish_continuation(
             participant: [*history[participant], transition.model_dump(mode="json")],
         },
     )
-    closed = replace(
-        carrier,
-        status=replace(carrier.status, state=OperationState.SUCCEEDED, updated_at=_utc_now()),
-        decision_history_heads=expected_participant_history_heads(plane._snapshot, participant),
-        result_history_heads=expected_participant_history_heads(snapshot, participant),
+    closed = cast(
+        ControlPlaneOperationRecord,
+        replace(
+            carrier,
+            status=replace(carrier.status, state=OperationState.SUCCEEDED, updated_at=_utc_now()),
+            decision_history_heads=expected_participant_history_heads(plane._snapshot, participant),
+            result_history_heads=expected_participant_history_heads(snapshot, participant),
+        ),
     )
     plane._commit_participant_transition(
         expected_history_heads=expected_participant_history_heads(plane._snapshot, participant),
