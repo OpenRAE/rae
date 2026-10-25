@@ -6,9 +6,10 @@ import json
 from pathlib import Path
 
 import pytest
+from jsonschema import Draft202012Validator
 from paths import EXPERIMENTS_DIR, REPO_ROOT
 from raes_conformance.conformance import _validate_payload
-from raes_contracts.contracts import ExperimentSpecModel
+from raes_contracts.contracts import ExperimentSpecModel, schema_bundle
 from raes_contracts.experiment_spec import (
     ExperimentSpecValidationError,
     find_experiment_specs,
@@ -117,6 +118,78 @@ def test_run_plan_rejects_red_variant_key_mismatch() -> None:
     }
     with pytest.raises(ValueError, match="variant_id"):
         ExperimentSpecModel.model_validate(payload)
+
+
+@pytest.mark.parametrize("posture", [None, "descriptive"], ids=["default", "descriptive"])
+@pytest.mark.parametrize("invalid", ["factor", "level"])
+@pytest.mark.parametrize("boundary", ["model", "parser", "mcp", "conformance"])
+def test_condition_factor_membership_rejected_at_each_boundary(
+    posture: str | None, invalid: str, boundary: str
+) -> None:
+    payload = _valid_payload()
+    if posture is not None:
+        payload["binding_semantics"] = posture
+    assignment = payload["run_plan"]["allocation"]["condition_assignments"]["cond-stealthy"]
+    sentinel = "private-undeclared-value"
+    assignment["factor_levels"] = {sentinel: "stealthy"} if invalid == "factor" else {"red-tactic": sentinel}
+
+    if boundary == "model":
+        with pytest.raises(ValueError, match="must reference declared factor"):
+            ExperimentSpecModel.model_validate(payload)
+    elif boundary == "parser":
+        with pytest.raises(ExperimentSpecValidationError) as caught:
+            parse_experiment_spec(json.dumps(payload))
+        assert caught.value.code == "contract-invalid"
+        assert sentinel not in caught.value.details
+    elif boundary == "mcp":
+        result = _run_experiment_validate(json.dumps(payload))
+        assert result.startswith("VALIDATION ERROR")
+        assert sentinel not in result
+    else:
+        diagnostics = _validate_payload("experiment-authoring-input-v1", payload)
+        assert diagnostics
+        assert all(sentinel not in diagnostic.message for diagnostic in diagnostics)
+
+
+@pytest.mark.parametrize("declarations", ["missing", "empty", "empty-levels"])
+def test_condition_factor_membership_requires_local_declarations(declarations: str) -> None:
+    payload = _valid_payload()
+    if declarations == "missing":
+        del payload["factors"]
+    elif declarations == "empty":
+        payload["factors"] = {}
+    else:
+        payload["factors"]["red-tactic"]["levels"] = []
+
+    with pytest.raises(ValueError, match="must reference declared factor"):
+        ExperimentSpecModel.model_validate(payload)
+
+
+def test_condition_factors_use_author_defined_names_and_allow_unused_factors() -> None:
+    payload = _valid_payload()
+    factor = payload["factors"].pop("red-tactic")
+    factor["levels"] = ["customer-alpha", "customer-beta"]
+    payload["factors"]["private-domain-choice"] = factor
+    payload["factors"]["unused"] = {"name": "Unused factor", "factor_kind": "other", "levels": []}
+    assignments = payload["run_plan"]["allocation"]["condition_assignments"]
+    for assignment, level in zip(assignments.values(), factor["levels"], strict=True):
+        assignment["factor_levels"] = {"private-domain-choice": level}
+
+    spec = parse_experiment_spec(json.dumps(payload))
+
+    assert spec.run_plan.allocation is not None
+    assert spec.run_plan.allocation.condition_assignments["cond-stealthy"].factor_levels == {
+        "private-domain-choice": "customer-beta"
+    }
+
+
+@pytest.mark.parametrize("invalid", ["factor", "level"])
+def test_condition_membership_fixtures_require_semantic_validation(invalid: str) -> None:
+    path = _VALID_FIXTURE.parent.parent / "context-invalid" / f"undeclared-condition-{invalid}.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+
+    Draft202012Validator(schema_bundle()["experiment-authoring-input-v1"]).validate(payload)
+    assert _validate_payload("experiment-authoring-input-v1", payload)
 
 
 def test_target_run_count_path_is_valid() -> None:

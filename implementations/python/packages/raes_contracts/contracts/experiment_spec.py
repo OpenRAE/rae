@@ -43,7 +43,11 @@ from .experiment_selection import (
     _validate_selection_factor_joins,
     _validate_selection_policy_registry,
 )
-from .experiment_study import ExperimentRunAllocationPlanModel, ExperimentStudyFactorModel
+from .experiment_study import (
+    ExperimentRunAllocationPlanModel,
+    ExperimentStudyFactorModel,
+    _validate_condition_factor_levels,
+)
 from .schema_invariants import _add_raes_invariant
 from .trial_replacement import TrialReplacementPolicyModel
 
@@ -215,6 +219,9 @@ class ExperimentSpecModel(ContractModel):
                     raise ValueError(
                         f"run_plan allocation blocking factor '{blocking_factor}' must be a declared factor"
                     )
+            _validate_condition_factor_levels(
+                self.factors, allocation.condition_assignments, scope="run_plan allocation"
+            )
         self._validate_binding_descriptors()
         self._validate_selection_factor_joins()
         if self.run_plan.evidence_requirement_relations and self.intended_scenario_ref is None:
@@ -275,6 +282,14 @@ class ExperimentSpecModel(ContractModel):
             "experiment-spec-blocking-factors-declared",
             "When a run plan declares an allocation with blocking factors, every blocking factor must be a "
             "declared experiment-spec factor.",
+            validator="raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec",
+            inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
+        )
+        _add_raes_invariant(
+            json_schema,
+            "experiment-spec-condition-factor-levels-declared",
+            "In every binding posture, each condition assignment must reference a factor and level declared "
+            "by the containing experiment spec. Authors define these local declarations; no domain catalog is required.",
             validator="raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec",
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
