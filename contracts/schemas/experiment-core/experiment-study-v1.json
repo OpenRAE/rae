@@ -1,5 +1,56 @@
 {
   "$defs": {
+    "ApparatusBindingTargetModel": {
+      "additionalProperties": false,
+      "description": "Canonical target declared by a selected portable apparatus manifest.",
+      "properties": {
+        "component_kind": {
+          "enum": [
+            "processor",
+            "backend",
+            "participant-runtime",
+            "other"
+          ],
+          "title": "Component Kind",
+          "type": "string"
+        },
+        "component_name": {
+          "minLength": 1,
+          "title": "Component Name",
+          "type": "string"
+        },
+        "component_version": {
+          "minLength": 1,
+          "title": "Component Version",
+          "type": "string"
+        },
+        "manifest_version": {
+          "minLength": 1,
+          "title": "Manifest Version",
+          "type": "string"
+        },
+        "plane": {
+          "const": "apparatus",
+          "title": "Plane",
+          "type": "string"
+        },
+        "target_id": {
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "plane",
+        "component_kind",
+        "component_name",
+        "component_version",
+        "manifest_version",
+        "target_id"
+      ],
+      "title": "ApparatusBindingTargetModel",
+      "type": "object"
+    },
     "BehavioralClaimBindingModel": {
       "additionalProperties": false,
       "description": "A bounded claim tied to one revisioned behavioral-relation definition.\n\nThis is deliberately a claim *binding*, not another relation registry. The\ncatalog owns relation meaning; consumers supply the subject, carriers,\nquantifier/evidence boundary, assurance state, and explicit limitations.",
@@ -212,6 +263,52 @@
       "title": "BehavioralClaimBindingModel",
       "type": "object"
     },
+    "BindingOwnerModel": {
+      "additionalProperties": false,
+      "description": "Governed contract and validator profile that owns one binding.",
+      "properties": {
+        "contract_id": {
+          "minLength": 1,
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "contract_version": {
+          "minLength": 1,
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "validator_id": {
+          "minLength": 1,
+          "title": "Validator Id",
+          "type": "string"
+        },
+        "validator_version": {
+          "minLength": 1,
+          "title": "Validator Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_id",
+        "contract_version",
+        "validator_id",
+        "validator_version"
+      ],
+      "title": "BindingOwnerModel",
+      "type": "object"
+    },
+    "BindingScalarType": {
+      "description": "Exact JSON scalar type declared by a binding owner.",
+      "enum": [
+        "string",
+        "integer",
+        "number",
+        "boolean",
+        "null"
+      ],
+      "title": "BindingScalarType",
+      "type": "string"
+    },
     "ExperimentAnalysisPlanModel": {
       "additionalProperties": false,
       "description": "Analysis plan metadata for metrics, uncertainty, and missing data.",
@@ -394,6 +491,90 @@
         "sensitivity"
       ],
       "title": "ExperimentArtifactRefModel",
+      "type": "object"
+    },
+    "ExperimentBindingDescriptorModel": {
+      "additionalProperties": false,
+      "description": "One explicit factor/condition value bound to one authoritative target.",
+      "properties": {
+        "binding_id": {
+          "minLength": 1,
+          "title": "Binding Id",
+          "type": "string"
+        },
+        "owner": {
+          "$ref": "#/$defs/BindingOwnerModel"
+        },
+        "source_condition_id": {
+          "minLength": 1,
+          "title": "Source Condition Id",
+          "type": "string"
+        },
+        "source_factor_id": {
+          "minLength": 1,
+          "title": "Source Factor Id",
+          "type": "string"
+        },
+        "source_factor_level_id": {
+          "minLength": 1,
+          "title": "Source Factor Level Id",
+          "type": "string"
+        },
+        "target": {
+          "discriminator": {
+            "mapping": {
+              "apparatus": "#/$defs/ApparatusBindingTargetModel",
+              "participant-implementation": "#/$defs/ParticipantImplementationBindingTargetModel",
+              "scenario": "#/$defs/ScenarioBindingTargetModel"
+            },
+            "propertyName": "plane"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ScenarioBindingTargetModel"
+            },
+            {
+              "$ref": "#/$defs/ParticipantImplementationBindingTargetModel"
+            },
+            {
+              "$ref": "#/$defs/ApparatusBindingTargetModel"
+            }
+          ],
+          "title": "Target"
+        },
+        "value": {
+          "discriminator": {
+            "mapping": {
+              "literal": "#/$defs/LiteralBindingValueModel",
+              "secret-reference": "#/$defs/SecretReferenceBindingValueModel"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LiteralBindingValueModel"
+            },
+            {
+              "$ref": "#/$defs/SecretReferenceBindingValueModel"
+            }
+          ],
+          "title": "Value"
+        },
+        "value_type": {
+          "$ref": "#/$defs/BindingScalarType"
+        }
+      },
+      "required": [
+        "binding_id",
+        "source_factor_id",
+        "source_factor_level_id",
+        "source_condition_id",
+        "target",
+        "value_type",
+        "value",
+        "owner"
+      ],
+      "title": "ExperimentBindingDescriptorModel",
       "type": "object"
     },
     "ExperimentCaptureSpecReferenceModel": {
@@ -587,6 +768,16 @@
           "required": [
             "required_parameters"
           ]
+        },
+        {
+          "properties": {
+            "required_bindings": {
+              "minItems": 1
+            }
+          },
+          "required": [
+            "required_bindings"
+          ]
         }
       ],
       "description": "Concrete treatment-condition assignment criteria for study evaluation runs.",
@@ -643,6 +834,14 @@
           },
           "title": "Factor Levels",
           "type": "object"
+        },
+        "required_bindings": {
+          "items": {
+            "$ref": "#/$defs/ExperimentBindingDescriptorModel"
+          },
+          "maxItems": 256,
+          "title": "Required Bindings",
+          "type": "array"
         },
         "required_parameters": {
           "items": {
@@ -1774,6 +1973,147 @@
         "note"
       ],
       "title": "ExperimentValidityNoteModel",
+      "type": "object"
+    },
+    "LiteralBindingValueModel": {
+      "additionalProperties": false,
+      "description": "Portable literal value; strict type validation occurs at its descriptor.",
+      "properties": {
+        "kind": {
+          "const": "literal",
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "kind",
+        "value"
+      ],
+      "title": "LiteralBindingValueModel",
+      "type": "object"
+    },
+    "ParticipantImplementationBindingTargetModel": {
+      "additionalProperties": false,
+      "description": "Canonical target declared by one selected participant implementation.",
+      "properties": {
+        "implementation_name": {
+          "minLength": 1,
+          "title": "Implementation Name",
+          "type": "string"
+        },
+        "implementation_version": {
+          "minLength": 1,
+          "title": "Implementation Version",
+          "type": "string"
+        },
+        "manifest_version": {
+          "minLength": 1,
+          "title": "Manifest Version",
+          "type": "string"
+        },
+        "participant_address": {
+          "minLength": 1,
+          "title": "Participant Address",
+          "type": "string"
+        },
+        "plane": {
+          "const": "participant-implementation",
+          "title": "Plane",
+          "type": "string"
+        },
+        "target_id": {
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "plane",
+        "participant_address",
+        "implementation_name",
+        "implementation_version",
+        "manifest_version",
+        "target_id"
+      ],
+      "title": "ParticipantImplementationBindingTargetModel",
+      "type": "object"
+    },
+    "ScenarioBindingTargetModel": {
+      "additionalProperties": false,
+      "description": "Canonical target owned by a composed SDL scenario family.",
+      "properties": {
+        "plane": {
+          "const": "scenario",
+          "title": "Plane",
+          "type": "string"
+        },
+        "scenario_family_id": {
+          "minLength": 1,
+          "title": "Scenario Family Id",
+          "type": "string"
+        },
+        "target_id": {
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        },
+        "variation_point_id": {
+          "minLength": 1,
+          "title": "Variation Point Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "plane",
+        "scenario_family_id",
+        "variation_point_id",
+        "target_id"
+      ],
+      "title": "ScenarioBindingTargetModel",
+      "type": "object"
+    },
+    "SecretReferenceBindingValueModel": {
+      "additionalProperties": false,
+      "description": "Non-sensitive identity of a secret resolved only at an authorized sink.",
+      "properties": {
+        "kind": {
+          "const": "secret-reference",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reference_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+          "title": "Reference Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reference_id"
+      ],
+      "title": "SecretReferenceBindingValueModel",
       "type": "object"
     },
     "ValidationBasisDisclosureModel": {

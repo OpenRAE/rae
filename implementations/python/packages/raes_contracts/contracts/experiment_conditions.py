@@ -13,6 +13,7 @@ from .experiment_artifacts import (
     _identity_matches_reference,
     _reference_satisfies_requirement,
 )
+from .experiment_bindings import RealizedBindingProvenanceModel
 from .experiment_references import ExperimentParameterModel, ExperimentReferenceModel
 from .experiment_run import ExperimentRunModel
 from .experiment_study import ExperimentConditionAssignmentModel
@@ -178,12 +179,7 @@ def _parameter_satisfies_requirement(
 
 def _condition_assignment_run_criteria_signature(
     assignment: ExperimentConditionAssignmentModel,
-) -> tuple[
-    tuple[tuple[str, str, str | None, str | None, str | None], ...],
-    tuple[tuple[str, str, str, str], ...],
-    str,
-    str | None,
-]:
+) -> tuple[object, ...]:
     reference_signature = tuple(
         sorted(
             (
@@ -212,6 +208,11 @@ def _condition_assignment_run_criteria_signature(
         parameter_signature,
         assignment.difficulty_condition,
         assignment.difficulty_policy_id,
+        tuple(
+            sorted(
+                json.dumps(binding.realization_payload(), sort_keys=True) for binding in assignment.required_bindings
+            )
+        ),
     )
 
 
@@ -234,8 +235,39 @@ def _run_satisfies_condition_assignment(
     )
     run_condition = run.difficulty_provenance.policy.condition if run.difficulty_provenance is not None else "fixed"
     run_policy_id = run.difficulty_provenance.policy.policy_id if run.difficulty_provenance is not None else None
+    missing.extend(_missing_required_bindings(run, assignment))
     if run_condition != assignment.difficulty_condition:
         missing.append(f"difficulty-condition:{assignment.difficulty_condition}")
     if assignment.difficulty_policy_id is not None and run_policy_id != assignment.difficulty_policy_id:
         missing.append(f"difficulty-policy:{assignment.difficulty_policy_id}")
     return missing
+
+
+def _missing_required_bindings(
+    run: ExperimentRunModel,
+    assignment: ExperimentConditionAssignmentModel,
+) -> list[str]:
+    missing = []
+    for required in assignment.required_bindings:
+        expected = required.realization_payload()
+        if not any(
+            binding.descriptor.realization_payload() == expected
+            and _binding_matches_selected_configuration(run, binding)
+            for binding in run.realized_bindings
+        ):
+            missing.append(f"binding:{required.binding_id}")
+    return missing
+
+
+def _binding_matches_selected_configuration(run: ExperimentRunModel, binding: RealizedBindingProvenanceModel) -> bool:
+    target = binding.descriptor.target
+    if target.plane != "participant-implementation":
+        return True
+    provenance = run.participant_implementation_provenance
+    return provenance is not None and any(
+        selection.participant_address == target.participant_address
+        and selection.implementation_identity.name == target.implementation_name
+        and selection.implementation_identity.version == target.implementation_version
+        and selection.configuration_digest == binding.configuration_digest
+        for selection in provenance.participant_implementations
+    )

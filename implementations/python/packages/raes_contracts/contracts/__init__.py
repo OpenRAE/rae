@@ -32,6 +32,7 @@ from ..vocabulary import (
 from ._backend_operation_exports import *
 from ._candidate_synthesis_facade import *
 from ._evidence_requirement_exports import *
+from ._experiment_design_exports import *
 from ._exports import PUBLIC_EXPORTS as __all__
 from ._inject_occurrence_exports import *
 from ._mixed_backend_exports import *

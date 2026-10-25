@@ -1,0 +1,2012 @@
+{
+  "schema_version": "admitted-trial-plan/v1",
+  "plan_id": "trial-plan-1c3230b56b097c74093c08ce0b83f4522d6388014efa088235ad9cdd0bbccf90",
+  "profiles": {
+    "coordinate_profile": "trial-coordinate-v1",
+    "entry_identity_profile": "trial-entry-identity-v1",
+    "run_identity_profile": "archival-run-identity-v1",
+    "canonicalization_profile": "jcs-sha256-v1",
+    "integrity_profile": "acyclic-digest-chain-v1",
+    "compiler_profile": "trial-compiler-designed-v1",
+    "selection_policy_profile": "experiment-selection-v1",
+    "random_stream_profile": "blake3-xof-v1",
+    "execution_control_profile": "attempt-control-v1",
+    "cleanup_profile": "trial-cleanup-v1",
+    "isolation_profile": "scheduler-isolation-v1",
+    "allocation_profile": "fisher-yates-allocation-v1"
+  },
+  "input_refs": {
+    "authoring_input_ref": {
+      "ref_kind": "authoring-input",
+      "ref_id": "spec-techvault-red-tactic-sweep-v1",
+      "ref_version": "1.0.0",
+      "ref_digest": "sha256:bd5735ee8e444765df26456f269e28710e2cedb1b42e1863264b9ad173045eb8",
+      "ref_path": null
+    },
+    "task_ref": {
+      "ref_kind": "task",
+      "ref_id": "task-techvault-red-team-v1",
+      "ref_version": "1.0.0"
+    },
+    "task_digest": "sha256:81b6eb789e575ce0e09bedd5ad3430a92f8404328edb715c25b3d0fab24adffc",
+    "scenario_family_ref": {
+      "ref_kind": "scenario-family",
+      "ref_id": "compiler-family",
+      "ref_version": "expanded-scenario-family/v1",
+      "ref_digest": "sha256:7c4fb8b018851aadf8cfdd66be8f8ec30bdfd85a0c8da60c800fa8c142886ff5"
+    },
+    "capture_spec_refs": [
+      {
+        "ref_kind": "capture-spec",
+        "ref_id": "capture-techvault-evidence-v1",
+        "ref_version": "1.0.0",
+        "ref_digest": "sha256:23209f366685c7f6a0885dc2b0a01fb94cdf004294c245fabbf4cd436534f2be",
+        "ref_path": null
+      }
+    ],
+    "binding_descriptor_set_ref": {
+      "ref_kind": "other",
+      "ref_id": "factorial-bindings",
+      "ref_version": null,
+      "ref_digest": "sha256:0b998cb04c0e66b57b9f20629cf02e8f69aa8c5cb41237ecfaaf1d9aeebfdf0e",
+      "ref_path": null
+    },
+    "study_ref": null,
+    "associated_artifact_set_ref": null
+  },
+  "stochastic_controls": {
+    "sample-control": {
+      "control_id": "sample-control",
+      "role": "randomization",
+      "value": null,
+      "description": null,
+      "executable_binding": {
+        "profile_ref": {
+          "ref_kind": "profile",
+          "ref_id": "blake3-xof-v1",
+          "ref_version": "random-stream-profile/v1",
+          "ref_digest": null,
+          "ref_path": null
+        },
+        "namespace": "compiler-sampling",
+        "root_entropy": {
+          "kind": "public-seed",
+          "encoding": "hex-fixed-width",
+          "value": "0101010101010101010101010101010101010101010101010101010101010101"
+        }
+      }
+    }
+  },
+  "cleanup_plans": {
+    "trial-cleanup-52ad8aa1366dc267ab29f53c669249dd081a98e88aa6f0f06fb7b863e3875ea5": {
+      "schema_version": "trial-cleanup-plan/v1",
+      "plan_id": "trial-cleanup-52ad8aa1366dc267ab29f53c669249dd081a98e88aa6f0f06fb7b863e3875ea5",
+      "plan_entry_id": "trial-entry-8b304492c74cca27a6f026b19a505b3d5a255af7adf3003e87676167145909fd",
+      "run_id": "archival-run-31b98765d69c1420ec7aefbae772d1a5cb11b8327f5203a5994359ee87175c33",
+      "clean_state": {
+        "mode": "fresh",
+        "boundary_refs": [
+          "range"
+        ],
+        "verification_probe_refs": [
+          "probe:fresh"
+        ],
+        "reusable_state_claim_ref": null
+      },
+      "resource_boundaries": {
+        "range": {
+          "boundary_id": "range",
+          "resource_kind": "range-instance",
+          "owner_ref": "apparatus:range",
+          "resource_refs": [
+            "range:compiler-fixture"
+          ]
+        }
+      },
+      "cleanup_obligations": {
+        "destroy": {
+          "obligation_id": "destroy",
+          "boundary_refs": [
+            "range"
+          ],
+          "action_kind": "destroy",
+          "action_profile_ref": null,
+          "triggers": [
+            "success",
+            "failure",
+            "cancellation",
+            "timeout",
+            "abort"
+          ],
+          "requirement": "required",
+          "depends_on": [],
+          "idempotency": "idempotent",
+          "compensation_refs": [],
+          "verification_probe_refs": [
+            "probe:absent"
+          ],
+          "timeout_seconds": 120
+        }
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "after_effect_policy": "disallow",
+        "reset_obligation_refs": [],
+        "compensation_refs": []
+      }
+    },
+    "trial-cleanup-ce30c445288ba7295ffafb35fe54a76692badfea4f6999dc1d4984e2104333cb": {
+      "schema_version": "trial-cleanup-plan/v1",
+      "plan_id": "trial-cleanup-ce30c445288ba7295ffafb35fe54a76692badfea4f6999dc1d4984e2104333cb",
+      "plan_entry_id": "trial-entry-2724116db1226f0867ffb1e6a6057ae81902f0a889a0959687f13c78d8453f07",
+      "run_id": "archival-run-e1d8ab3f5b9fb4dc523d003030b08e7cd40529ab32cdedb9cb1becef8bed8012",
+      "clean_state": {
+        "mode": "fresh",
+        "boundary_refs": [
+          "range"
+        ],
+        "verification_probe_refs": [
+          "probe:fresh"
+        ],
+        "reusable_state_claim_ref": null
+      },
+      "resource_boundaries": {
+        "range": {
+          "boundary_id": "range",
+          "resource_kind": "range-instance",
+          "owner_ref": "apparatus:range",
+          "resource_refs": [
+            "range:compiler-fixture"
+          ]
+        }
+      },
+      "cleanup_obligations": {
+        "destroy": {
+          "obligation_id": "destroy",
+          "boundary_refs": [
+            "range"
+          ],
+          "action_kind": "destroy",
+          "action_profile_ref": null,
+          "triggers": [
+            "success",
+            "failure",
+            "cancellation",
+            "timeout",
+            "abort"
+          ],
+          "requirement": "required",
+          "depends_on": [],
+          "idempotency": "idempotent",
+          "compensation_refs": [],
+          "verification_probe_refs": [
+            "probe:absent"
+          ],
+          "timeout_seconds": 120
+        }
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "after_effect_policy": "disallow",
+        "reset_obligation_refs": [],
+        "compensation_refs": []
+      }
+    },
+    "trial-cleanup-6b27fb26e182225d20183fd4c013b0ed10ce6bdd628754f02e995b1291e995ff": {
+      "schema_version": "trial-cleanup-plan/v1",
+      "plan_id": "trial-cleanup-6b27fb26e182225d20183fd4c013b0ed10ce6bdd628754f02e995b1291e995ff",
+      "plan_entry_id": "trial-entry-cc394704f93fcfedc55f7e2f8b297eb1ea95c7e6a446c9354414fecc3563567f",
+      "run_id": "archival-run-fc9a1364e6a8d7d5a61edb737c365d01f43e80baf9be36127d2b0632a5b5a380",
+      "clean_state": {
+        "mode": "fresh",
+        "boundary_refs": [
+          "range"
+        ],
+        "verification_probe_refs": [
+          "probe:fresh"
+        ],
+        "reusable_state_claim_ref": null
+      },
+      "resource_boundaries": {
+        "range": {
+          "boundary_id": "range",
+          "resource_kind": "range-instance",
+          "owner_ref": "apparatus:range",
+          "resource_refs": [
+            "range:compiler-fixture"
+          ]
+        }
+      },
+      "cleanup_obligations": {
+        "destroy": {
+          "obligation_id": "destroy",
+          "boundary_refs": [
+            "range"
+          ],
+          "action_kind": "destroy",
+          "action_profile_ref": null,
+          "triggers": [
+            "success",
+            "failure",
+            "cancellation",
+            "timeout",
+            "abort"
+          ],
+          "requirement": "required",
+          "depends_on": [],
+          "idempotency": "idempotent",
+          "compensation_refs": [],
+          "verification_probe_refs": [
+            "probe:absent"
+          ],
+          "timeout_seconds": 120
+        }
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "after_effect_policy": "disallow",
+        "reset_obligation_refs": [],
+        "compensation_refs": []
+      }
+    },
+    "trial-cleanup-9f86d3940f1c7502bca23d254dbbf8585c76d849c0129c534466be0b9f24484d": {
+      "schema_version": "trial-cleanup-plan/v1",
+      "plan_id": "trial-cleanup-9f86d3940f1c7502bca23d254dbbf8585c76d849c0129c534466be0b9f24484d",
+      "plan_entry_id": "trial-entry-18a4e2933f67b37d275cc866796f2bd8e5481e5de8535d608c9b355640802b35",
+      "run_id": "archival-run-0a85cab5ef62649b00086af294d6be3ff34886dbc326f07d549b07838ec89393",
+      "clean_state": {
+        "mode": "fresh",
+        "boundary_refs": [
+          "range"
+        ],
+        "verification_probe_refs": [
+          "probe:fresh"
+        ],
+        "reusable_state_claim_ref": null
+      },
+      "resource_boundaries": {
+        "range": {
+          "boundary_id": "range",
+          "resource_kind": "range-instance",
+          "owner_ref": "apparatus:range",
+          "resource_refs": [
+            "range:compiler-fixture"
+          ]
+        }
+      },
+      "cleanup_obligations": {
+        "destroy": {
+          "obligation_id": "destroy",
+          "boundary_refs": [
+            "range"
+          ],
+          "action_kind": "destroy",
+          "action_profile_ref": null,
+          "triggers": [
+            "success",
+            "failure",
+            "cancellation",
+            "timeout",
+            "abort"
+          ],
+          "requirement": "required",
+          "depends_on": [],
+          "idempotency": "idempotent",
+          "compensation_refs": [],
+          "verification_probe_refs": [
+            "probe:absent"
+          ],
+          "timeout_seconds": 120
+        }
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "after_effect_policy": "disallow",
+        "reset_obligation_refs": [],
+        "compensation_refs": []
+      }
+    },
+    "trial-cleanup-61f071b4a0ee23df76f9b6874b604e5aec0133ac7686569393cf437e0278e7f7": {
+      "schema_version": "trial-cleanup-plan/v1",
+      "plan_id": "trial-cleanup-61f071b4a0ee23df76f9b6874b604e5aec0133ac7686569393cf437e0278e7f7",
+      "plan_entry_id": "trial-entry-97cdf3dbec07203fab0d06be8077eff4a707a52f7f76e3056d1457450f90fd2c",
+      "run_id": "archival-run-f7ca58a213eef83e4acbad0f46109d223edc5ef04975c2d5209de0d29d9a72e1",
+      "clean_state": {
+        "mode": "fresh",
+        "boundary_refs": [
+          "range"
+        ],
+        "verification_probe_refs": [
+          "probe:fresh"
+        ],
+        "reusable_state_claim_ref": null
+      },
+      "resource_boundaries": {
+        "range": {
+          "boundary_id": "range",
+          "resource_kind": "range-instance",
+          "owner_ref": "apparatus:range",
+          "resource_refs": [
+            "range:compiler-fixture"
+          ]
+        }
+      },
+      "cleanup_obligations": {
+        "destroy": {
+          "obligation_id": "destroy",
+          "boundary_refs": [
+            "range"
+          ],
+          "action_kind": "destroy",
+          "action_profile_ref": null,
+          "triggers": [
+            "success",
+            "failure",
+            "cancellation",
+            "timeout",
+            "abort"
+          ],
+          "requirement": "required",
+          "depends_on": [],
+          "idempotency": "idempotent",
+          "compensation_refs": [],
+          "verification_probe_refs": [
+            "probe:absent"
+          ],
+          "timeout_seconds": 120
+        }
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "after_effect_policy": "disallow",
+        "reset_obligation_refs": [],
+        "compensation_refs": []
+      }
+    },
+    "trial-cleanup-2933c99cbd74adb6d7eb1c0727d3a2488f2b093eb208cb94957e2cfe985d5a0d": {
+      "schema_version": "trial-cleanup-plan/v1",
+      "plan_id": "trial-cleanup-2933c99cbd74adb6d7eb1c0727d3a2488f2b093eb208cb94957e2cfe985d5a0d",
+      "plan_entry_id": "trial-entry-90f4641efddef1b08ee8d3774e0940658a5376a855282200c61df50bd8b1dfb1",
+      "run_id": "archival-run-0297473dcc53d3e98b898572a564bd7d4c9c1fd0736f8d701b867d1c96b862f6",
+      "clean_state": {
+        "mode": "fresh",
+        "boundary_refs": [
+          "range"
+        ],
+        "verification_probe_refs": [
+          "probe:fresh"
+        ],
+        "reusable_state_claim_ref": null
+      },
+      "resource_boundaries": {
+        "range": {
+          "boundary_id": "range",
+          "resource_kind": "range-instance",
+          "owner_ref": "apparatus:range",
+          "resource_refs": [
+            "range:compiler-fixture"
+          ]
+        }
+      },
+      "cleanup_obligations": {
+        "destroy": {
+          "obligation_id": "destroy",
+          "boundary_refs": [
+            "range"
+          ],
+          "action_kind": "destroy",
+          "action_profile_ref": null,
+          "triggers": [
+            "success",
+            "failure",
+            "cancellation",
+            "timeout",
+            "abort"
+          ],
+          "requirement": "required",
+          "depends_on": [],
+          "idempotency": "idempotent",
+          "compensation_refs": [],
+          "verification_probe_refs": [
+            "probe:absent"
+          ],
+          "timeout_seconds": 120
+        }
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "after_effect_policy": "disallow",
+        "reset_obligation_refs": [],
+        "compensation_refs": []
+      }
+    },
+    "trial-cleanup-295dc905486de60380eb915d0f67717cb3f9ad017dbf8363dff57a35e0be9e4d": {
+      "schema_version": "trial-cleanup-plan/v1",
+      "plan_id": "trial-cleanup-295dc905486de60380eb915d0f67717cb3f9ad017dbf8363dff57a35e0be9e4d",
+      "plan_entry_id": "trial-entry-1e1230d4d9ced8ecb102eadb65fa58f2fb4a19edb46f13806be401e840041f58",
+      "run_id": "archival-run-6596d468f6585342b92b9a535ef4f6fae210823fb7446354a6828a38f10737fa",
+      "clean_state": {
+        "mode": "fresh",
+        "boundary_refs": [
+          "range"
+        ],
+        "verification_probe_refs": [
+          "probe:fresh"
+        ],
+        "reusable_state_claim_ref": null
+      },
+      "resource_boundaries": {
+        "range": {
+          "boundary_id": "range",
+          "resource_kind": "range-instance",
+          "owner_ref": "apparatus:range",
+          "resource_refs": [
+            "range:compiler-fixture"
+          ]
+        }
+      },
+      "cleanup_obligations": {
+        "destroy": {
+          "obligation_id": "destroy",
+          "boundary_refs": [
+            "range"
+          ],
+          "action_kind": "destroy",
+          "action_profile_ref": null,
+          "triggers": [
+            "success",
+            "failure",
+            "cancellation",
+            "timeout",
+            "abort"
+          ],
+          "requirement": "required",
+          "depends_on": [],
+          "idempotency": "idempotent",
+          "compensation_refs": [],
+          "verification_probe_refs": [
+            "probe:absent"
+          ],
+          "timeout_seconds": 120
+        }
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "after_effect_policy": "disallow",
+        "reset_obligation_refs": [],
+        "compensation_refs": []
+      }
+    },
+    "trial-cleanup-70256ff94dea103a1b5f261ce8cd3ac0a8b432299addf547cfafb9921acae98a": {
+      "schema_version": "trial-cleanup-plan/v1",
+      "plan_id": "trial-cleanup-70256ff94dea103a1b5f261ce8cd3ac0a8b432299addf547cfafb9921acae98a",
+      "plan_entry_id": "trial-entry-e43c0f70f72b334a453871ae535a6424694860fe8a24386a1368c47ce80b000d",
+      "run_id": "archival-run-49002e3d8362c0dc2aed8f508da0dc37c319d6f7653aab4c5656f134e81c9dd0",
+      "clean_state": {
+        "mode": "fresh",
+        "boundary_refs": [
+          "range"
+        ],
+        "verification_probe_refs": [
+          "probe:fresh"
+        ],
+        "reusable_state_claim_ref": null
+      },
+      "resource_boundaries": {
+        "range": {
+          "boundary_id": "range",
+          "resource_kind": "range-instance",
+          "owner_ref": "apparatus:range",
+          "resource_refs": [
+            "range:compiler-fixture"
+          ]
+        }
+      },
+      "cleanup_obligations": {
+        "destroy": {
+          "obligation_id": "destroy",
+          "boundary_refs": [
+            "range"
+          ],
+          "action_kind": "destroy",
+          "action_profile_ref": null,
+          "triggers": [
+            "success",
+            "failure",
+            "cancellation",
+            "timeout",
+            "abort"
+          ],
+          "requirement": "required",
+          "depends_on": [],
+          "idempotency": "idempotent",
+          "compensation_refs": [],
+          "verification_probe_refs": [
+            "probe:absent"
+          ],
+          "timeout_seconds": 120
+        }
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "after_effect_policy": "disallow",
+        "reset_obligation_refs": [],
+        "compensation_refs": []
+      }
+    }
+  },
+  "isolation_proof": null,
+  "allocation": {
+    "policy": {
+      "kind": "randomized",
+      "policy_id": "allocation",
+      "algorithm_profile": "fisher-yates-allocation-v1",
+      "stochastic_control_ref": "sample-control"
+    },
+    "entry_order": [
+      "trial-entry-cc394704f93fcfedc55f7e2f8b297eb1ea95c7e6a446c9354414fecc3563567f",
+      "trial-entry-2724116db1226f0867ffb1e6a6057ae81902f0a889a0959687f13c78d8453f07",
+      "trial-entry-1e1230d4d9ced8ecb102eadb65fa58f2fb4a19edb46f13806be401e840041f58",
+      "trial-entry-8b304492c74cca27a6f026b19a505b3d5a255af7adf3003e87676167145909fd",
+      "trial-entry-18a4e2933f67b37d275cc866796f2bd8e5481e5de8535d608c9b355640802b35",
+      "trial-entry-e43c0f70f72b334a453871ae535a6424694860fe8a24386a1368c47ce80b000d",
+      "trial-entry-97cdf3dbec07203fab0d06be8077eff4a707a52f7f76e3056d1457450f90fd2c",
+      "trial-entry-90f4641efddef1b08ee8d3774e0940658a5376a855282200c61df50bd8b1dfb1"
+    ],
+    "draws": [
+      {
+        "address": {
+          "address_profile": "allocation-address-v1",
+          "namespace": "compiler-sampling",
+          "allocation_policy_id": "allocation",
+          "draw_purpose": "condition-assignment",
+          "slot": 0,
+          "local_coordinate": 0
+        },
+        "value": 2,
+        "rejection_attempts": 0
+      },
+      {
+        "address": {
+          "address_profile": "allocation-address-v1",
+          "namespace": "compiler-sampling",
+          "allocation_policy_id": "allocation",
+          "draw_purpose": "condition-assignment",
+          "slot": 1,
+          "local_coordinate": 0
+        },
+        "value": 1,
+        "rejection_attempts": 0
+      },
+      {
+        "address": {
+          "address_profile": "allocation-address-v1",
+          "namespace": "compiler-sampling",
+          "allocation_policy_id": "allocation",
+          "draw_purpose": "condition-assignment",
+          "slot": 2,
+          "local_coordinate": 0
+        },
+        "value": 1,
+        "rejection_attempts": 0
+      },
+      {
+        "address": {
+          "address_profile": "allocation-address-v1",
+          "namespace": "compiler-sampling",
+          "allocation_policy_id": "allocation",
+          "draw_purpose": "condition-assignment",
+          "slot": 3,
+          "local_coordinate": 0
+        },
+        "value": 0,
+        "rejection_attempts": 0
+      },
+      {
+        "address": {
+          "address_profile": "allocation-address-v1",
+          "namespace": "compiler-sampling",
+          "allocation_policy_id": "allocation",
+          "draw_purpose": "condition-assignment",
+          "slot": 4,
+          "local_coordinate": 0
+        },
+        "value": 3,
+        "rejection_attempts": 0
+      },
+      {
+        "address": {
+          "address_profile": "allocation-address-v1",
+          "namespace": "compiler-sampling",
+          "allocation_policy_id": "allocation",
+          "draw_purpose": "condition-assignment",
+          "slot": 5,
+          "local_coordinate": 0
+        },
+        "value": 2,
+        "rejection_attempts": 0
+      },
+      {
+        "address": {
+          "address_profile": "allocation-address-v1",
+          "namespace": "compiler-sampling",
+          "allocation_policy_id": "allocation",
+          "draw_purpose": "condition-assignment",
+          "slot": 6,
+          "local_coordinate": 0
+        },
+        "value": 0,
+        "rejection_attempts": 0
+      }
+    ]
+  },
+  "entries": {
+    "trial-entry-8b304492c74cca27a6f026b19a505b3d5a255af7adf3003e87676167145909fd": {
+      "plan_entry_id": "trial-entry-8b304492c74cca27a6f026b19a505b3d5a255af7adf3003e87676167145909fd",
+      "coordinate": {
+        "condition_id": "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+        "block_id": null,
+        "replicate_id": "replicate-000001"
+      },
+      "run_id": "archival-run-31b98765d69c1420ec7aefbae772d1a5cb11b8327f5203a5994359ee87175c33",
+      "selections": [
+        {
+          "variation_point_id": "payload-path",
+          "origin_policy_id": "factorial-bindings-v1",
+          "origin_policy_kind": "stratified",
+          "outcome": {
+            "kind": "literal",
+            "value": "/opt/a"
+          }
+        }
+      ],
+      "bindings": [
+        {
+          "descriptor": {
+            "binding_id": "binding-9f677fd890a2eaabba73a132cbf90665a8db8fa265506f4990aee137c3b3b061",
+            "source_factor_id": "agent",
+            "source_factor_level_id": "warm",
+            "source_condition_id": "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+            "target": {
+              "plane": "participant-implementation",
+              "participant_address": "participants.red",
+              "implementation_name": "reference-red-agent",
+              "implementation_version": "1.0.0",
+              "manifest_version": "participant-implementation-manifest/v1",
+              "target_id": "policy.temperature"
+            },
+            "value_type": "number",
+            "value": {
+              "kind": "literal",
+              "value": 1.0
+            },
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            }
+          },
+          "origin": "selection"
+        },
+        {
+          "descriptor": {
+            "binding_id": "binding-d3968a1637002d4553c812130331952931e4c6ecc0cf46cf2278200204bf8b47",
+            "source_factor_id": "path",
+            "source_factor_level_id": "a",
+            "source_condition_id": "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+            "target": {
+              "plane": "scenario",
+              "scenario_family_id": "compiler-family",
+              "variation_point_id": "payload-path",
+              "target_id": "variables.payload_path"
+            },
+            "value_type": "string",
+            "value": {
+              "kind": "literal",
+              "value": "/opt/a"
+            },
+            "owner": {
+              "contract_id": "sdl-authoring-input-v1",
+              "contract_version": "1",
+              "validator_id": "raes-selected-scenario",
+              "validator_version": "1"
+            }
+          },
+          "origin": "selection"
+        }
+      ],
+      "participant_configurations": [
+        {
+          "schema_version": "participant-configuration-result/v1",
+          "participant_address": "participants.red",
+          "manifest_ref": "reference-red-agent",
+          "manifest_digest": "sha256:284bcedb2efc0555dc5c4cce167f54c7950cbd9a9de8f7d4d8b7f7c6e2431073",
+          "configuration": {
+            "implementation_identity": {
+              "name": "reference-red-agent",
+              "version": "1.0.0"
+            },
+            "manifest_version": "participant-implementation-manifest/v1",
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            },
+            "values": [
+              {
+                "target_id": "policy.mode",
+                "value_type": "string",
+                "origin": "default",
+                "value": {
+                  "kind": "literal",
+                  "value": "safe"
+                }
+              },
+              {
+                "target_id": "policy.temperature",
+                "value_type": "number",
+                "origin": "override",
+                "value": {
+                  "kind": "literal",
+                  "value": 1.0
+                }
+              }
+            ]
+          },
+          "configuration_digest": "sha256:0089eb9dfa7ad9524850aee2b819c1f21460b91764fcb782ba1529d7251dacc2"
+        }
+      ],
+      "stochastic_draws": [],
+      "apparatus": {
+        "manifest_refs": [
+          {
+            "ref_kind": "manifest",
+            "ref_id": "backend-a",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": "sha256:6e0297a38801207d20b31b8a15eb5b84294494cc6d6f5690631ed40ccb6bc67f",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "backend-a",
+              "ref_version": "1",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          }
+        ],
+        "participant_manifest_refs": [
+          {
+            "participant_address": "participants.red",
+            "implementation_name": "reference-red-agent",
+            "implementation_version": "1.0.0",
+            "manifest_version": "participant-implementation-manifest/v1",
+            "manifest_digest": "sha256:284bcedb2efc0555dc5c4cce167f54c7950cbd9a9de8f7d4d8b7f7c6e2431073"
+          }
+        ],
+        "realization_envelope": {
+          "contract_id": "realization-envelope-v1",
+          "envelope_id": "libvirt-qemu.generic.v1",
+          "schema_version": "realization-envelope/v1",
+          "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
+          "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
+        },
+        "capability_refs": [
+          "evaluation-results",
+          "workflow-results"
+        ]
+      },
+      "execution_controls": {
+        "attempt_timeout_seconds": 600,
+        "on_timeout": "cleanup-and-fail",
+        "on_cancellation": "cleanup-and-fail",
+        "cleanup_plan_ref": "trial-cleanup-52ad8aa1366dc267ab29f53c669249dd081a98e88aa6f0f06fb7b863e3875ea5"
+      },
+      "instantiation_provenance": {
+        "plan_id": "trial-plan-1c3230b56b097c74093c08ce0b83f4522d6388014efa088235ad9cdd0bbccf90",
+        "plan_entry_id": "trial-entry-8b304492c74cca27a6f026b19a505b3d5a255af7adf3003e87676167145909fd",
+        "run_id": "archival-run-31b98765d69c1420ec7aefbae772d1a5cb11b8327f5203a5994359ee87175c33",
+        "scenario_family_id": "compiler-family"
+      },
+      "entry_digest": "sha256:5b88a6d5c9d14eb2978e0905d93eda361a741ef95cc359756ef846862ab94778"
+    },
+    "trial-entry-2724116db1226f0867ffb1e6a6057ae81902f0a889a0959687f13c78d8453f07": {
+      "plan_entry_id": "trial-entry-2724116db1226f0867ffb1e6a6057ae81902f0a889a0959687f13c78d8453f07",
+      "coordinate": {
+        "condition_id": "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+        "block_id": null,
+        "replicate_id": "replicate-000002"
+      },
+      "run_id": "archival-run-e1d8ab3f5b9fb4dc523d003030b08e7cd40529ab32cdedb9cb1becef8bed8012",
+      "selections": [
+        {
+          "variation_point_id": "payload-path",
+          "origin_policy_id": "factorial-bindings-v1",
+          "origin_policy_kind": "stratified",
+          "outcome": {
+            "kind": "literal",
+            "value": "/opt/a"
+          }
+        }
+      ],
+      "bindings": [
+        {
+          "descriptor": {
+            "binding_id": "binding-9f677fd890a2eaabba73a132cbf90665a8db8fa265506f4990aee137c3b3b061",
+            "source_factor_id": "agent",
+            "source_factor_level_id": "warm",
+            "source_condition_id": "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+            "target": {
+              "plane": "participant-implementation",
+              "participant_address": "participants.red",
+              "implementation_name": "reference-red-agent",
+              "implementation_version": "1.0.0",
+              "manifest_version": "participant-implementation-manifest/v1",
+              "target_id": "policy.temperature"
+            },
+            "value_type": "number",
+            "value": {
+              "kind": "literal",
+              "value": 1.0
+            },
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            }
+          },
+          "origin": "selection"
+        },
+        {
+          "descriptor": {
+            "binding_id": "binding-d3968a1637002d4553c812130331952931e4c6ecc0cf46cf2278200204bf8b47",
+            "source_factor_id": "path",
+            "source_factor_level_id": "a",
+            "source_condition_id": "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+            "target": {
+              "plane": "scenario",
+              "scenario_family_id": "compiler-family",
+              "variation_point_id": "payload-path",
+              "target_id": "variables.payload_path"
+            },
+            "value_type": "string",
+            "value": {
+              "kind": "literal",
+              "value": "/opt/a"
+            },
+            "owner": {
+              "contract_id": "sdl-authoring-input-v1",
+              "contract_version": "1",
+              "validator_id": "raes-selected-scenario",
+              "validator_version": "1"
+            }
+          },
+          "origin": "selection"
+        }
+      ],
+      "participant_configurations": [
+        {
+          "schema_version": "participant-configuration-result/v1",
+          "participant_address": "participants.red",
+          "manifest_ref": "reference-red-agent",
+          "manifest_digest": "sha256:284bcedb2efc0555dc5c4cce167f54c7950cbd9a9de8f7d4d8b7f7c6e2431073",
+          "configuration": {
+            "implementation_identity": {
+              "name": "reference-red-agent",
+              "version": "1.0.0"
+            },
+            "manifest_version": "participant-implementation-manifest/v1",
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            },
+            "values": [
+              {
+                "target_id": "policy.mode",
+                "value_type": "string",
+                "origin": "default",
+                "value": {
+                  "kind": "literal",
+                  "value": "safe"
+                }
+              },
+              {
+                "target_id": "policy.temperature",
+                "value_type": "number",
+                "origin": "override",
+                "value": {
+                  "kind": "literal",
+                  "value": 1.0
+                }
+              }
+            ]
+          },
+          "configuration_digest": "sha256:0089eb9dfa7ad9524850aee2b819c1f21460b91764fcb782ba1529d7251dacc2"
+        }
+      ],
+      "stochastic_draws": [],
+      "apparatus": {
+        "manifest_refs": [
+          {
+            "ref_kind": "manifest",
+            "ref_id": "backend-a",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": "sha256:6e0297a38801207d20b31b8a15eb5b84294494cc6d6f5690631ed40ccb6bc67f",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "backend-a",
+              "ref_version": "1",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          }
+        ],
+        "participant_manifest_refs": [
+          {
+            "participant_address": "participants.red",
+            "implementation_name": "reference-red-agent",
+            "implementation_version": "1.0.0",
+            "manifest_version": "participant-implementation-manifest/v1",
+            "manifest_digest": "sha256:284bcedb2efc0555dc5c4cce167f54c7950cbd9a9de8f7d4d8b7f7c6e2431073"
+          }
+        ],
+        "realization_envelope": {
+          "contract_id": "realization-envelope-v1",
+          "envelope_id": "libvirt-qemu.generic.v1",
+          "schema_version": "realization-envelope/v1",
+          "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
+          "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
+        },
+        "capability_refs": [
+          "evaluation-results",
+          "workflow-results"
+        ]
+      },
+      "execution_controls": {
+        "attempt_timeout_seconds": 600,
+        "on_timeout": "cleanup-and-fail",
+        "on_cancellation": "cleanup-and-fail",
+        "cleanup_plan_ref": "trial-cleanup-ce30c445288ba7295ffafb35fe54a76692badfea4f6999dc1d4984e2104333cb"
+      },
+      "instantiation_provenance": {
+        "plan_id": "trial-plan-1c3230b56b097c74093c08ce0b83f4522d6388014efa088235ad9cdd0bbccf90",
+        "plan_entry_id": "trial-entry-2724116db1226f0867ffb1e6a6057ae81902f0a889a0959687f13c78d8453f07",
+        "run_id": "archival-run-e1d8ab3f5b9fb4dc523d003030b08e7cd40529ab32cdedb9cb1becef8bed8012",
+        "scenario_family_id": "compiler-family"
+      },
+      "entry_digest": "sha256:a54e2c1163535567a29611193e8fa389fc23e9d5d2eec5e3b26252041a730591"
+    },
+    "trial-entry-cc394704f93fcfedc55f7e2f8b297eb1ea95c7e6a446c9354414fecc3563567f": {
+      "plan_entry_id": "trial-entry-cc394704f93fcfedc55f7e2f8b297eb1ea95c7e6a446c9354414fecc3563567f",
+      "coordinate": {
+        "condition_id": "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+        "block_id": null,
+        "replicate_id": "replicate-000001"
+      },
+      "run_id": "archival-run-fc9a1364e6a8d7d5a61edb737c365d01f43e80baf9be36127d2b0632a5b5a380",
+      "selections": [
+        {
+          "variation_point_id": "payload-path",
+          "origin_policy_id": "factorial-bindings-v1",
+          "origin_policy_kind": "stratified",
+          "outcome": {
+            "kind": "literal",
+            "value": "/opt/a"
+          }
+        }
+      ],
+      "bindings": [
+        {
+          "descriptor": {
+            "binding_id": "binding-3cc5400aac1e72da2a61e43916d5512a8c5af81b1dc77caf799a6790d20731b0",
+            "source_factor_id": "agent",
+            "source_factor_level_id": "cold",
+            "source_condition_id": "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+            "target": {
+              "plane": "participant-implementation",
+              "participant_address": "participants.red",
+              "implementation_name": "reference-red-agent",
+              "implementation_version": "1.0.0",
+              "manifest_version": "participant-implementation-manifest/v1",
+              "target_id": "policy.temperature"
+            },
+            "value_type": "number",
+            "value": {
+              "kind": "literal",
+              "value": 0.0
+            },
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            }
+          },
+          "origin": "selection"
+        },
+        {
+          "descriptor": {
+            "binding_id": "binding-b09237d4433d30b821d4e5178a0e17e57df9acd512bceee7b121ba7ed680476a",
+            "source_factor_id": "path",
+            "source_factor_level_id": "a",
+            "source_condition_id": "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+            "target": {
+              "plane": "scenario",
+              "scenario_family_id": "compiler-family",
+              "variation_point_id": "payload-path",
+              "target_id": "variables.payload_path"
+            },
+            "value_type": "string",
+            "value": {
+              "kind": "literal",
+              "value": "/opt/a"
+            },
+            "owner": {
+              "contract_id": "sdl-authoring-input-v1",
+              "contract_version": "1",
+              "validator_id": "raes-selected-scenario",
+              "validator_version": "1"
+            }
+          },
+          "origin": "selection"
+        }
+      ],
+      "participant_configurations": [
+        {
+          "schema_version": "participant-configuration-result/v1",
+          "participant_address": "participants.red",
+          "manifest_ref": "reference-red-agent",
+          "manifest_digest": "sha256:284bcedb2efc0555dc5c4cce167f54c7950cbd9a9de8f7d4d8b7f7c6e2431073",
+          "configuration": {
+            "implementation_identity": {
+              "name": "reference-red-agent",
+              "version": "1.0.0"
+            },
+            "manifest_version": "participant-implementation-manifest/v1",
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            },
+            "values": [
+              {
+                "target_id": "policy.mode",
+                "value_type": "string",
+                "origin": "default",
+                "value": {
+                  "kind": "literal",
+                  "value": "safe"
+                }
+              },
+              {
+                "target_id": "policy.temperature",
+                "value_type": "number",
+                "origin": "override",
+                "value": {
+                  "kind": "literal",
+                  "value": 0.0
+                }
+              }
+            ]
+          },
+          "configuration_digest": "sha256:45028b61b414d59a05c287f2d7119db3a66a66df891ed0a7402095d535101c03"
+        }
+      ],
+      "stochastic_draws": [],
+      "apparatus": {
+        "manifest_refs": [
+          {
+            "ref_kind": "manifest",
+            "ref_id": "backend-a",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": "sha256:6e0297a38801207d20b31b8a15eb5b84294494cc6d6f5690631ed40ccb6bc67f",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "backend-a",
+              "ref_version": "1",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          }
+        ],
+        "participant_manifest_refs": [
+          {
+            "participant_address": "participants.red",
+            "implementation_name": "reference-red-agent",
+            "implementation_version": "1.0.0",
+            "manifest_version": "participant-implementation-manifest/v1",
+            "manifest_digest": "sha256:284bcedb2efc0555dc5c4cce167f54c7950cbd9a9de8f7d4d8b7f7c6e2431073"
+          }
+        ],
+        "realization_envelope": {
+          "contract_id": "realization-envelope-v1",
+          "envelope_id": "libvirt-qemu.generic.v1",
+          "schema_version": "realization-envelope/v1",
+          "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
+          "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
+        },
+        "capability_refs": [
+          "evaluation-results",
+          "workflow-results"
+        ]
+      },
+      "execution_controls": {
+        "attempt_timeout_seconds": 600,
+        "on_timeout": "cleanup-and-fail",
+        "on_cancellation": "cleanup-and-fail",
+        "cleanup_plan_ref": "trial-cleanup-6b27fb26e182225d20183fd4c013b0ed10ce6bdd628754f02e995b1291e995ff"
+      },
+      "instantiation_provenance": {
+        "plan_id": "trial-plan-1c3230b56b097c74093c08ce0b83f4522d6388014efa088235ad9cdd0bbccf90",
+        "plan_entry_id": "trial-entry-cc394704f93fcfedc55f7e2f8b297eb1ea95c7e6a446c9354414fecc3563567f",
+        "run_id": "archival-run-fc9a1364e6a8d7d5a61edb737c365d01f43e80baf9be36127d2b0632a5b5a380",
+        "scenario_family_id": "compiler-family"
+      },
+      "entry_digest": "sha256:ed09c5257a75ea6a7205d25cc7a748e942d0c251325633f6ee13dea80e2ec0a0"
+    },
+    "trial-entry-18a4e2933f67b37d275cc866796f2bd8e5481e5de8535d608c9b355640802b35": {
+      "plan_entry_id": "trial-entry-18a4e2933f67b37d275cc866796f2bd8e5481e5de8535d608c9b355640802b35",
+      "coordinate": {
+        "condition_id": "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+        "block_id": null,
+        "replicate_id": "replicate-000002"
+      },
+      "run_id": "archival-run-0a85cab5ef62649b00086af294d6be3ff34886dbc326f07d549b07838ec89393",
+      "selections": [
+        {
+          "variation_point_id": "payload-path",
+          "origin_policy_id": "factorial-bindings-v1",
+          "origin_policy_kind": "stratified",
+          "outcome": {
+            "kind": "literal",
+            "value": "/opt/a"
+          }
+        }
+      ],
+      "bindings": [
+        {
+          "descriptor": {
+            "binding_id": "binding-3cc5400aac1e72da2a61e43916d5512a8c5af81b1dc77caf799a6790d20731b0",
+            "source_factor_id": "agent",
+            "source_factor_level_id": "cold",
+            "source_condition_id": "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+            "target": {
+              "plane": "participant-implementation",
+              "participant_address": "participants.red",
+              "implementation_name": "reference-red-agent",
+              "implementation_version": "1.0.0",
+              "manifest_version": "participant-implementation-manifest/v1",
+              "target_id": "policy.temperature"
+            },
+            "value_type": "number",
+            "value": {
+              "kind": "literal",
+              "value": 0.0
+            },
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            }
+          },
+          "origin": "selection"
+        },
+        {
+          "descriptor": {
+            "binding_id": "binding-b09237d4433d30b821d4e5178a0e17e57df9acd512bceee7b121ba7ed680476a",
+            "source_factor_id": "path",
+            "source_factor_level_id": "a",
+            "source_condition_id": "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+            "target": {
+              "plane": "scenario",
+              "scenario_family_id": "compiler-family",
+              "variation_point_id": "payload-path",
+              "target_id": "variables.payload_path"
+            },
+            "value_type": "string",
+            "value": {
+              "kind": "literal",
+              "value": "/opt/a"
+            },
+            "owner": {
+              "contract_id": "sdl-authoring-input-v1",
+              "contract_version": "1",
+              "validator_id": "raes-selected-scenario",
+              "validator_version": "1"
+            }
+          },
+          "origin": "selection"
+        }
+      ],
+      "participant_configurations": [
+        {
+          "schema_version": "participant-configuration-result/v1",
+          "participant_address": "participants.red",
+          "manifest_ref": "reference-red-agent",
+          "manifest_digest": "sha256:284bcedb2efc0555dc5c4cce167f54c7950cbd9a9de8f7d4d8b7f7c6e2431073",
+          "configuration": {
+            "implementation_identity": {
+              "name": "reference-red-agent",
+              "version": "1.0.0"
+            },
+            "manifest_version": "participant-implementation-manifest/v1",
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            },
+            "values": [
+              {
+                "target_id": "policy.mode",
+                "value_type": "string",
+                "origin": "default",
+                "value": {
+                  "kind": "literal",
+                  "value": "safe"
+                }
+              },
+              {
+                "target_id": "policy.temperature",
+                "value_type": "number",
+                "origin": "override",
+                "value": {
+                  "kind": "literal",
+                  "value": 0.0
+                }
+              }
+            ]
+          },
+          "configuration_digest": "sha256:45028b61b414d59a05c287f2d7119db3a66a66df891ed0a7402095d535101c03"
+        }
+      ],
+      "stochastic_draws": [],
+      "apparatus": {
+        "manifest_refs": [
+          {
+            "ref_kind": "manifest",
+            "ref_id": "backend-a",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": "sha256:6e0297a38801207d20b31b8a15eb5b84294494cc6d6f5690631ed40ccb6bc67f",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "backend-a",
+              "ref_version": "1",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          }
+        ],
+        "participant_manifest_refs": [
+          {
+            "participant_address": "participants.red",
+            "implementation_name": "reference-red-agent",
+            "implementation_version": "1.0.0",
+            "manifest_version": "participant-implementation-manifest/v1",
+            "manifest_digest": "sha256:284bcedb2efc0555dc5c4cce167f54c7950cbd9a9de8f7d4d8b7f7c6e2431073"
+          }
+        ],
+        "realization_envelope": {
+          "contract_id": "realization-envelope-v1",
+          "envelope_id": "libvirt-qemu.generic.v1",
+          "schema_version": "realization-envelope/v1",
+          "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
+          "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
+        },
+        "capability_refs": [
+          "evaluation-results",
+          "workflow-results"
+        ]
+      },
+      "execution_controls": {
+        "attempt_timeout_seconds": 600,
+        "on_timeout": "cleanup-and-fail",
+        "on_cancellation": "cleanup-and-fail",
+        "cleanup_plan_ref": "trial-cleanup-9f86d3940f1c7502bca23d254dbbf8585c76d849c0129c534466be0b9f24484d"
+      },
+      "instantiation_provenance": {
+        "plan_id": "trial-plan-1c3230b56b097c74093c08ce0b83f4522d6388014efa088235ad9cdd0bbccf90",
+        "plan_entry_id": "trial-entry-18a4e2933f67b37d275cc866796f2bd8e5481e5de8535d608c9b355640802b35",
+        "run_id": "archival-run-0a85cab5ef62649b00086af294d6be3ff34886dbc326f07d549b07838ec89393",
+        "scenario_family_id": "compiler-family"
+      },
+      "entry_digest": "sha256:430d2566e192ba13cb4ae688a18124b5cdba7259ed286b80722abe544a23907f"
+    },
+    "trial-entry-97cdf3dbec07203fab0d06be8077eff4a707a52f7f76e3056d1457450f90fd2c": {
+      "plan_entry_id": "trial-entry-97cdf3dbec07203fab0d06be8077eff4a707a52f7f76e3056d1457450f90fd2c",
+      "coordinate": {
+        "condition_id": "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+        "block_id": null,
+        "replicate_id": "replicate-000001"
+      },
+      "run_id": "archival-run-f7ca58a213eef83e4acbad0f46109d223edc5ef04975c2d5209de0d29d9a72e1",
+      "selections": [
+        {
+          "variation_point_id": "payload-path",
+          "origin_policy_id": "factorial-bindings-v1",
+          "origin_policy_kind": "stratified",
+          "outcome": {
+            "kind": "literal",
+            "value": "/opt/b"
+          }
+        }
+      ],
+      "bindings": [
+        {
+          "descriptor": {
+            "binding_id": "binding-1ae8076c35e4d43de9f939d5f23637ed9e40977952f2d4362b7ddb39c5bff5e6",
+            "source_factor_id": "agent",
+            "source_factor_level_id": "cold",
+            "source_condition_id": "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+            "target": {
+              "plane": "participant-implementation",
+              "participant_address": "participants.red",
+              "implementation_name": "reference-red-agent",
+              "implementation_version": "1.0.0",
+              "manifest_version": "participant-implementation-manifest/v1",
+              "target_id": "policy.temperature"
+            },
+            "value_type": "number",
+            "value": {
+              "kind": "literal",
+              "value": 0.0
+            },
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            }
+          },
+          "origin": "selection"
+        },
+        {
+          "descriptor": {
+            "binding_id": "binding-3f3310012decab257fd52f4a88463f2f4d1304a9acec90803b333391befe541f",
+            "source_factor_id": "path",
+            "source_factor_level_id": "b",
+            "source_condition_id": "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+            "target": {
+              "plane": "scenario",
+              "scenario_family_id": "compiler-family",
+              "variation_point_id": "payload-path",
+              "target_id": "variables.payload_path"
+            },
+            "value_type": "string",
+            "value": {
+              "kind": "literal",
+              "value": "/opt/b"
+            },
+            "owner": {
+              "contract_id": "sdl-authoring-input-v1",
+              "contract_version": "1",
+              "validator_id": "raes-selected-scenario",
+              "validator_version": "1"
+            }
+          },
+          "origin": "selection"
+        }
+      ],
+      "participant_configurations": [
+        {
+          "schema_version": "participant-configuration-result/v1",
+          "participant_address": "participants.red",
+          "manifest_ref": "reference-red-agent",
+          "manifest_digest": "sha256:284bcedb2efc0555dc5c4cce167f54c7950cbd9a9de8f7d4d8b7f7c6e2431073",
+          "configuration": {
+            "implementation_identity": {
+              "name": "reference-red-agent",
+              "version": "1.0.0"
+            },
+            "manifest_version": "participant-implementation-manifest/v1",
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            },
+            "values": [
+              {
+                "target_id": "policy.mode",
+                "value_type": "string",
+                "origin": "default",
+                "value": {
+                  "kind": "literal",
+                  "value": "safe"
+                }
+              },
+              {
+                "target_id": "policy.temperature",
+                "value_type": "number",
+                "origin": "override",
+                "value": {
+                  "kind": "literal",
+                  "value": 0.0
+                }
+              }
+            ]
+          },
+          "configuration_digest": "sha256:45028b61b414d59a05c287f2d7119db3a66a66df891ed0a7402095d535101c03"
+        }
+      ],
+      "stochastic_draws": [],
+      "apparatus": {
+        "manifest_refs": [
+          {
+            "ref_kind": "manifest",
+            "ref_id": "backend-a",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": "sha256:6e0297a38801207d20b31b8a15eb5b84294494cc6d6f5690631ed40ccb6bc67f",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "backend-a",
+              "ref_version": "1",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          }
+        ],
+        "participant_manifest_refs": [
+          {
+            "participant_address": "participants.red",
+            "implementation_name": "reference-red-agent",
+            "implementation_version": "1.0.0",
+            "manifest_version": "participant-implementation-manifest/v1",
+            "manifest_digest": "sha256:284bcedb2efc0555dc5c4cce167f54c7950cbd9a9de8f7d4d8b7f7c6e2431073"
+          }
+        ],
+        "realization_envelope": {
+          "contract_id": "realization-envelope-v1",
+          "envelope_id": "libvirt-qemu.generic.v1",
+          "schema_version": "realization-envelope/v1",
+          "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
+          "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
+        },
+        "capability_refs": [
+          "evaluation-results",
+          "workflow-results"
+        ]
+      },
+      "execution_controls": {
+        "attempt_timeout_seconds": 600,
+        "on_timeout": "cleanup-and-fail",
+        "on_cancellation": "cleanup-and-fail",
+        "cleanup_plan_ref": "trial-cleanup-61f071b4a0ee23df76f9b6874b604e5aec0133ac7686569393cf437e0278e7f7"
+      },
+      "instantiation_provenance": {
+        "plan_id": "trial-plan-1c3230b56b097c74093c08ce0b83f4522d6388014efa088235ad9cdd0bbccf90",
+        "plan_entry_id": "trial-entry-97cdf3dbec07203fab0d06be8077eff4a707a52f7f76e3056d1457450f90fd2c",
+        "run_id": "archival-run-f7ca58a213eef83e4acbad0f46109d223edc5ef04975c2d5209de0d29d9a72e1",
+        "scenario_family_id": "compiler-family"
+      },
+      "entry_digest": "sha256:471794a689716483b731f7a5db265d2e3d9f5c39ceff8acb38b18807fc926d3d"
+    },
+    "trial-entry-90f4641efddef1b08ee8d3774e0940658a5376a855282200c61df50bd8b1dfb1": {
+      "plan_entry_id": "trial-entry-90f4641efddef1b08ee8d3774e0940658a5376a855282200c61df50bd8b1dfb1",
+      "coordinate": {
+        "condition_id": "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+        "block_id": null,
+        "replicate_id": "replicate-000002"
+      },
+      "run_id": "archival-run-0297473dcc53d3e98b898572a564bd7d4c9c1fd0736f8d701b867d1c96b862f6",
+      "selections": [
+        {
+          "variation_point_id": "payload-path",
+          "origin_policy_id": "factorial-bindings-v1",
+          "origin_policy_kind": "stratified",
+          "outcome": {
+            "kind": "literal",
+            "value": "/opt/b"
+          }
+        }
+      ],
+      "bindings": [
+        {
+          "descriptor": {
+            "binding_id": "binding-1ae8076c35e4d43de9f939d5f23637ed9e40977952f2d4362b7ddb39c5bff5e6",
+            "source_factor_id": "agent",
+            "source_factor_level_id": "cold",
+            "source_condition_id": "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+            "target": {
+              "plane": "participant-implementation",
+              "participant_address": "participants.red",
+              "implementation_name": "reference-red-agent",
+              "implementation_version": "1.0.0",
+              "manifest_version": "participant-implementation-manifest/v1",
+              "target_id": "policy.temperature"
+            },
+            "value_type": "number",
+            "value": {
+              "kind": "literal",
+              "value": 0.0
+            },
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            }
+          },
+          "origin": "selection"
+        },
+        {
+          "descriptor": {
+            "binding_id": "binding-3f3310012decab257fd52f4a88463f2f4d1304a9acec90803b333391befe541f",
+            "source_factor_id": "path",
+            "source_factor_level_id": "b",
+            "source_condition_id": "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+            "target": {
+              "plane": "scenario",
+              "scenario_family_id": "compiler-family",
+              "variation_point_id": "payload-path",
+              "target_id": "variables.payload_path"
+            },
+            "value_type": "string",
+            "value": {
+              "kind": "literal",
+              "value": "/opt/b"
+            },
+            "owner": {
+              "contract_id": "sdl-authoring-input-v1",
+              "contract_version": "1",
+              "validator_id": "raes-selected-scenario",
+              "validator_version": "1"
+            }
+          },
+          "origin": "selection"
+        }
+      ],
+      "participant_configurations": [
+        {
+          "schema_version": "participant-configuration-result/v1",
+          "participant_address": "participants.red",
+          "manifest_ref": "reference-red-agent",
+          "manifest_digest": "sha256:284bcedb2efc0555dc5c4cce167f54c7950cbd9a9de8f7d4d8b7f7c6e2431073",
+          "configuration": {
+            "implementation_identity": {
+              "name": "reference-red-agent",
+              "version": "1.0.0"
+            },
+            "manifest_version": "participant-implementation-manifest/v1",
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            },
+            "values": [
+              {
+                "target_id": "policy.mode",
+                "value_type": "string",
+                "origin": "default",
+                "value": {
+                  "kind": "literal",
+                  "value": "safe"
+                }
+              },
+              {
+                "target_id": "policy.temperature",
+                "value_type": "number",
+                "origin": "override",
+                "value": {
+                  "kind": "literal",
+                  "value": 0.0
+                }
+              }
+            ]
+          },
+          "configuration_digest": "sha256:45028b61b414d59a05c287f2d7119db3a66a66df891ed0a7402095d535101c03"
+        }
+      ],
+      "stochastic_draws": [],
+      "apparatus": {
+        "manifest_refs": [
+          {
+            "ref_kind": "manifest",
+            "ref_id": "backend-a",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": "sha256:6e0297a38801207d20b31b8a15eb5b84294494cc6d6f5690631ed40ccb6bc67f",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "backend-a",
+              "ref_version": "1",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          }
+        ],
+        "participant_manifest_refs": [
+          {
+            "participant_address": "participants.red",
+            "implementation_name": "reference-red-agent",
+            "implementation_version": "1.0.0",
+            "manifest_version": "participant-implementation-manifest/v1",
+            "manifest_digest": "sha256:284bcedb2efc0555dc5c4cce167f54c7950cbd9a9de8f7d4d8b7f7c6e2431073"
+          }
+        ],
+        "realization_envelope": {
+          "contract_id": "realization-envelope-v1",
+          "envelope_id": "libvirt-qemu.generic.v1",
+          "schema_version": "realization-envelope/v1",
+          "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
+          "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
+        },
+        "capability_refs": [
+          "evaluation-results",
+          "workflow-results"
+        ]
+      },
+      "execution_controls": {
+        "attempt_timeout_seconds": 600,
+        "on_timeout": "cleanup-and-fail",
+        "on_cancellation": "cleanup-and-fail",
+        "cleanup_plan_ref": "trial-cleanup-2933c99cbd74adb6d7eb1c0727d3a2488f2b093eb208cb94957e2cfe985d5a0d"
+      },
+      "instantiation_provenance": {
+        "plan_id": "trial-plan-1c3230b56b097c74093c08ce0b83f4522d6388014efa088235ad9cdd0bbccf90",
+        "plan_entry_id": "trial-entry-90f4641efddef1b08ee8d3774e0940658a5376a855282200c61df50bd8b1dfb1",
+        "run_id": "archival-run-0297473dcc53d3e98b898572a564bd7d4c9c1fd0736f8d701b867d1c96b862f6",
+        "scenario_family_id": "compiler-family"
+      },
+      "entry_digest": "sha256:60dbf0fb76f123885d325b827d97a9061fd7e3a6d4ba281db5b19628fa63906a"
+    },
+    "trial-entry-1e1230d4d9ced8ecb102eadb65fa58f2fb4a19edb46f13806be401e840041f58": {
+      "plan_entry_id": "trial-entry-1e1230d4d9ced8ecb102eadb65fa58f2fb4a19edb46f13806be401e840041f58",
+      "coordinate": {
+        "condition_id": "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56",
+        "block_id": null,
+        "replicate_id": "replicate-000001"
+      },
+      "run_id": "archival-run-6596d468f6585342b92b9a535ef4f6fae210823fb7446354a6828a38f10737fa",
+      "selections": [
+        {
+          "variation_point_id": "payload-path",
+          "origin_policy_id": "factorial-bindings-v1",
+          "origin_policy_kind": "stratified",
+          "outcome": {
+            "kind": "literal",
+            "value": "/opt/b"
+          }
+        }
+      ],
+      "bindings": [
+        {
+          "descriptor": {
+            "binding_id": "binding-48f44d53c635474f0274b145f6c1c3e0cbd1c3c907730a189a975b35c509f0d0",
+            "source_factor_id": "path",
+            "source_factor_level_id": "b",
+            "source_condition_id": "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56",
+            "target": {
+              "plane": "scenario",
+              "scenario_family_id": "compiler-family",
+              "variation_point_id": "payload-path",
+              "target_id": "variables.payload_path"
+            },
+            "value_type": "string",
+            "value": {
+              "kind": "literal",
+              "value": "/opt/b"
+            },
+            "owner": {
+              "contract_id": "sdl-authoring-input-v1",
+              "contract_version": "1",
+              "validator_id": "raes-selected-scenario",
+              "validator_version": "1"
+            }
+          },
+          "origin": "selection"
+        },
+        {
+          "descriptor": {
+            "binding_id": "binding-a6a9c396f6218e56f46b92eea063cb14ee6c5e807664f01ea6367ce902f47ee0",
+            "source_factor_id": "agent",
+            "source_factor_level_id": "warm",
+            "source_condition_id": "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56",
+            "target": {
+              "plane": "participant-implementation",
+              "participant_address": "participants.red",
+              "implementation_name": "reference-red-agent",
+              "implementation_version": "1.0.0",
+              "manifest_version": "participant-implementation-manifest/v1",
+              "target_id": "policy.temperature"
+            },
+            "value_type": "number",
+            "value": {
+              "kind": "literal",
+              "value": 1.0
+            },
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            }
+          },
+          "origin": "selection"
+        }
+      ],
+      "participant_configurations": [
+        {
+          "schema_version": "participant-configuration-result/v1",
+          "participant_address": "participants.red",
+          "manifest_ref": "reference-red-agent",
+          "manifest_digest": "sha256:284bcedb2efc0555dc5c4cce167f54c7950cbd9a9de8f7d4d8b7f7c6e2431073",
+          "configuration": {
+            "implementation_identity": {
+              "name": "reference-red-agent",
+              "version": "1.0.0"
+            },
+            "manifest_version": "participant-implementation-manifest/v1",
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            },
+            "values": [
+              {
+                "target_id": "policy.mode",
+                "value_type": "string",
+                "origin": "default",
+                "value": {
+                  "kind": "literal",
+                  "value": "safe"
+                }
+              },
+              {
+                "target_id": "policy.temperature",
+                "value_type": "number",
+                "origin": "override",
+                "value": {
+                  "kind": "literal",
+                  "value": 1.0
+                }
+              }
+            ]
+          },
+          "configuration_digest": "sha256:0089eb9dfa7ad9524850aee2b819c1f21460b91764fcb782ba1529d7251dacc2"
+        }
+      ],
+      "stochastic_draws": [],
+      "apparatus": {
+        "manifest_refs": [
+          {
+            "ref_kind": "manifest",
+            "ref_id": "backend-a",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": "sha256:6e0297a38801207d20b31b8a15eb5b84294494cc6d6f5690631ed40ccb6bc67f",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "backend-a",
+              "ref_version": "1",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          }
+        ],
+        "participant_manifest_refs": [
+          {
+            "participant_address": "participants.red",
+            "implementation_name": "reference-red-agent",
+            "implementation_version": "1.0.0",
+            "manifest_version": "participant-implementation-manifest/v1",
+            "manifest_digest": "sha256:284bcedb2efc0555dc5c4cce167f54c7950cbd9a9de8f7d4d8b7f7c6e2431073"
+          }
+        ],
+        "realization_envelope": {
+          "contract_id": "realization-envelope-v1",
+          "envelope_id": "libvirt-qemu.generic.v1",
+          "schema_version": "realization-envelope/v1",
+          "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
+          "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
+        },
+        "capability_refs": [
+          "evaluation-results",
+          "workflow-results"
+        ]
+      },
+      "execution_controls": {
+        "attempt_timeout_seconds": 600,
+        "on_timeout": "cleanup-and-fail",
+        "on_cancellation": "cleanup-and-fail",
+        "cleanup_plan_ref": "trial-cleanup-295dc905486de60380eb915d0f67717cb3f9ad017dbf8363dff57a35e0be9e4d"
+      },
+      "instantiation_provenance": {
+        "plan_id": "trial-plan-1c3230b56b097c74093c08ce0b83f4522d6388014efa088235ad9cdd0bbccf90",
+        "plan_entry_id": "trial-entry-1e1230d4d9ced8ecb102eadb65fa58f2fb4a19edb46f13806be401e840041f58",
+        "run_id": "archival-run-6596d468f6585342b92b9a535ef4f6fae210823fb7446354a6828a38f10737fa",
+        "scenario_family_id": "compiler-family"
+      },
+      "entry_digest": "sha256:57b4e3add34764c9c84c8324b277ed55ceb5a223cf026193031ea34ce3bdd9b1"
+    },
+    "trial-entry-e43c0f70f72b334a453871ae535a6424694860fe8a24386a1368c47ce80b000d": {
+      "plan_entry_id": "trial-entry-e43c0f70f72b334a453871ae535a6424694860fe8a24386a1368c47ce80b000d",
+      "coordinate": {
+        "condition_id": "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56",
+        "block_id": null,
+        "replicate_id": "replicate-000002"
+      },
+      "run_id": "archival-run-49002e3d8362c0dc2aed8f508da0dc37c319d6f7653aab4c5656f134e81c9dd0",
+      "selections": [
+        {
+          "variation_point_id": "payload-path",
+          "origin_policy_id": "factorial-bindings-v1",
+          "origin_policy_kind": "stratified",
+          "outcome": {
+            "kind": "literal",
+            "value": "/opt/b"
+          }
+        }
+      ],
+      "bindings": [
+        {
+          "descriptor": {
+            "binding_id": "binding-48f44d53c635474f0274b145f6c1c3e0cbd1c3c907730a189a975b35c509f0d0",
+            "source_factor_id": "path",
+            "source_factor_level_id": "b",
+            "source_condition_id": "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56",
+            "target": {
+              "plane": "scenario",
+              "scenario_family_id": "compiler-family",
+              "variation_point_id": "payload-path",
+              "target_id": "variables.payload_path"
+            },
+            "value_type": "string",
+            "value": {
+              "kind": "literal",
+              "value": "/opt/b"
+            },
+            "owner": {
+              "contract_id": "sdl-authoring-input-v1",
+              "contract_version": "1",
+              "validator_id": "raes-selected-scenario",
+              "validator_version": "1"
+            }
+          },
+          "origin": "selection"
+        },
+        {
+          "descriptor": {
+            "binding_id": "binding-a6a9c396f6218e56f46b92eea063cb14ee6c5e807664f01ea6367ce902f47ee0",
+            "source_factor_id": "agent",
+            "source_factor_level_id": "warm",
+            "source_condition_id": "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56",
+            "target": {
+              "plane": "participant-implementation",
+              "participant_address": "participants.red",
+              "implementation_name": "reference-red-agent",
+              "implementation_version": "1.0.0",
+              "manifest_version": "participant-implementation-manifest/v1",
+              "target_id": "policy.temperature"
+            },
+            "value_type": "number",
+            "value": {
+              "kind": "literal",
+              "value": 1.0
+            },
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            }
+          },
+          "origin": "selection"
+        }
+      ],
+      "participant_configurations": [
+        {
+          "schema_version": "participant-configuration-result/v1",
+          "participant_address": "participants.red",
+          "manifest_ref": "reference-red-agent",
+          "manifest_digest": "sha256:284bcedb2efc0555dc5c4cce167f54c7950cbd9a9de8f7d4d8b7f7c6e2431073",
+          "configuration": {
+            "implementation_identity": {
+              "name": "reference-red-agent",
+              "version": "1.0.0"
+            },
+            "manifest_version": "participant-implementation-manifest/v1",
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            },
+            "values": [
+              {
+                "target_id": "policy.mode",
+                "value_type": "string",
+                "origin": "default",
+                "value": {
+                  "kind": "literal",
+                  "value": "safe"
+                }
+              },
+              {
+                "target_id": "policy.temperature",
+                "value_type": "number",
+                "origin": "override",
+                "value": {
+                  "kind": "literal",
+                  "value": 1.0
+                }
+              }
+            ]
+          },
+          "configuration_digest": "sha256:0089eb9dfa7ad9524850aee2b819c1f21460b91764fcb782ba1529d7251dacc2"
+        }
+      ],
+      "stochastic_draws": [],
+      "apparatus": {
+        "manifest_refs": [
+          {
+            "ref_kind": "manifest",
+            "ref_id": "backend-a",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": "sha256:6e0297a38801207d20b31b8a15eb5b84294494cc6d6f5690631ed40ccb6bc67f",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "backend-a",
+              "ref_version": "1",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          }
+        ],
+        "participant_manifest_refs": [
+          {
+            "participant_address": "participants.red",
+            "implementation_name": "reference-red-agent",
+            "implementation_version": "1.0.0",
+            "manifest_version": "participant-implementation-manifest/v1",
+            "manifest_digest": "sha256:284bcedb2efc0555dc5c4cce167f54c7950cbd9a9de8f7d4d8b7f7c6e2431073"
+          }
+        ],
+        "realization_envelope": {
+          "contract_id": "realization-envelope-v1",
+          "envelope_id": "libvirt-qemu.generic.v1",
+          "schema_version": "realization-envelope/v1",
+          "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
+          "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
+        },
+        "capability_refs": [
+          "evaluation-results",
+          "workflow-results"
+        ]
+      },
+      "execution_controls": {
+        "attempt_timeout_seconds": 600,
+        "on_timeout": "cleanup-and-fail",
+        "on_cancellation": "cleanup-and-fail",
+        "cleanup_plan_ref": "trial-cleanup-70256ff94dea103a1b5f261ce8cd3ac0a8b432299addf547cfafb9921acae98a"
+      },
+      "instantiation_provenance": {
+        "plan_id": "trial-plan-1c3230b56b097c74093c08ce0b83f4522d6388014efa088235ad9cdd0bbccf90",
+        "plan_entry_id": "trial-entry-e43c0f70f72b334a453871ae535a6424694860fe8a24386a1368c47ce80b000d",
+        "run_id": "archival-run-49002e3d8362c0dc2aed8f508da0dc37c319d6f7653aab4c5656f134e81c9dd0",
+        "scenario_family_id": "compiler-family"
+      },
+      "entry_digest": "sha256:002dff32889b2fc78c2550f3472e90cda9f87a3fa270d9571dc968cdc6700f8b"
+    }
+  },
+  "admission": {
+    "admitted_at_stage": "admitted-sealed",
+    "entry_count": 8,
+    "limitations": [],
+    "diagnostics": []
+  },
+  "plan_digest": "sha256:a8cf491a62b26ba2ac9be0ab45413adca34fd3850645c7d9af1ce6a5f75b8019"
+}
