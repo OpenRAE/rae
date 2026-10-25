@@ -2,8 +2,9 @@
 
 An experiment specification is the pre-run authoring/input counterpart to the
 archival experiment-core outputs (run/study/apparatus-context). Unlike SDL,
-the authoring input is a single nested contract document with no shorthand,
-key normalization, or cross-file resolution, so loading is a bounded,
+the authoring input is a single nested contract document. Its closed factorial
+intent materializes condition/binding children; there is no key normalization
+or cross-file resolution, so loading is a bounded,
 duplicate-key/alias-rejecting safe YAML parse followed by
 ``ExperimentSpecModel`` validation — mirroring how the JSON fixtures under
 ``contracts/fixtures/experiment-core`` are checked.
