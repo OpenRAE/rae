@@ -10,6 +10,10 @@ phases:
       - GOV-920
       - GOV-921
       - GOV-922
+  # Listed before sdl-language so DSL-120 matches here, not ^DSL- (#1510).
+  - id: participant-episode-policy-language
+    requirements:
+      - DSL-120
   - id: sdl-language
     patterns:
       - ^DSL-
@@ -378,6 +382,49 @@ ownership:
     - implementations/python/pyproject.toml
     - implementations/python/tests
     - CHANGELOG.md
+  # DSL-120 keeps the shared sdl-language roots it reached through ^DSL-,
+  # without the paths named there for other issues and requirements, and adds
+  # the episode-policy fixtures, the participant-control guide, the semantic
+  # profile and assurance records #307 amends, and its issue scope. Other ^DSL-
+  # requirements stay in the shared phase (#1510).
+  participant-episode-policy-language:
+    - contracts/concept-authority
+    - contracts/fixtures/backend-manifest
+    - contracts/fixtures/concept-authority
+    - contracts/fixtures/sdl/participant-episode-policy-v1
+    - contracts/provenance
+    - contracts/schema-publication
+    - contracts/schema-publication-manifest.json
+    - contracts/schemas/backend-manifest
+    - contracts/schemas/plans
+    - contracts/schemas/satisfiability
+    - contracts/schemas/sdl
+    - docs/decisions/adrs
+    - docs/explain/sdl
+    - docs/governance/requirement-scopes/307.json
+    - docs/index.md
+    - docs/public/participant-control.md
+    - docs/research/formal-semantic-validation
+    - docs/research/specification-coverage
+    - docs/research/lineage/source-audit-2026-07-12.md
+    - implementations/python/packages/raes_backend_protocols
+    - implementations/python/packages/raes_backend_stubs
+    - implementations/python/packages/raes_contracts
+    - implementations/python/packages/raes_processor
+    - implementations/python/packages/raes
+    - implementations/python/tests
+    - specs/concept-authority/semantic-profiles.md
+    - specs/formal/assurance-fulfillment.yaml
+    - specs/formal/participant-semantics
+    - specs/formal/sdl-phases
+    - specs/sdl
+    - tools/check_sdl_catalog_parity.py
+    - tools/check_specification_coverage.py
+    - tools/formal_semantic_validation
+    - tools/policy/requirement_order.yaml
+    - CHANGELOG.md
+    # The canonical CI repair carried from #1474 (#1637) documents its locator here.
+    - docs/decisions/package-artifacts/operations.md
   sdl-language:
     # Issue #1353 installs the delivery finalizer needed to close its requirements.
     - .github/workflows/ground-control-phase-e.yml
