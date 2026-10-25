@@ -125,6 +125,10 @@ Generated schema checks remain valid.
 ADR-036 import rules still apply. Local tests stay narrow. CI runs broad test,
 policy, and completion work.
 
+Canonical CI gets the locked Isabelle archive from the approved primary
+locator. The removed Cambridge path no longer serves the archive. Exact size
+and hash checks remain unchanged.
+
 ## Design references
 
 - [Pydantic models](https://docs.pydantic.dev/latest/concepts/models/), version
