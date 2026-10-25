@@ -4,7 +4,9 @@ Invalid root import declarations, lock records, lockfiles, trust policies,
 directory imports, removed scoring sections in imported units and provenance
 bounds reach ``parse_sdl_file``, ``resolve_lock_records``, ``expand_sdl_modules``
 and ``raes sdl resolve`` through one ``SDLParseError`` envelope. Expected
-diagnostics come from ``parse_sdl_file`` on the same root where possible.
+diagnostics come from ``parse_sdl_file`` on the same root where possible. The
+workspace-configuration reader and the locked-chain budget that #1446 added
+stay in force on every one of these entry points.
 """
 
 from __future__ import annotations
@@ -21,6 +23,7 @@ import pytest
 import raes.composition._expand as composition_expand
 import raes.parser as sdl_parser
 from raes._errors import SDLParseError
+from raes._source_profile import DEFAULT_PARSER_LIMITS
 from raes.composition import expand_sdl_modules
 from raes.module_registry import LOCKFILE_NAME, LOCKFILE_SCHEMA_VERSION, TRUST_POLICY_NAME, resolve_lock_records
 from raes.parser import SDLSourceDocument, parse_sdl, parse_sdl_file
@@ -46,6 +49,8 @@ SHARED = "- source: local:shared.yaml\n  namespace: shared\n"
 SENTINEL = "SENTINEL-7d1f"
 REMOVED_SCORING = "metrics: {}\n"
 LONG_RANGE = ",".join([">=1.0", *(f"!=0.{index}" for index in range(48))])
+# Valid content one input limit too long, so only the bounded read can refuse it.
+PADDING = " " * DEFAULT_PARSER_LIMITS.max_input_bytes
 
 
 def _scenario(directory: Path, imports: str | None, files: dict[str, str | bytes | None] | None = None) -> Path:
@@ -137,67 +142,81 @@ def test_direct_expansion_reports_an_invalid_declaration_as_a_field_diagnostic(t
     assert error.path == root
 
 
+def _lock_failure(root: Path) -> SDLParseError:
+    """Parse ``root`` and check the error names the lockfile without rendering its values."""
+
+    error = _raised(lambda: parse_sdl_file(root))
+    assert error.path == root.parent / LOCKFILE_NAME
+    assert str(error).startswith(f"{root.parent / LOCKFILE_NAME}: ")
+    assert SENTINEL not in str(error)
+    return error
+
+
 @pytest.mark.parametrize(
-    ("record", "expected"),
+    "record",
     [
-        pytest.param(
-            _lock_record(requested_version=">=banana"),
-            "for source 'local:shared.yaml': requested_version: import version must be",
-            id="bad-requested-version",
-        ),
-        pytest.param(
-            _lock_record(source=""),
-            "for source '': Import requires either 'source' or deprecated 'path'",
-            id="blank-source",
-        ),
+        pytest.param(_lock_record(requested_version=f">={SENTINEL}"), id="bad-requested-version"),
+        pytest.param(_lock_record(source=""), id="blank-source"),
     ],
 )
-def test_invalid_lock_record_names_the_lockfile_record_and_field(
-    tmp_path: Path, record: dict[str, str], expected: str
-) -> None:
+def test_invalid_lock_record_is_a_typed_error_naming_the_lockfile(tmp_path: Path, record: dict[str, str]) -> None:
     lockfile = _lockfile(record)
     root = _scenario(tmp_path, "- source: locked:shared.yaml\n  namespace: shared\n", {LOCKFILE_NAME: lockfile})
 
-    error = _raised(lambda: parse_sdl_file(root))
+    assert _lock_failure(root).details == "Locked import record is invalid"
 
-    assert error.details.startswith(f"Locked import 'locked:shared.yaml' uses an invalid {LOCKFILE_NAME} record ")
-    assert expected in error.details
+
+def _chain(length: int) -> list[dict[str, str]]:
+    """Return ``length`` acyclic records leading from ``locked:x`` to the local module."""
+
+    names = ["x", *(f"hop{index}" for index in range(1, length))]
+    targets = [f"locked:{name}" for name in names[1:]] + ["local:shared.yaml"]
+    return [_lock_record(source=target, resolved_source=name) for name, target in zip(names, targets, strict=True)]
 
 
 @pytest.mark.parametrize(
-    "records",
+    ("records", "expected"),
     [
-        pytest.param([_lock_record(source="locked:x", resolved_source="x")], id="self-cycle"),
+        pytest.param(
+            [_lock_record(source="locked:x", resolved_source="x")], "Locked import cycle detected", id="self-cycle"
+        ),
         pytest.param(
             [
                 _lock_record(source="locked:b", resolved_source="x"),
                 _lock_record(source="locked:x", resolved_source="b"),
             ],
+            "Locked import cycle detected",
             id="two-record-cycle",
+        ),
+        pytest.param(
+            _chain(DEFAULT_PARSER_LIMITS.max_composition_depth + 1),
+            "Locked import chain budget exceeded",
+            id="chain-over-budget",
         ),
     ],
 )
-def test_locked_import_cycles_are_typed_errors(tmp_path: Path, records: list[dict[str, str]]) -> None:
+def test_locked_import_cycles_and_overlong_chains_are_typed_errors(
+    tmp_path: Path, records: list[dict[str, str]], expected: str
+) -> None:
     root = _scenario(tmp_path, "- source: locked:x\n  namespace: shared\n", {LOCKFILE_NAME: _lockfile(*records)})
 
-    error = _raised(lambda: parse_sdl_file(root))
-
-    assert error.details.endswith(f"forms a cycle in {LOCKFILE_NAME}")
+    assert _lock_failure(root).details == expected
 
 
-def test_acyclic_locked_chain_resolves_like_its_local_target(tmp_path: Path) -> None:
+@pytest.mark.parametrize("length", [2, DEFAULT_PARSER_LIMITS.max_composition_depth])
+def test_acyclic_locked_chain_resolves_like_its_local_target(tmp_path: Path, length: int) -> None:
     (tmp_path / "direct").mkdir()
     (tmp_path / "chain").mkdir()
-    chain = _lockfile(_lock_record(source="locked:b", resolved_source="a"), _lock_record(resolved_source="b"))
+    chain = _lockfile(*_chain(length))
     direct_root = _scenario(tmp_path / "direct", SHARED)
-    locked_root = _scenario(tmp_path / "chain", "- source: locked:a\n  namespace: shared\n", {LOCKFILE_NAME: chain})
+    locked_root = _scenario(tmp_path / "chain", "- source: locked:x\n  namespace: shared\n", {LOCKFILE_NAME: chain})
 
     direct = parse_sdl_file(direct_root)
     locked = parse_sdl_file(locked_root)
 
     assert isinstance(locked, ExpandedScenario)
     assert isinstance(direct, ExpandedScenario)
-    expected = direct.expansion_provenance.imports[0].model_dump(mode="python") | {"requested_source": "locked:a"}
+    expected = direct.expansion_provenance.imports[0].model_dump(mode="python") | {"requested_source": "locked:x"}
     assert locked.expansion_provenance.imports[0].model_dump(mode="python") == expected
 
 
@@ -211,6 +230,9 @@ POLICY_FILES = [
     pytest.param(TRUST_POLICY_NAME, f"registries: {SENTINEL}\x07\n", id="trust-control-character"),
     pytest.param(TRUST_POLICY_NAME, b"\xff" + SENTINEL.encode(), id="trust-not-utf8"),
     pytest.param(TRUST_POLICY_NAME, None, id="trust-directory"),
+    pytest.param(TRUST_POLICY_NAME, f"registries: &{SENTINEL} [*{SENTINEL}]\n", id="trust-alias-cycle"),
+    pytest.param(TRUST_POLICY_NAME, "registries: {}\n#" + PADDING, id="trust-oversized"),
+    pytest.param(LOCKFILE_NAME, '{"imports": []}' + PADDING, id="lockfile-oversized"),
 ]
 
 
@@ -229,7 +251,10 @@ def test_invalid_policy_files_are_typed_errors_naming_the_file(
         error = _raised(lambda entry=entry: entry(root))
 
         assert error.path == tmp_path / name
-        assert error.details.startswith(name)
+        assert error.details == f"Cannot load workspace configuration {name}."
+        assert [(item.code, item.source) for item in error.diagnostics] == [
+            ("sdl.workspace-config.invalid", str(tmp_path / name))
+        ]
         rendered = [str(error), *(item.message for item in error.diagnostics)]
         assert not any(SENTINEL in text for text in rendered)
 
@@ -334,7 +359,12 @@ def _cli_output(arguments: list[str]) -> tuple[int, str]:
     ("imports", "files", "expected"),
     [
         pytest.param(f"{SHARED}  version: 1.0\n", {}, ["root.yaml", "/imports/0/version"], id="declaration"),
-        pytest.param(SHARED, {TRUST_POLICY_NAME: "registries: [1]\n"}, [TRUST_POLICY_NAME, "/registries"], id="trust"),
+        pytest.param(
+            SHARED,
+            {TRUST_POLICY_NAME: "registries: [1]\n"},
+            [f"Cannot load workspace configuration {TRUST_POLICY_NAME}."],
+            id="trust",
+        ),
         pytest.param(
             f"{SHARED}  version: ''\n",
             {},

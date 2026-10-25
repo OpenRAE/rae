@@ -85,8 +85,8 @@ from ._filesystem import (
     _same_file_identity,
     _write_version_pointer,
 )
-from ._lock_records import resolve_lock_records
 from ._verified_sources import _cache_source_result, _VerifiedSourceBundle
+from .lock_records import resolve_lock_records
 from .models import (
     Lockfile,
     LockRecord,
