@@ -53,7 +53,9 @@ class ParticipantControlRuntimeResolver(Protocol):
     ``resolve`` returns the admitted request for the live cut, or ``None`` when
     modular control does not apply to it. ``validation_context`` supplies the
     independently resolved owner facts API-424 checks the evaluation against;
-    neither may be satisfied from provider output. ``effect_operation`` returns
+    neither may be satisfied from provider output. It is called for retained
+    evaluations as well as fresh ones: resolve the original admitted inputs
+    and current effect approval. ``effect_operation`` returns
     the incumbent owner input for one admitted effect, or ``None`` for an
     effect this apparatus has no owner for — declared here, like the rest of
     the protocol, rather than discovered per effect.

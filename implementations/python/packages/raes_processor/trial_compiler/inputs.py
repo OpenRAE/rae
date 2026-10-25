@@ -268,7 +268,13 @@ def entry_descriptor_ids(
             for descriptor in declared.values()
             if descriptor.source_condition_id == coordinate.condition_id
         }
-    return {
+    participant_ids = {
+        descriptor.binding_id
+        for descriptor in declared.values()
+        if descriptor.source_condition_id == coordinate.condition_id
+        and descriptor.target.plane == "participant-implementation"
+    }
+    return participant_ids | {
         descriptor_id
         for selection in row.selections
         for descriptor_id in getattr(
