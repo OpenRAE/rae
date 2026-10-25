@@ -66,6 +66,8 @@ No new ADR is needed because ownership and public data shapes do not change.
 No schema, deployment, policy configuration, or infrastructure artifact changes are needed.
 Existing policy tools enforce repository boundaries.
 The regression tests enforce the corrected runtime boundary.
+Fresh content-addressed research captures bind the retained reference checks to the changed source.
+These captures retain their existing limits and do not establish live backend behavior.
 
 ## References and document review
 
