@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from functools import partial
 from pathlib import Path
 
 import pytest
@@ -79,10 +80,12 @@ def test_task_is_optional_and_unresolved_references_remain_descriptive() -> None
 def test_invalid_date_raises_a_validation_error(tmp_path: Path, loader: str) -> None:
     source = tmp_path / "invalid.exp.yaml"
     source.write_text("schema_version: experiment-authoring-input/v1\ndescription: 2026-02-30\n")
+    operation = (
+        partial(parse_experiment_spec, source.read_text(), path=source)
+        if loader == "parse"
+        else partial(load_experiment_spec, source)
+    )
     with pytest.raises(ExperimentSpecValidationError) as caught:
-        if loader == "parse":
-            parse_experiment_spec(source.read_text(), path=source)
-        else:
-            load_experiment_spec(source)
+        operation()
     assert caught.value.code == "invalid-yaml"
     assert caught.value.path == source
