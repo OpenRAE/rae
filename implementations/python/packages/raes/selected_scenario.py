@@ -318,10 +318,8 @@ def _resolved_target_value(
     return value
 
 
-def _target_write_path(family: ExpandedScenario, point: VariationPoint) -> tuple[str, ...]:
+def _owner_target_write_path(family: ExpandedScenario, point: VariationPoint) -> tuple[str, str, str]:
     target = point.target
-    if isinstance(target, VariableTarget):
-        return "variables", target.variable
     if isinstance(target, ReferenceTarget):
         specs = REFERENCE_TARGET_SPECS
     elif isinstance(target, CollectionTarget):
@@ -332,6 +330,18 @@ def _target_write_path(family: ExpandedScenario, point: VariationPoint) -> tuple
     owner = _canonical_owner_address(family, target.owner, section).removeprefix(f"{section}.")
     target_id = _canonical_target_id(family, point)
     return section, owner, target_id.removeprefix(f"{section}.{owner}.")
+
+
+def _resolved_point_writes(
+    payload: dict[str, object], family: ExpandedScenario, point: VariationPoint, outcome: object
+) -> dict[tuple[str, ...], object]:
+    if isinstance(point.target, StructuralTarget):
+        return structural_writes(family, point.target, point.alternatives[outcome.member_id])
+    if isinstance(point.target, VariableTarget):
+        path = ("variables", point.target.variable)
+    else:
+        path = _owner_target_write_path(family, point)
+    return {path: _resolved_target_value(payload, family, point, outcome)}
 
 
 def _record_target_write(
@@ -354,11 +364,7 @@ def _validate_target_writes(
     absent: set[str] = set()
     for point_id in sorted(family.variation_points):
         point = family.variation_points[point_id]
-        if isinstance(point.target, StructuralTarget):
-            resolved = structural_writes(family, point.target, point.alternatives[outcomes[point_id].member_id])
-        else:
-            path = _target_write_path(family, point)
-            resolved = {path: _resolved_target_value(payload, family, point, outcomes[point_id])}
+        resolved = _resolved_point_writes(payload, family, point, outcomes[point_id])
         for path, value in resolved.items():
             if _record_target_write(writes, path, value):
                 absent.add(path[1])
