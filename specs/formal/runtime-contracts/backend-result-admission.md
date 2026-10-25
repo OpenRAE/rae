@@ -63,8 +63,18 @@ Neither precise declarations nor preparation create experimental capture,
 retention or export requirements. Those remain governed by selected demand.
 
 Credential-bearing results MUST satisfy their closed egress contract against
-the admitted operation values before native concern sanitization. Comparison
-and publication MUST preserve the same permitted meaning; safe projected state
+the admitted operation values. Admitted realization concerns MAY contain
+observed values that differ from those operation values, including OPEN choices.
+Only registered concern paths with an applicable admitted requirement and safe
+observation projection receive this permission. All other payload values MUST
+retain typed exact equality with the admitted operation, except separately
+authorized evidence such as `artifact_satisfaction`.
+
+The owning concern validator MUST check observed values before projection.
+Credential closure MUST preserve their safe observation projection.
+It MUST NOT restore plan values over those observations.
+Canonical account material remains presence-only.
+Comparison and publication MUST preserve the same permitted meaning; safe projected state
 is revalidated before adding runtime-owned provenance and committing it. The
 second validation may reuse admitted transient observations but MUST NOT collect
 or retain new observations. Sanitization failure diagnostics MUST not be

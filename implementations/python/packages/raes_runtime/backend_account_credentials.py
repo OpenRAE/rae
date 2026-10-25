@@ -14,6 +14,11 @@ from raes_contracts.artifact_requirements import ArtifactSatisfactionDisclosureM
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp, RuntimeDomain
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotEntry
+from raes_processor.planner import (
+    plan_realization_requirements,
+    planned_constraint_requirements,
+    realization_payload_projections,
+)
 
 from .backend_snapshot_contracts import snapshot_values_equal
 
@@ -107,7 +112,10 @@ def _expected_entry_addresses(baseline: RuntimeSnapshot, plan: ProvisioningPlan)
 
 
 def _closed_plan_entry(
-    snapshot: RuntimeSnapshot, operation: ProvisionOp, artifact_addresses: set[str]
+    snapshot: RuntimeSnapshot,
+    operation: ProvisionOp,
+    requirements: tuple[CompiledRealizationRequirement, ...],
+    artifact_addresses: set[str],
 ) -> SnapshotEntry:
     entry = snapshot.entries.get(operation.address)
     if entry is None:
@@ -121,11 +129,17 @@ def _closed_plan_entry(
         or entry.status != expected_status
     ):
         raise ValueError("credential-bearing backend entry does not match the submitted plan")
-    return cast(SnapshotEntry, replace(entry, payload=_closed_plan_payload(entry, operation, artifact_addresses)))
+    return cast(
+        SnapshotEntry,
+        replace(entry, payload=_closed_plan_payload(entry, operation, requirements, artifact_addresses)),
+    )
 
 
 def _closed_plan_payload(
-    entry: SnapshotEntry, operation: ProvisionOp, artifact_addresses: set[str]
+    entry: SnapshotEntry,
+    operation: ProvisionOp,
+    requirements: tuple[CompiledRealizationRequirement, ...],
+    artifact_addresses: set[str],
 ) -> dict[str, object]:
     """Project only admitted evidence and canonical account credential posture."""
 
@@ -140,11 +154,13 @@ def _closed_plan_payload(
         # Initial and repeat realization checks own identity, route and trust.
         disclosure = ArtifactSatisfactionDisclosureModel.model_validate(observed_payload.pop("artifact_satisfaction"))
         evidence["artifact_satisfaction"] = disclosure.model_dump(mode="json")
-    if not snapshot_values_equal(observed_payload, operation.payload):
+    comparison_payload, payload = realization_payload_projections(
+        operation.address, operation.payload, observed_payload, requirements
+    )
+    if not snapshot_values_equal(comparison_payload, operation.payload):
         raise ValueError("credential-bearing backend payload does not match the submitted plan")
-    payload = deepcopy(operation.payload)
     if operation.resource_type == "account-placement":
-        payload = value_free_account_placement_payload(operation.payload)
+        payload = value_free_account_placement_payload(payload)
     payload.update(evidence)
     return payload
 
@@ -161,12 +177,19 @@ def _closed_plan_entries(
     artifact_addresses = {
         requirement.address for requirement in requirements if requirement.artifact_requirement is not None
     }
+    observation_requirements = (
+        *plan_realization_requirements(plan),
+        *planned_constraint_requirements(plan),
+        *requirements,
+    )
     safe_entries = deepcopy(dict(baseline.entries))
     for operation in plan.operations:
         if operation.action is ChangeAction.DELETE:
             safe_entries.pop(operation.address, None)
             continue
-        safe_entries[operation.address] = _closed_plan_entry(snapshot, operation, artifact_addresses)
+        safe_entries[operation.address] = _closed_plan_entry(
+            snapshot, operation, observation_requirements, artifact_addresses
+        )
     return safe_entries
 
 

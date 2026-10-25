@@ -81,6 +81,54 @@ def realization_payloads_match(
     return declared_projection == observed_projection
 
 
+def realization_payload_projections(
+    address: str,
+    declared_payload: dict[str, object],
+    observed_payload: dict[str, object],
+    requirements: tuple[CompiledRealizationRequirement, ...],
+) -> tuple[dict[str, object], dict[str, object]]:
+    """Separate exact residual comparison from safe admitted observations.
+
+    Semantic admission remains the caller's responsibility. Only registered
+    concerns with a safe projector can differ from the operation payload.
+    """
+
+    applicable = tuple(requirement for requirement in requirements if requirement.explicitness is not None)
+    safe_payload = _project_payload(address, observed_payload, applicable, observed=True)
+    comparison_payload = deepcopy(observed_payload)
+    handled: set[tuple[str, ...]] = set()
+    for requirement in applicable:
+        descriptor = realization_concern_descriptor(requirement.requirement_kind)
+        if requirement.address != address or descriptor is None or descriptor.projector is None:
+            continue
+        path = descriptor.payload_path
+        if path in handled or _concern_value(observed_payload, path) is _MISSING_CONCERN_VALUE:
+            continue
+        _restore_declared_path(comparison_payload, declared_payload, path)
+        handled.add(path)
+    return comparison_payload, safe_payload
+
+
+def _restore_declared_path(payload: dict[str, object], declared: object, path: tuple[str, ...]) -> None:
+    """Mask one admitted leaf without hiding unauthorized ancestor siblings."""
+
+    key = path[0]
+    declared_value = declared.get(key, _MISSING_CONCERN_VALUE) if isinstance(declared, dict) else _MISSING_CONCERN_VALUE
+    if len(path) > 1:
+        child = payload.get(key)
+        if not isinstance(child, dict):
+            raise ValueError("realization concern payload path is not an object")
+        _restore_declared_path(child, declared_value, path[1:])
+        # Only empty observation scaffolding can collapse to null or absence.
+        # Any sibling, including one with a null value, must still be compared.
+        if child or isinstance(declared_value, dict):
+            return
+    if declared_value is _MISSING_CONCERN_VALUE:
+        payload.pop(key, None)
+    else:
+        payload[key] = deepcopy(declared_value)
+
+
 def _project_payload(
     address: str,
     payload: dict[str, object],
@@ -153,6 +201,7 @@ def _set_concern_value(
 
 __all__ = [
     "invalid_observation_diagnostic",
+    "realization_payload_projections",
     "realization_payloads_match",
     "sanitize_realization_snapshot",
 ]
