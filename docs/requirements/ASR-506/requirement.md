@@ -1,7 +1,7 @@
 ---
 id: ASR-506
 title: "Participant Semantic Artifacts"
-status: ACTIVE
+status: DRAFT
 type: FUNCTIONAL
 priority: SHOULD
 wave: 2
