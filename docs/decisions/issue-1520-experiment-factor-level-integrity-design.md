@@ -61,6 +61,10 @@ ADR-074 owns the authoring boundary; ADR-094 owns binding authority.
 Neither ADR waives local declaration integrity, so accepted ADR text needs no change.
 This DFD covers the changed boundary; no deployment or runtime sequence changes.
 The formal experiment specification and example limits describe the same membership rule.
+Source-bound research evidence uses fresh captures of the existing offline corpus.
+The collection repeats each recorded case before it records the current implementation digest.
+The retained corpus makes no new claim about experiment membership or domain meaning.
+Dedicated regression tests supply the membership evidence.
 
 ## References and document review
 
