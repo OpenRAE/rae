@@ -162,16 +162,17 @@ The task, run, and study surfaces keep these parts separate:
   task. `two-condition-study-design` declares a treatment factor, two compared
   conditions, and the runs per condition.
 - **Guidance:** the task, run, and study patterns, which are prose.
+- **Experiment tasks:** validate an authored JSON task with
+  `raes semantic validate --contract experiment-task-v1 my-task.json`.
+  This checks the task contract, including its protocol and artifact fields;
+  it does not fetch the scenario or verify artifact bytes. No experiment task
+  template is shipped: each author's protocol artifact needs its own checksum,
+  byte size, and creation time. The task catalog entry records this limit.
 - **Outside current support:**
-  - An experiment task template. An experiment task is an
-    `experiment-task-v1` document that a run plan names in `task_ref`. The
-    repository has no task loader, `raes semantic validate` does not accept
-    the `experiment-task-v1` contract, and every task needs an artifact
-    reference with a checksum, size, and creation time that a reusable
-    template would have to invent.
-  - Resolving `task_ref`, and checking condition factor levels that no
-    binding descriptor or stratified selection stratum joins. The experiment
-    authoring-input loader does neither. It does check joined levels against
+  - Automatically acquiring the task named by `task_ref`. The loader checks
+    a supplied task as shown below; without one, the reference is unresolved.
+  - Checking condition factor levels that no binding descriptor or stratified
+    selection stratum joins (tracked in issue #1520). The loader checks joined levels against
     the declared factors and the condition assignment: binding descriptors
     under `binding_semantics: explicit-required`
     ([ADR-094](../docs/decisions/adrs/adr-094-authoritative-cross-plane-experiment-bindings.md))
@@ -191,6 +192,23 @@ uv run --project implementations/python --frozen python -c "import sys; from pat
 
 The command prints the document's `spec_id` and exits `0`. An invalid
 document raises `ExperimentSpecValidationError` and exits `1`.
+
+To check the plan against a task you supply, load the task through its contract
+model and pass it to the experiment loader:
+
+```python
+from pathlib import Path
+from raes_contracts.contracts import ExperimentTaskModel
+from raes_contracts.experiment_spec import load_experiment_spec
+
+task = ExperimentTaskModel.model_validate_json(Path("my-task.json").read_text())
+plan = load_experiment_spec(Path("my-experiment.exp.yaml"), task=task)
+```
+
+The task id and any version declared in `task_ref` must match. A mismatch raises
+`ExperimentSpecValidationError` with code `task-reference-mismatch`.
+`parse_experiment_spec(text, task=task)` offers the same check for YAML text.
+Neither function fetches task references or checks scenario or artifact content.
 
 ## Validate The Examples
 

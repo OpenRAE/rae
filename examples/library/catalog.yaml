@@ -136,6 +136,7 @@ surfaces:
         intended_user: sdl-author
         limits:
           - SDL has no first-class tasks section, and this objective is not an experiment-task-v1 record.
+          - No experiment-task-v1 template is shipped. Its required artifact checksum, byte size, and creation time must describe an author's real protocol artifact; this SDL template cannot supply them. Validate an authored task with raes semantic validate --contract experiment-task-v1.
     patterns:
       - id: task-as-objective-contract
         path: examples/library/patterns/task-as-objective-contract.yaml
@@ -170,7 +171,7 @@ surfaces:
         intended_user: experiment-author
         limits:
           - Pre-run design only; nothing runs, and it is not an experiment-run-v1 record.
-          - The loader does not resolve task_ref, and the seed is not an executable random-stream contract.
+          - Without a supplied task, task_ref is unresolved. load_experiment_spec and parse_experiment_spec check the id and any declared version when passed task=ExperimentTaskModel. The seed is not an executable random-stream contract.
     patterns:
       - id: run-window-with-evidence
         path: examples/library/patterns/run-window-with-evidence.yaml
@@ -205,7 +206,7 @@ surfaces:
         intended_user: experiment-author
         limits:
           - Pre-run design only; it is not an experiment-study-v1 record and declares no analysis plan.
-          - The loader does not resolve task_ref. As shipped, the body joins no factor level through an explicit-required binding descriptor or a stratified selection stratum, so the loader does not check its condition factor levels against the declared factors.
+          - Without a supplied task, task_ref is unresolved; task=ExperimentTaskModel checks its id and any declared version. As shipped, the body joins no factor level through an explicit-required binding descriptor or a stratified selection stratum, so the loader does not check its condition factor levels against the declared factors (issue 1520).
           - The required_parameters are descriptive data that bind no configuration target; binding_semantics explicit-required rejects them and needs binding descriptors instead (ADR-094).
     patterns:
       - id: observable-study-conditions
