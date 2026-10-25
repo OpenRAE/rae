@@ -10,6 +10,7 @@ from ..json_ingress import parse_bounded_json_object
 from .base import ContractModel
 from .participant_control_coordinates import ControlArtifactReferenceModel
 from .participant_flow_control import PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_REV1_DIGEST
+from .participant_owner_flow import OWNER_FLOW_PROFILE_DIGEST, OWNER_FLOW_PROFILE_ID
 
 
 class ParticipantControlTeachingProfileModel(ContractModel):
@@ -47,6 +48,8 @@ def validate_control_profile_reference(profile: ControlArtifactReferenceModel) -
         expected = canonical_json_digest(load_teaching_influence_profile().model_dump(mode="json"))
     elif profile.ref == "participant-boundary-flow-policy-v1":
         expected = PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_REV1_DIGEST
+    elif profile.ref == OWNER_FLOW_PROFILE_ID:
+        expected = OWNER_FLOW_PROFILE_DIGEST
     else:
         raise ValueError("participant control profile identity is unsupported")
     if profile.digest != expected:

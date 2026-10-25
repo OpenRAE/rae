@@ -107,5 +107,20 @@ def test_unsafe_profile_and_output_are_rejected(tmp_path):
         export.build_bundle(root)
 
 
-def test_published_multi_bundle_matches_checkout():
-    producer().check(ROOT)
+def test_published_multi_bundle_retains_exact_graphs_and_reports_source_drift():
+    # Runtime supervision evolves source anchors without relabeling the
+    # independently constructed historical model or claiming realization.
+    export = producer()
+    retained = ROOT / export.OUTPUT_PATH
+    manifest = json.loads((retained / "manifest.json").read_bytes())
+    current = export.build_bundle(ROOT)
+    for name, expected in manifest["artifact_digests"].items():
+        content = (retained / name).read_bytes()
+        assert export.digest(content) == expected
+        assert current[name] == content
+    derived = json.loads(current["manifest.json"])
+    assert derived["source_digests"] != manifest["source_digests"]
+    for key in manifest.keys() - {"source_revision", "source_digests"}:
+        assert derived[key] == manifest[key]
+    with pytest.raises(ValueError, match="drift"):
+        export.check(ROOT)

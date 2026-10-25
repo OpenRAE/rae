@@ -171,6 +171,11 @@ def _typed_relationship_issues(
     return issues
 
 
+def topology_source_allowed(node: object) -> bool:
+    """The node attribute predicate shared by topology validation and authoring."""
+    return getattr(node, "type", None) == NodeType.COMPUTE
+
+
 def _topology_relationship(
     relationship_name: str,
     relationship: object,
@@ -203,7 +208,7 @@ def _topology_relationship(
                 f"{label} domain topology source '{source_ref}' does not resolve to a node",
             )
         )
-    elif getattr(nodes[node_name], "type", None) != NodeType.COMPUTE:
+    elif not topology_source_allowed(nodes[node_name]):
         role = "controller" if type_value == RelationshipType.DOMAIN_CONTROLLER_FOR.value else "join"
         issues.append(
             _issue(

@@ -1,9 +1,9 @@
 {
-  "content_hash": "2c2f2353cc8b5211af2d9604c317d945264202afbe517542d63de2d475848fc3",
+  "content_hash": "eff42092e08ea711b0539854b62ab3c66780cdd41afae3f2a2b18bf880755a20",
   "contract_id": "experiment-authoring-input-v1",
   "last_change": {
-    "content_hash": "2c2f2353cc8b5211af2d9604c317d945264202afbe517542d63de2d475848fc3",
-    "summary": "Add typed prospective run evidence-requirement relations and distinct materialization-attestation references (#341, #1241)."
+    "content_hash": "eff42092e08ea711b0539854b62ab3c66780cdd41afae3f2a2b18bf880755a20",
+    "summary": "Add optional bounded author-directed trial replacement policy and separately sealed child lineage; preserve legacy omission and identity profiles (#1396)."
   },
   "schema_path": "contracts/schemas/experiment-core/experiment-authoring-input-v1.json",
   "stability": "draft"

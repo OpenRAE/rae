@@ -2,7 +2,7 @@
 
 Provides ``BaseParticipantRuntime``, which implements the complete RUN-311
 episode state machine. Backend-specific runtimes subclass this and override
-``_model_action`` to inject domain side-effects (e.g. actual libvirt domain
+``_model_action`` to inject domain side-effects (e.g. native virtual-machine
 calls) before behavior history events are recorded.
 """
 
@@ -64,7 +64,7 @@ class BaseParticipantRuntime(ParticipantExecutionRuntimeMixin):
     need to inject domain side-effects before behavior history events are
     recorded override ``_model_action``.
 
-    This class is backend-neutral; the concrete driver connection, libvirt
+    This class is backend-neutral; the concrete driver connection, native
     domain calls, or any other infrastructure concerns belong in subclasses.
     """
 

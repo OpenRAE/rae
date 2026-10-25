@@ -460,25 +460,6 @@ class TestNodeArchitectureTargetDomain:
         assert domain == ("aarch64", "x86_64")
 
 
-class TestLibvirtArchitecturePayload:
-    """`_architecture` payload extraction (issue #674)."""
-
-    def test_direct_field(self):
-        from raes_backend_libvirt._payload import _architecture
-
-        assert _architecture({"architecture": "x86_64"}) == "x86_64"
-
-    def test_nested_node_spec_fallback(self):
-        from raes_backend_libvirt._payload import _architecture
-
-        assert _architecture({"spec": {"node": {"architecture": "aarch64"}}}) == "aarch64"
-
-    def test_absent(self):
-        from raes_backend_libvirt._payload import _architecture
-
-        assert _architecture({"spec": {"node": {}}}) == ""
-
-
 class TestRealizerConfigurationArchitecture:
     """`RealizerConfigurationModel.architecture` is a governed canonical term (issue #674)."""
 

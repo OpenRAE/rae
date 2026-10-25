@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import Field, GetJsonSchemaHandler, model_validator
+from pydantic import Field, GetJsonSchemaHandler, SerializerFunctionWrapHandler, model_serializer, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
@@ -43,6 +43,7 @@ from .experiment_selection import (
 )
 from .experiment_study import ExperimentRunAllocationPlanModel, ExperimentStudyFactorModel
 from .schema_invariants import _add_raes_invariant
+from .trial_replacement import TrialReplacementPolicyModel
 
 ExperimentStudyModel = _experiment_study_contract.ExperimentStudyModel
 
@@ -60,6 +61,7 @@ class ExperimentRunPlanModel(ContractModel):
     episode_control: ExperimentEpisodeControlModel
     allocation: ExperimentRunAllocationPlanModel | None = None
     target_run_count: PositiveInteger | None = None
+    replacement_policy: TrialReplacementPolicyModel | None = None
     selection_policies: dict[NonEmptyString, ExperimentSelectionPolicyModel] = Field(
         default_factory=dict,
         max_length=MAX_SELECTION_POLICIES,
@@ -69,6 +71,13 @@ class ExperimentRunPlanModel(ContractModel):
     clock_intent: ExperimentClockContextModel | None = None
     observation_demands: ObservationDemandDocument | None = None
     evidence_requirement_relations: list[ExperimentEvidenceRequirementRelationModel] = Field(default_factory=list)
+
+    @model_serializer(mode="wrap")
+    def _serialize_replacement_policy(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        payload = handler(self)
+        if self.replacement_policy is None:
+            payload.pop("replacement_policy", None)
+        return payload
 
     @model_validator(mode="after")
     def _validate_run_plan(self) -> ExperimentRunPlanModel:

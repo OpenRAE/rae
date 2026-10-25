@@ -1,0 +1,46 @@
+{
+  "schema_version": "participant-inject-delivery/v1",
+  "view_id": "delivery-view-1",
+  "participant_address": "participant.behavior.reader",
+  "episode_id": "episode-1",
+  "application": {
+    "schema_version": "participant-inject-application/v1",
+    "request_key": "delivery-request-1",
+    "world_operation_id": "world-operation-1",
+    "delivery_address": "participant.behavior-specification.briefing.inject-delivery.result",
+    "delivery_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "participant_address": "participant.behavior.reader",
+    "episode_id": "episode-1",
+    "expected_snapshot_revision": 0,
+    "control": null
+  },
+  "source_snapshot_ref": "runtime.snapshot.revision.0",
+  "correlation": {
+    "schema_version": "inject-occurrence-correlation/v1",
+    "occurrence": {
+      "contract_id": "inject-occurrence-v1",
+      "artifact_id": "world-occurrence-1",
+      "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "outcome": {
+      "contract_id": "inject-occurrence-outcome-v1",
+      "artifact_id": "world-occurrence-1",
+      "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "result": {
+      "contract_id": "associated-artifact-manifest-v1",
+      "artifact_id": "produced-result-1",
+      "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    }
+  },
+  "disclosed_item": {
+    "contract_id": "associated-artifact-manifest-v1",
+    "artifact_id": "content.item.result",
+    "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "visibility_projection_ref": "disclosure.briefing",
+  "observation_boundary_ref": "participant.observation-boundary.reader",
+  "media_type": "text/plain",
+  "content_encoding": "utf-8",
+  "content": "Approved result"
+}

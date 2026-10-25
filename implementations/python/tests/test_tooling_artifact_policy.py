@@ -411,7 +411,7 @@ def test_checked_in_python_closure_profiles_are_closed_and_complete() -> None:
     document = _load(REPO_ROOT, PROFILES_PATH)
     profiles = {profile["python_closure_profile_id"]: profile for profile in document["python_closure_profiles"]}
     assert set(profiles) == expected_project
-    assert all(profile["project_extras"] == ["dev", "docs"] for profile in profiles.values())
+    assert all(profile["project_extras"] == ["dev", "docs", "distributed"] for profile in profiles.values())
     assert all(profile["acquisition_context_ids"] == ["python-public"] for profile in profiles.values())
     # Runtime cryptography still needs patched binary wheels; moving the TLS
     # fixture does not qualify a previously unsupported Intel Mac target.

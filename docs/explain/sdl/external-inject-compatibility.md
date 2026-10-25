@@ -57,8 +57,11 @@ Reuse existing owner modules named in the
 No second trigger database, scheduler, policy interpreter or permissive metadata
 channel is authorized. Schema adoption must follow ADR-009/061, the publication
 manifest and per-contract entries, change hashes, generated-bundle parity and
-all embedded occurrence/snapshot consumers. This delivery changes none of them
-and begins no deprecation/removal window.
+all embedded occurrence/snapshot consumers. The selected #1367 runtime adoption
+uses these published carriers without changing their schemas and begins no
+deprecation/removal window. Its [operator guide](../../public/guides/external-injects.md)
+describes opt-in OCI execution, refusal boundaries, internal record migrations
+and concrete CI evidence.
 
 Adoption evidence must exercise actual HTTP/embedder/store/backend consumers:
 unauthorized trigger and receipt reads, malformed/oversized/secret-bearing input,
