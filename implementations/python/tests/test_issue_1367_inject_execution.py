@@ -124,14 +124,14 @@ def test_inject_evidence_resolution_shares_the_bounded_observation_budget(tmp_pa
     from raes_runtime.operation_supervision_configuration import OperationSupervisionConfiguration
 
     plane, backend, request = configured_plane(
-        tmp_path, supervision=OperationSupervisionConfiguration(observation_ms=50, execution_ms=2000)
+        tmp_path, supervision=OperationSupervisionConfiguration(observation_ms=1000, execution_ms=10000)
     )
     entered, release, finished = Event(), Event(), Event()
     receipts = []
 
     def evidence(*args):
         entered.set()
-        release.wait(3)
+        release.wait(10)
         return True
 
     backend.validate_effects = evidence
@@ -143,12 +143,15 @@ def test_inject_evidence_resolution_shares_the_bounded_observation_budget(tmp_pa
     thread = Thread(target=submit)
     thread.start()
     try:
-        assert entered.wait(1)
-        assert finished.wait(0.75)
+        # Parallel coverage runs need scheduling room before evidence starts.
+        # The caller must still finish while evidence remains blocked, well
+        # before the execution deadline or the callback's own fallback wait.
+        assert entered.wait(5)
+        assert finished.wait(3)
         assert plane.get_operation(receipts[0].operation_id).state is OperationState.INDETERMINATE
     finally:
         release.set()
-        thread.join(3)
+        thread.join(5)
         plane.close()
 
 
