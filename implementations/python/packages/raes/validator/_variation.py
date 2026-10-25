@@ -16,6 +16,7 @@ from raes_contracts.bounded_domains import (
 from .._errors import SDLValidationError
 from .._identifiers import QualifiedName
 from .._reference_targetability import purpose_for_domain
+from ..selected_structure import structural_writes
 from ..variables import Variable, VariableType
 from ..variation import (
     COLLECTION_TARGET_SPECS,
@@ -31,6 +32,7 @@ from ..variation import (
     VariationPoint,
     structural_members,
 )
+from ..variation_structure import StructuralTarget
 from ._variation_satisfiability import (
     _SelectionBudgetExceeded,
     _SelectionGroup,
@@ -108,11 +110,14 @@ class _VariationMixin:
             elif isinstance(point, GovernedReferenceVariationPoint):
                 self._verify_reference_point(point_name, point, list(point.domain.allowed_refs))
             elif isinstance(point, AlternativeVariationPoint):
-                self._verify_reference_point(
-                    point_name,
-                    point,
-                    [member.reference for member in point.alternatives.values()],
-                )
+                if isinstance(point.target, StructuralTarget):
+                    self._verify_structural_point(point_name, point)
+                else:
+                    self._verify_reference_point(
+                        point_name,
+                        point,
+                        [member.reference for member in point.alternatives.values()],
+                    )
                 self._verify_member_relations(point_name, point)
             elif isinstance(point, (SubsetVariationPoint, OrderVariationPoint)):
                 self._verify_collection_point(point_name, point)
@@ -121,6 +126,15 @@ class _VariationMixin:
                 self._verify_timing_point(point_name, point)
         if not self._errors:
             self._verify_family_satisfiability()
+
+    def _verify_structural_point(self, name: str, point: AlternativeVariationPoint) -> None:
+        for member_name, member in point.alternatives.items():
+            try:
+                structural_writes(self._s, point.target, member)
+            except ValueError:
+                self._err(
+                    f"Variation point '{name}' member '{member_name}' has an invalid structural target or candidate"
+                )
 
     def _verify_parameter_point(self, name: str, point: ParameterVariationPoint) -> None:
         variable = self._s.variables.get(point.target.variable)
