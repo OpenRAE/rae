@@ -129,6 +129,9 @@ Canonical CI gets the locked Isabelle archive from the approved primary
 locator. The removed Cambridge path no longer serves the archive. Exact size
 and hash checks remain unchanged.
 
+A content-addressed specification capture binds the changed implementation
+source without allocating or changing numbered research-release history.
+
 ## Design references
 
 - [Pydantic models](https://docs.pydantic.dev/latest/concepts/models/), version
