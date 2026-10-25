@@ -104,6 +104,12 @@ def _entry_bindings(
         bindings = _factorial_entry_bindings(request, row, coordinate, descriptors)
     else:
         bindings = _selection_entry_bindings(request, row, coordinate, descriptors)
+        bindings.extend(
+            AdmittedBindingModel(descriptor=descriptor, origin="selection")
+            for descriptor in sorted(descriptors.values(), key=lambda descriptor: descriptor.binding_id)
+            if descriptor.source_condition_id == coordinate.condition_id
+            and descriptor.target.plane == "participant-implementation"
+        )
     if len({binding.descriptor.binding_id for binding in bindings}) != len(bindings):
         raise CompilationFailure(
             "binding-duplicate",
