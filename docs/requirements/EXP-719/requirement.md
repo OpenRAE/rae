@@ -53,3 +53,4 @@ Requirement inventory expansion. Designed variation is a distinct experiment con
 - TESTS → TEST `implementations/python/tests/test_exp_719_factorial_realization.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_realization.py`
 - TESTS → TEST `implementations/python/tests/test_exp_719_review_regressions.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1626_trial_participant_bindings.py` (Explicit participant-only conditions, exact owner admission, complete configuration and safe atomic rejection)
