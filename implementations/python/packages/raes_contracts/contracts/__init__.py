@@ -236,6 +236,7 @@ from .mixed_composition import (
 from .mixed_runtime import MixedCompositionRuntimeEventModel, MixedCompositionRuntimeStateModel
 from .observation_capture import ObservationCaptureOfferModel
 from .participant_context import ParticipantContextViewModel
+from .participant_control_context import *
 from .participant_decision_surface import (
     ParticipantDecisionSurfaceActionEntryModel,
     ParticipantDecisionSurfaceCandidateSetFormModel,
