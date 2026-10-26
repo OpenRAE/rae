@@ -40,7 +40,9 @@ def test_act_623_cannot_absorb_the_stacked_dsl_120_files():
     document["bindings"] = {path: ["ACT-623"] for path in document["bindings"]}
     scope = parse_requirement_scope(document, issue_number=309)
 
-    failures = evaluate_requirement_scope(ROOT, sorted(scope.bindings), client=RepositoryRequirementClient(ROOT), scope=scope)
+    failures = evaluate_requirement_scope(
+        ROOT, sorted(scope.bindings), client=RepositoryRequirementClient(ROOT), scope=scope
+    )
 
     assert {(failure.rule_id, failure.path) for failure in failures} >= {
         ("requirement-ownership-mismatch", "docs/public/participant-control.md"),
