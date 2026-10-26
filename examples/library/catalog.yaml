@@ -206,7 +206,8 @@ surfaces:
         intended_user: experiment-author
         limits:
           - Pre-run design only; it is not an experiment-study-v1 record and declares no analysis plan.
-          - Without a supplied task, task_ref is unresolved; task=ExperimentTaskModel checks its id and any declared version. As shipped, the body joins no factor level through an explicit-required binding descriptor or a stratified selection stratum, so the loader does not check its condition factor levels against the declared factors (issue 1520).
+          - Without a supplied task, task_ref is unresolved; task=ExperimentTaskModel checks its id and any declared version.
+          - The loader checks every condition factor and level against this experiment's author-supplied declarations in every binding posture. This establishes local consistency; it does not validate domain meaning or resolve an ontology.
           - The required_parameters are descriptive data that bind no configuration target; binding_semantics explicit-required rejects them and needs binding descriptors instead (ADR-094).
     patterns:
       - id: observable-study-conditions

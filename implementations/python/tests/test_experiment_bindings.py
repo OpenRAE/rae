@@ -607,6 +607,18 @@ def test_experiment_spec_rejects_binding_factor_level_mismatch() -> None:
         ExperimentSpecModel.model_validate(payload)
 
 
+@pytest.mark.parametrize("invalid", ["factor", "level"])
+def test_explicit_binding_mode_rejects_invalid_unjoined_condition_factor(invalid: str) -> None:
+    payload = _experiment_spec_payload_with_bindings()
+    if invalid == "level":
+        payload["factors"]["unjoined"] = {"name": "Extra factor", "factor_kind": "other", "levels": ["valid"]}
+    assignment = payload["run_plan"]["allocation"]["condition_assignments"]["cond-stealthy"]
+    assignment["factor_levels"]["unjoined"] = "invalid"
+
+    with pytest.raises(ValidationError, match="must reference declared factor"):
+        ExperimentSpecModel.model_validate(payload)
+
+
 def test_experiment_spec_fails_closed_when_explicit_bindings_are_required_but_absent() -> None:
     payload = _experiment_spec_payload_with_bindings()
     del payload["binding_descriptors"]

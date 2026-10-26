@@ -184,6 +184,28 @@ class ExperimentConditionAssignmentModel(ContractModel):
         return json_schema
 
 
+def _validate_condition_factor_levels(
+    factors: dict[NonEmptyString, ExperimentStudyFactorModel],
+    condition_assignments: dict[NonEmptyString, ExperimentConditionAssignmentModel],
+    *,
+    scope: str,
+) -> None:
+    """Validate assignment membership in the containing experiment's declarations."""
+    for assignment_key, assignment in condition_assignments.items():
+        for factor_id, level in assignment.factor_levels.items():
+            factor = factors.get(factor_id)
+            if factor is None:
+                raise ValueError(
+                    f"{scope} condition_assignments factor_levels must reference declared factors: "
+                    f"{assignment_key}:{factor_id}"
+                )
+            if level not in factor.levels:
+                raise ValueError(
+                    f"{scope} condition_assignments factor_levels must reference declared factor levels: "
+                    f"{assignment_key}:{factor_id}:{level}"
+                )
+
+
 class ExperimentRunAllocationPlanModel(ContractModel):
     """Structured run allocation, replication, and assignment plan."""
 

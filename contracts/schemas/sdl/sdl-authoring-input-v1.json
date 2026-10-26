@@ -402,12 +402,86 @@
     },
     "AlternativeVariationPoint": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "alternatives": {
+                "additionalProperties": {
+                  "required": [
+                    "reference"
+                  ]
+                }
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "target": {
+                "properties": {
+                  "kind": {
+                    "const": "structural"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          },
+          "then": {
+            "else": {
+              "properties": {
+                "alternatives": {
+                  "additionalProperties": {
+                    "required": [
+                      "references"
+                    ]
+                  }
+                }
+              }
+            },
+            "if": {
+              "properties": {
+                "target": {
+                  "properties": {
+                    "slot": {
+                      "const": "nodes.presence"
+                    }
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "alternatives": {
+                  "additionalProperties": {
+                    "required": [
+                      "present"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
       "properties": {
         "alternatives": {
           "minProperties": 1,
           "patternProperties": {
             "^[a-z0-9]": {
-              "$ref": "#/$defs/VariationMember"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/VariationMember"
+                },
+                {
+                  "$ref": "#/$defs/NodePresenceAlternative"
+                },
+                {
+                  "$ref": "#/$defs/RuntimeInventoryAlternative"
+                }
+              ]
             }
           },
           "propertyNames": {
@@ -432,7 +506,22 @@
           "type": "string"
         },
         "target": {
-          "$ref": "#/$defs/ReferenceTarget"
+          "discriminator": {
+            "mapping": {
+              "reference": "#/$defs/ReferenceTarget",
+              "structural": "#/$defs/StructuralTarget"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ReferenceTarget"
+            },
+            {
+              "$ref": "#/$defs/StructuralTarget"
+            }
+          ],
+          "title": "Target"
         }
       },
       "required": [
@@ -6903,6 +6992,82 @@
       ],
       "title": "NodeArchitecture",
       "type": "string"
+    },
+    "NodePresenceAlternative": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "present": {
+                "const": false
+              }
+            },
+            "required": [
+              "present"
+            ]
+          },
+          "then": {
+            "properties": {
+              "inventory": {
+                "maxProperties": 0
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "excludes": {
+          "items": {
+            "$ref": "#/$defs/SelectionRelation"
+          },
+          "title": "Excludes",
+          "type": "array"
+        },
+        "inventory": {
+          "additionalProperties": {
+            "items": {
+              "maxLength": 2048,
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/RuntimeInventorySlot"
+          },
+          "title": "Inventory",
+          "type": "object"
+        },
+        "kind": {
+          "const": "node-presence",
+          "title": "Kind",
+          "type": "string"
+        },
+        "present": {
+          "title": "Present",
+          "type": "boolean"
+        },
+        "requires": {
+          "items": {
+            "$ref": "#/$defs/SelectionRelation"
+          },
+          "title": "Requires",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "present"
+      ],
+      "title": "NodePresenceAlternative",
+      "type": "object"
     },
     "NodeType": {
       "description": "Structural resource kind, independent of its realization mechanism.",
@@ -19050,6 +19215,75 @@
       "title": "RuntimeInitProcess",
       "type": "object"
     },
+    "RuntimeInventoryAlternative": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "excludes": {
+          "items": {
+            "$ref": "#/$defs/SelectionRelation"
+          },
+          "title": "Excludes",
+          "type": "array"
+        },
+        "kind": {
+          "const": "runtime-inventory",
+          "title": "Kind",
+          "type": "string"
+        },
+        "references": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "References",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "requires": {
+          "items": {
+            "$ref": "#/$defs/SelectionRelation"
+          },
+          "title": "Requires",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "references"
+      ],
+      "title": "RuntimeInventoryAlternative",
+      "type": "object"
+    },
+    "RuntimeInventorySlot": {
+      "description": "Reviewed write permission; runtime registration alone grants no writes.",
+      "enum": [
+        "nodes.runtime.service_listeners",
+        "nodes.runtime.applications",
+        "nodes.runtime.database_services",
+        "nodes.runtime.dns_services",
+        "nodes.runtime.identity_authorities",
+        "nodes.runtime.file_services",
+        "nodes.runtime.mail_services",
+        "nodes.runtime.network_sensors",
+        "nodes.runtime.network_detection_engines",
+        "nodes.runtime.security_monitoring_managers",
+        "nodes.runtime.ssh_servers",
+        "nodes.runtime.app_authorizations",
+        "nodes.runtime.scheduled_jobs",
+        "nodes.runtime.datastore_services",
+        "nodes.runtime.platform_applications",
+        "nodes.runtime.forwarding_agents",
+        "nodes.runtime.orchestration_authorities"
+      ],
+      "title": "RuntimeInventorySlot",
+      "type": "string"
+    },
     "RuntimeListenerAddressFamily": {
       "description": "Address family observed for a runtime listener.",
       "enum": [
@@ -26933,6 +27167,41 @@
         "semantic_ref"
       ],
       "title": "StringPredicate",
+      "type": "object"
+    },
+    "StructuralTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "structural",
+          "title": "Kind",
+          "type": "string"
+        },
+        "owner": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Owner",
+          "type": "string"
+        },
+        "slot": {
+          "anyOf": [
+            {
+              "const": "nodes.presence",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/RuntimeInventorySlot"
+            }
+          ],
+          "title": "Slot"
+        }
+      },
+      "required": [
+        "kind",
+        "owner",
+        "slot"
+      ],
+      "title": "StructuralTarget",
       "type": "object"
     },
     "SubjectQuantifier": {
