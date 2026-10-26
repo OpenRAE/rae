@@ -34,7 +34,7 @@ with the run. See [SDL run records](https://github.com/OpenRAE/rae/blob/main/doc
 for the contract and setup.
 
 Backends can report unplanned children and later inventory changes through the
-[runtime descendant contract](../explain/reference/runtime-descendant-inventory.md).
+[runtime descendant contract](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/runtime-descendant-inventory.md).
 It preserves the original scenario and runtime-owned provenance.
 
 The optional operation-supervision profile defines requests, progress,
