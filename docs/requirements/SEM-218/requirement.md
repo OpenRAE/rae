@@ -21,6 +21,8 @@ Current state: identified gap. Honest portability requires normative semantics f
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_issue_1638_credential_realization_observations.py` (Observed OPEN, constrained and EXACT values with account credentials)
+
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/parameter_derivations.py` (Public typed parameter derivations and finite interpolation images)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_phase_base.py` (Immutable phase records and JSON scalar equality)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_scenario_instantiation.py` (Selected output and whole-field provenance admission)
