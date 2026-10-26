@@ -100,10 +100,10 @@ def _validate_record_capture_identity(
     requirement: ExperimentCaptureRequirementModel,
     record: ExperimentEvidenceRecordModel,
 ) -> None:
-    if (
-        record.capture_spec_ref.ref_id != capture_spec.capture_spec_id
-        or record.capture_spec_ref.ref_version != capture_spec.spec_version
-    ):
+    capture_reference = ExperimentReferenceModel(
+        ref_kind="capture-spec", ref_id=capture_spec.capture_spec_id, ref_version=capture_spec.spec_version
+    )
+    if not _reference_satisfies_requirement(capture_reference, record.capture_spec_ref):
         raise ValueError("evidence record capture_spec_ref does not match the supplied capture spec")
     if record.capture_requirement_ref != requirement.requirement_id:
         raise ValueError("evidence record capture_requirement_ref does not match the capture requirement")
