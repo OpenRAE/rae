@@ -27,6 +27,14 @@ from raes_conformance.conformance.snapshot_semantics import (
 from raes_conformance.conformance.validators import _SEMANTIC_CONTEXT_REQUIRED_CONTRACTS, _validate_payload
 
 _SEMANTIC_CONTEXT_REQUIRED_MESSAGES = {
+    **dict.fromkeys(
+        (
+            "participant-control-context-asset-v1",
+            "participant-control-context-change-v1",
+            "participant-control-context-record-v1",
+        ),
+        "Full control-context conformance requires trusted version, lifecycle, authority, recipient, cut and content inputs; fixture validation is structural only",
+    ),
     "associated-artifact-manifest-v1": (
         "full associated-artifact conformance requires a concrete parent and bounded byte readers; "
         "the generic fixture runner establishes structural validity only"
@@ -168,7 +176,10 @@ def _fixture_case_diagnostics(contract_name: str, payload: object) -> list[Diagn
                 code="conformance.semantic-context-required",
                 domain="conformance",
                 address="#",
-                message=_SEMANTIC_CONTEXT_REQUIRED_MESSAGES[contract_name],
+                message=_SEMANTIC_CONTEXT_REQUIRED_MESSAGES.get(
+                    contract_name,
+                    "Full conformance requires trusted semantic context; fixture validation is structural only",
+                ),
                 severity=Severity.ERROR,
             )
         ]
