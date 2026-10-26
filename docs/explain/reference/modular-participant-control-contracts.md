@@ -94,6 +94,140 @@ claim RUN-320 adoption or backend realization. The
 [migration contract](../../migration/control-applicability-and-evaluation.md)
 specifies exact reader/protocol negotiation and retained-history treatment.
 
+## Reference runtime v2 evaluation
+
+`ParticipantControlRuntimeBinding` explicitly selects either the retained v1
+protocol or v2. A v2 binding pins both published contract-content digests and
+the complete `ParticipantControlSelectionV2Model`. Its `stages` map contains
+one `ParticipantControlStageBinding` per admitted slot: the safe unavailable
+projection descriptor, authorized state commit condition (`evaluation` or
+`parent-release`, or no write), and any same-instance tentative-state
+predecessor. That predecessor must also be a declared slot dependency.
+
+`ParticipantControlRuntimeResolverV2` resolves total exact-cut coverage and
+requirement-relative support, then authorizes each stage projection. Its
+`projection(request, slot_id, predecessors)` independently verifies predecessor
+facts and disclosure authority and materializes those exact detached inputs
+behind a scoped content-addressed reference. The installed provider resolves
+that reference through its own explicitly bound content resolver. Shared ambient
+lookup is not an input contract. `validation_context` independently supplies the
+API-424 v2 owner facts, including state-write and commit-timing authorization.
+
+The runtime traverses the admitted slot DAG, including A → B → A. Inputs bind
+predecessor result identities/digests and committed or declared tentative state.
+The required dependency closure finishes before optional work, so optional
+result IDs cannot reserve a future mandatory identity. Colliding optional IDs
+become uniquely identified safe loss records. Blocked descriptors account for missing work and are not evidence a provider
+ran. Calls use the existing execution adapter and supervision limits. Its
+single-slot resolution lane retains physical occupancy after timeout while
+leaving effect, control and store capacity available. No late result can commit;
+shutdown still requires physical drain. This is not provider sandboxing or hard
+cancellation.
+
+Every callback is fenced against re-entry and the original snapshot revision,
+owner generation and stop state are checked after external work. All shared
+state is represented in the same snapshot, so its original global CAS covers
+run, participant and episode scopes. Competing writers need an explicit serial
+chain; optional competing candidates are discarded with loss evidence.
+Refused parents retain only independently authorized evaluation-state changes.
+
+The immutable v2 evaluation, accepted state proposals, coverage, result and
+intent digests, causal consumption, operation and audit join the incumbent
+atomic participant transition. Providers supply `commit.status="prepared"`.
+The transaction seals only newly appended v2 records as `committed`, binding the
+actual operation receipt, admitted intent digests and dispatchable IDs before
+publication. Store readback establishes durable acceptance; existing prepared
+history is never upgraded. A failed or uncertain commit permits no dispatch or
+disclosure. Committed evaluations remain immutable.
+
+History readers select the recorded v1/v2 discriminator. SQLite reader version
+8 admits the new interpretation while preserving legacy bytes, claims and
+budgets. Valid retained evaluations consume attempts across interpretation
+changes; v2 shared causal roots include all participant histories in this store,
+including later v1 work after a binding change.
+V2 executable effects require an installed owner at admission and a fresh,
+bounded owner-input resolution at dispatch. Required unsupported combinations
+block the parent; optional unsupported contributions become lost advice. V1
+records keep their original interpretation. Fresh legacy parent-targeted deny
+and withhold are enforced before execution, regardless of their phase label.
+No v2 effect becomes a v1 request.
+
+### Governed v2 effect execution (#1369)
+
+`dispatch_participant_control_effects` uses the originating operation principal,
+actor-scoped logical claims and the existing operation store. The supported
+subset is:
+
+| Target | Owner and observed outcome |
+| --- | --- |
+| `handoff` | The exact compiled transition and both controller identities, through `record_participant_control`. |
+| `inject` | The target pins the complete typed `world_request` (plan, bindings, input, placement/slot, head, request and occurrence identities). `submit_inject` submits that exact request, and missing v2 pins refuse admission. Applied requires the world's validated outcome and evidence. An optional delivery application uses `deliver_participant_inject` separately; a disclosure failure cannot undo or repeat the world effect. |
+| `interrupt` / `cancel` / `execution` | An exact revisioned attempt through an installed cancellation policy, `record_participant_control` and `dispatch_participant_cancellation`. Prevention is applied; completion wins as too late; missing cessation proof remains indeterminate. |
+
+An absent `world_request` stays omitted when historical inject evidence is serialized, preserving its original canonical digests. New v2 producer/consumer bindings must negotiate the updated exact schema content pins. Delivery inputs also bind the exact participant, episode, delivery address and digest before any world dispatch.
+
+A resolver input cannot install a missing owner. Other target/operation
+combinations refuse during required-slot admission. Owner calls still enforce
+current authority, exact participant specification/transition, target scope, policy, evidence and time. The drain caller
+lends no authority. Eligible committed cancellations get a bounded supervisory pass independently
+of ordinary or historical backlog. Ordinary effects keep their normal claim
+exclusion and remain available for the next ordinary pass.
+Each drain attempts that ordinary pass after leaving supervision, even when
+cancellation remains unsupported or indeterminate; the incumbent mutation and
+recovery barriers still apply.
+
+Required predecessors leave their original parent refused. Their exact applied
+receipt may satisfy a fresh-cut evaluation of the same parent subject, episode
+and causal root. Parent admission and application prerequisites join distinct
+owner-observed facts; a new immutable admission record retains those receipts.
+Rejected control transitions supply no admission receipt. Cancellation
+acceptance supplies admission only; application requires the cancellation
+owner's evidenced prevention, never generic operation success.
+An optional typed `continuation` pins the original evaluation, its commit
+receipt and exact realized claims. It lets a dependent effect become runnable
+after its predecessor applies, including after restart, without changing the
+original request, provider results, logical keys or budgets. Each new admission
+revalidates independently resolved effect authority and canonical owner context.
+Before admitting new continuation keys, the runtime also folds current shared
+root consumption, including intervening evaluations, and checks effect and
+per-rule firing limits. Replays add no charge. Every pending owner call checks
+current effect approval again, including unchanged plans, retained
+continuations and fallback after a refused promotion. A stored admission is
+historical evidence, not continuing permission to execute.
+Ordinary fresh-evaluation validation cannot accept a continuation without its
+exact committed source. Absent continuation fields stay omitted in historical
+serialization; consumers negotiate the updated v2 schema pin.
+Authorized independent effects may survive a complete parent denial or
+withhold, while missing mandatory coverage or support grants no effect.
+
+The trigger commit, effect claim, owner operation and typed realization receipt
+are separate durable records. Owner operations name their effect claim as
+parent. `ControlRealizationBindingModel` is validated on claim construction and
+reopen; outcome publication and its bounded audit share the incumbent atomic
+transition. A failed effect consumes its budget. Unknown dispatch is observed
+through its owner's ledger and is never blindly repeated. Owner re-entry must
+preserve the causal root and increase depth. Exact replay retains the original
+identities and receipts across restart.
+Accepted cancellations resume delivery through the cancellation owner's
+existing control ledger after an interruption. The same control identity and
+one-use delivery rules prevent another backend cancellation; acceptance alone
+still supplies no application evidence.
+
+Public-provider witnesses are `test_issue_1369_governed_effects.py`,
+`test_issue_1369_effect_recovery.py`, `test_issue_1369_effect_continuations.py`
+and `test_issue_1369_cancellation_effects.py`.
+Additional regressions are `test_issue_1369_continuation_limits.py`,
+`test_issue_1369_deferred_authority.py` and `test_issue_1369_cancel_recovery.py`.
+They use synthetic installed owners and do not establish distributed atomicity,
+external exactly-once execution or production provider conformance.
+
+The public-runtime witnesses are
+[`test_issue_1069_provider_evaluation_v2.py`](../../../implementations/python/tests/test_issue_1069_provider_evaluation_v2.py):
+disjoint ingress/egress under unchanged apparatus, content-sensitive A → B → A,
+required dependency/support loss, optional failures and timeout, serial/conflicting
+state, stale callbacks, failed commits, and mixed durable replay. Synthetic
+providers establish runtime behavior only, not production mechanism support.
+
 ## Validation and authority
 
 ```python
@@ -359,3 +493,12 @@ not runtime-delivery claims.
 - [x] RUN-320: a known outcome closes its claim and appends its realization in one commit → `implementations/python/packages/raes_runtime/participant_control_records.py:52`.
 - [x] SEM-235: one definition of what a composition admits serves every consumer → `implementations/python/packages/raes_contracts/contracts/participant_control_composition.py:363`.
 - [x] RUN-320: the implicit SEM-233 resolver hook is replaced by an explicitly selected adapter → `implementations/python/packages/raes_runtime/control_plane_composition.py:38`.
+
+## Finite owner-qualified IFC profiles
+
+Issue #1370 publishes a separate, exact two-owner profile and provider/v2
+IFC facts with profile-owned obligations and admitted support promises. See
+[owner-qualified IFC](owner-qualified-ifc.md) for token meanings, trusted source/sink
+and per-obligation release resolution, negotiation, migration and exact limits.
+The original security profile is unchanged. Publication does not install a
+provider or imply external release realization.

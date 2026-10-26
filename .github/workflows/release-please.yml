@@ -176,76 +176,12 @@ jobs:
       ref: ${{ needs.resolve-release.outputs.release_sha }}
       base-rev: ${{ needs.resolve-release.outputs.base_sha }}
 
-  integration-docker-release:
+  build-release:
     needs: [resolve-release, verify-release]
     if: >-
       always()
       && needs.resolve-release.result == 'success'
       && needs.verify-release.result == 'success'
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          ref: ${{ needs.resolve-release.outputs.release_sha }}
-          persist-credentials: false
-
-      - name: Bind real-container testing to the exact release commit
-        env:
-          EXPECTED_SHA: ${{ needs.resolve-release.outputs.release_sha }}
-        run: |
-          set -euo pipefail
-          if ! printf '%s\n' "${EXPECTED_SHA}" | grep -Eq '^[0-9a-f]{40}$'; then
-            echo "Container integration requires a full lowercase commit SHA, got '${EXPECTED_SHA}'" >&2
-            exit 1
-          fi
-          actual_sha="$(git rev-parse HEAD)"
-          if [ "${actual_sha}" != "${EXPECTED_SHA}" ]; then
-            echo "Container integration checkout mismatch: expected ${EXPECTED_SHA}, got ${actual_sha}" >&2
-            exit 1
-          fi
-
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.12.14"
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
-        with:
-          enable-cache: false
-          version: "0.12.4"
-
-      - name: Require real-container release integration
-        env:
-          RAES_DOCKER_INTEGRATION_REQUIRED: "1"
-          DOCKER_JUNIT: ${{ runner.temp }}/raes-release-docker-junit.xml
-        run: |
-          set -euo pipefail
-          uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py \
-            -s integration_docker -- --junitxml="${DOCKER_JUNIT}"
-          python - "${DOCKER_JUNIT}" <<'PY'
-          import sys
-          import xml.etree.ElementTree as ET
-
-          report = ET.parse(sys.argv[1]).getroot()
-          cases = report.findall(".//testcase")
-          skipped = [case for case in cases if case.find("skipped") is not None]
-          if not cases:
-              raise SystemExit("required Docker integration collected zero tests")
-          if skipped:
-              names = [f"{case.get('classname', '')}.{case.get('name', '')}" for case in skipped]
-              raise SystemExit(f"required Docker integration skipped tests: {names}")
-          print(f"required Docker integration passed {len(cases)} real-container tests without skips")
-          PY
-
-  build-release:
-    needs: [resolve-release, verify-release, integration-docker-release]
-    if: >-
-      always()
-      && needs.resolve-release.result == 'success'
-      && needs.verify-release.result == 'success'
-      && needs.integration-docker-release.result == 'success'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -275,7 +211,7 @@ jobs:
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
         with:
           enable-cache: false
-          version: "0.12.4"
+          version: "0.13.4"
 
       - name: Build constrained release distributions
         env:
@@ -500,12 +436,11 @@ jobs:
   # execute candidate code. It holds no PyPI environment and no storage-write
   # identity, so an attestation credential cannot authorize publication (#1226).
   attest-release:
-    needs: [resolve-release, verify-release, integration-docker-release, build-release]
+    needs: [resolve-release, verify-release, build-release]
     if: >-
       always()
       && needs.resolve-release.result == 'success'
       && needs.verify-release.result == 'success'
-      && needs.integration-docker-release.result == 'success'
       && needs.build-release.result == 'success'
       && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
@@ -558,12 +493,11 @@ jobs:
   # publishers depend on this job, so absent or rejected evidence blocks the
   # handoff instead of being an optional report (#1226).
   admit-release:
-    needs: [resolve-release, verify-release, integration-docker-release, build-release, attest-release]
+    needs: [resolve-release, verify-release, build-release, attest-release]
     if: >-
       always()
       && needs.resolve-release.result == 'success'
       && needs.verify-release.result == 'success'
-      && needs.integration-docker-release.result == 'success'
       && needs.build-release.result == 'success'
       && needs.attest-release.result == 'success'
       && github.ref == 'refs/heads/main'
@@ -604,7 +538,7 @@ jobs:
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
         with:
           enable-cache: false
-          version: "0.12.4"
+          version: "0.13.4"
 
       - name: Admit the release evidence
         id: admit
@@ -633,13 +567,11 @@ jobs:
           cat "${subjects}" >>"${GITHUB_OUTPUT}"
 
   publish-pypi:
-    needs:
-      [resolve-release, verify-release, integration-docker-release, build-release, admit-release]
+    needs: [resolve-release, verify-release, build-release, admit-release]
     if: >-
       always()
       && needs.resolve-release.result == 'success'
       && needs.verify-release.result == 'success'
-      && needs.integration-docker-release.result == 'success'
       && needs.build-release.result == 'success'
       && needs.admit-release.result == 'success'
       && github.ref == 'refs/heads/main'

@@ -1,9 +1,9 @@
 {
-  "content_hash": "3f34517cdf61a03d89ce9b106d0ba4b1762c463531fc9ac77c67fe86fd8c5359",
+  "content_hash": "4b94dc25a20d8d8ad78b93b71f84a3592476dd0a3a684c43199ebae9ab293e7e",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "3f34517cdf61a03d89ce9b106d0ba4b1762c463531fc9ac77c67fe86fd8c5359",
-    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve optional empty selectors for unscoped bindings (ACT-619, issue #301)."
+    "content_hash": "4b94dc25a20d8d8ad78b93b71f84a3592476dd0a3a684c43199ebae9ab293e7e",
+    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and the current structural variation and runtime descendant contracts (ACT-619, issue #301)."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

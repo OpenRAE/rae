@@ -2,7 +2,61 @@
 
 from __future__ import annotations
 
+from ._reference_targetability import ReferencePurpose, reference_domain
 from .participant_relationships import PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS
+from .variation import COLLECTION_TARGET_SPECS, REFERENCE_TARGET_SPECS, STRUCTURAL_TARGET_SPECS, TIMING_TARGET_SPECS
+
+_OBJECTIVE_SUBJECT = reference_domain(ReferencePurpose.OBJECTIVE_SUBJECT)
+_ACTION_TARGET = reference_domain(ReferencePurpose.ACTION_TARGET)
+_SHARED_STATE = reference_domain(ReferencePurpose.SHARED_STATE)
+_OBSERVATION_SUBJECT = reference_domain(ReferencePurpose.OBSERVATION_SUBJECT)
+_AUTHORITY_ANCHOR = reference_domain(ReferencePurpose.AUTHORITY_ANCHOR)
+_AUTHORITY_SCOPE = reference_domain(ReferencePurpose.AUTHORITY_SCOPE)
+_OPERATING_SCOPE = reference_domain(ReferencePurpose.OPERATING_SCOPE)
+_DERIVED_COMPLETION_DOMAINS = {
+    "derived:controller_authority_anchors": _AUTHORITY_ANCHOR,
+    "derived:behavior-and-controller-scope": _AUTHORITY_SCOPE,
+}
+
+
+def reference_completion_target(path: list[str], field: str) -> str | None:
+    """Select the same field-purpose domain for completion and reference navigation."""
+
+    if (
+        len(path) >= 6
+        and path[0] == "behavior_specifications"
+        and path[2] == "participant_inject_deliveries"
+        and path[4] == "control"
+        and field == "evidence_refs"
+    ):
+        return reference_domain(ReferencePurpose.TARGETABLE)
+    target = REFERENCE_COMPLETION_TARGETS.get((path[0], field))
+    return _DERIVED_COMPLETION_DOMAINS.get(target, target) if target is not None else None
+
+
+# Relationship subtypes narrow this domain; the language service selects the subtype purpose.
+RELATIONSHIP_ENDPOINT_DOMAIN = reference_domain(ReferencePurpose.RELATIONSHIP_ENDPOINT)
+
+# A variation point's owner resolves in its target slot's owner section, and a candidate
+# (`reference` or governed `allowed_refs` entry) where the slot's candidates do; the
+# language service selects them from the authored slot.
+VARIATION_OWNER_TARGETS = {
+    slot.value: spec[0]
+    for specs in (REFERENCE_TARGET_SPECS, COLLECTION_TARGET_SPECS, TIMING_TARGET_SPECS)
+    for slot, spec in specs.items()
+}
+VARIATION_CANDIDATE_TARGETS = {
+    slot.value: target
+    for specs in (REFERENCE_TARGET_SPECS, COLLECTION_TARGET_SPECS)
+    for slot, (_owner, target) in specs.items()
+}
+VARIATION_OWNER_TARGETS.update({slot: spec[0] for slot, spec in STRUCTURAL_TARGET_SPECS.items()})
+VARIATION_SLOT_TARGETS = {
+    "owner": VARIATION_OWNER_TARGETS,
+    "reference": VARIATION_CANDIDATE_TARGETS,
+    "allowed_refs": VARIATION_CANDIDATE_TARGETS,
+    "references": {slot: spec[1] for slot, spec in STRUCTURAL_TARGET_SPECS.items()},
+}
 
 REFERENCE_COMPLETION_TARGETS = {
     **{
@@ -10,8 +64,8 @@ REFERENCE_COMPLETION_TARGETS = {
         for field, section in PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS.items()
         if section != "named"
     },
-    ("relationships", "authority_basis_refs"): "any",
-    ("relationships", "scope_refs"): "targetable",
+    ("relationships", "authority_basis_refs"): _AUTHORITY_ANCHOR,
+    ("relationships", "scope_refs"): _OPERATING_SCOPE,
     ("relationships", "control_specification_ref"): "behavior_specifications",
     ("nodes", "features"): "features",
     ("nodes", "conditions"): "conditions",
@@ -20,7 +74,7 @@ REFERENCE_COMPLETION_TARGETS = {
     ("infrastructure", "dependencies"): "infrastructure",
     ("features", "dependencies"): "features",
     ("conditions", "proposition"): "propositions",
-    ("propositions", "subjects"): "targetable",
+    ("propositions", "subjects"): _OBSERVATION_SUBJECT,
     ("propositions", "evidence_requirements"): "evidence_requirements",
     ("assertions", "proposition"): "propositions",
     ("events", "assertions"): "assertions",
@@ -42,8 +96,8 @@ REFERENCE_COMPLETION_TARGETS = {
     ("identity_facades", "service_ref"): "targetable",
     ("deployment_cells", "tenant_ref"): "deployment_tenants",
     ("deployment_cells", "node_refs"): "nodes",
-    ("relationships", "source"): "targetable",
-    ("relationships", "target"): "targetable",
+    ("relationships", "source"): RELATIONSHIP_ENDPOINT_DOMAIN,
+    ("relationships", "target"): RELATIONSHIP_ENDPOINT_DOMAIN,
     ("relationships", "controller_refs"): "nodes",
     ("relationships", "mutable_state_refs"): "persistent_volumes",
     ("agents", "affiliations"): "entities",
@@ -51,11 +105,20 @@ REFERENCE_COMPLETION_TARGETS = {
     ("agents", "starting_assertions"): "assertions",
     ("agents", "target_ref"): "nodes",
     ("agents", "account_ref"): "accounts",
+    ("agents", "authority_anchors"): _AUTHORITY_ANCHOR,
+    ("agents", "operating_scope"): _OPERATING_SCOPE,
+    ("action_contracts", "target"): _ACTION_TARGET,
+    ("action_contracts", "shared_state_refs"): _SHARED_STATE,
+    ("action_contracts", "target_refs"): _ACTION_TARGET,
     ("behavior_specifications", "participant_refs"): "agents",
     ("behavior_specifications", "action_contract_refs"): "action_contracts",
     ("behavior_specifications", "observation_boundary_refs"): "observation_boundaries",
     ("behavior_specifications", "outcome_interpretation_rule_refs"): "outcome_interpretation_rules",
-    ("behavior_specifications", "authority_scope_refs"): "targetable",
+    ("behavior_specifications", "authority_scope_refs"): _AUTHORITY_SCOPE,
+    ("behavior_specifications", "authority_basis_refs"): "derived:controller_authority_anchors",
+    ("behavior_specifications", "scope_refs"): "derived:behavior-and-controller-scope",
+    ("behavior_specifications", "evidence_refs"): reference_domain(ReferencePurpose.DECLARED),
+    ("behavior_specifications", "completion_evidence_refs"): reference_domain(ReferencePurpose.DECLARED),
     ("behavior_specifications", "tool_ref"): "content",
     ("behavior_specifications", "participant_ref"): "agents",
     ("behavior_specifications", "inject_ref"): "injects",
@@ -68,10 +131,10 @@ REFERENCE_COMPLETION_TARGETS = {
     ("behavior_specifications", "temporal_constraint_refs"): "temporal_constraints",
     ("behavior_specifications", "evidence_requirement_refs"): "evidence_requirements",
     ("behavior_specifications", "controller_ref"): "agents",
-    ("behavior_specifications", "control_authority_scope_refs"): "targetable",
+    ("behavior_specifications", "control_authority_scope_refs"): _AUTHORITY_SCOPE,
     ("behavior_specifications", "control_evidence_refs"): "targetable",
-    ("evidence_requirements", "source_refs"): "targetable",
-    ("evidence_requirements", "scope_refs"): "targetable",
+    ("evidence_requirements", "source_refs"): _OBSERVATION_SUBJECT,
+    ("evidence_requirements", "scope_refs"): _OBSERVATION_SUBJECT,
     ("evidence_requirements", "channel_refs"): "targetable",
     ("evidence_requirements", "trigger_ref"): "targetable",
     ("evidence_requirements", "boundary_ref"): "targetable",
@@ -80,11 +143,11 @@ REFERENCE_COMPLETION_TARGETS = {
     ("time_domain_mappings", "target_domain_ref"): "time_domains",
     ("time_progression_policies", "clock_ref"): "clocks",
     ("temporal_constraints", "clock_ref"): "clocks",
-    ("temporal_constraints", "subject_refs"): "targetable",
+    ("temporal_constraints", "subject_refs"): "declared",
     ("objectives", "assigned_participant"): "agents",
     ("objectives", "owner"): "entities",
     ("objectives", "actions"): "action_contracts",
-    ("objectives", "targets"): "targetable",
+    ("objectives", "targets"): _OBJECTIVE_SUBJECT,
     ("objectives", "depends_on"): "objectives",
     ("objectives", "assertions"): "assertions",
     ("injects", "from_entity"): "entities",

@@ -5,6 +5,8 @@ Part of the SemanticValidator mixin composition; see __init__.py.
 
 from collections import defaultdict
 
+from .._reference_targetability import ReferencePurpose
+
 
 class _RuntimePlatformMixin:
     def _verify_runtime_security_monitoring_managers(self) -> None:
@@ -194,7 +196,7 @@ class _RuntimePlatformMixin:
                 target_ref,
                 owner_label=definition_label,
                 ref_label="target_ref",
-                targetable=True,
+                purpose=ReferencePurpose.TARGETABLE,
             )
 
     def _verify_sm_settings(

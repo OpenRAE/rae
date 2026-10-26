@@ -806,6 +806,45 @@
       "title": "DifficultyVariantModel",
       "type": "object"
     },
+    "ExperimentAllocationPolicyModel": {
+      "additionalProperties": false,
+      "description": "One accepted procedure, separate from descriptive allocation_method.",
+      "properties": {
+        "algorithm_profile": {
+          "const": "fisher-yates-allocation-v1",
+          "title": "Algorithm Profile",
+          "type": "string"
+        },
+        "kind": {
+          "const": "randomized",
+          "title": "Kind",
+          "type": "string"
+        },
+        "policy_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Policy Id",
+          "type": "string"
+        },
+        "stochastic_control_ref": {
+          "minLength": 1,
+          "title": "Stochastic Control Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "policy_id",
+        "algorithm_profile",
+        "stochastic_control_ref"
+      ],
+      "title": "ExperimentAllocationPolicyModel",
+      "type": "object"
+    },
     "ExperimentApparatusConstraintModel": {
       "additionalProperties": false,
       "anyOf": [
@@ -1429,6 +1468,16 @@
           "required": [
             "required_parameters"
           ]
+        },
+        {
+          "properties": {
+            "required_bindings": {
+              "minItems": 1
+            }
+          },
+          "required": [
+            "required_bindings"
+          ]
         }
       ],
       "description": "Concrete treatment-condition assignment criteria for study evaluation runs.",
@@ -1485,6 +1534,14 @@
           },
           "title": "Factor Levels",
           "type": "object"
+        },
+        "required_bindings": {
+          "items": {
+            "$ref": "#/$defs/ExperimentBindingDescriptorModel"
+          },
+          "maxItems": 256,
+          "title": "Required Bindings",
+          "type": "array"
         },
         "required_parameters": {
           "items": {
@@ -1977,6 +2034,147 @@
         "ref_id"
       ],
       "title": "ExperimentEvidenceSatisfactionReferenceModel",
+      "type": "object"
+    },
+    "ExperimentFactorLevelBindingModel": {
+      "additionalProperties": false,
+      "description": "An owner-bound value template; generated descriptors own condition joins.",
+      "properties": {
+        "owner": {
+          "$ref": "#/$defs/BindingOwnerModel"
+        },
+        "target": {
+          "discriminator": {
+            "mapping": {
+              "participant-implementation": "#/$defs/ParticipantImplementationBindingTargetModel",
+              "scenario": "#/$defs/ScenarioBindingTargetModel"
+            },
+            "propertyName": "plane"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ScenarioBindingTargetModel"
+            },
+            {
+              "$ref": "#/$defs/ParticipantImplementationBindingTargetModel"
+            }
+          ],
+          "title": "Target"
+        },
+        "value": {
+          "discriminator": {
+            "mapping": {
+              "literal": "#/$defs/LiteralBindingValueModel",
+              "secret-reference": "#/$defs/SecretReferenceBindingValueModel"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LiteralBindingValueModel"
+            },
+            {
+              "$ref": "#/$defs/SecretReferenceBindingValueModel"
+            }
+          ],
+          "title": "Value"
+        },
+        "value_type": {
+          "$ref": "#/$defs/BindingScalarType"
+        }
+      },
+      "required": [
+        "target",
+        "value_type",
+        "value",
+        "owner"
+      ],
+      "title": "ExperimentFactorLevelBindingModel",
+      "type": "object"
+    },
+    "ExperimentFactorialDesignModel": {
+      "additionalProperties": false,
+      "description": "Explicit crossed dimensions; nonparticipating factors remain descriptive.",
+      "properties": {
+        "condition_bound": {
+          "maximum": 10000,
+          "minimum": 1,
+          "title": "Condition Bound",
+          "type": "integer"
+        },
+        "factor_ids": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Factor Ids",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "level_bindings": {
+          "maxProperties": 16,
+          "minProperties": 1,
+          "patternProperties": {
+            "^[a-z0-9]": {
+              "maxProperties": 64,
+              "minProperties": 1,
+              "patternProperties": {
+                "^[a-z0-9]": {
+                  "items": {
+                    "$ref": "#/$defs/ExperimentFactorLevelBindingModel"
+                  },
+                  "maxItems": 16,
+                  "minItems": 1,
+                  "type": "array"
+                }
+              },
+              "propertyNames": {
+                "maxLength": 64,
+                "minLength": 1,
+                "not": {
+                  "pattern": "[^a-z0-9_-]"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            }
+          },
+          "title": "Level Bindings",
+          "type": "object"
+        },
+        "profile": {
+          "const": "factorial-bindings-v1",
+          "title": "Profile",
+          "type": "string"
+        },
+        "target_runs_per_condition": {
+          "maximum": 999999,
+          "minimum": 1,
+          "title": "Target Runs Per Condition",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "profile",
+        "factor_ids",
+        "level_bindings",
+        "target_runs_per_condition",
+        "condition_bound"
+      ],
+      "title": "ExperimentFactorialDesignModel",
       "type": "object"
     },
     "ExperimentFixedSelectionPolicyModel": {
@@ -2735,6 +2933,16 @@
           "required": [
             "target_run_count"
           ]
+        },
+        {
+          "properties": {
+            "allocation": {
+              "type": "null"
+            },
+            "target_run_count": {
+              "type": "null"
+            }
+          }
         }
       ],
       "properties": {
@@ -2742,6 +2950,17 @@
           "anyOf": [
             {
               "$ref": "#/$defs/ExperimentRunAllocationPlanModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "allocation_policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentAllocationPolicyModel"
             },
             {
               "type": "null"
@@ -2801,6 +3020,17 @@
           },
           "title": "Red Variant Selections",
           "type": "object"
+        },
+        "replacement_policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TrialReplacementPolicyModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "selection_policies": {
           "additionalProperties": {
@@ -4509,6 +4739,89 @@
       ],
       "title": "SecretReferenceBindingValueModel",
       "type": "object"
+    },
+    "TrialReplacementPolicyModel": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "replace_on": {
+                "minItems": 1
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "max_replacements": {
+                "const": 0
+              }
+            },
+            "required": [
+              "max_replacements"
+            ]
+          },
+          "then": {
+            "properties": {
+              "replace_on": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ],
+      "description": "Additional trials per original allocation slot, never an attempt budget.",
+      "properties": {
+        "max_replacements": {
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Max Replacements",
+          "type": "integer"
+        },
+        "replace_on": {
+          "items": {
+            "enum": [
+              "failed",
+              "invalidated"
+            ],
+            "type": "string"
+          },
+          "maxItems": 2,
+          "title": "Replace On",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "schema_version": {
+          "const": "trial-replacement-policy/v1",
+          "default": "trial-replacement-policy/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "max_replacements",
+        "replace_on"
+      ],
+      "title": "TrialReplacementPolicyModel",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Replacement triggers are unique; a positive additional-trial bound requires selected triggers, and zero requires none. Omission supplies no allocation permission.",
+          "id": "trial-replacement-policy-explicit-and-bounded",
+          "inputs": [
+            {
+              "contract_id": "experiment-authoring-input-v1",
+              "instance_path": "#/run_plan/replacement_policy"
+            },
+            {
+              "contract_id": "admitted-trial-plan-v1",
+              "instance_path": "#/replacement_policy"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.trial_replacement.TrialReplacementPolicyModel._validate_policy"
+        }
+      ]
     }
   },
   "$id": "https://openrae.github.io/rae/schemas/experiment-authoring-input-v1.json",
@@ -4518,12 +4831,64 @@
     {
       "if": {
         "properties": {
-          "binding_semantics": {
-            "const": "explicit-required"
+          "factorial_design": {
+            "type": "null"
           }
-        },
-        "required": [
-          "binding_semantics"
+        }
+      },
+      "then": {
+        "properties": {
+          "run_plan": {
+            "anyOf": [
+              {
+                "properties": {
+                  "allocation": {
+                    "not": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "required": [
+                  "allocation"
+                ]
+              },
+              {
+                "properties": {
+                  "target_run_count": {
+                    "not": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "required": [
+                  "target_run_count"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "allOf": [
+          {
+            "properties": {
+              "binding_semantics": {
+                "const": "explicit-required"
+              }
+            },
+            "required": [
+              "binding_semantics"
+            ]
+          },
+          {
+            "properties": {
+              "factorial_design": {
+                "type": "null"
+              }
+            }
+          }
         ]
       },
       "then": {
@@ -4613,6 +4978,17 @@
       "title": "Description",
       "type": "string"
     },
+    "factorial_design": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExperimentFactorialDesignModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "factors": {
       "additionalProperties": {
         "$ref": "#/$defs/ExperimentStudyFactorModel"
@@ -4693,6 +5069,18 @@
       "validator": "raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec"
     },
     {
+      "description": "In every binding posture, each condition assignment must reference a factor and level declared by the containing experiment spec. Authors define these local declarations; no domain catalog is required.",
+      "id": "experiment-spec-condition-factor-levels-declared",
+      "inputs": [
+        {
+          "contract_id": "experiment-authoring-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec"
+    },
+    {
       "description": "Explicit bindings must cover every compared condition and resolve exact declared factor levels.",
       "id": "experiment-binding-source-joins-valid",
       "inputs": [
@@ -4727,6 +5115,18 @@
       ],
       "level": "error",
       "validator": "raes_contracts.contracts.ExperimentSpecModel._validate_selection_factor_joins"
+    },
+    {
+      "description": "Factorial intent resolves exact declared levels, bounded Cartesian output, collision-free bindings, and matching supplied materializations before authoring admission.",
+      "id": "experiment-factorial-generation-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-authoring-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.ExperimentSpecModel._expand_factorial"
     },
     {
       "description": "Prospective run-scoped evidence requirement relations must identify this exact authoring input and its intended scenario snapshot.",

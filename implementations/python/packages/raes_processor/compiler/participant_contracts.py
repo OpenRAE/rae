@@ -23,7 +23,7 @@ from .addresses import (
     _outcome_interpretation_rule_address,
     _workflow_address,
 )
-from .alias_index import _runtime_addressable_ref_index
+from .alias_index import _runtime_visibility_reference_index
 from .support import _dedupe, _dump
 from .view_relations import (
     _boundary_reference_aliases,
@@ -139,9 +139,7 @@ def _compile_action_contracts(scenario: InstantiatedScenario) -> dict[str, Parti
 
 def _compile_observation_boundaries(scenario: InstantiatedScenario) -> dict[str, ParticipantObservationBoundaryRuntime]:
     observation_boundaries: dict[str, ParticipantObservationBoundaryRuntime] = {}
-    address_index = _runtime_addressable_ref_index(scenario)
-    for address in {address for matches in address_index.values() for address in matches}:
-        address_index.setdefault(address, set()).add(address)
+    address_index = _runtime_visibility_reference_index(scenario)
     aliases_by_address = _visibility_aliases_by_address(address_index)
     for name, boundary in scenario.observation_boundaries.items():
         boundary_spec = _dump(boundary)

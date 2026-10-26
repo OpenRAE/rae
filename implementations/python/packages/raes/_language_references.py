@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Collection
+from collections.abc import Collection, Iterator, Mapping
+from dataclasses import dataclass
 from typing import Any
 
 from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
@@ -10,12 +11,39 @@ from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
 from ._declarations import DeclarationIndex
 from ._errors import SDLParseError
 from ._identifiers import QualifiedName
+from ._language_context import EndpointPurposes, PurposeResolver
+from ._language_definitions import indexed_definitions
 from ._language_diagnostics import parse_error as _parse_error
-from ._language_metadata import REFERENCE_COMPLETION_TARGETS
-from ._reference_targetability import is_targetable_section
+from ._language_metadata import RELATIONSHIP_ENDPOINT_DOMAIN, VARIATION_SLOT_TARGETS, reference_completion_target
+from ._language_structural_variation import inventory_reference_admitted, inventory_reference_scope
+from ._reference_targetability import ReferencePurpose, purposes_for_domain, reference_domain
 from ._yaml_loader import compose_sdl_yaml
 
 _SUCCESS_REFERENCE_TARGETS = frozenset({"assertions"})
+
+
+@dataclass(frozen=True)
+class _SymbolScope:
+    """The reference fields that may name one qualified symbol, per the shared policy."""
+
+    section: str
+    endpoint_purposes: EndpointPurposes
+    variation_slots: Mapping[str, str]
+    variation_targets: dict[str, Any]
+    address: str | None = None
+    resolver: PurposeResolver | None = None
+
+    def admits(self, value: str, target: str | None, spellings: Collection[str]) -> bool:
+        purposes = purposes_for_domain(target) if target is not None else None
+        if purposes is None:
+            # A section-typed field resolves within its own section.
+            return target == self.section and value in spellings
+        # An ambiguous, refused, or unindexed value names no declaration, so it is no occurrence of this one.
+        return (
+            self.resolver is not None
+            and self.address is not None
+            and self.resolver.resolve(value, purposes) == {self.address}
+        )
 
 
 def find_references(
@@ -24,8 +52,15 @@ def find_references(
     *,
     section_fields: Collection[str],
     declaration_index: DeclarationIndex | None = None,
+    resolver: PurposeResolver | None = None,
+    endpoint_purposes: EndpointPurposes | None = None,
 ) -> dict[str, Any]:
-    """Return definition and occurrence locations for an SDL symbol."""
+    """Return definition and occurrence locations for an SDL symbol.
+
+    A value in a purpose-bearing field is an occurrence of a qualified symbol
+    only when the *resolver* resolves it to exactly that declaration in its
+    index. *endpoint_purposes* holds each relationship endpoint's purposes.
+    """
     if not sdl_content.strip():
         result = {"status": "ok", "symbol": symbol, "definitions": [], "occurrences": []}
     else:
@@ -33,7 +68,14 @@ def find_references(
         result = (
             error
             if error is not None
-            else _reference_result(root, symbol, section_fields, declaration_index=declaration_index)
+            else _reference_result(
+                root,
+                symbol,
+                section_fields,
+                declaration_index=declaration_index,
+                resolver=resolver,
+                endpoint_purposes=endpoint_purposes or {},
+            )
         )
     return result
 
@@ -44,10 +86,17 @@ def _reference_result(
     section_fields: Collection[str],
     *,
     declaration_index: DeclarationIndex | None,
+    resolver: PurposeResolver | None,
+    endpoint_purposes: EndpointPurposes,
 ) -> dict[str, Any]:
     if root is None:
         return {"status": "ok", "symbol": symbol, "definitions": [], "occurrences": []}
     definitions = _collect_definitions(root, section_fields)
+    typed_index = declaration_index or (resolver.index if resolver is not None else None)
+    if typed_index is not None:
+        definitions = list(
+            {item["qualified_name"]: item for item in (*definitions, *indexed_definitions(root, typed_index))}.values()
+        )
     if declaration_index is not None:
         definitions = [
             definition
@@ -55,26 +104,72 @@ def _reference_result(
             if declaration_index.declaration_for(definition["qualified_name"]) is not None
         ]
     occurrences: list[dict[str, Any]] = []
-    spellings = (
-        declaration_index.spellings_for(symbol)
-        if declaration_index is not None
-        else frozenset({symbol, _bare_symbol(symbol)})
-    )
-    if declaration_index is not None and _is_variation_member_symbol(symbol):
-        spellings = frozenset({*spellings, _bare_symbol(symbol)})
-    _collect_occurrences(
-        root,
-        spellings,
-        [],
-        occurrences,
-        qualified_section=_qualified_symbol_section(symbol),
-    )
+    # Spellings come from the resolver's index, complete or partial, as completion's do.
+    spellings = _symbol_spellings(symbol, resolver)
+    scope = _symbol_scope(root, symbol, resolver, endpoint_purposes)
+    _collect_occurrences(root, spellings, [], occurrences, scope=scope)
     return {
         "status": "ok",
         "symbol": symbol,
         "definitions": [item for item in definitions if _definition_matches_symbol(item, symbol)],
         "occurrences": occurrences,
     }
+
+
+def _symbol_spellings(symbol: str, resolver: PurposeResolver | None) -> frozenset[str]:
+    spellings = frozenset({symbol, _bare_symbol(symbol)}) if resolver is None else resolver.index.spellings_for(symbol)
+    if resolver is not None and _is_variation_member_symbol(symbol):
+        spellings = frozenset({*spellings, _bare_symbol(symbol)})
+    return spellings
+
+
+def _symbol_scope(
+    root: Node, symbol: str, resolver: PurposeResolver | None, endpoint_purposes: EndpointPurposes
+) -> _SymbolScope | None:
+    section = _qualified_symbol_section(symbol)
+    if section is None:
+        return None
+    declaration = resolver.index.declaration_for(symbol) if resolver is not None else None
+    return _SymbolScope(
+        section=section,
+        endpoint_purposes=endpoint_purposes,
+        variation_slots=_variation_slots(root),
+        variation_targets=_variation_targets(root),
+        address=declaration.address if declaration is not None else None,
+        resolver=resolver,
+    )
+
+
+def _section_entries(root: Node, section: str) -> Iterator[tuple[str, MappingNode]]:
+    entries = _mapping_child(root, section) if isinstance(root, MappingNode) else None
+    for key_node, value_node in entries.value if isinstance(entries, MappingNode) else ():
+        name = _scalar_value(key_node)
+        if name is not None and isinstance(value_node, MappingNode):
+            yield name, value_node
+
+
+def _variation_targets(root: Node) -> dict[str, Any]:
+    points = {}
+    for name, node in _section_entries(root, "variation_points"):
+        target = _mapping_child(node, "target")
+        if isinstance(target, MappingNode):
+            points[name] = {
+                "target": {
+                    _scalar_value(key): _scalar_value(value)
+                    for key, value in target.value
+                    if isinstance(value, ScalarNode)
+                }
+            }
+    return {"variation_points": points}
+
+
+def _variation_slots(root: Node) -> dict[str, str]:
+    slots: dict[str, str] = {}
+    for name, node in _section_entries(root, "variation_points"):
+        target = _mapping_child(node, "target")
+        slot = _mapping_child(target, "slot") if isinstance(target, MappingNode) else None
+        slots[name] = (_scalar_value(slot) if slot is not None else None) or ""
+    return slots
 
 
 def _compose_yaml(sdl_content: str) -> tuple[Node | None, dict[str, Any] | None]:
@@ -161,7 +256,7 @@ def _collect_occurrences(
     path: list[str],
     occurrences: list[dict[str, Any]],
     *,
-    qualified_section: str | None,
+    scope: _SymbolScope | None,
 ) -> None:
     if isinstance(node, MappingNode):
         _collect_mapping_occurrences(
@@ -169,7 +264,7 @@ def _collect_occurrences(
             spellings,
             path,
             occurrences,
-            qualified_section=qualified_section,
+            scope=scope,
         )
         return
 
@@ -179,7 +274,7 @@ def _collect_occurrences(
             spellings,
             path,
             occurrences,
-            qualified_section=qualified_section,
+            scope=scope,
         )
         return
 
@@ -189,7 +284,7 @@ def _collect_occurrences(
             spellings,
             path,
             occurrences,
-            qualified_section=qualified_section,
+            scope=scope,
         )
 
 
@@ -199,7 +294,7 @@ def _collect_mapping_occurrences(
     path: list[str],
     occurrences: list[dict[str, Any]],
     *,
-    qualified_section: str | None,
+    scope: _SymbolScope | None,
 ) -> None:
     for key_node, value_node in node.value:
         key = _scalar_value(key_node)
@@ -208,7 +303,7 @@ def _collect_mapping_occurrences(
             key,
             spellings,
             key_path,
-            qualified_section=qualified_section,
+            scope=scope,
             mapping_key=True,
         ):
             _append_occurrence(
@@ -223,7 +318,7 @@ def _collect_mapping_occurrences(
             spellings,
             key_path,
             occurrences,
-            qualified_section=qualified_section,
+            scope=scope,
         )
 
 
@@ -233,7 +328,7 @@ def _collect_sequence_occurrences(
     path: list[str],
     occurrences: list[dict[str, Any]],
     *,
-    qualified_section: str | None,
+    scope: _SymbolScope | None,
 ) -> None:
     for index, item in enumerate(node.value):
         _collect_occurrences(
@@ -241,7 +336,7 @@ def _collect_sequence_occurrences(
             spellings,
             [*path, str(index)],
             occurrences,
-            qualified_section=qualified_section,
+            scope=scope,
         )
 
 
@@ -251,14 +346,14 @@ def _append_scalar_occurrence(
     path: list[str],
     occurrences: list[dict[str, Any]],
     *,
-    qualified_section: str | None,
+    scope: _SymbolScope | None,
 ) -> None:
     value = _scalar_value(node)
     if _is_matching_occurrence(
         value,
         spellings,
         path,
-        qualified_section=qualified_section,
+        scope=scope,
         mapping_key=False,
     ):
         _append_occurrence(
@@ -275,17 +370,20 @@ def _is_matching_occurrence(
     spellings: Collection[str],
     path: list[str],
     *,
-    qualified_section: str | None,
+    scope: _SymbolScope | None,
     mapping_key: bool,
 ) -> bool:
-    return (
-        value is not None
-        and value in spellings
-        and _include_occurrence(
-            path,
-            qualified_section=qualified_section,
-            mapping_key=mapping_key,
-        )
+    if value is None:
+        return False
+    if scope is None:
+        return value in spellings
+    inventory_scope = inventory_reference_scope(scope.variation_targets, path)
+    inventory_admitted = inventory_scope is None or (
+        scope.resolver is not None
+        and inventory_reference_admitted(scope.resolver.index, scope.address, inventory_scope)
+    )
+    return inventory_admitted and scope.admits(
+        value, _reference_target_for_path(path, mapping_key=mapping_key, scope=scope), spellings
     )
 
 
@@ -343,32 +441,26 @@ def _is_variation_member_symbol(symbol: str) -> bool:
     return len(parts) >= 4 and parts[0] == "variation_points" and parts[-2] in {"alternatives", "members"}
 
 
-def _include_occurrence(
-    path: list[str],
-    *,
-    qualified_section: str | None,
-    mapping_key: bool,
-) -> bool:
-    if qualified_section is None:
-        return True
-    target = _reference_target_for_path(path, mapping_key=mapping_key)
-    if target in {qualified_section, "any"}:
-        return True
-    return target == "targetable" and is_targetable_section(qualified_section)
-
-
-def _reference_target_for_path(path: list[str], *, mapping_key: bool) -> str | None:
+def _reference_target_for_path(path: list[str], *, mapping_key: bool, scope: _SymbolScope) -> str | None:
     if len(path) < 3:
         return None
+    if inventory_reference_scope(scope.variation_targets, path) is not None:
+        return "targetable"
     field = path[-2] if mapping_key or path[-1].isdigit() else path[-1]
-    target = REFERENCE_COMPLETION_TARGETS.get((path[0], field))
-    if target is not None:
-        return target
+    target = reference_completion_target(path, field)
+    if target == RELATIONSHIP_ENDPOINT_DOMAIN and len(path) == 3:
+        purposes = scope.endpoint_purposes.get((path[1], path[2]), (ReferencePurpose.RELATIONSHIP_ENDPOINT,))
+        target = reference_domain(purposes)
+    elif path[0] == "variation_points" and field in VARIATION_SLOT_TARGETS:
+        target = VARIATION_SLOT_TARGETS[field].get(scope.variation_slots.get(path[1], ""), target)
+    return target if target is not None else _implicit_reference_target(path, field)
+
+
+def _implicit_reference_target(path: list[str], field: str) -> str | None:
     if path[0] == "variation_points" and field == "members":
         return "variation_points"
-    if len(path) >= 4 and path[-2] == "success":
-        return field if field in _SUCCESS_REFERENCE_TARGETS else None
-    return None
+    is_success_ref = len(path) >= 4 and path[-2] == "success" and field in _SUCCESS_REFERENCE_TARGETS
+    return field if is_success_ref else None
 
 
 def _bare_symbol(symbol: str) -> str:

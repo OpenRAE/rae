@@ -6,7 +6,7 @@ from collections.abc import Mapping, Sequence
 
 from pydantic import ValidationError
 
-from .contracts import ParticipantControlOccurrenceModel
+from .contracts.participant_control_occurrence_v2 import parse_participant_control_occurrence
 
 
 def iter_participant_control_history_snapshot_violations(
@@ -20,8 +20,8 @@ def iter_participant_control_history_snapshot_violations(
         address = f"runtime.snapshot.participant-control-history.{participant_address}"
         for index, payload in enumerate(events):
             try:
-                event = ParticipantControlOccurrenceModel.model_validate(payload)
-            except (TypeError, ValidationError):
+                event = parse_participant_control_occurrence(payload)
+            except (TypeError, ValueError, ValidationError):
                 violations.append((address, "participant control history event is not a valid API-409 occurrence"))
                 continue
             if event.participant_address != participant_address:

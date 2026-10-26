@@ -97,6 +97,16 @@ _BEHAVIOR_MODEL = "[behavior model](../../implementations/python/packages/raes/p
 _MIXED_CONTROL_MODEL = (
     "[behavior model](../../implementations/python/packages/raes/participant_behavior_specification.py)"
 )
+_MIXED_CONTROL_POLICY_MODEL = (
+    "[behavior model](../../implementations/python/packages/raes/participant_mixed_control_policy.py)"
+)
+_MIXED_CONTROL_POLICY_VALIDATOR = (
+    "[reusable-policy validator](../../implementations/python/packages/raes/validator/_mixed_control_policy.py)"
+)
+_DELIVERY_CONTROL_VALIDATOR = (
+    "[delivery-control validator]"
+    "(../../implementations/python/packages/raes/validator/_participant_inject_delivery_control.py)"
+)
 _EVIDENCE_VALIDATOR = (
     "[evidence validator](../../implementations/python/packages/raes/validator/_evidence_requirements.py)"
 )

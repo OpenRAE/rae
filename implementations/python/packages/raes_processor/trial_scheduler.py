@@ -35,7 +35,11 @@ from raes_contracts.contracts import (
     validate_scheduler_isolation_proof,
 )
 from raes_contracts.contracts.trial_cleanup import TrialOutcome
-from raes_contracts.contracts.trial_coordinate_order import CANONICAL_ORDER_POLICY_ID, canonical_entry_order
+from raes_contracts.contracts.trial_coordinate_order import (
+    CANONICAL_ORDER_POLICY_ID,
+    canonical_entry_order,
+    scheduling_policy_id,
+)
 
 _T = TypeVar("_T")
 
@@ -124,7 +128,7 @@ def plan_batch_schedule(plan: AdmittedTrialPlanModel) -> BatchSchedule:
     return BatchSchedule(
         plan_id=admitted.plan_id,
         plan_digest=admitted.plan_digest,
-        scheduling_policy_id=CANONICAL_ORDER_POLICY_ID,
+        scheduling_policy_id=scheduling_policy_id(admitted),
         admitted_parallelism_ceiling=ceiling,
         isolation_proof_ref=proof_ref,
         entries=scheduled,

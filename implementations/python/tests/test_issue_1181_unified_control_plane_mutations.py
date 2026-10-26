@@ -52,6 +52,7 @@ from raes_runtime.control_plane_store import (
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
 from raes_runtime.control_plane_store_records import _audit_event_from_payload
 from raes_runtime.manager import RuntimeManager
+from raes_runtime.participant_control_intents import ParticipantHandoffControlIntent
 from raes_runtime.participant_crossing_egress import ParticipantViewSerialization, serialize_participant_view
 
 pytestmark = pytest.mark.control_plane_conformance
@@ -143,7 +144,10 @@ class _ClaimObservingProvisioner:
         assert self.store is not None
         records = self.store.load_records()
         assert len(records) == 1
-        assert next(iter(records.values())).status.state is OperationState.RUNNING
+        record = next(iter(records.values()))
+        expected = OperationState.ACCEPTED if phase == "validate" else OperationState.RUNNING
+        assert record.status.state is expected
+        assert record.invocation.consumed is (phase == "apply")
         assert _lock_is_available_from_another_thread(self.control_plane._operation_lock)
         with pytest.raises(RuntimeError, match="backend callback cannot start a control-plane mutation"):
             self.control_plane.reconcile_workflow_timeouts(now="2026-09-11T04:30:00Z")
@@ -158,31 +162,31 @@ class _ClaimObservingProvisioner:
         return self.delegate.apply(plan, snapshot)
 
 
-def test_running_claim_precedes_backend_validation_and_apply_without_application_mutex() -> None:
+def test_admission_precedes_validation_and_consumed_grant_precedes_apply_without_application_mutex() -> None:
     provisioner = _ClaimObservingProvisioner()
     target = replace(create_stub_target(), provisioner=provisioner)
     store = InMemoryControlPlaneStore()
-    control_plane = RuntimeControlPlane(target, store=store)
-    provisioner.control_plane = control_plane
-    provisioner.store = store
+    with RuntimeControlPlane(target, store=store) as control_plane:
+        provisioner.control_plane = control_plane
+        provisioner.store = store
 
-    receipt = control_plane.submit_provisioning(ProvisioningPlan())
+        receipt = control_plane.submit_provisioning(ProvisioningPlan())
 
-    assert provisioner.phases == ["validate", "apply"]
-    record = store.load_records()[receipt.operation_id]
-    assert record.status.state is OperationState.SUCCEEDED
-    assert store.read_audit() == [
-        AuditEvent(
-            timestamp=record.status.updated_at,
-            action="provisioning_terminal",
-            identity=record.status.context.actor_id,
-            allowed=True,
-            target=record.status.context.target_scope,
-            operation_id=record.receipt.operation_id,
-            reason="operation-succeeded",
-            details={"state": "succeeded"},
-        )
-    ]
+        assert provisioner.phases == ["validate", "apply"]
+        record = store.load_records()[receipt.operation_id]
+        assert record.status.state is OperationState.SUCCEEDED
+        assert store.read_audit() == [
+            AuditEvent(
+                timestamp=record.status.updated_at,
+                action="provisioning_terminal",
+                identity=record.status.context.actor_id,
+                allowed=True,
+                target=record.status.context.target_scope,
+                operation_id=record.receipt.operation_id,
+                reason="operation-succeeded",
+                details={"state": "succeeded"},
+            )
+        ]
 
 
 class _RejectingValidationProvisioner:
@@ -191,7 +195,9 @@ class _RejectingValidationProvisioner:
         self.apply_count = 0
 
     def validate(self, _plan: ProvisioningPlan) -> list[Diagnostic]:
-        assert next(iter(self.store.load_records().values())).status.state is OperationState.RUNNING
+        record = next(iter(self.store.load_records().values()))
+        assert record.status.state is OperationState.ACCEPTED
+        assert not record.invocation.consumed
         return [
             Diagnostic(
                 code="runtime.test-validation-failed",
@@ -214,10 +220,10 @@ def test_backend_validation_error_terminalizes_claim_without_invoking_apply() ->
     receipt = control_plane.submit_provisioning(ProvisioningPlan())
 
     record = store.load_records()[receipt.operation_id]
-    assert record.status.state is OperationState.FAILED
+    assert record.status.state is OperationState.CANCELLED
     assert [diagnostic.code for diagnostic in record.status.diagnostics] == [
         "runtime.test-validation-failed",
-        "runtime.control-plane.operation-failed",
+        "runtime.control-plane.operation-cancelled",
     ]
     assert provisioner.apply_count == 0
     assert store.load_snapshot_state().revision == 0
@@ -706,22 +712,34 @@ def test_accepted_indeterminate_resolution_reaches_the_shared_authority() -> Non
 
 
 def test_accepted_participant_action_and_control_entries_reach_the_shared_authority() -> None:
-    control_plane = RuntimeControlPlane(create_stub_target())
+    intent = ParticipantHandoffControlIntent(
+        declaration_ref="transition:handoff",
+        episode_id="episode:1181",
+        client_correlation_id="handoff:1181",
+        policy_revision="1.0.0",
+        expected_state_revision=0,
+        provenance_refs=["provenance:1181"],
+        evidence_refs=["evidence:handoff:1181"],
+        object_marking_refs=["marking:1181"],
+        limitation_refs=["limitation:1181"],
+        completion_evidence_ref="evidence:handoff:1181",
+    )
 
-    _assert_requests_mutation_reservation(
-        control_plane,
-        lambda: control_plane.admit_participant_action(behavior(), admission_request()),
-        OperationKind.PARTICIPANT_ACTION,
-    )
-    _assert_requests_mutation_reservation(
-        control_plane,
-        lambda: control_plane.record_participant_control(
-            PARTICIPANT,
-            object(),  # type: ignore[arg-type]
-            identity=identity(),
-        ),
-        OperationKind.PARTICIPANT_CONTROL,
-    )
+    with RuntimeControlPlane(create_stub_target()) as control_plane:
+        _assert_requests_mutation_reservation(
+            control_plane,
+            lambda: control_plane.admit_participant_action(behavior(), admission_request()),
+            OperationKind.PARTICIPANT_ACTION,
+        )
+        _assert_requests_mutation_reservation(
+            control_plane,
+            lambda: control_plane.record_participant_control(
+                PARTICIPANT,
+                intent,
+                identity=identity(),
+            ),
+            OperationKind.PARTICIPANT_CONTROL,
+        )
 
 
 def test_accepted_decision_surface_entries_reach_the_shared_authority(

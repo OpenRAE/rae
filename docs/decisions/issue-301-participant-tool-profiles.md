@@ -298,8 +298,9 @@ This rule adds no omission rule for hidden bindings.
 
 ### Visibility reference compilation
 
-The compiler resolves authored visibility references through its existing address index.
-The index includes qualified tool-affordance references.
+The compiler uses the shared declaration index to resolve authored visibility references.
+It maps those declarations to runtime addresses, including qualified tool-affordance references.
+It retains ambiguous candidates when it builds the visibility index.
 Compiled observation lists, rules, transitions, and timelines use the resolved runtime addresses.
 Canonical addresses identify known items in new runtime records.
 Incoming authored aliases must pass the same visibility checks as canonical addresses.

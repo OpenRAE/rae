@@ -12,6 +12,7 @@ from raes_contracts.participant_behavior import ParticipantObservationStatus
 from raes_contracts.versions import WORKFLOW_STATE_SCHEMA_VERSION
 from raes_contracts.workflow import WorkflowExecutionContract, WorkflowResultContract, WorkflowStepOutcome
 
+from .mixed_control_resources import MixedControlPolicyRuntime, ParticipantInjectDeliveryControlRuntime
 from .participant_resources import (
     ParticipantResourceDemandRuntime,
     ParticipantResourceFairnessRuntime,
@@ -234,6 +235,8 @@ class ParticipantBehaviorSpecificationRuntime(ResolvedResource):
     mixed_control_dispositions: MixedControlDispositionRulesRuntime | None = None
     controller_states: tuple[MixedControlControllerStateRuntime, ...] = ()
     control_transitions: tuple[MixedControlTransitionRuntime, ...] = ()
+    mixed_control_semantics: str = ""
+    mixed_control_policy: MixedControlPolicyRuntime | None = None
     realization_profile_ref: str = ""
     backend_feature_support_refs: tuple[str, ...] = ()
     evidence_contract_refs: tuple[str, ...] = ()
@@ -296,6 +299,7 @@ class ParticipantInjectDeliveryRuntime(ResolvedResource):
     control_valid_until_order: int | None = None
     control_evidence_refs: tuple[str, ...] = ()
     control_evidence_addresses: tuple[str, ...] = ()
+    control: ParticipantInjectDeliveryControlRuntime | None = None
 
 
 @dataclass(frozen=True)

@@ -15,7 +15,7 @@ from raes_backend_protocols.recovery_observation import (
     RecoveryObservationRequest,
     RecoveryObservationResult,
 )
-from raes_backend_stubs.stubs import create_stub_target
+from raes_backend_stubs.stubs import StubEvaluator, create_stub_target
 from raes_contracts.plan_projection import provisioning_plan_model
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import OperationKind, OperationState
@@ -81,6 +81,18 @@ class WitnessProvisioner:
         return result
 
 
+class WitnessEvaluator(StubEvaluator):
+    # An evaluator start is a backend effect too, so it joins the same witness.
+    def __init__(self, witness: Path) -> None:
+        super().__init__()
+        self.witness = witness
+
+    def start(self, plan, snapshot):
+        assert plan.operation_id
+        record_effect(self.witness, "evaluate", plan.operation_id)
+        return super().start(plan, snapshot)
+
+
 class WitnessObserver:
     def __init__(self, witness: Path) -> None:
         self.witness = witness
@@ -109,7 +121,11 @@ def witness_target(witness: Path, *, observe: bool = False, boundary=None):
     # Recovery intentionally refuses to invent a provisioning plan to authorize
     # new realization/resource state from an observer's assertion alone.
     target = create_stub_target(with_realization_envelope=False)
-    target = replace(target, provisioner=WitnessProvisioner(target.provisioner, witness, boundary))
+    target = replace(
+        target,
+        provisioner=WitnessProvisioner(target.provisioner, witness, boundary),
+        evaluator=WitnessEvaluator(witness),
+    )
     if observe:
         capability = RecoveryObservationCapabilities(
             name="conformance-witness", supported_operation_kinds=frozenset({OperationKind.PROVISIONING})

@@ -1,9 +1,9 @@
 {
-  "content_hash": "2c2f2353cc8b5211af2d9604c317d945264202afbe517542d63de2d475848fc3",
+  "content_hash": "7036d2e8d6823838467612d50b1d98f58f1b9a4d209064ac64c1c9802ac063c8",
   "contract_id": "experiment-authoring-input-v1",
   "last_change": {
-    "content_hash": "2c2f2353cc8b5211af2d9604c317d945264202afbe517542d63de2d475848fc3",
-    "summary": "Add typed prospective run evidence-requirement relations and distinct materialization-attestation references (#341, #1241)."
+    "content_hash": "7036d2e8d6823838467612d50b1d98f58f1b9a4d209064ac64c1c9802ac063c8",
+    "summary": "Require every condition factor and level to belong to the containing experiment author declarations in all binding postures (#1520)."
   },
   "schema_path": "contracts/schemas/experiment-core/experiment-authoring-input-v1.json",
   "stability": "draft"

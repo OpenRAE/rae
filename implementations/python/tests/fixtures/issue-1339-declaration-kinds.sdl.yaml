@@ -1,0 +1,490 @@
+# Every declaration kind that the reference-eligibility policy decides (#1339): each kind in
+# DECLARATION_CATEGORIES and the unreferenceable kinds, and every runtime family record and
+# child of the registered runtime families. Relationship-endpoint and invariant tests range
+# over its declarations, so a new declaration kind or runtime child needs a record here.
+# Nodes `services` and `runtime` use grammar words as local ids. Condition `workstation`
+# shares the node's bare name, and agent `blue` shares the entity's.
+name: declaration-kinds
+variables:
+  port: {type: integer, default: 80}
+nodes:
+  dc:
+    type: compute
+    os: windows
+    endpoint_persona: service
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+    - {name: ldap, port: 389}
+    roles:
+      ops: {username: operator}
+  app:
+    type: compute
+    os: linux
+    endpoint_persona: service
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+    - {name: http, port: 80}
+    runtime:
+      service_listeners:
+      - {service_listener_id: service-listeners}
+      applications:
+      - {application_id: web}
+      database_services:
+      - database_service_id: db
+        databases:
+        - {database_id: databases, name: databases}
+      dns_services:
+      - dns_service_id: dns-services
+        zones:
+        - zone_id: zones
+          name: corp.example
+          rrsets:
+          - rrset_id: rrsets
+            owner: www
+            record_type: A
+            records:
+            - {address: 192.0.2.10}
+      identity_authorities:
+      - identity_authority_id: identity-authorities
+        services:
+        - {service_id: services}
+        subjects:
+        - {subject_id: subjects, name: subjects}
+        policies:
+        - {policy_id: policies}
+        relationships:
+        - {relationship_id: relationships, source_ref: subjects, external_target: external-target}
+      file_services:
+      - file_service_id: file-services
+        shares:
+        - {share_id: shares, name: shares}
+        principals:
+        - {principal_id: principals, name: principals}
+        access_rules:
+        - {rule_id: access-rules, subject_ref: principals, resource_ref: shares}
+        access_observations:
+        - {observation_id: access-observations, subject_ref: principals, resource_ref: shares}
+      mail_services:
+      - mail_service_id: mail
+        components:
+        - {component_id: components, name: components}
+        listeners:
+        - {listener_id: listeners}
+        domains:
+        - {domain_id: domains, name: domains}
+        mailbox_stores:
+        - {store_id: mailbox-stores}
+        mailboxes:
+        - {mailbox_id: mailboxes, address: user@corp.example}
+        aliases:
+        - {alias_id: aliases}
+        routing_rules:
+        - {rule_id: routing-rules}
+        queues:
+        - {queue_id: queues}
+        settings:
+        - {setting_id: settings, name: settings}
+      network_sensors:
+      - {network_sensor_id: network-sensors}
+      network_detection_engines:
+      - network_detection_engine_id: network-detection-engines
+        rule_sources:
+        - {source_id: rule-sources}
+        network_sets:
+        - {set_id: network-sets}
+        output_streams:
+        - {stream_id: output-streams}
+        control_channels:
+        - {channel_id: control-channels}
+      security_monitoring_managers:
+      - security_monitoring_manager_id: siem
+        listeners:
+        - {listener_id: listeners}
+        components:
+        - {component_id: components, name: components}
+        agents:
+        - {agent_id: agents, name: agents}
+        agent_groups:
+        - {group_id: agent-groups}
+        content_sets:
+        - {content_id: content-sets}
+        detection_definitions:
+        - {definition_id: detection-definitions}
+        settings:
+        - {setting_id: settings, name: settings}
+      ssh_servers:
+      - ssh_server_id: ssh-servers
+        service: http
+        match_rules:
+        - match_id: match-rules
+          criteria:
+          - {kind: user, pattern: operator}
+      app_authorizations:
+      - app_authorization_id: app-authorizations
+        principals:
+        - {principal_id: principals}
+        roles:
+        - {role_id: roles}
+        permission_grants:
+        - {grant_id: permission-grants}
+        role_mappings:
+        - {mapping_id: role-mappings}
+        tenants:
+        - {tenant_id: tenants}
+      scheduled_jobs:
+      - {scheduled_job_id: scheduled-jobs}
+      datastore_services:
+      - datastore_service_id: datastore-services
+        nodes:
+        - node_id: nodes
+          plugins:
+          - {plugin_id: plugins}
+          endpoints:
+          - {endpoint_id: endpoints}
+        partitions:
+        - {partition_id: partitions}
+        templates:
+        - {template_id: templates}
+        mappings:
+        - {mapping_id: mappings}
+        settings:
+        - {setting_id: settings}
+      platform_applications:
+      - platform_application_id: platform-applications
+        capabilities:
+        - {capability_id: capabilities}
+        organizations:
+        - {organization_id: organizations}
+        tenants:
+        - {tenant_id: tenants}
+        content_objects:
+        - {content_object_id: content-objects}
+        markings:
+        - {marking_id: markings}
+        upstream_bindings:
+        - {binding_id: upstream-bindings}
+        connectors:
+        - {connector_id: connectors}
+        settings:
+        - {setting_id: settings}
+      forwarding_agents:
+      - forwarding_agent_id: forwarding-agents
+        sources:
+        - {source_id: sources}
+        transforms:
+        - {transform_id: transforms}
+        ship_targets:
+        - {target_id: ship-targets}
+        reload_channels:
+        - {reload_channel_id: reload-channels}
+        settings:
+        - {setting_id: settings}
+      orchestration_authorities:
+      - orchestration_authority_id: orchestration-authorities
+        spawn_templates:
+        - {template_id: spawn-templates}
+        realized_children:
+        - {workload_id: realized-children}
+  partner-dc:
+    type: compute
+    os: windows
+    endpoint_persona: service
+    resources: {ram: 1 GiB, cpu: 1}
+  carrier:
+    type: compute
+    os: linux
+    endpoint_persona: carrier
+    resources: {ram: 1 GiB, cpu: 1}
+  workstation:
+    type: compute
+    os: windows
+    endpoint_persona: workforce
+    resources: {ram: 1 GiB, cpu: 1}
+  services:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+    - {name: smtp, port: 25}
+    runtime:
+      applications:
+      - {application_id: portal}
+  runtime:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+    - {name: dns, port: 53}
+    runtime:
+      applications:
+      - {application_id: resolver}
+  lan: {type: switch}
+infrastructure:
+  lan:
+    count: 1
+    properties: {cidr: 10.0.0.0/24, gateway: 10.0.0.1}
+    acls:
+    - name: allow-web
+      direction: in
+      from_net: lan
+      protocol: tcp
+      ports: [80]
+      action: allow
+features:
+  stack:
+    type: service
+    source: {name: stack-source, version: local}
+accounts:
+  admin: {username: Administrator, node: dc}
+  partner-admin: {username: Administrator, node: partner-dc}
+identity_domains:
+  corp: {profile: active_directory, dns_name: corp.example, netbios_name: CORP, authority_account_ref: admin}
+  partner-corp: {profile: active_directory, dns_name: partner.example, netbios_name: PARTNER, authority_account_ref: partner-admin}
+identity_forests:
+  enterprise:
+    root_domain_ref: corp
+    domain_refs: [corp]
+  partner:
+    root_domain_ref: partner-corp
+    domain_refs: [partner-corp]
+identity_facades:
+  workforce-oidc: {service_ref: nodes.app.services.http, protocol: oidc}
+persistent_volumes:
+  range-state:
+    lifecycle: ephemeral
+    access_mode: read_write_once
+    consumers:
+    - {node: app, mount_destination: /var/lib/range, access_mode: read_write}
+generated_artifacts:
+  certs:
+    generator: certificate_bundle
+    lifecycle: reuse_valid
+    provenance: config/certs.yml
+    outputs:
+    - {name: root-ca, path: root-ca.pem, sensitivity: public}
+    consumers:
+    - {node: app, mount_destination: /etc/certs, access_mode: read_only}
+deployment_tenants:
+  range-a: {}
+  shared-platform: {}
+deployment_cells:
+  range-a-cell:
+    tenant_ref: range-a
+    node_refs: [dc, partner-dc, app, carrier, workstation, services, runtime]
+    cross_tenant_isolation: default_deny
+forwarding_agents:
+- forwarding_agent_id: edge-shipper
+  sources:
+  - {source_id: sources}
+  transforms:
+  - {transform_id: transforms}
+  ship_targets:
+  - {target_id: ship-targets}
+  reload_channels:
+  - {reload_channel_id: reload-channels}
+  settings:
+  - {setting_id: settings}
+entities:
+  red-team:
+    role: red
+    entities:
+      recon: {role: red}
+  blue: {role: blue}
+content:
+  briefing: {type: file, target: app, path: /opt/briefing.txt, text: briefing}
+  library:
+    type: dataset
+    target: app
+    items:
+    - {name: handbook}
+conditions:
+  alive: {command: 'true', interval: 5}
+  workstation: {command: 'true', interval: 5}
+propositions:
+  ready:
+    description: The app host is ready.
+    subjects: [nodes.app]
+    basis: declared_state
+    predicate: {kind: boolean, property: ready, semantic_ref: 'urn:raes:declared-property:ready', operator: equals, expected: true}
+assertions:
+  done: {proposition: ready, role: postcondition}
+injects:
+  briefing-inject:
+    description: orchestration briefing
+    environment: [set-exercise-banner]
+events:
+  briefing-event:
+    injects: [briefing-inject]
+scripts:
+  briefing-script:
+    start_time: 0
+    end_time: 10
+    speed: 1
+    events: {briefing-event: 5}
+stories:
+  briefing-story:
+    scripts: [briefing-script]
+time_domains:
+  exercise-time:
+    kind: logical
+    tick_period_seconds: {numerator: 1, denominator: 1}
+    epoch: scenario_start
+    visibility: participant_visible
+    description: exercise logical time
+  evidence-time:
+    kind: wall_clock
+    tick_period_seconds: {numerator: 1, denominator: 1000000000}
+    epoch: unix
+    visibility: evidence_only
+    description: evidence timestamps
+clocks:
+  exercise-clock: {time_domain_ref: exercise-time, authority_kind: runtime, authority_ref: runtime.scheduler, monotonicity: non_decreasing,
+    supports_reset: true, description: exercise scheduler clock}
+time_domain_mappings:
+  exercise-to-evidence:
+    source_domain_ref: exercise-time
+    target_domain_ref: evidence-time
+    mapping_kind: affine_rational
+    scale: {numerator: 1000000000, denominator: 1}
+    offset_ticks: 0
+    description: anchor
+time_progression_policies:
+  exercise-progression: {clock_ref: exercise-clock, advancement_mode: stepped, synchronization_mode: barrier, step_ticks: 1,
+    reset_behavior: new_segment_zero, replay_behavior: restore_recorded_advances, description: stepped progression}
+temporal_constraints:
+  briefing-window:
+    constraint_kind: window
+    clock_ref: exercise-clock
+    subject_refs: [behavior_specifications.red-briefing.participant_inject_deliveries.briefing]
+    start: {tick: 4}
+    end: {tick: 6}
+    description: delivery window
+evidence_requirements:
+  briefing-delivery-evidence:
+    description: capture delivery evidence
+    source_refs: [behavior_specifications.red-briefing.participant_inject_deliveries.briefing]
+    scope_refs: [app]
+    window: briefing delivery window
+    channel: log
+    artifact_role: delivery_evidence
+    sensitivity: plain
+    redaction: none
+    integrity: checksum
+    retention: study_lifetime
+    loss_disclosure: required
+action_contracts:
+  scan:
+    semantic_version: 1.0.0
+    lifecycle_state: active
+    behavioral_granularity: atomic
+    procedure_basis: service discovery
+    realization_profile: backend-declared
+    fidelity_claim: records intent
+    preconditions:
+    - {precondition_id: authority-in-scope, precondition_class: authority, description: authorized}
+    effects:
+    - {effect_id: no-effect, effect_class: no_effect, description: no environment effect}
+    failure_classes: [unknown]
+observation_boundaries:
+  red-view:
+    projection_basis: participant-local view
+    observable_refs: [content.briefing, behavior_specifications.red-briefing.tool_affordances.scanner]
+    redaction_policy: hidden refs remain hidden
+    latency_profile: delivery-order bound
+    evidence_refs: [evidence.scan-output]
+    view_rules:
+    - {information_ref: behavior_specifications.red-briefing.tool_affordances.scanner, boundary_class: observable_resource,
+      disposition: observable, visibility_basis: declared participant tool}
+    - {information_ref: content.briefing, boundary_class: instruction, disposition: disclosed, visibility_basis: visibility-bases.briefing.v1,
+      disclosure_rule: disclosures.briefing.v1}
+outcome_interpretation_rules:
+  scan-outcome:
+    semantic_version: 1.0.0
+    participant_scope: participant_local
+    observation_point_basis: terminal participant observation event
+    interpretation_basis: participant-local evidence only
+    evidence_refs: [evidence.scan-output]
+    limitations: [not objective success]
+    source_bindings:
+    - source_id: local-action
+      source_layer: participant_action_outcome
+      ref: scan
+      interpretation_role: local action status input
+      evidence_refs: [evidence.scan-output]
+    target_bindings:
+    - target_id: scan-evidence
+      target_layer: evidence_claim
+      ref: evidence.scan-output
+      relation: supports an evidence claim only
+      evidence_refs: [evidence.scan-output]
+agents:
+  red-agent:
+    affiliations: [red-team]
+    actions: [scan]
+    observation_boundaries: [red-view]
+  blue: {}
+behavior_specifications:
+  red-briefing:
+    semantic_version: 1.0.0
+    lifecycle_state: active
+    participant_refs: [red-agent]
+    action_contract_refs: [scan]
+    observation_boundary_refs: [red-view]
+    outcome_interpretation_rule_refs: [scan-outcome]
+    behavior_mode: policy-directed
+    tool_affordances:
+      scanner:
+        tool_ref: library
+        action_contract_refs: [scan]
+        observation_boundary_refs: [red-view]
+    participant_inject_deliveries:
+      briefing:
+        participant_ref: red-agent
+        inject_ref: briefing-inject
+        occurrence: {event_ref: briefing-event, script_ref: briefing-script, story_ref: briefing-story}
+        source_item_ref: content.briefing
+        result_item_ref: content.briefing
+        observation_boundary_ref: red-view
+        delivery_kind: disclosure
+        delivery_policy: {policy_ref: projection-policy.red.v1, policy_revision: 1.0.0, exposure_policy_ref: exposure-policy.red.v1,
+          audience_scope_ref: audience.participant.red-agent, visibility_basis_ref: visibility-bases.briefing.v1, disclosure_basis_ref: disclosures.briefing.v1}
+        order_basis: orchestration-occurrence-and-shared-time
+        temporal_constraint_refs: [briefing-window]
+        evidence_requirement_refs: [briefing-delivery-evidence]
+        failure_disposition: reject-no-delivery
+objectives:
+  goal:
+    owner: blue
+    targets: [nodes.app]
+    success:
+      assertions: [done]
+workflows:
+  response:
+    start: validate
+    steps:
+      validate: {type: objective, objective: goal, on_success: finish}
+      finish: {type: end}
+relationships:
+  link: {type: connects_to, source: nodes.workstation, target: nodes.app.services.http}
+  dc-role:
+    type: domain_controller_for
+    source: dc
+    target: corp
+    domain_controller: {}
+  partner-dc-role:
+    type: domain_controller_for
+    source: partner-dc
+    target: partner-corp
+    domain_controller: {}
+variation_points:
+  goal-subjects:
+    kind: subset
+    target: {kind: collection, owner: goal, slot: objectives.targets}
+    members:
+      app-host: {reference: nodes.app}
+  briefing-host:
+    kind: alternative
+    target: {kind: reference, owner: briefing, slot: content.target}
+    alternatives:
+      app-target: {reference: app}
+      workstation-target: {reference: workstation}

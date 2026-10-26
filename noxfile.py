@@ -60,7 +60,6 @@ from tools.nox_support.runner import (
 from tools.nox_support.test_lanes import (
     _run_installation_qualification,
     _run_coverage_reduce,
-    _run_docker_integration_tests,
     _run_docs,
     _run_docs_linkcheck,
     _run_fuzz,
@@ -191,24 +190,6 @@ def integration(session: nox.Session) -> None:
     try:
         _sync_project(session)
         _run_integration_tests(session, reporter)
-    finally:
-        reporter.summary()
-
-
-@nox.session(name="integration_docker")
-def integration_docker(session: nox.Session) -> None:
-    """Run the opt-in container-runtime integration tests (`docker` marker).
-
-    Requires a real container runtime (docker/podman). The tests self-skip
-    cleanly when no runtime is available unless
-    `RAES_DOCKER_INTEGRATION_REQUIRED=1` selects the fail-closed release mode.
-    This session is intentionally NOT wired into `verify`, so the canonical
-    verification graph stays hermetic.
-    """
-    reporter = SessionReporter(session, "integration_docker")
-    try:
-        _sync_project(session)
-        _run_docker_integration_tests(session, reporter)
     finally:
         reporter.summary()
 

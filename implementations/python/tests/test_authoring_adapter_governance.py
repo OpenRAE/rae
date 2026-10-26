@@ -26,7 +26,7 @@ def test_authoring_adapter_delivery_owns_its_contract_and_tests():
 def test_authoring_adapter_delivery_rejects_unrelated_implementations():
     paths = [
         "implementations/python/packages/raes_mcp/server.py",
-        "implementations/python/packages/raes_backend_libvirt/target.py",
+        "implementations/python/packages/raes_runtime/control_plane.py",
         "contracts/profiles/backend/unrelated.json",
         "contracts/schemas/sdl/unrelated.json",
         "docs/research/unrelated-study/results.md",

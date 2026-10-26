@@ -72,6 +72,12 @@ def _private_refs(
                 yield location, ref
 
 
+def _authoring_mapping(value: object) -> Mapping[str, object]:
+    if isinstance(value, BaseModel):
+        return value.model_dump(mode="python")
+    return value if isinstance(value, Mapping) else {}
+
+
 def _private_locations(document: Mapping[str, object]) -> Iterator[tuple[tuple[str | int, ...], str]]:
     for path, fields in _REFERENCE_PATHS:
         for location, record in _records_at_path(document, path):
@@ -82,10 +88,7 @@ def _private_locations(document: Mapping[str, object]) -> Iterator[tuple[tuple[s
 def _records_at_path(
     value: object, path: tuple[str, ...], location: tuple[str | int, ...] = ()
 ) -> Iterator[tuple[tuple[str | int, ...], Mapping[str, object]]]:
-    if isinstance(value, BaseModel):
-        value = value.model_dump(mode="python")
-    if not isinstance(value, Mapping):
-        return
+    value = _authoring_mapping(value)
     if not path:
         yield location, value
         return

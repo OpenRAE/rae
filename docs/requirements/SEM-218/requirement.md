@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-04-05T00:54:58.405111Z
-updated_at: 2026-09-14T00:00:00Z
+updated_at: 2026-10-21T00:00:00Z
 ---
 
 # SEM-218 — Explicitness And Realization Semantics
@@ -21,6 +21,43 @@ Current state: identified gap. Honest portability requires normative semantics f
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/runtime_descendant_fixtures.py`
+
+- IMPLEMENTS → GITHUB_ISSUE `1649` (Runtime descendant reports and refresh)
+- IMPLEMENTS → SPEC `contracts/schemas/backend-manifest/backend-manifest-v2.json`
+- IMPLEMENTS → SPEC `contracts/schemas/experiment-core/experiment-run-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/experiment-core/materialization-archive-record-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/plans/backend-runtime-descendants-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/plans/evaluation-plan-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/plans/orchestration-plan-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/plans/provisioning-plan-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/sdl/materialized-scenario-v1.json`
+- IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1649-runtime-descendants-design.md`
+- IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1649-runtime-descendants-preflight.md`
+- IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1649-runtime-descendants-verification.md`
+- IMPLEMENTS → DOCUMENTATION `docs/explain/reference/runtime-descendant-inventory.md`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/materialization_provenance.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/materialization_attestation.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/materialization.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/materialization_inventory.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/planned_realization_constraint.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/materialization.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/materialization_admission.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/materialization_inventory.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/materialization_lineage.py`
+- TESTS → TEST `implementations/python/tests/test_backend_manifest.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_admission.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_bounds.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_contracts.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_durability.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_http.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_provenance.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_runtime_descendants.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_supervised_inventory.py`
+- IMPLEMENTS → SPEC `specs/formal/runtime-contracts/backend-result-admission.md`
+
+- TESTS → TEST `implementations/python/tests/test_issue_1638_credential_realization_observations.py` (Observed OPEN, constrained and EXACT values with account credentials)
+
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/parameter_derivations.py` (Public typed parameter derivations and finite interpolation images)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_phase_base.py` (Immutable phase records and JSON scalar equality)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_scenario_instantiation.py` (Selected output and whole-field provenance admission)
@@ -31,7 +68,6 @@ Current state: identified gap. Honest portability requires normative semantics f
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_compute_substrate.py` (Independent scope and exact-source runtime admission)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_operational_observation.py` (Authoritative native readback and prior-disclosure reuse)
 - TESTS → TEST `implementations/python/tests/test_issue_1237_source_sufficiency.py` (Substrate binding, runtime source matching, and reuse regressions)
-- TESTS → TEST `implementations/python/tests/test_reference_backend_provisioner.py` (Driver-reported readback rejection without losing recoverable inventory)
 
 - TESTS → TEST `implementations/python/tests/test_issue_1206_review_regressions.py` (Unknown replication remains knowledge while private identities retain exact matching)
 
@@ -116,7 +152,7 @@ Current state: identified gap. Honest portability requires normative semantics f
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_compatibility_downgrade_helpers.py` (Lossless recursive-to-legacy projection helpers)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/bounded_domains.py` (Nullable scalar-domain support for recursive realization constraints)
 - IMPLEMENTS → SPEC `specs/sdl/recursive-realization-constraints.md` (Normative recursive authority, collection, reference, limit, and provenance semantics)
-- IMPLEMENTS → SCHEMA `contracts/schemas/realization-constraints/recursive-realization-constraint-v1.json` (Published recursive realization constraint contract)
+- IMPLEMENTS → SPEC `contracts/schemas/realization-constraints/recursive-realization-constraint-v1.json` (Published recursive realization constraint contract)
 - TESTS → TEST `implementations/python/tests/test_issue_1203_recursive_normal_form.py` (Nested authority, presence, collections, references, limits, refinement, and abstract-model acceptance coverage)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/realization_structure.py` (Authored leaf and scoped collection lowering for mixed runtime constraints)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/realization_concern_explicitness.py` (Concern-owned leaf selection with non-authoritative aggregate support summaries)
@@ -264,10 +300,6 @@ Current state: identified gap. Honest portability requires normative semantics f
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_specialized_projection.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_support.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_typed_runtime_projection.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/manifest.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/profile_preparation.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/provisioner.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/target.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_preparation.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_profiles.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_realization_authority.py`
@@ -330,3 +362,6 @@ Current state: identified gap. Honest portability requires normative semantics f
 - TESTS → TEST `implementations/python/tests/test_issue_1208_profile_boundaries.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1208_self_review.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1208_overcap.py`
+- TESTS → TEST `implementations/python/tests/test_stub_backend_provenance.py` (Runtime-recorded realization provenance on the stub target)
+- IMPLEMENTS → SPEC `contracts/schemas/plans/backend-realization-preparation-v1.json` (backend-realization-preparation-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/plans/plan-realization-profiles-v1.json` (plan-realization-profiles-v1 published schema)

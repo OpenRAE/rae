@@ -267,9 +267,9 @@ on an SDL scenario with no such demand.
 Target conformance drives a provisioning/snapshot probe (issue #606) that proves
 the target adapter accepts a plan, reports changed addresses, and mutates a
 snapshot rather than passing on manifest shape alone. With a recording driver,
-this is hermetic adapter evidence, not native libvirt or guest realization.
-Native and guest certification require the stronger observation gates tracked
-by issues #715-#717. The probe needs a scenario to exercise and defaults to a
+this is hermetic adapter evidence, not native or guest realization.
+Native and guest certification require stronger observation gates that the
+backend distribution supplies. The probe needs a scenario to exercise and defaults to a
 generic linux-vm scenario (`_DEFAULT_CONFORMANCE_SCENARIO`).
 
 A single hard-coded scenario wrongly assumes *every* backend can realize it.
@@ -301,9 +301,10 @@ independent expected-observation inventory and fresh addressed observations;
 planned values, unbound or fabricated handles, stale samples, missing operation
 results, silent transformations, and incomplete cleanup all fail closed.
 Machine-readable reports are written only through the redaction-gated atomic
-artifact path. The currently published open libvirt envelopes are deliberately
-reported as non-constructive until the configuration-specific envelopes are
-made executable; a caller-selected happy path cannot substitute for them.
+artifact path. The published open libvirt-qemu envelopes are deliberately
+reported as non-constructive. A caller-selected happy path cannot substitute
+for them. RAES ships no concrete backend; see
+[ADR-115](../../decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md).
 
 Contract, adapter, native-daemon, and guest conformance remain distinct
 reportable dimensions. The repository-wide guardrails for this work are recorded in the

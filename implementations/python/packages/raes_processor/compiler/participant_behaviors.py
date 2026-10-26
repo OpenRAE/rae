@@ -2,20 +2,19 @@
 
 from collections.abc import Callable, Mapping
 
+from raes import ReferencePurpose
 from raes.agents import Agent
 from raes.entities import Entity, flatten_entities
 from raes.scenario import InstantiatedScenario
 from raes.semantics.participant_behavior import select_participants
-from raes_contracts.domain_profiles import DomainProfileBindingModel
 
 from ..models import (
     Diagnostic,
     ParticipantBehaviorRuntime,
     ParticipantBehaviorSpecificationRuntime,
-    ParticipantInteractiveAccessRuntime,
     ParticipantToolAffordanceRuntime,
 )
-from ._mixed_control import _compile_mixed_control
+from ._mixed_control_policy import _compile_mixed_control_declaration, mixed_control_semantics
 from .addresses import (
     _action_contract_address,
     _assertion_address,
@@ -34,6 +33,7 @@ from .alias_index import (
     _runtime_addressable_ref_index,
     _runtime_addresses_for_refs,
 )
+from .participant_access import _participant_interactive_access
 from .participant_autonomous_execution import _compile_autonomous_execution
 from .support import _dedupe, _dump
 
@@ -130,7 +130,7 @@ def _compile_participant_behavior(
         boundary_names=list(agent.observation_boundaries),
         diagnostics=diagnostics,
     )
-    interactive_access, interactive_access_addresses = _participant_interactive_access(agent, addressable_ref_index)
+    interactive_access, interactive_access_addresses = _participant_interactive_access(scenario, agent)
     starting_account_refs = tuple(agent.starting_accounts)
     starting_account_addresses = _account_addresses_for_refs(scenario, list(agent.starting_accounts))
     initial_knowledge_addresses = _initial_knowledge_addresses(scenario, agent.initial_knowledge)
@@ -138,11 +138,15 @@ def _compile_participant_behavior(
     starting_assertion_addresses = tuple(_assertion_address(ref) for ref in agent.starting_assertions)
     authority_anchor_refs = tuple(agent.authority_anchors)
     authority_anchor_addresses = _runtime_addresses_for_refs(
-        list(agent.authority_anchors), addressable_ref_index=addressable_ref_index
+        list(agent.authority_anchors),
+        addressable_ref_index=addressable_ref_index,
+        purpose=ReferencePurpose.AUTHORITY_ANCHOR,
     )
     operating_scope_refs = tuple(agent.operating_scope)
     operating_scope_addresses = _runtime_addresses_for_refs(
-        list(agent.operating_scope), addressable_ref_index=addressable_ref_index
+        list(agent.operating_scope),
+        addressable_ref_index=addressable_ref_index,
+        purpose=ReferencePurpose.OPERATING_SCOPE,
     )
     dependency_addresses = _dedupe(
         [
@@ -186,36 +190,6 @@ def _compile_participant_behavior(
         refresh_dependencies=dependency_addresses,
         spec={"agent": _dump(agent), "interpretation_mode": "role-neutral-projection"},
     )
-
-
-def _participant_interactive_access(
-    agent: Agent, addressable_ref_index: Mapping[str, str]
-) -> tuple[list[ParticipantInteractiveAccessRuntime], list[str]]:
-    interactive_access: list[ParticipantInteractiveAccessRuntime] = []
-    addresses: list[str] = []
-    for access_id, access in sorted(agent.interactive_access.items()):
-        target_addresses = _runtime_addresses_for_refs([access.target_ref], addressable_ref_index=addressable_ref_index)
-        account_addresses = _runtime_addresses_for_refs(
-            [access.account_ref] if access.account_ref else [], addressable_ref_index=addressable_ref_index
-        )
-        channel = (
-            access.channel
-            if isinstance(access.channel, DomainProfileBindingModel)
-            else str(getattr(access.channel, "value", access.channel))
-        )
-        interactive_access.append(
-            ParticipantInteractiveAccessRuntime(
-                access_id=access_id,
-                target_ref=access.target_ref,
-                target_address=target_addresses[0],
-                channel=channel,
-                account_ref=access.account_ref or "",
-                account_address=account_addresses[0] if account_addresses else "",
-            )
-        )
-        addresses.extend(target_addresses)
-        addresses.extend(account_addresses)
-    return interactive_access, addresses
 
 
 def _resolve_behavior_spec_refs(
@@ -331,6 +305,7 @@ def _compile_behavior_specifications(
         authority_scope_addresses = _runtime_addresses_for_refs(
             list(behavior_spec.authority_scope_refs),
             addressable_ref_index=addressable_ref_index,
+            purpose=ReferencePurpose.AUTHORITY_SCOPE,
         )
         (
             mixed_control_participant_address,
@@ -341,10 +316,12 @@ def _compile_behavior_specifications(
             controller_states,
             control_transitions,
             mixed_control_dependencies,
-        ) = _compile_mixed_control(
+            mixed_control_policy,
+        ) = _compile_mixed_control_declaration(
             spec_name=name,
             behavior_spec=behavior_spec,
             addressable_ref_index=addressable_ref_index,
+            diagnostics=diagnostics,
         )
         dependencies = _dedupe(
             [
@@ -391,6 +368,8 @@ def _compile_behavior_specifications(
             mixed_control_dispositions=mixed_control_dispositions,
             controller_states=controller_states,
             control_transitions=control_transitions,
+            mixed_control_semantics=mixed_control_semantics(behavior_spec.mixed_control),
+            mixed_control_policy=mixed_control_policy,
             realization_profile_ref=str(behavior_spec.realization_profile_ref or ""),
             backend_feature_support_refs=tuple(behavior_spec.backend_feature_support_refs),
             evidence_contract_refs=tuple(behavior_spec.evidence_contract_refs),

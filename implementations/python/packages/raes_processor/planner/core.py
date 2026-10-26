@@ -1,7 +1,7 @@
 """Top-level planning pipeline that reconciles a runtime model against a snapshot."""
 
 from dataclasses import replace
-from typing import cast
+from typing import TypedDict, Unpack, cast
 
 from raes.realization_envelope import member
 from raes_backend_protocols.capabilities import BackendManifest
@@ -40,6 +40,10 @@ from ..semantics.realization import (
 from .execution_policy import DomainPlan, attach_execution_policies
 from .manifest_validation import _validate_manifest
 from .materialization import planned_materialization_source
+from .mixed_control_admission import (
+    MixedControlPlanningAdmission,
+    mixed_control_semantics_diagnostics,
+)
 from .operations import (
     _build_evaluation_plan,
     _build_operations,
@@ -48,7 +52,7 @@ from .operations import (
 )
 from .ordering import _ordering_cycle_diagnostics
 from .realization_authority import materialize_realization_authority
-from .realization_collections import planned_node_collection, retain_open_collection_nodes
+from .realization_collections import planned_node_collection, retain_open_collection_nodes, retain_reported_descendants
 from .realization_preparation import preparation_authority, preparation_member_diagnostics
 from .realization_profiles import profile_resources
 from .resources import _collect_resources
@@ -72,6 +76,7 @@ def _time_model_diagnostics(model: RuntimeModel, manifest: BackendManifest) -> l
 def _participant_execution_diagnostics(
     model: RuntimeModel,
     manifest: BackendManifest,
+    mixed_control_admission: MixedControlPlanningAdmission | None = None,
 ) -> list[Diagnostic]:
     specifications = tuple(model.behavior_specifications.values())
     autonomous_specifications = tuple(
@@ -100,6 +105,8 @@ def _participant_execution_diagnostics(
                     message=gap,
                 )
             )
+    if not isinstance(mixed_control_admission, MixedControlPlanningAdmission) or mixed_control_admission.model != model:
+        diagnostics.extend(mixed_control_semantics_diagnostics(model))
     return diagnostics
 
 
@@ -173,6 +180,7 @@ def _admission_diagnostics(
     *,
     artifact_availability: ArtifactAvailabilityContext | None,
     preparation: object | None,
+    mixed_control_admission: MixedControlPlanningAdmission | None = None,
 ) -> list[Diagnostic]:
     """Collect every static admission failure before any operation is planned."""
 
@@ -180,7 +188,7 @@ def _admission_diagnostics(
         *effective_model.diagnostics,
         *_validate_manifest(effective_model, manifest),
         *_time_model_diagnostics(effective_model, manifest),
-        *_participant_execution_diagnostics(effective_model, manifest),
+        *_participant_execution_diagnostics(effective_model, manifest, mixed_control_admission),
         *capture_admission_diagnostics(effective_model.capture_demands, manifest.observation),
         *realization_support_diagnostics(effective_requirements, manifest),
         *realization_envelope_diagnostics(
@@ -295,6 +303,9 @@ def _augment_provisioning(
             ),
         )
     )
+    provisioning, inventory_diagnostics = retain_reported_descendants(provisioning, effective_model, snapshot)
+    extra.extend(inventory_diagnostics)
+    provisioning.diagnostics.extend(inventory_diagnostics)
     materialization_diagnostics = service_materialization_plan_diagnostics(
         provisioning,
         manifest.provisioner,
@@ -329,18 +340,31 @@ def _with_materialization_source(
     )
 
 
+class PlanningOptions(TypedDict, total=False):
+    """Typed keyword-only planning controls, retaining the established call surface."""
+
+    scope: PlanScope | None
+    apparatus_realization_default: ApparatusRealizationDefaultResolver | None
+    artifact_availability: ArtifactAvailabilityContext | None
+    profile_context: DomainProfileResolutionContextModel | None
+    mixed_control_admission: MixedControlPlanningAdmission | None
+
+
 def plan(
     model: RuntimeModel,
     manifest: BackendManifest,
     snapshot: RuntimeSnapshot | None = None,
-    *,
-    scope: PlanScope | None = None,
-    apparatus_realization_default: ApparatusRealizationDefaultResolver | None = None,
-    artifact_availability: ArtifactAvailabilityContext | None = None,
-    profile_context: DomainProfileResolutionContextModel | None = None,
+    **options: Unpack[PlanningOptions],
 ) -> ExecutionPlan:
     """Reconcile a compiled runtime model against the current snapshot."""
 
+    scope = options.pop("scope", None)
+    apparatus_realization_default = options.pop("apparatus_realization_default", None)
+    artifact_availability = options.pop("artifact_availability", None)
+    profile_context = options.pop("profile_context", None)
+    mixed_control_admission = options.pop("mixed_control_admission", None)
+    if options:
+        raise TypeError("unsupported planning owner context")
     snapshot = snapshot or RuntimeSnapshot()
     target_name = scope.target_name if scope is not None else None
     run_id = scope.run_id if scope is not None else None
@@ -365,6 +389,7 @@ def plan(
             effective_requirements,
             artifact_availability=artifact_availability,
             preparation=preparation,
+            mixed_control_admission=mixed_control_admission,
         ),
         *authority_diagnostics,
         *_ordering_cycle_diagnostics(resources),
