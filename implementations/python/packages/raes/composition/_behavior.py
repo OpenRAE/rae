@@ -16,6 +16,7 @@ from .._errors import SDLValidationError
 from .._reference_targetability import PURPOSE_LABELS, ReferencePurpose
 from ..participant_behavior_specification import tool_affordance_reference
 from ..participant_inject_delivery import participant_inject_delivery_reference
+from ._episode_policy import _rewrite_participant_episode_policy, _unit_reset_authority_ambiguities
 from ._references import (
     _maybe_rename,
     _prefix,
@@ -140,7 +141,7 @@ def _unit_authority_scope_ambiguities(unit: ScenarioContent, index: DeclarationI
 
 
 def _reject_ambiguous_unit_behavior_refs(unit: ScenarioContent, *, path: Path) -> None:
-    """Reject ambiguous tool identities and behavior authority scopes before rewriting.
+    """Reject ambiguous tool identities, behavior authority scopes and reset authorities before rewriting.
 
     The unit's own declaration index decides, as in standalone validation, so the
     composed import fails with the standalone diagnostic instead of binding one
@@ -163,6 +164,7 @@ def _reject_ambiguous_unit_behavior_refs(unit: ScenarioContent, *, path: Path) -
         if len(candidates := index.resolve(tool_ref)) > 1
     ]
     errors.extend(_unit_authority_scope_ambiguities(unit, index))
+    errors.extend(_unit_reset_authority_ambiguities(unit, index))
     if errors:
         raise SDLValidationError(errors, path=path)
 
@@ -386,6 +388,7 @@ def _rewrite_behavior_specification(
     for binding in behavior_spec.get("participant_inject_deliveries", {}).values():
         if isinstance(binding, dict):
             _rewrite_participant_inject_delivery(binding, symbols)
+    _rewrite_participant_episode_policy(behavior_spec.get("episode_policy"), symbols)
 
 
 def _rewrite_behavior_sections(

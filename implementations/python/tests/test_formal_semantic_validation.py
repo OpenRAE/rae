@@ -98,7 +98,15 @@ def test_current_retest_bundle_is_coherent_and_clean() -> None:
         if item.manifest_path == snapshot["baseline"]["release_path"]
     )
     assert snapshot["baseline"]["release_revision"] == baseline.manifest["revision"]
-    assert snapshot["deviations"] == []
+    # Issue #307's compiled episode-policy map changes only the compile controls' digests.
+    assert {item["case_id"] for item in snapshot["deviations"]} == {
+        "compile-repeatability-control",
+        "compile-non-vacuity-control",
+    }
+    assert all(item["changed_fields"] == ["result_digest"] for item in snapshot["deviations"])
+    assert all(
+        item["baseline"]["actual_outcome"] == item["retest"]["actual_outcome"] for item in snapshot["deviations"]
+    )
     assert validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis) == []
 
 

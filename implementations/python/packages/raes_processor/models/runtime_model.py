@@ -32,6 +32,7 @@ from .behavior_resources import (
     StoryRuntime,
     WorkflowRuntime,
 )
+from .participant_episode_resources import ParticipantEpisodePolicyRuntime
 from .resources import (
     AccountPlacement,
     AssertionRuntime,
@@ -144,6 +145,7 @@ class RuntimeModel:
     behavior_specifications: dict[str, ParticipantBehaviorSpecificationRuntime] = field(default_factory=dict)
     tool_affordances: dict[str, ParticipantToolAffordanceRuntime] = field(default_factory=dict)
     participant_inject_deliveries: dict[str, ParticipantInjectDeliveryRuntime] = field(default_factory=dict)
+    participant_episode_policies: dict[str, ParticipantEpisodePolicyRuntime] = field(default_factory=dict)
     events: dict[str, EventRuntime] = field(default_factory=dict)
     scripts: dict[str, ScriptRuntime] = field(default_factory=dict)
     stories: dict[str, StoryRuntime] = field(default_factory=dict)
@@ -186,6 +188,7 @@ class RuntimeModel:
             "behavior_specifications",
             "tool_affordances",
             "participant_inject_deliveries",
+            "participant_episode_policies",
             "events",
             "scripts",
             "stories",

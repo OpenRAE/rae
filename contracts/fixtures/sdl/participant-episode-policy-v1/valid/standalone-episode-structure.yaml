@@ -1,0 +1,90 @@
+name: act-623
+nodes:
+  siem:
+    type: compute
+    resources: {ram: 1 gib, cpu: 1}
+    services: [{port: 443, name: console}]
+entities:
+  blue-team:
+    role: blue
+propositions:
+  console-ready:
+    description: The SIEM console is reachable before a replay episode starts.
+    subjects: [nodes.siem.services.console]
+    basis: declared_state
+    predicate:
+      kind: boolean
+      property: console-reachable
+      semantic_ref: urn:raes:observable:console-reachable
+      expected: true
+assertions:
+  console-ready:
+    proposition: console-ready
+    role: precondition
+time_domains:
+  replay-time:
+    kind: logical
+    tick_period_seconds: {numerator: 1, denominator: 1}
+    epoch: scenario_start
+    visibility: participant_visible
+    description: replay logical time
+clocks:
+  replay-clock:
+    time_domain_ref: replay-time
+    authority_kind: runtime
+    authority_ref: runtime.scheduler
+    monotonicity: non_decreasing
+    description: replay scheduler clock
+temporal_constraints:
+  replay-deadline:
+    constraint_kind: deadline
+    clock_ref: replay-clock
+    subject_refs: [agents.replayer]
+    end: {tick: 900}
+    description: each replay episode closes within fifteen minutes
+evidence_requirements:
+  replay-clock-evidence:
+    description: capture the replay clock reading at episode close
+    source_refs: [agents.replayer]
+    scope_refs: [siem]
+    window: replay episode close
+    channel: log
+    artifact_role: episode_timeout_evidence
+    sensitivity: plain
+    redaction: none
+    integrity: checksum
+    retention: study_lifetime
+    loss_disclosure: required
+  replay-reset-evidence:
+    description: capture the replay reset record
+    source_refs: [agents.replayer]
+    scope_refs: [siem]
+    window: replay episode reset
+    channel: log
+    artifact_role: episode_reset_evidence
+    sensitivity: plain
+    redaction: none
+    integrity: checksum
+    retention: study_lifetime
+    loss_disclosure: required
+agents:
+  replayer:
+    affiliations: [blue-team]
+behavior_specifications:
+  replay-episodes:
+    semantic_version: 1.0.0
+    participant_refs: [replayer]
+    episode_policy:
+      profile: participant-episode-policy/v1
+      initialization:
+        assertion_refs: [console-ready]
+      terminal_conditions:
+        replay-window-closed:
+          terminal_reason: timed_out
+          temporal_constraint_ref: replay-deadline
+          evidence_requirement_refs: [replay-clock-evidence]
+      reset_policy:
+        control_actions: [reset]
+        participant_memory_scope: episode_local_reset
+        memory_reset_authority_ref: agents.replayer
+        evidence_requirement_refs: [replay-reset-evidence]
