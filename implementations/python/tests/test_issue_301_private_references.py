@@ -74,8 +74,9 @@ def test_private_reference_guard_checks_each_participant_reference_boundary(path
 
     # Only the exact value at the exact location may come from composition.
     validate_authored_behavior_references(document, generated_from=deepcopy(document))
+    other_document = _document_at(path, PRIVATE + "-other")
     with pytest.raises(ValidationError):
-        validate_authored_behavior_references(document, generated_from=_document_at(path, PRIVATE + "-other"))
+        validate_authored_behavior_references(document, generated_from=other_document)
 
 
 def _importer(tmp_path: Path, document):

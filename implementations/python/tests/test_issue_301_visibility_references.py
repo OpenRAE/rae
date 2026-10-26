@@ -83,9 +83,10 @@ def test_authored_visibility_transitions_preserve_hidden_then_disclosed_binding(
 def test_ambiguous_visibility_reference_is_rejected():
     document = _authored_document(toolkit_text())
     document["content"]["scan-active"] = deepcopy(document["content"]["nmap"])
+    source = yaml.safe_dump(document)
 
     with pytest.raises(ValueError, match="ambiguous.*visibility reference"):
-        compiled(yaml.safe_dump(document))
+        compiled(source)
 
 
 def test_conflicting_visibility_aliases_are_rejected():
@@ -94,9 +95,10 @@ def test_conflicting_visibility_aliases_are_rejected():
     rule = next(rule for rule in boundary["view_rules"] if rule["information_ref"] == "scan-active")
     boundary["view_rules"].append(dict(rule, information_ref=ACTIVE, disposition="hidden"))
     boundary["hidden_refs"].append(ACTIVE)
+    source = yaml.safe_dump(document)
 
     with pytest.raises(ValueError, match="conflicting.*visibility"):
-        compiled(yaml.safe_dump(document))
+        compiled(source)
 
 
 def test_equal_aliases_keep_unknown_information_refs_and_canonical_addresses():
@@ -129,6 +131,7 @@ def test_alias_transitions_cannot_reuse_a_stale_initial_disposition():
         effective_order=3,
     )
     boundary["view_transitions"].append(transition)
+    source = yaml.safe_dump(document)
 
     with pytest.raises(ValueError, match="conflicting.*visibility transition"):
-        compiled(yaml.safe_dump(document))
+        compiled(source)

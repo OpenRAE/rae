@@ -1,7 +1,7 @@
 """Participant-behavior history reference and ref-authorization violation checks."""
 
 from collections.abc import Iterable, Mapping
-from typing import Any
+from typing import Any, Literal
 
 from raes.participant_attribution_semantics import ParticipantAttributionCandidateKind
 from raes_contracts.participant_behavior import ParticipantBehaviorHistoryEventType
@@ -182,11 +182,13 @@ def _participant_behavior_disposition_ref_violations(
     refs: tuple[str, ...],
     boundary: ParticipantObservationBoundaryRuntime,
     relation: Mapping[str, str],
-    allowed_dispositions: frozenset[str],
     effective_order: int,
-    detail_key: str,
-    allowed_label: str,
+    detail_key: Literal["visible_refs", "disclosed_refs"],
 ) -> list[tuple[str, str]]:
+    allowed_dispositions = (
+        _PARTICIPANT_VISIBLE_VIEW_DISPOSITIONS if detail_key == "visible_refs" else frozenset({"disclosed"})
+    )
+    allowed_label = "participant-visible" if detail_key == "visible_refs" else "disclosed"
     violations: list[tuple[str, str]] = []
     for ref in refs:
         disposition = _participant_behavior_ref_disposition(boundary, relation, ref)
@@ -246,20 +248,16 @@ def _participant_behavior_visibility_detail_violations(
             refs=detail_refs["visible_refs"],
             boundary=boundary,
             relation=relation,
-            allowed_dispositions=_PARTICIPANT_VISIBLE_VIEW_DISPOSITIONS,
             effective_order=effective_order,
             detail_key="visible_refs",
-            allowed_label="participant-visible",
         ),
         *_participant_behavior_disposition_ref_violations(
             locator=locator,
             refs=detail_refs["disclosed_refs"],
             boundary=boundary,
             relation=relation,
-            allowed_dispositions=frozenset({"disclosed"}),
             effective_order=effective_order,
             detail_key="disclosed_refs",
-            allowed_label="disclosed",
         ),
         *_participant_behavior_evidence_ref_violations(
             locator=locator,
