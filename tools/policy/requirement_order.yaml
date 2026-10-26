@@ -103,6 +103,10 @@ phases:
       - ^SEM-
     blocked_until:
       - reference-implementations
+  # Listed before participant-model so ACT-623 matches here, not ^ACT- (#1510).
+  - id: participant-episode-structure
+    requirements:
+      - ACT-623
   - id: participant-model
     patterns:
       - ^ACT-
@@ -1243,6 +1247,33 @@ ownership:
     - implementations/python/tests
     - specs/formal
     - CHANGELOG.md
+  # ACT-623 keeps the participant-model roots it reached through ^ACT- and adds
+  # its issue scope. Other ^ACT- requirements stay in the shared phase (#1510).
+  participant-episode-structure:
+    - contracts/concept-authority
+    - contracts/fixtures
+    - contracts/schemas
+    - contracts/schema-publication
+    - contracts/schema-publication-manifest.json
+    - docs/decisions
+    - docs/explain/reference
+    - docs/explain/sdl
+    - docs/requirements
+    - docs/migration
+    - docs/research/specification-coverage
+    - docs/research/formal-semantic-validation
+    - specs/formal
+    - specs/sdl
+    - implementations/python/packages/raes
+    - implementations/python/packages/raes_processor
+    - implementations/python/packages/raes_contracts
+    - implementations/python/packages/raes_backend_protocols
+    - implementations/python/packages/raes_conformance
+    - implementations/python/packages/raes_runtime
+    - implementations/python/tests
+    - tools/policy/requirement_order.yaml
+    - CHANGELOG.md
+    - docs/governance/requirement-scopes/309.json
   participant-model:
     - contracts/concept-authority
     - contracts/fixtures
