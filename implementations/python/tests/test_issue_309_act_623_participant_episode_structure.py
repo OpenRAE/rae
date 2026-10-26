@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
 
 import pytest
+from jsonschema import Draft202012Validator
 from raes._errors import SDLParseError
+from raes._yaml_loader import load_sdl_yaml
 from raes.parser import parse_sdl, parse_sdl_file
 from raes_backend_stubs.stubs import create_stub_target
 from raes_conformance.conformance import participant_episode_structure_conformance_diagnostics
@@ -135,6 +138,28 @@ def test_the_autonomous_profile_cannot_carry_episode_structure() -> None:
         SDLParseError, match="autonomous_execution/ParticipantAutonomousExecutionPolicyV1/episode_policy"
     ):
         parse_sdl_file(AUTONOMOUS_PROFILE_FIXTURE)
+
+
+@pytest.mark.parametrize(
+    ("fixture", "rejected_at"),
+    [
+        (STANDALONE_FIXTURE, []),
+        (AUTONOMOUS_PROFILE_FIXTURE, [["behavior_specifications", "replay-episodes", "autonomous_execution"]]),
+    ],
+    ids=["standalone-member", "autonomous-profile"],
+)
+def test_the_published_authoring_schema_agrees_on_where_episode_structure_belongs(
+    fixture: Path,
+    rejected_at: list[list[str]],
+) -> None:
+    schema = json.loads(
+        (REPO_ROOT / "contracts" / "schemas" / "sdl" / "sdl-authoring-input-v1.json").read_text(encoding="utf-8")
+    )
+    document = load_sdl_yaml(fixture.read_text(encoding="utf-8"), path=fixture)
+
+    errors = Draft202012Validator(schema).iter_errors(document)
+
+    assert [list(error.absolute_path) for error in errors] == rejected_at
 
 
 def _history(control_plane: RuntimeControlPlane) -> dict[str, object]:

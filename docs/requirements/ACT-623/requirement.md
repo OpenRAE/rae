@@ -31,6 +31,6 @@ Primary-source refresh shows that participant behavior is often organized as bou
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/conformance/__init__.py` (ACT-623 episode-structure conformance facade export)
 - IMPLEMENTS → SPEC `specs/sdl/sections.md` (ACT-623 first-class episode structure and conformance contract)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/sections.md` (ACT-623 first-class episode structure guide)
-- TESTS → TEST `implementations/python/tests/test_issue_309_act_623_participant_episode_structure.py` (ACT-623 cross-kind attachment, aggregate membership, conformance refusal of a participant governed by two compiled policies, and recorded-history conformance tests)
+- TESTS → TEST `implementations/python/tests/test_issue_309_act_623_participant_episode_structure.py` (ACT-623 cross-kind attachment, aggregate membership, published-schema placement, conformance refusal of a participant governed by two compiled policies, and recorded-history conformance tests)
 - TESTS → TEST `implementations/python/tests/test_conformance_facade_parity.py` (ACT-623 conformance facade export parity)
 - TESTS → TEST `implementations/python/tests/test_issue_309_policy_ownership.py` (ACT-623 requirement-governance route, ownership bounds, and the stacked DSL-120 bindings)
