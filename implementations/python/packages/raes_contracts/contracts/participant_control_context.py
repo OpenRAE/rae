@@ -15,6 +15,13 @@ from .participant_decision_state_cut import ParticipantDecisionSurfaceStateCutMo
 from .participant_manifests import DigestString
 from .schema_invariants import _add_raes_invariant
 
+__all__ = [
+    "ParticipantControlContextAssetModel",
+    "ParticipantControlContextAssetReferenceModel",
+    "ParticipantControlContextChangeModel",
+    "ParticipantControlContextRecordModel",
+]
+
 ContextReference = Annotated[str, Field(min_length=1, max_length=1024)]
 ContextReferences = Annotated[list[ContextReference], Field(max_length=256, json_schema_extra={"uniqueItems": True})]
 
