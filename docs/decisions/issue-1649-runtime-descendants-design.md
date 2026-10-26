@@ -145,6 +145,9 @@ The backend report crosses the producer trust boundary.
 The runtime sends protected bytes across the archive boundary.
 The store and public API retain their existing access controls.
 
+Only provisioning admission can accept the inventory report.
+Other phases must use the refresh route.
+
 ## State transitions
 
 ```mermaid

@@ -4,18 +4,37 @@ from dataclasses import replace
 
 from raes import MaterializedScenario, admit_instantiated_scenario, parse_sdl
 from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
+from raes.scenario import InstantiatedScenario
+from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_protocols.manifest import backend_manifest_v2_model
 from raes_contracts.augmentation_preparation import AugmentationEffect, AugmentationPreparation
 from raes_contracts.json_ingress import parse_bounded_json_object
-from raes_contracts.materialization import MATERIALIZATION_MAX_BYTES, MaterializationSubmission
-from raes_contracts.materialization_inventory import RUNTIME_DESCENDANTS_CONTRACT, InventoryInvariant
-from raes_contracts.planning import ChangeAction, RuntimeDomain, require_plan_operation_identity
+from raes_contracts.materialization import (
+    MATERIALIZATION_MAX_BYTES,
+    MaterializationArchive,
+    MaterializationSource,
+    MaterializationSubmission,
+)
+from raes_contracts.materialization_inventory import (
+    RUNTIME_DESCENDANTS_CONTRACT,
+    InventoryInvariant,
+    RuntimeDescendantBinding,
+    RuntimeInventoryReport,
+)
+from raes_contracts.planning import (
+    ChangeAction,
+    PlannedResource,
+    ProvisioningPlan,
+    RuntimeDomain,
+    require_plan_operation_identity,
+)
 from raes_contracts.realization_collections import node_collection_members
 from raes_contracts.realization_structure import evaluate_realization_constraint
-from raes_contracts.runtime_state import SnapshotEntry
+from raes_contracts.runtime_state import RealizationProvenanceEntry, RuntimeSnapshot, SnapshotEntry
 
 from ..compiler import compile_runtime_model, materialization_differences, validate_materialization_origins
 from ..compiler.realization_value_domains import nested_authored_value
+from ..models import RuntimeModel
 from ..semantics.realization_concerns import realization_concern_descriptors
 from ..semantics.realization_requirement import CompiledRealizationRequirement
 from ..semantics.realization_runtime_common import realization_provenance_entry
@@ -26,29 +45,22 @@ from .prepared_node_admission import validate_portable_node_inventory
 from .prepared_node_projection import prepared_node_payload_projection
 from .realization_collections import planned_node_collection
 
+ProvenanceKey = tuple[str, str, str, str]
 
-def admit_runtime_inventory(submission, request, manifest, previous, accepted, archive):
+
+def admit_runtime_inventory(
+    submission: MaterializationSubmission,
+    request: ProvisioningPlan,
+    manifest: BackendManifest,
+    previous: RuntimeSnapshot,
+    accepted: RuntimeSnapshot,
+    archive: MaterializationArchive,
+) -> tuple[MaterializationSubmission, RuntimeSnapshot]:
     """Return admitted SDL and runtime-owned projections; never mint execution plans."""
     if RUNTIME_DESCENDANTS_CONTRACT not in manifest.supported_contract_versions:
         raise ValueError("runtime descendant reporting was not negotiated")
     submission = MaterializationSubmission.model_validate(submission.model_dump(mode="json"))
-    materialized = parse_sdl(submission.sdl)
-    if not isinstance(materialized, MaterializedScenario):
-        raise ValueError("runtime inventory requires descriptive SDL")
-    report = materialized.materialization_provenance.inventory
-    source = request.materialization_source
-    if (
-        report is None
-        or not request.inventory_attempt_id
-        or source.target_scope is None
-        or (report.attempt_id, report.run_id, report.source_digest, report.target_scope)
-        != (request.inventory_attempt_id, source.run_id, source.instantiated_digest, source.target_scope)
-    ):
-        raise ValueError(InventoryInvariant.BINDING)
-    try:
-        _validate_binding(materialized, source, request, manifest, previous)
-    except ValueError:
-        raise ValueError(InventoryInvariant.BINDING) from None
+    materialized, report, source = _inventory_document(submission, request, manifest, previous)
     original = admit_instantiated_scenario(
         parse_bounded_json_object(source.snapshot, max_bytes=MATERIALIZATION_MAX_BYTES)["scenario"]
     )
@@ -64,7 +76,57 @@ def admit_runtime_inventory(submission, request, manifest, previous, accepted, a
         report, preceding, originals, previous, operation_id=request.operation_id, resources=resources
     )
     entries = _project_entries(report, preceding, resources, originals, accepted)
-    authority = planned_node_collection(original_model, request)
+    _validate_collection_inventory(original_model, request, entries, originals, manifest)
+    _validate_addition_permission(original, materialized, request, manifest, previous)
+    candidate = accepted.with_entries(entries)
+    admitted = admit_materialization_submission(submission, request, manifest, previous, candidate)
+    ledger = _provenance_ledger(previous, accepted, request, report, materialized)
+    _apply_backend_selections(ledger, report, request)
+    return admitted, candidate.with_entries(dict(candidate.entries), realization_provenance=tuple(ledger.values()))
+
+
+def _inventory_document(
+    submission: MaterializationSubmission,
+    request: ProvisioningPlan,
+    manifest: BackendManifest,
+    previous: RuntimeSnapshot,
+) -> tuple[MaterializedScenario, RuntimeInventoryReport, MaterializationSource]:
+    materialized = parse_sdl(submission.sdl)
+    if not isinstance(materialized, MaterializedScenario):
+        raise ValueError("runtime inventory requires descriptive SDL")
+    report, source = _bound_inventory_report(materialized, request)
+    try:
+        _validate_binding(materialized, source, request, manifest, previous)
+    except ValueError:
+        raise ValueError(InventoryInvariant.BINDING) from None
+    return materialized, report, source
+
+
+def _bound_inventory_report(
+    materialized: MaterializedScenario, request: ProvisioningPlan
+) -> tuple[RuntimeInventoryReport, MaterializationSource]:
+    report = materialized.materialization_provenance.inventory
+    source = request.materialization_source
+    if report is None or source is None:
+        raise ValueError(InventoryInvariant.BINDING)
+    if (
+        not request.inventory_attempt_id
+        or source.target_scope is None
+        or (report.attempt_id, report.run_id, report.source_digest, report.target_scope)
+        != (request.inventory_attempt_id, source.run_id, source.instantiated_digest, source.target_scope)
+    ):
+        raise ValueError(InventoryInvariant.BINDING)
+    return report, source
+
+
+def _validate_collection_inventory(
+    original: RuntimeModel,
+    request: ProvisioningPlan,
+    entries: dict[str, SnapshotEntry],
+    originals: set[str],
+    manifest: BackendManifest,
+) -> None:
+    authority = planned_node_collection(original, request)
     if (
         authority is None
         or not evaluate_realization_constraint(
@@ -81,34 +143,53 @@ def admit_runtime_inventory(submission, request, manifest, previous, accepted, a
         validate_portable_node_inventory(live, originals, manifest)
     except (AttributeError, KeyError, TypeError, ValueError):
         raise ValueError(InventoryInvariant.CAPABILITY) from None
-    _validate_addition_permission(original, materialized, request, manifest, previous)
-    candidate = accepted.with_entries(entries)
-    admitted = admit_materialization_submission(submission, request, manifest, previous, candidate)
-    provenance = _descendant_provenance(report, materialized)
+
+
+def _provenance_key(entry: RealizationProvenanceEntry) -> ProvenanceKey:
+    return entry.address, entry.field_path, entry.domain, entry.requirement_kind
+
+
+def _provenance_ledger(
+    previous: RuntimeSnapshot,
+    accepted: RuntimeSnapshot,
+    request: ProvisioningPlan,
+    report: RuntimeInventoryReport,
+    materialized: MaterializedScenario,
+) -> dict[ProvenanceKey, RealizationProvenanceEntry]:
     current = {entry.address for entry in report.descendants}
     ledger = {
-        (entry.address, entry.field_path, entry.domain, entry.requirement_kind): entry
+        _provenance_key(entry): entry
         for entry in (*previous.realization_provenance, *accepted.realization_provenance)
         if entry.address not in current
     }
-    ledger.update(
-        {(entry.address, entry.field_path, entry.domain, entry.requirement_kind): entry for entry in provenance}
-    )
+    ledger.update({_provenance_key(entry): entry for entry in _descendant_provenance(report, materialized)})
     unchanged = {operation.address for operation in request.operations if operation.action is ChangeAction.UNCHANGED}
     for entry in previous.realization_provenance:
         if entry.address in unchanged:
-            ledger[(entry.address, entry.field_path, entry.domain, entry.requirement_kind)] = entry
-    identities = {(entry.address, entry.field_path, entry.requirement_kind): key for key, entry in ledger.items()}
-    admitted_choices = {
+            ledger[_provenance_key(entry)] = entry
+    return ledger
+
+
+def _admitted_choices(request: ProvisioningPlan) -> set[tuple[str, str, str]]:
+    choices = {
         (entry.address, entry.field_path, entry.requirement_kind)
         for entry in request.realization_authority
         if entry.mode.value in {"open", "constrained"}
     }
-    admitted_choices.update(
+    choices.update(
         (entry.address, entry.field_path, entry.concern)
         for entry in request.realization_constraints
         if entry.posture in {"open", "constrained"}
     )
+    return choices
+
+
+def _apply_backend_selections(
+    ledger: dict[ProvenanceKey, RealizationProvenanceEntry], report: RuntimeInventoryReport, request: ProvisioningPlan
+) -> None:
+    identities = {(entry.address, entry.field_path, entry.requirement_kind): key for key, entry in ledger.items()}
+    current = {entry.address for entry in report.descendants}
+    admitted_choices = _admitted_choices(request)
     for selection in report.backend_selections:
         selected = (selection.address, selection.field_path, selection.requirement_kind)
         identity = identities.get(selected)
@@ -119,50 +200,74 @@ def admit_runtime_inventory(submission, request, manifest, previous, accepted, a
         ):
             raise ValueError(InventoryInvariant.PROVENANCE)
         ledger[identity] = replace(ledger[identity], provenance=ExplicitnessProvenance.BACKEND_REALIZED)
-    return admitted, candidate.with_entries(dict(candidate.entries), realization_provenance=tuple(ledger.values()))
 
 
-def _project_entries(report, preceding, resources, originals, accepted):
-    entries = dict(accepted.entries)
-    old = {entry.address for entry in preceding.descendants} if preceding is not None else set()
+def _validate_description_coverage(
+    report: RuntimeInventoryReport,
+    resources: dict[str, PlannedResource],
+    originals: set[str],
+    old: set[str],
+    accepted: RuntimeSnapshot,
+) -> None:
     declared = {entry.address for entry in report.descendants if entry.state != "autoremoved"}
     foreign = {
         address
-        for address, entry in entries.items()
+        for address, entry in accepted.entries.items()
         if entry.domain == RuntimeDomain.PROVISIONING and address not in originals and address not in old
     }
     described = {address for address, entry in resources.items() if entry.domain == RuntimeDomain.PROVISIONING}
     if described - originals != declared | foreign:
         raise ValueError("descriptive inventory does not cover its descendants exactly")
+
+
+def _project_entries(
+    report: RuntimeInventoryReport,
+    preceding: RuntimeInventoryReport | None,
+    resources: dict[str, PlannedResource],
+    originals: set[str],
+    accepted: RuntimeSnapshot,
+) -> dict[str, SnapshotEntry]:
+    entries = dict(accepted.entries)
+    old = {entry.address for entry in preceding.descendants} if preceding is not None else set()
+    _validate_description_coverage(report, resources, originals, old, accepted)
     for record in report.descendants:
         if record.state == "autoremoved":
             if record.address in resources:
                 raise ValueError("autoremoved descendant still appears in live SDL")
             entries.pop(record.address, None)
-            continue
-        resource = resources.get(record.address)
-        if (
-            resource is None
-            or resource.domain != RuntimeDomain.PROVISIONING
-            or resource.resource_type not in {"node", "network"}
-        ):
-            raise ValueError("descendant has no admitted portable SDL resource")
-        require_plan_operation_identity(resource.domain, resource.address, resource.resource_type)
-        if (resource.payload.get("count") or 1) != 1 or resource.profile_bindings:
-            raise ValueError("descendant requires its own single portable identity and native profile admission")
-        entries[record.address] = SnapshotEntry(
-            resource.address,
-            resource.domain,
-            resource.resource_type,
-            prepared_node_payload_projection(resource.payload),
-            resource.ordering_dependencies,
-            resource.refresh_dependencies,
-            status="terminated" if record.state == "terminated" else "ready",
-        )
+        else:
+            entries[record.address] = _live_descendant_entry(record, resources.get(record.address))
     return entries
 
 
-def _validate_addition_permission(original, materialized, request, manifest, previous):
+def _live_descendant_entry(record: RuntimeDescendantBinding, resource: PlannedResource | None) -> SnapshotEntry:
+    if (
+        resource is None
+        or resource.domain != RuntimeDomain.PROVISIONING
+        or resource.resource_type not in {"node", "network"}
+    ):
+        raise ValueError("descendant has no admitted portable SDL resource")
+    require_plan_operation_identity(resource.domain, resource.address, resource.resource_type)
+    if (resource.payload.get("count") or 1) != 1 or resource.profile_bindings:
+        raise ValueError("descendant requires its own single portable identity and native profile admission")
+    return SnapshotEntry(
+        resource.address,
+        resource.domain,
+        resource.resource_type,
+        prepared_node_payload_projection(resource.payload),
+        resource.ordering_dependencies,
+        resource.refresh_dependencies,
+        status="terminated" if record.state == "terminated" else "ready",
+    )
+
+
+def _validate_addition_permission(
+    original: InstantiatedScenario,
+    materialized: MaterializedScenario,
+    request: ProvisioningPlan,
+    manifest: BackendManifest,
+    previous: RuntimeSnapshot,
+) -> None:
     """Check existing author policy; this read-only report cannot grant permission."""
     differences = materialization_differences(original, materialized)
     content = materialized.model_dump_json(exclude={"materialization_provenance"})
@@ -184,7 +289,16 @@ def _validate_addition_permission(original, materialized, request, manifest, pre
         raise ValueError("reported descendant effects exceed the original augmentation permission")
 
 
-def _descendant_provenance(report, materialized):
+def _concern_supplied(supplied: dict[str, object], path: tuple[str, ...]) -> bool:
+    current: object = supplied
+    for token in path:
+        current = current.get(token) if isinstance(current, dict) else None
+    return current is not None
+
+
+def _descendant_provenance(
+    report: RuntimeInventoryReport, materialized: MaterializedScenario
+) -> tuple[RealizationProvenanceEntry, ...]:
     records = []
     bindings = {
         binding.address: binding.node_name for binding in materialized.materialization_provenance.resource_bindings
@@ -195,23 +309,32 @@ def _descendant_provenance(report, materialized):
         node_name = bindings[entry.address]
         node = materialized.nodes[node_name]
         supplied = node.model_dump(mode="json", exclude_unset=True)
-        for descriptor in realization_concern_descriptors():
-            if descriptor.section != "nodes":
-                continue
-            present = supplied
-            for token in descriptor.authored_path:
-                present = present.get(token) if isinstance(present, dict) else None
-            value = nested_authored_value(node, descriptor.authored_path)
-            if present is None or value is None or not descriptor.includes_authored_value(value):
-                continue
-            requirement = CompiledRealizationRequirement(
-                address=entry.address,
-                field_path=f"nodes.{node_name}.{descriptor.authored_suffix}",
-                domain="runtime-realization",
-                requirement_kind=descriptor.concern_kind,
-                explicitness=ExplicitnessClass.OPEN,
-                provenance=ExplicitnessProvenance.BACKEND_REALIZED,
-                governing_scope="/nodes",
-            )
-            records.append(realization_provenance_entry(requirement, False))
+        records.extend(_node_concern_provenance(entry.address, node_name, node, supplied))
     return tuple(records)
+
+
+def _node_concern_provenance(
+    address: str, node_name: str, node: object, supplied: dict[str, object]
+) -> list[RealizationProvenanceEntry]:
+    records = []
+    for descriptor in realization_concern_descriptors():
+        if descriptor.section != "nodes":
+            continue
+        value = nested_authored_value(node, descriptor.authored_path)
+        if (
+            not _concern_supplied(supplied, descriptor.authored_path)
+            or value is None
+            or not descriptor.includes_authored_value(value)
+        ):
+            continue
+        requirement = CompiledRealizationRequirement(
+            address=address,
+            field_path=f"nodes.{node_name}.{descriptor.authored_suffix}",
+            domain="runtime-realization",
+            requirement_kind=descriptor.concern_kind,
+            explicitness=ExplicitnessClass.OPEN,
+            provenance=ExplicitnessProvenance.BACKEND_REALIZED,
+            governing_scope="/nodes",
+        )
+        records.append(realization_provenance_entry(requirement, False))
+    return records

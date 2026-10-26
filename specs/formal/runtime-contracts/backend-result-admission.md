@@ -87,6 +87,7 @@ It does not contain hostile backends or prove that every claimed capability is t
 It does not allow apply to be replayed on its own.
 
 Inventory refresh is an explicit provisioning mutation with read-only backend behavior.
+Other phases MUST NOT carry the runtime inventory report.
 Its committed discriminator selects inventory reporting rather than apply.
 The planner must still authorize the plan.
 Target and run identities remain bound. Each new request gets a fresh operation attempt.

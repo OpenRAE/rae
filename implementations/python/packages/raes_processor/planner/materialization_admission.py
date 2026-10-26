@@ -70,11 +70,11 @@ def _validate_binding(
     previous: RuntimeSnapshot,
 ) -> None:
     provenance = materialized.materialization_provenance
-    if (
-        provenance.inventory is not None
-        and "backend-runtime-descendants-v1" not in manifest.supported_contract_versions
+    if provenance.inventory is not None and (
+        "backend-runtime-descendants-v1" not in manifest.supported_contract_versions
+        or not isinstance(request, ProvisioningPlan)
     ):
-        raise ValueError("runtime descendant reporting was not negotiated")
+        raise ValueError("runtime descendant reporting requires negotiated provisioning admission")
     envelope = manifest.realization_envelope
     if envelope is None:
         raise ValueError("materialization does not bind this source and execution")

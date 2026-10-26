@@ -4,6 +4,8 @@ Use `backend-runtime-descendants-v1` to report resources absent from the origina
 The same contract reports children discovered after initial apply.
 The backend supplies materialized SDL and causal receipts.
 The runtime checks the report and records the origin of each concern.
+Submit inventory through provisioning apply or inventory refresh.
+Other phase attestations cannot carry it.
 
 ## Requirements
 

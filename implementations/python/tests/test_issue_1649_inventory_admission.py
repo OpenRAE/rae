@@ -166,3 +166,40 @@ def test_autoremoved_causal_parent_does_not_remove_a_surviving_child(tmp_path):
         for entry in result.snapshot.materialization_attestations[-1].inventory.descendants
     )
     manager.close()
+
+
+@pytest.mark.parametrize("phase", ["orchestration", "evaluation"])
+def test_other_phases_cannot_publish_unadmitted_inventory_reports(tmp_path, phase):
+    from dataclasses import replace
+
+    from raes_contracts.runtime_state import ApplyResult
+    from raes_runtime.backend_calls import _BackendCallContext, _call_backend_apply, _RealizationApplyContext
+    from test_issue_1241_materialization_runtime import ReportingProvisioner
+
+    manager, backend, plan, target, archive = descendant_runtime(tmp_path)
+    backend.members.clear()
+    assert manager.apply(plan).success
+    previous = manager.snapshot
+    request = replace(getattr(plan, phase), materialization_source=plan.provisioning.materialization_source)
+    report = previous.materialization_attestations[-1].inventory.model_dump(mode="json")
+    report["complete"] = False
+    reporter = ReportingProvisioner(
+        target.manifest, mutate=lambda document: document["materialization_provenance"].update(inventory=report)
+    )
+
+    def describe(operation, predecessor):
+        return reporter.report(operation, predecessor, ApplyResult(True, predecessor))
+
+    result = _call_backend_apply(
+        describe,
+        request,
+        previous,
+        snapshot=previous,
+        address=f"runtime.{phase}",
+        realization=_RealizationApplyContext(manifest=target.manifest),
+        call=_BackendCallContext(materialization_archive=archive),
+    )
+    assert not result.success
+    assert result.snapshot == previous
+    assert not result.changed_addresses
+    manager.close()

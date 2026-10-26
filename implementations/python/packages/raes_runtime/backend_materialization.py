@@ -30,13 +30,25 @@ def materialization_precondition(
         return None
     try:
         source, required = _bound_scope_requirement(request)
+        error = _inventory_refresh_error(request, source, manifest)
+        if error is None:
+            error = _materialization_support_error(source, required, manifest, archive)
     except (AttributeError, TypeError, ValueError):
-        return "Materialization reporting requires valid bound source context."
+        error = "Materialization reporting requires valid bound source context."
+    return error
+
+
+def _inventory_refresh_error(
+    request: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+    source: MaterializationSource | None,
+    manifest: BackendManifest | None,
+) -> str | None:
+    error = None
     if getattr(request, "inventory_refresh", False) and (
         source is None or manifest is None or RUNTIME_DESCENDANTS_CONTRACT not in manifest.supported_contract_versions
     ):
-        return "Inventory refresh requires negotiated descendant reporting and bound source context."
-    return _materialization_support_error(source, required, manifest, archive)
+        error = "Inventory refresh requires negotiated descendant reporting and bound source context."
+    return error
 
 
 def _bound_scope_requirement(
@@ -91,22 +103,36 @@ def finalize_materialization(
     archive: MaterializationArchive | None,
 ) -> ApplyResult:
     """Publish bytes before accepted references; preserve valid cleanup on failure."""
-    request = context.operation_plan
-    if (
-        isinstance(request, ProvisioningPlan)
-        and request.materialization_source is not None
-        and context.manifest is not None
-        and RUNTIME_DESCENDANTS_CONTRACT in context.manifest.supported_contract_versions
-    ):
+    if _runtime_descendants_required(context):
         from .backend_inventory import finalize_runtime_inventory
 
         return finalize_runtime_inventory(raw, accepted, context, previous, archive)
     accepted = cast(ApplyResult, replace(accepted, materialization_attestation=None))
-    if not accepted.success:
-        return accepted
+    source = getattr(context.operation_plan, "materialization_source", None)
+    if accepted.success and (source is not None or raw.materialization_attestation is not None):
+        accepted = _finalize_legacy_materialization(raw, accepted, context, previous, archive)
+    return accepted
+
+
+def _runtime_descendants_required(context: _RealizationApplyContext) -> bool:
+    request = context.operation_plan
+    return (
+        isinstance(request, ProvisioningPlan)
+        and request.materialization_source is not None
+        and context.manifest is not None
+        and RUNTIME_DESCENDANTS_CONTRACT in context.manifest.supported_contract_versions
+    )
+
+
+def _finalize_legacy_materialization(
+    raw: ApplyResult,
+    accepted: ApplyResult,
+    context: _RealizationApplyContext,
+    previous: RuntimeSnapshot,
+    archive: MaterializationArchive | None,
+) -> ApplyResult:
+    request = context.operation_plan
     source = getattr(request, "materialization_source", None)
-    if source is None and raw.materialization_attestation is None:
-        return accepted
     try:
         if source is None or raw.materialization_attestation is None or archive is None or context.manifest is None:
             raise ValueError("missing negotiated materialization result")

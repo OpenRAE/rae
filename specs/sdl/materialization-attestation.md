@@ -117,6 +117,8 @@ Neither turns observations into author intent on its own.
 
 `backend-runtime-descendants-v1` extends this attestation through explicit backend negotiation.
 The producer MUST also support `backend-materialization-attestation-v1`.
+Other phase attestations MUST NOT carry a runtime inventory report.
+Use provisioning refresh for later inventory.
 The additional `materialization_provenance.inventory` field contains the bounded report.
 Node values MUST remain in ordinary materialized SDL.
 The report MUST NOT contain another world description or a runtime provenance ledger.

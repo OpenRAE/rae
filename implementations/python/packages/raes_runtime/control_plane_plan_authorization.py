@@ -10,7 +10,7 @@ from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.plan_effects import plan_can_mutate
 from raes_contracts.plan_projection import runtime_plan_digest
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
-from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.runtime_state import OperationReceipt, RuntimeSnapshot
 from raes_processor.models import ExecutionPlan, RuntimeModel
 from raes_processor.planner.mixed_control_admission import MixedControlPlanningAdmission
 
@@ -83,7 +83,7 @@ class RuntimePlanAuthorizationMixin:
             return digest in self._trusted_runtime_plan_digests
 
     @runtime_owned
-    def submit_inventory_refresh(self, plan: ProvisioningPlan, **options):
+    def submit_inventory_refresh(self, plan: ProvisioningPlan, **options) -> OperationReceipt:
         """Submit read-only inventory through the existing provisioning mutation owner."""
         return self.submit_provisioning(replace(plan, inventory_refresh=True), **options)
 

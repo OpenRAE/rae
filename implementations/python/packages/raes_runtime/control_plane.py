@@ -7,12 +7,7 @@ from copy import deepcopy
 from threading import RLock
 from typing import TypeVar, Unpack
 
-from raes_contracts.planning import (
-    EvaluationPlan,
-    OrchestrationPlan,
-    ProvisioningPlan,
-    RuntimeDomain,
-)
+from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
     OperationKind,
     OperationReceipt,

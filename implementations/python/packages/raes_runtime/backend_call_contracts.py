@@ -96,20 +96,21 @@ def _materialization_submission_violation(result: ApplyResult) -> str | None:
     submission = result.materialization_attestation
     if submission is None:
         return None
-    message = "Backend returned an invalid or excessive materialization submission."
-    if type(submission) is not MaterializationSubmission or type(submission.sdl) is not str:
-        return message
-    if not 1 <= len(submission.sdl) <= MATERIALIZATION_MAX_BYTES:
-        return message
     try:
-        if len(submission.sdl.encode("utf-8")) > MATERIALIZATION_MAX_BYTES:
-            return message
-        result.materialization_attestation = MaterializationSubmission.model_validate(
-            {"contract_id": submission.contract_id, "sdl": submission.sdl}
-        )
+        result.materialization_attestation = _bounded_materialization_submission(submission)
     except (AttributeError, TypeError, ValueError):
-        return message
+        return "Backend returned an invalid or excessive materialization submission."
     return None
+
+
+def _bounded_materialization_submission(submission: object) -> MaterializationSubmission:
+    if type(submission) is not MaterializationSubmission or type(submission.sdl) is not str:
+        raise ValueError("invalid materialization submission shape")
+    if not 1 <= len(submission.sdl) <= MATERIALIZATION_MAX_BYTES:
+        raise ValueError("materialization submission exceeds the character limit")
+    if len(submission.sdl.encode("utf-8")) > MATERIALIZATION_MAX_BYTES:
+        raise ValueError("materialization submission exceeds the byte limit")
+    return MaterializationSubmission.model_validate({"contract_id": submission.contract_id, "sdl": submission.sdl})
 
 
 def _apply_result_diagnostics_violation(result: ApplyResult, address: str) -> str | None:

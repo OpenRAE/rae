@@ -37,6 +37,7 @@ def test_refresh_discriminator_rejects_non_boolean_values(tmp_path, value):
     manager, _backend, plan, _target, _archive = descendant_runtime(tmp_path)
     wire = provisioning_plan_model(plan.provisioning).model_dump(mode="json")
     wire["inventory_refresh"] = value
+    model = type(provisioning_plan_model(plan.provisioning))
     with pytest.raises(ValueError):
-        type(provisioning_plan_model(plan.provisioning)).model_validate(wire)
+        model.model_validate(wire)
     manager.close()

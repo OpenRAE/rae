@@ -1,6 +1,7 @@
 """Retain authenticated full SDL context for negotiated materialization results."""
 
 from raes import canonical_instantiated_sdl_bytes, canonical_instantiated_sdl_digest
+from raes.scenario import InstantiatedScenario
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.augmentation_scope import AUGMENTATION_SCOPE_CONTRACT
 from raes_contracts.diagnostics import Diagnostic
@@ -39,18 +40,10 @@ def planned_materialization_source(
     ) or model.materialization_description is not None:
         return None, diagnostics
     try:
-        if instance is None or scope is None or scope.run_id is None:
-            raise ValueError("missing source or run")
-        descendants = RUNTIME_DESCENDANTS_CONTRACT in manifest.supported_contract_versions
-        if descendants and not scope.target_name:
-            raise ValueError("runtime inventory reporting requires the selected target scope")
-        return MaterializationSource(
-            snapshot=canonical_instantiated_sdl_bytes(instance).decode("utf-8"),
-            authored_digest=instance.instantiation_provenance.authored_digest.value,
-            instantiated_digest=canonical_instantiated_sdl_digest(instance).value,
-            run_id=scope.run_id,
-            target_scope=f"target:{scope.target_name}" if descendants else None,
-        ), diagnostics
+        source = _build_materialization_source(
+            instance, scope, RUNTIME_DESCENDANTS_CONTRACT in manifest.supported_contract_versions
+        )
+        return source, diagnostics
     except (TypeError, ValueError):
         diagnostics.append(
             Diagnostic(
@@ -61,3 +54,19 @@ def planned_materialization_source(
             )
         )
         return None, diagnostics
+
+
+def _build_materialization_source(
+    instance: InstantiatedScenario | None, scope: PlanScope | None, descendants: bool
+) -> MaterializationSource:
+    if instance is None or scope is None or scope.run_id is None:
+        raise ValueError("missing source or run")
+    if descendants and not scope.target_name:
+        raise ValueError("runtime inventory reporting requires the selected target scope")
+    return MaterializationSource(
+        snapshot=canonical_instantiated_sdl_bytes(instance).decode("utf-8"),
+        authored_digest=instance.instantiation_provenance.authored_digest.value,
+        instantiated_digest=canonical_instantiated_sdl_digest(instance).value,
+        run_id=scope.run_id,
+        target_scope=f"target:{scope.target_name}" if descendants else None,
+    )

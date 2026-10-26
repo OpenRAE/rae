@@ -106,7 +106,9 @@ def retain_open_collection_nodes(plan: ProvisioningPlan) -> ProvisioningPlan:
     return cast("ProvisioningPlan", replace(plan, operations=kept))
 
 
-def retain_reported_descendants(plan: ProvisioningPlan, model: RuntimeModel, snapshot: RuntimeSnapshot):
+def retain_reported_descendants(
+    plan: ProvisioningPlan, model: RuntimeModel, snapshot: RuntimeSnapshot
+) -> tuple[ProvisioningPlan, list[Diagnostic]]:
     """Authored omission does not authorize disposal of accepted descendants."""
     retained = {
         entry.address
@@ -122,7 +124,7 @@ def retain_reported_descendants(plan: ProvisioningPlan, model: RuntimeModel, sna
         for operation in plan.operations
         if not (operation.action is ChangeAction.DELETE and operation.address in retained)
     ]
-    plan = replace(plan, operations=kept)
+    plan = cast("ProvisioningPlan", replace(plan, operations=kept))
     authority = planned_node_collection(model, plan)
     submitted = {operation.address for operation in plan.operations}
     members = [*plan.operations, *(snapshot.entries[address] for address in retained - submitted)]

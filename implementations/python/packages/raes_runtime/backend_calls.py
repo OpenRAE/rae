@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.materialization import MaterializationArchive
+from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 from .backend_account_credentials import (
@@ -193,7 +194,7 @@ def _validated_backend_result(
     """Finalize a backend result, refusing anything that cannot be validated."""
 
     try:
-        if getattr(realization.operation_plan, "inventory_refresh", False):
+        if isinstance(realization.operation_plan, ProvisioningPlan) and realization.operation_plan.inventory_refresh:
             from .backend_inventory import admit_refresh_proposal
 
             accepted = admit_refresh_proposal(result, baseline_snapshot, realization.operation_plan)

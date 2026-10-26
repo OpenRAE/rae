@@ -7,13 +7,7 @@ from typing import Any
 
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_protocols.operation_supervision import BackendOperationProvider
-from raes_backend_protocols.protocols import (
-    Evaluator,
-    Orchestrator,
-    ParticipantRuntime,
-    Provisioner,
-    TimeRuntime,
-)
+from raes_backend_protocols.protocols import Evaluator, Orchestrator, ParticipantRuntime, Provisioner, TimeRuntime
 from raes_backend_protocols.recovery_observation import RecoveryObserver
 from raes_contracts.observation_demand import ObservationBasis, ObservationLifecycleStage
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest

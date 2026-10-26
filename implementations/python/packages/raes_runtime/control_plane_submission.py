@@ -73,24 +73,7 @@ def _submitted_plan_diagnostics(
     durable_lifecycle_available: bool = True,
 ) -> list[Diagnostic]:
     if isinstance(plan, ProvisioningPlan) and plan.inventory_refresh:
-        source = plan.materialization_source
-        supported = manifest is not None and RUNTIME_DESCENDANTS_CONTRACT in manifest.supported_contract_versions
-        retained = source is not None and any(
-            record.inventory is not None
-            and record.run_id == source.run_id
-            and record.inventory.source_digest == source.instantiated_digest
-            for record in snapshot.materialization_attestations
-        )
-        if not supported or not retained:
-            return [
-                Diagnostic(
-                    code="runtime.inventory-refresh-unsupported",
-                    domain="runtime",
-                    address="runtime.inventory-refresh",
-                    message="Inventory refresh requires negotiated support and its accepted source inventory.",
-                )
-            ]
-        return _provisioning_submission_diagnostics(plan, snapshot, manifest)
+        return _inventory_refresh_submission_diagnostics(plan, snapshot, manifest)
     admitted = set(snapshot.entries) | {operation.address for operation in plan.operations}
     demand_diagnostic = observation_submission_diagnostic(
         plan,
@@ -112,6 +95,29 @@ def _submitted_plan_diagnostics(
     if not diagnostics and domain is RuntimeDomain.PROVISIONING and isinstance(plan, ProvisioningPlan):
         diagnostics = _provisioning_submission_diagnostics(plan, snapshot, manifest)
     return diagnostics
+
+
+def _inventory_refresh_submission_diagnostics(
+    plan: ProvisioningPlan, snapshot: RuntimeSnapshot, manifest: BackendManifest | None
+) -> list[Diagnostic]:
+    source = plan.materialization_source
+    supported = manifest is not None and RUNTIME_DESCENDANTS_CONTRACT in manifest.supported_contract_versions
+    retained = source is not None and any(
+        record.inventory is not None
+        and record.run_id == source.run_id
+        and record.inventory.source_digest == source.instantiated_digest
+        for record in snapshot.materialization_attestations
+    )
+    if not supported or not retained:
+        return [
+            Diagnostic(
+                code="runtime.inventory-refresh-unsupported",
+                domain="runtime",
+                address="runtime.inventory-refresh",
+                message="Inventory refresh requires negotiated support and its accepted source inventory.",
+            )
+        ]
+    return _provisioning_submission_diagnostics(plan, snapshot, manifest)
 
 
 def control_plane_plan_diagnostics(

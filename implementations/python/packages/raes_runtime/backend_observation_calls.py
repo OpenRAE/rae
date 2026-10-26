@@ -68,6 +68,22 @@ def _call_backend_apply_with_observation(
             ),
         ), None
 
+    return _call_backend_apply_with_demand(
+        method,
+        *args,
+        request=request,
+        realization=realization,
+        information_state_context_resolver=information_state_context_resolver,
+    )
+
+
+def _call_backend_apply_with_demand(
+    method: Callable[..., object],
+    *args: object,
+    request: _ObservationApplyRequest,
+    realization: _RealizationApplyContext | None = None,
+    information_state_context_resolver: ParticipantInformationStateContextResolver | None = None,
+) -> tuple[ApplyResult, PreparedObservationExecution | None]:
     admission = observation_submission_diagnostic(
         request.plan,
         request.manifest,
