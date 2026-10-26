@@ -30,6 +30,9 @@ requirement.
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_account_credentials.py` (Credential closure with admitted safe observation fragments)
+- TESTS → TEST `implementations/python/tests/test_issue_1638_credential_realization_observations.py` (Credential and observation admission composition)
+
 - TESTS → TEST `implementations/python/tests/test_issue_1481_parameter_authority.py` (Runtime rejection of changed selected parameter outputs)
 
 - TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (Completion regression: replay compiled carriers and participant admission at the current source identity)

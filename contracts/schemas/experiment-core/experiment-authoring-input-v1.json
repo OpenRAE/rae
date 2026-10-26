@@ -5069,6 +5069,18 @@
       "validator": "raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec"
     },
     {
+      "description": "In every binding posture, each condition assignment must reference a factor and level declared by the containing experiment spec. Authors define these local declarations; no domain catalog is required.",
+      "id": "experiment-spec-condition-factor-levels-declared",
+      "inputs": [
+        {
+          "contract_id": "experiment-authoring-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec"
+    },
+    {
       "description": "Explicit bindings must cover every compared condition and resolve exact declared factor levels.",
       "id": "experiment-binding-source-joins-valid",
       "inputs": [

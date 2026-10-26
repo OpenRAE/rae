@@ -13,7 +13,11 @@ They do not change a runtime.
 | `apparatus` | Selected processor or backend manifest | Manifest `configuration_registry` target |
 
 Each descriptor names its source factor, level, and condition.
-`ExperimentSpecModel` checks these joins in `explicit-required` mode.
+Every condition factor and level must belong to that experiment's declarations,
+in both `descriptive` and `explicit-required` modes.
+Authors or their tools choose those declarations; RAE supplies no domain catalog.
+This local validation does not resolve an ontology or prove treatment execution.
+`ExperimentSpecModel` also checks each descriptor's source joins in `explicit-required` mode.
 That mode rejects legacy `required_parameters`.
 Those parameters remain descriptive data in other modes.
 
