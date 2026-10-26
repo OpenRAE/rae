@@ -33,7 +33,8 @@ _SEMANTIC_CONTEXT_REQUIRED_MESSAGES = {
             "participant-control-context-change-v1",
             "participant-control-context-record-v1",
         ),
-        "Full control-context conformance requires trusted version, lifecycle, authority, recipient, cut and content inputs; fixture validation is structural only",
+        "Full control-context conformance requires trusted version, lifecycle, authority, recipient, cut "
+        "and content inputs; fixture validation is structural only",
     ),
     "associated-artifact-manifest-v1": (
         "full associated-artifact conformance requires a concrete parent and bounded byte readers; "

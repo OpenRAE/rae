@@ -451,15 +451,17 @@ def validate_contract_payload(
     """Validate one payload through its structural and available contextual boundary."""
 
     diagnostics = _validate_payload(contract_name, payload)
-    if not diagnostics and contract_name.startswith("participant-control-context-"):
+    if diagnostics:
+        return tuple(diagnostics)
+    if contract_name.startswith("participant-control-context-"):
         diagnostics.extend(_control_context_asset_diagnostics(contract_name, payload, control_context_asset_context))
-    if not diagnostics and contract_name in {"participant-control-evaluation-v1", "participant-control-evaluation-v2"}:
+    elif contract_name in {"participant-control-evaluation-v1", "participant-control-evaluation-v2"}:
         diagnostics.extend(_control_context_diagnostics(contract_name, payload, control_context_resolver))
-    if not diagnostics and contract_name == "participant-information-state-record-v1":
+    elif contract_name == "participant-information-state-record-v1":
         diagnostics.extend(_information_state_context_diagnostics(payload, information_state_context_resolver))
-    if not diagnostics and contract_name == "participant-flow-control-relation-v1":
+    elif contract_name == "participant-flow-control-relation-v1":
         diagnostics.extend(_flow_control_context_diagnostics(payload, flow_control_context_resolver))
-    if not diagnostics and contract_name == "mixed-participant-composition-profile-v1":
+    elif contract_name == "mixed-participant-composition-profile-v1":
         diagnostics.extend(_mixed_composition_context_diagnostics(payload, mixed_composition_context))
     return tuple(diagnostics)
 

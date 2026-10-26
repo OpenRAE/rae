@@ -35,7 +35,8 @@ class _ControlContextModel(ContractModel):
         _add_raes_invariant(
             schema,
             "control-context-trusted-agreement",
-            "Full conformance requires trusted exact version, lifecycle, authority, recipient, cut and content agreement.",
+            "Full conformance requires trusted exact version, lifecycle, authority, recipient, "
+            "cut and content agreement.",
             validator="raes_contracts.participant_control_context.validate_control_context_" + cls._CONTRACT_ID,
             inputs=[{"contract_id": "participant-control-context-" + cls._CONTRACT_ID + "-v1", "instance_path": "#"}],
         )

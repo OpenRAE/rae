@@ -210,8 +210,9 @@ def test_withholding_preserves_selection_without_fabricating_delivery():
 def test_private_content_and_unknown_kinds_are_not_portable_fields(field, value):
     from raes_contracts.contracts.participant_control_context import ParticipantControlContextAssetModel
 
+    payload = {**_asset().model_dump(), field: value}
     with pytest.raises(ValidationError):
-        ParticipantControlContextAssetModel.model_validate({**_asset().model_dump(), field: value})
+        ParticipantControlContextAssetModel.model_validate(payload)
 
 
 def _change(operation="withdraw", **overrides):
@@ -427,6 +428,7 @@ def test_delivery_rechecks_exact_scope_authority_lifecycle_and_occurrence(defect
 def test_bounded_ingress_rejects_ambiguous_and_oversized_inputs():
     from raes_contracts.participant_control_context import load_control_context_json
 
+    model = type(_asset())
     for source in (
         '{"kind":"instruction","kind":"policy"}',
         '{"value":NaN}',
@@ -434,7 +436,7 @@ def test_bounded_ingress_rejects_ambiguous_and_oversized_inputs():
         " " * (1024 * 1024 + 1),
     ):
         with pytest.raises(ValueError):
-            load_control_context_json(source, type(_asset()))
+            load_control_context_json(source, model)
 
 
 def test_missing_authority_context_never_claims_semantic_conformance():
