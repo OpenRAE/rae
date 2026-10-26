@@ -8,6 +8,7 @@ from itertools import islice
 
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.diagnostics import Diagnostic, portable_diagnostic_payload
+from raes_contracts.materialization import MATERIALIZATION_MAX_BYTES, MaterializationSubmission
 from raes_contracts.realization_observation import RealizationObservationDisclosure
 from raes_contracts.realization_structure import validate_realization_value
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
@@ -86,8 +87,30 @@ def _apply_result_shape_violation(result: object, address: str) -> str | None:
     ):
         message = f"Backend method '{address}' returned invalid operational realization observations."
     else:
-        message = snapshot_shape_violation(result.snapshot)
+        message = _materialization_submission_violation(result) or snapshot_shape_violation(result.snapshot)
     return message
+
+
+def _materialization_submission_violation(result: ApplyResult) -> str | None:
+    """Bound and reconstruct the closed string carrier before candidate copying."""
+    submission = result.materialization_attestation
+    if submission is None:
+        return None
+    try:
+        result.materialization_attestation = _bounded_materialization_submission(submission)
+    except (AttributeError, TypeError, ValueError):
+        return "Backend returned an invalid or excessive materialization submission."
+    return None
+
+
+def _bounded_materialization_submission(submission: object) -> MaterializationSubmission:
+    if type(submission) is not MaterializationSubmission or type(submission.sdl) is not str:
+        raise ValueError("invalid materialization submission shape")
+    if not 1 <= len(submission.sdl) <= MATERIALIZATION_MAX_BYTES:
+        raise ValueError("materialization submission exceeds the character limit")
+    if len(submission.sdl.encode("utf-8")) > MATERIALIZATION_MAX_BYTES:
+        raise ValueError("materialization submission exceeds the byte limit")
+    return MaterializationSubmission.model_validate({"contract_id": submission.contract_id, "sdl": submission.sdl})
 
 
 def _apply_result_diagnostics_violation(result: ApplyResult, address: str) -> str | None:

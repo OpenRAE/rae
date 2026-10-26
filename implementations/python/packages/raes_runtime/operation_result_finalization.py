@@ -39,8 +39,10 @@ def finalize_protocol_result(
     )
     if any(d.is_error and d not in result.diagnostics for d in accepted.diagnostics):
         raise ValueError("native operation result failed validation")
-    if canonical_json_digest(_snapshot_payload(accepted.snapshot)) != reference.digest:
-        raise ValueError("native validation did not preserve the committed result artifact")
+    # The reference commits the native proposal. Admission derives a distinct
+    # runtime-owned accepted snapshot; the terminal owner commits that revision.
+    if canonical_json_digest(_snapshot_payload(result.snapshot)) != reference.digest:
+        raise ValueError("native validation changed the committed proposal artifact")
     accepted, observation = _apply_observation_result(accepted, observation_request)
     if state is OperationState.SUCCEEDED and not accepted.success:
         raise ValueError("native operation release gates did not establish success")

@@ -97,6 +97,7 @@ from raes_contracts.domain_profiles import (
     DomainProfileSupportDeclarationModel,
 )
 from raes_contracts.materialization import MaterializationSubmission
+from raes_contracts.materialization_inventory import RuntimeInventoryReport
 from raes_contracts.observation_demand import ObservationDemandDocument
 from raes_contracts.participant_opacity import (
     ParticipantOpacityAnalysisEvidenceModel,
@@ -169,6 +170,7 @@ _STRUCTURAL_ONLY_VALIDATORS = {
     "backend-augmentation-scope-v1": AugmentationPreparation.model_validate,
     "materialized-scenario-v1": MaterializedScenario.model_validate,
     "backend-materialization-attestation-v1": MaterializationSubmission.model_validate,
+    "backend-runtime-descendants-v1": RuntimeInventoryReport.model_validate,
     "materialization-archive-record-v1": MaterializationArchiveRecord.model_validate,
     "associated-artifact-manifest-v1": AssociatedArtifactManifestModel.model_validate,
     "artifact-transformation-report-v1": ArtifactTransformationReportModel.model_validate,

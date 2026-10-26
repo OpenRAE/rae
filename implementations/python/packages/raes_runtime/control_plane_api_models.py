@@ -78,6 +78,8 @@ def _provisioning_plan(model: ProvisioningPlanModel) -> ProvisioningPlan:
     from raes_contracts.planning import PlannedRealizationConstraint
 
     return ProvisioningPlan(
+        inventory_attempt_id=model.inventory_attempt_id,
+        inventory_refresh=model.inventory_refresh,
         materialization_source=model.materialization_source,
         augmentation_scope_required=model.augmentation_scope_required,
         purpose=model.purpose,
