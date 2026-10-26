@@ -13,6 +13,7 @@ It permits observed values only at registered paths with admitted realization re
 It compares all remaining payload values with the submitted operation through typed equality.
 For comparison, empty parent objects created only for admitted observations retain their original null or absent shape.
 Extra sibling fields remain visible to exact comparison.
+Concrete scalar and array parents remain exact, including false, zero, and empty values.
 
 The processor supplies the admitted plan's compiled realization views.
 Supplemental requirements retain their existing ownership.

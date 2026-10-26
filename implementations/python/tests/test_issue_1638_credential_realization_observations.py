@@ -270,3 +270,19 @@ def test_nested_open_observation_restores_only_authorized_ancestor_scaffolding(o
     else:
         assert result.snapshot.entries[_ADDRESS].payload["spec"]["node"]["runtime"]["network"] == network
         assert _snapshot_from_payload(_snapshot_payload(result.snapshot)) == result.snapshot
+
+
+@pytest.mark.parametrize("parent", [False, 0, "", []])
+def test_nested_observation_cannot_replace_a_non_null_plan_parent(parent):
+    model, plan, manifest = _fixture({}, scope="/nodes/host/runtime/network")
+    operations = deepcopy(plan.operations)
+    operations[0].payload["spec"]["node"]["runtime"]["network"] = deepcopy(parent)
+    result, baseline = _apply_observed(
+        {},
+        {"network": {"hostname": "observed-host", "domainname": "example.test"}},
+        setup=(model, replace(plan, operations=operations), manifest),
+    )
+    assert not result.success
+    assert result.snapshot == baseline
+    assert result.changed_addresses == []
+    assert {item.code for item in result.diagnostics} == {"runtime.backend-contract-invalid"}

@@ -121,7 +121,7 @@ def _restore_declared_path(payload: dict[str, object], declared: object, path: t
         _restore_declared_path(child, declared_value, path[1:])
         # Only empty observation scaffolding can collapse to null or absence.
         # Any sibling, including one with a null value, must still be compared.
-        if child or isinstance(declared_value, dict):
+        if child or (declared_value is not None and declared_value is not _MISSING_CONCERN_VALUE):
             return
     if declared_value is _MISSING_CONCERN_VALUE:
         payload.pop(key, None)
