@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from typing import cast
 from uuid import uuid4
 
 from raes_backend_protocols.capabilities import BackendManifest
@@ -105,9 +106,9 @@ def _bind_submitted_plan(
     )
     if submitted_plan is None:
         return args, realization
-    bound_plan = replace(
-        submitted_plan,
-        operation_id=operation_id or submitted_plan.operation_id or str(uuid4()),
+    bound_plan = cast(
+        ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+        replace(submitted_plan, operation_id=operation_id or submitted_plan.operation_id or str(uuid4())),
     )
     bound_plan = _bind_inventory_attempt(bound_plan, realization.manifest, attempt_id)
     bound_args = tuple(bound_plan if arg is submitted_plan else arg for arg in args)

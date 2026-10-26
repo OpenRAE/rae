@@ -49,7 +49,7 @@ def finalize_runtime_inventory(
 ) -> ApplyResult:
     """Publish admitted bytes before the accepted snapshot; refuse atomically."""
     if not accepted.success:
-        return replace(accepted, materialization_attestation=None)
+        return cast(ApplyResult, replace(accepted, materialization_attestation=None))
     stage = InventoryInvariant.SHAPE
     try:
         if raw.materialization_attestation is None or archive is None:
@@ -90,7 +90,10 @@ def finalize_runtime_inventory(
         for address in previous.entries.keys() | snapshot.entries.keys()
         if not snapshot_values_equal(previous.get(address), snapshot.get(address))
     )
-    return replace(accepted, snapshot=snapshot, changed_addresses=sorted(changed), materialization_attestation=admitted)
+    return cast(
+        ApplyResult,
+        replace(accepted, snapshot=snapshot, changed_addresses=sorted(changed), materialization_attestation=admitted),
+    )
 
 
 def _inventory_context(context: _RealizationApplyContext) -> tuple[ProvisioningPlan, BackendManifest]:
