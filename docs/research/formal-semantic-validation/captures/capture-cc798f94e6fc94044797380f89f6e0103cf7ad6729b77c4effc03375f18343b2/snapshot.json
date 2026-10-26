@@ -1,11 +1,11 @@
 {
   "baseline": {
-    "execution_id": "issue-1369-governed-effects-replay",
-    "release_path": "docs/research/formal-semantic-validation/captures/capture-22089cca364f2b5fb3c32b8504b9ea8603320aa9af6ff5031c3e3cd0e16443d7/manifest.json",
-    "release_revision": "capture-22089cca364f2b5fb3c32b8504b9ea8603320aa9af6ff5031c3e3cd0e16443d7",
-    "release_sha256": "c28cf95126160fd9339d2841447992dc66f360b520d1acfdb9356882e0cfae64"
+    "execution_id": "pr-1642-dev-sync-formal-execution",
+    "release_path": "docs/research/formal-semantic-validation/captures/capture-5118e02a713b928c41bbb9966c6d9d99162f6e9cce7f951c2165acef5d66e688/manifest.json",
+    "release_revision": "capture-5118e02a713b928c41bbb9966c6d9d99162f6e9cce7f951c2165acef5d66e688",
+    "release_sha256": "f63c78e73e8e5d7977a6387f1163ff4ea69c78accb7c6236126c4634c3a2b105"
   },
-  "captured_at": "2026-10-25T22:23:30.280725+00:00",
+  "captured_at": "2026-10-26T07:56:05.680179+00:00",
   "commands": [
     {
       "argv": [
@@ -129,7 +129,7 @@
       }
     }
   ],
-  "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+  "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
   "execution_status": "complete",
   "observations": [
     {
@@ -146,7 +146,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/schema-valid.sdl.yaml"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "A passing minimal source does not establish semantic correctness."
       ],
@@ -168,7 +168,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/schema-invalid-unknown-field.sdl.yaml"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "The observation covers one unknown-field defect only."
       ],
@@ -190,7 +190,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/semantic-valid-participant-identity-v2.sdl.yaml"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "This is a positive control for one objective-reference slice."
       ],
@@ -212,7 +212,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/semantic-invalid-dangling-ref-participant-identity-v2.sdl.yaml"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "A single dangling reference does not prove complete semantic coverage."
       ],
@@ -234,7 +234,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/semantic-invalid-ambiguous-ref.sdl.yaml"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "One namespace collision does not enumerate every ambiguity surface."
       ],
@@ -256,7 +256,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/semantic-invalid-feature-cycle.sdl.yaml"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "One static dependency cycle does not establish general constraint satisfiability."
       ],
@@ -278,7 +278,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/workflow-reachable.sdl.yaml"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "The graph is workflow control flow only."
       ],
@@ -300,7 +300,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/workflow-unreachable.sdl.yaml"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "The result does not establish network, service, participant, or exploit reachability."
       ],
@@ -322,7 +322,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "No governed whole-scenario constraint theory or solver exists."
       ],
@@ -344,7 +344,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "Local checks cannot produce a whole-scenario unsat certificate."
       ],
@@ -366,7 +366,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "The issue-168 baseline had no canonical typed attack graph or path-query entrypoint."
       ],
@@ -388,7 +388,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "Vulnerability and topology declarations are not an invalid-path proof."
       ],
@@ -410,7 +410,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/determinism-a.sdl.yaml"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "The witness ends at compiled output."
       ],
@@ -433,7 +433,7 @@
         "docs/research/formal-semantic-validation/corpus/determinism-a.sdl.yaml",
         "docs/research/formal-semantic-validation/corpus/determinism-b.sdl.yaml"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "Distinct digests are a non-vacuity control, not semantic non-equivalence proof."
       ],
@@ -455,7 +455,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "No governed intervention or ablation protocol exists."
       ],
@@ -477,7 +477,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "Attribution and negative fixtures do not demonstrate non-necessity."
       ],
@@ -501,7 +501,7 @@
         "docs/research/formal-semantic-validation/evidence/finite-domain-satisfiable-v4.json",
         "specs/formal/scenario-satisfiability/README.md"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "Demonstrates only the pinned finite-domain theory, translation, solver profile, and source."
       ],
@@ -525,7 +525,7 @@
         "docs/research/formal-semantic-validation/evidence/finite-domain-unsatisfiable-v4.json",
         "specs/formal/scenario-satisfiability/README.md"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "The subset-minimal core is evidence for the pinned translation and solver, not a proof certificate for arbitrary SDL."
       ],
@@ -549,7 +549,7 @@
         "docs/research/formal-semantic-validation/evidence/typed-exploit-path-valid-v4.json",
         "specs/formal/exploit-path-analysis/README.md"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "The witness is bounded to the admitted snapshot, normalized graph, query, semantics, and search profile; it does not establish backend execution."
       ],
@@ -573,7 +573,7 @@
         "docs/research/formal-semantic-validation/evidence/typed-exploit-path-invalid-v4.json",
         "specs/formal/exploit-path-analysis/README.md"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "Structured rejection proves only that this bounded graph/query cannot reach its goal; it does not establish real-world non-exploitability."
       ],
@@ -588,7 +588,7 @@
         "implementations/python/tests/test_sem_208_participant_behavior.py::test_hidden_truth_disclosure_is_separate_from_observable_projection",
         "implementations/python/tests/test_sem_208_participant_behavior.py::test_hidden_truth_cannot_be_observed_without_explicit_disclosure_rule"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "Covers the reference SDL/contract path, not every backend projection."
       ],
@@ -601,7 +601,7 @@
         "implementations/python/tests/test_sem_211_participant_action_semantics.py::test_action_contract_declares_sem_211_classes_and_compiles_them",
         "implementations/python/tests/test_sem_211_participant_action_semantics.py::test_action_result_rejects_success_when_preconditions_are_unresolved"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "Covers declared applicability and one unresolved-precondition failure."
       ],
@@ -614,7 +614,7 @@
         "implementations/python/tests/test_run_308_concurrent_participant_execution.py::test_runtime_snapshot_publishes_joint_action_and_time_context_records",
         "implementations/python/tests/test_run_308_concurrent_participant_execution.py::test_joint_action_record_contract_rejects_unordered_conflicting_writes"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "Contract evidence does not prove every backend's live concurrency fidelity."
       ],
@@ -627,7 +627,7 @@
         "implementations/python/tests/test_participant_runtime_invariants.py::test_order_discipline_accepts_supported_order_claim_strengths",
         "implementations/python/tests/test_participant_runtime_invariants.py::test_order_discipline_rejects_wall_clock_causality"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "Rejecting timestamp-only causality does not supply counterfactual proof."
       ],
@@ -640,7 +640,7 @@
         "implementations/python/tests/test_sem_212_participant_attribution_semantics.py::test_attribution_edge_round_trips_on_terminal_observation",
         "implementations/python/tests/test_sem_212_participant_attribution_semantics.py::test_timestamp_adjacency_cannot_be_reported_as_strong_causality"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "Attribution labels disclose basis; they do not demonstrate necessity."
       ],
@@ -653,7 +653,7 @@
         "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py::test_outcome_interpretation_rule_parses_and_compiles_explicit_layers",
         "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py::test_local_action_success_does_not_imply_objective_success_without_rule_record"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "The fixtures establish layer separation, not outcome validity in every realization."
       ],
@@ -666,7 +666,7 @@
         "implementations/python/tests/test_realization_honesty_conformance.py::test_constructive_envelope_runs_positive_and_negative_honesty_probes",
         "implementations/python/tests/test_realization_honesty_conformance.py::test_only_native_live_can_support_native_conformance"
       ],
-      "execution_id": "issue-307-participant-episode-surface-formal-1d1e32e77c5b",
+      "execution_id": "issue-307-participant-episode-surface-formal-e1d21a62301b",
       "limitations": [
         "Reference conformance evidence remains bounded to declared realization profiles."
       ],
@@ -676,11 +676,11 @@
     }
   ],
   "protocol_revision": "2.0.0",
-  "raes_revision": "370cac270c80b85f8efdd3e7177f3c6f8178aa78",
+  "raes_revision": "3d2cfc4dd2186a0e9b852da905f0f4bd4a07dcf7",
   "source_state": {
-    "base_revision": "370cac270c80b85f8efdd3e7177f3c6f8178aa78",
+    "base_revision": "3d2cfc4dd2186a0e9b852da905f0f4bd4a07dcf7",
     "checkout_state": "clean",
-    "implementation_digest": "1d1e32e77c5b50ee4fccd5ea16251cc98b306f5e7c1bf5273d7e8e1d4c47aa3d",
+    "implementation_digest": "e1d21a62301b90db5387f735ecebe0f0c6a91b83e0a99c0bce12384db2863aea",
     "profile": "python-reference-source/v2"
   },
   "versions": {
