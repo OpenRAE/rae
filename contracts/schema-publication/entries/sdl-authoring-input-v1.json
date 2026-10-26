@@ -1,9 +1,9 @@
 {
-  "content_hash": "0f10a7945ee49f2e899ea5c3cb1beb280fe9bae596f53140a0ba76f186b2382c",
+  "content_hash": "8ed8ebb38c586368f1c6abde7d3fa063512a837a2c2fa4d1b54dc2b89dc156e7",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "0f10a7945ee49f2e899ea5c3cb1beb280fe9bae596f53140a0ba76f186b2382c",
-    "summary": "Add optional participant_refs and participant_role_refs selectors to behavior-specification tool-affordance bindings, so one participant tool profile can narrow each binding to some of its participants; ACT-619 issue #301."
+    "content_hash": "8ed8ebb38c586368f1c6abde7d3fa063512a837a2c2fa4d1b54dc2b89dc156e7",
+    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve optional empty selectors for unscoped bindings (ACT-619, issue #301)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

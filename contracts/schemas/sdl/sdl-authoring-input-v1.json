@@ -10477,17 +10477,23 @@
         },
         "participant_refs": {
           "items": {
+            "minLength": 1,
+            "pattern": "\\S",
             "type": "string"
           },
           "title": "Participant Refs",
-          "type": "array"
+          "type": "array",
+          "uniqueItems": true
         },
         "participant_role_refs": {
           "items": {
+            "minLength": 1,
+            "pattern": "\\S",
             "type": "string"
           },
           "title": "Participant Role Refs",
-          "type": "array"
+          "type": "array",
+          "uniqueItems": true
         },
         "tool_ref": {
           "anyOf": [

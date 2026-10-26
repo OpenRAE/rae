@@ -52,8 +52,12 @@ class ParticipantToolAffordance(SDLModel):
         min_length=1,
         json_schema_extra={"uniqueItems": True},
     )
-    participant_refs: list[str] = Field(default_factory=list)
-    participant_role_refs: list[str] = Field(default_factory=list)
+    participant_refs: list[ToolAffordanceReference] = Field(
+        default_factory=list, json_schema_extra={"uniqueItems": True}
+    )
+    participant_role_refs: list[ToolAffordanceReference] = Field(
+        default_factory=list, json_schema_extra={"uniqueItems": True}
+    )
 
     @field_validator("action_contract_refs", "observation_boundary_refs", "participant_refs", "participant_role_refs")
     @classmethod

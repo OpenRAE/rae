@@ -161,10 +161,26 @@ def _participant_behavior_observation_detail_refs(
     return detail_refs, violations
 
 
+def _participant_behavior_resolved_ref(boundary: ParticipantObservationBoundaryRuntime, ref: str) -> str | None:
+    matches = boundary.reference_aliases.get(ref, (ref,))
+    return matches[0] if len(matches) == 1 else None
+
+
+def _participant_behavior_ref_disposition(
+    boundary: ParticipantObservationBoundaryRuntime, relation: Mapping[str, str], ref: str
+) -> str | None:
+    resolved = _participant_behavior_resolved_ref(boundary, ref)
+    if resolved is None:
+        return "ambiguous"
+    disposition = relation.get(resolved)
+    return "hidden" if disposition is None and resolved in boundary.hidden_refs else disposition
+
+
 def _participant_behavior_disposition_ref_violations(
     *,
     locator: str,
     refs: tuple[str, ...],
+    boundary: ParticipantObservationBoundaryRuntime,
     relation: Mapping[str, str],
     allowed_dispositions: frozenset[str],
     effective_order: int,
@@ -173,7 +189,7 @@ def _participant_behavior_disposition_ref_violations(
 ) -> list[tuple[str, str]]:
     violations: list[tuple[str, str]] = []
     for ref in refs:
-        disposition = relation.get(ref)
+        disposition = _participant_behavior_ref_disposition(boundary, relation, ref)
         if disposition in allowed_dispositions:
             continue
         violations.append(
@@ -199,7 +215,10 @@ def _participant_behavior_evidence_ref_violations(
 ) -> list[tuple[str, str]]:
     violations: list[tuple[str, str]] = []
     for ref in refs:
-        if ref in boundary.evidence_refs or relation.get(ref) == "evidence_only":
+        if (
+            _participant_behavior_resolved_ref(boundary, ref) in boundary.evidence_refs
+            or _participant_behavior_ref_disposition(boundary, relation, ref) == "evidence_only"
+        ):
             continue
         violations.append(
             (
@@ -225,6 +244,7 @@ def _participant_behavior_visibility_detail_violations(
         *_participant_behavior_disposition_ref_violations(
             locator=locator,
             refs=detail_refs["visible_refs"],
+            boundary=boundary,
             relation=relation,
             allowed_dispositions=_PARTICIPANT_VISIBLE_VIEW_DISPOSITIONS,
             effective_order=effective_order,
@@ -234,6 +254,7 @@ def _participant_behavior_visibility_detail_violations(
         *_participant_behavior_disposition_ref_violations(
             locator=locator,
             refs=detail_refs["disclosed_refs"],
+            boundary=boundary,
             relation=relation,
             allowed_dispositions=frozenset({"disclosed"}),
             effective_order=effective_order,
@@ -263,9 +284,7 @@ def _participant_behavior_action_result_visible_ref_violations(
     violations: list[tuple[str, str]] = []
     owner_prefix = f" {owner_label}" if owner_label else ""
     for ref in refs:
-        disposition = relation.get(ref)
-        if disposition is None and ref in boundary.hidden_refs:
-            disposition = "hidden"
+        disposition = _participant_behavior_ref_disposition(boundary, relation, ref)
         if disposition is None:
             continue
         if disposition in _PARTICIPANT_VISIBLE_VIEW_DISPOSITIONS:
@@ -295,10 +314,11 @@ def _participant_behavior_action_result_evidence_ref_violations(
     violations: list[tuple[str, str]] = []
     owner_prefix = f" {owner_label}" if owner_label else ""
     for ref in refs:
-        disposition = relation.get(ref)
-        if disposition is None and ref in boundary.hidden_refs:
-            disposition = "hidden"
-        if ref in boundary.evidence_refs or disposition == "evidence_only":
+        disposition = _participant_behavior_ref_disposition(boundary, relation, ref)
+        if (
+            _participant_behavior_resolved_ref(boundary, ref) in boundary.evidence_refs
+            or disposition == "evidence_only"
+        ):
             continue
         suffix = f": disposition {disposition!r}" if disposition is not None else ""
         violations.append(
@@ -397,10 +417,11 @@ def _participant_behavior_attribution_evidence_ref_violations(
 ) -> list[tuple[str, str]]:
     violations: list[tuple[str, str]] = []
     for ref in refs:
-        disposition = relation.get(ref)
-        if disposition is None and ref in boundary.hidden_refs:
-            disposition = "hidden"
-        if ref in boundary.evidence_refs or disposition == "evidence_only":
+        disposition = _participant_behavior_ref_disposition(boundary, relation, ref)
+        if (
+            _participant_behavior_resolved_ref(boundary, ref) in boundary.evidence_refs
+            or disposition == "evidence_only"
+        ):
             continue
         suffix = f": disposition {disposition!r}" if disposition is not None else ""
         violations.append(
@@ -424,9 +445,7 @@ def _participant_behavior_attribution_visibility_candidate_violations(
     relation: Mapping[str, str],
     effective_order: int,
 ) -> list[tuple[str, str]]:
-    disposition = relation.get(candidate.ref)
-    if disposition is None and candidate.ref in boundary.hidden_refs:
-        disposition = "hidden"
+    disposition = _participant_behavior_ref_disposition(boundary, relation, candidate.ref)
     if disposition is None or disposition in _PARTICIPANT_VISIBLE_VIEW_DISPOSITIONS:
         return []
     return [

@@ -890,8 +890,8 @@ def test_sem219_hidden_affordance_remains_authored_without_becoming_visible():
     model = compile_runtime_model(parse_sdl(hidden))
 
     assert AFFORDANCE_ADDRESS in model.tool_affordances
-    assert affordance_ref in model.observation_boundaries[OBSERVATION_ADDRESS].hidden_refs
-    assert affordance_ref not in model.observation_boundaries[OBSERVATION_ADDRESS].observable_refs
+    assert AFFORDANCE_ADDRESS in model.observation_boundaries[OBSERVATION_ADDRESS].hidden_refs
+    assert AFFORDANCE_ADDRESS not in model.observation_boundaries[OBSERVATION_ADDRESS].observable_refs
 
 
 def test_sem219_optional_tool_identity_does_not_weaken_affordance_meaning():
@@ -1505,7 +1505,7 @@ def test_compiler_maps_participant_behavior_to_runtime_addresses():
     assert contract.interaction_classes == ("shared_state_change",)
     assert contract.shared_state_refs == ("nodes.web.services.http",)
     boundary = model.observation_boundaries[OBSERVATION_ADDRESS]
-    assert boundary.hidden_refs == ("nodes.web", "content.private-answer-key")
+    assert boundary.hidden_refs == ("provision.node.web", "content.private-answer-key")
     assert boundary.observable_refs == ()
     assert boundary.evidence_only_refs == ("evidence.scan-output",)
     assert boundary.discovered_refs == ()
@@ -1513,10 +1513,10 @@ def test_compiler_maps_participant_behavior_to_runtime_addresses():
     assert boundary.view_transitions[0]["effective_from"] == "episode-step:scan-0001:terminal-observation"
     assert boundary.view_transitions[0]["effective_order"] == 30
     assert boundary.view_transitions[0]["history_event_type"] == "observation_emitted"
-    assert boundary.view_relation_timeline[0]["view_relation"]["nodes.web"] == "hidden"
-    assert "nodes.web" not in boundary.view_relation_timeline[0]["visible_refs"]
-    assert boundary.view_relation_timeline[1]["view_relation"]["nodes.web"] == "discovered"
-    assert "nodes.web" in boundary.view_relation_timeline[1]["visible_refs"]
+    assert boundary.view_relation_timeline[0]["view_relation"]["provision.node.web"] == "hidden"
+    assert "provision.node.web" not in boundary.view_relation_timeline[0]["visible_refs"]
+    assert boundary.view_relation_timeline[1]["view_relation"]["provision.node.web"] == "discovered"
+    assert "provision.node.web" in boundary.view_relation_timeline[1]["visible_refs"]
     assert boundary.realized_view_disclosure == "backend reports terminal scan output only"
 
     binding = model.participant_behaviors[PARTICIPANT_ADDRESS]
@@ -1593,9 +1593,9 @@ def test_view_relation_timeline_tracks_inference_and_concealment_transitions():
     assert boundary.inferred_refs == ()
     assert boundary.concealed_refs == ()
     assert boundary.view_relation_timeline[2]["transition_id"] == "infer-http-service"
-    assert boundary.view_relation_timeline[2]["view_relation"]["nodes.web.services.http"] == "inferred"
+    assert boundary.view_relation_timeline[2]["view_relation"]["provision.node.web.service.http"] == "inferred"
     assert boundary.view_relation_timeline[3]["transition_id"] == "conceal-http-service"
-    assert boundary.view_relation_timeline[3]["view_relation"]["nodes.web.services.http"] == "concealed"
+    assert boundary.view_relation_timeline[3]["view_relation"]["provision.node.web.service.http"] == "concealed"
 
 
 def test_hidden_truth_cannot_be_observed_without_explicit_disclosure_rule():
@@ -2302,7 +2302,7 @@ def test_behavior_history_rejects_observation_details_that_expose_hidden_truth()
     model = compile_runtime_model(parse_sdl(_scenario_yaml()))
     events = _complete_behavior_history_payloads(ACTION_INSTANCE)
     events[2]["details"] = {
-        "visible_refs": ["nodes.web", "content.private-answer-key"],
+        "visible_refs": ["provision.node.web", "content.private-answer-key"],
         "evidence_refs": ["evidence.scan-output"],
     }
 
@@ -2535,7 +2535,7 @@ def test_behavior_history_rejects_caller_supplied_observation_effective_order():
     events = _complete_behavior_history_payloads(ACTION_INSTANCE)
     events[2]["details"] = {
         "effective_order": 100,
-        "visible_refs": ["nodes.web"],
+        "visible_refs": ["provision.node.web"],
     }
 
     violations = list(

@@ -1,9 +1,9 @@
 {
-  "content_hash": "b1a5b8e88639015cecc7e19d03ffae557b6895b1438e5124d69331cd1d855bb6",
+  "content_hash": "eea1f05e4bf37a9975baba485b6281669db5794173cdbaff65cd06a854ecfbcf",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "b1a5b8e88639015cecc7e19d03ffae557b6895b1438e5124d69331cd1d855bb6",
-    "summary": "Add optional participant_refs and participant_role_refs selectors to behavior-specification tool-affordance bindings, so one participant tool profile can narrow each binding to some of its participants; ACT-619 issue #301."
+    "content_hash": "eea1f05e4bf37a9975baba485b6281669db5794173cdbaff65cd06a854ecfbcf",
+    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve optional empty selectors for unscoped bindings (ACT-619, issue #301)."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

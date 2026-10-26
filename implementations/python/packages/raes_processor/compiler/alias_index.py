@@ -3,6 +3,7 @@
 from collections.abc import Callable, Iterable
 
 from raes.nodes import NodeType
+from raes.participant_behavior_specification import tool_affordance_reference
 from raes.scenario import InstantiatedScenario
 
 from .addresses import (
@@ -17,6 +18,7 @@ from .addresses import (
     _resource_address_for_node,
     _service_address,
     _template_address,
+    _tool_affordance_address,
 )
 from .support import _dedupe
 
@@ -133,6 +135,13 @@ def _runtime_addressable_ref_index(scenario: InstantiatedScenario) -> dict[str, 
         address_for=_behavior_specification_address,
         qualified_prefix="behavior_specifications",
     )
+    for spec_name, specification in scenario.behavior_specifications.items():
+        for binding_id in specification.tool_affordances:
+            _add_alias(
+                index,
+                tool_affordance_reference(spec_name, binding_id),
+                _tool_affordance_address(spec_name, binding_id),
+            )
     return index
 
 

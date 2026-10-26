@@ -38,6 +38,7 @@ class ParticipantObservationBoundaryRuntime(ResolvedResource):
     view_transitions: tuple[dict[str, Any], ...] = ()
     view_relation_timeline: tuple[dict[str, Any], ...] = ()
     realized_view_disclosure: str = ""
+    reference_aliases: dict[str, tuple[str, ...]] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

@@ -143,8 +143,9 @@ def _action_affordance_addresses(
     behavior_affordance_addresses: tuple[str, ...],
     action_address: str,
     participant_address: str,
+    observation_boundary_address: str,
 ) -> tuple[str, ...]:
-    """Return the bindings of one spec that name the action and select the projected participant.
+    """Return bindings for this action, participant, and observation boundary.
 
     A scoped binding whose selector resolved to nobody is offered to nobody (fail closed).
     """
@@ -154,6 +155,7 @@ def _action_affordance_addresses(
         for affordance_address in behavior_affordance_addresses
         if (affordance := runtime_model.tool_affordances.get(affordance_address)) is not None
         and action_address in affordance.action_contract_addresses
+        and observation_boundary_address in affordance.observation_boundary_addresses
         and (not _tool_affordance_is_scoped(affordance) or participant_address in affordance.participant_addresses)
     )
 
@@ -236,10 +238,31 @@ def _resolve_projection_scope(
         raise ValueError("participant_address is outside the compiled behavior specification")
     if projection.observation_boundary_address not in behavior.observation_boundary_addresses:
         raise ValueError("observation_boundary_address is outside the compiled behavior specification")
+    _validate_participant_projection_scope(
+        runtime_model,
+        participant_address=projection.participant_address,
+        boundary_address=projection.observation_boundary_address,
+    )
     boundary = runtime_model.observation_boundaries.get(projection.observation_boundary_address)
     if boundary is None:
         raise ValueError("observation_boundary_address does not resolve in the compiled runtime model")
     return behavior, boundary
+
+
+def _validate_participant_projection_scope(
+    runtime_model: RuntimeModel,
+    *,
+    participant_address: str,
+    boundary_address: str | None = None,
+    action_address: str | None = None,
+) -> None:
+    participant = runtime_model.participant_behaviors.get(participant_address)
+    if participant is None:
+        raise ValueError("participant_address does not resolve to a compiled participant")
+    if boundary_address is not None and boundary_address not in participant.observation_boundary_addresses:
+        raise ValueError("observation_boundary_address is not declared by the compiled participant")
+    if action_address is not None and action_address not in participant.action_contract_addresses:
+        raise ValueError("action_contract_address is not declared by the compiled participant")
 
 
 def _projection_visibility_relation(
@@ -269,6 +292,9 @@ def _project_surface_action(
     action_address = assessment.action_contract_address
     if action_address not in behavior.action_contract_addresses:
         raise ValueError(f"action {action_address!r} is outside the compiled behavior specification")
+    _validate_participant_projection_scope(
+        runtime_model, participant_address=projection.participant_address, action_address=action_address
+    )
     if action_address not in runtime_model.action_contracts:
         raise ValueError(f"action {action_address!r} does not resolve in the compiled runtime model")
     action_contract = runtime_model.action_contracts[action_address]
@@ -279,6 +305,7 @@ def _project_surface_action(
         behavior_affordance_addresses=behavior.tool_affordance_addresses,
         action_address=action_address,
         participant_address=projection.participant_address,
+        observation_boundary_address=projection.observation_boundary_address,
     )
     visibility = _participant_visible_disposition(
         relation,

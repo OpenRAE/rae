@@ -41,6 +41,11 @@ SCANNER_BLUE_BLOCK = (
 )
 SPEC_BY_ROLE = "    participant_role_refs: [blue, white]\n"
 SPEC_BY_PARTICIPANT = "    participant_refs: [analyst, observer]\n"
+WHITE_TRANSITION_START = "      - transition_id: disclose-passive-scanner\n"
+WHITE_TRANSITION = (
+    WHITE_TRANSITION_START
+    + toolkit_text().split(WHITE_TRANSITION_START, 1)[1].split("behavior_specifications:\n", 1)[0]
+)
 BLUE_LEAD = """\
   blue-lead:
     affiliations: [blue-team]
@@ -135,6 +140,7 @@ def _binding(prefix: str) -> str:
                     "        visibility_basis: authored classification of the white binding\n",
                     "",
                 ),
+                (WHITE_TRANSITION, ""),
             ),
             (
                 f"{_binding('scanner-white')} reference 'behavior_specifications.toolkit.tool_affordances.scanner-white' must be explicitly classified by observation boundary 'white-view'",

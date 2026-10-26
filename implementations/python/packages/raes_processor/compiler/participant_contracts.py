@@ -23,12 +23,16 @@ from .addresses import (
     _outcome_interpretation_rule_address,
     _workflow_address,
 )
+from .alias_index import _runtime_addressable_ref_index
 from .support import _dedupe, _dump
 from .view_relations import (
+    _boundary_reference_aliases,
     _compile_view_relation_timeline,
     _initial_view_relation,
+    _normalize_visibility_references,
     _ordered_view_transitions,
     _view_relation_refs,
+    _visibility_aliases_by_address,
 )
 
 
@@ -135,10 +139,15 @@ def _compile_action_contracts(scenario: InstantiatedScenario) -> dict[str, Parti
 
 def _compile_observation_boundaries(scenario: InstantiatedScenario) -> dict[str, ParticipantObservationBoundaryRuntime]:
     observation_boundaries: dict[str, ParticipantObservationBoundaryRuntime] = {}
+    address_index = _runtime_addressable_ref_index(scenario)
+    for address in {address for matches in address_index.values() for address in matches}:
+        address_index.setdefault(address, set()).add(address)
+    aliases_by_address = _visibility_aliases_by_address(address_index)
     for name, boundary in scenario.observation_boundaries.items():
         boundary_spec = _dump(boundary)
-        view_rules = boundary_spec.get("view_rules", [])
-        view_transitions = boundary_spec.get("view_transitions", [])
+        compiled_spec = _normalize_visibility_references(boundary_spec, address_index)
+        view_rules = compiled_spec.get("view_rules", [])
+        view_transitions = compiled_spec.get("view_transitions", [])
         initial_view_relation = _initial_view_relation(view_rules=view_rules)
         disclosed_refs = _view_relation_refs(initial_view_relation, {"disclosed"})
         evidence_only_refs = _view_relation_refs(initial_view_relation, {"evidence_only"})
@@ -156,9 +165,9 @@ def _compile_observation_boundaries(scenario: InstantiatedScenario) -> dict[str,
             name=name,
             boundary_name=name,
             projection_basis=str(boundary_spec.get("projection_basis", "")),
-            hidden_refs=tuple(str(ref) for ref in boundary_spec.get("hidden_refs", [])),
-            observable_refs=tuple(str(ref) for ref in boundary_spec.get("observable_refs", [])),
-            evidence_refs=tuple(str(ref) for ref in boundary_spec.get("evidence_refs", [])),
+            hidden_refs=tuple(str(ref) for ref in compiled_spec.get("hidden_refs", [])),
+            observable_refs=tuple(str(ref) for ref in compiled_spec.get("observable_refs", [])),
+            evidence_refs=tuple(str(ref) for ref in compiled_spec.get("evidence_refs", [])),
             disclosed_refs=disclosed_refs,
             evidence_only_refs=evidence_only_refs,
             discovered_refs=discovered_refs,
@@ -168,6 +177,7 @@ def _compile_observation_boundaries(scenario: InstantiatedScenario) -> dict[str,
             view_transitions=ordered_view_transitions,
             view_relation_timeline=view_relation_timeline,
             realized_view_disclosure=str(boundary_spec.get("realized_view_disclosure") or ""),
+            reference_aliases=_boundary_reference_aliases(compiled_spec, aliases_by_address),
             spec=boundary_spec,
         )
     return observation_boundaries

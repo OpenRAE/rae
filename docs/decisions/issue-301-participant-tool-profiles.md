@@ -4,24 +4,24 @@ Date: 2026-10-13. Requirement: ACT-619 (traceability only).
 
 ## Decision
 
-A participant tool profile is the `tool_affordances` of one
-`ParticipantBehaviorSpecification` together with that specification's
-participant and role selection. There is no new section, model family, or
-contract name. The profile is identified by the ADR-076 address
-`participant.behavior-specification.<name>`, and each binding keeps
-`participant.behavior-specification.<name>.tool-affordance.<id>`. The version
-is the existing `semantic_version` with `lifecycle_state`. Reuse is through the
-specification's own selectors and ADR-053 module import.
+A `ParticipantBehaviorSpecification` supplies one participant tool profile.
+Its `tool_affordances` and participant/role selectors define that profile.
+There is no new section, model family, or contract name.
+The ADR-076 address `participant.behavior-specification.<name>` identifies the profile.
+Each binding keeps `participant.behavior-specification.<name>.tool-affordance.<id>`.
+The version uses the existing `semantic_version` and `lifecycle_state`.
+The profile's own selectors and ADR-053 module imports support reuse.
 
-A binding gains two optional selector lists, `participant_refs` and
-`participant_role_refs`, with the item shape of the specification selector.
-Both empty means today's meaning: the binding applies to every participant the
-specification selects. The binding gains no nested map, restriction id,
-constraint, condition, policy, metadata, or extension field. Two roles that
-need different relations from one tool get separately keyed bindings that
-share one `tool_ref`. This is the SEM-219 row A positive case ("one content
-identity exposes separately keyed action affordances"). It is also the #294
-rule that one tool identity "may participate in several distinct bindings".
+A binding gains two optional selector lists: `participant_refs` and `participant_role_refs`.
+Their items use the existing selector shape.
+Both lists require unique, nonblank items in the model and published schemas.
+Empty lists mean that the binding applies to every selected participant.
+Bindings gain no nested map or restriction id.
+They gain no constraint, condition, policy, metadata, or extension field.
+Two roles can use different bindings for one tool.
+Those bindings share one `tool_ref`.
+SEM-219 row A permits this: "one content identity exposes separately keyed action affordances".
+The #294 rule also permits several bindings for one tool identity.
 
 ## Compared designs
 
@@ -66,11 +66,10 @@ The selected design is the smallest change that meets the issue: it adds no
 map, id, module, runtime dataclass, or model error, and every binding address
 keeps one fixed meaning.
 
-Its main cost is behavior coupling. `behavior_mode`, `autonomous_execution`,
-`mixed_control`, and `realization_profile_ref` apply to every participant the
-specification selects, and PI-06 ownership is decided on that selection. One
-profile therefore cannot be shared by participants that need different values
-for them; they need separate specifications.
+Its main cost is behavior coupling.
+`behavior_mode`, `autonomous_execution`, `mixed_control`, and `realization_profile_ref` apply to every selected participant.
+PI-06 ownership uses that same selection.
+Participants that need different values require separate profiles.
 
 ## Reconciliation with the #294 preflight
 
@@ -116,14 +115,15 @@ The points a reviewer most needs:
   is non-empty. The validator, compiler, v1 refusal, v2 filter, and docs decide
   this from the raw lists, never from resolved addresses. A scoped binding that
   resolves to nobody is offered to nobody.
-- Absolute selector semantics. `Sel(f)` uses the same resolver as `Sel(S)` over
-  the whole composed scenario and must be a subset of `Sel(S)`. Example: `S`
-  selects `participant_refs: [analyst, observer]`, a binding selects
-  `participant_role_refs: [blue]`, and the root adds an unrelated blue
-  participant driven by another specification. The binding is then rejected
-  with `participant.tool-affordance-participant-widens-parent`, although the
-  profile did not change. In a module imported twice, a role-scoped binding
-  over module-local actions is rejected for the same reason.
+- Absolute selector semantics. `Sel(f)` and `Sel(S)` use the same resolver.
+  Both resolve over the whole composed scenario.
+  `Sel(f)` must be a subset of `Sel(S)`.
+  For example, `S` selects `participant_refs: [analyst, observer]`.
+  A binding selects `participant_role_refs: [blue]`.
+  The root then adds another blue participant under a different specification.
+  The binding fails with `participant.tool-affordance-participant-widens-parent`.
+  The profile itself did not change.
+  A twice-imported module has the same problem with role-scoped bindings over module-local actions.
 - Conflicts. K2 duplicate relations ignore selectors; the canonical form is one
   binding with the combined selector. K5: two specifications may select one
   participant. A surface projected for `(p, S)` carries exactly the bindings of
@@ -155,22 +155,93 @@ reachable for a specification with a dangling explicit participant ref.
   participant-decision-surface-v2"). ADR-095 section 3 keeps v1 for historical
   validation and migration, and no historical v1 record can contain a scoped
   binding.
-- A profile does not gate admission. A participant may invoke any action it
-  declares and its specification admits, with or without a binding. A binding
-  names the tool affordance offered on the surface for an action, together with
-  the bound contract's constraints; it does not restrict what the participant
-  can otherwise do (SEM-219 row D; ADR-083 section 1). A role-specific tool
-  profile is therefore not a role-specific permission profile.
-- Evidence identifies the profile by its address. The v2 assurance carries
-  `behavior_specification_address`, and per-role `affordance_refs` are inside
-  the participant-view digest that admission binds. The profile's version label
-  and content are identified only through the pinned instantiated snapshot,
-  whose `canonical_instantiated_sdl_digest` is the value that
-  `trial_provenance.instantiated_scenario_digest` must equal. No control-plane
-  contract changes.
+- A profile does not gate admission.
+  A participant may invoke an action that it declares and its specification admits.
+  This holds with or without a binding.
+  A binding names the offered tool affordance and the bound action contract.
+  It does not restrict other actions (SEM-219 row D; ADR-083 section 1).
+  A role-specific tool profile is not a permission profile.
+- Evidence identifies the profile by its address.
+  The v2 assurance carries `behavior_specification_address`.
+  The participant-view digest includes each role's `affordance_refs`.
+  Admission binds that digest.
+  The pinned instantiated snapshot identifies the profile's version label and content.
+  Its `canonical_instantiated_sdl_digest` must equal `trial_provenance.instantiated_scenario_digest`.
+  No control-plane contract changes.
 - `semantic_version` is an authored label that nothing checks, imported or
   local. ADR-053 compares an import's requested version with the module
   descriptor's version, and compares bytes only under a digest pin.
+
+## Repository-wide preflight guardrails
+
+Preflight reviewed 2026-10-26 against the current repository. The models,
+selectors, compiler records, projection, publication entries, and #301 tests
+already exist. Subsequent work must build on those incumbents; this review
+adds no implementation or new design authority. ADR-083, ADR-095, and the
+normative TP/K rules above remain the semantic contract. The
+[#294 preflight](issue-294-sem-219-participant-tool-affordance-preflight.md)
+supplies the broader tool-affordance security boundary; the table below names
+the current owners and the additional profile-specific obligations.
+
+| Layer | Canonical incumbent and required boundary |
+| --- | --- |
+| Source | Keep `raes/parser.py`, `_yaml_loader.py`, `_source_profile.py`, `SDLModel`, and `ParticipantToolAffordance`. Keep safe YAML and source limits. Keys remain portable. Extra fields remain forbidden. Selector items must be unique and nonblank. Bindings have no free-form command, constraint, environment, credential, or provider-options map. |
+| Identity | Reuse `raes.semantics.participant_behavior.select_participants` and [#1338](issue-1338-participant-identity-assignment-preflight.md). The `agents` key supplies identity. A direct role takes precedence. Only one affiliation permits the existing role fallback. Accounts, HTTP roles, affiliations, and implementation identities cannot replace participant identity. None grants selector authority. |
+| Modules | `raes/composition/_behavior.py` rewrites explicit participant and binding refs through symbol maps. Roles stay global. `_behavior_authoring.validate_authored_behavior_references` rejects authored private refs. Exact generated refs remain valid. `instantiate_scenario()` and `admit_instantiated_scenario()` repeat checks after substitution. A parameter cannot mint a private ref. |
+| Semantic checks | Keep `analyze_participant_behavior()`, `_tool_affordance.py`, the shared reference index, and `_participant_tool_affordance_renderers.py`. They resolve and narrow selectors. They check each participant's actions and boundaries. They reject duplicate relations and report errors. Do not hide an overbroad selector through intersection. Schema success does not prove these relations. |
+| Compiler | Keep `raes_processor/compiler/participant_behaviors.py`, address helpers, and `ParticipantToolAffordanceRuntime`. Retain authored selectors, resolved addresses, dependencies, and the owning specification. Direct callers receive dangling-reference and widening errors. Do not copy action constraints. Add no profile IR family, resource, or backend payload. |
+| Views | `models/decision_surface.py` supplies the shared filter for `decision_surface_v2.py`. Filter before visibility checks. Keep explicit specification selection, boundary, epoch, trusted anchor, and policy revision. An empty scoped selection offers nothing. v1 refuses all scoped bindings. This includes selectors that cover the whole parent. |
+| Admission | Keep `raes_contracts/participant_binding_v2.py`, `participant_decision_surface_delivery.py`, and `raes_runtime/participant_decision_surface_control_v2.py`. They check view digests, delivery, argument shapes, apparatus, and live anchors. Repeat checks inside `control_plane_mutation` before `admit_participant_action`. A projected surface is not permanent authority. Action, time, information-flow, and control gates keep their separate authority. |
+| Secrets | Keep `ControlPlaneConfiguration`, `ParticipantImplementationManifestModel.configuration_registry`, and `ConfigurationTargetDeclarationModel.validate_value`. Reuse `realize_participant_configuration()` and `validate_participant_configuration_selection()`. Secret targets accept only `SecretReferenceBindingValueModel` with `SecretReferenceId`. Preserve reference identity, value kind, and the complete target set. Profiles add no option override, environment binding, secret lookup, or credential resolver. |
+| API | Add no profile route. Keep `create_control_plane_app()` and `ControlPlaneSecurityConfig.strict_defaults()`. Retain bearer and verified-proxy checks. Keep target/run roles and sealed route authority. Retain request-size guards, no-store responses, audit, and idempotency. Scenario roles grant no caller privileges. |
+| Errors | Keep `SDLParseError`, collected `SDLValidationError`, `SDLInstantiationError`, and `Diagnostic`. Add no profile exception family. HTTP receipts use `portable_diagnostic_payload()` and `DiagnosticModel`. Keep JSON-Pointer addresses and the 512-character message limit. Bound reference lists before transport. Address conversion does not shorten messages. Keep redacted envelopes in `_responses._conflict_detail` and `_operation_routes`. Never expose raw provider errors, Pydantic inputs, full SDL, hidden context, or secrets. |
+| Records | Keep SDL phase artifacts, typed IR, `RuntimeSnapshot`, and `ControlPlaneStore`. Keep operation receipts, behavior history, `control_plane_audit.py`, and trial provenance. Preserve CAS, idempotency, and append-only history. Profile identity uses specification/binding addresses and snapshot/view digests. Add no database, cache, audit stream, or raw-payload log. Do not rewrite evidence. A log proves neither visibility nor invocation. |
+| Host | Profiles remain inert data. They add no process, listener, executable lookup, filesystem execution, or environment export. A `tool_ref` is never a command, URL, package install, or argv value. Adapters keep their launch and secret-injection contracts. Selectors cannot bypass those contracts or cause shell interpolation. |
+| Contracts | Published schemas under `contracts/schemas/` remain normative. Reuse `raes_contracts.contracts.schema_bundle()` and the publication manifest. Keep per-contract records under `contracts/schema-publication/entries/`. Retain schema checks, catalog parity, and migration rules. Do not weaken closed readers or reinterpret v1. Ownership stays with `raes`, `raes_processor`, `raes_contracts`, and `raes_runtime`. Add no compatibility implementation or parallel workflow. |
+
+These are required boundaries, not a claim that every downstream security case
+has been verified by this documentation review. The shared boundary repairs
+below address the reproduced projection and authoring gaps. Preserve
+the runtime admission checks even when projection succeeds; do not work around
+those gaps by broadening declarations or treating visibility as permission.
+
+### Extension seam and non-goals
+
+Keep the stable binding address and the existing projection inputs for
+participant, specification, boundary, epoch/state cut, and policy revision as
+the extension seam. A different apparatus is supplied through the existing
+argument-shape, apparatus, delivery, and exposure resolvers, not a tool-kind
+switch in the binding. Conditional or phase-specific availability would require
+a separately governed typed selection-context/condition reference at that seam,
+with validation and evidence semantics; it must not overload role strings or
+change today's absolute selection. No such syntax is authorized here.
+
+ACT-619 is not a permission-profile language, credential broker, executor,
+backend-support declaration, new API, store, visibility model, or control
+profile under ADR-108. Do not merge specification surfaces, add precedence or
+overrides, duplicate SEM-211 constraints, or infer grants from installation,
+capability, affiliation, exposure, or version labels. The unsupported cases and
+shared boundary decisions in this note remain explicit implementation boundaries.
+
+### Verification and governance boundary
+
+Reuse `test_issue_301_participant_tool_profiles.py`,
+`test_issue_301_participant_tool_profile_conflicts.py`, and
+`tool_profile_support.py` for behavior evidence. Relevant adjoining cases are
+the #1338 identity/role tests, #297 authoring/composition tests, v2 anchor and
+delivery tests, schema parity, and portable diagnostic/API-envelope tests.
+Do not add tests that merely mirror selector implementation or claim runtime
+permission enforcement from successful schema validation.
+
+Follow `.ground-control.yaml`, `.gc/plan-rules.md`, the canonical nox lanes,
+and `tools/check_repo_policy.py`. Set `RAES_REQUIREMENT_UID=ACT-619` when the
+branch has no UID; run only changed-file policy checks and explicit relevant
+tests or `verify-fast-feedback` locally. CI owns full policy, integration,
+fuzz, and completion suites. New syntax or compatibility claims require the
+existing publication/migration and lineage gates and accurate IMPLEMENTS/TESTS
+traceability; this guidance-only review does not activate the requirement or
+claim those gates have passed. No changelog, version, deployment, or external
+service change belongs to this preflight.
 
 ## Capability requirements for #304
 
@@ -205,19 +276,128 @@ with #304.
   actions;
 - backend support claims, which #304 owns.
 
-## Tracked gaps
+## Shared boundary repairs
 
-These pre-existing gaps are neither widened nor fixed here:
+The 2026-10-26 assessment reproduced #1498 and #1570 through #1572.
+The user authorized all four repairs before ACT-619 activation.
+These decisions extend the existing profile design.
 
-- #1498: the existing nested `tool_affordances.*` refs and
-  `participant_inject_deliveries.*` refs skip the authored `__private` check.
-  This change scans only the new binding `participant_refs`.
-- #1570: projection checks the projected action and boundary against the
-  specification, not against the projected participant's declarations.
-- #1571: projection has no boundary filter, so a binding must be classified at
-  every projection boundary, not only at its own.
-- #1572: projection reads the view relation by runtime address while authors
-  classify authored references, so the #301 fixtures classify both forms.
+### Projection scope
+
+Both surface versions require the participant's own action and boundary declarations.
+The selected specification must also declare each action and boundary.
+Missing participant records fail closed.
+One participant cannot acquire another participant's actions through a shared specification.
+Ordinary runtime admission retains its independent checks.
+
+A binding participates only at its declared observation boundaries.
+The existing shared binding filter checks participant, action, and boundary together.
+Filtering occurs before visibility and disposition checks.
+A matching hidden binding still causes projection to fail.
+This rule adds no omission rule for hidden bindings.
+
+### Visibility reference compilation
+
+The compiler resolves authored visibility references through its existing address index.
+The index includes qualified tool-affordance references.
+Compiled observation lists, rules, transitions, and timelines use the resolved runtime addresses.
+Canonical addresses identify known items in new runtime records.
+Incoming authored aliases must pass the same visibility checks as canonical addresses.
+The original boundary specification retains the authored references.
+Unknown information references retain their existing meaning.
+Ambiguous references fail closed.
+Aliases with conflicting initial dispositions fail closed.
+Transitions must start from the current disposition after alias resolution.
+Equivalent aliases with equal dispositions identify one item.
+Canonical runtime references remain valid.
+
+Each boundary stores the aliases used by its policy.
+The existing address index supplies this map.
+History checks resolve each name before they check visibility and evidence.
+This applies to observation details, action results, attribution, and outcome provenance.
+Ambiguous aliases fail closed.
+Unknown external references retain the existing rules.
+The alias map remains internal and does not enter the participant view.
+History records retain their producer-supplied spelling and original bytes.
+
+This changes compiled reference meaning without adding authored syntax or schema fields.
+New compilation uses the corrected meaning.
+Stored historical evidence retains its original bytes.
+Migration guidance describes the removal of duplicate classifications.
+
+### Private module references
+
+The existing authoring guard rejects the reserved `__private` segment before composition.
+The guard covers participant affiliations, actions, boundaries, starting conditions, and operating scope.
+It also checks initial knowledge and interactive-access references.
+It also covers binding participant, action, boundary, and tool references.
+Nested inject-delivery participant, inject, and boundary references receive the same check.
+Inject occurrence, controller, temporal, and evidence references receive this check.
+Source locations identify each rejected field.
+Post-substitution checks compare references with the exact generated composition output.
+Generated private references remain valid.
+A parameter cannot create a new private reference.
+Module exports remain an authoring boundary; they do not grant runtime authority.
+
+### Security and data flows
+
+The protected assets are module exports, participant declarations, hidden information, and evidence integrity.
+The authoring boundary treats SDL and parameter values as untrusted inputs.
+The projection boundary treats requested actions and boundaries as untrusted inputs.
+
+```mermaid
+flowchart LR
+  subgraph authored[Untrusted authoring inputs]
+    A[Author]
+    P[Parameter values]
+    M[(Module files)]
+  end
+  subgraph processor[Trusted processor]
+    V[Parse and check private references]
+    C[Compose and instantiate]
+    I[Compile declarations and visibility references]
+    R[(Runtime model)]
+    S[Check participant scope and project]
+  end
+  subgraph runtime[Runtime admission boundary]
+    B[Bind delivered selection and revalidate]
+    H[(Snapshot and append-only history)]
+  end
+  A -->|SDL bytes| V
+  M -->|Imported SDL bytes| V
+  V -->|Validated declarations| C
+  P -->|Values checked against generated references| C
+  C -->|Instantiated declarations| I
+  I -->|Canonical addresses, aliases, and relations| R
+  R -->|Participant declarations and view relations| S
+  S -->|View bytes and digest| B
+  H -->|Current state cut| B
+  B -->|Admission receipt and events| H
+```
+
+| Threat and boundary | Control | Behavioral verification |
+| --- | --- | --- |
+| Authored access to unexported declarations | Existing private-reference guard before composition and after substitution | Reject importing-file references; retain generated references |
+| Shared-profile scope expansion | Check participant declarations before projection | Reject undeclared actions and boundaries in both surface versions |
+| Classification outside a binding's boundary | Filter bindings before visibility checks | Project at an alternate boundary without the unrelated binding |
+| Alias confusion or hidden-information disclosure | Compile aliases once; resolve incoming history refs before authorization | Authored-only projection, transitions, alias conflicts, and hidden-reference rejection in each history channel |
+| Stale or altered selection evidence | Existing view digest, delivery, state-cut, and admission checks | Existing ACT-619 admission and evidence tests |
+
+No new service, credential, logger, store, or executor is required.
+The existing typed models and compiler functions remain the architecture boundaries.
+Policy checks retain ownership, publication, and traceability enforcement.
+ADR-053, ADR-076, ADR-083, ADR-095, and ADR-109 remain applicable.
+These repairs enforce their existing boundaries and require no new ADR.
+
+The design review used [ASD-STE100 Issue 9](https://www.asd-ste100.org/assets/files/ASD-STE100_ISSUE9.pdf), rules 1.1, 4.1, 5.1, 6.1, and 9.4.
+Project identifiers retain their defined technical meanings.
+The new text separates decisions, controls, flows, and verification.
+The issue plan records implementation tasks and commands.
+
+[CWE-180](https://cwe.mitre.org/data/definitions/180.html) describes the risk of checking names too early.
+The checks must use each name's final form.
+The model declares each selector constraint.
+The [Pydantic JSON Schema](https://docs.pydantic.dev/latest/concepts/json_schema/) generator publishes those constraints.
 
 ## Precedents
 
