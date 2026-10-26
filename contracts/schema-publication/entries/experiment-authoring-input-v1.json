@@ -1,9 +1,9 @@
 {
-  "content_hash": "bbf55e457b5914e751b3f22ce2a4191351970f89b4579a534e2fda62e2c7bcce",
+  "content_hash": "7036d2e8d6823838467612d50b1d98f58f1b9a4d209064ac64c1c9802ac063c8",
   "contract_id": "experiment-authoring-input-v1",
   "last_change": {
-    "content_hash": "bbf55e457b5914e751b3f22ce2a4191351970f89b4579a534e2fda62e2c7bcce",
-    "summary": "Add EXP-719 bounded cross-plane factorial conditions, realized binding criteria, and integrity-bound randomized allocation with matching dispatch receipts; preserve legacy profile semantics (#275)."
+    "content_hash": "7036d2e8d6823838467612d50b1d98f58f1b9a4d209064ac64c1c9802ac063c8",
+    "summary": "Require every condition factor and level to belong to the containing experiment author declarations in all binding postures (#1520)."
   },
   "schema_path": "contracts/schemas/experiment-core/experiment-authoring-input-v1.json",
   "stability": "draft"

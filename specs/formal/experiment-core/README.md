@@ -517,6 +517,12 @@ validator runs regardless of the embedding contract.
     source: either a condition `allocation` plan or a scalar `target_run_count`.
     Red-variant selection map keys MUST match their embedded `variant_id`, and
     declared allocation blocking factors MUST resolve to declared spec factors.
+    Every condition factor and level MUST resolve to the containing spec's
+    declarations, in both `descriptive` and `explicit-required` postures.
+    Authors choose these declarations for each experiment; no exhaustive domain
+    catalog is required. Conditions need not assign every declared factor.
+    Membership alone grants no configuration authority and resolves no external
+    ontology.
 26. An experiment authoring input is an input artifact. It MUST NOT be treated
     as, or substituted for, an `experiment-run-v1`, `experiment-study-v1`, or
     `experiment-apparatus-context-v1` record. Its declared apparatus intent uses

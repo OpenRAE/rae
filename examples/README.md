@@ -161,6 +161,12 @@ The task, run, and study surfaces keep these parts separate:
   `seeded-run-plan` declares the run count, seed, and episode controls for one
   task. `two-condition-study-design` declares a treatment factor, two compared
   conditions, and the runs per condition.
+  Each condition must name factors and levels declared in that experiment,
+  in both `descriptive` and `explicit-required` modes. Authors choose these
+  declarations; RAE supplies no domain catalog. Descriptive parameters do not
+  apply configuration. Explicit bindings retain their additional source and
+  target checks under
+  [ADR-094](../docs/decisions/adrs/adr-094-authoritative-cross-plane-experiment-bindings.md).
 - **Guidance:** the task, run, and study patterns, which are prose.
 - **Experiment tasks:** validate an authored JSON task with
   `raes semantic validate --contract experiment-task-v1 my-task.json`.
@@ -171,13 +177,9 @@ The task, run, and study surfaces keep these parts separate:
 - **Outside current support:**
   - Automatically acquiring the task named by `task_ref`. The loader checks
     a supplied task as shown below; without one, the reference is unresolved.
-  - Checking condition factor levels that no binding descriptor or stratified
-    selection stratum joins (tracked in issue #1520). The loader checks joined levels against
-    the declared factors and the condition assignment: binding descriptors
-    under `binding_semantics: explicit-required`
-    ([ADR-094](../docs/decisions/adrs/adr-094-authoritative-cross-plane-experiment-bindings.md))
-    and stratified selection strata. The shipped `two-condition-study-design`
-    body joins none, so the loader does not check its levels.
+  - Establishing domain meaning from factor labels. Membership validation uses
+    the experiment's own declarations. It does not resolve an ontology or prove
+    that a declared treatment was applied.
   - Admitting, scheduling, or running a plan, and the `experiment-run-v1` and
     `experiment-study-v1` records that describe actual executions and
     analyses.
