@@ -39,6 +39,11 @@ cancellation and effect reports for backend authors. Read the
 These contracts keep unknown effects explicit. Publishing them does not certify
 that a backend can interrupt work or recover after a failure.
 
+The [trial unit](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/backend-trial-unit.md) defines a typed
+in-process handoff for one admitted entry. An adapter binds the protocol to an
+injected runtime target. It returns execution observations and separate cleanup
+evidence. The interface does not install a trial executor.
+
 Mixed-backend bridges, time services and readers can describe one admitted edge
 or handoff with the execution binding and stage report contracts. Read the
 [mixed-backend migration note](https://github.com/OpenRAE/rae/blob/main/docs/migration/mixed-backend-execution.md).
