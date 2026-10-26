@@ -106,17 +106,20 @@ def test_declared_cancellation_round_trips_and_admits():
 
 @pytest.mark.parametrize("guarantees", [["cancellation", "cancellation"], ["invented"], [True], ["cancellation"] * 6])
 def test_manifest_rejects_invalid_guarantee_collections(guarantees):
+    request = _request()
+    payload = next(iter(request.apparatus_manifests.values())).model_dump(mode="json")
+    _declare(payload, guarantees)
     with pytest.raises(ValidationError):
-        _with_backend(_request(), lambda payload: _declare(payload, guarantees))
+        BackendManifestV2Model.model_validate(payload)
 
 
 def test_manifest_requires_operation_contract_family():
-    def change(payload):
-        _declare(payload, ["cancellation"])
-        payload["supported_contract_versions"].remove(BACKEND_OPERATION_CONTRACT_IDS[0])
-
+    request = _request()
+    payload = next(iter(request.apparatus_manifests.values())).model_dump(mode="json")
+    _declare(payload, ["cancellation"])
+    payload["supported_contract_versions"].remove(BACKEND_OPERATION_CONTRACT_IDS[0])
     with pytest.raises(ValidationError, match="operation supervision requires"):
-        _with_backend(_request(), change)
+        BackendManifestV2Model.model_validate(payload)
 
 
 def test_unchanged_manifest_omits_declaration_and_retains_digest():
@@ -253,12 +256,11 @@ def test_internal_manifest_cannot_bypass_operation_contract_requirement():
     request = _with_backend(_request(), lambda payload: _declare(payload, ["cancellation"]))
     model = next(iter(request.apparatus_manifests.values()))
     internal = backend_manifest_from_v2_model_with_envelope(model, request.realization_envelope)
+    unsupported_contracts = internal.supported_contract_versions.difference(BACKEND_OPERATION_CONTRACT_IDS)
     with pytest.raises(ValueError, match="operation supervision requires"):
         BackendManifest(
             identity=internal.identity,
             compatibility=internal.compatibility,
             capabilities=internal.capabilities,
-            supported_contract_versions=frozenset(
-                internal.supported_contract_versions - set(BACKEND_OPERATION_CONTRACT_IDS)
-            ),
+            supported_contract_versions=unsupported_contracts,
         )
