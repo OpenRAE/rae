@@ -1,5 +1,6 @@
 """The existing control-plane mutation path owns refresh dispatch and durability."""
 
+import pytest
 from raes_runtime import RuntimeControlPlane
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
 from runtime_descendant_fixtures import descendant_runtime
@@ -57,3 +58,16 @@ def test_rejected_refresh_and_restart_preserve_the_trusted_snapshot(tmp_path):
     assert restored.submit_inventory_refresh(plan.provisioning, idempotency_key="invalid") == receipt
     assert backend.refreshes == 1
     restored.close()
+
+
+def test_inventory_refresh_rejects_calls_after_control_plane_close(tmp_path):
+    manager, backend, plan, target, archive = descendant_runtime(tmp_path)
+    manager.close()
+    plane = RuntimeControlPlane(target, materialization_archive=archive, run_scope="run:run-1")
+    plane.register_planner_produced_plan(plan)
+    assert plane.submit_provisioning(plan.provisioning).accepted
+    plane.close()
+    with pytest.raises(RuntimeError, match="control plane is closed"):
+        plane.submit_inventory_refresh(plan.provisioning)
+    assert backend.applies == 1
+    assert backend.refreshes == 0

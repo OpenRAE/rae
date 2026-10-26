@@ -82,6 +82,7 @@ class RuntimePlanAuthorizationMixin:
         with self._trusted_runtime_plan_lock:
             return digest in self._trusted_runtime_plan_digests
 
+    @runtime_owned
     def submit_inventory_refresh(self, plan: ProvisioningPlan, **options):
         """Submit read-only inventory through the existing provisioning mutation owner."""
         return self.submit_provisioning(replace(plan, inventory_refresh=True), **options)
