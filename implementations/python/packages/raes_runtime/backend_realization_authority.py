@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from typing import cast
 from uuid import uuid4
 
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.augmentation_preparation import AugmentationPreparation
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.materialization_inventory import RUNTIME_DESCENDANTS_CONTRACT
 from raes_contracts.plan_projection import runtime_plan_digest
 from raes_contracts.planning import (
     EvaluationPlan,
@@ -95,6 +97,7 @@ def _bind_submitted_plan(
     args: tuple[object, ...],
     realization: _RealizationApplyContext,
     operation_id: str | None,
+    attempt_id: str | None = None,
 ) -> tuple[tuple[object, ...], _RealizationApplyContext]:
     """Bind a per-apply operation id to the submitted plan and authority context."""
 
@@ -103,18 +106,40 @@ def _bind_submitted_plan(
     )
     if submitted_plan is None:
         return args, realization
-    bound_plan = replace(
-        submitted_plan,
-        operation_id=operation_id or submitted_plan.operation_id or str(uuid4()),
+    bound_plan = cast(
+        ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+        replace(submitted_plan, operation_id=operation_id or submitted_plan.operation_id or str(uuid4())),
     )
+    bound_plan = _bind_inventory_attempt(bound_plan, realization.manifest, attempt_id)
     bound_args = tuple(bound_plan if arg is submitted_plan else arg for arg in args)
-    if not isinstance(submitted_plan, ProvisioningPlan):
+    if not isinstance(bound_plan, ProvisioningPlan):
         return bound_args, replace(realization, operation_plan=bound_plan)
     if realization.plan is None or realization.plan is submitted_plan:
         realization = replace(realization, plan=bound_plan)
     else:
-        realization = replace(realization, plan=replace(realization.plan, operation_id=bound_plan.operation_id))
+        realization = replace(
+            realization,
+            plan=replace(
+                realization.plan,
+                operation_id=bound_plan.operation_id,
+                inventory_attempt_id=bound_plan.inventory_attempt_id,
+            ),
+        )
     return bound_args, replace(realization, operation_plan=bound_plan)
+
+
+def _bind_inventory_attempt(
+    plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+    manifest: BackendManifest | None,
+    attempt_id: str | None,
+) -> ProvisioningPlan | OrchestrationPlan | EvaluationPlan:
+    if (
+        isinstance(plan, ProvisioningPlan)
+        and manifest is not None
+        and RUNTIME_DESCENDANTS_CONTRACT in manifest.supported_contract_versions
+    ):
+        plan = replace(plan, inventory_attempt_id=attempt_id or str(uuid4()))
+    return plan
 
 
 __all__ = ["_RealizationApplyContext", "_apply_authority_diagnostics", "_bind_submitted_plan"]

@@ -404,6 +404,7 @@ def _complete_native_invocation(
                 runtime=plane._target.observation_runtime,
                 durable_lifecycle_available=plane._store_commits.crash_atomic,
                 operation_id=record.receipt.operation_id,
+                attempt_id=record.invocation.request.binding.attempt_id,
             ),
             realization=_RealizationApplyContext(plan=request.plan, manifest=plane._target.manifest)
             if isinstance(request.plan, ProvisioningPlan)

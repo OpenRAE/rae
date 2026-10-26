@@ -27,6 +27,7 @@ from .backend_observation_calls import _apply_runtime_plan_with_observation, _Ru
 from .diagnostics import _failure_diagnostic, _has_error_diagnostic
 from .manager_augmentation import prepare_execution_augmentation
 from .manager_destroy import _DestroyPhaseMixin
+from .manager_inventory import RuntimeInventoryMixin
 from .manager_lifecycle import RuntimeManagerLifecycleMixin, manager_owned
 from .manager_plan_admission import reference_participant_driver_diagnostics, runtime_plan_precondition_diagnostics
 from .participant_activity import resolve_participant_activity_controls
@@ -54,7 +55,7 @@ class _RuntimeApplyState:
     augmentation_previews: dict[RuntimeDomain, AugmentationPreparation] = field(default_factory=dict)
 
 
-class RuntimeManager(_DestroyPhaseMixin, RuntimeManagerLifecycleMixin):
+class RuntimeManager(_DestroyPhaseMixin, RuntimeManagerLifecycleMixin, RuntimeInventoryMixin):
     """Plans and executes SDL runtime work against a target."""
 
     def __init__(

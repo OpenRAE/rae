@@ -1,9 +1,9 @@
 {
-  "content_hash": "4b4ec530e9b080fd8931f6580dd8f3fb7d494758840517eb15ecd20efd20513e",
+  "content_hash": "32d44b2526615df19b439dea4641d87bea446a84601a777b999f58ae37cd70a6",
   "contract_id": "backend-manifest-v2",
   "last_change": {
-    "summary": "Add optional bounded operation supervision guarantees for trial control admission (#1628).",
-    "content_hash": "4b4ec530e9b080fd8931f6580dd8f3fb7d494758840517eb15ecd20efd20513e"
+    "summary": "Combine optional trial-control supervision guarantees (#1628) with runtime descendant inventory contract support (#1649).",
+    "content_hash": "32d44b2526615df19b439dea4641d87bea446a84601a777b999f58ae37cd70a6"
   },
   "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
   "stability": "draft"
