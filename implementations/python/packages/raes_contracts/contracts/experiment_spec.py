@@ -52,6 +52,7 @@ from .schema_invariants import _add_raes_invariant
 from .trial_replacement import TrialReplacementPolicyModel
 
 ExperimentStudyModel = _experiment_study_contract.ExperimentStudyModel
+_EXPERIMENT_SPEC_VALIDATOR = "raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec"
 
 
 class ExperimentRunPlanModel(ContractModel):
@@ -282,15 +283,16 @@ class ExperimentSpecModel(ContractModel):
             "experiment-spec-blocking-factors-declared",
             "When a run plan declares an allocation with blocking factors, every blocking factor must be a "
             "declared experiment-spec factor.",
-            validator="raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec",
+            validator=_EXPERIMENT_SPEC_VALIDATOR,
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
             json_schema,
             "experiment-spec-condition-factor-levels-declared",
             "In every binding posture, each condition assignment must reference a factor and level declared "
-            "by the containing experiment spec. Authors define these local declarations; no domain catalog is required.",
-            validator="raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec",
+            "by the containing experiment spec. Authors define these local declarations; "
+            "no domain catalog is required.",
+            validator=_EXPERIMENT_SPEC_VALIDATOR,
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
@@ -334,7 +336,7 @@ class ExperimentSpecModel(ContractModel):
             "run-plan-evidence-requirement-relation-owner-valid",
             "Prospective run-scoped evidence requirement relations must identify this exact authoring input and "
             "its intended scenario snapshot.",
-            validator="raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec",
+            validator=_EXPERIMENT_SPEC_VALIDATOR,
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
         return json_schema

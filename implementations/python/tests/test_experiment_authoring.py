@@ -137,8 +137,9 @@ def test_condition_factor_membership_rejected_at_each_boundary(
         with pytest.raises(ValueError, match="must reference declared factor"):
             ExperimentSpecModel.model_validate(payload)
     elif boundary == "parser":
+        serialized = json.dumps(payload)
         with pytest.raises(ExperimentSpecValidationError) as caught:
-            parse_experiment_spec(json.dumps(payload))
+            parse_experiment_spec(serialized)
         assert caught.value.code == "contract-invalid"
         assert sentinel not in caught.value.details
     elif boundary == "mcp":
