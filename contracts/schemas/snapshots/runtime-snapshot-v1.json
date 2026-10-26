@@ -1799,6 +1799,21 @@
       "title": "MixedCompositionRuntimeStateModel",
       "type": "object"
     },
+    "MixedControlTransitionKind": {
+      "description": "Control-owned facts kept distinct from admission and execution.",
+      "enum": [
+        "proposal",
+        "approval",
+        "denial",
+        "external-direction",
+        "intervention",
+        "handoff",
+        "override",
+        "cancellation"
+      ],
+      "title": "MixedControlTransitionKind",
+      "type": "string"
+    },
     "ObservationStrength": {
       "description": "Strongest evidence a backend configuration emits for one concern.",
       "enum": [
@@ -2634,6 +2649,192 @@
         "decision_revision"
       ],
       "title": "ParticipantApprovalOccurrenceModel",
+      "type": "object"
+    },
+    "ParticipantApprovalOccurrenceV2Model": {
+      "additionalProperties": false,
+      "description": "Approval of one live, unresolved proposal at its exact revision.",
+      "properties": {
+        "authority_basis_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Authority Basis Refs",
+          "type": "array"
+        },
+        "controlled_scope_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Controlled Scope Refs",
+          "type": "array"
+        },
+        "controller_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Controller Ref",
+          "type": "string"
+        },
+        "decision_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Decision Ref",
+          "type": "string"
+        },
+        "decision_revision": {
+          "const": 1,
+          "title": "Decision Revision",
+          "type": "integer"
+        },
+        "disposition": {
+          "const": "accepted",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "effective_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Effective Order",
+          "type": "integer"
+        },
+        "expected_history_head": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expected History Head",
+          "type": "integer"
+        },
+        "expected_state_revision": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expected State Revision",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "approval",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limitation_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Limitation Refs",
+          "type": "array"
+        },
+        "occurrence_revision": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Occurrence Revision",
+          "type": "integer"
+        },
+        "permitted_transition_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Permitted Transition Ref",
+          "type": "string"
+        },
+        "prior_state_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Prior State Ref",
+          "type": "string"
+        },
+        "proposal_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Proposal Ref",
+          "type": "string"
+        },
+        "proposal_revision": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Proposal Revision",
+          "type": "integer"
+        },
+        "resulting_state_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Resulting State Ref",
+          "type": "string"
+        },
+        "resulting_state_revision": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Resulting State Revision",
+          "type": "integer"
+        },
+        "script_step_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Script Step Ref"
+        },
+        "valid_from_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid From Order",
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid Until Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "disposition",
+        "permitted_transition_ref",
+        "kind",
+        "prior_state_ref",
+        "expected_state_revision",
+        "resulting_state_ref",
+        "resulting_state_revision",
+        "expected_history_head",
+        "occurrence_revision",
+        "controller_ref",
+        "authority_basis_refs",
+        "controlled_scope_refs",
+        "effective_order",
+        "valid_from_order",
+        "valid_until_order",
+        "limitation_refs",
+        "proposal_ref",
+        "proposal_revision",
+        "decision_ref",
+        "decision_revision"
+      ],
+      "title": "ParticipantApprovalOccurrenceV2Model",
       "type": "object"
     },
     "ParticipantAttributionCandidateKind": {
@@ -3573,6 +3774,329 @@
       "title": "ParticipantCancellationOccurrenceModel",
       "type": "object"
     },
+    "ParticipantCancellationOccurrenceV2Model": {
+      "additionalProperties": false,
+      "description": "A cancellation fact; prevented, partial or late outcomes stay with their evidence authority.",
+      "properties": {
+        "authority_basis_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Authority Basis Refs",
+          "type": "array"
+        },
+        "controlled_scope_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Controlled Scope Refs",
+          "type": "array"
+        },
+        "controller_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Controller Ref",
+          "type": "string"
+        },
+        "disposition": {
+          "const": "accepted",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "effective_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Effective Order",
+          "type": "integer"
+        },
+        "expected_history_head": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expected History Head",
+          "type": "integer"
+        },
+        "expected_state_revision": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expected State Revision",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "cancellation",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limitation_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Limitation Refs",
+          "type": "array"
+        },
+        "occurrence_revision": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Occurrence Revision",
+          "type": "integer"
+        },
+        "permitted_transition_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Permitted Transition Ref",
+          "type": "string"
+        },
+        "prior_state_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Prior State Ref",
+          "type": "string"
+        },
+        "resulting_state_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Resulting State Ref",
+          "type": "string"
+        },
+        "resulting_state_revision": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Resulting State Revision",
+          "type": "integer"
+        },
+        "script_step_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Script Step Ref"
+        },
+        "target_kind": {
+          "enum": [
+            "proposal",
+            "decision",
+            "admitted-action",
+            "attempt"
+          ],
+          "title": "Target Kind",
+          "type": "string"
+        },
+        "target_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Target Ref",
+          "type": "string"
+        },
+        "target_revision": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Target Revision",
+          "type": "integer"
+        },
+        "valid_from_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid From Order",
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid Until Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "disposition",
+        "permitted_transition_ref",
+        "kind",
+        "prior_state_ref",
+        "expected_state_revision",
+        "resulting_state_ref",
+        "resulting_state_revision",
+        "expected_history_head",
+        "occurrence_revision",
+        "controller_ref",
+        "authority_basis_refs",
+        "controlled_scope_refs",
+        "effective_order",
+        "valid_from_order",
+        "valid_until_order",
+        "limitation_refs",
+        "target_kind",
+        "target_ref",
+        "target_revision"
+      ],
+      "title": "ParticipantCancellationOccurrenceV2Model",
+      "type": "object"
+    },
+    "ParticipantControlAttemptTargetV2Model": {
+      "additionalProperties": false,
+      "description": "The target an attempt named, exactly as supplied.",
+      "properties": {
+        "target_kind": {
+          "$ref": "#/$defs/ParticipantControlTargetKind"
+        },
+        "target_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Target Ref",
+          "type": "string"
+        },
+        "target_revision": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Target Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "target_kind",
+        "target_ref",
+        "target_revision"
+      ],
+      "title": "ParticipantControlAttemptTargetV2Model",
+      "type": "object"
+    },
+    "ParticipantControlAttemptV2Model": {
+      "additionalProperties": false,
+      "description": "Attempted coordinates, kept apart from the observed cut (MC-06).",
+      "properties": {
+        "authority_basis_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Authority Basis Refs",
+          "type": "array"
+        },
+        "controlled_scope_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Controlled Scope Refs",
+          "type": "array"
+        },
+        "controller_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Controller Ref",
+          "type": "string"
+        },
+        "effective_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Effective Order",
+          "type": "integer"
+        },
+        "expected_history_head": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expected History Head",
+          "type": "integer"
+        },
+        "expected_state_revision": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expected State Revision",
+          "type": "integer"
+        },
+        "kind": {
+          "$ref": "#/$defs/MixedControlTransitionKind"
+        },
+        "permitted_transition_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Permitted Transition Ref",
+          "type": "string"
+        },
+        "script_step_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Script Step Ref"
+        },
+        "state_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "State Ref",
+          "type": "string"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantControlAttemptTargetV2Model"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "permitted_transition_ref",
+        "kind",
+        "state_ref",
+        "expected_state_revision",
+        "effective_order",
+        "expected_history_head",
+        "controller_ref",
+        "authority_basis_refs",
+        "controlled_scope_refs"
+      ],
+      "title": "ParticipantControlAttemptV2Model",
+      "type": "object"
+    },
     "ParticipantControlDisposition": {
       "description": "Realized disposition of one portable control occurrence.",
       "enum": [
@@ -3585,6 +4109,52 @@
       ],
       "title": "ParticipantControlDisposition",
       "type": "string"
+    },
+    "ParticipantControlObservedCutV2Model": {
+      "additionalProperties": false,
+      "description": "The accepted control state the attempt was evaluated against.",
+      "properties": {
+        "history_head": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "History Head",
+          "type": "integer"
+        },
+        "last_accepted_order": {
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Accepted Order"
+        },
+        "state_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "State Ref",
+          "type": "string"
+        },
+        "state_revision": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "State Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "state_ref",
+        "state_revision",
+        "history_head"
+      ],
+      "title": "ParticipantControlObservedCutV2Model",
+      "type": "object"
     },
     "ParticipantControlOccurrenceModel": {
       "additionalProperties": false,
@@ -3989,6 +4559,538 @@
           "validator": "raes_contracts.contracts.ParticipantControlOccurrenceModel"
         }
       ]
+    },
+    "ParticipantControlOccurrenceV2Model": {
+      "additionalProperties": false,
+      "description": "Closed carrier for one API-409 v2 control fact under a pinned rev1 policy.",
+      "properties": {
+        "actor_ref": {
+          "minLength": 1,
+          "title": "Actor Ref",
+          "type": "string"
+        },
+        "authorization_scope": {
+          "minLength": 1,
+          "title": "Authorization Scope",
+          "type": "string"
+        },
+        "clock_authority": {
+          "minLength": 1,
+          "title": "Clock Authority",
+          "type": "string"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "episode_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Episode Id",
+          "type": "string"
+        },
+        "event_classification": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EventClassificationModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "event_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "event_type": {
+          "const": "participant-control-occurrence",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "extension_policy": {
+          "const": "closed",
+          "title": "Extension Policy",
+          "type": "string"
+        },
+        "granular_markings": {
+          "additionalProperties": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Granular Markings",
+          "type": "object"
+        },
+        "ingested_at": {
+          "format": "date-time",
+          "minLength": 1,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt](?:[01]\\d|2[0-3]):[0-5]\\d:(?:[0-5]\\d|60)(?:\\.\\d+)?(?:[Zz]|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$",
+          "title": "Ingested At",
+          "type": "string"
+        },
+        "logical_order_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Logical Order Ref"
+        },
+        "marking_definition_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Marking Definition Refs",
+          "type": "array"
+        },
+        "markings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Markings",
+          "type": "array"
+        },
+        "object_marking_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Object Marking Refs",
+          "type": "array"
+        },
+        "occurred_at": {
+          "format": "date-time",
+          "minLength": 1,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt](?:[01]\\d|2[0-3]):[0-5]\\d:(?:[0-5]\\d|60)(?:\\.\\d+)?(?:[Zz]|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$",
+          "title": "Occurred At",
+          "type": "string"
+        },
+        "occurrence": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ParticipantProposalOccurrenceV2Model"
+            },
+            {
+              "$ref": "#/$defs/ParticipantApprovalOccurrenceV2Model"
+            },
+            {
+              "$ref": "#/$defs/ParticipantDenialOccurrenceV2Model"
+            },
+            {
+              "$ref": "#/$defs/ParticipantExternalDirectionOccurrenceV2Model"
+            },
+            {
+              "$ref": "#/$defs/ParticipantInterventionOccurrenceV2Model"
+            },
+            {
+              "$ref": "#/$defs/ParticipantHandoffOccurrenceV2Model"
+            },
+            {
+              "$ref": "#/$defs/ParticipantOverrideOccurrenceV2Model"
+            },
+            {
+              "$ref": "#/$defs/ParticipantCancellationOccurrenceV2Model"
+            },
+            {
+              "$ref": "#/$defs/ParticipantRejectedOccurrenceV2Model"
+            }
+          ],
+          "title": "Occurrence"
+        },
+        "ordering_basis": {
+          "enum": [
+            "total_order",
+            "partial_order",
+            "simultaneous",
+            "serialized_backend_order",
+            "simulation_tick",
+            "control_plane_order",
+            "logical_clock",
+            "vector_clock",
+            "wall_clock_only",
+            "unknown",
+            "unsupported"
+          ],
+          "title": "Ordering Basis",
+          "type": "string"
+        },
+        "participant_address": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Participant Address",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/ParticipantControlPolicyPinModel"
+        },
+        "predecessor_event_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Predecessor Event Refs",
+          "type": "array"
+        },
+        "producer_ref": {
+          "minLength": 1,
+          "title": "Producer Ref",
+          "type": "string"
+        },
+        "provenance_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Provenance Refs",
+          "type": "array"
+        },
+        "raw_data_integrity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RawDataIntegrityModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "minLength": 1,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt](?:[01]\\d|2[0-3]):[0-5]\\d:(?:[0-5]\\d|60)(?:\\.\\d+)?(?:[Zz]|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "redaction_policy_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Redaction Policy Ref"
+        },
+        "schema_name": {
+          "const": "participant-control-occurrence",
+          "title": "Schema Name",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "2.0.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "semantics": {
+          "const": "mixed-control-policy-occurrence/rev1",
+          "title": "Semantics",
+          "type": "string"
+        },
+        "sequence_number": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sequence Number"
+        },
+        "source_pipeline": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourcePipelineModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_raw_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Raw Ref"
+        },
+        "source_record_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Record Ref"
+        },
+        "source_status": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceStatusModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_system_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source System Ref"
+        },
+        "temporal_context": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temporal Context"
+        }
+      },
+      "required": [
+        "event_id",
+        "schema_name",
+        "schema_version",
+        "event_type",
+        "extension_policy",
+        "participant_address",
+        "episode_id",
+        "occurred_at",
+        "recorded_at",
+        "ingested_at",
+        "clock_authority",
+        "ordering_basis",
+        "actor_ref",
+        "producer_ref",
+        "provenance_refs",
+        "evidence_refs",
+        "object_marking_refs",
+        "authorization_scope",
+        "semantics",
+        "policy",
+        "occurrence"
+      ],
+      "title": "ParticipantControlOccurrenceV2Model",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Every v2 occurrence must fold under its episode's exact pinned rev1 policy at its participant-wide position: exact state, revision and history head, acting source controller and scope, order and windows, script cursor, target identity, revision, liveness and evaluated validity bounds.",
+          "id": "participant-control-occurrence-v2-context-agreement",
+          "inputs": [
+            {
+              "contract_id": "participant-control-occurrence-v2",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.validate_participant_control_occurrence_context"
+        },
+        {
+          "description": "actor_ref equals the acting controller_ref: the accepted record's, or the rejected attempt's.",
+          "id": "participant-control-occurrence-v2-acting-controller",
+          "inputs": [
+            {
+              "contract_id": "participant-control-occurrence-v2",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
+        },
+        {
+          "description": "An accepted occurrence's resulting_state_revision equals expected_state_revision + 1 for every kind.",
+          "id": "participant-control-occurrence-v2-revision-advance",
+          "inputs": [
+            {
+              "contract_id": "participant-control-occurrence-v2",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
+        },
+        {
+          "description": "An accepted occurrence's expected_history_head equals occurrence_revision - 1.",
+          "id": "participant-control-occurrence-v2-history-head",
+          "inputs": [
+            {
+              "contract_id": "participant-control-occurrence-v2",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
+        },
+        {
+          "description": "An accepted occurrence satisfies valid_from_order <= effective_order <= valid_until_order (inclusive).",
+          "id": "participant-control-occurrence-v2-validity-bounds",
+          "inputs": [
+            {
+              "contract_id": "participant-control-occurrence-v2",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
+        }
+      ]
+    },
+    "ParticipantControlOccurrenceV2RejectionCode": {
+      "description": "Closed rejection reasons; the first six keep the incumbent RUN-310 spellings and meanings.",
+      "enum": [
+        "stale-state",
+        "stale-policy",
+        "revoked-authority",
+        "late-authority",
+        "unsupported-order-strategy",
+        "invalid-target",
+        "unknown-transition",
+        "transition-kind-mismatch",
+        "stale-history-head",
+        "non-increasing-order",
+        "controller-not-source",
+        "scope-widened",
+        "missing-evidence",
+        "completion-evidence-reused",
+        "proposal-identity-reused",
+        "decision-identity-reused",
+        "stale-target-revision",
+        "proposal-already-decided",
+        "target-superseded",
+        "script-step-mismatch",
+        "script-exhausted",
+        "episode-not-running",
+        "coordinate-out-of-range"
+      ],
+      "title": "ParticipantControlOccurrenceV2RejectionCode",
+      "type": "string"
+    },
+    "ParticipantControlPolicyPinModel": {
+      "additionalProperties": false,
+      "description": "The episode's pinned rev1 policy: owning specification, policy, revision and form.",
+      "properties": {
+        "behavior_specification_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Behavior Specification Ref",
+          "type": "string"
+        },
+        "form": {
+          "enum": [
+            "reusable-policy",
+            "finite-script"
+          ],
+          "title": "Form",
+          "type": "string"
+        },
+        "policy_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Policy Ref",
+          "type": "string"
+        },
+        "policy_revision": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Policy Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "behavior_specification_ref",
+        "policy_ref",
+        "policy_revision",
+        "form"
+      ],
+      "title": "ParticipantControlPolicyPinModel",
+      "type": "object"
+    },
+    "ParticipantControlTargetKind": {
+      "description": "Closed kinds for typed API-409 target relations.",
+      "enum": [
+        "proposal",
+        "action",
+        "control",
+        "decision",
+        "admitted-action",
+        "attempt"
+      ],
+      "title": "ParticipantControlTargetKind",
+      "type": "string"
     },
     "ParticipantCrossingAuditModel": {
       "additionalProperties": false,
@@ -6135,6 +7237,192 @@
       "title": "ParticipantDenialOccurrenceModel",
       "type": "object"
     },
+    "ParticipantDenialOccurrenceV2Model": {
+      "additionalProperties": false,
+      "description": "Denial of one live, unresolved proposal at its exact revision.",
+      "properties": {
+        "authority_basis_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Authority Basis Refs",
+          "type": "array"
+        },
+        "controlled_scope_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Controlled Scope Refs",
+          "type": "array"
+        },
+        "controller_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Controller Ref",
+          "type": "string"
+        },
+        "decision_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Decision Ref",
+          "type": "string"
+        },
+        "decision_revision": {
+          "const": 1,
+          "title": "Decision Revision",
+          "type": "integer"
+        },
+        "disposition": {
+          "const": "accepted",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "effective_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Effective Order",
+          "type": "integer"
+        },
+        "expected_history_head": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expected History Head",
+          "type": "integer"
+        },
+        "expected_state_revision": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expected State Revision",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "denial",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limitation_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Limitation Refs",
+          "type": "array"
+        },
+        "occurrence_revision": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Occurrence Revision",
+          "type": "integer"
+        },
+        "permitted_transition_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Permitted Transition Ref",
+          "type": "string"
+        },
+        "prior_state_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Prior State Ref",
+          "type": "string"
+        },
+        "proposal_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Proposal Ref",
+          "type": "string"
+        },
+        "proposal_revision": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Proposal Revision",
+          "type": "integer"
+        },
+        "resulting_state_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Resulting State Ref",
+          "type": "string"
+        },
+        "resulting_state_revision": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Resulting State Revision",
+          "type": "integer"
+        },
+        "script_step_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Script Step Ref"
+        },
+        "valid_from_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid From Order",
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid Until Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "disposition",
+        "permitted_transition_ref",
+        "kind",
+        "prior_state_ref",
+        "expected_state_revision",
+        "resulting_state_ref",
+        "resulting_state_revision",
+        "expected_history_head",
+        "occurrence_revision",
+        "controller_ref",
+        "authority_basis_refs",
+        "controlled_scope_refs",
+        "effective_order",
+        "valid_from_order",
+        "valid_until_order",
+        "limitation_refs",
+        "proposal_ref",
+        "proposal_revision",
+        "decision_ref",
+        "decision_revision"
+      ],
+      "title": "ParticipantDenialOccurrenceV2Model",
+      "type": "object"
+    },
     "ParticipantEffectClass": {
       "description": "SEM-211 effect classes for participant action results.",
       "enum": [
@@ -6662,6 +7950,188 @@
       "title": "ParticipantExternalDirectionOccurrenceModel",
       "type": "object"
     },
+    "ParticipantExternalDirectionOccurrenceV2Model": {
+      "additionalProperties": false,
+      "description": "A direction to an existing proposal, action or control occurrence.",
+      "properties": {
+        "authority_basis_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Authority Basis Refs",
+          "type": "array"
+        },
+        "controlled_scope_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Controlled Scope Refs",
+          "type": "array"
+        },
+        "controller_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Controller Ref",
+          "type": "string"
+        },
+        "disposition": {
+          "const": "accepted",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "effective_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Effective Order",
+          "type": "integer"
+        },
+        "expected_history_head": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expected History Head",
+          "type": "integer"
+        },
+        "expected_state_revision": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expected State Revision",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "external-direction",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limitation_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Limitation Refs",
+          "type": "array"
+        },
+        "occurrence_revision": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Occurrence Revision",
+          "type": "integer"
+        },
+        "permitted_transition_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Permitted Transition Ref",
+          "type": "string"
+        },
+        "prior_state_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Prior State Ref",
+          "type": "string"
+        },
+        "resulting_state_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Resulting State Ref",
+          "type": "string"
+        },
+        "resulting_state_revision": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Resulting State Revision",
+          "type": "integer"
+        },
+        "script_step_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Script Step Ref"
+        },
+        "target_kind": {
+          "enum": [
+            "proposal",
+            "action",
+            "control"
+          ],
+          "title": "Target Kind",
+          "type": "string"
+        },
+        "target_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Target Ref",
+          "type": "string"
+        },
+        "target_revision": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Target Revision",
+          "type": "integer"
+        },
+        "valid_from_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid From Order",
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid Until Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "disposition",
+        "permitted_transition_ref",
+        "kind",
+        "prior_state_ref",
+        "expected_state_revision",
+        "resulting_state_ref",
+        "resulting_state_revision",
+        "expected_history_head",
+        "occurrence_revision",
+        "controller_ref",
+        "authority_basis_refs",
+        "controlled_scope_refs",
+        "effective_order",
+        "valid_from_order",
+        "valid_until_order",
+        "limitation_refs",
+        "target_kind",
+        "target_ref",
+        "target_revision"
+      ],
+      "title": "ParticipantExternalDirectionOccurrenceV2Model",
+      "type": "object"
+    },
     "ParticipantFailureClass": {
       "description": "SEM-211 portable failure classes for participant action attempts.",
       "enum": [
@@ -6845,6 +8315,171 @@
         "completion_evidence_ref"
       ],
       "title": "ParticipantHandoffOccurrenceModel",
+      "type": "object"
+    },
+    "ParticipantHandoffOccurrenceV2Model": {
+      "additionalProperties": false,
+      "description": "A controller transfer with this transfer's own completion evidence.",
+      "properties": {
+        "authority_basis_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Authority Basis Refs",
+          "type": "array"
+        },
+        "completion_evidence_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Completion Evidence Ref",
+          "type": "string"
+        },
+        "controlled_scope_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Controlled Scope Refs",
+          "type": "array"
+        },
+        "controller_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Controller Ref",
+          "type": "string"
+        },
+        "disposition": {
+          "const": "accepted",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "effective_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Effective Order",
+          "type": "integer"
+        },
+        "expected_history_head": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expected History Head",
+          "type": "integer"
+        },
+        "expected_state_revision": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expected State Revision",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "handoff",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limitation_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Limitation Refs",
+          "type": "array"
+        },
+        "occurrence_revision": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Occurrence Revision",
+          "type": "integer"
+        },
+        "permitted_transition_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Permitted Transition Ref",
+          "type": "string"
+        },
+        "prior_state_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Prior State Ref",
+          "type": "string"
+        },
+        "resulting_state_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Resulting State Ref",
+          "type": "string"
+        },
+        "resulting_state_revision": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Resulting State Revision",
+          "type": "integer"
+        },
+        "script_step_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Script Step Ref"
+        },
+        "valid_from_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid From Order",
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid Until Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "disposition",
+        "permitted_transition_ref",
+        "kind",
+        "prior_state_ref",
+        "expected_state_revision",
+        "resulting_state_ref",
+        "resulting_state_revision",
+        "expected_history_head",
+        "occurrence_revision",
+        "controller_ref",
+        "authority_basis_refs",
+        "controlled_scope_refs",
+        "effective_order",
+        "valid_from_order",
+        "valid_until_order",
+        "limitation_refs",
+        "completion_evidence_ref"
+      ],
+      "title": "ParticipantHandoffOccurrenceV2Model",
       "type": "object"
     },
     "ParticipantInformationStateRecordModel": {
@@ -7733,6 +9368,196 @@
         "intervention_ref"
       ],
       "title": "ParticipantInterventionOccurrenceModel",
+      "type": "object"
+    },
+    "ParticipantInterventionOccurrenceV2Model": {
+      "additionalProperties": false,
+      "description": "An intervention against an existing action, control occurrence or attempt.",
+      "properties": {
+        "affected_occurrence_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Affected Occurrence Ref",
+          "type": "string"
+        },
+        "affected_revision": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Affected Revision",
+          "type": "integer"
+        },
+        "affected_target_kind": {
+          "enum": [
+            "action",
+            "control",
+            "attempt"
+          ],
+          "title": "Affected Target Kind",
+          "type": "string"
+        },
+        "authority_basis_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Authority Basis Refs",
+          "type": "array"
+        },
+        "controlled_scope_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Controlled Scope Refs",
+          "type": "array"
+        },
+        "controller_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Controller Ref",
+          "type": "string"
+        },
+        "disposition": {
+          "const": "accepted",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "effective_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Effective Order",
+          "type": "integer"
+        },
+        "expected_history_head": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expected History Head",
+          "type": "integer"
+        },
+        "expected_state_revision": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expected State Revision",
+          "type": "integer"
+        },
+        "intervention_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Intervention Ref",
+          "type": "string"
+        },
+        "kind": {
+          "const": "intervention",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limitation_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Limitation Refs",
+          "type": "array"
+        },
+        "occurrence_revision": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Occurrence Revision",
+          "type": "integer"
+        },
+        "permitted_transition_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Permitted Transition Ref",
+          "type": "string"
+        },
+        "prior_state_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Prior State Ref",
+          "type": "string"
+        },
+        "resulting_state_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Resulting State Ref",
+          "type": "string"
+        },
+        "resulting_state_revision": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Resulting State Revision",
+          "type": "integer"
+        },
+        "script_step_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Script Step Ref"
+        },
+        "valid_from_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid From Order",
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid Until Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "disposition",
+        "permitted_transition_ref",
+        "kind",
+        "prior_state_ref",
+        "expected_state_revision",
+        "resulting_state_ref",
+        "resulting_state_revision",
+        "expected_history_head",
+        "occurrence_revision",
+        "controller_ref",
+        "authority_basis_refs",
+        "controlled_scope_refs",
+        "effective_order",
+        "valid_from_order",
+        "valid_until_order",
+        "limitation_refs",
+        "affected_target_kind",
+        "affected_occurrence_ref",
+        "affected_revision",
+        "intervention_ref"
+      ],
+      "title": "ParticipantInterventionOccurrenceV2Model",
       "type": "object"
     },
     "ParticipantJointActionAccessSetModel": {
@@ -9485,6 +11310,195 @@
       "title": "ParticipantOverrideOccurrenceModel",
       "type": "object"
     },
+    "ParticipantOverrideOccurrenceV2Model": {
+      "additionalProperties": false,
+      "description": "A superseding fact appended against an existing control or decision occurrence.",
+      "properties": {
+        "authority_basis_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Authority Basis Refs",
+          "type": "array"
+        },
+        "controlled_scope_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Controlled Scope Refs",
+          "type": "array"
+        },
+        "controller_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Controller Ref",
+          "type": "string"
+        },
+        "disposition": {
+          "const": "accepted",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "effective_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Effective Order",
+          "type": "integer"
+        },
+        "expected_history_head": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expected History Head",
+          "type": "integer"
+        },
+        "expected_state_revision": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expected State Revision",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "override",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limitation_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Limitation Refs",
+          "type": "array"
+        },
+        "occurrence_revision": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Occurrence Revision",
+          "type": "integer"
+        },
+        "permitted_transition_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Permitted Transition Ref",
+          "type": "string"
+        },
+        "prior_state_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Prior State Ref",
+          "type": "string"
+        },
+        "replacement_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Replacement Ref",
+          "type": "string"
+        },
+        "resulting_state_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Resulting State Ref",
+          "type": "string"
+        },
+        "resulting_state_revision": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Resulting State Revision",
+          "type": "integer"
+        },
+        "script_step_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Script Step Ref"
+        },
+        "superseded_occurrence_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Superseded Occurrence Ref",
+          "type": "string"
+        },
+        "superseded_revision": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Superseded Revision",
+          "type": "integer"
+        },
+        "superseded_target_kind": {
+          "enum": [
+            "control",
+            "decision"
+          ],
+          "title": "Superseded Target Kind",
+          "type": "string"
+        },
+        "valid_from_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid From Order",
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid Until Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "disposition",
+        "permitted_transition_ref",
+        "kind",
+        "prior_state_ref",
+        "expected_state_revision",
+        "resulting_state_ref",
+        "resulting_state_revision",
+        "expected_history_head",
+        "occurrence_revision",
+        "controller_ref",
+        "authority_basis_refs",
+        "controlled_scope_refs",
+        "effective_order",
+        "valid_from_order",
+        "valid_until_order",
+        "limitation_refs",
+        "superseded_target_kind",
+        "superseded_occurrence_ref",
+        "superseded_revision",
+        "replacement_ref"
+      ],
+      "title": "ParticipantOverrideOccurrenceV2Model",
+      "type": "object"
+    },
     "ParticipantPhaseRealization": {
       "description": "RUN-306 realization modes for an observable lifecycle phase.",
       "enum": [
@@ -9770,6 +11784,363 @@
         "action_contract_ref"
       ],
       "title": "ParticipantProposalOccurrenceModel",
+      "type": "object"
+    },
+    "ParticipantProposalOccurrenceV2Model": {
+      "additionalProperties": false,
+      "description": "A fresh proposal identity bound once per episode, at its own revision 1.",
+      "properties": {
+        "action_contract_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Action Contract Ref",
+          "type": "string"
+        },
+        "admission_status": {
+          "const": "not-admitted",
+          "title": "Admission Status",
+          "type": "string"
+        },
+        "authority_basis_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Authority Basis Refs",
+          "type": "array"
+        },
+        "controlled_scope_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Controlled Scope Refs",
+          "type": "array"
+        },
+        "controller_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Controller Ref",
+          "type": "string"
+        },
+        "decision_surface_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Decision Surface Ref"
+        },
+        "disposition": {
+          "const": "accepted",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "effective_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Effective Order",
+          "type": "integer"
+        },
+        "expected_history_head": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expected History Head",
+          "type": "integer"
+        },
+        "expected_state_revision": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expected State Revision",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "proposal",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limitation_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Limitation Refs",
+          "type": "array"
+        },
+        "occurrence_revision": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Occurrence Revision",
+          "type": "integer"
+        },
+        "payload_digest": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Payload Digest"
+        },
+        "payload_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Payload Ref"
+        },
+        "permitted_transition_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Permitted Transition Ref",
+          "type": "string"
+        },
+        "prior_state_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Prior State Ref",
+          "type": "string"
+        },
+        "proposal_binding_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Proposal Binding Ref"
+        },
+        "proposal_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Proposal Id",
+          "type": "string"
+        },
+        "proposal_revision": {
+          "const": 1,
+          "title": "Proposal Revision",
+          "type": "integer"
+        },
+        "resulting_state_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Resulting State Ref",
+          "type": "string"
+        },
+        "resulting_state_revision": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Resulting State Revision",
+          "type": "integer"
+        },
+        "script_step_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Script Step Ref"
+        },
+        "source_proposal_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Proposal Ref"
+        },
+        "source_proposal_revision": {
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Proposal Revision"
+        },
+        "transformation_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transformation Ref"
+        },
+        "valid_from_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid From Order",
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid Until Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "disposition",
+        "permitted_transition_ref",
+        "kind",
+        "prior_state_ref",
+        "expected_state_revision",
+        "resulting_state_ref",
+        "resulting_state_revision",
+        "expected_history_head",
+        "occurrence_revision",
+        "controller_ref",
+        "authority_basis_refs",
+        "controlled_scope_refs",
+        "effective_order",
+        "valid_from_order",
+        "valid_until_order",
+        "limitation_refs",
+        "proposal_id",
+        "proposal_revision",
+        "admission_status",
+        "action_contract_ref"
+      ],
+      "title": "ParticipantProposalOccurrenceV2Model",
+      "type": "object"
+    },
+    "ParticipantRejectedOccurrenceV2Model": {
+      "additionalProperties": false,
+      "description": "A durable rejected attempt: no valid application, no state change and no validity bounds.",
+      "properties": {
+        "attempted": {
+          "$ref": "#/$defs/ParticipantControlAttemptV2Model"
+        },
+        "disposition": {
+          "const": "rejected",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "limitation_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Limitation Refs",
+          "type": "array"
+        },
+        "observed": {
+          "$ref": "#/$defs/ParticipantControlObservedCutV2Model"
+        },
+        "occurrence_revision": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Occurrence Revision",
+          "type": "integer"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/ParticipantControlOccurrenceV2RejectionCode"
+        },
+        "reason_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason Ref"
+        },
+        "state_change": {
+          "const": "none",
+          "title": "State Change",
+          "type": "string"
+        }
+      },
+      "required": [
+        "disposition",
+        "occurrence_revision",
+        "reason_code",
+        "attempted",
+        "observed",
+        "state_change",
+        "limitation_refs"
+      ],
+      "title": "ParticipantRejectedOccurrenceV2Model",
       "type": "object"
     },
     "ParticipantResourceBudgetEventModel": {
@@ -13833,7 +16204,21 @@
     "participant_control_history": {
       "additionalProperties": {
         "items": {
-          "$ref": "#/$defs/ParticipantControlOccurrenceModel"
+          "discriminator": {
+            "mapping": {
+              "1.0.0": "#/$defs/ParticipantControlOccurrenceModel",
+              "2.0.0": "#/$defs/ParticipantControlOccurrenceV2Model"
+            },
+            "propertyName": "schema_version"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ParticipantControlOccurrenceModel"
+            },
+            {
+              "$ref": "#/$defs/ParticipantControlOccurrenceV2Model"
+            }
+          ]
         },
         "type": "array"
       },

@@ -83,12 +83,11 @@ def run_conftest_policy(
             check=False,
         )
 
-    if proc.returncode not in {0, 1}:
+    # conftest prints a JSON result list for every evaluation it completes, passing or failing. It exits 1 with
+    # nothing on stdout when it cannot load or evaluate the policy, the same exit code it uses for policy failures.
+    if proc.returncode not in {0, 1} or not proc.stdout.strip():
         details = proc.stderr.strip() or proc.stdout.strip() or "unknown conftest failure"
         raise RuntimeError(f"conftest repo policy evaluation failed: {details}")
-
-    if not proc.stdout.strip():
-        return []
 
     raw_results = json.loads(proc.stdout)
     failures: list[PolicyFailure] = []

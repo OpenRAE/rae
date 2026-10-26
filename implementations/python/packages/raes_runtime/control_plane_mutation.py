@@ -38,6 +38,25 @@ _ACTIVE_RESERVATION: ContextVar[_MutationReservation | None] = ContextVar(
     default=None,
 )
 _PROBE_MUTATION: ContextVar[bool] = ContextVar("raes_probe_mutation", default=False)
+_IN_EXTENSION: ContextVar[bool] = ContextVar("raes_extension_callback", default=False)
+_SUPERVISORY_CUT: ContextVar[bool] = ContextVar("raes_supervisory_cut", default=False)
+
+
+@contextmanager
+def detached_extension(*, extension: bool = True) -> Iterator[None]:
+    """Copy values into a worker without transferring a state-writer permit."""
+
+    reservation = _ACTIVE_RESERVATION.set(None)
+    probe = _PROBE_MUTATION.set(False)
+    supervisory = _SUPERVISORY_CUT.set(False)
+    callback = _IN_EXTENSION.set(extension or _IN_EXTENSION.get())
+    try:
+        yield
+    finally:
+        _IN_EXTENSION.reset(callback)
+        _SUPERVISORY_CUT.reset(supervisory)
+        _PROBE_MUTATION.reset(probe)
+        _ACTIVE_RESERVATION.reset(reservation)
 
 
 class MutationReservationRequired(RuntimeError):
@@ -52,15 +71,18 @@ class MutationReservationRequired(RuntimeError):
 class RuntimeMutationAuthority:
     """Serialize mutation state cuts without holding a mutex over external work.
 
-    The condition protects only permit bookkeeping.  The logical permit stays
-    owned while backend code runs, but the condition's lock is released so
-    control-plane reads and lifecycle bookkeeping remain responsive.
+    External work releases the state permit and retains an effect reservation.
+    Supervisory cuts can record control while conflicting effects remain excluded.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, *, admission_ms: int = 2000) -> None:
+        from .operation_execution_adapter import require_budget_ms
+
+        self._admission_seconds = require_budget_ms(admission_ms) / 1000
         self._condition = Condition(Lock())
         self._owner_thread: int | None = None
         self._reservation: _MutationReservation | None = None
+        self._effect_owner: object | None = None
         self._async_waiters: deque[_AsyncWaiter] = deque()
         self._depth = 0
         self._local = local()
@@ -70,22 +92,12 @@ class RuntimeMutationAuthority:
         """Own one operation-family-neutral mutation state cut."""
 
         thread_id = get_ident()
-        if getattr(self._local, "external_depth", 0):
+        if _IN_EXTENSION.get() or getattr(self._local, "external_depth", 0):
             raise RuntimeError(_BACKEND_REENTRY_ERROR)
         reservation = _ACTIVE_RESERVATION.get()
         reserved = reservation is not None and reservation.authority is self
         with self._condition:
-            if reserved:
-                if self._reservation is not reservation:
-                    raise RuntimeError("control-plane mutation reservation is no longer active")
-            elif self._owner_thread == thread_id:
-                self._depth += 1
-            else:
-                if _PROBE_MUTATION.get():
-                    raise MutationReservationRequired(self, kind)
-                self._condition.wait_for(self._sync_permit_available)
-                self._owner_thread = thread_id
-                self._depth = 1
+            self._admit_mutation_locked(reservation, reserved, thread_id, kind)
             kinds = list(getattr(self._local, "kinds", ()))
             kinds.append(kind)
             self._local.kinds = kinds
@@ -93,15 +105,70 @@ class RuntimeMutationAuthority:
             yield
         finally:
             with self._condition:
-                kinds = list(getattr(self._local, "kinds", ()))
-                if kinds:
-                    kinds.pop()
-                self._local.kinds = kinds
-                if not reserved:
-                    self._depth -= 1
-                    if self._depth == 0:
-                        self._owner_thread = None
-                        self._grant_next_waiter_locked()
+                self._release_mutation_locked(reserved, thread_id)
+
+    def _admit_mutation_locked(
+        self, reservation: _MutationReservation | None, reserved: bool, thread_id: int, kind: OperationKind
+    ) -> None:
+        if reserved:
+            if self._reservation is not reservation:
+                raise RuntimeError("control-plane mutation reservation is no longer active")
+        elif self._owner_thread == thread_id:
+            self._depth += 1
+        else:
+            self._wait_for_mutation_locked(thread_id, kind)
+
+    def _wait_for_mutation_locked(self, thread_id: int, kind: OperationKind) -> None:
+        if _PROBE_MUTATION.get():
+            raise MutationReservationRequired(self, kind)
+        admitted = self._condition.wait_for(
+            lambda: (
+                self._permit_is_free()
+                and (_SUPERVISORY_CUT.get() or (self._effect_owner is None and not self._async_waiters))
+            ),
+            timeout=self._admission_seconds,
+        )
+        if not admitted:
+            raise TimeoutError("state admission budget exhausted")
+        self._owner_thread = thread_id
+        self._depth = 1
+        if not _SUPERVISORY_CUT.get():
+            self._effect_owner = thread_id
+
+    def _release_mutation_locked(self, reserved: bool, thread_id: int) -> None:
+        kinds = list(getattr(self._local, "kinds", ()))
+        if kinds:
+            kinds.pop()
+        self._local.kinds = kinds
+        if reserved:
+            return
+        abandoned = getattr(self._local, "abandoned_depth", 0)
+        if abandoned:
+            self._release_abandoned_mutation_locked(thread_id, abandoned)
+        else:
+            self._depth -= 1
+            if self._depth == 0:
+                self._owner_thread = None
+                if self._effect_owner == thread_id:
+                    self._effect_owner = None
+                self._grant_next_waiter_locked()
+
+    def _release_abandoned_mutation_locked(self, thread_id: int, abandoned: int) -> None:
+        self._local.abandoned_depth = abandoned - 1
+        if abandoned == 1 and self._effect_owner == thread_id:
+            self._effect_owner = None
+            self._grant_next_waiter_locked()
+
+    @contextmanager
+    def supervision(self) -> Iterator[None]:
+        """Acquire the same state writer without claiming another external effect."""
+
+        token = _SUPERVISORY_CUT.set(True)
+        try:
+            with self.mutation(OperationKind.INDETERMINATE_RESOLUTION):
+                yield
+        finally:
+            _SUPERVISORY_CUT.reset(token)
 
     @asynccontextmanager
     async def reserve(self, kind: OperationKind) -> AsyncIterator[None]:
@@ -111,14 +178,15 @@ class RuntimeMutationAuthority:
         reservation = _MutationReservation(self, kind)
         waiter = _AsyncWaiter(reservation, loop, loop.create_future())
         with self._condition:
-            if self._permit_is_free() and not self._async_waiters:
+            if self._permit_is_free() and self._effect_owner is None and not self._async_waiters:
                 self._reservation = reservation
+                self._effect_owner = reservation
                 waiter.granted = True
             else:
                 self._async_waiters.append(waiter)
         if not waiter.granted:
             try:
-                await waiter.future
+                await asyncio.wait_for(waiter.future, self._admission_seconds)
             except BaseException:
                 with self._condition:
                     if waiter.granted:
@@ -141,11 +209,27 @@ class RuntimeMutationAuthority:
         if not self.owns_current_thread():
             raise RuntimeError("external control-plane work requires mutation authority")
         depth = getattr(self._local, "external_depth", 0)
+        if depth:
+            raise RuntimeError(_BACKEND_REENTRY_ERROR)
+        with self._condition:
+            owner, reservation, state_depth = self._owner_thread, self._reservation, self._depth
+            self._owner_thread = None
+            self._reservation = None
+            self._depth = 0
+            self._condition.notify_all()
         self._local.external_depth = depth + 1
+        token = _IN_EXTENSION.set(True)
         try:
             yield
         finally:
+            _IN_EXTENSION.reset(token)
             self._local.external_depth -= 1
+            with self._condition:
+                if not self._condition.wait_for(self._permit_is_free, timeout=self._admission_seconds):
+                    if reservation is None:
+                        self._local.abandoned_depth = state_depth
+                    raise TimeoutError("state reacquisition budget exhausted")
+                self._owner_thread, self._reservation, self._depth = owner, reservation, state_depth
 
     @contextmanager
     def admission_call(self) -> Iterator[None]:
@@ -153,9 +237,11 @@ class RuntimeMutationAuthority:
 
         depth = getattr(self._local, "external_depth", 0)
         self._local.external_depth = depth + 1
+        token = _IN_EXTENSION.set(True)
         try:
             yield
         finally:
+            _IN_EXTENSION.reset(token)
             self._local.external_depth -= 1
 
     def owns_current_thread(self) -> bool:
@@ -174,17 +260,24 @@ class RuntimeMutationAuthority:
         return self._permit_is_free() and not self._async_waiters
 
     def _release_reservation_locked(self, reservation: _MutationReservation) -> None:
-        if self._reservation is not reservation:
+        if self._reservation is not reservation and self._effect_owner is not reservation:
             raise RuntimeError("control-plane mutation reservation is no longer active")
-        self._reservation = None
+        if self._reservation is reservation:
+            self._reservation = None
+        if self._effect_owner is reservation:
+            self._effect_owner = None
         self._grant_next_waiter_locked()
 
     def _grant_next_waiter_locked(self) -> None:
+        if self._effect_owner is not None or not self._permit_is_free():
+            self._condition.notify_all()
+            return
         while self._async_waiters:
             waiter = self._async_waiters.popleft()
             if waiter.future.cancelled():
                 continue
             self._reservation = waiter.reservation
+            self._effect_owner = waiter.reservation
             waiter.granted = True
             waiter.loop.call_soon_threadsafe(_complete_waiter, waiter.future)
             return

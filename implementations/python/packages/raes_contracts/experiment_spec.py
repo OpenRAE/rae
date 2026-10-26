@@ -2,8 +2,9 @@
 
 An experiment specification is the pre-run authoring/input counterpart to the
 archival experiment-core outputs (run/study/apparatus-context). Unlike SDL,
-the authoring input is a single nested contract document with no shorthand,
-key normalization, or cross-file resolution, so loading is a bounded,
+the authoring input is a single nested contract document. Its closed factorial
+intent materializes condition/binding children; there is no key normalization
+or cross-file resolution, so loading is a bounded,
 duplicate-key/alias-rejecting safe YAML parse followed by
 ``ExperimentSpecModel`` validation — mirroring how the JSON fixtures under
 ``contracts/fixtures/experiment-core`` are checked.
@@ -23,7 +24,7 @@ from yaml.constructor import ConstructorError
 from yaml.events import AliasEvent
 from yaml.nodes import MappingNode
 
-from .contracts import ExperimentSpecModel
+from .contracts import ExperimentSpecModel, ExperimentTaskModel
 
 log = logging.getLogger("raes.experiment_spec")
 
@@ -104,8 +105,14 @@ def _load_yaml(raw: str) -> object:
         loader.dispose()
 
 
-def parse_experiment_spec(text: str, *, path: Path | None = None) -> ExperimentSpecModel:
-    """Parse and validate an experiment specification from YAML text."""
+def parse_experiment_spec(
+    text: str, *, path: Path | None = None, task: ExperimentTaskModel | None = None
+) -> ExperimentSpecModel:
+    """Validate YAML and, when supplied, bind task_ref to a validated task.
+
+    The task id must match, as must the version when task_ref declares one.
+    Omitting task preserves context-free validation; no reference is fetched.
+    """
     if len(text.encode("utf-8", errors="replace")) > MAX_EXPERIMENT_SPEC_BYTES:
         raise ExperimentSpecValidationError(
             "input-too-large",
@@ -121,7 +128,7 @@ def parse_experiment_spec(text: str, *, path: Path | None = None) -> ExperimentS
     except ConstructorError as exc:
         code = "duplicate-key" if "duplicate mapping key" in str(exc) else "invalid-yaml"
         raise ExperimentSpecValidationError(code, "Experiment spec YAML is invalid.", path=path) from exc
-    except yaml.YAMLError as exc:
+    except (yaml.YAMLError, ValueError) as exc:
         raise ExperimentSpecValidationError("invalid-yaml", "Experiment spec YAML is invalid.", path=path) from exc
 
     if not isinstance(payload, dict):
@@ -136,17 +143,30 @@ def parse_experiment_spec(text: str, *, path: Path | None = None) -> ExperimentS
         raise ExperimentSpecValidationError("invalid-json-value", str(exc), path=path) from exc
 
     try:
-        return ExperimentSpecModel.model_validate(payload)
+        spec = ExperimentSpecModel.model_validate(payload)
     except ValidationError as exc:
         raise ExperimentSpecValidationError(
             "contract-invalid",
             _safe_validation_details(exc),
             path=path,
         ) from exc
+    if task is not None:
+        _validate_task_reference(spec, task, path=path)
+    return spec
 
 
-def load_experiment_spec(path: Path) -> ExperimentSpecModel:
-    """Load and validate an authored experiment specification from a YAML file."""
+def _validate_task_reference(spec: ExperimentSpecModel, task: ExperimentTaskModel, *, path: Path | None) -> None:
+    reference = spec.task_ref
+    if reference.ref_id != task.task_id or (
+        reference.ref_version is not None and reference.ref_version != task.task_version
+    ):
+        raise ExperimentSpecValidationError(
+            "task-reference-mismatch", "Experiment spec task_ref does not match the supplied task.", path=path
+        )
+
+
+def load_experiment_spec(path: Path, *, task: ExperimentTaskModel | None = None) -> ExperimentSpecModel:
+    """Load an experiment specification, optionally checking a supplied validated task."""
     if not path.exists():
         raise FileNotFoundError(f"Experiment spec file not found: {path.name}")
     if path.stat().st_size > MAX_EXPERIMENT_SPEC_BYTES:
@@ -156,7 +176,7 @@ def load_experiment_spec(path: Path) -> ExperimentSpecModel:
             path=path,
         )
 
-    spec = parse_experiment_spec(path.read_text(encoding="utf-8"), path=path)
+    spec = parse_experiment_spec(path.read_text(encoding="utf-8"), path=path, task=task)
     log.info("Loaded experiment spec '%s' from %s", spec.spec_id, path.name)
     return spec
 

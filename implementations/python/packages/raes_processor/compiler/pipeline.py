@@ -151,7 +151,7 @@ def _compiled_behavior_parts(
         "participant_behaviors": _compile_participant_behaviors(scenario, diagnostics),
         "behavior_specifications": _compile_behavior_specifications(scenario, diagnostics),
         "tool_affordances": _compile_tool_affordances(scenario, diagnostics),
-        "participant_inject_deliveries": _compile_participant_inject_deliveries(scenario),
+        "participant_inject_deliveries": _compile_participant_inject_deliveries(scenario, diagnostics),
         "participant_episode_policies": _compile_participant_episode_policies(scenario, declaration_index),
         "events": _compile_events(
             scenario, assertions, structure["injects"], structure["inject_bindings"], diagnostics

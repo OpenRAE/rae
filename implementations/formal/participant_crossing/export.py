@@ -18,12 +18,11 @@ from raes_contracts.canonical import canonical_json_bytes, canonical_json_digest
 from raes_contracts.json_ingress import parse_bounded_json_object
 
 from . import abstract, concrete
-from .aut import parse_aut as parse_aut, render_aut
+from .aut import parse_aut as parse_aut
+from .aut import render_aut
 from .ingress import MAX_BYTES, read_bytes, safe_path
 
-PROFILE_PATH = (
-    "contracts/profiles/behavioral-relation/participant-crossing-dpbb-finite-v1.json"
-)
+PROFILE_PATH = "contracts/profiles/behavioral-relation/participant-crossing-dpbb-finite-v1.json"
 OUTPUT_PATH = "specs/formal/participant-semantics/crossing-models/rev2"
 _PACKAGE = "implementations/python/packages/"
 SOURCE_PATHS = (
@@ -64,9 +63,7 @@ def digest(content: bytes) -> str:
 # The CLI starts a fresh interpreter in this checkout. A caller may export a
 # copied tree only when its Python sources match that executing checkout.
 _EXECUTING_SOURCE_DIGESTS = {
-    path: digest(read_bytes(Path(__file__).resolve().parents[3], path))
-    for path in SOURCE_PATHS
-    if path.endswith(".py")
+    path: digest(read_bytes(Path(__file__).resolve().parents[3], path)) for path in SOURCE_PATHS if path.endswith(".py")
 }
 
 
@@ -83,20 +80,14 @@ def _independence(sources: dict[str, bytes]) -> None:
         path = f"implementations/formal/participant_crossing/{module.__name__.rsplit('.', 1)[1]}.py"
         tree = ast.parse(sources[path])
         for node in ast.walk(tree):
-            if (
-                isinstance(node, ast.Import)
-                or isinstance(node, ast.ImportFrom)
-                and node.module not in allowed
-            ):
+            if isinstance(node, ast.Import) or isinstance(node, ast.ImportFrom) and node.module not in allowed:
                 raise ValueError("models must use independent transition dependencies")
             if (
                 isinstance(node, ast.Call)
                 and isinstance(node.func, ast.Name)
                 and node.func.id in {"eval", "exec", "__import__"}
             ):
-                raise ValueError(
-                    "models must use independent static transition dependencies"
-                )
+                raise ValueError("models must use independent static transition dependencies")
     if abstract.successors is concrete.successors or abstract.build is concrete.build:
         raise ValueError("models must use independent transition authorities")
 
@@ -117,9 +108,7 @@ def _validate_graph(graph, module) -> None:
         raise ValueError("incomplete model transition closure")
     reachable = {graph.initial}
     while True:
-        expanded = reachable | {
-            target for source, _, target in graph.edges if source in reachable
-        }
+        expanded = reachable | {target for source, _, target in graph.edges if source in reachable}
         if expanded == reachable:
             break
         reachable = expanded
@@ -128,9 +117,7 @@ def _validate_graph(graph, module) -> None:
 
 
 def build_bundle(root: Path) -> dict[str, bytes]:
-    payload = parse_bounded_json_object(
-        read_bytes(root, PROFILE_PATH), max_bytes=256 * 1024, max_depth=32
-    )
+    payload = parse_bounded_json_object(read_bytes(root, PROFILE_PATH), max_bytes=256 * 1024, max_depth=32)
     profile = BehavioralRelationProfileModel.model_validate(payload)
     if not isinstance(profile.parameters, ParticipantCrossingParametersModel):
         raise ValueError("expected crossing profile")
@@ -142,9 +129,7 @@ def build_bundle(root: Path) -> dict[str, bytes]:
     for source in profile.source_refs:
         if identities.get(source.source_ref) != source.source_digest:
             raise ValueError("profile source digest drift")
-    if any(
-        identities[path] != value for path, value in _EXECUTING_SOURCE_DIGESTS.items()
-    ):
+    if any(identities[path] != value for path, value in _EXECUTING_SOURCE_DIGESTS.items()):
         raise ValueError("executing source identity drift")
     _independence(sources)
     result = {}
@@ -182,10 +167,7 @@ def build_bundle(root: Path) -> dict[str, bytes]:
         "catalog_digest": canonical_json_digest(catalog.model_dump(mode="json")),
         "source_revision": canonical_json_digest(identities),
         "source_digests": identities,
-        "domain_counts": {
-            key: len(values)
-            for key, values in profile.parameters.domains.model_dump().items()
-        },
+        "domain_counts": {key: len(values) for key, values in profile.parameters.domains.model_dump().items()},
         "models": counts,
         "complete_reachable_fixed_point": True,
         "artifact_digests": {key: digest(value) for key, value in result.items()},
@@ -200,12 +182,14 @@ def build_bundle(root: Path) -> dict[str, bytes]:
     return result
 
 
-def _check_expected(root: Path, expected: dict[str, bytes]) -> None:
-    target = safe_path(root, OUTPUT_PATH)
+def _check_expected(
+    root: Path, expected: dict[str, bytes], output_path: str = OUTPUT_PATH, *, max_bytes=MAX_BYTES
+) -> None:
+    target = safe_path(root, output_path)
     if not target.is_dir() or {path.name for path in target.iterdir()} != set(expected):
         raise ValueError("model bundle artifact drift")
     for name, content in expected.items():
-        if read_bytes(root, OUTPUT_PATH + "/" + name) != content:
+        if read_bytes(root, output_path + "/" + name, max_bytes=max_bytes) != content:
             raise ValueError("model bundle digest or count drift")
 
 
@@ -215,15 +199,17 @@ def check(root: Path) -> None:
 
 def publish(root: Path) -> None:
     """Publish a new complete directory atomically; never overwrite drift."""
-    expected = build_bundle(root)
-    target = safe_path(root, OUTPUT_PATH)
+    publish_bundle(root, build_bundle(root), OUTPUT_PATH)
+
+
+def publish_bundle(root: Path, expected: dict[str, bytes], output_path: str, *, max_bytes=MAX_BYTES) -> None:
+    """Nonsemantic fixed-repository publication; trusted parent, exclusive writer."""
+    target = safe_path(root, output_path)
     if target.exists():
-        _check_expected(root, expected)
+        _check_expected(root, expected, output_path, max_bytes=max_bytes)
         return
     target.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(
-        prefix=".crossing-stage-", dir=target.parent
-    ) as temporary:
+    with tempfile.TemporaryDirectory(prefix=".crossing-stage-", dir=target.parent) as temporary:
         stage = Path(temporary) / "bundle"
         stage.mkdir()
         for name, content in expected.items():
@@ -231,5 +217,5 @@ def publish(root: Path) -> None:
                 stream.write(content)
                 stream.flush()
                 os.fsync(stream.fileno())
-        safe_path(root, OUTPUT_PATH)
+        safe_path(root, output_path)
         os.rename(stage, target)

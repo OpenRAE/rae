@@ -11,6 +11,7 @@ from .module_registry import ResolvedModule
 from .phase_contracts import (
     CapabilityConstraint,
     ExplicitnessProvenanceRecord,
+    ParameterDerivation,
     ResolvedImportProvenance,
 )
 from .realization_designation import RealizationConstraintRecord, RealizationDesignationRecord
@@ -58,7 +59,14 @@ def prefixed_constraint(
     namespace: str,
     symbols: dict[str, dict[str, str] | set[str]],
 ) -> CapabilityConstraint:
-    parts = constraint.field_pointer.split("/")
+    pointer = _prefixed_constraint_pointer(constraint.field_pointer, symbols)
+    payload = constraint.model_dump(mode="python")
+    payload.update({"field_pointer": pointer, "parameter": (namespace, *constraint.parameter)})
+    return CapabilityConstraint.model_validate(payload)
+
+
+def _prefixed_constraint_pointer(pointer: str, symbols: dict[str, dict[str, str] | set[str]]) -> str:
+    parts = pointer.split("/")
     if len(parts) < 3:
         raise SDLParseError("Capability constraint does not address a namespaced declaration")
     section_name = parts[1]
@@ -67,14 +75,18 @@ def prefixed_constraint(
     if not isinstance(section_symbols, Mapping) or declaration_name not in section_symbols:
         raise SDLParseError("Capability constraint does not resolve to an imported declaration")
     parts[2] = _encode_pointer_segment(section_symbols[declaration_name])
-    payload = constraint.model_dump(mode="python")
-    payload.update(
-        {
-            "field_pointer": "/".join(parts),
-            "parameter": (namespace, *constraint.parameter),
-        }
-    )
-    return CapabilityConstraint.model_validate(payload)
+    return "/".join(parts)
+
+
+def prefixed_parameter_derivation(
+    derivation: ParameterDerivation, *, namespace: str, symbols: dict[str, dict[str, str] | set[str]]
+) -> ParameterDerivation:
+    payload = derivation.model_dump(mode="python")
+    payload["field_pointer"] = _prefixed_constraint_pointer(derivation.field_pointer, symbols)
+    for segment in payload["segments"]:
+        if segment["kind"] == "parameter":
+            segment["parameter"] = (namespace, *segment["parameter"])
+    return ParameterDerivation.model_validate(payload)
 
 
 def prefixed_explicitness(

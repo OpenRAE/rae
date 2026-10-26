@@ -1473,8 +1473,9 @@ class TestRuntimeManager:
             orchestrator=RecordingOrchestrator(calls),
             evaluator=RecordingEvaluator(calls, "evaluator"),
         )
-        initial_manager = RuntimeManager(target)
-        initial_plan = initial_manager.plan(_provisioning_only_scenario())
+        from runtime_plan_fixtures import plan_for_target
+
+        initial_plan = plan_for_target(target, _provisioning_only_scenario())
         initial_snapshot = _apply_ops(
             RuntimeSnapshot(),
             RuntimeDomain.PROVISIONING,

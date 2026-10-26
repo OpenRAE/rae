@@ -49,11 +49,12 @@
         "devcontainer-base-image",
         "gitleaks",
         "osv-scanner",
-        "release-test-alpine",
         "scorecard-action-image",
         "sonar-scanner-cli",
         "uv",
-        "vale"
+        "vale",
+        "postgresql-runtime-test",
+        "temporal-cli-runtime-test"
       ]
     },
     {
@@ -76,11 +77,6 @@
           "locator_id": "official-github-release",
           "kind": "official-https",
           "trust_root_ref": "system-ca"
-        },
-        {
-          "locator_id": "docker-official-images-registry",
-          "kind": "oci-digest",
-          "trust_root_ref": "docker-official-images-index-digest"
         }
       ],
       "supported_artifact_ids": [
@@ -88,7 +84,6 @@
         "cpython-3.14",
         "gitleaks",
         "osv-scanner",
-        "release-test-alpine",
         "uv",
         "vale"
       ]
@@ -186,37 +181,6 @@
         "nist-csf-defensive-categories-snapshot",
         "w3c-activitystreams-activity-types-snapshot"
       ]
-    },
-    {
-      "profile_id": "live-runner-linux-x86_64",
-      "contexts": [
-        "maintainer",
-        "self-hosted"
-      ],
-      "platform": {
-        "canonical_id": "linux-x86_64",
-        "aliases": [
-          "Linux-amd64",
-          "Linux-x86_64",
-          "linux-amd64",
-          "linux-x86_64"
-        ]
-      },
-      "locator_classes": [
-        {
-          "locator_id": "official-cirros-download",
-          "kind": "official-https",
-          "trust_root_ref": "system-ca"
-        },
-        {
-          "locator_id": "official-cirros-cloud-mirror",
-          "kind": "official-https",
-          "trust_root_ref": "system-ca"
-        }
-      ],
-      "supported_artifact_ids": [
-        "cirros-guest-disk"
-      ]
     }
   ],
   "python_package_contexts": [
@@ -256,7 +220,8 @@
       },
       "project_extras": [
         "dev",
-        "docs"
+        "docs",
+        "distributed"
       ],
       "tool_groups": [
         "default",
@@ -301,7 +266,8 @@
       },
       "project_extras": [
         "dev",
-        "docs"
+        "docs",
+        "distributed"
       ],
       "tool_groups": [
         "default",
@@ -345,7 +311,8 @@
       },
       "project_extras": [
         "dev",
-        "docs"
+        "docs",
+        "distributed"
       ],
       "tool_groups": [
         "default",
@@ -389,7 +356,8 @@
       },
       "project_extras": [
         "dev",
-        "docs"
+        "docs",
+        "distributed"
       ],
       "tool_groups": [
         "default",
@@ -433,7 +401,8 @@
       },
       "project_extras": [
         "dev",
-        "docs"
+        "docs",
+        "distributed"
       ],
       "tool_groups": [
         "default",
@@ -477,7 +446,8 @@
       },
       "project_extras": [
         "dev",
-        "docs"
+        "docs",
+        "distributed"
       ],
       "tool_groups": [
         "default",
@@ -527,7 +497,8 @@
         "gitleaks",
         "osv-scanner",
         "uv",
-        "vale"
+        "vale",
+        "temporal-cli-runtime-test"
       ],
       "required_capability_ids": [
         "base-image",
@@ -543,11 +514,7 @@
       ],
       "optional_capability_ids": [
         "container-cli",
-        "container-daemon",
-        "libvirt-client",
-        "libvirt-daemon",
-        "qemu",
-        "kvm-access"
+        "container-daemon"
       ],
       "proof_support": "unsupported",
       "host_security_control_changes": "prohibited",
@@ -597,11 +564,7 @@
       ],
       "optional_capability_ids": [
         "container-cli",
-        "container-daemon",
-        "libvirt-client",
-        "libvirt-daemon",
-        "qemu",
-        "kvm-access"
+        "container-daemon"
       ],
       "proof_support": "unsupported",
       "host_security_control_changes": "prohibited",
@@ -701,11 +664,7 @@
       ],
       "optional_capability_ids": [
         "container-cli",
-        "container-daemon",
-        "libvirt-client",
-        "libvirt-daemon",
-        "qemu",
-        "kvm-access"
+        "container-daemon"
       ],
       "proof_support": "linux-x86_64-required",
       "host_security_control_changes": "prohibited",
@@ -767,63 +726,6 @@
         "python3-jsonschema",
         "python3-packaging",
         "python3-yaml"
-      ]
-    },
-    {
-      "host_profile_id": "live-runner-ubuntu-24.04-x86_64",
-      "platform_id": "linux-x86_64",
-      "contexts": [
-        "maintainer",
-        "self-hosted"
-      ],
-      "native_family": "ubuntu-apt",
-      "base_image_identity": "aws-canonical:ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-20260911",
-      "native_repository_identity": "ubuntu:noble:signed-archive",
-      "trust_root_refs": [
-        "ubuntu-archive-keyring",
-        "aws-image-identity"
-      ],
-      "credential_refs": [],
-      "bootstrap_payload_ids": [
-        "cpython-3.14",
-        "uv"
-      ],
-      "required_capability_ids": [
-        "base-image",
-        "native-repository",
-        "git",
-        "ca-roots",
-        "sha256",
-        "curl-unknown-length-max-filesize",
-        "uv",
-        "cpython",
-        "qemu",
-        "libvirt-daemon",
-        "libvirt-client"
-      ],
-      "optional_capability_ids": [
-        "kvm-access",
-        "container-cli"
-      ],
-      "proof_support": "unsupported",
-      "host_security_control_changes": "prohibited",
-      "host_prerequisite_package_ids": [
-        "build-essential",
-        "busybox-static",
-        "ca-certificates",
-        "coreutils",
-        "cpio",
-        "curl",
-        "genisoimage",
-        "git",
-        "libvirt-clients",
-        "libvirt-daemon-system",
-        "libvirt-dev",
-        "pkg-config",
-        "python3-dev",
-        "qemu-system-x86",
-        "qemu-utils",
-        "rsync"
       ]
     }
   ]

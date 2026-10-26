@@ -9,7 +9,8 @@ target-resolution, success-interpretation, and dependency-ordering semantics
 
 - actor binding: an authored `agent` xor an authored `entity` owns the
   objective; agent-action checks reuse the declaring agent's `actions`
-- target resolution through the targetable named-reference index (bare or
+- target resolution through the objective-subject purpose of the
+  named-reference index (bare or
   section-qualified), fail-closed on missing/ambiguous references
 - success interpretation: `mode` (`all_of` / `any_of`) over referenced
   `conditions` (observable state only; the OCR scoring surfaces `metrics`,

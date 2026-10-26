@@ -398,6 +398,11 @@ evidence artifact under the exact delivery SHA.
 
 ### Issue #1223 OCI mirror and pre-seed evidence
 
+Issue #967 retires this evidence. RAES no longer ships the reference backend,
+so the release container lane, the `release-test-alpine` lock entry and
+`tools/oci_release_image.py` are removed. The text below is a historical
+record.
+
 The release-test container input is reviewed lock data rather than a literal in
 a test file. `release-test-alpine` records the reviewed multi-platform index
 `sha256:d9e853e8…` once, and each required platform records the selected
@@ -470,7 +475,7 @@ explicit `--local-input` copied from its opened inode. An alternate approved
 same-byte mirror is an operator choice (`--locator-ref`) in a new invocation.
 The bootstrap `fetch-inputs` command accepts the same explicit locator choice
 when one artifact is selected. Canonical CI selects
-`official-isabelle-cambridge-mirror`; it still verifies the archive against the
+`official-isabelle-release`; it still verifies the archive against the
 unchanged lock size and SHA-256 before carrying it to the proof job.
 
 `tools/verified_tree_installation.py` extends #1219's transaction to a
@@ -563,6 +568,11 @@ across host SDKs, compilers, operating systems, or build times; candidate output
 digests are evidence, not release admission.
 
 ### Issue #1222 live-runner input closure evidence
+
+Issue #967 retires this evidence. RAES no longer ships the libvirt backend,
+so `tools/real-daemon/`, the `cirros-guest-disk` lock entry, the live-runner
+profiles and their tests are removed. LilRAE owns concrete backend inputs. The
+text below is a historical record.
 
 Issue #1222 brings the `tools/real-daemon/` AWS smoke and guest-certification
 setup (inventory row I13) under the admitted closure. The CirrOS guest disk is

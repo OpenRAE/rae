@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-309-v70",
+  "analysis_id": "raes-standardized-specification-coverage-issue-1481-sonar-analysis-v70",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -19,7 +19,7 @@
     "evidence_artifacts": [
       "docs/research/specification-coverage/protocol-v1.json",
       "docs/research/specification-coverage/execution-snapshot-v70.json",
-      "docs/research/specification-coverage/analysis-v70.json"
+      "docs/research/specification-coverage/analysis-v68.json"
     ],
     "falsification_protocol": "docs/research/specification-coverage/protocol-v1.json",
     "objective_fail_criteria": "A load-bearing concept is missing or lossy, an applicable stage fails, or backend vocabulary is required in core SDL while the result claims success.",
@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-10-10T15:14:16.484268+00:00",
+  "generated_at": "2026-10-11T04:26:41.388230+00:00",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
@@ -66,9 +66,7 @@
     "Issue #1361 execution and recovery requirements are verified by dedicated policy, composition, and admission tests; this retained corpus establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The issue #1361 maintainability repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The issue #1361 resource type-hint repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
-    "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee.",
-    "Issue #307 authored participant episode policies are covered by their dedicated SDL authoring, validation, composition and compilation tests; this retained matrix makes no new episode execution, reset or termination claim.",
-    "Issue #309 first-class participant episode structure and its recorded-history conformance check are covered by their dedicated aggregate, validation and conformance tests; this retained matrix makes no new episode execution, reset or termination claim."
+    "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee."
   ],
   "load_bearing_results": {
     "failed": 0,
@@ -76,7 +74,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "The retained specification-coverage matrix reproduces its prior classifications after issue #309 made participant episode structure a first-class member of the behavior specification aggregate; classifications and claim limits are unchanged.",
+  "plain_language_outcome": "The retained specification matrix preserves its prior classifications against the combined execution-policy and build-backend updates; bounded claim limits are unchanged.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -108,6 +106,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-309-v70",
-  "snapshot_sha256": "7302e17e16495a3c1e347bcc516107acf9ba2cfeeab4d3f8ff32d4a5d1b7f40b"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1481-sonar-v70",
+  "snapshot_sha256": "36e0ea0e01e2aa644c097cc04509d7b072b7d4db209e92590ff33e881738e67b"
 }

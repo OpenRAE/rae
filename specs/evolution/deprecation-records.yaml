@@ -82,3 +82,17 @@ records:
     migration_reference: "docs/decisions/adrs/adr-053-sdl-module-composition-for-inventory-backed-scenarios.md; docs/explain/sdl/parser.md"
     notice_window: "Supported indefinitely as a backward-compatible alias; removal eligible only after a complete removal record and a deterministic source rewrite per the migration rules."
     verification_evidence: "raes.scenario.ImportDecl.normalized_source maps a `path:` value to `local:{path}`, and validate_source_fields keeps deprecated-but-supported use non-fatal; parser tests exercise both the `source:` and `path:` forms."
+
+  # Concrete backend realization moved to backend distributions (ADR-115). This
+  # removes installed Python packages, modules, and commands from the `raes`
+  # distribution; it removes no published schema and no contract fixture.
+  - id: bundled-concrete-backends
+    surface_class: python-distribution
+    identifier: "the `raes_reference_backend` and `raes_backend_libvirt` packages, the backend workflow modules in `raes_operations`, `raes_conformance.conformance.reference_participant_opacity`, and the `raes libvirt` and `raes corpus` commands of the `raes` distribution"
+    status: removed
+    first_notice: "Issue #967 and ADR-115 (concrete backends are owned outside RAES); RAES 7.0.0 is the last release that bundles them"
+    replacement: "LilRAE (PyPI `lilrae`, first independent release 8.1.0) for local realization; `raes_backend_stubs` for test doubles; the installed `raes_conformance.conformance` facade and `raes conformance backend` for conformance"
+    migration_reference: "docs/migration/concrete-backends.md; docs/decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md"
+    notice_window: "Removal eligibility is an independently released, working backend distribution (LilRAE 8.1.0, pinned to the released RAES 6.0.1). The removal ships as a breaking change in the release after RAES 7.0.0. The libvirt backend has no successor; RAES 7.0.0 stays available for operators who must clean up its native resources."
+    verification_evidence: "test_corpus_packaging.py builds the wheel and sdist and asserts that no concrete backend package or command ships, that `raes --help` works, and that the removed imports do not resolve from an installed wheel."
+    removal_record: "Issue #967 removes the packages, commands, CI container lanes, and backend-only tooling in one change. Published schemas, contract fixtures, realization envelopes, and portable runtime contracts are unchanged."

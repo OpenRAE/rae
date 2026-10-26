@@ -284,4 +284,26 @@ def _require_bridge_report(
         raise ValueError("executable edge report differs from the admitted bridge or provider result")
 
 
+def _edge_action_dispatch(
+    binding: object,
+    edge: object,
+    request: ParticipantActionAdmissionRequest,
+    allocation: object,
+    method: Callable[..., object],
+    operation_id: str,
+) -> tuple[Callable[..., object], MixedEdgeExecutionCapture, Callable[[ApplyResult], None]]:
+    if edge.edge_id not in binding.edge_bindings:
+        raise ValueError("mixed action dispatch requires an executable edge binding")
+    installed = binding.edge_bindings[edge.edge_id]
+    if (installed.source_action_address, installed.destination_action_address) != (
+        request.action_contract_address,
+        allocation.target_address,
+    ):
+        raise ValueError("mixed destination action differs from admitted policy and provider allocation")
+    capture = MixedEdgeExecutionCapture()
+    mapped = _mapped_edge_method(binding, edge, installed, method, operation_id, capture)
+    readback = _stage_readback_method(binding, edge, installed, request, operation_id, capture)
+    return mapped, capture, readback
+
+
 __all__ = ("_mapped_edge_method", "_stage_readback_method")

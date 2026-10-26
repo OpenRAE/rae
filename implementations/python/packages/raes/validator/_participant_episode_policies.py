@@ -13,6 +13,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import dataclass
 
+from .._reference_targetability import ReferencePurpose
 from ..participant_episode_policy import ParticipantEpisodeTimeoutCondition
 from ..propositions import AssertionRole
 from ..semantics.participant_behavior import select_participants
@@ -119,7 +120,7 @@ class _ParticipantEpisodePoliciesMixin:
                 authority,
                 owner_label=label,
                 ref_label="memory_reset_authority_ref",
-                targetable=True,
+                purpose=ReferencePurpose.TARGETABLE,
             )
         self._verify_episode_evidence(label, reset_policy.evidence_requirement_refs)
 

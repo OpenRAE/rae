@@ -5,7 +5,7 @@ status: ACTIVE
 type: FUNCTIONAL
 priority: MUST
 created_at: 2026-07-15T02:40:07.724312Z
-updated_at: 2026-07-15T02:43:21.148745Z
+updated_at: 2026-10-21T00:00:00Z
 ---
 
 # DSL-435 — Stateful Realization Resource Declarations
@@ -46,7 +46,6 @@ Downstream scenarios need to declare generated certificate/configuration artifac
 - TESTS → TEST `implementations/python/tests/test_backend_manifest.py` (Backend manifest generated-artifact capability tests)
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1010` (SSH generated-artifact output isolation)
 - IMPLEMENTS → ADR `docs/decisions/issue-1010-ssh-generated-artifact-output-isolation-preflight.md` (SSH generated-artifact output isolation preflight)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/artifact_generation.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1208_profile_selections.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_profiles.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1208_profile_composition.py`
@@ -58,7 +57,6 @@ Downstream scenarios need to declare generated certificate/configuration artifac
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_sections.py` (Stateful-resource reference validation wiring for issue #1276)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/planning.py` (Value-free run/instantiation scope identity on plan DTOs for issue #1276)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/capabilities.py` (Evaluator deferred-expected-comparison capability for issue #1276)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/manifest.py` (Reference random-value generator and scope capability declarations for issue #1276)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/stateful_resources.py` (Content-consumer projection for issue #1276)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/placement.py` (Content text_from ordering dependency for issue #1276)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/core.py` (Regeneration-scope reconciliation binding for issue #1276)
@@ -72,7 +70,6 @@ Downstream scenarios need to declare generated certificate/configuration artifac
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_realization.py` (Trial realization run/instantiation identity forwarding for issue #1276)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/reference.py` (Reference processor run/instantiation identity forwarding for issue #1276)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_sections.py` (Module namespace rewrite of content/proposition generated-artifact references for issue #1276)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/provisioner.py` (Reference generated-value retention across reconciliation for issue #1276)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/run_scope.py` (Value-free plan scope identity extracted for the ADR-015 size cap for issue #1276)
 - TESTS → TEST `implementations/python/tests/test_issue_1276_random_value_generation.py` (Configurable per-run random value generation tests)
 - TESTS → TEST `implementations/python/tests/test_issue_1112_capture_admission.py` (Capture admission planning uses the bundled plan scope for issue #1276)

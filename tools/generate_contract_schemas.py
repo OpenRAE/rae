@@ -9,6 +9,7 @@ from pathlib import Path
 
 _EXACT_SCHEMA_DIRECTORIES = (
     {
+        "participant-owner-flow-policy-v1": "profiles",
         "raes-semantic-invariants-v1": "profiles",
         "reusable-asset-trust-policy-v1": "asset-trust",
         "sdl-lineage-ledger-v1": "provenance",
@@ -59,6 +60,7 @@ _EXACT_SCHEMA_DIRECTORIES = (
             "participant-joint-action-record-v1",
             "participant-time-management-context-v1",
             "participant-control-occurrence-v1",
+            "participant-control-occurrence-v2",
             "participant-control-selection-v1",
             "participant-control-evaluation-v1",
             "participant-control-selection-v2",

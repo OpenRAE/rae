@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-307-analysis-v70",
+  "analysis_id": "issue-1481-analysis-v70",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -123,8 +123,8 @@
   ],
   "corpus_revision": "4.0.0",
   "evidence_status": "partial",
-  "execution_id": "issue-307-execution-v70",
-  "generated_at": "2026-10-10T14:13:23.809480+00:00",
+  "execution_id": "issue-1481-execution-v70",
+  "generated_at": "2026-10-11T00:29:50.490305+00:00",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
     "The subset-minimal unsatisfiable core is not a universal proof certificate.",
@@ -155,9 +155,8 @@
     "Issue #1361 execution and recovery requirements are verified by dedicated policy, composition, and admission tests; this retained corpus establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The issue #1361 maintainability repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
     "The issue #1361 resource type-hint repair preserves policy semantics and retained corpus outcomes; it establishes no live recovery, continuation, or trial-allocation guarantee.",
-    "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee.",
-    "Issue #307 authored participant episode policies are covered by their dedicated SDL authoring, validation, composition and compilation tests; this retained matrix makes no new episode execution, reset or termination claim."
+    "The combined issue #1361 execution-policy and hatchling update preserves retained outcomes and bounded claims; it establishes no live recovery, continuation, or trial-allocation guarantee."
   ],
-  "plain_language_outcome": "The retained formal cases reproduce their prior outcomes after issue #307 added optional authored participant episode policies to behavior specifications. The bounded claims and unsupported classes are unchanged.",
+  "plain_language_outcome": "The retained formal controls reproduce their prior outcomes against the combined source. Two exact compiled digest deviations disclose execution-policy metadata against the incoming hatchling-update baseline; bounded claims are unchanged.",
   "protocol_revision": "2.0.0"
 }

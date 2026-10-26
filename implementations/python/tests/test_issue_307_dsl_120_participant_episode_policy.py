@@ -440,31 +440,42 @@ def test_episode_local_reset_resolves_the_reset_authority(authority: str, addres
     assert address in compiled.refresh_dependencies
 
 
-def test_module_composition_rewrites_policy_refs_and_keeps_condition_ids(tmp_path: Path) -> None:
-    module = textwrap.dedent(
-        """
-        name: dsl-120
-        module:
-          id: acme/analyst-episode
-          version: 1.0.0
-          exports:
-            nodes: [siem]
-            entities: [blue-team]
-            propositions: [console-ready, ticket-closed, queue-stalled]
-            assertions: [console-ready, ticket-closed, queue-stalled]
-            time_domains: [shift-time]
-            clocks: [shift-clock]
-            temporal_constraints: [shift-deadline]
-            evidence_requirements: [ticket-evidence, queue-evidence, shift-clock-evidence, reset-evidence]
-            action_contracts: [triage-alert]
-            agents: [analyst]
-            behavior_specifications: [analyst-triage]
-        """
-    ).lstrip()
-    source = _edit(PERSISTENT_SCOPE, LOCAL_RESET.format(authority="agents.analyst"))
-    (tmp_path / "module.yaml").write_text(_replace(source, "name: dsl-120\n", module), encoding="utf-8")
+_MODULE = textwrap.dedent(
+    """
+    name: dsl-120
+    module:
+      id: acme/analyst-episode
+      version: 1.0.0
+      exports:
+        nodes: {nodes}
+        entities: [blue-team]
+        propositions: [console-ready, ticket-closed, queue-stalled]
+        assertions: [console-ready, ticket-closed, queue-stalled]
+        time_domains: [shift-time]
+        clocks: [shift-clock]
+        temporal_constraints: [shift-deadline]
+        evidence_requirements: [ticket-evidence, queue-evidence, shift-clock-evidence, reset-evidence]
+        action_contracts: [triage-alert]
+        agents: [analyst]
+        behavior_specifications: [analyst-triage]
+    """
+).lstrip()
+# A node that shares the agent's bare name, so the unit alone finds `analyst` ambiguous.
+_ANALYST_NODE = "nodes:\n  analyst:\n    type: compute\n    resources: {ram: 1 gib, cpu: 1}\n"
+
+
+def _import_module(tmp_path: Path, source: str, nodes: str = "[siem]") -> Path:
+    (tmp_path / "module.yaml").write_text(
+        _replace(source, "name: dsl-120\n", _MODULE.format(nodes=nodes)),
+        encoding="utf-8",
+    )
     root = tmp_path / "root.yaml"
     root.write_text("name: root\nimports:\n  - source: local:module.yaml\n    namespace: shared\n", encoding="utf-8")
+    return root
+
+
+def test_module_composition_rewrites_policy_refs_and_keeps_condition_ids(tmp_path: Path) -> None:
+    root = _import_module(tmp_path, _edit(PERSISTENT_SCOPE, LOCAL_RESET.format(authority="agents.analyst")))
 
     scenario = parse_sdl_file(root)
     policy = scenario.behavior_specifications["shared.analyst-triage"].episode_policy
@@ -483,6 +494,30 @@ def test_module_composition_rewrites_policy_refs_and_keeps_condition_ids(tmp_pat
         compiled["participant.episode-policy.shared.analyst-triage"].memory_reset_authority_address
         == "sdl.agents.shared.analyst"
     )
+
+
+@pytest.mark.parametrize("nodes", ["[siem]", "[siem, analyst]"], ids=["private-clash", "exported-clash"])
+def test_an_imported_reset_authority_its_unit_finds_ambiguous_is_rejected(tmp_path: Path, nodes: str) -> None:
+    source = _replace(_edit(PERSISTENT_SCOPE, LOCAL_RESET.format(authority="analyst")), "nodes:\n", _ANALYST_NODE)
+    root = _import_module(tmp_path, source, nodes)
+
+    with pytest.raises(SDLValidationError) as raised:
+        parse_sdl_file(root)
+
+    message = str(raised.value)
+    assert str(tmp_path / "module.yaml") in message
+    assert "memory_reset_authority_ref 'analyst' is ambiguous; use one of: agents.analyst, nodes.analyst" in message
+
+
+def test_a_qualified_reset_authority_beside_a_unit_name_clash_binds_its_own_declaration(tmp_path: Path) -> None:
+    source = _replace(
+        _edit(PERSISTENT_SCOPE, LOCAL_RESET.format(authority="agents.analyst")), "nodes:\n", _ANALYST_NODE
+    )
+
+    compiled = compile_runtime_model(parse_sdl_file(_import_module(tmp_path, source))).participant_episode_policies
+
+    policy = compiled["participant.episode-policy.shared.analyst-triage"]
+    assert policy.memory_reset_authority_address == "sdl.agents.shared.analyst"
 
 
 _CHOICE = """name: dsl-120

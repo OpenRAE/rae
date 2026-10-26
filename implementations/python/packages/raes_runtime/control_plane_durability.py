@@ -13,6 +13,7 @@ from .control_plane_store import (
     TerminalCommitMode,
     terminal_operation_audit,
 )
+from .control_plane_store_bounded import bounded_store_commit
 from .control_plane_store_compatibility import ControlPlaneStoreCommitAdapter
 
 
@@ -25,6 +26,13 @@ class RuntimeDurabilityMixin:
     _operations: dict[str, ControlPlaneOperationRecord]
     _snapshot_projection_depth: int
 
+    def _require_state_writer(self) -> None:
+        authority = getattr(self, "_mutation_authority", None)
+        if authority is not None and not authority.owns_current_thread():
+            self._poison_runtime_durability()
+            raise RuntimeError("terminal publication requires the live state writer")
+
+    @bounded_store_commit
     def _commit_terminal_operation(
         self,
         snapshot: RuntimeSnapshot,
@@ -33,6 +41,7 @@ class RuntimeDurabilityMixin:
         audit_event: AuditEvent | None = None,
         mode: TerminalCommitMode = TerminalCommitMode.SNAPSHOT_BEARING,
     ) -> None:
+        self._require_state_writer()
         self._assert_runtime_owner()
         event = audit_event or terminal_operation_audit(record)
         try:
@@ -56,6 +65,7 @@ class RuntimeDurabilityMixin:
             raise
         self._publish_committed_state(committed)
 
+    @bounded_store_commit
     def _commit_control_transition(
         self,
         *,
@@ -65,6 +75,7 @@ class RuntimeDurabilityMixin:
         record: ControlPlaneOperationRecord,
         audit_event: AuditEvent,
     ) -> None:
+        self._require_state_writer()
         self._assert_runtime_owner()
         try:
             committed = self._store.commit_control_transition(
@@ -88,6 +99,7 @@ class RuntimeDurabilityMixin:
             raise
         self._publish_committed_state(committed)
 
+    @bounded_store_commit
     def _commit_participant_transition(
         self,
         *,
@@ -96,7 +108,11 @@ class RuntimeDurabilityMixin:
         record: ControlPlaneOperationRecord,
         audit_event: AuditEvent,
     ) -> None:
+        self._require_state_writer()
         self._assert_runtime_owner()
+        from .participant_control_effect_evidence import finalize_evaluation_commits
+
+        snapshot = finalize_evaluation_commits(self._snapshot, snapshot, record)
         try:
             committed = self._store.commit_participant_transition(
                 expected_history_heads=expected_history_heads,

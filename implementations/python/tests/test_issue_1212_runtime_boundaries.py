@@ -27,6 +27,7 @@ from raes_runtime.observation_execution import (
     ObservationRuntimeCapability,
     ObservationSelectorPattern,
 )
+from runtime_plan_fixtures import plan_for_target
 from starlette.testclient import TestClient
 
 
@@ -98,7 +99,9 @@ def test_description_persistence_and_recovery_require_retention(retention):
     assert cp.get_operation(receipt.operation_id).state.value == "succeeded"
     payload = store.load_records()[receipt.operation_id].result_payload
     assert ("protected-description" in repr(payload)) == (retention == "require")
-    recovered = RuntimeControlPlane(target, store=store).observation_execution(receipt.operation_id)
+    cp.close()
+    with RuntimeControlPlane(target, store=store) as reopened:
+        recovered = reopened.observation_execution(receipt.operation_id)
     assert bool(recovered.realized_form_disclosures) == (retention == "require")
 
 
@@ -145,7 +148,9 @@ def test_same_selector_report_retains_only_the_authorized_protected_variant():
     assert cp.get_operation(receipt.operation_id).state.value == "succeeded"
     payload = store.load_records()[receipt.operation_id].result_payload
     assert "private-value" not in repr(payload)
-    recovered = RuntimeControlPlane(target, store=store).observation_execution(receipt.operation_id)
+    cp.close()
+    with RuntimeControlPlane(target, store=store) as reopened:
+        recovered = reopened.observation_execution(receipt.operation_id)
     assert len(recovered.realized_form_disclosures) == 1
     assert recovered.realized_form_disclosures[0].realized_value_summary == '"[REDACTED]"'
 
@@ -220,7 +225,7 @@ conditions:
 """)
     target = create_stub_target()
     cp = RuntimeControlPlane(target)
-    execution = RuntimeManager(target).plan(scenario)
+    execution = plan_for_target(target, scenario)
     selector = ObservationSelector(semantic_scope="/nodes/vm", data_kind="stream", names=("audit",))
     approved = replace(
         execution.evaluation,
@@ -278,8 +283,7 @@ def test_mandatory_capture_cannot_mutate_a_non_compensating_backend(owner):
         return original(plan, snapshot)
 
     target.provisioner.apply = apply
-    manager = RuntimeManager(target)
-    execution = manager.plan(parse_sdl("name: no-mutation\nnodes:\n  vm: {type: compute}\n"))
+    execution = plan_for_target(target, parse_sdl("name: no-mutation\nnodes:\n  vm: {type: compute}\n"))
     demanded = replace(
         execution.provisioning,
         observation_demands=_demands(
@@ -290,7 +294,7 @@ def test_mandatory_capture_cannot_mutate_a_non_compensating_backend(owner):
         ),
     )
     if owner == "manager":
-        result = manager.apply(replace(execution, provisioning=demanded))
+        result = RuntimeManager(target).apply(replace(execution, provisioning=demanded))
         assert not result.success
     else:
         result = RuntimeControlPlane(target).submit_provisioning(demanded)

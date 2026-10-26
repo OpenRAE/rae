@@ -150,15 +150,44 @@ evidence must be covered by the named evidence requirements. An inject without
 that binding remains ordinary orchestration input; `injects.*.environment`
 never implies participant delivery.
 
-This field-level description is the currently published fixed-coordinate form.
-[ADR-110's normative amendment](../formal/participant-semantics/reusable-mixed-control.md#mc-09--participant-directed-injects)
-separates reusable edge constraints from exact control-application/delivery
-joins, uses acting-source authority, independently pins control/disclosure
-policies and keeps order distinct from shared time. It preserves ordinary
-injects and disclosure-only bindings. The
-[migration contract](../../docs/migration/reusable-mixed-control.md) defines
-explicit adoption and retains the old form's historical interpretation; the
-amendment does not introduce parser fields by this prose alone.
+The view rule that admits the result must itself agree with the delivery's
+visibility and disclosure bases. Every control scope and evidence reference
+must resolve individually. Required source and result items must each project
+to one runtime address; an unaddressable item prevents compilation of that
+delivery and produces a diagnostic. Semantic-only authority and evidence
+references remain valid anchors without acquiring runtime addresses.
+
+The field-level description above is the legacy fixed-coordinate form, which a
+`mixed_control` without `semantics` keeps. The parser also accepts the reusable
+form of [ADR-110](../../docs/decisions/adrs/adr-110-reusable-mixed-control-policies-and-occurrences.md),
+selected only by `semantics: mixed-control-policy-occurrence/rev1` and a
+required `form` of `reusable-policy` or `finite-script`. Its
+`permitted_transitions` are reusable permissions with no fixed revision, order
+or proposal identity ([MC-01](../formal/participant-semantics/reusable-mixed-control.md#mc-01--policy-permissions-and-occurrence-facts)).
+A finite script adds ordered `script_steps` that may only narrow their edges
+([MC-02](../formal/participant-semantics/reusable-mixed-control.md#mc-02--reusable-policies-and-finite-scripts)).
+Each application is one API-409 `participant-control-occurrence-v2` occurrence.
+It has a fresh identity, its exact edge ref, exact prior and resulting states,
+a resulting revision of expected + 1 for every accepted kind
+([MC-03](../formal/participant-semantics/reusable-mixed-control.md#mc-03--exact-state-relation-and-repeated-cycles)),
+and a participant-wide `occurrence_revision`. It carries the acting source
+controller, grant and scope
+([MC-04](../formal/participant-semantics/reusable-mixed-control.md#mc-04--acting-controller-authority-and-handoff)).
+An accepted occurrence records its admitted order and inclusive evaluated
+bounds; a rejected one keeps attempted and observed values apart and asserts
+no validity. Under that form a directed delivery carries a nested `control`
+block that names one permission and joins one exact accepted occurrence
+([MC-09](../formal/participant-semantics/reusable-mixed-control.md#mc-09--participant-directed-injects)).
+The block pins the control policy apart from the delivery policy, uses the
+source-state controller and a non-widening scope, and compares no order with
+shared time. Ordinary injects and disclosure-only bindings are unchanged. The
+rev1 form validates and compiles, but planning refuses it for every backend,
+the reference runtime refuses its execution admission and control-plane
+construction, and no runtime executes it. The
+[migration contract](../../docs/migration/reusable-mixed-control.md) retains
+the old form's historical interpretation, and the
+[finite-script conversion record](../../docs/migration/mixed-control-finite-script-conversion.md)
+states when a legacy declaration converts.
 
 `propositions` state typed claims; `assertions` use them as preconditions,
 invariants, or postconditions. Objective success composes invariant or
@@ -207,8 +236,9 @@ at least one of the following:
   assurance and information-state contracts require the same pairing; the
   policy does not supply their values. The authority must resolve to exactly
   one declared targetable element, such as a participant, an entity, or a
-  service. Module composition namespaces it, and compilation records that
-  element's canonical address.
+  service. An imported unit must resolve it to one element on its own before
+  module composition namespaces it, and compilation records that element's
+  canonical address.
 
 A condition holds only when every assertion it names holds. Every condition
 and the reset policy name the evidence requirements that together back the

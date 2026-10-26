@@ -163,6 +163,36 @@ validation failure, not as permission to fill them in. This is the
 closed-world default for the ecosystem; the existing closed-Pydantic
 SDL model boundary (`extra="forbid"`) enforces it structurally today.
 
+### Configurable scalar binding authority (issue #1481)
+
+Parameter substitution MUST preserve constrained author specificity and its
+processor-derived provenance. A parameter without `allowed_values` selects a
+concrete binding during instantiation; its declared input type does not delegate
+every value of that type to a backend. Public runtime scalar leaves MUST retain
+portable typed derivation evidence and compile that selected output as a
+processor-origin literal constraint. This is binding selection, not an exact
+author declaration or a fabricated finite author domain.
+
+Whole-field finite parameters retain their existing allowed-values authority.
+An interpolated string with one finite input retains the finite image of that
+input, including literal prefixes/suffixes and correlated repeated references.
+Multiple independent finite inputs require a representable relational image;
+the initial implementation MUST reject those images rather than enumerate a
+Cartesian product or discard correlation. Interpolation with unenumerated
+inputs binds the selected output. No form grants implicit backend support,
+observation capability, extra collection membership or authority to approximate
+an exact sibling.
+
+Derivation evidence MUST use closed literal segments and qualified typed input
+references, rather than unresolved token strings. Phase admission MUST check
+referenced bindings, their types/domains, and equality of the derived output to
+the addressed concrete field. Runtime field validators and registered safe
+projections remain authoritative. Classification-bearing records MUST NOT
+publish raw alternatives; an owning public-field declaration, such as a
+mailbox's public address, permits only that leaf, never credential or setting
+material. Independent scenario/plan admission and result admission enforce the
+same selected-output or finite-image authority.
+
 ### Mixed constraints and collection membership (issue #1200)
 
 A collection's aggregate explicitness is a support summary, not permission to

@@ -5,9 +5,9 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import dataclass, field, replace
 
-from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.augmentation_preparation import AugmentationPreparation
 from raes_contracts.contracts import (
+    ArtifactAvailabilityContext,
     ExperimentStochasticControlModel,
     ParticipantInformationStateContextResolver,
 )
@@ -27,14 +27,13 @@ from .backend_observation_calls import _apply_runtime_plan_with_observation, _Ru
 from .diagnostics import _failure_diagnostic, _has_error_diagnostic
 from .manager_augmentation import prepare_execution_augmentation
 from .manager_destroy import _DestroyPhaseMixin
+from .manager_lifecycle import RuntimeManagerLifecycleMixin, manager_owned
 from .manager_plan_admission import reference_participant_driver_diagnostics, runtime_plan_precondition_diagnostics
 from .participant_activity import resolve_participant_activity_controls
-from .participant_execution_control import RuntimeParticipantExecutionMixin
 from .participant_information_state_validation import require_participant_information_state_snapshot
 from .registry import RuntimeTarget as _RuntimeTarget
 from .registry import RuntimeTargetComponents as _RuntimeTargetComponents
 from .registry import _validate_runtime_target_shape
-from .time_control import RuntimeTimeControlMixin
 
 _RUNTIME_APPLY_ADDRESS, _APPLY_EVALUATOR_ADDRESS = "runtime.apply", "runtime.apply.evaluator"
 _APPLY_ORCHESTRATOR_ADDRESS = "runtime.apply.orchestrator"
@@ -55,7 +54,7 @@ class _RuntimeApplyState:
     augmentation_previews: dict[RuntimeDomain, AugmentationPreparation] = field(default_factory=dict)
 
 
-class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
+class RuntimeManager(_DestroyPhaseMixin, RuntimeManagerLifecycleMixin):
     """Plans and executes SDL runtime work against a target."""
 
     def __init__(
@@ -77,6 +76,7 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
                 time_runtime=target.time_runtime,
                 observation_runtime=target.observation_runtime,
                 recovery_observer=target.recovery_observer,
+                operation_provider=getattr(target, "operation_provider", None),
             ),
         )
         self._target = target
@@ -87,6 +87,9 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
         self._participant_activity_controls = resolve_participant_activity_controls(stochastic_controls)
         self._time_declaration: TimeModelDeclarationModel | None = None
         self._initialize_participant_scheduler()
+        from .runtime_resource_ownership import RuntimeResourceClaim
+
+        self._resource_claim = RuntimeResourceClaim(self, target)
 
     @property
     def snapshot(self) -> RuntimeSnapshot:
@@ -126,6 +129,7 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
             execution_plan, diagnostics=[*execution_plan.diagnostics, *reference_participant_driver_diagnostics(model)]
         )
 
+    @manager_owned
     def apply(self, execution_plan: ExecutionPlan) -> ApplyResult:
         driver_precondition = self._participant_driver_apply_precondition()
         if driver_precondition is not None:
@@ -399,6 +403,7 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
                 )
         return failure
 
+    @manager_owned
     def status(self) -> dict[str, object]:
         info: dict[str, object] = {
             "backend": self._target.name,
@@ -423,6 +428,7 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
             info["participant_clock_driver"] = self.participant_clock_driver_status()
         return info
 
+    @manager_owned
     def destroy(self) -> ApplyResult:
         refusal = self._clock_driver_stop_refusal()
         if refusal is not None:

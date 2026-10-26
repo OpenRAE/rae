@@ -332,7 +332,7 @@ def test_upgrading_a_pre_carrier_store_records_the_carrier_explicitly(tmp_path: 
     upgraded.close()
 
     assert _stored_schema_and_carrier(store_path) == (LOCAL_OPERATION_SCHEMA_VERSION, True)
-    assert LOCAL_OPERATION_SCHEMA_VERSION == "6"
+    assert LOCAL_OPERATION_SCHEMA_VERSION == "10"
     assert crossings  # the participant history the upgrade preserved
 
 
@@ -372,7 +372,11 @@ def test_a_store_newer_than_this_build_is_refused_rather_than_rewritten(tmp_path
     plane = _plane(store=LocalControlPlaneStore(store_path))
     plane.close()
     connection = sqlite3.connect(store_path / "control-plane.sqlite3")
-    connection.execute("UPDATE metadata SET value='7' WHERE key='schema-version'")
+    from raes_runtime.control_plane_store_record_migration import LOCAL_OPERATION_SCHEMA_VERSION
+
+    connection.execute(
+        "UPDATE metadata SET value=? WHERE key='schema-version'", (str(int(LOCAL_OPERATION_SCHEMA_VERSION) + 1),)
+    )
     connection.commit()
     connection.close()
 

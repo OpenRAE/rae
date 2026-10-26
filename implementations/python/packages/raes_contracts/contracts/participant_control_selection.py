@@ -63,6 +63,11 @@ class ControlMechanismBindingModel(ContractModel):
         require_unique(self.applicability)
         for profile in self.profiles:
             validate_control_profile_reference(profile)
+            if (
+                profile.ref == "participant-owner-flow-policy-v1"
+                and self.protocol_revision != "participant-control-provider/v2"
+            ):
+                raise ValueError("owner flow profile requires participant-control provider v2")
         require_unique(tuple(profile.ref for profile in self.profiles))
         return self
 
