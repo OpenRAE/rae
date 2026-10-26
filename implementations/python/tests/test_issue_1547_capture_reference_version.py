@@ -46,7 +46,6 @@ def test_capture_reference_accepts_optional_version_with_content_proof(spec_vers
     [
         ("ref_version", "99.0.0", "capture_spec_ref"),
         ("ref_id", "other-capture", "admitted capture requirements"),
-        ("ref_kind", "run", "capture_spec_ref"),
     ],
 )
 def test_capture_reference_rejects_mismatch_before_content_reads(field: str, value: str, message: str) -> None:
@@ -59,12 +58,23 @@ def test_capture_reference_rejects_mismatch_before_content_reads(field: str, val
         def read(self, _size: int = -1) -> bytes:
             pytest.fail("mismatching capture reference reached artifact I/O")
 
+    record = ExperimentEvidenceRecordModel.model_validate(payload)
+    readers = {run.evidence_artifacts[0].artifact_id: Unreadable(content)}
     with pytest.raises(ValueError, match=message):
-        record = ExperimentEvidenceRecordModel.model_validate(payload)
         validate_experiment_run_evidence(
             task,
             run,
             capture_specs={spec.capture_spec_id: spec},
             evidence_records={record.evidence_record_id: record},
-            artifact_readers={run.evidence_artifacts[0].artifact_id: Unreadable(content)},
+            artifact_readers=readers,
         )
+
+
+def test_capture_reference_rejects_wrong_kind_at_model_boundary() -> None:
+    _, _, _, record, _ = _evidence_bundle()
+    payload = record.model_dump(mode="json")
+    payload["capture_spec_ref"].pop("ref_version")
+    payload["capture_spec_ref"]["ref_kind"] = "run"
+
+    with pytest.raises(ValueError, match="capture_spec_ref"):
+        ExperimentEvidenceRecordModel.model_validate(payload)
