@@ -27,6 +27,7 @@ from uuid import uuid4
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.participant_control_composition import ParticipantControlEvaluationModel
+from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
 from raes_contracts.contracts.participant_control_resolution import (
     validate_participant_control_resolved_context,
 )
@@ -107,7 +108,7 @@ def commit_participant_control_realization(
 def _closed_carrier(
     control_plane: object,
     claim: ControlPlaneOperationRecord,
-    transition: ParticipantControlEvaluationModel,
+    transition: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model,
     state: OperationState,
     participant_address: str,
 ) -> ControlPlaneOperationRecord:
@@ -139,7 +140,10 @@ def _closed_carrier(
 def _linked_carrier(
     control_plane: object,
     claim: ControlPlaneOperationRecord,
-    transition: ParticipantControlEvaluationModel,
+    transition: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model,
+    *,
+    idempotency_key: str = "",
+    result_payload: dict | None = None,
 ) -> ControlPlaneOperationRecord:
     """Claim the record that carries a terminal claim's proven outcome.
 
@@ -179,6 +183,8 @@ def _linked_carrier(
             context=context,
         ),
         request_fingerprint=context.request_commitment,
+        idempotency_key=idempotency_key,
+        result_payload=result_payload,
     )
     return control_plane._claim_record(running)
 
@@ -193,7 +199,7 @@ def _transition_id(evaluation: ParticipantControlEvaluationModel, realization: C
 def _realization_audit(
     record: ControlPlaneOperationRecord,
     participant_address: str,
-    transition: ParticipantControlEvaluationModel,
+    transition: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model,
 ) -> AuditEvent:
     """The operation's audit is bound to the operation's own actor: the origin."""
 

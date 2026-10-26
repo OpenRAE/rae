@@ -14,7 +14,8 @@ from ._identifiers import QualifiedName
 from ._language_context import EndpointPurposes, PurposeResolver
 from ._language_definitions import indexed_definitions
 from ._language_diagnostics import parse_error as _parse_error
-from ._language_metadata import REFERENCE_COMPLETION_TARGETS, RELATIONSHIP_ENDPOINT_DOMAIN, VARIATION_SLOT_TARGETS
+from ._language_metadata import RELATIONSHIP_ENDPOINT_DOMAIN, VARIATION_SLOT_TARGETS, reference_completion_target
+from ._language_structural_variation import inventory_reference_admitted, inventory_reference_scope
 from ._reference_targetability import ReferencePurpose, purposes_for_domain, reference_domain
 from ._yaml_loader import compose_sdl_yaml
 
@@ -28,6 +29,7 @@ class _SymbolScope:
     section: str
     endpoint_purposes: EndpointPurposes
     variation_slots: Mapping[str, str]
+    variation_targets: dict[str, Any]
     address: str | None = None
     resolver: PurposeResolver | None = None
 
@@ -132,6 +134,7 @@ def _symbol_scope(
         section=section,
         endpoint_purposes=endpoint_purposes,
         variation_slots=_variation_slots(root),
+        variation_targets=_variation_targets(root),
         address=declaration.address if declaration is not None else None,
         resolver=resolver,
     )
@@ -143,6 +146,21 @@ def _section_entries(root: Node, section: str) -> Iterator[tuple[str, MappingNod
         name = _scalar_value(key_node)
         if name is not None and isinstance(value_node, MappingNode):
             yield name, value_node
+
+
+def _variation_targets(root: Node) -> dict[str, Any]:
+    points = {}
+    for name, node in _section_entries(root, "variation_points"):
+        target = _mapping_child(node, "target")
+        if isinstance(target, MappingNode):
+            points[name] = {
+                "target": {
+                    _scalar_value(key): _scalar_value(value)
+                    for key, value in target.value
+                    if isinstance(value, ScalarNode)
+                }
+            }
+    return {"variation_points": points}
 
 
 def _variation_slots(root: Node) -> dict[str, str]:
@@ -359,7 +377,14 @@ def _is_matching_occurrence(
         return False
     if scope is None:
         return value in spellings
-    return scope.admits(value, _reference_target_for_path(path, mapping_key=mapping_key, scope=scope), spellings)
+    inventory_scope = inventory_reference_scope(scope.variation_targets, path)
+    inventory_admitted = inventory_scope is None or (
+        scope.resolver is not None
+        and inventory_reference_admitted(scope.resolver.index, scope.address, inventory_scope)
+    )
+    return inventory_admitted and scope.admits(
+        value, _reference_target_for_path(path, mapping_key=mapping_key, scope=scope), spellings
+    )
 
 
 def _append_occurrence(
@@ -419,8 +444,10 @@ def _is_variation_member_symbol(symbol: str) -> bool:
 def _reference_target_for_path(path: list[str], *, mapping_key: bool, scope: _SymbolScope) -> str | None:
     if len(path) < 3:
         return None
+    if inventory_reference_scope(scope.variation_targets, path) is not None:
+        return "targetable"
     field = path[-2] if mapping_key or path[-1].isdigit() else path[-1]
-    target = REFERENCE_COMPLETION_TARGETS.get((path[0], field))
+    target = reference_completion_target(path, field)
     if target == RELATIONSHIP_ENDPOINT_DOMAIN and len(path) == 3:
         purposes = scope.endpoint_purposes.get((path[1], path[2]), (ReferencePurpose.RELATIONSHIP_ENDPOINT,))
         target = reference_domain(purposes)

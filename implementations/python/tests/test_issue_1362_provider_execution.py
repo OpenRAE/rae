@@ -26,6 +26,7 @@ class Provider:
         self.started = Event()
         self.release = Event()
         self.release.set()
+        self.block_seconds = 3
         self._lock = Lock()
         self.sequence = 0
         self.starts = 0
@@ -69,7 +70,7 @@ class Provider:
         self.request = request
         self.starts += 1
         self.started.set()
-        assert self.release.wait(3)
+        assert self.release.wait(self.block_seconds)
         return self.report(request, {"kind": "acknowledgement", "disposition": "accepted"})
 
     def observe_operation(self, control):

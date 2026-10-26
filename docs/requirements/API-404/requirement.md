@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-04-03T05:55:58.825305Z
-updated_at: 2026-10-13T00:00:00.000000Z
+updated_at: 2026-10-21T00:00:00Z
 ---
 
 # API-404 — Secure, Durable, And Idempotent Control-Plane Semantics
@@ -145,6 +145,12 @@ policy choices, recovery and composition limits.
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_issue_1372_review_regressions.py` (C1/C2 original mixed absence authority, linked-resolution quiescence and optional-read timeout isolation)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_backend_invocation.py` (C1/C2 original mixed invocation authority, bounded calls and retained readback facts)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_backend_action.py` (C1/C2 validated native/residual state, replay and owning history CAS)
+- TESTS → TEST `implementations/python/tests/test_issue_1372_mixed_execution.py` (Responsive supervision, bounded callbacks, durable stage retention and no effect replay)
+
 - IMPLEMENTS → CODE_FILE `.github/workflows/canonical-verification.yml` (API-404-C2 service-backed execution and ledger coverage in the canonical verification graph)
 
 - DOCUMENTS → GITHUB_ISSUE `1362` (Supervised execution outside state admission)
@@ -257,7 +263,7 @@ policy choices, recovery and composition limits.
 - DOCUMENTS → GITHUB_ISSUE `1188` (CP-8: Served profile alignment)
 - DOCUMENTS → GITHUB_ISSUE `1187` (CP-9: Crash and profile conformance suite)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1187-control-plane-conformance-preflight.md` (CP-9 profile, fault-evidence, and security boundaries)
-- DOCUMENTS → DOCUMENTATION `docs/research/runtime-control-plane/conformance.md` (Unified suite invocation, finite evidence map, and explicit profile nonclaims)
+- DOCUMENTS → DOCUMENTATION `docs/research/runtime-control-plane/conformance.md` (Unified suite invocation, finite evidence map, API-404 clause-to-profile verification map, and explicit profile nonclaims)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_result_diagnostics.py` (Value-free backend failure diagnostics without provider type names)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/observation_execution.py` (Observation-adapter failure diagnostics without provider exception names or text)
 - TESTS → TEST `implementations/python/tests/test_issue_1212_observation_demand.py` (Observation failures preserve terminal state and redact exception details from operation carriers)
@@ -282,6 +288,8 @@ policy choices, recovery and composition limits.
 - DOCUMENTS → GITHUB_ISSUE `1185` (CP-11: API-404 requirement update)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1185-api-404-profile-alignment-preflight.md` (CP-11 profile and evidence boundaries)
 - TESTS → TEST `implementations/python/tests/test_issue_1185_api_404_profile_alignment.py` (Clause matrix, profile catalog, nonclaims, public documentation, and local-evidence drift checks)
+- DOCUMENTS → GITHUB_ISSUE `1435` (API-404 clause-to-profile evidence map and run binding on every profile)
+- TESTS → TEST `implementations/python/tests/test_issue_1435_profile_clause_verification.py` (Out-of-run evaluation plans refused on P0, P1, and P2 without record, evaluator effect, or revision change, and without audit unless P2's planner-authorization check refuses an unregistered plan with operations first; P0 run rebinding refused; selected P1 over the PostgreSQL ledger refuses another scope and a second owner, and ledger claims stay with their actor; clause-map profiles checked against profile declarations; clause-tagged trace, citation and link drift checks)
 - DOCUMENTS → GITHUB_ISSUE `1186` (CP-12: Recovery runbook and operator tooling)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1186-control-plane-recovery-operations-preflight.md` (CP-12 recovery, maintenance, health, and disclosure boundaries)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/control-plane-operations.md` (Operator recovery, health, shutdown, backup, restore, and upgrade runbook)
@@ -366,7 +374,6 @@ policy choices, recovery and composition limits.
 - TESTS → TEST `implementations/python/tests/test_realization_envelope_contract.py` (Realization envelope persistence under explicit local-store admission)
 - TESTS → TEST `implementations/python/tests/test_run_310_supervisory_lifecycle.py` (Supervisory lifecycle persistence under explicit local-store admission)
 - TESTS → TEST `implementations/python/tests/test_sem_211_participant_action_semantics.py` (Participant action persistence under explicit local-store admission)
-- TESTS → TEST `implementations/python/tests/test_libvirt_backend_techvault_honesty.py` (Backend admission preserves the explicitly admitted durable predecessor)
 - TESTS → TEST `implementations/python/tests/test_issue_1204_reference_profiles.py` (API lifespan ownership preserves durable profile-validation predecessors)
 - TESTS → TEST `implementations/python/tests/test_issue_1212_runtime_boundaries.py` (API lifespan ownership preserves rejected-evaluation predecessors)
 - TESTS → TEST `implementations/python/tests/test_issue_802_participant_control_migration.py` (Legacy snapshot migration under explicit local-store admission)
@@ -382,3 +389,27 @@ policy choices, recovery and composition limits.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_snapshot_contracts.py` (Runtime ownership of the participant-control evaluation carrier)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api_models.py` (Participant-control evaluation history in the control-plane projection)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_action_validation.py` (Runtime-owned evaluation carrier protected from backend rewrite)
+
+- IMPLEMENTS → GITHUB_ISSUE `1367` (Secure shared-runtime external inject execution)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_injects.py` (C1 actor-scoped admission and independently authorized occurrence readback)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/inject_claims.py` (C1/C2 immutable occurrence pins and atomic retry, slot and full order-chain claims)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/inject_execution.py` (C1 exact authorized plan and binding resolution with required-obligation refusal)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/inject_outcomes.py` (C1 bounded independent artifact validation and terminal operation-only settlement)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_inject_routes.py` (C3 strict authenticated bounded trigger and actor-scoped evidence reads)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_postgresql_schema.py` (C2 PostgreSQL single-owner schema migration)
+- DOCUMENTS → DOCUMENTATION `docs/public/guides/external-injects.md` (C1–C4 operating profiles, host duties, supported realization and recovery limits)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1367-external-inject-execution-preflight.md` (Accepted owner boundaries and implementation guardrails)
+- TESTS → TEST `implementations/python/tests/test_issue_1367_inject_claims.py` (Atomic competing claims, schedule slots, full chain and durable reopening)
+- TESTS → TEST `implementations/python/tests/test_issue_1367_inject_execution.py` (Executing fixture, actor isolation, original budget, refusal and typed evidence; not concrete OCI evidence)
+- TESTS → TEST `implementations/python/tests/test_issue_1367_inject_http.py` (Actual HTTP authorization, strict bounded ingress, retry and retained artifact disclosure)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/associated_artifacts.py` (C1 independent bounded artifact content and admitted scenario-reference validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/backend_operation_validation.py` (C1 shared authored policy capability checks for native and inject commands)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_composition.py` (C1 explicitly installed trusted inject resolver)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_postgresql_mutations.py` (C2 occurrence claim checks within the existing authoritative transaction)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_provider_execution.py` (C1 current provider willingness and one-use dispatch with typed inject settlement)
+- TESTS → TEST `implementations/python/tests/inject_execution_fixtures.py` (Executing world-file witness for shared-runtime tests; not concrete backend evidence)
+- TESTS → TEST `implementations/python/tests/test_release_workflows.py` (Mandatory PR and exact-SHA release container gates)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-5d274941b97b738f9f2b70d0efd0269f131e26694e1712bf4c807b96d5101b71/manifest.json` (Fresh bounded source-bound witness; retained research claim limits)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-a566be978d1c4991f1cba201477c741e49ef98cca9bb6298de1509873538c337/manifest.json` (Fresh bounded source-bound witness; retained research claim limits)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-89feff1317c49aebbc096e7f8cb0a4e2235ea10ae386d15f47e33851b28a742e/manifest.json` (Fresh bounded witness after inject contract refactoring; retained research claim limits)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-7f7166d1912b9a05d105277585776c5e773b17446e0cd8b582a33c079d016eb7/manifest.json` (Fresh bounded witness after inject contract refactoring; retained research claim limits)

@@ -16,11 +16,11 @@ two contracts are:
   [backend operation protocol](../../specs/formal/runtime-contracts/backend-operation-supervision.md).
 
 This note defines producer and reader obligations. It is not a migrator.
-Publication changes no runtime behavior: the reference coordinator described in
+Publication alone changes no runtime behavior. The reference coordinator described in
 [mixed participant composition](../explain/reference/mixed-participant-composition.md)
-still executes its in-process `MixedEdgeExecutionBinding` and
-`MixedHandoffBinding`. No runtime, store or HTTP path reads or writes the new
-carriers, and no executable or runtime adoption is claimed.
+executes these carriers only when the trusted embedder explicitly installs
+`MixedBackendInstallation` services. Historical `MixedEdgeExecutionBinding` and
+`MixedHandoffBinding` callbacks retain their original contract and are not converted.
 
 ## Execution bindings
 
@@ -169,8 +169,8 @@ owning authorities. They then call these pure validators from
 ## Stage and settlement model
 
 The stage validator enforces this abstract model for one invocation. The rules
-apply to the published carriers only. They do not describe the in-process
-coordinator, which does not read the carriers.
+apply to the published carriers and explicitly installed portable services in
+the shared runtime. Historical callback bindings retain their own contract.
 
 **State.** The record holds the accepted stage reports, at most one of each
 kind. It also records whether the response transcript holds an accepted
@@ -233,12 +233,12 @@ settling it.
 Both contracts are new IDs with draft stability under ADR-061. The
 `supported_contract_versions` enums of `backend-manifest-v2` and
 `backend-profile-v1` gain the two IDs. Existing manifests and profiles remain
-valid. The stub and reference backends do not declare the new IDs.
+valid. The stub test double does not declare the new IDs.
 
 The meaning of a published `sem-234/rev1` profile is unchanged. Historical
 reference-only records stay reference-only: no reader may reinterpret their
 `success`, mapping references or timestamps as delivery, observation or
-governed timing evidence. The in-process runtime bindings and the published
+governed timing evidence. Historical callback bindings and the published
 carriers are not converted into one another. The binding has no field for
 callables, module paths, URLs, commands, credentials or open metadata.
 
@@ -261,6 +261,77 @@ binding's `bridge-as-reader` and `transfer-as-owner-reader` examples are
 invalid because they pin one service to two roles. Run the focused checks from
 the repository root with
 `uv run --project implementations/python --frozen --all-extras python -m pytest implementations/python/tests/test_issue_1371_mixed_backend_contracts.py -q`.
+
+## Runtime installation
+
+The trusted embedder supplies `MixedRuntimeBinding.backend_installations`,
+keyed by binding ID. Each `MixedBackendInstallation` holds the published binding,
+an exact mapping of pins to `MixedBackendService` implementations, the trusted
+time runtime, and an `OperationEvidenceResolver`. Installation joins the complete
+obligation set to the admitted profile and validates the separate bridge,
+coordinator and reader protocols. One implementation object cannot fill two roles.
+The embedder authenticates implementation pins and native evidence; distinct
+strings alone do not establish independent services.
+
+The bridge resolves the protected native command from the original admission
+context/request commitment through its existing artifact authority. The portable
+command remains the content-bound mixed binding, without native arguments or
+credentials. Translation preserves the compiled action, participant, configuration,
+implementation selection, authority and audience. Affine time comparisons use
+exact rational arithmetic at the committed source and destination coordinates.
+
+The participant path retains its crossing/final-sink checks and commits its
+decision/attempt with an `InvocationLedger` before effects. The ledger retains
+the original binding, committed time/composition cut, shared responses/controls,
+authenticated stage reports and post-invocation time readback. Calls use finite
+remaining apparatus budgets; willingness is checked again after coordination.
+Controls use independent capacity and resolve the original pinned bridge.
+
+Native results and residual snapshots pass the installed evidence authority and
+existing participant snapshot/effect/credential gates. Rejected native results
+cannot publish delivery or observation. Later reader failure preserves earlier
+authenticated reports. Partial effects and missing delivery remain
+`INDETERMINATE`, retaining verified residual state and exclusion. A timeout proves
+no cessation; late callback return has no publication authority. Store reopen
+never reissues a consumed effect, and replay needs no new bridge admission.
+
+Staged phases use the same invocation machinery. A one-to-one transfer commits
+only after independent destination-owner readback at the next phase revision and
+confirmed time. Stale transfer with source-owner readback fails; missing or
+contradictory owner evidence retains the old phase and unresolved reservation.
+Quiescence includes lifecycle work and retained reservations. Generic snapshot
+acceptance cannot manufacture completed mixed stages.
+Separately authorized absence/cessation proof is verified through the original
+installation and retained in a linked resolution child. It releases exclusion
+without rewriting the parent or claiming delivery, observation or a completed
+handoff; valid linked resolutions also permit subsequent phase progression.
+
+Portable mixed installation currently executes in the local supervised composition.
+A distributed dispatcher combined with these services is refused because remote
+mixed-worker authority is not installed.
+
+### Abstract execution model (FM3)
+
+State is `(claimed, dispatched, reports, post_time, native_result, reservation,
+terminal)`. Reports are bounded append-only role-authenticated facts; the request
+and committed cut are immutable. The contract settlement table above is the
+independent oracle, exposed by `established_mixed_backend_state()`.
+
+| Transition | Guard and effect |
+| --- | --- |
+| Admit | Exact binding/capability/context joins; refusal creates no effect claim. |
+| Claim | Atomically retain invocation and owning decision/attempt. |
+| Coordinate | Read committed clocks and validate the pinned coordinator's grant. |
+| Dispatch | Recheck willingness and apparatus admission; the durable one-use attempt precedes the pinned provider call. |
+| Read | Retain authenticated stages after their prerequisites and RAES's own post-invocation time. |
+| Settle | Join contract-established state, shared effect/outcome evidence and native result gates; atomically commit through the owning history CAS. |
+| Interrupt/reopen | Retain consumed authority, known stages and residuals; perform no redispatch or inferred completion. |
+
+Invariants: no effect precedes an admitted ordered grant; no report crosses its
+invocation, producer or subject; no success follows partial execution or missing
+delivery; no backend boolean establishes observation; no phase advances before
+fenced owner readback; no consumed effect runs twice. Runtime witnesses live in
+`implementations/python/tests/test_issue_1372_mixed_execution.py`.
 
 ## Limits
 

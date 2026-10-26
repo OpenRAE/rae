@@ -138,9 +138,14 @@ async def _exercise(blocked, tmp_path):
         )
     store = PostgreSQLControlPlaneStore(config)
     await asyncio.to_thread(store.initialize_schema)
+    # The budget runs from acceptance, so it must cover cold engine submission
+    # and delivery (each can take seconds) and still expire while the blocked
+    # start holds the backend call.
+    execution_ms = 15000 if blocked else 20000
     provider = Provider()
     if blocked:
         provider.release.clear()
+        provider.block_seconds = execution_ms / 1000 + 5
     cli = Path(os.environ["RAES_TEMPORAL_CLI"]).resolve(strict=True)
     async with await WorkflowEnvironment.start_local(
         dev_server_existing_path=str(cli), dev_server_database_filename=str(tmp_path / "engine-history.sqlite3")
@@ -150,15 +155,19 @@ async def _exercise(blocked, tmp_path):
         async def connected():
             return await Client.connect(address, namespace="default")
 
+        # A just-started development server can take over two seconds to
+        # accept its first workflow. The RPC budget and the admission budget
+        # that bounds engine submission both leave room for that.
         delivery = TemporalExecutionAdapter(
-            TemporalExecutionConfiguration(worker_identity="worker-1362"), client_factory=connected
+            TemporalExecutionConfiguration(worker_identity="worker-1362", rpc_budget_ms=10000),
+            client_factory=connected,
         )
         plane = RuntimeControlPlane(
             target(provider),
             store=store,
             operation_evidence=Evidence(),
             distributed_execution=delivery,
-            supervision=OperationSupervisionConfiguration(execution_ms=2000 if blocked else 15000),
+            supervision=OperationSupervisionConfiguration(admission_ms=10000, execution_ms=execution_ms),
         )
         listener = socket.socket()
         listener.bind(("127.0.0.1", 0))
@@ -203,7 +212,8 @@ async def _exercise(blocked, tmp_path):
                     )
                     await _until(lambda: provider.cancels == 1)
                     await _until(
-                        lambda: plane.get_operation(receipt.operation_id).state is OperationState.INDETERMINATE
+                        lambda: plane.get_operation(receipt.operation_id).state is OperationState.INDETERMINATE,
+                        timeout=execution_ms / 1000 + 5,
                     )
                     assert store.load_records()[receipt.operation_id].invocation.reserved
                     provider.release.set()

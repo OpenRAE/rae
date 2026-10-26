@@ -16,7 +16,7 @@ def _map_children(node: dict[str, Any], transform: Callable[[object, bool], obje
     for key in _SCHEMA_MAP_KEYS:
         if isinstance(result.get(key), dict):
             result[key] = {name: transform(value, key == _DEFINITIONS) for name, value in result[key].items()}
-    for key in _SCHEMA_SUBSCHEMA_KEYS:
+    for key in (*_SCHEMA_SUBSCHEMA_KEYS, "propertyNames", "if", "then", "else", "not"):
         value = result.get(key)
         if isinstance(value, list):
             result[key] = [transform(child, False) for child in value]

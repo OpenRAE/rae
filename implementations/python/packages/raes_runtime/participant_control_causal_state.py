@@ -23,6 +23,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from raes_contracts.contracts.participant_control_composition import (
     ParticipantControlEvaluationModel,
@@ -38,6 +39,11 @@ from raes_contracts.contracts.participant_control_coordinates import (
 from raes_contracts.contracts.participant_control_effects import ControlEffectRequestModel
 from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
 from raes_contracts.participant_control_evaluation_history import participant_control_evaluation_from_payload
+
+if TYPE_CHECKING:
+    from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
+
+    from .control_plane import RuntimeControlPlane
 
 
 @dataclass(frozen=True)
@@ -83,20 +89,19 @@ def causal_state_from_history(
     claims: dict[ControlLogicalEffectKeyModel, ControlPriorEffectClaimModel] = {}
     firings: dict[tuple[str, str], set[str]] = {}
     attempts = 0
-    consumed = 0
+    watermarks: dict[frozenset[ControlLogicalEffectKeyModel], int] = {}
+    admitted_keys: set[ControlLogicalEffectKeyModel] = set()
     for record in history:
         evaluation = participant_control_evaluation_from_payload(record)
         context = evaluation.request.context
         if (context.run.ref, context.trigger_root) != (run_ref, trigger_root):
             continue
-        # API-424 lets a context's consumption exceed its retained claims, so
-        # the count is a watermark of its own, not the number of claims: what
-        # the context declared already spent, plus the keys it newly admitted.
-        # A maximum rather than a sum, so a replayed key and a realization
-        # transition — which repeats its evaluation's context — add nothing.
-        declared = {claim.key for claim in context.prior_effect_claims}
-        admitted = {effect.key for effect in _admitted_effects(evaluation)} - declared
-        consumed = max(consumed, context.effects_consumed + len(admitted))
+        # Each watermark already covers its declared claims. Add every unique
+        # admission outside that set, including interleaved continuations.
+        # Shared participant histories need not be globally ordered.
+        declared = frozenset(claim.key for claim in context.prior_effect_claims)
+        watermarks[declared] = max(watermarks.get(declared, 0), context.effects_consumed)
+        admitted_keys.update({effect.key for effect in _admitted_effects(evaluation)} - declared)
         # A realization transition records the outcome of an evaluation that
         # already spent its attempt; counting it again would double-charge.
         if isinstance(evaluation, ParticipantControlEvaluationV2Model) or not evaluation.realizations:
@@ -112,6 +117,7 @@ def causal_state_from_history(
                 ),
             )
             firings.setdefault((effect.key.rule_id, effect.key.rule_revision), set()).add(effect.key.firing_epoch)
+    consumed = max((count + len(admitted_keys - declared) for declared, count in watermarks.items()), default=0)
     return ParticipantControlCausalState(
         claims=claims,
         firings={rule: frozenset(epochs) for rule, epochs in firings.items()},
@@ -167,6 +173,34 @@ def declares_retained_consumption(
         and context.effects_consumed >= state.effects_consumed
         and context.attempt >= state.next_attempt
     )
+
+
+def validate_incremental_effect_admission(
+    plane: RuntimeControlPlane, evaluation: ParticipantControlEvaluationV2Model
+) -> None:
+    """Check a continuation against all work this shared root already admitted."""
+    from raes_contracts.contracts.participant_control_continuation import (
+        validate_participant_control_incremental_admission_v2,
+    )
+
+    context = evaluation.request.context
+    state = causal_state_from_history(
+        tuple(item for history in plane._snapshot.participant_control_evaluation_history.values() for item in history),
+        run_ref=context.run.ref,
+        trigger_root=context.trigger_root,
+    )
+    current = ParticipantControlContextModel.model_validate(
+        {
+            **context.model_dump(mode="json"),
+            "effects_consumed": state.effects_consumed,
+            "prior_effect_claims": [claim.model_dump(mode="json") for claim in state.claims.values()],
+            "rule_firings": [
+                {"rule_id": key[0], "rule_revision": key[1], "firing_epochs": sorted(epochs)}
+                for key, epochs in state.firings.items()
+            ],
+        }
+    )
+    validate_participant_control_incremental_admission_v2(evaluation, current)
 
 
 def _declares_retained_claims(context: ParticipantControlContextModel, state: ParticipantControlCausalState) -> bool:

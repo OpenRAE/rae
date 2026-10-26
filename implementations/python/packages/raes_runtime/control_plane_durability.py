@@ -110,6 +110,9 @@ class RuntimeDurabilityMixin:
     ) -> None:
         self._require_state_writer()
         self._assert_runtime_owner()
+        from .participant_control_effect_evidence import finalize_evaluation_commits
+
+        snapshot = finalize_evaluation_commits(self._snapshot, snapshot, record)
         try:
             committed = self._store.commit_participant_transition(
                 expected_history_heads=expected_history_heads,

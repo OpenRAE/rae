@@ -14,6 +14,8 @@ from raes_contracts.contracts import (
     BackendOperationCapabilitiesModel,
     BackendOperationResponseModel,
     require_backend_execution_policy_admission,
+    require_backend_operation_admission,
+    require_inject_occurrence_invocation,
     validate_backend_operation_response,
 )
 from raes_contracts.diagnostics import Diagnostic
@@ -194,7 +196,11 @@ def _finalize_native_outcome(
 def execute_provider_operation(
     plane: RuntimeControlPlane, native_request: OperationExecutionRequest
 ) -> OperationReceipt:
-    operation_id = getattr(native_request.plan, "operation_id", None) or str(uuid4())
+    operation_id = (
+        native_request.inject_occurrence.operation_id
+        if native_request.inject_occurrence is not None
+        else getattr(native_request.plan, "operation_id", None) or str(uuid4())
+    )
     backend_request = invocation_request(plane, native_request, operation_id, _utc_now())
     deadline = monotonic() + backend_request.budget.remaining_ms / 1000
 
@@ -256,6 +262,16 @@ def _require_provider_policy(
     capabilities: BackendOperationCapabilitiesModel,
     admission: BackendOperationResponseModel,
 ) -> None:
+    if native_request.inject_occurrence is not None:
+        from raes_contracts.contracts.backend_operation_validation import require_backend_plan_policy_capabilities
+
+        from .inject_execution import InjectAdmission, require_inject_plan
+
+        require_inject_plan(plane, InjectAdmission(native_request.plan, native_request.inject_occurrence))
+        require_inject_occurrence_invocation(native_request.inject_occurrence, request)
+        require_backend_plan_policy_capabilities(native_request.plan, capabilities)
+        require_backend_operation_admission(request, capabilities, admission)
+        return
     require_backend_execution_policy_admission(
         request,
         capabilities,
@@ -319,6 +335,8 @@ def _start_local_provider(
     capabilities, admission = _check_provider_admission(plane, request, remaining)
     record = accept_response(plane, record, admission)
     _require_provider_policy(plane, native_request, request, capabilities, admission)
+    if native_request.admission_diagnostics is not None and native_request.admission_diagnostics():
+        raise ValueError("live operation admission was withdrawn")
     plane._reload_derived_state()
     record = plane._operations[record.receipt.operation_id]
     if record.status.state is not OperationState.ACCEPTED:
@@ -360,6 +378,31 @@ def _start_local_provider(
     return record
 
 
+def _settle_provider_outcome(
+    plane: RuntimeControlPlane,
+    native_request: OperationExecutionRequest,
+    record: ControlPlaneOperationRecord,
+    predecessor: RuntimeSnapshot,
+    response: BackendOperationResponseModel,
+    remaining: Callable[[], int],
+) -> None:
+    if record.inject_occurrence is not None:
+        from .inject_outcomes import settle_inject_outcome
+
+        settle_inject_outcome(plane, record, response, remaining, native_request.plan)
+        return
+    result, commitment, payload = validate_outcome(plane, record, response, native_request, predecessor)
+    settle(
+        plane,
+        record,
+        response.message.proposed_state,
+        result=result,
+        release_commitment=commitment,
+        diagnostics=() if result is None else result.diagnostics,
+        result_payload=payload,
+    )
+
+
 def _poll_provider_outcome(
     plane: RuntimeControlPlane,
     native_request: OperationExecutionRequest,
@@ -367,6 +410,17 @@ def _poll_provider_outcome(
     predecessor: RuntimeSnapshot,
     remaining: Callable[[], int],
 ) -> None:
+    record, response, _control = observe_provider_outcome(plane, record, remaining)
+    _settle_provider_outcome(plane, native_request, record, predecessor, response, remaining)
+
+
+def observe_provider_outcome(
+    plane: RuntimeControlPlane,
+    record: ControlPlaneOperationRecord,
+    remaining: Callable[[], int],
+) -> tuple[ControlPlaneOperationRecord, BackendOperationResponseModel, BackendOperationControlModel]:
+    """Observe through retained one-use controls under the caller's remaining budget."""
+
     while True:
         response_cursor = len(record.invocation.responses)
         control = plane.supervise_operation(
@@ -388,17 +442,7 @@ def _poll_provider_outcome(
         if control.control_id not in record.invocation.delivered_controls or response is None:
             raise ValueError("operation observation is unavailable")
         if response.message.kind == "outcome":
-            result, commitment, payload = validate_outcome(plane, record, response, native_request, predecessor)
-            settle(
-                plane,
-                record,
-                response.message.proposed_state,
-                result=result,
-                release_commitment=commitment,
-                diagnostics=() if result is None else result.diagnostics,
-                result_payload=payload,
-            )
-            return
+            return record, response, control
         if response.message.kind in {"control", "reconciliation"}:
             raise ValueError("operation outcome could not be established")
         with plane._mutation_authority.external_call():

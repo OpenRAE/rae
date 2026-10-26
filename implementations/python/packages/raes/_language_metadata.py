@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from ._reference_targetability import ReferencePurpose, reference_domain
 from .participant_relationships import PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS
-from .variation import COLLECTION_TARGET_SPECS, REFERENCE_TARGET_SPECS, TIMING_TARGET_SPECS
+from .variation import COLLECTION_TARGET_SPECS, REFERENCE_TARGET_SPECS, STRUCTURAL_TARGET_SPECS, TIMING_TARGET_SPECS
 
 _OBJECTIVE_SUBJECT = reference_domain(ReferencePurpose.OBJECTIVE_SUBJECT)
 _ACTION_TARGET = reference_domain(ReferencePurpose.ACTION_TARGET)
@@ -13,6 +13,27 @@ _OBSERVATION_SUBJECT = reference_domain(ReferencePurpose.OBSERVATION_SUBJECT)
 _AUTHORITY_ANCHOR = reference_domain(ReferencePurpose.AUTHORITY_ANCHOR)
 _AUTHORITY_SCOPE = reference_domain(ReferencePurpose.AUTHORITY_SCOPE)
 _OPERATING_SCOPE = reference_domain(ReferencePurpose.OPERATING_SCOPE)
+_DERIVED_COMPLETION_DOMAINS = {
+    "derived:controller_authority_anchors": _AUTHORITY_ANCHOR,
+    "derived:behavior-and-controller-scope": _AUTHORITY_SCOPE,
+}
+
+
+def reference_completion_target(path: list[str], field: str) -> str | None:
+    """Select the same field-purpose domain for completion and reference navigation."""
+
+    if (
+        len(path) >= 6
+        and path[0] == "behavior_specifications"
+        and path[2] == "participant_inject_deliveries"
+        and path[4] == "control"
+        and field == "evidence_refs"
+    ):
+        return reference_domain(ReferencePurpose.TARGETABLE)
+    target = REFERENCE_COMPLETION_TARGETS.get((path[0], field))
+    return _DERIVED_COMPLETION_DOMAINS.get(target, target) if target is not None else None
+
+
 # Relationship subtypes narrow this domain; the language service selects the subtype purpose.
 RELATIONSHIP_ENDPOINT_DOMAIN = reference_domain(ReferencePurpose.RELATIONSHIP_ENDPOINT)
 
@@ -29,10 +50,12 @@ VARIATION_CANDIDATE_TARGETS = {
     for specs in (REFERENCE_TARGET_SPECS, COLLECTION_TARGET_SPECS)
     for slot, (_owner, target) in specs.items()
 }
+VARIATION_OWNER_TARGETS.update({slot: spec[0] for slot, spec in STRUCTURAL_TARGET_SPECS.items()})
 VARIATION_SLOT_TARGETS = {
     "owner": VARIATION_OWNER_TARGETS,
     "reference": VARIATION_CANDIDATE_TARGETS,
     "allowed_refs": VARIATION_CANDIDATE_TARGETS,
+    "references": {slot: spec[1] for slot, spec in STRUCTURAL_TARGET_SPECS.items()},
 }
 
 REFERENCE_COMPLETION_TARGETS = {
@@ -92,6 +115,10 @@ REFERENCE_COMPLETION_TARGETS = {
     ("behavior_specifications", "observation_boundary_refs"): "observation_boundaries",
     ("behavior_specifications", "outcome_interpretation_rule_refs"): "outcome_interpretation_rules",
     ("behavior_specifications", "authority_scope_refs"): _AUTHORITY_SCOPE,
+    ("behavior_specifications", "authority_basis_refs"): "derived:controller_authority_anchors",
+    ("behavior_specifications", "scope_refs"): "derived:behavior-and-controller-scope",
+    ("behavior_specifications", "evidence_refs"): reference_domain(ReferencePurpose.DECLARED),
+    ("behavior_specifications", "completion_evidence_refs"): reference_domain(ReferencePurpose.DECLARED),
     ("behavior_specifications", "tool_ref"): "content",
     ("behavior_specifications", "participant_ref"): "agents",
     ("behavior_specifications", "inject_ref"): "injects",

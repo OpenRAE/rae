@@ -33,6 +33,16 @@ Producer and reader obligations for the published mixed-backend execution
 binding and stage-report contracts are documented in
 [Mixed-Backend Execution Contracts Migration](mixed-backend-execution.md).
 
+The explicit conversion of a legacy fixed-coordinate `mixed_control`
+declaration to a rev1 finite script is documented in
+[Mixed-Control Finite-Script Conversion](mixed-control-finite-script-conversion.md).
+The [reusable mixed-control adoption contract](reusable-mixed-control.md)
+remains the producer and reader boundary.
+
+The removal of the bundled reference and libvirt backends, and the move of
+concrete realization to backend distributions such as LilRAE, is documented in
+[Concrete Backends Migration](concrete-backends.md).
+
 The reorganization moved existing material into the current long-term buckets:
 
 - root `schemas/` -> `contracts/schemas/`

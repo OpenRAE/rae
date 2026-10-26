@@ -95,7 +95,7 @@ jobs:
           python-version: "3.12.14"
       - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
         with:
-          version: "0.12.4"
+          version: "0.13.4"
           enable-cache: false
       - name: Fetch and verify the locked Temporal test server
         run: |
@@ -127,14 +127,14 @@ jobs:
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
         with:
           enable-cache: false
-          version: "0.12.4"
+          version: "0.13.4"
       - name: Run fuzz session
         run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s fuzz
 
   interpreters:
     name: CPython ${{ matrix.python.feature }} compatibility
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -158,40 +158,9 @@ jobs:
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
         with:
           enable-cache: false
-          version: "0.12.4"
+          version: "0.13.4"
       - name: Test exact interpreter and clean distribution
         run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s python-compatibility
-
-  # Opt-in, non-blocking, runtime-gated container integration tests (RUN-314).
-  # Kept out of the hermetic `verify` graph; the `docker` marker tests self-skip
-  # when no runtime is present, and this whole job never fails the build.
-  integration-docker:
-    runs-on: ubuntu-24.04
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.12.14"
-      - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
-        with:
-          enable-cache: false
-          version: "0.12.4"
-      - name: Probe for a container runtime
-        id: runtime
-        run: |
-          if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
-            echo "available=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "No container runtime available; skipping docker integration session."
-          fi
-      - name: Run docker integration session
-        if: steps.runtime.outputs.available == 'true'
-        run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s integration_docker
 
   # Gating OSV-scanner sweep over the Python dependency lockfile (issue #1098).
   # Kept out of the hermetic `verify` graph because the scanner is networked.
@@ -210,7 +179,7 @@ jobs:
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
         with:
           enable-cache: false
-          version: "0.12.4"
+          version: "0.13.4"
       - name: Run OSV-scanner (gating)
         run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s osv_scan
       - name: Upload OSV-scanner report
@@ -275,7 +244,7 @@ jobs:
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
         with:
           enable-cache: false
-          version: "0.12.4"
+          version: "0.13.4"
       - name: Fetch locked generic-tool inputs with the qualified client
         run: |
           mkdir .canonical-tool-inputs

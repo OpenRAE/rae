@@ -5,6 +5,7 @@ from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.models import ExecutionPlan, RuntimeModel
 
 from .diagnostics import _failure_diagnostic
+from .mixed_control_admission import reference_mixed_control_diagnostics
 from .observation_execution import observation_submission_diagnostic
 from .registry import RuntimeTarget
 
@@ -83,6 +84,7 @@ def reference_participant_driver_diagnostics(model: RuntimeModel) -> list[Diagno
                     ),
                 )
             )
+    diagnostics.extend(reference_mixed_control_diagnostics(model))
     return diagnostics
 
 

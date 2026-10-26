@@ -28,8 +28,8 @@ RAES owns the meaning of an authored scenario and the formats around it:
 - published contracts for the data that tools and backends exchange;
 - validation and processing that check a scenario and compile plans;
 - conformance tests that check whether a backend honors a stated boundary;
-- reference tools: the Python package, the `raes` command, examples, and a
-  reference emulation backend; and
+- reference tools: the Python package, the `raes` command, examples, and
+  test doubles for backend authors; and
 - evidence structures that record what was requested, realized, and observed.
 
 These parts make scenario intent portable, checkable, and shareable. They also
@@ -80,10 +80,11 @@ each part means.
 
 ## Run a scenario on a backend
 
-This repository includes contracts, stubs, a reference emulation backend, and
-conformance tests. It does not include a production deployment backend or a
-managed environment service. External backends realize scenarios outside this
-repository:
+This repository includes contracts, stubs, and conformance tests. It does not
+include a concrete deployment backend or a managed environment service. RAES
+7.0.0 was the last release to bundle a reference backend; see the
+[concrete backends migration](https://github.com/OpenRAE/rae/blob/main/docs/migration/concrete-backends.md).
+External backends realize scenarios outside this repository:
 
 - [Shifter](https://github.com/Brad-Edwards/shifter) is a multi-user cyber
   range platform.
@@ -190,6 +191,7 @@ guides/python
 guides/cli
 guides/control-plane
 guides/supervised-execution
+guides/external-injects
 backends
 research
 limitations

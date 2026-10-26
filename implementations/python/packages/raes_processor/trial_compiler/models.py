@@ -33,6 +33,7 @@ from raes_contracts.experiment_bindings import (
     ApparatusManifestKey,
     ParticipantManifestKey,
 )
+from raes_contracts.participant_configuration import ParticipantConfigurationValidator
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 
 
@@ -69,6 +70,9 @@ class TrialCompilationRequest:
         default_factory=dict
     )
     limits: TrialCompilationLimitsModel = field(default_factory=TrialCompilationLimitsModel)
+    participant_configuration_validators: Mapping[tuple[str, str], ParticipantConfigurationValidator] = field(
+        default_factory=dict
+    )
 
     def with_experiment(self, experiment: ExperimentSpecModel) -> TrialCompilationRequest:
         """Return a request that differs only in its admitted authoring input."""
@@ -99,6 +103,7 @@ class TrialCompilationRequest:
             capture_specs=self.capture_specs,
             participant_manifests=self.participant_manifests,
             limits=self.limits,
+            participant_configuration_validators=self.participant_configuration_validators,
         )
 
     def with_family(self, family: ExpandedScenario) -> TrialCompilationRequest:
@@ -129,6 +134,7 @@ class TrialCompilationRequest:
             capture_specs=self.capture_specs,
             participant_manifests=self.participant_manifests,
             limits=self.limits,
+            participant_configuration_validators=self.participant_configuration_validators,
         )
 
 

@@ -32,9 +32,11 @@ from raes_contracts.contracts import (
     ExperimentSpecModel,
     ExperimentTaskModel,
     OrchestrationPlanModel,
+    ParticipantConfigurationResultModel,
     ProcessorManifestV2Model,
     ProvisioningPlanModel,
     TrialProcessorPlanReferenceModel,
+    processor_backend_manifests_are_mutually_compatible,
 )
 from raes_contracts.experiment_bindings import ApparatusManifest, ApparatusManifestKey
 from raes_contracts.plan_projection import (
@@ -70,6 +72,7 @@ class TrialRealization:
     orchestration_plan: OrchestrationPlanModel
     evaluation_plan: EvaluationPlanModel
     processor_plan_refs: tuple[TrialProcessorPlanReferenceModel, ...]
+    participant_configurations: tuple[ParticipantConfigurationResultModel, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -221,10 +224,7 @@ def _runtime_backend(
     if len(processors) != 1:
         raise ValueError("trial realization requires exactly one admitted processor manifest")
     processor = processors[0]
-    if (
-        backend.identity.name not in processor.compatibility.backends
-        or processor.identity.name not in backend.compatibility.processors
-    ):
+    if not processor_backend_manifests_are_mutually_compatible(processor, backend):
         raise ValueError("processor and backend manifests are not mutually compatible")
     return backend_manifest_from_v2_model_with_envelope(backend, realization_envelope)
 
@@ -337,6 +337,7 @@ def realize_admitted_trial_entry(
         orchestration_plan=orchestration,
         evaluation_plan=evaluation,
         processor_plan_refs=references,
+        participant_configurations=tuple(entry.participant_configurations),
     )
 
 

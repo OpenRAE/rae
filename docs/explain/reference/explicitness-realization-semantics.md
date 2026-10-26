@@ -240,9 +240,9 @@ resource-kind claim.
 
 Runtime selection is a separate observation. The backend must bind the observed
 governed mechanism to the operation, selected envelope, and configuration. A
-plan echo or provisioner handle is not evidence. OCI and libvirt modes use
-daemon readback; the in-process reference mode reports an extension term and is
-not presented as a second native isolation mechanism. The runtime gate rejects
+plan echo or provisioner handle is not evidence. Native modes use daemon
+readback. An in-process test double reports an extension term and is not
+presented as a native isolation mechanism. The runtime gate rejects
 missing readback, weak evidence for bounded demand, envelope/domain mismatch,
 and unverified execution binding before snapshot persistence.
 

@@ -1,31 +1,27 @@
 """Relayed provisioning plans realize their published operations (issue #1425).
 
 The authenticated HTTP route carries the published plan model, which holds
-operations and no processor-internal ``resources`` map. The reference and
-libvirt interpreters derive their realized specs from the digest-bound
-non-delete operations, so a relayed plan yields the same specs as the same plan
-in process, a deleted address is never realized, and a ``resources`` map
-outside the plan digest cannot change the specs those interpreters build.
+operations and no processor-internal ``resources`` map. Backends derive their
+realized specs from ``planned_provisioning_resources``: the digest-bound
+non-delete operations. A relayed plan therefore yields the same resources as
+the same plan in process, a deleted address is never realized, and a
+``resources`` map outside the plan digest cannot change what a backend builds.
 """
 
 from __future__ import annotations
 
 from copy import deepcopy
-from dataclasses import dataclass, field, replace
+from dataclasses import replace
 
 import pytest
 from raes import parse_sdl
 from raes.instantiate import instantiate_scenario
-from raes_backend_libvirt.manifest import create_libvirt_manifest
-from raes_backend_libvirt.realization import interpret_provisioning_plan as interpret_libvirt
-from raes_contracts.plan_projection import provisioning_plan_model, runtime_plan_digest
+from raes_backend_stubs.stubs import StubProvisioner, create_stub_target
+from raes_contracts.plan_projection import planned_provisioning_resources, provisioning_plan_model, runtime_plan_digest
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import OperationState, RuntimeSnapshot, SnapshotEntry
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan as plan_runtime_model
-from raes_reference_backend import REFERENCE_BACKEND_NAME, create_reference_backend_target
-from raes_reference_backend.drivers.inprocess import InProcessDriver
-from raes_reference_backend.realization import interpret_provisioning_plan as interpret_reference
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_api import create_control_plane_app
 from raes_runtime.control_plane_api_models import _provisioning_plan
@@ -62,19 +58,16 @@ accounts:
 # Re-planned against the snapshot _EXTENDED leaves, this deletes node db and account alice.
 _REDUCED = _SCENARIO + "accounts:\n  bob: {username: bob, node: web}\n  carol: {username: carol, node: web}\n"
 
-_INTERPRETERS = pytest.mark.parametrize(
-    ("manifest", "interpret", "realized"),
-    [
-        (lambda: create_reference_backend_target().manifest, interpret_reference, "containers"),
-        (create_libvirt_manifest, interpret_libvirt, "domains"),
-    ],
-    ids=["reference", "libvirt"],
-)
 
-
-def _provisioning(scenario: str, manifest, snapshot: RuntimeSnapshot | None = None) -> ProvisioningPlan:
+def _provisioning(scenario: str, snapshot: RuntimeSnapshot | None = None) -> ProvisioningPlan:
     model = compile_runtime_model(instantiate_scenario(parse_sdl(scenario)))
-    return plan_runtime_model(model, manifest, snapshot).provisioning
+    return plan_runtime_model(model, create_stub_target().manifest, snapshot).provisioning
+
+
+def _nodes(plan: ProvisioningPlan) -> list:
+    """The node resources a backend realizes from the plan's backend-facing view."""
+
+    return [resource for resource in planned_provisioning_resources(plan) if resource.resource_type == "node"]
 
 
 def _relayed(plan: ProvisioningPlan) -> ProvisioningPlan:
@@ -110,34 +103,39 @@ def _with_node_source(plan: ProvisioningPlan, source: str) -> ProvisioningPlan:
     return replace(plan, resources={**plan.resources, node.address: replace(node, payload=payload)})
 
 
-@dataclass
-class _RecordingDriver(InProcessDriver):
-    """The in-process driver, also recording each container spec it realizes."""
+class _RecordingProvisioner(StubProvisioner):
+    """The stub provisioner, also recording each resource a backend would realize."""
 
-    containers: list = field(default_factory=list)
+    def __init__(self, realization_envelope) -> None:
+        super().__init__(realization_envelope)
+        self.realized: list = []
 
-    def realize(self, *, networks, containers):
-        self.containers.extend(containers)
-        return super().realize(networks=networks, containers=containers)
+    def apply(self, plan, snapshot):
+        self.realized.extend(planned_provisioning_resources(plan))
+        return super().apply(plan, snapshot)
+
+    def realized_addresses(self) -> set[str]:
+        return {resource.address for resource in self.realized}
 
 
 @pytest.fixture
 def recording():
-    """A control plane over the reference target, its recording driver, and a registered plan."""
+    """A control plane over the stub target, its recording provisioner, and a registered plan."""
 
-    driver = _RecordingDriver()
-    target = create_reference_backend_target(driver=driver)
+    stub = create_stub_target()
+    provisioner = _RecordingProvisioner(stub.manifest.realization_envelope)
+    target = replace(stub, provisioner=provisioner)
     control = RuntimeControlPlane(target)
     execution = plan_for_target(target, parse_sdl(_SCENARIO))
     control.register_planner_produced_plan(execution)
-    yield control, driver, execution.provisioning
+    yield control, provisioner, execution.provisioning
     control.close()
 
 
 def test_http_relayed_plan_realizes_every_committed_address(recording):
-    control, driver, provisioning = recording
+    control, provisioner, provisioning = recording
     wire = provisioning_plan_model(provisioning).model_dump(mode="json", exclude_none=True)
-    app = create_control_plane_app(control, security=_test_security(REFERENCE_BACKEND_NAME))
+    app = create_control_plane_app(control, security=_test_security("stub"))
 
     with TestClient(app) as client:
         response = client.post(
@@ -148,55 +146,55 @@ def test_http_relayed_plan_realizes_every_committed_address(recording):
         committed = set(control.snapshot.entries)
 
     assert committed == {"provision.network.lab", "provision.node.web"}
-    assert driver.realized_addresses() == committed
+    assert provisioner.realized_addresses() == committed
 
 
-@_INTERPRETERS
-def test_relayed_and_direct_plans_interpret_identically(manifest, interpret, realized):
-    direct = _provisioning(_SCENARIO, manifest())
+def test_relayed_and_direct_plans_expose_identical_backend_resources():
+    direct = _provisioning(_SCENARIO)
     relayed = _relayed(direct)
 
     assert relayed.resources == {}
-    assert interpret(relayed) == interpret(direct)
-    assert getattr(interpret(relayed), realized)
+    assert planned_provisioning_resources(relayed) == planned_provisioning_resources(direct)
+    assert _nodes(relayed)
 
 
-@_INTERPRETERS
-def test_deleted_addresses_are_never_realized(manifest, interpret, realized):
-    """A re-plan that deletes a node and an account realizes what a fresh plan of the rest realizes.
+def test_deleted_addresses_are_never_realized():
+    """A re-plan that deletes a node and an account realizes what a fresh plan of the rest realizes."""
 
-    For libvirt this also keeps the removed account out of its node's cloud-init.
-    """
-
-    replanned = _provisioning(_REDUCED, manifest(), _applied(_provisioning(_EXTENDED, manifest())))
-    remaining = interpret(_provisioning(_REDUCED, manifest()))
+    replanned = _provisioning(_REDUCED, _applied(_provisioning(_EXTENDED)))
+    remaining = planned_provisioning_resources(_provisioning(_REDUCED))
 
     assert {op.address for op in replanned.operations if op.action is ChangeAction.DELETE} == {
         "provision.node.db",
         "provision.account.alice",
     }
-    assert [spec.address for spec in getattr(remaining, realized)] == ["provision.node.web"]
-    assert interpret(replanned) == remaining
-    assert interpret(_relayed(replanned)) == remaining
+    assert [resource.address for resource in remaining if resource.resource_type == "node"] == ["provision.node.web"]
+    for candidate in (replanned, _relayed(replanned)):
+        addresses = {resource.address for resource in planned_provisioning_resources(candidate)}
+        assert "provision.node.db" not in addresses
+        assert "provision.account.alice" not in addresses
+        assert _nodes(candidate) == _nodes(_provisioning(_REDUCED))
 
 
-@_INTERPRETERS
-def test_resources_map_outside_the_plan_digest_cannot_change_the_interpreted_specs(manifest, interpret, realized):
-    honest = _provisioning(_SCENARIO, manifest())
+def test_resources_map_outside_the_plan_digest_cannot_change_the_backend_resources():
+    honest = _provisioning(_SCENARIO)
     tampered = _with_node_source(honest, "attacker/backdoor:latest")
 
     assert runtime_plan_digest(tampered) == runtime_plan_digest(honest)
-    assert getattr(interpret(tampered), realized) == getattr(interpret(honest), realized)
+    assert planned_provisioning_resources(tampered) == planned_provisioning_resources(honest)
 
 
 def test_resources_map_outside_the_plan_digest_cannot_change_the_realized_image(recording):
-    control, driver, honest = recording
+    control, provisioner, honest = recording
     tampered = _with_node_source(honest, "attacker/backdoor:latest")
     assert runtime_plan_digest(tampered) == runtime_plan_digest(honest)
 
     receipt = control.submit_provisioning(tampered)
     assert control.get_operation(receipt.operation_id).state is OperationState.SUCCEEDED
-    assert [spec.image_ref for spec in driver.containers] == [
-        spec.image_ref for spec in interpret_reference(honest).containers
+    realized_sources = [
+        resource.payload["spec"]["node"].get("source")
+        for resource in provisioner.realized
+        if resource.resource_type == "node"
     ]
-    assert "attacker/backdoor:latest" not in {spec.image_ref for spec in driver.containers}
+    assert realized_sources == [resource.payload["spec"]["node"].get("source") for resource in _nodes(honest)]
+    assert "attacker/backdoor:latest" not in realized_sources

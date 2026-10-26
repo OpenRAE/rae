@@ -1608,17 +1608,11 @@ def test_backend_does_not_persist_unrequested_realization_observations() -> None
     "backend,mechanism,expected",
     [
         ("stub", "x-openrae:in-process-emulation", "indeterminate"),
-        ("libvirt", "virtual-machine", "succeeded"),
+        ("native-readback", "virtual-machine", "succeeded"),
     ],
 )
 def test_native_realization_readback_is_not_reused_as_unprotected_retention(backend, mechanism, expected) -> None:
-    from libvirt_conformance_fixtures import RecordingLibvirtDriver
-    from raes_backend_libvirt import create_libvirt_target
-
-    class DemandSelectedDriver(RecordingLibvirtDriver):
-        def realize(self, **kwargs):
-            # Collection is performed only by the explicitly selected observe call.
-            return replace(super().realize(**kwargs), observations=())
+    from t2_native_readback_double import create_native_readback_target
 
     scenario = parse_sdl(
         """
@@ -1653,11 +1647,9 @@ def test_native_realization_readback_is_not_reused_as_unprotected_retention(back
         ),
         target_scopes=("/nodes/kali",),
     ).effective
-    target = (
-        create_stub_target()
-        if backend == "stub"
-        else create_libvirt_target(driver=DemandSelectedDriver(), driver_mode="generic")
-    )
+    # The stub reports substrate facts during apply; the double collects them
+    # only through the explicitly selected native readback call.
+    target = create_stub_target() if backend == "stub" else create_native_readback_target()
     execution_plan = plan_for_target(target, scenario)
     provisioning = execution_plan.provisioning
     provisioning = replace(provisioning, observation_demands=demands)

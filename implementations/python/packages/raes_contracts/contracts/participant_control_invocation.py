@@ -27,12 +27,13 @@ from .participant_control_decisions_v2 import ControlEffectRequestV2Model
 from .participant_control_results import (
     ControlAdvisoryModel,
     ControlDecisionModel,
-    ControlIFCFact,
+    ControlIFCFactV2,
     ControlMechanismResultModel,
+    ControlOwnerSecurityFactModel,
 )
 
 ControlResultPayloadV2 = Annotated[
-    ControlIFCFact | ControlDecisionModel | ControlAdvisoryModel | ControlEffectRequestV2Model,
+    ControlIFCFactV2 | ControlDecisionModel | ControlAdvisoryModel | ControlEffectRequestV2Model,
     Field(discriminator="kind"),
 ]
 
@@ -165,6 +166,8 @@ def _satisfied(result: ControlMechanismResultV2Model) -> bool:
     if result.status != "resolved":
         return False
     payload = result.payload
+    if isinstance(payload, ControlOwnerSecurityFactModel):
+        return payload.sink_disposition == "permit"
     return result.rule_outcome == "not-triggered" or (
         payload is not None and (payload.kind != "decision" or payload.disposition == "permit")
     )

@@ -455,4 +455,23 @@ def _handoff_state(
     return state
 
 
-__all__ = ["MixedBackendStageContext", "validate_mixed_backend_stage_reports"]
+def established_mixed_backend_state(
+    binding: MixedBackendExecutionBindingModel,
+    request: BackendOperationRequestModel,
+    responses: Sequence[BackendOperationResponseModel],
+    reports: Sequence[MixedBackendStageReportModel],
+    *,
+    context: MixedBackendStageContext,
+    controls: Sequence[BackendOperationControlModel] = (),
+) -> OperationState:
+    """Return the state established by a validated transcript, without granting publication authority."""
+
+    validate_mixed_backend_stage_reports(binding, request, responses, reports, context=context, controls=controls)
+    trusted = _trusted_inputs(binding, request, context)
+    seen = {stage.stage: stage for stage in _ordered_stages(request, reports)}
+    return (
+        _edge_state(seen, trusted) if binding.subject.kind == "edge" else _handoff_state(binding.subject, seen, trusted)
+    )
+
+
+__all__ = ["MixedBackendStageContext", "established_mixed_backend_state", "validate_mixed_backend_stage_reports"]

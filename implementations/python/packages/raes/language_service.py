@@ -20,6 +20,7 @@ from ._declarations import DeclarationIndex, preferred_spelling
 from ._errors import SDLParseError, SDLValidationError
 from ._language_context import (
     SECTION_FIELDS,
+    DocumentContext,
     PurposeResolver,
     document_context,
     endpoint_purposes,
@@ -31,18 +32,21 @@ from ._language_diagnostics import invalid as _invalid
 from ._language_diagnostics import parse_error as _parse_error
 from ._language_edit import apply_edit
 from ._language_metadata import (
-    REFERENCE_COMPLETION_TARGETS,
     RELATIONSHIP_ENDPOINT_DOMAIN,
     SECTION_FIELD_COMPLETIONS,
     VARIATION_SLOT_TARGETS,
+    reference_completion_target,
 )
 from ._language_references import find_references
 from ._language_relationship_candidates import filter_relationship_candidates
+from ._language_structural_variation import inventory_reference_candidates, inventory_reference_scope
 from ._reference_targetability import ReferencePurpose, purposes_for_domain, reference_domain
 from ._relationship_endpoint_policy import relationship_endpoint_purposes
 from ._source_profile import DEFAULT_PARSER_LIMITS
+from .agents import Agent
 from .formatting import format_sdl_source
 from .parser import _load_normalized_data, parse_sdl
+from .participant_behavior_specification import ParticipantBehaviorSpecification
 from .scenario import Scenario, ScenarioContent
 
 _MAX_INPUT_BYTES = 64 * 1024
@@ -93,6 +97,7 @@ def language_completions(
         items = filter_relationship_candidates(
             items, pointer, data, document.scenario, document.partial_scenario, document.resolver
         )
+        items = _inventory_completion_items(document, reference_pointer, items)
         context = f"reference:{target_section}"
     elif len(pointer) == 1 and pointer[0] in SECTION_FIELD_COMPLETIONS:
         section = pointer[0]
@@ -135,6 +140,16 @@ def language_completions(
 
     filtered = _filter_items(items, prefix)
     return {"status": "ok", "context": context, "items": filtered}
+
+
+def _inventory_completion_items(
+    document: DocumentContext, pointer: list[str], items: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    scope = inventory_reference_scope(document.data, pointer)
+    if scope is None:
+        return items
+    candidates = inventory_reference_candidates(document.scenario or document.partial_scenario, scope)
+    return [_reference_item(address, address) for address in sorted(candidates)]
 
 
 def language_references(sdl_content: str, symbol: str, *, path: Path | None = None) -> dict[str, Any]:
@@ -257,7 +272,9 @@ def apply_structured_edit(
 def _completion_target_section(pointer: list[str], data: dict[str, Any]) -> str | None:
     if len(pointer) < 3:
         return None
-    target = REFERENCE_COMPLETION_TARGETS.get((pointer[0], pointer[-1]))
+    if inventory_reference_scope(data, pointer) is not None:
+        return "targetable"
+    target = reference_completion_target(pointer, pointer[-1])
     if target == RELATIONSHIP_ENDPOINT_DOMAIN and len(pointer) == 3:
         target = reference_domain(relationship_endpoint_purposes(_entry(data, "relationships", pointer[1]), pointer[2]))
     elif pointer[0] == "variation_points" and pointer[-1] in VARIATION_SLOT_TARGETS:
@@ -335,7 +352,11 @@ def _purpose_completion_items(
         offered = [
             (spelling, declaration.address) for spelling, declaration in resolver.index.reference_completions(purposes)
         ]
-    held = _endpoint_held(pointer, scenario, resolver)
+    held = (
+        _controller_state_held(pointer, scenario, resolver)
+        if pointer[0] == "behavior_specifications"
+        else _endpoint_held(pointer, scenario, resolver)
+    )
     return _sorted_items(
         _reference_item(spelling, address) for spelling, address in offered if held is None or address in held
     )
@@ -371,6 +392,47 @@ def _endpoint_refs(scenario: ScenarioContent, resolver: PurposeResolver, endpoin
     candidates = resolver.resolve(endpoint, ReferencePurpose.PARTICIPANT_ENDPOINT)
     declaration = resolver.index.declaration_for(next(iter(candidates))) if len(candidates) == 1 else None
     return None if declaration is None else list(getattr(scenario.agents[declaration.model_tokens[1]], field))
+
+
+def _controller_state_held(
+    pointer: list[str], scenario: ScenarioContent | None, resolver: PurposeResolver
+) -> set[str] | None:
+    """Apply the controller's authority and the owner/controller scope intersection."""
+
+    if scenario is None or len(pointer) != 6 or pointer[2:4] != ["mixed_control", "controller_states"]:
+        return None
+    owner = scenario.behavior_specifications.get(pointer[1])
+    declaration = None if owner is None else owner.mixed_control
+    state = None if declaration is None else declaration.controller_states.get(pointer[4])
+    if state is None:
+        return None
+    controller_ref = declaration.participant_ref if state.controller_ref == "self" else state.controller_ref
+    controller = scenario.agents.get(controller_ref)
+    return None if controller is None else _controller_state_reference_bounds(owner, controller, pointer[-1], resolver)
+
+
+def _controller_state_reference_bounds(
+    owner: ParticipantBehaviorSpecification, controller: Agent, field: str, resolver: PurposeResolver
+) -> set[str] | None:
+    if field == "authority_basis_refs":
+        return {
+            address
+            for ref in controller.authority_anchors
+            for address in resolver.resolve(ref, ReferencePurpose.AUTHORITY_ANCHOR)
+        }
+    if field == "scope_refs":
+        owner_scope = {
+            address
+            for ref in owner.authority_scope_refs
+            for address in resolver.resolve(ref, ReferencePurpose.AUTHORITY_SCOPE)
+        }
+        controller_scope = {
+            address
+            for ref in controller.operating_scope
+            for address in resolver.resolve(ref, ReferencePurpose.OPERATING_SCOPE)
+        }
+        return owner_scope & controller_scope
+    return None
 
 
 def _workflow_step_completion_items(data: dict[str, Any]) -> list[dict[str, str]]:

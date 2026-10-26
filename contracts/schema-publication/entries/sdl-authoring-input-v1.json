@@ -1,9 +1,9 @@
 {
-  "content_hash": "09d1495510ef5f3071b59f2f043d4991b10cc1b387f09d2d1ab8cff8e151315f",
+  "content_hash": "9e0bf4982c9c49d17629faf03d1200c744343cd4dcefd6422b95c2d995df451b",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "09d1495510ef5f3071b59f2f043d4991b10cc1b387f09d2d1ab8cff8e151315f",
-    "summary": "Describe relationship endpoint eligibility and typed narrowing; description only; issue #1339."
+    "content_hash": "9e0bf4982c9c49d17629faf03d1200c744343cd4dcefd6422b95c2d995df451b",
+    "summary": "Add closed structural alternatives for node presence and owner-scoped runtime inventory membership; require the structural kind and preserve implicit legacy reference identity (issue #1625)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

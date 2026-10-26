@@ -33,7 +33,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import Field, GetJsonSchemaHandler, model_validator
+from pydantic import Field, GetJsonSchemaHandler, SerializerFunctionWrapHandler, model_serializer, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
@@ -54,12 +54,16 @@ from .admitted_trial_plan_components import (
     BindingOrigin,
     ExperimentScenarioFamilyReferenceModel,
     SelectionPolicyKind,
+    validate_entry_participant_configurations,
 )
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
+from .experiment_allocation import AdmittedExperimentAllocationModel, compile_experiment_allocation
 from .experiment_apparatus import ExperimentStochasticControlModel
+from .experiment_bindings import ParticipantConfigurationResultModel
 from .random_stream import RandomStreamDrawRecordModel, TrialCoordinateModel
 from .schema_invariants import _add_raes_invariant
 from .trial_cleanup import SchedulerIsolationProofModel, TrialCleanupPlanModel
+from .trial_replacement import TrialReplacementOriginModel, TrialReplacementPolicyModel
 
 #: Canonical-shape placeholder used only while sealing; replaced by the real digest.
 _PLACEHOLDER_DIGEST = "sha256:" + "0" * 64
@@ -143,11 +147,19 @@ class AdmittedTrialEntryModel(ContractModel):
     run_id: NonEmptyString
     selections: list[AdmittedSelectionRecordModel] = Field(default_factory=list)
     bindings: list[AdmittedBindingModel] = Field(default_factory=list)
+    participant_configurations: list[ParticipantConfigurationResultModel] = Field(default_factory=list, max_length=256)
     stochastic_draws: list[RandomStreamDrawRecordModel] = Field(default_factory=list)
     apparatus: AdmittedApparatusBindingModel | AdmittedMixedCompositionBindingModel
     execution_controls: AdmittedExecutionControlModel
     instantiation_provenance: AdmittedInstantiationProvenanceModel
     entry_digest: PrefixedDigestString
+
+    @model_serializer(mode="wrap")
+    def _serialize_configurations(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        payload = handler(self)
+        if not self.participant_configurations:
+            payload.pop("participant_configurations", None)
+        return payload
 
     @model_validator(mode="after")
     def _validate_entry(self) -> AdmittedTrialEntryModel:
@@ -160,6 +172,7 @@ class AdmittedTrialEntryModel(ContractModel):
         for draw in self.stochastic_draws:
             if draw.rejection_exhausted:
                 raise ValueError("admitted entry stochastic draws must record a resolved outcome, not exhaustion")
+        validate_entry_participant_configurations(self)
         provenance = self.instantiation_provenance
         if provenance.plan_entry_id != self.plan_entry_id or provenance.run_id != self.run_id:
             raise ValueError("entry instantiation_provenance must match the entry plan_entry_id and run_id")
@@ -191,21 +204,65 @@ class AdmittedTrialPlanModel(ContractModel):
     stochastic_controls: dict[NonEmptyString, ExperimentStochasticControlModel] = Field(default_factory=dict)
     cleanup_plans: dict[NonEmptyString, TrialCleanupPlanModel] = Field(min_length=1)
     isolation_proof: SchedulerIsolationProofModel | None = None
+    replacement_policy: TrialReplacementPolicyModel | None = None
+    replacement_origin: TrialReplacementOriginModel | None = None
+    allocation: AdmittedExperimentAllocationModel | None = None
     entries: dict[NonEmptyString, AdmittedTrialEntryModel] = Field(min_length=1)
     admission: AdmittedTrialPlanAdmissionModel
     plan_digest: PrefixedDigestString
 
+    @model_serializer(mode="wrap")
+    def _serialize_replacement(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        payload = handler(self)
+        for name in ("replacement_policy", "replacement_origin", "allocation"):
+            if getattr(self, name) is None:
+                payload.pop(name, None)
+        return payload
+
     @model_validator(mode="after")
     def _validate_plan(self) -> AdmittedTrialPlanModel:
+        self._validate_replacement()
         self._validate_map_keys()
         self._validate_identity_graph()
         self._validate_joins()
         self._validate_authority_agreement()
         self._validate_isolation()
+        self._validate_allocation()
         if self.admission.entry_count != len(self.entries):
             raise ValueError("admission entry_count must equal the number of admitted entries")
         _verify_self_digest(self, "plan_digest")
         return self
+
+    def _validate_replacement(self) -> None:
+        replacement_profile = self.profiles.compiler_profile.startswith("trial-compiler-replacement-")
+        if replacement_profile != (self.replacement_origin is not None):
+            raise ValueError("replacement lineage requires the replacement compiler profile")
+        if self.replacement_origin is not None:
+            origin = self.replacement_origin
+            if self.replacement_policy is None or origin.ordinal > self.replacement_policy.max_replacements:
+                raise ValueError("replacement ordinal exceeds the original allocation policy")
+            if len(self.entries) != 1 or self.plan_id in {origin.root_plan_id, origin.parent_plan_id}:
+                raise ValueError("replacement must be a distinct single-entry plan")
+            if next(iter(self.entries.values())).run_id == origin.parent_run_id:
+                raise ValueError("replacement cannot reuse its parent run identity")
+
+    def _validate_allocation(self) -> None:
+        if (self.profiles.allocation_profile != "none") != (self.allocation is not None):
+            raise ValueError("allocation profile and recorded allocation must agree")
+        if self.allocation is not None:
+            from .trial_coordinate_order import canonical_coordinate_sort_key
+
+            if "designed" not in self.profiles.compiler_profile:
+                raise ValueError("recorded allocation requires a designed compiler profile")
+            domain = [
+                entry.plan_entry_id
+                for entry in sorted(
+                    self.entries.values(), key=lambda entry: canonical_coordinate_sort_key(entry.coordinate)
+                )
+            ]
+            expected = compile_experiment_allocation(self.allocation.policy, domain, self.stochastic_controls)
+            if self.allocation != expected:
+                raise ValueError("recorded allocation does not match deterministic reconstruction")
 
     def _validate_authority_agreement(self) -> None:
         # Values duplicated from incumbent authorities must agree, or a correctly
@@ -282,7 +339,12 @@ class AdmittedTrialPlanModel(ContractModel):
             for entry in self.entries.values()
             if isinstance(entry.apparatus, AdmittedMixedCompositionBindingModel)
         ]
-        mixed_profile = self.profiles.compiler_profile == "trial-compiler-mixed-composition-v1"
+        mixed_profile = self.profiles.compiler_profile in {
+            "trial-compiler-mixed-composition-v1",
+            "trial-compiler-replacement-mixed-composition-v1",
+            "trial-compiler-designed-mixed-composition-v1",
+            "trial-compiler-replacement-designed-mixed-composition-v1",
+        }
         if bool(mixed_entries) != mixed_profile:
             raise ValueError("mixed composition entries require the matching compiler and identity profiles")
         if mixed_profile and (
@@ -371,7 +433,9 @@ class AdmittedTrialPlanModel(ContractModel):
             "profile inputs, and isolation-proof entries within the sealed plan, requires values duplicated from "
             "incumbent authorities (random-stream profile, "
             "binding condition/family) to agree, forbids bounded-parallel entries from sharing resources, matches "
-            "admission cardinality, and binds the complete plan with a recomputed plan_digest over the entry set.",
+            "admission cardinality, binds a replacement profile to a distinct single-entry child within the "
+            "original replacement budget, and binds the complete plan with a recomputed plan_digest "
+            "over the entry set.",
             validator="raes_contracts.contracts.admitted_trial_plan.AdmittedTrialPlanModel._validate_plan",
             inputs=[{"contract_id": "admitted-trial-plan-v1", "instance_path": "#"}],
         )

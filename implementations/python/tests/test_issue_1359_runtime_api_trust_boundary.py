@@ -67,6 +67,17 @@ _RESOLVE = ControlPlaneRouteAuthority.OPERATOR_RESOLUTION
 # table fails the inventory test; a route added without a transport authority
 # fails app construction.
 _EXPECTED_ROUTE_AUTHORITY = {
+    ("GET", "/operations/{operation_id}/participant-cancellation"): _READ,
+    ("POST", "/operations/{operation_id}/participant-cancellation/dispatch"): _RESOLVE,
+    ("POST", "/injects/trigger"): _MUTATE,
+    ("POST", "/injects/deliver"): _MUTATE,
+    ("GET", "/operations/{operation_id}/inject-capture"): _READ,
+    ("GET", "/operations/{operation_id}/inject-delivery"): _READ,
+    ("GET", "/operations/{operation_id}/inject-occurrence"): _READ,
+    ("GET", "/operations/{operation_id}/inject-outcome"): _READ,
+    ("GET", "/operations/{operation_id}/inject-correlation"): _READ,
+    ("GET", "/operations/{operation_id}/inject-result"): _READ,
+    ("GET", "/operations/{operation_id}/inject-artifacts/{artifact_id}"): _READ,
     ("GET", "/health/live"): _PUBLIC,
     ("GET", "/health/ready"): _PUBLIC,
     ("POST", "/operations/provisioning"): _MUTATE,
@@ -102,6 +113,32 @@ _EXPECTED_ROUTE_AUTHORITY = {
 
 # One concrete request per authenticated route: (method, template, path, json).
 _ROUTE_REQUESTS: tuple[tuple[str, str, str, object], ...] = (
+    (
+        "GET",
+        "/operations/{operation_id}/participant-cancellation",
+        "/operations/op-unknown/participant-cancellation",
+        None,
+    ),
+    (
+        "POST",
+        "/operations/{operation_id}/participant-cancellation/dispatch",
+        "/operations/op-unknown/participant-cancellation/dispatch",
+        None,
+    ),
+    ("POST", "/injects/trigger", "/injects/trigger", {}),
+    ("POST", "/injects/deliver", "/injects/deliver", {}),
+    ("GET", "/operations/{operation_id}/inject-capture", "/operations/op-unknown/inject-capture", None),
+    ("GET", "/operations/{operation_id}/inject-delivery", "/operations/op-unknown/inject-delivery", None),
+    ("GET", "/operations/{operation_id}/inject-occurrence", "/operations/op-unknown/inject-occurrence", None),
+    ("GET", "/operations/{operation_id}/inject-outcome", "/operations/op-unknown/inject-outcome", None),
+    ("GET", "/operations/{operation_id}/inject-correlation", "/operations/op-unknown/inject-correlation", None),
+    ("GET", "/operations/{operation_id}/inject-result", "/operations/op-unknown/inject-result", None),
+    (
+        "GET",
+        "/operations/{operation_id}/inject-artifacts/{artifact_id}",
+        "/operations/op-unknown/inject-artifacts/unknown",
+        None,
+    ),
     (
         "POST",
         "/operations/provisioning",

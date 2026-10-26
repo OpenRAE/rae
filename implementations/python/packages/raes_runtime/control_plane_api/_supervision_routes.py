@@ -21,6 +21,7 @@ from raes_contracts.contracts.backend_operation import OperationIdentifier
 from ..control_plane_api_models import _operation_status_model
 from ..operation_control_budget import ControlDeliveryGrant
 from ..operation_worker_authority import InvocationGrant
+from ..participant_control_cancellation import ParticipantCancellationStatus
 from ._auth import _AdministrativeMutationIdentity, _AdministrativeReadIdentity, _OperatorResolutionIdentity
 from ._offload import _control_plane_calls
 
@@ -64,6 +65,18 @@ def _bound_path(operation_id: str, binding: BackendOperationBindingModel) -> Non
 
 
 def register_supervision_routes(app: FastAPI, plane: RuntimeControlPlane) -> None:
+    @app.get("/operations/{operation_id}/participant-cancellation", responses=_SUPERVISION_RESPONSES)
+    async def cancellation_status(
+        operation_id: str, request: Request, identity: _AdministrativeReadIdentity
+    ) -> ParticipantCancellationStatus:
+        return await _call(request, plane.participant_cancellation_status, operation_id, identity=identity)
+
+    @app.post("/operations/{operation_id}/participant-cancellation/dispatch", responses=_SUPERVISION_RESPONSES)
+    async def dispatch_cancellation(
+        operation_id: str, request: Request, identity: _OperatorResolutionIdentity
+    ) -> ParticipantCancellationStatus:
+        return await _call(request, plane.dispatch_participant_cancellation, operation_id, identity=identity)
+
     @app.post("/execution/stop", status_code=204, responses=_SUPERVISION_RESPONSES)
     async def stop(request: Request, identity: _OperatorResolutionIdentity) -> Response:
         await _call(request, plane.stop_admission, identity=identity)

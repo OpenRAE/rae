@@ -30,6 +30,7 @@ from .control_plane_execution import (
     execute_operation,
     reject_new_operation_if_admission_fails,
 )
+from .control_plane_injects import RuntimeInjectMixin
 from .control_plane_lifecycle import RuntimeLifecycleMixin, runtime_owned, store_authoritative_state
 from .control_plane_mutation import (
     RuntimeMutationAuthority,
@@ -113,6 +114,7 @@ def _require_selected_store_capabilities(declaration: ControlPlaneProfileDeclara
 
 
 class RuntimeControlPlane(
+    RuntimeInjectMixin,
     RuntimeLifecycleMixin,
     RuntimeSupervisionMixin,
     RuntimeWorkerAuthorityMixin,
@@ -187,10 +189,15 @@ class RuntimeControlPlane(
         self._crossing_policy_resolver = config.crossing_policy_resolver
         self._information_state_context_resolver = config.information_state_context_resolver
         self._participant_control = config.participant_control
+        self._mixed_control = config.mixed_control
+        from .participant_control_replay import validate_restored_control_archive
+
+        validate_restored_control_archive(self)
         self._ephemeral_idempotency_fingerprints: dict[IdempotencyClaimIdentity, str] = {}
         self._participant_control_lock = SubordinateMutationGate(self._mutation_authority)
         self._trusted_runtime_plan_lock = RLock()
         self._trusted_runtime_plan_digests: set[str] = set()
+        self._trusted_orchestration_models: dict[str, object] = {}
         require_participant_information_state_snapshot(self._snapshot, config.information_state_context_resolver)
         if self._snapshot.participant_crossing_history:
             if config.crossing_policy_resolver is None:

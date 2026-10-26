@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable
 from copy import deepcopy
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from time import monotonic
 from typing import TYPE_CHECKING, cast
 from uuid import uuid4
 
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts import BackendOperationRequestModel
+from raes_contracts.contracts import BackendOperationRequestModel, inject_occurrence_reference
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import (
@@ -31,6 +31,7 @@ from .operation_invocation_ledger import InvocationLedger
 from .operation_policy_admission import execution_budget_ms
 
 if TYPE_CHECKING:
+    from raes_backend_protocols.inject_execution import ResolvedInjectOutcome
     from raes_contracts.contracts import BackendOperationResponseModel
     from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
@@ -56,11 +57,15 @@ def invocation_request(
             "baseline_revision": str(plane._snapshot_state.revision),
             "context": request.context,
         },
-        command={
+        command=inject_occurrence_reference(request.inject_occurrence)
+        if request.inject_occurrence is not None
+        else {
             "contract_id": f"{request.domain.value}-plan-v1",
             "artifact_id": getattr(request.plan, "operation_id", None) or operation_id,
             "digest": native_command_commitment(plane, request.plan),
         },
+        requirement_refs=() if request.inject_occurrence is None else request.inject_occurrence.evidence_requirements,
+        required_guarantees=() if request.inject_occurrence is None else ("effect-observation", "cessation-evidence"),
         budget={
             "origin_id": "execution:" + canonical_json_digest(operation_id).removeprefix("sha256:"),
             "started_at": submitted_at,
@@ -108,6 +113,7 @@ def claim_accepted(
         request_fingerprint=request.request_fingerprint,
         idempotency_key=request.idempotency_key,
         invocation=invocation,
+        inject_occurrence=request.inject_occurrence,
     )
     options, diagnostics = _admission_claim_options(plane, request)
     try:
@@ -145,6 +151,16 @@ def _admission_claim_options(
     return options, diagnostics
 
 
+@dataclass(frozen=True)
+class OperationSettlement:
+    state: OperationState
+    result: ApplyResult | None = None
+    diagnostics: tuple[Diagnostic, ...] = ()
+    release_commitment: str | None = None
+    result_payload: dict[str, object] | None = None
+    inject_resolution: ResolvedInjectOutcome | None = None
+
+
 def settle(
     plane: RuntimeControlPlane,
     record: ControlPlaneOperationRecord,
@@ -155,6 +171,29 @@ def settle(
     release_commitment: str | None = None,
     result_payload: dict[str, object] | None = None,
 ) -> None:
+    plane._require_state_writer()
+    commit_settlement(
+        plane,
+        record,
+        OperationSettlement(
+            state=state,
+            result=result,
+            diagnostics=tuple(diagnostics),
+            release_commitment=release_commitment,
+            result_payload=result_payload,
+        ),
+    )
+
+
+def commit_settlement(
+    plane: RuntimeControlPlane, record: ControlPlaneOperationRecord, outcome: OperationSettlement
+) -> None:
+    state, result = outcome.state, outcome.result
+    diagnostics, release_commitment = outcome.diagnostics, outcome.release_commitment
+    result_payload, inject_resolution = outcome.result_payload, outcome.inject_resolution
+    inject_outcome, inject_evidence = (
+        (None, None) if inject_resolution is None else (inject_resolution.outcome, inject_resolution.evidence)
+    )
     plane._require_state_writer()
     plane._reload_derived_state()
     current = plane._operations[record.receipt.operation_id]
@@ -188,6 +227,8 @@ def settle(
             }
         ),
         result_payload=result_payload,
+        inject_outcome=inject_outcome,
+        inject_evidence=inject_evidence,
     )
     plane._commit_terminal_operation(snapshot, final, mode=mode)
     plane._execution_adapter.cancel_deadline(record.receipt.operation_id)

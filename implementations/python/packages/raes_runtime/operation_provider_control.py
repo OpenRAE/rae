@@ -21,6 +21,10 @@ def deliver_control(
     from time import monotonic
 
     provider = plane._target.operation_provider
+    if parent.invocation.mixed_binding is not None:
+        from .mixed_backend_installation import mixed_installation
+
+        provider = mixed_installation(plane, parent.invocation).provider
     if control.control_id in parent.invocation.delivered_controls:
         return
     remaining_control_budget(plane, control)

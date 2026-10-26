@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-04-05T00:54:58.405111Z
-updated_at: 2026-09-14T00:00:00Z
+updated_at: 2026-10-21T00:00:00Z
 ---
 
 # SEM-218 — Explicitness And Realization Semantics
@@ -21,6 +21,8 @@ Current state: identified gap. Honest portability requires normative semantics f
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_issue_1638_credential_realization_observations.py` (Observed OPEN, constrained and EXACT values with account credentials)
+
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/parameter_derivations.py` (Public typed parameter derivations and finite interpolation images)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_phase_base.py` (Immutable phase records and JSON scalar equality)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_scenario_instantiation.py` (Selected output and whole-field provenance admission)
@@ -31,7 +33,6 @@ Current state: identified gap. Honest portability requires normative semantics f
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_compute_substrate.py` (Independent scope and exact-source runtime admission)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_operational_observation.py` (Authoritative native readback and prior-disclosure reuse)
 - TESTS → TEST `implementations/python/tests/test_issue_1237_source_sufficiency.py` (Substrate binding, runtime source matching, and reuse regressions)
-- TESTS → TEST `implementations/python/tests/test_reference_backend_provisioner.py` (Driver-reported readback rejection without losing recoverable inventory)
 
 - TESTS → TEST `implementations/python/tests/test_issue_1206_review_regressions.py` (Unknown replication remains knowledge while private identities retain exact matching)
 
@@ -264,10 +265,6 @@ Current state: identified gap. Honest portability requires normative semantics f
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_specialized_projection.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_support.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_typed_runtime_projection.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/manifest.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/profile_preparation.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/provisioner.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/target.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_preparation.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_profiles.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_realization_authority.py`
@@ -330,5 +327,6 @@ Current state: identified gap. Honest portability requires normative semantics f
 - TESTS → TEST `implementations/python/tests/test_issue_1208_profile_boundaries.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1208_self_review.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1208_overcap.py`
+- TESTS → TEST `implementations/python/tests/test_stub_backend_provenance.py` (Runtime-recorded realization provenance on the stub target)
 - IMPLEMENTS → SPEC `contracts/schemas/plans/backend-realization-preparation-v1.json` (backend-realization-preparation-v1 published schema)
 - IMPLEMENTS → SPEC `contracts/schemas/plans/plan-realization-profiles-v1.json` (plan-realization-profiles-v1 published schema)

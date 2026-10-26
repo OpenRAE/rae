@@ -1,4 +1,4 @@
-"""Entry metadata and validated-content checks for the AUT-806 example library gate."""
+"""Entry metadata, template, and worked-example checks for the AUT-806 example library gate."""
 
 from __future__ import annotations
 
@@ -8,7 +8,10 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
+import yaml
 from raes import Scenario, SDLParseError, load_sdl_fragment, parse_sdl, parse_sdl_file
+from raes_contracts.experiment_spec import ExperimentSpecValidationError, parse_experiment_spec
+from raes_contracts.experiment_spec import _load_yaml as _read_experiment_yaml
 
 from tools.policy.common import PolicyFailure
 from tools.sdl_catalog_parity._paths import _COMPOSITION_FIELDS, _METADATA_FIELDS
@@ -21,11 +24,22 @@ REQUIRED_VALIDATION_STATUS: dict[str, str] = {
     "templates": VALIDATED,
     "patterns": GUIDANCE,
 }
-INTENDED_USERS: tuple[str, ...] = ("sdl-author",)
+SDL_CONTRACT = "sdl-yaml/v1"
+EXPERIMENT_CONTRACT = "experiment-authoring-input-v1"
+# Each body contract has exactly one intended user. Only templates may use a
+# contract other than SDL; an entry without a contract is SDL.
+CONTRACT_USERS: dict[str, str] = {
+    SDL_CONTRACT: "sdl-author",
+    EXPERIMENT_CONTRACT: "experiment-author",
+}
+# An authoring input is a pre-run design that names its task by reference
+# (ADR-074), so only run and study templates may hold one.
+EXPERIMENT_SURFACES: frozenset[str] = frozenset({"run", "study"})
 # Top-level SDL fields that specs/sdl/sections.md classifies as metadata or
 # composition rather than as sections. The SDL catalog parity gate keeps these
 # sets in step with that catalog.
 NON_SECTION_FIELDS = _METADATA_FIELDS | _COMPOSITION_FIELDS
+VALIDATION_STEP_FIELDS: tuple[str, ...] = ("command", "expected")
 # Characters that json.dumps(ensure_ascii=False) leaves raw but the sdl-yaml/v1
 # reader rejects (DEL, the C1 controls, U+FFFE, U+FFFF) or reads as a line break
 # inside a quoted string (NEL, U+2028, U+2029). JSON escapes the C0 controls.
@@ -47,8 +61,8 @@ def _sdl_section_names() -> frozenset[str]:
     return frozenset(Scenario.model_fields) - NON_SECTION_FIELDS
 
 
-def check_entry_metadata(field: str, entry: dict[str, Any], owner: str) -> list[PolicyFailure]:
-    """Check the validation status, SDL sections, intended user, and limits of one catalog entry."""
+def check_entry_metadata(field: str, entry: dict[str, Any], owner: str, *, surface: str) -> list[PolicyFailure]:
+    """Check the validation status, limits, contract, intended user, and SDL sections of one catalog entry."""
     failures: list[PolicyFailure] = []
     allowed_statuses = (
         (REQUIRED_VALIDATION_STATUS[field],) if field in REQUIRED_VALIDATION_STATUS else VALIDATION_STATUSES
@@ -61,29 +75,43 @@ def check_entry_metadata(field: str, entry: dict[str, Any], owner: str) -> list[
                 f"{owner}.validation_status must be one of {list(allowed_statuses)}; got {status!r}",
             )
         )
+    if not _text_list(entry.get("limits")):
+        failures.append(_fail("example-library-entry-limits", f"{owner}.limits must be a non-empty list of strings"))
+    contract = entry.get("contract", SDL_CONTRACT)
+    experiment_allowed = field == "templates" and surface in EXPERIMENT_SURFACES
+    allowed_contracts = tuple(CONTRACT_USERS) if experiment_allowed else (SDL_CONTRACT,)
+    if contract not in allowed_contracts:
+        failures.append(
+            _fail(
+                "example-library-entry-contract",
+                f"{owner}.contract must be one of {list(allowed_contracts)}; got {contract!r}",
+            )
+        )
+        return failures
     user = entry.get("intended_user")
-    if user not in INTENDED_USERS:
+    if user != CONTRACT_USERS[contract]:
         failures.append(
             _fail(
                 "example-library-entry-user",
-                f"{owner}.intended_user must be one of {list(INTENDED_USERS)}; got {user!r}",
+                f"{owner}.intended_user must be {CONTRACT_USERS[contract]!r} for {contract}; got {user!r}",
             )
         )
-    if not _text_list(entry.get("limits")):
-        failures.append(_fail("example-library-entry-limits", f"{owner}.limits must be a non-empty list of strings"))
+    failures.extend(_check_entry_sections(entry, owner, contract))
+    return failures
+
+
+def _check_entry_sections(entry: dict[str, Any], owner: str, contract: str) -> list[PolicyFailure]:
+    if contract != SDL_CONTRACT:
+        absent_failure = _fail("example-library-entry-sections", f"{owner}.sdl_sections must be absent for {contract}")
+        return [absent_failure] if "sdl_sections" in entry else []
     sections = _text_list(entry.get("sdl_sections"))
     if not sections or len(set(sections)) != len(sections):
-        failures.append(
+        return [
             _fail("example-library-entry-sections", f"{owner}.sdl_sections must be a non-empty list of distinct names")
-        )
-    elif unknown := sorted(set(sections) - _sdl_section_names()):
-        failures.append(
-            _fail(
-                "example-library-entry-sections",
-                f"{owner}.sdl_sections names values that are not SDL sections: {unknown}",
-            )
-        )
-    return failures
+        ]
+    unknown = sorted(set(sections) - _sdl_section_names())
+    message = f"{owner}.sdl_sections names values that are not SDL sections: {unknown}"
+    return [_fail("example-library-entry-sections", message)] if unknown else []
 
 
 def _check_declared_sections(
@@ -121,19 +149,30 @@ def _check_sdl(source: str | Path, relative_path: str, *, kind: str, subject: st
     return failures
 
 
-def load_template_file(path: Path, relative_path: str) -> tuple[dict[str, Any] | None, list[PolicyFailure]]:
-    """Read a template file with the strict sdl-yaml/v1 loader that parse_sdl uses.
+def load_template_file(
+    path: Path, relative_path: str, contract: object = None
+) -> tuple[dict[str, Any] | None, list[PolicyFailure]]:
+    """Read a template file with the strict loader of the entry's contract.
 
     yaml.safe_load keeps the last of duplicate keys and expands merge keys, so
     the body it returns can differ from the body an author saves and parses.
-    The SDL loader rejects both, along with explicit tags. It accepts acyclic
-    aliases within its limits, as parse_sdl does. The root mapping holds the
-    template fields, so its keys are read literally; the body below it gets
-    the same structural key checks as an SDL document root.
+    An experiment authoring-input template is read with the YAML reader of
+    parse_experiment_spec, which rejects duplicate keys, aliases, and merge
+    keys. Any other template is read with the sdl-yaml/v1 loader that
+    parse_sdl uses. It rejects duplicate keys, merge keys, and explicit tags,
+    and accepts acyclic aliases within its limits, as parse_sdl does. The root
+    mapping holds the template fields, so its keys are read literally; the
+    body below it gets the same structural key checks as an SDL document root.
     """
     try:
-        raw = load_sdl_fragment(path.read_text(encoding="utf-8"), mapping_keys="literal")
-    except (SDLParseError, UnicodeDecodeError) as exc:
+        text = path.read_text(encoding="utf-8")
+        if contract == EXPERIMENT_CONTRACT:
+            raw = _read_experiment_yaml(text)
+        else:
+            raw = load_sdl_fragment(text, mapping_keys="literal")
+    # ValueError covers UnicodeDecodeError and the experiment reader's
+    # timestamp error on an invalid date such as 2026-02-30.
+    except (SDLParseError, yaml.YAMLError, ValueError) as exc:
         return None, [_fail("example-library-parse", f"failed to parse {relative_path}: {exc}", relative_path)]
     if not isinstance(raw, dict):
         return None, [
@@ -154,8 +193,33 @@ def sdl_body_source(body: dict[str, Any]) -> str:
     return _YAML_SPECIAL_CHARACTERS.sub(lambda match: f"\\u{ord(match.group()):04x}", text)
 
 
+def _check_experiment_spec(body: dict[str, Any], relative_path: str) -> list[PolicyFailure]:
+    """Validate a template body with the experiment authoring-input loader (ADR-074)."""
+    try:
+        parse_experiment_spec(yaml.safe_dump(body, sort_keys=False))
+    except ExperimentSpecValidationError as exc:
+        return [
+            _fail(
+                "example-library-template-body",
+                f"template body is not a valid {EXPERIMENT_CONTRACT} document: {exc}",
+                relative_path,
+            )
+        ]
+    return []
+
+
 def check_template_body(entry: dict[str, Any], body: dict[str, Any], relative_path: str) -> list[PolicyFailure]:
-    """Validate a template body as SDL and check the entry's declared sections against it."""
+    """Validate a template body against the entry's contract.
+
+    An SDL body must also contain the entry's declared sections. A body under
+    an unknown contract is not validated; the entry metadata check reports
+    the contract.
+    """
+    contract = entry.get("contract", SDL_CONTRACT)
+    if contract == EXPERIMENT_CONTRACT:
+        return _check_experiment_spec(body, relative_path)
+    if contract != SDL_CONTRACT:
+        return []
     failures = _check_sdl(sdl_body_source(body), relative_path, kind="template", subject="template body")
     return failures or _check_declared_sections(entry, body, relative_path)
 
@@ -172,4 +236,29 @@ def check_worked_example_file(path: Path, relative_path: str, entry: dict[str, A
     # Use the sdl-yaml/v1 loader that parse_sdl_file used; YAML 1.1 yaml.safe_load can reject valid SDL.
     return failures or _check_declared_sections(
         entry, load_sdl_fragment(path.read_text(encoding="utf-8")), relative_path
+    )
+
+
+def check_template_validation(raw: dict[str, Any], relative_path: str) -> list[PolicyFailure]:
+    """Check the shape of a template's validation list; a missing list is a required-field failure."""
+    if "validation" not in raw or _is_validation_list(raw["validation"]):
+        return []
+    return [
+        _fail(
+            "example-library-template-validation",
+            "validation must be a non-empty list of mappings with non-empty command and expected strings",
+            relative_path,
+        )
+    ]
+
+
+def _is_validation_list(value: object) -> bool:
+    return (
+        isinstance(value, list)
+        and bool(value)
+        and all(
+            isinstance(step, dict)
+            and all(isinstance(step.get(field), str) and step[field].strip() for field in VALIDATION_STEP_FIELDS)
+            for step in value
+        )
     )

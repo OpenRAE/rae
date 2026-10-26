@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 3
 created_at: 2026-07-15T05:45:06.862070Z
-updated_at: 2026-09-22T05:55:00Z
+updated_at: 2026-10-23T00:00:00Z
 ---
 
 # DSL-142 — Participant-Directed Inject Binding And Delivery
@@ -54,6 +54,14 @@ the legacy fixed-coordinate form; the new bounded tests evidence a design
 projection. Executable adoption and historical readers must meet the
 [migration contract](../../migration/reusable-mixed-control.md).
 
+Issue #1363 adds the rev1 nested `control` binding with its validation and
+compilation. Issue #1368 adds an explicitly installed scheduled world/result
+composition with exact reusable-control joins, independent capture and governed
+local delivery. The supported reader refuses schedule-free and legacy-flat
+control composition rather than fabricating anchors or converting lineages.
+A local delivery receipt proves neither external acknowledgement nor observation.
+API-424 and planning retain refusal unless their exact owner context is installed.
+
 [ADR-112](../../decisions/adrs/adr-112-external-inject-triggering-and-execution.md)
 and [EI-05](../../../specs/sdl/external-injects.md#ei-05--optional-participant-composition)
 add #1353's world-effect/delivery composition boundary. They preserve ADR-110's
@@ -94,4 +102,43 @@ backend execution, delivery or observation.
 - TESTS → TEST `implementations/python/tests/test_dsl_142_participant_inject_delivery.py` (DSL-142 participant inject delivery tests)
 - IMPLEMENTS → SPEC `contracts/schemas/sdl/instantiated-scenario-v1.json` (DSL-142 governed instantiated scenario schema)
 - TESTS → TEST `implementations/python/tests/test_sdl_catalog_parity.py` (DSL-142 SDL catalog parity tests)
+
+- IMPLEMENTS → GITHUB_ISSUE `1363` (Rev1 directed-delivery control binding; executable adoption not claimed)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_participant_inject_delivery_control.py` (Rev1 delivery binding validation)
+- TESTS → TEST `implementations/python/tests/test_issue_1363_delivery_and_admission.py` (Rev1 delivery binding and refusal tests)
+- TESTS → TEST `implementations/python/tests/test_issue_1363_schema_parity.py` (Control-block exclusivity parity across published schemas)
+- TESTS → TEST `implementations/python/tests/test_issue_1363_identity_integration.py` (Unknown control references, disclosure basis, required runtime projection and nested editor references)
 - IMPLEMENTS → SPEC `contracts/schemas/control-plane/inject-occurrence-correlation-v1.json` (inject-occurrence-correlation-v1 published schema)
+
+- IMPLEMENTS → GITHUB_ISSUE `1368`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_inject_application.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_inject_control.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_inject_delivery.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_inject_temporal.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/inject_capture.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/inject_schedule.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/inject_claims.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_effects.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_crossing_egress.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_inject_application.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_resolution.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/mixed_control_admission.py`
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/participant-inject-application-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/participant-inject-delivery-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/participant-inject-delivery-receipt-v1.json`
+- TESTS → TEST `implementations/python/tests/test_issue_1368_inject_delivery.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1368_inject_delivery_http.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1368_delivery_contracts.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1368_control_inject_owner.py`
+- DOCUMENTS → DOCUMENTATION `docs/public/guides/external-injects.md`
+- DOCUMENTS → DOCUMENTATION `docs/explain/reference/inject-occurrence-contracts.md`
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1368-directed-inject-occurrence-preflight.md`
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/associated_artifacts.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_inject_occurrence_exports.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/inject_occurrence_schema.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/core.py`
+- TESTS → TEST `implementations/python/tests/participant_inject_runtime_fixtures.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/observation_lifecycle.py` (Preserve independent mandatory capture when an optional selector fails)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/observation_demand.py`
