@@ -8,6 +8,7 @@ from dataclasses import replace
 from raes import (
     validate_experiment_selection_against_family,
 )
+from raes_backend_protocols.backend_manifest import BackendManifest
 from raes_backend_protocols.capabilities import ObservationCapabilities
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope
 from raes_contracts.canonical import canonical_json_bytes, canonical_json_digest
@@ -44,6 +45,7 @@ from .apparatus import (
     validate_selected_participant_manifests,
 )
 from .bindings import _admitted_descriptors, _entry_bindings, entry_participant_configurations
+from .control_admission import require_trial_controls
 from .inputs import (
     canonical_input_refs,
     canonical_realization_binding,
@@ -116,7 +118,7 @@ def _compile_entry(
     row: CoordinateSelections,
     coordinate: TrialCoordinateModel,
     descriptors: Mapping[str, ExperimentBindingDescriptorModel],
-    observations: tuple[ObservationCapabilities | None, ...],
+    backends: tuple[BackendManifest, ...],
 ) -> tuple[str, AdmittedTrialEntryModel, str, TrialCleanupPlanModel]:
     realization = request.realization_assignments.get(realization_assignment_key(coordinate))
     selected = _validate_selected_scenario(request, row, coordinate)
@@ -133,7 +135,7 @@ def _compile_entry(
             relations,
             relation_scenario=request.family,
         ),
-        observations,
+        tuple(backend.observation for backend in backends),
     )
     identity_projection = {
         "plan_id": plan_id,
@@ -189,6 +191,7 @@ def _compile_entry(
             scenario_family_id=request.family.name,
         ),
     )
+    require_trial_controls(backends, entry.execution_controls, cleanup)
     return entry_id, entry, cleanup_id, cleanup
 
 
@@ -219,7 +222,7 @@ def _compile_coordinate(
         row,
         coordinate,
         descriptors,
-        authority.observations_by_profile[profile_id],
+        authority.backends_by_profile[profile_id],
     )
 
 
@@ -277,12 +280,12 @@ def _compilation_authority(request: TrialCompilationRequest, mixed: bool) -> com
         authority = validate_mixed_authority(request)
         apparatus_manifests_by_profile = authority.apparatus_manifests_by_root
         participant_manifests = authority.participant_manifests
-        observations_by_profile = {
+        backends_by_profile = {
             profile_id: tuple(
                 backend_manifest_from_v2_model_with_envelope(
                     manifest,
                     request.mixed_realization_envelopes[manifest.realization_envelope.envelope_id],
-                ).observation
+                )
                 for manifest in manifests
             )
             for profile_id, manifests in authority.backend_manifests_by_root.items()
@@ -291,9 +294,9 @@ def _compilation_authority(request: TrialCompilationRequest, mixed: bool) -> com
         apparatus_manifests = validate_selected_apparatus(request)
         apparatus_manifests_by_profile = {"": apparatus_manifests}
         participant_manifests = validate_selected_participant_manifests(request)
-        observations_by_profile = {
+        backends_by_profile = {
             "": tuple(
-                backend_manifest_from_v2_model_with_envelope(backend, request.realization_envelope).observation
+                backend_manifest_from_v2_model_with_envelope(backend, request.realization_envelope)
                 for backend in sorted(
                     (
                         manifest
@@ -306,7 +309,7 @@ def _compilation_authority(request: TrialCompilationRequest, mixed: bool) -> com
         }
     return compiler_models._EntryCompilationAuthority(
         descriptors=None,
-        observations_by_profile=observations_by_profile,
+        backends_by_profile=backends_by_profile,
         apparatus_manifests_by_profile=apparatus_manifests_by_profile,
         participant_manifests=participant_manifests,
     )
