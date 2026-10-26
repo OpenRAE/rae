@@ -8,6 +8,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [8.0.0](https://github.com/OpenRAE/rae/compare/v7.0.0...v8.0.0) (2026-10-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove the bundled concrete backends from RAES ([#1621](https://github.com/OpenRAE/rae/issues/1621))
+
+### Features
+
+* add bounded replacement of failed experiment trials ([#1619](https://github.com/OpenRAE/rae/issues/1619)) ([9dd40b1](https://github.com/OpenRAE/rae/commit/9dd40b17750868fb196ed36ecd168eb4776f094c))
+* add finite owner IFC profiles and admission ([#1614](https://github.com/OpenRAE/rae/issues/1614)) ([ae2bc6f](https://github.com/OpenRAE/rae/commit/ae2bc6f14ec72cfccd7186fc4e86242a66971f7e))
+* add node presence and runtime inventory choices ([#1636](https://github.com/OpenRAE/rae/issues/1636)) ([cc117eb](https://github.com/OpenRAE/rae/commit/cc117eb22c4d5af1bb59e61c9656a01f2220694f))
+* admit external backend manifests ([#1635](https://github.com/OpenRAE/rae/issues/1635)) ([7b3918d](https://github.com/OpenRAE/rae/commit/7b3918dd64d25f86ec1b50d6e0669fb42fb474a9))
+* compose participant inject delivery with world results ([#1620](https://github.com/OpenRAE/rae/issues/1620)) ([2550e30](https://github.com/OpenRAE/rae/commit/2550e30766c59cef3e665e944629155006b22ea2))
+* define backend trial unit protocol ([#1639](https://github.com/OpenRAE/rae/issues/1639)) ([23afe16](https://github.com/OpenRAE/rae/commit/23afe166d2eb3afb3052ba1945c8418b979909af))
+* **examples:** validate experiment tasks and add run and study templates ([#1458](https://github.com/OpenRAE/rae/issues/1458)) ([ecd7b20](https://github.com/OpenRAE/rae/commit/ecd7b205796e19ff36ade5a51e66c0803665dc3d))
+* execute portable mixed-backend operations ([#1615](https://github.com/OpenRAE/rae/issues/1615)) ([eeb9949](https://github.com/OpenRAE/rae/commit/eeb9949344bc1283495c69b60778988dc5f5dbeb))
+* execute repeatable control transitions and evidenced cancellation ([#1613](https://github.com/OpenRAE/rae/issues/1613)) ([2a95aa8](https://github.com/OpenRAE/rae/commit/2a95aa8f52fe869d597a753e69992c41fc2f1202))
+* **experiments:** generate factorial conditions and randomized allocation ([#1631](https://github.com/OpenRAE/rae/issues/1631)) ([cf19e2d](https://github.com/OpenRAE/rae/commit/cf19e2d7f85f1808100de1d33906fe2684d76e1a))
+* remove the bundled concrete backends from RAES ([#1621](https://github.com/OpenRAE/rae/issues/1621)) ([4927340](https://github.com/OpenRAE/rae/commit/4927340780d3e3256c9825d8f52b3f1405e0bded))
+* **runtime:** dispatch governed effects through owning operations ([#1633](https://github.com/OpenRAE/rae/issues/1633)) ([326fd78](https://github.com/OpenRAE/rae/commit/326fd7866b893ba31db5c87ccfae8608feabb69a))
+* **runtime:** execute externally triggered injects ([#1611](https://github.com/OpenRAE/rae/issues/1611)) ([e5cb349](https://github.com/OpenRAE/rae/commit/e5cb3497cb10567b6ecdf89a764d21362ca8bec1))
+* **sdl:** add reusable mixed-control policies and occurrence contracts ([#1584](https://github.com/OpenRAE/rae/issues/1584)) ([6ee62fc](https://github.com/OpenRAE/rae/commit/6ee62fc5cf02cedb378bbc9dc4975e4b04b6ec65))
+
+
+### Bug Fixes
+
+* **contracts:** accept truthful required-cleanup failure receipts ([#1618](https://github.com/OpenRAE/rae/issues/1618)) ([e96deea](https://github.com/OpenRAE/rae/commit/e96deea1a474362ecff66ae28cf86193166824a8))
+* **evidence:** record combined-source research captures for dev ([#1644](https://github.com/OpenRAE/rae/issues/1644)) ([2553c54](https://github.com/OpenRAE/rae/commit/2553c540dc6c2946a04065072457d29a061697fa))
+* **experiments:** retain participant bindings on explicit trials ([#1634](https://github.com/OpenRAE/rae/issues/1634)) ([e7b2aa3](https://github.com/OpenRAE/rae/commit/e7b2aa37fd0478f6c42856f597e12fbf930b178a))
+* **runtime:** admit observed concerns in credential-bearing results ([#1640](https://github.com/OpenRAE/rae/issues/1640)) ([187bfbd](https://github.com/OpenRAE/rae/commit/187bfbded69170ba944d5e3373d7e6478fd494b9))
+* **runtime:** compare mixed-runtime target manifests in canonical contract form ([#1483](https://github.com/OpenRAE/rae/issues/1483)) ([bd5e35d](https://github.com/OpenRAE/rae/commit/bd5e35dfaf0a907990d49324e9d805557847cc07))
+* **runtime:** declare the missing multi-owner and exactly-once nonclaims ([#1444](https://github.com/OpenRAE/rae/issues/1444)) ([bb000b6](https://github.com/OpenRAE/rae/commit/bb000b66642f2bd752c13abebaa98b28e36241d1))
+* **runtime:** refuse backend snapshot entries whose runtime domain is an untyped string ([#1441](https://github.com/OpenRAE/rae/issues/1441)) ([a16ed11](https://github.com/OpenRAE/rae/commit/a16ed117d0fd5240d5195bb4f5c68428087bbf20))
+* validate experiment condition factors and levels ([#1641](https://github.com/OpenRAE/rae/issues/1641)) ([4f4e6af](https://github.com/OpenRAE/rae/commit/4f4e6af7bf3eacf691c0a3fcb6e612ac605a25d3))
+
 ## [7.0.0](https://github.com/OpenRAE/rae/compare/v6.0.1...v7.0.0) (2026-10-15)
 
 
