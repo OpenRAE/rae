@@ -1,9 +1,9 @@
 {
-  "content_hash": "299daa23e27d7a735e840a154c9ec26b833fcf3e22d43fde711f09dc61d48d4d",
+  "content_hash": "aacf02f6fd4dbd6ccabd8d74c2cebc1cc839ed06fa5e41e36f1b93a130a699ad",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "299daa23e27d7a735e840a154c9ec26b833fcf3e22d43fde711f09dc61d48d4d",
-    "summary": "Publish reusable and finite-script mixed-control rev1 policies, paired script windows, closed portable-key maps and directed-delivery control blocks; retain canonical relationship eligibility from #1339; issue #1363."
+    "content_hash": "aacf02f6fd4dbd6ccabd8d74c2cebc1cc839ed06fa5e41e36f1b93a130a699ad",
+    "summary": "Add the optional authored participant episode policy to behavior specifications: initialization, turn structure, terminal and truncation conditions, and reset policy as declared intent only (#307)."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

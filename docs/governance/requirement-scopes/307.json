@@ -1,0 +1,166 @@
+{
+  "schema_version": "requirement-scope/v1",
+  "issue_number": 307,
+  "primary_requirement_uid": "DSL-120",
+  "requirement_uids": [
+    "DSL-120"
+  ],
+  "bindings": {
+    "contracts/fixtures/sdl/participant-episode-policy-v1/README.md": [
+      "DSL-120"
+    ],
+    "contracts/fixtures/sdl/participant-episode-policy-v1/invalid/realized-episode-state.yaml": [
+      "DSL-120"
+    ],
+    "contracts/fixtures/sdl/participant-episode-policy-v1/valid/analyst-shift-episode.yaml": [
+      "DSL-120"
+    ],
+    "contracts/schema-publication/entries/instantiated-scenario-snapshot-v1.json": [
+      "DSL-120"
+    ],
+    "contracts/schema-publication/entries/instantiated-scenario-v1.json": [
+      "DSL-120"
+    ],
+    "contracts/schema-publication/entries/materialized-scenario-v1.json": [
+      "DSL-120"
+    ],
+    "contracts/schema-publication/entries/scenario-satisfiability-evidence-v1.json": [
+      "DSL-120"
+    ],
+    "contracts/schema-publication/entries/sdl-authoring-input-v1.json": [
+      "DSL-120"
+    ],
+    "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json": [
+      "DSL-120"
+    ],
+    "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json": [
+      "DSL-120"
+    ],
+    "contracts/schemas/sdl/instantiated-scenario-v1.json": [
+      "DSL-120"
+    ],
+    "contracts/schemas/sdl/materialized-scenario-v1.json": [
+      "DSL-120"
+    ],
+    "contracts/schemas/sdl/sdl-authoring-input-v1.json": [
+      "DSL-120"
+    ],
+    "docs/decisions/package-artifacts/operations.md": [
+      "DSL-120"
+    ],
+    "docs/explain/sdl/lineage.md": [
+      "DSL-120"
+    ],
+    "docs/explain/sdl/sections.md": [
+      "DSL-120"
+    ],
+    "docs/governance/requirement-scopes/307.json": [
+      "DSL-120"
+    ],
+    "docs/public/participant-control.md": [
+      "DSL-120"
+    ],
+    "docs/requirements/DSL-120/requirement.md": [
+      "DSL-120"
+    ],
+    "docs/research/formal-semantic-validation/capture-records/capture-cc798f94e6fc94044797380f89f6e0103cf7ad6729b77c4effc03375f18343b2.json": [
+      "DSL-120"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-cc798f94e6fc94044797380f89f6e0103cf7ad6729b77c4effc03375f18343b2/analysis.json": [
+      "DSL-120"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-cc798f94e6fc94044797380f89f6e0103cf7ad6729b77c4effc03375f18343b2/manifest.json": [
+      "DSL-120"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-cc798f94e6fc94044797380f89f6e0103cf7ad6729b77c4effc03375f18343b2/snapshot.json": [
+      "DSL-120"
+    ],
+    "docs/research/specification-coverage/capture-records/capture-210e7c3c577a25f08b37203aa61f42522186854dd5f9b0b2f67bc1687031d228.json": [
+      "DSL-120"
+    ],
+    "docs/research/specification-coverage/captures/capture-210e7c3c577a25f08b37203aa61f42522186854dd5f9b0b2f67bc1687031d228/analysis.json": [
+      "DSL-120"
+    ],
+    "docs/research/specification-coverage/captures/capture-210e7c3c577a25f08b37203aa61f42522186854dd5f9b0b2f67bc1687031d228/manifest.json": [
+      "DSL-120"
+    ],
+    "docs/research/specification-coverage/captures/capture-210e7c3c577a25f08b37203aa61f42522186854dd5f9b0b2f67bc1687031d228/snapshot.json": [
+      "DSL-120"
+    ],
+    "implementations/python/packages/raes/_language_metadata.py": [
+      "DSL-120"
+    ],
+    "implementations/python/packages/raes/_mapping_scopes.py": [
+      "DSL-120"
+    ],
+    "implementations/python/packages/raes/composition/_behavior.py": [
+      "DSL-120"
+    ],
+    "implementations/python/packages/raes/composition/_episode_policy.py": [
+      "DSL-120"
+    ],
+    "implementations/python/packages/raes/participant_behavior_specification.py": [
+      "DSL-120"
+    ],
+    "implementations/python/packages/raes/participant_episode_policy.py": [
+      "DSL-120"
+    ],
+    "implementations/python/packages/raes/validator/__init__.py": [
+      "DSL-120"
+    ],
+    "implementations/python/packages/raes/validator/_content_objectives.py": [
+      "DSL-120"
+    ],
+    "implementations/python/packages/raes/validator/_participant_episode_policies.py": [
+      "DSL-120"
+    ],
+    "implementations/python/packages/raes_processor/compiler/addresses.py": [
+      "DSL-120"
+    ],
+    "implementations/python/packages/raes_processor/compiler/participant_episode_policies.py": [
+      "DSL-120"
+    ],
+    "implementations/python/packages/raes_processor/compiler/pipeline.py": [
+      "DSL-120"
+    ],
+    "implementations/python/packages/raes_processor/models/__init__.py": [
+      "DSL-120"
+    ],
+    "implementations/python/packages/raes_processor/models/participant_episode_resources.py": [
+      "DSL-120"
+    ],
+    "implementations/python/packages/raes_processor/models/runtime_model.py": [
+      "DSL-120"
+    ],
+    "implementations/python/tests/test_formal_semantic_validation.py": [
+      "DSL-120"
+    ],
+    "implementations/python/tests/test_issue_307_dsl_120_participant_episode_policy.py": [
+      "DSL-120"
+    ],
+    "implementations/python/tests/test_issue_307_policy_ownership.py": [
+      "DSL-120"
+    ],
+    "specs/concept-authority/semantic-profiles.md": [
+      "DSL-120"
+    ],
+    "specs/formal/assurance-fulfillment.yaml": [
+      "DSL-120"
+    ],
+    "specs/sdl/references.md": [
+      "DSL-120"
+    ],
+    "specs/sdl/sections.md": [
+      "DSL-120"
+    ],
+    "tools/policy/requirement_order.yaml": [
+      "DSL-120"
+    ],
+    "tools/sdl_catalog_parity/_expectations_4.py": [
+      "DSL-120"
+    ],
+    "tools/sdl_catalog_parity/_registry.py": [
+      "DSL-120"
+    ]
+  }
+}
