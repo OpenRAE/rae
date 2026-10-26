@@ -12,6 +12,7 @@ from raes_contracts.materialization import (
     MaterializationArchive,
     MaterializationSource,
 )
+from raes_contracts.materialization_inventory import RUNTIME_DESCENDANTS_CONTRACT
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.planner import admit_materialization_submission, validate_materialization_archive_record
@@ -31,6 +32,10 @@ def materialization_precondition(
         source, required = _bound_scope_requirement(request)
     except (AttributeError, TypeError, ValueError):
         return "Materialization reporting requires valid bound source context."
+    if getattr(request, "inventory_refresh", False) and (
+        source is None or manifest is None or RUNTIME_DESCENDANTS_CONTRACT not in manifest.supported_contract_versions
+    ):
+        return "Inventory refresh requires negotiated descendant reporting and bound source context."
     return _materialization_support_error(source, required, manifest, archive)
 
 
@@ -86,10 +91,19 @@ def finalize_materialization(
     archive: MaterializationArchive | None,
 ) -> ApplyResult:
     """Publish bytes before accepted references; preserve valid cleanup on failure."""
+    request = context.operation_plan
+    if (
+        isinstance(request, ProvisioningPlan)
+        and request.materialization_source is not None
+        and context.manifest is not None
+        and RUNTIME_DESCENDANTS_CONTRACT in context.manifest.supported_contract_versions
+    ):
+        from .backend_inventory import finalize_runtime_inventory
+
+        return finalize_runtime_inventory(raw, accepted, context, previous, archive)
     accepted = cast(ApplyResult, replace(accepted, materialization_attestation=None))
     if not accepted.success:
         return accepted
-    request = context.operation_plan
     source = getattr(request, "materialization_source", None)
     if source is None and raw.materialization_attestation is None:
         return accepted

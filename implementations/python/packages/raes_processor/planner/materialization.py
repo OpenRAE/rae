@@ -5,6 +5,7 @@ from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.augmentation_scope import AUGMENTATION_SCOPE_CONTRACT
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.materialization import MATERIALIZATION_ATTESTATION_CONTRACT, MaterializationSource
+from raes_contracts.materialization_inventory import RUNTIME_DESCENDANTS_CONTRACT
 from raes_contracts.planning import PlanScope
 
 from ..models import RuntimeModel
@@ -40,11 +41,15 @@ def planned_materialization_source(
     try:
         if instance is None or scope is None or scope.run_id is None:
             raise ValueError("missing source or run")
+        descendants = RUNTIME_DESCENDANTS_CONTRACT in manifest.supported_contract_versions
+        if descendants and not scope.target_name:
+            raise ValueError("runtime inventory reporting requires the selected target scope")
         return MaterializationSource(
             snapshot=canonical_instantiated_sdl_bytes(instance).decode("utf-8"),
             authored_digest=instance.instantiation_provenance.authored_digest.value,
             instantiated_digest=canonical_instantiated_sdl_digest(instance).value,
             run_id=scope.run_id,
+            target_scope=f"target:{scope.target_name}" if descendants else None,
         ), diagnostics
     except (TypeError, ValueError):
         diagnostics.append(

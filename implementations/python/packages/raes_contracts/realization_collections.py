@@ -17,9 +17,6 @@ PORTABLE_NODE_COLLECTION_PROFILE = "raes/portable-node-membership/v1"
 
 class _NodeOperation(Protocol):
     @property
-    def action(self) -> str: ...
-
-    @property
     def address(self) -> str: ...
 
     @property
@@ -42,7 +39,7 @@ def node_collection_members(
                 "name": operation.payload.get("name"),
             }
             for operation in operations
-            if operation.resource_type in {"node", "network"} and operation.action != "delete"
+            if operation.resource_type in {"node", "network"} and getattr(operation, "action", None) != "delete"
         ),
         key=lambda item: item["address"],
     )

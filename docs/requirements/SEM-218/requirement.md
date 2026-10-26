@@ -21,6 +21,41 @@ Current state: identified gap. Honest portability requires normative semantics f
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/runtime_descendant_fixtures.py`
+
+- IMPLEMENTS → GITHUB_ISSUE `1649` (Runtime descendant reports and refresh)
+- IMPLEMENTS → SPEC `contracts/schemas/backend-manifest/backend-manifest-v2.json`
+- IMPLEMENTS → SPEC `contracts/schemas/experiment-core/experiment-run-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/experiment-core/materialization-archive-record-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/plans/backend-runtime-descendants-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/plans/evaluation-plan-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/plans/orchestration-plan-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/plans/provisioning-plan-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/sdl/materialized-scenario-v1.json`
+- IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1649-runtime-descendants-design.md`
+- IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1649-runtime-descendants-preflight.md`
+- IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1649-runtime-descendants-verification.md`
+- IMPLEMENTS → DOCUMENTATION `docs/explain/reference/runtime-descendant-inventory.md`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/materialization_provenance.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/materialization_attestation.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/materialization.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/materialization_inventory.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/planned_realization_constraint.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/materialization.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/materialization_admission.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/materialization_inventory.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/materialization_lineage.py`
+- TESTS → TEST `implementations/python/tests/test_backend_manifest.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_admission.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_bounds.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_contracts.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_durability.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_http.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_provenance.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_runtime_descendants.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_supervised_inventory.py`
+- IMPLEMENTS → SPEC `specs/formal/runtime-contracts/backend-result-admission.md`
+
 - TESTS → TEST `implementations/python/tests/test_issue_1638_credential_realization_observations.py` (Observed OPEN, constrained and EXACT values with account credentials)
 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/parameter_derivations.py` (Public typed parameter derivations and finite interpolation images)

@@ -25,6 +25,7 @@ from .observation_execution import ObservationRuntime
 from .observation_native import backend_selection_observation_runtime as _backend_selection_observation_runtime
 from .registry_probes import sample_participant_action_admission_request
 from .registry_target_validation import (
+    validate_inventory_contract,
     validate_operation_provider,
     validate_optional_component_presence,
     validate_recovery_observer_contract,
@@ -138,6 +139,7 @@ def _validate_runtime_target_shape(
         sample_snapshot,
         preparation=BACKEND_PREPARATION_CONTRACT in manifest.supported_contract_versions,
     )
+    validate_inventory_contract(manifest, components.provisioner, _require_invokable_method)
     _validate_orchestrator_methods(components.orchestrator, sample_plan, sample_snapshot)
     _validate_evaluator_methods(components.evaluator, sample_plan, sample_snapshot)
     _validate_participant_runtime_methods(

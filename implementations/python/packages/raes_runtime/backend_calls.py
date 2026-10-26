@@ -39,6 +39,7 @@ class _BackendCallContext:
     """Per-invocation identity and host services one backend apply may receive."""
 
     operation_id: str | None = None
+    attempt_id: str | None = None
     information_state_context_resolver: ParticipantInformationStateContextResolver | None = None
     service_dependencies: tuple[object, ...] = ()
     materialization_archive: MaterializationArchive | None = None
@@ -117,13 +118,25 @@ def _call_backend_apply(
     )
     if invalid:
         return _failed_apply_result(snapshot, _backend_contract_invalid(address, invalid))
-    args, realization_context = _bind_submitted_plan(args, realization_context, call_context.operation_id)
+    args, realization_context = _bind_submitted_plan(
+        args, realization_context, call_context.operation_id, call_context.attempt_id
+    )
     baseline_snapshot = deepcopy(snapshot)
     if invalid := materialization_precondition(realization_context, call_context.materialization_archive):
         return _failed_apply_result(baseline_snapshot, _backend_contract_invalid(address, invalid))
     authority_diagnostics = _apply_authority_diagnostics(realization_context, address)
     if authority_diagnostics:
         result = ApplyResult(success=False, snapshot=baseline_snapshot, diagnostics=authority_diagnostics)
+    elif getattr(realization_context.operation_plan, "inventory_refresh", False):
+        result = _invoke_backend_apply(
+            method,
+            args,
+            address=address,
+            snapshot=snapshot,
+            baseline_snapshot=baseline_snapshot,
+            realization=deepcopy(realization_context),
+            call=call_context,
+        )
     else:
         result = _prepared_backend_result(
             method,
@@ -180,13 +193,18 @@ def _validated_backend_result(
     """Finalize a backend result, refusing anything that cannot be validated."""
 
     try:
-        accepted = _finalize_backend_apply(
-            result,
-            address=address,
-            baseline_snapshot=baseline_snapshot,
-            realization=realization,
-            information_state_context_resolver=call.information_state_context_resolver,
-        )
+        if getattr(realization.operation_plan, "inventory_refresh", False):
+            from .backend_inventory import admit_refresh_proposal
+
+            accepted = admit_refresh_proposal(result, baseline_snapshot, realization.operation_plan)
+        else:
+            accepted = _finalize_backend_apply(
+                result,
+                address=address,
+                baseline_snapshot=baseline_snapshot,
+                realization=realization,
+                information_state_context_resolver=call.information_state_context_resolver,
+            )
         return finalize_materialization(result, accepted, realization, baseline_snapshot, call.materialization_archive)
     except Exception:
         return _failed_apply_result(

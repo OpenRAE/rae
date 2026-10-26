@@ -70,6 +70,11 @@ def _validate_binding(
     previous: RuntimeSnapshot,
 ) -> None:
     provenance = materialized.materialization_provenance
+    if (
+        provenance.inventory is not None
+        and "backend-runtime-descendants-v1" not in manifest.supported_contract_versions
+    ):
+        raise ValueError("runtime descendant reporting was not negotiated")
     envelope = manifest.realization_envelope
     if envelope is None:
         raise ValueError("materialization does not bind this source and execution")
@@ -249,6 +254,7 @@ def validate_materialization_archive_record(
     provenance = scenario.materialization_provenance
     data = submission.sdl.encode("utf-8")
     recorded = (
+        record.inventory,
         record.run_id,
         record.operation_id,
         record.reference.ref_id,
@@ -260,6 +266,7 @@ def validate_materialization_archive_record(
         record.artifact.created_at,
     )
     expected = (
+        provenance.inventory,
         provenance.run_id,
         provenance.operation_id,
         provenance.attestation_id,

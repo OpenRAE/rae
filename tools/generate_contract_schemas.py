@@ -18,6 +18,7 @@ _EXACT_SCHEMA_DIRECTORIES = (
         "recursive-realization-constraint-v1": "realization-constraints",
         "backend-realization-preparation-v1": "plans",
         "backend-materialization-attestation-v1": "plans",
+        "backend-runtime-descendants-v1": "plans",
         "backend-augmentation-scope-v1": "plans",
         "materialization-archive-record-v1": "experiment-core",
         "plan-realization-profiles-v1": "plans",
@@ -177,7 +178,8 @@ def _serialize_schema(name: str, schema: dict[str, object]) -> str:
     for key, value in sorted(schema.items()):
         if key == "$defs":
             definitions = ",\n".join(
-                f"    {json.dumps(label)}: {compact(body)}" for label, body in sorted(value.items())
+                f"    {json.dumps(label)}: {compact(body)}"
+                for label, body in sorted(value.items())
             )
             members.append(f'  "$defs": {{\n{definitions}\n  }}')
         else:

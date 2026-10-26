@@ -33,6 +33,7 @@ class _ObservationApplyRequest:
     durable_lifecycle_available: bool = False
     operation_id: str | None = None
     materialization_archive: MaterializationArchive | None = None
+    attempt_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -52,6 +53,20 @@ def _call_backend_apply_with_observation(
     information_state_context_resolver: ParticipantInformationStateContextResolver | None = None,
 ) -> tuple[ApplyResult, PreparedObservationExecution | None]:
     """Apply backend work and observation policy behind one state boundary."""
+    if getattr(request.plan, "inventory_refresh", False):
+        return _call_backend_apply(
+            method,
+            *args,
+            address=request.address,
+            snapshot=request.snapshot,
+            realization=realization or _RealizationApplyContext(manifest=request.manifest),
+            call=_BackendCallContext(
+                materialization_archive=request.materialization_archive,
+                operation_id=request.operation_id,
+                attempt_id=request.attempt_id,
+                information_state_context_resolver=information_state_context_resolver,
+            ),
+        ), None
 
     admission = observation_submission_diagnostic(
         request.plan,
@@ -67,7 +82,10 @@ def _call_backend_apply_with_observation(
         and getattr(request.plan, "observation_demands", ())
     ):
         args, realization = _bind_submitted_plan(
-            args, realization or _RealizationApplyContext(manifest=request.manifest), request.operation_id
+            args,
+            realization or _RealizationApplyContext(manifest=request.manifest),
+            request.operation_id,
+            request.attempt_id,
         )
         request = replace(
             request, plan=realization.operation_plan, operation_id=realization.operation_plan.operation_id
@@ -84,6 +102,7 @@ def _call_backend_apply_with_observation(
         call=_BackendCallContext(
             materialization_archive=request.materialization_archive,
             operation_id=request.operation_id,
+            attempt_id=request.attempt_id,
             information_state_context_resolver=information_state_context_resolver,
         ),
     )
@@ -93,6 +112,8 @@ def _call_backend_apply_with_observation(
 def _apply_observation_result(
     result: ApplyResult, request: _ObservationApplyRequest
 ) -> tuple[ApplyResult, PreparedObservationExecution | None]:
+    if getattr(request.plan, "inventory_refresh", False):
+        return result, None
     execution = None
     if result.success:
         execution, diagnostic = execute_plan_observation_demand(

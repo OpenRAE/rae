@@ -30,6 +30,27 @@ requirement.
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_admission.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_bounds.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_durability.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_http.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_supervised_inventory.py`
+
+- IMPLEMENTS → GITHUB_ISSUE `1649` (Runtime descendant reports and refresh)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/inventory.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_inventory.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_materialization.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_observation_calls.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_inventory.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_submission.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_supervised_execution.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager_inventory.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager_plan_admission.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_inventory_binding.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_provider_execution.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_result_finalization.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/registry_target_validation.py`
+
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_account_credentials.py` (Credential closure with admitted safe observation fragments)
 - TESTS → TEST `implementations/python/tests/test_issue_1638_credential_realization_observations.py` (Credential and observation admission composition)
 

@@ -133,6 +133,7 @@ class RunMaterializationArchive:
                 },
                 "run_id": provenance.run_id,
                 "operation_id": provenance.operation_id,
+                "inventory": provenance.inventory,
             }
         )
         self.output_dir.mkdir(parents=True, exist_ok=True, mode=0o700)

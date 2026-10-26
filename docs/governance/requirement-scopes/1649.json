@@ -1,0 +1,300 @@
+{
+  "schema_version": "requirement-scope/v1",
+  "issue_number": 1649,
+  "primary_requirement_uid": "SEM-225",
+  "requirement_uids": [
+    "SEM-225",
+    "SEM-218",
+    "ASR-532"
+  ],
+  "bindings": {
+    "contracts/fixtures/plans/backend-runtime-descendants-v1/invalid/reference.json": [
+      "ASR-532"
+    ],
+    "contracts/fixtures/plans/backend-runtime-descendants-v1/valid/reference.json": [
+      "ASR-532"
+    ],
+    "contracts/schema-publication/entries/backend-manifest-v2.json": [
+      "SEM-218"
+    ],
+    "contracts/schema-publication/entries/backend-profile-v1.json": [
+      "SEM-218"
+    ],
+    "contracts/schema-publication/entries/backend-runtime-descendants-v1.json": [
+      "SEM-218"
+    ],
+    "contracts/schema-publication/entries/evaluation-plan-v1.json": [
+      "SEM-218"
+    ],
+    "contracts/schema-publication/entries/experiment-run-v1.json": [
+      "SEM-218"
+    ],
+    "contracts/schema-publication/entries/materialization-archive-record-v1.json": [
+      "SEM-218"
+    ],
+    "contracts/schema-publication/entries/materialized-scenario-v1.json": [
+      "SEM-218"
+    ],
+    "contracts/schema-publication/entries/orchestration-plan-v1.json": [
+      "SEM-218"
+    ],
+    "contracts/schema-publication/entries/provisioning-plan-v1.json": [
+      "SEM-218"
+    ],
+    "contracts/schema-publication/entries/runtime-snapshot-v1.json": [
+      "SEM-218"
+    ],
+    "contracts/schemas/backend-manifest/backend-manifest-v2.json": [
+      "SEM-218"
+    ],
+    "contracts/schemas/experiment-core/experiment-run-v1.json": [
+      "SEM-218"
+    ],
+    "contracts/schemas/experiment-core/materialization-archive-record-v1.json": [
+      "SEM-218"
+    ],
+    "contracts/schemas/plans/backend-runtime-descendants-v1.json": [
+      "SEM-218"
+    ],
+    "contracts/schemas/plans/evaluation-plan-v1.json": [
+      "SEM-218"
+    ],
+    "contracts/schemas/plans/orchestration-plan-v1.json": [
+      "SEM-218"
+    ],
+    "contracts/schemas/plans/provisioning-plan-v1.json": [
+      "SEM-218"
+    ],
+    "contracts/schemas/profiles/backend-profile-v1.json": [
+      "SEM-225"
+    ],
+    "contracts/schemas/sdl/materialized-scenario-v1.json": [
+      "SEM-218"
+    ],
+    "contracts/schemas/snapshots/runtime-snapshot-v1.json": [
+      "SEM-225"
+    ],
+    "docs/decisions/issue-1649-runtime-descendants-design.md": [
+      "SEM-218"
+    ],
+    "docs/decisions/issue-1649-runtime-descendants-preflight.md": [
+      "SEM-218"
+    ],
+    "docs/decisions/issue-1649-runtime-descendants-verification.md": [
+      "SEM-218"
+    ],
+    "docs/explain/reference/runtime-descendant-inventory.md": [
+      "SEM-218"
+    ],
+    "docs/governance/requirement-scopes/1649.json": [
+      "ASR-532"
+    ],
+    "docs/public/backends.md": [
+      "SEM-225"
+    ],
+    "docs/requirements/ASR-532/requirement.md": [
+      "ASR-532"
+    ],
+    "docs/requirements/SEM-218/requirement.md": [
+      "SEM-218"
+    ],
+    "docs/requirements/SEM-225/requirement.md": [
+      "SEM-225"
+    ],
+    "docs/research/formal-semantic-validation/capture-records/capture-8d955c3b7ca9baa616c39f730b1ece41f5fab5d4ed3e58f874676ed94ec4dd29.json": [
+      "SEM-225"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-8d955c3b7ca9baa616c39f730b1ece41f5fab5d4ed3e58f874676ed94ec4dd29/analysis.json": [
+      "SEM-225"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-8d955c3b7ca9baa616c39f730b1ece41f5fab5d4ed3e58f874676ed94ec4dd29/manifest.json": [
+      "SEM-225"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-8d955c3b7ca9baa616c39f730b1ece41f5fab5d4ed3e58f874676ed94ec4dd29/snapshot.json": [
+      "SEM-225"
+    ],
+    "docs/research/specification-coverage/capture-records/capture-c06f6ceab0014cafd0e9c82c2d7fba36424a1830bc92198044f900cc60da0ff1.json": [
+      "SEM-225"
+    ],
+    "docs/research/specification-coverage/captures/capture-c06f6ceab0014cafd0e9c82c2d7fba36424a1830bc92198044f900cc60da0ff1/analysis.json": [
+      "SEM-225"
+    ],
+    "docs/research/specification-coverage/captures/capture-c06f6ceab0014cafd0e9c82c2d7fba36424a1830bc92198044f900cc60da0ff1/manifest.json": [
+      "SEM-225"
+    ],
+    "docs/research/specification-coverage/captures/capture-c06f6ceab0014cafd0e9c82c2d7fba36424a1830bc92198044f900cc60da0ff1/snapshot.json": [
+      "SEM-225"
+    ],
+    "implementations/python/packages/raes/materialization_provenance.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_backend_protocols/inventory.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_backend_stubs/manifest.py": [
+      "SEM-225"
+    ],
+    "implementations/python/packages/raes_conformance/conformance/validators.py": [
+      "SEM-225"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/bundle.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/materialization_attestation.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/realization_plans.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_contracts/manifest_authority.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_contracts/materialization.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_contracts/materialization_inventory.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_contracts/plan_projection.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_contracts/planned_realization_constraint.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_contracts/planning.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_contracts/realization_collections.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_operations/run_artifacts.py": [
+      "SEM-225"
+    ],
+    "implementations/python/packages/raes_processor/planner/core.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_processor/planner/materialization.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_processor/planner/materialization_admission.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_processor/planner/materialization_inventory.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_processor/planner/materialization_lineage.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_processor/planner/prepared_node_admission.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_processor/planner/prepared_node_projection.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_processor/planner/realization_collections.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_processor/semantics/realization_runtime_common.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_runtime/backend_call_contracts.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_runtime/backend_calls.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_runtime/backend_inventory.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_runtime/backend_materialization.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_runtime/backend_observation_calls.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_runtime/backend_realization_authority.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_api_models.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_inventory.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_plan_authorization.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_submission.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_supervised_execution.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_runtime/manager.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_runtime/manager_inventory.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_runtime/manager_plan_admission.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_runtime/operation_inventory_binding.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_runtime/operation_provider_execution.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_runtime/operation_result_finalization.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_runtime/registry.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_runtime/registry_target_validation.py": [
+      "ASR-532"
+    ],
+    "implementations/python/tests/runtime_descendant_fixtures.py": [
+      "SEM-218"
+    ],
+    "implementations/python/tests/test_backend_manifest.py": [
+      "SEM-218"
+    ],
+    "implementations/python/tests/test_issue_1649_inventory_admission.py": [
+      "SEM-218"
+    ],
+    "implementations/python/tests/test_issue_1649_inventory_bounds.py": [
+      "SEM-218"
+    ],
+    "implementations/python/tests/test_issue_1649_inventory_contracts.py": [
+      "SEM-218"
+    ],
+    "implementations/python/tests/test_issue_1649_inventory_durability.py": [
+      "SEM-218"
+    ],
+    "implementations/python/tests/test_issue_1649_inventory_http.py": [
+      "SEM-218"
+    ],
+    "implementations/python/tests/test_issue_1649_inventory_provenance.py": [
+      "SEM-218"
+    ],
+    "implementations/python/tests/test_issue_1649_runtime_descendants.py": [
+      "SEM-218"
+    ],
+    "implementations/python/tests/test_issue_1649_supervised_inventory.py": [
+      "SEM-218"
+    ],
+    "specs/formal/runtime-contracts/backend-result-admission.md": [
+      "SEM-218"
+    ],
+    "specs/sdl/materialization-attestation.md": [
+      "SEM-225"
+    ],
+    "tools/generate_contract_schemas.py": [
+      "ASR-532"
+    ]
+  }
+}

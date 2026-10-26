@@ -4311,6 +4311,17 @@
         "artifact": {
           "$ref": "#/$defs/ExperimentArtifactRefModel"
         },
+        "inventory": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeInventoryReport"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "operation_id": {
           "minLength": 1,
           "title": "Operation Id",
@@ -6007,6 +6018,254 @@
         "fields"
       ],
       "title": "RecordDomain",
+      "type": "object"
+    },
+    "RuntimeConcernSelection": {
+      "additionalProperties": false,
+      "description": "A choice claim naming an admitted concern, never a provenance ledger write.",
+      "properties": {
+        "address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Address",
+          "type": "string"
+        },
+        "field_path": {
+          "maxLength": 4096,
+          "minLength": 1,
+          "title": "Field Path",
+          "type": "string"
+        },
+        "requirement_kind": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Requirement Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address",
+        "field_path",
+        "requirement_kind"
+      ],
+      "title": "RuntimeConcernSelection",
+      "type": "object"
+    },
+    "RuntimeDescendantBinding": {
+      "additionalProperties": false,
+      "description": "Stable causal identity; topology and ownership remain separate facts.",
+      "properties": {
+        "address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Address",
+          "type": "string"
+        },
+        "creation": {
+          "$ref": "#/$defs/RuntimeInventoryEvidence"
+        },
+        "lifecycle": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeInventoryEvidence"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "native_identity_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Native Identity Digest",
+          "type": "string"
+        },
+        "parent_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Parent Address",
+          "type": "string"
+        },
+        "parent_instance_index": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Parent Instance Index",
+          "type": "integer"
+        },
+        "source_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Source Address",
+          "type": "string"
+        },
+        "state": {
+          "default": "active",
+          "enum": [
+            "active",
+            "terminated",
+            "autoremoved"
+          ],
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address",
+        "parent_address",
+        "source_address",
+        "native_identity_digest",
+        "creation"
+      ],
+      "title": "RuntimeDescendantBinding",
+      "type": "object"
+    },
+    "RuntimeInventoryEvidence": {
+      "additionalProperties": false,
+      "description": "Producer-scoped native receipt identity, not independent observation.",
+      "properties": {
+        "attempt_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "evidence_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Evidence Digest",
+          "type": "string"
+        },
+        "operation_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "run_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "operation_id",
+        "attempt_id",
+        "evidence_digest"
+      ],
+      "title": "RuntimeInventoryEvidence",
+      "type": "object"
+    },
+    "RuntimeInventoryReport": {
+      "additionalProperties": false,
+      "description": "Complete bounded producer inventory, joined to the descriptive SDL bytes.",
+      "properties": {
+        "attempt_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "backend_selections": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RuntimeConcernSelection"
+          },
+          "maxItems": 4096,
+          "title": "Backend Selections",
+          "type": "array"
+        },
+        "complete": {
+          "title": "Complete",
+          "type": "boolean"
+        },
+        "contract_id": {
+          "const": "backend-runtime-descendants-v1",
+          "default": "backend-runtime-descendants-v1",
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "descendants": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RuntimeDescendantBinding"
+          },
+          "maxItems": 4096,
+          "title": "Descendants",
+          "type": "array"
+        },
+        "run_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "scope": {
+          "const": "/nodes",
+          "default": "/nodes",
+          "title": "Scope",
+          "type": "string"
+        },
+        "sequence": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "source_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "target_scope": {
+          "maxLength": 256,
+          "minLength": 8,
+          "pattern": "^target:[^\\s\\x00-\\x1f]+$",
+          "title": "Target Scope",
+          "type": "string"
+        },
+        "unavailable_evidence": {
+          "default": [],
+          "items": {
+            "pattern": "^sha256:[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Unavailable Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "attempt_id",
+        "sequence",
+        "complete",
+        "source_digest",
+        "run_id",
+        "target_scope"
+      ],
+      "title": "RuntimeInventoryReport",
       "type": "object"
     },
     "ScenarioBindingTargetModel": {
