@@ -77,6 +77,7 @@ NESTED_HASHMAP_FIELDS = frozenset(
         "transitions",
         "permitted_transitions",
         "alternatives",
+        "inventory",
         "members",
         "fixed_positions",
         "tool_affordances",
