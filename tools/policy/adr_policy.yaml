@@ -133,10 +133,14 @@ module_boundaries:
         - raes_backend_protocols
         - raes_cli
         - raes_contracts
+        - raes_operations
         - raes_processor
         - raes_runtime
         - raes
       public_import_prefixes:
+        raes_operations:
+          # Issue #1667: the protected archive owner for target-probe materialization.
+          - raes_operations.run_artifacts
         raes_processor:
           - raes_processor.semantic_comparison
           - raes_processor.compiler
@@ -147,6 +151,7 @@ module_boundaries:
           - raes_runtime.control_plane
           - raes_runtime.registry
           - raes_runtime.result_contracts
+          - raes_runtime.snapshot_contract
     - id: raes_cli
       root: implementations/python/packages/raes_cli
       allowed_top_level_imports:
