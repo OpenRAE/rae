@@ -15,6 +15,7 @@ from .experiment_references import (
     ExperimentConditionAssignmentParameterModel,
     ExperimentReferenceModel,
 )
+from .experiment_treatments import ExperimentScenarioSelectionDescriptorModel, validate_selection_descriptor_set
 from .schema_invariants import _add_raes_invariant
 
 
@@ -127,6 +128,9 @@ class ExperimentConditionAssignmentModel(ContractModel):
     required_refs: list[ExperimentConditionAssignmentReferenceModel] = Field(default_factory=list)
     required_parameters: list[ExperimentConditionAssignmentParameterModel] = Field(default_factory=list)
     required_bindings: list[ExperimentBindingDescriptorModel] = Field(default_factory=list, max_length=256)
+    required_selections: list[ExperimentScenarioSelectionDescriptorModel] = Field(
+        default_factory=list, max_length=256, exclude_if=lambda value: not value
+    )
     description: NonEmptyString | None = None
 
     @model_serializer(mode="wrap")
@@ -138,9 +142,14 @@ class ExperimentConditionAssignmentModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_run_level_criteria(self) -> ExperimentConditionAssignmentModel:
-        if not self.required_refs and not self.required_parameters and not self.required_bindings:
+        if (
+            not self.required_refs
+            and not self.required_parameters
+            and not self.required_bindings
+            and not self.required_selections
+        ):
             raise ValueError(
-                "condition assignments must include required_refs or required_parameters or required_bindings"
+                "condition assignments must include required_refs or required_parameters or required_bindings or required_selections"
             )
         if self.required_bindings:
             ExperimentBindingDescriptorSetModel(descriptors=self.required_bindings)
@@ -150,6 +159,13 @@ class ExperimentConditionAssignmentModel(ContractModel):
                     or self.factor_levels.get(binding.source_factor_id) != binding.source_factor_level_id
                 ):
                     raise ValueError("condition required bindings must match their factor/level/condition assignment")
+        validate_selection_descriptor_set(self.required_selections, self.required_bindings)
+        for selection in self.required_selections:
+            if (
+                selection.source_condition_id != self.condition_id
+                or self.factor_levels.get(selection.source_factor_id) != selection.source_factor_level_id
+            ):
+                raise ValueError("condition required selections must match their factor/level/condition assignment")
         if self.difficulty_condition != "fixed" and self.difficulty_policy_id is None:
             raise ValueError("adaptive and scaffolded conditions require difficulty_policy_id")
         return self
@@ -167,6 +183,7 @@ class ExperimentConditionAssignmentModel(ContractModel):
                 {"required": ["required_refs"], "properties": {"required_refs": {"minItems": 1}}},
                 {"required": ["required_parameters"], "properties": {"required_parameters": {"minItems": 1}}},
                 {"required": ["required_bindings"], "properties": {"required_bindings": {"minItems": 1}}},
+                {"required": ["required_selections"], "properties": {"required_selections": {"minItems": 1}}},
             ]
         )
         json_schema.setdefault("allOf", []).append(

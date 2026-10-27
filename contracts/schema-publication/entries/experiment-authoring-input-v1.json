@@ -1,9 +1,9 @@
 {
-  "content_hash": "7036d2e8d6823838467612d50b1d98f58f1b9a4d209064ac64c1c9802ac063c8",
+  "content_hash": "d2910e7a203b0e515708e7e38a4a6301db3defc8de4f4be300c738f0033a3552",
   "contract_id": "experiment-authoring-input-v1",
   "last_change": {
-    "content_hash": "7036d2e8d6823838467612d50b1d98f58f1b9a4d209064ac64c1c9802ac063c8",
-    "summary": "Require every condition factor and level to belong to the containing experiment author declarations in all binding postures (#1520)."
+    "content_hash": "d2910e7a203b0e515708e7e38a4a6301db3defc8de4f4be300c738f0033a3552",
+    "summary": "Publish factorial-treatments-v1 typed scenario selection criteria and exact source/owner provenance alongside unchanged scalar bindings (#1665)."
   },
   "schema_path": "contracts/schemas/experiment-core/experiment-authoring-input-v1.json",
   "stability": "draft"

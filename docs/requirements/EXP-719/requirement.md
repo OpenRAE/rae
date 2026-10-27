@@ -24,6 +24,10 @@ Requirement inventory expansion. Designed variation is a distinct experiment con
 - IMPLEMENTS → SPEC `contracts/schemas/experiment-core/experiment-binding-descriptors-v1.json` (experiment-binding-descriptors-v1 published schema)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_allocation.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_factorial.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_factorial_treatments.py` (Bounded typed treatment criteria and materialization)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_treatments.py` (Shared typed selection source, owner, and family joins)
+- TESTS → TEST `implementations/python/tests/test_issue_1665_factorial_treatments.py` (Typed treatment contracts, exact archival criteria, and compatibility)
+- TESTS → TEST `implementations/python/tests/test_issue_1665_treatment_type_agreement.py` (Boolean and numeric outcome agreement at all treatment boundaries)
 - TESTS → TEST `implementations/python/tests/test_exp_719_factorial_allocation.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/__init__.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/admitted_trial_plan.py`
