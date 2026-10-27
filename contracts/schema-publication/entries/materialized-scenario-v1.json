@@ -1,9 +1,9 @@
 {
-  "content_hash": "82849b34d2fe07de7efc38cd0562aee4bedddea86dda1e7aaed050ef50ed5cc6",
+  "content_hash": "80b6e946fe42cade991f27a308abfd5bf44b35a1636f4eab04f3c839ef2b14f5",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "82849b34d2fe07de7efc38cd0562aee4bedddea86dda1e7aaed050ef50ed5cc6",
-    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and the current structural variation and runtime descendant contracts (ACT-619, issue #301)."
+    "content_hash": "80b6e946fe42cade991f27a308abfd5bf44b35a1636f4eab04f3c839ef2b14f5",
+    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301)."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

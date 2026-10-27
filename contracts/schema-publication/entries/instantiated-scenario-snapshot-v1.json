@@ -1,9 +1,9 @@
 {
-  "content_hash": "22ea7fdac71056df197e4ff22c2bb5a994c2827302d411db3fbcdcd59de33605",
+  "content_hash": "0404f7cb3feacc4f65f0a945507a9c61943cf8d54c426a96a781efdc896be5ac",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "content_hash": "22ea7fdac71056df197e4ff22c2bb5a994c2827302d411db3fbcdcd59de33605",
-    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and the current structural variation and runtime descendant contracts (ACT-619, issue #301)."
+    "content_hash": "0404f7cb3feacc4f65f0a945507a9c61943cf8d54c426a96a781efdc896be5ac",
+    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"

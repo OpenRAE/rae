@@ -30,6 +30,8 @@ _REFERENCE_PATHS = (
     ),
     (("agents", "*", "initial_knowledge"), ("hosts", "subnets", "services", "accounts")),
     (("agents", "*", "interactive_access", "*"), ("target_ref", "account_ref")),
+    (("agents", "*", "control_context", "*"), ("declaration_ref",)),
+    (("behavior_specifications", "*", "control_context", "*"), ("declaration_ref",)),
     (
         ("behavior_specifications", "*", "tool_affordances", "*"),
         ("participant_refs", "action_contract_refs", "observation_boundary_refs", "tool_ref"),

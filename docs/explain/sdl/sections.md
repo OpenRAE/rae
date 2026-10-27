@@ -2757,3 +2757,13 @@ contracts. They may reference SDL scenarios or scenario snapshots, but they are
 not SDL sections.
 
 Backend-specific auto-validation mechanics still live outside the SDL. The runtime may use Wazuh queries, command probes, file checks, or other adapters to determine whether an SDL-declared objective or observable condition has been satisfied, but those probe details are not the language itself.
+
+## Participant control context
+
+`control_context_assets` names immutable ACT-620 descriptors.
+Agents and reusable behavior specifications select them through `control_context` slots.
+Each selection states a declaration reference, exact asset reference triple, and selected or withheld intent.
+Declaration and selection grant no visibility, delivery, or permission.
+See the [normative contract](../../../specs/sdl/participant-control-context.md),
+[examples](../../../examples/scenarios/participant-control-context/README.md), and
+[migration guidance](control-context-migration.md).

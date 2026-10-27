@@ -240,6 +240,14 @@ def resource_payload(resource: ResolvedResource) -> dict[str, Any]:
     """Convert a compiled resource to a stable planner payload."""
 
     payload = asdict(resource)
+    if isinstance(resource, (ParticipantBehaviorRuntime, ParticipantBehaviorSpecificationRuntime)):
+        if resource.control_context:
+            payload["control_context"] = [
+                {**asdict(selection), "asset_ref": selection.asset_ref.model_dump(mode="json")}
+                for selection in resource.control_context
+            ]
+        else:
+            payload.pop("control_context", None)
     payload.pop("address", None)
     payload.pop("ordering_dependencies", None)
     payload.pop("refresh_dependencies", None)

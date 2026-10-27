@@ -2,9 +2,10 @@
 
 from collections.abc import Callable, Mapping
 
-from raes import ReferencePurpose
+from raes import ReferencePurpose, build_declaration_index
 from raes.agents import Agent
 from raes.entities import Entity, flatten_entities
+from raes.participant_control_context import ResolvedControlContextSelection, resolve_authored_control_context
 from raes.scenario import InstantiatedScenario
 from raes.semantics.participant_behavior import select_participants
 
@@ -95,6 +96,10 @@ def _compile_participant_behaviors(
     diagnostics: list[Diagnostic],
 ) -> dict[str, ParticipantBehaviorRuntime]:
     participant_behaviors: dict[str, ParticipantBehaviorRuntime] = {}
+    selections, _ = resolve_authored_control_context(scenario, build_declaration_index(scenario))
+    selections_by_participant: dict[str, list[ResolvedControlContextSelection]] = {}
+    for selection in selections:
+        selections_by_participant.setdefault(selection.participant_address, []).append(selection)
     addressable_ref_index = _runtime_addressable_ref_index(scenario)
     entities = flatten_entities(scenario.entities)
     for name, agent in scenario.agents.items():
@@ -105,6 +110,7 @@ def _compile_participant_behaviors(
             addressable_ref_index,
             entities,
             diagnostics,
+            tuple(selections_by_participant.get(f"agents.{name}", ())),
         )
 
     return participant_behaviors
@@ -117,6 +123,7 @@ def _compile_participant_behavior(
     addressable_ref_index: Mapping[str, str],
     entities: Mapping[str, Entity],
     diagnostics: list[Diagnostic],
+    control_context: tuple[ResolvedControlContextSelection, ...],
 ) -> ParticipantBehaviorRuntime:
     action_addresses = _participant_action_addresses(
         scenario,
@@ -164,6 +171,7 @@ def _compile_participant_behavior(
         address=_participant_behavior_address(name),
         name=name,
         participant_name=name,
+        control_context=control_context,
         affiliation_names=tuple(agent.affiliations),
         role=agent.effective_role(entities) or "",
         starting_account_refs=starting_account_refs,
@@ -267,6 +275,10 @@ def _compile_behavior_specifications(
     diagnostics: list[Diagnostic],
 ) -> dict[str, ParticipantBehaviorSpecificationRuntime]:
     behavior_specifications: dict[str, ParticipantBehaviorSpecificationRuntime] = {}
+    selections, _ = resolve_authored_control_context(scenario, build_declaration_index(scenario))
+    selections_by_owner: dict[str, list[ResolvedControlContextSelection]] = {}
+    for selection in selections:
+        selections_by_owner.setdefault(selection.owner_address, []).append(selection)
     addressable_ref_index = _runtime_addressable_ref_index(scenario)
     roles = _effective_roles(scenario)
     for name, behavior_spec in scenario.behavior_specifications.items():
@@ -350,6 +362,7 @@ def _compile_behavior_specifications(
             address=address,
             name=name,
             spec_name=name,
+            control_context=tuple(selections_by_owner.get(f"behavior_specifications.{name}", ())),
             semantic_version=str(behavior_spec.semantic_version),
             lifecycle_state=str(getattr(behavior_spec.lifecycle_state, "value", behavior_spec.lifecycle_state)),
             participant_addresses=participant_addresses,

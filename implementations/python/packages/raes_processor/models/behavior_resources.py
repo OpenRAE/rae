@@ -4,6 +4,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
+from raes.participant_control_context import ResolvedControlContextSelection
 from raes.semantics.workflow import WorkflowStepSemanticContract
 from raes_backend_protocols.capabilities import WorkflowFeature, WorkflowStatePredicateFeature
 from raes_contracts.contracts.participant_temporal import ParticipantTemporalBindingModel
@@ -75,6 +76,7 @@ class ParticipantInteractiveAccessRuntime:
 class ParticipantBehaviorRuntime(ResolvedResource):
     """Compiled role-neutral participant behavior binding."""
 
+    control_context: tuple[ResolvedControlContextSelection, ...] = ()
     participant_name: str = ""
     affiliation_names: tuple[str, ...] = ()
     role: str = ""
@@ -216,6 +218,7 @@ class MixedControlTransitionRuntime(ResolvedResource):
 class ParticipantBehaviorSpecificationRuntime(ResolvedResource):
     """Compiled first-class participant behavior specification aggregate."""
 
+    control_context: tuple[ResolvedControlContextSelection, ...] = ()
     spec_name: str = ""
     semantic_version: str = ""
     lifecycle_state: str = ""

@@ -354,6 +354,11 @@ class _ContentObjectivesMixin:
                 self._err(f"{label} initial_knowledge host '{host}' must reference a compute node")
 
     def _verify_participant_behavior(self) -> None:
+        from ..participant_control_context import resolve_authored_control_context
+
+        _, errors = resolve_authored_control_context(self._s, self._declaration_index)
+        for error in errors:
+            self._err(error)
         for error in participant_temporal_binding_errors(self._s):
             self._err(error)
         analysis = analyze_participant_behavior(

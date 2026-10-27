@@ -26,6 +26,7 @@ Primary-source refresh shows that participant behavior cannot be expressed or co
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_participant_tool_affordance_renderers.py` (Authoring diagnostics for binding selectors)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_behavior_authoring.py` (Source-anchored private-reference checks for participant, tool-binding, and inject-delivery references, including post-substitution validation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_behavior.py` (Namespaced rewriting of explicit binding selectors)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_tool_affordance.py` (Preserve tool identity and namespace explicit binding selectors during module composition)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/participant_behaviors.py` (Compiled selector refs, resolved participant addresses and compiler diagnostics)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/participant_access.py` (Preserve separately authored participant access while compiling tool profiles)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/models/decision_surface.py` (Participant filter for bindings and the v1 refusal of scoped bindings)

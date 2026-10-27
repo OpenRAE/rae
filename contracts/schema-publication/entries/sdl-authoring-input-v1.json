@@ -1,9 +1,9 @@
 {
-  "content_hash": "05c67ef32e694e87c579fb0d52ce3615b559c223386a8e30eb59d05e83ac04fb",
+  "content_hash": "9cd84639b092af9afaa0f3659f92ff734b1c93bc9dcac8f7292a86463803dc88",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "05c67ef32e694e87c579fb0d52ce3615b559c223386a8e30eb59d05e83ac04fb",
-    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and the current structural variation and runtime descendant contracts (ACT-619, issue #301)."
+    "content_hash": "9cd84639b092af9afaa0f3659f92ff734b1c93bc9dcac8f7292a86463803dc88",
+    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"
