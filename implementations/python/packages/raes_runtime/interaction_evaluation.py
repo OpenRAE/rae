@@ -57,6 +57,7 @@ class RuntimeInteractionEvaluationMixin:
             artifact_availability=execution.artifact_availability,
             apparatus_realization_default=apparatus_default,
             profile_context=context.profile_context,
+            processor_manifest=context.processor_manifest,
             mixed_control_admission=(
                 None
                 if context.mixed_control_model is None

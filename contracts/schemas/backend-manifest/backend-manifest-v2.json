@@ -2036,7 +2036,9 @@
                   "participant_predicate_opacity",
                   "participant_processing_role_trust",
                   "participant_quarantined_processing",
-                  "participant_transformation"
+                  "participant_transformation",
+                  "scoped_tool_affordances",
+                  "tool_affordances"
                 ]
               },
               "support_level": {
@@ -2080,7 +2082,9 @@
                   "participant_predicate_opacity",
                   "participant_processing_role_trust",
                   "participant_quarantined_processing",
-                  "participant_transformation"
+                  "participant_transformation",
+                  "scoped_tool_affordances",
+                  "tool_affordances"
                 ]
               },
               "support_level": {
@@ -2120,7 +2124,9 @@
                   "participant_predicate_opacity",
                   "participant_processing_role_trust",
                   "participant_quarantined_processing",
-                  "participant_transformation"
+                  "participant_transformation",
+                  "scoped_tool_affordances",
+                  "tool_affordances"
                 ]
               },
               "support_level": {
@@ -2518,7 +2524,7 @@
     },
     "ParticipantRuntimeCapabilitiesModel": {
       "additionalProperties": false,
-      "description": "Participant-episode lifecycle capability block (RUN-311).\n\nA backend that declares this block advertises that it implements\nthe full participant episode control surface on the\n``ParticipantRuntime`` protocol: ``initialize`` / ``reset`` /\n``restart`` / ``terminate`` plus ``status`` / ``results`` /\n``history``. Consumers of the manifest can infer the\n``FULL_REMOTE_CONTROL_PLANE`` conformance profile from this block.\n\nAPI-405 support dimensions live here because they are backend apparatus\nclaims: which participant roles, behavior features, and interaction\nfeatures this participant runtime can actually realize.",
+      "description": "Participant-episode lifecycle capability block (RUN-311).\n\nThis block declares the full ``ParticipantRuntime`` lifecycle surface:\ninitialize, reset, restart, terminate, status, results, and history.\nIt selects the ``FULL_REMOTE_CONTROL_PLANE`` conformance profile.\n\nAPI-405 support dimensions live here because they are backend apparatus\nclaims: which participant roles, behavior features, and interaction\nfeatures this participant runtime can actually realize.",
       "properties": {
         "constraints": {
           "additionalProperties": {
@@ -2797,6 +2803,17 @@
           "default": false,
           "title": "Supports Execution Control",
           "type": "boolean"
+        },
+        "tool_profiles": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantToolProfilesModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -2806,6 +2823,53 @@
         "supported_interaction_features"
       ],
       "title": "ParticipantRuntimeCapabilitiesModel",
+      "type": "object"
+    },
+    "ParticipantToolProfilesModel": {
+      "additionalProperties": false,
+      "description": "Exact semantic revisions and machine-evaluated capacity, not prose limits.",
+      "properties": {
+        "max_bindings_per_profile": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Bindings Per Profile"
+        },
+        "max_participants_per_binding": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Participants Per Binding"
+        },
+        "semantic_versions": {
+          "items": {
+            "const": "participant-tool-profile/v1",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Semantic Versions",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "semantic_versions"
+      ],
+      "title": "ParticipantToolProfilesModel",
       "type": "object"
     },
     "ProcessResourceLimitCapabilityModel": {

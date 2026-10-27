@@ -39,7 +39,7 @@ with RuntimeManager(target, run_scope="run:trial-1") as runtime:
 Fresh evaluation uses the original compiled model and current committed snapshot.
 It keeps the original run and generated-value bindings.
 It reuses the original compiled input and resolved apparatus defaults.
-It keeps the original profile and mixed-control planning context.
+It keeps the original profile, selected processor, and mixed-control planning context.
 It does not apply provisioning or restart orchestration.
 Use a new key for each fresh `evaluate()` call.
 Use the original key only to retry that same call.

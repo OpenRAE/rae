@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [8.1.0](https://github.com/OpenRAE/rae/compare/v8.0.0...v8.1.0) (2026-10-27)
+
+
+### Features
+
+* add versioned participant control-context assets ([#1647](https://github.com/OpenRAE/rae/issues/1647)) ([b1281ec](https://github.com/OpenRAE/rae/commit/b1281ec938adba5fe2011cc77a3ce535e1409071))
+* admit and refresh runtime descendant inventory ([#1651](https://github.com/OpenRAE/rae/issues/1651)) ([7c81d35](https://github.com/OpenRAE/rae/commit/7c81d3578f54cc22b629ab1f66dab7c5513ec994))
+
+
+### Bug Fixes
+
+* accept unversioned capture-spec evidence references ([#1643](https://github.com/OpenRAE/rae/issues/1643)) ([bd883c5](https://github.com/OpenRAE/rae/commit/bd883c571be9f19a6595abfee185aa8984fb7030))
+* **evidence:** replay combined dev source for promotion checks ([e5b0b29](https://github.com/OpenRAE/rae/commit/e5b0b299b08d2d46c838f07652c7fbb863698509))
+* **evidence:** restore green CI for dev promotion ([#1655](https://github.com/OpenRAE/rae/issues/1655)) ([e5b0b29](https://github.com/OpenRAE/rae/commit/e5b0b299b08d2d46c838f07652c7fbb863698509))
+
 ## [8.0.0](https://github.com/OpenRAE/rae/compare/v7.0.0...v8.0.0) (2026-10-26)
 
 

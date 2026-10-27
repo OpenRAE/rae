@@ -301,6 +301,9 @@ def realize_admitted_trial_entry(
     execution_plan = build_execution_plan(
         runtime_model,
         runtime_backend,
+        processor_manifest=next(
+            manifest for manifest in selected.values() if isinstance(manifest, ProcessorManifestV2Model)
+        ),
         # Bind the target plus the admitted entry's authoritative run identity and
         # its unique instantiation coordinate so per-run/per-instantiation generated
         # values reconcile against the correct scope (issue #1276).

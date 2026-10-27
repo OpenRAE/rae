@@ -40,7 +40,7 @@ The planner marks unchanged evaluation resources for update.
 The runtime replans the original compiled model against the current snapshot.
 It keeps the original run and value bindings.
 The execution plan retains its original compiled input and frozen apparatus decisions.
-It also retains profile and mixed-control planning context.
+It also retains profile, selected processor, and mixed-control planning context.
 It also keeps materialization source and observation needs.
 The owner registers the exact new plan before it calls the evaluator.
 Provider-backed phases retain the plan's single observation owner.

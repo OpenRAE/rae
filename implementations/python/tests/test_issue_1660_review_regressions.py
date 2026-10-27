@@ -133,3 +133,51 @@ def test_fresh_evaluation_preserves_original_delegated_resolution(tmp_path, clos
     with RuntimeManager(target, store=LocalControlPlaneStore(path)) as runtime:
         assert runtime.evaluate(execution, idempotency_key="delegated-evaluation") == receipt
     assert calls == original_calls
+
+
+def test_evaluation_preserves_selected_processor_after_reference_default_changes(monkeypatch):
+    from raes_contracts.contracts import ProcessorManifestV2Model
+    from raes_processor import participant_tool_support
+    from raes_processor.manifest import reference_processor_manifest_payload
+    from test_issue_304_tool_support import supported_manifest
+    from tool_profile_support import compiled
+
+    payload = reference_processor_manifest_payload()
+    selected_processor = ProcessorManifestV2Model.model_validate(payload)
+    target = replace(
+        create_stub_target(with_realization_envelope=False, with_time=False), manifest=supported_manifest()
+    )
+    execution = plan(
+        compiled(), target.manifest, scope=PlanScope(target_name=target.name), processor_manifest=selected_processor
+    )
+    assert execution.is_valid, execution.diagnostics
+    payload["capabilities"].pop("participant_tools")
+    weak_default = ProcessorManifestV2Model.model_validate(payload)
+    monkeypatch.setattr(participant_tool_support, "reference_processor_manifest_v2_model", lambda: weak_default)
+    with RuntimeManager(target) as runtime:
+        receipt = runtime.evaluate(execution, idempotency_key="selected-processor")
+        assert receipt.accepted, receipt.diagnostics
+        assert runtime.get_operation(receipt.operation_id).state is OperationState.SUCCEEDED
+
+
+def test_apply_rechecks_selected_processor_when_plan_diagnostics_are_stripped():
+    from raes_contracts.contracts import ProcessorManifestV2Model
+    from raes_processor.manifest import reference_processor_manifest_payload
+    from test_issue_304_tool_support import supported_manifest
+    from tool_profile_support import compiled
+
+    payload = reference_processor_manifest_payload()
+    payload["capabilities"].pop("participant_tools")
+    weak_processor = ProcessorManifestV2Model.model_validate(payload)
+    target = replace(
+        create_stub_target(with_realization_envelope=False, with_time=False), manifest=supported_manifest()
+    )
+    execution = plan(
+        compiled(), target.manifest, scope=PlanScope(target_name=target.name), processor_manifest=weak_processor
+    )
+    assert not execution.is_valid
+    with RuntimeManager(target) as runtime:
+        result = runtime.apply(replace(execution, diagnostics=[]))
+        assert not result.success
+        assert "processor.tool-support-insufficient" in {diagnostic.code for diagnostic in result.diagnostics}
+        assert runtime._store.load_records() == {}

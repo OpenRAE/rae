@@ -3,6 +3,7 @@ validator.py). Public API is unchanged: import ``SemanticValidator``.
 """
 
 from ._accounts import _AccountsMixin
+from ._cloud_resources import _CloudResourcesMixin
 from ._content_objectives import _ContentObjectivesMixin
 from ._core import _ValidatorCore
 from ._deployment_tenancy import _DeploymentTenancyMixin
@@ -38,6 +39,7 @@ __all__ = ["SemanticValidator"]
 
 
 class SemanticValidator(
+    _CloudResourcesMixin,
     _ExecutionPolicyMixin,
     _NodesInfraNetworkMixin,
     _RuntimeServicesMixin,

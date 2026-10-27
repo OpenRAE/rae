@@ -8,6 +8,7 @@ from raes.scenario import InstantiatedScenario
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
+from raes_contracts.contracts import ProcessorManifestV2Model
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
 from raes_contracts.evaluation import EvaluationExecutionContract, EvaluationResultContract
@@ -223,6 +224,7 @@ class PlanningContext:
     apparatus_decisions: dict[tuple[str, str, str], Closure]
     profile_context: DomainProfileResolutionContextModel | None = None
     mixed_control_model: RuntimeModel | None = None
+    processor_manifest: ProcessorManifestV2Model | None = None
 
 
 @dataclass(frozen=True)

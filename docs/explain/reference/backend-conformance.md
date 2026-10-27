@@ -400,3 +400,23 @@ opacity.
 This preflight does not implement `ASR-502`, change requirement status, add new
 fixtures, add new schemas, migrate the CLI, or repair profile drift. It only
 locks the repository-wide guardrails for the implementation work that follows.
+
+## Participant tool profiles (API-414)
+
+Processor `capabilities.participant_tools` declares ACT-619 semantic revision support.
+Backend `capabilities.participant_runtime.tool_profiles` declares revisions and numeric capacity.
+Backend feature strength remains in the existing `feature_support` list.
+`tool_affordances` and `scoped_tool_affordances` require explicit evidence references.
+They are declaration features, separate from runtime information-flow policy enforcement.
+
+Planning derives requirements from actual instantiated bindings and bound actions.
+It checks each selected processor and backend independently.
+Trial admission uses the same comparison before sealing entries.
+Runtime apply checks backend support again before dispatch.
+
+Static tool-feature cases record declared support and leave effective support unset.
+Their execution basis remains `fixture-only`.
+They cannot establish native tool execution from an evidence reference.
+Observed runtime probes retain separate cases and execution bases.
+See the [design](../../decisions/issue-304-participant-tool-support.md)
+and [migration rules](../../migration/participant-tool-support.md).
