@@ -174,7 +174,7 @@ def _compile_entry(
         selections=_selection_records(row),
         bindings=bindings,
         participant_configurations=entry_participant_configurations(
-            request, bindings, apparatus.participant_manifest_refs
+            request, bindings, apparatus.participant_manifest_refs, scenario=selected
         ),
         stochastic_draws=list(row.draws),
         apparatus=apparatus,

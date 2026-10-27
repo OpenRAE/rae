@@ -2091,6 +2091,71 @@
         }
       ]
     },
+    "ParticipantControlContextAssetReferenceModel": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Asset Digest",
+          "type": "string"
+        },
+        "asset_id": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_version": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id",
+        "asset_version",
+        "asset_digest"
+      ],
+      "title": "ParticipantControlContextAssetReferenceModel",
+      "type": "object"
+    },
+    "ParticipantControlContextConfigurationSelectionModel": {
+      "additionalProperties": false,
+      "description": "Pin retained in the sealed configuration, independently of current catalogs.",
+      "properties": {
+        "asset_ref": {
+          "$ref": "#/$defs/ParticipantControlContextAssetReferenceModel"
+        },
+        "declaration_ref": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^control_context_assets\\.[a-z0-9][a-z0-9_-]*(?:\\.[a-z0-9][a-z0-9_-]*)*$",
+          "title": "Declaration Ref",
+          "type": "string"
+        },
+        "slot_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9][a-z0-9_-]*$",
+          "title": "Slot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "slot_id",
+        "declaration_ref",
+        "asset_ref"
+      ],
+      "title": "ParticipantControlContextConfigurationSelectionModel",
+      "type": "object"
+    },
     "ParticipantImplementationBindingTargetModel": {
       "additionalProperties": false,
       "description": "Canonical target declared by one selected participant implementation.",
@@ -2439,6 +2504,17 @@
       "additionalProperties": false,
       "description": "One normalized value in a complete participant configuration.",
       "properties": {
+        "control_context_selection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantControlContextConfigurationSelectionModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "origin": {
           "enum": [
             "default",

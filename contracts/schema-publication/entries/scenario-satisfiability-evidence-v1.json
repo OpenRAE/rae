@@ -1,9 +1,9 @@
 {
-  "content_hash": "b4b24248ae4087b13c457303f956a48440a4134828aa34facbec0cee1154c291",
+  "content_hash": "9950f75a199e6d6c7735e777bbaaeaa1a3b33ecc825d45409e50a91b1d17e0c5",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "b4b24248ae4087b13c457303f956a48440a4134828aa34facbec0cee1154c291",
-    "summary": "Publish reusable and finite-script mixed-control rev1 policies, paired script windows, closed portable-key maps and directed-delivery control blocks; retain canonical relationship eligibility from #1339; issue #1363."
+    "content_hash": "9950f75a199e6d6c7735e777bbaaeaa1a3b33ecc825d45409e50a91b1d17e0c5",
+    "summary": "Add exact authored participant control-context references and pinned ADR-094 configuration selections; preserve omitted-field compatibility (DSL-118, #299)."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

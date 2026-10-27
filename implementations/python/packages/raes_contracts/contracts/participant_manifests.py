@@ -30,6 +30,7 @@ from .base import (
     _PARTICIPANT_IMPLEMENTATION_CONCEPT_BINDING_SCOPES,
     ContractModel,
     NonEmptyString,
+    Sha256DigestString,
 )
 from .capabilities import (
     ApparatusIdentityModel,
@@ -369,7 +370,7 @@ class ParticipantImplementationManifestModel(ContractModel):
         return json_schema
 
 
-DigestString = Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")]
+DigestString = Sha256DigestString
 
 
 class ParticipantExposurePolicyModel(ContractModel):

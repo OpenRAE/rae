@@ -138,3 +138,5 @@ per-field semantics of each runtime family (owned by the family ADRs and indexed
 here). The normative error-vs-advisory classification criterion is stated in
 [`diagnostics.md` §5](diagnostics.md) (resolving review IMP-3); the
 classification of an individual condition follows from that criterion.
+
+[Participant control-context references](participant-control-context.md) define exact authored asset selections and ADR-094 participant factors.

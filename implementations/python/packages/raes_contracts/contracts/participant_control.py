@@ -8,8 +8,7 @@ from typing import Annotated, Literal
 from pydantic import Field, GetJsonSchemaHandler, field_validator, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
-from raes.participant_behavior_specification import MixedControlTransitionKind
-from raes.participant_mixed_control_vocabulary import ParticipantControlTargetKind
+from raes.participant_mixed_control_vocabulary import MixedControlTransitionKind, ParticipantControlTargetKind
 
 from .base import (
     ContractModel,

@@ -30,6 +30,15 @@ from tools.sdl_catalog_parity._paths import (
 )
 
 EXPECTATIONS_PART_2: dict[str, tuple[str, str, str, str]] = {
+    **{
+        f"{section}.*.control_context.*.declaration_ref": (
+            "control_context_assets",
+            "semantic validation and instantiation",
+            "fatal missing, ambiguous, incompatible, stale, or competing selection",
+            "[control-context semantics](../../implementations/python/packages/raes/participant_control_context.py)",
+        )
+        for section in ("agents", "behavior_specifications")
+    },
     "agents.*.affiliations[]": (
         "entities",
         _SEMANTIC,

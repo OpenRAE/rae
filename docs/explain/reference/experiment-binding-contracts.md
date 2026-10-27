@@ -163,3 +163,19 @@ Random order reduces confounding; it does not prove unchanged conditions.
 See the [normative generation rules](../../../specs/formal/experiment-core/README.md#factorial-condition-generation-exp-719),
 [allocation procedure](../../../specs/formal/scenario-variation-trial-realization/README.md#designed-compiler-and-allocation-profiles-exp-719),
 and [architecture guardrails](../../decisions/issue-275-exp-719-treatment-controlled-variation-preflight.md).
+
+## Participant control-context factors
+
+A participant configuration target can declare a typed `control_context` domain.
+It names a `slot_id` and exact SDL declaration references with ACT-620 pins.
+The factor value is a literal reference string.
+The trusted owner must implement contextual validation and `for_scenario()`.
+Trial compilation binds that validator to the concrete selected scenario.
+It checks the participant's scope and rejects direct or reusable slot conflicts.
+Missing validation rejects the whole plan.
+
+The realized value retains `control_context_selection` inside the configuration digest.
+The sealed entry and public trial result retain that exact pin across reload.
+The run producer consumes this retained selection, without resolving a current catalog again.
+The selection remains authored intent; ACT-620 lifecycle and exposure checks still apply before use.
+See [SDL control context](../../../specs/sdl/participant-control-context.md).
