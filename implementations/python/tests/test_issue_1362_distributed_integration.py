@@ -227,6 +227,12 @@ async def _exercise(blocked, tmp_path):
                     await asyncio.to_thread(delivery.submit, record.invocation.request)
                     == record.invocation.delivery.workflow_id
                 )
+                # Terminal state does not imply that the abandoned activity has
+                # released its worker slot. Test redelivery after that callback
+                # settles; busy-worker refusal is a separate safety boundary.
+                await _until(
+                    lambda: activities._effect_jobs.pending_calls == 0 and activities._executor.pending_calls == 0
+                )
                 await activities.invoke(record.invocation.delivery.reference.model_dump(mode="json"))
                 assert provider.starts == 1
                 assert plane.get_operation(receipt.operation_id) == original
