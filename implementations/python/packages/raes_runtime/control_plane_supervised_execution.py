@@ -208,7 +208,7 @@ def commit_settlement(
     if result is not None:
         if str(plane._snapshot_state.revision) != record.invocation.request.binding.baseline_revision:
             state, result, release_commitment = OperationState.INDETERMINATE, None, None
-        elif result.snapshot != snapshot:
+        elif result.success or result.snapshot != snapshot:
             snapshot, mode = result.snapshot, TerminalCommitMode.SNAPSHOT_BEARING
     released = not current.invocation.consumed or release_commitment is not None
     final = replace(
