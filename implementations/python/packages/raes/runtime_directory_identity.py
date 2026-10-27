@@ -16,6 +16,15 @@ from raes.runtime_vocabulary import GovernedVocabulary
 
 from ._base import SDLModel, parse_int_or_var
 from .runtime_filesystem import RuntimeSensitivityClassification
+from .runtime_identity_resources import (
+    RuntimeIdentityAccessObservation,
+    RuntimeIdentityPermissionBinding,
+    RuntimeIdentityPolicyCondition,
+    RuntimeIdentityResourceAccess,
+    RuntimeIdentityResourceScope,
+    RuntimeIdentityUse,
+    reject_identity_resource_duplicates,
+)
 from .runtime_values import (
     coerce_string_list,
     enforce_observed_value_redaction,
@@ -27,6 +36,12 @@ from .runtime_values import (
 )
 
 __all__ = [
+    "RuntimeIdentityAccessObservation",
+    "RuntimeIdentityPermissionBinding",
+    "RuntimeIdentityPolicyCondition",
+    "RuntimeIdentityResourceAccess",
+    "RuntimeIdentityResourceScope",
+    "RuntimeIdentityUse",
     "RuntimeIdentityAttribute",
     "RuntimeIdentityAuthority",
     "RuntimeIdentityAuthorityKind",
@@ -136,24 +151,6 @@ class RuntimeIdentityRecordOrigin(str, Enum):
     OPERATOR = "operator"
     UNKNOWN = "unknown"
     OTHER = "other"
-
-
-def _reject_duplicate_local_ref_ids(authority: "RuntimeIdentityAuthority") -> None:
-    seen: dict[str, str] = {}
-    entries: list[tuple[str, str]] = [("identity_authority_id", authority.identity_authority_id)]
-    entries.extend(("service_id", service.service_id) for service in authority.services)
-    entries.extend(("subject_id", subject.subject_id) for subject in authority.subjects)
-    entries.extend(("policy_id", policy.policy_id) for policy in authority.policies)
-    entries.extend(("relationship_id", relationship.relationship_id) for relationship in authority.relationships)
-
-    for label, value in entries:
-        prior = seen.get(value)
-        if prior is not None:
-            raise ValueError(
-                f"Duplicate runtime identity stable id '{value}' in identity authority "
-                f"'{authority.identity_authority_id}' across {prior} and {label}"
-            )
-        seen[value] = label
 
 
 class RuntimeIdentityAttribute(SDLModel):
@@ -288,6 +285,7 @@ class RuntimeIdentitySubject(SDLModel):
     enabled: bool | str | None = None
     origin: GovernedVocabulary[RuntimeIdentityRecordOrigin] = RuntimeIdentityRecordOrigin.UNKNOWN
     service_principal_names: list[str] = Field(default_factory=list)
+    resource_scope_ref: str = ""
     attributes: list[RuntimeIdentityAttribute] = Field(default_factory=list)
     description: str = ""
 
@@ -346,6 +344,7 @@ class RuntimeIdentityPolicy(SDLModel):
     name: str = ""
     applies_to_refs: list[str] = Field(default_factory=list)
     settings: list[RuntimeIdentityAttribute] = Field(default_factory=list)
+    resource_access: RuntimeIdentityResourceAccess | None = None
     description: str = ""
 
     @field_validator("policy_id")
@@ -437,6 +436,9 @@ class RuntimeIdentityAuthority(SDLModel):
     subjects: list[RuntimeIdentitySubject] = Field(default_factory=list)
     policies: list[RuntimeIdentityPolicy] = Field(default_factory=list)
     relationships: list[RuntimeIdentityRelationship] = Field(default_factory=list)
+    resource_scopes: list[RuntimeIdentityResourceScope] = Field(default_factory=list)
+    identity_uses: list[RuntimeIdentityUse] = Field(default_factory=list)
+    access_observations: list[RuntimeIdentityAccessObservation] = Field(default_factory=list)
 
     @field_validator("identity_authority_id")
     @classmethod
@@ -475,5 +477,5 @@ class RuntimeIdentityAuthority(SDLModel):
             container_label=container,
             duplicate_template=_DUPLICATE_IDENTITY_TEMPLATE,
         )
-        _reject_duplicate_local_ref_ids(self)
+        reject_identity_resource_duplicates(self)
         return self

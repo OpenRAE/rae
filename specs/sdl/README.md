@@ -1,5 +1,10 @@
 # SDL Specification
 
+The [cloud resource and secret-service contract](cloud-resource-access.md)
+extends existing identity and application descriptions with resource scopes,
+identity use, policy attachment, secret versions and consumer selections.
+It does not provide cloud deployment or an IAM policy evaluator.
+
 Status: **normative**. This directory is the language-neutral authority for the
 RAES **Scenario Description Language (SDL)** authoring model and portable
 derived phase contracts. It is binding on

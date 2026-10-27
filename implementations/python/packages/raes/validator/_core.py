@@ -187,6 +187,7 @@ class _ValidatorCore:
         """Run all validation passes and raise on errors."""
         self._errors = []
         self._warnings = []
+        self._runtime_references = None
         self._declaration_index = build_declaration_index(self._s, raise_on_collision=False)
         self._errors.extend(self._declaration_index.collision_errors)
 
@@ -248,6 +249,7 @@ class _ValidatorCore:
         self._errors = []
         self._warnings = []
         self._runtime_references = None
+        self._declaration_index = None
         for name, node in self._s.nodes.items():
             self._verify_node_operating_system(name, node)
             self._verify_node_architecture(name, node)
@@ -281,6 +283,7 @@ class _ValidatorCore:
         self._verify_runtime_forwarding_agents()
         self._verify_runtime_orchestration_authorities()
         self._verify_runtime_mail_services()
+        self._verify_cloud_resources()
 
     @property
     def warnings(self) -> list[str]:
