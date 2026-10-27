@@ -3,6 +3,7 @@
 from collections.abc import Iterable, Iterator, Mapping
 from typing import Any
 
+from raes_contracts.immutable_history import EventHistory
 from raes_contracts.participant_behavior import ParticipantBehaviorHistoryEventType
 from raes_contracts.participant_episode import ParticipantEpisodeHistoryEvent
 
@@ -134,7 +135,7 @@ def _participant_behavior_episode_close_resolved(
     *,
     participant_episode_history: object,
 ) -> bool:
-    if not isinstance(participant_episode_history, list):
+    if not isinstance(participant_episode_history, (list, EventHistory)):
         return False
     participant_addresses = {event.participant_address for event in events}
     episode_ids = {event.episode_id for event in events}

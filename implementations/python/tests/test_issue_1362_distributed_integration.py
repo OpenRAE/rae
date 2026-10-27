@@ -43,7 +43,8 @@ def test_actual_process_loss_never_reissues_a_consumed_grant(phase, tmp_path):
         autocommit=True,
     ) as cleanup:
         cleanup.execute(
-            "DROP TABLE IF EXISTS raes_ledger_audit, raes_ledger_operations, raes_ledger_state, raes_ledger_metadata"
+            "DROP TABLE IF EXISTS raes_ledger_changes, raes_ledger_history_streams, raes_ledger_history, "
+            "raes_ledger_audit, raes_ledger_operations, raes_ledger_state, raes_ledger_metadata"
         )
     PostgreSQLControlPlaneStore(config).initialize_schema()
     marker = tmp_path / "effect-witness"
@@ -134,7 +135,8 @@ async def _exercise(blocked, tmp_path):
         autocommit=True,
     ) as cleanup:
         cleanup.execute(
-            "DROP TABLE IF EXISTS raes_ledger_audit, raes_ledger_operations, raes_ledger_state, raes_ledger_metadata"
+            "DROP TABLE IF EXISTS raes_ledger_changes, raes_ledger_history_streams, raes_ledger_history, "
+            "raes_ledger_audit, raes_ledger_operations, raes_ledger_state, raes_ledger_metadata"
         )
     store = PostgreSQLControlPlaneStore(config)
     await asyncio.to_thread(store.initialize_schema)
@@ -224,6 +226,12 @@ async def _exercise(blocked, tmp_path):
                 assert (
                     await asyncio.to_thread(delivery.submit, record.invocation.request)
                     == record.invocation.delivery.workflow_id
+                )
+                # Terminal state does not imply that the abandoned activity has
+                # released its worker slot. Test redelivery after that callback
+                # settles; busy-worker refusal is a separate safety boundary.
+                await _until(
+                    lambda: activities._effect_jobs.pending_calls == 0 and activities._executor.pending_calls == 0
                 )
                 await activities.invoke(record.invocation.delivery.reference.model_dump(mode="json"))
                 assert provider.starts == 1

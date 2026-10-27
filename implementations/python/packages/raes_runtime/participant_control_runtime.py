@@ -204,7 +204,9 @@ def archived_policies(
 ) -> tuple[ParticipantControlOccurrencePolicyModel, ...]:
     """Read the original scoped successful lifecycle records, never current grants."""
     policies = {}
-    for record in plane._operations.values():
+    from .participant_control_operation_index import operation_index
+
+    for record in operation_index(plane).policy_records.values():
         if record.status.state is not OperationState.SUCCEEDED:
             continue
         for admission in (record.result_payload or {}).get(_ADMISSIONS, ()):
