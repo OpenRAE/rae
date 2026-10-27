@@ -1,9 +1,9 @@
 {
-  "content_hash": "26baade1256c237e1dd3d318975a7bf709e3875b245d5b33f63982f55dddcc36",
+  "content_hash": "0c5459657f9905de4aa566accd90a237ae0356a2e1d39419f8cf85ee95ab2f40",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "26baade1256c237e1dd3d318975a7bf709e3875b245d5b33f63982f55dddcc36",
-    "summary": "Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
+    "content_hash": "0c5459657f9905de4aa566accd90a237ae0356a2e1d39419f8cf85ee95ab2f40",
+    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301). Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

@@ -35,6 +35,7 @@ from .participant_execution import ParticipantExecutionBindingModel
 from .participant_resource_budgets import ParticipantResourceBudgetCapabilitiesModel
 from .time_manifest_capabilities import TimeCapabilitiesModel
 from .trial_cleanup import CleanupActionKind
+from .trial_controls import OperationSupervisionCapabilitiesModel
 from .validators import (
     _validate_canonical_concept_bindings,
     _validate_controlled_vocabulary_terms,
@@ -431,6 +432,9 @@ class RecoveryObservationCapabilitiesModel(ContractModel):
 
 
 class BackendCapabilitiesV2Model(ContractModel):
+    operation_supervision: OperationSupervisionCapabilitiesModel | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     provisioner: ProvisionerCapabilitiesModel
     orchestrator: OrchestratorCapabilitiesModel | None = None
     evaluator: EvaluatorCapabilitiesModel | None = None

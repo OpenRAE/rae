@@ -9,6 +9,8 @@ from raes_contracts.participant_episode import ParticipantEpisodeHistoryEvent
 from .behavior_ref_checks import (
     _participant_behavior_attribution_candidate_ref_violations,
     _participant_behavior_attribution_evidence_ref_violations,
+    _participant_behavior_ref_disposition,
+    _participant_behavior_resolved_ref,
 )
 from .behavior_resources import ParticipantObservationBoundaryRuntime
 from .history_event import ParticipantBehaviorHistoryEvent
@@ -70,10 +72,11 @@ def _participant_behavior_outcome_evidence_ref_violations(
 ) -> list[tuple[str, str]]:
     violations: list[tuple[str, str]] = []
     for ref in refs:
-        disposition = relation.get(ref)
-        if disposition is None and ref in boundary.hidden_refs:
-            disposition = "hidden"
-        if ref in boundary.evidence_refs or disposition == "evidence_only":
+        disposition = _participant_behavior_ref_disposition(boundary, relation, ref)
+        if (
+            _participant_behavior_resolved_ref(boundary, ref) in boundary.evidence_refs
+            or disposition == "evidence_only"
+        ):
             continue
         suffix = f": disposition {disposition!r}" if disposition is not None else ""
         violations.append(
@@ -99,12 +102,15 @@ def _participant_behavior_outcome_provenance_ref_violations(
 ) -> list[tuple[str, str]]:
     violations: list[tuple[str, str]] = []
     for ref in refs:
-        disposition = relation.get(ref)
-        if disposition is None and ref in boundary.hidden_refs:
-            disposition = "hidden"
-        if ref in boundary.evidence_refs or disposition in {"evidence_only", "disclosed", "observable", "discovered"}:
+        disposition = _participant_behavior_ref_disposition(boundary, relation, ref)
+        if _participant_behavior_resolved_ref(boundary, ref) in boundary.evidence_refs or disposition in {
+            "evidence_only",
+            "disclosed",
+            "observable",
+            "discovered",
+        }:
             continue
-        if ref not in boundary.hidden_refs and disposition not in {"hidden", "concealed", "deceptive"}:
+        if disposition not in {"hidden", "concealed", "deceptive", "ambiguous"}:
             continue
         suffix = f": disposition {disposition!r}" if disposition is not None else ""
         violations.append(

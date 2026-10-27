@@ -194,6 +194,17 @@
           ],
           "default": null
         },
+        "operation_supervision": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OperationSupervisionCapabilitiesModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "orchestrator": {
           "anyOf": [
             {
@@ -1644,6 +1655,40 @@
       ],
       "title": "OperationKind",
       "type": "string"
+    },
+    "OperationSupervisionCapabilitiesModel": {
+      "additionalProperties": false,
+      "description": "Static support only; installed capability and willingness need live checks.",
+      "properties": {
+        "guarantees": {
+          "default": [],
+          "items": {
+            "enum": [
+              "cancellation",
+              "effect-observation",
+              "cessation-evidence",
+              "partial-effects",
+              "external-fencing"
+            ],
+            "type": "string"
+          },
+          "maxItems": 5,
+          "title": "Guarantees",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "name": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "OperationSupervisionCapabilitiesModel",
+      "type": "object"
     },
     "OrchestratorCapabilitiesModel": {
       "additionalProperties": false,
@@ -3574,6 +3619,56 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "allOf": [
+    {
+      "if": {
+        "properties": {
+          "capabilities": {
+            "properties": {
+              "operation_supervision": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "operation_supervision"
+            ]
+          }
+        },
+        "required": [
+          "capabilities"
+        ]
+      },
+      "then": {
+        "properties": {
+          "supported_contract_versions": {
+            "allOf": [
+              {
+                "contains": {
+                  "const": "backend-operation-request-v1"
+                }
+              },
+              {
+                "contains": {
+                  "const": "backend-operation-capabilities-v1"
+                }
+              },
+              {
+                "contains": {
+                  "const": "backend-operation-control-v1"
+                }
+              },
+              {
+                "contains": {
+                  "const": "backend-operation-response-v1"
+                }
+              }
+            ]
+          }
+        },
+        "required": [
+          "supported_contract_versions"
+        ]
+      }
+    },
     {
       "if": {
         "properties": {

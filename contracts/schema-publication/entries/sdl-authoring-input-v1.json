@@ -1,9 +1,9 @@
 {
-  "content_hash": "230f5b164c3546dababa857cd34d2d6696a8bf12d1ff655f252436fa4fcd285e",
+  "content_hash": "37338a06d86968b9ea60b734c4b2d1a660b812630a44e995bc4fc38b2c892844",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "230f5b164c3546dababa857cd34d2d6696a8bf12d1ff655f252436fa4fcd285e",
-    "summary": "Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
+    "content_hash": "37338a06d86968b9ea60b734c4b2d1a660b812630a44e995bc4fc38b2c892844",
+    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301). Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"
