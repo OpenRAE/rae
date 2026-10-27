@@ -21,7 +21,7 @@ Requirement inventory expansion. Mature ecosystems need reusable examples and pa
 
 ## Traceability
 
-- IMPLEMENTS → CODE_FILE `examples/scenarios/cloud-secret-cross-project.sdl.yaml` (Cross-project identity and secret-service example)
+- IMPLEMENTS → CODE_FILE `examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml` (Cross-project identity and secret-service example)
 
 - IMPLEMENTS → CODE_FILE `examples/library/catalog.yaml` (AUT-806 example template and pattern library catalog)
 - IMPLEMENTS → POLICY `tools/check_example_library.py` (AUT-806 example library policy checker)

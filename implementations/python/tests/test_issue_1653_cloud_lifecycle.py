@@ -197,7 +197,9 @@ def test_public_parser_errors_do_not_echo_rejected_secret_material():
 
 
 def test_checked_in_example_is_a_valid_description():
-    result = parse_sdl_file(ROOT / "examples/scenarios/cloud-secret-cross-project.sdl.yaml")
+    result = parse_sdl_file(ROOT / "examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml")
+    schema = json.loads((ROOT / "contracts/schemas/sdl/sdl-authoring-input-v1.json").read_text())
+    Draft202012Validator(schema).validate(result.model_dump(mode="json", by_alias=True))
     assert result.nodes["iam"].runtime.identity_authorities[0].identity_uses[0].mode == "impersonated"
     assert len(result.nodes["secrets"].runtime.platform_applications[0].secrets[0].versions) == 3
 

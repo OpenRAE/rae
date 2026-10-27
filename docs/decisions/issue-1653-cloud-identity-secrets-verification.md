@@ -8,7 +8,7 @@ Test paths start at `implementations/python/tests/`.
 - [x] Issue 1: Extend existing owners with the smallest connected description.
   `raes/runtime_identity_resources.py:35` and `raes/runtime_secret_service.py:129`
   join cloud scopes, identity use and application-owned secrets.
-  `examples/scenarios/cloud-secret-cross-project.sdl.yaml` shows the complete use case.
+  `examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml` shows the complete use case.
 - [x] Issue 2: Preserve ownership, provider identity and exact references.
   `raes/validator/_cloud_resources.py:48` checks kinds, providers, ancestry and cycles.
   `test_issue_1653_cloud_references.py:148` keeps repeated native names distinct.
@@ -80,3 +80,13 @@ The formal cases, four production analyses and 14 participant test cases were re
 The formal capture retains its partial status and existing limits.
 No published history or baseline pin was changed.
 These captures make no claim of live cloud support.
+
+## Inventory and example coverage
+
+The field ledger includes all 126 reachable models and 975 fields.
+The relationship fixture includes the seven new cloud child record kinds.
+The audit and relationship tests passed: 119 tests.
+
+The partial cloud description lives in `examples/scenarios/cloud-resources/`.
+It retains its capacity advisories and has an explicit published-schema check.
+That check and the existing example-conformance module passed: 46 tests.
