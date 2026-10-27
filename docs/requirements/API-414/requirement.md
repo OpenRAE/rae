@@ -47,3 +47,5 @@ Primary-source refresh shows that participant behavior claims need explicit exte
 - DOCUMENTS → DOCUMENTATION `docs/explain/reference/backend-conformance.md` (Tool-profile support and compatibility)
 - DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-6490c7fc0e9f0d9587f7e65bb5cc812594ad74ec66d362667e2433a858b8a548/manifest.json` (Current-source bounded evidence capture)
 - DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-d0248897f207f37e8f538ee2b9648dc10bbfd086bf49725ff19843ee8737463b/manifest.json` (Current-source bounded evidence capture)
+- TESTS → TEST `implementations/python/tests/test_issue_1628_trial_control_admission.py` (Manifest omission and normalized-digest preservation)
+- TESTS → TEST `implementations/python/tests/test_issue_1396_trial_replacement.py` (Manifest-bound trial identity and parent references)
