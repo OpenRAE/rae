@@ -487,6 +487,8 @@ __all__ = [
     "PARTICIPANT_CONFIGURATION_RESULT_V1_SCHEMA_VERSION",
     "ParticipantConfigurationModel",
     "ParticipantConfigurationResultModel",
+    "ParticipantControlContextConfigurationSelectionModel",
+    "ParticipantControlContextTargetModel",
     "ParticipantImplementationBindingTargetModel",
     "RealizedBindingProvenanceModel",
     "RealizedConfigurationValueModel",

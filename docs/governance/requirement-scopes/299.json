@@ -93,6 +93,9 @@
     "docs/research/formal-semantic-validation/capture-records/capture-989bfefd829189b9c84b8148e2c29286a50370329c26f6d7ab31fcf227d88824.json": [
       "DSL-118"
     ],
+    "docs/research/formal-semantic-validation/capture-records/capture-b58de9940f04dd2a723c4773653b049aacb1bd39ae3b3002a5728352a635b9e1.json": [
+      "DSL-118"
+    ],
     "docs/research/formal-semantic-validation/captures/capture-989bfefd829189b9c84b8148e2c29286a50370329c26f6d7ab31fcf227d88824/analysis.json": [
       "DSL-118"
     ],
@@ -102,6 +105,15 @@
     "docs/research/formal-semantic-validation/captures/capture-989bfefd829189b9c84b8148e2c29286a50370329c26f6d7ab31fcf227d88824/snapshot.json": [
       "DSL-118"
     ],
+    "docs/research/formal-semantic-validation/captures/capture-b58de9940f04dd2a723c4773653b049aacb1bd39ae3b3002a5728352a635b9e1/analysis.json": [
+      "DSL-118"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-b58de9940f04dd2a723c4773653b049aacb1bd39ae3b3002a5728352a635b9e1/manifest.json": [
+      "DSL-118"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-b58de9940f04dd2a723c4773653b049aacb1bd39ae3b3002a5728352a635b9e1/snapshot.json": [
+      "DSL-118"
+    ],
     "docs/research/specification-coverage/capture-records/capture-2b1a59617230e8709d736c90b1111979f2c595c39fe55307564faf363337358a.json": [
       "DSL-118"
     ],
@@ -109,6 +121,9 @@
       "DSL-118"
     ],
     "docs/research/specification-coverage/capture-records/capture-5e3b275cc3147c9866e015225e84a68a499980bddf67c22c883847d2bfe13fe1.json": [
+      "DSL-118"
+    ],
+    "docs/research/specification-coverage/capture-records/capture-bb860de8f1a8c003fa43c0e1f1969e60c893f5af5b3fa7b57465fa4823f8db33.json": [
       "DSL-118"
     ],
     "docs/research/specification-coverage/captures/capture-2b1a59617230e8709d736c90b1111979f2c595c39fe55307564faf363337358a/analysis.json": [
@@ -136,6 +151,15 @@
       "DSL-118"
     ],
     "docs/research/specification-coverage/captures/capture-5e3b275cc3147c9866e015225e84a68a499980bddf67c22c883847d2bfe13fe1/snapshot.json": [
+      "DSL-118"
+    ],
+    "docs/research/specification-coverage/captures/capture-bb860de8f1a8c003fa43c0e1f1969e60c893f5af5b3fa7b57465fa4823f8db33/analysis.json": [
+      "DSL-118"
+    ],
+    "docs/research/specification-coverage/captures/capture-bb860de8f1a8c003fa43c0e1f1969e60c893f5af5b3fa7b57465fa4823f8db33/manifest.json": [
+      "DSL-118"
+    ],
+    "docs/research/specification-coverage/captures/capture-bb860de8f1a8c003fa43c0e1f1969e60c893f5af5b3fa7b57465fa4823f8db33/snapshot.json": [
       "DSL-118"
     ],
     "examples/README.md": [
@@ -249,10 +273,16 @@
     "implementations/python/packages/raes_processor/trial_compiler/compiler.py": [
       "DSL-118"
     ],
+    "implementations/python/tests/fixtures/issue-1339-declaration-kinds.sdl.yaml": [
+      "DSL-118"
+    ],
     "implementations/python/tests/test_dsl_118_control_context.py": [
       "DSL-118"
     ],
     "implementations/python/tests/test_dsl_118_trial_control_context.py": [
+      "DSL-118"
+    ],
+    "implementations/python/tests/test_sdl_catalog_parity.py": [
       "DSL-118"
     ],
     "implementations/python/tests/test_sdl_lineage.py": [
