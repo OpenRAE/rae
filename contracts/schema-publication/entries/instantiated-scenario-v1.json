@@ -1,9 +1,9 @@
 {
-  "content_hash": "d55f17febd463471f80394e7570c47fc4ff6fcc881ad18d1f61b4e0fd2d80041",
+  "content_hash": "4524040d5a147707f001a48f46dd8eeaf42534825a15f71c8c7c724fa20664e6",
   "contract_id": "instantiated-scenario-v1",
   "last_change": {
-    "content_hash": "d55f17febd463471f80394e7570c47fc4ff6fcc881ad18d1f61b4e0fd2d80041",
-    "summary": "Add exact authored participant control-context references and pinned ADR-094 configuration selections; preserve omitted-field compatibility (DSL-118, #299)."
+    "content_hash": "4524040d5a147707f001a48f46dd8eeaf42534825a15f71c8c7c724fa20664e6",
+    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
   "stability": "draft"

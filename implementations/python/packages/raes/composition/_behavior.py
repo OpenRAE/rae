@@ -23,6 +23,7 @@ from ._references import (
     _rewrite_node_or_service_ref,
     _rewrite_section_ref,
 )
+from ._tool_affordance import _rewrite_tool_affordance
 
 if TYPE_CHECKING:
     from ..scenario import ScenarioContent
@@ -171,27 +172,6 @@ def _reject_ambiguous_unit_behavior_refs(unit: ScenarioContent, *, path: Path) -
     errors.extend(_unit_authority_scope_ambiguities(unit, index))
     if errors:
         raise SDLValidationError(errors, path=path)
-
-
-def _rewrite_tool_affordance(
-    binding: dict[str, Any],
-    symbols: dict[str, dict[str, str] | set[str]],
-) -> None:
-    if binding.get("tool_ref"):
-        tool_ref = str(binding["tool_ref"])
-        # Bare content names keep the content map; the import guard above has
-        # already rejected a bare name that another unit declaration shares.
-        # Other spellings, such as content.<name>, resolve through the named map.
-        content_symbols = symbols["content"]
-        binding["tool_ref"] = _maybe_rename(
-            tool_ref, content_symbols if tool_ref in content_symbols else symbols["named"]
-        )
-    binding["action_contract_refs"] = [
-        _maybe_rename(name, symbols["action_contracts"]) for name in binding.get("action_contract_refs", [])
-    ]
-    binding["observation_boundary_refs"] = [
-        _maybe_rename(name, symbols["observation_boundaries"]) for name in binding.get("observation_boundary_refs", [])
-    ]
 
 
 def _rewrite_participant_inject_delivery(

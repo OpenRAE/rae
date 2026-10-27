@@ -8,18 +8,15 @@ from raes.entities import Entity, flatten_entities
 from raes.participant_control_context import ResolvedControlContextSelection, resolve_authored_control_context
 from raes.scenario import InstantiatedScenario
 from raes.semantics.participant_behavior import select_participants
-from raes_contracts.domain_profiles import DomainProfileBindingModel
 
 from ..models import (
     Diagnostic,
     ParticipantBehaviorRuntime,
     ParticipantBehaviorSpecificationRuntime,
-    ParticipantInteractiveAccessRuntime,
     ParticipantToolAffordanceRuntime,
 )
 from ._mixed_control_policy import _compile_mixed_control_declaration, mixed_control_semantics
 from .addresses import (
-    _account_address,
     _action_contract_address,
     _assertion_address,
     _behavior_specification_address,
@@ -28,7 +25,6 @@ from .addresses import (
     _outcome_interpretation_rule_address,
     _participant_behavior_address,
     _participant_inject_delivery_address,
-    _resource_address_for_node,
     _section_ref_name,
     _tool_affordance_address,
 )
@@ -38,6 +34,7 @@ from .alias_index import (
     _runtime_addressable_ref_index,
     _runtime_addresses_for_refs,
 )
+from .participant_access import _participant_interactive_access
 from .participant_autonomous_execution import _compile_autonomous_execution
 from .support import _dedupe, _dump
 
@@ -203,39 +200,6 @@ def _compile_participant_behavior(
     )
 
 
-def _participant_interactive_access(
-    scenario: InstantiatedScenario, agent: Agent
-) -> tuple[list[ParticipantInteractiveAccessRuntime], list[str]]:
-    interactive_access: list[ParticipantInteractiveAccessRuntime] = []
-    addresses: list[str] = []
-    for access_id, access in sorted(agent.interactive_access.items()):
-        target_name = _section_ref_name(access.target_ref, "nodes", scenario.nodes)
-        target_addresses = (_resource_address_for_node(scenario, target_name),)
-        account_addresses = (
-            (_account_address(_section_ref_name(access.account_ref, "accounts", scenario.accounts)),)
-            if access.account_ref
-            else ()
-        )
-        channel = (
-            access.channel
-            if isinstance(access.channel, DomainProfileBindingModel)
-            else str(getattr(access.channel, "value", access.channel))
-        )
-        interactive_access.append(
-            ParticipantInteractiveAccessRuntime(
-                access_id=access_id,
-                target_ref=access.target_ref,
-                target_address=target_addresses[0],
-                channel=channel,
-                account_ref=access.account_ref or "",
-                account_address=account_addresses[0] if account_addresses else "",
-            )
-        )
-        addresses.extend(target_addresses)
-        addresses.extend(account_addresses)
-    return interactive_access, addresses
-
-
 def _resolve_behavior_spec_refs(
     *,
     refs: list[str],
@@ -263,6 +227,49 @@ def _resolve_behavior_spec_refs(
     return tuple(addresses)
 
 
+_SPEC_SELECTOR_CODES = ("participant.behavior-specification-participant-ref-unbound", None)
+_BINDING_SELECTOR_CODES = (
+    "participant.tool-affordance-participant-ref-unbound",
+    "participant.tool-affordance-participant-role-ref-unbound",
+)
+
+
+def _effective_roles(scenario: InstantiatedScenario) -> dict[str, str | None]:
+    entities = flatten_entities(scenario.entities)
+    return {name: agent.effective_role(entities) for name, agent in scenario.agents.items()}
+
+
+def _resolve_participant_selector(
+    selector: object,
+    scenario: InstantiatedScenario,
+    roles: Mapping[str, str | None],
+    owner_address: str,
+    codes: tuple[str, str | None],
+    diagnostics: list[Diagnostic],
+) -> tuple[str, ...]:
+    """Resolve a PI-03 selector to ``sorted(select_participants(...))`` addresses, diagnosing raw refs first."""
+
+    participant_code, role_code = codes
+    _resolve_behavior_spec_refs(
+        refs=[str(ref) for ref in getattr(selector, "participant_refs", []) or []],
+        declared=scenario.agents,
+        address_for_ref=_participant_behavior_address,
+        owner_address=owner_address,
+        diagnostic_code=participant_code,
+        diagnostic_label="agent",
+        diagnostics=diagnostics,
+    )
+    if role_code is not None:
+        declared_roles = set(roles.values())
+        diagnostics.extend(
+            Diagnostic(role_code, "participant", owner_address, f"Role '{ref}' matches no declared agent's role.")
+            for ref in dict.fromkeys(str(ref) for ref in getattr(selector, "participant_role_refs", []) or [])
+            if ref not in declared_roles
+        )
+    selected = sorted(select_participants(selector, set(scenario.agents), roles))
+    return tuple(_participant_behavior_address(participant_name) for participant_name in selected)
+
+
 def _compile_behavior_specifications(
     scenario: InstantiatedScenario,
     diagnostics: list[Diagnostic],
@@ -273,19 +280,12 @@ def _compile_behavior_specifications(
     for selection in selections:
         selections_by_owner.setdefault(selection.owner_address, []).append(selection)
     addressable_ref_index = _runtime_addressable_ref_index(scenario)
-    entities = flatten_entities(scenario.entities)
-    roles = {name: agent.effective_role(entities) for name, agent in scenario.agents.items()}
+    roles = _effective_roles(scenario)
     for name, behavior_spec in scenario.behavior_specifications.items():
         address = _behavior_specification_address(name)
         spec = _dump(behavior_spec)
-        participant_addresses = _resolve_behavior_spec_refs(
-            refs=sorted(select_participants(behavior_spec, set(scenario.agents), roles)),
-            declared=scenario.agents,
-            address_for_ref=_participant_behavior_address,
-            owner_address=address,
-            diagnostic_code="participant.behavior-specification-participant-ref-unbound",
-            diagnostic_label="agent",
-            diagnostics=diagnostics,
+        participant_addresses = _resolve_participant_selector(
+            behavior_spec, scenario, roles, address, _SPEC_SELECTOR_CODES, diagnostics
         )
         action_addresses = _resolve_behavior_spec_refs(
             refs=list(behavior_spec.action_contract_refs),
@@ -401,10 +401,17 @@ def _compile_tool_affordances(
     diagnostics: list[Diagnostic],
 ) -> dict[str, ParticipantToolAffordanceRuntime]:
     tool_affordances: dict[str, ParticipantToolAffordanceRuntime] = {}
+    roles = _effective_roles(scenario)
     for spec_name, behavior_spec in scenario.behavior_specifications.items():
         owner_address = _behavior_specification_address(spec_name)
+        spec_participants = _resolve_participant_selector(
+            behavior_spec, scenario, roles, owner_address, _SPEC_SELECTOR_CODES, []
+        )
         for affordance_id, binding in sorted(behavior_spec.tool_affordances.items()):
             address = _tool_affordance_address(spec_name, affordance_id)
+            participant_addresses = _tool_affordance_participant_addresses(
+                binding, scenario, roles, address, spec_participants, diagnostics
+            )
             action_addresses = _resolve_behavior_spec_refs(
                 refs=list(binding.action_contract_refs),
                 declared=scenario.action_contracts,
@@ -433,6 +440,7 @@ def _compile_tool_affordances(
                     *([tool_address] if tool_address else []),
                     *action_addresses,
                     *observation_addresses,
+                    *participant_addresses,
                 ]
             )
             tool_affordances[address] = ParticipantToolAffordanceRuntime(
@@ -446,7 +454,34 @@ def _compile_tool_affordances(
                 action_contract_addresses=action_addresses,
                 observation_boundary_refs=tuple(binding.observation_boundary_refs),
                 observation_boundary_addresses=observation_addresses,
+                participant_refs=tuple(binding.participant_refs),
+                participant_role_refs=tuple(binding.participant_role_refs),
+                participant_addresses=participant_addresses,
                 refresh_dependencies=dependencies,
                 spec=_dump(binding),
             )
     return tool_affordances
+
+
+def _tool_affordance_participant_addresses(
+    binding: object,
+    scenario: InstantiatedScenario,
+    roles: Mapping[str, str | None],
+    address: str,
+    spec_participants: tuple[str, ...],
+    diagnostics: list[Diagnostic],
+) -> tuple[str, ...]:
+    """Resolve a scoped binding's own selector (ACT-619); an unscoped binding keeps its spec's scope."""
+
+    if not (getattr(binding, "participant_refs", None) or getattr(binding, "participant_role_refs", None)):
+        return ()
+    participant_addresses = _resolve_participant_selector(
+        binding, scenario, roles, address, _BINDING_SELECTOR_CODES, diagnostics
+    )
+    code = "participant.tool-affordance-participant-widens-parent"
+    diagnostics.extend(
+        Diagnostic(code, "participant", address, f"Participant '{ref}' is outside the owning behavior specification.")
+        for ref in participant_addresses
+        if ref not in spec_participants
+    )
+    return participant_addresses

@@ -11780,7 +11780,7 @@
     },
     "ParticipantToolAffordance": {
       "additionalProperties": false,
-      "description": "Authored participant-local binding from tool identity to governed behavior.",
+      "description": "Authored participant-local binding from tool identity to governed behavior.\n\nThe optional participant selector (ACT-619) only narrows the owning specification's\nselection; both lists empty means the binding applies to every selected participant.",
       "properties": {
         "action_contract_refs": {
           "items": {
@@ -11801,6 +11801,26 @@
           },
           "minItems": 1,
           "title": "Observation Boundary Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "participant_refs": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Participant Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "participant_role_refs": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Participant Role Refs",
           "type": "array",
           "uniqueItems": true
         },

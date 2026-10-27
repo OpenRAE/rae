@@ -1,9 +1,9 @@
 {
-  "content_hash": "fb4a8be38c4ed06697169bf21c0bcfdb381d641c0ab4beadb6ff7d062b645d89",
+  "content_hash": "9cd84639b092af9afaa0f3659f92ff734b1c93bc9dcac8f7292a86463803dc88",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "fb4a8be38c4ed06697169bf21c0bcfdb381d641c0ab4beadb6ff7d062b645d89",
-    "summary": "Add exact authored participant control-context references and pinned ADR-094 configuration selections; preserve omitted-field compatibility (DSL-118, #299)."
+    "content_hash": "9cd84639b092af9afaa0f3659f92ff734b1c93bc9dcac8f7292a86463803dc88",
+    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"
