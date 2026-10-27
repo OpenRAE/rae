@@ -150,7 +150,9 @@ def resolve_v2_outcome(
         refusal = _request_refusal(plane, binding, crossing, request, sink_kind, heads)
         if refusal is not None:
             return refusal
-        require_retained_provider_state(plane._snapshot, request)
+        from .participant_control_projection import control_projection
+
+        require_retained_provider_state(plane._snapshot, request, projection=control_projection(plane))
         validate_control_support_v2(request, resolution.support)
         stages = _evaluate_slots(cut, binding, request, resolution.support)
         _, results, _ = stages
@@ -164,7 +166,7 @@ def resolve_v2_outcome(
         retained = retained_effect_intents(plane, effects)
         outcomes = tuple(item.outcome for item in retained.values() if item.outcome.disposition == "applied")
         evaluation = _compose(binding, crossing, request, resolution, stages, outcomes=outcomes)
-        require_provider_state_extension(plane._snapshot, evaluation)
+        require_provider_state_extension(plane._snapshot, evaluation, projection=control_projection(plane))
         context = cut.call(binding.resolver.validation_context, evaluation)
         context = with_retained_effect_evidence(context, retained)
         # Context validation invokes independently supplied support/owner callbacks.

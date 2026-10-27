@@ -34,6 +34,8 @@ from raes_contracts.participant_episode import (
     ParticipantEpisodeTerminalReason,
 )
 
+from .immutable_history import EventHistory
+
 # Record-format version for the closure contract. This is a typed semantic record,
 # not a published wire schema, so its version lives with the record rather than in
 # the published-external-contract version registry.
@@ -203,7 +205,7 @@ def iter_participant_episode_closure_violations(
 def _closure_records_shape_error(records_key: str, outer_key: object, records: object) -> tuple[str, str] | None:
     if not isinstance(outer_key, str) or not outer_key:
         return (records_key, "participant episode closure record keys must be non-empty strings")
-    if not isinstance(records, list):
+    if not isinstance(records, (list, EventHistory)):
         return (str(outer_key), "participant episode closure records must be a list")
     return None
 
@@ -291,7 +293,7 @@ def _participant_episode_terminal_index(
     if not isinstance(participant_episode_history, Mapping):
         return index
     for outer_key, history in participant_episode_history.items():
-        if not isinstance(outer_key, str) or not outer_key or not isinstance(history, list):
+        if not isinstance(outer_key, str) or not outer_key or not isinstance(history, (list, EventHistory)):
             continue
         index[outer_key] = _address_terminal_reasons(outer_key, history)
     return index
