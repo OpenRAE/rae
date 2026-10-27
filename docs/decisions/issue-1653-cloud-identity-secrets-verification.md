@@ -71,3 +71,12 @@ All three were reproduced before repair.
 These tests are in the issue's model, reference and lifecycle modules.
 The repair tests and existing prepared-node admission tests passed: 79 tests.
 Generated-schema parity and schema-publication checks were repeated after the repair.
+
+## Source-bound research evidence
+
+Fresh branch captures bind the existing research protocols to the combined source.
+The specification artifacts and their typed pointers were replayed.
+The formal cases, four production analyses and 14 participant test cases were replayed.
+The formal capture retains its partial status and existing limits.
+No published history or baseline pin was changed.
+These captures make no claim of live cloud support.
