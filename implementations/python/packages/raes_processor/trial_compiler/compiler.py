@@ -33,6 +33,7 @@ from raes_contracts.contracts.experiment_allocation import (
 )
 from raes_contracts.contracts.trial_coordinate_order import canonical_coordinate_sort_key
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.experiment_bindings import ApparatusManifest, ApparatusManifestKey
 
 from ..capture_admission import (
     CaptureDemand,
@@ -61,6 +62,7 @@ from .policies import CoordinateSelections, compile_coordinate_selections
 from .profiles import admitted_profiles, coordinate_projection, derive_identity, realization_assignment_key
 from .realization_admission import validate_mixed_authority, validate_mixed_realization, validate_selected_scenario
 from .replacement_inputs import ReplacementCompilationContext
+from .tool_support import require_selected_tool_support
 
 _DOMAIN = "trial-compiler"
 _BINDING_DESCRIPTORS_ADDRESS = "/binding_descriptors"
@@ -119,9 +121,11 @@ def _compile_entry(
     coordinate: TrialCoordinateModel,
     descriptors: Mapping[str, ExperimentBindingDescriptorModel],
     backends: tuple[BackendManifest, ...],
+    apparatus_manifests: Mapping[ApparatusManifestKey, ApparatusManifest],
 ) -> tuple[str, AdmittedTrialEntryModel, str, TrialCleanupPlanModel]:
     realization = request.realization_assignments.get(realization_assignment_key(coordinate))
     selected = _validate_selected_scenario(request, row, coordinate)
+    require_selected_tool_support(selected, apparatus_manifests.values(), backends)
     if realization is not None:
         validate_mixed_realization(request, realization, selected)
     relations = (
@@ -223,6 +227,7 @@ def _compile_coordinate(
         coordinate,
         descriptors,
         authority.backends_by_profile[profile_id],
+        authority.apparatus_manifests_by_profile[profile_id],
     )
 
 

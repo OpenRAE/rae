@@ -68,3 +68,6 @@ cutover, source-bound adoption and classification binding coordination.
 
 [Reference eligibility migration](reference-eligibility.md) lists the reference
 fields whose eligible declaration kinds narrowed and how to rewrite them.
+
+[Participant tool support migration](participant-tool-support.md) covers processor
+and backend declarations, profile semantic revisions, capacity, and admission.

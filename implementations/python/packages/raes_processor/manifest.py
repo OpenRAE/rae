@@ -15,6 +15,7 @@ from raes_contracts.contracts import (
     ProcessorCompatibilityModel,
     ProcessorManifestV2Model,
 )
+from raes_contracts.contracts.participant_tool_support import ProcessorParticipantToolsModel
 from raes_contracts.vocabulary import ProcessorFeature
 
 from raes_processor.capabilities import ProcessorCapabilitySet, ProcessorManifest
@@ -57,6 +58,13 @@ def create_reference_processor_manifest(
         capabilities=ProcessorCapabilitySet(
             supported_sdl_versions=frozenset({"sdl-authoring-input-v1"}),
             supported_features=frozenset(ProcessorFeature),
+            participant_tools=ProcessorParticipantToolsModel(
+                semantic_versions=["participant-tool-profile/v1"],
+                feature_support=[
+                    {"feature": feature, "support_level": "exact", "evidence_refs": ["tests:ACT-619", "tests:API-414"]}
+                    for feature in ("tool_affordances", "scoped_tool_affordances")
+                ],
+            ),
         ),
         compatible_backends=frozenset(compatible_backends),
         concept_bindings=REFERENCE_CONCEPT_BINDINGS,
@@ -89,6 +97,7 @@ def reference_processor_manifest_v2_model(
         capabilities=ProcessorCapabilitiesV2Model(
             supported_sdl_versions=sorted(manifest.supported_sdl_versions),
             supported_features=[feature for feature in ProcessorFeature if feature in manifest.supported_features],
+            participant_tools=manifest.capabilities.participant_tools,
         ),
     )
 

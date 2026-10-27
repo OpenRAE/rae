@@ -1,11 +1,11 @@
 ---
 id: API-414
 title: "Participant Tool And Affordance Declarations"
-status: DRAFT
+status: ACTIVE
 type: INTERFACE
 priority: MUST
 created_at: 2026-04-05T01:24:46.721391Z
-updated_at: 2026-04-05T01:24:46.721391Z
+updated_at: 2026-10-27T18:11:19.852151Z
 ---
 
 # API-414 — Participant Tool And Affordance Declarations
@@ -17,3 +17,31 @@ Processor and backend manifests shall declare supported participant tool and aff
 ## Rationale
 
 Primary-source refresh shows that participant behavior claims need explicit external declarations of the available tool and affordance surface.
+
+## Traceability
+
+- IMPLEMENTS → GITHUB_ISSUE `304` (Declare and check participant tool-profile support)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/manifest.py` (Tool-profile declaration and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/participant_capabilities.py` (Tool-profile declaration and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/conformance/target.py` (Tool-profile declaration and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/manifests.py` (Tool-profile declaration and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_tool_support.py` (Tool-profile declaration and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/processor_capabilities.py` (Tool-profile declaration and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/manifest_authority.py` (Tool-profile declaration and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/capabilities.py` (Tool-profile declaration and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/manifest.py` (Tool-profile declaration and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/participant_tool_support.py` (Tool-profile declaration and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/__init__.py` (Tool-profile declaration and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/core.py` (Tool-profile declaration and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/reference.py` (Tool-profile declaration and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/compiler.py` (Tool-profile declaration and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/tool_support.py` (Tool-profile declaration and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_realization.py` (Tool-profile declaration and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager_plan_admission.py` (Tool-profile declaration and admission boundary)
+- TESTS → TEST `implementations/python/tests/test_issue_304_tool_support.py` (Declared support, capacity, rejection, and evidence separation)
+- TESTS → TEST `implementations/python/tests/test_runtime_conformance.py` (Declared support, capacity, rejection, and evidence separation)
+- IMPLEMENTS → SPEC `contracts/schemas/processor-manifest/processor-manifest-v2.json` (Portable tool-profile support declaration)
+- IMPLEMENTS → SPEC `contracts/schemas/backend-manifest/backend-manifest-v2.json` (Portable tool-profile support declaration)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-304-participant-tool-support.md` (Tool-profile support and compatibility)
+- DOCUMENTS → DOCUMENTATION `docs/migration/participant-tool-support.md` (Tool-profile support and compatibility)
+- DOCUMENTS → DOCUMENTATION `docs/explain/reference/backend-conformance.md` (Tool-profile support and compatibility)
