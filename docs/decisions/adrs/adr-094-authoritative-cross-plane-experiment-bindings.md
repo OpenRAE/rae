@@ -91,13 +91,6 @@ apparatus configuration.
 
 ## Validation and compatibility
 
-Issue #1665 composes scalar bindings with ADR-084 typed selections under `factorial-treatments-v1`.
-It does not broaden `BindingValue` or interpret structural members as scalar strings.
-Shared selection descriptors preserve exact source and owner joins in condition, plan, and archival records.
-Selection-only conditions use explicit typed criteria without dummy scalar descriptors.
-The existing scalar profile and identity formulas retain their meanings.
-Compiler and lifecycle support remain subject to issue #1666.
-
 Strict Pydantic scalars distinguish Boolean, integer, number, string, and null.
 Strings are not parsed as numbers or booleans, Boolean is not integer, and
 non-finite numbers fail before canonicalization. The reference implementation
