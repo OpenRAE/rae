@@ -69,3 +69,4 @@ Primary-source refresh shows that participant execution often depends on authore
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_control_context.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_bundle_access.py`
 - IMPLEMENTS → SPEC `contracts/provenance/sdl-lineage-ledger-v2.json`
+- TESTS → TEST `implementations/python/tests/test_sdl_lineage.py`
