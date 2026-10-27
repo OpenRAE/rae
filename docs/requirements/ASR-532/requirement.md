@@ -30,6 +30,9 @@ requirement.
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_scheduler_initialization.py` (Autonomous initialization uses participant-scoped result admission)
+- TESTS → TEST `implementations/python/tests/test_issue_1439_participant_initialization.py` (Reject initialization metadata mutation and accepted resource deletion)
+
 - TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_admission.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_bounds.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_durability.py`
