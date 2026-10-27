@@ -15,10 +15,10 @@ def iter_participant_crossing_history_snapshot_violations(
     """Yield closed-shape and participant-key violations."""
     from .immutable_history import HistoryMap
 
-    if type(history) is HistoryMap and history._field == "participant_crossing_history":
+    if type(history) is HistoryMap and history._field == "participant_crossing_history" and history._shape_valid:
         return
 
-    if not isinstance(history, dict):
+    if not isinstance(history, (dict, HistoryMap)):
         yield ("runtime.participant-crossing-history", "participant crossing history must be a mapping")
         return
     for participant_address, events in history.items():

@@ -15,7 +15,7 @@ from .control_plane_store_revision import (
     next_snapshot_revision,
     require_snapshot_revision,
 )
-from .control_plane_store_snapshots import _snapshot_from_payload, _snapshot_payload
+from .control_plane_store_snapshots import _canonical_snapshot, _snapshot_from_payload, _snapshot_payload
 
 _SNAPSHOT_KEY = "runtime-snapshot"
 
@@ -95,13 +95,9 @@ class LocalSnapshotRevisionStoreMixin:
         revision: int = 0,
     ) -> None:
         revision = require_snapshot_revision(revision)
-        from raes_contracts.immutable_history import HISTORY_FIELDS, seal_history
-
         from .control_plane_store_history_rows import persist_history_rows
 
-        snapshot = snapshot.with_entries(
-            dict(snapshot.entries), **{field: seal_history(field, getattr(snapshot, field)) for field in HISTORY_FIELDS}
-        )
+        snapshot = _canonical_snapshot(snapshot)
         persist_history_rows(connection, snapshot)
         payload, digest = encode_payload(_snapshot_payload(snapshot, include_histories=False))
         connection.execute(

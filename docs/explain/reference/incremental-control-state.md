@@ -143,7 +143,12 @@ No mutable wrapper is treated as a trusted resource value.
 Python base-container methods cannot change a retained prefix through those objects.
 Persistent integer indexes retain exact prefix digests without copying the prefix.
 The implementation reuses the installed `rpds-py` persistent map.
-Mutable input still requires complete validation and isolation.
+Mutable input still requires isolation.
+Runtime admission still requires complete record validation.
+The store may retain opaque legacy records for its original runtime refusal checks.
+Their JSON stays immutable.
+Only histories whose records pass the existing validators can skip repeated shape checks.
+JSON isolation alone grants no validation shortcut.
 
 Durable stores separate history records from the current snapshot header.
 History rows retain their field, participant, sequence, payload, and integrity digest.
@@ -156,6 +161,8 @@ The sequence advances for operation-only updates as well as snapshot commits.
 Runtime indexes consume changed operation records without loading unrelated records.
 Transaction triggers advance a private history generation on history or header changes.
 A cached snapshot must match that generation, its header digest, and its read-only history roots.
+The cache uses the same value-free credential format as the stored header.
+Retry checks compare that format and retain the immutable history prefixes.
 The generation is read in the same transaction as the header.
 Unknown store changes reset affected cached state.
 Older store implementations retain the exhaustive read path through capability admission.
@@ -209,8 +216,8 @@ The counters include indexed reads as well as iteration.
 
 | Store | Retained control records | Execution time |
 | --- | --- | --- |
-| Memory | 2 / 9 / 33 | 1.543 / 1.656 / 1.481 ms |
-| SQLite | 2 / 9 / 33 | 29.852 / 31.678 / 28.801 ms |
+| Memory | 2 / 9 / 33 | 1.222 / 1.051 / 1.811 ms |
+| SQLite | 2 / 9 / 33 | 36.604 / 47.614 / 34.607 ms |
 
 The saving rows measure the actual atomic participant-transition store call.
 Operation-only commits also compare retained histories without serializing their old records.
@@ -220,8 +227,8 @@ Each measured call visits zero old history records and loads zero complete opera
 
 | Store | Retained history records | Atomic append time |
 | --- | --- | --- |
-| Memory | 8 / 64 / 512 | 0.070 / 0.055 / 0.057 ms |
-| SQLite | 8 / 64 / 512 | 23.152 / 27.636 / 21.910 ms |
+| Memory | 8 / 64 / 512 | 0.080 / 0.070 / 0.073 ms |
+| SQLite | 8 / 64 / 512 | 31.470 / 35.828 / 33.207 ms |
 
 Each time is one local result from 2026-10-27.
 Other checks ran at the same time.

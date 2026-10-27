@@ -7,7 +7,7 @@ from .control_plane_store_history_rows import persist_history_rows, restore_hist
 from .control_plane_store_local_codec import decode_payload, encode_payload
 from .control_plane_store_records import _record_from_payload
 from .control_plane_store_revision import SnapshotState
-from .control_plane_store_snapshots import _snapshot_from_payload, _snapshot_payload
+from .control_plane_store_snapshots import _canonical_snapshot, _snapshot_from_payload, _snapshot_payload
 
 
 class HistoryConnection:
@@ -60,9 +60,9 @@ def load_snapshot(store, connection):
 
 
 def save_history(store, connection, snapshot, revision):
-    from raes_contracts.immutable_history import seal_snapshot_histories, snapshot_history_roots
+    from raes_contracts.immutable_history import snapshot_history_roots
 
-    snapshot = seal_snapshot_histories(snapshot)
+    snapshot = _canonical_snapshot(snapshot)
     adapted = HistoryConnection(connection)
     persist_history_rows(adapted, snapshot)
     payload, digest = encode_payload(_snapshot_payload(snapshot, include_histories=False))

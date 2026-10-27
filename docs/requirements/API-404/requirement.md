@@ -424,3 +424,4 @@ policy choices, recovery and composition limits.
 - TESTS → TEST `implementations/python/tests/test_issue_1373_durable_history.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1373_operation_changes.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1373_postgresql_history.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1373_history_consumers.py` (Opaque stored records retain runtime shape validation)

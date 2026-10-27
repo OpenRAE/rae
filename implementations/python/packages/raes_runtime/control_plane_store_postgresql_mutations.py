@@ -15,6 +15,7 @@ from .control_plane_store_revision import (
     next_snapshot_revision,
     require_snapshot_revision,
 )
+from .control_plane_store_snapshots import _canonical_snapshot
 from .inject_claims import require_inject_claim
 from .operation_invocation_ledger import control_record_is_supervisory, supervised_claim_conflicts
 from .operation_ledger_transactions import require_supervision_cut
@@ -143,7 +144,7 @@ def require_retry(
     contracts._require_terminal_retry_mode(
         current_revision=current.revision, expected_revision=expected_revision, mode=mode
     )
-    if current.snapshot != snapshot:
+    if current.snapshot != _canonical_snapshot(snapshot):
         raise ValueError("terminal retry does not match authoritative snapshot")
     matching = [
         item
@@ -174,7 +175,7 @@ def commit_terminal_operation(
         return require_retry(store, connection, snapshot, record, event, mode, expected_revision)
     current = expected_state(store, connection, expected_revision)
     if mode is contracts.TerminalCommitMode.OPERATION_ONLY:
-        if current.snapshot != snapshot:
+        if current.snapshot != _canonical_snapshot(snapshot):
             raise ValueError("operation-only commit cannot change the snapshot")
         committed = current
     else:

@@ -79,6 +79,21 @@ def _validated(field: str, participant: str, payload: Mapping[str, Any], positio
     return identity
 
 
+def _retained_identity(field, participant, record, position, identities):
+    """Preserve opaque legacy store data without certifying its semantic shape."""
+    try:
+        identity = _validated(field, participant, record, position)
+        if field == "participant_crossing_history" and identity is not None:
+            identity = (participant, identity)
+        if identity is not None and identity in identities:
+            raise ValueError(f"{field.replace('_', ' ')} record identities must be unique and append-only")
+        return identity, True
+    except (TypeError, ValueError):
+        if field not in {"participant_control_history", "participant_crossing_history"}:
+            raise
+        return None, False
+
+
 class EventHistory(Sequence):
     """An immutable ordered history; extension shares the existing integer index."""
 
@@ -144,9 +159,9 @@ class EventHistory(Sequence):
 
 
 class HistoryMap(Mapping):
-    """A field-specific history map whose prefixes were isolated and validated."""
+    """A field-specific immutable JSON history map."""
 
-    __slots__ = ("_field", "_identities", "_positions", "_values", "_keys", "_value_costs")
+    __slots__ = ("_field", "_identities", "_positions", "_values", "_keys", "_value_costs", "_shape_valid")
 
     def __init__(self, field: str, histories: Mapping[str, Sequence[dict]]) -> None:
         if hasattr(self, "_field"):
@@ -154,17 +169,15 @@ class HistoryMap(Mapping):
         values: dict[str, EventHistory] = {}
         identities = HashTrieSet()
         positions = HashTrieMap()
+        shape_valid = True
         for participant, records in histories.items():
             if not isinstance(participant, str) or not participant:
                 raise ValueError("history keys must be non-empty strings")
             sequence = EventHistory()
             for record in records:
-                identity = _validated(field, participant, record, len(sequence) + 1)
-                if field == "participant_crossing_history" and identity is not None:
-                    identity = (participant, identity)
+                identity, valid = _retained_identity(field, participant, record, len(sequence) + 1, identities)
+                shape_valid = shape_valid and valid
                 if identity is not None:
-                    if identity in identities:
-                        raise ValueError("history record identities must be unique and append-only")
                     identities = identities.insert(identity)
                     record_id = record.get("evaluation_id") or record.get("event_id")
                     positions = positions.insert((participant, record_id), len(sequence))
@@ -175,6 +188,7 @@ class HistoryMap(Mapping):
         object.__setattr__(self, "_field", field)
         object.__setattr__(self, "_identities", identities)
         object.__setattr__(self, "_positions", positions)
+        object.__setattr__(self, "_shape_valid", shape_valid)
 
     __setattr__ = _immutable
 
@@ -195,6 +209,8 @@ class HistoryMap(Mapping):
         return None if position is None else self[participant][position]
 
     def append(self, participant: str, records: Iterable[Mapping[str, Any]]) -> HistoryMap:
+        if not self._shape_valid:
+            raise ValueError("cannot append to semantically invalid retained history")
         if not isinstance(participant, str) or not participant:
             raise ValueError("history keys must be non-empty strings")
         sequence = self.get(participant, EventHistory())
@@ -206,7 +222,9 @@ class HistoryMap(Mapping):
                 identity = (participant, identity)
             if identity is not None:
                 if identity in identities:
-                    raise ValueError("history record identities must be unique and append-only")
+                    raise ValueError(
+                        f"{self._field.replace('_', ' ')} record identities must be unique and append-only"
+                    )
                 identities = identities.insert(identity)
                 record_id = record.get("evaluation_id") or record.get("event_id")
                 positions = positions.insert((participant, record_id), len(sequence))
@@ -217,6 +235,7 @@ class HistoryMap(Mapping):
         object.__setattr__(result, "_field", self._field)
         object.__setattr__(result, "_identities", identities)
         object.__setattr__(result, "_positions", positions)
+        object.__setattr__(result, "_shape_valid", True)
         return result
 
 

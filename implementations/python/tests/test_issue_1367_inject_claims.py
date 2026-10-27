@@ -237,7 +237,17 @@ def test_postgresql_claim_checks_the_same_snapshot_cut_before_any_write():
         def _upsert_record(self, *args):
             raise AssertionError("a stale inject reached a PostgreSQL write")
 
+    class Connection:
+        def execute(self, statement, parameters):
+            assert statement.startswith("SELECT payload, digest FROM raes_ledger_operations WHERE actor_id=")
+            context = candidate_record_8.receipt.context
+            assert parameters == (context.actor_id, context.operation_kind.value, candidate_record_8.idempotency_key)
+            return self
+
+        def fetchall(self):
+            return []
+
     ledger_7 = Ledger()
     candidate_record_8 = claimed_record(revision="2")
     with pytest.raises(ValueError, match="inject.*revision"):
-        claim_record(ledger_7, None, candidate_record_8)
+        claim_record(ledger_7, Connection(), candidate_record_8)

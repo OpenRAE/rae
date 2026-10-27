@@ -142,6 +142,7 @@ def test_stored_target_attestations_reject_boolean_coordinates():
     from dataclasses import replace
 
     import pytest
+    from raes_runtime.participant_control_operation_index import operation_index
     from raes_runtime.participant_control_targets import archived_control_targets
 
     with configured_plane()[0] as plane:
@@ -155,7 +156,7 @@ def test_stored_target_attestations_reject_boolean_coordinates():
         record = plane._operations[receipt.operation_id]
         payload = deepcopy(record.result_payload)
         payload["participant_control_available_targets"][0]["available_at"] = False
-        plane._operations[receipt.operation_id] = replace(record, result_payload=payload)
+        operation_index(plane).apply(replace(record, result_payload=payload))
         with pytest.raises(ValueError):
             archived_control_targets(plane, PARTICIPANT)
 

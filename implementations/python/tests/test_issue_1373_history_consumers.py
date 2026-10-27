@@ -78,3 +78,20 @@ def test_caller_constructed_readonly_views_are_not_trusted_resource_values():
     mutable = []
     wrapper = MappingProxyType({"child": mutable})
     assert not validate_realization_value(wrapper, python_carriers=True).conformant
+
+
+def test_opaque_legacy_store_records_never_bypass_runtime_shape_checks():
+    import pytest
+    from raes_contracts.participant_control_history import iter_participant_control_history_snapshot_violations
+    from raes_contracts.participant_crossing_history import iter_participant_crossing_history_snapshot_violations
+
+    for field, validator in (
+        ("participant_control_history", iter_participant_control_history_snapshot_violations),
+        ("participant_crossing_history", iter_participant_crossing_history_snapshot_violations),
+    ):
+        snapshot = SnapshotState(RuntimeSnapshot(**{field: {"participant.legacy": [{}]}}), 0).snapshot
+        history = getattr(snapshot, field)
+        assert history["participant.legacy"][0] == {}
+        assert list(validator(history))
+        with pytest.raises(ValueError, match="invalid retained history"):
+            history.append("participant.legacy", [{}])

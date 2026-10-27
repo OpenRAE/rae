@@ -15,7 +15,7 @@ def iter_participant_control_history_snapshot_violations(
     """Return value-safe violations for one complete control-history snapshot."""
     from .immutable_history import HistoryMap
 
-    if type(history) is HistoryMap and history._field == "participant_control_history":
+    if type(history) is HistoryMap and history._field == "participant_control_history" and history._shape_valid:
         return []
 
     violations: list[tuple[str, str]] = []

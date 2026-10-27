@@ -154,3 +154,59 @@ def test_post_commit_projection_failure_clears_caches_and_poison_readiness(monke
         assert plane._control_operation_index is None
         assert plane._store.load_snapshot_state().revision == committed.revision
         assert plane._store.load_snapshot_state().snapshot.evaluation_history["run"][0] == {"n": 1}
+
+
+def test_postgresql_save_cache_uses_the_value_free_header(monkeypatch):
+    from types import SimpleNamespace
+
+    from raes_contracts.runtime_state import RuntimeDomain, SnapshotEntry
+    from raes_runtime import control_plane_store_postgresql_projection as projection
+    from raes_runtime.control_plane_store_revision import SnapshotState
+    from raes_runtime.control_plane_store_snapshots import _snapshot_from_payload, _snapshot_payload
+
+    address = "provision.account.test"
+    snapshot = SnapshotState(
+        RuntimeSnapshot(
+            entries={
+                address: SnapshotEntry(
+                    address=address,
+                    domain=RuntimeDomain.PROVISIONING,
+                    resource_type="account-placement",
+                    payload={
+                        "spec": {
+                            "credential_bindings": [
+                                {
+                                    "credential_id": "root",
+                                    "purpose": "login",
+                                    "auth_method": "password",
+                                    "material": {"classification": "secret_fixture", "value": "synthetic-fixture"},
+                                }
+                            ]
+                        }
+                    },
+                )
+            },
+            evaluation_history={"run": [{"n": 1}]},
+        ),
+        0,
+    ).snapshot
+    store = SimpleNamespace(_pending_snapshots={})
+    writes = []
+
+    class Connection:
+        def execute(self, statement, parameters=()):
+            writes.append((statement, parameters))
+
+    monkeypatch.setattr(projection, "persist_history_rows", lambda *args: None)
+    monkeypatch.setattr(projection, "generation", lambda connection: 1)
+    connection = Connection()
+    committed = projection.save_history(store, connection, snapshot, 1)
+    canonical = _snapshot_from_payload(_snapshot_payload(snapshot))
+    assert committed.snapshot == canonical
+    assert store._pending_snapshots[id(connection)][1].snapshot == canonical
+    assert committed.snapshot.evaluation_history is snapshot.evaluation_history
+    assert "synthetic-fixture" not in repr(committed)
+    assert "synthetic-fixture" not in repr(writes)
+    assert (
+        snapshot.entries[address].payload["spec"]["credential_bindings"][0]["material"]["value"] == "synthetic-fixture"
+    )
