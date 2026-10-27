@@ -844,12 +844,17 @@ def test_accepted_participant_projection_reaches_the_shared_authority() -> None:
     )
 
 
-def test_runtime_manager_remains_outside_control_plane_store_authority() -> None:
-    manager = RuntimeManager(create_stub_target())
-
-    assert not hasattr(manager, "_store")
-    assert not hasattr(manager, "_store_commits")
-    assert not hasattr(manager, "_mutation_authority")
+def test_runtime_manager_uses_control_plane_store_authority() -> None:
+    store = InMemoryControlPlaneStore()
+    with RuntimeManager(create_stub_target(), store=store) as manager:
+        assert RuntimeManager is RuntimeControlPlane
+        assert isinstance(manager._mutation_authority, RuntimeMutationAuthority)
+        _assert_requests_mutation_reservation(
+            manager, lambda: manager.submit_provisioning(ProvisioningPlan()), OperationKind.PROVISIONING
+        )
+        receipt = manager.submit_provisioning(ProvisioningPlan())
+        assert manager.get_operation(receipt.operation_id) == store.load_records()[receipt.operation_id].status
+        assert manager.snapshot == store.load_snapshot_state().snapshot
 
 
 def test_settling_a_worker_absorbs_cancellation_until_the_mutation_commits() -> None:

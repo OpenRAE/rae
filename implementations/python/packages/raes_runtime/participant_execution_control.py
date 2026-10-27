@@ -11,6 +11,7 @@ from raes_contracts.participant_episode import ParticipantEpisodeResetRequest
 from raes_contracts.runtime_state import ApplyResult, OperationKind
 
 from .backend_calls import _BackendCallContext, _RealizationApplyContext
+from .control_plane_lifecycle import runtime_owned
 from .control_plane_mutation import control_plane_mutation
 from .diagnostics import _has_error_diagnostic
 from .participant_clock_driver import ParticipantClockDriver
@@ -185,6 +186,7 @@ class RuntimeParticipantExecutionMixin:
         self._participant_clock_driver = None
         return True
 
+    @runtime_owned
     def participant_clock_driver_status(self) -> dict[str, object]:
         driver = self._participant_clock_driver
         failure = driver.failure if driver is not None else None
