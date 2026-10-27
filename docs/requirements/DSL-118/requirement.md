@@ -74,3 +74,4 @@ Primary-source refresh shows that participant execution often depends on authore
 - TESTS → TEST `implementations/python/tests/test_contracts_facade_exports.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1339_relationship_endpoints.py`
 - TESTS → TEST `implementations/python/tests/fixtures/issue-1339-declaration-kinds.sdl.yaml`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_capability_constraints.py`

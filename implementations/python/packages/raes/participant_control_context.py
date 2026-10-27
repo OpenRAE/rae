@@ -17,7 +17,7 @@ if TYPE_CHECKING:
         ParticipantControlContextConfigurationSelectionModel,
     )
 
-    from ._declarations import DeclarationIndex
+    from ._declarations import Declaration, DeclarationIndex
     from .scenario import ScenarioContent
 
 
@@ -52,6 +52,18 @@ class ResolvedControlContextSelection:
     owner_address: str
 
 
+def _control_context_declaration(index: DeclarationIndex, reference: str) -> Declaration:
+    candidates = index.resolve(reference)
+    if len(candidates) != 1:
+        reason = "missing" if not candidates else "ambiguous"
+        raise ValueError("control-context.reference-" + reason)
+    address = next(iter(candidates))
+    declaration = index.declaration_for(address)
+    if declaration is None or declaration.kind != "control_context_assets":
+        raise ValueError("control-context.reference-incompatible")
+    return declaration
+
+
 def resolve_control_context_reference(
     scenario: ScenarioContent,
     index: DeclarationIndex,
@@ -66,14 +78,7 @@ def resolve_control_context_reference(
 
     from .entities import flatten_entities
 
-    candidates = index.resolve(reference)
-    if len(candidates) != 1:
-        reason = "missing" if not candidates else "ambiguous"
-        raise ValueError("control-context.reference-" + reason)
-    address = next(iter(candidates))
-    declaration = index.declaration_for(address)
-    if declaration is None or declaration.kind != "control_context_assets":
-        raise ValueError("control-context.reference-incompatible")
+    declaration = _control_context_declaration(index, reference)
     asset = scenario.control_context_assets[declaration.model_tokens[1]]
     if control_context_asset_reference(asset) != expected:
         raise ValueError("control-context.reference-stale")
@@ -87,7 +92,7 @@ def resolve_control_context_reference(
         and not (allow_unresolved and is_variable_ref(role))
     ):
         raise ValueError("control-context.scope-incompatible")
-    return address
+    return declaration.address
 
 
 def authored_control_context_bindings(
@@ -156,7 +161,8 @@ class SDLControlContextConfigurationValidator:
         """Bind the same trusted owner check to this concrete trial selection."""
         return type(self)(scenario)
 
-    def validate_and_normalize(self, configuration: ParticipantConfigurationModel) -> ParticipantConfigurationModel:
+    @staticmethod
+    def validate_and_normalize(configuration: ParticipantConfigurationModel) -> ParticipantConfigurationModel:
         return configuration
 
     def validate_control_context_reference(

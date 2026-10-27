@@ -58,10 +58,7 @@ class SecretReferenceBindingValueModel(ContractModel):
     reference_id: SecretReferenceId
 
 
-BindingValue = Annotated[
-    LiteralBindingValueModel | SecretReferenceBindingValueModel,
-    Field(discriminator="kind"),
-]
+BindingValue = Annotated[LiteralBindingValueModel | SecretReferenceBindingValueModel, Field(discriminator="kind")]
 
 
 class ScenarioBindingTargetModel(ContractModel):
@@ -202,13 +199,17 @@ class ConfigurationTargetDeclarationModel(ContractModel):
             raise ValueError("allowed_value_kinds must be unique")
         if self.sensitivity == "secret" and self.allowed_value_kinds != ["secret-reference"]:
             raise ValueError("secret configuration targets admit only secret-reference values")
-        if self.default is not None:
-            if self.sensitivity == "secret":
-                raise ValueError("secret configuration targets must not declare portable defaults")
-            if "literal" not in self.allowed_value_kinds:
-                raise ValueError("a literal default requires literal values to be allowed")
-            self.validate_value(self.default)
+        self._validate_default()
         return self
+
+    def _validate_default(self) -> None:
+        if self.default is None:
+            return
+        if self.sensitivity == "secret":
+            raise ValueError("secret configuration targets must not declare portable defaults")
+        if "literal" not in self.allowed_value_kinds:
+            raise ValueError("a literal default requires literal values to be allowed")
+        self.validate_value(self.default)
 
     @model_serializer(mode="wrap")
     def _serialize_optional_default(

@@ -91,8 +91,9 @@ def test_invalid_reference_fails_closed_without_private_values(mutation: str) ->
                 "control_context": {"briefing": deepcopy(binding)},
             }
         }
+    document = yaml.safe_dump(payload)
     with pytest.raises(SDLValidationError) as error:
-        parse_sdl(yaml.safe_dump(payload))
+        parse_sdl(document)
     assert "control-context" in str(error.value)
     assert "private-" not in str(error.value)
 
@@ -143,8 +144,9 @@ def test_reference_boundary_rejects_unsafe_authored_forms(mutation: str) -> None
             participant["control_context"]["briefing"]["declaration_ref"] = "agents.red"
     else:
         payload["control_context_assets"]["other"] = asset_payload(roles=["red"])
+    document = yaml.safe_dump(payload)
     with pytest.raises((SDLParseError, SDLValidationError), match="control.context|private"):
-        parse_sdl(yaml.safe_dump(payload))
+        parse_sdl(document)
 
 
 def test_reusable_scope_and_direct_artifact_revalidation() -> None:
@@ -187,8 +189,9 @@ def test_pinned_descriptor_never_accepts_even_declared_substitution_tokens() -> 
     asset["retention_policy_ref"] = "${retention}"
     for agent in payload["agents"].values():
         agent["control_context"]["briefing"] = selection(asset)
+    document = yaml.safe_dump(payload)
     with pytest.raises(SDLParseError, match="control-context"):
-        parse_sdl(yaml.safe_dump(payload))
+        parse_sdl(document)
 
 
 def test_legacy_serialization_omits_empty_additions() -> None:
@@ -265,8 +268,9 @@ def test_selection_pin_is_immutable_while_declaration_reference_can_vary() -> No
     binding = payload["agents"]["red"]["control_context"]["briefing"]
     binding["declaration_ref"] = "${asset_name}"
     binding["asset_ref"]["asset_id"] = "${identity}"
+    document = yaml.safe_dump(payload)
     with pytest.raises(SDLParseError, match="control-context"):
-        parse_sdl(yaml.safe_dump(payload))
+        parse_sdl(document)
 
 
 def test_import_ambiguity_is_checked_before_external_participants_resolve(tmp_path: Path) -> None:
