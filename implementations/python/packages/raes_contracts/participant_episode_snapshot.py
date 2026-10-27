@@ -12,6 +12,8 @@ from raes_contracts.participant_episode import (
     ParticipantEpisodeStatus,
 )
 
+from .immutable_history import EventHistory
+
 
 def iter_participant_episode_snapshot_violations(
     participant_episode_results: object,
@@ -79,7 +81,7 @@ def _iter_participant_episode_history_violations(
         if not isinstance(outer_key, str) or not outer_key:
             violations.append((history_key, "participant episode history keys must be non-empty strings"))
             continue
-        if not isinstance(history, list):
+        if not isinstance(history, (list, EventHistory)):
             violations.append((outer_key, "participant episode history must be a list of events"))
             continue
         normalized_events, entry_violations = _normalize_participant_episode_history(outer_key, history)
@@ -219,7 +221,7 @@ def _result_history_context(
     context = None
     if isinstance(outer_key, str) and outer_key and isinstance(result, Mapping):
         history = participant_episode_history.get(outer_key)
-        if isinstance(history, list) and history:
+        if isinstance(history, (list, EventHistory)) and history:
             context = _normalized_result_history_context(outer_key, result, history)
     return context
 

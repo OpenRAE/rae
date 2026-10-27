@@ -22,7 +22,7 @@ anything; a *claim*, by contrast, is only ever folded from an admitted intent.
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from raes_contracts.contracts.participant_control_composition import (
@@ -86,44 +86,72 @@ def causal_state_from_history(
 ) -> ParticipantControlCausalState:
     """Fold every retained claim this run and causal root already consumed."""
 
-    claims: dict[ControlLogicalEffectKeyModel, ControlPriorEffectClaimModel] = {}
-    firings: dict[tuple[str, str], set[str]] = {}
-    attempts = 0
-    watermarks: dict[frozenset[ControlLogicalEffectKeyModel], int] = {}
-    admitted_keys: set[ControlLogicalEffectKeyModel] = set()
+    accumulator = CausalAccumulator()
     for record in history:
         evaluation = participant_control_evaluation_from_payload(record)
         context = evaluation.request.context
-        if (context.run.ref, context.trigger_root) != (run_ref, trigger_root):
-            continue
+        if (context.run.ref, context.trigger_root) == (run_ref, trigger_root):
+            accumulator.apply(evaluation)
+    return accumulator.state()
+
+
+@dataclass
+class CausalAccumulator:
+    """The incumbent causal fold, retained between confirmed append batches."""
+
+    claims: dict = field(default_factory=dict)
+    firings: dict = field(default_factory=dict)
+    attempts: int = 0
+    watermarks: dict = field(default_factory=dict)
+    admitted_keys: set = field(default_factory=set)
+    claim_sources: dict = field(default_factory=dict)
+    records_seen: int = 0
+
+    def apply(
+        self, evaluation: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model, *, priority=None
+    ) -> None:
+        context = evaluation.request.context
+        priority = (0, self.records_seen) if priority is None else priority
+        self.records_seen += 1
         # Each watermark already covers its declared claims. Add every unique
         # admission outside that set, including interleaved continuations.
         # Shared participant histories need not be globally ordered.
         declared = frozenset(claim.key for claim in context.prior_effect_claims)
-        watermarks[declared] = max(watermarks.get(declared, 0), context.effects_consumed)
-        admitted_keys.update({effect.key for effect in _admitted_effects(evaluation)} - declared)
+        self.watermarks[declared] = max(self.watermarks.get(declared, 0), context.effects_consumed)
+        self.admitted_keys.update({effect.key for effect in _admitted_effects(evaluation)} - declared)
         # A realization transition records the outcome of an evaluation that
         # already spent its attempt; counting it again would double-charge.
         if isinstance(evaluation, ParticipantControlEvaluationV2Model) or not evaluation.realizations:
-            attempts = max(attempts, context.attempt)
-        _fold_retained(context, claims, firings)
-        for effect in _admitted_effects(evaluation):
-            claims.setdefault(
-                effect.key,
+            self.attempts = max(self.attempts, context.attempt)
+        _fold_retained(context, self.claims, self.firings)
+        for index, claim in enumerate(context.prior_effect_claims):
+            self._retain(claim, (*priority, 0, index))
+        for index, effect in enumerate(_admitted_effects(evaluation)):
+            self._retain(
                 ControlPriorEffectClaimModel(
                     effect_id=effect.effect_id,
                     key=effect.key,
                     content_digest=control_digest(effect),
                 ),
+                (*priority, 1, index),
             )
-            firings.setdefault((effect.key.rule_id, effect.key.rule_revision), set()).add(effect.key.firing_epoch)
-    consumed = max((count + len(admitted_keys - declared) for declared, count in watermarks.items()), default=0)
-    return ParticipantControlCausalState(
-        claims=claims,
-        firings={rule: frozenset(epochs) for rule, epochs in firings.items()},
-        attempts=attempts,
-        effects_consumed=max(consumed, len(claims)),
-    )
+            self.firings.setdefault((effect.key.rule_id, effect.key.rule_revision), set()).add(effect.key.firing_epoch)
+
+    def _retain(self, claim, source) -> None:
+        if claim.key not in self.claim_sources or source < self.claim_sources[claim.key]:
+            self.claims[claim.key] = claim
+            self.claim_sources[claim.key] = source
+
+    def state(self) -> ParticipantControlCausalState:
+        consumed = max(
+            (count + len(self.admitted_keys - declared) for declared, count in self.watermarks.items()), default=0
+        )
+        return ParticipantControlCausalState(
+            claims=dict(self.claims),
+            firings={rule: frozenset(epochs) for rule, epochs in self.firings.items()},
+            attempts=self.attempts,
+            effects_consumed=max(consumed, len(self.claims)),
+        )
 
 
 def _fold_retained(
@@ -184,11 +212,9 @@ def validate_incremental_effect_admission(
     )
 
     context = evaluation.request.context
-    state = causal_state_from_history(
-        tuple(item for history in plane._snapshot.participant_control_evaluation_history.values() for item in history),
-        run_ref=context.run.ref,
-        trigger_root=context.trigger_root,
-    )
+    from .participant_control_projection import control_projection
+
+    state = control_projection(plane).causal_state(context.run.ref, context.trigger_root)
     current = ParticipantControlContextModel.model_validate(
         {
             **context.model_dump(mode="json"),

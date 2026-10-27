@@ -27,6 +27,7 @@ from ._participant_behavior_types import (
     ParticipantPhaseRealization,
     ParticipantRuntimeLifecyclePhase,
 )
+from .immutable_history import EventHistory
 
 
 def _enum_scalar(value: object) -> object:
@@ -162,7 +163,7 @@ def iter_participant_behavior_snapshot_violations(
         if not isinstance(outer_key, str) or not outer_key:
             yield (_PARTICIPANT_BEHAVIOR_HISTORY_KEY, "participant behavior history keys must be non-empty strings")
             continue
-        if not isinstance(history, list):
+        if not isinstance(history, (list, EventHistory)):
             yield (outer_key, "participant behavior history must be a list of events")
             continue
         for index, event in enumerate(history):
@@ -222,11 +223,15 @@ def _iter_append_only_history_violations(
     if not isinstance(previous_history, Mapping) or not isinstance(next_history, Mapping):
         return
     for participant_address, previous_events in previous_history.items():
-        if not isinstance(participant_address, str) or not participant_address or not isinstance(previous_events, list):
+        if (
+            not isinstance(participant_address, str)
+            or not participant_address
+            or not isinstance(previous_events, (list, EventHistory))
+        ):
             continue
         next_events = next_history.get(participant_address)
         participant_locator = f"{address_prefix}.{participant_address}"
-        if not isinstance(next_events, list):
+        if not isinstance(next_events, (list, EventHistory)):
             yield (
                 participant_locator,
                 f"{field_name} must be append-only; participant {participant_address!r} history was removed",
@@ -441,7 +446,7 @@ def _collect_episode_history_ids(
     if not isinstance(participant_episode_history, Mapping):
         return
     for outer_key, history in participant_episode_history.items():
-        if not isinstance(outer_key, str) or not outer_key or not isinstance(history, list):
+        if not isinstance(outer_key, str) or not outer_key or not isinstance(history, (list, EventHistory)):
             continue
         for event in history:
             if not isinstance(event, Mapping):

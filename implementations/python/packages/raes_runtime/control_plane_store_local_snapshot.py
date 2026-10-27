@@ -30,7 +30,7 @@ class LocalSnapshotRevisionStoreMixin:
         return self.load_snapshot_state().snapshot
 
     def load_snapshot_state(self) -> SnapshotState:
-        with self._connection() as connection:
+        with self._connection() as connection, transaction(connection):
             return self._load_snapshot_state(connection)
 
     def save_snapshot(
@@ -54,11 +54,38 @@ class LocalSnapshotRevisionStoreMixin:
             (_SNAPSHOT_KEY,),
         ).fetchone()
         if row is None:
+            from .control_plane_store_history_rows import require_empty_history_without_snapshot
+
+            require_empty_history_without_snapshot(connection)
             return SnapshotState(snapshot=RuntimeSnapshot(), revision=0)
-        return SnapshotState(
-            snapshot=_snapshot_from_payload(decode_payload(row[0], row[1], kind="runtime snapshot")),
+        header = decode_payload(row[0], row[1], kind="runtime snapshot")
+        from .control_plane_store_history_rows import history_generation
+
+        identity = (history_generation(connection), require_snapshot_revision(row[2]), row[1])
+        pending = getattr(connection, "pending_snapshot", None)
+        if pending is not None and pending[0] == identity:
+            return pending[1]
+        cache = getattr(connection, "snapshot_cache", None)
+        from raes_contracts.immutable_history import snapshot_history_roots_match
+
+        if (
+            cache is not None
+            and cache.identity == identity
+            and snapshot_history_roots_match(cache.state.snapshot, cache.history_roots)
+        ):
+            _, current_digest = encode_payload(_snapshot_payload(cache.state.snapshot, include_histories=False))
+            if current_digest == row[1]:
+                return cache.state
+        from .control_plane_store_history_rows import restore_history_rows
+
+        payload = restore_history_rows(connection, header)
+        state = SnapshotState(
+            snapshot=_snapshot_from_payload(payload),
             revision=require_snapshot_revision(row[2]),
         )
+        if hasattr(connection, "pending_snapshot"):
+            connection.pending_snapshot = (identity, state)
+        return state
 
     @staticmethod
     def _upsert_snapshot(
@@ -68,7 +95,15 @@ class LocalSnapshotRevisionStoreMixin:
         revision: int = 0,
     ) -> None:
         revision = require_snapshot_revision(revision)
-        payload, digest = encode_payload(_snapshot_payload(snapshot))
+        from raes_contracts.immutable_history import HISTORY_FIELDS, seal_history
+
+        from .control_plane_store_history_rows import persist_history_rows
+
+        snapshot = snapshot.with_entries(
+            dict(snapshot.entries), **{field: seal_history(field, getattr(snapshot, field)) for field in HISTORY_FIELDS}
+        )
+        persist_history_rows(connection, snapshot)
+        payload, digest = encode_payload(_snapshot_payload(snapshot, include_histories=False))
         connection.execute(
             """
             INSERT INTO state(key, payload, digest, revision) VALUES (?, ?, ?, ?)
@@ -79,6 +114,17 @@ class LocalSnapshotRevisionStoreMixin:
             """,
             (_SNAPSHOT_KEY, payload, digest, revision),
         )
+        connection.execute(
+            "INSERT INTO metadata(key, value) VALUES ('snapshot-history-format', '1') "
+            "ON CONFLICT(key) DO UPDATE SET value=excluded.value"
+        )
+        if hasattr(connection, "pending_snapshot"):
+            from .control_plane_store_history_rows import history_generation
+
+            connection.pending_snapshot = (
+                (history_generation(connection), revision, digest),
+                SnapshotState(snapshot, revision),
+            )
 
     @staticmethod
     def _require_expected_revision(

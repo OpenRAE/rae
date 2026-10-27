@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterator, Mapping
 
 from ._participant_behavior_types import _RESERVED_RUNTIME_STATE_KEYS
+from .immutable_history import EventHistory
 
 Violation = tuple[str, str]
 
@@ -62,10 +63,10 @@ def _history_transition_state_violations(
     next_shared_state_history: Mapping[object, object],
 ) -> list[Violation]:
     violations: list[Violation] = []
-    if isinstance(state_address, str) and state_address and isinstance(previous_records, list):
+    if isinstance(state_address, str) and state_address and isinstance(previous_records, (list, EventHistory)):
         next_records = next_shared_state_history.get(state_address)
         locator = f"{_SHARED_STATE_HISTORY_KEY}.{state_address}"
-        if not isinstance(next_records, list):
+        if not isinstance(next_records, (list, EventHistory)):
             violations.append(
                 (locator, f"shared_state_history must be append-only; state {state_address!r} history was removed")
             )
@@ -165,7 +166,7 @@ def _shared_state_history_entry_violations(
     locator = f"{_SHARED_STATE_HISTORY_KEY}.{outer_key}"
     if not isinstance(outer_key, str) or not outer_key:
         violations.append((_SHARED_STATE_HISTORY_KEY, "shared_state_history keys must be non-empty strings"))
-    elif not isinstance(records, list):
+    elif not isinstance(records, (list, EventHistory)):
         violations.append((locator, "shared_state_history entries must be lists"))
     else:
         known_addresses.add(outer_key)
@@ -294,7 +295,7 @@ def _participant_behavior_ref_violations(
     known_addresses: set[str],
 ) -> list[Violation]:
     violations: list[Violation] = []
-    if isinstance(participant_address, str) and isinstance(history, list):
+    if isinstance(participant_address, str) and isinstance(history, (list, EventHistory)):
         for index, event in enumerate(history):
             violations.extend(_behavior_event_ref_violations(participant_address, index, event, known_addresses))
     return violations

@@ -43,7 +43,8 @@ def test_actual_process_loss_never_reissues_a_consumed_grant(phase, tmp_path):
         autocommit=True,
     ) as cleanup:
         cleanup.execute(
-            "DROP TABLE IF EXISTS raes_ledger_audit, raes_ledger_operations, raes_ledger_state, raes_ledger_metadata"
+            "DROP TABLE IF EXISTS raes_ledger_changes, raes_ledger_history_streams, raes_ledger_history, "
+            "raes_ledger_audit, raes_ledger_operations, raes_ledger_state, raes_ledger_metadata"
         )
     PostgreSQLControlPlaneStore(config).initialize_schema()
     marker = tmp_path / "effect-witness"
@@ -134,7 +135,8 @@ async def _exercise(blocked, tmp_path):
         autocommit=True,
     ) as cleanup:
         cleanup.execute(
-            "DROP TABLE IF EXISTS raes_ledger_audit, raes_ledger_operations, raes_ledger_state, raes_ledger_metadata"
+            "DROP TABLE IF EXISTS raes_ledger_changes, raes_ledger_history_streams, raes_ledger_history, "
+            "raes_ledger_audit, raes_ledger_operations, raes_ledger_state, raes_ledger_metadata"
         )
     store = PostgreSQLControlPlaneStore(config)
     await asyncio.to_thread(store.initialize_schema)

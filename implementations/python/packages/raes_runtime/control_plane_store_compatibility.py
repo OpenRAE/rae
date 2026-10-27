@@ -76,6 +76,9 @@ class ControlPlaneStoreCommitAdapter:
 
 def adapt_control_plane_store(store: object) -> ControlPlaneStoreCommitAdapter:
     """Reject stores that cannot provide the complete atomic mutation contract."""
+    incremental = getattr(store, "load_operation_changes", None)
+    if incremental is not None and not callable(incremental):
+        raise TypeError("control-plane store incremental operation capability is invalid")
 
     missing_base = [name for name in _BASE_STORE_METHODS if not callable(getattr(store, name, None))]
     if missing_base:

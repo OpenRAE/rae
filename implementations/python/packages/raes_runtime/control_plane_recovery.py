@@ -328,12 +328,19 @@ def unresolved_indeterminate_operation_ids(
 ) -> tuple[str, ...]:
     """Return immutable indeterminate parents without a successful resolution child."""
 
-    records = control_plane._store.load_records()
-    return unresolved_indeterminate_operation_ids_from_records(
-        records,
-        target_scope=target_scope,
-        run_scope=run_scope,
-    )
+    from .participant_control_operation_index import operation_index
+
+    with control_plane._operation_lock:
+        control_plane._refresh_operation_records()
+        unresolved = operation_index(control_plane).unresolved
+        return tuple(
+            sorted(
+                identity
+                for identity, record in unresolved.items()
+                if (target_scope is None or record.status.context.target_scope == target_scope)
+                and (run_scope is None or record.status.context.run_scope == run_scope)
+            )
+        )
 
 
 def unresolved_indeterminate_operation_ids_from_records(

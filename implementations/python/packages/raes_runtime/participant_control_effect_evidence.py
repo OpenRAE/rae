@@ -127,16 +127,21 @@ def retained_effect_intents(
     plane: RuntimeControlPlane, effects: Sequence[ControlEffectRequestV2Model]
 ) -> dict[str, ControlCommittedEffectIntentV2]:
     """Resolve typed realized claims against the full original committed intent."""
-    from raes_contracts.participant_control_evaluation_history import participant_control_evaluation_from_payload
+    from .participant_control_projection import control_projection
 
     wanted = {effect.effect_id: effect for effect in effects}
     resolved = {}
-    records = plane._store.load_records().values()
-    for history in plane._snapshot.participant_control_evaluation_history.values():
-        for payload in history:
-            origin = participant_control_evaluation_from_payload(payload)
-            if isinstance(origin, ParticipantControlEvaluationV2Model) and origin.commit.status == "committed":
-                resolved.update(_origin_effect_intents(origin, wanted, records))
+    from .participant_control_operation_index import operation_index
+
+    index = operation_index(plane)
+    projection = control_projection(plane)
+    origins = {}
+    for effect in effects:
+        claim = index.claim(effect)
+        if claim is not None:
+            origins.update(projection.by_origin.get(claim.receipt.context.parent_operation_id, {}))
+    for origin in origins.values():
+        resolved.update(_origin_effect_intents(origin, wanted, (), index=index))
     return resolved
 
 
@@ -144,6 +149,8 @@ def _origin_effect_intents(
     origin: ParticipantControlEvaluationV2Model,
     wanted: Mapping[str, ControlEffectRequestV2Model],
     records: Collection[ControlPlaneOperationRecord],
+    *,
+    index: object | None = None,
 ) -> dict[str, ControlCommittedEffectIntentV2]:
     from raes_contracts.contracts.participant_control_resolution import ControlCommittedEffectIntentV2
 
@@ -153,18 +160,27 @@ def _origin_effect_intents(
     for effect in origin.effect_plan.effects:
         if wanted.get(effect.effect_id) != effect or effect.effect_id not in origin.commit.dispatchable_effect_ids:
             continue
-        claim = next(
-            (
-                item
-                for item in records
-                if item.idempotency_key == effect_idempotency_key(effect)
-                and item.receipt.context.actor_id == effect.originating_principal_ref
-                and item.receipt.context.parent_operation_id == origin.commit.receipt.ref
-            ),
-            None,
+        claim = (
+            index.claim(effect)
+            if index is not None
+            else next(
+                (
+                    item
+                    for item in records
+                    if item.idempotency_key == effect_idempotency_key(effect)
+                    and item.receipt.context.actor_id == effect.originating_principal_ref
+                    and item.receipt.context.parent_operation_id == origin.commit.receipt.ref
+                ),
+                None,
+            )
         )
         if claim is not None:
-            outcome = retained_claim_outcome(claim, records)
+            if (
+                claim.receipt.context.actor_id != effect.originating_principal_ref
+                or claim.receipt.context.parent_operation_id != origin.commit.receipt.ref
+            ):
+                continue
+            outcome = index.outcome(claim) if index is not None else retained_claim_outcome(claim, records)
             if outcome is not None and outcome.effect_id == effect.effect_id:
                 resolved[effect.effect_id] = ControlCommittedEffectIntentV2(origin, outcome)
     return resolved
@@ -196,22 +212,18 @@ def claim_has_committed_intent(
     plane: RuntimeControlPlane, claim: ControlPlaneOperationRecord, request: ControlEffectRequestV2Model
 ) -> bool:
     """A later continuation reuses the first exact logical claim and origin."""
-    from raes_contracts.participant_control_evaluation_history import participant_control_evaluation_from_payload
+    from .participant_control_projection import control_projection
 
-    owner = plane._store.load_records().get(claim.receipt.context.parent_operation_id)
+    owner = plane._operations.get(claim.receipt.context.parent_operation_id)
     if owner is None:
         return False
-    for history in plane._snapshot.participant_control_evaluation_history.values():
-        for payload in history:
-            evaluation = participant_control_evaluation_from_payload(payload)
-            if (
-                isinstance(evaluation, ParticipantControlEvaluationV2Model)
-                and evaluation.commit.status == "committed"
-                and evaluation.commit.receipt == operation_receipt(owner)
-                and request in evaluation.effect_plan.effects
-                and request.effect_id in evaluation.commit.dispatchable_effect_ids
-            ):
-                return True
+    for evaluation in control_projection(plane).by_origin.get(owner.receipt.operation_id, {}).values():
+        if (
+            evaluation.commit.receipt == operation_receipt(owner)
+            and request in evaluation.effect_plan.effects
+            and request.effect_id in evaluation.commit.dispatchable_effect_ids
+        ):
+            return True
     return False
 
 
@@ -219,11 +231,24 @@ def finalize_evaluation_commits(
     previous: RuntimeSnapshot, proposed: RuntimeSnapshot, record: ControlPlaneOperationRecord
 ) -> RuntimeSnapshot:
     """Seal only newly appended prepared records under the actual commit owner."""
+    from raes_contracts.immutable_history import EventHistory, seal_history
+
     history = proposed.participant_control_evaluation_history
-    result = dict(history)
+    if history is previous.participant_control_evaluation_history:
+        return proposed
+    suffixes = {}
+    changed = False
     for participant, entries in history.items():
         prior = previous.participant_control_evaluation_history.get(participant, ())
-        amended = list(entries)
+        if isinstance(entries, EventHistory) and isinstance(prior, EventHistory):
+            preserved = len(entries) >= len(prior) and entries.prefix_digest(len(prior)) == prior.prefix_digest(
+                len(prior)
+            )
+        else:
+            preserved = entries[: len(prior)] == list(prior)
+        if not preserved:
+            raise ValueError("participant control evaluation history must preserve its exact prefix")
+        amended = []
         for index in range(len(prior), len(entries)):
             payload = entries[index]
             if (
@@ -231,10 +256,18 @@ def finalize_evaluation_commits(
                 and payload["commit"]["status"] == "prepared"
             ):
                 evaluation = ParticipantControlEvaluationV2Model.model_validate(payload)
-                amended[index] = committed_evaluation(evaluation, record).model_dump(mode="json")
-        result[participant] = amended
-    if result == history:
+                payload = committed_evaluation(evaluation, record).model_dump(mode="json")
+                changed = True
+            amended.append(payload)
+        suffixes[participant] = amended
+    if not changed:
         return proposed
+    if not previous.participant_control_evaluation_history.keys() <= history.keys():
+        raise ValueError("participant control evaluation history must preserve every participant")
+    result = seal_history("participant_control_evaluation_history", previous.participant_control_evaluation_history)
+    for participant, amended in suffixes.items():
+        if amended or participant not in result:
+            result = result.append(participant, amended)
     return proposed.with_entries(dict(proposed.entries), participant_control_evaluation_history=result)
 
 
@@ -289,7 +322,7 @@ def declares_effect_parent(
     from raes_contracts.contracts.participant_control_decisions_v2 import ControlEffectRequestV2Model
 
     parent_id = crossing.record.receipt.context.parent_operation_id
-    claim = None if parent_id is None else plane._store.load_records().get(parent_id)
+    claim = None if parent_id is None else plane._operations.get(parent_id)
     # V1 claims retain their original interpretation.
     if claim is None or not claim.idempotency_key.startswith("control-effect:") or claim.result_payload is None:
         return True
@@ -305,17 +338,12 @@ def _parent_context_matches(
     effect: ControlEffectRequestV2Model,
     context: ParticipantControlContextModel,
 ) -> bool:
-    from raes_contracts.participant_control_evaluation_history import participant_control_evaluation_from_payload
+    from .participant_control_projection import control_projection
 
-    for history in plane._snapshot.participant_control_evaluation_history.values():
-        for payload in history:
-            origin = participant_control_evaluation_from_payload(payload)
-            if not isinstance(origin, ParticipantControlEvaluationV2Model) or origin.commit.receipt is None:
-                continue
-            if origin.commit.receipt.ref == claim.receipt.context.parent_operation_id:
-                return (
-                    context.run.ref == effect.key.run_ref
-                    and context.trigger_root == effect.key.trigger_root
-                    and context.depth >= origin.request.context.depth + 1
-                )
+    for origin in control_projection(plane).by_origin.get(claim.receipt.context.parent_operation_id, {}).values():
+        return (
+            context.run.ref == effect.key.run_ref
+            and context.trigger_root == effect.key.trigger_root
+            and context.depth >= origin.request.context.depth + 1
+        )
     return False

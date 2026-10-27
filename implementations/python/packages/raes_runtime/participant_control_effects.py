@@ -28,7 +28,6 @@ from raes_contracts.contracts.participant_control_effects import ControlEffectRe
 from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
 from raes_contracts.contracts.participant_control_results import ControlRealizationBindingModel
 from raes_contracts.contracts.participant_inject_application import ParticipantInjectApplicationModel
-from raes_contracts.participant_control_evaluation_history import participant_control_evaluation_from_payload
 from raes_contracts.runtime_state import OperationKind
 
 from .control_plane_mutation import control_plane_mutation, external_control_plane_call
@@ -39,7 +38,6 @@ from .participant_control_receipts import (
     claim_outcome,
     never_dispatched,
     origin_principal,
-    originating_operations,
     owner_record,
     realization,
     require_drain_authority,
@@ -116,16 +114,25 @@ def dispatch_participant_control_effects(
             control_plane_mutation(control_plane, OperationKind.PARTICIPANT_CONTROL),
         ):
             _drain_pass(control_plane, binding, participant_address, drain, cancellation_only=True)
+            drain.cancellations.update(drain.outcomes)
     ordinary = ExitStack()
     try:
         ordinary.enter_context(control_plane_mutation(control_plane, OperationKind.PARTICIPANT_CONTROL))
     except TimeoutError:
         if cancellation_pending:
-            return tuple(drain.outcomes.values())
+            return _ordered_outcomes(control_plane, participant_address, drain)
         raise
     with ordinary:
         _drain_pass(control_plane, binding, participant_address, drain)
-    return tuple(drain.outcomes.values())
+    return _ordered_outcomes(control_plane, participant_address, drain)
+
+
+def _ordered_outcomes(plane, participant, drain):
+    from .participant_control_projection import control_projection
+
+    order = control_projection(plane).outcome_order.get(participant, {})
+    keys = sorted(drain.outcomes, key=lambda key: (key not in drain.cancellations, order[key]))
+    return tuple(drain.outcomes[key] for key in keys)
 
 
 def _drain_pass(
@@ -137,21 +144,32 @@ def _drain_pass(
     cancellation_only: bool = False,
 ) -> None:
     from .participant_control_effect_drain import dispatch_v2_effects
+    from .participant_control_projection import control_projection
 
     control_plane._reload_derived_state()
-    history = control_plane._snapshot.participant_control_evaluation_history.get(participant_address, ())
-    retained = [participant_control_evaluation_from_payload(record) for record in history]
+    projection = control_projection(control_plane)
+    retained = tuple(projection.pending.get(participant_address, {}).values())
     evaluations = [record for record in retained if isinstance(record, ParticipantControlEvaluationModel)]
-    origins = originating_operations(control_plane, participant_address)
-    drain.realized.update(_realized_keys(evaluations))
+    from .participant_control_operation_index import operation_index
+
+    origins = operation_index(control_plane).origins
+    if not cancellation_only:
+        drain.outcomes.update(projection.completed.get(participant_address, {}))
+    drain.realized.update(projection.realized.get(participant_address, {}))
     dispatch_v2_effects(control_plane, binding, retained, drain, cancellation_only=cancellation_only)
     if not cancellation_only:
         for evaluation in evaluations:
             phase = admitted_effect_phase(evaluation)
             if phase is not None and not evaluation.realizations:
                 _dispatch_evaluation(
-                    control_plane, binding, evaluation, drain, origin=origins.get(evaluation.evaluation_id), phase=phase
+                    control_plane,
+                    binding,
+                    evaluation,
+                    drain,
+                    origin=origins.get((participant_address, evaluation.evaluation_id)),
+                    phase=phase,
                 )
+    control_projection(control_plane).finish_drain(participant_address, drain)
 
 
 @dataclass
@@ -166,6 +184,7 @@ class _DrainState:
     realized: dict[ControlLogicalEffectKeyModel, ParticipantControlEffectRealization]
     outcomes: dict[ControlLogicalEffectKeyModel, ParticipantControlEffectRealization] = field(default_factory=dict)
     claimants: dict[ControlLogicalEffectKeyModel, ControlPlaneOperationRecord | None] = field(default_factory=dict)
+    cancellations: set[ControlLogicalEffectKeyModel] = field(default_factory=set)
 
 
 def _realized_keys(
@@ -407,7 +426,7 @@ def _effect_operation(
     if isinstance(request, ControlEffectRequestV2Model):
         from .participant_control_effect_owners import supports_effect_operation
 
-        origin = control_plane._store.load_records().get(evaluation.commit.receipt.ref)
+        origin = control_plane._operations.get(evaluation.commit.receipt.ref)
         supported = supports_effect_operation(control_plane, request, operation, evaluation.request.context, origin)
     else:
         supported = _binds_request(operation, request, evaluation.request.context)

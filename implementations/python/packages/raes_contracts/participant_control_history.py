@@ -13,6 +13,10 @@ def iter_participant_control_history_snapshot_violations(
     history: Mapping[str, Sequence[dict[str, object]]],
 ) -> list[tuple[str, str]]:
     """Return value-safe violations for one complete control-history snapshot."""
+    from .immutable_history import HistoryMap
+
+    if type(history) is HistoryMap and history._field == "participant_control_history":
+        return []
 
     violations: list[tuple[str, str]] = []
     seen_event_ids: set[str] = set()
@@ -54,6 +58,13 @@ def iter_participant_control_history_transition_violations(
     violations: list[tuple[str, str]] = []
     for participant_address, previous_events in previous.items():
         next_events = next_history.get(participant_address, ())
+        from .immutable_history import EventHistory
+
+        if isinstance(previous_events, EventHistory) and isinstance(next_events, EventHistory):
+            if len(next_events) >= len(previous_events) and next_events.prefix_digest(
+                len(previous_events)
+            ) == previous_events.prefix_digest(len(previous_events)):
+                continue
         if list(next_events[: len(previous_events)]) != list(previous_events):
             violations.append(
                 (

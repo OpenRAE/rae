@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.immutable_history import EventHistory, HistoryMap
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
 from raes_contracts.workflow import WorkflowExecutionState, WorkflowHistoryEvent
@@ -27,7 +28,7 @@ def _snapshot_shape_diagnostics(snapshot: RuntimeSnapshot) -> list[Diagnostic]:
                 "RuntimeSnapshot.orchestration_results must be a dict.",
             )
         ]
-    if not isinstance(snapshot.orchestration_history, dict):
+    if not isinstance(snapshot.orchestration_history, dict) and type(snapshot.orchestration_history) is not HistoryMap:
         return [
             _contract_diagnostic(
                 _ORCHESTRATION_HISTORY_ADDRESS,
@@ -136,7 +137,7 @@ def _normalized_workflow_history(
     workflow_address: str,
 ) -> tuple[list[WorkflowHistoryEvent] | None, list[Diagnostic]]:
     history_payload = snapshot.orchestration_history.get(workflow_address, [])
-    if not isinstance(history_payload, list):
+    if not isinstance(history_payload, (list, EventHistory)):
         return None, [
             _contract_diagnostic(workflow_address, "Workflow history payload must be a list of event mappings.")
         ]
