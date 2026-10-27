@@ -1,9 +1,9 @@
 {
-  "content_hash": "bedf1036a4e02b8b6eeb5759eac23c50ed021916a0173fca4cc3677e3b22be2b",
+  "content_hash": "aa9d98ec6cc9026a60fc649d83fafbb1b3ee4a943e6dbf95c45d0b2e307d0c28",
   "contract_id": "backend-manifest-v2",
   "last_change": {
-    "summary": "Allow explicit declarations of both mixed-backend execution binding/stage report and inject occurrence/outcome contracts; shipped backends retain their declared support boundaries (#1371, #1366).",
-    "content_hash": "bedf1036a4e02b8b6eeb5759eac23c50ed021916a0173fca4cc3677e3b22be2b"
+    "content_hash": "aa9d98ec6cc9026a60fc649d83fafbb1b3ee4a943e6dbf95c45d0b2e307d0c28",
+    "summary": "Publish negotiated runtime descendant lineage, target and attempt binding, lifecycle and concern selection with committed refresh and durable archive joins; issue #1649."
   },
   "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
   "stability": "draft"

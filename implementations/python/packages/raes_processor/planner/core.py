@@ -52,7 +52,7 @@ from .operations import (
 )
 from .ordering import _ordering_cycle_diagnostics
 from .realization_authority import materialize_realization_authority
-from .realization_collections import planned_node_collection, retain_open_collection_nodes
+from .realization_collections import planned_node_collection, retain_open_collection_nodes, retain_reported_descendants
 from .realization_preparation import preparation_authority, preparation_member_diagnostics
 from .realization_profiles import profile_resources
 from .resources import _collect_resources
@@ -303,6 +303,9 @@ def _augment_provisioning(
             ),
         )
     )
+    provisioning, inventory_diagnostics = retain_reported_descendants(provisioning, effective_model, snapshot)
+    extra.extend(inventory_diagnostics)
+    provisioning.diagnostics.extend(inventory_diagnostics)
     materialization_diagnostics = service_materialization_plan_diagnostics(
         provisioning,
         manifest.provisioner,

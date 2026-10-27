@@ -33,6 +33,10 @@ Backends can also report what they built as SDL. The runtime saves this record
 with the run. See [SDL run records](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/materialization-attestations.md)
 for the contract and setup.
 
+Backends can report unplanned children and later inventory changes through the
+[runtime descendant contract](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/runtime-descendant-inventory.md).
+It preserves the original scenario and runtime-owned provenance.
+
 The optional operation-supervision profile defines requests, progress,
 cancellation and effect reports for backend authors. Read the
 [protocol and migration guide](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/backend-operation-supervision.md).

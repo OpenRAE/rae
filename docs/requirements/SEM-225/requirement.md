@@ -20,6 +20,13 @@ If processors or backends add instrumentation or other augmentation, the ecosyst
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_issue_1649_runtime_descendants.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_admission.py`
+
+- IMPLEMENTS → GITHUB_ISSUE `1649` (Runtime descendant reports and refresh)
+- IMPLEMENTS → SPEC `contracts/schemas/profiles/backend-profile-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/snapshots/runtime-snapshot-v1.json`
+
 - IMPLEMENTS → GITHUB_ISSUE `1242` (Binding open-by-default author scope and pre-materialization refusal)
 - IMPLEMENTS → SPEC `specs/sdl/augmentation-scope.md` (Author burden rationale, scoped permission, pure preparation and refusal contract)
 - IMPLEMENTS → SPEC `contracts/provenance/sdl-lineage-ledger-v2.json` (Native lineage registration for the author scope field)

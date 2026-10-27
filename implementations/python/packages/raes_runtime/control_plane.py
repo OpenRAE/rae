@@ -7,12 +7,7 @@ from copy import deepcopy
 from threading import RLock
 from typing import TypeVar, Unpack
 
-from raes_contracts.planning import (
-    EvaluationPlan,
-    OrchestrationPlan,
-    ProvisioningPlan,
-    RuntimeDomain,
-)
+from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
     OperationKind,
     OperationReceipt,
@@ -31,6 +26,7 @@ from .control_plane_execution import (
     reject_new_operation_if_admission_fails,
 )
 from .control_plane_injects import RuntimeInjectMixin
+from .control_plane_inventory import provisioning_method, provisioning_validation
 from .control_plane_lifecycle import RuntimeLifecycleMixin, runtime_owned, store_authoritative_state
 from .control_plane_mutation import (
     RuntimeMutationAuthority,
@@ -322,11 +318,11 @@ class RuntimeControlPlane(
         )
         request = OperationExecutionRequest(
             domain=RuntimeDomain.PROVISIONING,
-            method=self._target.provisioner.apply,
+            method=provisioning_method(self._target, plan),
             plan=plan,
             address="runtime.control-plane.provisioning",
             diagnostics=[],
-            validation_method=(self._target.provisioner.validate if plan.preparation is None else None),
+            validation_method=provisioning_validation(self._target, plan),
             base_snapshot=base_snapshot,
             idempotency_key=idempotency_key,
             request_fingerprint=context.request_commitment,

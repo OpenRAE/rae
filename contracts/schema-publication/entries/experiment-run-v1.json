@@ -1,9 +1,9 @@
 {
-  "content_hash": "11a33e0eab2c412c6162025e601a54b3d06eab2a12f038e8f847f700dbddffd9",
+  "content_hash": "9418c3b9f30f04b24dee267e5739a581ac54a26337092fb54bdbf7aaad66c401",
   "contract_id": "experiment-run-v1",
   "last_change": {
-    "content_hash": "11a33e0eab2c412c6162025e601a54b3d06eab2a12f038e8f847f700dbddffd9",
-    "summary": "Preserve evidence-requirement lineage and protected materialization archive records through run and runtime snapshots (#341, #1241)."
+    "content_hash": "9418c3b9f30f04b24dee267e5739a581ac54a26337092fb54bdbf7aaad66c401",
+    "summary": "Publish negotiated runtime descendant lineage, target and attempt binding, lifecycle and concern selection with committed refresh and durable archive joins; issue #1649."
   },
   "schema_path": "contracts/schemas/experiment-core/experiment-run-v1.json",
   "stability": "draft"

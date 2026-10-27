@@ -94,6 +94,15 @@ def _provenance_diagnostics(
     snapshot: RuntimeSnapshot,
 ) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
+    source = execution_plan.provisioning.materialization_source
+    if source is not None and source.target_scope is not None and source.target_scope != f"target:{target.name}":
+        diagnostics.append(
+            _failure_diagnostic(
+                "runtime.plan-target-mismatch",
+                _RUNTIME_APPLY_ADDRESS,
+                "Inventory source context belongs to another runtime target.",
+            )
+        )
     if execution_plan.model.materialization_description is not None or any(
         phase.purpose != "execution"
         for phase in (execution_plan.provisioning, execution_plan.orchestration, execution_plan.evaluation)

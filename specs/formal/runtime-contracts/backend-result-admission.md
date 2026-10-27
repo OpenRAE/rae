@@ -1,34 +1,33 @@
-# Backend result admission
+# Runtime result admission
 
-This is the normative execution-boundary contract for ASR-532. It applies to
-direct-manager and authenticated control-plane backend invocation. Backend
-results are proposals, not authority over accepted portable state.
+This contract defines the result boundary for ASR-532. It applies when a manager or an authenticated control plane calls a backend.
+The backend proposes a result. The runtime decides which portable state it can accept.
 
 ## Trusted inputs and effects
 
 The runtime MUST retain an isolated immediate predecessor and admitted request.
-Input and result shapes, canonical addresses, recursive value bounds and total
-work bounds MUST be checked before recursive isolation, hashing or publication.
+The runtime MUST check input and result shapes and canonical addresses.
+It MUST also check nested value bounds and total work bounds before it copies, hashes or publishes the result.
 Native service dependencies remain injected services, not copied state carriers.
 
-A submitted plan owns resource address, authored identity, resource type,
-runtime domain, dependencies and any admitted profile completion. A backend
+The submitted plan defines each resource address, authored identity and type.
+It also defines its runtime domain, dependencies and admitted profile completion. A backend
 MUST NOT rewrite these, change unrelated resources, or mutate runtime-owned
-metadata or provenance. Plan identity cannot be inferred from a caller-supplied
-digest or authenticated transport principal alone.
+metadata or provenance. A digest supplied by the caller does not prove plan identity.
+The identity of the caller on the transport does not prove it either.
 
-An additional portable node is permitted only under the explicit collection
-and preparation contract in
+An additional portable node requires the explicit enclosing collection relation.
+Initial selection can use the preparation contract in
 [backend realization preparation](../../sdl/backend-realization-preparation.md).
-Its omission from the author's operation list is neither a universal prohibition
-nor permission to invent membership after apply.
+Runtime discovery and later refresh can use the negotiated
+[descendant inventory extension](../../sdl/materialization-attestation.md#runtime-descendant-inventory).
+The runtime projects those admitted resources from descriptive SDL after the legacy proposal checks.
+The backend cannot add unplanned entries or write runtime-owned provenance directly.
+A resource absent from the author's operation list is not thereby allowed to join the collection or be removed.
 
-Non-resource snapshot carriers retain their specialized domain owners. An
-operation on one participant, execution service or clock does not grant access
-to unrelated state in that domain. Execution-service effects may cover only its
-trusted existing scheduler scope. Coordinated clock reset names the clock and
-the admitted participant reset batch. Resource-target authority does not grant
-authority over other carriers whose keys happen to coincide. Native participant
+Other snapshot carriers keep their own domain rules.
+An operation on one participant, execution service or clock does not grant access to other state in that domain. Execution-service effects may cover only the scope of its trusted existing scheduler. Coordinated clock reset names the clock and
+the admitted participant reset batch. Rights over a resource target do not grant rights over other carriers with the same key. Native participant
 and shared-time history validators remain mandatory.
 
 ## Transition accounting
@@ -42,50 +41,58 @@ For a successful plan result:
 | DELETE | Present predecessor to absent resource | Required |
 | UNCHANGED | Preserve resource semantics and identity | Forbidden |
 
-Status annotations alone are not resource-semantic changes. Actual addressed
-carrier changes MUST also be reported, and every reported address MUST resolve
-an authorized transition. Linked disclosure-record IDs are governed by their
-native reference/history contract, not fabricated resource change addresses.
-Honest partial failure cleanup remains subject to identity, ownership, and
-accounting checks; it is not a successful conformance claim.
+Status annotations alone are not resource-semantic changes. The result MUST also report actual changes to addressed carriers.
+Each reported address MUST resolve to a permitted transition. Linked disclosure-record IDs keep their own reference and history rules.
+They MUST NOT be reported as invented resource change addresses.
+Cleanup after partial failure still needs identity, ownership and accounting checks.
+It cannot claim successful conformance.
 
 ## Admission and publication
 
-The runtime MUST compare actual declared values and collection coverage against
-the original recursive constraints, independently of aggregate explicitness.
-Prepared delivery also MUST match the admitted completion under its owning
-canonical comparison. Typed JSON equality distinguishes `true` from `1`,
+The runtime MUST check actual declared values and the members of each collection against the original nested constraints.
+The overall explicitness level does not replace these checks.
+Prepared delivery MUST also match the admitted completion.
+Its own canonical comparison defines a match. Typed JSON equality distinguishes `true` from `1`,
 including inside profile bindings and unchanged resources.
 
-Every applicable native semantic, capability, observation-scope and
-observation-strength requirement remains binding. Selection is not observation.
-Neither precise declarations nor preparation create experimental capture,
-retention or export requirements. Those remain governed by selected demand.
+The runtime MUST still check native meaning and required capabilities.
+It MUST also check the scope and strength of each observation.
+A choice is not an observation.
+A precise declaration or a prepared result does not require study data to be captured, kept or exported.
+Selected demand still governs those actions.
 
-Credential-bearing results MUST satisfy their closed egress contract against
-the admitted operation values. Admitted realization concerns MAY contain
+Results with credentials MUST satisfy their closed egress contract.
+It checks them against the admitted operation values. Admitted realization concerns MAY contain
 observed values that differ from those operation values, including OPEN choices.
-Only registered concern paths with an applicable admitted requirement and safe
-observation projection receive this permission. All other payload values MUST
-retain typed exact equality with the admitted operation, except separately
-authorized evidence such as `artifact_satisfaction`.
+This permission applies only to registered concern paths.
+Each path must have an admitted requirement that applies and a safe observation projection. All other payload values MUST keep typed exact equality with the admitted operation.
+Separately permitted evidence, such as `artifact_satisfaction`, is an exception.
 
 The owning concern validator MUST check observed values before projection.
 Credential closure MUST preserve their safe observation projection.
 It MUST NOT restore plan values over those observations.
 Canonical account material remains presence-only.
-Comparison and publication MUST preserve the same permitted meaning; safe projected state
-is revalidated before adding runtime-owned provenance and committing it. The
-second validation may reuse admitted transient observations but MUST NOT collect
-or retain new observations. Sanitization failure diagnostics MUST not be
-overwritten by secondary comparisons against the rejected candidate.
+Comparison and publication MUST preserve the same permitted meaning.
+The runtime MUST check safe projected state again before it adds provenance and commits the state.
+This second check may reuse admitted transient observations.
+It MUST NOT collect or retain new ones. If sanitization fails, later comparisons against the rejected candidate MUST NOT replace its diagnostics.
 
-A rejected successful claim MUST return `success=false`, the immediate trusted
-predecessor, empty changed addresses and no candidate details or success
-provenance. A structured diagnostic MUST identify the violated invariant without
-exposing rejected secret values or backend exception text. Manager state,
+If a success claim fails these checks, the runtime MUST return `success=false` and the immediate trusted predecessor.
+It MUST return empty changed addresses and no candidate details or success provenance. A structured diagnostic MUST name the rule that failed.
+It MUST NOT expose rejected secret values or backend exception text. Manager state,
 control-plane durable state and subsequent recovery MUST agree on this outcome.
 
-This contract does not provide backend certification, infrastructure rollback,
-hostile-backend containment, universal capability truthfulness, or permission
-to replay apply automatically.
+This contract does not certify backends or roll back infrastructure.
+It does not contain hostile backends or prove that every claimed capability is true.
+It does not allow apply to be replayed on its own.
+
+Inventory refresh is an explicit provisioning mutation with read-only backend behavior.
+Other phases MUST NOT carry the runtime inventory report.
+Its committed discriminator selects inventory reporting rather than apply.
+The planner must still authorize the plan.
+Target and run identities remain bound. Each new request gets a fresh operation attempt.
+Saved retries, supervision and the terminal snapshot commit still apply.
+The collector returns an unchanged predecessor and a separate SDL report.
+Incomplete or invalid reports preserve the trusted predecessor.
+The native artifact digest binds the original backend proposal before and after the checks.
+The terminal accepted-state commitment separately binds the runtime-derived snapshot.
