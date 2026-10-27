@@ -309,6 +309,73 @@ sequence through `target_runs_per_condition`. The coordinate order is
 dimension from descriptive allocation strings. Unsupported dimensions or an
 empty/exceeded coordinate set fail before selection.
 
+### Designed compiler and allocation profiles (EXP-719)
+
+`trial-compiler-designed-v1` and
+`trial-compiler-designed-mixed-composition-v1` extend their respective legacy
+compiler profiles with factorial binding selection and/or recorded allocation.
+Replacement variants are `trial-compiler-replacement-designed-v1` and
+`trial-compiler-replacement-designed-mixed-composition-v1`. Legacy profile
+outputs and `trial-coordinate-canonical-v1` order retain their meanings.
+Coordinate identities remain `trial-coordinate-v1`; randomization never
+changes a coordinate. Complete experiment intent and exact input digests
+remain in the plan identity projection, so changes to design, seed, namespace,
+or allocation policy produce new plan/entry/run identities. Allocation slots
+are separate from those logical coordinates.
+
+For factorial designs, every coordinate selects the scalar scenario bindings
+from its exact generated condition through the public SDL selection and
+whole-scenario admission path. All family points must be covered exactly once;
+additional selection policies and nonliteral scenario binding outcomes fail
+closed. Participant bindings never become SDL points. Selected manifest
+registries resolve their targets; complete configurations apply defaults,
+require missing values, and invoke a supplied trusted owner validator. The
+entry records each normalized configuration with its manifest and digest.
+Normalization must preserve declared binding values. Retry and replacement
+lineage retain their incumbent authorities; a replacement child contains one
+new entry for the original slot's condition and no reshuffle of original slots.
+
+The accepted executable allocation procedure is `fisher-yates-allocation-v1`:
+
+1. Resolve exactly one `randomization` control with an executable
+   `blake3-xof-v1` / `random-stream-profile/v1` binding and a public seed.
+   Governed entropy without an authorized resolver fails closed. Retain this
+   control at plan scope even when no entry draws use it.
+2. Initialize the pool with every admitted entry exactly once, sorted by the
+   unchanged canonical coordinate key (condition, numeric replicate ordinal).
+   Reject an empty, duplicate, or greater-than-10000 domain.
+3. For `i = n-1, ..., 1`, use slot `n-1-i`. The closed
+   `allocation-address-v1` address contains `address_profile`, the control's
+   `namespace`, `allocation_policy_id`, `draw_purpose: condition-assignment`,
+   `slot`, and `local_coordinate: 0`. All fields participate in JCS address
+   encoding. It contains no variation point, chosen condition, aggregate
+   digest, host, worker, time, retry, or completion position.
+4. Reuse the existing BLAKE3 key derivation and bounded-integer transform
+   version 1 to draw uniformly from `[0, i]`, with 32 rejection attempts.
+   Deterministic exhaustion aborts admission. Swap pool positions `i` and the
+   drawn index. Record each address, outcome, and rejection count in slot order.
+   A singleton records zero draws; no alternative seed or fallback is allowed.
+5. Seal the policy, ordered entry permutation, and plan-scope draws in
+   `AdmittedTrialPlanModel.allocation`. The profile set records
+   `allocation_profile: fisher-yates-allocation-v1`; presence must agree with
+   the allocation record. Plan reconstruction replays the procedure against
+   the complete entry domain and controls and requires exact equality, including
+   bijection, draw sequence, and order. The plan digest commits to all of it.
+
+Both dispatch and batch-receipt validation use the contract-owned order
+helper. Allocated plans use `experiment-recorded-allocation-v1`; legacy plans
+use `trial-coordinate-canonical-v1`. Receipts must record the matching policy
+and exact ordinal. A serialized coordinator commits decisions in this order;
+resuming consumes the retained order and attempt receipts without reshuffling.
+Isolation proofs, live leases, parallelism ceilings, deadlines, and cleanup
+remain separate requirements.
+
+Random order mitigates systematic condition/time confounding. It does not
+certify stable external APIs, model revisions, host load, caches, or carryover.
+Retain pinned manifests/configurations, actual apparatus and clock evidence,
+cleanup results, and validity deviations; allocation grants no reselection or
+claim of controlled equivalence when drift is undisclosed.
+
 ### Canonical domain and policy order in `trial-compiler-v1`
 
 Finite scalar enumeration uses these rules:

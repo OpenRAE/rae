@@ -121,7 +121,10 @@ def _rewrite_payload_with_symbols(
     rewrite_augmentation_scope(namespaced, symbols, namespace)
     rewrite_execution_policy(namespaced, symbols, namespace)
 
+    pinned_assets = namespaced.pop("control_context_assets", None)
     rewritten = _rewrite_variable_tokens(namespaced, symbols["variables"])
+    if pinned_assets is not None:
+        rewritten["control_context_assets"] = pinned_assets
     if not isinstance(rewritten, dict):
         raise TypeError("variable rewriting returned a non-object payload")
     namespaced = rewritten

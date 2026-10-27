@@ -163,6 +163,9 @@ def _require_operation_record_identity(record: ControlPlaneOperationRecord) -> N
     require_record_invocation(record)
     require_inject_record(record)
     require_delivery_record(record)
+    from .participant_control_effect_evidence import require_effect_claim_payload
+
+    require_effect_claim_payload(record)
     if record.reconciliation is not None:
         InvocationReconciliation.model_validate(record.reconciliation.model_dump(mode="json"))
         if record.status.context.parent_operation_id != record.reconciliation.request.binding.operation_id:

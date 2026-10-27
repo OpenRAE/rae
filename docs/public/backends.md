@@ -33,11 +33,20 @@ Backends can also report what they built as SDL. The runtime saves this record
 with the run. See [SDL run records](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/materialization-attestations.md)
 for the contract and setup.
 
+Backends can report unplanned children and later inventory changes through the
+[runtime descendant contract](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/runtime-descendant-inventory.md).
+It preserves the original scenario and runtime-owned provenance.
+
 The optional operation-supervision profile defines requests, progress,
 cancellation and effect reports for backend authors. Read the
 [protocol and migration guide](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/backend-operation-supervision.md).
 These contracts keep unknown effects explicit. Publishing them does not certify
 that a backend can interrupt work or recover after a failure.
+
+The [trial unit](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/backend-trial-unit.md) defines a typed
+in-process handoff for one admitted entry. An adapter binds the protocol to an
+injected runtime target. It returns execution observations and separate cleanup
+evidence. The interface does not install a trial executor.
 
 Mixed-backend bridges, time services and readers can describe one admitted edge
 or handoff with the execution binding and stage report contracts. Read the

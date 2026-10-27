@@ -13,6 +13,7 @@ from raes_backend_protocols.capability_admission import (
 from raes_backend_protocols.domain_topology import domain_topology_plan_diagnostics
 from raes_backend_protocols.service_materialization import service_materialization_plan_diagnostics
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
+from raes_contracts.contracts import ProcessorManifestV2Model
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
 from raes_contracts.materialization import MaterializationSource
@@ -29,6 +30,7 @@ from ..models import (
     RuntimeModel,
     RuntimeSnapshot,
 )
+from ..participant_tool_support import participant_tool_support_diagnostics
 from ..semantics.realization import (
     ApparatusRealizationDefaultResolver,
     artifact_requirement_diagnostics,
@@ -52,7 +54,7 @@ from .operations import (
 )
 from .ordering import _ordering_cycle_diagnostics
 from .realization_authority import materialize_realization_authority
-from .realization_collections import planned_node_collection, retain_open_collection_nodes
+from .realization_collections import planned_node_collection, retain_open_collection_nodes, retain_reported_descendants
 from .realization_preparation import preparation_authority, preparation_member_diagnostics
 from .realization_profiles import profile_resources
 from .resources import _collect_resources
@@ -303,6 +305,9 @@ def _augment_provisioning(
             ),
         )
     )
+    provisioning, inventory_diagnostics = retain_reported_descendants(provisioning, effective_model, snapshot)
+    extra.extend(inventory_diagnostics)
+    provisioning.diagnostics.extend(inventory_diagnostics)
     materialization_diagnostics = service_materialization_plan_diagnostics(
         provisioning,
         manifest.provisioner,
@@ -345,6 +350,7 @@ class PlanningOptions(TypedDict, total=False):
     artifact_availability: ArtifactAvailabilityContext | None
     profile_context: DomainProfileResolutionContextModel | None
     mixed_control_admission: MixedControlPlanningAdmission | None
+    processor_manifest: ProcessorManifestV2Model | None
 
 
 def plan(
@@ -360,6 +366,7 @@ def plan(
     artifact_availability = options.pop("artifact_availability", None)
     profile_context = options.pop("profile_context", None)
     mixed_control_admission = options.pop("mixed_control_admission", None)
+    processor_manifest = options.pop("processor_manifest", None)
     if options:
         raise TypeError("unsupported planning owner context")
     snapshot = snapshot or RuntimeSnapshot()
@@ -380,6 +387,7 @@ def plan(
     diagnostics = [
         *profile_diagnostics,
         *regeneration_diagnostics,
+        *participant_tool_support_diagnostics(effective_model, manifest, processor_manifest),
         *_admission_diagnostics(
             effective_model,
             manifest,

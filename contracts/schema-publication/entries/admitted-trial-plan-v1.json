@@ -1,9 +1,9 @@
 {
-  "content_hash": "2401de6945388e185facb3bfc3929e607a9d81f80f0678904e7d505b5bfe573a",
+  "content_hash": "41411b0c495719e3ce6aee376bb9a4a3efdc96ea8b889bcbf05d28b994d5bc53",
   "contract_id": "admitted-trial-plan-v1",
   "last_change": {
-    "content_hash": "2401de6945388e185facb3bfc3929e607a9d81f80f0678904e7d505b5bfe573a",
-    "summary": "Add optional bounded author-directed trial replacement policy and separately sealed child lineage; preserve legacy omission and identity profiles (#1396)."
+    "content_hash": "41411b0c495719e3ce6aee376bb9a4a3efdc96ea8b889bcbf05d28b994d5bc53",
+    "summary": "Add exact authored participant control-context references and pinned ADR-094 configuration selections; preserve omitted-field compatibility (DSL-118, #299)."
   },
   "schema_path": "contracts/schemas/plans/admitted-trial-plan-v1.json",
   "stability": "draft"

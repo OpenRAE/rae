@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import Field, GetJsonSchemaHandler, model_validator
+from pydantic import Field, GetJsonSchemaHandler, SerializerFunctionWrapHandler, model_serializer, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
 from .base import ContractModel, NonEmptyString, PositiveInteger, UnitIntervalFloat
 from .experiment_artifacts import ExperimentConditionAssignmentReferenceModel
+from .experiment_bindings import ExperimentBindingDescriptorModel, ExperimentBindingDescriptorSetModel
 from .experiment_references import (
     ExperimentConditionAssignmentParameterModel,
     ExperimentReferenceModel,
@@ -125,12 +126,30 @@ class ExperimentConditionAssignmentModel(ContractModel):
     difficulty_policy_id: NonEmptyString | None = None
     required_refs: list[ExperimentConditionAssignmentReferenceModel] = Field(default_factory=list)
     required_parameters: list[ExperimentConditionAssignmentParameterModel] = Field(default_factory=list)
+    required_bindings: list[ExperimentBindingDescriptorModel] = Field(default_factory=list, max_length=256)
     description: NonEmptyString | None = None
+
+    @model_serializer(mode="wrap")
+    def _serialize_bindings(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        payload = handler(self)
+        if not self.required_bindings:
+            payload.pop("required_bindings", None)
+        return payload
 
     @model_validator(mode="after")
     def _validate_run_level_criteria(self) -> ExperimentConditionAssignmentModel:
-        if not self.required_refs and not self.required_parameters:
-            raise ValueError("condition assignments must include required_refs or required_parameters")
+        if not self.required_refs and not self.required_parameters and not self.required_bindings:
+            raise ValueError(
+                "condition assignments must include required_refs or required_parameters or required_bindings"
+            )
+        if self.required_bindings:
+            ExperimentBindingDescriptorSetModel(descriptors=self.required_bindings)
+            for binding in self.required_bindings:
+                if (
+                    binding.source_condition_id != self.condition_id
+                    or self.factor_levels.get(binding.source_factor_id) != binding.source_factor_level_id
+                ):
+                    raise ValueError("condition required bindings must match their factor/level/condition assignment")
         if self.difficulty_condition != "fixed" and self.difficulty_policy_id is None:
             raise ValueError("adaptive and scaffolded conditions require difficulty_policy_id")
         return self
@@ -147,6 +166,7 @@ class ExperimentConditionAssignmentModel(ContractModel):
             [
                 {"required": ["required_refs"], "properties": {"required_refs": {"minItems": 1}}},
                 {"required": ["required_parameters"], "properties": {"required_parameters": {"minItems": 1}}},
+                {"required": ["required_bindings"], "properties": {"required_bindings": {"minItems": 1}}},
             ]
         )
         json_schema.setdefault("allOf", []).append(
@@ -162,6 +182,28 @@ class ExperimentConditionAssignmentModel(ContractModel):
             }
         )
         return json_schema
+
+
+def _validate_condition_factor_levels(
+    factors: dict[NonEmptyString, ExperimentStudyFactorModel],
+    condition_assignments: dict[NonEmptyString, ExperimentConditionAssignmentModel],
+    *,
+    scope: str,
+) -> None:
+    """Validate assignment membership in the containing experiment's declarations."""
+    for assignment_key, assignment in condition_assignments.items():
+        for factor_id, level in assignment.factor_levels.items():
+            factor = factors.get(factor_id)
+            if factor is None:
+                raise ValueError(
+                    f"{scope} condition_assignments factor_levels must reference declared factors: "
+                    f"{assignment_key}:{factor_id}"
+                )
+            if level not in factor.levels:
+                raise ValueError(
+                    f"{scope} condition_assignments factor_levels must reference declared factor levels: "
+                    f"{assignment_key}:{factor_id}:{level}"
+                )
 
 
 class ExperimentRunAllocationPlanModel(ContractModel):
@@ -203,15 +245,7 @@ class ExperimentRunAllocationPlanModel(ContractModel):
         from .experiment_conditions import _condition_assignment_run_criteria_signature
 
         factor_levels_by_signature: dict[tuple[tuple[str, str], ...], list[str]] = {}
-        criteria_by_signature: dict[
-            tuple[
-                tuple[tuple[str, str, str | None, str | None, str | None], ...],
-                tuple[tuple[str, str, str, str], ...],
-                str,
-                str | None,
-            ],
-            list[str],
-        ] = {}
+        criteria_by_signature: dict[tuple[object, ...], list[str]] = {}
         for condition_id, assignment in self.condition_assignments.items():
             factor_levels_signature = tuple(sorted(assignment.factor_levels.items()))
             factor_levels_by_signature.setdefault(factor_levels_signature, []).append(condition_id)

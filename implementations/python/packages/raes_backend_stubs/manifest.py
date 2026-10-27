@@ -59,6 +59,7 @@ REFERENCE_BACKEND_SUPPORTED_CONTRACT_VERSIONS = frozenset(BACKEND_SUPPORTED_CONT
     *BACKEND_OPERATION_CONTRACT_IDS,
     *MIXED_BACKEND_CONTRACT_IDS,
     "backend-materialization-attestation-v1",
+    "backend-runtime-descendants-v1",
     "backend-augmentation-scope-v1",
     "backend-realization-preparation-v1",
     "plan-realization-profiles-v1",

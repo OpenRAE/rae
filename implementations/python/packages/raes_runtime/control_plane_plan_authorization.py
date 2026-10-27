@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from dataclasses import replace
 from threading import RLock
 
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.plan_effects import plan_can_mutate
 from raes_contracts.plan_projection import runtime_plan_digest
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
-from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.runtime_state import OperationReceipt, RuntimeSnapshot
 from raes_processor.models import ExecutionPlan, RuntimeModel
 from raes_processor.planner.mixed_control_admission import MixedControlPlanningAdmission
 
@@ -75,9 +76,16 @@ class RuntimePlanAuthorizationMixin:
         """Return whether the exact published plan was registered in-process."""
 
         self._assert_runtime_owner()
+        if isinstance(plan, ProvisioningPlan) and plan.inventory_refresh:
+            plan = replace(plan, inventory_refresh=False)
         digest = runtime_plan_digest(plan)
         with self._trusted_runtime_plan_lock:
             return digest in self._trusted_runtime_plan_digests
+
+    @runtime_owned
+    def submit_inventory_refresh(self, plan: ProvisioningPlan, **options) -> OperationReceipt:
+        """Submit read-only inventory through the existing provisioning mutation owner."""
+        return self.submit_provisioning(replace(plan, inventory_refresh=True), **options)
 
     @runtime_owned
     def register_planner_produced_provisioning_plan(self, plan: ExecutionPlan) -> str:

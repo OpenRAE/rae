@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from raes_contracts.contracts.participant_control_decisions_v2 import ControlEffectRequestV2Model
+
 from typing import TYPE_CHECKING, Literal, Self
 
 from pydantic import ConfigDict, Field, StrictBool, model_validator
@@ -182,10 +187,43 @@ def supervised_claim_conflicts(new: ControlPlaneOperationRecord, records: object
 def control_record_is_supervisory(record: ControlPlaneOperationRecord) -> bool:
     """A cancellation fact can claim no new dispatch grant or external effect."""
 
+    from .participant_control_effect_continuations import cancellation_continuation_claim
+
+    if _cancellation_effect_claim(record) or cancellation_continuation_claim(record):
+        return True
     return (
         record.receipt.context.operation_kind.value == "participant-control"
         and record.invocation is None
         and isinstance((record.result_payload or {}).get("participant_control_cancellation"), dict)
+    )
+
+
+def _cancellation_effect_claim(record: ControlPlaneOperationRecord) -> bool:
+    """Only a typed cancel claim may enter the supervisory claim lane."""
+    from raes_contracts.canonical import canonical_json_digest
+    from raes_contracts.contracts.participant_control_decisions_v2 import ControlEffectRequestV2Model
+
+    payload = record.result_payload or {}
+    if not record.idempotency_key.startswith("control-effect:") or payload.get("kind") != "effect-request":
+        return False
+    effect = ControlEffectRequestV2Model.model_validate(payload)
+    return (
+        record.invocation is None
+        and record.receipt.context.operation_kind.value == "participant-control"
+        and record.receipt.context.parent_operation_id is not None
+        and record.receipt.context.actor_id == effect.originating_principal_ref
+        and record.receipt.context.request_commitment
+        == canonical_json_digest({"domain": "participant-control-effect/v1", "effect": payload})
+        and record.idempotency_key == "control-effect:" + canonical_json_digest(effect.key.model_dump(mode="json"))
+        and _is_execution_cancellation(effect)
+    )
+
+
+def _is_execution_cancellation(effect: ControlEffectRequestV2Model) -> bool:
+    return (
+        effect.target.kind == "interrupt"
+        and effect.target.operation == "cancel"
+        and effect.target.target_kind == "execution"
     )
 
 

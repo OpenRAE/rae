@@ -18,10 +18,12 @@ from raes_contracts.experiment_bindings import ScenarioBindingResolution
 
 from ._declarations import build_declaration_index
 from ._errors import SDLInstantiationError
+from ._selection_provenance import reconcile_selection_provenance
 from .experiment_selection import validate_selection_outcome
 from .instantiate import instantiate_scenario
 from .phase_contracts import TrialInstantiationProvenance
 from .scenario import ExpandedScenario, InstantiatedScenario
+from .selected_structure import apply_structural_writes, structural_owner, structural_writes
 from .variation import (
     COLLECTION_TARGET_SPECS,
     REFERENCE_TARGET_SPECS,
@@ -39,6 +41,7 @@ from .variation import (
     VariationPoint,
     structural_members,
 )
+from .variation_structure import StructuralTarget
 
 _SDL_BINDING_OWNER = BindingOwnerModel(
     contract_id="sdl-authoring-input-v1",
@@ -66,6 +69,10 @@ def _canonical_target_id(family: ExpandedScenario, point: VariationPoint) -> str
     target = point.target
     if isinstance(target, VariableTarget):
         target_id = f"variables.{target.variable}"
+    elif isinstance(target, StructuralTarget):
+        owner = structural_owner(family, target.owner)
+        slot = str(getattr(target.slot, "value", target.slot))
+        target_id = f"nodes.{owner}.{slot.removeprefix('nodes.')}"
     elif isinstance(target, ReferenceTarget):
         owner_section, _ = REFERENCE_TARGET_SPECS[target.slot]
         owner = _canonical_owner_address(family, target.owner, owner_section)
@@ -109,8 +116,8 @@ class ExpandedScenarioBindingTargetResolver:
         point = self._family.variation_points.get(variation_point_id)
         if point is None:
             raise ValueError("scenario binding target variation point is not declared")
-        if isinstance(point, (SubsetVariationPoint, OrderVariationPoint)):
-            raise ValueError("collection variation points are not scalar binding targets")
+        if isinstance(point, (SubsetVariationPoint, OrderVariationPoint)) or isinstance(point.target, StructuralTarget):
+            raise ValueError("structural and collection variation points are not scalar binding targets")
         canonical_target_id = _canonical_target_id(self._family, point)
         if supplied_target_id != canonical_target_id:
             raise ValueError("scenario binding target id is not the canonical SDL target")
@@ -223,7 +230,9 @@ def _apply_structural_outcome(
     outcome: object,
 ) -> None:
     target = point.target
-    if isinstance(target, ReferenceTarget):
+    if isinstance(target, StructuralTarget):
+        apply_structural_writes(payload, structural_writes(family, target, point.alternatives[outcome.member_id]))
+    elif isinstance(target, ReferenceTarget):
         owner_section, _ = REFERENCE_TARGET_SPECS[target.slot]
         owner = _owner_payload(payload, family, target.owner, owner_section)
         field_name = target.slot.value.split(".", 1)[1]
@@ -309,21 +318,58 @@ def _resolved_target_value(
     return value
 
 
+def _owner_target_write_path(family: ExpandedScenario, point: VariationPoint) -> tuple[str, str, str]:
+    target = point.target
+    if isinstance(target, ReferenceTarget):
+        specs = REFERENCE_TARGET_SPECS
+    elif isinstance(target, CollectionTarget):
+        specs = COLLECTION_TARGET_SPECS
+    else:
+        specs = TIMING_TARGET_SPECS
+    section = specs[target.slot][0]
+    owner = _canonical_owner_address(family, target.owner, section).removeprefix(f"{section}.")
+    target_id = _canonical_target_id(family, point)
+    return section, owner, target_id.removeprefix(f"{section}.{owner}.")
+
+
+def _resolved_point_writes(
+    payload: dict[str, object], family: ExpandedScenario, point: VariationPoint, outcome: object
+) -> dict[tuple[str, ...], object]:
+    if isinstance(point.target, StructuralTarget):
+        return structural_writes(family, point.target, point.alternatives[outcome.member_id])
+    if isinstance(point.target, VariableTarget):
+        path = ("variables", point.target.variable)
+    else:
+        path = _owner_target_write_path(family, point)
+    return {path: _resolved_target_value(payload, family, point, outcome)}
+
+
+def _record_target_write(
+    writes: dict[tuple[str, ...], tuple[type[object], bytes]], path: tuple[str, ...], value: object
+) -> bool:
+    fingerprint = (type(value), canonical_json_bytes(value))
+    prior = writes.get(path)
+    if prior is not None and prior != fingerprint:
+        raise ValueError("multiple variation points resolve conflicting values for one canonical target")
+    writes[path] = fingerprint
+    return len(path) == 3 and path[0] == "nodes" and path[2] == "presence" and value is False
+
+
 def _validate_target_writes(
     payload: dict[str, object],
     family: ExpandedScenario,
     outcomes: Mapping[str, object],
 ) -> None:
-    writes: dict[str, tuple[type[object], bytes]] = {}
+    writes: dict[tuple[str, ...], tuple[type[object], bytes]] = {}
+    absent: set[str] = set()
     for point_id in sorted(family.variation_points):
         point = family.variation_points[point_id]
-        value = _resolved_target_value(payload, family, point, outcomes[point_id])
-        target_id = _canonical_target_id(family, point)
-        fingerprint = (type(value), canonical_json_bytes(value))
-        prior = writes.get(target_id)
-        if prior is not None and prior != fingerprint:
-            raise ValueError("multiple variation points resolve conflicting values for one canonical target")
-        writes[target_id] = fingerprint
+        resolved = _resolved_point_writes(payload, family, point, outcomes[point_id])
+        for path, value in resolved.items():
+            if _record_target_write(writes, path, value):
+                absent.add(path[1])
+    if any(path[0] == "nodes" and path[1] in absent and path[2:] != ("presence",) for path in writes):
+        raise ValueError("node absence conflicts with a descendant variation write")
 
 
 def select_scenario_family(
@@ -359,6 +405,8 @@ def select_scenario_family(
         else:
             _apply_structural_outcome(payload, family, point, outcome)
     payload["variation_points"] = {}
+    if any(isinstance(point.target, StructuralTarget) for point in family.variation_points.values()):
+        reconcile_selection_provenance(family, payload)
     try:
         selected_family = ExpandedScenario.model_validate(payload)
         return instantiate_scenario(

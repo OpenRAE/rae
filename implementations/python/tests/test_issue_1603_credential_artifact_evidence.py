@@ -34,9 +34,12 @@ def _apply_artifact_result(
     corruption: str | None = None,
     credentials: bool = True,
     admitted: bool = True,
+    observed_capabilities: dict[str, object] | None = None,
 ) -> tuple[ApplyResult, dict[str, object]]:
     requirement = _exact_requirement()
-    _, base_plan, base_manifest = _fixture({})
+    _, base_plan, base_manifest = _fixture(
+        {}, scope="/nodes/host/runtime/linux_capabilities" if observed_capabilities is not None else None
+    )
     artifact_manifest = _manifest(requirement)
     manifest = replace(
         base_manifest,
@@ -95,6 +98,8 @@ def _apply_artifact_result(
             for op in submitted.operations
         }
         payload = entries[_ADDRESS].payload
+        if observed_capabilities is not None:
+            payload["spec"]["node"]["runtime"]["linux_capabilities"] = deepcopy(observed_capabilities)
         evidence = deepcopy(disclosure)
         payload["artifact_satisfaction"] = evidence
         details = {}
@@ -123,9 +128,27 @@ def _apply_artifact_result(
             payload["enabled"] = 1
         elif corruption == "details":
             details["copied"] = FIXTURE_SENTINEL
+        from raes_contracts.runtime_state import RealizationObservationDisclosure
+        from raes_contracts.vocabulary import ObservationStrength
+
         return ApplyResult(
             True,
-            snapshot.with_entries(entries, realization_envelope=submitted.realization_envelope),
+            snapshot.with_entries(
+                entries,
+                realization_envelope=submitted.realization_envelope,
+                realization_observations=tuple(
+                    RealizationObservationDisclosure(
+                        address=a.address,
+                        field_path=a.field_path,
+                        domain=a.domain,
+                        requirement_kind=a.requirement_kind,
+                        verification_scope=a.verification_scope,
+                        observation_strength=a.required_observation_strength or ObservationStrength.GUEST_OBSERVED,
+                    )
+                    for a in submitted.realization_authority
+                    if a.verification_scope is not None and a.mode.value != "closed"
+                ),
+            ),
             diagnostics=[Diagnostic("backend.applied", "runtime", _ADDRESS, f"applied {FIXTURE_SENTINEL}")],
             changed_addresses=list(entries),
             details=details,

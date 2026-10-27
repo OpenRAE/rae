@@ -159,7 +159,7 @@ def _manifest_authority_diagnostic(
         )
     else:
         try:
-            requirements = _compiled_runtime_views(plan)
+            requirements = plan_realization_requirements(plan)
         except (TypeError, ValueError):
             diagnostic = _invalid_runtime_view_diagnostic(plan)
         else:
@@ -218,7 +218,9 @@ def _explicitness(mode: RealizationAuthorityMode) -> ExplicitnessClass:
     return ExplicitnessClass(mode.value)
 
 
-def _compiled_runtime_views(plan: ProvisioningPlan) -> tuple[CompiledRealizationRequirement, ...]:
+def plan_realization_requirements(plan: ProvisioningPlan) -> tuple[CompiledRealizationRequirement, ...]:
+    """Recover registered concern views from admitted portable plan authority."""
+
     declared_ops = {operation.address: operation for operation in plan.operations}
     return tuple(
         _compiled_runtime_view(authority, declared_ops)
@@ -476,15 +478,7 @@ def sanitize_plan_realization_snapshot(
 
     from ..semantics.realization_snapshot_sanitization import sanitize_realization_snapshot
 
-    declared_ops = {operation.address: operation for operation in declared_plan.operations}
-    return sanitize_realization_snapshot(
-        tuple(
-            _compiled_runtime_view(authority, declared_ops)
-            for authority in declared_plan.realization_authority
-            if authority.mode is not RealizationAuthorityMode.CLOSED
-        ),
-        returned_snapshot,
-    )
+    return sanitize_realization_snapshot(plan_realization_requirements(declared_plan), returned_snapshot)
 
 
 __all__ = [
@@ -492,4 +486,5 @@ __all__ = [
     "realization_authority_diagnostics",
     "realization_authority_disclosure",
     "sanitize_plan_realization_snapshot",
+    "plan_realization_requirements",
 ]
