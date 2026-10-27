@@ -19,6 +19,7 @@ from .._module_symbols import HASHMAP_SECTIONS as _HASHMAP_SECTIONS
 from ..entities import flatten_entities
 from ..participant_relationships import PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS
 from ..scenario import ModuleDescriptor, ScenarioContent
+from ._cloud import rewrite_cloud_runtime
 from ._references import (
     _maybe_rename,
     _rewrite_node_or_service_ref,
@@ -115,6 +116,7 @@ def _rewrite_node(payload: dict[str, Any], symbols: dict[str, dict[str, str] | s
     _rewrite_node_role_entities(payload, symbols)
     runtime = payload.get("runtime")
     if isinstance(runtime, dict):
+        rewrite_cloud_runtime(runtime, symbols)
         _rewrite_node_network_namespace(runtime, symbols)
         _rewrite_generated_environment_sources(runtime, symbols)
         _rewrite_runtime_account_refs(runtime, symbols)

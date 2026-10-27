@@ -1,9 +1,9 @@
 {
-  "content_hash": "d5a0e85baa3956af12d9b04344ad5184e8d8ae1f12f888d67b71c22b5769398a",
+  "content_hash": "26baade1256c237e1dd3d318975a7bf709e3875b245d5b33f63982f55dddcc36",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "d5a0e85baa3956af12d9b04344ad5184e8d8ae1f12f888d67b71c22b5769398a",
-    "summary": "Add exact authored participant control-context references and pinned ADR-094 configuration selections; preserve omitted-field compatibility (DSL-118, #299)."
+    "content_hash": "26baade1256c237e1dd3d318975a7bf709e3875b245d5b33f63982f55dddcc36",
+    "summary": "Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

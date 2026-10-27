@@ -1,9 +1,9 @@
 {
-  "content_hash": "9950f75a199e6d6c7735e777bbaaeaa1a3b33ecc825d45409e50a91b1d17e0c5",
+  "content_hash": "7b627a758b78e7da5b7b552add04215bf09c27f2d2df2793f37fd60369bb1cfb",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "9950f75a199e6d6c7735e777bbaaeaa1a3b33ecc825d45409e50a91b1d17e0c5",
-    "summary": "Add exact authored participant control-context references and pinned ADR-094 configuration selections; preserve omitted-field compatibility (DSL-118, #299)."
+    "content_hash": "7b627a758b78e7da5b7b552add04215bf09c27f2d2df2793f37fd60369bb1cfb",
+    "summary": "Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

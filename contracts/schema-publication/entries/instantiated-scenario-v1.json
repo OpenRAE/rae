@@ -1,9 +1,9 @@
 {
-  "content_hash": "d55f17febd463471f80394e7570c47fc4ff6fcc881ad18d1f61b4e0fd2d80041",
+  "content_hash": "3eba9cf8f049059ea0afd67db570cf968bddf4650070e840274b62df9a59a624",
   "contract_id": "instantiated-scenario-v1",
   "last_change": {
-    "content_hash": "d55f17febd463471f80394e7570c47fc4ff6fcc881ad18d1f61b4e0fd2d80041",
-    "summary": "Add exact authored participant control-context references and pinned ADR-094 configuration selections; preserve omitted-field compatibility (DSL-118, #299)."
+    "content_hash": "3eba9cf8f049059ea0afd67db570cf968bddf4650070e840274b62df9a59a624",
+    "summary": "Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
   "stability": "draft"
