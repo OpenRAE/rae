@@ -20,7 +20,9 @@ from tools.sdl_catalog_parity._paths import (
     _WRONG_SLOT_CANDIDATE,
 )
 
-_EXECUTION_POLICY_VALIDATOR = "[execution-policy validator](../../implementations/python/packages/raes/validator/_execution_policy.py)"
+_EXECUTION_POLICY_VALIDATOR = (
+    "[execution-policy validator](../../implementations/python/packages/raes/validator/_execution_policy.py)"
+)
 _FATAL_DANGLING = "fatal dangling"
 
 EXPECTATIONS_PART_3: dict[str, tuple[str, str, str, str]] = {
@@ -414,7 +416,9 @@ EXPECTATIONS_PART_3: dict[str, tuple[str, str, str, str]] = {
 # Optional resource references extend the existing identity/application owners.
 _CLOUD_IDENTITY = "nodes.*.runtime.identity_authorities[]"
 _CLOUD_APPLICATION = "nodes.*.runtime.platform_applications[]"
-_CLOUD_RESOURCE_VALIDATOR = "[cloud resource validator](../../implementations/python/packages/raes/validator/_cloud_resources.py)"
+_CLOUD_RESOURCE_VALIDATOR = (
+    "[cloud resource validator](../../implementations/python/packages/raes/validator/_cloud_resources.py)"
+)
 EXPECTATIONS_PART_3.update(
     {
         path: (
