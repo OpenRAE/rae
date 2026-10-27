@@ -30,6 +30,9 @@ These show that the use of parameters is standard practice.
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/control_admission.py` (Reject a complete trial plan when a selected backend cannot support entry controls.)
+- TESTS → TEST `implementations/python/tests/test_issue_1628_trial_control_admission.py` (Test selected-backend isolation and deterministic whole-plan refusal.)
+
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/variation_structure.py` (Define closed choices for node presence. Keep runtime inventory scoped to its owner.)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/selected_structure.py` (Resolve explicit node and inventory choices. Apply those choices.)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_selection_provenance.py` (Keep selected inventory constraints and derivation evidence. Use stable IDs to retain them.)
