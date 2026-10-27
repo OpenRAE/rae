@@ -271,9 +271,8 @@ class PostgreSQLControlPlaneStore:
         with self._connection() as connection:
             return operation_changes(self, connection, cursor)
 
-    def _load_record(
-        self, connection: Connection[tuple[object, ...]], identity: str
-    ) -> ControlPlaneOperationRecord | None:
+    @staticmethod
+    def _load_record(connection: Connection[tuple[object, ...]], identity: str) -> ControlPlaneOperationRecord | None:
         from .control_plane_store_postgresql_projection import stored_record
 
         return stored_record(connection, identity)
