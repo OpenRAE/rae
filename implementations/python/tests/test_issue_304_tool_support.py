@@ -358,3 +358,29 @@ def test_public_manifest_emitter_revalidates_mutated_tool_coordinates():
     manifest.participant_runtime.tool_profiles.max_bindings_per_profile = -1
     with pytest.raises(ValueError):
         backend_manifest_payload(manifest)
+
+
+def test_processor_capacity_is_independent_of_unbounded_backend_support():
+    from raes_contracts.contracts import ProcessorManifestV2Model
+
+    payload = reference_processor_manifest_payload()
+    payload["capabilities"]["participant_tools"]["max_bindings_per_profile"] = 1
+    processor = ProcessorManifestV2Model.model_validate(payload)
+    result = plan(compiled(), supported_manifest(), processor_manifest=processor)
+    assert not result.is_valid
+    assert any(d.code == "processor.tool-support-insufficient" for d in result.diagnostics)
+    assert all(d.code != "participant.tool-support-insufficient" for d in result.diagnostics)
+
+
+def test_unsupported_claims_still_validate_their_references():
+    import pytest
+    from raes_backend_protocols.manifest import backend_manifest_payload
+    from raes_contracts.contracts import BackendManifestV2Model
+
+    payload = backend_manifest_payload(create_stub_manifest())
+    runtime = payload["capabilities"]["participant_runtime"]
+    entry = next(e for e in runtime["feature_support"] if e["feature"] == "tool_affordances")
+    assert entry["support_level"] == "unsupported"
+    entry["disclosure_refs"] = ["   "]
+    with pytest.raises(ValueError):
+        BackendManifestV2Model.model_validate(payload)

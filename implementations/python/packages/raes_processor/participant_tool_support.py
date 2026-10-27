@@ -2,7 +2,6 @@
 
 from collections import Counter
 
-from pydantic import ValidationError
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_protocols.manifest import backend_manifest_v2_model
 from raes_backend_protocols.participant_feature_admission import participant_feature_support_gaps
@@ -51,16 +50,57 @@ def _capacity_exceeded(model: RuntimeModel, profiles: ParticipantToolProfilesMod
 def _processor_supports(model: RuntimeModel, processor: ProcessorManifestV2Model, required: set[str]) -> bool:
     capabilities = processor.capabilities
     tools = capabilities.participant_tools
-    if tools is None or TOOL_PROFILE_SEMANTICS not in tools.semantic_versions:
+    if tools is None:
         return False
-    if "sdl-authoring-input-v1" not in capabilities.supported_sdl_versions:
-        return False
-    if not {ProcessorFeature.COMPILATION, ProcessorFeature.PLANNING}.issubset(capabilities.supported_features):
-        return False
-    if _capacity_exceeded(model, tools):
-        return False
+    coordinates_supported = all(
+        (
+            TOOL_PROFILE_SEMANTICS in tools.semantic_versions,
+            "sdl-authoring-input-v1" in capabilities.supported_sdl_versions,
+            {ProcessorFeature.COMPILATION, ProcessorFeature.PLANNING}.issubset(capabilities.supported_features),
+        )
+    )
     support = {entry.feature: entry for entry in tools.feature_support}
-    return all(feature in support and support[feature].support_level in {"exact", "bounded"} for feature in required)
+    features_supported = all(
+        feature in support and support[feature].support_level in {"exact", "bounded"} for feature in required
+    )
+    return coordinates_supported and not _capacity_exceeded(model, tools) and features_supported
+
+
+def _backend_supports(
+    model: RuntimeModel, backend: BackendManifest, tool_features: set[str], backend_features: set[str]
+) -> bool:
+    # Revalidate nested caller-owned values rather than retaining a trusted cache.
+    wire = BackendManifestV2Model.model_validate(backend_manifest_v2_model(backend).model_dump(mode="json"))
+    capability = wire.capabilities.participant_runtime
+    if capability is None or capability.tool_profiles is None:
+        return False
+    profiles = capability.tool_profiles
+    required_roles = {
+        model.participant_behaviors[address].role
+        for binding in model.tool_affordances.values()
+        for address in binding.participant_addresses
+        if model.participant_behaviors[address].role
+    }
+    required_contracts = set().union(
+        *(
+            mapping.get(feature, frozenset())
+            for mapping in PARTICIPANT_RUNTIME_CAPABILITY_REQUIRED_CONTRACTS.values()
+            for feature in tool_features | backend_features
+        )
+    )
+    # Bounded tool support has exact semantics within the evaluated capacity.
+    return all(
+        (
+            TOOL_PROFILE_SEMANTICS in profiles.semantic_versions,
+            required_roles.issubset(capability.supported_participant_roles),
+            not _capacity_exceeded(model, profiles),
+            not participant_feature_support_gaps(
+                backend, tool_features, required_level=ParticipantFeatureSupportLevel.BOUNDED
+            ),
+            not participant_feature_support_gaps(backend, backend_features),
+            required_contracts.issubset(backend.supported_contract_versions),
+        )
+    )
 
 
 def participant_tool_support_diagnostics(
@@ -78,7 +118,7 @@ def participant_tool_support_diagnostics(
         processor = processor_manifest or reference_processor_manifest_v2_model()
         processor = ProcessorManifestV2Model.model_validate(processor.model_dump(mode="json"))
         processor_supported = _processor_supports(model, processor, tool_features)
-    except (ValidationError, ValueError):
+    except ValueError:
         processor_supported = False
     if not processor_supported:
         diagnostics.append(
@@ -90,36 +130,8 @@ def participant_tool_support_diagnostics(
             )
         )
     try:
-        # Revalidate nested caller-owned values rather than retaining a trusted cache.
-        wire = BackendManifestV2Model.model_validate(backend_manifest_v2_model(backend).model_dump(mode="json"))
-        capability = wire.capabilities.participant_runtime
-        profiles = capability.tool_profiles if capability is not None else None
-        backend_supported = profiles is not None and TOOL_PROFILE_SEMANTICS in profiles.semantic_versions
-        required_roles = {
-            model.participant_behaviors[address].role
-            for binding in model.tool_affordances.values()
-            for address in binding.participant_addresses
-            if model.participant_behaviors[address].role
-        }
-        backend_supported = backend_supported and required_roles.issubset(capability.supported_participant_roles)
-        if backend_supported:
-            backend_supported = not _capacity_exceeded(model, profiles)
-        if backend_supported:
-            # Bounded tool support has exact semantics within the evaluated capacity.
-            backend_supported = not participant_feature_support_gaps(
-                backend, tool_features, required_level=ParticipantFeatureSupportLevel.BOUNDED
-            )
-        if backend_supported:
-            backend_supported = not participant_feature_support_gaps(backend, backend_features)
-        required_contracts = set().union(
-            *(
-                mapping.get(feature, frozenset())
-                for mapping in PARTICIPANT_RUNTIME_CAPABILITY_REQUIRED_CONTRACTS.values()
-                for feature in tool_features | backend_features
-            )
-        )
-        backend_supported = backend_supported and required_contracts.issubset(backend.supported_contract_versions)
-    except (ValidationError, ValueError):
+        backend_supported = _backend_supports(model, backend, tool_features, backend_features)
+    except ValueError:
         backend_supported = False
     if not backend_supported:
         diagnostics.append(

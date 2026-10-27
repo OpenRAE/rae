@@ -1,6 +1,7 @@
 """API-414 revision and evaluated capacity coordinates; no native authority."""
 
 from collections.abc import Collection, Iterable
+from itertools import chain
 from typing import Annotated, Literal
 
 from pydantic import ConfigDict, Field, model_validator
@@ -36,6 +37,40 @@ class ParticipantToolProfilesModel(ContractModel):
         return {f"tool_profiles.{name}" for name in _TOOL_LIMIT_FIELDS if getattr(self, name) is not None}
 
 
+def _validate_tool_presence(
+    profiles: ParticipantToolProfilesModel | None,
+    positive: set[str],
+    supported_features: Collection[str],
+) -> None:
+    if positive and profiles is None:
+        raise ValueError("positive tool support requires tool_profiles semantic versions")
+    if profiles is not None and "tool_affordances" not in positive:
+        raise ValueError("tool_profiles requires positive tool_affordances support")
+    if positive != set(supported_features).intersection(PARTICIPANT_TOOL_FEATURES):
+        raise ValueError("tool support presence and strength declarations must agree")
+    if "scoped_tool_affordances" in positive and "tool_affordances" not in positive:
+        raise ValueError("scoped tool support requires tool_affordances support")
+
+
+def _validate_tool_entry(
+    profiles: ParticipantToolProfilesModel | None,
+    entry: ParticipantFeatureSupportModel,
+) -> None:
+    refs = chain(entry.constraint_refs, entry.limitation_refs, entry.disclosure_refs, entry.evidence_refs)
+    if any(not ref.strip() for ref in refs):
+        raise ValueError("tool support references must contain non-whitespace text")
+    if entry.support_level == ParticipantFeatureSupportLevel.UNSUPPORTED:
+        return
+    capacity_refs = profiles.capacity_refs() if profiles is not None else set()
+    constraints = set(entry.constraint_refs)
+    if not constraints.issubset(capacity_refs):
+        raise ValueError("tool support has an unevaluated constraint reference")
+    if entry.support_level == ParticipantFeatureSupportLevel.BOUNDED and (
+        not capacity_refs or constraints != capacity_refs
+    ):
+        raise ValueError("bounded tool support requires only the declared typed capacity constraints")
+
+
 def validate_tool_feature_support(
     profiles: ParticipantToolProfilesModel | None,
     entries: Iterable[ParticipantFeatureSupportModel],
@@ -45,29 +80,9 @@ def validate_tool_feature_support(
 
     tool_entries = {entry.feature: entry for entry in entries if entry.feature in PARTICIPANT_TOOL_FEATURES}
     positive = {name for name, entry in tool_entries.items() if entry.support_level != "unsupported"}
-    if positive and profiles is None:
-        raise ValueError("positive tool support requires tool_profiles semantic versions")
-    if profiles is not None and "tool_affordances" not in positive:
-        raise ValueError("tool_profiles requires positive tool_affordances support")
-    if positive != set(supported_features).intersection(PARTICIPANT_TOOL_FEATURES):
-        raise ValueError("tool support presence and strength declarations must agree")
-    if "scoped_tool_affordances" in positive and "tool_affordances" not in positive:
-        raise ValueError("scoped tool support requires tool_affordances support")
+    _validate_tool_presence(profiles, positive, supported_features)
     for entry in tool_entries.values():
-        for refs in (entry.constraint_refs, entry.limitation_refs, entry.disclosure_refs, entry.evidence_refs):
-            if any(not ref.strip() for ref in refs):
-                raise ValueError("tool support references must contain non-whitespace text")
-        if entry.support_level != ParticipantFeatureSupportLevel.UNSUPPORTED and (
-            profiles is None or not set(entry.constraint_refs).issubset(profiles.capacity_refs())
-        ):
-            raise ValueError("tool support has an unevaluated constraint reference")
-        if entry.support_level == ParticipantFeatureSupportLevel.BOUNDED:
-            if (
-                profiles is None
-                or not profiles.capacity_refs()
-                or set(entry.constraint_refs) != profiles.capacity_refs()
-            ):
-                raise ValueError("bounded tool support requires only the declared typed capacity constraints")
+        _validate_tool_entry(profiles, entry)
 
 
 class ProcessorParticipantToolsModel(ParticipantToolProfilesModel):

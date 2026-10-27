@@ -22,8 +22,9 @@ Weak or unsupported declarations do not admit tool profiles.
 Participant implementation expectations do not substitute for processor or backend support.
 
 Old closed readers reject new manifest fields.
+They can also reject the new governed feature terms.
 Upgrade those readers before producing the new fields.
-Omit unused optional blocks when communicating with old readers.
+Use prior feature terms and omit unused optional blocks for a legacy, tool-free manifest.
 Omission cannot make a tool-bearing scenario admissible.
 No automatic migration or native tool implementation is provided.
 
