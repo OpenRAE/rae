@@ -136,10 +136,12 @@ def test_evaluation_rejects_another_target_and_run_before_backend_effects():
     with RuntimeManager(target) as runtime:
         execution = runtime.plan(_full_scenario())
         assert runtime.apply(execution).success
+        another_target = replace(execution, target_name="another")
+        another_run = replace(execution, evaluation=replace(execution.evaluation, run_id="another"))
         with pytest.raises(ValueError, match="target"):
-            runtime.evaluate(replace(execution, target_name="another"))
+            runtime.evaluate(another_target)
         with pytest.raises(ValueError, match="run scope"):
-            runtime.evaluate(replace(execution, evaluation=replace(execution.evaluation, run_id="another")))
+            runtime.evaluate(another_run)
         assert len(calls) == 1
 
 
@@ -238,8 +240,9 @@ def test_durable_owner_reopens_and_retries_evaluation_without_another_effect(tmp
                 replace(op, payload={**op.payload, "name": "changed-request"}) for op in execution.evaluation.operations
             ],
         )
+        changed_execution = replace(execution, evaluation=changed)
         with pytest.raises(ValueError, match="original request"):
-            runtime.evaluate(replace(execution, evaluation=changed), idempotency_key="observed-evidence")
+            runtime.evaluate(changed_execution, idempotency_key="observed-evidence")
         assert calls == ["evaluation", "evaluation"]
         assert runtime.destroy().success
         assert runtime.get_snapshot().snapshot.entries == {}

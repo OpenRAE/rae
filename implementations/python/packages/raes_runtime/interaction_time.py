@@ -1,16 +1,30 @@
 """Compose one shared-clock transition before its atomic snapshot commit."""
 
-from dataclasses import replace
+from __future__ import annotations
 
-from raes_contracts.contracts.time_model import validate_time_runtime_state
+from dataclasses import replace
+from typing import TYPE_CHECKING
+
+from raes_contracts.contracts.time_model import TimeModelDeclarationModel, validate_time_runtime_state
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
-from raes_contracts.runtime_state import ApplyResult
+from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 from .diagnostics import _failure_diagnostic
 from .interaction_results import validated_composition_result
 
+if TYPE_CHECKING:
+    from .control_plane import RuntimeControlPlane
 
-def finalize_time_result(owner, result, predecessor, *, declaration, method, clock_address=None):
+
+def finalize_time_result(
+    owner: RuntimeControlPlane,
+    result: ApplyResult,
+    predecessor: RuntimeSnapshot,
+    *,
+    declaration: TimeModelDeclarationModel,
+    method: str,
+    clock_address: str | None = None,
+) -> ApplyResult:
     if not result.success:
         return result
     try:
@@ -58,7 +72,7 @@ def finalize_time_result(owner, result, predecessor, *, declaration, method, clo
     try:
         require_participant_autonomous_runtime_snapshot(result.snapshot)
     except ValueError:
-        return ApplyResult(
+        result = ApplyResult(
             False,
             predecessor,
             diagnostics=[

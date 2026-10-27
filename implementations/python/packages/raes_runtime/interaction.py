@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass, field, replace
+from typing import TypedDict, Unpack
 
 from raes_contracts.augmentation_preparation import AugmentationPreparation
 from raes_contracts.contracts import (
@@ -38,6 +39,11 @@ _ROLLBACK_EVALUATOR_ADDRESS = "runtime.rollback.evaluator"
 _ROLLBACK_ORCHESTRATOR_ADDRESS = "runtime.rollback.orchestrator"
 
 
+class InteractionPlanningOptions(TypedDict, total=False):
+    run_scope: PlanScope | None
+    refresh_evaluation: bool
+
+
 @dataclass
 class _RuntimeApplyState:
     working_snapshot: RuntimeSnapshot
@@ -68,9 +74,12 @@ class RuntimeInteractionMixin(
         profile: str | None = None,
         artifact_availability: ArtifactAvailabilityContext | None = None,
         profile_authority: PlanProfileAuthority | None = None,
-        run_scope: PlanScope | None = None,
-        refresh_evaluation: bool = False,
+        **options: Unpack[InteractionPlanningOptions],
     ) -> ExecutionPlan:
+        run_scope = options.pop("run_scope", None)
+        refresh_evaluation = options.pop("refresh_evaluation", False)
+        if options:
+            raise TypeError("unsupported interaction planning option")
         model = compile_scenario_runtime_model(
             scenario, parameters=parameters, profile=profile, profile_authority=profile_authority
         )
@@ -451,7 +460,6 @@ class RuntimeInteractionMixin(
         )
         diagnostics.extend(provision_result.diagnostics)
         changed_addresses.extend(provision_result.changed_addresses)
-        working_snapshot = provision_result.snapshot
         if not provision_result.success:
             phases_succeeded = False
             maybe_synthesize_failure(

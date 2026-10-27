@@ -383,8 +383,7 @@ def create_stub_manifest(
     with_observation: bool = True,
     with_time: bool = False,
     with_realization_envelope: bool = False,
-    scenario: object | None = None,
-    **config,
+    **config: object,
 ) -> BackendManifest:
     """Return the fully capable stub manifest.
 
@@ -395,7 +394,7 @@ def create_stub_manifest(
     should leave this at its default.
     """
 
-    del config
+    scenario = config.pop("scenario", None)
     if scenario is not None:
         from raes_runtime.registry import scenario_component_options
 

@@ -87,8 +87,9 @@ def test_manager_refuses_a_successful_result_with_a_string_domain():
     assert manager.snapshot.entries == {}
 
     # A rejected result says nothing about external effects. Retain exclusion.
+    retry = manager.plan(parse_sdl(_WITH_WEB))
     with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
-        manager.apply(manager.plan(parse_sdl(_WITH_WEB)))
+        manager.apply(retry)
     assert manager.snapshot.entries == {}
     manager.close()
 

@@ -8,6 +8,7 @@ from collections.abc import Callable, Iterable
 from contextlib import AbstractContextManager, nullcontext
 from dataclasses import dataclass
 from fractions import Fraction
+from typing import TypedDict, Unpack
 
 from raes_contracts.contracts.participant_execution import ParticipantExecutionServiceStateModel
 from raes_contracts.diagnostics import Diagnostic
@@ -15,6 +16,11 @@ from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.models import CompiledTimeModel, ParticipantAutonomousExecutionRuntime
 
 _UNEXPECTED_FAILURES = (Exception,)
+
+
+class ClockDriverOptions(TypedDict, total=False):
+    publish_failure: Callable[[ApplyResult], None] | None
+    mutation_scope: Callable[[], AbstractContextManager[object]]
 
 
 @dataclass(frozen=True)
@@ -62,8 +68,7 @@ class ParticipantClockDriver:
         advance: Callable[[str, int], ApplyResult],
         service_due: Callable[[], ApplyResult],
         lock: threading.RLock,
-        publish_failure: Callable[[ApplyResult], None] | None = None,
-        mutation_scope: Callable[[], AbstractContextManager] = nullcontext,
+        **options: Unpack[ClockDriverOptions],
     ) -> None:
         self._rates = _automatic_clock_rates(policies, time_model)
         self._policy_clocks = {policy.address: policy.clock_address for policy in policies}
@@ -71,8 +76,10 @@ class ParticipantClockDriver:
         self._advance = advance
         self._service_due = service_due
         self._lock = lock
-        self._publish_failure = publish_failure
-        self._mutation_scope = mutation_scope
+        self._publish_failure = options.pop("publish_failure", None)
+        self._mutation_scope = options.pop("mutation_scope", nullcontext)
+        if options:
+            raise TypeError("unsupported participant clock driver option")
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
         self._failure: ApplyResult | None = None

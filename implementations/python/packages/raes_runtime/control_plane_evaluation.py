@@ -1,7 +1,11 @@
 """Build ordinary and interaction evaluation requests at the same admission seam."""
 
-from raes_contracts.planning import RuntimeDomain
-from raes_contracts.runtime_state import OperationKind
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, NoReturn
+
+from raes_contracts.planning import EvaluationPlan, RuntimeDomain
+from raes_contracts.runtime_state import OperationKind, RuntimeSnapshot
 
 from .control_plane_execution import OperationExecutionRequest
 from .control_plane_operation_context import (
@@ -12,8 +16,19 @@ from .control_plane_operation_context import (
 )
 from .control_plane_submission import control_plane_plan_diagnostics, unavailable_backend_diagnostics
 
+if TYPE_CHECKING:
+    from .control_plane import RuntimeControlPlane
 
-def evaluation_request(plane, plan, *, base_snapshot=None, idempotency_key="", identity=None, request_identity=None):
+
+def evaluation_request(
+    plane: RuntimeControlPlane,
+    plan: EvaluationPlan,
+    *,
+    base_snapshot: RuntimeSnapshot | None = None,
+    idempotency_key: str = "",
+    identity: object | None = None,
+    request_identity: object | None = None,
+) -> OperationExecutionRequest:
     """Keep logical request identity separate from a refreshed execution command."""
     semantic_request = plan if request_identity is None else request_identity
     context = operation_admission_context(
@@ -54,5 +69,5 @@ def evaluation_request(plane, plan, *, base_snapshot=None, idempotency_key="", i
     )
 
 
-def _unavailable_evaluator(*_args):
+def _unavailable_evaluator(*_args: object) -> NoReturn:
     raise RuntimeError("Target does not provide an evaluator.")

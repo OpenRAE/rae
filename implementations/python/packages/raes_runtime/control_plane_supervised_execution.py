@@ -37,6 +37,7 @@ if TYPE_CHECKING:
 
     from .control_plane import RuntimeControlPlane
     from .control_plane_execution import OperationExecutionRequest
+    from .observation_results import PreparedObservationExecution
 
 
 def invocation_request(
@@ -424,7 +425,13 @@ def _complete_native_invocation(
         request.result_sink(result)
 
 
-def _invoke_plan_phase(plane, request, record, snapshot, remaining):
+def _invoke_plan_phase(
+    plane: RuntimeControlPlane,
+    request: OperationExecutionRequest,
+    record: ControlPlaneOperationRecord,
+    snapshot: RuntimeSnapshot,
+    remaining: Callable[[], int],
+) -> tuple[ApplyResult, PreparedObservationExecution | None]:
     from .backend_calls import _BackendCallContext, _call_backend_apply
 
     realization = request.realization or (

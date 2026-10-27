@@ -154,7 +154,7 @@ class RuntimeTimeControlMixin:
             ),
         )
         if result.success:
-            result = self._synchronize_participant_clock(method_name, args, result)
+            result = self._synchronize_participant_clock(method_name, result)
         return result
 
     def _time_control_preflight(
@@ -229,11 +229,10 @@ class RuntimeTimeControlMixin:
     def _synchronize_participant_clock(
         self,
         method_name: str,
-        args: tuple[object, ...],
         result: ApplyResult,
     ) -> ApplyResult:
         sync = getattr(self, "_sync_participant_execution_clock", None)
-        sync_result = sync(method_name, str(args[0])) if sync is not None else None
+        sync_result = sync(method_name) if sync is not None else None
         if sync_result is not None and not sync_result.success:
             return ApplyResult(
                 success=False,

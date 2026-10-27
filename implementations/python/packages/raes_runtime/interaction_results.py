@@ -1,6 +1,10 @@
 """Validate runtime-composed results after their native backend boundaries."""
 
-from raes_contracts.runtime_state import ApplyResult
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 from .backend_call_contracts import _apply_result_contract_violation
 from .backend_result_diagnostics import (
@@ -10,8 +14,13 @@ from .backend_result_diagnostics import (
     _snapshot_transition_contract_diagnostics,
 )
 
+if TYPE_CHECKING:
+    from .control_plane import RuntimeControlPlane
 
-def validated_composition_result(owner, result, predecessor, address):
+
+def validated_composition_result(
+    owner: RuntimeControlPlane, result: object, predecessor: RuntimeSnapshot, address: str
+) -> ApplyResult:
     """Runtime modules may compose carriers outside one backend's domain."""
     invalid = _apply_result_contract_violation(result, address)
     if invalid is not None:

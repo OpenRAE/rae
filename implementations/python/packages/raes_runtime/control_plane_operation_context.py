@@ -187,7 +187,6 @@ def _value_free_request_payload(request: object) -> JsonValue:
             operation_payload = operation["payload"]
             if account_placement_has_credential_bindings(operation_payload):
                 operation["payload"] = value_free_account_placement_payload(operation_payload)
-        return payload
     return payload
 
 

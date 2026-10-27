@@ -12,10 +12,10 @@ def scenario_component_options(scenario: object) -> dict[str, bool]:
     if any(item.is_error for item in model.diagnostics):
         raise ValueError("component selection requires a valid compiled scenario")
     return {
-        "with_orchestrator": bool(
-            model.injects or model.inject_bindings or model.events or model.scripts or model.stories or model.workflows
+        "with_orchestrator": any(
+            (model.injects, model.inject_bindings, model.events, model.scripts, model.stories, model.workflows)
         ),
-        "with_evaluator": bool(model.condition_bindings or model.propositions or model.assertions or model.objectives),
+        "with_evaluator": any((model.condition_bindings, model.propositions, model.assertions, model.objectives)),
         "with_participant_runtime": bool(model.behavior_specifications or model.participant_behaviors),
         "with_time": bool(model.time_model.clocks),
         "with_observation": bool(model.observation_demands or model.capture_demands),

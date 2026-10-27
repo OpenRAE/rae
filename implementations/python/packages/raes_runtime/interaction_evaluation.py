@@ -1,6 +1,10 @@
 """Fresh evaluation preserves the interaction's compiled context and authority."""
 
+from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.planning import PlanScope
+from raes_contracts.runtime_state import OperationReceipt, RuntimeSnapshot
+from raes_contracts.vocabulary import Closure
+from raes_processor.models import CompiledRealizationRequirement, ExecutionPlan
 from raes_processor.planner import plan
 from raes_processor.planner.mixed_control_admission import MixedControlPlanningAdmission
 
@@ -12,7 +16,9 @@ from .manager_lifecycle import manager_owned
 
 class RuntimeInteractionEvaluationMixin:
     @manager_owned
-    def evaluate(self, execution_plan=None, *, idempotency_key="", identity=None):
+    def evaluate(
+        self, execution_plan: ExecutionPlan | None = None, *, idempotency_key: str = "", identity: object | None = None
+    ) -> OperationReceipt:
         """Evaluate later evidence without applying or restarting other domains.
 
         Reuse an idempotency key only to retry the exact evaluation request.
@@ -27,7 +33,7 @@ class RuntimeInteractionEvaluationMixin:
         # Current state controls the command only after durable replay resolution.
         original = self._plan_evaluation_refresh(execution, execution.base_snapshot)
         request_identity = {"interaction_evaluation": execution.evaluation, "compiled_evaluation": original.evaluation}
-        options = dict(idempotency_key=idempotency_key, identity=identity, request_identity=request_identity)
+        options = {"idempotency_key": idempotency_key, "identity": identity, "request_identity": request_identity}
         request = evaluation_request(self, original.evaluation, **options)
         receipt = _existing_supervised_receipt(self, request)
         if receipt is not None:
@@ -36,12 +42,12 @@ class RuntimeInteractionEvaluationMixin:
         self.register_planner_produced_plan(refreshed)
         return execute_operation(self, evaluation_request(self, refreshed.evaluation, **options))
 
-    def _plan_evaluation_refresh(self, execution, snapshot):
+    def _plan_evaluation_refresh(self, execution: ExecutionPlan, snapshot: RuntimeSnapshot) -> ExecutionPlan:
         context = execution.planning_context
         if context is None:
             raise ValueError("evaluation requires its original planning context")
 
-        def apparatus_default(requirement, _manifest):
+        def apparatus_default(requirement: CompiledRealizationRequirement, _manifest: BackendManifest) -> Closure:
             key = (requirement.address, requirement.field_path, requirement.requirement_kind)
             return context.apparatus_decisions[key]
 

@@ -2,20 +2,34 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import replace
+from typing import TYPE_CHECKING, TypedDict, Unpack
 
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
-from raes_contracts.runtime_state import ApplyResult, OperationKind, OperationState
+from raes_contracts.runtime_state import ApplyResult, OperationKind, OperationReceipt, OperationState, RuntimeSnapshot
 
-from .backend_calls import _BackendCallContext, _call_backend_apply
+from .backend_calls import _BackendCallContext, _call_backend_apply, _RealizationApplyContext
+from .backend_observation_calls import _RuntimePlanApplyRequest
 from .control_plane_execution import OperationExecutionRequest, execute_operation
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_submission import control_plane_plan_diagnostics
 from .participant_activity import resolve_participant_activity_controls
 
+if TYPE_CHECKING:
+    from .control_plane_configuration import ControlPlaneConfiguration
+    from .registry import RuntimeTarget
+
+
+class InteractionCallOptions(TypedDict, total=False):
+    realization: _RealizationApplyContext | None
+    call: _BackendCallContext | None
+    runtime_composition: bool
+    result_validator: Callable[[ApplyResult, RuntimeSnapshot], ApplyResult] | None
+
 
 class RuntimeInteractionDispatchMixin:
-    def _initialize_interaction(self, target, config) -> None:
+    def _initialize_interaction(self, target: RuntimeTarget, config: ControlPlaneConfiguration) -> None:
         from .registry import RuntimeTargetComponents, _validate_runtime_target_shape
 
         _validate_runtime_target_shape(
@@ -36,7 +50,14 @@ class RuntimeInteractionDispatchMixin:
         self._interaction_plan = None
         self._initialize_participant_scheduler()
 
-    def _interaction_plan_call(self, method, phase, snapshot, *, request):
+    def _interaction_plan_call(
+        self,
+        method: Callable[..., object],
+        phase: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+        snapshot: RuntimeSnapshot,
+        *,
+        request: _RuntimePlanApplyRequest,
+    ) -> ApplyResult:
         domain = _phase_domain(phase)
         results = []
         context = operation_admission_context(self, kind=OperationKind(domain.value), request=phase)
@@ -62,19 +83,19 @@ class RuntimeInteractionDispatchMixin:
 
     def _interaction_backend_call(
         self,
-        method,
-        *args,
-        address,
-        snapshot,
-        realization=None,
-        call=None,
-        runtime_composition=False,
-        result_validator=None,
-    ):
+        method: Callable[..., object],
+        *args: object,
+        address: str,
+        snapshot: RuntimeSnapshot,
+        **options: Unpack[InteractionCallOptions],
+    ) -> ApplyResult:
         """Keep time, stop and inventory callbacks inside one admitted phase."""
-        from .backend_realization_authority import _RealizationApplyContext
-
-        realization = realization or _RealizationApplyContext()
+        realization = options.pop("realization", None) or _RealizationApplyContext()
+        call = options.pop("call", None)
+        runtime_composition = options.pop("runtime_composition", False)
+        result_validator = options.pop("result_validator", None)
+        if options:
+            raise TypeError("unsupported interaction callback option")
         native_plan = bool(args and isinstance(args[0], (ProvisioningPlan, OrchestrationPlan, EvaluationPlan)))
         phase = args[0] if native_plan else ProvisioningPlan()
         domain = RuntimeDomain.PARTICIPANT if runtime_composition else realization.stop_domain or _phase_domain(phase)
@@ -97,7 +118,7 @@ class RuntimeInteractionDispatchMixin:
         )
         results = []
 
-        def invoke(predecessor, operation_id, attempt_id):
+        def invoke(predecessor: RuntimeSnapshot, operation_id: str, attempt_id: str) -> tuple[ApplyResult, None]:
             bound_args = (*args[:-1], predecessor)
             result = (
                 method(predecessor)
@@ -139,7 +160,7 @@ class RuntimeInteractionDispatchMixin:
         )
         return self._interaction_phase_result(receipt, results)
 
-    def _interaction_phase_result(self, receipt, results):
+    def _interaction_phase_result(self, receipt: OperationReceipt, results: list[ApplyResult]) -> ApplyResult:
         self._reload_derived_state()
         status = self.get_operation(receipt.operation_id)
         if status is None:
@@ -163,7 +184,7 @@ class RuntimeInteractionDispatchMixin:
         )
 
 
-def _phase_domain(phase):
+def _phase_domain(phase: object) -> RuntimeDomain:
     if isinstance(phase, EvaluationPlan):
         return RuntimeDomain.EVALUATION
     if isinstance(phase, OrchestrationPlan):

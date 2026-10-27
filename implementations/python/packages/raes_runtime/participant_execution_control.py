@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import threading
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.participant_episode import ParticipantEpisodeResetRequest
-from raes_contracts.runtime_state import ApplyResult, OperationKind
+from raes_contracts.runtime_state import ApplyResult, OperationKind, RuntimeSnapshot
 
 from .backend_calls import _BackendCallContext, _RealizationApplyContext
 from .control_plane_lifecycle import runtime_owned
@@ -138,7 +139,9 @@ class RuntimeParticipantExecutionMixin:
             )
             return result
 
-    def _participant_scheduler_call(self, phase, predecessor, method):
+    def _participant_scheduler_call(
+        self, phase: str, predecessor: RuntimeSnapshot, method: Callable[[RuntimeSnapshot], ApplyResult]
+    ) -> ApplyResult:
         return self._interaction_backend_call(
             method,
             predecessor,
@@ -198,7 +201,6 @@ class RuntimeParticipantExecutionMixin:
     def _sync_participant_execution_clock(
         self,
         method_name: str,
-        clock_address: str,
     ) -> ApplyResult | None:
         if method_name in {"advance", "jump", "resume"} and self._participant_scheduler is not None:
             return self.run_due_participant_actions()

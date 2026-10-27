@@ -33,7 +33,10 @@ def manager_owned(method: Callable[..., _T]) -> Callable[..., _T]:
                         code="runtime.interaction.distributed-unsupported",
                         domain="runtime",
                         address=f"runtime.{method.__name__}",
-                        message="Synchronous lifecycle work requires local execution. Use this runtime's operation API and receipts for distributed work.",
+                        message=(
+                            "Synchronous lifecycle work requires local execution. "
+                            "Use this runtime's operation API and receipts for distributed work."
+                        ),
                     )
                 ],
             )

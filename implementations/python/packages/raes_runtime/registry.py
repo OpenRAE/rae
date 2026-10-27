@@ -13,13 +13,12 @@ from raes_contracts.observation_demand import ObservationBasis, ObservationLifec
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.realization_preparation import BACKEND_PREPARATION_CONTRACT
 
+from . import registry_scenario as _registry_scenario
 from . import time_coordinator as _time_coordinator
 from .backend_profiles import validate_profile_target
 from .observation_execution import ObservationRuntime
 from .observation_native import backend_selection_observation_runtime as _backend_selection_observation_runtime
 from .registry_probes import sample_participant_action_admission_request
-from .registry_scenario import participant_temporal_probe_manager as participant_temporal_probe_manager
-from .registry_scenario import scenario_component_options as scenario_component_options
 from .registry_target_validation import (
     validate_inventory_contract,
     validate_operation_provider,
@@ -28,6 +27,8 @@ from .registry_target_validation import (
 )
 
 ReferenceTimeRuntime = _time_coordinator.ReferenceTimeRuntime
+participant_temporal_probe_manager = _registry_scenario.participant_temporal_probe_manager
+scenario_component_options = _registry_scenario.scenario_component_options
 _TIME_CLOCK_PROBE = "time.clock.probe"
 
 

@@ -1,18 +1,24 @@
 """Publish core clock-driver failure through the canonical state writer."""
 
+from __future__ import annotations
+
 from dataclasses import replace
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from raes_contracts.planning import RuntimeDomain
-from raes_contracts.runtime_state import OperationKind, OperationReceipt, OperationState, OperationStatus
+from raes_contracts.runtime_state import ApplyResult, OperationKind, OperationReceipt, OperationState, OperationStatus
 
 from .control_plane_execution import _utc_now
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_store import ControlPlaneOperationRecord
 from .interaction_results import validated_composition_result
 
+if TYPE_CHECKING:
+    from .control_plane import RuntimeControlPlane
 
-def commit_driver_failure(plane, result):
+
+def commit_driver_failure(plane: RuntimeControlPlane, result: ApplyResult) -> None:
     # This records a core failure observation. It grants no backend invocation
     # and remains available while effects are uncertain or admission is closed.
     with plane._mutation_authority.supervision(), plane._participant_execution_lock:
