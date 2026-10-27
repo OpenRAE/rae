@@ -1,5 +1,6 @@
 """Top-level planning pipeline that reconciles a runtime model against a snapshot."""
 
+from copy import deepcopy
 from dataclasses import replace
 from typing import TypedDict, Unpack, cast
 
@@ -16,8 +17,8 @@ from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
 from raes_contracts.materialization import MaterializationSource
-from raes_contracts.planning import EvaluationPlan, PlanScope, ProvisioningPlan, RuntimeDomain
-from raes_contracts.vocabulary import GeneratedArtifactKind, GeneratedArtifactRegenerationScope
+from raes_contracts.planning import ChangeAction, EvaluationPlan, PlanScope, ProvisioningPlan, RuntimeDomain
+from raes_contracts.vocabulary import Closure, GeneratedArtifactKind, GeneratedArtifactRegenerationScope
 
 from ..capture_admission import capture_admission_diagnostics
 from ..compiler.realization_deferred_constraints import resolve_pending_recursive_constraints
@@ -26,6 +27,7 @@ from ..models import (
     CompiledRealizationRequirement,
     ExecutionPlan,
     PlannedResource,
+    PlanningContext,
     RuntimeModel,
     RuntimeSnapshot,
 )
@@ -127,7 +129,13 @@ def _resolved_realization(
     model: RuntimeModel,
     manifest: BackendManifest,
     apparatus_realization_default: ApparatusRealizationDefaultResolver | None,
-) -> tuple[RuntimeModel, tuple[CompiledRealizationRequirement, ...], tuple[object, ...], list[Diagnostic]]:
+) -> tuple[
+    RuntimeModel,
+    tuple[CompiledRealizationRequirement, ...],
+    tuple[object, ...],
+    list[Diagnostic],
+    dict[tuple[str, str, str], Closure],
+]:
     """Resolve apparatus defaults, lower deferred constraints, and materialize authority."""
 
     apparatus_decisions = resolve_apparatus_realization_defaults(
@@ -151,6 +159,7 @@ def _resolved_realization(
         effective_requirements,
         resolved_authority,
         authority_diagnostics,
+        apparatus_decisions,
     )
 
 
@@ -348,6 +357,7 @@ class PlanningOptions(TypedDict, total=False):
     artifact_availability: ArtifactAvailabilityContext | None
     profile_context: DomainProfileResolutionContextModel | None
     mixed_control_admission: MixedControlPlanningAdmission | None
+    refresh_evaluation: bool
 
 
 def plan(
@@ -363,14 +373,17 @@ def plan(
     artifact_availability = options.pop("artifact_availability", None)
     profile_context = options.pop("profile_context", None)
     mixed_control_admission = options.pop("mixed_control_admission", None)
+    refresh_evaluation = options.pop("refresh_evaluation", False)
+    if not isinstance(refresh_evaluation, bool):
+        raise TypeError("refresh_evaluation must be a boolean")
     if options:
         raise TypeError("unsupported planning owner context")
     snapshot = snapshot or RuntimeSnapshot()
     target_name = scope.target_name if scope is not None else None
     run_id = scope.run_id if scope is not None else None
     instantiation_id = scope.instantiation_id if scope is not None else None
-    effective_model, effective_requirements, resolved_authority, authority_diagnostics = _resolved_realization(
-        model, manifest, apparatus_realization_default
+    effective_model, effective_requirements, resolved_authority, authority_diagnostics, apparatus_decisions = (
+        _resolved_realization(model, manifest, apparatus_realization_default)
     )
     resources = _collect_resources(effective_model)
     resources, profile_diagnostics, profile_authority = profile_resources(
@@ -399,6 +412,11 @@ def plan(
         snapshot,
         effective_requirements,
     )
+    if refresh_evaluation:
+        actions = dict(actions)
+        for address, resource in resources.items():
+            if resource.domain is RuntimeDomain.EVALUATION and actions[address] is ChangeAction.UNCHANGED:
+                actions[address] = ChangeAction.UPDATE
 
     provisioning, provisioning_diagnostics = _augment_provisioning(
         _build_provisioning_plan(
@@ -456,4 +474,14 @@ def plan(
         observation_owner=_observation_owner(evaluation, orchestration),
         diagnostics=diagnostics,
         artifact_availability=artifact_availability or ArtifactAvailabilityContext(),
+        planning_context=PlanningContext(
+            model=deepcopy(model),
+            apparatus_decisions=dict(apparatus_decisions),
+            profile_context=deepcopy(profile_context),
+            mixed_control_model=(
+                deepcopy(mixed_control_admission.model)
+                if isinstance(mixed_control_admission, MixedControlPlanningAdmission)
+                else None
+            ),
+        ),
     )

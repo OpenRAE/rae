@@ -18,6 +18,8 @@ from .backend_profiles import validate_profile_target
 from .observation_execution import ObservationRuntime
 from .observation_native import backend_selection_observation_runtime as _backend_selection_observation_runtime
 from .registry_probes import sample_participant_action_admission_request
+from .registry_scenario import participant_temporal_probe_manager as participant_temporal_probe_manager
+from .registry_scenario import scenario_component_options as scenario_component_options
 from .registry_target_validation import (
     validate_inventory_contract,
     validate_operation_provider,
@@ -484,11 +486,3 @@ class BackendRegistry:
 
     def is_registered(self, name: str) -> bool:
         return name in self._descriptors
-
-
-def participant_temporal_probe_manager(target: object, *, stochastic_controls: object = ()) -> object:
-    """Create the runtime facade used by the finite temporal conformance probe."""
-
-    from .manager import RuntimeManager
-
-    return RuntimeManager(target, stochastic_controls=stochastic_controls)

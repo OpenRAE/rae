@@ -93,6 +93,9 @@ class RuntimeLifecycleMixin:
         if condition is None:
             self._close_runtime_lease()
             return
+        claim = getattr(self, "_resource_claim", None)
+        if claim is not None and claim.active_calls:
+            raise RuntimeError("runtime callbacks remain active")
         config = getattr(self, "_supervision", None)
         budget = getattr(config, "drain_ms", 2000) / 1000
         deadline = monotonic() + budget
@@ -100,6 +103,9 @@ class RuntimeLifecycleMixin:
             return
         provider_close_started = False
         try:
+            stop_clock = getattr(self, "_stop_participant_clock_driver", None)
+            if stop_clock is not None and not stop_clock():
+                raise TimeoutError("runtime manager clock driver remains active")
             adapter = getattr(self, "_execution_adapter", None)
             self._drain_runtime_calls(condition, adapter, deadline)
             self._close_runtime_dispatcher(adapter, deadline)

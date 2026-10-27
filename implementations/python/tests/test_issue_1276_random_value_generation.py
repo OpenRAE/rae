@@ -980,23 +980,29 @@ class TestRuntimeApplyResume:
         # plan/apply path end to end (issue #1276).
         base = create_stub_target()
         target = replace(base, manifest=_with_random_value_support(base.manifest))
-        manager = RuntimeManager(target)
+        with RuntimeManager(target, run_scope="run:r1") as manager:
+            first = manager.plan(scenario, run_scope=PlanScope(run_id="r1"))
+            assert not [d for d in first.diagnostics if d.is_error], [d.message for d in first.diagnostics]
+            assert _flag_action(first) == "create"
+            assert manager.apply(first).success
+            assert _FLAG_ARTIFACT_ADDRESS in manager.snapshot.entries
 
-        first = manager.plan(scenario, run_scope=PlanScope(run_id="r1"))
-        assert not [d for d in first.diagnostics if d.is_error], [d.message for d in first.diagnostics]
-        assert _flag_action(first) == "create"
-        assert manager.apply(first).success
-        assert _FLAG_ARTIFACT_ADDRESS in manager.snapshot.entries
+            # The same run retains its generated-value binding.
+            resume = manager.plan(scenario, run_scope=PlanScope(run_id="r1"))
+            assert _flag_action(resume) == "unchanged"
+            assert manager.apply(resume).success
 
-        # Same-run resume reconciles UNCHANGED, so a backend retains the value.
-        resume = manager.plan(scenario, run_scope=PlanScope(run_id="r1"))
-        assert _flag_action(resume) == "unchanged"
-        assert manager.apply(resume).success
+            # A changed plan identity cannot retarget an admitted runtime.
+            new_run = manager.plan(scenario, run_scope=PlanScope(run_id="r2"))
+            assert _flag_action(new_run) == "update"
+            with pytest.raises(ValueError, match="run scope"):
+                manager.apply(new_run)
+            assert manager.destroy().success
 
-        # A new authoritative run reconciles as UPDATE, so a backend regenerates.
-        new_run = manager.plan(scenario, run_scope=PlanScope(run_id="r2"))
-        assert _flag_action(new_run) == "update"
-        assert manager.apply(new_run).success
+        with RuntimeManager(target, run_scope="run:r2") as manager:
+            new_run = manager.plan(scenario, run_scope=PlanScope(run_id="r2"))
+            assert _flag_action(new_run) == "create"
+            assert manager.apply(new_run).success
 
 
 # --- module composition namespaces new artifact references (finding: security)

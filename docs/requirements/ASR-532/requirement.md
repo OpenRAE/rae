@@ -165,7 +165,7 @@ requirement.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_execution.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_plan_authorization.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_snapshots.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/interaction.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/observation_admission.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_effect_authority.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_execution_control_boundary.py`
@@ -209,3 +209,6 @@ requirement.
 - TESTS → TEST `implementations/python/tests/test_runtime_manager.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/profile_selections.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1208_profile_boundaries.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/interaction_results.py` (Validation of runtime-composed snapshots)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/interaction_dispatch.py` (One admitted backend and terminal-result boundary)
+- TESTS → TEST `implementations/python/tests/test_issue_1660_runtime_lifetime.py` (Single-owner refresh, run identity, result integrity and retained exclusion)
