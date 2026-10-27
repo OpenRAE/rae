@@ -119,6 +119,9 @@ The published authoring, study, run, and admitted-plan schemas own the new shape
 Any embedding schema receives the same shared definitions.
 Publication records retain schema hashes and change summaries.
 The existing schema bundle, conformance registry, and repository policy tools enforce parity.
+Source-bound research captures hold fresh observations for the delivered implementation.
+They retain protocol and corpus pins without changing historical evidence.
+These retained controls do not establish typed factorial compiler support.
 No new workflow gate or infrastructure policy is required.
 The contract models provide the architecture as code.
 No deployment diagram changes because no deployment component changes.
