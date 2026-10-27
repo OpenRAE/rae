@@ -17,6 +17,15 @@ surfaces:
   scenario:
     summary: Complete scenario authoring from topology through objective flow.
     worked_examples:
+      - id: cloud-secret-cross-project
+        path: examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml
+        source_refs: [specs/sdl/cloud-resource-access.md, examples/README.md]
+        validation_status: guidance
+        sdl_sections: [nodes]
+        intended_user: sdl-author
+        limits:
+          - Synthetic metadata and illustrative evidence references; no cloud deployment or certified access result.
+          - Host sizing is omitted; the parser emits deployment advisories.
       - id: hospital-ransomware-surgery-day
         path: examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml
         source_refs: [examples/README.md]

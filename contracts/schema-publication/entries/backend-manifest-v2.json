@@ -1,9 +1,9 @@
 {
-  "content_hash": "50ffa5705260c54d986ee1cdea988b1c64605f0f829b9d8266dcc5ceec11de3f",
+  "content_hash": "c55208e6cfd04f215f65142398091e0cc0e33284bf0534724f9845b4f5ec4757",
   "contract_id": "backend-manifest-v2",
   "last_change": {
-    "content_hash": "50ffa5705260c54d986ee1cdea988b1c64605f0f829b9d8266dcc5ceec11de3f",
-    "summary": "Add exact authored participant control-context references and pinned ADR-094 configuration selections; preserve omitted-field compatibility (DSL-118, #299)."
+    "content_hash": "c55208e6cfd04f215f65142398091e0cc0e33284bf0534724f9845b4f5ec4757",
+    "summary": "Declare API-414 participant tool-profile semantics, typed capacities and evidence-backed tool features; preserve absent-block defaults."
   },
   "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
   "stability": "draft"

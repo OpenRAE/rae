@@ -21,6 +21,8 @@ Current state: identified gap. Honest portability requires normative semantics f
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_issue_1653_cloud_lifecycle.py` (Cloud constraints, observation separation and unsupported execution)
+
 - TESTS → TEST `implementations/python/tests/runtime_descendant_fixtures.py`
 
 - IMPLEMENTS → GITHUB_ISSUE `1649` (Runtime descendant reports and refresh)

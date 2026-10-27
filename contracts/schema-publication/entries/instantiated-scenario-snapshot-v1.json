@@ -1,9 +1,9 @@
 {
-  "content_hash": "184ce8e23a8b2e8b5538bd4681329d5d798c95ad954ef6d1091c347e2b1bf7e4",
+  "content_hash": "b353cf1ec83bdb85272598124cff0d71f4bbfa7c1d03ddde7a2b648b32670d80",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "content_hash": "184ce8e23a8b2e8b5538bd4681329d5d798c95ad954ef6d1091c347e2b1bf7e4",
-    "summary": "Add exact authored participant control-context references and pinned ADR-094 configuration selections; preserve omitted-field compatibility (DSL-118, #299)."
+    "content_hash": "b353cf1ec83bdb85272598124cff0d71f4bbfa7c1d03ddde7a2b648b32670d80",
+    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301). Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"

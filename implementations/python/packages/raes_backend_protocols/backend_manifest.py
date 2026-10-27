@@ -7,9 +7,11 @@ from dataclasses import dataclass
 from typing import TypedDict, TypeVar, Unpack
 
 from raes_contracts.apparatus import ApparatusIdentity, ConceptBinding, RealizationSupportDeclaration
+from raes_contracts.contracts.trial_controls import OperationSupervisionCapabilitiesModel
 from raes_contracts.execution_policy import ExecutionPolicyCapabilities
 from raes_contracts.manifest_authority import validate_backend_supported_contract_versions
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
+from raes_contracts.versions import BACKEND_OPERATION_CONTRACT_IDS
 
 from .capabilities import (
     BackendCapabilitySet,
@@ -54,6 +56,7 @@ class _BackendManifestOptions(TypedDict, total=False):
     participant_runtime: ParticipantRuntimeCapabilities | None
     observation: ObservationCapabilities | None
     cleanup: CleanupCapabilities | None
+    operation_supervision: OperationSupervisionCapabilitiesModel | None
     time: TimeCapabilities | None
     recovery_observation: RecoveryObservationCapabilities | None
     realization_envelope: BackendRealizationEnvelopeModel | None
@@ -83,6 +86,12 @@ class BackendManifest:
         capabilities = _resolve_capabilities(options)
         supported_contract_versions = _validate_supported_contract_versions(options)
         _validate_cleanup_capability_contracts(supported_contract_versions, capabilities.cleanup)
+        if capabilities.operation_supervision is not None:
+            if not isinstance(capabilities.operation_supervision, OperationSupervisionCapabilitiesModel):
+                raise TypeError("operation supervision requires typed capabilities")
+            OperationSupervisionCapabilitiesModel.model_validate(capabilities.operation_supervision.model_dump())
+            if not set(BACKEND_OPERATION_CONTRACT_IDS).issubset(supported_contract_versions):
+                raise ValueError("operation supervision requires backend operation contracts")
         _validate_time_capability_contracts(supported_contract_versions, capabilities.time)
         _validate_coordinated_reset_capabilities(capabilities)
         realization_envelope = options.get("realization_envelope")
@@ -144,6 +153,10 @@ class BackendManifest:
     @property
     def cleanup(self) -> CleanupCapabilities | None:
         return self.capabilities.cleanup
+
+    @property
+    def operation_supervision(self) -> OperationSupervisionCapabilitiesModel | None:
+        return self.capabilities.operation_supervision
 
     @property
     def time(self) -> TimeCapabilities | None:
@@ -228,6 +241,7 @@ def _resolve_capabilities(options: _BackendManifestOptions) -> BackendCapability
         participant_runtime=options.get("participant_runtime"),
         observation=options.get("observation"),
         cleanup=options.get("cleanup"),
+        operation_supervision=options.get("operation_supervision"),
         time=options.get("time"),
         recovery_observation=options.get("recovery_observation"),
     )

@@ -1,9 +1,9 @@
 {
-  "content_hash": "fb4a8be38c4ed06697169bf21c0bcfdb381d641c0ab4beadb6ff7d062b645d89",
+  "content_hash": "37338a06d86968b9ea60b734c4b2d1a660b812630a44e995bc4fc38b2c892844",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "fb4a8be38c4ed06697169bf21c0bcfdb381d641c0ab4beadb6ff7d062b645d89",
-    "summary": "Add exact authored participant control-context references and pinned ADR-094 configuration selections; preserve omitted-field compatibility (DSL-118, #299)."
+    "content_hash": "37338a06d86968b9ea60b734c4b2d1a660b812630a44e995bc4fc38b2c892844",
+    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301). Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

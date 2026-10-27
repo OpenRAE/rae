@@ -1,9 +1,9 @@
 {
-  "content_hash": "d5a0e85baa3956af12d9b04344ad5184e8d8ae1f12f888d67b71c22b5769398a",
+  "content_hash": "0c5459657f9905de4aa566accd90a237ae0356a2e1d39419f8cf85ee95ab2f40",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "d5a0e85baa3956af12d9b04344ad5184e8d8ae1f12f888d67b71c22b5769398a",
-    "summary": "Add exact authored participant control-context references and pinned ADR-094 configuration selections; preserve omitted-field compatibility (DSL-118, #299)."
+    "content_hash": "0c5459657f9905de4aa566accd90a237ae0356a2e1d39419f8cf85ee95ab2f40",
+    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301). Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

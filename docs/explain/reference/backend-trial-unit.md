@@ -15,21 +15,25 @@ The protocol package does not import runtime or processor implementations.
 The adapter uses shared RAE processor and runtime functions.
 It does not interpret SDL itself.
 
-The processor first calls `realize_admitted_trial_entry()`.
-The caller passes its three neutral processor-plan projections and instantiated SDL digest into `TrialUnitRequest`.
-The request also carries the complete admitted plan, exact entry ID, and a distinct execution attempt ID.
+The processor calls `realize_admitted_trial_entry()` first.
+The caller passes three processor plans into `TrialUnitRequest`.
+The caller also passes the instantiated SDL digest.
+The request carries the complete admitted plan and exact entry ID.
+It also carries a distinct execution attempt ID.
 Request construction reconstructs the complete plan before entry lookup.
-The request exposes the entry's sealed participant configurations, execution controls, and referenced cleanup plan.
+The request exposes the entry controls and bound cleanup plan.
+It also exposes the sealed participant configurations.
 There is no independently editable copy of these values.
 
 The adapter checks the selected manifests and envelope against its injected target before effects.
-The provisioning and evaluation plans retain the admitted run and instantiation IDs.
+The provisioning and evaluation plans keep the admitted run and instantiation IDs.
 The adapter checks all projections against trusted processor output before dispatch.
 Projection carriage alone proves neither derivation nor execution permission.
 Configured participants require explicit backend support before effects.
 The adapter never repeats configuration normalization or resolves secrets in the request.
 
-The runtime retains authored order, time, participant rules, operation admission, and result validation.
+The runtime keeps authored order and time.
+It also checks participant rules, operation admission, and results.
 A control-plane composition uses the explicit scope `run:<entry.run_id>`.
 The backend owns native effects, observations, secret delivery, and cleanup probes.
 The allocator owns placement and live isolation.
@@ -37,22 +41,31 @@ The trial unit chooses no batch order, parallelism, replacement, or fresh run id
 
 ## Results and failure
 
-`execution_snapshot` records validated runtime state after trial execution and before cleanup changes that state.
+`execution_snapshot` records checked runtime state after the trial runs.
+Cleanup has not yet changed that state.
 It is distinct from the instantiated SDL digest in the request.
-The adapter preserves partial observations when execution fails.
-Operation receipts acknowledge submission; they do not establish workflow completion.
+The adapter keeps partial observations when execution fails.
+Operation receipts acknowledge submission.
+They do not prove that a workflow finished.
 Typed execution evidence accompanies the receipts and snapshot.
 
 The cleanup receipt reports the trial outcome and cleanup status separately.
 Cleanup evidence accompanies that receipt, including failed or unverified cleanup.
-`validate_trial_unit_result()` checks the cleanup obligations and attempt identity against the request.
+`validate_trial_unit_result()` checks cleanup obligations against the request.
+It also checks the attempt identity.
 It checks receipt target/run scopes and evidence run identities.
 Every cleanup evidence reference must identify a record in `cleanup_evidence`.
-These checks do not resolve evidence content or prove native cessation.
-The adapter uses existing runtime snapshot validators and trusted evidence resolvers before publication.
-The archival producer still uses `ExperimentRunModel` and its existing cross-artifact validators.
+These checks do not read evidence content.
+They do not prove that native effects stopped.
+The adapter checks snapshots with existing runtime validators.
+Trusted resolvers check evidence before it is published.
+The archive producer still uses `ExperimentRunModel`.
+Its existing validators check joins between artifacts.
 
 Timeout and cancellation use the admitted controls and existing supervision machinery.
+The [trial control admission](trial-control-admission.md) checks static backend declarations during compilation.
+This check covers all entries before the compiler returns a plan.
+It does not add trial-derived guarantees to native operation requests.
 Caller timeout does not prove backend cessation.
 Unknown effects retain their reservations until the runtime's release checks pass.
 Cleanup retains its own obligation budgets after execution timeout.
@@ -80,13 +93,14 @@ flowchart LR
 ```
 
 The plan-owner boundary protects admitted identity and configuration integrity.
-Whole-plan reconstruction rejects tampered nested models before entry consumption.
+Whole-plan checks reject changed nested models before an entry is used.
 The target boundary protects execution authority and observation integrity.
 Runtime input, result, transition, and evidence checks remain necessary there.
 The archive boundary protects provenance and evidence disclosure.
 Run validators and access controls remain necessary there.
 
-Request and result aggregates are local Python values, not new wire contracts.
+Requests and results are local Python values.
+They add no wire contract.
 Their representations omit carried configurations, plans, snapshots, and evidence.
 Nested portable models retain their existing validators.
 Collections have finite item bounds.
@@ -94,7 +108,8 @@ Each result collection permits at most 4096 items.
 The shared runtime value limits bound both aggregates before copying.
 Secrets remain non-sensitive references until an authorized backend sink resolves them.
 Adapters must not log payloads, exception input, native output, or resolved secrets.
-The handoff adds no network call, credential lookup, process, listener, or store.
+The handoff adds no network call or credential lookup.
+It adds no process, listener, or store.
 Trusted embedders retain P0 authorization responsibilities.
 
 ## Design basis

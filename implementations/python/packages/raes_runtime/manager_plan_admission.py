@@ -3,6 +3,7 @@
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.models import ExecutionPlan, RuntimeModel
+from raes_processor.planner import participant_tool_support_diagnostics
 
 from .diagnostics import _failure_diagnostic
 from .mixed_control_admission import reference_mixed_control_diagnostics
@@ -19,6 +20,7 @@ def runtime_plan_precondition_diagnostics(
 ) -> list[Diagnostic]:
     """Return every deterministic plan-admission failure for a manager apply."""
     diagnostics = _provenance_diagnostics(execution_plan, target, snapshot)
+    diagnostics.extend(participant_tool_support_diagnostics(execution_plan.model, target.manifest))
     diagnostics.extend(
         diagnostic
         for diagnostic in reference_participant_driver_diagnostics(execution_plan.model)

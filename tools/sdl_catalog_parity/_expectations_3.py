@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from tools.sdl_catalog_parity._expectations_cloud import CLOUD_RESOURCE_EXPECTATIONS
 from tools.sdl_catalog_parity._paths import (
     _DANGLING,
     _DANGLING_CYCLIC,
@@ -412,3 +413,5 @@ EXPECTATIONS_PART_3: dict[str, tuple[str, str, str, str]] = {
         _WORKFLOW_SEMANTICS,
     ),
 }
+
+EXPECTATIONS_PART_3.update(CLOUD_RESOURCE_EXPECTATIONS)

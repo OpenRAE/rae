@@ -132,7 +132,7 @@ RUNTIME_CONCERN_PROFILES: tuple[RuntimeConcernProfile, ...] = (
         for field in _CONTAINER_PATHS
     ),
     _profile("local_identity", "runtime-local-identity", excluded=("raw_entry",)),
-    _profile("identity_authorities", "runtime-identity-authorities"),
+    _profile("identity_authorities", "runtime-identity-authorities", excluded=("access_observations",)),
     _profile("file_services", "runtime-file-services", excluded=("access_observations",)),
     _profile("mail_services", "runtime-mail-services", excluded=("message_count",)),
     _profile("network.hostname", "runtime-network-hostname"),
@@ -160,7 +160,11 @@ RUNTIME_CONCERN_PROFILES: tuple[RuntimeConcernProfile, ...] = (
             "open_closed_status",
         ),
     ),
-    _profile("platform_applications", "runtime-platform-applications"),
+    _profile(
+        "platform_applications",
+        "runtime-platform-applications",
+        excluded=("resolved_version_ref", "resolution_basis", "resolution_evidence_refs"),
+    ),
     _profile(
         "orchestration_authorities",
         "runtime-orchestration-authorities",
@@ -200,6 +204,12 @@ _DELEGATED_PATHS = {
     "mounts": ("source_kind:volume", "source_kind:image"),
 }
 _OBSERVATION_ONLY_PATHS = {
+    "identity_authorities": ("access_observations",),
+    "platform_applications": (
+        "secrets.consumers.resolved_version_ref",
+        "secrets.consumers.resolution_basis",
+        "secrets.consumers.resolution_evidence_refs",
+    ),
     "file_services": ("access_observations",),
     "mail_services": ("queues.message_count",),
     "network_sensors": ("evidence_refs",),
