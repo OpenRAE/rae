@@ -68,3 +68,4 @@ Primary-source refresh shows that participant execution often depends on authore
 - IMPLEMENTS → DOCUMENTATION `docs/explain/sdl/control-context-migration.md`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_control_context.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_bundle_access.py`
+- IMPLEMENTS → SPEC `contracts/provenance/sdl-lineage-ledger-v2.json`

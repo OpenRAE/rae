@@ -5141,6 +5141,38 @@
           "compatibility_direction": "not_applicable"
         }
       ]
+    },
+    {
+      "subject_id": "sdl-field:control_context_assets",
+      "subject_kind": "top_level_field",
+      "disposition": "current",
+      "authority": {
+        "artifact": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
+        "pointer": "#/properties/control_context_assets",
+        "contract_id": "sdl-authoring-input-v1"
+      },
+      "claims": [
+        {
+          "plane": "semantics",
+          "classification": "raes_native",
+          "source_refs": [],
+          "raes_boundaries": [
+            {
+              "artifact": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
+              "symbol_or_pointer": "#/properties/control_context_assets"
+            }
+          ],
+          "source_boundaries": [],
+          "divergence": "RAES-native declarations reuse exact participant control-context asset identities, versions and content commitments. Participant selection and trial binding preserve those pins without granting visibility, authorization or delivery.",
+          "compatibility": "not_applicable",
+          "citation_refs": [],
+          "internal_authority_refs": [
+            "specs/sdl/participant-control-context.md",
+            "docs/requirements/DSL-118/requirement.md"
+          ],
+          "compatibility_direction": "not_applicable"
+        }
+      ]
     }
   ],
   "third_party_dispositions": [
