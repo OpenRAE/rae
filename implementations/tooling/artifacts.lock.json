@@ -684,7 +684,7 @@
     {
       "artifact_id": "scorecard-action-image",
       "artifact_class": "oci-image",
-      "version": "2.4.4",
+      "version": "2.5.0",
       "support_level": "blocking",
       "owner": "Security",
       "consumers": ["scorecard-workflow"],
@@ -696,16 +696,16 @@
       "policy_refs": ["oci-input-v1"],
       "source": {
         "repository": "https://github.com/ossf/scorecard-action",
-        "release": "sha256:ae5104dd3cc28466ebeb11144354be4cac4b7ff829654f9fab89021d71c46670",
+        "release": "sha256:1e1481c65fc2407d3fd6ab18a23c741eb4d1c0d9359ebafc4b3ab13aa61d8627",
         "asset": "ghcr.io/ossf/scorecard-action",
         "locator_refs": ["github-container-registry"]
       },
       "platforms": [
         {
           "platform_id": "linux-x86_64",
-          "source_urls": ["https://ghcr.io/v2/ossf/scorecard-action/manifests/sha256:ae5104dd3cc28466ebeb11144354be4cac4b7ff829654f9fab89021d71c46670"],
-          "raw_manifest": [{"path": "scorecard-action-2.4.4-manifest.json", "sha256": "ae5104dd3cc28466ebeb11144354be4cac4b7ff829654f9fab89021d71c46670", "size": 4281}],
-          "installed_identity": {"implementation": "OCI image", "version": "2.4.4", "abi": "oci-manifest-v2", "target": "linux-x86_64"},
+          "source_urls": ["https://ghcr.io/v2/ossf/scorecard-action/manifests/sha256:1e1481c65fc2407d3fd6ab18a23c741eb4d1c0d9359ebafc4b3ab13aa61d8627"],
+          "raw_manifest": [{"path": "scorecard-action-2.5.0-manifest.json", "sha256": "1e1481c65fc2407d3fd6ab18a23c741eb4d1c0d9359ebafc4b3ab13aa61d8627", "size": 4282}],
+          "installed_identity": {"implementation": "OCI image", "version": "2.5.0", "abi": "oci-manifest-v2", "target": "linux-x86_64"},
           "dependencies": [],
           "profile_ids": ["public-linux-x86_64"],
           "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
