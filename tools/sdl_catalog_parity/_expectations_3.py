@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from tools.sdl_catalog_parity._expectations_cloud import CLOUD_RESOURCE_EXPECTATIONS
 from tools.sdl_catalog_parity._paths import (
     _DANGLING,
     _DANGLING_CYCLIC,
@@ -413,107 +414,4 @@ EXPECTATIONS_PART_3: dict[str, tuple[str, str, str, str]] = {
     ),
 }
 
-# Optional resource references extend the existing identity/application owners.
-_CLOUD_IDENTITY = "nodes.*.runtime.identity_authorities[]"
-_CLOUD_APPLICATION = "nodes.*.runtime.platform_applications[]"
-_CLOUD_RESOURCE_VALIDATOR = (
-    "[cloud resource validator](../../implementations/python/packages/raes/validator/_cloud_resources.py)"
-)
-EXPECTATIONS_PART_3.update(
-    {
-        path: (
-            target,
-            _SEMANTIC,
-            "fatal dangling, wrong kind, or conflicting ancestry",
-            _CLOUD_RESOURCE_VALIDATOR,
-        )
-        for path, target in (
-            (
-                f"{_CLOUD_IDENTITY}.resource_scopes[].parent_ref",
-                "runtime:resource_scopes",
-            ),
-            (
-                f"{_CLOUD_IDENTITY}.subjects[].resource_scope_ref",
-                "runtime:resource_scopes",
-            ),
-            (
-                f"{_CLOUD_IDENTITY}.identity_uses[].workload_ref",
-                "derived:cloud-workload",
-            ),
-            (f"{_CLOUD_IDENTITY}.identity_uses[].principal_ref", "runtime:subjects"),
-            (
-                f"{_CLOUD_IDENTITY}.identity_uses[].source_principal_ref",
-                "runtime:subjects",
-            ),
-            (
-                f"{_CLOUD_IDENTITY}.policies[].resource_access.attachment_ref",
-                "derived:cloud-resource",
-            ),
-            (
-                f"{_CLOUD_IDENTITY}.policies[].resource_access.inherited_from_ref",
-                "runtime:policies",
-            ),
-            (
-                f"{_CLOUD_IDENTITY}.policies[].resource_access.bindings[].principal_refs[]",
-                "runtime:subjects",
-            ),
-            (
-                f"{_CLOUD_IDENTITY}.policies[].resource_access.bindings[].resource_refs[]",
-                "derived:cloud-resource",
-            ),
-            (
-                f"{_CLOUD_IDENTITY}.policies[].resource_access.bindings[].role_ref",
-                "runtime:subjects",
-            ),
-            (
-                f"{_CLOUD_IDENTITY}.access_observations[].principal_ref",
-                "runtime:subjects",
-            ),
-            (
-                f"{_CLOUD_IDENTITY}.access_observations[].resource_ref",
-                "derived:cloud-resource",
-            ),
-            (
-                f"{_CLOUD_IDENTITY}.access_observations[].context_refs[]",
-                "derived:cloud-resource",
-            ),
-            (f"{_CLOUD_APPLICATION}.resource_scope_ref", "runtime:resource_scopes"),
-            (
-                f"{_CLOUD_APPLICATION}.cloud_limits[].resource_scope_ref",
-                "runtime:resource_scopes",
-            ),
-            (
-                f"{_CLOUD_APPLICATION}.secrets[].resource_scope_ref",
-                "runtime:resource_scopes",
-            ),
-            (
-                f"{_CLOUD_APPLICATION}.secrets[].encryption_key_ref",
-                "derived:cloud-resource",
-            ),
-            (
-                f"{_CLOUD_APPLICATION}.secrets[].reset_owner_ref",
-                "derived:cloud-resource",
-            ),
-            (
-                f"{_CLOUD_APPLICATION}.secrets[].deletion_owner_ref",
-                "derived:cloud-resource",
-            ),
-            (
-                f"{_CLOUD_APPLICATION}.secrets[].versions[].payload_content_ref",
-                "content",
-            ),
-            (
-                f"{_CLOUD_APPLICATION}.secrets[].consumers[].consumer_ref",
-                "derived:cloud-workload",
-            ),
-            (
-                f"{_CLOUD_APPLICATION}.secrets[].consumers[].version_ref",
-                "runtime:versions",
-            ),
-            (
-                f"{_CLOUD_APPLICATION}.secrets[].consumers[].resolved_version_ref",
-                "runtime:versions",
-            ),
-        )
-    }
-)
+EXPECTATIONS_PART_3.update(CLOUD_RESOURCE_EXPECTATIONS)

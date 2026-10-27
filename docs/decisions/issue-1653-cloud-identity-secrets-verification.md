@@ -10,7 +10,7 @@ Test paths start at `implementations/python/tests/`.
   join cloud scopes, identity use and application-owned secrets.
   `examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml` shows the complete use case.
 - [x] Issue 2: Preserve ownership, provider identity and exact references.
-  `raes/validator/_cloud_resources.py:48` checks kinds, providers, ancestry and cycles.
+  `raes/validator/_cloud_resources.py:60` checks kinds, providers, ancestry and cycles.
   `test_issue_1653_cloud_references.py:148` keeps repeated native names distinct.
 - [x] Issue 3: Keep identity use, policy, secret state and access reports separate.
   `raes/runtime_identity_resources.py:48` defines identity use, bindings and observations.
@@ -18,7 +18,7 @@ Test paths start at `implementations/python/tests/`.
   `test_issue_1653_cloud_models.py:35` checks inert conditions and no inferred access.
   The reference tests check inherited policy sources and version ownership.
 - [x] Issue 4: Preserve meaning across the language and runtime boundaries.
-  `raes/composition/_cloud.py:6` rewrites only declared reference fields.
+  `raes/composition/_cloud.py:8` rewrites only declared reference fields.
   `test_issue_1653_cloud_lifecycle.py` covers repeated imports, substitution,
   compile/plan encoding, materialized documents and disk-store reload.
   It verifies that unsupported execution stops before the provisioner runs.
@@ -90,3 +90,13 @@ The audit and relationship tests passed: 119 tests.
 The partial cloud description lives in `examples/scenarios/cloud-resources/`.
 It retains its capacity advisories and has an explicit published-schema check.
 That check and the existing example-conformance module passed: 46 tests.
+
+## Quality checks
+
+SonarCloud identified complex methods, missing type arguments and a large catalog file.
+The cloud checks and import rewriting now use small helpers for each owner.
+The cloud reference expectations moved into their own support module.
+Exception tests now isolate the call expected to fail.
+All 79 focused cloud and prepared-node tests passed after the refactor.
+The reference-catalog check and targeted complexity lint passed.
+Fresh research captures replay the refactored source with unchanged outcomes and limits.

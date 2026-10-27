@@ -181,8 +181,9 @@ def test_exact_version_variables_are_compared_after_binding():
     parsed = parse_sdl(json.dumps(raw))
     selected = instantiate_scenario(parsed).nodes["secrets"].runtime.platform_applications[0].secrets[0].consumers[0]
     assert selected.version_ref == VERSION
+    mismatched = {"version": VERSION.replace("v1", "v2")}
     with pytest.raises(SDLInstantiationError, match="Bound scenario is invalid"):
-        instantiate_scenario(parsed, {"version": VERSION.replace("v1", "v2")})
+        instantiate_scenario(parsed, mismatched)
 
 
 def test_public_parser_errors_do_not_echo_rejected_secret_material():
@@ -191,8 +192,9 @@ def test_public_parser_errors_do_not_echo_rejected_secret_material():
     raw = cloud_scenario()
     sentinel = "synthetic-protected-sentinel"
     secret(raw)["versions"][0]["value"] = sentinel
+    serialized = json.dumps(raw)
     with pytest.raises(SDLParseError) as caught:
-        parse_sdl(json.dumps(raw))
+        parse_sdl(serialized)
     assert sentinel not in str(caught.value)
 
 
@@ -244,7 +246,9 @@ def test_live_payload_content_reference_retains_bounded_validation_context(bound
     if boundary == "preparation":
         assert prepared_node_capability_violation(planned, planned, create_stub_manifest(), RuntimeSnapshot()) is None
     elif not content_is_live:
+        originals = set(live)
+        manifest = create_stub_manifest()
         with pytest.raises(ValueError, match="native semantics"):
-            validate_portable_node_inventory(live, set(live), create_stub_manifest())
+            validate_portable_node_inventory(live, originals, manifest)
     else:
         validate_portable_node_inventory(live, set(live), create_stub_manifest())

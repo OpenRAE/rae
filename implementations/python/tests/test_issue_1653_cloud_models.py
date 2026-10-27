@@ -157,8 +157,9 @@ def test_observed_resolution_requires_evidence():
     ],
 )
 def test_structural_schemas_enforce_local_security_and_selection_rules(model, payload):
+    validator = Draft202012Validator(model.model_json_schema())
     with pytest.raises(SchemaValidationError):
-        Draft202012Validator(model.model_json_schema()).validate(payload)
+        validator.validate(payload)
 
 
 @pytest.mark.parametrize("role_ref,actions", [("", []), ("", None)])
@@ -174,8 +175,9 @@ def test_policy_binding_schema_requires_actions_or_a_role(role_ref, actions):
         payload["actions"] = actions
     with pytest.raises(ValidationError):
         RuntimeIdentityPermissionBinding.model_validate(payload)
+    validator = Draft202012Validator(RuntimeIdentityPermissionBinding.model_json_schema())
     with pytest.raises(SchemaValidationError):
-        Draft202012Validator(RuntimeIdentityPermissionBinding.model_json_schema()).validate(payload)
+        validator.validate(payload)
 
 
 def test_inherited_policy_schema_rejects_copied_bindings():
@@ -194,8 +196,9 @@ def test_inherited_policy_schema_rejects_copied_bindings():
     }
     with pytest.raises(ValidationError):
         RuntimeIdentityResourceAccess.model_validate(payload)
+    validator = Draft202012Validator(RuntimeIdentityResourceAccess.model_json_schema())
     with pytest.raises(SchemaValidationError):
-        Draft202012Validator(RuntimeIdentityResourceAccess.model_json_schema()).validate(payload)
+        validator.validate(payload)
 
 
 @pytest.mark.parametrize(
@@ -222,5 +225,6 @@ def test_published_policy_schemas_reject_invalid_field_combinations(schema_path,
         definition = "RuntimeIdentityResourceAccess"
     root = Path(__file__).resolve().parents[3] / "contracts/schemas"
     definitions = json.loads((root / schema_path).read_text())["$defs"]
+    validator = Draft202012Validator({"$ref": f"#/$defs/{definition}", "$defs": definitions})
     with pytest.raises(SchemaValidationError):
-        Draft202012Validator({"$ref": f"#/$defs/{definition}", "$defs": definitions}).validate(payload)
+        validator.validate(payload)
