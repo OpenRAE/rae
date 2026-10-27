@@ -1,5 +1,12 @@
 # SDL Sections Reference
 
+Cloud projects and accounts use resource scopes within `runtime.identity_authorities`.
+The same owner describes workload identity use and resource-policy attachment.
+`runtime.platform_applications` can describe service-owned secrets, versions and consumer selections.
+These optional descriptions do not imply deployment, effective access or secret disclosure.
+See [cloud resource access](../../../specs/sdl/cloud-resource-access.md)
+and the [cross-project example](../../../examples/scenarios/cloud-secret-cross-project.sdl.yaml).
+
 A scenario is a YAML document with a required top-level `name`, optional
 top-level metadata and composition fields, and the authoring sections catalogued
 below. Aside from `name`, every top-level field is optional. The normative,
