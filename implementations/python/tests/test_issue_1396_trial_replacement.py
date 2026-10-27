@@ -436,6 +436,10 @@ def test_replacement_compiler_has_fixed_identity_vectors():
     entry = next(iter(result.plan.entries.values()))
     assert vector["root_plan_id"] == root.plan_id
     assert vector["root_plan_digest"] == root.plan_digest
+    assert vector["root_entry_id"] == next(iter(root.entries.values())).plan_entry_id
+    assert vector["parent_run_id"] == run.run_id
+    assert vector["parent_run_version"] == run.run_version
+    assert vector["ordinal"] == result.plan.replacement_origin.ordinal
     for field in ("plan_id", "plan_digest"):
         assert vector[field] == getattr(result.plan, field)
     for field in ("plan_entry_id", "run_id", "entry_digest"):

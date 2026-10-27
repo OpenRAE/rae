@@ -132,7 +132,7 @@ def test_unchanged_manifest_omits_declaration_and_retains_digest():
     assert "operation_supervision" not in model.model_dump(mode="json")["capabilities"]
     assert (
         canonical_json_digest(model.model_dump(mode="json"))
-        == "sha256:a4e769d26142242d6efc478f9c93a2f47851c9d801fe54d6330968ecd87572aa"
+        == "sha256:5f2a0c0f27812a431da8e1ec02ed42f0125a857f312dcc37f4899440827d145c"
     )
 
 

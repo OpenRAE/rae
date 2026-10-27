@@ -101,6 +101,8 @@ PARTICIPANT_RUNTIME_ROLE_SCOPE = "capabilities.participant_runtime.supported_par
 PARTICIPANT_RUNTIME_BEHAVIOR_FEATURE_SCOPE = "capabilities.participant_runtime.supported_behavior_features"
 PARTICIPANT_RUNTIME_INTERACTION_FEATURE_SCOPE = "capabilities.participant_runtime.supported_interaction_features"
 
+PARTICIPANT_TOOL_FEATURES = frozenset({"tool_affordances", "scoped_tool_affordances"})
+
 PARTICIPANT_RUNTIME_POLICY_FEATURES = frozenset(
     {
         "participant_declassification",
@@ -135,6 +137,7 @@ PARTICIPANT_RUNTIME_EVIDENCE_REQUIRED_FEATURES = frozenset(
         "participant_predicate_opacity",
         "participant_modular_control",
         *PARTICIPANT_ADVERSARIAL_CONTROL_FEATURES,
+        *PARTICIPANT_TOOL_FEATURES,
     }
 )
 
@@ -192,6 +195,8 @@ PARTICIPANT_RUNTIME_CAPABILITY_REQUIRED_CONTRACTS = {
         "white": _PARTICIPANT_EPISODE_CONTRACTS,
     },
     PARTICIPANT_RUNTIME_BEHAVIOR_FEATURE_SCOPE: {
+        "tool_affordances": _PARTICIPANT_BEHAVIOR_CONTRACTS,
+        "scoped_tool_affordances": _PARTICIPANT_BEHAVIOR_CONTRACTS,
         "action_contracts": _PARTICIPANT_BEHAVIOR_CONTRACTS,
         "autonomous_execution": _PARTICIPANT_AUTONOMOUS_EXECUTION_CONTRACTS,
         "attribution_support": _PARTICIPANT_BEHAVIOR_CONTRACTS,
