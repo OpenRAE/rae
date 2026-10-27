@@ -43,6 +43,12 @@ def _private_tool_locations(specification: Mapping[str, object]) -> Iterator[tup
 
 
 def _private_locations(document: Mapping[str, object]) -> Iterator[tuple[tuple[str | int, ...], str]]:
+    for section in ("agents", "behavior_specifications"):
+        for name, value in _authoring_mapping(document.get(section)).items():
+            for slot, binding in _authoring_mapping(_authoring_mapping(value).get("control_context")).items():
+                ref = _authoring_mapping(binding).get("declaration_ref")
+                if isinstance(ref, str) and PRIVATE_NAMESPACE_SEGMENT in ref.split("."):
+                    yield (section, name, "control_context", slot, "declaration_ref"), ref
     for name, value in _authoring_mapping(document.get("behavior_specifications")).items():
         specification = _authoring_mapping(value)
         prefix = ("behavior_specifications", name)

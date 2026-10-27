@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 
 from raes import ExpandedScenarioBindingTargetResolver
+from raes.scenario import InstantiatedScenario
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
     AdmittedBindingModel,
@@ -174,6 +175,8 @@ def entry_participant_configurations(
     request: TrialCompilationRequest,
     bindings: list[AdmittedBindingModel],
     participant_manifest_refs: Sequence[AdmittedParticipantManifestReferenceModel],
+    *,
+    scenario: InstantiatedScenario,
 ) -> list[ParticipantConfigurationResultModel]:
     """Realize each bound participant's complete configuration atomically."""
 
@@ -207,6 +210,14 @@ def entry_participant_configurations(
         manifest = request.participant_manifests[key]
         registry = manifest.configuration_registry
         try:
+            validator = request.participant_configuration_validators.get(
+                (registry.owner.validator_id, registry.owner.validator_version)
+            )
+            if any(target.control_context is not None for target in registry.targets.values()):
+                bind_scenario = getattr(validator, "for_scenario", None)
+                if not callable(bind_scenario):
+                    raise ValueError("control-context concrete owner validation is required")
+                validator = bind_scenario(scenario)
             results.append(
                 realize_participant_configuration(
                     participant_address=key[0],
@@ -214,9 +225,7 @@ def entry_participant_configurations(
                     manifest_ref=manifest.identity.name,
                     manifest_digest=canonical_json_digest(manifest.model_dump(mode="json")),
                     overrides=overrides,
-                    validator=request.participant_configuration_validators.get(
-                        (registry.owner.validator_id, registry.owner.validator_version)
-                    ),
+                    validator=validator,
                 )
             )
         except ValueError as exc:

@@ -30,6 +30,7 @@ from ..vocabulary import (
     WorkflowStatePredicateFeature,
 )
 from ._backend_operation_exports import *
+from ._bundle_access import schema_bundle
 from ._candidate_synthesis_facade import *
 from ._evidence_requirement_exports import *
 from ._experiment_design_exports import *
@@ -78,7 +79,6 @@ from .base import NonEmptyString as NonEmptyString
 from .batch_execution import BatchExecutionReceiptModel as BatchExecutionReceiptModel
 from .batch_execution import validate_batch_execution_receipt as validate_batch_execution_receipt
 from .batch_execution import validate_scheduler_isolation_proof as validate_scheduler_isolation_proof
-from .bundle import schema_bundle
 from .capabilities import (
     ApparatusIdentityModel,
     BackendCompatibilityModel,

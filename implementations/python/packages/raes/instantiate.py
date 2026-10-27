@@ -330,12 +330,15 @@ def _bind_scenario_content(
     raw_payload = raw_scenario.model_dump(mode="python", by_alias=True)
     _preserve_listener_protocol_presence(raw_payload, raw_scenario)
     unresolved_refs: set[str] = set()
+    pinned_assets = raw_payload.pop("control_context_assets", None)
     substituted_payload = _substitute_value(
         raw_payload,
         variable_values=variable_values,
         unresolved_refs=unresolved_refs,
         preserved=preserved,
     )
+    if pinned_assets is not None:
+        substituted_payload["control_context_assets"] = pinned_assets
     if unresolved_refs:
         unresolved_list = ", ".join(sorted(unresolved_refs))
         raise SDLInstantiationError(

@@ -1,0 +1,274 @@
+{
+  "schema_version": "requirement-scope/v1",
+  "issue_number": 299,
+  "primary_requirement_uid": "DSL-118",
+  "requirement_uids": [
+    "DSL-118"
+  ],
+  "bindings": {
+    "contracts/schema-publication/entries/admitted-trial-plan-v1.json": [
+      "DSL-118"
+    ],
+    "contracts/schema-publication/entries/backend-manifest-v2.json": [
+      "DSL-118"
+    ],
+    "contracts/schema-publication/entries/instantiated-scenario-snapshot-v1.json": [
+      "DSL-118"
+    ],
+    "contracts/schema-publication/entries/instantiated-scenario-v1.json": [
+      "DSL-118"
+    ],
+    "contracts/schema-publication/entries/materialized-scenario-v1.json": [
+      "DSL-118"
+    ],
+    "contracts/schema-publication/entries/participant-configuration-result-v1.json": [
+      "DSL-118"
+    ],
+    "contracts/schema-publication/entries/participant-implementation-manifest-v1.json": [
+      "DSL-118"
+    ],
+    "contracts/schema-publication/entries/processor-manifest-v2.json": [
+      "DSL-118"
+    ],
+    "contracts/schema-publication/entries/scenario-satisfiability-evidence-v1.json": [
+      "DSL-118"
+    ],
+    "contracts/schema-publication/entries/sdl-authoring-input-v1.json": [
+      "DSL-118"
+    ],
+    "contracts/schemas/backend-manifest/backend-manifest-v2.json": [
+      "DSL-118"
+    ],
+    "contracts/schemas/participant-implementation-configuration/participant-configuration-result-v1.json": [
+      "DSL-118"
+    ],
+    "contracts/schemas/participant-implementation-manifest/participant-implementation-manifest-v1.json": [
+      "DSL-118"
+    ],
+    "contracts/schemas/plans/admitted-trial-plan-v1.json": [
+      "DSL-118"
+    ],
+    "contracts/schemas/processor-manifest/processor-manifest-v2.json": [
+      "DSL-118"
+    ],
+    "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json": [
+      "DSL-118"
+    ],
+    "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json": [
+      "DSL-118"
+    ],
+    "contracts/schemas/sdl/instantiated-scenario-v1.json": [
+      "DSL-118"
+    ],
+    "contracts/schemas/sdl/materialized-scenario-v1.json": [
+      "DSL-118"
+    ],
+    "contracts/schemas/sdl/sdl-authoring-input-v1.json": [
+      "DSL-118"
+    ],
+    "docs/decisions/issue-299-dsl-118-control-context-references-preflight.md": [
+      "DSL-118"
+    ],
+    "docs/explain/reference/experiment-binding-contracts.md": [
+      "DSL-118"
+    ],
+    "docs/explain/sdl/control-context-migration.md": [
+      "DSL-118"
+    ],
+    "docs/explain/sdl/issue-299-clause-mapping.md": [
+      "DSL-118"
+    ],
+    "docs/explain/sdl/sections.md": [
+      "DSL-118"
+    ],
+    "docs/governance/requirement-scopes/299.json": [
+      "DSL-118"
+    ],
+    "docs/requirements/DSL-118/requirement.md": [
+      "DSL-118"
+    ],
+    "docs/research/formal-semantic-validation/capture-records/capture-989bfefd829189b9c84b8148e2c29286a50370329c26f6d7ab31fcf227d88824.json": [
+      "DSL-118"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-989bfefd829189b9c84b8148e2c29286a50370329c26f6d7ab31fcf227d88824/analysis.json": [
+      "DSL-118"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-989bfefd829189b9c84b8148e2c29286a50370329c26f6d7ab31fcf227d88824/manifest.json": [
+      "DSL-118"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-989bfefd829189b9c84b8148e2c29286a50370329c26f6d7ab31fcf227d88824/snapshot.json": [
+      "DSL-118"
+    ],
+    "docs/research/specification-coverage/capture-records/capture-2b1a59617230e8709d736c90b1111979f2c595c39fe55307564faf363337358a.json": [
+      "DSL-118"
+    ],
+    "docs/research/specification-coverage/capture-records/capture-54701ef2667e03e6efd3d6618be99bdc0d2d373acf6f39f55f7aa1698e802a02.json": [
+      "DSL-118"
+    ],
+    "docs/research/specification-coverage/capture-records/capture-5e3b275cc3147c9866e015225e84a68a499980bddf67c22c883847d2bfe13fe1.json": [
+      "DSL-118"
+    ],
+    "docs/research/specification-coverage/captures/capture-2b1a59617230e8709d736c90b1111979f2c595c39fe55307564faf363337358a/analysis.json": [
+      "DSL-118"
+    ],
+    "docs/research/specification-coverage/captures/capture-2b1a59617230e8709d736c90b1111979f2c595c39fe55307564faf363337358a/manifest.json": [
+      "DSL-118"
+    ],
+    "docs/research/specification-coverage/captures/capture-2b1a59617230e8709d736c90b1111979f2c595c39fe55307564faf363337358a/snapshot.json": [
+      "DSL-118"
+    ],
+    "docs/research/specification-coverage/captures/capture-54701ef2667e03e6efd3d6618be99bdc0d2d373acf6f39f55f7aa1698e802a02/analysis.json": [
+      "DSL-118"
+    ],
+    "docs/research/specification-coverage/captures/capture-54701ef2667e03e6efd3d6618be99bdc0d2d373acf6f39f55f7aa1698e802a02/manifest.json": [
+      "DSL-118"
+    ],
+    "docs/research/specification-coverage/captures/capture-54701ef2667e03e6efd3d6618be99bdc0d2d373acf6f39f55f7aa1698e802a02/snapshot.json": [
+      "DSL-118"
+    ],
+    "docs/research/specification-coverage/captures/capture-5e3b275cc3147c9866e015225e84a68a499980bddf67c22c883847d2bfe13fe1/analysis.json": [
+      "DSL-118"
+    ],
+    "docs/research/specification-coverage/captures/capture-5e3b275cc3147c9866e015225e84a68a499980bddf67c22c883847d2bfe13fe1/manifest.json": [
+      "DSL-118"
+    ],
+    "docs/research/specification-coverage/captures/capture-5e3b275cc3147c9866e015225e84a68a499980bddf67c22c883847d2bfe13fe1/snapshot.json": [
+      "DSL-118"
+    ],
+    "examples/README.md": [
+      "DSL-118"
+    ],
+    "examples/scenarios/participant-control-context/README.md": [
+      "DSL-118"
+    ],
+    "examples/scenarios/participant-control-context/context-kit.sdl.yaml": [
+      "DSL-118"
+    ],
+    "examples/scenarios/participant-control-context/twice-imported.sdl.yaml": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes/_behavior_authoring.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes/_language_metadata.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes/_mapping_scopes.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes/_module_symbols.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes/_reference_targetability.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes/agents.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes/composition/_behavior.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes/composition/_control_context.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes/composition/_expand.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes/instantiate.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes/participant_behavior_specification.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes/participant_control_context.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes/scenario.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes/validator/_content_objectives.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/__init__.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/_bundle_access.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/_exports.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/base.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/experiment_bindings.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_context.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_occurrence_v2.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_occurrence_v2_policy.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_occurrence_v2_state.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_occurrence_v2_validation.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_flow_control.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_manifests.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes_contracts/participant_configuration.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes_processor/compiler/participant_behaviors.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes_processor/models/behavior_resources.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes_processor/models/runtime_model.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes_processor/trial_compiler/bindings.py": [
+      "DSL-118"
+    ],
+    "implementations/python/packages/raes_processor/trial_compiler/compiler.py": [
+      "DSL-118"
+    ],
+    "implementations/python/tests/test_dsl_118_control_context.py": [
+      "DSL-118"
+    ],
+    "implementations/python/tests/test_dsl_118_trial_control_context.py": [
+      "DSL-118"
+    ],
+    "specs/sdl/README.md": [
+      "DSL-118"
+    ],
+    "specs/sdl/participant-control-context.md": [
+      "DSL-118"
+    ],
+    "specs/sdl/references.md": [
+      "DSL-118"
+    ],
+    "specs/sdl/sections.md": [
+      "DSL-118"
+    ],
+    "tools/policy/requirement_order.yaml": [
+      "DSL-118"
+    ],
+    "tools/sdl_catalog_parity/_expectations_2.py": [
+      "DSL-118"
+    ]
+  }
+}
