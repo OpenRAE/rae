@@ -12,6 +12,7 @@ from typing_extensions import TypeAliasType
 from ._base import SDLModel
 from ._classification_guard import LegacyClassificationGuard
 from ._identifiers import PortableIdentifier, portable_identifier_map_schema
+from .participant_control_context import ParticipantControlContextReference
 from .participant_execution import ParticipantAutonomousExecutionPolicy
 from .participant_inject_delivery import ParticipantInjectDelivery
 from .participant_mixed_control_policy import MIXED_CONTROL_POLICY_SEMANTICS, MixedControlPolicy
@@ -268,6 +269,12 @@ class ParticipantBehaviorSpecification(LegacyClassificationGuard):
 
     semantic_version: str = Field(min_length=1, pattern=r"\S")
     lifecycle_state: ParticipantBehaviorSpecificationLifecycle = ParticipantBehaviorSpecificationLifecycle.ACTIVE
+    control_context: dict[PortableIdentifier, ParticipantControlContextReference] = Field(
+        default_factory=dict,
+        max_length=256,
+        exclude_if=lambda value: not value,
+        json_schema_extra={"additionalProperties": False},
+    )
     participant_refs: list[str] = Field(default_factory=list)
     participant_role_refs: list[str] = Field(default_factory=list)
     action_contract_refs: list[str] = Field(default_factory=list)
@@ -358,6 +365,7 @@ class ParticipantBehaviorSpecification(LegacyClassificationGuard):
                 self.realization_profile_ref,
                 self.backend_feature_support_refs,
                 self.evidence_contract_refs,
+                self.control_context,
                 self.tool_affordances,
                 self.participant_inject_deliveries,
             )

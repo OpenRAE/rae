@@ -1,9 +1,9 @@
 {
-  "content_hash": "8af71b53dd1288d689d17a272c2e4673a43dcda4e961687d1ada675cf65df50c",
+  "content_hash": "d5a0e85baa3956af12d9b04344ad5184e8d8ae1f12f888d67b71c22b5769398a",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "8af71b53dd1288d689d17a272c2e4673a43dcda4e961687d1ada675cf65df50c",
-    "summary": "Publish negotiated runtime descendant lineage, target and attempt binding, lifecycle and concern selection with committed refresh and durable archive joins; issue #1649."
+    "content_hash": "d5a0e85baa3956af12d9b04344ad5184e8d8ae1f12f888d67b71c22b5769398a",
+    "summary": "Add exact authored participant control-context references and pinned ADR-094 configuration selections; preserve omitted-field compatibility (DSL-118, #299)."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

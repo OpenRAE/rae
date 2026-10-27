@@ -214,6 +214,8 @@ PUBLIC_EXPORTS = [
     "LiteralBindingValueModel",
     "ParticipantConfigurationModel",
     "ParticipantConfigurationResultModel",
+    "ParticipantControlContextTargetModel",
+    "ParticipantControlContextConfigurationSelectionModel",
     "ParticipantImplementationBindingTargetModel",
     "RealizedBindingProvenanceModel",
     "ScenarioBindingTargetModel",

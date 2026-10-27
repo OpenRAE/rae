@@ -16,6 +16,7 @@ from .._errors import SDLValidationError
 from .._reference_targetability import PURPOSE_LABELS, ReferencePurpose
 from ..participant_behavior_specification import tool_affordance_reference
 from ..participant_inject_delivery import participant_inject_delivery_reference
+from ._control_context import rewrite_control_context as _rewrite_control_context
 from ._references import (
     _maybe_rename,
     _prefix,
@@ -147,8 +148,6 @@ def _reject_ambiguous_unit_behavior_refs(unit: ScenarioContent, *, path: Path) -
     candidate by section order. The check binds nothing.
     """
 
-    if not unit.behavior_specifications:
-        return
     bindings = [
         (spec_name, affordance_id, binding.tool_ref)
         for spec_name, behavior_spec in unit.behavior_specifications.items()
@@ -162,6 +161,13 @@ def _reject_ambiguous_unit_behavior_refs(unit: ScenarioContent, *, path: Path) -
         for spec_name, affordance_id, tool_ref in bindings
         if len(candidates := index.resolve(tool_ref)) > 1
     ]
+    if any(
+        len(index.resolve(binding.declaration_ref)) > 1
+        for owner in (*unit.agents.values(), *unit.behavior_specifications.values())
+        for binding in owner.control_context.values()
+        if not is_variable_ref(binding.declaration_ref)
+    ):
+        errors.append("control-context.reference-ambiguous")
     errors.extend(_unit_authority_scope_ambiguities(unit, index))
     if errors:
         raise SDLValidationError(errors, path=path)
@@ -315,6 +321,7 @@ def _rewrite_agent(
         ("operating_scope", "named"),
     ):
         agent[field_name] = [_maybe_rename(name, symbols[symbol_key]) for name in agent.get(field_name, [])]
+    _rewrite_control_context(agent, symbols)
     _rewrite_agent_access(agent, symbols)
     _rewrite_agent_knowledge(agent, symbols)
 
@@ -376,6 +383,7 @@ def _rewrite_behavior_specification(
         behavior_spec[field_name] = [
             _maybe_rename(name, symbols[symbol_key]) for name in behavior_spec.get(field_name, [])
         ]
+    _rewrite_control_context(behavior_spec, symbols)
     autonomous_execution = behavior_spec.get("autonomous_execution")
     if isinstance(autonomous_execution, dict):
         _rewrite_autonomous_execution(autonomous_execution, symbols)

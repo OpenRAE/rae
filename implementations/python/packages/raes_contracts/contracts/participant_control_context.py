@@ -9,10 +9,9 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
 from ..uri_safety import validate_safe_absolute_uri
-from .base import ContractModel
+from .base import ContractModel, Sha256DigestString
 from .experiment_artifacts import ExperimentArtifactRefModel
 from .participant_decision_state_cut import ParticipantDecisionSurfaceStateCutModel
-from .participant_manifests import DigestString
 from .schema_invariants import _add_raes_invariant
 
 __all__ = [
@@ -46,7 +45,7 @@ class _ControlContextModel(ContractModel):
 class ParticipantControlContextAssetReferenceModel(ContractModel):
     asset_id: ContextReference
     asset_version: ContextReference
-    asset_digest: DigestString
+    asset_digest: Sha256DigestString
 
 
 class ParticipantControlContextAssetModel(_ControlContextModel):

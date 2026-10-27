@@ -62,6 +62,7 @@ machinery is not retained as an empty compatibility field. "References" is
 | `deployment_cells` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [enterprise identity and deployment tenancy](enterprise-deployment-tenancy.md) |
 | `relationships` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) |
 | `forwarding_agents` | section | list | normalized, expanded, instantiated | optional; default empty list | `forwarding_agent_id` | none | [ADR-050](../../docs/decisions/adrs/adr-050-forwarding-agent-runtime-inventory.md) |
+| `control_context_assets` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | none | [control-context references](participant-control-context.md) |
 | `agents` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [participant model](../formal/participant-semantics/README.md) |
 | `action_contracts` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [participant model](../formal/participant-semantics/README.md) |
 | `observation_boundaries` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [participant model](../formal/participant-semantics/README.md) |
@@ -86,7 +87,7 @@ addition would impose a large, unexpected authoring burden. The policy also
 survives into materialized descriptions, where its addresses retain their
 original-source meaning. See [augmentation scope](augmentation-scope.md).
 
-<!-- sdl-catalog-summary top-level=46 metadata-composition=7 sections=39 maps=36 lists=1 -->
+<!-- sdl-catalog-summary top-level=47 metadata-composition=7 sections=40 maps=37 lists=1 -->
 
 The section set therefore has two authoring shapes: maps keyed by stable
 user-defined identifiers and the scenario-level `forwarding_agents` list, whose

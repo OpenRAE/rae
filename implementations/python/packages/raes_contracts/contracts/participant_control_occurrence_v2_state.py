@@ -10,8 +10,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from raes.participant_behavior_specification import MixedControlTransitionKind
-from raes.participant_mixed_control_vocabulary import ParticipantControlTargetKind
+from raes.participant_mixed_control_vocabulary import MixedControlTransitionKind, ParticipantControlTargetKind
 
 from .participant_control_occurrence_v2 import (
     ParticipantAcceptedOccurrenceV2Model,

@@ -1,9 +1,9 @@
 {
-  "content_hash": "443114d91ae93e598d50228b016690e6b2c86d54738fd451dfad62e9a4e9bd3b",
+  "content_hash": "d55f17febd463471f80394e7570c47fc4ff6fcc881ad18d1f61b4e0fd2d80041",
   "contract_id": "instantiated-scenario-v1",
   "last_change": {
-    "content_hash": "443114d91ae93e598d50228b016690e6b2c86d54738fd451dfad62e9a4e9bd3b",
-    "summary": "Publish reusable and finite-script mixed-control rev1 policies, paired script windows, closed portable-key maps and directed-delivery control blocks; retain canonical relationship eligibility from #1339; issue #1363."
+    "content_hash": "d55f17febd463471f80394e7570c47fc4ff6fcc881ad18d1f61b4e0fd2d80041",
+    "summary": "Add exact authored participant control-context references and pinned ADR-094 configuration selections; preserve omitted-field compatibility (DSL-118, #299)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
   "stability": "draft"
