@@ -62,11 +62,10 @@ def test_history_suffix_rolls_back_with_the_snapshot_transaction(tmp_path, monke
     monkeypatch.setattr(store, "_upsert_snapshot", interrupted)
     payload = evaluation_payload()
     participant = payload["request"]["context"]["participant_address"]
+    candidate = RuntimeSnapshot(participant_control_evaluation_history={participant: [payload]})
     try:
         with pytest.raises(OSError):
-            store.save_snapshot(
-                RuntimeSnapshot(participant_control_evaluation_history={participant: [payload]}), expected_revision=0
-            )
+            store.save_snapshot(candidate, expected_revision=0)
         assert store.load_snapshot_state().revision == 0
         assert store.load_snapshot_state().snapshot.participant_control_evaluation_history == {}
     finally:
@@ -210,3 +209,28 @@ def test_postgresql_save_cache_uses_the_value_free_header(monkeypatch):
     assert (
         snapshot.entries[address].payload["spec"]["credential_bindings"][0]["material"]["value"] == "synthetic-fixture"
     )
+
+
+def test_opaque_legacy_records_reopen_without_a_validation_certificate(tmp_path):
+    from raes_contracts.participant_control_history import iter_participant_control_history_snapshot_violations
+
+    directory = tmp_path / "opaque-legacy"
+    store = LocalControlPlaneStore(directory)
+    lease = store.admit_runtime(target_scope="target:test", run_scope="run:test")
+    try:
+        store.save_snapshot(
+            RuntimeSnapshot(participant_control_history={"participant.legacy": [{}]}), expected_revision=0
+        )
+    finally:
+        store.close()
+        lease.close()
+    reopened = LocalControlPlaneStore(directory)
+    lease = reopened.admit_runtime(target_scope="target:test", run_scope="run:test")
+    try:
+        history = reopened.load_snapshot().participant_control_history
+        assert history["participant.legacy"] == [{}]
+        assert not history._shape_valid
+        assert iter_participant_control_history_snapshot_violations(history)
+    finally:
+        reopened.close()
+        lease.close()

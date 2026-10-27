@@ -13,6 +13,7 @@ from raes_contracts.artifact_requirements import ArtifactSatisfactionDisclosureM
 from raes_contracts.contracts import RealizationEnvelopeIdentityModel
 from raes_contracts.contracts.time_model import TimeRuntimeStateModel
 from raes_contracts.domain_profiles import DomainProfileBindingModel
+from raes_contracts.immutable_history import HISTORY_FIELDS, HistoryMap
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -92,9 +93,19 @@ def _realization_observations_payload(snapshot: RuntimeSnapshot) -> list[dict[st
     ]
 
 
+def _snapshot_histories_payload(snapshot: RuntimeSnapshot, include_histories: bool) -> dict[str, object]:
+    return {
+        field: {address: list(events) for address, events in getattr(snapshot, field).items()}
+        if include_histories
+        else {}
+        for field in HISTORY_FIELDS
+    }
+
+
 def _snapshot_payload(snapshot: RuntimeSnapshot, *, include_histories: bool = True) -> dict[str, Any]:
     require_participant_autonomous_runtime_snapshot(snapshot)
     snapshot_fields: dict[str, Any] = {
+        **_snapshot_histories_payload(snapshot, include_histories),
         "materialization_attestations": [
             record.model_dump(mode="json") for record in snapshot.materialization_attestations
         ],
@@ -116,78 +127,16 @@ def _snapshot_payload(snapshot: RuntimeSnapshot, *, include_histories: bool = Tr
             for address, entry in snapshot.entries.items()
         },
         "orchestration_results": dict(snapshot.orchestration_results),
-        "orchestration_history": {
-            address: list(events)
-            for address, events in (snapshot.orchestration_history if include_histories else {}).items()
-        },
         "evaluation_results": dict(snapshot.evaluation_results),
-        "evaluation_history": {
-            address: list(events)
-            for address, events in (snapshot.evaluation_history if include_histories else {}).items()
-        },
         "proposition_truth_results": dict(snapshot.proposition_truth_results),
         "participant_episode_results": dict(snapshot.participant_episode_results),
-        "participant_episode_history": {
-            participant_address: list(events)
-            for participant_address, events in (
-                snapshot.participant_episode_history if include_histories else {}
-            ).items()
-        },
-        "participant_episode_closure_records": {
-            participant_address: list(records)
-            for participant_address, records in (
-                snapshot.participant_episode_closure_records if include_histories else {}
-            ).items()
-        },
-        "participant_behavior_history": {
-            participant_address: list(events)
-            for participant_address, events in (
-                snapshot.participant_behavior_history if include_histories else {}
-            ).items()
-        },
-        "participant_control_history": {
-            participant_address: list(events)
-            for participant_address, events in (
-                snapshot.participant_control_history if include_histories else {}
-            ).items()
-        },
-        "participant_crossing_history": {
-            participant_address: list(events)
-            for participant_address, events in (
-                snapshot.participant_crossing_history if include_histories else {}
-            ).items()
-        },
-        "participant_control_evaluation_history": {
-            participant_address: list(records)
-            for participant_address, records in (
-                snapshot.participant_control_evaluation_history if include_histories else {}
-            ).items()
-        },
         "mixed_composition_states": dict(snapshot.mixed_composition_states),
-        "mixed_composition_history": {
-            run_id: list(events)
-            for run_id, events in (snapshot.mixed_composition_history if include_histories else {}).items()
-        },
-        "information_state_history": {
-            participant_address: list(records)
-            for participant_address, records in (
-                snapshot.information_state_history if include_histories else {}
-            ).items()
-        },
-        "participant_outcome_history": {
-            address: list(records)
-            for address, records in (snapshot.participant_outcome_history if include_histories else {}).items()
-        },
         "participant_autonomous_execution_states": dict(snapshot.participant_autonomous_execution_states),
         "participant_execution_services": dict(snapshot.participant_execution_services),
         "participant_resource_budget_states": dict(snapshot.participant_resource_budget_states),
         "participant_resource_pool_states": dict(snapshot.participant_resource_pool_states),
         "participant_resource_budget_events": dict(snapshot.participant_resource_budget_events),
         "shared_state_records": dict(snapshot.shared_state_records),
-        "shared_state_history": {
-            state_address: list(records)
-            for state_address, records in (snapshot.shared_state_history if include_histories else {}).items()
-        },
         "joint_action_records": dict(snapshot.joint_action_records),
         "time_management_contexts": dict(snapshot.time_management_contexts),
         "time_model_state": (
@@ -320,7 +269,7 @@ def _snapshot_from_payload(payload: dict[str, Any]) -> RuntimeSnapshot:
 __all__ = ("_snapshot_from_payload", "_snapshot_payload")
 
 
-def _snapshot_history(payload: dict, field: str):
+def _snapshot_history(payload: dict[str, Any], field: str) -> HistoryMap | dict[str, list[dict[str, object]]]:
     from raes_contracts.immutable_history import HistoryMap
 
     history = payload.get(field, {})
@@ -329,7 +278,7 @@ def _snapshot_history(payload: dict, field: str):
     return {address: list(events) for address, events in history.items()}
 
 
-def _canonical_snapshot(snapshot):
+def _canonical_snapshot(snapshot: RuntimeSnapshot) -> RuntimeSnapshot:
     """Normalize header fields while retaining separately validated JSON histories."""
     from raes_contracts.immutable_history import HISTORY_FIELDS, seal_history
 

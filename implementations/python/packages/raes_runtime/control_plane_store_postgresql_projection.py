@@ -2,6 +2,16 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from psycopg import Connection, Cursor
+    from raes_contracts.runtime_state import RuntimeSnapshot
+
+    from .control_plane_store import ControlPlaneOperationRecord
+    from .control_plane_store_postgresql import PostgreSQLControlPlaneStore
+
+
 from .control_plane_store_changes import OperationChanges, require_change_cursor
 from .control_plane_store_history_rows import persist_history_rows, restore_history_rows
 from .control_plane_store_local_codec import decode_payload, encode_payload
@@ -9,21 +19,23 @@ from .control_plane_store_records import _record_from_payload
 from .control_plane_store_revision import SnapshotState
 from .control_plane_store_snapshots import _canonical_snapshot, _snapshot_from_payload, _snapshot_payload
 
+_OPERATION_RECORD_KIND = "operation record"
+
 
 class HistoryConnection:
     """Adapt the fixed private history SQL, with every value still parameterized."""
 
-    def __init__(self, connection):
+    def __init__(self, connection: Connection[tuple[object, ...]]) -> None:
         self.connection = connection
 
-    def execute(self, sql, parameters=()):
+    def execute(self, sql: str, parameters: tuple[object, ...] = ()) -> Cursor[tuple[object, ...]]:
         sql = sql.replace("snapshot_history_streams", "raes_ledger_history_streams")
         sql = sql.replace("snapshot_history", "raes_ledger_history")
         sql = sql.replace("metadata", "raes_ledger_metadata").replace("?", "%s")
         return self.connection.execute(sql, parameters)
 
 
-def generation(connection) -> int:
+def generation(connection: Connection[tuple[object, ...]]) -> int:
     from .control_plane_store_local_invocations import LocalInvocationStoreMixin
 
     row = connection.execute(
@@ -34,7 +46,7 @@ def generation(connection) -> int:
     return LocalInvocationStoreMixin._generation(row[0])
 
 
-def load_snapshot(store, connection):
+def load_snapshot(store: PostgreSQLControlPlaneStore, connection: Connection[tuple[object, ...]]) -> SnapshotState:
     from raes_contracts.immutable_history import snapshot_history_roots, snapshot_history_roots_match
     from raes_contracts.runtime_state import RuntimeSnapshot
 
@@ -59,7 +71,12 @@ def load_snapshot(store, connection):
     return state
 
 
-def save_history(store, connection, snapshot, revision):
+def save_history(
+    store: PostgreSQLControlPlaneStore,
+    connection: Connection[tuple[object, ...]],
+    snapshot: RuntimeSnapshot,
+    revision: int,
+) -> SnapshotState:
     from raes_contracts.immutable_history import snapshot_history_roots
 
     snapshot = _canonical_snapshot(snapshot)
@@ -84,7 +101,9 @@ def save_history(store, connection, snapshot, revision):
     return state
 
 
-def operation_changes(store, connection, cursor):
+def operation_changes(
+    store: PostgreSQLControlPlaneStore, connection: Connection[tuple[object, ...]], cursor: int | None
+) -> OperationChanges:
     require_change_cursor(cursor)
     latest = connection.execute("SELECT COALESCE(MAX(sequence), 0) FROM raes_ledger_changes").fetchone()[0]
     reset = cursor is None or cursor > latest
@@ -104,26 +123,26 @@ def operation_changes(store, connection, cursor):
         ).fetchone()
         if row is None:
             return OperationChanges(latest, store._load_records(connection), True)
-        record = _record_from_payload(decode_payload(row[0], row[1], kind="operation record"))
+        record = _record_from_payload(decode_payload(row[0], row[1], kind=_OPERATION_RECORD_KIND))
         if record.receipt.operation_id != identity:
             raise ValueError("operation record does not match its durable identity")
         records[identity] = record
     return OperationChanges(latest, records)
 
 
-def stored_record(store, connection, identity):
+def stored_record(connection: Connection[tuple[object, ...]], identity: str) -> ControlPlaneOperationRecord | None:
     row = connection.execute(
         "SELECT payload, digest FROM raes_ledger_operations WHERE operation_id=%s", (identity,)
     ).fetchone()
     if row is None:
         return None
-    record = _record_from_payload(decode_payload(row[0], row[1], kind="operation record"))
+    record = _record_from_payload(decode_payload(row[0], row[1], kind=_OPERATION_RECORD_KIND))
     if record.receipt.operation_id != identity:
         raise ValueError("operation record does not match its durable identity")
     return record
 
 
-def claim_guard_records(connection):
+def claim_guard_records(connection: Connection[tuple[object, ...]]) -> tuple[ControlPlaneOperationRecord, ...]:
     rows = connection.execute(
         "WITH parents AS (SELECT operation_id, payload, digest FROM raes_ledger_operations "
         "WHERE (payload::jsonb #>> '{status,state}') IN ('accepted', 'running', 'indeterminate') "
@@ -134,5 +153,5 @@ def claim_guard_records(connection):
         "WHERE jsonb_typeof(child.payload::jsonb->'reconciliation')='object'"
     ).fetchall()
     return tuple(
-        _record_from_payload(decode_payload(content, digest, kind="operation record")) for content, digest in rows
+        _record_from_payload(decode_payload(content, digest, kind=_OPERATION_RECORD_KIND)) for content, digest in rows
     )

@@ -290,7 +290,6 @@ def validate_bounded_value(
     depth: int,
     budget: RelationBudget,
 ) -> RealizationRelationResult | None:
-    from raes_contracts.immutable_history import EventHistory, HistoryMap
     from raes_contracts.immutable_history_stats import charge_immutable_history
 
     current_pointer = pointer(path)
@@ -303,12 +302,16 @@ def validate_bounded_value(
         value, failure = _python_record_values(value, current_pointer, budget)
     if failure is None:
         failure = _bounded_scalar_failure(value, current_pointer, budget)
-    container = isinstance(value, (dict, list)) or (
-        budget.python_carriers and isinstance(value, (tuple, EventHistory, HistoryMap))
-    )
+    container = _is_bounded_container(value, python_carriers=budget.python_carriers)
     if failure is None and container:
         failure = _bounded_container_failure(value, path, depth, budget)
     return failure
+
+
+def _is_bounded_container(value: object, *, python_carriers: bool) -> bool:
+    from raes_contracts.immutable_history import EventHistory, HistoryMap
+
+    return isinstance(value, (dict, list)) or (python_carriers and isinstance(value, (tuple, EventHistory, HistoryMap)))
 
 
 def _python_record_values(

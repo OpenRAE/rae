@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 
     from .control_plane import RuntimeControlPlane
     from .control_plane_store import ControlPlaneOperationRecord
+    from .participant_control_operation_index import ControlOperationIndex
     from .participant_crossing_mediation import PreparedParticipantCrossing
 
 
@@ -150,40 +151,52 @@ def _origin_effect_intents(
     wanted: Mapping[str, ControlEffectRequestV2Model],
     records: Collection[ControlPlaneOperationRecord],
     *,
-    index: object | None = None,
+    index: ControlOperationIndex | None = None,
 ) -> dict[str, ControlCommittedEffectIntentV2]:
     from raes_contracts.contracts.participant_control_resolution import ControlCommittedEffectIntentV2
-
-    from .participant_control_receipts import effect_idempotency_key
 
     resolved = {}
     for effect in origin.effect_plan.effects:
         if wanted.get(effect.effect_id) != effect or effect.effect_id not in origin.commit.dispatchable_effect_ids:
             continue
-        claim = (
-            index.claim(effect)
-            if index is not None
-            else next(
-                (
-                    item
-                    for item in records
-                    if item.idempotency_key == effect_idempotency_key(effect)
-                    and item.receipt.context.actor_id == effect.originating_principal_ref
-                    and item.receipt.context.parent_operation_id == origin.commit.receipt.ref
-                ),
-                None,
-            )
-        )
+        claim = _origin_claim(origin, effect, records, index)
         if claim is not None:
-            if (
-                claim.receipt.context.actor_id != effect.originating_principal_ref
-                or claim.receipt.context.parent_operation_id != origin.commit.receipt.ref
-            ):
-                continue
             outcome = index.outcome(claim) if index is not None else retained_claim_outcome(claim, records)
             if outcome is not None and outcome.effect_id == effect.effect_id:
                 resolved[effect.effect_id] = ControlCommittedEffectIntentV2(origin, outcome)
     return resolved
+
+
+def _origin_claim(
+    origin: ParticipantControlEvaluationV2Model,
+    effect: ControlEffectRequestV2Model,
+    records: Collection[ControlPlaneOperationRecord],
+    index: ControlOperationIndex | None,
+) -> ControlPlaneOperationRecord | None:
+    from .participant_control_receipts import effect_idempotency_key
+
+    claim = (
+        index.claim(effect)
+        if index is not None
+        else next(
+            (
+                item
+                for item in records
+                if item.idempotency_key == effect_idempotency_key(effect)
+                and item.receipt.context.actor_id == effect.originating_principal_ref
+                and item.receipt.context.parent_operation_id == origin.commit.receipt.ref
+            ),
+            None,
+        )
+    )
+    if claim is None:
+        return None
+    if (
+        claim.receipt.context.actor_id != effect.originating_principal_ref
+        or claim.receipt.context.parent_operation_id != origin.commit.receipt.ref
+    ):
+        return None
+    return claim
 
 
 def retained_claim_outcome(
@@ -231,7 +244,7 @@ def finalize_evaluation_commits(
     previous: RuntimeSnapshot, proposed: RuntimeSnapshot, record: ControlPlaneOperationRecord
 ) -> RuntimeSnapshot:
     """Seal only newly appended prepared records under the actual commit owner."""
-    from raes_contracts.immutable_history import EventHistory, seal_history
+    from raes_contracts.immutable_history import seal_history
 
     history = proposed.participant_control_evaluation_history
     if history is previous.participant_control_evaluation_history:
@@ -240,35 +253,53 @@ def finalize_evaluation_commits(
     changed = False
     for participant, entries in history.items():
         prior = previous.participant_control_evaluation_history.get(participant, ())
-        if isinstance(entries, EventHistory) and isinstance(prior, EventHistory):
-            preserved = len(entries) >= len(prior) and entries.prefix_digest(len(prior)) == prior.prefix_digest(
-                len(prior)
-            )
-        else:
-            preserved = entries[: len(prior)] == list(prior)
-        if not preserved:
-            raise ValueError("participant control evaluation history must preserve its exact prefix")
-        amended = []
-        for index in range(len(prior), len(entries)):
-            payload = entries[index]
-            if (
-                payload.get("schema_version") == "participant-control-evaluation/v2"
-                and payload["commit"]["status"] == "prepared"
-            ):
-                evaluation = ParticipantControlEvaluationV2Model.model_validate(payload)
-                payload = committed_evaluation(evaluation, record).model_dump(mode="json")
-                changed = True
-            amended.append(payload)
+        amended, committed = _prepared_suffix(prior, entries, record)
+        changed = changed or committed
         suffixes[participant] = amended
     if not changed:
         return proposed
-    if not previous.participant_control_evaluation_history.keys() <= history.keys():
+    if previous.participant_control_evaluation_history.keys() - history.keys():
         raise ValueError("participant control evaluation history must preserve every participant")
     result = seal_history("participant_control_evaluation_history", previous.participant_control_evaluation_history)
     for participant, amended in suffixes.items():
         if amended or participant not in result:
             result = result.append(participant, amended)
     return proposed.with_entries(dict(proposed.entries), participant_control_evaluation_history=result)
+
+
+def _preserves_evaluation_prefix(
+    previous: Sequence[dict[str, object]],
+    current: Sequence[dict[str, object]],
+) -> bool:
+    from raes_contracts.immutable_history import EventHistory
+
+    if isinstance(current, EventHistory) and isinstance(previous, EventHistory):
+        return len(current) >= len(previous) and current.prefix_digest(len(previous)) == previous.prefix_digest(
+            len(previous)
+        )
+    return current[: len(previous)] == list(previous)
+
+
+def _prepared_suffix(
+    previous: Sequence[dict[str, object]],
+    current: Sequence[dict[str, object]],
+    record: ControlPlaneOperationRecord,
+) -> tuple[list[dict[str, object]], bool]:
+    if not _preserves_evaluation_prefix(previous, current):
+        raise ValueError("participant control evaluation history must preserve its exact prefix")
+    amended = []
+    changed = False
+    for index in range(len(previous), len(current)):
+        payload = current[index]
+        if (
+            payload.get("schema_version") == "participant-control-evaluation/v2"
+            and payload["commit"]["status"] == "prepared"
+        ):
+            evaluation = ParticipantControlEvaluationV2Model.model_validate(payload)
+            payload = committed_evaluation(evaluation, record).model_dump(mode="json")
+            changed = True
+        amended.append(payload)
+    return amended, changed
 
 
 def with_retained_effect_evidence(

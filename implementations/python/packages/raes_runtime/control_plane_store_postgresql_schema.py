@@ -34,21 +34,28 @@ def initialize_schema(connection: Connection[tuple[object, ...]]) -> None:
         initialize_projection_schema(connection)
 
 
-def initialize_projection_schema(connection) -> None:
+def initialize_projection_schema(connection: Connection[tuple[object, ...]]) -> None:
     statements = (
         "CREATE TABLE IF NOT EXISTS raes_ledger_history_streams(field TEXT NOT NULL, participant TEXT NOT NULL, "
         "length BIGINT NOT NULL, head TEXT NOT NULL, PRIMARY KEY(field, participant))",
         "CREATE TABLE IF NOT EXISTS raes_ledger_history(field TEXT NOT NULL, participant TEXT NOT NULL, "
-        "position BIGINT NOT NULL, payload TEXT NOT NULL, digest TEXT NOT NULL, PRIMARY KEY(field, participant, position))",
+        "position BIGINT NOT NULL, payload TEXT NOT NULL, digest TEXT NOT NULL, PRIMARY "
+        "KEY(field, participant, position))",
         "CREATE TABLE IF NOT EXISTS raes_ledger_changes(sequence BIGSERIAL PRIMARY KEY, "
         "operation_id TEXT NOT NULL, removed BOOLEAN NOT NULL DEFAULT FALSE)",
-        "CREATE INDEX IF NOT EXISTS raes_ledger_state_lookup ON raes_ledger_operations ((payload::jsonb #>> '{status,state}'))",
-        "CREATE INDEX IF NOT EXISTS raes_ledger_reservation_lookup ON raes_ledger_operations ((payload::jsonb #>> '{invocation,reserved}'))",
-        "CREATE INDEX IF NOT EXISTS raes_ledger_parent_lookup ON raes_ledger_operations ((payload::jsonb #>> '{receipt,context,parent_operation_id}'))",
-        "INSERT INTO raes_ledger_metadata(key, value) VALUES ('snapshot-history-generation', '0') ON CONFLICT DO NOTHING",
+        "CREATE INDEX IF NOT EXISTS raes_ledger_state_lookup ON raes_ledger_operations "
+        "((payload::jsonb #>> '{status,state}'))",
+        "CREATE INDEX IF NOT EXISTS raes_ledger_reservation_lookup ON raes_ledger_operations "
+        "((payload::jsonb #>> '{invocation,reserved}'))",
+        "CREATE INDEX IF NOT EXISTS raes_ledger_parent_lookup ON raes_ledger_operations "
+        "((payload::jsonb #>> '{receipt,context,parent_operation_id}'))",
+        "INSERT INTO raes_ledger_metadata(key, value) VALUES ('snapshot-history-generation', "
+        "'0') ON CONFLICT DO NOTHING",
         "CREATE OR REPLACE FUNCTION raes_ledger_operation_change() RETURNS trigger LANGUAGE plpgsql AS $$ "
-        "BEGIN IF TG_OP='DELETE' THEN INSERT INTO raes_ledger_changes(operation_id, removed) VALUES (OLD.operation_id, TRUE); "
-        "RETURN OLD; ELSE INSERT INTO raes_ledger_changes(operation_id) VALUES (NEW.operation_id); RETURN NEW; END IF; END $$",
+        "BEGIN IF TG_OP='DELETE' THEN INSERT INTO raes_ledger_changes(operation_id, removed) "
+        "VALUES (OLD.operation_id, TRUE); "
+        "RETURN OLD; ELSE INSERT INTO raes_ledger_changes(operation_id) VALUES "
+        "(NEW.operation_id); RETURN NEW; END IF; END $$",
         "CREATE OR REPLACE FUNCTION raes_ledger_snapshot_change() RETURNS trigger LANGUAGE plpgsql AS $$ "
         "BEGIN UPDATE raes_ledger_metadata SET value=(value::bigint+1)::text WHERE key='snapshot-history-generation'; "
         "RETURN NULL; END $$",

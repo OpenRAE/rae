@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 
 from rpds import HashTrieMap, HashTrieSet
 
+from .canonical import JsonValue
 
-def explicit_temporal_record(record) -> bool:
+
+def explicit_temporal_record(record: Mapping[str, object]) -> bool:
     return bool(
         record.get("temporal_assessments")
         or any(item.get("shared_time") for item in record.get("temporal_contexts", ()))
@@ -20,7 +23,7 @@ class TemporalRecordIndex:
     explicit_actions: HashTrieSet = HashTrieSet()
     valid: bool = True
 
-    def append(self, position: int, record):
+    def append(self, position: int, record: Mapping[str, object]) -> TemporalRecordIndex:
         key = (record.get("episode_id"), record.get("action_instance_id"))
         try:
             explicit = explicit_temporal_record(record)
@@ -34,7 +37,7 @@ class TemporalRecordIndex:
             self.valid,
         )
 
-    def records(self):
+    def records(self) -> tuple[JsonValue, ...] | None:
         if not self.valid:
             return None
         selected = {}

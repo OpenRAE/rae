@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -111,7 +112,7 @@ def _require_eligible_approval(
     state: dict[str, object],
     folded: ParticipantControlEpisodeStateV2,
     proposal: ParticipantControlProducedTargetV2,
-    history: list[ParticipantControlOccurrenceModel | ParticipantControlOccurrenceV2Model],
+    history: Sequence[ParticipantControlOccurrenceModel | ParticipantControlOccurrenceV2Model],
 ) -> ParticipantApprovalOccurrenceV2Model:
     lifecycle = folded.lifecycle(proposal.record_event_id)
     if state.get("status") != "running" or lifecycle.superseded or lifecycle.replaced:
@@ -126,7 +127,7 @@ def _require_eligible_approval(
 
 
 def _live_decisions(
-    history: list[ParticipantControlOccurrenceModel | ParticipantControlOccurrenceV2Model],
+    history: Sequence[ParticipantControlOccurrenceModel | ParticipantControlOccurrenceV2Model],
     folded: ParticipantControlEpisodeStateV2,
     proposal_ref: str,
 ) -> list[ParticipantControlOccurrenceModel | ParticipantControlOccurrenceV2Model]:

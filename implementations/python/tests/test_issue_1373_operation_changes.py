@@ -64,8 +64,9 @@ def test_rolled_back_record_and_cursor_are_not_visible(tmp_path, monkeypatch):
             raise OSError("synthetic interruption after record insertion")
 
         monkeypatch.setattr(store, "_upsert_record", interrupted)
+        candidate = _running_record("rolled-back")
         with pytest.raises(OSError):
-            store.claim_record(_running_record("rolled-back"))
+            store.claim_record(candidate)
         changes = store.load_operation_changes(cursor)
         assert changes.cursor == cursor
         assert changes.records == {}

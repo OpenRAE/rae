@@ -15,6 +15,7 @@ from .control_plane_store import (
     mixed_claim_conflicts,
     require_idempotency_key,
 )
+from .control_plane_store_changes import OperationChanges
 from .control_plane_store_local_codec import decode_payload as _decode_payload
 from .control_plane_store_local_codec import encode_payload as _encode_payload
 from .control_plane_store_local_codec import transaction as _transaction
@@ -32,7 +33,7 @@ class LocalOperationRecordStoreMixin:
         with self._connection() as connection:
             return self._load_records(connection)
 
-    def load_operation_changes(self, cursor: int | None = None):
+    def load_operation_changes(self, cursor: int | None = None) -> OperationChanges:
         from .control_plane_store_sql_changes import load_operation_changes
 
         with self._connection() as connection, _transaction(connection):
@@ -92,7 +93,7 @@ class LocalOperationRecordStoreMixin:
                 _raise_new_claim_block("current-state")
             from .control_plane_store_sql_changes import load_claim_guard_records
 
-            guards = load_claim_guard_records(self, connection)
+            guards = load_claim_guard_records(connection)
             if mixed_claim_conflicts(record, guards):
                 _raise_new_claim_block("current-state")
             if supervised_claim_conflicts(record, guards):

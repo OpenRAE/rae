@@ -99,16 +99,19 @@ def causal_state_from_history(
 class CausalAccumulator:
     """The incumbent causal fold, retained between confirmed append batches."""
 
-    claims: dict = field(default_factory=dict)
-    firings: dict = field(default_factory=dict)
+    claims: dict[ControlLogicalEffectKeyModel, ControlPriorEffectClaimModel] = field(default_factory=dict)
+    firings: dict[tuple[str, str], set[str]] = field(default_factory=dict)
     attempts: int = 0
-    watermarks: dict = field(default_factory=dict)
-    admitted_keys: set = field(default_factory=set)
-    claim_sources: dict = field(default_factory=dict)
+    watermarks: dict[frozenset[ControlLogicalEffectKeyModel], int] = field(default_factory=dict)
+    admitted_keys: set[ControlLogicalEffectKeyModel] = field(default_factory=set)
+    claim_sources: dict[ControlLogicalEffectKeyModel, tuple[int, ...]] = field(default_factory=dict)
     records_seen: int = 0
 
     def apply(
-        self, evaluation: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model, *, priority=None
+        self,
+        evaluation: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model,
+        *,
+        priority: tuple[int, int] | None = None,
     ) -> None:
         context = evaluation.request.context
         priority = (0, self.records_seen) if priority is None else priority
@@ -137,7 +140,7 @@ class CausalAccumulator:
             )
             self.firings.setdefault((effect.key.rule_id, effect.key.rule_revision), set()).add(effect.key.firing_epoch)
 
-    def _retain(self, claim, source) -> None:
+    def _retain(self, claim: ControlPriorEffectClaimModel, source: tuple[int, ...]) -> None:
         if claim.key not in self.claim_sources or source < self.claim_sources[claim.key]:
             self.claims[claim.key] = claim
             self.claim_sources[claim.key] = source

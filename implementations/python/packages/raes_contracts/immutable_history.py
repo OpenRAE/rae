@@ -11,9 +11,17 @@ import hashlib
 import json
 from collections.abc import Iterable, Iterator, Mapping, Sequence
 from types import MappingProxyType
-from typing import Any
+from typing import TYPE_CHECKING, cast
+
+from .canonical import JsonValue
+
+if TYPE_CHECKING:
+    from .runtime_state import RuntimeSnapshot
+
 
 from rpds import HashTrieMap, HashTrieSet
+
+HistoryIdentity = str | tuple[str, str]
 
 HISTORY_FIELDS = (
     "orchestration_history",
@@ -36,7 +44,7 @@ def _immutable(*args: object, **kwargs: object) -> None:
     raise TypeError("retained history is immutable; append a new history instead")
 
 
-def _freeze(value: Any) -> Any:
+def _freeze(value: object) -> object:
     if isinstance(value, Mapping):
         return MappingProxyType({key: _freeze(item) for key, item in value.items()})
     if isinstance(value, (list, tuple)):
@@ -46,7 +54,7 @@ def _freeze(value: Any) -> Any:
     raise TypeError("history records must contain JSON values")
 
 
-def _validated(field: str, participant: str, payload: Mapping[str, Any], position: int) -> str | None:
+def _validated(field: str, participant: str, payload: Mapping[str, object], position: int) -> str | None:
     if not isinstance(payload, Mapping):
         raise TypeError("history records must be objects")
     identity = None
@@ -79,22 +87,38 @@ def _validated(field: str, participant: str, payload: Mapping[str, Any], positio
     return identity
 
 
-def _retained_identity(field, participant, record, position, identities):
+def _record_identity(
+    field: str,
+    participant: str,
+    record: Mapping[str, object],
+    position: int,
+    identities: HashTrieSet[HistoryIdentity],
+) -> HistoryIdentity | None:
+    identity: HistoryIdentity | None = _validated(field, participant, record, position)
+    if field == "participant_crossing_history" and identity is not None:
+        identity = (participant, identity)
+    if identity is not None and identity in identities:
+        raise ValueError(f"{field.replace('_', ' ')} record identities must be unique and append-only")
+    return identity
+
+
+def _retained_identity(
+    field: str,
+    participant: str,
+    record: Mapping[str, object],
+    position: int,
+    identities: HashTrieSet[HistoryIdentity],
+) -> tuple[HistoryIdentity | None, bool]:
     """Preserve opaque legacy store data without certifying its semantic shape."""
     try:
-        identity = _validated(field, participant, record, position)
-        if field == "participant_crossing_history" and identity is not None:
-            identity = (participant, identity)
-        if identity is not None and identity in identities:
-            raise ValueError(f"{field.replace('_', ' ')} record identities must be unique and append-only")
-        return identity, True
+        return _record_identity(field, participant, record, position, identities), True
     except (TypeError, ValueError):
         if field not in {"participant_control_history", "participant_crossing_history"}:
             raise
         return None, False
 
 
-class EventHistory(Sequence):
+class EventHistory(Sequence[dict[str, JsonValue]]):
     """An immutable ordered history; extension shares the existing integer index."""
 
     __slots__ = ("_entries", "_costs", "_temporal_index")
@@ -113,10 +137,10 @@ class EventHistory(Sequence):
     def __len__(self) -> int:
         return len(self._entries)
 
-    def __iter__(self) -> Iterator[dict]:
+    def __iter__(self) -> Iterator[dict[str, JsonValue]]:
         return (self[index] for index in range(len(self)))
 
-    def __getitem__(self, position: int | slice) -> Any:
+    def __getitem__(self, position: int | slice) -> dict[str, JsonValue] | list[dict[str, JsonValue]]:
         if isinstance(position, slice):
             return [self[index] for index in range(*position.indices(len(self)))]
         if position < 0:
@@ -130,7 +154,7 @@ class EventHistory(Sequence):
             return len(self) == len(other) and self.prefix_digest(len(self)) == other.prefix_digest(len(other))
         return isinstance(other, Sequence) and list(self) == list(other)
 
-    def __deepcopy__(self, memo: dict) -> EventHistory:
+    def __deepcopy__(self, memo: dict[int, object]) -> EventHistory:
         return self
 
     def prefix_digest(self, length: int) -> str:
@@ -138,10 +162,10 @@ class EventHistory(Sequence):
             raise ValueError("history prefix length is invalid")
         return _EMPTY_DIGEST if length == 0 else self._entries[length - 1][1]
 
-    def _append(self, payload: Mapping[str, Any], *, field: str) -> EventHistory:
+    def _append(self, payload: Mapping[str, object], *, field: str) -> EventHistory:
         from .immutable_history_stats import value_costs
 
-        frozen = _freeze(dict(payload))
+        frozen = cast(Mapping[str, object], _freeze(dict(payload)))
         content = json.dumps(
             mutable_history_value(frozen), sort_keys=True, separators=(",", ":"), allow_nan=False
         ).encode()
@@ -158,12 +182,12 @@ class EventHistory(Sequence):
         return result
 
 
-class HistoryMap(Mapping):
+class HistoryMap(Mapping[str, EventHistory]):
     """A field-specific immutable JSON history map."""
 
     __slots__ = ("_field", "_identities", "_positions", "_values", "_keys", "_value_costs", "_shape_valid")
 
-    def __init__(self, field: str, histories: Mapping[str, Sequence[dict]]) -> None:
+    def __init__(self, field: str, histories: Mapping[str, Sequence[Mapping[str, object]]]) -> None:
         if hasattr(self, "_field"):
             _immutable()
         values: dict[str, EventHistory] = {}
@@ -192,23 +216,23 @@ class HistoryMap(Mapping):
 
     __setattr__ = _immutable
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> EventHistory:
         return self._values[key]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         return iter(self._keys)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._keys)
 
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo: dict[int, object]) -> HistoryMap:
         return self
 
-    def find(self, participant: str, identity: str):
+    def find(self, participant: str, identity: str) -> dict[str, JsonValue] | None:
         position = self._positions.get((participant, identity))
         return None if position is None else self[participant][position]
 
-    def append(self, participant: str, records: Iterable[Mapping[str, Any]]) -> HistoryMap:
+    def append(self, participant: str, records: Iterable[Mapping[str, object]]) -> HistoryMap:
         if not self._shape_valid:
             raise ValueError("cannot append to semantically invalid retained history")
         if not isinstance(participant, str) or not participant:
@@ -217,14 +241,8 @@ class HistoryMap(Mapping):
         identities = self._identities
         positions = self._positions
         for record in records:
-            identity = _validated(self._field, participant, record, len(sequence) + 1)
-            if self._field == "participant_crossing_history" and identity is not None:
-                identity = (participant, identity)
+            identity = _record_identity(self._field, participant, record, len(sequence) + 1, identities)
             if identity is not None:
-                if identity in identities:
-                    raise ValueError(
-                        f"{self._field.replace('_', ' ')} record identities must be unique and append-only"
-                    )
                 identities = identities.insert(identity)
                 record_id = record.get("evaluation_id") or record.get("event_id")
                 positions = positions.insert((participant, record_id), len(sequence))
@@ -239,17 +257,19 @@ class HistoryMap(Mapping):
         return result
 
 
-def seal_history(field: str, histories: Mapping[str, Sequence[dict]]) -> HistoryMap:
+def seal_history(field: str, histories: Mapping[str, Sequence[Mapping[str, object]]]) -> HistoryMap:
     if type(histories) is HistoryMap and histories._field == field:
         return histories
     return HistoryMap(field, histories)
 
 
-def append_history(snapshot: object, field: str, participant: str, records: Iterable[Mapping[str, Any]]) -> HistoryMap:
+def append_history(
+    snapshot: RuntimeSnapshot, field: str, participant: str, records: Iterable[Mapping[str, object]]
+) -> HistoryMap:
     return seal_history(field, getattr(snapshot, field)).append(participant, records)
 
 
-def seal_snapshot_histories(snapshot):
+def seal_snapshot_histories(snapshot: RuntimeSnapshot) -> RuntimeSnapshot:
     if all(
         type(getattr(snapshot, field)) is HistoryMap and getattr(snapshot, field)._field == field
         for field in HISTORY_FIELDS
@@ -260,20 +280,20 @@ def seal_snapshot_histories(snapshot):
     )
 
 
-def mutable_history_value(value):
+def mutable_history_value(value: object) -> JsonValue:
     """Produce ordinary JSON containers for a complete portable export."""
     if isinstance(value, Mapping):
         return {key: mutable_history_value(item) for key, item in value.items()}
     if isinstance(value, (list, tuple, EventHistory)):
         return [mutable_history_value(item) for item in value]
-    return value
+    return cast(JsonValue, value)
 
 
-def snapshot_history_roots(snapshot):
+def snapshot_history_roots(snapshot: RuntimeSnapshot) -> tuple[HistoryMap, ...]:
     return tuple(getattr(snapshot, field) for field in HISTORY_FIELDS)
 
 
-def snapshot_history_roots_match(snapshot, roots):
+def snapshot_history_roots_match(snapshot: RuntimeSnapshot, roots: Sequence[HistoryMap]) -> bool:
     return len(roots) == len(HISTORY_FIELDS) and all(
         getattr(snapshot, field) is retained for field, retained in zip(HISTORY_FIELDS, roots, strict=True)
     )

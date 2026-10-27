@@ -2,25 +2,39 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from copy import copy
 
-from .participant_control_occurrence_v2_state import ParticipantControlEpisodeFoldV2
+from .participant_control_occurrence_v2 import ParticipantControlOccurrenceV2Model
+from .participant_control_occurrence_v2_policy import (
+    ParticipantControlOccurrencePolicyModel,
+    ParticipantControlOccurrenceTarget,
+)
+from .participant_control_occurrence_v2_state import ParticipantControlEpisodeFoldV2, ParticipantControlEpisodeStateV2
 from .participant_control_occurrence_v2_validation import _EpisodeFold
 
 
 class ControlEpisodePrefix:
-    def __init__(self, policy, available_targets=()) -> None:
+    def __init__(
+        self,
+        policy: ParticipantControlOccurrencePolicyModel,
+        available_targets: Sequence[ParticipantControlOccurrenceTarget] = (),
+    ) -> None:
         self._fold = _EpisodeFold(policy, available_targets)
 
     @property
-    def state(self):
+    def state(self) -> ParticipantControlEpisodeStateV2:
         return self._fold.state
 
     @property
-    def records(self):
+    def records(self) -> dict[str, ParticipantControlOccurrenceV2Model]:
         return self._fold.records
 
-    def _extension(self, records, available_targets):
+    def _extension(
+        self,
+        records: Sequence[ParticipantControlOccurrenceV2Model],
+        available_targets: Sequence[ParticipantControlOccurrenceTarget] | None,
+    ) -> tuple[_EpisodeFold, ParticipantControlEpisodeFoldV2]:
         candidate = copy(self._fold)
         candidate.records = dict(self._fold.records)
         candidate.rejection_code = None
@@ -31,10 +45,20 @@ class ControlEpisodePrefix:
                 return candidate, ParticipantControlEpisodeFoldV2(candidate.state, violation, candidate.rejection_code)
         return candidate, ParticipantControlEpisodeFoldV2(candidate.state)
 
-    def trial(self, records, *, available_targets=None):
+    def trial(
+        self,
+        records: Sequence[ParticipantControlOccurrenceV2Model],
+        *,
+        available_targets: Sequence[ParticipantControlOccurrenceTarget] | None = None,
+    ) -> ParticipantControlEpisodeFoldV2:
         return self._extension(records, available_targets)[1]
 
-    def append(self, records, *, available_targets=None):
+    def append(
+        self,
+        records: Sequence[ParticipantControlOccurrenceV2Model],
+        *,
+        available_targets: Sequence[ParticipantControlOccurrenceTarget] | None = None,
+    ) -> ControlEpisodePrefix:
         fold, result = self._extension(records, available_targets)
         if result.violation is not None:
             raise ValueError(result.violation)

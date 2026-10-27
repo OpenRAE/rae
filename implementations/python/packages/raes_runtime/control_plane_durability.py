@@ -159,16 +159,9 @@ class RuntimeDurabilityMixin:
             self._control_operation_index = None
             return
         cursor = getattr(self, "_operation_changes_cursor", None)
-        changes = reader(cursor)
-        from .control_plane_store_changes import OperationChanges, require_change_cursor
+        from .control_plane_store_changes import require_operation_changes
 
-        if not isinstance(changes, OperationChanges) or type(changes.reset) is not bool:
-            raise TypeError("store operation changes have an invalid shape")
-        require_change_cursor(changes.cursor)
-        if (cursor is None and not changes.reset) or (
-            cursor is not None and changes.cursor < cursor and not changes.reset
-        ):
-            raise ValueError("store operation change cursor did not preserve its source cut")
+        changes = require_operation_changes(reader(cursor), cursor)
         if changes.reset:
             self._operations = dict(changes.records)
             self._control_operation_index = None

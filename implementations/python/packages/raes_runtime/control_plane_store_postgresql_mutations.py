@@ -54,7 +54,7 @@ def save_snapshot(
 
 
 def find_by_idempotency(
-    store: PostgreSQLControlPlaneStore,
+    _store: PostgreSQLControlPlaneStore,
     connection: Connection[tuple[object, ...]],
     key: str,
     *,
@@ -69,7 +69,8 @@ def find_by_idempotency(
         ).fetchall()
     else:
         rows = connection.execute(
-            "SELECT payload, digest FROM raes_ledger_operations WHERE actor_id=%s AND operation_kind=%s AND idempotency_key=%s",
+            "SELECT payload, digest FROM raes_ledger_operations WHERE actor_id=%s AND "
+            "operation_kind=%s AND idempotency_key=%s",
             (context.actor_id, context.operation_kind.value, key),
         ).fetchall()
     if len(rows) > 1:
@@ -235,6 +236,8 @@ def commit_participant_transition(
     return committed
 
 
-def _stored_record(store, connection, identity):
+def _stored_record(
+    store: PostgreSQLControlPlaneStore, connection: Connection[tuple[object, ...]], identity: str
+) -> ControlPlaneOperationRecord | None:
     reader = getattr(store, "_load_record", None)
     return reader(connection, identity) if reader is not None else store._load_records(connection).get(identity)

@@ -13,7 +13,7 @@ class SnapshotCache:
         self.identity = None
         self.history_roots = ()
 
-    def publish(self, connection) -> None:
+    def publish(self, connection: sqlite3.Connection) -> None:
         with self.lock:
             pending = getattr(connection, "pending_snapshot", None)
             if pending is not None:

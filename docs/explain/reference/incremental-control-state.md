@@ -146,6 +146,7 @@ The implementation reuses the installed `rpds-py` persistent map.
 Mutable input still requires isolation.
 Runtime admission still requires complete record validation.
 The store may retain opaque legacy records for its original runtime refusal checks.
+Database reconstruction preserves these records after restart and checks their integrity.
 Their JSON stays immutable.
 Only histories whose records pass the existing validators can skip repeated shape checks.
 JSON isolation alone grants no validation shortcut.
@@ -216,8 +217,8 @@ The counters include indexed reads as well as iteration.
 
 | Store | Retained control records | Execution time |
 | --- | --- | --- |
-| Memory | 2 / 9 / 33 | 1.222 / 1.051 / 1.811 ms |
-| SQLite | 2 / 9 / 33 | 36.604 / 47.614 / 34.607 ms |
+| Memory | 2 / 9 / 33 | 2.045 / 1.369 / 1.787 ms |
+| SQLite | 2 / 9 / 33 | 252.394 / 48.750 / 46.460 ms |
 
 The saving rows measure the actual atomic participant-transition store call.
 Operation-only commits also compare retained histories without serializing their old records.
@@ -227,8 +228,8 @@ Each measured call visits zero old history records and loads zero complete opera
 
 | Store | Retained history records | Atomic append time |
 | --- | --- | --- |
-| Memory | 8 / 64 / 512 | 0.080 / 0.070 / 0.073 ms |
-| SQLite | 8 / 64 / 512 | 31.470 / 35.828 / 33.207 ms |
+| Memory | 8 / 64 / 512 | 0.073 / 0.056 / 0.078 ms |
+| SQLite | 8 / 64 / 512 | 43.401 / 39.480 / 38.907 ms |
 
 Each time is one local result from 2026-10-27.
 Other checks ran at the same time.

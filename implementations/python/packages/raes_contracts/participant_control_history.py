@@ -21,31 +21,41 @@ def iter_participant_control_history_snapshot_violations(
     violations: list[tuple[str, str]] = []
     seen_event_ids: set[str] = set()
     for participant_address, events in history.items():
-        address = f"runtime.snapshot.participant-control-history.{participant_address}"
-        for index, payload in enumerate(events):
-            try:
-                event = parse_participant_control_occurrence(payload)
-            except (TypeError, ValueError, ValidationError):
-                violations.append((address, "participant control history event is not a valid API-409 occurrence"))
-                continue
-            if event.participant_address != participant_address:
-                violations.append(
-                    (
-                        address,
-                        "participant control history map key must equal the embedded participant_address",
-                    )
+        violations.extend(_participant_history_violations(participant_address, events, seen_event_ids))
+    return violations
+
+
+def _participant_history_violations(
+    participant_address: str,
+    events: Sequence[dict[str, object]],
+    seen_event_ids: set[str],
+) -> list[tuple[str, str]]:
+    violations = []
+    address = f"runtime.snapshot.participant-control-history.{participant_address}"
+    for index, payload in enumerate(events):
+        try:
+            event = parse_participant_control_occurrence(payload)
+        except (TypeError, ValueError, ValidationError):
+            violations.append((address, "participant control history event is not a valid API-409 occurrence"))
+            continue
+        if event.participant_address != participant_address:
+            violations.append(
+                (
+                    address,
+                    "participant control history map key must equal the embedded participant_address",
                 )
-            expected_revision = index + 1
-            if event.occurrence.occurrence_revision != expected_revision:
-                violations.append(
-                    (
-                        address,
-                        "participant control occurrence_revision must be contiguous and match append order",
-                    )
+            )
+        expected_revision = index + 1
+        if event.occurrence.occurrence_revision != expected_revision:
+            violations.append(
+                (
+                    address,
+                    "participant control occurrence_revision must be contiguous and match append order",
                 )
-            if event.event_id in seen_event_ids:
-                violations.append((address, "participant control event identity must be globally unique"))
-            seen_event_ids.add(event.event_id)
+            )
+        if event.event_id in seen_event_ids:
+            violations.append((address, "participant control event identity must be globally unique"))
+        seen_event_ids.add(event.event_id)
     return violations
 
 

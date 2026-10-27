@@ -62,20 +62,9 @@ class LocalSnapshotRevisionStoreMixin:
         from .control_plane_store_history_rows import history_generation
 
         identity = (history_generation(connection), require_snapshot_revision(row[2]), row[1])
-        pending = getattr(connection, "pending_snapshot", None)
-        if pending is not None and pending[0] == identity:
-            return pending[1]
-        cache = getattr(connection, "snapshot_cache", None)
-        from raes_contracts.immutable_history import snapshot_history_roots_match
-
-        if (
-            cache is not None
-            and cache.identity == identity
-            and snapshot_history_roots_match(cache.state.snapshot, cache.history_roots)
-        ):
-            _, current_digest = encode_payload(_snapshot_payload(cache.state.snapshot, include_histories=False))
-            if current_digest == row[1]:
-                return cache.state
+        cached = _cached_snapshot_state(connection, identity, row[1])
+        if cached is not None:
+            return cached
         from .control_plane_store_history_rows import restore_history_rows
 
         payload = restore_history_rows(connection, header)
@@ -147,3 +136,25 @@ class LocalSnapshotRevisionStoreMixin:
 
 
 __all__ = ("LocalSnapshotRevisionStoreMixin",)
+
+
+def _cached_snapshot_state(
+    connection: sqlite3.Connection,
+    identity: tuple[int, int, str],
+    digest: str,
+) -> SnapshotState | None:
+    pending = getattr(connection, "pending_snapshot", None)
+    if pending is not None and pending[0] == identity:
+        return pending[1]
+    cache = getattr(connection, "snapshot_cache", None)
+    from raes_contracts.immutable_history import snapshot_history_roots_match
+
+    if (
+        cache is not None
+        and cache.identity == identity
+        and snapshot_history_roots_match(cache.state.snapshot, cache.history_roots)
+    ):
+        _, current_digest = encode_payload(_snapshot_payload(cache.state.snapshot, include_histories=False))
+        if current_digest == digest:
+            return cache.state
+    return None

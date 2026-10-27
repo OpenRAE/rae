@@ -3,13 +3,21 @@
 from __future__ import annotations
 
 from collections import ChainMap
+from collections.abc import Collection, Sequence
 from copy import copy, deepcopy
+from typing import Protocol
 
 from raes_contracts.immutable_history import EventHistory
 
-from .participant_crossing import ParticipantCrossingOccurrenceModel
+from .participant_crossing import (
+    ParticipantCrossingOccurrenceModel,
+    ParticipantCrossingPolicyReferenceModel,
+    ParticipantCrossingSubjectReferenceModel,
+)
 from .participant_crossing_indexes import _index_records, _RecordIndexes
 from .participant_crossing_validation import (
+    PolicyKey,
+    SubjectKey,
     _index_policies,
     _index_subjects,
     _validate_common_context,
@@ -18,6 +26,30 @@ from .participant_crossing_validation import (
 )
 
 CROSSING_PROJECTION_VERSION = 1
+
+
+CrossingContextIndex = tuple[
+    dict[SubjectKey, ParticipantCrossingSubjectReferenceModel],
+    dict[PolicyKey, ParticipantCrossingPolicyReferenceModel],
+    frozenset[str],
+    frozenset[str],
+]
+
+
+def _extends_context(previous: CrossingContextIndex | None, current: CrossingContextIndex) -> bool:
+    return previous is not None and (
+        all(current[0].get(key) == value for key, value in previous[0].items())
+        and all(current[1].get(key) == value for key, value in previous[1].items())
+        and previous[2] <= current[2]
+        and previous[3] <= current[3]
+    )
+
+
+class _CrossingContext(Protocol):
+    known_subjects: Sequence[ParticipantCrossingSubjectReferenceModel]
+    policies: Sequence[ParticipantCrossingPolicyReferenceModel]
+    known_evidence_refs: Collection[str]
+    known_authority_basis_refs: Collection[str]
 
 
 class CrossingPrefix:
@@ -54,18 +86,15 @@ class CrossingPrefix:
             raise
         self.history = history
 
-    def validate_extension(self, records, context) -> None:
+    def validate_extension(
+        self, records: Sequence[ParticipantCrossingOccurrenceModel], context: _CrossingContext
+    ) -> None:
         subjects = _index_subjects(context.known_subjects)
         policies = _index_policies(context.policies)
         evidence = frozenset(context.known_evidence_refs)
         authority = frozenset(context.known_authority_basis_refs)
         current = (subjects, policies, evidence, authority)
-        extends_context = self.context is not None and (
-            all(subjects.get(key) == value for key, value in self.context[0].items())
-            and all(policies.get(key) == value for key, value in self.context[1].items())
-            and self.context[2] <= evidence
-            and self.context[3] <= authority
-        )
+        extends_context = _extends_context(self.context, current)
         # Writes land only in temporary maps; failed validation leaves no index entries.
         candidate = copy(self.indexes)
         for name, index in vars(self.indexes).items():

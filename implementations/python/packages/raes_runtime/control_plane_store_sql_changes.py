@@ -2,10 +2,18 @@
 
 from __future__ import annotations
 
+import sqlite3
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .control_plane_store import ControlPlaneOperationRecord
+    from .control_plane_store_local_records import LocalOperationRecordStoreMixin
+
+
 from .control_plane_store_changes import OperationChanges, require_change_cursor
 
 
-def initialize_operation_changes(connection) -> None:
+def initialize_operation_changes(connection: sqlite3.Connection) -> None:
     statements = (
         "CREATE TABLE IF NOT EXISTS operation_changes (sequence INTEGER PRIMARY KEY AUTOINCREMENT, "
         "operation_id TEXT NOT NULL, removed INTEGER NOT NULL DEFAULT 0)",
@@ -16,14 +24,16 @@ def initialize_operation_changes(connection) -> None:
         "CREATE TRIGGER IF NOT EXISTS operation_changes_delete AFTER DELETE ON operations BEGIN "
         "INSERT INTO operation_changes(operation_id, removed) VALUES (OLD.operation_id, 1); END",
         "CREATE INDEX IF NOT EXISTS operation_state_lookup ON operations(json_extract(payload, '$.status.state'))",
-        "CREATE INDEX IF NOT EXISTS operation_reservation_lookup ON operations(json_extract(payload, '$.invocation.reserved'))",
-        "CREATE INDEX IF NOT EXISTS operation_parent_lookup ON operations(json_extract(payload, '$.receipt.context.parent_operation_id'))",
+        "CREATE INDEX IF NOT EXISTS operation_reservation_lookup ON "
+        "operations(json_extract(payload, '$.invocation.reserved'))",
+        "CREATE INDEX IF NOT EXISTS operation_parent_lookup ON "
+        "operations(json_extract(payload, '$.receipt.context.parent_operation_id'))",
     )
     for statement in statements:
         connection.execute(statement)
 
 
-def load_claim_guard_records(store, connection):
+def load_claim_guard_records(connection: sqlite3.Connection) -> tuple[ControlPlaneOperationRecord, ...]:
     from .control_plane_store_local_codec import decode_payload
     from .control_plane_store_records import _record_from_payload
 
@@ -41,7 +51,9 @@ def load_claim_guard_records(store, connection):
     )
 
 
-def load_operation_changes(store, connection, cursor: int | None) -> OperationChanges:
+def load_operation_changes(
+    store: LocalOperationRecordStoreMixin, connection: sqlite3.Connection, cursor: int | None
+) -> OperationChanges:
     require_change_cursor(cursor)
     latest = connection.execute("SELECT COALESCE(MAX(sequence), 0) FROM operation_changes").fetchone()[0]
     reset = cursor is None or cursor > latest

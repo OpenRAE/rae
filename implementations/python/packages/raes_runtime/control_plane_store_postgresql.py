@@ -14,6 +14,7 @@ from pydantic import SecretStr
 
 from .control_plane_profiles import ControlPlaneCapability, ControlPlaneStoreCapabilities
 from .control_plane_store import ControlPlaneOperationRecord
+from .control_plane_store_changes import OperationChanges
 from .control_plane_store_local_codec import decode_payload, encode_payload
 from .control_plane_store_records import _audit_event_from_payload, _record_from_payload, _record_payload
 from .control_plane_store_revision import SnapshotState
@@ -213,18 +214,21 @@ class PostgreSQLControlPlaneStore:
             try:
                 with connection.transaction():
                     self._pending_snapshots[id(connection)] = None
-                    if self._owner_generation is not None:
-                        row = connection.execute(
-                            "SELECT value FROM raes_ledger_metadata WHERE key='owner-generation' FOR UPDATE"
-                        ).fetchone()
-                        if row != (str(self._owner_generation),):
-                            raise RuntimeError("PostgreSQL execution owner is stale")
+                    self._require_current_owner(connection)
                     yield connection
                 pending = self._pending_snapshots.get(id(connection))
                 if pending is not None:
                     self._snapshot_cache = pending
             finally:
                 self._pending_snapshots.pop(id(connection), None)
+
+    def _require_current_owner(self, connection: Connection[tuple[object, ...]]) -> None:
+        if self._owner_generation is not None:
+            row = connection.execute(
+                "SELECT value FROM raes_ledger_metadata WHERE key='owner-generation' FOR UPDATE"
+            ).fetchone()
+            if row != (str(self._owner_generation),):
+                raise RuntimeError("PostgreSQL execution owner is stale")
 
     def close(self) -> None:
         # The lease closes separately, after confirmed drain.
@@ -261,16 +265,18 @@ class PostgreSQLControlPlaneStore:
         with self._connection() as connection:
             return self._load_records(connection)
 
-    def load_operation_changes(self, cursor: int | None = None):
+    def load_operation_changes(self, cursor: int | None = None) -> OperationChanges:
         from .control_plane_store_postgresql_projection import operation_changes
 
         with self._connection() as connection:
             return operation_changes(self, connection, cursor)
 
-    def _load_record(self, connection, identity):
+    def _load_record(
+        self, connection: Connection[tuple[object, ...]], identity: str
+    ) -> ControlPlaneOperationRecord | None:
         from .control_plane_store_postgresql_projection import stored_record
 
-        return stored_record(self, connection, identity)
+        return stored_record(connection, identity)
 
     def _upsert_record(self, connection: Connection[tuple[object, ...]], record: ControlPlaneOperationRecord) -> None:
         from .inject_claims import require_inject_claim

@@ -33,11 +33,13 @@ def test_crossing_prefix_joins_new_decision_and_rejects_wrong_predecessor():
     invalid = _decision(request).model_copy(
         update={"occurrence": _decision(request).occurrence.model_copy(update={"request_ref": "missing"})}
     )
+    invalid_context = context(request)
     with pytest.raises(ValueError):
-        prefix.validate_extension([invalid], context(request))
+        prefix.validate_extension([invalid], invalid_context)
     # A rejected candidate never entered the committed prefix.
     assert len(prefix.indexes.records_by_event_id) == 1
     missing_evidence = context(request)
     missing_evidence.known_evidence_refs = set()
+    decision = _decision(request)
     with pytest.raises(ValueError):
-        prefix.validate_extension([_decision(request)], missing_evidence)
+        prefix.validate_extension([decision], missing_evidence)

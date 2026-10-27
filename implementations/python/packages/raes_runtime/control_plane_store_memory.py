@@ -13,6 +13,7 @@ from .control_plane_profiles import (
     ControlPlaneCapability,
     ControlPlaneStoreCapabilities,
 )
+from .control_plane_store_changes import OperationChanges
 from .control_plane_store_history import require_expected_control_head, require_expected_history_heads
 from .control_plane_store_revision import (
     SnapshotRevisionConflict,
@@ -114,7 +115,7 @@ class InMemoryControlPlaneStore:
             require_inject_history(self._records.values())
             return dict(self._records)
 
-    def load_operation_changes(self, cursor: int | None = None):
+    def load_operation_changes(self, cursor: int | None = None) -> OperationChanges:
         from .control_plane_store_changes import OperationChanges, require_change_cursor
 
         require_change_cursor(cursor)

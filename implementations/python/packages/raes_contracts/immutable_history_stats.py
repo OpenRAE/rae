@@ -27,26 +27,7 @@ class ValueCosts:
         )
 
 
-def value_costs(value: object) -> ValueCosts:
-    from .immutable_history import EventHistory, HistoryMap
-
-    if isinstance(value, EventHistory):
-        return value._costs
-    if type(value) in {HistoryMap}:
-        cached = getattr(value, "_value_costs", None)
-        if cached is not None:
-            return cached
-    if isinstance(value, (Mapping, list, tuple)):
-        result = ValueCosts(members=len(value))
-        children = value.items() if isinstance(value, Mapping) else enumerate(value)
-        for key, child in children:
-            if isinstance(value, Mapping) and not isinstance(key, str):
-                return ValueCosts(valid=False)
-            key_bytes = len(key.encode("utf-8")) if isinstance(value, Mapping) else 0
-            result = result.extend(value_costs(child), key_bytes=key_bytes)
-        if type(value) in {HistoryMap}:
-            object.__setattr__(value, "_value_costs", result)
-        return result
+def _scalar_costs(value: object) -> ValueCosts:
     if isinstance(value, str):
         size = len(value.encode("utf-8"))
     elif type(value) is int:
@@ -60,6 +41,34 @@ def value_costs(value: object) -> ValueCosts:
         max_scalar_bytes=size,
         valid=not (isinstance(value, float) and not math.isfinite(value)),
     )
+
+
+def _container_costs(value: Mapping[str, object] | list[object] | tuple[object, ...]) -> ValueCosts:
+    result = ValueCosts(members=len(value))
+    children = value.items() if isinstance(value, Mapping) else enumerate(value)
+    for key, child in children:
+        if isinstance(value, Mapping) and not isinstance(key, str):
+            return ValueCosts(valid=False)
+        key_bytes = len(key.encode("utf-8")) if isinstance(value, Mapping) else 0
+        result = result.extend(value_costs(child), key_bytes=key_bytes)
+    return result
+
+
+def value_costs(value: object) -> ValueCosts:
+    from .immutable_history import EventHistory, HistoryMap
+
+    if isinstance(value, EventHistory):
+        result = value._costs
+    elif type(value) is HistoryMap:
+        result = getattr(value, "_value_costs", None)
+        if result is None:
+            result = _container_costs(value)
+            object.__setattr__(value, "_value_costs", result)
+    elif isinstance(value, (Mapping, list, tuple)):
+        result = _container_costs(value)
+    else:
+        result = _scalar_costs(value)
+    return result
 
 
 def charge_immutable_history(value: object, depth: int, budget: object) -> bool:

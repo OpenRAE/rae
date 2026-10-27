@@ -127,7 +127,9 @@ def dispatch_participant_control_effects(
     return _ordered_outcomes(control_plane, participant_address, drain)
 
 
-def _ordered_outcomes(plane, participant, drain):
+def _ordered_outcomes(
+    plane: RuntimeControlPlane, participant: str, drain: _DrainState
+) -> tuple[ControlRealizationBindingModel, ...]:
     from .participant_control_projection import control_projection
 
     order = control_projection(plane).outcome_order.get(participant, {})

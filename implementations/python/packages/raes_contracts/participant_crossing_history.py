@@ -20,9 +20,9 @@ def iter_participant_crossing_history_snapshot_violations(
 
     if not isinstance(history, (dict, HistoryMap)):
         yield ("runtime.participant-crossing-history", "participant crossing history must be a mapping")
-        return
-    for participant_address, events in history.items():
-        yield from _snapshot_entry_violations(participant_address, events)
+    else:
+        for participant_address, events in history.items():
+            yield from _snapshot_entry_violations(participant_address, events)
 
 
 def _snapshot_entry_violations(
@@ -71,21 +71,24 @@ def iter_participant_crossing_history_transition_violations(
         return
     for participant_address, previous_events in previous.items():
         current_events = current.get(participant_address)
-        if isinstance(previous_events, EventHistory) and isinstance(current_events, EventHistory):
-            if len(current_events) >= len(previous_events) and current_events.prefix_digest(
-                len(previous_events)
-            ) == previous_events.prefix_digest(len(previous_events)):
-                continue
-        if (
-            not isinstance(previous_events, (list, EventHistory))
-            or not isinstance(current_events, (list, EventHistory))
-            or len(current_events) < len(previous_events)
-            or current_events[: len(previous_events)] != previous_events
-        ):
+        if not _preserves_prefix(previous_events, current_events):
             yield (
                 f"runtime.participant-crossing-history.{participant_address}",
                 "participant crossing history must remain append-only and preserve its exact prefix",
             )
+
+
+def _preserves_prefix(previous: object, current: object) -> bool:
+    if isinstance(previous, EventHistory) and isinstance(current, EventHistory):
+        return len(current) >= len(previous) and current.prefix_digest(len(previous)) == previous.prefix_digest(
+            len(previous)
+        )
+    return (
+        isinstance(previous, (list, EventHistory))
+        and isinstance(current, (list, EventHistory))
+        and len(current) >= len(previous)
+        and current[: len(previous)] == previous
+    )
 
 
 __all__ = (

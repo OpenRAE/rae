@@ -2,13 +2,24 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
+from typing import TYPE_CHECKING
+
+from raes_contracts.contracts.participant_control_decisions_v2 import ControlEffectRequestV2Model
+from raes_contracts.contracts.participant_control_effects import ControlEffectRequestModel
+from raes_contracts.contracts.participant_control_results import ControlRealizationBindingModel
 from raes_contracts.runtime_state import OperationKind
+
+if TYPE_CHECKING:
+    from .control_plane import RuntimeControlPlane
+    from .control_plane_store import ControlPlaneOperationRecord
+
 
 from .control_plane_store import idempotency_claim_identity
 
 
 class ControlOperationIndex:
-    def __init__(self, records=()) -> None:
+    def __init__(self, records: Iterable[ControlPlaneOperationRecord] = ()) -> None:
         self.scoped = {}
         self.origins = {}
         self.policy_records = {}
@@ -20,7 +31,7 @@ class ControlOperationIndex:
         for record in records:
             self.apply(record)
 
-    def apply(self, record) -> None:
+    def apply(self, record: ControlPlaneOperationRecord) -> None:
         self.records[record.receipt.operation_id] = record
         parent = record.receipt.context.parent_operation_id
         if parent is not None and (
@@ -42,12 +53,15 @@ class ControlOperationIndex:
                 destination.pop(record.receipt.operation_id, None)
         if record.idempotency_key:
             self.scoped[idempotency_claim_identity(record.receipt.context, record.idempotency_key)] = record
+        self._index_produced_histories(record)
+
+    def _index_produced_histories(self, record: ControlPlaneOperationRecord) -> None:
         for key, produced in record.result_history_heads.items():
             if key.startswith("participant_control_evaluation_history:") and produced is not None:
                 if record.decision_history_heads.get(key) != produced:
                     self.origins[(key.split(":", 1)[1], produced)] = record
 
-    def _refresh_barrier(self, record) -> None:
+    def _refresh_barrier(self, record: ControlPlaneOperationRecord) -> None:
         from raes_contracts.runtime_state import OperationState
 
         from .control_plane_resolution_records import is_valid_resolution_child
@@ -68,17 +82,19 @@ class ControlOperationIndex:
         else:
             self.guards.pop(identity, None)
 
-    def guard_records(self):
+    def guard_records(self) -> tuple[ControlPlaneOperationRecord, ...]:
         return tuple(self.guards.values())
 
-    def claim(self, effect):
+    def claim(
+        self, effect: ControlEffectRequestModel | ControlEffectRequestV2Model
+    ) -> ControlPlaneOperationRecord | None:
         from .participant_control_receipts import effect_idempotency_key
 
         return self.scoped.get(
             (effect.originating_principal_ref, OperationKind.PARTICIPANT_CONTROL, effect_idempotency_key(effect))
         )
 
-    def outcome(self, claim):
+    def outcome(self, claim: ControlPlaneOperationRecord) -> ControlRealizationBindingModel | None:
         from .participant_control_effect_evidence import retained_claim_outcome
 
         actor = claim.receipt.context.actor_id
@@ -88,7 +104,7 @@ class ControlOperationIndex:
         return retained_claim_outcome(claim, () if recovery is None else (recovery,))
 
 
-def operation_index(plane) -> ControlOperationIndex:
+def operation_index(plane: RuntimeControlPlane) -> ControlOperationIndex:
     index = getattr(plane, "_control_operation_index", None)
     if index is None:
         index = ControlOperationIndex(plane._operations.values())
