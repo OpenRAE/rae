@@ -33,7 +33,7 @@ def materialization_precondition(
         error = _inventory_refresh_error(request, source, manifest)
         if error is None:
             error = _materialization_support_error(source, required, manifest, archive)
-    except (AttributeError, TypeError, ValueError):
+    except AttributeError, TypeError, ValueError:
         error = "Materialization reporting requires valid bound source context."
     return error
 

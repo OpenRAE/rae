@@ -79,7 +79,7 @@ class RuntimeEnvironmentVariable(SDLModel):
         return v
 
     @model_validator(mode="after")
-    def validate_value_from_exclusivity(self) -> "RuntimeEnvironmentVariable":
+    def validate_value_from_exclusivity(self) -> RuntimeEnvironmentVariable:
         if self.value_from is not None:
             if self.value:
                 raise ValueError(
@@ -117,7 +117,7 @@ class RuntimeEnvironmentVariable(SDLModel):
         return _parse_runtime_enum_or_var(v, RuntimeEnvironmentVariableProvenance, field_name="provenance")
 
     @model_validator(mode="after")
-    def validate_redacted_value(self) -> "RuntimeEnvironmentVariable":
+    def validate_redacted_value(self) -> RuntimeEnvironmentVariable:
         enforce_observed_value_redaction(
             owner_label=f"runtime environment variable '{self.name}'",
             value=self.value,

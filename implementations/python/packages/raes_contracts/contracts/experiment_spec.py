@@ -27,7 +27,7 @@ from .experiment_evidence_refinement import (
     ExperimentEvidenceRequirementRelationModel,
     validate_evidence_requirement_relation_carrier,
 )
-from .experiment_factorial import ExperimentFactorialDesignModel, expand_factorial_input
+from .experiment_factorial import ExperimentFactorialTreatmentDesignModel, FactorialDesign, expand_factorial_input
 from .experiment_manifest_references import ExperimentCaptureSpecReferenceModel
 from .experiment_plan_controls import (
     ExperimentEpisodeControlModel,
@@ -196,7 +196,7 @@ class ExperimentSpecModel(ContractModel):
     capture_spec_refs: list[ExperimentCaptureSpecReferenceModel] = Field(default_factory=list)
     validity_notes: list[ExperimentValidityNoteModel] = Field(default_factory=list)
     artifact_refs: list[ExperimentArtifactRefModel] = Field(default_factory=list)
-    factorial_design: ExperimentFactorialDesignModel | None = None
+    factorial_design: FactorialDesign | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -240,16 +240,23 @@ class ExperimentSpecModel(ContractModel):
     def _validate_selection_factor_joins(self) -> None:
         _validate_selection_factor_joins(self)
 
-    def _validate_binding_descriptors(self) -> None:
-        if self.binding_semantics == "explicit-required" and self.binding_descriptors is None:
+    def _binding_allocation(self) -> ExperimentRunAllocationPlanModel | None:
+        typed = isinstance(self.factorial_design, ExperimentFactorialTreatmentDesignModel)
+        if self.binding_semantics == "explicit-required" and self.binding_descriptors is None and not typed:
             raise ValueError("binding_semantics explicit-required requires binding_descriptors")
         if self.binding_descriptors is None:
-            return
+            return None
         if self.binding_semantics != "explicit-required":
             raise ValueError("binding_descriptors require binding_semantics explicit-required")
         allocation = self.run_plan.allocation
         if allocation is None:
             raise ValueError("explicit binding descriptors require condition-based run allocation")
+        return allocation
+
+    def _validate_binding_descriptors(self) -> None:
+        allocation = self._binding_allocation()
+        if allocation is None:
+            return
         legacy_conditions = sorted(
             condition_id
             for condition_id, assignment in allocation.condition_assignments.items()
@@ -263,6 +270,10 @@ class ExperimentSpecModel(ContractModel):
             _validate_binding_descriptor_source(descriptor, self.factors, allocation)
             for descriptor in self.binding_descriptors.descriptors
         }
+        if isinstance(self.factorial_design, ExperimentFactorialTreatmentDesignModel):
+            covered_conditions.update(
+                key for key, assignment in allocation.condition_assignments.items() if assignment.required_selections
+            )
         missing_conditions = sorted(set(allocation.compared_conditions) - covered_conditions)
         if missing_conditions:
             raise ValueError(

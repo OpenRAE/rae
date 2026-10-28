@@ -90,7 +90,7 @@ class SimpleProperties(SDLModel):
         return parse_bool_or_var(v, field_name="internal")
 
     @model_validator(mode="after")
-    def gateway_within_cidr(self) -> "SimpleProperties":
+    def gateway_within_cidr(self) -> SimpleProperties:
         if is_variable_ref(self.cidr) or is_variable_ref(self.gateway):
             return self
         net = ip_network(self.cidr, strict=False)
@@ -124,19 +124,19 @@ class InfraNode(SDLModel):
         )
 
     @model_validator(mode="after")
-    def validate_unique_links(self) -> "InfraNode":
+    def validate_unique_links(self) -> InfraNode:
         if len(self.links) != len(set(self.links)):
             raise ValueError("Infrastructure links must be unique")
         return self
 
     @model_validator(mode="after")
-    def validate_unique_dependencies(self) -> "InfraNode":
+    def validate_unique_dependencies(self) -> InfraNode:
         if len(self.dependencies) != len(set(self.dependencies)):
             raise ValueError("Infrastructure dependencies must be unique")
         return self
 
     @model_validator(mode="after")
-    def validate_unique_acl_names(self) -> "InfraNode":
+    def validate_unique_acl_names(self) -> InfraNode:
         seen_names: set[str] = set()
         for acl in self.acls:
             if not acl.name:

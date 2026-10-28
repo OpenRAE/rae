@@ -49,27 +49,21 @@ def test_checked_in_host_profiles_join_locked_payloads_and_evidence() -> None:
 def test_standard_python_and_uv_payloads_are_exact_and_preview_is_advisory() -> None:
     lock = json.loads((REPO_ROOT / "implementations/tooling/artifacts.lock.json").read_text(encoding="utf-8"))
     artifacts = {item["artifact_id"]: item for item in lock["artifacts"]}
-    expected = {
-        "cpython-3.11": "3.11.16",
-        "cpython-3.12": "3.12.14",
-        "cpython-3.13": "3.13.15",
-        "cpython-3.14": "3.14.7",
+    assert {artifact_id for artifact_id in artifacts if artifact_id.startswith("cpython-")} == {
+        "cpython-3.14",
+        "cpython-3.14t",
     }
-    for artifact_id, version in expected.items():
-        artifact = artifacts[artifact_id]
-        assert artifact["version"] == version
-        assert artifact["support_level"] == "blocking"
-        assert all(item["installed_identity"]["version"] == version for item in artifact["platforms"])
-    assert {(item["platform_id"], item["distribution_id"]) for item in artifacts["cpython-3.14"]["platforms"]} == {
+    artifact = artifacts["cpython-3.14"]
+    assert artifact["version"] == "3.14.7"
+    assert artifact["support_level"] == "blocking"
+    assert all(item["installed_identity"]["version"] == "3.14.7" for item in artifact["platforms"])
+    assert {(item["platform_id"], item["distribution_id"]) for item in artifact["platforms"]} == {
         ("linux-x86_64", "ubuntu-24.04"),
         ("linux-arm64", "ubuntu-24.04"),
         ("macos-arm64", "macos-15"),
     }
-    assert {
-        item["distribution_id"]
-        for item in artifacts["cpython-3.12"]["platforms"]
-        if item["platform_id"] == "linux-x86_64"
-    } == {"ubuntu-22.04", "ubuntu-24.04"}
+    linux = next(item for item in artifact["platforms"] if item["platform_id"] == "linux-x86_64")
+    assert "proof-ubuntu-22.04-x86_64" in linux["host_profile_ids"]
     assert artifacts["cpython-3.14t"]["support_level"] == "advisory"
     assert artifacts["uv"]["version"] == "0.13.4"
     assert {item["platform_id"] for item in artifacts["uv"]["platforms"]} == {
@@ -83,20 +77,14 @@ def test_workflow_action_source_and_payload_selectors_are_separate() -> None:
     import yaml
 
     ci = yaml.safe_load((REPO_ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
-    matrix = ci["jobs"]["interpreters"]["strategy"]["matrix"]["python"]
-    assert matrix == [
-        {"feature": "3.11", "payload": "3.11.16", "closure": "public-linux-x86_64-cp311-all-extras"},
-        {"feature": "3.12", "payload": "3.12.14", "closure": "public-linux-x86_64-cp312-all-extras"},
-        {"feature": "3.13", "payload": "3.13.15", "closure": "public-linux-x86_64-cp313-all-extras"},
-        {"feature": "3.14", "payload": "3.14.7", "closure": "public-linux-x86_64-cp314-all-extras"},
-    ]
-    job = ci["jobs"]["interpreters"]
-    assert job["env"]["UV_PYTHON"] == "${{ matrix.python.payload }}"
-    assert job["env"]["RAES_EXPECTED_PYTHON"] == "${{ matrix.python.feature }}"
-    assert job["env"]["RAES_PYTHON_CLOSURE_PROFILE"] == "${{ matrix.python.closure }}"
+    job = ci["jobs"]["distribution"]
+    assert "strategy" not in job
+    assert job["env"]["UV_PYTHON"] == "3.14.7"
+    assert job["env"]["RAES_EXPECTED_PYTHON"] == "3.14"
+    assert job["env"]["RAES_PYTHON_CLOSURE_PROFILE"] == "public-linux-x86_64-cp314-all-extras"
     setup_python = next(step for step in job["steps"] if str(step.get("uses", "")).startswith("actions/setup-python@"))
     setup_uv = next(step for step in job["steps"] if str(step.get("uses", "")).startswith("astral-sh/setup-uv@"))
-    assert setup_python["with"]["python-version"] == "${{ matrix.python.payload }}"
+    assert setup_python["with"]["python-version"] == "3.14.7"
     assert setup_uv["with"]["version"] == "0.13.4"
     assert "@" in setup_python["uses"]
     assert len(setup_python["uses"].rsplit("@", 1)[1].split()[0]) == 40
@@ -105,7 +93,7 @@ def test_workflow_action_source_and_payload_selectors_are_separate() -> None:
 def test_every_setup_action_uses_an_exact_admitted_payload() -> None:
     import yaml
 
-    allowed_python = {"3.11.16", "3.12.14", "3.13.15", "3.14.7", "3.14.7t", "${{ matrix.python.payload }}"}
+    allowed_python = {"3.14.7", "3.14.7t"}
     for path in sorted((REPO_ROOT / ".github/workflows").glob("*.yml")):
         workflow = yaml.safe_load(path.read_text(encoding="utf-8"))
         for job in workflow.get("jobs", {}).values():
@@ -801,7 +789,7 @@ class _CurlFixture(BaseHTTPRequestHandler):
                     self.wfile.write(b"x")
                     self.wfile.flush()
                     time.sleep(0.25)
-            except (BrokenPipeError, ConnectionResetError):
+            except BrokenPipeError, ConnectionResetError:
                 pass
             return
         if self.path == "/redirect":
@@ -813,7 +801,7 @@ class _CurlFixture(BaseHTTPRequestHandler):
         self.end_headers()
         try:
             self.wfile.write(b"ok" if self.path in {"/small", "/retry429", "/retry503"} else b"x" * 4096)
-        except (BrokenPipeError, ConnectionResetError):
+        except BrokenPipeError, ConnectionResetError:
             return
 
 

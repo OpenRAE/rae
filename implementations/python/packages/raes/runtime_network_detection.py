@@ -269,7 +269,7 @@ class RuntimeNetworkDetectionNetworkSet(SDLModel):
         return coerce_string_list(v)
 
     @model_validator(mode="after")
-    def validate_unique_values(self) -> "RuntimeNetworkDetectionNetworkSet":
+    def validate_unique_values(self) -> RuntimeNetworkDetectionNetworkSet:
         _reject_duplicate_values(self.selector_values, field_name="selector_values", owner=self.set_id)
         _reject_duplicate_values(self.network_refs, field_name="network_refs", owner=self.set_id)
         return self
@@ -317,7 +317,7 @@ class RuntimeNetworkDetectionOutputStream(SDLModel):
         return parse_optional_bool_or_var(v, field_name="enabled")
 
     @model_validator(mode="after")
-    def validate_unique_events(self) -> "RuntimeNetworkDetectionOutputStream":
+    def validate_unique_events(self) -> RuntimeNetworkDetectionOutputStream:
         _reject_duplicate_values(self.event_types, field_name="event_types", owner=self.stream_id)
         return self
 
@@ -367,7 +367,7 @@ class RuntimeNetworkDetectionControlChannel(SDLModel):
         return parse_optional_bool_or_var(v, field_name="auth_required")
 
     @model_validator(mode="after")
-    def validate_unique_capabilities(self) -> "RuntimeNetworkDetectionControlChannel":
+    def validate_unique_capabilities(self) -> RuntimeNetworkDetectionControlChannel:
         _reject_duplicate_values(self.capabilities, field_name="capabilities", owner=self.channel_id)
         return self
 
@@ -432,7 +432,7 @@ class RuntimeNetworkDetectionEngine(SDLModel):
         return values
 
     @model_validator(mode="after")
-    def validate_engine(self) -> "RuntimeNetworkDetectionEngine":
+    def validate_engine(self) -> RuntimeNetworkDetectionEngine:
         _reject_duplicate_values(
             self.app_layer_protocols, field_name="app_layer_protocols", owner=self.network_detection_engine_id
         )

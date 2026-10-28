@@ -52,7 +52,7 @@ class RuntimeDescendantBinding(ContractModel):
     lifecycle: RuntimeInventoryEvidence | None = None
 
     @model_validator(mode="after")
-    def _require_lifecycle_evidence(self) -> "RuntimeDescendantBinding":
+    def _require_lifecycle_evidence(self) -> RuntimeDescendantBinding:
         if self.address in {self.parent_address, self.source_address}:
             raise ValueError("descendant cannot be its own causal ancestor")
         if (self.state == "active") != (self.lifecycle is None):
@@ -86,7 +86,7 @@ class RuntimeInventoryReport(ContractModel):
     backend_selections: tuple[RuntimeConcernSelection, ...] = Field(default=(), max_length=INVENTORY_MAX_MEMBERS)
 
     @model_validator(mode="after")
-    def _require_unique_identities(self) -> "RuntimeInventoryReport":
+    def _require_unique_identities(self) -> RuntimeInventoryReport:
         for identities in (
             [entry.address for entry in self.descendants],
             [entry.native_identity_digest for entry in self.descendants],

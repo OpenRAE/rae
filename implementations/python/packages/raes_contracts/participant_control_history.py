@@ -35,7 +35,7 @@ def _participant_history_violations(
     for index, payload in enumerate(events):
         try:
             event = parse_participant_control_occurrence(payload)
-        except (TypeError, ValueError, ValidationError):
+        except TypeError, ValueError, ValidationError:
             violations.append((address, "participant control history event is not a valid API-409 occurrence"))
             continue
         if event.participant_address != participant_address:

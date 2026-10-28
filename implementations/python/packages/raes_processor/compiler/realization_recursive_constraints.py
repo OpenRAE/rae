@@ -380,7 +380,7 @@ def compile_recursive_realization_constraint(
         if built.status is not RealizationRelationStatus.CONFORMANT:
             raise ValueError("recursive normalization could not preserve the source authority")
         document = bind_scalar_set_choices(built.document)
-    except (TypeError, ValueError, KeyError):
+    except TypeError, ValueError, KeyError:
         return None, True, False
     return document, False, any(scope.closure.posture.value == "open" for scope in metadata.scopes)
 

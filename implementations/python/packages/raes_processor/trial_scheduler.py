@@ -26,7 +26,6 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from typing import TypeVar
 
 from raes_contracts.admitted_trial_plan_ingress import revalidate_admitted_trial_plan
 from raes_contracts.contracts import (
@@ -40,8 +39,6 @@ from raes_contracts.contracts.trial_coordinate_order import (
     canonical_entry_order,
     scheduling_policy_id,
 )
-
-_T = TypeVar("_T")
 
 
 @dataclass(frozen=True)
@@ -135,7 +132,7 @@ def plan_batch_schedule(plan: AdmittedTrialPlanModel) -> BatchSchedule:
     )
 
 
-def dispatch_batch_schedule(schedule: BatchSchedule, *, realize: Callable[[str], _T]) -> list[_T]:
+def dispatch_batch_schedule[T](schedule: BatchSchedule, *, realize: Callable[[str], T]) -> list[T]:
     """Commit dispatch decisions in canonical order over the one-entry seam.
 
     One serialized coordinator calls ``realize`` once per scheduled entry, in

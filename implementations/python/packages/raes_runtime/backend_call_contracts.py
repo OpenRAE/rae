@@ -55,7 +55,7 @@ def _diagnostics_values_violation(diagnostics: list[object], address: str) -> st
         try:
             for diagnostic in diagnostics:
                 portable_diagnostic_payload(diagnostic)
-        except (AttributeError, TypeError, ValueError):
+        except AttributeError, TypeError, ValueError:
             message = "Backend returned invalid diagnostic fields."
     return message
 
@@ -98,7 +98,7 @@ def _materialization_submission_violation(result: ApplyResult) -> str | None:
         return None
     try:
         result.materialization_attestation = _bounded_materialization_submission(submission)
-    except (AttributeError, TypeError, ValueError):
+    except AttributeError, TypeError, ValueError:
         return "Backend returned an invalid or excessive materialization submission."
     return None
 

@@ -419,7 +419,7 @@ class _VariationMixin:
                 member = self._scenario.model_copy(update={owner_section: section, "variation_points": {}})
                 type(self)(member, session=self._session).validate()
                 valid = True
-        except (ValidationError, SDLValidationError):
+        except ValidationError, SDLValidationError:
             valid = False
         return valid
 

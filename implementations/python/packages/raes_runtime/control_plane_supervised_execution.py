@@ -37,6 +37,7 @@ if TYPE_CHECKING:
 
     from .control_plane import RuntimeControlPlane
     from .control_plane_execution import OperationExecutionRequest
+    from .observation_results import PreparedObservationExecution
 
 
 def invocation_request(
@@ -208,7 +209,7 @@ def commit_settlement(
     if result is not None:
         if str(plane._snapshot_state.revision) != record.invocation.request.binding.baseline_revision:
             state, result, release_commitment = OperationState.INDETERMINATE, None, None
-        else:
+        elif result.success or result.snapshot != snapshot:
             snapshot, mode = result.snapshot, TerminalCommitMode.SNAPSHOT_BEARING
     released = not current.invocation.consumed or release_commitment is not None
     final = replace(
@@ -255,7 +256,7 @@ def execute_supervised_operation(plane: RuntimeControlPlane, request: OperationE
                 ],
             )
         else:
-            if getattr(plane._target, "operation_provider", None) is not None:
+            if request.local_executor is None and getattr(plane._target, "operation_provider", None) is not None:
                 from .operation_provider_execution import execute_provider_operation
 
                 receipt = execute_provider_operation(plane, request)
@@ -387,7 +388,77 @@ def _complete_native_invocation(
     diagnostics: list[Diagnostic],
     remaining: Callable[[], int],
 ) -> None:
+    if request.local_executor is not None:
+        with plane._mutation_authority.external_call():
+            result, observation = plane._execution_adapter.call(
+                "effect",
+                request.local_executor,
+                snapshot,
+                record.receipt.operation_id,
+                record.invocation.request.binding.attempt_id,
+                timeout_ms=remaining(),
+            )
+    else:
+        result, observation = _invoke_plan_phase(plane, request, record, snapshot, remaining)
+    if record.invocation.request.command.digest != native_command_commitment(plane, request.plan):
+        raise ValueError("admitted native command changed before finalization")
+    if result.success:
+        settle(
+            plane,
+            record,
+            OperationState.SUCCEEDED,
+            result=result,
+            diagnostics=[*diagnostics, *result.diagnostics],
+            release_commitment=canonical_json_digest(_snapshot_payload(result.snapshot)),
+            result_payload=None if observation is None else observation.result_payload,
+        )
+    else:
+        settle(
+            plane,
+            record,
+            OperationState.INDETERMINATE,
+            result=result,
+            diagnostics=[*diagnostics, *result.diagnostics],
+            result_payload=None if observation is None else observation.result_payload,
+        )
+    if request.result_sink is not None:
+        request.result_sink(result)
+
+
+def _invoke_plan_phase(
+    plane: RuntimeControlPlane,
+    request: OperationExecutionRequest,
+    record: ControlPlaneOperationRecord,
+    snapshot: RuntimeSnapshot,
+    remaining: Callable[[], int],
+) -> tuple[ApplyResult, PreparedObservationExecution | None]:
+    from .backend_calls import _BackendCallContext, _call_backend_apply
+
+    realization = request.realization or (
+        _RealizationApplyContext(plan=request.plan, manifest=plane._target.manifest)
+        if isinstance(request.plan, ProvisioningPlan)
+        else None
+    )
     with plane._mutation_authority.external_call():
+        if not request.execute_observation:
+            result = plane._execution_adapter.call(
+                "effect",
+                _call_backend_apply,
+                request.method,
+                request.plan,
+                snapshot,
+                timeout_ms=remaining(),
+                address=request.address,
+                snapshot=snapshot,
+                realization=realization,
+                call=_BackendCallContext(
+                    materialization_archive=plane._materialization_archive,
+                    operation_id=record.receipt.operation_id,
+                    attempt_id=record.invocation.request.binding.attempt_id,
+                    information_state_context_resolver=plane._information_state_context_resolver,
+                ),
+            )
+            return result, None
         result, observation = plane._execution_adapter.call(
             "effect",
             _call_backend_apply_with_observation,
@@ -406,25 +477,10 @@ def _complete_native_invocation(
                 operation_id=record.receipt.operation_id,
                 attempt_id=record.invocation.request.binding.attempt_id,
             ),
-            realization=_RealizationApplyContext(plan=request.plan, manifest=plane._target.manifest)
-            if isinstance(request.plan, ProvisioningPlan)
-            else None,
+            realization=realization,
             information_state_context_resolver=plane._information_state_context_resolver,
         )
-    if record.invocation.request.command.digest != native_command_commitment(plane, request.plan):
-        raise ValueError("admitted native command changed before finalization")
-    if result.success:
-        settle(
-            plane,
-            record,
-            OperationState.SUCCEEDED,
-            result=result,
-            diagnostics=[*diagnostics, *result.diagnostics],
-            release_commitment=canonical_json_digest(_snapshot_payload(result.snapshot)),
-            result_payload=None if observation is None else observation.result_payload,
-        )
-    else:
-        settle(plane, record, OperationState.INDETERMINATE, diagnostics=[*diagnostics, *result.diagnostics])
+    return result, observation
 
 
 __all__ = ("execute_supervised_operation", "invocation_request", "settle")

@@ -41,9 +41,6 @@
       ],
       "supported_artifact_ids": [
         "conftest",
-        "cpython-3.11",
-        "cpython-3.12",
-        "cpython-3.13",
         "cpython-3.14",
         "cpython-3.14t",
         "devcontainer-base-image",
@@ -200,52 +197,7 @@
   ],
   "python_closure_profiles": [
     {
-      "python_closure_profile_id": "public-linux-x86_64-cp311-all-extras",
-      "owner_roles": [
-        "Maintainer"
-      ],
-      "purposes": [
-        "tool",
-        "build",
-        "wheel-smoke",
-        "sdist-smoke",
-        "compatibility"
-      ],
-      "host_profile_id": "public-ubuntu-24.04-x86_64",
-      "python": {
-        "implementation": "cpython",
-        "version": "3.11",
-        "abi": "cp311",
-        "platform": "x86_64-unknown-linux-gnu"
-      },
-      "project_extras": [
-        "dev",
-        "docs",
-        "distributed"
-      ],
-      "tool_groups": [
-        "default",
-        "build"
-      ],
-      "acquisition_context_ids": [
-        "python-public"
-      ],
-      "project_lock": "implementations/python/uv.lock",
-      "tool_lock": "implementations/tooling/python/uv.lock",
-      "build_constraints": "implementations/tooling/python/build-constraints.txt",
-      "smoke_requirements": "implementations/tooling/python/smoke/linux-x86_64-cp311.txt",
-      "wheelhouse_manifest": "implementations/tooling/python/smoke/linux-x86_64-cp311.wheelhouse-manifest.json",
-      "source_build_disposition": "wheels-only",
-      "test_case_ids": [
-        "T03",
-        "T10",
-        "T11",
-        "T13",
-        "T23"
-      ]
-    },
-    {
-      "python_closure_profile_id": "public-linux-x86_64-cp312-all-extras",
+      "python_closure_profile_id": "public-linux-x86_64-cp314-all-extras",
       "owner_roles": [
         "Maintainer"
       ],
@@ -256,96 +208,6 @@
         "sdist-smoke",
         "compatibility",
         "docs"
-      ],
-      "host_profile_id": "public-ubuntu-24.04-x86_64",
-      "python": {
-        "implementation": "cpython",
-        "version": "3.12",
-        "abi": "cp312",
-        "platform": "x86_64-unknown-linux-gnu"
-      },
-      "project_extras": [
-        "dev",
-        "docs",
-        "distributed"
-      ],
-      "tool_groups": [
-        "default",
-        "build"
-      ],
-      "acquisition_context_ids": [
-        "python-public"
-      ],
-      "project_lock": "implementations/python/uv.lock",
-      "tool_lock": "implementations/tooling/python/uv.lock",
-      "build_constraints": "implementations/tooling/python/build-constraints.txt",
-      "smoke_requirements": "implementations/tooling/python/smoke/linux-x86_64-cp312.txt",
-      "wheelhouse_manifest": "implementations/tooling/python/smoke/linux-x86_64-cp312.wheelhouse-manifest.json",
-      "source_build_disposition": "wheels-only",
-      "test_case_ids": [
-        "T03",
-        "T10",
-        "T11",
-        "T13",
-        "T23"
-      ]
-    },
-    {
-      "python_closure_profile_id": "public-linux-x86_64-cp313-all-extras",
-      "owner_roles": [
-        "Maintainer"
-      ],
-      "purposes": [
-        "tool",
-        "build",
-        "wheel-smoke",
-        "sdist-smoke",
-        "compatibility"
-      ],
-      "host_profile_id": "public-ubuntu-24.04-x86_64",
-      "python": {
-        "implementation": "cpython",
-        "version": "3.13",
-        "abi": "cp313",
-        "platform": "x86_64-unknown-linux-gnu"
-      },
-      "project_extras": [
-        "dev",
-        "docs",
-        "distributed"
-      ],
-      "tool_groups": [
-        "default",
-        "build"
-      ],
-      "acquisition_context_ids": [
-        "python-public"
-      ],
-      "project_lock": "implementations/python/uv.lock",
-      "tool_lock": "implementations/tooling/python/uv.lock",
-      "build_constraints": "implementations/tooling/python/build-constraints.txt",
-      "smoke_requirements": "implementations/tooling/python/smoke/linux-x86_64-cp313.txt",
-      "wheelhouse_manifest": "implementations/tooling/python/smoke/linux-x86_64-cp313.wheelhouse-manifest.json",
-      "source_build_disposition": "wheels-only",
-      "test_case_ids": [
-        "T03",
-        "T10",
-        "T11",
-        "T13",
-        "T23"
-      ]
-    },
-    {
-      "python_closure_profile_id": "public-linux-x86_64-cp314-all-extras",
-      "owner_roles": [
-        "Maintainer"
-      ],
-      "purposes": [
-        "tool",
-        "build",
-        "wheel-smoke",
-        "sdist-smoke",
-        "compatibility"
       ],
       "host_profile_id": "public-ubuntu-24.04-x86_64",
       "python": {
@@ -490,9 +352,6 @@
       "credential_refs": [],
       "bootstrap_payload_ids": [
         "conftest",
-        "cpython-3.11",
-        "cpython-3.12",
-        "cpython-3.13",
         "cpython-3.14",
         "gitleaks",
         "osv-scanner",
@@ -646,7 +505,7 @@
       ],
       "credential_refs": [],
       "bootstrap_payload_ids": [
-        "cpython-3.12",
+        "cpython-3.14",
         "isabelle",
         "uv"
       ],

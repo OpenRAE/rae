@@ -338,7 +338,7 @@ def _submitted_operation_diagnostic(
         )
 
     dependencies = {*operation.ordering_dependencies, *operation.refresh_dependencies}
-    if diagnostic is None and dependencies - admitted:
+    if diagnostic is None and operation.action is not ChangeAction.DELETE and dependencies - admitted:
         diagnostic = Diagnostic(
             code="runtime.plan-dependency-unresolved",
             domain="runtime",

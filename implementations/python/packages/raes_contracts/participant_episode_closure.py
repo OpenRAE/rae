@@ -309,7 +309,7 @@ def _address_terminal_reasons(
             continue
         try:
             normalized = ParticipantEpisodeHistoryEvent.from_payload(event)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             continue
         if (
             normalized.participant_address == outer_key

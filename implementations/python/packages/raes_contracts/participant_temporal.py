@@ -50,7 +50,7 @@ def assess_temporal_guarantee(
 
 def _context_clock(
     context: ParticipantTemporalExecutionContextModel,
-    event: "ParticipantBehaviorHistoryEventModel",
+    event: ParticipantBehaviorHistoryEventModel,
     clocks: Mapping[str, RuntimeClockStateModel],
 ) -> RuntimeClockStateModel:
     binding = context.binding
@@ -74,7 +74,7 @@ def _context_clock(
 
 
 def _require_temporal_assessment(
-    event: "ParticipantBehaviorHistoryEventModel",
+    event: ParticipantBehaviorHistoryEventModel,
     context: ParticipantTemporalExecutionContextModel,
     assessment: ParticipantTemporalAssessmentModel,
     clock: RuntimeClockStateModel,
@@ -98,7 +98,7 @@ def _require_temporal_assessment(
 
 
 def _require_native_temporal_evidence(
-    event: "ParticipantBehaviorHistoryEventModel",
+    event: ParticipantBehaviorHistoryEventModel,
     context: ParticipantTemporalExecutionContextModel,
     assessment: ParticipantTemporalAssessmentModel,
 ) -> None:
@@ -139,8 +139,8 @@ def _assessment_clock(
 
 
 def _require_temporal_event(
-    event: "ParticipantBehaviorHistoryEventModel",
-    attempt: "ParticipantBehaviorHistoryEventModel | None",
+    event: ParticipantBehaviorHistoryEventModel,
+    attempt: ParticipantBehaviorHistoryEventModel | None,
     clocks: Mapping[str, RuntimeClockStateModel],
 ) -> None:
     if attempt is None or event.temporal_contexts != attempt.temporal_contexts:
@@ -156,8 +156,8 @@ def _require_temporal_event(
 
 
 def _require_terminal_assessments(
-    event: "ParticipantBehaviorHistoryEventModel",
-    attempt: "ParticipantBehaviorHistoryEventModel",
+    event: ParticipantBehaviorHistoryEventModel,
+    attempt: ParticipantBehaviorHistoryEventModel,
     contexts: Sequence[ParticipantTemporalExecutionContextModel],
     clocks: Mapping[str, RuntimeClockStateModel],
 ) -> None:

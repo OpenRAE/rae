@@ -145,6 +145,10 @@ policy choices, recovery and composition limits.
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_issue_972_runtime_mapping.py` (V2 callback-output rejection preserves a safe caller and durable diagnostic)
+- TESTS → TEST `implementations/python/tests/test_issue_301_participant_tool_profiles.py` (Bound action constraints retain refusal with the fixed safe v2 diagnostic)
+- IMPLEMENTS → GITHUB_ISSUE `972` (Safe v2 callback-output rejection during runtime crossing mapping)
+
 - TESTS → TEST `implementations/python/tests/test_issue_1372_review_regressions.py` (C1/C2 original mixed absence authority, linked-resolution quiescence and optional-read timeout isolation)
 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_backend_invocation.py` (C1/C2 original mixed invocation authority, bounded calls and retained readback facts)
@@ -242,7 +246,7 @@ policy choices, recovery and composition limits.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/runtime_state.py` (Public changed-address validation reused by recovery observations)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/registry.py` (Exact recovery manifest/component presence and signature validation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/registry_target_validation.py` (Focused optional-component and recovery-observer target validation)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager.py` (Recovery-observer composition through registered runtime targets)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/interaction_dispatch.py` (Recovery-observer composition through registered runtime targets)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_recovery.py` (Runtime-owned startup classification, atomic terminalization, quarantine, and linked resolution)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_auth.py` (Operator-only HTTP resolution authorization)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_operation_routes.py` (Redacted linked-resolution HTTP endpoint)
@@ -413,6 +417,7 @@ policy choices, recovery and composition limits.
 - DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-a566be978d1c4991f1cba201477c741e49ef98cca9bb6298de1509873538c337/manifest.json` (Fresh bounded source-bound witness; retained research claim limits)
 - DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-89feff1317c49aebbc096e7f8cb0a4e2235ea10ae386d15f47e33851b28a742e/manifest.json` (Fresh bounded witness after inject contract refactoring; retained research claim limits)
 - DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-7f7166d1912b9a05d105277585776c5e773b17446e0cd8b582a33c079d016eb7/manifest.json` (Fresh bounded witness after inject contract refactoring; retained research claim limits)
+- TESTS → TEST `implementations/python/tests/test_issue_1660_runtime_lifetime.py` (One lifetime owner, actor-scoped retries, durable reopening and uncertain-effect exclusion)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_changes.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_history_rows.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_local_cache.py`

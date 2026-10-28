@@ -79,27 +79,41 @@ _TYPES = (
     "connects_to",
 )
 _ROWS = [(name, None) for name in _TYPES] + [(None, field) for field in sorted(DETAILS)]
+_CANDIDATE_PARTITIONS = 4
 
 
-@pytest.mark.parametrize("side", ["source", "target"])
-@pytest.mark.parametrize(("relationship_type", "detail"), _ROWS, ids=lambda value: value or "-")
-def test_typed_endpoint_completion_narrows_eligible_declarations_without_adding_semantic_failures(
-    relationship_type: str | None, detail: str | None, side: str
-) -> None:
+@pytest.fixture(
+    scope="module",
+    params=[
+        pytest.param((kind, detail, side), id=f"{kind or '-'}-{detail or '-'}-{side}")
+        for kind, detail in _ROWS
+        for side in ("source", "target")
+    ],
+)
+def endpoint_completion_case(request: pytest.FixtureRequest):
+    """Share the complete fixture, completion result and semantic baseline."""
+    relationship_type, detail, side = request.param
     relationship = typed(relationship_type, source="dc", target="corp") if relationship_type else _twin(detail)
     purposes = relationship_endpoint_purposes(relationship, side)
     complete = _with(relationship)
     index = build_declaration_index(structural(complete))
-
     result = _completions(complete, side)
+    return complete, index, result, purposes, _semantic_errors(complete), side
 
+
+@pytest.mark.parametrize("candidate_partition", range(_CANDIDATE_PARTITIONS))
+def test_typed_endpoint_completion_narrows_eligible_declarations_without_adding_semantic_failures(
+    endpoint_completion_case, candidate_partition: int
+) -> None:
+    complete, index, result, purposes, baseline, side = endpoint_completion_case
     eligible = {
         declaration.address for declaration in index.declarations if policy.declaration_eligible(declaration, purposes)
     }
     assert {declaration.address for _spelling, declaration in index.reference_completions(purposes)} == eligible
     assert {item["detail"] for item in result["items"]}.issubset(eligible)
-    baseline = _semantic_errors(complete)
-    for item in result["items"]:
+    # Every suggestion still receives full validation; independent partitions
+    # keep the largest fixture's 140 candidates within the per-case timeout.
+    for item in result["items"][candidate_partition::_CANDIDATE_PARTITIONS]:
         candidate = deepcopy(complete)
         candidate["relationships"]["probe"][side] = item["label"]
         errors = _semantic_errors(candidate)

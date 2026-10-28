@@ -99,7 +99,7 @@ class RuntimeSoftwareComponent(SDLModel):
         return [require_symbol(value, field_name="repository_refs") for value in values]
 
     @model_validator(mode="after")
-    def validate_version_constraints(self) -> "RuntimeSoftwareComponent":
+    def validate_version_constraints(self) -> RuntimeSoftwareComponent:
         identities = [item.refinement_id for item in self.refinements]
         if len(set(identities)) != len(identities):
             raise ValueError("Duplicate software refinement identity")

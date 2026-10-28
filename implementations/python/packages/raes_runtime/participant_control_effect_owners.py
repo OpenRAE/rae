@@ -267,7 +267,7 @@ def _supports_control_operation(
     try:
         specification = _specification_for_participant(plane, context.participant_address, principal)
         transition = _transition_for_intent(specification, operation.intent, principal)
-    except (ValueError, PermissionError):
+    except ValueError, PermissionError:
         return False
     if request.target.kind == "interrupt":
         supported = plane._mixed_control is not None

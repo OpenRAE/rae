@@ -2157,18 +2157,17 @@ def test_oci_bundle_extracts_safe_members(tmp_path: Path):
     assert root_path.resolve().is_relative_to(cache.resolve())
 
 
-def test_oci_bundle_without_data_filter_fails_closed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    # Simulate Python 3.11.0–3.11.3, where TarFile.extractall lacks the PEP 706
-    # `filter` keyword (backported in 3.11.4). There is deliberately no unsafe
-    # compatibility fallback at this filesystem-write boundary.
+def test_oci_bundle_extraction_always_uses_the_data_filter(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    # The filesystem-write boundary must never extract without the PEP 706
+    # `data` filter.
+    filters: list[object] = []
+    original_extractall = tarfile.TarFile.extractall
 
-    def no_filter_extractall(self, path=None, members=None, **kwargs):
-        del self, path, members
-        if "filter" in kwargs:
-            raise TypeError("extractall() got an unexpected keyword argument 'filter'")
-        pytest.fail("unfiltered extraction must never be attempted")
+    def recording_extractall(self, path=".", members=None, **kwargs):
+        filters.append(kwargs.get("filter"))
+        return original_extractall(self, path, members, **kwargs)
 
-    monkeypatch.setattr(tarfile.TarFile, "extractall", no_filter_extractall)
+    monkeypatch.setattr(tarfile.TarFile, "extractall", recording_extractall)
 
     payload = b"name: ok\n"
     bundle_buffer = io.BytesIO()
@@ -2176,18 +2175,16 @@ def test_oci_bundle_without_data_filter_fails_closed(tmp_path: Path, monkeypatch
         member = tarfile.TarInfo(name="module.yaml")
         member.size = len(payload)
         tar.addfile(member, io.BytesIO(payload))
-    bundle_buffer.seek(0)
-    bundle_bytes = bundle_buffer.getvalue()
 
-    with pytest.raises(SDLParseError, match="Python 3.11.4 or newer"):
-        module_registry._extract_bundle_to_cache(
-            bundle_bytes=bundle_bytes,
-            manifest_digest="cafef00d",
-            root_file="module.yaml",
-            base_dir=tmp_path,
-        )
-    versions = module_registry._oci_cache_dir(tmp_path) / "cafef00d" / "versions"
-    assert not list(versions.iterdir())
+    root_path = module_registry._extract_bundle_to_cache(
+        bundle_bytes=bundle_buffer.getvalue(),
+        manifest_digest="cafef00d",
+        root_file="module.yaml",
+        base_dir=tmp_path,
+    )
+
+    assert filters == ["data"]
+    assert root_path.read_bytes() == payload
 
 
 def test_oci_bundle_fallback_rejects_traversal(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):

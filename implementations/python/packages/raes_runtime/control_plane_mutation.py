@@ -9,12 +9,9 @@ from contextlib import asynccontextmanager, contextmanager, nullcontext
 from contextvars import ContextVar
 from dataclasses import dataclass
 from threading import Condition, Lock, get_ident, local
-from typing import Concatenate, ParamSpec, TypeVar
+from typing import Concatenate
 
 from raes_contracts.runtime_state import OperationKind
-
-_P = ParamSpec("_P")
-_R = TypeVar("_R")
 
 _BACKEND_REENTRY_ERROR = "backend callback cannot start a control-plane mutation"
 
@@ -299,14 +296,14 @@ class SubordinateMutationGate:
         return None
 
 
-def mutation_entry(
+def mutation_entry[R, **P](
     kind: OperationKind,
-) -> Callable[[Callable[Concatenate[object, _P], _R]], Callable[Concatenate[object, _P], _R]]:
+) -> Callable[[Callable[Concatenate[object, P], R]], Callable[Concatenate[object, P], R]]:
     """Mark a public entry whose accepted phase acquires the shared authority."""
 
     def decorate(
-        method: Callable[Concatenate[object, _P], _R],
-    ) -> Callable[Concatenate[object, _P], _R]:
+        method: Callable[Concatenate[object, P], R],
+    ) -> Callable[Concatenate[object, P], R]:
         method.__mutation_authorized__ = kind  # type: ignore[attr-defined]
         return method
 

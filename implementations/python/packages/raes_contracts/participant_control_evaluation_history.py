@@ -66,7 +66,7 @@ def _validated(
 ) -> ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model | None:
     try:
         return participant_control_evaluation_from_payload(payload)
-    except (TypeError, ValidationError, ValueError):
+    except TypeError, ValidationError, ValueError:
         # Bounded and value-independent: a rejected record never enters evidence.
         violations.append((address, "participant control evaluation record is not a valid API-424 evaluation"))
         return None

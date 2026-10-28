@@ -337,7 +337,7 @@ def load_behavioral_relation_catalog_revision(
     if path is not None:
         try:
             catalog = BehavioralRelationCatalogModel.model_validate_json(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
+        except OSError, ValueError:
             raise ValueError("historical behavioral relation catalog is invalid") from None
         if catalog.taxonomy_revision != taxonomy_revision:
             raise ValueError("historical behavioral relation catalog revision does not match its registry entry")

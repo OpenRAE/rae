@@ -134,7 +134,7 @@ class RuntimeDatastoreNode(SDLModel):
         return parse_optional_bool_or_var(v, field_name="memory_locked")
 
     @model_validator(mode="after")
-    def validate_node(self) -> "RuntimeDatastoreNode":
+    def validate_node(self) -> RuntimeDatastoreNode:
         _reject_duplicate_values(self.roles, field_name="roles", owner=self.node_id)
         _reject_duplicate_values(
             [plugin.plugin_id for plugin in self.plugins], field_name="plugin_id", owner=self.node_id

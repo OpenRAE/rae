@@ -66,6 +66,6 @@ def _verify_signatures(
             key = Ed25519PublicKey.from_public_bytes(_public_key_bytes(public_key))
             key.verify(base64.b64decode(signature_b64.encode("utf-8")), payload)
             return signer_id
-        except (InvalidSignature, ValueError):
+        except InvalidSignature, ValueError:
             continue
     raise SDLParseError("No valid trusted signer signature found for OCI module")

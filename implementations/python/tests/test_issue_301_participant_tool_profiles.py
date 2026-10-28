@@ -176,7 +176,7 @@ def test_invocation_constraints_come_from_the_bound_action_contract(
     receipt = admit_selection(episode, surface, action, {"rate": rate})
 
     assert receipt.accepted is accepted
-    rejected = ["participant decision surface argument-shape resolution failed"]
+    rejected = ["Participant decision surface binding could not be validated."]
     assert [diagnostic.message for diagnostic in receipt.diagnostics] == ([] if accepted else rejected)
 
 

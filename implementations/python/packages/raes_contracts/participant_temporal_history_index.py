@@ -28,7 +28,7 @@ class TemporalRecordIndex:
         try:
             explicit = explicit_temporal_record(record)
             records = self.by_action.get(key, HashTrieMap()).insert(position, record)
-        except (TypeError, AttributeError):
+        except TypeError, AttributeError:
             # Malformed public input must still meet the exhaustive validator.
             return TemporalRecordIndex(self.by_action, self.explicit_actions, False)
         return TemporalRecordIndex(
