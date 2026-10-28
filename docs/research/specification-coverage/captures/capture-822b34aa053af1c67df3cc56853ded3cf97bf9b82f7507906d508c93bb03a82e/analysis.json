@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-10-28T17:21:42.794870+00:00",
+  "generated_at": "2026-10-28T17:55:14.767717+00:00",
   "limitations": [
     "This is bounded specification coverage, not universal range coverage, usability, adoption, backend substitution or behavioral equivalence.",
     "The retained protocol does not test recursive realization, plan allocation or live participant configuration.",
@@ -88,5 +88,5 @@
     }
   ],
   "snapshot_id": "issue-1017-mixed-conformance-replay",
-  "snapshot_sha256": "ecdace4eecd818795c664cb80277c7ad9fc19ec61ebc379f5bcf750857593c51"
+  "snapshot_sha256": "cbe622a4474ac916b878ad11314245e0ec4c49e580f479cfdcc4e717663c882d"
 }

@@ -175,36 +175,52 @@ def _case_result(case: MixedBackendCase, verdict: Verdict, environment: str, set
 
 def _composition_case(harness: object, case: MixedBackendCase) -> Verdict:
     request = MixedBackendProbeRequest(case.case_id, case.subject, nonce())
+    started = _start_composition(harness, case, request)
+    if isinstance(started, Verdict):
+        return started
+    if case.binding_variant is not None:
+        _binding_variant(harness, started, request)
+    elif case.time_variant == "nominal" or _adopt_requested_cut(harness, started, request):
+        _execute(harness, started, request)
+    return composition_verdict(started)
+
+
+def _start_composition(
+    harness: object,
+    case: MixedBackendCase,
+    request: MixedBackendProbeRequest,
+) -> CompositionRun | Verdict:
+    """Accept only configuration with installed portable services and complete baseline inputs."""
+
     configuration = harness.composition(request)
+    installation = None
+    if configuration is not None:
+        installation = probed_installation(configuration.binding, case.subject.value, configuration.obligation_id)
     if configuration is None:
-        return unsupported(_UNAVAILABLE, case.case_id, "The harness supplied no configuration.")
-    installation = probed_installation(configuration.binding, case.subject.value, configuration.obligation_id)
-    if installation is None:
-        return unsupported(
+        verdict = unsupported(_UNAVAILABLE, case.case_id, "The harness supplied no configuration.")
+    elif installation is None:
+        verdict = unsupported(
             "conformance.mixed-portable-installation-missing",
             case.case_id,
             "No installed portable services bind the probed obligation; a declaration does not establish execution.",
         )
-    missing = _missing_inputs(configuration, case.subject)
-    if missing:
-        return Verdict("failed", failures=tuple(missing))
-    run = CompositionRun(case, configuration, installation)
-    if case.binding_variant is not None:
-        _binding_variant(harness, run, request)
-        return composition_verdict(run)
-    if case.time_variant != "nominal":
-        requested = _requested_cut(harness, run, request)
-        installation = (
-            None
-            if requested is None
-            else probed_installation(requested.binding, case.subject.value, requested.obligation_id)
-        )
-        if installation is None:
-            run.unrealized = "The harness did not supply the requested time cut."
-            return composition_verdict(run)
-        run.configuration, run.installation = requested, installation
-    _execute(harness, run, request)
-    return composition_verdict(run)
+    elif missing := _missing_inputs(configuration, case.subject):
+        verdict = Verdict("failed", failures=tuple(missing))
+    else:
+        return CompositionRun(case, configuration, installation)
+    return verdict
+
+
+def _adopt_requested_cut(harness: object, run: CompositionRun, request: MixedBackendProbeRequest) -> bool:
+    requested = _requested_cut(harness, run, request)
+    installation = None
+    if requested is not None:
+        installation = probed_installation(requested.binding, run.case.subject.value, requested.obligation_id)
+    if installation is None:
+        run.unrealized = "The harness did not supply the requested time cut."
+        return False
+    run.configuration, run.installation = requested, installation
+    return True
 
 
 def _missing_inputs(configuration: MixedCompositionProbeConfiguration, subject: MixedBackendSubject) -> list[str]:

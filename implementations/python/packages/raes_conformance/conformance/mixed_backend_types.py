@@ -16,6 +16,7 @@ from enum import StrEnum
 from typing import Protocol
 
 from pydantic_core import to_jsonable_python
+from raes_contracts.canonical import jsonable_fallback
 from raes_contracts.contracts.time_model import TimeRuntimeStateModel
 from raes_runtime.registry import RuntimeTarget
 
@@ -197,7 +198,7 @@ def mixed_case_binding_payload(binding: MixedBackendCaseBinding | None) -> dict[
 
     if binding is None:
         return None
-    return to_jsonable_python(binding)
+    return to_jsonable_python(binding, fallback=jsonable_fallback)
 
 
 def require_environment_digest(value: object) -> str:

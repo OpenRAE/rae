@@ -242,27 +242,31 @@ def read_operation(plane: object, store: object, receipt: object) -> OperationRe
         codes = tuple(item.code for item in getattr(receipt, "diagnostics", ()))
         return OperationRead(operation_id=operation_id, accepted=accepted, diagnostic_codes=codes)
     status = plane.get_operation(operation_id)
-    ledger = record.invocation
-    responses = () if ledger is None else tuple(_response_label(item.message) for item in ledger.responses)
-    outcome = (
-        None
-        if ledger is None
-        else next((item.message for item in reversed(ledger.responses) if item.message.kind == "outcome"), None)
-    )
     return OperationRead(
         operation_id=operation_id,
         accepted=accepted,
         state=status.state.value,
         diagnostic_codes=tuple(item.code for item in status.diagnostics),
-        reports=() if ledger is None else tuple(ledger.mixed_reports),
-        responses=responses,
-        reserved=None if ledger is None else ledger.reserved,
-        post_time=ledger is not None and ledger.mixed_post_time_state is not None,
-        residual=outcome is not None and outcome.effects.residual_state is not None,
-        invocation_id=None if ledger is None else ledger.request.binding.invocation_id,
-        request_command=None if ledger is None else ledger.request.command.digest,
-        request_backend=None if ledger is None else ledger.request.binding.backend_id,
+        **_ledger_facts(record.invocation),
     )
+
+
+def _ledger_facts(ledger: object | None) -> dict[str, object]:
+    """Read the retained invocation facts; a record without a ledger has none."""
+
+    if ledger is None:
+        return {}
+    outcome = next((item.message for item in reversed(ledger.responses) if item.message.kind == "outcome"), None)
+    return {
+        "reports": tuple(ledger.mixed_reports),
+        "responses": tuple(_response_label(item.message) for item in ledger.responses),
+        "reserved": ledger.reserved,
+        "post_time": ledger.mixed_post_time_state is not None,
+        "residual": outcome is not None and outcome.effects.residual_state is not None,
+        "invocation_id": ledger.request.binding.invocation_id,
+        "request_command": ledger.request.command.digest,
+        "request_backend": ledger.request.binding.backend_id,
+    }
 
 
 def _response_label(message: object) -> str:

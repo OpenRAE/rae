@@ -34,6 +34,9 @@ from raes_conformance.conformance.mixed_backend_types import (
 )
 
 _ADMISSION_REFUSED = "runtime.control-plane.backend-admission-refused"
+_GRANT = "coordinator.grant"
+_BRIDGE_START = "bridge.start_operation"
+_TRANSFER_START = "transfer.start_operation"
 
 
 @dataclass(frozen=True)
@@ -53,6 +56,16 @@ class Verdict:
     evidence_refs: tuple[str, ...] = ()
     limitations: tuple[str, ...] = ()
     cleanup_verified: bool | None = None
+
+
+def outcome_of(failures: Sequence[str], unrealized: bool) -> str:
+    """Rank an observed failure above an unrealized condition, and that above a pass."""
+
+    if failures:
+        return "failed"
+    if unrealized:
+        return "unsupported"
+    return "passed"
 
 
 def unsupported(code: str, address: str, message: str) -> Verdict:
@@ -135,36 +148,36 @@ def judge_edge(run: CompositionRun, facts: EdgeFacts) -> None:
         run.check(read.accepted is False, "a withdrawn backend did not refuse admission")
         run.check(_ADMISSION_REFUSED in read.diagnostic_codes, "the refusal is not the backend admission refusal")
         run.check(run.calls.get("bridge.check_operation", 0) >= 1, "the bridge was not asked for admission")
-        run.expect_calls({"coordinator.grant": 0, "bridge.start_operation": 0}, run.calls)
+        run.expect_calls({_GRANT: 0, _BRIDGE_START: 0}, run.calls)
         run.check(not kinds, "an audit-only refusal appended composition facts")
         return
     run.check(read.accepted is True, "the operation was not accepted")
     if case.time_variant != "nominal":
         run.check(read.stages() == ("time-grant",), f"retained stages {read.stages()}, not the grant alone")
         run.check(grant is not None and grant.comparison == "incomparable", "the coordinator did not refuse the order")
-        run.expect_calls({"coordinator.grant": 1, "bridge.start_operation": 0}, run.calls)
+        run.expect_calls({_GRANT: 1, _BRIDGE_START: 0}, run.calls)
     elif case.case_id == "edge-refused-after-time-grant":
         run.check(read.stages() == ("time-grant",), f"retained stages {read.stages()}, not the grant alone")
         run.check(run.calls.get("bridge.check_operation", 0) >= 2, "willingness was not checked again after the grant")
         run.check(read.reserved is False, "a cancelled pre-dispatch operation kept its reservation")
-        run.expect_calls({"coordinator.grant": 1, "bridge.start_operation": 0}, run.calls)
+        run.expect_calls({_GRANT: 1, _BRIDGE_START: 0}, run.calls)
     elif case.case_id == "edge-start-refused":
         run.check(read.stages() == ("time-grant",), f"retained stages {read.stages()}, not the grant alone")
         run.check("acknowledgement:refused" in read.responses, "no refused acknowledgement was retained")
         run.check(read.reserved is True, "a consumed grant released its reservation without evidence")
-        run.expect_calls({"coordinator.grant": 1, "bridge.start_operation": 1}, run.calls)
+        run.expect_calls({_GRANT: 1, _BRIDGE_START: 1}, run.calls)
     elif case.case_id == "edge-partial-execution":
         execution = read.stage("execution")
         run.check(execution is not None and execution.status in {"partial", "unknown"}, "partial execution was hidden")
         run.check(read.residual, "partial execution retained no residual state")
         run.check(read.reserved is True, "partial execution released its reservation")
-        run.expect_calls({"coordinator.grant": 1, "bridge.start_operation": 1}, run.calls)
+        run.expect_calls({_GRANT: 1, _BRIDGE_START: 1}, run.calls)
     elif case.case_id == "edge-missing-delivery":
         execution = read.stage("execution")
         run.check(read.stages() == ("time-grant", "execution"), f"retained stages {read.stages()}")
         run.check(execution is not None and execution.status == "succeeded", "execution was not retained")
         run.check(read.reserved is True, "unresolved delivery released its reservation")
-        run.expect_calls({"coordinator.grant": 1, "bridge.start_operation": 1}, run.calls)
+        run.expect_calls({_GRANT: 1, _BRIDGE_START: 1}, run.calls)
     else:
         _judge_execution(run, facts, kinds)
     if case.expected_state != "succeeded" and case.case_id != "edge-partial-execution":
@@ -190,23 +203,34 @@ def _judge_execution(run: CompositionRun, facts: EdgeFacts, kinds: list[str]) ->
         delivery is not None and delivery.destination_component_id == subject.owner_component_id,
         "delivery was not read back at the destination provider",
     )
+    _judge_request(run, read, subject)
+    _judge_allocation(run, facts, kinds)
+    _judge_chain(run, facts, subject)
+    run.check(facts.behavior_delta >= 1, "the native result reached no participant history")
+    run.check(facts.replay is not None and facts.replay.operation_id == read.operation_id, "replay was not exact")
+    run.check(_effect_calls(facts.replay_calls) == 0, "an exact replay called an installed service again")
+
+
+def _judge_request(run: CompositionRun, read: OperationRead, subject: object) -> None:
     run.check(read.post_time, "no post-invocation time readback was retained")
     run.check(read.reserved is False, "a settled operation kept its reservation")
     run.check(read.request_backend == subject.bridge.service_ref, "the request did not name the pinned bridge")
     run.check(read.request_command == binding_digest(run.declaration), "the request did not commit to the binding")
-    _judge_allocation(run, facts, kinds)
+
+
+def _judge_chain(run: CompositionRun, facts: EdgeFacts, subject: object) -> None:
     order = facts.order
-    labels = ("coordinator.grant", "bridge.start_operation", "bridge.stage_reports", "delivery-reader.read_stage")
+    labels = (_GRANT, _BRIDGE_START, "bridge.stage_reports", "delivery-reader.read_stage")
     positions = [_first(order, label) for label in labels]
     run.check(positions == sorted(positions) and positions[-1] < len(order), "stages ran out of chain order")
-    expected_calls = {label: 1 for label in labels}
+    expected_calls = dict.fromkeys(labels, 1)
     if subject.observation_reader is not None:
         expected_calls["observation-reader.read_stage"] = 1
     run.expect_calls(expected_calls, run.calls)
-    run.check(facts.behavior_delta >= 1, "the native result reached no participant history")
-    run.check(facts.replay is not None and facts.replay.operation_id == read.operation_id, "replay was not exact")
-    replayed = sum(count for label, count in facts.replay_calls.items() if label.rsplit(".", 1)[-1] in EFFECT_METHODS)
-    run.check(replayed == 0, "an exact replay called an installed service again")
+
+
+def _effect_calls(calls: Counter[str]) -> int:
+    return sum(count for label, count in calls.items() if label.rsplit(".", 1)[-1] in EFFECT_METHODS)
 
 
 def _judge_allocation(run: CompositionRun, facts: EdgeFacts, kinds: list[str]) -> None:
@@ -261,27 +285,31 @@ def judge_handoff(run: CompositionRun, attempts: Sequence[HandoffAttempt], repla
         expected = _handoff_expectation(run.case.case_id, index)
         _judge_transfer(run, attempt, expected, subject)
     if run.case.case_id == "handoff-repeated-transition" and len(attempts) == 3:
-        first, second, third = attempts
-        run.check(second.read.invocation_id != first.read.invocation_id, "a repeated attempt reused an invocation")
-        effects = sum(third.calls.get(label, 0) for label in ("coordinator.grant", "transfer.start_operation"))
-        run.check(effects == 0, "an attempt from a moved phase granted or transferred again")
-        transition = run.configuration.binding.profile.transitions[run.configuration.obligation_id]
-        run.check(third.before.get("phase_id") == transition.target_phase_id, "the phase did not move before")
-        run.check(
-            third.read.refusal_type is not None and issubclass(third.read.refusal_type, NewClaimRejected),
-            "an attempt from a moved phase was not refused by the current-state claim boundary",
-        )
-        run.check(third.after == third.before, "an attempt from a moved phase changed the cut")
+        _judge_repeated(run, *attempts)
     if replay is not None:
         committed = next((a for a in attempts if a.read.state == "succeeded"), None)
         run.check(
             committed is not None and replay.read.operation_id == committed.read.operation_id, "replay was not exact"
         )
-        replayed = sum(n for label, n in replay.calls.items() if label.rsplit(".", 1)[-1] in EFFECT_METHODS)
-        run.check(replayed == 0, "an exact replay called an installed service again")
+        run.check(_effect_calls(replay.calls) == 0, "an exact replay called an installed service again")
     run.read = next((a.read for a in attempts if a.read.state == run.case.expected_state), attempts[-1].read)
     starts = 2 if len(attempts) == 3 else 1
-    run.expected = {"coordinator.grant": starts, "transfer.start_operation": starts}
+    run.expected = {_GRANT: starts, _TRANSFER_START: starts}
+
+
+def _judge_repeated(run: CompositionRun, first: HandoffAttempt, second: HandoffAttempt, third: HandoffAttempt) -> None:
+    """Require a fresh invocation per attempt and a claim refusal once the phase has moved."""
+
+    run.check(second.read.invocation_id != first.read.invocation_id, "a repeated attempt reused an invocation")
+    effects = sum(third.calls.get(label, 0) for label in (_GRANT, _TRANSFER_START))
+    run.check(effects == 0, "an attempt from a moved phase granted or transferred again")
+    transition = run.configuration.binding.profile.transitions[run.configuration.obligation_id]
+    run.check(third.before.get("phase_id") == transition.target_phase_id, "the phase did not move before")
+    run.check(
+        third.read.refusal_type is not None and issubclass(third.read.refusal_type, NewClaimRejected),
+        "an attempt from a moved phase was not refused by the current-state claim boundary",
+    )
+    run.check(third.after == third.before, "an attempt from a moved phase changed the cut")
 
 
 def _handoff_expectation(case_id: str, index: int) -> str | None:
@@ -323,7 +351,7 @@ def _judge_transfer(run: CompositionRun, attempt: HandoffAttempt, expected: str 
         (status == "committed") if committed else (status in {"stale", "failed"}),
         "the transfer status does not match the settled responsibility",
     )
-    run.check(attempt.calls.get("transfer.start_operation", 0) == 1, "the transfer did not start exactly once")
+    run.check(attempt.calls.get(_TRANSFER_START, 0) == 1, "the transfer did not start exactly once")
     run.check(attempt.calls.get("owner-reader.read_stage", 0) == 1, "the owner was not read back exactly once")
 
 
@@ -343,7 +371,7 @@ def composition_verdict(run: CompositionRun) -> Verdict:
     run.check(run.cleanup, "cleanup: a probe runtime did not close")
     # Observed failures and cleanup take precedence: an unrealized condition
     # never hides what an opened runtime already showed.
-    outcome = "failed" if run.failures else "unsupported" if run.unrealized is not None else "passed"
+    outcome = outcome_of(run.failures, run.unrealized is not None)
     diagnostics = ()
     if run.unrealized is not None:
         diagnostics = (_diagnostic("conformance.mixed-condition-unrealized", run.case.case_id, run.unrealized),)
@@ -404,5 +432,6 @@ __all__ = [
     "judge_edge",
     "judge_handoff",
     "nonce",
+    "outcome_of",
     "unsupported",
 ]

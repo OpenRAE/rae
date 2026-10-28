@@ -102,7 +102,8 @@ def test_cases_carry_exact_coordinates_and_runtime_attributed_evidence(healthy):
         "observed-execution",
     )
     assert {item.component_id for item in coordinates.components} == {"sim", "emu"}
-    assert all(item.manifest_digest.startswith("sha256:") and item.envelope_digest for item in coordinates.components)
+    assert all(item.manifest_digest.startswith("sha256:") for item in coordinates.components)
+    assert all(item.envelope_digest for item in coordinates.components)
     assert [item.role for item in coordinates.services] == [
         "coordinator",
         "bridge",
@@ -118,7 +119,9 @@ def test_cases_carry_exact_coordinates_and_runtime_attributed_evidence(healthy):
     assert coordinates.binding_digest == mixed_backend_binding_reference(declaration).digest
     assert coordinates.mapping_loss_ref == subject.mapping_loss.limitation_ref
     assert (coordinates.expected_state, coordinates.observed_state) == ("succeeded", "succeeded")
-    assert case.configuration_digest and case.tool_digest and case.environment_digest == ENVIRONMENT
+    assert case.configuration_digest
+    assert case.tool_digest
+    assert case.environment_digest == ENVIRONMENT
     assert {"coordinator.grant=1", "bridge.start_operation=1"} <= set(case.accounted_operations)
     assert case.accounted_operations == case.expected_operations
     payload = backend_conformance_report_payload(report)
@@ -138,7 +141,8 @@ def test_handoff_and_control_cases_record_their_own_facts(healthy):
     assert statuses == ["accepted"] * 4 + ["rejected"]
     assert control.accounted_operations == ("participant-runtime.admit_action=1",)
     refused = _case(report, "control-dispatch-refused")
-    assert refused.passed and refused.mixed_binding.condition == "dispatch-refused"
+    assert refused.passed
+    assert refused.mixed_binding.condition == "dispatch-refused"
 
 
 def test_each_case_requests_its_own_configuration(healthy):
@@ -161,8 +165,10 @@ def test_a_selected_case_runs_and_passes_alone(tmp_path):
 
 @pytest.mark.parametrize("cases", [[], ["edge-unknown"]])
 def test_selection_must_name_known_cases(tmp_path, cases):
+    harness = PortableHarness(tmp_path)
+
     with pytest.raises(ValueError, match="mixed-backend"):
-        run_mixed_backend_conformance(PortableHarness(tmp_path), cases=cases)
+        run_mixed_backend_conformance(harness, cases=cases)
 
 
 def test_harness_environment_digest_is_required(tmp_path):
@@ -378,16 +384,22 @@ def test_report_honesty_refuses_inconsistent_or_unresolvable_mixed_cases(healthy
     _, report = healthy
     case = _case(report, "edge-executes")
 
-    with pytest.raises(ValueError, match="inconsistent outcome"):
-        validate_backend_conformance_report(_report(report, (replace(case, outcome="unsupported"),), passed=False))
-    with pytest.raises(ValueError, match="without any case"):
-        validate_backend_conformance_report(_report(report, (), passed=True))
+    inconsistent = _report(report, (replace(case, outcome="unsupported"),), passed=False)
+    empty = _report(report, (), passed=True)
     native = replace(case, name="native-other", mixed_binding=None, execution_basis="native-live")
+    partly_native = _report(report, (native, case), passed=True, native_conformance=True)
+    unresolved = _report(
+        report, (replace(case, mixed_binding=replace(case.mixed_binding, components=())),), passed=True
+    )
+
+    with pytest.raises(ValueError, match="inconsistent outcome"):
+        validate_backend_conformance_report(inconsistent)
+    with pytest.raises(ValueError, match="without any case"):
+        validate_backend_conformance_report(empty)
     with pytest.raises(ValueError, match="native basis"):
-        validate_backend_conformance_report(_report(report, (native, case), passed=True, native_conformance=True))
-    unresolved = replace(case, mixed_binding=replace(case.mixed_binding, components=()))
+        validate_backend_conformance_report(partly_native)
     with pytest.raises(ValueError, match="component coordinates"):
-        validate_backend_conformance_report(_report(report, (unresolved,), passed=True))
+        validate_backend_conformance_report(unresolved)
     validate_backend_conformance_report(_report(report, (case,), passed=True))
 
 

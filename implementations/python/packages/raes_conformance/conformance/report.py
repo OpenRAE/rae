@@ -172,16 +172,21 @@ def _validate_case_outcomes(report: BackendConformanceReport) -> None:
     for case in report.cases:
         if case.passed != (case.outcome == "passed"):
             raise ValueError(f"conformance case {case.name!r} has inconsistent outcome and pass fields")
-        if case.mixed_binding is None:
-            continue
-        if report.native_conformance and case.execution_basis not in _NATIVE_EXECUTION_BASES:
-            raise ValueError("a native report requires a native basis for every mixed-backend case")
-        coordinates = (case.configuration_digest, case.tool_digest, case.environment_digest)
-        if case.passed and (not case.mixed_binding.components or not all(coordinates)):
-            raise ValueError(
-                "a passing mixed-backend case requires component coordinates and configuration, "
-                "tool, and environment digests"
-            )
+        if case.mixed_binding is not None:
+            _validate_mixed_case(case, native=report.native_conformance)
+
+
+def _validate_mixed_case(case: ConformanceCaseResult, *, native: bool) -> None:
+    """Require native execution for a native claim and resolvable coordinates for a pass."""
+
+    if native and case.execution_basis not in _NATIVE_EXECUTION_BASES:
+        raise ValueError("a native report requires a native basis for every mixed-backend case")
+    coordinates = (case.configuration_digest, case.tool_digest, case.environment_digest)
+    if case.passed and (not case.mixed_binding.components or not all(coordinates)):
+        raise ValueError(
+            "a passing mixed-backend case requires component coordinates and configuration, "
+            "tool, and environment digests"
+        )
 
 
 def _validate_catalog_bindings(report: BackendConformanceReport) -> None:

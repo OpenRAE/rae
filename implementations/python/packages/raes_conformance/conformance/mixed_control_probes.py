@@ -18,7 +18,7 @@ from raes_runtime.control_plane import RuntimeControlPlane
 from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_failure_message
 from raes_conformance.conformance.mixed_backend_cases import MixedBackendCase
 from raes_conformance.conformance.mixed_backend_execution import close_plane
-from raes_conformance.conformance.mixed_backend_judging import Verdict, nonce, unsupported
+from raes_conformance.conformance.mixed_backend_judging import Verdict, nonce, outcome_of, unsupported
 from raes_conformance.conformance.mixed_backend_types import (
     MixedBackendCaseBinding,
     MixedBackendCondition,
@@ -212,7 +212,7 @@ def _control_verdict(
         evidence=records,
     )
     # Observed failures and cleanup take precedence over an unrealized condition.
-    outcome = "failed" if failures else "unsupported" if unrealized else "passed"
+    outcome = outcome_of(failures, bool(unrealized))
     return Verdict(
         outcome=outcome,
         failures=tuple(failures),
@@ -255,44 +255,52 @@ def control_configuration_digest(configuration: MixedControlProbeConfiguration) 
 def run_combination_case(harness: object, case: MixedBackendCase) -> Verdict:
     """Attempt a joint configuration; any result stays unsupported."""
 
+    prepared = _combination_inputs(harness, case)
+    if isinstance(prepared, Verdict):
+        return prepared
+    return _attempt_combination(case, *prepared)
+
+
+def _combination_inputs(harness: object, case: MixedBackendCase) -> tuple[object, dict[str, object]] | Verdict:
     composition = harness.composition(MixedBackendProbeRequest(case.case_id, MixedBackendSubject.EDGE, nonce()))
+    control = None
+    reason: tuple[str, str] | None = None
     if composition is None:
-        return unsupported(_UNAVAILABLE, case.case_id, "The harness supplied no composition configuration.")
+        reason = (_UNAVAILABLE, "The harness supplied no composition configuration.")
+    elif case.case_id == "combination-reusable-control-with-mixed-runtime":
+        control = harness.control(MixedBackendProbeRequest(case.case_id, MixedBackendSubject.CONTROL, nonce()))
+        if control is None:
+            reason = (_UNAVAILABLE, "The harness supplied no reusable-control configuration.")
+    elif composition.distributed_execution is None:
+        reason = (_COMBINATION, "No distributed dispatcher is configured; portable services run only locally.")
+    if reason is not None:
+        return unsupported(reason[0], case.case_id, reason[1])
     options: dict[str, object] = {
         "mixed_runtime": composition.binding,
         "crossing_policy_resolver": composition.crossing_policy_resolver,
         "run_scope": f"run:{composition.binding.entry.run_id}",
         "store": composition.store,
     }
-    target = composition.target
-    if case.case_id == "combination-reusable-control-with-mixed-runtime":
-        control = harness.control(MixedBackendProbeRequest(case.case_id, MixedBackendSubject.CONTROL, nonce()))
-        if control is None:
-            return unsupported(_UNAVAILABLE, case.case_id, "The harness supplied no reusable-control configuration.")
-        options.update(behavior_specifications=control.behavior_specifications, mixed_control=control.mixed_control)
-        target = control.target
-    elif composition.distributed_execution is None:
-        return unsupported(
-            _COMBINATION, case.case_id, "No distributed dispatcher is configured; portable services run only locally."
-        )
-    else:
+    if control is None:
         options["distributed_execution"] = composition.distributed_execution
+        return composition.target, options
+    options.update(behavior_specifications=control.behavior_specifications, mixed_control=control.mixed_control)
+    return control.target, options
+
+
+def _attempt_combination(case: MixedBackendCase, target: object, options: dict[str, object]) -> Verdict:
     try:
         plane = RuntimeControlPlane(target, **options)
     except Exception as exc:
-        return unsupported(
-            _COMBINATION, case.case_id, f"The runtime refused the combination ({sanitized_failure_message(exc)})."
-        )
+        message = f"The runtime refused the combination ({sanitized_failure_message(exc)})."
+        return unsupported(_COMBINATION, case.case_id, message)
     failures: list[str] = []
     cleanup = close_plane(plane, failures)
     accepted = _diagnostic(
         _COMBINATION, case.case_id, "The runtime accepted the combination, but no joint probe exists."
     )
     return Verdict(
-        "failed" if failures else "unsupported",
-        failures=tuple(failures),
-        diagnostics=(accepted,),
-        cleanup_verified=cleanup,
+        outcome_of(failures, True), failures=tuple(failures), diagnostics=(accepted,), cleanup_verified=cleanup
     )
 
 
