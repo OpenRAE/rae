@@ -8,6 +8,10 @@ imports directly; internal modules never import this facade.
 from __future__ import annotations
 
 from raes_conformance.conformance.fixture_suite import run_fixture_suite
+from raes_conformance.conformance.modular_control import (
+    modular_control_obligations,
+    run_modular_control_conformance,
+)
 from raes_conformance.conformance.observability import (
     observability_evidence_conformance_diagnostics,
 )
@@ -44,6 +48,8 @@ from raes_conformance.conformance.validators import (
 )
 
 __all__ = [
+    "modular_control_obligations",
+    "run_modular_control_conformance",
     "BackendCapabilityProfile",
     "BackendConformanceReport",
     "BackendProfileSelector",
