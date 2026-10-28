@@ -290,6 +290,13 @@ gates that the backend distribution supplies. The probe needs a scenario to
 exercise, and it defaults to a generic linux-vm scenario
 (`_DEFAULT_CONFORMANCE_SCENARIO`).
 
+The `target-snapshot` case validates the payload that the control plane's
+`/snapshot` route publishes, built by the same serializer (issue #1551). That
+payload includes the realization envelope identity and the realization
+provenance, so an invalid published carrier fails the case with
+`conformance.schema-invalid`. Semantic checks run only after the schema check
+passes.
+
 A single hard-coded scenario wrongly assumes that *every* backend can realize
 it. Fixed-topology emulation backends map RAES nodes onto a pre-built
 environment. These backends and bounded simulation backends legitimately

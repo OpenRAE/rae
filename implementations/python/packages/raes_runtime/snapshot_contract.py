@@ -6,6 +6,8 @@ projection, so the two surfaces cannot drift (issue #1667).
 
 from __future__ import annotations
 
+from typing import Any
+
 from raes_contracts.account_credentials import (
     account_placement_has_credential_bindings,
     value_free_account_placement_payload,
@@ -16,8 +18,12 @@ from raes_contracts.runtime_state import RuntimeSnapshotEnvelope
 from raes_runtime.control_plane_store_payloads import _realization_observations_payload
 
 
-def runtime_snapshot_contract_model(envelope: RuntimeSnapshotEnvelope) -> RuntimeSnapshotEnvelopeModel:
-    """Project a runtime snapshot to its value-free ``runtime-snapshot-v1`` contract model."""
+def runtime_snapshot_contract_payload(envelope: RuntimeSnapshotEnvelope) -> dict[str, Any]:
+    """Project the value-free published payload before contract validation.
+
+    Conformance validates this payload to report malformed realization carriers
+    through its diagnostic envelope instead of raising during serialization.
+    """
 
     snapshot = envelope.snapshot
     payload = {
@@ -90,7 +96,13 @@ def runtime_snapshot_contract_model(envelope: RuntimeSnapshotEnvelope) -> Runtim
         entry_payload = entry["payload"]
         if account_placement_has_credential_bindings(entry_payload):
             entry["payload"] = value_free_account_placement_payload(entry_payload)
-    return RuntimeSnapshotEnvelopeModel.model_validate(payload)
+    return payload
 
 
-__all__ = ["runtime_snapshot_contract_model"]
+def runtime_snapshot_contract_model(envelope: RuntimeSnapshotEnvelope) -> RuntimeSnapshotEnvelopeModel:
+    """Project a runtime snapshot to its value-free ``runtime-snapshot-v1`` contract model."""
+
+    return RuntimeSnapshotEnvelopeModel.model_validate(runtime_snapshot_contract_payload(envelope))
+
+
+__all__ = ["runtime_snapshot_contract_model", "runtime_snapshot_contract_payload"]
