@@ -3,6 +3,7 @@
 from collections.abc import Iterable, Iterator, Mapping
 
 from raes.participant_outcome_semantics import OutcomeInterpretationSourceLayer
+from raes_contracts.immutable_history import EventHistory
 from raes_contracts.participant_behavior import ParticipantBehaviorHistoryEventType
 from raes_contracts.participant_episode import ParticipantEpisodeHistoryEvent
 
@@ -201,7 +202,7 @@ def _participant_episode_histories_from_source(
 ) -> Iterable[object]:
     if isinstance(participant_episode_history, Mapping):
         return participant_episode_history.values()
-    if isinstance(participant_episode_history, list):
+    if isinstance(participant_episode_history, (list, EventHistory)):
         return [participant_episode_history]
     return []
 

@@ -1362,7 +1362,8 @@ def test_terminal_commit_retry_compares_canonical_value_free_snapshot(tmp_path: 
     store.claim_record(running)
 
     observed_revision = store.load_snapshot_state().revision
-    store.commit_terminal_operation(snapshot, terminal, expected_revision=observed_revision)
+    committed = store.commit_terminal_operation(snapshot, terminal, expected_revision=observed_revision)
+    assert committed.snapshot == _snapshot_from_payload(_snapshot_payload(snapshot))
     store.commit_terminal_operation(snapshot, terminal, expected_revision=observed_revision)
 
     assert store.load_records()[running.receipt.operation_id] == terminal

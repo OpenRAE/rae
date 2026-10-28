@@ -43,7 +43,7 @@ def test_scorecard_workflow_is_pinned_least_privilege_and_publishes_sarif() -> N
     scorecard_step = next(
         step for step in analysis["steps"] if step.get("uses", "").startswith("ossf/scorecard-action@")
     )
-    assert scorecard_step["uses"] == ("ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc")
+    assert scorecard_step["uses"] == ("ossf/scorecard-action@fa7117db83c52d787ae5a89f350999701505d78e")
     assert scorecard_step["with"] == {
         "results_file": "results.sarif",
         "results_format": "sarif",

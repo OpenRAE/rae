@@ -135,3 +135,7 @@ mechanisms, distributed atomicity or external exactly-once execution.
 - TESTS → TEST `implementations/python/tests/test_issue_1369_continuation_limits.py` (Interleaved evaluations cannot overspend shared effect or per-rule firing limits)
 - TESTS → TEST `implementations/python/tests/test_issue_1369_deferred_authority.py` (Current effect approval required for queued source, fallback and retained-continuation dispatch)
 - TESTS → TEST `implementations/python/tests/test_issue_1369_cancel_recovery.py` (Interrupted cancellation resumes through its original owner's one-use control ledger)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_projection.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_operation_index.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1373_control_projection.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1373_effect_work.py`

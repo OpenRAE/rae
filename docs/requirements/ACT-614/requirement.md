@@ -92,3 +92,4 @@ Requirement inventory expansion. Participant behavior over time is a first-class
 - TESTS → TEST `implementations/python/tests/test_issue_1181_unified_control_plane_mutations.py` (Control-plane mutation regression)
 - TESTS → TEST `implementations/python/tests/test_participant_concurrent_batch_reservations.py` (Concurrent reservation regression)
 - IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-execution-binding-v1.json` (participant-execution-binding-v1 published schema)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/participant_temporal_history_index.py`
