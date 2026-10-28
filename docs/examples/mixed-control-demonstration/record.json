@@ -2,16 +2,16 @@
   "comparison": {
     "agrees": true,
     "comparison_digest": "sha256:f34a15537dd6940a8df9bb6915c7e47a8522bb3f2881bee67d2c52e7e73520de",
-    "first_collection": "a2629e67a2794f84912ff4d6e483dcc8",
-    "first_digest": "sha256:164ae585b9a9cbaf4d5f6dc346cc31448fb97b4356c2a3d0ca7bad61617a42e7",
+    "first_collection": "9086a8de551a4147a22c40198cc396f2",
+    "first_digest": "sha256:0e15c9b16c23ad92eed00416831b6ad33b6addd284146d0b8c4d3dc321e55d1d",
     "nonclaims": [
       "Test harness evidence for RAE only; no downstream backend qualification.",
       "No universal backend equivalence, physical timing or simulation-to-operational transfer.",
       "Separate control and mixed executions do not establish joint configuration support.",
       "A fresh process recollection is not reproduction by an independent organization."
     ],
-    "second_collection": "9c25fbd7a05445819cf296e2c2d720e8",
-    "second_digest": "sha256:e4d657c5c5120471a672ad0ae149c95e16b1e2351e45981e182685671ac5ba7c"
+    "second_collection": "8b395d693f0a4e859d107fcdcd31174a",
+    "second_digest": "sha256:41f3ea4aed7c4b583e133371dbee4702d716c160a66fe9688756d56a88b840f3"
   },
   "environment": {
     "implementation": "cpython",
@@ -20,38 +20,38 @@
   },
   "executions": [
     {
-      "collection_id": "a2629e67a2794f84912ff4d6e483dcc8",
-      "evidence_digest": "sha256:164ae585b9a9cbaf4d5f6dc346cc31448fb97b4356c2a3d0ca7bad61617a42e7",
+      "collection_id": "9086a8de551a4147a22c40198cc396f2",
+      "evidence_digest": "sha256:0e15c9b16c23ad92eed00416831b6ad33b6addd284146d0b8c4d3dc321e55d1d",
       "identities": {
         "compositions": [
           {
             "case": "edge-executes",
-            "collection_id": "53c36a469e43f52ba13e7c270571f8b2",
+            "collection_id": "eaa4827925aff7ce0737119e1288cdb5",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "4a0deabb-e40b-4ea0-9099-11e8c97ca962",
+                "operation_id": "0e52cf6a-2b09-49c3-bf76-47171cd37d0e",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "ab33e812-b352-4a93-b356-f047d1d972e5",
+                "operation_id": "a852b08a-82f9-4bc3-bc83-4599bc548c32",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "5a3de85e-dcf4-4f70-811c-7d13e2c7fe58",
+                "invocation_id": "d5ee25bb-6773-47fa-b288-ca70f33cdb1b",
                 "kind": "participant-crossing",
-                "operation_id": "5ac39b12-cad4-42e3-9d91-a5c2831bae8f",
+                "operation_id": "cfdd3705-71d0-4a5c-b261-18a905b919e1",
                 "stage_digests": [
-                  "sha256:873b9931ff8fadf2c5cc6ed8e5e0fdaae3a52bbb26a1b53c28e3df5a05244e90",
-                  "sha256:22b22d327b934d148e562d8c3e9913c2c85c7989409e3012ddac1e7983dc8650",
-                  "sha256:16e052e80c55923101efe5b49bac3dd21394c9a1e38dac35be76ca3263245728",
-                  "sha256:f4a3007f0b43d7e7afacb21e27af7403c24584d541d924b86536cbaf3559271e"
+                  "sha256:3a85c0f4cf3f25b51118b8cfc808188c0ed9f661f0c326cf1266957afbdc2bfa",
+                  "sha256:5ea7b7c818f1181bc55263e513d7c044cd2eb985b42bd33b822730977bb29169",
+                  "sha256:cc7700cf994466541abf03e0c518d535dd02f2cfe26d2aba1ae7cb9553cac667",
+                  "sha256:325e1a53144bfe782be36fa9a04c6709d3b349243a0a53e70250402d5c169eb1"
                 ],
                 "state": "succeeded"
               }
@@ -60,36 +60,36 @@
           },
           {
             "case": "edge-time-mapped-incomparable",
-            "collection_id": "391e2c63149c7ee6c22fe39dda755bd1",
+            "collection_id": "0867e654ea3fe8ccb833dc19fb6e9c31",
             "episode": "episode-1",
             "operations": [],
             "participant": "participant.behavior.red-agent"
           },
           {
             "case": "edge-time-mapped-incomparable",
-            "collection_id": "5c054cbd257482b7c10e86cc64a4b747",
+            "collection_id": "31cd662a3d475b7318669ffe649f7745",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "2a676e49-2087-49eb-a883-a67cb9e18b1c",
+                "operation_id": "64d3774a-6343-408e-962b-b5f8f70ff42b",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "ed721ebc-9f64-40ff-b2fb-782c5eaae83a",
+                "operation_id": "bed0f13d-2f0b-4094-b5fa-ae3364d30833",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "c9f989fd-1a81-4b4d-832e-cea17853dff6",
+                "invocation_id": "4ba66c83-5e82-4d40-92fa-21b985119db1",
                 "kind": "participant-crossing",
-                "operation_id": "2ed6fde0-b844-4f15-b461-547750c8f738",
+                "operation_id": "d24a924c-2ef2-440a-8135-c168f69956cd",
                 "stage_digests": [
-                  "sha256:eec5d82ec2206f881fcd467329a242669815ac5210d8572544110d923bf2dbe7"
+                  "sha256:9b75b648dcfeb1bcae3243f1ebd77a30a2dd5d022937ac1d75d77381b06efd85"
                 ],
                 "state": "failed"
               }
@@ -98,36 +98,36 @@
           },
           {
             "case": "edge-time-segment-incomparable",
-            "collection_id": "86f4626a2295ece19b66fedd36698caa",
+            "collection_id": "74921a7a18dd2081917be5a9ce18e205",
             "episode": "episode-1",
             "operations": [],
             "participant": "participant.behavior.red-agent"
           },
           {
             "case": "edge-time-segment-incomparable",
-            "collection_id": "e5a7cdd1d9143d4e16c49870116c1a8c",
+            "collection_id": "eaea1c9a0161d24f96361ca0dbf8db3d",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "80107059-2381-4d0d-ab81-8a9784ee48ea",
+                "operation_id": "527c0c75-ab1e-4ce2-81b2-4c69d2f6644d",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "fa24df45-1157-4b07-abaf-464dd08da5f7",
+                "operation_id": "414c447a-c0ee-4442-8c29-f673f9f96dd7",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "19296095-0c62-48b4-b771-9bc9fe6f756c",
+                "invocation_id": "0ebef3c4-aba3-4e54-9623-8972504610c5",
                 "kind": "participant-crossing",
-                "operation_id": "709bf4b6-a6c5-4127-aad7-0ca2f0940b0e",
+                "operation_id": "37aa35e0-b666-4ee9-8e14-377719fd1aec",
                 "stage_digests": [
-                  "sha256:e7a9548e8b5f3a7a879f15436e3e9a08b50b04eae2b06c33ea6fa9eb607c00c7"
+                  "sha256:08efaa75ca8c487302c43fff8f200f54dcde13c53935cced38734b686cefdeb2"
                 ],
                 "state": "failed"
               }
@@ -136,20 +136,20 @@
           },
           {
             "case": "edge-unbound-refused",
-            "collection_id": "a4ef5df65188ebcd0b769a3100471987",
+            "collection_id": "7de680f411ffc9c20f902dfcd99e1b09",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "b184b444-79c5-437e-bdd1-c2dd46efbbf7",
+                "operation_id": "9a906beb-afcf-4d80-b457-9d1170c5e007",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "fd9735bf-b00c-4a60-a539-68df99df6449",
+                "operation_id": "a0b34221-4157-46b9-82b1-de4c7c71da90",
                 "stage_digests": [],
                 "state": "succeeded"
               }
@@ -158,32 +158,32 @@
           },
           {
             "case": "edge-unbound-refused",
-            "collection_id": "cdd0e0bd3231ad6b5ca883810056e33f",
+            "collection_id": "aece2edb3fad91fc955dc1d5791318d6",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "4b7ccd46-bbe0-491c-86a5-3327487acd5a",
+                "operation_id": "858f6251-f670-40b3-9eb7-23e781de6f10",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "7e62d050-2b9e-4301-95f5-30924726925e",
+                "operation_id": "94f719dc-c86c-4bd6-8e74-e7a8a58e5ba1",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "e2c854a6-09e3-473b-a202-f20e37e5a22c",
+                "invocation_id": "b077da45-bd88-4256-9ce4-685d27214d56",
                 "kind": "participant-crossing",
-                "operation_id": "c3f3efd9-8388-46f0-8c28-f56b6452676f",
+                "operation_id": "7de93040-92f3-48ba-a143-71f86717a7d3",
                 "stage_digests": [
-                  "sha256:f04d42c10437d48bc865b55cb6af3290bc2f8c94f53f48f2ac5a6837130695eb",
-                  "sha256:399f8ccefb7e001ba2634529d152baa6847426a7d817077fe9b1cb51fba17b85",
-                  "sha256:80a54ed618bd72cef3ae12c9f4435dda9da7170c63da474bca4850e57136c010",
-                  "sha256:5439f1a3396768d49d7cb8ea5339b0f774419a2d9cdf9c26ec880bd6473e1d26"
+                  "sha256:adf1cecd5e56f6a8af6c26c803cfaf4a72b71f9093f13a71d64e7be403fd00ea",
+                  "sha256:957181a8a45a018227cef52edca98801f471e6b3f9fbe027b239087e19fc625f",
+                  "sha256:5ebed0163481714e48af803a82e5fb0ceef5eae7124203aba5a31532a30dc4e6",
+                  "sha256:edb520122b8429bae1f0f0b171f51d4fa33d6fbb1c5197276f87d53ed7b9031f"
                 ],
                 "state": "succeeded"
               }
@@ -192,41 +192,41 @@
           },
           {
             "case": "edge-missing-mapping-refused",
-            "collection_id": "36ecba7c0106ceae0ecc9783ff2ba3ae",
+            "collection_id": "ded9f47890ece4e593fbbcfb5d44b6d7",
             "episode": "episode-1",
             "operations": [],
             "participant": "participant.behavior.red-agent"
           },
           {
             "case": "edge-reversed-mapping-refused",
-            "collection_id": "142005526e297336afe8741b010425ee",
+            "collection_id": "0e7916e013dc5a6b1ccb7ba785afe00a",
             "episode": "episode-1",
             "operations": [],
             "participant": "participant.behavior.red-agent"
           },
           {
             "case": "edge-undeclared-loss-refused",
-            "collection_id": "4115dff8abb9ac02ebc5abb9ba96981b",
+            "collection_id": "084678b35f6cc846e516ade26be722af",
             "episode": "episode-1",
             "operations": [],
             "participant": "participant.behavior.red-agent"
           },
           {
             "case": "edge-refused-before-claim",
-            "collection_id": "923147c42763201975f9ea8bbca068da",
+            "collection_id": "7f8ec541a2899937ca04e205e76188d2",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "aa6463d4-4b0d-4d59-9687-d68e46296265",
+                "operation_id": "a57a9d31-ad33-4175-b0f3-d626a9cc0d4e",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "e953a559-e761-4ffd-b334-ad6013a74c3e",
+                "operation_id": "77416ca9-a1ce-431e-89b1-67aaeafb950c",
                 "stage_digests": [],
                 "state": "succeeded"
               }
@@ -235,29 +235,29 @@
           },
           {
             "case": "edge-refused-after-time-grant",
-            "collection_id": "c7d203c7c0abf53a5b1a659a374a2339",
+            "collection_id": "88951b5d22967ded697b10812f5ded63",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "daa6ca2a-38a8-4bd9-a4d2-0f3baacc692d",
+                "operation_id": "31b1c454-bcc0-4550-a727-434fc6c1ad7e",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "58ac7cfa-c3a8-4abb-9507-1dca196be331",
+                "operation_id": "d05462e0-e481-4ebe-9cd7-19f914481b46",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "dc253271-8df2-4b36-8d4b-b41038690fea",
+                "invocation_id": "51bc0e8e-1b6f-4a32-836f-06a3b94da00f",
                 "kind": "participant-crossing",
-                "operation_id": "8132cb05-7439-41d7-9c48-518f4dc9a3fb",
+                "operation_id": "a5c6d8f8-8790-433b-80a1-9f9a027d6186",
                 "stage_digests": [
-                  "sha256:e8798afd52c82a8c896c2d33f1be8a5b83d3a679f02d2b538331c8ab48e675c6"
+                  "sha256:cec97c7c3ea96392fe51428308eb63ad85cd8c6e9e1d0c054a219ca9260e3176"
                 ],
                 "state": "cancelled"
               }
@@ -266,29 +266,29 @@
           },
           {
             "case": "edge-start-refused",
-            "collection_id": "81b902186b0b6fbcd46137f457d6870a",
+            "collection_id": "96a65249b671a45a186ef18ed9daa5f2",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "b636a3d1-e93a-4436-bbad-d5c332f102af",
+                "operation_id": "1275a164-024a-4177-9b2e-d26cd5833a59",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "5fbf1b4a-3c59-4003-a7a4-a7a44a857689",
+                "operation_id": "c55a373b-3f78-4df9-b5f7-34fef25ea5a9",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "25374096-ed0f-4480-8039-4d80b6467383",
+                "invocation_id": "1ced1e6d-6a22-4b75-be29-02503aa9a7df",
                 "kind": "participant-crossing",
-                "operation_id": "fc5ca81f-b11d-4459-8291-2ff718f2e231",
+                "operation_id": "cfb0bc7a-1ae5-4c31-af44-38c045676163",
                 "stage_digests": [
-                  "sha256:20e42a2c802623bac81da179a3215d2036d768923b81790839c153110108041a"
+                  "sha256:4258a41480d485a6c6809a10a6188897ba4a487d5474d3e67b8add74d3b1277b"
                 ],
                 "state": "indeterminate"
               }
@@ -297,32 +297,32 @@
           },
           {
             "case": "edge-partial-execution",
-            "collection_id": "d1f05118134ba8377a96123b7a8de21d",
+            "collection_id": "ffbeba7b64930f1657b9c2294917e685",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "4fcce4e7-730b-4d74-9d8d-55dc8db4353f",
+                "operation_id": "93cbd7b3-2c68-4d8c-ae96-9435f7e3aef3",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "aa8d1a39-7232-41cf-9eda-585473d60b6a",
+                "operation_id": "86de91cf-adac-4490-b76c-0400d0eec86c",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "18b4e864-783a-4412-915c-ea4b20ec9631",
+                "invocation_id": "7303faf2-2723-4a10-bb6b-60a6f9c7ac2b",
                 "kind": "participant-crossing",
-                "operation_id": "e9911329-4b93-4aae-96f7-3ed996014055",
+                "operation_id": "81420ed3-876f-4ec9-b15c-6f3d46349d2c",
                 "stage_digests": [
-                  "sha256:348a36679bb31aa75ec3f41219140d231921995fa1713835087234fe7d50e1ce",
-                  "sha256:8ba3671f534e6c07f7dba008de39c1d21c3c066cfbce47d87c1cc6c4174b317a",
-                  "sha256:23b1d878384e688a85273c589c1e6d26395aa6325c1c024e1e6e795441ed6143",
-                  "sha256:270d2d44e296a6b358e262a04a05ab458e3e1ff6cdd1f06a13fc553e6cbfec4d"
+                  "sha256:086c92fe77cd689851775b41963176cd0924f445f5049cd05b42562dc651d850",
+                  "sha256:663e85135846ec88bb28e5c58124bb74cb4985acc73246acbcd5c2381b68bec6",
+                  "sha256:3c9e6f32f9cf07205ca76eea2d9dc3675e04a55bdc46617de698ed4c8547654c",
+                  "sha256:88dc6b6bdaa5bd3fd82c6a4c091cbc37af164bff58644159eb72f58ddb4390bd"
                 ],
                 "state": "indeterminate"
               }
@@ -331,30 +331,30 @@
           },
           {
             "case": "edge-missing-delivery",
-            "collection_id": "9145b4a20060aacb931735be95d638a3",
+            "collection_id": "9a8b667d7e48ea53bdef21d96dc890a4",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "9ed89f04-115a-41ff-b75b-e96aa844490e",
+                "operation_id": "da52bbd4-44e1-4aca-8225-ca02bd8b4cb0",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "c00ec295-4c37-456a-b505-c2d8ab9888e3",
+                "operation_id": "e3042c4a-a79b-4bc2-868d-0a37e0f4ad58",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "f4fab92b-ac7e-40df-80db-2aa834dda0d4",
+                "invocation_id": "5c1de6ae-90d2-4f95-a8fc-8a7930e61d2e",
                 "kind": "participant-crossing",
-                "operation_id": "3786a511-facf-47ce-acab-98a0f2fe69de",
+                "operation_id": "bee4f99e-f35f-4f6f-9438-3a2af3f63a4e",
                 "stage_digests": [
-                  "sha256:c21ac06b7446c18dc1e02e3d409771232f024b184d666efd6901fc61640e61af",
-                  "sha256:fa971d73701a4d3daf0bb70c13e740a62a625f176fed6add6aea1daf1f67ad3b"
+                  "sha256:58247f9d0b45662519e08896fcf3de9500e696ca07fbbea4f6198b70ee1a3a87",
+                  "sha256:780e7f3357d121b225f082d140b1d8714a6305596e469dd1fe47735c934b190b"
                 ],
                 "state": "indeterminate"
               }
@@ -363,32 +363,32 @@
           },
           {
             "case": "edge-restart-no-reissue",
-            "collection_id": "673abd4338765dbc244fc4bcdd5d9b60",
+            "collection_id": "4a7c232322057ddee14fb305c9f65578",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
-                "kind": "composition-phase",
-                "operation_id": "231ecad6-dff6-4599-815d-909c240b42cf",
+                "kind": "participant-action",
+                "operation_id": "10bab4bd-4f45-426c-9280-05cb31b37852",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
-                "kind": "participant-action",
-                "operation_id": "9e274d76-9054-47ca-8f09-f4d7a462d57a",
+                "kind": "composition-phase",
+                "operation_id": "13246bc1-6cdb-48ba-b4ec-c493ac00ef36",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "f1bf48b7-7fbd-44f5-9d51-d172cef04d3e",
+                "invocation_id": "00ab1a43-a4dd-4d5f-b6e7-1e2faf0f0caf",
                 "kind": "participant-crossing",
-                "operation_id": "c964d62a-05e5-4ac2-bd93-259c666bae40",
+                "operation_id": "c6099805-c308-4100-b16e-247dabbf6e6b",
                 "stage_digests": [
-                  "sha256:1dddaad10e4b863584598d716e0ef3fe85e142327fa58ec151205b6d09382ac5",
-                  "sha256:f8fcd1860999831c11b7838f32253d29baf5dbc1c1a81efdc76b63d52c1404bb",
-                  "sha256:8f2a109089ec2320837008ef6d64b2a3d2c0abb14fe6310c851b1fb81728c7ea",
-                  "sha256:458a98f9f3395afdd3c96e9a6f7b339500b06eb386a1411323fdb47c6bc0a244"
+                  "sha256:1173f0149096e5fcaf903e9a99d66e6b7c5d3ee77848b7cc1effb038d8501fa4",
+                  "sha256:a035f0917cd56e9f620d407a3194ccd6d6f140bfc06930fe783e652d123829fa",
+                  "sha256:1e06776eeae8a7fb84fa6c3857a447880c02dc313d5c919fb0271ff929d40a1d",
+                  "sha256:3e42f37388e403f1ba6091227f269908eb2300e2e3ff7c70b6d6353b084f7aed"
                 ],
                 "state": "succeeded"
               }
@@ -397,32 +397,32 @@
           },
           {
             "case": "edge-restart-no-reissue",
-            "collection_id": "a5309df51b292c0a6954718144ada913",
+            "collection_id": "e880f7b755de1a875afa5803ce2c2296",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
-                "kind": "composition-phase",
-                "operation_id": "231ecad6-dff6-4599-815d-909c240b42cf",
+                "kind": "participant-action",
+                "operation_id": "10bab4bd-4f45-426c-9280-05cb31b37852",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
-                "kind": "participant-action",
-                "operation_id": "9e274d76-9054-47ca-8f09-f4d7a462d57a",
+                "kind": "composition-phase",
+                "operation_id": "13246bc1-6cdb-48ba-b4ec-c493ac00ef36",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "f1bf48b7-7fbd-44f5-9d51-d172cef04d3e",
+                "invocation_id": "00ab1a43-a4dd-4d5f-b6e7-1e2faf0f0caf",
                 "kind": "participant-crossing",
-                "operation_id": "c964d62a-05e5-4ac2-bd93-259c666bae40",
+                "operation_id": "c6099805-c308-4100-b16e-247dabbf6e6b",
                 "stage_digests": [
-                  "sha256:1dddaad10e4b863584598d716e0ef3fe85e142327fa58ec151205b6d09382ac5",
-                  "sha256:f8fcd1860999831c11b7838f32253d29baf5dbc1c1a81efdc76b63d52c1404bb",
-                  "sha256:8f2a109089ec2320837008ef6d64b2a3d2c0abb14fe6310c851b1fb81728c7ea",
-                  "sha256:458a98f9f3395afdd3c96e9a6f7b339500b06eb386a1411323fdb47c6bc0a244"
+                  "sha256:1173f0149096e5fcaf903e9a99d66e6b7c5d3ee77848b7cc1effb038d8501fa4",
+                  "sha256:a035f0917cd56e9f620d407a3194ccd6d6f140bfc06930fe783e652d123829fa",
+                  "sha256:1e06776eeae8a7fb84fa6c3857a447880c02dc313d5c919fb0271ff929d40a1d",
+                  "sha256:3e42f37388e403f1ba6091227f269908eb2300e2e3ff7c70b6d6353b084f7aed"
                 ],
                 "state": "succeeded"
               }
@@ -431,24 +431,24 @@
           },
           {
             "case": "handoff-commits",
-            "collection_id": "48ac7657f98c1b306c609ae7151ea0d2",
+            "collection_id": "a2017e1ea8d36ef90723e636eebebb0e",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "82211f1e-516c-4725-b3cb-e5ea3729046a",
+                "operation_id": "2b9e9729-86c7-4d37-9be8-0083c0b84e88",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "71d2ebba-1d3e-41d5-9910-af72147b7554",
+                "invocation_id": "b29ddb53-6904-4302-a29e-998d38ae0c39",
                 "kind": "composition-phase",
-                "operation_id": "6136c3e8-1644-4b51-848f-0450c70b4925",
+                "operation_id": "d5d103dc-0c57-4f37-87d4-f623270767c7",
                 "stage_digests": [
-                  "sha256:ab8dc007e5b9abe112febcad016aa3736e7d5dd965ae5577f13acfcfc8245572",
-                  "sha256:56051714ab86c4ddfe932f866607e854862a2182794319569877b23558855a89",
-                  "sha256:6e3f3184980547375d469bc353ba41d432f65da01202fc7e84c1bcc136c2f134"
+                  "sha256:502e37de8a804dff0a0323071654298a0851f35f0d5109f1d7b4e4f0ed5fec01",
+                  "sha256:59e9474f6fc7fb19de0ddfb314f261f39e420b0eccb3c6c8c47a8f25b3b24d1d",
+                  "sha256:a94f3d3a44f52a06a08cd04501448f1ccce333661aad63e9e7a38ac304f902af"
                 ],
                 "state": "succeeded"
               }
@@ -457,24 +457,24 @@
           },
           {
             "case": "handoff-stale-transfer",
-            "collection_id": "ea09989023c61eeeb2b53549e27f96b7",
+            "collection_id": "b48c885663f747fb2288a3b92fa21e3a",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "339d823f-ae4b-4407-b758-eb8b6d780102",
+                "operation_id": "85e7d4e9-059a-4d8c-8951-1ecfc86d5904",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "f42944d5-6b05-453e-ad8c-0169da07d80c",
+                "invocation_id": "57b18c75-4f03-4781-93d0-e8bdf5bd8122",
                 "kind": "composition-phase",
-                "operation_id": "4953d7b7-5775-4711-b176-ceba3653af8f",
+                "operation_id": "54989a55-99d5-45a9-b47d-d138f3cacf7d",
                 "stage_digests": [
-                  "sha256:3475ed326595ad4cc41380864b2cb0312bec4f241141b2b0686870d4a51da305",
-                  "sha256:4bcbfda0a2903c43424fb71bd1147efb442a2c4ca46390f8a6c3afa997db5e56",
-                  "sha256:a3dd2442cd1bce84851f8bf2899ca9feeee52b83dc2ef8b9e769b6941e1a7776"
+                  "sha256:2876bc57b076e2661f2ad4f591ec3bc7c563b56d9c8440e3f1dffb45bde58f39",
+                  "sha256:15c7555653c8681eac601b30e91186d5b7a6b4c02b33f7014d56b7bf21fec87d",
+                  "sha256:592a4118c074b0b11639dddf3847e6e7af0e8161d418d449268b3b140a60b121"
                 ],
                 "state": "failed"
               }
@@ -483,35 +483,35 @@
           },
           {
             "case": "handoff-repeated-transition",
-            "collection_id": "67220709ebc3bda00a174b7f81dd680e",
+            "collection_id": "74ffc5bdd5b6640017766e8dc380a8df",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "38b4daad-914c-4c8d-9115-cf7442a15fdd",
+                "operation_id": "bd62f425-6400-4e08-adbf-d2428632ea88",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "f4bfee2f-fa3c-42ae-972d-cc7722c73e99",
+                "invocation_id": "8d53e678-5cff-471e-b959-584ee39ca3bd",
                 "kind": "composition-phase",
-                "operation_id": "36efc543-c803-4a5f-bde1-30fef3fd581c",
+                "operation_id": "8c384555-1d8f-40ef-8e90-2e2356106608",
                 "stage_digests": [
-                  "sha256:5bbeb8dfe35bedd229852dbec0b02b5c7b9480e2687a740f21424a1def7a8ed0",
-                  "sha256:dddfcaf461b1fd7cc4793d2ec4a0073d170feccb684dddeffdab56e62b2e85c7",
-                  "sha256:ee5e68058ff440176b62ab96a5f1cf517cf75ee9d1ad8e311b80a74a612e4488"
+                  "sha256:c421bcb2af74c87756d84b7eac28202cc75baf5d1466a40bfeef10d36782ce25",
+                  "sha256:247d896604c7e5cd0ffe7c910b0be0de9dc72b6c9466d1e8e779da4c2f3d54a6",
+                  "sha256:4a0bfa6942c8a88541020e5d0e85b323d18ebba7b7219a08586f0829b0c23452"
                 ],
                 "state": "failed"
               },
               {
-                "invocation_id": "aa9aa0c9-b843-4a20-a158-8d3d0b68d94b",
+                "invocation_id": "8218a704-f730-4d41-8993-4b8fb329b614",
                 "kind": "composition-phase",
-                "operation_id": "7a6f2109-3605-4eee-a932-9a1866017cb1",
+                "operation_id": "79a765ab-a9ee-4159-b8bd-423831d9ccb9",
                 "stage_digests": [
-                  "sha256:a8fe3921108864821ba8411323b98bb47ae5687b5689cff06e9f3afa0188193f",
-                  "sha256:9e11dfc7e04a0b3d813a4104105b11fefa729a9f880c70768182d29410caa788",
-                  "sha256:2c6c94ca8242e99ebaf520ccc889b7d711a397f4f2894240852fcaf4888287e1"
+                  "sha256:2607fe72852b570a45f70c474f720bb9ce0d0a89a92a891c34c68da925f74abd",
+                  "sha256:05701e1537c86732f1e510af0a2390e4baa76b77cae813fad4fd4263604549de",
+                  "sha256:90ac975cb4edae8639829d6f17ad72da47b647f9ce043740cdbdb93337596c56"
                 ],
                 "state": "succeeded"
               }
@@ -520,14 +520,14 @@
           },
           {
             "case": "combination-reusable-control-with-mixed-runtime",
-            "collection_id": "3ada797d4f4b66da9e0f90ab1e021270",
+            "collection_id": "03a288400e1c169b98762087e5033040",
             "episode": "episode-1",
             "operations": [],
             "participant": "participant.behavior.red-agent"
           },
           {
             "case": "combination-distributed-portable-mixed",
-            "collection_id": "ab59e72841644590ae2c03fceb3d8534",
+            "collection_id": "fbf513eaf351dc549df8222293b59c1e",
             "episode": "episode-1",
             "operations": [],
             "participant": "participant.behavior.red-agent"
@@ -536,55 +536,55 @@
         "controls": [
           {
             "case": "control-repeated-cycles",
-            "collection_id": "2b5b90604e49ed9c09cefba79a690193",
+            "collection_id": "5ece4e86053982267ad2f605eabd09f3",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "c9e4a8a8-64ef-4bc4-adcf-2622d94d793e",
+                "operation_id": "f72bf9c8-32a8-4c85-874c-c5fa021d0db6",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-control",
-                "operation_id": "b09a2209-dc81-4641-a5cd-02f91fee04d2",
+                "operation_id": "5d8a6643-46d9-44ba-94be-2133f5025fb3",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-control",
-                "operation_id": "150702bf-074a-4a18-a723-9e5debd752ea",
+                "operation_id": "54858734-367a-414c-a5fe-3df02bfe96ea",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-control",
-                "operation_id": "9d725e18-653c-4ea8-a09a-140deba14720",
+                "operation_id": "20636e97-c275-4c53-b064-1320c2c2b27f",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-control",
-                "operation_id": "52824f30-5e83-4d0a-91a1-907466ba9e45",
+                "operation_id": "3e6acdf3-ae55-4fbd-85d7-b81ca1460380",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-control",
-                "operation_id": "830f58d6-a999-4da8-a05f-a0f767abeb75",
+                "operation_id": "e895b236-b52c-44ef-a9df-067661ead969",
                 "stage_digests": [],
                 "state": "failed"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-crossing",
-                "operation_id": "27d10ab0-add4-4181-9d9e-6d1d7ec386fa",
+                "operation_id": "fd781ba7-13f1-42b3-8820-ead6af7dead0",
                 "stage_digests": [],
                 "state": "succeeded"
               }
@@ -593,34 +593,34 @@
           },
           {
             "case": "control-dispatch-refused",
-            "collection_id": "40a59ab6732ccc761f488bf3e2b16018",
+            "collection_id": "b5e96a7e41ee6ec15ddbac27cfc9d2da",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "d2969761-921d-43e8-9013-e035248a3a7a",
+                "operation_id": "30a52fde-ebd6-451b-9496-89d5375bdab4",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-control",
-                "operation_id": "52188450-e284-4e11-80a3-b66afe730485",
+                "operation_id": "3a0fe187-b6a2-49c8-815d-f430b8a55e0d",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-control",
-                "operation_id": "44dbeb41-2ec7-44de-aef6-d6610f3010e2",
+                "operation_id": "383292f1-c4f5-4638-9ff1-80b1119e9d56",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-crossing",
-                "operation_id": "ac576d97-fca7-43b7-941c-1eced0bbe563",
+                "operation_id": "cbd3b01f-09cb-4d64-ac35-d1c352ece2d2",
                 "stage_digests": [],
                 "state": "failed"
               }
@@ -629,7 +629,7 @@
           },
           {
             "case": "combination-reusable-control-with-mixed-runtime",
-            "collection_id": "cfe568779103f33aa01c5dbb8e04e1bd",
+            "collection_id": "0905921563fd5fcc0988a82237c7214b",
             "episode": "episode-1",
             "operations": [],
             "participant": "participant.behavior.red-agent"
@@ -638,38 +638,38 @@
       }
     },
     {
-      "collection_id": "9c25fbd7a05445819cf296e2c2d720e8",
-      "evidence_digest": "sha256:e4d657c5c5120471a672ad0ae149c95e16b1e2351e45981e182685671ac5ba7c",
+      "collection_id": "8b395d693f0a4e859d107fcdcd31174a",
+      "evidence_digest": "sha256:41f3ea4aed7c4b583e133371dbee4702d716c160a66fe9688756d56a88b840f3",
       "identities": {
         "compositions": [
           {
             "case": "edge-executes",
-            "collection_id": "73332b7af5d744ce29d75a86143b220b",
+            "collection_id": "60ca18355f351f85fec970e1aa91c700",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "4f1bee4c-1f35-4efa-bd6d-548fccf53d61",
+                "operation_id": "d1e53b4d-e3f1-414d-bbd3-39ca613ff36a",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "d2bc76b4-3fc8-4348-acfc-86f528177521",
+                "operation_id": "e95a35d5-2d8b-4bed-a0d2-b750c68ced90",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "6bd106cd-083b-499d-873a-32c8f11bea56",
+                "invocation_id": "638e16cd-9d2c-4207-a680-a9dd75efd923",
                 "kind": "participant-crossing",
-                "operation_id": "07e0fadf-14a3-4b8f-a34a-afdc36ebd09d",
+                "operation_id": "7b6c0c5e-d1e5-419f-a8b7-455190c56bbd",
                 "stage_digests": [
-                  "sha256:3a90818ae391effb9a108e5437846910ad77e124200f1e5a275645209ddf1fb8",
-                  "sha256:f6da1198598d18a6cc2714b9acf0d6c99aac8027409f599600177bd6677b7573",
-                  "sha256:4ce4e03ff46e074e0c1f8a733f1581bed03020c92688f4d6195b1f663ca0528b",
-                  "sha256:427a702728707b09f506eb0aa922a794d9857e626b85eb4a01ec62590780a97a"
+                  "sha256:22aa6cd606c32c359e68863ec6e5b0c6a431a8598111d7307483bb94efeac6f1",
+                  "sha256:8a8f7aa7a18dce4e8fea1473f941c8a21ce060e4048b0e463c38b5516ec52232",
+                  "sha256:8abdfc548ba936b50c70db23b3fef0017a319d90905d26acf89bd61400ac4f44",
+                  "sha256:4217063b849dd38d7335483d40459609d4ed97c67440006757024592c1065dd8"
                 ],
                 "state": "succeeded"
               }
@@ -678,36 +678,36 @@
           },
           {
             "case": "edge-time-mapped-incomparable",
-            "collection_id": "71f684c114519213e238c8236cc8be6a",
+            "collection_id": "557fc35ab2db7623563b296f5aa77263",
             "episode": "episode-1",
             "operations": [],
             "participant": "participant.behavior.red-agent"
           },
           {
             "case": "edge-time-mapped-incomparable",
-            "collection_id": "1859926f922e5da5767e488522a0e30a",
+            "collection_id": "bb3aa5e10ced5650b397fcfebeb756a0",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "7a808985-f418-4e8b-b3e0-60264b57c3af",
+                "operation_id": "d1f8420c-a2d4-4588-b541-08e1f8d8fc70",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "509208e1-ce12-4ba4-9784-58587c9fa7ba",
+                "operation_id": "aacb87c5-aa10-457e-8f60-b8713e5adbfb",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "4e428366-58c4-4936-bab4-a75d899c2519",
+                "invocation_id": "680cba78-6d57-491c-b391-4044b1fa3c9e",
                 "kind": "participant-crossing",
-                "operation_id": "5b24b42e-23bd-4317-b22f-da40c39454f3",
+                "operation_id": "ef2dae21-f419-4372-bc5d-c192ade3519f",
                 "stage_digests": [
-                  "sha256:602578d52925efd3f8804d6758a84ad093273b31ba06e4197ad48eb6eaffa6b7"
+                  "sha256:d6d650a5a0039311c444f5b4cf451f5cda42eadf6a92f1be5c67d647887a2d96"
                 ],
                 "state": "failed"
               }
@@ -716,36 +716,36 @@
           },
           {
             "case": "edge-time-segment-incomparable",
-            "collection_id": "8ed1aba9db0643ce3789b1821ca52006",
+            "collection_id": "1984fa29df1f74d88b5381499a072f58",
             "episode": "episode-1",
             "operations": [],
             "participant": "participant.behavior.red-agent"
           },
           {
             "case": "edge-time-segment-incomparable",
-            "collection_id": "e13163850ca8d8daf98f74362e9a3007",
+            "collection_id": "1c47a97d586fdb0d26f1950db8c49f7a",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "1653f494-5cea-41ec-941c-553b1da911ac",
+                "operation_id": "00f59663-7e78-468d-a43e-7a69063f775d",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "895f5857-a2b8-4dc8-8118-7bd0c9044dce",
+                "operation_id": "5c2514e4-7e9a-4f7b-9602-860f3f46e7c8",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "b89e588f-1533-4bab-b702-54d2c2337bea",
+                "invocation_id": "3b78a3cc-7b6d-48ad-9559-22460d969815",
                 "kind": "participant-crossing",
-                "operation_id": "a723919a-224f-43bb-87e3-4b74c4407874",
+                "operation_id": "ee0a985e-e131-4a2e-8531-3e370dcccc6a",
                 "stage_digests": [
-                  "sha256:3b87f0a872ce2b034b56c6e0bee9b29bd178ce15966292e109c3c3ce27709f91"
+                  "sha256:d344a88015af789e8d2764f4a8e5904ef15ca4ea068068f8b29b1f8732729b10"
                 ],
                 "state": "failed"
               }
@@ -754,20 +754,20 @@
           },
           {
             "case": "edge-unbound-refused",
-            "collection_id": "6f722c3216ef217966564b9c2d73956e",
+            "collection_id": "9a623f991e2db3d393b0136e3f4a4e5b",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "d10e4cb2-227b-4034-b2bf-3ac495095fce",
+                "operation_id": "9c0c85dc-f961-46f7-90c0-3b92870d6c6e",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "33b383cd-3e1b-4553-8eee-c506d1b91011",
+                "operation_id": "219e1eda-341b-4b9f-a9bc-36e34f1da282",
                 "stage_digests": [],
                 "state": "succeeded"
               }
@@ -776,32 +776,32 @@
           },
           {
             "case": "edge-unbound-refused",
-            "collection_id": "f05c72c2259b461df1d333969dd49436",
+            "collection_id": "b54fb28b09801a7d5b3b9aed3141b76c",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "d4fd4233-cb20-4641-863b-08fc6fa4f89d",
+                "operation_id": "3679ffb4-9554-4df5-bd95-6955a57e1601",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "055db88a-90e8-4d54-8f36-ff4c9c067e5e",
+                "operation_id": "853256c2-34a5-44cf-af2f-59df1ed43834",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "19f381f7-3a5f-49e6-82a0-a95f3ead5fe9",
+                "invocation_id": "5dd8615e-ffc2-41fc-9e9f-ef0b3d6cb2ff",
                 "kind": "participant-crossing",
-                "operation_id": "2ae4ff73-bfdc-47e8-a0c7-8a766650199b",
+                "operation_id": "bf66f5cb-98c0-4f57-b21b-b9b0fb7a0dda",
                 "stage_digests": [
-                  "sha256:1ca379b4ceeee3caf7d7b7bbc7534a16791d9d3982ad2aa1d68d1846e001a629",
-                  "sha256:5d40772450d407f163b322e8e7fe62db1b75915e2f6f076102ff2136a5d37b07",
-                  "sha256:a295de3297a3d12a3e206f5e85579aab3388c79f56d5dc6bf654c44127656604",
-                  "sha256:9cbbf26fde663fff2fb77af4700aa9a5210eb539bf4a394bb74a5dd78e1d3eb7"
+                  "sha256:142395c61c5ee28845072b17ddc14383d22012b389bfea29caad3c0257d34a33",
+                  "sha256:d2e63dd49eff0030cce832bac35a7017a63af666c43e0e73c438f4c0af2719cd",
+                  "sha256:3ff7f5f3a354a565bd5a905403f1b9cd0a14718dac0c3b146b8a178f1f5238c4",
+                  "sha256:82aaeb2c40b8ea2f37059cd0cbf3c73032379b97a5e74b7569d4a796d51552f1"
                 ],
                 "state": "succeeded"
               }
@@ -810,41 +810,41 @@
           },
           {
             "case": "edge-missing-mapping-refused",
-            "collection_id": "5dbab9ebc475b742d5da2f299b092f0e",
+            "collection_id": "11a9eb1650ffdbe735abf63f490e671b",
             "episode": "episode-1",
             "operations": [],
             "participant": "participant.behavior.red-agent"
           },
           {
             "case": "edge-reversed-mapping-refused",
-            "collection_id": "b10f3e3dde761a5a2ccc456a20cec53a",
+            "collection_id": "0d84447bb90401927fe5d5585981a630",
             "episode": "episode-1",
             "operations": [],
             "participant": "participant.behavior.red-agent"
           },
           {
             "case": "edge-undeclared-loss-refused",
-            "collection_id": "ee746307fe3cffe61ed3ac542532231d",
+            "collection_id": "c7fb95efdf1604e9b498bc2b89907ce0",
             "episode": "episode-1",
             "operations": [],
             "participant": "participant.behavior.red-agent"
           },
           {
             "case": "edge-refused-before-claim",
-            "collection_id": "1eb232e31cb052e3bd9b29df31d14b22",
+            "collection_id": "328542435d3a41bb09671f1d0d86d180",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "529368fa-2b59-4c84-8ea8-823cf762495b",
+                "operation_id": "5351a45d-640d-4004-a988-b03d90e083cd",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "03e3d04b-4807-493a-a2c7-722c12505fa2",
+                "operation_id": "d47273df-8d4b-4c69-8685-f49406ea3f77",
                 "stage_digests": [],
                 "state": "succeeded"
               }
@@ -853,29 +853,29 @@
           },
           {
             "case": "edge-refused-after-time-grant",
-            "collection_id": "4446a3211d45cf1342114e2ec2b14cd3",
+            "collection_id": "feff5acb2b5f2fd2bf1265a571a3185c",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "d7547a30-0e50-4831-9dd4-058ec8576729",
+                "operation_id": "7073b9eb-4edd-4220-bc89-693b63eb3375",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "736f8c56-585e-4526-abaa-5f46165933dc",
+                "operation_id": "4b4718ce-253e-4c7b-83a0-0140cbb10a9e",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "04962426-5225-4df8-a3c8-c66bd67b4e4f",
+                "invocation_id": "1e00c565-6311-4bcb-b951-f727f48c32ab",
                 "kind": "participant-crossing",
-                "operation_id": "0db3160c-a348-4978-b9bf-e505602c2c22",
+                "operation_id": "0679e282-0116-496a-bafa-539a85b7cb91",
                 "stage_digests": [
-                  "sha256:bccf8316602ab38a7fdf3298ee5f8edf652fcaa595859b4098448772062ba435"
+                  "sha256:7f64beca245e087c9a2bd33b4635df4dd7b1d80cc85c3245579450a94fd069bb"
                 ],
                 "state": "cancelled"
               }
@@ -884,29 +884,29 @@
           },
           {
             "case": "edge-start-refused",
-            "collection_id": "af0662e06772b7614d52a0c9b3d2b015",
+            "collection_id": "93897705af44e5b2349ff3a88700a6f2",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "e22149db-6e91-47a3-ab06-06c9ad7be855",
+                "operation_id": "6aaaf972-9967-4d06-b8df-7a026e7b1fca",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "944c3fa8-d76f-4953-8e07-57a575a7491d",
+                "operation_id": "01fbed0e-405c-4e62-bd1e-34c9281ef8d2",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "cd84cfcc-8b09-49d1-ba50-33292f148f36",
+                "invocation_id": "53773988-dc7e-4550-865f-689ff56f1c32",
                 "kind": "participant-crossing",
-                "operation_id": "a5785ab2-dc7b-4bde-bece-e001d5513ced",
+                "operation_id": "430764be-df27-46d3-ba33-9d1feeb26eb1",
                 "stage_digests": [
-                  "sha256:47de65f10eca0a95e0958e33f0738d1cfe64777d0487405ff1edd59d8dc2dbc2"
+                  "sha256:ccc3fcc512468db560096a79ba5bda276f53eb3eed31a6f4b6a5c2bbe9578846"
                 ],
                 "state": "indeterminate"
               }
@@ -915,32 +915,32 @@
           },
           {
             "case": "edge-partial-execution",
-            "collection_id": "9b882325324805ac94dc1e8b785fca8e",
+            "collection_id": "5c916d618f2dfd88bdad8a5b209eb527",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "1499ecac-37e4-4112-9554-e52db4693198",
+                "operation_id": "c2134fd2-3051-4378-997e-c898fb62de81",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "fcd41578-d113-4735-ac43-6204271ce07b",
+                "operation_id": "fc26b7d5-90bf-4d28-8985-25b8670ff2dc",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "c99b8bf7-7e8f-4554-9ef6-193a7637938c",
+                "invocation_id": "ecad57c3-618c-4a02-b591-cc815c83dd36",
                 "kind": "participant-crossing",
-                "operation_id": "9b6c3891-f11f-49c3-8a90-93dfcdd5a870",
+                "operation_id": "34f5a870-ae51-4310-b116-975fd31d2e8e",
                 "stage_digests": [
-                  "sha256:3f7d3f69b195b3cddda2e8a4fcee61ccdb02f22a11c55a088535fe40f29f14b2",
-                  "sha256:c29c00b6659d5864234b2eb79366860050aa3c992dd84ab6465ca5ed1d0da44c",
-                  "sha256:31b9f6c0c79f3f39e4a99fa23cc79e1dbad19f1496bd69b5b5a869992380d0f3",
-                  "sha256:74e5659031c7ffa4d415000f58e1daf580dacbd5a8710da53aaf5398f2b7087c"
+                  "sha256:3a7ba7cdf9de997335c0ee06e52dc57f48a39d0f2ed0e35de275a19eb805bf9f",
+                  "sha256:045962dea196aa81abdd59bbddca805181076beeef7e42336633f311c731f9bc",
+                  "sha256:0a282d68dd13f32b9afa13d1ef79a8419f31969467f7df274ad28cbaa4eef24b",
+                  "sha256:2c6cf2c45860b890117ba6601cf10dda3cdbfab6345b8f67be0af031838ec534"
                 ],
                 "state": "indeterminate"
               }
@@ -949,30 +949,30 @@
           },
           {
             "case": "edge-missing-delivery",
-            "collection_id": "9bad11c38a0192d0aa50c4f244afa956",
+            "collection_id": "c446e9b0686256eadd899712bc99f9d4",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "7e537d48-39fd-4ae9-a92c-b311448b68b6",
+                "operation_id": "92f16cf2-08ee-49d9-988b-666542dc7af3",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "42b84b44-275d-4bc0-b698-d1ce9b0da809",
+                "operation_id": "c1e29a48-a59c-4758-8a6c-459c548b92d9",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "b469f20f-7590-487c-b684-dd1f2a0e2b42",
+                "invocation_id": "dd2b6cb6-0744-4470-b5ce-495357c8f6c6",
                 "kind": "participant-crossing",
-                "operation_id": "7b6e5f92-f387-4172-9d8b-657e5ab69349",
+                "operation_id": "7dc52d4c-1ff0-4865-92e3-0f2cba5d8c2d",
                 "stage_digests": [
-                  "sha256:b3e56f1325242a550288fb9262f90560718b873256b1b345b5dfc685c860554b",
-                  "sha256:372b21d2b45df5ff2ab45b28234b824324887405338748e9df69939f5b6ab51c"
+                  "sha256:7721defe32668bb8a7d894df9853837a61eb02fc297714351433c4d577bbda01",
+                  "sha256:997d783d0d12f8de4d463f70359777778ce0e8663a99e884b5da6103fb7a9719"
                 ],
                 "state": "indeterminate"
               }
@@ -981,32 +981,32 @@
           },
           {
             "case": "edge-restart-no-reissue",
-            "collection_id": "81b3e720beb241b838a029914d5ace66",
+            "collection_id": "23fb75b482c75c9018d286d5799156c9",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "45cd31e4-c6ae-4f04-9c1e-9956e139ab81",
+                "operation_id": "2c106212-e020-4f86-b0b5-02cc769f38be",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "10327247-5d1e-4d48-a067-28a49428ccc0",
+                "invocation_id": "6bf92262-37ad-4482-bee0-e9f2c7ca655a",
                 "kind": "participant-crossing",
-                "operation_id": "731aa405-34ad-4178-b332-22107a988ecb",
+                "operation_id": "ae6c94e2-928e-4236-98c1-ea93bb518abc",
                 "stage_digests": [
-                  "sha256:4d6adebea7135c1b1fb082c106bdb151f5dcef5225130bb73a74ed1183c3089e",
-                  "sha256:824c9210ddea7d5989268b8667e35f9fb067ba1bf067a918d29c3cbaa9c29e6f",
-                  "sha256:4211d17790c154df20a8ee9ab554985a0f3af28fa6d7ed07343299efcedfc6ba",
-                  "sha256:05399af6e340ea0c387fe1bb67e0dc672e7af8e9302c3583307201ae690210b0"
+                  "sha256:d688469c42e10f2f186a7fc4d2a9d256ef64ffbc24674f727f57bcf891fec718",
+                  "sha256:dcedfbc1f7fbf83cc9d3b8c48c200e218bb27cf190c8e10a5e0625f6dd6e6e70",
+                  "sha256:1a095046bf01024a7953fbd92b15e0a37923a9ff484bd83f54a38e3fe11a07e9",
+                  "sha256:ede8d2ae6423f66d799863febac04ed3edb6959aad83ae1e7324b1ad4a8aa7e3"
                 ],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "c28d33b7-a3ba-41f3-99cf-f042de5eece2",
+                "operation_id": "cd37a344-8cea-4ecf-8430-ba735432f052",
                 "stage_digests": [],
                 "state": "succeeded"
               }
@@ -1015,32 +1015,32 @@
           },
           {
             "case": "edge-restart-no-reissue",
-            "collection_id": "28f2a47448e8c3d3edf37991c088ec5b",
+            "collection_id": "7c3a430db43927323ac0438792b647a9",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "45cd31e4-c6ae-4f04-9c1e-9956e139ab81",
+                "operation_id": "2c106212-e020-4f86-b0b5-02cc769f38be",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "10327247-5d1e-4d48-a067-28a49428ccc0",
+                "invocation_id": "6bf92262-37ad-4482-bee0-e9f2c7ca655a",
                 "kind": "participant-crossing",
-                "operation_id": "731aa405-34ad-4178-b332-22107a988ecb",
+                "operation_id": "ae6c94e2-928e-4236-98c1-ea93bb518abc",
                 "stage_digests": [
-                  "sha256:4d6adebea7135c1b1fb082c106bdb151f5dcef5225130bb73a74ed1183c3089e",
-                  "sha256:824c9210ddea7d5989268b8667e35f9fb067ba1bf067a918d29c3cbaa9c29e6f",
-                  "sha256:4211d17790c154df20a8ee9ab554985a0f3af28fa6d7ed07343299efcedfc6ba",
-                  "sha256:05399af6e340ea0c387fe1bb67e0dc672e7af8e9302c3583307201ae690210b0"
+                  "sha256:d688469c42e10f2f186a7fc4d2a9d256ef64ffbc24674f727f57bcf891fec718",
+                  "sha256:dcedfbc1f7fbf83cc9d3b8c48c200e218bb27cf190c8e10a5e0625f6dd6e6e70",
+                  "sha256:1a095046bf01024a7953fbd92b15e0a37923a9ff484bd83f54a38e3fe11a07e9",
+                  "sha256:ede8d2ae6423f66d799863febac04ed3edb6959aad83ae1e7324b1ad4a8aa7e3"
                 ],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "c28d33b7-a3ba-41f3-99cf-f042de5eece2",
+                "operation_id": "cd37a344-8cea-4ecf-8430-ba735432f052",
                 "stage_digests": [],
                 "state": "succeeded"
               }
@@ -1049,24 +1049,24 @@
           },
           {
             "case": "handoff-commits",
-            "collection_id": "3f40a61a72198d3307dd616a6d91a03a",
+            "collection_id": "cfd6e08f82ae7a9394b5072d1b6fcc94",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "73b7e054-7b87-474c-bae3-93aed383f367",
+                "operation_id": "58e00bd5-76fe-4d2e-a4e8-e7907867b379",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "26bda39d-4a02-4c00-a75f-9384f1f2d3d4",
+                "invocation_id": "473fe90c-bbdb-47db-bc5a-6c44de723aef",
                 "kind": "composition-phase",
-                "operation_id": "a013f50f-682c-4a6a-a09b-a9aef7e2033c",
+                "operation_id": "73047c94-6485-4383-9133-56d2cff7f8f8",
                 "stage_digests": [
-                  "sha256:d4e57ded167e8d1e95ae2bf05576859961169cc9d82e3cd97a8598fb4988f72a",
-                  "sha256:0cd2e1946de20e89b7f6193b210d4c8c4fad1791ee193c5cca94cb39cf2c9475",
-                  "sha256:c1e0d880a693d862befadeef86df21a2b41c97455e1c218a4eb7cf5ec19942cd"
+                  "sha256:b0c99eb12d0ad5c300456665943bc29e28bb3c2b60da080bf9da7f3613e26f8c",
+                  "sha256:82376969d72fdb98a48c9942405c6678ba5bdd49917bb917259ceda0cfbefa24",
+                  "sha256:230f34f9357a853e2a3da24fc580b351f57022f68ce3dd7e0d2dd554d797944e"
                 ],
                 "state": "succeeded"
               }
@@ -1075,24 +1075,24 @@
           },
           {
             "case": "handoff-stale-transfer",
-            "collection_id": "894eb8185fd462fa1b824c7e07aba67e",
+            "collection_id": "45c76942acfdc1f35db5e4eb5b6d5260",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "e6d59c1f-60d3-4633-a0ed-c8fcebcf81c3",
+                "operation_id": "137aa407-c7ab-4823-9b18-0ee40d7a0584",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "ee958458-cc16-4b80-ad43-0651a5229bed",
+                "invocation_id": "c21e5a89-fbc6-402f-a5d8-4827c259bb60",
                 "kind": "composition-phase",
-                "operation_id": "87e3f1c9-5dc6-4d72-a718-c4dee3d909e9",
+                "operation_id": "3fce9173-2ee4-4ea7-9c91-2f3557c9f593",
                 "stage_digests": [
-                  "sha256:9d7c67a3099b304e5ff1e1d8abc3961eaca2e21e99fe04e2df553228c66aca4d",
-                  "sha256:549eb23d01c607af1bec99e0010155e32dc56ab5658f787ac9ea8cc9304934e5",
-                  "sha256:76f2276311b5d2b7fab46d727c504b4d30aaaec31830e251f9d1c52d913e1a85"
+                  "sha256:39907d70e36fc95e95de34b2df1552603ba4ac66f43da322f4fc44d79596f856",
+                  "sha256:54063355520d11dabfbb907690cb83b02c244118c2da09f6f7e5db549f6b9d85",
+                  "sha256:df634350b2d6e919708833c4d77aed1b59a32a72b6dc948481a9171b63aa87bc"
                 ],
                 "state": "failed"
               }
@@ -1101,35 +1101,35 @@
           },
           {
             "case": "handoff-repeated-transition",
-            "collection_id": "027644f6faa22e8bcfd8c466d301578b",
+            "collection_id": "caefc5aa02e6beee87fdca38fe17b2b5",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "composition-phase",
-                "operation_id": "69836a9e-799c-43a0-93e4-c0dfcfca354e",
+                "operation_id": "2ad8cfb8-74ee-44e7-b760-616053f72a0c",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
-                "invocation_id": "9007db2f-b323-4d5d-80b9-cc91f76fa3e7",
+                "invocation_id": "edbf9563-a18a-4c4c-b558-0a7f5de8cfae",
                 "kind": "composition-phase",
-                "operation_id": "cee49dbe-bafa-4eb3-9fc3-d89be2de6f09",
+                "operation_id": "a200b0d0-aba6-4f98-aaca-24cd29bcfcc1",
                 "stage_digests": [
-                  "sha256:c92fb6f24887f9ef7ea7cda2ea88f3985196cb5e5daf2b28cf3675035db9891f",
-                  "sha256:79f02d7a5dd0d59d11f6e505e73b84f8e09195f6cbf4280be04c6fa09fbe2b0b",
-                  "sha256:eec3a72de7a6a27325de58915033ceb0441ac48bb927d3def77751e6530a4bf3"
+                  "sha256:dbcfa267ddfa30338d08cdf83fd1e14ed9c51bbf75edc4617b5a367a8a03bcf5",
+                  "sha256:dcc4ec535b82c8581e54b91422e63ad21a93d0cf275644e5a28fc62ae93b1801",
+                  "sha256:1f8c5168c55a174269affc705876c1fda35d91eea5ca82cf4945777a1c414b76"
                 ],
                 "state": "failed"
               },
               {
-                "invocation_id": "6fb8eeae-2b9c-4c84-a004-b064fc687f85",
+                "invocation_id": "4e6a7445-a477-49dd-bc4a-7eb4aff4fdfe",
                 "kind": "composition-phase",
-                "operation_id": "4170a9fa-9dd9-4be2-965f-41a997537f08",
+                "operation_id": "191af881-3898-44cb-b082-f91fe6692ffb",
                 "stage_digests": [
-                  "sha256:bfc9a0593b2d761dcfd2053bf25ad36b3cca3a072e2fb24a5ea6a5071ff25739",
-                  "sha256:7ede4c3c3c1dac9d19abd30578889cfc379202d555187a5fd2754d4c0ec2f830",
-                  "sha256:69c566dde716aac284a65eabac3df8f4106b2240c3bc958d4379adf17b0ce982"
+                  "sha256:73e646f9fe8535f12ffe4e675261ba2717a59262785f089b0777f945c16da8f5",
+                  "sha256:fecc363602f6aa5e16ebcac1cd17c06df4f1ac6482e08b7ab489f06e2b8c4999",
+                  "sha256:ce5b3d26315da49ff91c8da0565862663499375ce32f58098bfc6dc40f3e8fcd"
                 ],
                 "state": "succeeded"
               }
@@ -1138,14 +1138,14 @@
           },
           {
             "case": "combination-reusable-control-with-mixed-runtime",
-            "collection_id": "163ab4bdf17a6e46dc2816f9bfca7ed9",
+            "collection_id": "9793bab5e35689ef179b79f4dde7ec4f",
             "episode": "episode-1",
             "operations": [],
             "participant": "participant.behavior.red-agent"
           },
           {
             "case": "combination-distributed-portable-mixed",
-            "collection_id": "98bdf075d8fcc4b56cbff716ac1afdc8",
+            "collection_id": "1b24c7d0d422d369d2005c41dd73e670",
             "episode": "episode-1",
             "operations": [],
             "participant": "participant.behavior.red-agent"
@@ -1154,55 +1154,55 @@
         "controls": [
           {
             "case": "control-repeated-cycles",
-            "collection_id": "33f139145195eb28076249ff33959cb1",
+            "collection_id": "10f6ac35951a64b6ca441b34ccb977f5",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "5dbcc923-b0b5-44ae-af03-1cc194499359",
+                "operation_id": "fa8c9337-ef4e-43bf-8375-9b487f4fada6",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-control",
-                "operation_id": "b8dfbbea-f97f-4104-a56e-f50fd5af0764",
+                "operation_id": "9f7e3819-cc78-414b-ae02-0bf70367b3a2",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-control",
-                "operation_id": "f10e9364-dfc7-4c8a-8f88-13ba54b5ba91",
+                "operation_id": "3b37fe9b-c19d-4486-93fd-1df135d3ce13",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-control",
-                "operation_id": "24dc01cc-db1b-4bb8-bd5c-b518d947edc0",
+                "operation_id": "0bb149e1-1c72-40b8-9da5-89e3ed0a653d",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-control",
-                "operation_id": "906d8464-b75d-4596-b48e-2c67bc71f002",
+                "operation_id": "d39deddd-f655-432d-a259-edf622d63295",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-control",
-                "operation_id": "c37d6daf-e080-427c-aacc-46b4d1969ab0",
+                "operation_id": "fd29b3df-5a04-4539-871d-e231065ba1f1",
                 "stage_digests": [],
                 "state": "failed"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-crossing",
-                "operation_id": "119cbb50-dfd8-497a-910e-8299ad127386",
+                "operation_id": "b12534ee-3d9f-43e0-a915-344c9877b006",
                 "stage_digests": [],
                 "state": "succeeded"
               }
@@ -1211,34 +1211,34 @@
           },
           {
             "case": "control-dispatch-refused",
-            "collection_id": "8588df9740f9bb89934a69f10a6b84ac",
+            "collection_id": "c4d46bc2b0c65d9ee81cfe4646a1d703",
             "episode": "episode-1",
             "operations": [
               {
                 "invocation_id": null,
                 "kind": "participant-action",
-                "operation_id": "ce87fc6e-1346-4a5f-8d06-2878cd297c99",
+                "operation_id": "cf7e893d-2745-4f0f-858e-a4d8a1f6481c",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-control",
-                "operation_id": "39a5b302-095e-4359-965d-1a80221f855e",
+                "operation_id": "86488966-e96c-4d9c-9044-a19681a8aebf",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-control",
-                "operation_id": "fe4eabf4-c430-4561-8dfd-9fa8f7dadc83",
+                "operation_id": "6b46ce90-2093-49d5-83a0-970a52e9225f",
                 "stage_digests": [],
                 "state": "succeeded"
               },
               {
                 "invocation_id": null,
                 "kind": "participant-crossing",
-                "operation_id": "6fc83604-84c2-4537-bd9d-6c619f3fac5b",
+                "operation_id": "694865d9-27de-4005-ab87-b40b02bdb6a1",
                 "stage_digests": [],
                 "state": "failed"
               }
@@ -1247,7 +1247,7 @@
           },
           {
             "case": "combination-reusable-control-with-mixed-runtime",
-            "collection_id": "6b50b31a0c645007e83d56c571b97db9",
+            "collection_id": "131f36334576a20bebbe0f0114b63485",
             "episode": "episode-1",
             "operations": [],
             "participant": "participant.behavior.red-agent"
@@ -5871,7 +5871,7 @@
     }
   },
   "source": {
-    "digest": "sha256:0f3ffc146a1f58d21eee6bfa9ff36e1c9c9e530c2d2e485e4b94ca645b0395ce",
-    "file_count": 3159
+    "digest": "sha256:a6adfddda82d4b0aab3e53e9271c9bb7dfc1b929241377108e4c460d8475b967",
+    "file_count": 3161
   }
 }

@@ -117,6 +117,8 @@ flowchart LR
 
 Policy as code needs no change.
 The existing module boundaries and report validators apply without an exception.
+The new test-source inventory has a fresh content-addressed runtime-mapping capture.
+Historical captures remain unchanged.
 Architecture as code stays in repository test modules under the existing source-size limit.
 The demonstration adds no installed runtime module, public schema, or backend discovery path.
 ADR-102, ADR-108, ADR-110, and ADR-115 already define the applicable boundaries.
