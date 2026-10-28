@@ -1,0 +1,165 @@
+name: context-example
+control_context_assets:
+  shared:
+    asset_id: privacy-instruction
+    asset_version: one
+    content:
+      artifact_id: instruction-one
+      checksum:
+        algorithm: sha256
+        value: 8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce
+      created_at: '2026-10-26T00:00:00Z'
+      description: null
+      media_type: text/plain
+      role: documentation
+      satisfies_refs: []
+      sensitivity: restricted
+      size_bytes: 34
+      source: publisher-reference
+      uri: urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce
+    kind: instruction
+    participant_addresses: []
+    provenance_refs:
+    - provenance.authoring
+    publication_authority_ref: authorities.publisher
+    retention_policy_ref: retention.governed
+    role_refs:
+    - red
+    - blue
+    schema_version: participant-control-context-asset/v1
+  revised:
+    asset_id: privacy-instruction
+    asset_version: two
+    content:
+      artifact_id: instruction-one
+      checksum:
+        algorithm: sha256
+        value: 8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce
+      created_at: '2026-10-26T00:00:00Z'
+      description: null
+      media_type: text/plain
+      role: documentation
+      satisfies_refs: []
+      sensitivity: restricted
+      size_bytes: 34
+      source: publisher-reference
+      uri: urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce
+    kind: directive
+    participant_addresses: []
+    provenance_refs:
+    - provenance.authoring
+    publication_authority_ref: authorities.publisher
+    retention_policy_ref: retention.governed
+    role_refs:
+    - red
+    - blue
+    schema_version: participant-control-context-asset/v1
+  policy:
+    asset_id: operating-policy
+    asset_version: one
+    content:
+      artifact_id: instruction-one
+      checksum:
+        algorithm: sha256
+        value: 8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce
+      created_at: '2026-10-26T00:00:00Z'
+      description: null
+      media_type: text/plain
+      role: documentation
+      satisfies_refs: []
+      sensitivity: restricted
+      size_bytes: 34
+      source: publisher-reference
+      uri: urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce
+    kind: policy
+    participant_addresses: []
+    provenance_refs:
+    - provenance.authoring
+    publication_authority_ref: authorities.publisher
+    retention_policy_ref: retention.governed
+    role_refs:
+    - red
+    - blue
+    schema_version: participant-control-context-asset/v1
+  unselected:
+    asset_id: unselected-guidance
+    asset_version: one
+    content:
+      artifact_id: instruction-one
+      checksum:
+        algorithm: sha256
+        value: 8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce
+      created_at: '2026-10-26T00:00:00Z'
+      description: null
+      media_type: text/plain
+      role: documentation
+      satisfies_refs: []
+      sensitivity: restricted
+      size_bytes: 34
+      source: publisher-reference
+      uri: urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce
+    kind: guidance
+    participant_addresses: []
+    provenance_refs:
+    - provenance.authoring
+    publication_authority_ref: authorities.publisher
+    retention_policy_ref: retention.governed
+    role_refs:
+    - red
+    - blue
+    schema_version: participant-control-context-asset/v1
+agents:
+  red:
+    role: red
+    control_context:
+      briefing:
+        declaration_ref: shared
+        asset_ref:
+          asset_id: privacy-instruction
+          asset_version: one
+          asset_digest: sha256:83c7094c1ac208ad0b6cbe65560801b2512b93edf919b3b4e1debf6ae6eada8a
+        disposition: selected
+  blue:
+    role: blue
+    control_context:
+      briefing:
+        declaration_ref: shared
+        asset_ref:
+          asset_id: privacy-instruction
+          asset_version: one
+          asset_digest: sha256:83c7094c1ac208ad0b6cbe65560801b2512b93edf919b3b4e1debf6ae6eada8a
+        disposition: withheld
+      rules:
+        declaration_ref: policy
+        asset_ref:
+          asset_id: operating-policy
+          asset_version: one
+          asset_digest: sha256:c2517111fa289e5c45be2c6cfa7e69efaa154f8e5389385ff0d687fded355ac1
+        disposition: selected
+behavior_specifications:
+  followup:
+    semantic_version: '1'
+    participant_refs:
+    - red
+    control_context:
+      followup:
+        declaration_ref: revised
+        asset_ref:
+          asset_id: privacy-instruction
+          asset_version: two
+          asset_digest: sha256:59bd1d08df2416bd6a58e2038b21e3c311a7b01bddabccfe693ef87e2b418ba4
+        disposition: selected
+module:
+  id: examples/context-kit
+  version: 1.0.0
+  exports:
+    agents:
+    - red
+    - blue
+    behavior_specifications:
+    - followup
+    control_context_assets:
+    - shared
+    - revised
+    - policy
+    - unselected

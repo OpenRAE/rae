@@ -30,6 +30,7 @@ from ._core import eligible_element
 from ._participant_execution_renderers import AUTONOMOUS_PARTICIPANT_ISSUE_RENDERERS
 from ._participant_outcome_renderers import PARTICIPANT_OUTCOME_ISSUE_RENDERERS
 from ._participant_resource_budget_owners import participant_resource_budget_owner_errors
+from ._participant_tool_affordance_renderers import PARTICIPANT_TOOL_AFFORDANCE_ISSUE_RENDERERS
 
 # Renders an objective-semantics issue (machine-readable code from
 # ``raes.semantics.objective_semantics``) into the authoring-error string
@@ -98,6 +99,7 @@ _OBJECTIVE_ISSUE_RENDERERS = {
 
 _PARTICIPANT_BEHAVIOR_ISSUE_RENDERERS = {
     **AUTONOMOUS_PARTICIPANT_ISSUE_RENDERERS,
+    **PARTICIPANT_TOOL_AFFORDANCE_ISSUE_RENDERERS,
     "participant.action-contract-unbound": (
         lambda i: f"Agent '{i.participant_name}' action '{i.ref}' does not reference a declared action_contract"
     ),
@@ -352,6 +354,11 @@ class _ContentObjectivesMixin:
                 self._err(f"{label} initial_knowledge host '{host}' must reference a compute node")
 
     def _verify_participant_behavior(self) -> None:
+        from ..participant_control_context import resolve_authored_control_context
+
+        _, errors = resolve_authored_control_context(self._s, self._declaration_index)
+        for error in errors:
+            self._err(error)
         for error in participant_temporal_binding_errors(self._s):
             self._err(error)
         analysis = analyze_participant_behavior(

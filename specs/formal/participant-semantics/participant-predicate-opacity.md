@@ -299,9 +299,9 @@ Assurance states are independent:
 | model checking | closed finite model, explored bounds, pinned tool/version, result or counterexample | model checked for the exact baseline fixture model |
 | mathematical proof | theorem, assumptions, independently checkable proof, tool/digest when mechanized | proved for the abstract conditional theorem profile; no concrete RAES instance |
 | runtime enforcement | complete supported-channel inventory, fail-closed mediation, durable decisions, security tests | partial for the exact finite historical `participant-opacity-runtime-reference-v1@sem-231/runtime-rev1` profile and its governed RUN-319 crossing inventory |
-| backend declaration | API-407 feature strength, required contracts, limitations, evidence refs | declared for `participant-opacity-runtime-reference-v1@sem-231/runtime-rev2` by the reference backend |
-| backend realization | native implementation, profile mapping, environment and provenance evidence | partial; one backend-native finite reference realization |
-| bounded backend conformance | adversarial cases, backend/profile/environment digests, sanitized reports | bounded for the exact reference backend/profile/configuration/tool/environment/probe set |
+| backend declaration | API-407 feature strength, required contracts, limitations, evidence refs | not declared; no backend in RAES declares the feature |
+| backend realization | native implementation, profile mapping, environment and provenance evidence | not realized; runtime mediation shields backend mechanisms under the runtime profile |
+| bounded backend conformance | adversarial cases, backend/profile/environment digests, sanitized reports | not tested; the runner derives observed runtime-mediated evidence only |
 
 A claim binding identifies exactly one `assurance_axis`. Finite execution
 evidence cannot satisfy universal quantification. A definition does not
@@ -344,10 +344,13 @@ model checking for the historical baseline fixture profile. Issue #963
 delivers the abstract conditional mathematical proof. Issue #964 delivers one
 finite reference-runtime uniform-denial enforcement profile through RUN-319;
 it releases no protected payload or participant state and records each withheld
-egress opportunity. Issue #965 delivers the separate bounded reference-backend
-declaration, native realization, and adversarial conformance lane. It retains
-the failed, unsupported, weakened, and counterexample cases and makes no claim
-for another backend or profile.
+egress opportunity. Issue #965 added a reference-backend declaration,
+realization, and conformance lane. Issue #1374 withdraws that lane. Its
+evidence was a fixed transcript, and the reference backend is no longer part of
+RAES. The generic runner now derives each transcript from runtime execution and
+backend readback. Under the runtime profile, RUN-319 produces the normal form
+before any protected backend effect, so the runner derives runtime-mediated
+evidence only.
 
 ## Bounded Checker Contract
 

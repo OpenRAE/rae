@@ -263,7 +263,7 @@ def prepare_participant_crossing(
             resolver,
             incumbent_carrier,
         )
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return _prepare_policy_unresolved(
             control_plane,
             intent,

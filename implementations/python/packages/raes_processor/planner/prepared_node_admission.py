@@ -170,23 +170,30 @@ def prepared_node_capability_violation(
     original_addresses = {operation.address for operation in original.operations}
     added = [operation for operation in selected.operations if operation.address not in original_addresses]
     live = _live_provisioning_entries(selected, previous)
+    try:
+        validate_portable_node_inventory(live, original_addresses, manifest, availability, added=added)
+    except AttributeError, KeyError, TypeError, ValueError:
+        return "Backend preparation selected an inadmissible portable node completion."
+    return None
+
+
+def validate_portable_node_inventory(
+    live: Mapping[str, object],
+    original_addresses: set[str],
+    manifest: BackendManifest | None,
+    availability: ArtifactAvailabilityContext | None = None,
+    *,
+    added: Sequence[object] = (),
+) -> None:
+    """Admit portable additions with the same native semantics at either boundary."""
     portable = {address: entry for address, entry in live.items() if entry.resource_type in _PORTABLE_RESOURCE_TYPES}
     available = {entry.payload.get("name"): entry for entry in portable.values()}
     additional_live = [entry for address, entry in portable.items() if address not in original_addresses]
-    try:
-        if len(available) != len(portable) or resource_dependency_cycles(live):
-            raise ValueError("prepared membership has duplicate names or cyclic ordering")
-        _require_admitted_additions(
-            added,
-            additional_live,
-            live=live,
-            available=available,
-            manifest=manifest,
-            availability=availability,
-        )
-        validate_prepared_node_semantics(live)
-        if any(diagnostic.is_error for diagnostic in _validate_manifest(_prepared_runtime_model(live), manifest)):
-            raise ValueError("prepared node completion lacks configured capability support")
-    except (AttributeError, KeyError, TypeError, ValueError):
-        return "Backend preparation selected an inadmissible portable node completion."
-    return None
+    if len(available) != len(portable) or resource_dependency_cycles(live):
+        raise ValueError("portable membership has duplicate names or cyclic ordering")
+    _require_admitted_additions(
+        added, additional_live, live=live, available=available, manifest=manifest, availability=availability
+    )
+    validate_prepared_node_semantics(live)
+    if any(diagnostic.is_error for diagnostic in _validate_manifest(_prepared_runtime_model(live), manifest)):
+        raise ValueError("portable node inventory lacks configured capability support")

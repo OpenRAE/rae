@@ -129,7 +129,9 @@ _ACTOR_SCOPED_IDEMPOTENCY = "Claims and receipts bind to the actor and scope."
 _TARGET_RUN_ISOLATION = "One target and one run occupy a store."
 _REVISION_CAS = "Snapshot writes compare the observed revision."
 _ATOMIC_AUDIT = "Terminal state and operational audit commit together."
+_NO_MULTI_OWNER = "No concurrent process ownership is promised."
 _NO_HIGH_AVAILABILITY = "No availability topology is promised."
+_NO_EXACTLY_ONCE_EFFECTS = "External backend effects are not exactly once."
 _NO_MULTITENANCY = "One store does not multiplex tenants."
 
 
@@ -148,8 +150,9 @@ _DECLARATIONS: Mapping[ControlPlaneProfile, ControlPlaneProfileDeclaration] = Ma
             nonclaims=_claims(
                 ("durability", "Process loss loses the run."),
                 ("restart-recovery", "No process-loss recovery is promised."),
-                ("multi-owner", "No concurrent process ownership is promised."),
+                ("multi-owner", _NO_MULTI_OWNER),
                 ("high-availability", _NO_HIGH_AVAILABILITY),
+                ("exactly-once-effects", _NO_EXACTLY_ONCE_EFFECTS),
                 ("multitenancy", _NO_MULTITENANCY),
             ),
             one_target_per_store=True,
@@ -174,9 +177,9 @@ _DECLARATIONS: Mapping[ControlPlaneProfile, ControlPlaneProfileDeclaration] = Ma
                 ("startup-reconciliation", "Interrupted work is classified without replay."),
             ),
             nonclaims=_claims(
-                ("multi-owner", "No concurrent process ownership is promised."),
+                ("multi-owner", _NO_MULTI_OWNER),
                 ("high-availability", _NO_HIGH_AVAILABILITY),
-                ("exactly-once-effects", "External backend effects are not exactly once."),
+                ("exactly-once-effects", _NO_EXACTLY_ONCE_EFFECTS),
                 ("multitenancy", _NO_MULTITENANCY),
             ),
             one_target_per_store=True,
@@ -205,10 +208,11 @@ _DECLARATIONS: Mapping[ControlPlaneProfile, ControlPlaneProfileDeclaration] = Ma
                 ("revision-carrying-reads", "Reads identify the observed snapshot revision."),
             ),
             nonclaims=_claims(
+                ("multi-owner", _NO_MULTI_OWNER),
                 ("multi-worker", "The adapter does not coordinate multiple workers."),
                 ("tls-proxy-deployment", "TLS and proxy topology belong to deployment."),
                 ("high-availability", _NO_HIGH_AVAILABILITY),
-                ("exactly-once-effects", "External backend effects are not exactly once."),
+                ("exactly-once-effects", _NO_EXACTLY_ONCE_EFFECTS),
                 ("multitenancy", _NO_MULTITENANCY),
             ),
             one_target_per_store=True,

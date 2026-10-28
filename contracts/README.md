@@ -1,5 +1,10 @@
 # Contracts
 
+The [participant control-context asset contracts](../specs/supply-chain/participant-control-context-assets.md)
+define immutable instruction and policy versions, authorized lifecycle changes,
+and selection evidence separate from disclosure and delivery. Private contents
+stay outside these portable records.
+
 The optional [execution and recovery requirements](../specs/sdl/execution-recovery.md)
 profile carries complete authored policies and evidence definitions in native
 phase plans. [Migration guidance](../docs/explain/reference/execution-recovery-migration.md)

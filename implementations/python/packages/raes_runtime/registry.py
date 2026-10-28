@@ -7,30 +7,28 @@ from typing import Any
 
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_protocols.operation_supervision import BackendOperationProvider
-from raes_backend_protocols.protocols import (
-    Evaluator,
-    Orchestrator,
-    ParticipantRuntime,
-    Provisioner,
-    TimeRuntime,
-)
+from raes_backend_protocols.protocols import Evaluator, Orchestrator, ParticipantRuntime, Provisioner, TimeRuntime
 from raes_backend_protocols.recovery_observation import RecoveryObserver
 from raes_contracts.observation_demand import ObservationBasis, ObservationLifecycleStage
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.realization_preparation import BACKEND_PREPARATION_CONTRACT
 
+from . import registry_scenario as _registry_scenario
 from . import time_coordinator as _time_coordinator
 from .backend_profiles import validate_profile_target
 from .observation_execution import ObservationRuntime
 from .observation_native import backend_selection_observation_runtime as _backend_selection_observation_runtime
 from .registry_probes import sample_participant_action_admission_request
 from .registry_target_validation import (
+    validate_inventory_contract,
     validate_operation_provider,
     validate_optional_component_presence,
     validate_recovery_observer_contract,
 )
 
 ReferenceTimeRuntime = _time_coordinator.ReferenceTimeRuntime
+participant_temporal_probe_manager = _registry_scenario.participant_temporal_probe_manager
+scenario_component_options = _registry_scenario.scenario_component_options
 _TIME_CLOCK_PROBE = "time.clock.probe"
 
 
@@ -138,6 +136,7 @@ def _validate_runtime_target_shape(
         sample_snapshot,
         preparation=BACKEND_PREPARATION_CONTRACT in manifest.supported_contract_versions,
     )
+    validate_inventory_contract(manifest, components.provisioner, _require_invokable_method)
     _validate_orchestrator_methods(components.orchestrator, sample_plan, sample_snapshot)
     _validate_evaluator_methods(components.evaluator, sample_plan, sample_snapshot)
     _validate_participant_runtime_methods(
@@ -488,11 +487,3 @@ class BackendRegistry:
 
     def is_registered(self, name: str) -> bool:
         return name in self._descriptors
-
-
-def participant_temporal_probe_manager(target: object, *, stochastic_controls: object = ()) -> object:
-    """Create the runtime facade used by the finite temporal conformance probe."""
-
-    from .manager import RuntimeManager
-
-    return RuntimeManager(target, stochastic_controls=stochastic_controls)

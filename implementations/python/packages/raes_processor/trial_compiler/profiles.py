@@ -23,7 +23,14 @@ RANDOM_STREAM_PROFILE_ID: Final = "blake3-xof-v1"
 RANDOM_STREAM_PROFILE_VERSION: Final = RANDOM_STREAM_PROFILE_SCHEMA_VERSION
 
 
-def admitted_profiles(*, mixed_composition: bool = False, replacement: bool = False) -> AdmittedTrialPlanProfilesModel:
+def admitted_profiles(
+    *,
+    mixed_composition: bool = False,
+    replacement: bool = False,
+    designed: bool = False,
+    allocation: bool = False,
+    treatments: bool = False,
+) -> AdmittedTrialPlanProfilesModel:
     """Return the single exact profile set implemented by this compiler."""
 
     if replacement:
@@ -32,6 +39,11 @@ def admitted_profiles(*, mixed_composition: bool = False, replacement: bool = Fa
             compiler_profile = "trial-compiler-replacement-mixed-composition-v1"
     else:
         compiler_profile = "trial-compiler-mixed-composition-v1" if mixed_composition else "trial-compiler-v1"
+    if designed:
+        compiler_profile = compiler_profile.removesuffix("-v1").replace("-mixed-composition", "") + "-designed"
+        if mixed_composition:
+            compiler_profile += "-mixed-composition"
+        compiler_profile += "-v1"
     return AdmittedTrialPlanProfilesModel(
         coordinate_profile="trial-coordinate-v1",
         entry_identity_profile=(
@@ -48,6 +60,8 @@ def admitted_profiles(*, mixed_composition: bool = False, replacement: bool = Fa
         execution_control_profile="attempt-control-v1",
         cleanup_profile="trial-cleanup-v1",
         isolation_profile="scheduler-isolation-v1",
+        allocation_profile="fisher-yates-allocation-v1" if allocation else "none",
+        treatment_profile="factorial-treatments-v1" if treatments else None,
     )
 
 

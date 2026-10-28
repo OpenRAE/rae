@@ -7,6 +7,7 @@ from raes_contracts.addressing import require_compiled_address
 from raes_contracts.canonical import jsonable_fallback
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileBindingModel
+from raes_contracts.immutable_history import HistoryMap
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.realization_structure import (
     ExactRealizationValue,
@@ -94,7 +95,7 @@ def _carrier_classification_violation(snapshot: RuntimeSnapshot) -> str | None:
 def _carrier_identity_violation(carrier: object) -> str | None:
     """Admit one addressed carrier as a bounded, string-keyed mapping."""
 
-    if not isinstance(carrier, dict):
+    if not isinstance(carrier, dict) and type(carrier) is not HistoryMap:
         return "Backend snapshot contains an invalid addressed carrier."
     if len(carrier) > _VALUE_LIMITS.max_members or any(not isinstance(key, str) for key in carrier):
         return "Backend snapshot contains invalid or excessive carrier identities."
@@ -155,7 +156,7 @@ def _profile_binding_violation(entry: SnapshotEntry) -> str | None:
 
     try:
         return _typed_profile_binding_violation(entry)
-    except (TypeError, ValueError, RecursionError):
+    except TypeError, ValueError, RecursionError:
         return "Backend snapshot contains invalid profile bindings."
 
 

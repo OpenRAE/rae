@@ -13,6 +13,7 @@ from ..artifact_requirements import ArtifactSatisfactionDisclosureModel
 from ..bounded_domains import DomainDescriptor
 from ..compute_substrate import validate_compute_substrate_constraint, validate_planned_substrate_targets
 from ..materialization import require_materialization_records
+from ..materialization_inventory import InventoryIdentity
 from ..observation_demand import EffectiveObservationDemand
 from ..planning import (
     RealizationAuthorityMode,
@@ -243,6 +244,8 @@ class ResolvedRealizationAuthorityModel(ContractModel):
 
 
 class ProvisioningPlanModel(MaterializationPlanModel):
+    inventory_attempt_id: InventoryIdentity | None = Field(default=None, exclude_if=lambda value: value is None)
+    inventory_refresh: bool = Field(default=False, strict=True, exclude_if=lambda value: not value)
     operations: list[PlanOperationModel] = Field(default_factory=list)
     diagnostics: list[dict[str, Any]] = Field(default_factory=list)
     realization_authority: list[ResolvedRealizationAuthorityModel]

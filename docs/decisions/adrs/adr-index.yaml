@@ -73,7 +73,7 @@ adrs:
         summary: "Superseded §6's no-SDL-episode-syntax non-goal for the joint episode+budget design (SEM-222/DSL-120/ACT-623, #122): DSL-120/ACT-623 add an authored episode-structure surface (init, turn structure, terminal/truncation conditions, reset policy) as intent compiling to the existing ParticipantEpisode* contracts; runtime identity, state/reason/action separation, and the schema-first boundary are unchanged."
   - id: ADR-014
     path: docs/decisions/adrs/adr-014-nox-as-canonical-verification-graph.md
-    pin: cecb6398e55a03fd5ec20c3768a1fe09b5c5fba302e878af0b19b4aa0f3d5afa
+    pin: 13225599251b9390265b78d86f073fd1bf726227c4719cec3eb927b2364d3951
     amendments:
       - date: 2026-07-31
         ref: "#963"
@@ -87,6 +87,9 @@ adrs:
       - date: 2026-09-22
         ref: "#1348"
         summary: Restricted local defaults, pre-push, changed verification, and completion to targeted feedback; reserved full test suites for CI/CD, superseding earlier local full-regression obligations while preserving required CI and Sonar gates.
+      - date: 2026-10-28
+        ref: "#1672"
+        summary: Narrowed standard interpreter support to CPython 3.14; the required python-compatibility check runs one time in smoke-only mode because the canonical graph runs the hermetic suite on the same interpreter.
   - id: ADR-015
     path: docs/decisions/adrs/adr-015-sdl-processor-layering-and-source-file-size-cap.md
     pin: bc5038164e535c4d506962e27cee07e720f5c8a77cb17d018dedb3dba927936f
@@ -593,7 +596,7 @@ adrs:
     pin: a44acbc2db1b5349ba316ba0d09bd9b46310db016cb87937b08bc6bc107755aa
   - id: ADR-104
     path: docs/decisions/adrs/adr-104-runtime-control-plane-architecture.md
-    pin: c71f377900dce99190bc1cf08d0d7c93a80fedbb6fcbb0f887cf6b5dc6b49fc6
+    pin: e5e614841ad22ae35f9f48cab4e1a1399c0f5b87936f1f12d406f820a57050a4
     amendments:
       - date: 2026-09-03
         ref: "#1151"
@@ -613,6 +616,12 @@ adrs:
       - date: 2026-09-25
         ref: "#1356 follow-up"
         summary: "Clarified SDK method access, optional P2 identity scope, host policy, and the legacy no-resolver projection gap."
+      - date: 2026-10-27
+        ref: "#1660"
+        summary: "Required one runtime authority for the interaction lifetime, reusing control-plane invariants and composing only needed scenario components."
+      - date: 2026-10-28
+        ref: "#1629"
+        summary: "Separated shared engine lifetime from fixed run contexts, preserving resource reservations and authored retry policy across local and Temporal execution."
   - id: ADR-105
     path: docs/decisions/adrs/adr-105-recursive-partial-description-semantics.md
     pin: e50538c4e03d12ea92ad584322dc8618835f1724ae0086c444fba0527949a01e

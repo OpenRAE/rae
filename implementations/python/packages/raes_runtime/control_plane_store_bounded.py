@@ -6,14 +6,13 @@ from collections.abc import Callable
 from contextvars import ContextVar
 from functools import wraps
 from time import monotonic
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING
 
 from .operation_execution_adapter import LocalExecutionAdapter
 
 if TYPE_CHECKING:
     from .control_plane import RuntimeControlPlane
 
-_T = TypeVar("_T")
 
 _STORE_CUT_DEADLINE = ContextVar("raes_store_cut_deadline", default=None)
 
@@ -27,9 +26,9 @@ def remaining_store_budget(budget_ms: int) -> int:
     return budget_ms
 
 
-def bounded_store_commit(method: Callable[..., _T]) -> Callable[..., _T]:
+def bounded_store_commit[T](method: Callable[..., T]) -> Callable[..., T]:
     @wraps(method)
-    def bounded(plane: RuntimeControlPlane, *args: object, **kwargs: object) -> _T:
+    def bounded(plane: RuntimeControlPlane, *args: object, **kwargs: object) -> T:
         configuration = getattr(plane, "_supervision", None)
         if configuration is None or _STORE_CUT_DEADLINE.get() is not None:
             return method(plane, *args, **kwargs)

@@ -22,6 +22,9 @@ def transaction(connection: sqlite3.Connection) -> Iterator[None]:
         raise
     else:
         connection.commit()
+        publish = getattr(connection, "publish_store_caches", None)
+        if publish is not None:
+            publish()
 
 
 def encode_payload(payload: dict[str, Any]) -> tuple[str, str]:

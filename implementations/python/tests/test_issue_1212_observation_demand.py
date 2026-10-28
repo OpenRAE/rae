@@ -1387,7 +1387,7 @@ def test_control_plane_persists_no_placeholder_for_an_unsupported_optional_selec
     assert payload["retained"] == []
 
 
-def test_direct_manager_rejects_executable_persistence_without_a_durable_owner() -> None:
+def test_manager_retains_observations_under_its_control_plane_owner() -> None:
     selector = _selector("/nodes/kali", "filesystem-trace")
     demands = normalize_observation_demands(
         _document(
@@ -1431,7 +1431,7 @@ def test_direct_manager_rejects_executable_persistence_without_a_durable_owner()
     manager = RuntimeManager(_runtime_target(create_stub_target(), runtime))
     scenario = parse_sdl(
         """
-        name: non-atomic-manager-observation
+        name: manager-owned-observation
         nodes:
           kali: {type: compute, resources: {ram: 1 gib, cpu: 1}}
         """
@@ -1444,9 +1444,16 @@ def test_direct_manager_rejects_executable_persistence_without_a_durable_owner()
 
     result = manager.apply(execution)
 
-    assert not result.success
-    assert result.diagnostics[0].code == "observation.durable-lifecycle-owner-unavailable"
-    assert collect_calls == []
+    assert result.success, result.diagnostics
+    assert collect_calls == ["collect"]
+    records = manager._store.load_records()
+    observed = [record for record in records.values() if record.result_payload is not None]
+    assert len(observed) == 1
+    record = observed[0]
+    assert record.status.state.value == "succeeded"
+    assert record.result_payload["retained"][0]["values"] == ["value"]
+    assert manager.observation_execution(record.receipt.operation_id) is not None
+    manager.close()
 
 
 def test_authored_realization_description_reports_only_achieved_basis() -> None:

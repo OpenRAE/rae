@@ -6,7 +6,7 @@ from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import dataclass
 from time import monotonic
-from typing import TYPE_CHECKING, TypeVar, cast
+from typing import TYPE_CHECKING, cast
 from uuid import uuid4
 
 from raes_contracts.canonical import canonical_json_digest
@@ -41,8 +41,6 @@ if TYPE_CHECKING:
     from .control_plane_store import ControlPlaneOperationRecord
     from .operation_execution_adapter import Lane
 
-_T = TypeVar("_T")
-
 
 @dataclass
 class MixedInvocation:
@@ -67,15 +65,15 @@ class MixedInvocation:
         return budget if limit is None else min(limit, budget)
 
 
-def _external(
+def _external[T](
     plane: RuntimeControlPlane,
     execution: MixedInvocation,
-    method: Callable[..., _T],
+    method: Callable[..., T],
     *args: object,
     lane: Lane = "effect",
     limit: int | None = None,
     uncertain_on_timeout: bool = True,
-) -> _T:
+) -> T:
     try:
         with plane._mutation_authority.external_call():
             return plane._execution_adapter.call(lane, method, *deepcopy(args), timeout_ms=execution.remaining(limit))
@@ -127,7 +125,15 @@ def prepare_mixed_invocation(
             "context": record.receipt.context,
         },
         command=mixed_backend_binding_reference(declaration),
-        required_guarantees=("effect-observation", "cessation-evidence"),
+        required_guarantees=tuple(
+            dict.fromkeys(
+                (
+                    *plane._required_operation_guarantees,
+                    "effect-observation",
+                    "cessation-evidence",
+                )
+            )
+        ),
         budget={"origin_id": str(uuid4()), "started_at": _utc_now(), "limit_ms": budget, "remaining_ms": budget},
     )
     time_state = snapshot.time_model_state
@@ -255,9 +261,8 @@ def run_mixed_invocation(plane: RuntimeControlPlane, execution: MixedInvocation)
         # A non-consumed grant proves no invocation; consumed or timed-out work
         # retains its reservation and every authenticated fact collected so far.
         _reload(plane, execution)
-        execution.state = (
-            OperationState.INDETERMINATE if execution.dispatched or execution.uncertain else OperationState.FAILED
-        )
+        unresolved = execution.dispatched or execution.uncertain
+        execution.state = OperationState.INDETERMINATE if unresolved else OperationState.FAILED
     finally:
         _reload(plane, execution)
         if not execution.dispatched and not execution.uncertain:

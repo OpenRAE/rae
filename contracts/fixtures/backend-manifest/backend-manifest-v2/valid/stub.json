@@ -286,6 +286,30 @@
             "limitation:participant_transformation:not-realized"
           ],
           "support_level": "unsupported"
+        },
+        {
+          "constraint_refs": [],
+          "disclosure_refs": [
+            "disclosure:scoped_tool_affordances:unsupported"
+          ],
+          "evidence_refs": [],
+          "feature": "scoped_tool_affordances",
+          "limitation_refs": [
+            "limitation:scoped_tool_affordances:not-realized"
+          ],
+          "support_level": "unsupported"
+        },
+        {
+          "constraint_refs": [],
+          "disclosure_refs": [
+            "disclosure:tool_affordances:unsupported"
+          ],
+          "evidence_refs": [],
+          "feature": "tool_affordances",
+          "limitation_refs": [
+            "limitation:tool_affordances:not-realized"
+          ],
+          "support_level": "unsupported"
         }
       ],
       "max_autonomous_action_attempts": null,

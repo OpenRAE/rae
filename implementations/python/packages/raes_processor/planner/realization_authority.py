@@ -159,8 +159,8 @@ def _manifest_authority_diagnostic(
         )
     else:
         try:
-            requirements = _compiled_runtime_views(plan)
-        except (TypeError, ValueError):
+            requirements = plan_realization_requirements(plan)
+        except TypeError, ValueError:
             diagnostic = _invalid_runtime_view_diagnostic(plan)
         else:
             support_diagnostics = [
@@ -202,7 +202,7 @@ def _recursive_binding_diagnostic(plan: ProvisioningPlan) -> Diagnostic | None:
             valid = binding == authority.constraint_binding
             if valid and authority.mode is not RealizationAuthorityMode.OPEN:
                 valid = evaluate_realization_constraint(authority.constraint_document, projected).conformant
-        except (TypeError, ValueError, AttributeError):
+        except TypeError, ValueError, AttributeError:
             valid = False
         if not valid:
             return Diagnostic(
@@ -218,7 +218,9 @@ def _explicitness(mode: RealizationAuthorityMode) -> ExplicitnessClass:
     return ExplicitnessClass(mode.value)
 
 
-def _compiled_runtime_views(plan: ProvisioningPlan) -> tuple[CompiledRealizationRequirement, ...]:
+def plan_realization_requirements(plan: ProvisioningPlan) -> tuple[CompiledRealizationRequirement, ...]:
+    """Recover registered concern views from admitted portable plan authority."""
+
     declared_ops = {operation.address: operation for operation in plan.operations}
     return tuple(
         _compiled_runtime_view(authority, declared_ops)
@@ -373,7 +375,7 @@ def _bound_value(value: object, bound: RealizationAuthorityBound) -> object:
 def _safe_process_limit_identity(value: object) -> str | None:
     try:
         return process_resource_limit_identity_digest(value)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
 
 
@@ -389,7 +391,7 @@ def _constraint_diagnostic(
     if realized is not _MISSING:
         try:
             projection = project_realization_concern(authority.requirement_kind, realized, observed=True)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             diagnostic = _runtime_authority_diagnostic(authority)
         else:
             outside_bounds = any(
@@ -443,7 +445,7 @@ def realization_authority_disclosure(
             for authority in declared_plan.realization_authority
             if authority.mode is not RealizationAuthorityMode.CLOSED
         }
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return [_invalid_runtime_view_diagnostic(declared_plan)], ()
     diagnostics: list[Diagnostic] = []
     provenance: list[RealizationProvenanceEntry] = []
@@ -476,15 +478,7 @@ def sanitize_plan_realization_snapshot(
 
     from ..semantics.realization_snapshot_sanitization import sanitize_realization_snapshot
 
-    declared_ops = {operation.address: operation for operation in declared_plan.operations}
-    return sanitize_realization_snapshot(
-        tuple(
-            _compiled_runtime_view(authority, declared_ops)
-            for authority in declared_plan.realization_authority
-            if authority.mode is not RealizationAuthorityMode.CLOSED
-        ),
-        returned_snapshot,
-    )
+    return sanitize_realization_snapshot(plan_realization_requirements(declared_plan), returned_snapshot)
 
 
 __all__ = [
@@ -492,4 +486,5 @@ __all__ = [
     "realization_authority_diagnostics",
     "realization_authority_disclosure",
     "sanitize_plan_realization_snapshot",
+    "plan_realization_requirements",
 ]

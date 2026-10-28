@@ -42,10 +42,19 @@ adds explicitly negotiated provider/v2 evaluation under ADR-111. V2 preserves
 the complete apparatus, resolves total applicability/required support and
 invokes slots in dependency order through bounded supervision. Accepted scoped
 state, evaluation, causal consumption, operation and audit share the incumbent
-atomic crossing transaction. Prepared wire records are immutable; store
-readback supplies durable acceptance. Versioned readers preserve v1 evidence.
-V2 effect execution is reported unsupported by the legacy drain; no effect
-permission or backend realization is inferred from evaluation eligibility.
+atomic crossing transaction. Newly appended v2 transaction records bind the
+actual commit owner and dispatchable intents; historical prepared records stay
+immutable. Store readback supplies durable acceptance. Versioned readers preserve
+v1 evidence. V2 supports exactly bound compiled handoffs, fresh world injects
+and evidenced execution-attempt cancellation through their installed owners.
+Required unsupported combinations refuse admission. Realization receipts,
+parent-outcome prerequisites, causal depth and replay remain independently
+validated; no effect permission or backend realization is inferred from
+eligibility.
+Typed immutable continuations advance committed effect dependencies only from
+exact owner outcomes and renewed effect-authority validation. Parent admission
+and cancellation application use distinct owner facts. Unresolved cancellation
+does not exclude an ordinary pass when normal mutation and recovery gates allow it.
 Synthetic providers establish reference-runtime behavior, not production
 mechanisms, distributed atomicity or external exactly-once execution.
 
@@ -114,3 +123,19 @@ mechanisms, distributed atomicity or external exactly-once execution.
 - DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-76fee14b79cd734502e7498d05fbf5c8d17c34e46dc2ba55bbb94f57d213bec7/manifest.json` (Fresh offline source-bound research replay for dependency-ordered provider evaluation; retained protocol limits)
 - DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-76a22200630a0f623823cce738ef5d90a5984d9d4a69208005548975c980698b/manifest.json` (Offline research replay after provider-evaluation quality cleanup; retained protocol limits)
 - DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-c5e6610f7d0058be6715fe2f5c7ef89ebd468a8ea7177b1ee58298f2b12a9b81/manifest.json` (Offline research replay after provider-evaluation quality cleanup; retained protocol limits)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_effect_evidence.py` (Typed commit, parent-outcome and realization evidence in the existing store)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_effect_drain.py` (Causal v2 dispatch and narrowly admitted supervisory cancellation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_effect_owners.py` (Closed joins to fresh world inject and evidenced cancellation owners)
+- TESTS → TEST `implementations/python/tests/test_issue_1369_governed_effects.py` (Public-provider parent decisions, effect admission and real owner execution)
+- TESTS → TEST `implementations/python/tests/test_issue_1369_effect_recovery.py` (Restart, lost outcome commit, changed-content, authority and depth regressions)
+- TESTS → TEST `implementations/python/tests/test_issue_1369_cancellation_effects.py` (Prevention, completion races, unknown cessation and supervisory responsiveness)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_effect_continuations.py` (Exact-source independently authorized dependency and parent-outcome admissions)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_parent_outcomes.py` (Admission and application resolved through actual parent owners)
+- TESTS → TEST `implementations/python/tests/test_issue_1369_effect_continuations.py` (Predecessor advancement, trusted authority, restart and budget preservation)
+- TESTS → TEST `implementations/python/tests/test_issue_1369_continuation_limits.py` (Interleaved evaluations cannot overspend shared effect or per-rule firing limits)
+- TESTS → TEST `implementations/python/tests/test_issue_1369_deferred_authority.py` (Current effect approval required for queued source, fallback and retained-continuation dispatch)
+- TESTS → TEST `implementations/python/tests/test_issue_1369_cancel_recovery.py` (Interrupted cancellation resumes through its original owner's one-use control ledger)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_projection.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_operation_index.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1373_control_projection.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1373_effect_work.py`

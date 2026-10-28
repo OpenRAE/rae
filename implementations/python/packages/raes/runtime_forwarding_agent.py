@@ -255,7 +255,7 @@ class RuntimeForwardingSetting(SDLModel):
         return parse_runtime_enum_or_var(v, RuntimeForwardingSettingClassification, field_name="classification")
 
     @model_validator(mode="after")
-    def validate_setting(self) -> "RuntimeForwardingSetting":
+    def validate_setting(self) -> RuntimeForwardingSetting:
         enforce_observed_value_redaction(
             owner_label=f"forwarding setting '{self.setting_id}'",
             value=self.value,
@@ -312,7 +312,7 @@ class RuntimeForwardingAgent(SDLModel):
         return parse_runtime_enum_or_var(v, RuntimeForwardingAgentOwnershipRole, field_name="ownership_role")
 
     @model_validator(mode="after")
-    def validate_forwarding_agent(self) -> "RuntimeForwardingAgent":
+    def validate_forwarding_agent(self) -> RuntimeForwardingAgent:
         self._reject_duplicate_local_ref_ids()
         return self
 
@@ -400,7 +400,7 @@ class RelationshipForwardingEdge(SDLModel):
         return parse_runtime_enum_or_var(v, RuntimeForwardingParseFormat, field_name="parse_format")
 
     @model_validator(mode="after")
-    def validate_enrollment_identity(self) -> "RelationshipForwardingEdge":
+    def validate_enrollment_identity(self) -> RelationshipForwardingEdge:
         # The enrollment identity is secret-bearing by construction: a present
         # ref must be classified ``redacted`` / ``operator_secret`` so a raw
         # credential never lands in the model. A ``${var}`` classification is

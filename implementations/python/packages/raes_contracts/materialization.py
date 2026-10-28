@@ -9,6 +9,7 @@ from pydantic import ConfigDict, Field, model_validator
 from ._base import ContractModel
 from .canonical import canonical_json_digest
 from .json_ingress import parse_bounded_json_object
+from .materialization_inventory import InventoryTargetScope
 from .realization_structure import validate_realization_value
 from .runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
 
@@ -29,6 +30,7 @@ class MaterializationSource(ContractModel):
     authored_digest: MaterializationDigest
     instantiated_digest: MaterializationDigest
     run_id: str = Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
+    target_scope: InventoryTargetScope | None = Field(default=None, exclude_if=lambda value: value is None)
 
     @property
     def augmentation_scope_required(self) -> bool:

@@ -1434,6 +1434,21 @@
           "minLength": 1,
           "title": "Snapshot",
           "type": "string"
+        },
+        "target_scope": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 8,
+              "pattern": "^target:[^\\s\\x00-\\x1f]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Scope"
         }
       },
       "required": [
@@ -4184,6 +4199,26 @@
       ],
       "default": null,
       "title": "Instantiation Id"
+    },
+    "inventory_attempt_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Inventory Attempt Id"
+    },
+    "inventory_refresh": {
+      "default": false,
+      "title": "Inventory Refresh",
+      "type": "boolean"
     },
     "materialization_source": {
       "anyOf": [

@@ -124,6 +124,15 @@ bound to the admitted requirement and resource address, and survive projection
 so that post-sanitization validation checks the same meaning. This permission
 does not admit arbitrary payload additions or changes to plan-owned values.
 See the [credential/artifact boundary guidance](../../docs/decisions/issue-1603-credential-artifact-evidence-preflight.md).
+Applicable admitted realization concerns MAY replace plan values with observed
+values at their registered payload paths. Their existing validators and safe
+observation projections govern publication. OPEN choices, constrained choices,
+and semantically equal EXACT observations follow their existing realization rules.
+All payload values outside those paths and separately authorized evidence MUST
+retain typed exact equality with the admitted operation.
+The runtime MUST preserve observed meaning through repeat validation.
+This permission does not change the canonical account credential projection.
+See the [credential/observation design](../../docs/decisions/issue-1638-credential-realization-design.md).
 A protected resolver or native transformer MUST keep
 resolved and material-derived bytes outside `ApplyResult` entirely.
 

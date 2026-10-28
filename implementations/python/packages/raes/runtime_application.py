@@ -376,7 +376,7 @@ class RuntimeApplicationRoute(LegacyClassificationGuard):
         return coerce_string_list(v)
 
     @model_validator(mode="after")
-    def validate_route(self) -> "RuntimeApplicationRoute":
+    def validate_route(self) -> RuntimeApplicationRoute:
         seen_params: set[tuple[str, str]] = set()
         for parameter in self.parameters:
             key = (str(parameter.location), parameter.name)
@@ -430,7 +430,7 @@ class RuntimeApplicationSurface(SDLModel):
         return _url_path_or_var(v, field_name="base_path", allow_empty=True)
 
     @model_validator(mode="after")
-    def validate_surface(self) -> "RuntimeApplicationSurface":
+    def validate_surface(self) -> RuntimeApplicationSurface:
         seen_route_ids: set[str] = set()
         seen_method_paths: set[tuple[str, str]] = set()
         for route in self.routes:

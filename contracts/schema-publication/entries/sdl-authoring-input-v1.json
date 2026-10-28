@@ -1,9 +1,9 @@
 {
-  "content_hash": "76b02a73ec0d5f0e5b64513fc24e7aa97fba00369e299f09b6c6405c4e802cbe",
+  "content_hash": "37338a06d86968b9ea60b734c4b2d1a660b812630a44e995bc4fc38b2c892844",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "76b02a73ec0d5f0e5b64513fc24e7aa97fba00369e299f09b6c6405c4e802cbe",
-    "summary": "Publish reusable and finite-script mixed-control rev1 policies, paired script windows, closed portable-key maps and directed-delivery control blocks; retain canonical relationship eligibility from #1339; issue #1363."
+    "content_hash": "37338a06d86968b9ea60b734c4b2d1a660b812630a44e995bc4fc38b2c892844",
+    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301). Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

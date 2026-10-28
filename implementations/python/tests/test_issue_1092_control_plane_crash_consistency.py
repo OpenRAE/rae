@@ -1362,7 +1362,8 @@ def test_terminal_commit_retry_compares_canonical_value_free_snapshot(tmp_path: 
     store.claim_record(running)
 
     observed_revision = store.load_snapshot_state().revision
-    store.commit_terminal_operation(snapshot, terminal, expected_revision=observed_revision)
+    committed = store.commit_terminal_operation(snapshot, terminal, expected_revision=observed_revision)
+    assert committed.snapshot == _snapshot_from_payload(_snapshot_payload(snapshot))
     store.commit_terminal_operation(snapshot, terminal, expected_revision=observed_revision)
 
     assert store.load_records()[running.receipt.operation_id] == terminal
@@ -2245,6 +2246,7 @@ def test_public_participant_reads_fail_after_runtime_close() -> None:
         control_plane._assert_runtime_owner()
 
     calls = (
+        control_plane.participant_clock_driver_status,
         lambda: control_plane.participant_execution_state("participant-execution.missing"),
         lambda: control_plane.get_participant_status_view("participant.behavior.missing"),
         lambda: control_plane.get_participant_history_view("participant.behavior.missing", "episode-missing"),
@@ -2449,6 +2451,45 @@ def test_runtime_owner_lease_rejects_and_closes_in_a_different_process_identity(
             lease.assert_owner()
         lease.close()
     assert lease.closed is True
+
+    reacquired = lease_module.RuntimeOwnerLease.acquire(lock_path)
+    reacquired.close()
+
+
+def _runtime_owner_lock_is_held(path: Path, flags: int) -> bool:
+    probe = os.open(path, flags)
+    try:
+        lease_module._lock_runtime_owner(probe)
+    except BlockingIOError:
+        return True
+    else:
+        lease_module._unlock_runtime_owner(probe)
+        return False
+    finally:
+        os.close(probe)
+
+
+@pytest.mark.skipif(os.name == "nt", reason="directory flock guard is POSIX-specific")
+def test_runtime_owner_lease_closed_in_a_forked_child_keeps_the_parent_locks(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # After fork() the parent still holds the same open file descriptions as the child. flock locks belong to
+    # those descriptions, so a child that unlocked its inherited descriptors would release the parent's lease.
+    # os.dup() reproduces the parent's surviving descriptors in this process.
+    lock_path = tmp_path / "runtime-owner.lock"
+    lease = lease_module.RuntimeOwnerLease.acquire(lock_path)
+    parent_descriptors = (os.dup(lease._descriptor), os.dup(lease._directory_descriptor))
+    try:
+        with monkeypatch.context() as patch:
+            patch.setattr(lease_module.os, "getpid", lambda: lease._owner_pid + 1)
+            lease.close()
+
+        assert _runtime_owner_lock_is_held(lock_path, os.O_RDWR)
+        assert _runtime_owner_lock_is_held(tmp_path, os.O_RDONLY)
+    finally:
+        for descriptor in parent_descriptors:
+            os.close(descriptor)
 
     reacquired = lease_module.RuntimeOwnerLease.acquire(lock_path)
     reacquired.close()

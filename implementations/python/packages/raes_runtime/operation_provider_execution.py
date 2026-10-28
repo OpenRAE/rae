@@ -29,6 +29,7 @@ from .control_plane_store import ControlPlaneOperationRecord
 from .control_plane_supervised_execution import claim_accepted, invocation_request, settle
 from .control_plane_supervision import persist_invocation_update
 from .operation_command_commitment import native_command_commitment
+from .operation_inventory_binding import inventory_operation_plan
 from .operation_result_finalization import finalize_protocol_result
 from .operation_transcript_policy import automatic_poll_interval_ms
 
@@ -162,6 +163,9 @@ def _finalize_native_outcome(
     reference = message.result or message.effects.residual_state
     if reference is None or reference.contract_id != "runtime-snapshot-v1":
         raise ValueError("native result reference is missing or unsupported")
+    bound_plan = inventory_operation_plan(
+        native_request.plan, plane._target.manifest, record.invocation.request.binding
+    )
     accepted, payload = plane._execution_adapter.call(
         "effect",
         finalize_protocol_result,
@@ -169,10 +173,11 @@ def _finalize_native_outcome(
         reference,
         message.proposed_state,
         timeout_ms=remaining(),
+        execute_observation=native_request.execute_observation,
         observation_request=_ObservationApplyRequest(
             address=native_request.address,
             snapshot=predecessor,
-            plan=native_request.plan,
+            plan=bound_plan,
             manifest=plane._target.manifest,
             runtime=plane._target.observation_runtime,
             durable_lifecycle_available=plane._store_commits.crash_atomic,
@@ -180,8 +185,8 @@ def _finalize_native_outcome(
             materialization_archive=plane._materialization_archive,
         ),
         realization=_RealizationApplyContext(
-            plan=native_request.plan if isinstance(native_request.plan, ProvisioningPlan) else None,
-            operation_plan=native_request.plan,
+            plan=bound_plan if isinstance(bound_plan, ProvisioningPlan) else None,
+            operation_plan=bound_plan,
             manifest=plane._target.manifest,
         ),
         call=_BackendCallContext(
@@ -401,6 +406,8 @@ def _settle_provider_outcome(
         diagnostics=() if result is None else result.diagnostics,
         result_payload=payload,
     )
+    if native_request.result_sink is not None and result is not None:
+        native_request.result_sink(result)
 
 
 def _poll_provider_outcome(

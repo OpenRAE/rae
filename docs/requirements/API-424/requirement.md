@@ -245,3 +245,8 @@ production provider installation or external release effect.
 - DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-146a04a89f0d36b543d66b2532699a6da4bf9478a3be607c4d702b7c47cefefd/analysis.json` (Retained corpus replay after owner-validation refactoring; unchanged claim limits)
 - DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-146a04a89f0d36b543d66b2532699a6da4bf9478a3be607c4d702b7c47cefefd/manifest.json` (Retained corpus replay after owner-validation refactoring; unchanged claim limits)
 - DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-146a04a89f0d36b543d66b2532699a6da4bf9478a3be607c4d702b7c47cefefd/snapshot.json` (Retained corpus replay after owner-validation refactoring; unchanged claim limits)
+- TESTS → TEST `implementations/python/tests/test_issue_1369_governed_effects.py` (Complete inject input binding and preserved delivery coordinates through the public runtime)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_continuation.py` (Exact-source continuation validation without changing fresh evaluation interpretation)
+- TESTS → TEST `implementations/python/tests/test_issue_1369_effect_continuations.py` (Typed continuation and independently validated predecessor application)
+- TESTS → TEST `implementations/python/tests/test_issue_1369_continuation_limits.py` (Incremental continuation admission respects current shared causal consumption)
+- TESTS → TEST `implementations/python/tests/test_issue_1369_deferred_authority.py` (Historical admission cannot replace current effect approval)

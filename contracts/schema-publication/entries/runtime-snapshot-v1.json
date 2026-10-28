@@ -1,9 +1,9 @@
 {
-  "content_hash": "aa69a91b09267720676b9da383e47c7db726aa9c5439fae579936f3a0a501c94",
+  "content_hash": "00a4a9ba99f593c3c95be9b0882a302a87cd605f6038529e4487c5cef40a4c64",
   "contract_id": "runtime-snapshot-v1",
   "last_change": {
-    "summary": "Preserve explicit API-409 v1 and v2 control-occurrence lineages in runtime snapshot archives.",
-    "content_hash": "aa69a91b09267720676b9da383e47c7db726aa9c5439fae579936f3a0a501c94"
+    "content_hash": "00a4a9ba99f593c3c95be9b0882a302a87cd605f6038529e4487c5cef40a4c64",
+    "summary": "Publish negotiated runtime descendant lineage, target and attempt binding, lifecycle and concern selection with committed refresh and durable archive joins; issue #1649."
   },
   "schema_path": "contracts/schemas/snapshots/runtime-snapshot-v1.json",
   "stability": "draft"

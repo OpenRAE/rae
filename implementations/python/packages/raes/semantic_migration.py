@@ -122,7 +122,7 @@ def migrate_sdl_semantics(
                 source_profile = PROGRESSIVE_SDL_REVISION
         else:
             output, documents, code = _adopt_source(raw, digest, context, binding_documents, scheme_snapshots, limits)
-    except (SDLError, ValueError, TypeError):
+    except SDLError, ValueError, TypeError:
         code = "semantic-migration.source-or-target-invalid"
         output = None
         documents = ()

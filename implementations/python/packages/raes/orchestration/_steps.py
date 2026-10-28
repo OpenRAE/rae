@@ -52,7 +52,7 @@ class WorkflowStepStateRef(SDLModel):
         return parse_int_or_var(v, minimum=1, field_name="min_attempts")
 
     @model_validator(mode="after")
-    def validate_unique_outcomes(self) -> "WorkflowStepStateRef":
+    def validate_unique_outcomes(self) -> WorkflowStepStateRef:
         if len(self.outcomes) != len(set(self.outcomes)):
             raise ValueError("Workflow step-state outcomes must be unique")
         return self
@@ -75,7 +75,7 @@ class WorkflowPredicate(SDLModel):
         return value
 
     @model_validator(mode="after")
-    def validate_non_empty(self) -> "WorkflowPredicate":
+    def validate_non_empty(self) -> WorkflowPredicate:
         if any(
             (
                 self.assertions,
@@ -149,7 +149,7 @@ class WorkflowCompensationPolicy(SDLModel):
         return str(v)
 
     @model_validator(mode="after")
-    def validate_policy(self) -> "WorkflowCompensationPolicy":
+    def validate_policy(self) -> WorkflowCompensationPolicy:
         if self.mode == WorkflowCompensationMode.AUTOMATIC and not self.on:
             raise ValueError("Automatic workflow compensation requires at least one trigger in 'on'")
         if self.order != "reverse_completion":
@@ -222,7 +222,7 @@ class WorkflowStep(SDLModel):
         return values
 
     @model_validator(mode="after")
-    def validate_execution_mode(self) -> "WorkflowStep":
+    def validate_execution_mode(self) -> WorkflowStep:
         self._validate_goal_mode_compatibility()
         self._validate_scaffolded_mode()
         return self
@@ -252,7 +252,7 @@ class WorkflowStep(SDLModel):
             )
 
     @model_validator(mode="after")
-    def validate_type_specific_fields(self) -> "WorkflowStep":
+    def validate_type_specific_fields(self) -> WorkflowStep:
         type_validators = {
             WorkflowStepType.OBJECTIVE: self._validate_objective_type,
             WorkflowStepType.DECISION: self._validate_decision_type,

@@ -67,7 +67,7 @@ def load_participant_boundary_flow_policy_profile_from_path(
             else ParticipantBoundaryFlowPolicyProfileModel
         )
         profile = model.model_validate(payload)
-    except (OSError, ValueError):
+    except OSError, ValueError:
         raise ValueError("participant boundary flow profile JSON or contract is invalid") from None
     if profile.profile_id != profile_id:
         raise ValueError("participant boundary flow profile artifact identity does not match the request")
