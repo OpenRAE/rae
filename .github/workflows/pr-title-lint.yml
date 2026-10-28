@@ -47,7 +47,7 @@ jobs:
           ref: ${{ github.event.pull_request.base.sha }}
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12.14"
+          python-version: "3.14.7"
       - name: Collect PR commit messages
         # This repo squashes with squash_merge_commit_message=COMMIT_MESSAGES,
         # so these messages -- not the PR body -- become the squash commit body

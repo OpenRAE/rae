@@ -122,6 +122,6 @@ Existing policy enforces package boundaries; this interface adds no policy mecha
 Python protocols and neutral request/result values express the architecture in code.
 No published schema or operation kind changes.
 
-The design uses Python 3.11 `typing.Protocol` and dataclasses.
-The [Python documentation](https://docs.python.org/3.11/library/typing.html) explains structural typing and its runtime limits.
+The design uses Python 3.14 `typing.Protocol` and dataclasses.
+The [Python documentation](https://docs.python.org/3.14/library/typing.html) explains structural typing and its runtime limits.
 The [dependency injection reference](https://www.cosmicpython.com/book/chapter_13_dependency_injection.html) describes explicit composition and test doubles.

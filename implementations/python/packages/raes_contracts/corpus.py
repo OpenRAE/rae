@@ -57,7 +57,7 @@ def _bundled_corpus_root() -> Path | None:
     try:
         candidate = resources.files(_CORPUS_PACKAGE).joinpath(_BUNDLED_DIRNAME)
         candidate_is_dir = candidate.is_dir()
-    except (ModuleNotFoundError, TypeError, OSError):
+    except ModuleNotFoundError, TypeError, OSError:
         return None
     if not candidate_is_dir:
         return None

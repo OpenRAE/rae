@@ -136,15 +136,26 @@ def test_native_control_exception_is_not_serialized_into_engine_history():
 
 
 def test_installed_workflows_are_accepted_by_the_real_sdk_sandbox():
+    from raes_runtime.operation_temporal_worker import workflow_sandbox_runner
     from raes_runtime.operation_temporal_workflow import RaeOperationWorkflow, RaeSupervisionWorkflow
     from temporalio import workflow
-    from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner
 
     async def exercise():
         for definition in (RaeOperationWorkflow, RaeSupervisionWorkflow):
-            SandboxedWorkflowRunner().prepare_workflow(workflow._Definition.must_from_class(definition))
+            workflow_sandbox_runner().prepare_workflow(workflow._Definition.must_from_class(definition))
 
     asyncio.run(exercise())
+
+
+def test_workflow_sandbox_passes_only_coverage_through_beyond_the_sdk_defaults():
+    from raes_runtime.operation_temporal_worker import workflow_sandbox_runner
+    from temporalio.worker.workflow_sandbox import SandboxRestrictions
+
+    restrictions = workflow_sandbox_runner().restrictions
+    default = SandboxRestrictions.default
+    assert restrictions.passthrough_modules == default.passthrough_modules | {"coverage"}
+    assert restrictions.invalid_modules == default.invalid_modules
+    assert restrictions.invalid_module_members == default.invalid_module_members
 
 
 @pytest.mark.parametrize("entrypoint", ["operation", "supervision", "invoke", "observe", "control", "indeterminate"])

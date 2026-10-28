@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from time import monotonic
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 
 import anyio
 from raes_contracts.contracts import (
@@ -25,12 +25,11 @@ if TYPE_CHECKING:
     from raes_contracts.contracts import BackendOperationRequestModel
     from temporalio.client import Client
     from temporalio.worker import Worker
+    from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner
 
     from .operation_execution_adapter import Lane
     from .operation_remote_authority import RemoteOperationAuthority
     from .operation_temporal import TemporalExecutionConfiguration
-
-_T = TypeVar("_T")
 
 
 # The SDK decodes raw JSON using these annotations. Carrier models validate
@@ -102,14 +101,14 @@ class TemporalOperationActivities:
             self._effect_jobs, "effect", self._invoke, reference, budget_ms=reference.execution_budget_ms
         )
 
-    async def _job(
-        self, executor: LocalExecutionAdapter, lane: Lane, method: Callable[..., _T], *args: object, budget_ms: int
-    ) -> _T:
+    async def _job[T](
+        self, executor: LocalExecutionAdapter, lane: Lane, method: Callable[..., T], *args: object, budget_ms: int
+    ) -> T:
         from .operation_execution_adapter import require_budget_ms
 
         deadline = monotonic() + require_budget_ms(budget_ms) / 1000
 
-        def admitted() -> _T:
+        def admitted() -> T:
             remaining = int((deadline - monotonic()) * 1000)
             if remaining <= 0:
                 raise TimeoutError("activity allowance exhausted before admission")
@@ -263,6 +262,21 @@ class TemporalOperationActivities:
         return True
 
 
+def workflow_sandbox_runner() -> SandboxedWorkflowRunner:
+    """Return the SDK sandbox with coverage measurement passed through.
+
+    Coverage's `sys.monitoring` core imports its own modules lazily from
+    callbacks that run inside workflow code. The sandbox would load those
+    modules again under its restrictions and fail the workflow task. The SDK
+    passes Pydantic through for the same lazy-import reason. Coverage does not
+    affect workflow determinism, and the other default restrictions stay.
+    """
+
+    from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner, SandboxRestrictions
+
+    return SandboxedWorkflowRunner(restrictions=SandboxRestrictions.default.with_passthrough_modules("coverage"))
+
+
 def create_temporal_workers(
     client: Client,
     configuration: TemporalExecutionConfiguration,
@@ -279,7 +293,10 @@ def create_temporal_workers(
         raise ValueError("Temporal worker namespace does not match configured authority")
     return (
         Worker(
-            client, task_queue=configuration.workflow_queue, workflows=[RaeOperationWorkflow, RaeSupervisionWorkflow]
+            client,
+            task_queue=configuration.workflow_queue,
+            workflows=[RaeOperationWorkflow, RaeSupervisionWorkflow],
+            workflow_runner=workflow_sandbox_runner(),
         ),
         Worker(
             client,

@@ -91,7 +91,7 @@ class ParticipantBehaviorHistoryEvent:
     def from_payload(
         cls,
         payload: Mapping[str, Any],
-    ) -> "ParticipantBehaviorHistoryEvent":
+    ) -> ParticipantBehaviorHistoryEvent:
         if not isinstance(payload, Mapping):
             raise TypeError("participant behavior history event must be a mapping")
         missing_keys = [

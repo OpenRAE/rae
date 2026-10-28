@@ -85,7 +85,7 @@ class RuntimeIdentityPermissionBinding(SDLModel):
     description: str = ""
 
     @model_validator(mode="after")
-    def validate_binding(self) -> "RuntimeIdentityPermissionBinding":
+    def validate_binding(self) -> RuntimeIdentityPermissionBinding:
         if not self.actions and not self.role_ref:
             raise ValueError("A permission binding requires actions or an explicit role reference")
         for name in ("principal_refs", "resource_refs", "actions"):
@@ -108,7 +108,7 @@ class RuntimeIdentityResourceAccess(SDLModel):
     inherited_from_ref: str = ""
 
     @model_validator(mode="after")
-    def validate_source(self) -> "RuntimeIdentityResourceAccess":
+    def validate_source(self) -> RuntimeIdentityResourceAccess:
         if self.inherited_from_ref and self.bindings:
             raise ValueError("An inherited policy view must reference its source without copying bindings")
         reject_duplicates((item.binding_id for item in self.bindings), label="binding id", container_label="policy")
@@ -139,7 +139,7 @@ class RuntimeIdentityAccessObservation(SDLModel):
     description: str = ""
 
     @model_validator(mode="after")
-    def validate_evidence(self) -> "RuntimeIdentityAccessObservation":
+    def validate_evidence(self) -> RuntimeIdentityAccessObservation:
         if self.outcome in {"allowed", "denied"} and not self.evidence_refs:
             raise ValueError("A decided access observation requires evidence references")
         for name in ("evidence_refs", "context_refs"):

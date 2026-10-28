@@ -181,7 +181,7 @@ MULTI_JOIN = {
 }
 
 
-def validate_multi_crossing_profile_join(profile: "BehavioralRelationProfileModel") -> None:
+def validate_multi_crossing_profile_join(profile: BehavioralRelationProfileModel) -> None:
     if any(getattr(profile, key) != value for key, value in MULTI_JOIN.items()):
         raise ValueError("multi-operation profile coordinates do not match its parameters")
 

@@ -188,7 +188,7 @@ class Account(SDLModel):
         return parse_bool_or_var(v, field_name="disabled")
 
     @model_validator(mode="after")
-    def validate_required_node(self) -> "Account":
+    def validate_required_node(self) -> Account:
         if not self.node:
             raise ValueError("Account requires 'node'")
         return self

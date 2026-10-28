@@ -48,7 +48,7 @@ class SDLSentinelDecision(ContractModel):
         return schema
 
     @model_validator(mode="after")
-    def _identity_matches_decision(self) -> "SDLSentinelDecision":
+    def _identity_matches_decision(self) -> SDLSentinelDecision:
         if (self.interpretation == "exact-identity") != (self.identity is not None):
             raise ValueError("only an exact-identity decision supplies an identity")
         if self.identity is not None and (
@@ -96,7 +96,7 @@ class SDLSemanticMigrationContext(ContractModel):
         return value
 
     @model_validator(mode="after")
-    def _unique_decisions(self) -> "SDLSemanticMigrationContext":
+    def _unique_decisions(self) -> SDLSemanticMigrationContext:
         pointers = [decision.pointer for decision in self.sentinel_decisions]
         if len(pointers) != len(set(pointers)) or not self.rationale.strip():
             raise ValueError("migration decisions require unique pointers and a nonempty rationale")

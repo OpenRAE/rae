@@ -428,7 +428,7 @@ def _definition_matches_symbol(definition: dict[str, Any], symbol: str) -> bool:
 def _qualified_symbol_section(symbol: str) -> str | None:
     try:
         parts = QualifiedName.parse(symbol).parts
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
     return parts[0] if len(parts) > 1 else None
 
@@ -436,7 +436,7 @@ def _qualified_symbol_section(symbol: str) -> str | None:
 def _is_variation_member_symbol(symbol: str) -> bool:
     try:
         parts = QualifiedName.parse(symbol).parts
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return False
     return len(parts) >= 4 and parts[0] == "variation_points" and parts[-2] in {"alternatives", "members"}
 
@@ -466,7 +466,7 @@ def _implicit_reference_target(path: list[str], field: str) -> str | None:
 def _bare_symbol(symbol: str) -> str:
     try:
         return QualifiedName.parse(symbol).parts[-1]
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return symbol
 
 

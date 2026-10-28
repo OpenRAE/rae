@@ -156,7 +156,7 @@ def _profile_binding_violation(entry: SnapshotEntry) -> str | None:
 
     try:
         return _typed_profile_binding_violation(entry)
-    except (TypeError, ValueError, RecursionError):
+    except TypeError, ValueError, RecursionError:
         return "Backend snapshot contains invalid profile bindings."
 
 

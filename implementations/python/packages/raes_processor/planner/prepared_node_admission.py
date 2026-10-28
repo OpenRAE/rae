@@ -172,7 +172,7 @@ def prepared_node_capability_violation(
     live = _live_provisioning_entries(selected, previous)
     try:
         validate_portable_node_inventory(live, original_addresses, manifest, availability, added=added)
-    except (AttributeError, KeyError, TypeError, ValueError):
+    except AttributeError, KeyError, TypeError, ValueError:
         return "Backend preparation selected an inadmissible portable node completion."
     return None
 

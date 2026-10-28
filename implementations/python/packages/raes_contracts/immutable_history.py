@@ -112,7 +112,7 @@ def _retained_identity(
     """Preserve opaque legacy store data without certifying its semantic shape."""
     try:
         return _record_identity(field, participant, record, position, identities), True
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         if field not in {"participant_control_history", "participant_crossing_history"}:
             raise
         return None, False

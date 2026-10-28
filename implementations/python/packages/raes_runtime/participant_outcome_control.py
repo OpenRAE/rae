@@ -99,7 +99,7 @@ class ParticipantOutcomeControlMixin:
         # Revalidate model_copy/model_construct carriers at the mutation boundary.
         try:
             request = ParticipantOutcomeUpdateRequest.model_validate(request.model_dump(mode="json"))
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             raise ValueError("participant outcome update contract is invalid") from None
         rule = _authorized_outcome_request(self, request, identity)
         with control_plane_mutation(self, OperationKind.PARTICIPANT_CONTROL), self._participant_control_lock:

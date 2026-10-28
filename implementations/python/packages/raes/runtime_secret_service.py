@@ -40,7 +40,7 @@ class RuntimeSecretVersion(SDLModel):
     description: str = ""
 
     @model_validator(mode="after")
-    def validate_destroyed(self) -> "RuntimeSecretVersion":
+    def validate_destroyed(self) -> RuntimeSecretVersion:
         if self.state == "destroyed" and self.payload_content_ref:
             raise ValueError("A destroyed version cannot have a live payload content reference")
         return self
@@ -106,7 +106,7 @@ class RuntimeSecretConsumer(SDLModel):
     description: str = ""
 
     @model_validator(mode="after")
-    def validate_selection(self) -> "RuntimeSecretConsumer":
+    def validate_selection(self) -> RuntimeSecretConsumer:
         if bool(self.version_ref) == (self.selector is not None):
             raise ValueError("A consumer requires exactly one exact version or provider selector")
         if self.resolved_version_ref:
@@ -142,7 +142,7 @@ class RuntimeServiceSecret(SDLModel):
     description: str = ""
 
     @model_validator(mode="after")
-    def validate_identities(self) -> "RuntimeServiceSecret":
+    def validate_identities(self) -> RuntimeServiceSecret:
         for collection, identity in ((self.versions, "version_id"), (self.consumers, "selection_id")):
             reject_duplicates(
                 (getattr(item, identity) for item in collection), label=identity, container_label="secret"

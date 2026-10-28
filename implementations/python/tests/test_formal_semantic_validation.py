@@ -68,12 +68,16 @@ def test_historical_failure_names_its_revision_specific_analysis_document() -> N
     assert failure.path == manifest["analysis_path"]
 
 
+# The two full-corpus replays below run for over a minute on one worker, beside
+# the other parallel integration workers.
 @pytest.mark.integration
+@pytest.mark.timeout(300)
 def test_formal_evidence_gate_replays_real_participant_fixtures() -> None:
     assert formal_validation.evaluate(REPO_ROOT) == []
 
 
 @pytest.mark.integration
+@pytest.mark.timeout(300)
 def test_atomic_release_index_validates_every_historical_bundle() -> None:
     releases = copy_bundle(load_release_bundles, REPO_ROOT)
 
