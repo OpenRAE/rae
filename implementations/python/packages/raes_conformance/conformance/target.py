@@ -385,6 +385,10 @@ def run_target_conformance(target: RuntimeTarget, **option_values: Any) -> Backe
     realization (issue #606 mutation guard) of whichever scenario is selected.
     This is a temporary runner-parameter bridge superseded by the
     realizability-envelope design (#667/#668).
+
+    A target that negotiates materialization reporting receives a fresh
+    target-bound run identity and a temporary protected archive owner for the
+    probe (issue #1667). Other targets keep the unscoped probe.
     """
 
     options = _TargetConformanceOptions(**option_values)
