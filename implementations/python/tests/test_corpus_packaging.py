@@ -325,6 +325,50 @@ assert callable(resolve_participant_control_support)
     assert result.returncode == 0, result.stderr
 
 
+def test_modular_runtime_runner_from_independent_install(installed_python: Path, tmp_path: Path):
+    script = """
+import json
+from raes_backend_stubs.stubs import create_stub_target
+from raes_conformance.conformance import run_modular_control_conformance, modular_control_obligations, backend_conformance_report_payload
+from raes_conformance.conformance.modular_control_types import ModularControlCase, ModularControlStep, ModularControlOperation
+from raes_contracts.corpus import corpus_family_root
+from raes_contracts.contracts.participant_control_applicability import ParticipantControlSelectionV2Model
+from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.contracts import schema_bundle
+from raes_runtime.participant_control_binding import ParticipantControlRuntimeBinding, ParticipantControlStageBinding
+from raes_contracts.contracts.participant_control_coordinates import ControlArtifactReferenceModel
+
+root = corpus_family_root('fixtures')
+selection = ParticipantControlSelectionV2Model.model_validate_json((root / 'participant-runtime/participant-control-selection-v2/valid/disjoint-sinks.json').read_bytes())
+class Provider:
+    def resolve_stage(self, invocation):
+        return ()
+class Resolver:
+    def resolve(self, **coordinates):
+        return None
+    def validation_context(self, evaluation):
+        return None
+    def effect_operation(self, request, context):
+        return None
+    def projection(self, request, slot_id, predecessors):
+        raise ValueError('no authorized projection')
+projection = ControlArtifactReferenceModel(kind='projection', ref='unavailable', revision='1', digest=canonical_json_digest('unavailable'))
+installed = ParticipantControlRuntimeBinding(selection=selection, providers={item.instance_id: Provider() for item in selection.bindings}, resolver=Resolver(), stages={item.slot_id: ParticipantControlStageBinding(unavailable_projection=projection) for item in selection.slots}, contract_digests={key: canonical_json_digest(schema_bundle()[key]) for key in ('participant-control-selection-v2', 'participant-control-evaluation-v2')})
+assert installed.selection == selection
+target = create_stub_target()
+report = run_modular_control_conformance(target, obligations=('authored-recovery',))
+assert report.passed
+assert not backend_conformance_report_payload(report)['native_conformance']
+missing = run_modular_control_conformance(target, obligations=('dependency',), effect_kinds=('inject',))
+assert not missing.passed
+assert {case.modular_control.obligation for case in missing.cases} == {'dependency', 'effect:inject'}
+assert len(modular_control_obligations()) > 10
+json.dumps(backend_conformance_report_payload(missing))
+"""
+    result = _run([str(installed_python), "-c", script], cwd=tmp_path, env=_sanitized_runtime_env(tmp_path))
+    assert result.returncode == 0, result.stderr
+
+
 # Concrete backends live in their own distributions (issue #967). RAES ships the
 # portable run-archive helper but no backend implementation or lifecycle code.
 _REMOVED_BACKEND_PACKAGES = ("raes_reference_backend", "raes_backend_libvirt")

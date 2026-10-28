@@ -1,5 +1,9 @@
 # Backend conformance guardrails
 
+The [modular control runner](modular-control-conformance.md) publishes ASR-538's
+installed shared-runtime probes. It requires explicit obligation/effect coverage
+and independent owner readback. Fixture validity does not establish that claim.
+
 This note is the architecture preflight for `ASR-502`. It is guidance, not an
 implementation plan.
 
@@ -478,6 +482,80 @@ runtime, backend, resolvers, and options. The report validator refuses a
 backend-realization or backend-conformance binding without `backend-native`
 ownership and `observed-execution` evidence. Report-level meaning remains
 `bounded-probe-success`. Finite conformance is not proof or universal opacity.
+
+## Mixed-backend capability probes
+
+`run_mixed_backend_conformance()` probes executable mixed-backend capability
+(issue #1017). The probe family drives the installed bridge, coordinator and
+readers of an admitted edge or native handoff through the shared runtime. It
+also drives repeated reusable-control cycles on one target. A declaration, a
+method shape or a published fixture never passes a case.
+
+**The runner owns execution, expectations and the verdict.** The harness is a
+typed, in-process adapter of the trusted embedder. For each probe request, it
+realizes the requested backend condition and time cut. It then returns fresh
+configuration: the `MixedRuntimeBinding` with installed services, the primary
+target, the crossing policy resolver, a seeded control-plane store, the identity
+and the governed carriers. The harness supplies no expected outcome, stage fact,
+digest or verdict.
+
+The runner wraps each installed role and records its calls. The wrappers keep
+the role signatures, so the installation shape check stays in force. The runner
+rebuilds the installation and the binding, so their validators run again. It
+reads facts only from the runtime: operation status, the invocation ledger in
+the supplied store, and the composition, control and participant histories. The
+expected time comparison comes from the admitted time model.
+
+Each case is independently runnable. Select cases by identifier:
+
+```python
+from raes_conformance.conformance import backend_conformance_report_payload, run_mixed_backend_conformance
+
+report = run_mixed_backend_conformance(harness, cases=["edge-executes", "handoff-commits"])
+payload = backend_conformance_report_payload(report)
+```
+
+`MIXED_BACKEND_CASES` lists the catalog:
+
+| Case | Passing result |
+| --- | --- |
+| `edge-executes` | One start through the pinned services. Separate execution, delivery and declared observation facts. Admitted allocation, mapping and loss. Exact replay calls no service. |
+| `edge-time-mapped-incomparable`, `edge-time-segment-incomparable` | An incomparable grant fails the operation. No start. |
+| `edge-unbound-refused`, `edge-missing-mapping-refused`, `edge-reversed-mapping-refused`, `edge-undeclared-loss-refused` | A missing or contradictory installation refuses before any service call. |
+| `edge-refused-before-claim` | An audit-only refusal. No grant and no start. |
+| `edge-refused-after-time-grant` | Willingness is checked again after the grant. The operation is cancelled before the one-use start. |
+| `edge-start-refused` | The consumed grant stays unresolved. No later stage. |
+| `edge-partial-execution`, `edge-missing-delivery` | The operation stays indeterminate and keeps its known stages and residual state. |
+| `edge-restart-no-reissue` | A reopened durable store returns the original operation. No service runs again. |
+| `handoff-commits`, `handoff-stale-transfer`, `handoff-repeated-transition` | Transfers fence on the committed head and revision. Owner readback settles responsibility. A moved phase transfers nothing. |
+| `control-repeated-cycles`, `control-dispatch-refused` | Each control cycle advances one revision. Retry adds nothing. A stale proposal is rejected. The next action dispatches once. A backend refusal fails it without a control change. |
+| `combination-reusable-control-with-mixed-runtime`, `combination-distributed-portable-mixed` | Always `unsupported`. The runtime refuses both combinations. Separate passes do not establish a joint path. |
+
+A negative case passes only when the correct rejection occurs. The runner
+first checks the baseline inputs. It then requires evidence that the intended
+owner refused: the backend admission refusal code, the binding validator, the
+current-state claim boundary, or a dispatch refusal after the unmodified
+configuration executed. A missing configuration or an unrealized condition
+makes the case `unsupported`. An observed failure or a failed close still makes
+it `failed`. An unsupported case never passes, and the report lists it in
+`unsupported_capability_gaps`. The report passes only when every selected case
+passes.
+
+Each case records `mixed_binding` coordinates. These hold the profile, plan and
+run identity, the binding digest, the time requirement and declared loss, and
+each component's backend, manifest, envelope and configuration identity. They
+also hold each pinned service and every retained stage report with its producer
+and digest. The case records the expected and observed role calls, residual
+state, cleanup and the configuration, tool and environment digests.
+
+Every case uses the `hermetic-live` basis and the `installed-service`
+realization owner. The runner never sets `native_conformance`. An in-process,
+reference or test service is not concrete backend realization; native evidence
+stays with the backend distribution under ADR-115. The report validator refuses
+a native report that has a mixed case without a native basis. It also refuses
+inconsistent outcome and pass fields, and a passing case without resolvable
+coordinates. See the
+[design](../../decisions/issue-1017-executable-mixed-conformance-design.md).
 
 ## Non-goals
 

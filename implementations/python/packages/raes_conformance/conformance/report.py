@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 
 from raes_contracts.behavioral_relations import validate_behavioral_claim_binding
 from raes_contracts.contracts import BehavioralClaimBindingModel
 from raes_contracts.diagnostics import Diagnostic
 
 from raes_conformance.conformance.diagnostics import _diagnostic_payload
+from raes_conformance.conformance.mixed_backend_types import MixedBackendCaseBinding, mixed_case_binding_payload
+from raes_conformance.conformance.modular_control_types import ModularControlEvidence
 from raes_conformance.realization import ExecutionBasis
 
 
@@ -102,6 +104,8 @@ class ConformanceCaseResult:
     manifest_digest: str | None = None
     tool_digest: str | None = None
     environment_digest: str | None = None
+    mixed_binding: MixedBackendCaseBinding | None = None
+    modular_control: ModularControlEvidence | None = None
 
     def __post_init__(self) -> None:
         """Keep the closed outcome vocabulary aligned with the gating boolean."""
@@ -151,10 +155,43 @@ def validate_backend_conformance_report(report: BackendConformanceReport) -> Bac
     run into an apparently clean one.
     """
 
+    from .modular_control_report import validate_modular_report
+
+    validate_modular_report(report)
     _validate_catalog_bindings(report)
     _validate_claim_strength(report)
     _validate_case_evidence(report)
+    _validate_case_outcomes(report)
     return report
+
+
+def _validate_case_outcomes(report: BackendConformanceReport) -> None:
+    """Keep outcome and pass fields consistent and mixed coordinates resolvable.
+
+    An empty case set certifies nothing, and a native report must have executed
+    every mixed obligation natively, not just one unrelated case.
+    """
+
+    if report.passed and not report.cases:
+        raise ValueError("backend conformance report is marked passed without any case")
+    for case in report.cases:
+        if case.passed != (case.outcome == "passed"):
+            raise ValueError(f"conformance case {case.name!r} has inconsistent outcome and pass fields")
+        if case.mixed_binding is not None:
+            _validate_mixed_case(case, native=report.native_conformance)
+
+
+def _validate_mixed_case(case: ConformanceCaseResult, *, native: bool) -> None:
+    """Require native execution for a native claim and resolvable coordinates for a pass."""
+
+    if native and case.execution_basis not in _NATIVE_EXECUTION_BASES:
+        raise ValueError("a native report requires a native basis for every mixed-backend case")
+    coordinates = (case.configuration_digest, case.tool_digest, case.environment_digest)
+    if case.passed and (not case.mixed_binding.components or not all(coordinates)):
+        raise ValueError(
+            "a passing mixed-backend case requires component coordinates and configuration, "
+            "tool, and environment digests"
+        )
 
 
 def _validate_catalog_bindings(report: BackendConformanceReport) -> None:
@@ -362,6 +399,8 @@ def backend_conformance_report_payload(report: BackendConformanceReport) -> dict
                 "manifest_digest": case.manifest_digest,
                 "tool_digest": case.tool_digest,
                 "environment_digest": case.environment_digest,
+                "mixed_binding": mixed_case_binding_payload(case.mixed_binding),
+                "modular_control": asdict(case.modular_control) if case.modular_control is not None else None,
                 "diagnostics": [_diagnostic_payload(diag) for diag in case.diagnostics],
             }
             for case in report.cases
@@ -375,22 +414,30 @@ def _bounded_conformance_claim(
     profile: str,
     cases: tuple[ConformanceCaseResult, ...],
     left_carrier_ref: str,
+    subject: str | None = None,
+    right_carrier_ref: str | None = None,
+    evidence_boundary: str | None = None,
 ) -> BehavioralClaimBindingModel:
-    """Describe exactly what a conformance report's finite cases establish."""
+    """Describe exactly what a conformance report's finite cases establish.
+
+    A probe family that does not certify a published backend profile names its
+    own subject, catalog carrier, and evidence boundary.
+    """
 
     evidence_refs = [f"conformance-case:{case.contract_name}:{case.name}" for case in cases]
     binding = BehavioralClaimBindingModel(
         taxonomy_id="raes-behavioral-relations",
         taxonomy_revision="rev8",
         relation_id="bounded-probe-success",
-        subject=f"Backend conformance for profile {profile}",
+        subject=subject or f"Backend conformance for profile {profile}",
         left_carrier_ref=left_carrier_ref,
-        right_carrier_ref=f"backend-profile:{profile}",
+        right_carrier_ref=right_carrier_ref or f"backend-profile:{profile}",
         observation_projection_ref="backend-conformance-case-report",
         observation_projection_revision="rev1",
         quantifier_scope="finite-cases",
         evidence_scope="finite",
-        evidence_boundary=(
+        evidence_boundary=evidence_boundary
+        or (
             f"The {len(cases)} named fixture and target-probe cases recorded in this report; "
             "no unexecuted input, trace, scheduler, strategy, or environment is quantified."
         ),
