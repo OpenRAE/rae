@@ -25,18 +25,17 @@ def _fail(code: str, address: str, message: str) -> CompilationFailure:
 
 
 def validate_treatment_profile(request: TrialCompilationRequest) -> None:
-    """Reject typed treatments until the compiler implements their profile."""
+    """Require the typed design whenever condition criteria contain selections."""
     design = request.experiment.factorial_design
     allocation = request.experiment.run_plan.allocation
     typed_design = design is not None and design.profile == "factorial-treatments-v1"
     typed_criteria = allocation is not None and any(
         assignment.required_selections for assignment in allocation.condition_assignments.values()
     )
-    if typed_design or typed_criteria:
-        address = "/factorial_design/profile" if typed_design else "/run_plan/allocation/condition_assignments"
+    if typed_criteria and not typed_design:
         raise _fail(
             "factorial-profile-unsupported",
-            address,
+            "/run_plan/allocation/condition_assignments",
             "typed factorial treatments require a supporting compiler profile",
         )
 
@@ -353,6 +352,8 @@ def plan_intent(request: TrialCompilationRequest, planned_coordinates: list[Tria
             designed=request.experiment.factorial_design is not None
             or request.experiment.run_plan.allocation_policy is not None,
             allocation=request.experiment.run_plan.allocation_policy is not None,
+            treatments=request.experiment.factorial_design is not None
+            and request.experiment.factorial_design.profile == "factorial-treatments-v1",
         ).model_dump(mode="json"),
         "input_refs": input_refs.model_dump(mode="json"),
         "execution_authority": request.execution_authority.model_dump(mode="json"),

@@ -343,10 +343,14 @@ The optional `profiles.treatment_profile` field selects the new record semantics
 Legacy plans omit this field.
 The existing coordinate and identity profiles remain unchanged.
 New content remains covered by authoring, entry, and plan commitments.
-The current reference compiler fails with `factorial-profile-unsupported` for this authoring profile.
-Issue #1666 supplies compiler admission and lifecycle support.
-It must verify complete point coverage, effective distinctness, and atomic failure through the existing public SDL APIs.
-Contract acceptance alone does not establish executable support.
+The reference compiler supports typed treatments through the existing public SDL APIs.
+It verifies complete point coverage, owner admission, effective distinctness, and atomic failure.
+Comparison retains operative capability bounds, parameter derivations, and realization constraints.
+Prompt comparison uses pinned content and operative slot and scope, excluding provenance-only descriptor differences.
+`readmit_admitted_trial_plan()` compares a candidate with deterministic reconstruction from separately trusted original inputs.
+The public realizer checks authoring coordinates, bindings, typed records, and fixed selections without rerunning participant normalization.
+Plan-only reload establishes internal consistency, not agreement with unavailable original authority.
+See the [public example](../../../docs/explain/reference/typed-factorial-example.md).
 
 The accepted executable allocation procedure is `fisher-yates-allocation-v1`:
 

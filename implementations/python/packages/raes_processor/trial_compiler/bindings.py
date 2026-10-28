@@ -117,7 +117,17 @@ def _entry_bindings(
             _BINDING_DESCRIPTORS_ADDRESS,
             "an admitted binding descriptor is selected more than once",
         )
-    if len(bindings) > request.limits.max_bindings_per_entry:
+    selection_work = 0
+    if (
+        request.experiment.factorial_design is not None
+        and request.experiment.factorial_design.profile == "factorial-treatments-v1"
+    ):
+        selection_work = sum(
+            1 + len(getattr(selection.outcome, "member_ids", ()))
+            for selection in row.selections
+            if selection.treatment is not None or selection.policy_kind == "fixed"
+        )
+    if len(bindings) + selection_work > request.limits.max_bindings_per_entry:
         raise CompilationFailure(
             "binding-limit-exceeded",
             _BINDING_DESCRIPTORS_ADDRESS,
@@ -242,7 +252,7 @@ def _factorial_participant_defaults(
     selected: set[ParticipantManifestKey],
 ) -> dict[ParticipantManifestKey, list[ConfigurationOverrideModel]]:
     grouped = {}
-    if request.experiment.factorial_design is None:
+    if request.experiment.factorial_design is None or request.experiment.binding_descriptors is None:
         return grouped
     for descriptor in request.experiment.binding_descriptors.descriptors:
         target = descriptor.target
