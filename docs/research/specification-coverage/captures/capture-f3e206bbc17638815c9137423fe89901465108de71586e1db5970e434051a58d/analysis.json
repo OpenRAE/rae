@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-10-28T03:18:35.314449+00:00",
+  "generated_at": "2026-10-28T03:55:53.037794+00:00",
   "limitations": [
     "This is bounded specification coverage, not universal range coverage, usability, adoption, backend substitution or behavioral equivalence.",
     "The retained protocol does not test recursive realization, plan allocation or live participant configuration.",
@@ -87,5 +87,5 @@
     }
   ],
   "snapshot_id": "issue-1672-python-314-specification-snapshot",
-  "snapshot_sha256": "e898606ed0711227604be001f2ef5ad78715d242f70ed9eb42866ac2cdcdfc14"
+  "snapshot_sha256": "53ea16a01f71644287e62358b0f02277ff65025e99e4b0319e2380747f858421"
 }
