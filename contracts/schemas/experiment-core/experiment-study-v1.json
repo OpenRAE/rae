@@ -778,6 +778,16 @@
           "required": [
             "required_bindings"
           ]
+        },
+        {
+          "properties": {
+            "required_selections": {
+              "minItems": 1
+            }
+          },
+          "required": [
+            "required_selections"
+          ]
         }
       ],
       "description": "Concrete treatment-condition assignment criteria for study evaluation runs.",
@@ -855,6 +865,14 @@
             "$ref": "#/$defs/ExperimentConditionAssignmentReferenceModel"
           },
           "title": "Required Refs",
+          "type": "array"
+        },
+        "required_selections": {
+          "items": {
+            "$ref": "#/$defs/ExperimentScenarioSelectionDescriptorModel"
+          },
+          "maxItems": 256,
+          "title": "Required Selections",
           "type": "array"
         }
       },
@@ -1509,6 +1527,111 @@
         }
       ]
     },
+    "ExperimentScenarioSelectionDescriptorModel": {
+      "additionalProperties": false,
+      "description": "An exact typed selection with its complete treatment source joins.",
+      "properties": {
+        "outcome": {
+          "discriminator": {
+            "mapping": {
+              "literal": "#/$defs/LiteralBindingValueModel",
+              "member": "#/$defs/ExperimentSelectionMemberOutcomeModel",
+              "order": "#/$defs/ExperimentSelectionOrderOutcomeModel",
+              "reference": "#/$defs/ExperimentSelectionReferenceOutcomeModel",
+              "subset": "#/$defs/ExperimentSelectionSubsetOutcomeModel"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LiteralBindingValueModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionReferenceOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionMemberOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionSubsetOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionOrderOutcomeModel"
+            }
+          ],
+          "title": "Outcome"
+        },
+        "owner": {
+          "$ref": "#/$defs/BindingOwnerModel"
+        },
+        "scenario_family_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Scenario Family Digest",
+          "type": "string"
+        },
+        "selection_id": {
+          "minLength": 1,
+          "title": "Selection Id",
+          "type": "string"
+        },
+        "source_condition_id": {
+          "minLength": 1,
+          "title": "Source Condition Id",
+          "type": "string"
+        },
+        "source_factor_id": {
+          "minLength": 1,
+          "title": "Source Factor Id",
+          "type": "string"
+        },
+        "source_factor_level_id": {
+          "minLength": 1,
+          "title": "Source Factor Level Id",
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/ScenarioBindingTargetModel"
+        }
+      },
+      "required": [
+        "target",
+        "scenario_family_digest",
+        "owner",
+        "outcome",
+        "selection_id",
+        "source_factor_id",
+        "source_factor_level_id",
+        "source_condition_id"
+      ],
+      "title": "ExperimentScenarioSelectionDescriptorModel",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Typed selection identity binds the exact source condition, factor and canonical scenario target. Parent condition, plan and archive validation also checks source levels, family pins and owner joins.",
+          "id": "experiment-selection-treatment-identity-valid",
+          "inputs": [
+            {
+              "contract_id": "experiment-authoring-input-v1",
+              "instance_path": "#/run_plan/allocation/condition_assignments"
+            },
+            {
+              "contract_id": "experiment-study-v1",
+              "instance_path": "#/run_allocation/condition_assignments"
+            },
+            {
+              "contract_id": "admitted-trial-plan-v1",
+              "instance_path": "#/entries"
+            },
+            {
+              "contract_id": "experiment-run-v1",
+              "instance_path": "#/realized_selections"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.experiment_treatments.ExperimentScenarioSelectionDescriptorModel._validate_identity"
+        }
+      ]
+    },
     "ExperimentScenarioSnapshotReferenceModel": {
       "additionalProperties": false,
       "description": "Reference constrained to a sealed scenario snapshot.",
@@ -1569,6 +1692,118 @@
         "ref_id"
       ],
       "title": "ExperimentScenarioSnapshotReferenceModel",
+      "type": "object"
+    },
+    "ExperimentSelectionMemberOutcomeModel": {
+      "additionalProperties": false,
+      "description": "One named alternative/member outcome.",
+      "properties": {
+        "kind": {
+          "const": "member",
+          "title": "Kind",
+          "type": "string"
+        },
+        "member_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Member Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "member_id"
+      ],
+      "title": "ExperimentSelectionMemberOutcomeModel",
+      "type": "object"
+    },
+    "ExperimentSelectionOrderOutcomeModel": {
+      "additionalProperties": false,
+      "description": "One complete canonical order of declared structural member ids.",
+      "properties": {
+        "kind": {
+          "const": "order",
+          "title": "Kind",
+          "type": "string"
+        },
+        "member_ids": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
+          },
+          "maxItems": 1024,
+          "minItems": 1,
+          "title": "Member Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "member_ids"
+      ],
+      "title": "ExperimentSelectionOrderOutcomeModel",
+      "type": "object"
+    },
+    "ExperimentSelectionReferenceOutcomeModel": {
+      "additionalProperties": false,
+      "description": "One governed-reference outcome named by its declared reference id.",
+      "properties": {
+        "kind": {
+          "const": "reference",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reference_id": {
+          "minLength": 1,
+          "title": "Reference Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reference_id"
+      ],
+      "title": "ExperimentSelectionReferenceOutcomeModel",
+      "type": "object"
+    },
+    "ExperimentSelectionSubsetOutcomeModel": {
+      "additionalProperties": false,
+      "description": "One canonical subset of declared structural member ids.",
+      "properties": {
+        "kind": {
+          "const": "subset",
+          "title": "Kind",
+          "type": "string"
+        },
+        "member_ids": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
+          },
+          "maxItems": 1024,
+          "title": "Member Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "member_ids"
+      ],
+      "title": "ExperimentSelectionSubsetOutcomeModel",
       "type": "object"
     },
     "ExperimentStatisticalMethodModel": {

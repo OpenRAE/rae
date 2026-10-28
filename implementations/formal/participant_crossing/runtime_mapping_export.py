@@ -9,7 +9,7 @@ from raes_contracts.json_ingress import parse_bounded_json_object
 from . import export
 from .ingress import read_bytes, safe_path
 
-OUTPUT_PATH = "specs/formal/participant-semantics/runtime-mapping/rev1"
+OUTPUT_ROOT = "specs/formal/participant-semantics/runtime-mapping"
 SOURCE_ROOTS = (
     "implementations/python/packages",
     "implementations/python/tests",
@@ -55,6 +55,8 @@ def source_pins(root: Path) -> dict[str, str]:
 
 
 _EXECUTING_PINS = source_pins(ROOT)
+_SOURCE_ID = export.digest(canonical_json_bytes(_EXECUTING_PINS)).split(":", 1)[1]
+OUTPUT_PATH = f"{OUTPUT_ROOT}/capture-{_SOURCE_ID}"
 
 
 def build_bundle(root: Path, reports: dict[str, dict[str, object]]) -> dict[str, bytes]:

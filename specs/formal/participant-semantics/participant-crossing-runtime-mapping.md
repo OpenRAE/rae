@@ -187,13 +187,16 @@ RAES_REQUIREMENT_UID=SEM-232 implementations/python/.venv/bin/python -m pytest \
   implementations/python/tests/test_issue_972_mapping_ownership.py -q
 ```
 
-The retained bundle is `runtime-mapping/rev1` beside this document.
+The current bundle is `runtime-mapping/capture-<source-digest>` beside this document.
+The directory identity is the JCS/SHA-256 digest of the exact source inventory.
+Each source identity selects a separate capture.
+The original `runtime-mapping/rev1` bundle and earlier captures remain unchanged.
 Its manifest binds the source inventory, profile, historical model artifacts, and observed cases.
 The source inventory includes runtime packages, contracts, test drivers, formal code, configuration, and the Python lockfile.
 It excludes historical schema tombstones, which the live mapping does not consume.
 The manifest reports that exclusion; the active schema publication manifest remains pinned.
 The read-only command rejects source or artifact drift.
-The initial producer uses `--write` and refuses to replace a different bundle.
+The producer uses `--write` for each new source identity and refuses to replace a different bundle.
 
 The cases cover both policy cuts and all five input classes.
 They retain a single runtime and store across each retry sequence.

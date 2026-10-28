@@ -164,6 +164,56 @@ See the [normative generation rules](../../../specs/formal/experiment-core/READM
 [allocation procedure](../../../specs/formal/scenario-variation-trial-realization/README.md#designed-compiler-and-allocation-profiles-exp-719),
 and [architecture guardrails](../../decisions/issue-275-exp-719-treatment-controlled-variation-preflight.md).
 
+## Typed factorial scenario selections
+
+The `factorial-treatments-v1` contract combines scalar bindings and typed selections.
+Its `level_effects[factor_id][level_id]` contains `bindings`, `selections`, or both.
+Factor and level identifiers come from the experiment author.
+A level can affect several participants and scenario points.
+Selection-only and participant-only designs need no invented scalar target.
+
+A selection names the family, its digest, a variation point, its canonical target, and its owner.
+Its `outcome` reuses the existing selection types.
+For example, `{kind: member, member_id: baseline}` selects an authored SDL alternative.
+The family can define that alternative as node presence with coupled scheduled jobs.
+The member retains that typed identity through generated criteria and archival records.
+The experiment does not embed the node definition or encode the member as a scalar binding.
+
+Node settings use declared scalar parameters or the reviewed
+[structural slots](../../../specs/sdl/variation-points.md#4-typed-target-slots).
+These slots cover node presence and declared runtime inventory collections.
+They do not permit arbitrary packages, environment entries, filesystem entries, or nested patches.
+New slots need review at the owning SDL model.
+Model settings use participant manifest targets.
+Prompt and instruction choices use the existing pinned control-context targets below.
+Secret configuration retains opaque secret references.
+
+Every condition must select every family point exactly once.
+Invariant points can use existing fixed policies with `purpose: fixed-configuration` and `output_bound: 1`.
+These policies cannot carry binding claims.
+Other accompanying policy kinds and duplicate points fail.
+The full Cartesian design fails if any combination violates SDL constraints, references, owner rules, or participant applicability.
+No condition is silently removed or relabelled.
+Different labels cannot disguise equal effective scenario and participant configurations.
+
+`required_selections`, admitted `treatment` records, and run `realized_selections` share exact descriptors.
+They preserve factor, level, condition, family, point, target, owner, and typed outcome.
+Plan-aware archival checks reject missing or changed descriptors.
+The plan's optional `treatment_profile` explicitly identifies these semantics.
+Existing scalar profiles and identity formulas remain unchanged.
+
+The contract limits combined effect work to 10000 units across logical runs.
+Nested subset and order members and repeated fixed choices consume this budget.
+Expanded serialization has an 8 MiB bound.
+The public input loader retains its 64 KiB bound.
+See the [normative profile](../../../specs/formal/experiment-core/README.md#typed-factorial-treatments-factorial-treatments-v1) for exact rules.
+
+Issue #1665 publishes the contract and record validation.
+The current compiler explicitly rejects the new profile.
+It also rejects manual `required_selections` criteria without a factorial profile.
+Issue #1666 implements compilation, owner admission, and lifecycle verification.
+Record acceptance alone does not prove execution support.
+
 ## Participant control-context factors
 
 A participant configuration target can declare a typed `control_context` domain.

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from collections.abc import Callable
 
+from .._canonical import canonical_json_digest
 from ..evidence_proof import ValidatedRunEvidence
 from .base import _canonical_digest
 from .experiment_apparatus import ExperimentApparatusComponentModel
@@ -213,6 +214,12 @@ def _condition_assignment_run_criteria_signature(
                 json.dumps(binding.realization_payload(), sort_keys=True) for binding in assignment.required_bindings
             )
         ),
+        tuple(
+            sorted(
+                json.dumps(selection.realization_payload(), sort_keys=True)
+                for selection in assignment.required_selections
+            )
+        ),
     )
 
 
@@ -236,6 +243,14 @@ def _run_satisfies_condition_assignment(
     run_condition = run.difficulty_provenance.policy.condition if run.difficulty_provenance is not None else "fixed"
     run_policy_id = run.difficulty_provenance.policy.policy_id if run.difficulty_provenance is not None else None
     missing.extend(_missing_required_bindings(run, assignment))
+    realized_selections = {
+        canonical_json_digest(selection.model_dump(mode="json")) for selection in run.realized_selections
+    }
+    missing.extend(
+        f"selection:{required.selection_id}"
+        for required in assignment.required_selections
+        if canonical_json_digest(required.model_dump(mode="json")) not in realized_selections
+    )
     if run_condition != assignment.difficulty_condition:
         missing.append(f"difficulty-condition:{assignment.difficulty_condition}")
     if assignment.difficulty_policy_id is not None and run_policy_id != assignment.difficulty_policy_id:

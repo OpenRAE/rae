@@ -304,6 +304,17 @@
           ],
           "title": "Outcome"
         },
+        "treatment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentScenarioSelectionDescriptorModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "variation_point_id": {
           "maxLength": 64,
           "minLength": 1,
@@ -617,6 +628,19 @@
           "const": "experiment-selection-v1",
           "title": "Selection Policy Profile",
           "type": "string"
+        },
+        "treatment_profile": {
+          "anyOf": [
+            {
+              "const": "factorial-treatments-v1",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Treatment Profile"
         }
       },
       "required": [
@@ -1649,6 +1673,111 @@
       ],
       "title": "ExperimentScenarioFamilyReferenceModel",
       "type": "object"
+    },
+    "ExperimentScenarioSelectionDescriptorModel": {
+      "additionalProperties": false,
+      "description": "An exact typed selection with its complete treatment source joins.",
+      "properties": {
+        "outcome": {
+          "discriminator": {
+            "mapping": {
+              "literal": "#/$defs/LiteralBindingValueModel",
+              "member": "#/$defs/ExperimentSelectionMemberOutcomeModel",
+              "order": "#/$defs/ExperimentSelectionOrderOutcomeModel",
+              "reference": "#/$defs/ExperimentSelectionReferenceOutcomeModel",
+              "subset": "#/$defs/ExperimentSelectionSubsetOutcomeModel"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LiteralBindingValueModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionReferenceOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionMemberOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionSubsetOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionOrderOutcomeModel"
+            }
+          ],
+          "title": "Outcome"
+        },
+        "owner": {
+          "$ref": "#/$defs/BindingOwnerModel"
+        },
+        "scenario_family_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Scenario Family Digest",
+          "type": "string"
+        },
+        "selection_id": {
+          "minLength": 1,
+          "title": "Selection Id",
+          "type": "string"
+        },
+        "source_condition_id": {
+          "minLength": 1,
+          "title": "Source Condition Id",
+          "type": "string"
+        },
+        "source_factor_id": {
+          "minLength": 1,
+          "title": "Source Factor Id",
+          "type": "string"
+        },
+        "source_factor_level_id": {
+          "minLength": 1,
+          "title": "Source Factor Level Id",
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/ScenarioBindingTargetModel"
+        }
+      },
+      "required": [
+        "target",
+        "scenario_family_digest",
+        "owner",
+        "outcome",
+        "selection_id",
+        "source_factor_id",
+        "source_factor_level_id",
+        "source_condition_id"
+      ],
+      "title": "ExperimentScenarioSelectionDescriptorModel",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Typed selection identity binds the exact source condition, factor and canonical scenario target. Parent condition, plan and archive validation also checks source levels, family pins and owner joins.",
+          "id": "experiment-selection-treatment-identity-valid",
+          "inputs": [
+            {
+              "contract_id": "experiment-authoring-input-v1",
+              "instance_path": "#/run_plan/allocation/condition_assignments"
+            },
+            {
+              "contract_id": "experiment-study-v1",
+              "instance_path": "#/run_allocation/condition_assignments"
+            },
+            {
+              "contract_id": "admitted-trial-plan-v1",
+              "instance_path": "#/entries"
+            },
+            {
+              "contract_id": "experiment-run-v1",
+              "instance_path": "#/realized_selections"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.experiment_treatments.ExperimentScenarioSelectionDescriptorModel._validate_identity"
+        }
+      ]
     },
     "ExperimentSelectionMemberOutcomeModel": {
       "additionalProperties": false,
