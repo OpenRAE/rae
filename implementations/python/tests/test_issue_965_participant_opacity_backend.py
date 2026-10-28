@@ -566,12 +566,12 @@ def test_validator_refuses_realization_without_native_observed_evidence() -> Non
         validate_backend_conformance_report(synthetic_native)
 
 
-def _facts(*stages: str, operation_id: str | None = "op-1", **values) -> _OperationFacts:
+def _facts(*stages: str, operation_id: str | None = "op-1", first_order: int = 1, **values) -> _OperationFacts:
     records = tuple(
         {
-            "event_id": f"event-{index}",
-            "predecessor_event_refs": [],
-            "occurrence": {"stage": stage, "effective_order": index + 1},
+            "event_id": f"event-{first_order + index}",
+            "predecessor_event_refs": [f"event-{first_order + index - 1}"] if index else [],
+            "occurrence": {"stage": stage, "effective_order": first_order + index},
         }
         for index, stage in enumerate(stages)
     )
@@ -650,7 +650,20 @@ def test_projection_never_counts_an_unfinished_action_as_denial(state: str) -> N
 
 
 def test_projection_rejects_a_broken_causal_chain_with_contained_stages() -> None:
-    egress = _facts("requested", "decided", "delivery-attempted", operation_id=None, result="refused")
+    def measurement(egress: _OperationFacts) -> _PointMeasurement:
+        return _PointMeasurement(
+            point_ref=PROTECTED,
+            ingress=_facts("requested", "decided", terminal_state="failed"),
+            replay=_facts(operation_id="op-1"),
+            egress=egress,
+            readback_before="sha256:" + "0" * 64,
+            readback_after="sha256:" + "1" * 64,
+            history_valid=True,
+            opacity_supports=(),
+            failures=(),
+        )
+
+    egress = _facts("requested", "decided", "delivery-attempted", operation_id=None, first_order=3, result="refused")
     broken = replace(
         egress,
         records=(
@@ -659,20 +672,11 @@ def test_projection_rejects_a_broken_causal_chain_with_contained_stages() -> Non
             egress.records[2],
         ),
     )
-    measurement = _PointMeasurement(
-        point_ref=PROTECTED,
-        ingress=_facts("requested", "decided", terminal_state="failed"),
-        replay=_facts(operation_id="op-1"),
-        egress=broken,
-        readback_before="sha256:" + "0" * 64,
-        readback_after="sha256:" + "1" * 64,
-        history_valid=True,
-        opacity_supports=(),
-        failures=(),
-    )
 
-    observed = project_observation(measurement)
+    intact = project_observation(measurement(egress))
+    observed = project_observation(measurement(broken))
 
+    assert intact["logical_order"] == "stable-causal-order"
     assert observed["logical_timing"] == "logical-bucket:contained"
     assert str(observed["logical_order"]).startswith("order:")
     assert observed["delivery"] is None

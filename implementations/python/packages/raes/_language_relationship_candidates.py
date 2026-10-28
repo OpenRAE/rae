@@ -6,6 +6,9 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
+from pydantic import TypeAdapter, ValidationError
+
+from ._behavior_authoring import validate_authored_behavior_references
 from ._declarations import Declaration
 from ._errors import SDLValidationError
 from ._language_context import PurposeResolver
@@ -13,13 +16,16 @@ from ._reference_targetability import ReferencePurpose
 from ._relationship_endpoint_policy import RELATIONSHIP_DETAIL_BINDINGS
 from .nodes import Node
 from .participant_behavior_specification import MixedControlDeclaration
-from .scenario import ScenarioContent
+from .relationships import Relationship
+from .scenario import Scenario, ScenarioContent
 from .semantics._domain_topology_types import resolve_section_ref
 from .semantics.deployment_tenancy import placement_context_allowed, placement_node_allowed
 from .semantics.domain_topology import topology_source_allowed
 from .semantics.enterprise_identity import distinct_forest_endpoints
-from .validator import SemanticValidator
+from .validator import SemanticValidator, ValidationSession
 from .validator._participant_relationships import participant_relation_controller_states
+
+_RELATIONSHIPS: TypeAdapter[dict[str, Relationship]] = TypeAdapter(Scenario.model_fields["relationships"].annotation)
 
 
 @dataclass(frozen=True)
@@ -31,6 +37,7 @@ class _RelationshipContext:
     incomplete: bool
     resolver: PurposeResolver
     baseline: set[str]
+    session: ValidationSession
 
 
 def filter_relationship_candidates(
@@ -48,14 +55,17 @@ def filter_relationship_candidates(
     if not isinstance(relationship, dict):
         return items
     typed = scenario or partial
-    baseline = _semantic_errors(typed) if typed is not None else set()
-    context = _RelationshipContext(pointer, name, relationship, typed, scenario is None, resolver, baseline)
+    # Every candidate shares all fields except relationships with the baseline,
+    # so one session lets unaffected validation passes reuse baseline results.
+    session = ValidationSession()
+    baseline = _semantic_errors(typed, session) if typed is not None else set()
+    context = _RelationshipContext(pointer, name, relationship, typed, scenario is None, resolver, baseline, session)
     return [item for item in items if _candidate_allowed(item, context)]
 
 
-def _semantic_errors(scenario: ScenarioContent) -> set[str]:
+def _semantic_errors(scenario: ScenarioContent, session: ValidationSession) -> set[str]:
     try:
-        SemanticValidator(scenario).validate()
+        SemanticValidator(scenario, session=session).validate()
     except SDLValidationError as exc:
         return set(exc.errors)
     return set()
@@ -83,21 +93,49 @@ def _semantic_candidate_allowed(label: str, context: _RelationshipContext) -> bo
     typed = context.scenario
     if typed is None:
         return True
-    # Only the edited relationship changes. Other declarations and provenance
-    # remain read-only during validation; copying them per suggestion is costly.
-    relationships = dict(typed.relationships)
-    if context.name in relationships:
-        relationships[context.name] = relationships[context.name].model_copy(deep=True)
-    candidate = typed.model_copy(update={"relationships": relationships})
-    owner = _field_owner(candidate.relationships.get(context.name), context.pointer[2:-1])
-    applied = _apply_candidate(owner, context.pointer[-1], label)
-    if applied is None:
-        return True
+    candidate = _candidate_scenario(typed, label, context)
     # Existing subtype owners and participant/control checks remain authoritative.
     # An incomplete context may already contain unrelated failures; do not turn
     # those into new constraints on this field. Known endpoint attributes and
     # selected control bounds are checked independently, even on an invalid edge.
-    return applied and _semantic_errors(candidate).issubset(context.baseline)
+    if isinstance(candidate, bool):
+        return candidate
+    return _semantic_errors(candidate, context.session).issubset(context.baseline)
+
+
+def _candidate_scenario(typed: ScenarioContent, label: str, context: _RelationshipContext) -> ScenarioContent | bool:
+    """Return the edited scenario, or the decision when the edit needs no validation.
+
+    Only the edited relationship changes. Other declarations and provenance stay
+    shared, so the validation session reuses passes that never read them. The
+    edited relationship is validated again because semantic validation requires
+    a structurally valid scenario.
+    """
+
+    relationships = dict(typed.relationships)
+    if context.name in relationships:
+        relationships[context.name] = relationships[context.name].model_copy(deep=True)
+    owner = _field_owner(relationships.get(context.name), context.pointer[2:-1])
+    applied = _apply_candidate(owner, context.pointer[-1], label)
+    decision: ScenarioContent | bool = applied is None
+    if applied:
+        try:
+            relationships[context.name] = _validated_relationship(typed, context.name, relationships[context.name])
+        except ValidationError:
+            decision = False
+        else:
+            decision = typed.model_copy(update={"relationships": relationships})
+    return decision
+
+
+def _validated_relationship(scenario: ScenarioContent, name: str, edited: Relationship) -> Relationship:
+    """Validate an edited relationship as the scenario's relationships field does."""
+
+    payload = edited.model_dump(mode="python", by_alias=True, exclude_unset=True)
+    document = {"relationships": {name: payload}}
+    if isinstance(scenario, Scenario):
+        validate_authored_behavior_references(document)
+    return _RELATIONSHIPS.validate_python(document["relationships"])[name]
 
 
 def _field_owner(owner: object, tokens: list[str]) -> object:
