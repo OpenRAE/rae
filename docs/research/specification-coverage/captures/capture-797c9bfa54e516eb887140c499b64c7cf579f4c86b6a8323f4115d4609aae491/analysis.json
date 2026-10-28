@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-10-28T00:56:16.031597+00:00",
+  "generated_at": "2026-10-28T01:00:59.052772+00:00",
   "limitations": [
     "This is bounded specification coverage, not universal range coverage, usability, adoption, backend substitution or behavioral equivalence.",
     "The retained protocol does not test recursive realization, plan allocation or live participant configuration.",
@@ -54,7 +54,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "The six fixed reference artifacts retain their bounded typed concept coverage after fresh replay. Autonomous initialization integrity is verified separately by the issue-specific runtime regressions.",
+  "plain_language_outcome": "The six fixed reference artifacts retain their bounded typed concept coverage after fresh replay. Participant-opacity probe evidence is verified separately by the issue-specific conformance regressions.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -87,5 +87,5 @@
     }
   ],
   "snapshot_id": "issue-1374-observed-opacity-replay",
-  "snapshot_sha256": "e78eceae3c93eb5f748a99678b7182508e48125974caca24958d5ff73a28940d"
+  "snapshot_sha256": "22bb4d373558dd61d8febba6ddc8a9d7f92d34932c8ead4bb8cfe3e0b633c96c"
 }
