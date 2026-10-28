@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-10-28T05:49:12.077063+00:00",
+  "generated_at": "2026-10-28T05:55:37.231851+00:00",
   "limitations": [
     "This is bounded specification coverage, not universal range coverage, usability, adoption, backend substitution or behavioral equivalence.",
     "The retained protocol does not test recursive realization, plan allocation or live participant configuration.",
@@ -87,5 +87,5 @@
     }
   ],
   "snapshot_id": "issue-1374-observed-opacity-replay",
-  "snapshot_sha256": "ed263f3bba7ef67c47a58e953633314d941c2123d6967ee15e007c079de39b7b"
+  "snapshot_sha256": "7d241164a09e8a5cfb4986a81e9dc9f3e38bafe0d013976302b1029fb8845ccd"
 }

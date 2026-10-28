@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-10-28T05:49:12.077063+00:00",
+  "captured_at": "2026-10-28T05:55:37.231851+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -652,7 +652,7 @@
       "surface_id": "contract-models"
     },
     {
-      "content_sha256": "021019930b181adf3b233908e778199e511586278006ce6273e4b340526eab42",
+      "content_sha256": "4103a5d3e5de67814ef1667e725872585c8b92499dcfa24f358caca461513627",
       "path": "implementations/python/packages/raes_processor",
       "surface_id": "processor-pipeline"
     },
@@ -674,13 +674,13 @@
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "9ef30a23fc782439f714a0d30be7466b7e4cf400",
+  "raes_revision": "d5ac694b82d8d2b07a87c60600ae55ee2cba2b5d",
   "snapshot_id": "issue-1374-observed-opacity-replay",
   "snapshot_revision": "1.0.0",
   "source_state": {
-    "base_revision": "9ef30a23fc782439f714a0d30be7466b7e4cf400",
-    "checkout_state": "modified",
-    "implementation_digest": "b811a2605c9e1ef8c4a0ac0f06fd16c81402f89eda1747696c1fa055ed976d8f",
+    "base_revision": "d5ac694b82d8d2b07a87c60600ae55ee2cba2b5d",
+    "checkout_state": "clean",
+    "implementation_digest": "8beb716ac1f96b20995e5a4a45e25f68301ef7f60fa8aab9debcba705fb6ec78",
     "profile": "python-reference-source/v2"
   }
 }
