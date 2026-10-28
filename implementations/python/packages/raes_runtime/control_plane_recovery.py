@@ -40,11 +40,13 @@ from .control_plane_store import (
     TerminalCommitMode,
 )
 from .mixed_runtime_recovery import require_resolvable_mixed_action_cut, requires_mixed_stage_reconciliation
+from .runtime_operation_routing import run_operation
 
 
 class RuntimeRecoveryMixin:
     """Runtime-owned administrative recovery entry points."""
 
+    @run_operation
     @runtime_owned
     @mutation_entry(OperationKind.INDETERMINATE_RESOLUTION)
     def resolve_indeterminate_operation(

@@ -145,6 +145,14 @@ class TemporalExecutionAdapter:
         self._portal.call(self._start, delivery.reference, delivery.workflow_id)
         return delivery.workflow_id
 
+    def submit_runtime(self, reference) -> str:
+        """Deliver an already bound run or experiment; do not supply effect retries."""
+        from .runtime_temporal_delivery import start_runtime_workflow
+
+        if self._closed:
+            raise RuntimeError("Temporal execution adapter is closed")
+        return self._portal.call(start_runtime_workflow, self, reference)
+
     def binding(self, request: BackendOperationRequestModel) -> EngineDeliveryBinding:
         reference = self.reference(request)
         workflow_id = "raes-operation-" + canonical_json_digest(

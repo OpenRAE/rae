@@ -57,6 +57,7 @@ from .control_plane_store_paths import (
 from .control_plane_store_record_migration import LOCAL_OPERATION_SCHEMA_VERSION, migrate_sqlite_schema
 from .control_plane_store_records import _audit_event_from_payload
 from .control_plane_store_snapshots import _canonical_snapshot
+from .runtime_decision_store import SQLRuntimeDecisionStoreMixin, initialize_runtime_decisions
 
 _DATABASE_NAME = "control-plane.sqlite3"
 _SCHEMA_VERSION = LOCAL_OPERATION_SCHEMA_VERSION
@@ -72,6 +73,7 @@ def _participant_transition_count(snapshot: RuntimeSnapshot) -> int:
 
 
 class LocalControlPlaneStore(
+    SQLRuntimeDecisionStoreMixin,
     LocalInvocationStoreMixin,
     LocalOperationRecordStoreMixin,
     LocalStoreScopeMigrationMixin,
@@ -423,6 +425,7 @@ class LocalControlPlaneStore(
             )
             with _transaction(connection):
                 self._bind_runtime_scope(connection, target_scope=target_scope, run_scope=run_scope)
+                initialize_runtime_decisions(connection)
                 from .control_plane_store_history_rows import initialize_history_rows
                 from .control_plane_store_sql_changes import initialize_operation_changes
 

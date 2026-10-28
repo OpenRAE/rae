@@ -86,6 +86,16 @@ class RuntimeLifecycleMixin:
     def close(self) -> None:
         """Bound drain and retain ownership until physical callbacks and close settle."""
 
+        engine = getattr(self, "_engine", None)
+        if engine is not None:
+            if engine.owner is self:
+                engine.close()
+            elif getattr(self, "_runtime_ready", False):
+                engine.retire(self)
+            else:
+                self._close_runtime_provider()
+                self._close_runtime_lease()
+            return
         condition = getattr(self, "_lifecycle_condition", None)
         if condition is None:
             self._close_runtime_lease()
@@ -220,6 +230,9 @@ class RuntimeLifecycleMixin:
                 raise RuntimeError("runtime control plane requires restart after a durability reconciliation failure")
             if depth == 0 and (self._closed or self._closing):
                 raise RuntimeError("runtime control plane is closed")
+            engine = getattr(self, "_engine", None)
+            if depth == 0 and engine is not None and (engine.closed or engine.closing):
+                raise RuntimeError("runtime engine is closed")
             self._active_runtime_calls += 1
             self._lifecycle_local.depth = depth + 1
         try:

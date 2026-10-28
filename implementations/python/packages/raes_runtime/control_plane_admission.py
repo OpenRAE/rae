@@ -19,6 +19,7 @@ from .control_plane_store import (
     AuditEvent,
     ControlPlaneOperationRecord,
     NewClaimBlock,
+    NewClaimRejected,
     idempotency_claim_identity,
     require_idempotency_key,
 )
@@ -156,6 +157,20 @@ class RuntimeAdmissionMixin:
 
         self._assert_runtime_owner()
         require_idempotency_key(record.idempotency_key)
+        engine = getattr(self, "_engine", None)
+        reservation_error = None
+        if (
+            engine is not None
+            and record.status.context.operation_kind is not OperationKind.INDETERMINATE_RESOLUTION
+            and not control_record_is_supervisory(record)
+        ):
+            try:
+                engine.reserve(self)
+            except RuntimeError as error:
+                # Preserve authoritative idempotent readback after admission
+                # closes, retirement, or another run reserves the target.
+                reservation_error = error
+                new_claim_blocked = "current-state"
         if (
             getattr(self, "_effect_admission_stopped", False)
             and record.status.context.operation_kind is not OperationKind.INDETERMINATE_RESOLUTION
@@ -174,11 +189,18 @@ class RuntimeAdmissionMixin:
                 run_scope=record.status.context.run_scope,
             ):
                 new_claim_blocked = "indeterminate"
-        persisted = self._store_commits.claim_record(
-            record,
-            legacy_request_fingerprint=legacy_request_fingerprint,
-            new_claim_blocked=new_claim_blocked,
-        )
+        try:
+            persisted = self._store_commits.claim_record(
+                record,
+                legacy_request_fingerprint=legacy_request_fingerprint,
+                new_claim_blocked=new_claim_blocked,
+            )
+        except NewClaimRejected:
+            if reservation_error is not None:
+                raise reservation_error from None
+            raise
+        if engine is not None:
+            engine.register_operation(self, persisted.receipt.operation_id)
         with self._operation_lock:
             if exact_retry_fingerprint is not None and record.idempotency_key:
                 claim_identity = idempotency_claim_identity(record.receipt.context, record.idempotency_key)

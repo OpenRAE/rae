@@ -1,5 +1,39 @@
 # Runtime architecture: SDL processor runtime backend
 
+## Shared engine and workload composition
+
+RAE supplies the common execution engine for CTFs, experiments, product tests, and simulated enterprises.
+Each workload uses SDL processing, processor plans, shared runtime execution, and injected backend services.
+The admitted inputs select the needed modules.
+These drive workflows, participants, time, evaluation, and cleanup.
+An experiment adds selection, allocation, and run accounting to this common path.
+Ordinary SDL execution needs no experiment wrapper.
+The engine can keep a run open for later work.
+Each run keeps its own state and results.
+Finishing one run must not erase its history.
+Reusing its target needs proof that the target is safe to reuse.
+
+The public controller owns shared execution services and a fixed default run.
+`open_run()` adds a fixed run context with a separate scope-bound store.
+Each context uses the same engine capacity and backend ownership.
+The [shared-runtime design](../../decisions/issue-1629-shared-runtime-design.md) contains component, lifecycle, and data flow diagrams.
+Its [remediation plan](../../decisions/issue-1629-runtime-remediation-plan.md) records the approved ownership refactor and acceptance tests.
+`admit_experiment()` installs experiment accounting inside this owner.
+`advance_experiment()` drives the selected runs through the shared plan phases.
+
+Temporal is already available for individual remote operations.
+The runtime supplies operation and control workflows, scoped workers, and a PostgreSQL ledger.
+[ADR-113](../../decisions/adrs/adr-113-reusable-execution-machinery.md) places this machinery under RAE's execution rules.
+The `raes.run` and `raes.experiment` workflows drive the same progress functions as local callers.
+Their activities call the authenticated `/runtime/progress` state endpoint.
+Workflow payloads contain references and status; artifact owners retain plans and evidence.
+Temporal supplies durable progress and delivery.
+RAE still owns admission, run state, retry permission, and verified outcomes.
+Local execution needs no Temporal service, and the coordinated P3 profile remains unavailable.
+The sections below describe the existing processor and runtime path.
+
+## Existing execution path
+
 This document describes the processor and runtime path that turns authored SDL
 into executable backend operations for a realized agentic environment. The
 authored scenario, compiled plans, backend realization, participant execution,
@@ -62,11 +96,11 @@ RAE is the shared product runtime driving the backends; backend ownership of
 concrete realization does not imply a separate scenario runtime per backend.
 The [operation supervision decision](../../decisions/issue-1348-operation-lifecycle.md)
 defines how authored guarantees, contextual refusal, cancellation and recovery
-compose. It preserves the current profile matrix while explicitly identifying
-implementation gaps: current external calls and drain are not generally bounded,
-and durability does not imply interruption or resumability. Operational budgets
-remain independent of authored semantic clocks; future physical-OT protections
-are selected only when the authored requirements demand them.
+compose. The runtime now bounds external calls and drain through shared execution adapters.
+A timed-out call keeps its physical slot until it exits.
+Durability does not imply interruption or permission to resume effects.
+Operational budgets remain separate from authored scenario clocks.
+Physical-OT protections apply only when the authored requirements select them.
 
 ```text
 raes                -> parse + instantiate + SDL-language semantics
@@ -689,7 +723,9 @@ The current runtime scope includes:
 
 - compiler
 - planner
-- runtime manager
+- shared runtime engine and fixed run contexts
+- optional experiment sequencing and result accounting
+- local and Temporal progress drivers
 - registry
 - control plane, HTTP adapter, operation store, security, and audit
 - honest in-memory stubs

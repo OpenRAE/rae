@@ -239,7 +239,15 @@ class Evidence:
         return self.state.bridge.result
 
 
-def portable_plane(*, handoff=False, store=None, supervision=None, affine_destination=None, resolver=None):
+def portable_plane(
+    *,
+    handoff=False,
+    store=None,
+    supervision=None,
+    affine_destination=None,
+    resolver=None,
+    required_operation_guarantees=(),
+):
     binding, run_id, runtimes = _admitted_binding(_runtime_staged_profile if handoff else _runtime_mixed_profile)
     payload = _fixture("mixed-backend-execution-binding-v1", "valid", "mixed-handoff" if handoff else "mixed-edge")
     payload["profile_digest"] = binding.profile.profile_digest
@@ -303,6 +311,7 @@ def portable_plane(*, handoff=False, store=None, supervision=None, affine_destin
         crossing_policy_resolver=state.resolver,
         run_scope=f"run:{run_id}",
         store=store,
+        required_operation_guarantees=required_operation_guarantees,
         **({"supervision": supervision} if supervision else {}),
     )
     state.plane = plane
