@@ -276,7 +276,7 @@ def test_parallel_coverage_command_is_capped_and_worker_safe(
         session,
         "-q",
         coverage_file=coverage_file,
-        parallel=True,
+        xdist="worksteal",
     )
 
     pytest_command, kwargs = next(
@@ -333,7 +333,7 @@ def test_parallel_command_uses_the_requested_xdist_distribution(monkeypatch: pyt
             return nullcontext()
 
     monkeypatch.setattr(nox_runner, "_sync_project", lambda _session: None)
-    nox_runner._run_pytest(FakeSession(), "-m", "integration", parallel=True, distribution="loadfile")
+    nox_runner._run_pytest(FakeSession(), "-m", "integration", xdist="loadfile")
 
     assert commands == [
         (

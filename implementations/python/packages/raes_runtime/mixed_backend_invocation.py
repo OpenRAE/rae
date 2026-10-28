@@ -253,9 +253,8 @@ def run_mixed_invocation(plane: RuntimeControlPlane, execution: MixedInvocation)
         # A non-consumed grant proves no invocation; consumed or timed-out work
         # retains its reservation and every authenticated fact collected so far.
         _reload(plane, execution)
-        execution.state = (
-            OperationState.INDETERMINATE if execution.dispatched or execution.uncertain else OperationState.FAILED
-        )
+        unresolved = execution.dispatched or execution.uncertain
+        execution.state = OperationState.INDETERMINATE if unresolved else OperationState.FAILED
     finally:
         _reload(plane, execution)
         if not execution.dispatched and not execution.uncertain:

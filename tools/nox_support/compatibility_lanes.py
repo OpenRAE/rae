@@ -133,7 +133,7 @@ def _compatibility_runtime_stages(
     if not smoke_only:
         reporter.run(
             "python compatibility / hermetic tests",
-            lambda: _run_pytest(session, "-q", parallel=True),
+            lambda: _run_pytest(session, "-q", xdist="worksteal"),
             detail="xdist auto, max 8, worksteal",
         )
 

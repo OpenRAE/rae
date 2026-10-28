@@ -130,7 +130,7 @@ def _extract_tar_to_stage(
     staging: Path,
     expected_entries: list[dict[str, Any]],
 ) -> None:
-    tar.extractall(staging, members=members, filter="data")
+    tar.extractall(staging, members=members, filter="data")  # NOSONAR - TarFile.extractall accepts filter (PEP 706)
     _normalize_extracted_directory_modes(staging, expected_entries)
 
 

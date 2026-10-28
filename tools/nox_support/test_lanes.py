@@ -59,7 +59,7 @@ def _run_tests(
             *args,
             coverage_file=coverage_file,
             finalize_coverage=finalize_coverage,
-            parallel=parallel,
+            xdist="worksteal" if parallel else None,
         ),
         detail=f"{' '.join(args)} :: {execution}",
     )
@@ -92,8 +92,7 @@ def _run_integration_tests(
             coverage_file=coverage_file,
             append_coverage=append_coverage,
             finalize_coverage=finalize_coverage,
-            parallel=True,
-            distribution="loadfile",
+            xdist="loadfile",
         ),
         detail="xdist auto, max 8, loadfile",
     )
@@ -138,7 +137,7 @@ def _run_shard_tests(
             *args,
             coverage_file=coverage_file,
             finalize_coverage=False,
-            parallel=True,
+            xdist="worksteal",
             extra_env={"PYTHONPATH": str(REPO_ROOT)},
         ),
         detail="deterministic sha256 node-id partition :: xdist within shard",

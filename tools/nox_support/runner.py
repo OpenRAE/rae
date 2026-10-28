@@ -175,18 +175,19 @@ def _run_pytest(
     coverage_file: Path | None = None,
     append_coverage: bool = False,
     finalize_coverage: bool = False,
-    parallel: bool = False,
-    distribution: str = "worksteal",
+    xdist: str | None = None,
     extra_env: dict[str, str] | None = None,
 ) -> None:
+    """Run pytest in the project; `xdist` names the worker distribution, None runs one process."""
+
     _sync_project(session)
     normalized_args = [
         str((REPO_ROOT / arg).relative_to(PROJECT_ROOT)) if arg.startswith("implementations/python/") else arg
         for arg in args
     ]
     command = ["uv", "run", "--frozen", "python", "-m", "pytest"]
-    if parallel:
-        command.extend(["-n", "auto", "--maxprocesses=8", f"--dist={distribution}"])
+    if xdist is not None:
+        command.extend(["-n", "auto", "--maxprocesses=8", f"--dist={xdist}"])
     coverage_env: dict[str, str] | None = dict(extra_env) if extra_env else None
     if coverage_file is not None:
         coverage_env = {**(coverage_env or {}), "COVERAGE_FILE": str(coverage_file)}

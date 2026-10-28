@@ -371,7 +371,7 @@ def evaluate_public_output(repo_root: Path, output_root: Path) -> list[PolicyFai
             PolicyFailure(
                 "public-docs-search-index",
                 str(exc),
-                (output_root / "searchindex.js").as_posix(),
+                output_root.joinpath("searchindex.js").as_posix(),
             )
         )
     else:

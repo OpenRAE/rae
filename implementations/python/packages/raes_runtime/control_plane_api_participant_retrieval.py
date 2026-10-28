@@ -28,6 +28,7 @@ from .control_plane_api._responses import _set_snapshot_revision_header
 from .control_plane_security import ControlPlaneIdentity, ParticipantAudienceSubjectBinding
 
 _NOT_FOUND_RESPONSES = {404: {"description": "Not found"}}
+_CROSSING_EVIDENCE_UNAVAILABLE = "participant view crossing evidence is unavailable"
 _GOVERNED_VIEW_RESPONSES = {
     **_NOT_FOUND_RESPONSES,
     403: {"description": "Forbidden"},
@@ -233,9 +234,7 @@ def _governed_view[ViewT](resolve: Callable[[], ViewT]) -> ViewT:
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail="forbidden") from exc
     except ValueError as exc:
-        detail = (
-            "participant view crossing evidence is unavailable"
-            if str(exc) == "participant view crossing evidence is unavailable"
-            else "participant projection conflict"
-        )
+        detail = "participant projection conflict"
+        if str(exc) == _CROSSING_EVIDENCE_UNAVAILABLE:
+            detail = _CROSSING_EVIDENCE_UNAVAILABLE
         raise HTTPException(status_code=409, detail=detail) from exc
