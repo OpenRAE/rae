@@ -245,7 +245,7 @@ class ExperimentSpecModel(ContractModel):
         if self.binding_semantics == "explicit-required" and self.binding_descriptors is None and not typed:
             raise ValueError("binding_semantics explicit-required requires binding_descriptors")
         if self.binding_descriptors is None:
-            return
+            return None
         if self.binding_semantics != "explicit-required":
             raise ValueError("binding_descriptors require binding_semantics explicit-required")
         allocation = self.run_plan.allocation
