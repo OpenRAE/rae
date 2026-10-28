@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-10-28T04:22:04.077992+00:00",
+  "captured_at": "2026-10-28T04:35:50.784762+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -60,7 +60,7 @@
         {
           "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/nodes/shipping-portal",
           "stage_id": "authored",
@@ -69,7 +69,7 @@
         {
           "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/infrastructure/shipping-portal",
           "stage_id": "semantic",
@@ -78,7 +78,7 @@
         {
           "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/nodes/shipping-portal",
           "stage_id": "instantiated",
@@ -87,7 +87,7 @@
         {
           "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/node_deployments/provision.node.shipping-portal",
           "stage_id": "compiled",
@@ -107,7 +107,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/entities/enterprise-participant/role",
           "stage_id": "authored",
@@ -116,7 +116,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/entities/enterprise-participant",
           "stage_id": "semantic",
@@ -125,7 +125,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/entities/enterprise-participant/role",
           "stage_id": "instantiated",
@@ -134,7 +134,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/entity_specs/enterprise-participant/role",
           "stage_id": "compiled",
@@ -154,7 +154,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/objectives/demonstrate-handoff",
           "stage_id": "authored",
@@ -163,7 +163,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/objectives/demonstrate-handoff/success",
           "stage_id": "semantic",
@@ -172,7 +172,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/objectives/demonstrate-handoff",
           "stage_id": "instantiated",
@@ -181,7 +181,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/objectives/evaluation.objective.demonstrate-handoff",
           "stage_id": "compiled",
@@ -201,7 +201,7 @@
         {
           "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/workflows/yard-recovery",
           "stage_id": "authored",
@@ -210,7 +210,7 @@
         {
           "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/workflows/yard-recovery/steps",
           "stage_id": "semantic",
@@ -219,7 +219,7 @@
         {
           "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/workflows/yard-recovery",
           "stage_id": "instantiated",
@@ -228,7 +228,7 @@
         {
           "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/workflows/orchestration.workflow.yard-recovery",
           "stage_id": "compiled",
@@ -248,7 +248,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/evidence_requirements/objective-truth-evidence",
           "stage_id": "authored",
@@ -257,7 +257,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/evidence_requirements/objective-truth-evidence",
           "stage_id": "semantic",
@@ -266,7 +266,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/evidence_requirements/objective-truth-evidence",
           "stage_id": "instantiated",
@@ -286,7 +286,7 @@
         {
           "artifact_path": "contracts/fixtures/experiment-core/experiment-task-v1/valid/reference.json",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/apparatus_constraints/allowed_backend_refs/0",
           "stage_id": "contract",
@@ -306,7 +306,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/agents/participant-agent",
           "stage_id": "authored",
@@ -315,7 +315,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/agents/participant-agent/observation_boundaries",
           "stage_id": "semantic",
@@ -324,7 +324,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/agents/participant-agent",
           "stage_id": "instantiated",
@@ -333,7 +333,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/agent_specs/participant-agent",
           "stage_id": "compiled",
@@ -353,7 +353,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/action_contracts/probe-customer-portal-login",
           "stage_id": "authored",
@@ -362,7 +362,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/action_contracts/probe-customer-portal-login/effects",
           "stage_id": "semantic",
@@ -371,7 +371,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/action_contracts/probe-customer-portal-login",
           "stage_id": "instantiated",
@@ -380,7 +380,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/action_contracts/participant.action-contract.probe-customer-portal-login",
           "stage_id": "compiled",
@@ -400,7 +400,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/observation_boundaries/participant-view",
           "stage_id": "authored",
@@ -409,7 +409,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/observation_boundaries/participant-view/view_rules",
           "stage_id": "semantic",
@@ -418,7 +418,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/observation_boundaries/participant-view",
           "stage_id": "instantiated",
@@ -427,7 +427,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/observation_boundaries/participant.observation-boundary.participant-view",
           "stage_id": "compiled",
@@ -447,7 +447,7 @@
         {
           "artifact_path": "contracts/fixtures/experiment-core/experiment-task-v1/valid/reference.json",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/evaluation_protocol/metric_definitions/foothold-achieved",
           "stage_id": "contract",
@@ -487,7 +487,7 @@
         {
           "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/nodes/shipping-portal/resources",
           "stage_id": "authored",
@@ -496,7 +496,7 @@
         {
           "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/infrastructure/shipping-portal",
           "stage_id": "semantic",
@@ -505,7 +505,7 @@
         {
           "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/nodes/shipping-portal/resources",
           "stage_id": "instantiated",
@@ -514,7 +514,7 @@
         {
           "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/node_deployments/provision.node.shipping-portal",
           "stage_id": "compiled",
@@ -582,7 +582,7 @@
         {
           "artifact_path": "contracts/fixtures/experiment-core/experiment-apparatus-context-v1/valid/reference.json",
           "diagnostic_codes": [],
-          "note": "Fresh issue-1373 final history replay confirms this declared typed pointer.",
+          "note": "Fresh production replay confirms this declared typed pointer.",
           "outcome": "passed",
           "pointer": "/clocks/0",
           "stage_id": "contract",
@@ -647,17 +647,17 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "7aeaa6346e14e488f1cf85b42649d292c90c752c0175898477d57ee0ed58868f",
+      "content_sha256": "2ff64040f2d69c960e116ca74dfc468412d63eda970473a04a9f151d9882e8ae",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
     {
-      "content_sha256": "e64136dd560cf114ab1def58f002b1d3e52996eca8fd299eee4309e760838c42",
+      "content_sha256": "021019930b181adf3b233908e778199e511586278006ce6273e4b340526eab42",
       "path": "implementations/python/packages/raes_processor",
       "surface_id": "processor-pipeline"
     },
     {
-      "content_sha256": "79b6d5e4b79e3b025a0f8eaa850dd300cc9fecda1275713ba6905ea0811b7807",
+      "content_sha256": "c73aba0599e9011004ecfff8c02cec7db1c042047214543ebc6b61daf0ff7673",
       "path": "implementations/python/packages/raes",
       "surface_id": "sdl-pipeline"
     }
@@ -674,13 +674,13 @@
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "2b0e64a90158160597a641d11e5925c749e5bc9c",
+  "raes_revision": "bf97706e786b7f7aeef398761fd4c9e0693a7031",
   "snapshot_id": "issue-1374-observed-opacity-replay",
   "snapshot_revision": "1.0.0",
   "source_state": {
-    "base_revision": "2b0e64a90158160597a641d11e5925c749e5bc9c",
+    "base_revision": "bf97706e786b7f7aeef398761fd4c9e0693a7031",
     "checkout_state": "modified",
-    "implementation_digest": "b01f373c81be1d060e0bb578774eac437376eb22da026cb1318a7cf441e0d092",
+    "implementation_digest": "1fd57ba121819ca1eb8e7f99436e45cac7a74d57aace803f936e4d2712c98b56",
     "profile": "python-reference-source/v2"
   }
 }

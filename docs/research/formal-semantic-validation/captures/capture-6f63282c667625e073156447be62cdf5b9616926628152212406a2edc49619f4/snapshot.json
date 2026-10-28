@@ -1,5 +1,11 @@
 {
-  "captured_at": "2026-10-28T04:22:04.077992+00:00",
+  "baseline": {
+    "execution_id": "issue-299-control-context-execution",
+    "release_path": "docs/research/formal-semantic-validation/captures/capture-c65d3104c3c1230e73451128f22b04f33b84be9921cb001e9bf664d5f18664ca/manifest.json",
+    "release_revision": "capture-c65d3104c3c1230e73451128f22b04f33b84be9921cb001e9bf664d5f18664ca",
+    "release_sha256": "fe59996e8f36d754b0ad48f030fa9a8f3a8fbf710e3b076f84af3d94cc08d7d5"
+  },
+  "captured_at": "2026-10-28T04:37:05.803543+00:00",
   "commands": [
     {
       "argv": [
@@ -622,23 +628,17 @@
     }
   ],
   "protocol_revision": "2.0.0",
-  "raes_revision": "2b0e64a90158160597a641d11e5925c749e5bc9c",
+  "raes_revision": "bf97706e786b7f7aeef398761fd4c9e0693a7031",
   "source_state": {
-    "base_revision": "2b0e64a90158160597a641d11e5925c749e5bc9c",
+    "base_revision": "bf97706e786b7f7aeef398761fd4c9e0693a7031",
     "checkout_state": "modified",
-    "implementation_digest": "b01f373c81be1d060e0bb578774eac437376eb22da026cb1318a7cf441e0d092",
+    "implementation_digest": "1fd57ba121819ca1eb8e7f99436e45cac7a74d57aace803f936e4d2712c98b56",
     "profile": "python-reference-source/v2"
   },
   "versions": {
-    "python": "3.14.4",
-    "raes": "8.0.0",
+    "python": "3.13.13",
+    "raes": "8.1.0",
     "z3_engine": "4.16.0",
     "z3_solver": "4.16.0.0"
-  },
-  "baseline": {
-    "execution_id": "issue-299-control-context-execution",
-    "release_path": "docs/research/formal-semantic-validation/captures/capture-c65d3104c3c1230e73451128f22b04f33b84be9921cb001e9bf664d5f18664ca/manifest.json",
-    "release_revision": "capture-c65d3104c3c1230e73451128f22b04f33b84be9921cb001e9bf664d5f18664ca",
-    "release_sha256": "fe59996e8f36d754b0ad48f030fa9a8f3a8fbf710e3b076f84af3d94cc08d7d5"
   }
 }
