@@ -2246,6 +2246,7 @@ def test_public_participant_reads_fail_after_runtime_close() -> None:
         control_plane._assert_runtime_owner()
 
     calls = (
+        control_plane.participant_clock_driver_status,
         lambda: control_plane.participant_execution_state("participant-execution.missing"),
         lambda: control_plane.get_participant_status_view("participant.behavior.missing"),
         lambda: control_plane.get_participant_history_view("participant.behavior.missing", "episode-missing"),

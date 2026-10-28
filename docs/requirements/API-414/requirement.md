@@ -39,6 +39,7 @@ Primary-source refresh shows that participant behavior claims need explicit exte
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_realization.py` (Tool-profile declaration and admission boundary)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager_plan_admission.py` (Tool-profile declaration and admission boundary)
 - TESTS → TEST `implementations/python/tests/test_issue_304_tool_support.py` (Declared support, capacity, rejection, and evidence separation)
+- TESTS → TEST `implementations/python/tests/test_issue_1660_review_regressions.py` (Selected processor retained during refresh and rechecked before effects)
 - TESTS → TEST `implementations/python/tests/test_runtime_conformance.py` (Declared support, capacity, rejection, and evidence separation)
 - IMPLEMENTS → SPEC `contracts/schemas/processor-manifest/processor-manifest-v2.json` (Portable tool-profile support declaration)
 - IMPLEMENTS → SPEC `contracts/schemas/backend-manifest/backend-manifest-v2.json` (Portable tool-profile support declaration)

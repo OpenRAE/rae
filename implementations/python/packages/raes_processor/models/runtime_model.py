@@ -8,13 +8,16 @@ from raes.scenario import InstantiatedScenario
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
+from raes_contracts.contracts import ProcessorManifestV2Model
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
 from raes_contracts.evaluation import EvaluationExecutionContract, EvaluationResultContract
 from raes_contracts.execution_policy import EffectiveExecutionPolicy
 from raes_contracts.observation_demand import EffectiveObservationDemand
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.vocabulary import Closure
 
 from raes_processor.semantics.realization import CompiledRealizationAuthority, CompiledRealizationRequirement
 
@@ -214,6 +217,17 @@ class RuntimeModel:
 
 
 @dataclass(frozen=True)
+class PlanningContext:
+    """Original compiled input and frozen apparatus choices for later planning."""
+
+    model: RuntimeModel
+    apparatus_decisions: dict[tuple[str, str, str], Closure]
+    profile_context: DomainProfileResolutionContextModel | None = None
+    mixed_control_model: RuntimeModel | None = None
+    processor_manifest: ProcessorManifestV2Model | None = None
+
+
+@dataclass(frozen=True)
 class ExecutionPlan:
     """Composite runtime execution plan."""
 
@@ -230,6 +244,7 @@ class ExecutionPlan:
     artifact_availability: ArtifactAvailabilityContext = field(
         default_factory=ArtifactAvailabilityContext,
     )
+    planning_context: PlanningContext | None = None
 
     @property
     def is_valid(self) -> bool:

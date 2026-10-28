@@ -60,7 +60,7 @@ Requirement inventory expansion. Participant behavior over time is a first-class
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/models/history_event.py` (Temporal history events)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/models/history_event_serialization.py` (Temporal history event serialization)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/models/temporal.py` (Resolved temporal model)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager.py` (Shared-time driver lifecycle)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/interaction.py` (Shared-time driver lifecycle)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager_plan_admission.py` (Admission diagnostics)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_action_validation.py` (Protected temporal state)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_episode_control.py` (Temporal episode control)
@@ -92,4 +92,6 @@ Requirement inventory expansion. Participant behavior over time is a first-class
 - TESTS → TEST `implementations/python/tests/test_issue_1181_unified_control_plane_mutations.py` (Control-plane mutation regression)
 - TESTS → TEST `implementations/python/tests/test_participant_concurrent_batch_reservations.py` (Concurrent reservation regression)
 - IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-execution-binding-v1.json` (participant-execution-binding-v1 published schema)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/interaction_time.py` (Atomic shared-clock and participant lifecycle publication)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager_lifecycle.py` (Shared lifetime authority for time and participant calls)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/participant_temporal_history_index.py`

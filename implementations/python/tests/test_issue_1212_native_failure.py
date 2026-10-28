@@ -76,9 +76,9 @@ def test_failed_post_creation_readback_remains_in_recoverable_inventory(failure,
     assert status.state.value == "indeterminate"
     assert calls == ["observe"]
     assert "private native output" not in repr(status)
-    assert "provision.node.vm" not in cp.snapshot.entries
+    assert "provision.node.vm" in cp.snapshot.entries
     assert "provision.node.vm" in driver.realized_addresses()
-    assert status.changed_addresses == []
+    assert status.changed_addresses == ["provision.node.vm"]
     assert cp.snapshot.realization_observations == ()
     assert cp.snapshot.realization_provenance == ()
     predecessor = cp.snapshot
@@ -95,7 +95,7 @@ def test_failed_post_creation_readback_remains_in_recoverable_inventory(failure,
     recovered.register_planner_produced_plan(replace(execution, provisioning=cleanup_plan))
     with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
         recovered.submit_provisioning(cleanup_plan)
-    assert recovered.snapshot.entries == {}
+    assert recovered.snapshot.entries == predecessor.entries
     assert "provision.node.vm" in driver.realized_addresses()
     recovered.close()
 

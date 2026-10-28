@@ -9,7 +9,7 @@ from uuid import uuid4
 from raes_contracts.materialization_inventory import RUNTIME_DESCENDANTS_CONTRACT
 from raes_contracts.runtime_state import ApplyResult
 
-from .backend_calls import _BackendCallContext, _call_backend_apply, _RealizationApplyContext
+from .backend_calls import _BackendCallContext, _RealizationApplyContext
 from .diagnostics import _failure_diagnostic
 from .manager_lifecycle import manager_owned
 
@@ -52,7 +52,7 @@ def refresh_manager_inventory(manager: RuntimeManager, execution_plan: Execution
             ],
         )
     request = replace(execution_plan.provisioning, inventory_refresh=True)
-    return _call_backend_apply(
+    return manager._interaction_backend_call(
         method,
         request,
         manager.snapshot,
