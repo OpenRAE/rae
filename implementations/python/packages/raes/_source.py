@@ -66,7 +66,7 @@ class ArtifactMechanismProfile(SDLModel):
     digest: Annotated[str, Field(pattern=_SHA256_DIGEST_PATTERN)]
 
     @model_validator(mode="after")
-    def validate_mechanism(self) -> "ArtifactMechanismProfile":
+    def validate_mechanism(self) -> ArtifactMechanismProfile:
         if (
             self.mechanism not in _PORTABLE_MECHANISMS
             and _EXTENSION_MECHANISM_PATTERN.fullmatch(self.mechanism) is None
@@ -104,7 +104,7 @@ class ArtifactConstraint(SDLModel):
     allowed_values: list[Annotated[str, Field(min_length=1, max_length=1024)]] = Field(min_length=1)
 
     @model_validator(mode="after")
-    def validate_values(self) -> "ArtifactConstraint":
+    def validate_values(self) -> ArtifactConstraint:
         _require_unique(self.allowed_values, field_name="artifact constraint allowed_values")
         return self
 
@@ -140,7 +140,7 @@ class ArtifactMaterializationSpecification(SDLModel):
     ] = Field(default_factory=list, json_schema_extra={"uniqueItems": True})
 
     @model_validator(mode="after")
-    def validate_input_ids(self) -> "ArtifactMaterializationSpecification":
+    def validate_input_ids(self) -> ArtifactMaterializationSpecification:
         if self.profile.mechanism != "materialization-specification" and not self.profile.mechanism.startswith("x-"):
             raise ValueError(
                 "materialization specifications require the materialization-specification "
@@ -215,7 +215,7 @@ class ArtifactRequirement(SDLModel):
     )
 
     @model_validator(mode="after")
-    def validate_authority(self) -> "ArtifactRequirement":
+    def validate_authority(self) -> ArtifactRequirement:
         self._validate_unique_identities()
         if self.explicitness is ExplicitnessClass.EXACT:
             self._validate_exact_authority()
@@ -375,7 +375,7 @@ class Source(SDLModel):
     artifact_requirement: ArtifactRequirement | None = None
 
     @model_validator(mode="after")
-    def validate_exact_requirement_selector(self) -> "Source":  # NOSONAR - Pydantic requires returning self.
+    def validate_exact_requirement_selector(self) -> Source:  # NOSONAR - Pydantic requires returning self.
         requirement = self.artifact_requirement
         if requirement is None or requirement.explicitness is not ExplicitnessClass.EXACT:
             return self

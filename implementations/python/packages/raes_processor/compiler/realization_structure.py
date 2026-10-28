@@ -164,6 +164,6 @@ def compile_realization_structure(
             result = structure, False, root_open or nested_open
         else:
             result = None, False, root_open
-    except (TypeError, ValueError, KeyError):
+    except TypeError, ValueError, KeyError:
         result = None, True, root_open
     return result

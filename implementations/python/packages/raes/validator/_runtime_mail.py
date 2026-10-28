@@ -108,7 +108,7 @@ class _RuntimeMailMixin:
         label: str,
         service: object,
         service_names: set[str],
-        local_ids: "_MailServiceLocalIds",
+        local_ids: _MailServiceLocalIds,
     ) -> None:
         for listener in service.listeners:
             listener_label = f"{label} listener '{listener.listener_id}'"
@@ -130,7 +130,7 @@ class _RuntimeMailMixin:
         label: str,
         service: object,
         local_user_names: set[str],
-        local_ids: "_MailServiceLocalIds",
+        local_ids: _MailServiceLocalIds,
     ) -> None:
         for mailbox in service.mailboxes:
             mailbox_label = f"{label} mailbox '{mailbox.mailbox_id}'"
@@ -143,7 +143,7 @@ class _RuntimeMailMixin:
         self,
         label: str,
         service: object,
-        local_ids: "_MailServiceLocalIds",
+        local_ids: _MailServiceLocalIds,
     ) -> None:
         for alias in service.aliases:
             alias_label = f"{label} alias '{alias.alias_id}'"
@@ -160,7 +160,7 @@ class _RuntimeMailMixin:
         self,
         label: str,
         service: object,
-        local_ids: "_MailServiceLocalIds",
+        local_ids: _MailServiceLocalIds,
     ) -> None:
         for rule in service.routing_rules:
             rule_label = f"{label} routing rule '{rule.rule_id}'"
@@ -172,7 +172,7 @@ class _RuntimeMailMixin:
         label: str,
         service: object,
         observed_paths: set[str],
-        local_ids: "_MailServiceLocalIds",
+        local_ids: _MailServiceLocalIds,
     ) -> None:
         for setting in service.settings:
             setting_label = f"{label} setting '{setting.setting_id}'"

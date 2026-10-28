@@ -29,7 +29,7 @@ class ParticipantToolProfilesModel(ContractModel):
     max_participants_per_binding: Capacity | None = None
 
     @model_validator(mode="after")
-    def _unique_versions(self) -> "ParticipantToolProfilesModel":
+    def _unique_versions(self) -> ParticipantToolProfilesModel:
         _validate_unique_string_values("semantic_versions", self.semantic_versions)
         return self
 
@@ -91,7 +91,7 @@ class ProcessorParticipantToolsModel(ParticipantToolProfilesModel):
     feature_support: list[ParticipantFeatureSupportModel] = Field(min_length=1)
 
     @model_validator(mode="after")
-    def _tool_support(self) -> "ProcessorParticipantToolsModel":
+    def _tool_support(self) -> ProcessorParticipantToolsModel:
         names = [entry.feature for entry in self.feature_support]
         _validate_unique_string_values("feature_support", names)
         if not set(names).issubset(PARTICIPANT_TOOL_FEATURES):

@@ -89,7 +89,7 @@ def formal_artifact_paths(repo_root: Path) -> tuple[frozenset[str], list[PolicyF
         return frozenset(), []
     try:
         document = load_yaml(path)
-    except (OSError, yaml.YAMLError):
+    except OSError, yaml.YAMLError:
         failure = PolicyFailure(
             CATALOG_RULE_ID,
             "assurance fulfillment map is not readable valid YAML",

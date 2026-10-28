@@ -72,10 +72,10 @@ class ObjectiveRuntime(ResolvedResource):
     window_step_refs: tuple[str, ...] = ()
     window_step_workflow_addresses: tuple[str, ...] = ()
     window_references: tuple[ObjectiveWindowReferenceRuntime, ...] = ()
-    result_contract: "EvaluationResultContract" = field(
+    result_contract: EvaluationResultContract = field(
         default_factory=lambda: EvaluationResultContract(resource_type="objective")
     )
-    execution_contract: "EvaluationExecutionContract" = field(
+    execution_contract: EvaluationExecutionContract = field(
         default_factory=lambda: EvaluationExecutionContract(resource_type="objective")
     )
 
@@ -233,7 +233,7 @@ class ExecutionPlan:
 
     target_name: str | None
     manifest: BackendManifest
-    base_snapshot: "RuntimeSnapshot"
+    base_snapshot: RuntimeSnapshot
     scenario_name: str
     model: RuntimeModel
     provisioning: ProvisioningPlan

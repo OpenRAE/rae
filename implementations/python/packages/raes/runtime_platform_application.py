@@ -138,7 +138,7 @@ class RuntimePlatformApplication(SDLModel):
         return parse_runtime_enum_or_var(v, RuntimePlatformApplicationKind, field_name="platform_kind")
 
     @model_validator(mode="after")
-    def validate_platform_application(self) -> "RuntimePlatformApplication":
+    def validate_platform_application(self) -> RuntimePlatformApplication:
         self._reject_duplicate_local_ref_ids()
         return self
 

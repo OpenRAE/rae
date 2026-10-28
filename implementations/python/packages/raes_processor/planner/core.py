@@ -291,7 +291,7 @@ def _augment_provisioning(
             preparation = preparation.model_copy(
                 update={"node_collection": planned_node_collection(effective_model, provisioning)}
             )
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             extra.append(
                 Diagnostic(
                     code="realization.invalid-node-collection",

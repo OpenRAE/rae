@@ -69,7 +69,7 @@ def _mcp_ground_control_env(repo_root: Path) -> dict[str, str]:
     """
     try:
         data = json.loads((repo_root / ".mcp.json").read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except OSError, json.JSONDecodeError:
         return {}
     servers = data.get("mcpServers") if isinstance(data, dict) else None
     server = servers.get("ground-control") if isinstance(servers, dict) else None

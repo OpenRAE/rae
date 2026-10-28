@@ -388,7 +388,7 @@ def generated_artifact_payload_diagnostic(
             node_specs=node_specs,
             content_specs=content_specs,
         )
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return Diagnostic(
             code="provisioner.generated-artifact-invalid",
             domain="provisioning",

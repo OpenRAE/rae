@@ -234,7 +234,7 @@ def _normalized_result_history_context(
     context = None
     try:
         normalized_result = ParticipantEpisodeExecutionState.from_payload(result)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         normalized_result = None
     last_event = _last_matching_participant_episode_event(outer_key, history)
     if normalized_result is not None and last_event is not None:
@@ -253,7 +253,7 @@ def _last_matching_participant_episode_event(
             continue
         try:
             candidate = ParticipantEpisodeHistoryEvent.from_payload(event)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             continue
         if candidate.participant_address == outer_key:
             last_event = candidate

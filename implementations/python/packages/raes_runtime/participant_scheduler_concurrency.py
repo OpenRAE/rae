@@ -80,7 +80,7 @@ def _isolate_concurrent_policy_snapshot(
     isolated = True
     try:
         run.working = deepcopy(run.working)
-    except (Exception, CancelledError):  # NOSONAR - no native action has been submitted
+    except Exception, CancelledError:  # NOSONAR - no native action has been submitted
         _set_concurrent_failure(
             run,
             Diagnostic(
@@ -203,7 +203,7 @@ def _bind_concurrent_policy_requests(
         if binding_snapshot != pre_policy:
             raise ValueError("participant request binding mutated its predecessor")
         return requests
-    except (Exception, CancelledError):  # NOSONAR - no native action has been submitted
+    except Exception, CancelledError:  # NOSONAR - no native action has been submitted
         run.working = pre_policy
         _set_concurrent_failure(
             run,
@@ -314,7 +314,7 @@ def _execute_concurrent_due_contexts(batch: _ConcurrentBatch) -> None:
     if batch.run.failure is None:
         try:
             batch.run.working = _materialize_concurrent_snapshot(batch.run.working)
-        except (Exception, CancelledError):  # NOSONAR - normalize the deferred batch boundary
+        except Exception, CancelledError:  # NOSONAR - normalize the deferred batch boundary
             _set_concurrent_failure(
                 batch.run,
                 Diagnostic(

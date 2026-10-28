@@ -7,7 +7,7 @@ from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
 from functools import partial
-from typing import Literal, ParamSpec, TypeVar, cast
+from typing import Literal, cast
 
 import anyio
 from fastapi import HTTPException, Request
@@ -15,13 +15,11 @@ from fastapi import HTTPException, Request
 from ..control_plane_mutation import MutationReservationRequired, mutation_probe
 from ..operation_execution_adapter import _capture_callback, require_budget_ms
 
-_P = ParamSpec("_P")
-_T = TypeVar("_T")
 HttpCallLane = Literal["effect", "control", "read", "auth"]
 _THREAD_LIMITER = ContextVar("raes_http_thread_limiter", default=None)
 
 
-async def run_in_threadpool(call: Callable[..., _T], *args: object, **kwargs: object) -> _T:
+async def run_in_threadpool[T](call: Callable[..., T], *args: object, **kwargs: object) -> T:
     outcome = await anyio.to_thread.run_sync(
         partial(_capture_callback, partial(call, *args, **kwargs)), limiter=_THREAD_LIMITER.get()
     )
@@ -29,7 +27,7 @@ async def run_in_threadpool(call: Callable[..., _T], *args: object, **kwargs: ob
         if isinstance(outcome.error, Exception):
             raise outcome.error
         raise RuntimeError("control-plane worker interrupted") from None
-    return cast(_T, outcome.value)
+    return cast(T, outcome.value)
 
 
 class _ControlPlaneCallExecutor:
@@ -59,27 +57,27 @@ class _ControlPlaneCallExecutor:
         self._tasks = set()
         self._pending_lanes = dict.fromkeys(self._limiters, 0)
 
-    async def run(
+    async def run[T, **P](
         self,
-        call: Callable[_P, _T],
+        call: Callable[P, T],
         /,
-        *args: _P.args,
-        **kwargs: _P.kwargs,
-    ) -> _T:
+        *args: P.args,
+        **kwargs: P.kwargs,
+    ) -> T:
         return await self._start("read", call, args, kwargs)
 
-    async def mutate(
+    async def mutate[T, **P](
         self,
-        call: Callable[_P, _T],
+        call: Callable[P, T],
         /,
-        *args: _P.args,
-        **kwargs: _P.kwargs,
-    ) -> _T:
+        *args: P.args,
+        **kwargs: P.kwargs,
+    ) -> T:
         return await self._start("effect", call, args, kwargs)
 
-    async def _start(
-        self, lane: HttpCallLane, call: Callable[..., _T], args: tuple[object, ...], kwargs: dict[str, object]
-    ) -> _T:
+    async def _start[T](
+        self, lane: HttpCallLane, call: Callable[..., T], args: tuple[object, ...], kwargs: dict[str, object]
+    ) -> T:
         async with self._condition:
             if self._closed or self._closing:
                 raise HTTPException(status_code=503, detail="control-plane executor unavailable")
@@ -109,14 +107,14 @@ class _ControlPlaneCallExecutor:
             # Retrieve an abandoned caller's failure without logging native values.
             actor.exception()
 
-    async def _actor(
+    async def _actor[T](
         self,
         lane: HttpCallLane,
         stage: dict[str, bool],
-        call: Callable[..., _T],
+        call: Callable[..., T],
         args: tuple[object, ...],
         kwargs: dict[str, object],
-    ) -> _T:
+    ) -> T:
         token = _THREAD_LIMITER.set(self._limiters[lane])
         try:
             async with self._admitted():
@@ -139,12 +137,12 @@ class _ControlPlaneCallExecutor:
                 self._pending_lanes[lane] -= 1
 
     @staticmethod
-    async def _run_reserved(
-        call: Callable[_P, _T],
+    async def _run_reserved[T, **P](
+        call: Callable[P, T],
         /,
-        *args: _P.args,
-        **kwargs: _P.kwargs,
-    ) -> _T:
+        *args: P.args,
+        **kwargs: P.kwargs,
+    ) -> T:
         worker = asyncio.create_task(run_in_threadpool(call, *args, **kwargs))
         try:
             return await asyncio.shield(worker)
@@ -166,10 +164,10 @@ class _ControlPlaneCallExecutor:
                 if self._active_calls == 0:
                     self._condition.notify_all()
 
-    async def control(self, call: Callable[..., _T], /, *args: object, **kwargs: object) -> _T:
+    async def control[T](self, call: Callable[..., T], /, *args: object, **kwargs: object) -> T:
         return await self._start("control", call, args, kwargs)
 
-    async def authenticate(self, call: Callable[..., _T], /, *args: object, **kwargs: object) -> _T:
+    async def authenticate[T](self, call: Callable[..., T], /, *args: object, **kwargs: object) -> T:
         return await self._start("auth", call, args, kwargs)
 
     async def close(self) -> None:

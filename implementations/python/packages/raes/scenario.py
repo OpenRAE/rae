@@ -467,7 +467,7 @@ class InstantiatedScenario(ScenarioContent):
         }
 
     @model_validator(mode="after")
-    def _reject_unresolved_variable_references(self) -> "InstantiatedScenario":
+    def _reject_unresolved_variable_references(self) -> InstantiatedScenario:
         payload = self.model_dump(mode="json", by_alias=True)
         tokens = sorted(set(collect_variable_tokens(payload)))
         if tokens:

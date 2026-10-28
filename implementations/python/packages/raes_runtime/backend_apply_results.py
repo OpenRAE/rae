@@ -261,7 +261,7 @@ def _sanitize_backend_realization(
                 if realization_plan.realization_authority
                 else sanitize_realization_snapshot(realization_requirements, sanitized.snapshot)
             )
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return _failed_apply_result(
                 baseline_snapshot,
                 _backend_contract_invalid(

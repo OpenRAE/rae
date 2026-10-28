@@ -102,7 +102,7 @@ def _fail(rule_id: str, message: str, path: str | None = None) -> PolicyFailure:
 def _read_text_or_none(path: Path) -> str | None:
     try:
         return path.read_text(encoding="utf-8")
-    except (OSError, UnicodeDecodeError):
+    except OSError, UnicodeDecodeError:
         return None
 
 

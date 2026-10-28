@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from copy import deepcopy
 from threading import RLock
-from typing import TypeVar, Unpack
+from typing import Unpack
 
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -80,7 +80,6 @@ from .participant_information_state_validation import require_participant_inform
 from .participant_retrieval import ParticipantRetrievalMixin
 from .registry import RuntimeTarget as _RuntimeTarget
 
-_ProjectionT = TypeVar("_ProjectionT")
 _P0_SCOPE_BOUND_ERROR = "control-plane profile P0 missing capabilities: store.scope-bound"
 
 
@@ -223,12 +222,12 @@ class RuntimeControlPlane(
         )
 
     @runtime_owned
-    def _project_snapshot_read(
+    def _project_snapshot_read[ProjectionT](
         self,
-        projector: Callable[[], _ProjectionT],
+        projector: Callable[[], ProjectionT],
         *,
         mutation_kind: OperationKind | None = None,
-    ) -> tuple[_ProjectionT, int]:
+    ) -> tuple[ProjectionT, int]:
         """Project one response from an authoritative, revision-bound state cut."""
 
         self._assert_runtime_owner()

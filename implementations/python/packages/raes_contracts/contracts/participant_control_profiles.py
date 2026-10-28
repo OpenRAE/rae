@@ -37,7 +37,7 @@ def load_teaching_influence_profile() -> ParticipantControlTeachingProfileModel:
         with path.open("rb") as stream:
             source = stream.read(16385)
         return ParticipantControlTeachingProfileModel.model_validate(parse_bounded_json_object(source, max_bytes=16384))
-    except (OSError, ValueError):
+    except OSError, ValueError:
         raise ValueError("published teaching influence profile is invalid") from None
 
 

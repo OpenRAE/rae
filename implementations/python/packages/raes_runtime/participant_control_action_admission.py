@@ -39,7 +39,7 @@ def linked_action_refusal(plane: RuntimeControlPlane, request: object) -> ApplyR
 
     try:
         require_live_control_proposal(plane, request)
-    except (ValueError, PermissionError, TimeoutError):
+    except ValueError, PermissionError, TimeoutError:
         return ApplyResult(
             False,
             plane._snapshot,

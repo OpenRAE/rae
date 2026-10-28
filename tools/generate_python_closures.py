@@ -24,7 +24,7 @@ from tools.generate_python_closures_locks import (
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 _SHA256_PREFIX = "sha256:"
-_BUILD_CONSTRAINT_PYTHON_VERSIONS = ("3.11", "3.12", "3.13", "3.14")
+_BUILD_CONSTRAINT_PYTHON_VERSIONS = ("3.14",)
 _TOOL_ROOT_NAME = "raes-development-tools"
 _ARTIFACT_LOCK = ("implementations", "tooling", "artifacts.lock.json")
 
@@ -51,24 +51,6 @@ def reviewed_python_full_version(python_version: str, *, repo_root: Path = REPO_
 
 
 TARGETS = (
-    (
-        "public-linux-x86_64-cp311-all-extras",
-        "3.11",
-        "cp311",
-        "x86_64-unknown-linux-gnu",
-    ),
-    (
-        "public-linux-x86_64-cp312-all-extras",
-        "3.12",
-        "cp312",
-        "x86_64-unknown-linux-gnu",
-    ),
-    (
-        "public-linux-x86_64-cp313-all-extras",
-        "3.13",
-        "cp313",
-        "x86_64-unknown-linux-gnu",
-    ),
     (
         "public-linux-x86_64-cp314-all-extras",
         "3.14",

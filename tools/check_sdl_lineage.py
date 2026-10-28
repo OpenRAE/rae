@@ -139,7 +139,7 @@ def _validate_authorities(repo_root: Path, ledger: SDLLineageLedgerModel) -> lis
             continue
         try:
             document = cache.setdefault(artifact, json.loads(path.read_text(encoding="utf-8")))
-        except (OSError, json.JSONDecodeError):
+        except OSError, json.JSONDecodeError:
             failures.append(
                 _failure(
                     "lineage-authority-invalid",
@@ -222,7 +222,7 @@ def _validate_claim_pointers(repo_root: Path, boundaries: set[tuple[str, str]]) 
         try:
             document = _load_json(repo_root, artifact)
             resolved = _resolve_json_pointer(document, pointer)
-        except (OSError, ValueError):
+        except OSError, ValueError:
             resolved = False
         if not resolved:
             failures.append(

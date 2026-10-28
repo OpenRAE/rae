@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import replace
-from typing import TypeVar, cast
+from typing import cast
 from uuid import uuid4
 
 from raes_contracts.contracts import ParticipantFlowSinkKind
@@ -41,17 +41,15 @@ from .participant_flow_sink import (
 )
 from .participant_view_serialization import ParticipantViewSerialization
 
-_ViewT = TypeVar("_ViewT", bound=ContractModel)
-
 _PROJECTION_NOT_PERMITTED = "participant projection was not permitted"
 
 
 @mutation_entry(OperationKind.PARTICIPANT_CROSSING)
-def serialize_participant_view(
+def serialize_participant_view[ViewT: ContractModel](
     control_plane: object,
-    view: _ViewT,
+    view: ViewT,
     serialization: ParticipantViewSerialization,
-) -> _ViewT:
+) -> ViewT:
     """Return a view only after its exact governed projection is committed."""
 
     if serialization.crossing_evidence is None:
@@ -60,11 +58,11 @@ def serialize_participant_view(
         return _serialize_participant_view_authorized(control_plane, view, serialization)
 
 
-def _serialize_participant_view_authorized(
+def _serialize_participant_view_authorized[ViewT: ContractModel](
     control_plane: object,
-    view: _ViewT,
+    view: ViewT,
     serialization: ParticipantViewSerialization,
-) -> _ViewT:
+) -> ViewT:
     from .participant_inject_application import require_delivery_policy_pin, retained_delivery_control
 
     with control_plane._participant_control_lock:
@@ -147,7 +145,7 @@ def _serialize_participant_view_authorized(
         return governed
 
 
-def _replayed_projection_view(view: _ViewT, record: ControlPlaneOperationRecord | None) -> _ViewT:
+def _replayed_projection_view[ViewT: ContractModel](view: ViewT, record: ControlPlaneOperationRecord | None) -> ViewT:
     """Read back only a successful incumbent's governed projection."""
 
     if record is not None and record.status.state is not OperationState.SUCCEEDED:
@@ -157,13 +155,13 @@ def _replayed_projection_view(view: _ViewT, record: ControlPlaneOperationRecord 
     return type(view).model_validate(record.result_payload)
 
 
-def _governed_egress_view(
+def _governed_egress_view[ViewT: ContractModel](
     control_plane: object,
     prepared: PreparedParticipantCrossing,
-    view: _ViewT,
+    view: ViewT,
     serialization: ParticipantViewSerialization,
     subject: ParticipantCrossingSubjectReferenceModel,
-) -> _ViewT:
+) -> ViewT:
     """Return the trusted governed projection, revalidating any egress transformation."""
 
     if prepared.governed_subject == subject:
