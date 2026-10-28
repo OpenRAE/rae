@@ -556,11 +556,14 @@ def test_validator_refuses_realization_without_native_observed_evidence() -> Non
     def forged_report(item):
         return replace(report, cases=tuple(item if entry is case else entry for entry in report.cases))
 
+    runtime_mediated = forged_report(forged)
+    synthetic_native = forged_report(
+        replace(forged, realization_owner="backend-native", evidence_origin="synthetic-model")
+    )
     with pytest.raises(ValueError, match="backend realization claim requires backend-native"):
-        validate_backend_conformance_report(forged_report(forged))
-    synthetic_native = replace(forged, realization_owner="backend-native", evidence_origin="synthetic-model")
+        validate_backend_conformance_report(runtime_mediated)
     with pytest.raises(ValueError, match="backend realization claim requires observed-execution"):
-        validate_backend_conformance_report(forged_report(synthetic_native))
+        validate_backend_conformance_report(synthetic_native)
 
 
 def _facts(*stages: str, operation_id: str | None = "op-1", **values) -> _OperationFacts:
@@ -707,12 +710,13 @@ def test_untyped_report_and_readback_cannot_supply_evidence() -> None:
     assert any(message.startswith("reported transcript:") for message in messages)
     assert any(message.startswith("backend readback:") for message in messages)
     request = ParticipantOpacityReadbackRequest("collection", "case", PROTECTED, "before")
+    digest = canonical_json_digest({})
     with pytest.raises(ValueError, match="sha256"):
         ParticipantOpacityBackendReadback(request, "backend-state:double", "not-a-digest")
     with pytest.raises(ValueError, match="state source"):
-        ParticipantOpacityBackendReadback(request, "", canonical_json_digest({}))
+        ParticipantOpacityBackendReadback(request, "", digest)
     with pytest.raises(ValueError, match="runner-issued"):
-        ParticipantOpacityBackendReadback("request", "backend-state:double", canonical_json_digest({}))
+        ParticipantOpacityBackendReadback("request", "backend-state:double", digest)
 
 
 def test_committed_history_that_no_longer_validates_cannot_establish_mediation() -> None:

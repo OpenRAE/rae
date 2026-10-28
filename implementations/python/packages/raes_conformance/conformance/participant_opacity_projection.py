@@ -111,9 +111,8 @@ def _omission(egress: _OperationFacts | None) -> str | None:
     if egress.result == "view":
         return "not-recorded"
     attempt = _withheld_attempt(egress)
-    if attempt is None or not attempt.get("owning_occurrence_ref"):
-        return None
-    return "recorded-at-governed-opportunity"
+    recorded = attempt is not None and bool(attempt.get("owning_occurrence_ref"))
+    return "recorded-at-governed-opportunity" if recorded else None
 
 
 def _retry(ingress: _OperationFacts | None, replay: _OperationFacts | None) -> str | None:
@@ -248,6 +247,28 @@ def _decided_bindings(measurement: _PointMeasurement) -> list[object] | None:
     return [occurrence.get("opacity_enforcement") for occurrence in decided] if decided else None
 
 
+def _case_profile_binding(
+    case: ParticipantOpacityProbeCase,
+    payload: object,
+) -> ParticipantOpacityRuntimeEnforcementBindingModel | None:
+    """Parse a committed binding and keep it only for the exact case profile."""
+
+    binding = None
+    if isinstance(payload, Mapping):
+        try:
+            binding = ParticipantOpacityRuntimeEnforcementBindingModel.model_validate(payload)
+        except ValueError:
+            binding = None
+    expected = (case.profile_id, case.profile_revision, case.profile_digest)
+    if (
+        binding is None
+        or binding.assurance_axis != "runtime-enforcement"
+        or (binding.profile_id, binding.profile_revision, binding.profile_digest) != expected
+    ):
+        return None
+    return binding
+
+
 def _runtime_binding_rejoins(
     case: ParticipantOpacityProbeCase,
     measurement: _PointMeasurement,
@@ -255,18 +276,8 @@ def _runtime_binding_rejoins(
 ) -> bool:
     """Require an exact case-profile binding that rejoins to the point's trusted support."""
 
-    if not isinstance(payload, Mapping):
-        return False
-    try:
-        binding = ParticipantOpacityRuntimeEnforcementBindingModel.model_validate(payload)
-    except ValueError:
-        return False
-    coordinates = (binding.profile_id, binding.profile_revision, binding.profile_digest)
-    if binding.assurance_axis != "runtime-enforcement" or coordinates != (
-        case.profile_id,
-        case.profile_revision,
-        case.profile_digest,
-    ):
+    binding = _case_profile_binding(case, payload)
+    if binding is None:
         return False
     support = next((item for item in measurement.opacity_supports if item.binding == binding), None)
     return support is not None and (support.predicate_positive_case_ref, support.predicate_negative_case_ref) == (
