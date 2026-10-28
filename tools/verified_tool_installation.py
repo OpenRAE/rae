@@ -252,7 +252,7 @@ def _group_has_other_principal(group_id: int) -> bool:
         current_name = pwd.getpwuid(current_uid).pw_name
         explicit_members = set(grp.getgrgid(group_id).gr_mem)
         primary_members = {entry.pw_name for entry in pwd.getpwall() if entry.pw_gid == group_id}
-    except (KeyError, OSError):
+    except KeyError, OSError:
         return True
     return bool((explicit_members | primary_members) - {current_name})
 
@@ -691,7 +691,7 @@ def _legacy_carrier(
     _fsync_directory(container)
     try:
         payload = _read_verified_file(moved, selection.installed_manifest[0], mode="legacy")
-    except (OSError, RuntimeError):
+    except OSError, RuntimeError:
         _make_quarantine_non_executable(container)
         raise RuntimeError("tool-installation: legacy-integrity-failure") from None
     _make_quarantine_non_executable(container)
@@ -707,7 +707,7 @@ def _validated_existing_or_quarantine(
     try:
         _complete_interrupted_seal(target)
         return _validated_installed_executable(target, selection)
-    except (OSError, RuntimeError):
+    except OSError, RuntimeError:
         _quarantine(target, quarantine_root, prefix="cache")
         raise RuntimeError("tool-installation: cache-integrity-failure") from None
 
@@ -738,7 +738,7 @@ def _ensure_verified_installation(  # NOSONAR -- lock/recovery branches are expl
     if _tree_present(target):
         try:
             return _validated_installed_executable(target, selection)
-        except (OSError, RuntimeError):
+        except OSError, RuntimeError:
             with _portable_lock(identity_lock):
                 if _tree_present(target):  # NOSONAR -- recheck under the lock closes the publication race.
                     return _validated_existing_or_quarantine(target, selection, quarantine_root)

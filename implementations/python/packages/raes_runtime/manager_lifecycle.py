@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from functools import wraps
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING
 
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.runtime_state import ApplyResult, OperationKind
@@ -17,13 +17,11 @@ from .time_control import RuntimeTimeControlMixin
 if TYPE_CHECKING:
     from .manager import RuntimeManager
 
-_T = TypeVar("_T")
 
-
-def manager_owned(method: Callable[..., _T]) -> Callable[..., _T]:
+def manager_owned[T](method: Callable[..., T]) -> Callable[..., T]:
     @wraps(method)
     @runtime_owned
-    def guarded(manager: RuntimeManager, *args: object, **kwargs: object) -> _T:
+    def guarded(manager: RuntimeManager, *args: object, **kwargs: object) -> T:
         if manager._distributed_execution is not None and method.__name__ in {"apply", "destroy", "refresh_inventory"}:
             return ApplyResult(
                 False,

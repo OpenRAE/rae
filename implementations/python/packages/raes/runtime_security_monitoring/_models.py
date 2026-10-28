@@ -285,7 +285,7 @@ class RuntimeSecurityMonitoringSetting(SDLModel):
         return absolute_path_or_var(v, field_name="source_path") if v else v
 
     @model_validator(mode="after")
-    def validate_redacted_value(self) -> "RuntimeSecurityMonitoringSetting":
+    def validate_redacted_value(self) -> RuntimeSecurityMonitoringSetting:
         enforce_observed_value_redaction(
             owner_label=f"security-monitoring setting '{self.name}'",
             value=self.value,
@@ -353,7 +353,7 @@ class RuntimeSecurityMonitoringManager(SDLModel):
         return validate_absolute_paths(v, field_name=info.field_name)
 
     @model_validator(mode="after")
-    def validate_manager(self) -> "RuntimeSecurityMonitoringManager":
+    def validate_manager(self) -> RuntimeSecurityMonitoringManager:
         _reject_duplicate_local_ref_ids(self)
         return self
 

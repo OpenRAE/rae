@@ -96,7 +96,7 @@ def _isolate_concurrent_batch_predecessors(
         provided_pre_batch = getattr(batch, "pre_batch", None)
         pre_batch = provided_pre_batch if provided_pre_batch is not None else deepcopy(batch.run.working)
         binding_snapshot = pre_batch if getattr(batch, "requests", None) is not None else deepcopy(pre_batch)
-    except (Exception, CancelledError):  # NOSONAR - local snapshot isolation must fail closed
+    except Exception, CancelledError:  # NOSONAR - local snapshot isolation must fail closed
         _fail_concurrent_batch_before_dispatch(
             batch.run,
             batch.run.working,
@@ -122,7 +122,7 @@ def _bind_concurrent_batch_requests(
             _bound_action_request(context, binding_snapshot, state)
             for context, state in zip(batch.contexts, batch.states, strict=True)
         )
-    except (Exception, CancelledError):  # NOSONAR - backend binding is a trust boundary
+    except Exception, CancelledError:  # NOSONAR - backend binding is a trust boundary
         _fail_concurrent_batch_before_dispatch(
             batch.run,
             pre_batch,
@@ -141,7 +141,7 @@ def _reserve_concurrent_batch_for_dispatch(
     batch.run.working = pre_batch
     try:
         _reserve_concurrent_actions(batch.run, batch.contexts)
-    except (Exception, CancelledError):  # NOSONAR - capacity/readback drift fails before dispatch
+    except Exception, CancelledError:  # NOSONAR - capacity/readback drift fails before dispatch
         _fail_concurrent_batch_before_dispatch(
             batch.run,
             pre_batch,
@@ -153,7 +153,7 @@ def _reserve_concurrent_batch_for_dispatch(
         base = batch.run.working
         try:
             dispatch_snapshot = deepcopy(base)
-        except (Exception, CancelledError):  # NOSONAR - no backend action has been submitted yet
+        except Exception, CancelledError:  # NOSONAR - no backend action has been submitted yet
             _fail_concurrent_batch_before_dispatch(
                 batch.run,
                 pre_batch,
@@ -223,7 +223,7 @@ def _dispatch_concurrent_results(
         # Consume at most one result beyond the declared count. This freezes a
         # mutable/generator response and cannot hang on an unbounded iterable.
         results = tuple(islice(iter(raw_results), len(requests) + 1))
-    except (Exception, CancelledError):  # NOSONAR - dispatched work is now indeterminate
+    except Exception, CancelledError:  # NOSONAR - dispatched work is now indeterminate
         _settle_indeterminate_concurrent_batch(
             prepared.settlement,
             code="runtime.participant-concurrent-batch-failed",
@@ -271,7 +271,7 @@ def _materialize_prepared_concurrent_batch(
     if prepared.materialize or batch_failed or run.failure is not None:
         try:
             run.working = _materialize_concurrent_snapshot(run.working)
-        except (Exception, CancelledError):  # NOSONAR - the commit boundary must fail closed
+        except Exception, CancelledError:  # NOSONAR - the commit boundary must fail closed
             _set_concurrent_failure(
                 run,
                 Diagnostic(

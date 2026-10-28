@@ -9,13 +9,12 @@ from raes_contracts.augmentation_scope import AUGMENTATION_SCOPE_CONTRACT
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.materialization import MATERIALIZATION_ATTESTATION_CONTRACT, MaterializationSource
 from raes_contracts.materialization_inventory import RUNTIME_DESCENDANTS_CONTRACT
-from raes_contracts.planning import PlanScope
+from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, PlanScope, ProvisioningPlan
 
 from ..models import RuntimeModel
-from .execution_policy import DomainPlan
 
 
-def attach_materialization_sources(
+def attach_materialization_sources[DomainPlan: (ProvisioningPlan, OrchestrationPlan, EvaluationPlan)](
     plans: tuple[DomainPlan, ...], model: RuntimeModel, manifest: BackendManifest, scope: PlanScope | None
 ) -> tuple[tuple[DomainPlan, ...], list[Diagnostic]]:
     source, diagnostics = planned_materialization_source(model, manifest, scope)
@@ -69,7 +68,7 @@ def planned_materialization_source(
             instance, scope, RUNTIME_DESCENDANTS_CONTRACT in manifest.supported_contract_versions
         )
         return source, diagnostics
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         diagnostics.append(
             Diagnostic(
                 code="materialization.source-context-required",

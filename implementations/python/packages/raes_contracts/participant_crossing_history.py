@@ -47,7 +47,7 @@ def _event_violations(
     for event in events:
         try:
             parsed = ParticipantCrossingOccurrenceModel.model_validate(event)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             yield (address, "participant crossing history must contain closed API-423 occurrences")
             continue
         if parsed.participant_address != participant_address:

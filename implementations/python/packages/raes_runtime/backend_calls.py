@@ -167,7 +167,7 @@ def _invoke_backend_apply(
     )
     try:
         result = method(*backend_args)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return _failed_apply_result(
             baseline_snapshot,
             _backend_contract_invalid(address, "Backend could not construct a valid apply result."),

@@ -250,7 +250,7 @@ No fixed-memory claim is made.
 
 ## Reference basis
 
-- [Python 3.11 collections](https://docs.python.org/3.11/library/collections.html): standard indexed containers and temporary mapping overlays.
+- [Python 3.14 collections](https://docs.python.org/3.14/library/collections.html): standard indexed containers and temporary mapping overlays.
 - [Materialized View pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/materialized-view): derived read indexes and source authority.
 - [Event Sourcing pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/event-sourcing): read-only history, rebuild, and versioned meaning.
 - [ASD-STE100 guidance](https://www.asd-ste100.org/STE_faq.html): Issue 9 terminology, active voice, and one meaning per term.

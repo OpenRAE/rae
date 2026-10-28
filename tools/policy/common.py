@@ -47,7 +47,7 @@ def safe_repo_path(repo_root: Path, rel_path: str) -> Path | None:
     try:
         resolved = (repo_root / candidate).resolve()
         resolved.relative_to(repo_root.resolve())
-    except (ValueError, OSError):
+    except ValueError, OSError:
         return None
     return resolved
 

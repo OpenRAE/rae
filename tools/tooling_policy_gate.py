@@ -474,7 +474,7 @@ def _load_tooling_host_profile_selection(  # NOSONAR -- closed response validati
                 or not all(isinstance(value, str) and value for value in scalar_values)
             ):
                 raise TypeError
-    except (KeyError, TypeError, RuntimeError):
+    except KeyError, TypeError, RuntimeError:
         raise RuntimeError(_INVALID_HOST_RESPONSE) from None
     return selection
 

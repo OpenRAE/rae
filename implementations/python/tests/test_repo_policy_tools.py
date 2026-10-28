@@ -893,6 +893,7 @@ def test_python_compatibility_distribution_requires_reviewed_closure_profile(
 @pytest.mark.parametrize(
     ("expected", "selector", "message"),
     [
+        ("3.13", "cpython-3.13", "must select a supported feature release"),
         ("3.15", "cpython-3.15", "must select a supported feature release"),
         ("3.14", "", "UV_PYTHON must select the interpreter under test"),
     ],

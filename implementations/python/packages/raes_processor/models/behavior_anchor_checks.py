@@ -161,7 +161,7 @@ def _participant_behavior_episode_closed_ids(
             continue
         try:
             normalized = ParticipantEpisodeHistoryEvent.from_payload(event)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             continue
         if normalized.participant_address not in participant_addresses:
             continue

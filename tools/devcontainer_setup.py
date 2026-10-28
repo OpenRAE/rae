@@ -24,7 +24,7 @@ import sys
 import tempfile
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
@@ -32,7 +32,6 @@ if str(REPO_ROOT) not in sys.path:
 
 PYTHON_LINK_NAME = "current"
 _TOOLING_PROJECT = "implementations/tooling/python"
-_Result = TypeVar("_Result")
 _PROJECTS = (
     ("implementations/python", ("--all-extras", "--frozen")),
     (_TOOLING_PROJECT, ("--frozen", "--no-default-groups")),
@@ -284,7 +283,7 @@ def setup(repo_root: Path = REPO_ROOT, *, kit_root: Path | None = None) -> None:
     )
 
 
-def _step(label: str, action: Callable[[], _Result]) -> _Result:
+def _step[Result](label: str, action: Callable[[], Result]) -> Result:
     print(f"==> {label}", flush=True)
     return action()
 

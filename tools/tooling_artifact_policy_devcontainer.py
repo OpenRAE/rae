@@ -82,7 +82,7 @@ def load_devcontainer_config(
         )
     try:
         return load_bounded_json_object(repo_root, DEVCONTAINER_CONFIG_PATH, max_bytes=MAX_CONFIG_BYTES), None
-    except (OSError, ValueError, RecursionError):
+    except OSError, ValueError, RecursionError:
         return None, failure(
             RULE_SHAPE,
             "dev-container configuration could not be parsed safely",

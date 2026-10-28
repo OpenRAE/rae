@@ -45,7 +45,7 @@ class Entity(LegacyClassificationGuard):
     mission: str = ""
     facts: dict[str, str] = Field(default_factory=dict)
     events: list[str] = Field(default_factory=list)
-    entities: dict[PortableIdentifier, "Entity"] = Field(default_factory=dict)
+    entities: dict[PortableIdentifier, Entity] = Field(default_factory=dict)
 
 
 def flatten_entities(entities: dict[str, Entity], prefix: str = "") -> dict[str, Entity]:

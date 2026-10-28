@@ -27,7 +27,7 @@ from tools.nox_support.runner import (
 )
 
 _BUILD_CONSTRAINTS = "implementations/tooling/python/build-constraints.txt"
-_SUPPORTED_FEATURE_RELEASES = frozenset({"3.11", "3.12", "3.13", "3.14"})
+_SUPPORTED_FEATURE_RELEASES = frozenset({"3.14"})
 
 _RUNTIME_ASSERTION = """
 import sys
@@ -73,7 +73,7 @@ for module in ("raes_backend_libvirt", "raes_reference_backend"):
     assert importlib.util.find_spec(module) is None, module
 requires_python = metadata("raes")["Requires-Python"]
 support = SpecifierSet(requires_python)
-assert Version("3.11") in support
+assert Version("3.13") not in support
 assert Version("3.14") in support
 assert Version("3.15") not in support
 """

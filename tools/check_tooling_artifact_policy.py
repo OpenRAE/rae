@@ -78,7 +78,7 @@ def _resolved_paths(
         return sorted(set(tracked_paths)), []
     try:
         return _tracked_paths(repo_root), []
-    except (OSError, UnicodeError, subprocess.SubprocessError):
+    except OSError, UnicodeError, subprocess.SubprocessError:
         return [], [
             failure(
                 "tooling-git-scan",

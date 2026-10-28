@@ -463,8 +463,7 @@ Composition is registry-ready as well:
 OCI acquisition bounds the compressed response and the complete decoded tar
 stream before parsing any tar header. The decoded-stream limit includes PAX/GNU
 metadata and padding and has both absolute and expansion-ratio ceilings. Safe
-extraction requires the standard-library `data` filter; Python 3.11.0 through
-3.11.3 fail closed for OCI extraction rather than using unfiltered extraction.
+extraction always uses the standard-library `data` filter.
 
 Resolved module caches and published layouts use immutable version directories
 under a logical slot plus one atomically replaced `.raes-current` pointer. A

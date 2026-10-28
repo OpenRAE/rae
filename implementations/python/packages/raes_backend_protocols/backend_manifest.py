@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import TypedDict, TypeVar, Unpack
+from typing import TypedDict, Unpack
 
 from raes_contracts.apparatus import ApparatusIdentity, ConceptBinding, RealizationSupportDeclaration
 from raes_contracts.contracts.trial_controls import OperationSupervisionCapabilitiesModel
@@ -300,10 +300,7 @@ def _validate_coordinated_reset_capabilities(capabilities: BackendCapabilitySet)
         raise ValueError("coordinated participant reset support requires participant runtime capabilities")
 
 
-_T = TypeVar("_T")
-
-
-def _require_non_empty_tuple(values: tuple[_T, ...], field_name: str) -> tuple[_T, ...]:
+def _require_non_empty_tuple[T](values: tuple[T, ...], field_name: str) -> tuple[T, ...]:
     result = tuple(values)
     if not result:
         raise ValueError(f"BackendManifest.{field_name} must not be empty")

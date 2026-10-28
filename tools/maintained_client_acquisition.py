@@ -183,7 +183,7 @@ def _curl_preflight_failure(executable: Path) -> str | None:
             timeout=PROBE_TIMEOUT_SECONDS,
             env=dict(_CLIENT_ENV),
         )
-    except (OSError, subprocess.SubprocessError):
+    except OSError, subprocess.SubprocessError:
         failure = "curl-unavailable"
     if failure is None:
         observed = f"{completed.stdout}\n{completed.stderr}"

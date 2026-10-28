@@ -218,7 +218,7 @@ def migrate_mixed_control_to_finite_script(
             output = parse_sdl(yaml.safe_dump(converted, sort_keys=False), limits=limits)
     except SDLValidationError as error:
         refusals = [(_INVALID, pointer) for pointer in _error_pointers(error)]
-    except (SDLError, ValueError, TypeError):
+    except SDLError, ValueError, TypeError:
         refusals = [(_INVALID, "")]
     codes = sorted({(f"mixed-control-migration.{code}", pointer) for code, pointer in refusals})
     policy_digest = canonical_json_digest(None)

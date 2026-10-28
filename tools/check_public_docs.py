@@ -132,7 +132,7 @@ def _path_is_contained(public_root: Path, source: Path, candidate: Path, *, mark
         base, candidate = public_root, candidate.relative_to("/")
     try:
         (base / candidate).resolve().relative_to(public_root.resolve())
-    except (OSError, ValueError):
+    except OSError, ValueError:
         return False
     return True
 
@@ -209,7 +209,7 @@ def evaluate_public_sources(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
                 )
                 continue
             text = source.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError):
+        except OSError, UnicodeDecodeError:
             failures.append(
                 PolicyFailure(
                     "public-docs-source-readable",
@@ -242,7 +242,7 @@ def _bounded_text(source: Path) -> str:
         if source.stat().st_size > MAX_SOURCE_BYTES:
             return ""
         return source.read_text(encoding="utf-8")
-    except (OSError, UnicodeDecodeError):
+    except OSError, UnicodeDecodeError:
         return ""
 
 
@@ -318,7 +318,7 @@ def evaluate_public_output(repo_root: Path, output_root: Path) -> list[PolicyFai
         return evaluate_public_sources(repo_root)
     try:
         output_root.resolve().relative_to(repo_root.resolve())
-    except (OSError, ValueError):
+    except OSError, ValueError:
         return [
             PolicyFailure(
                 "public-docs-output-root",

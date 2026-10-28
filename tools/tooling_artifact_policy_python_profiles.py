@@ -164,7 +164,7 @@ def _projection_drift_failures(
     try:
         manifest = read_tooling_document(repo_root, manifest_path)
         requirements = (repo_root / requirements_path).read_bytes()
-    except (OSError, ValueError):
+    except OSError, ValueError:
         return [
             failure(
                 "tooling-python-projection",

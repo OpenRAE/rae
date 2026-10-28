@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from time import monotonic
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 
 import anyio
 from raes_contracts.contracts import (
@@ -29,8 +29,6 @@ if TYPE_CHECKING:
     from .operation_execution_adapter import Lane
     from .operation_remote_authority import RemoteOperationAuthority
     from .operation_temporal import TemporalExecutionConfiguration
-
-_T = TypeVar("_T")
 
 
 # The SDK decodes raw JSON using these annotations. Carrier models validate
@@ -102,14 +100,14 @@ class TemporalOperationActivities:
             self._effect_jobs, "effect", self._invoke, reference, budget_ms=reference.execution_budget_ms
         )
 
-    async def _job(
-        self, executor: LocalExecutionAdapter, lane: Lane, method: Callable[..., _T], *args: object, budget_ms: int
-    ) -> _T:
+    async def _job[T](
+        self, executor: LocalExecutionAdapter, lane: Lane, method: Callable[..., T], *args: object, budget_ms: int
+    ) -> T:
         from .operation_execution_adapter import require_budget_ms
 
         deadline = monotonic() + require_budget_ms(budget_ms) / 1000
 
-        def admitted() -> _T:
+        def admitted() -> T:
             remaining = int((deadline - monotonic()) * 1000)
             if remaining <= 0:
                 raise TimeoutError("activity allowance exhausted before admission")

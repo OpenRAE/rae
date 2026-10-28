@@ -7,22 +7,19 @@ from contextlib import contextmanager, suppress
 from functools import wraps
 from threading import Condition, RLock, local
 from time import monotonic
-from typing import TYPE_CHECKING, Concatenate, ParamSpec, Self, TypeVar
+from typing import TYPE_CHECKING, Concatenate, Self
 
 if TYPE_CHECKING:
     from .operation_execution_adapter import LocalExecutionAdapter
 
-_P = ParamSpec("_P")
-_R = TypeVar("_R")
 
-
-def runtime_owned(
-    method: Callable[Concatenate[object, _P], _R],
-) -> Callable[Concatenate[object, _P], _R]:
+def runtime_owned[**P, R](
+    method: Callable[Concatenate[object, P], R],
+) -> Callable[Concatenate[object, P], R]:
     """Keep one public call admitted until its reads or effects are complete."""
 
     @wraps(method)
-    def guarded(control_plane: object, *args: _P.args, **kwargs: _P.kwargs) -> _R:
+    def guarded(control_plane: object, *args: P.args, **kwargs: P.kwargs) -> R:
         runtime_call = getattr(control_plane, "_runtime_call", None)
         if not callable(runtime_call):
             return method(control_plane, *args, **kwargs)
@@ -33,13 +30,13 @@ def runtime_owned(
     return guarded
 
 
-def store_authoritative_state(
-    method: Callable[Concatenate[object, _P], _R],
-) -> Callable[Concatenate[object, _P], _R]:
+def store_authoritative_state[**P, R](
+    method: Callable[Concatenate[object, P], R],
+) -> Callable[Concatenate[object, P], R]:
     """Refresh derived state under the short cache-publication mutex."""
 
     @wraps(method)
-    def guarded(control_plane: object, *args: _P.args, **kwargs: _P.kwargs) -> _R:
+    def guarded(control_plane: object, *args: P.args, **kwargs: P.kwargs) -> R:
         lock = getattr(control_plane, "_operation_lock", None)
         reload_state = getattr(control_plane, "_reload_derived_state_if_unpinned", None)
         if lock is None or not callable(reload_state):

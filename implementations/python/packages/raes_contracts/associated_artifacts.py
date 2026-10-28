@@ -288,7 +288,7 @@ def _read_payload(
     else:
         try:
             result = _read_and_hash(cast(BinaryIO, reader), artifact.checksum.algorithm, artifact.size_bytes)
-        except (OSError, TypeError, ValueError):
+        except OSError, TypeError, ValueError:
             diagnostic = _diagnostic(
                 "associated-artifact.payload-binding-invalid",
                 address,
