@@ -263,7 +263,7 @@ def _compile_entries(
         except (TypeError, ValueError) as exc:
             candidate_failure = _fail(
                 "entry-invalid",
-                _ENTRIES_ADDRESS + (coordinate.replicate_id or "coordinate"),
+                f"{_ENTRIES_ADDRESS}{coordinate.replicate_id or 'coordinate'}",
                 "a trial entry failed closed construction",
             )
             candidate_failure.__cause__ = exc
