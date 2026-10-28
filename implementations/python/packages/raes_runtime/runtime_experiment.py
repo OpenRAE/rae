@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from copy import deepcopy
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from threading import RLock
 from typing import TYPE_CHECKING
@@ -14,7 +14,7 @@ from raes_contracts.admitted_trial_plan_ingress import revalidate_admitted_trial
 from raes_contracts.contracts import AdmittedTrialPlanModel
 from raes_contracts.contracts.trial_controls import required_trial_operation_guarantees
 from raes_contracts.trial_unit import TrialUnitRequest
-from raes_processor.trial_realization import TrialRealization, realize_admitted_trial_entry
+from raes_processor.trial_realization import TrialRealization, TrialRealizationInputs, realize_admitted_trial_entry
 from raes_processor.trial_scheduler import (
     BatchSchedule,
     ScheduledEntry,
@@ -39,7 +39,6 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
 
     from raes_contracts.trial_unit import TrialUnitResult
-    from raes_processor.trial_realization import TrialRealizationInputs
 
     from .control_plane import RuntimeControlPlane
     from .control_plane_store import ControlPlaneStore
@@ -279,7 +278,17 @@ class RuntimeExperiment:
             if child.decision_id not in self._children:
                 schedule = plan_batch_schedule(child.plan)
                 (entry,) = schedule.entries
-                child_inputs: TrialRealizationInputs = replace(self.inputs, plan=child.plan)
+                child_inputs = TrialRealizationInputs(
+                    plan=child.plan,
+                    family=self.inputs.family,
+                    experiment=self.inputs.experiment,
+                    task=self.inputs.task,
+                    capture_specs=self.inputs.capture_specs,
+                    apparatus_manifests=self.inputs.apparatus_manifests,
+                    realization_envelope=self.inputs.realization_envelope,
+                    backend_key=self.inputs.backend_key,
+                    participant_manifests=self.inputs.participant_manifests,
+                )
                 realized = realize_admitted_trial_entry(
                     inputs=child_inputs,
                     plan_entry_id=entry.plan_entry_id,
