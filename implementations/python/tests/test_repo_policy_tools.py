@@ -322,6 +322,37 @@ def test_parallel_coverage_command_is_capped_and_worker_safe(
     assert all(options["env"] == {"COVERAGE_FILE": str(coverage_file)} for _, options in coverage_commands)
 
 
+def test_parallel_command_uses_the_requested_xdist_distribution(monkeypatch: pytest.MonkeyPatch) -> None:
+    commands: list[tuple[str, ...]] = []
+
+    class FakeSession:
+        def run(self, *args: str, **_kwargs: Any) -> None:
+            commands.append(args)
+
+        def chdir(self, _path: Path):
+            return nullcontext()
+
+    monkeypatch.setattr(nox_runner, "_sync_project", lambda _session: None)
+    nox_runner._run_pytest(FakeSession(), "-m", "integration", parallel=True, distribution="loadfile")
+
+    assert commands == [
+        (
+            "uv",
+            "run",
+            "--frozen",
+            "python",
+            "-m",
+            "pytest",
+            "-n",
+            "auto",
+            "--maxprocesses=8",
+            "--dist=loadfile",
+            "-m",
+            "integration",
+        )
+    ]
+
+
 def test_verification_lanes_run_concurrently_and_preserve_declared_order(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

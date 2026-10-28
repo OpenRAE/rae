@@ -93,12 +93,18 @@ def test_fuzz_and_integration_lanes_select_their_markers_and_coverage(
         (("-m", "fuzz", "-v"), {}),
         (
             ("-m", "integration", "-v"),
-            {"coverage_file": Path("integration-coverage"), "append_coverage": True, "finalize_coverage": True},
+            {
+                "coverage_file": Path("integration-coverage"),
+                "append_coverage": True,
+                "finalize_coverage": True,
+                "parallel": True,
+                "distribution": "loadfile",
+            },
         ),
     ]
-    assert [name for name, _detail in reporter.stages] == [
-        "tests / pytest fuzz",
-        "tests / pytest integration",
+    assert reporter.stages == [
+        ("tests / pytest fuzz", ""),
+        ("tests / pytest integration", "xdist auto, max 8, loadfile"),
     ]
 
 

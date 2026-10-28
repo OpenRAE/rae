@@ -10,32 +10,21 @@ pytestmark = pytest.mark.integration
 def test_postgresql_history_reopens_and_operation_only_changes_are_visible():
     if os.environ.get("RAES_EXECUTION_INTEGRATION") != "1":
         pytest.skip("requires the hosted runtime-execution integration composition")
-    import psycopg
+    from postgresql_ledger_fixtures import disposable_ledger_database
+
+    with disposable_ledger_database() as database:
+        _exercise_history_reopening(database)
+
+
+def _exercise_history_reopening(database):
     from participant_control_contract_fixtures import evaluation_payload
-    from pydantic import SecretStr
+    from postgresql_ledger_fixtures import ledger_configuration
     from raes_contracts.immutable_history import append_history
     from raes_contracts.runtime_state import RuntimeSnapshot
-    from raes_runtime.control_plane_store_postgresql import PostgreSQLControlPlaneStore, PostgreSQLStoreConfiguration
+    from raes_runtime.control_plane_store_postgresql import PostgreSQLControlPlaneStore
     from test_issue_1181_unified_control_plane_mutations import _context, _running_record
 
-    configuration = PostgreSQLStoreConfiguration(
-        host=os.environ["RAES_TEST_PG_HOST"],
-        database="rae_ledger",
-        user="rae_ledger",
-        password=SecretStr("integration-only"),
-        sslmode="disable",
-    )
-    with psycopg.connect(
-        host=configuration.host,
-        dbname=configuration.database,
-        user=configuration.user,
-        password=configuration.password.get_secret_value(),
-        autocommit=True,
-    ) as cleanup:
-        cleanup.execute(
-            "DROP TABLE IF EXISTS raes_ledger_changes, raes_ledger_history_streams, raes_ledger_history, "
-            "raes_ledger_audit, raes_ledger_operations, raes_ledger_state, raes_ledger_metadata"
-        )
+    configuration = ledger_configuration(database)
     store = PostgreSQLControlPlaneStore(configuration)
     store.initialize_schema()
     scope = _context()

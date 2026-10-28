@@ -176,6 +176,7 @@ def _run_pytest(
     append_coverage: bool = False,
     finalize_coverage: bool = False,
     parallel: bool = False,
+    distribution: str = "worksteal",
     extra_env: dict[str, str] | None = None,
 ) -> None:
     _sync_project(session)
@@ -185,7 +186,7 @@ def _run_pytest(
     ]
     command = ["uv", "run", "--frozen", "python", "-m", "pytest"]
     if parallel:
-        command.extend(["-n", "auto", "--maxprocesses=8", "--dist=worksteal"])
+        command.extend(["-n", "auto", "--maxprocesses=8", f"--dist={distribution}"])
     coverage_env: dict[str, str] | None = dict(extra_env) if extra_env else None
     if coverage_file is not None:
         coverage_env = {**(coverage_env or {}), "COVERAGE_FILE": str(coverage_file)}
