@@ -1,0 +1,87 @@
+{
+  "schema_version": "requirement-scope/v1",
+  "issue_number": 972,
+  "primary_requirement_uid": "SEM-232",
+  "requirement_uids": [
+    "SEM-232",
+    "API-404"
+  ],
+  "bindings": {
+    "docs/decisions/issue-972-runtime-crossing-mapping-preflight.md": [
+      "SEM-232"
+    ],
+    "docs/governance/requirement-scopes/972.json": [
+      "API-404"
+    ],
+    "docs/requirements/API-404/requirement.md": [
+      "API-404"
+    ],
+    "docs/requirements/SEM-232/requirement.md": [
+      "SEM-232"
+    ],
+    "docs/research/formal-semantic-validation/capture-records/capture-9a7ba7c48f98041c109b5b04d3fe5e99ab7e517fa4e7b6d5553993a9ab38fce0.json": [
+      "SEM-232"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-9a7ba7c48f98041c109b5b04d3fe5e99ab7e517fa4e7b6d5553993a9ab38fce0/analysis.json": [
+      "SEM-232"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-9a7ba7c48f98041c109b5b04d3fe5e99ab7e517fa4e7b6d5553993a9ab38fce0/manifest.json": [
+      "SEM-232"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-9a7ba7c48f98041c109b5b04d3fe5e99ab7e517fa4e7b6d5553993a9ab38fce0/snapshot.json": [
+      "SEM-232"
+    ],
+    "docs/research/specification-coverage/capture-records/capture-25a326854b25b3f04437534ce568d63774807d9de1aa3e8843d4e9fcd0bc7796.json": [
+      "SEM-232"
+    ],
+    "docs/research/specification-coverage/captures/capture-25a326854b25b3f04437534ce568d63774807d9de1aa3e8843d4e9fcd0bc7796/analysis.json": [
+      "SEM-232"
+    ],
+    "docs/research/specification-coverage/captures/capture-25a326854b25b3f04437534ce568d63774807d9de1aa3e8843d4e9fcd0bc7796/manifest.json": [
+      "SEM-232"
+    ],
+    "docs/research/specification-coverage/captures/capture-25a326854b25b3f04437534ce568d63774807d9de1aa3e8843d4e9fcd0bc7796/snapshot.json": [
+      "SEM-232"
+    ],
+    "implementations/formal/participant_crossing/runtime_mapping.py": [
+      "SEM-232"
+    ],
+    "implementations/formal/participant_crossing/runtime_mapping_export.py": [
+      "SEM-232"
+    ],
+    "implementations/formal/participant_crossing/runtime_mapping_integrity.py": [
+      "SEM-232"
+    ],
+    "implementations/python/packages/raes_runtime/participant_decision_surface_control_v2.py": [
+      "API-404"
+    ],
+    "implementations/python/tests/crossing_runtime_cases.py": [
+      "SEM-232"
+    ],
+    "implementations/python/tests/crossing_runtime_observer.py": [
+      "SEM-232"
+    ],
+    "implementations/python/tests/test_issue_972_mapping_export.py": [
+      "SEM-232"
+    ],
+    "implementations/python/tests/test_issue_972_mapping_ownership.py": [
+      "SEM-232"
+    ],
+    "implementations/python/tests/test_issue_972_runtime_mapping.py": [
+      "SEM-232",
+      "API-404"
+    ],
+    "specs/formal/participant-semantics/participant-crossing-runtime-mapping.md": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/runtime-mapping/rev1/cases.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/runtime-mapping/rev1/manifest.json": [
+      "SEM-232"
+    ],
+    "tools/policy/requirement_order.yaml": [
+      "SEM-232"
+    ]
+  }
+}
