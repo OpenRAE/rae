@@ -1270,6 +1270,8 @@ class TestRuntimeManager:
         assert isinstance(workflow_payload["steps"], dict)
         assert workflow_payload["steps"]["run"]["lifecycle"] == "pending"
         json.dumps(workflow_results)
+        assert isinstance(status["orchestration_history"], dict)
+        json.dumps(status["orchestration_history"])
 
     def test_status_exposes_plain_data_evaluation_results_and_history(self):
         target = RuntimeTarget(
@@ -1297,6 +1299,14 @@ class TestRuntimeManager:
         assert evaluation_history["evaluation.condition.vm.health"][-1]["event_type"] == "evaluation_ready"
         json.dumps(evaluation_results)
         json.dumps(evaluation_history)
+        retained = manager.snapshot.evaluation_history["evaluation.condition.vm.health"]
+        count = len(retained)
+        evaluation_history["evaluation.condition.vm.health"][-1]["event_type"] = "caller-mutation"
+        evaluation_history["evaluation.condition.vm.health"].append({"event_type": "caller-mutation"})
+        fresh = manager.status()["evaluation_history"]["evaluation.condition.vm.health"]
+        assert len(fresh) == count
+        assert fresh[-1]["event_type"] == "evaluation_ready"
+        assert retained[-1]["event_type"] == "evaluation_ready"
 
     def test_stub_runtime_emits_plain_data_workflow_results(self):
         manager = RuntimeManager(create_stub_target())

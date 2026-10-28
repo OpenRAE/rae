@@ -11,6 +11,7 @@ from raes_contracts.contracts import (
     ArtifactAvailabilityContext,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.immutable_history import mutable_history_value
 from raes_contracts.materialization import MaterializationSubmission
 from raes_contracts.planning import PlanScope, RuntimeDomain
 from raes_contracts.realization_profiles import PlanProfileAuthority
@@ -387,7 +388,7 @@ class RuntimeInteractionMixin(
                     timeout_ms=self._supervision.observation_ms,
                 )
             info["orchestration_results"] = deepcopy(self._snapshot.orchestration_results)
-            info["orchestration_history"] = deepcopy(self._snapshot.orchestration_history)
+            info["orchestration_history"] = mutable_history_value(self._snapshot.orchestration_history)
         if self._target.evaluator is not None:
             with self._mutation_authority.external_call():
                 info["evaluator"] = self._execution_adapter.call(
@@ -396,7 +397,7 @@ class RuntimeInteractionMixin(
                     timeout_ms=self._supervision.observation_ms,
                 )
             info["evaluation_results"] = deepcopy(self._snapshot.evaluation_results)
-            info["evaluation_history"] = deepcopy(self._snapshot.evaluation_history)
+            info["evaluation_history"] = mutable_history_value(self._snapshot.evaluation_history)
         if self._target.time_runtime is not None and self._snapshot.time_model_state is not None:
             info["time_model_state"] = self.read_time_state().model_dump(mode="json")
         if self._participant_execution_policies:
