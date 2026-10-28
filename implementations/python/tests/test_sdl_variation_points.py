@@ -620,9 +620,10 @@ def test_member_admission_does_not_blame_members_for_an_unrelated_failure(
     payload = deepcopy(_family_payload())
     payload["nodes"]["primary"]["features"]["undeclared-feature"] = ""
     admitted = _count_member_admissions(monkeypatch)
+    validator = SemanticValidator(Scenario.model_validate(payload))
 
     with pytest.raises(SDLValidationError) as caught:
-        SemanticValidator(Scenario.model_validate(payload)).validate()
+        validator.validate()
 
     assert caught.value.errors
     assert not any("candidate is invalid for target slot" in error for error in caught.value.errors)

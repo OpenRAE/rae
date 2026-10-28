@@ -17,7 +17,7 @@ paths read the instance dictionary without a per-field attribute lookup.
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 
@@ -42,6 +42,8 @@ _BYPASS_ATTRIBUTES = frozenset(
     }
 )
 
+
+type _AttributeGetter = Callable[[object, str], object]
 
 _FIELDS_SET_ATTRIBUTES = frozenset({"model_fields_set", "__pydantic_fields_set__"})
 
@@ -72,7 +74,7 @@ def _view_type(scenario_type: type) -> type:
         fields = frozenset(scenario_type.model_fields)
         private = frozenset(getattr(scenario_type, "__private_attributes__", {}))
 
-        def __getattribute__(self: object, name: str, _get=object.__getattribute__) -> object:  # noqa: N807
+        def __getattribute__(self: object, name: str, _get: _AttributeGetter = object.__getattribute__) -> object:  # noqa: N807
             sink: ReadSink | None = _get(self, "__dict__").get("__raes_read_sink__")
             if sink is not None:
                 if name in fields or name in private:
@@ -123,7 +125,7 @@ def tracking_index(index: object, sink: ReadSink) -> object:
     view_type = _INDEX_VIEW_TYPES.get(index_type)
     if view_type is None:
 
-        def __getattribute__(self: object, name: str, _get=object.__getattribute__) -> object:  # noqa: N807
+        def __getattribute__(self: object, name: str, _get: _AttributeGetter = object.__getattribute__) -> object:  # noqa: N807
             if not name.startswith("__"):
                 _get(self, "_raes_read_sink").note(DECLARATION_INDEX)
             return _get(self, name)
@@ -140,10 +142,10 @@ def tracking_index(index: object, sink: ReadSink) -> object:
     return view
 
 
-class _TrackedDict(dict):  # type: ignore[type-arg]
+class _TrackedDict(dict[str, object]):
     """The scenario's field dictionary plus the hidden read sink."""
 
-    def __init__(self, fields: dict, sink: ReadSink) -> None:  # type: ignore[type-arg]
+    def __init__(self, fields: dict[str, object], sink: ReadSink) -> None:
         super().__init__(fields)
         self.__raes_read_sink__ = sink
 
