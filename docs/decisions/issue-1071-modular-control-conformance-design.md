@@ -154,6 +154,12 @@ No policy-as-code rule changes because runtime protection remains in its existin
 Typed settings and the existing runtime composition supply architecture-as-code.
 Published schemas, release versions, and research publication histories remain with their existing owners.
 
+Source changes require fresh bounded research observations and a fresh runtime mapping bundle.
+Use the existing capture recorder and mapping exporter.
+Each new capture keeps its source identity, limits, and separate observations.
+Retain historical bytes and publication records.
+These offline checks add no native backend conformance claim.
+
 ## Reference evidence and document review
 
 | Source | Version and section | Application |
