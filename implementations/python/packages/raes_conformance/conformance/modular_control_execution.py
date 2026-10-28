@@ -13,8 +13,8 @@ from typing import cast
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import RuntimeSnapshotEnvelopeModel
 from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
-from raes_contracts.runtime_state import OperationState
-from raes_runtime.control_plane import LocalControlPlaneStore, RuntimeControlPlane
+from raes_contracts.runtime_state import OperationReceipt, OperationState
+from raes_runtime.control_plane import LocalControlPlaneStore, ParticipantControlEffectRealization, RuntimeControlPlane
 from raes_runtime.registry import RuntimeTarget
 from raes_runtime.snapshot_contract import runtime_snapshot_contract_payload
 
@@ -176,14 +176,15 @@ def _record_output(
         ModularControlOperation.SELECTION_V2,
         ModularControlOperation.CONTROL,
     }:
-        status = plane.get_operation(output.operation_id)
+        receipt = cast(OperationReceipt, output)
+        status = plane.get_operation(receipt.operation_id)
         if status is None:
             raise ValueError("modular parent has no recorded status")
         measured.parent_states.append(status.state)
-        if output.operation_id not in measured.parent_operation_ids:
-            measured.parent_operation_ids.append(output.operation_id)
+        if receipt.operation_id not in measured.parent_operation_ids:
+            measured.parent_operation_ids.append(receipt.operation_id)
     if step.operation is ModularControlOperation.DISPATCH:
-        for item in output:
+        for item in cast(tuple[ParticipantControlEffectRealization, ...], output):
             prior = measured.outcomes.get(item.effect_id)
             if prior is not None and prior != item.disposition:
                 measured.duplicate_stable = False

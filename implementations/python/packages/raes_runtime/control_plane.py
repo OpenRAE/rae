@@ -83,6 +83,7 @@ from .participant_control_binding import (
     ParticipantControlRuntimeBinding,
     ParticipantControlRuntimeResolver,
 )
+from .participant_control_effects import ParticipantControlEffectRealization
 from .participant_information_state_validation import require_participant_information_state_snapshot
 from .participant_retrieval import ParticipantRetrievalMixin
 from .registry import RuntimeTarget as _RuntimeTarget
@@ -92,6 +93,7 @@ __all__ = (
     "ControlPlaneOperationRecord",
     "ControlPlaneOptions",
     "LocalControlPlaneStore",
+    "ParticipantControlEffectRealization",
     "ParticipantControlResolution",
     "ParticipantControlRuntimeBinding",
     "ParticipantControlRuntimeResolver",

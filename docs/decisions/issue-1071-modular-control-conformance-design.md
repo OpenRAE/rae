@@ -144,7 +144,7 @@ Native evidence requires the backend's independent installation and containment 
 
 Reuse `ControlPlaneOptions`, `ParticipantControlRuntimeBinding`, and `ParticipantControlStageBinding` for settings.
 Reuse `LocalControlPlaneStore` for runner-owned durable cases.
-The public control-plane facade exports the binding, resolver, and resolution types for installed observers.
+The public control-plane facade exports binding, resolver, resolution, and effect outcome types for installed observers.
 Reuse `ContractModel`, contextual validators, corpus resources, diagnostics, and report validation.
 The existing wheel package selection already includes `raes_conformance`.
 The new modules require no concrete backend, pytest runtime dependency, credential loader, or executable discovery.
