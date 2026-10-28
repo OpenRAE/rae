@@ -8,7 +8,6 @@ depend on who ran it. These cases pin every field to the reviewed target.
 from __future__ import annotations
 
 import json
-import tomllib
 from pathlib import Path
 
 import pytest
