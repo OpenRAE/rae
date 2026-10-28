@@ -97,6 +97,7 @@ class ConformanceCaseResult:
     policy_binding: ParticipantPolicyBinding | None = None
     claim_bindings: tuple[BehavioralClaimBindingModel, ...] = ()
     realization_owner: str | None = None
+    evidence_origin: str | None = None
     profile_digest: str | None = None
     manifest_digest: str | None = None
     tool_digest: str | None = None
@@ -180,7 +181,10 @@ def _validate_case_claim_chain(case: ConformanceCaseResult) -> None:
     axes = {binding.assurance_axis for binding in case.claim_bindings}
     _validate_claim_axes(axes)
     _validate_claim_coordinates(case)
+    if "backend-realization" in axes:
+        _validate_observed_native_evidence(case, "backend realization")
     if "backend-conformance" in axes:
+        _validate_observed_native_evidence(case, "backend conformance")
         _validate_backend_conformance_claim(case)
 
 
@@ -212,11 +216,23 @@ def _validate_claim_coordinates(case: ConformanceCaseResult) -> None:
         raise ValueError("backend assurance claims for one case must use identical governed coordinates")
 
 
-def _validate_backend_conformance_claim(case: ConformanceCaseResult) -> None:
-    """Require backend-native ownership and exact evidence coordinates."""
+def _validate_observed_native_evidence(case: ConformanceCaseResult, claim: str) -> None:
+    """Require a backend-native owner derived from fully observed execution.
+
+    A reported or finite-model transcript, or a runtime-mediated result, cannot
+    carry a backend realization or conformance claim, even in a report built by
+    hand rather than by the runner.
+    """
 
     if case.realization_owner != "backend-native":
-        raise ValueError("backend conformance claim requires backend-native realization ownership")
+        raise ValueError(f"{claim} claim requires backend-native realization ownership")
+    if case.evidence_origin != "observed-execution":
+        raise ValueError(f"{claim} claim requires observed-execution evidence")
+
+
+def _validate_backend_conformance_claim(case: ConformanceCaseResult) -> None:
+    """Require exact evidence coordinates for a backend conformance claim."""
+
     digests = (
         case.profile_digest,
         case.manifest_digest,
@@ -341,6 +357,7 @@ def backend_conformance_report_payload(report: BackendConformanceReport) -> dict
                 "policy_binding": _policy_binding_payload(case.policy_binding),
                 "claim_bindings": [binding.model_dump(mode="json") for binding in case.claim_bindings],
                 "realization_owner": case.realization_owner,
+                "evidence_origin": case.evidence_origin,
                 "profile_digest": case.profile_digest,
                 "manifest_digest": case.manifest_digest,
                 "tool_digest": case.tool_digest,

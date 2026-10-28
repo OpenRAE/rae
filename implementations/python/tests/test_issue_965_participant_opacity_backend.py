@@ -1,9 +1,10 @@
 """SEM-231/API-407/ASR-535 backend participant-opacity assurance.
 
-The generic conformance runner owns every verdict. An external-style opacity
-backend double (stub components plus a bounded opacity declaration and an
-in-process relation probe) and its harness supply the backend inputs, as a
-downstream backend distribution would.
+The generic conformance runner owns execution, the transcript, and every
+verdict (issue #1374). An external-style harness supplies exact-cut point
+resolvers, typed carriers, the transcript the backend reports, and a backend
+state commitment, as a downstream backend distribution would. Every backend
+double here is explicitly synthetic.
 """
 
 from __future__ import annotations
@@ -11,6 +12,15 @@ from __future__ import annotations
 from dataclasses import replace
 
 import pytest
+from participant_crossing_fixtures import (
+    PARTICIPANT,
+    admission_request,
+    behavior,
+    control_specification,
+    evidence,
+    identity,
+    policy_capable_target,
+)
 from raes_backend_protocols.capabilities import (
     PARTICIPANT_RUNTIME_CAPABILITY_REQUIRED_CONTRACTS,
     PARTICIPANT_RUNTIME_EVIDENCE_REQUIRED_FEATURES,
@@ -20,26 +30,36 @@ from raes_backend_protocols.capabilities import (
 from raes_backend_protocols.manifest import backend_manifest_payload
 from raes_backend_protocols.participant_feature_admission import resolve_participant_feature_support
 from raes_backend_stubs.stubs import StubParticipantRuntime, create_stub_target
+from raes_conformance.conformance.participant_opacity_execution import _OperationFacts, _PointMeasurement
 from raes_conformance.conformance.participant_opacity_probes import (
+    ParticipantOpacityBackendReadback,
     ParticipantOpacityProbeCase,
     ParticipantOpacityProbeObservation,
-    ParticipantOpacityRealizationOwner,
+    ParticipantOpacityProbePoint,
+    ParticipantOpacityReadbackRequest,
 )
+from raes_conformance.conformance.participant_opacity_projection import project_observation
 from raes_conformance.conformance.report import (
     backend_conformance_report_payload,
     validate_backend_conformance_report,
 )
 from raes_conformance.conformance.target import run_target_conformance
+from raes_conformance.realization import ExecutionBasis
 from raes_contracts.behavioral_relation_profiles import load_behavioral_relation_profile
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import BackendManifestV2Model
+from raes_contracts.contracts.participant_crossing import ParticipantCrossingGateDisposition
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
+from test_issue_964_participant_opacity_runtime import _OpacityResolver
 
 FEATURE = "participant_predicate_opacity"
 PROFILE_ID = "participant-opacity-runtime-reference-v1"
 SECRET_MARKER = "participant-secret-never-report-965"
+PROTECTED = "possible-point:runtime-reference-protected"
+COMPLEMENT = "possible-point:runtime-reference-complement"
+FINAL_SINK_LIMITATION = "Final-sink flow-control enforcement was disabled for this case."
 
-EXPECTED_OBSERVATION = ParticipantOpacityProbeObservation(
+UNIFORM_DENIAL = ParticipantOpacityProbeObservation(
     decision="deny",
     failure="uniform-refusal",
     action_availability="denied",
@@ -54,25 +74,19 @@ EXPECTED_OBSERVATION = ParticipantOpacityProbeObservation(
 )
 
 
-_PROTECTED_POINT = "possible-point:runtime-reference-protected"
-_COMPLEMENT_POINT = "possible-point:runtime-reference-complement"
+class ReadbackParticipantRuntime(StubParticipantRuntime):
+    """Synthetic backend double whose admitted effects are visible through readback."""
 
+    def __init__(self) -> None:
+        super().__init__()
+        self.effects: list[str] = []
 
-class OpacityParticipantRuntime(StubParticipantRuntime):
-    """Backend double exposing the closed finite opacity observation transcript."""
+    def admit_action(self, request, snapshot):
+        self.effects.append(request.action_instance_id)
+        return super().admit_action(request, snapshot)
 
-    def participant_relation_probe(
-        self, *, relation_id: str, profile_id: str, profile_revision: str, possible_point_ref: str
-    ) -> dict[str, object]:
-        profile = load_behavioral_relation_profile(PROFILE_ID)
-        if (
-            relation_id != "participant-predicate-opacity"
-            or profile_id != PROFILE_ID
-            or profile_revision != profile.profile_revision
-            or possible_point_ref not in {_PROTECTED_POINT, _COMPLEMENT_POINT}
-        ):
-            raise ValueError("unsupported participant relation probe coordinates")
-        return EXPECTED_OBSERVATION.__dict__.copy()
+    def state_digest(self) -> str:
+        return canonical_json_digest({"effects": list(self.effects)})
 
 
 def _opacity_support() -> ParticipantFeatureSupport:
@@ -85,15 +99,12 @@ def _opacity_support() -> ParticipantFeatureSupport:
             "limitation:participant-opacity:finite-profile-and-probe-set",
             "limitation:participant-opacity:no-universal-proof-or-cross-backend-equivalence",
         ),
-        disclosure_refs=("disclosure:participant-opacity:backend-native-double-realization",),
-        evidence_refs=("conformance:participant-opacity-backend:complete-transcript",),
+        disclosure_refs=("disclosure:participant-opacity:runtime-mediated-double",),
+        evidence_refs=("conformance:participant-opacity-backend:observed-transcript",),
     )
 
 
-def create_opacity_backend_target(participant_runtime=None):
-    """Return stub components with a bounded opacity declaration and relation probe."""
-
-    target = create_stub_target()
+def _declare_opacity(target, participant_runtime=None):
     capability = target.manifest.participant_runtime
     assert capability is not None
     capability = replace(
@@ -111,104 +122,112 @@ def create_opacity_backend_target(participant_runtime=None):
     return replace(
         target,
         manifest=manifest,
-        participant_runtime=participant_runtime or OpacityParticipantRuntime(),
+        participant_runtime=participant_runtime or target.participant_runtime,
+    )
+
+
+def create_opacity_backend_target():
+    """Return stub components with only a bounded opacity declaration."""
+
+    return _declare_opacity(create_stub_target())
+
+
+def create_probe_target(participant_runtime=None):
+    """Return a policy-capable synthetic target that can execute governed crossings."""
+
+    return _declare_opacity(
+        policy_capable_target(
+            "participant_ingress_admission",
+            "participant_egress_projection",
+            "participant_transformation",
+        ),
+        participant_runtime or ReadbackParticipantRuntime(),
     )
 
 
 class OpacityHarness:
-    """External-style harness: supplies backend inputs while the runner owns verdicts."""
+    """External-style harness: supplies inputs, a report, and readback; never a verdict."""
 
-    probe_set_digest = canonical_json_digest({"probe_set": "participant-opacity-backend/rev1"})
-    configuration_digest = canonical_json_digest({"configuration": "opacity-backend-double/default"})
-    tool_digest = canonical_json_digest({"tool": "raes-conformance-participant-opacity/rev1"})
+    probe_set_digest = canonical_json_digest({"probe_set": "participant-opacity-backend/rev2"})
     environment_digest = canonical_json_digest({"environment": "in-process-double"})
 
+    def protected_resolver(self):
+        return _OpacityResolver()
+
+    def complement_resolver(self):
+        return _OpacityResolver(gate_overrides={"action_admission": ParticipantCrossingGateDisposition.DENY})
+
+    def probe_identity(self):
+        return identity(audience_bound=True)
+
     def cases(self, target) -> tuple[ParticipantOpacityProbeCase, ...]:
+        del target
         profile = load_behavioral_relation_profile(PROFILE_ID)
         return (
             ParticipantOpacityProbeCase(
-                name="complete-observation-transcript",
+                name="observed-uniform-denial",
                 profile_id=profile.profile_id,
                 profile_revision=profile.profile_revision,
                 profile_digest=profile.canonical_digest,
-                actual_point_ref=_PROTECTED_POINT,
-                alternative_point_ref=_COMPLEMENT_POINT,
-                expected_observation=EXPECTED_OBSERVATION,
-                realization_owner=ParticipantOpacityRealizationOwner.BACKEND_NATIVE,
-                execution_basis="hermetic-live",
-                manifest_digest=canonical_json_digest(backend_manifest_payload(target.manifest)),
-                configuration_digest=self.configuration_digest,
-                tool_digest=self.tool_digest,
+                protected_point=ParticipantOpacityProbePoint(PROTECTED, self.protected_resolver()),
+                complement_point=ParticipantOpacityProbePoint(COMPLEMENT, self.complement_resolver()),
+                participant_address=PARTICIPANT,
+                episode_id="episode-1",
+                behavior=behavior(),
+                admission_request=admission_request(),
+                identity=self.probe_identity(),
+                crossing_evidence=evidence(),
+                idempotency_key="opacity-probe",
                 environment_digest=self.environment_digest,
-                evidence_refs=("conformance:participant-opacity-backend:complete-transcript",),
+                evidence_refs=("conformance:participant-opacity-backend:observed-transcript",),
                 limitations=("Limited to the named finite profile and probe set.",),
                 explicit_non_claims=(
                     "No universal backend opacity, proof, model check, or cross-backend equivalence.",
                 ),
+                # The synthetic resolvers predate the SEM-233 final-sink hook.
+                enforce_final_sink_flow_control=False,
             ),
         )
 
-    @staticmethod
-    def observe(target, case: ParticipantOpacityProbeCase, point_ref: str) -> ParticipantOpacityProbeObservation:
-        runtime = target.participant_runtime
-        if runtime is None:
-            raise ValueError("participant runtime is unavailable")
-        payload = runtime.participant_relation_probe(
-            relation_id="participant-predicate-opacity",
-            profile_id=case.profile_id,
-            profile_revision=case.profile_revision,
-            possible_point_ref=point_ref,
+    def reported_observation(self, target, case, point_ref) -> ParticipantOpacityProbeObservation:
+        del target, case, point_ref
+        return UNIFORM_DENIAL
+
+    def backend_readback(self, target, case, request) -> ParticipantOpacityBackendReadback:
+        del case
+        return ParticipantOpacityBackendReadback(
+            request=request,
+            source_ref="backend-state:readback-double",
+            state_digest=target.participant_runtime.state_digest(),
         )
-        return ParticipantOpacityProbeObservation(**payload)
 
 
-class RuntimeMediatedOnlyHarness(OpacityHarness):
-    def observe(self, target, case: ParticipantOpacityProbeCase, point_ref: str):
-        del target, case, point_ref
-        return EXPECTED_OBSERVATION
+def _opacity_case(report):
+    return next(case for case in report.cases if case.capability_feature == FEATURE)
 
 
-class EmptyOpacityHarness(OpacityHarness):
-    def cases(self, target):
-        del target
-        return ()
+def _codes(case) -> set[str]:
+    return {diag.code for diag in case.diagnostics}
 
 
-class LeakingParticipantRuntime(OpacityParticipantRuntime):
-    def participant_relation_probe(self, **coordinates):
-        observation = super().participant_relation_probe(**coordinates)
-        if coordinates["possible_point_ref"].endswith("protected"):
-            observation = {**observation, "decision": "allow"}
-        return observation
+def _diagnostic(case, code: str):
+    return next(diag for diag in case.diagnostics if diag.code == code)
 
 
-class SecretFailureHarness(OpacityHarness):
-    def observe(self, target, case: ParticipantOpacityProbeCase, point_ref: str):
-        del target, case, point_ref
-        raise ValueError(f"rejected {SECRET_MARKER}")
-
-
-def _opacity_declaration(target):
-    capability = target.manifest.participant_runtime
-    assert capability is not None
-    return next(item for item in capability.feature_support if item.feature == FEATURE)
-
-
-def _opacity_cases(report):
-    return [
-        case
-        for case in report.cases
-        if any(binding.relation_id == "participant-predicate-opacity" for binding in case.claim_bindings)
-    ]
+def _run(harness=None, *, participant_runtime=None, **options):
+    return run_target_conformance(
+        create_probe_target(participant_runtime),
+        participant_opacity_harness=harness or OpacityHarness(),
+        **options,
+    )
 
 
 def test_manifest_round_trip_declares_one_bounded_relation_feature() -> None:
     target = create_opacity_backend_target()
-    declaration = _opacity_declaration(target)
+    declaration = next(item for item in target.manifest.participant_runtime.feature_support if item.feature == FEATURE)
 
     payload = backend_manifest_payload(target.manifest)
-    model = BackendManifestV2Model.model_validate(payload)
-    round_trip = model.model_dump(mode="json")
+    round_trip = BackendManifestV2Model.model_validate(payload).model_dump(mode="json")
 
     assert round_trip == payload
     assert declaration.support_level is ParticipantFeatureSupportLevel.BOUNDED
@@ -235,9 +254,7 @@ def test_manifest_round_trip_declares_one_bounded_relation_feature() -> None:
 
 def test_positive_declaration_rejects_missing_evidence_or_contracts() -> None:
     target = create_opacity_backend_target()
-    capability = target.manifest.participant_runtime
-    assert capability is not None
-    declaration = _opacity_declaration(target)
+    declaration = next(item for item in target.manifest.participant_runtime.feature_support if item.feature == FEATURE)
 
     with pytest.raises(ValueError, match="evidence_refs"):
         replace(declaration, evidence_refs=())
@@ -259,95 +276,203 @@ def test_positive_declaration_rejects_missing_evidence_or_contracts() -> None:
 def test_declared_profile_without_executed_cases_is_unsupported() -> None:
     report = run_target_conformance(create_opacity_backend_target())
 
-    case = next(case for case in report.cases if case.capability_feature == FEATURE and case.outcome == "unsupported")
+    case = _opacity_case(report)
+    assert case.outcome == "unsupported"
     assert not case.passed
     assert not report.passed
+    assert case.evidence_origin == "declaration"
     assert {binding.assurance_axis for binding in case.claim_bindings} == {"backend-declaration"}
 
 
 def test_empty_harness_cannot_erase_a_positive_declaration() -> None:
-    report = run_target_conformance(
-        create_opacity_backend_target(),
-        participant_opacity_harness=EmptyOpacityHarness(),
-    )
+    class EmptyHarness(OpacityHarness):
+        def cases(self, target):
+            del target
+            return ()
 
-    case = next(case for case in report.cases if case.capability_feature == FEATURE)
+    case = _opacity_case(_run(EmptyHarness()))
+
     assert not case.passed
     assert case.outcome == "unsupported"
-    assert any(diag.code == "conformance.participant-opacity-harness-empty" for diag in case.diagnostics)
+    assert "conformance.participant-opacity-harness-empty" in _codes(case)
 
 
-def test_backend_native_cases_emit_three_independent_bound_claims() -> None:
-    target = create_opacity_backend_target()
+def test_observed_runtime_mediated_containment_keeps_only_the_declaration_claim() -> None:
+    report = _run(execution_basis=ExecutionBasis.HERMETIC_LIVE)
+    case = _opacity_case(report)
     profile = load_behavioral_relation_profile(PROFILE_ID)
 
-    report = run_target_conformance(target, participant_opacity_harness=OpacityHarness())
-
-    cases = _opacity_cases(report)
-    native = next(case for case in cases if case.realization_owner == "backend-native")
-    assert native.passed
-    assert not report.passed
-    envelope_cases = tuple(case for case in report.cases if case.contract_name == "realization-envelope-v1")
-    assert envelope_cases
-    assert all(not case.passed for case in envelope_cases)
-    assert {binding.assurance_axis for binding in native.claim_bindings} == {
-        "backend-declaration",
-        "backend-realization",
-        "backend-conformance",
-    }
-    assert all(binding.taxonomy_revision == profile.taxonomy_revision for binding in native.claim_bindings)
-    assert all(
-        binding.relation_parameter_profile_revision == profile.profile_revision for binding in native.claim_bindings
-    )
-    assert native.profile_digest == profile.canonical_digest
-    assert native.manifest_digest
-    assert native.configuration_digest
-    assert native.tool_digest
-    assert native.environment_digest
-    assert native.probe_set_digest == OpacityHarness.probe_set_digest
+    assert case.passed, [diag.message for diag in case.diagnostics]
+    assert case.realization_owner == "runtime-mediated"
+    assert case.evidence_origin == "observed-execution"
+    assert case.execution_basis == "hermetic-live"
+    assert case.effective_support_level == "bounded"
+    assert {binding.assurance_axis for binding in case.claim_bindings} == {"backend-declaration"}
+    assert case.profile_digest == profile.canonical_digest
+    assert case.manifest_digest
+    assert case.configuration_digest
+    assert case.tool_digest
+    assert case.environment_digest == OpacityHarness.environment_digest
+    assert case.probe_set_digest == OpacityHarness.probe_set_digest
+    assert FINAL_SINK_LIMITATION in case.limitations
     assert report.claim.relation_id == "bounded-probe-success"
-    assert report.claim.evidence_scope == "finite"
+    validate_backend_conformance_report(report)
 
 
-def test_adversarial_backend_is_detected_with_runtime_configuration_fixed() -> None:
-    target = create_opacity_backend_target(participant_runtime=LeakingParticipantRuntime())
+def test_execution_basis_comes_from_the_run_not_a_default() -> None:
+    case = _opacity_case(_run(execution_basis=ExecutionBasis.NATIVE_LIVE))
 
-    report = run_target_conformance(target, participant_opacity_harness=OpacityHarness())
+    assert case.execution_basis == "native-live"
 
-    case = next(case for case in report.cases if case.capability_feature == FEATURE)
+
+def test_constant_transcript_without_runtime_containment_cannot_pass() -> None:
+    """The issue #1374 defect: a fixed report after unrelated backend calls."""
+
+    class UnenforcedHarness(OpacityHarness):
+        def protected_resolver(self):
+            return _OpacityResolver(include_claim=False)
+
+        def complement_resolver(self):
+            return _OpacityResolver(include_claim=False)
+
+    case = _opacity_case(_run(UnenforcedHarness()))
+
     assert not case.passed
-    assert not report.passed
+    assert case.realization_owner == "declaration-only"
     assert {binding.assurance_axis for binding in case.claim_bindings} == {"backend-declaration"}
-    assert any(diag.code == "conformance.participant-opacity-observation-mismatch" for diag in case.diagnostics)
+    assert {
+        "conformance.participant-opacity-transcript-disagreement",
+        "conformance.participant-opacity-normal-form-mismatch",
+        "conformance.participant-opacity-realization-unestablished",
+    } <= _codes(case)
 
 
-def test_runtime_mediation_cannot_be_reported_as_backend_native() -> None:
-    report = run_target_conformance(
-        create_opacity_backend_target(),
-        participant_opacity_harness=RuntimeMediatedOnlyHarness(),
-    )
+def test_fabricated_report_disagrees_with_instrumented_execution() -> None:
+    class FabricatingHarness(OpacityHarness):
+        def reported_observation(self, target, case, point_ref):
+            del target, case
+            return replace(UNIFORM_DENIAL, retry="divergent-replay") if point_ref == PROTECTED else UNIFORM_DENIAL
 
-    case = next(case for case in _opacity_cases(report) if case.realization_owner == "backend-native")
+    case = _opacity_case(_run(FabricatingHarness()))
+
     assert not case.passed
-    assert any(diag.code == "conformance.participant-opacity-backend-unobserved" for diag in case.diagnostics)
-    assert {binding.assurance_axis for binding in case.claim_bindings} == {"backend-declaration"}
+    assert case.evidence_origin == "observed-execution"
+    assert "retry" in _diagnostic(case, "conformance.participant-opacity-transcript-disagreement").message
 
 
-def test_forged_manifest_digest_cannot_bind_backend_conformance() -> None:
-    class ForgedDigestHarness(OpacityHarness):
+def test_secret_dependent_runtime_policy_is_detected_across_points() -> None:
+    class LeakingHarness(OpacityHarness):
+        def protected_resolver(self):
+            return _OpacityResolver(include_claim=False)
+
+    case = _opacity_case(_run(LeakingHarness()))
+
+    assert not case.passed
+    assert "conformance.participant-opacity-observation-mismatch" in _codes(case)
+    assert case.realization_owner == "declaration-only"
+
+
+def test_hidden_backend_effect_is_visible_through_readback() -> None:
+    class DriftingRuntime(ReadbackParticipantRuntime):
+        def state_digest(self) -> str:
+            self.effects.append("hidden")
+            return super().state_digest()
+
+    case = _opacity_case(_run(participant_runtime=DriftingRuntime()))
+
+    assert not case.passed
+    assert "conformance.participant-opacity-normal-form-mismatch" in _codes(case)
+
+
+def test_missing_backend_readback_is_synthetic_and_cannot_pass() -> None:
+    class NoReadbackHarness(OpacityHarness):
+        def backend_readback(self, target, case, request):
+            raise LookupError("backend readback unavailable")
+
+    case = _opacity_case(_run(NoReadbackHarness()))
+
+    assert not case.passed
+    assert case.evidence_origin == "synthetic-model"
+    assert "external_effect" in _diagnostic(case, "conformance.participant-opacity-observation-missing").message
+
+
+def test_refusal_before_the_delivery_opportunity_is_not_withholding() -> None:
+    class UnboundAudienceHarness(OpacityHarness):
+        def probe_identity(self):
+            return identity(audience_bound=False)
+
+    case = _opacity_case(_run(UnboundAudienceHarness()))
+
+    assert not case.passed
+    assert case.evidence_origin == "synthetic-model"
+    missing = _diagnostic(case, "conformance.participant-opacity-observation-missing").message
+    assert "delivery" in missing
+    assert "omission" in missing
+
+
+def test_unexpected_runtime_error_is_not_counted_as_denial() -> None:
+    class RaisingResolver(_OpacityResolver):
+        def resolve(self, intent, snapshot):
+            raise RuntimeError("policy store offline")
+
+    class RaisingHarness(OpacityHarness):
+        def protected_resolver(self):
+            return RaisingResolver()
+
+    case = _opacity_case(_run(RaisingHarness()))
+
+    assert not case.passed
+    assert case.evidence_origin == "synthetic-model"
+    assert {
+        "conformance.participant-opacity-probe-rejected",
+        "conformance.participant-opacity-observation-missing",
+    } <= _codes(case)
+
+
+def test_swapped_points_do_not_rejoin_the_runtime_support() -> None:
+    class SwappedHarness(OpacityHarness):
         def cases(self, target):
             case = super().cases(target)[0]
-            return (replace(case, manifest_digest=canonical_json_digest({"manifest": "other"})),)
+            return (
+                replace(
+                    case,
+                    protected_point=replace(case.protected_point, point_ref=COMPLEMENT),
+                    complement_point=replace(case.complement_point, point_ref=PROTECTED),
+                ),
+            )
 
-    report = run_target_conformance(
-        create_opacity_backend_target(),
-        participant_opacity_harness=ForgedDigestHarness(),
-    )
+    case = _opacity_case(_run(SwappedHarness()))
 
-    case = next(case for case in report.cases if case.capability_feature == FEATURE)
     assert not case.passed
-    assert {binding.assurance_axis for binding in case.claim_bindings} == {"backend-declaration"}
-    assert any(diag.code == "conformance.participant-opacity-harness-rejected" for diag in case.diagnostics)
+    assert case.realization_owner == "declaration-only"
+    assert "conformance.participant-opacity-realization-unestablished" in _codes(case)
+
+
+def test_final_sink_enforcement_is_not_silently_disabled() -> None:
+    class EnforcingHarness(OpacityHarness):
+        def cases(self, target):
+            return (replace(super().cases(target)[0], enforce_final_sink_flow_control=True),)
+
+    case = _opacity_case(_run(EnforcingHarness()))
+
+    assert not case.passed
+    assert FINAL_SINK_LIMITATION not in case.limitations
+    assert case.evidence_origin == "synthetic-model"
+    assert _diagnostic(case, "conformance.participant-opacity-probe-rejected").message.startswith("execution:")
+
+
+def test_configuration_digest_is_derived_from_the_actual_configuration() -> None:
+    baseline = _opacity_case(_run()).configuration_digest
+
+    class OtherSupportHarness(OpacityHarness):
+        def complement_resolver(self):
+            resolver = super().complement_resolver()
+            resolver.support = resolver.support.model_copy(
+                update={"predicate_negative_case_ref": "possible-point:other"}
+            )
+            return resolver
+
+    assert _opacity_case(_run(OtherSupportHarness())).configuration_digest != baseline
 
 
 def test_undeclared_profile_cannot_bind_backend_conformance() -> None:
@@ -364,21 +489,16 @@ def test_undeclared_profile_cannot_bind_backend_conformance() -> None:
                 ),
             )
 
-    report = run_target_conformance(
-        create_opacity_backend_target(),
-        participant_opacity_harness=UndeclaredProfileHarness(),
-    )
+    case = _opacity_case(_run(UndeclaredProfileHarness()))
 
-    case = next(case for case in report.cases if case.capability_feature == FEATURE)
     assert not case.passed
     assert {binding.assurance_axis for binding in case.claim_bindings} == {"backend-declaration"}
-    assert any(diag.code == "conformance.participant-opacity-harness-rejected" for diag in case.diagnostics)
+    assert "conformance.participant-opacity-harness-rejected" in _codes(case)
 
 
-def test_authorized_weakening_removes_realization_and_conformance_claims() -> None:
-    target = create_opacity_backend_target()
+def test_authorized_weakening_cannot_execute_a_bounded_probe() -> None:
+    target = create_probe_target()
     capability = target.manifest.participant_runtime
-    assert capability is not None
     weakened = tuple(
         replace(item, support_level=ParticipantFeatureSupportLevel.DISCLOSED_WEAK) if item.feature == FEATURE else item
         for item in capability.feature_support
@@ -390,51 +510,98 @@ def test_authorized_weakening_removes_realization_and_conformance_claims() -> No
             participant_runtime=replace(capability, feature_support=weakened),
         ),
     )
-    target = replace(target, manifest=manifest)
 
-    report = run_target_conformance(target, participant_opacity_harness=OpacityHarness())
+    report = run_target_conformance(replace(target, manifest=manifest), participant_opacity_harness=OpacityHarness())
 
-    case = next(case for case in _opacity_cases(report) if case.capability_feature == FEATURE)
+    case = _opacity_case(report)
     assert not case.passed
     assert case.limitations
     assert {binding.assurance_axis for binding in case.claim_bindings} == {"backend-declaration"}
 
 
 def test_secret_bearing_failures_are_sanitized_before_report_projection() -> None:
-    report = run_target_conformance(
-        create_opacity_backend_target(),
-        participant_opacity_harness=SecretFailureHarness(),
-    )
+    class SecretResolver(_OpacityResolver):
+        def resolve(self, intent, snapshot):
+            raise ValueError(f"rejected {SECRET_MARKER}")
 
-    payload = backend_conformance_report_payload(report)
-    rendered = str(payload)
+    class SecretHarness(OpacityHarness):
+        def protected_resolver(self):
+            return SecretResolver()
+
+        def reported_observation(self, target, case, point_ref):
+            raise ValueError(f"report {SECRET_MARKER}")
+
+    report = _run(SecretHarness())
+
+    rendered = str(backend_conformance_report_payload(report))
     assert SECRET_MARKER not in rendered
     assert "input_value" not in rendered
     assert not report.passed
 
 
-def test_report_validator_rejects_conformance_without_realization() -> None:
-    report = run_target_conformance(
-        create_opacity_backend_target(),
-        participant_opacity_harness=OpacityHarness(),
+def test_validator_refuses_realization_without_native_observed_evidence() -> None:
+    report = _run()
+    case = _opacity_case(report)
+    declaration = case.claim_bindings[0]
+    realization = declaration.model_copy(
+        update={
+            "assurance_axis": "backend-realization",
+            "assurance_status": "realized",
+            "evidence_scope": "finite",
+            "quantifier_scope": "finite-cases",
+        }
     )
-    case = next(case for case in _opacity_cases(report) if case.realization_owner == "backend-native")
-    claims = tuple(binding for binding in case.claim_bindings if binding.assurance_axis != "backend-realization")
-    forged = replace(case, claim_bindings=claims)
-    forged_report = replace(report, cases=tuple(forged if item is case else item for item in report.cases))
+    forged = replace(case, claim_bindings=(declaration, realization))
 
-    with pytest.raises(ValueError, match="backend conformance.*realization"):
-        validate_backend_conformance_report(forged_report)
+    def forged_report(item):
+        return replace(report, cases=tuple(item if entry is case else entry for entry in report.cases))
+
+    with pytest.raises(ValueError, match="backend realization claim requires backend-native"):
+        validate_backend_conformance_report(forged_report(forged))
+    synthetic_native = replace(forged, realization_owner="backend-native", evidence_origin="synthetic-model")
+    with pytest.raises(ValueError, match="backend realization claim requires observed-execution"):
+        validate_backend_conformance_report(forged_report(synthetic_native))
+
+
+def _facts(*stages: str, operation_id: str | None = "op-1", **values) -> _OperationFacts:
+    records = tuple(
+        {
+            "event_id": f"event-{index}",
+            "predecessor_event_refs": [],
+            "occurrence": {"stage": stage, "effective_order": index + 1},
+        }
+        for index, stage in enumerate(stages)
+    )
+    return _OperationFacts(records=records, backend_calls=(), operation_id=operation_id, **values)
+
+
+def test_projection_refuses_to_promote_divergent_replay_or_reordered_stages() -> None:
+    measurement = _PointMeasurement(
+        point_ref=PROTECTED,
+        ingress=_facts("decided", "requested", terminal_state="failed"),
+        replay=_facts("requested", operation_id="op-2", terminal_state="failed"),
+        egress=_facts("requested", "decided", "delivered", operation_id=None, result="view"),
+        readback_before=None,
+        readback_after=None,
+        history_valid=True,
+        opacity_supports=(),
+        failures=(),
+    )
+
+    observed = project_observation(measurement)
+
+    assert observed["retry"] == "divergent-replay"
+    assert str(observed["logical_order"]).startswith("order:")
+    assert observed["logical_timing"] == "logical-bucket:2-1-3"
+    assert observed["policy_release_effect"] == "released"
+    assert observed["delivery"] == "delivered"
+    assert observed["omission"] == "not-recorded"
+    assert observed["payload_released"] is True
+    assert observed["external_effect"] is None
 
 
 def test_adapter_probes_pass_for_every_hermetic_backend() -> None:
-    """The provisioning/snapshot adapter probes must stay envelope-neutral.
-
-    An authored ``os`` in the default probe scenario becomes an exact SEM-218
-    realization requirement no hermetic in-process backend can corroborate, so
-    the default probe must stay admissible on every declared envelope (issue
-    #663's runner parameter stays the escape hatch for bounded backends).
-    """
+    """The provisioning/snapshot adapter probes must stay envelope-neutral."""
 
     for target in (create_stub_target(), create_opacity_backend_target()):
         report = run_target_conformance(target)
@@ -456,3 +623,181 @@ def test_a_positive_declaration_adds_only_the_unexecuted_opacity_case() -> None:
     assert {case.name for case in double_report.cases} - {case.name for case in stub_report.cases} == {
         "participant-opacity-backend-not-executed"
     }
+
+
+@pytest.mark.parametrize("state", ["indeterminate", "running", "accepted"])
+def test_projection_never_counts_an_unfinished_action_as_denial(state: str) -> None:
+    measurement = _PointMeasurement(
+        point_ref=PROTECTED,
+        ingress=_facts("requested", "decided", terminal_state=state),
+        replay=None,
+        egress=None,
+        readback_before=None,
+        readback_after=None,
+        history_valid=True,
+        opacity_supports=(),
+        failures=(),
+    )
+
+    observed = project_observation(measurement)
+
+    assert observed["decision"] == observed["failure"] == observed["action_availability"] == "indeterminate"
+    assert observed["logical_order"] is None
+    assert observed["retry"] is None
+
+
+def test_projection_rejects_a_broken_causal_chain_with_contained_stages() -> None:
+    egress = _facts("requested", "decided", "delivery-attempted", operation_id=None, result="refused")
+    broken = replace(
+        egress,
+        records=(
+            egress.records[0],
+            {**egress.records[1], "predecessor_event_refs": ["event-unknown"]},
+            egress.records[2],
+        ),
+    )
+    measurement = _PointMeasurement(
+        point_ref=PROTECTED,
+        ingress=_facts("requested", "decided", terminal_state="failed"),
+        replay=_facts(operation_id="op-1"),
+        egress=broken,
+        readback_before="sha256:" + "0" * 64,
+        readback_after="sha256:" + "1" * 64,
+        history_valid=True,
+        opacity_supports=(),
+        failures=(),
+    )
+
+    observed = project_observation(measurement)
+
+    assert observed["logical_timing"] == "logical-bucket:contained"
+    assert str(observed["logical_order"]).startswith("order:")
+    assert observed["delivery"] is None
+    assert observed["external_effect"] == "observed"
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        ({"complement_point": ParticipantOpacityProbePoint(PROTECTED, None)}, "distinct possible points"),
+        ({"idempotency_key": ""}, "idempotency key"),
+        ({"environment_digest": "environment"}, "environment digest"),
+    ],
+)
+def test_probe_case_rejects_ambiguous_inputs(change: dict[str, object], message: str) -> None:
+    case = OpacityHarness().cases(None)[0]
+
+    with pytest.raises(ValueError, match=message):
+        replace(case, **change)
+
+
+def test_untyped_report_and_readback_cannot_supply_evidence() -> None:
+    class UntypedHarness(OpacityHarness):
+        def reported_observation(self, target, case, point_ref):
+            return UNIFORM_DENIAL.__dict__.copy()
+
+        def backend_readback(self, target, case, request):
+            return target.participant_runtime.state_digest()
+
+    case = _opacity_case(_run(UntypedHarness()))
+
+    assert not case.passed
+    assert case.evidence_origin == "synthetic-model"
+    messages = [diag.message for diag in case.diagnostics if diag.code.endswith("probe-rejected")]
+    assert any(message.startswith("reported transcript:") for message in messages)
+    assert any(message.startswith("backend readback:") for message in messages)
+    request = ParticipantOpacityReadbackRequest("collection", "case", PROTECTED, "before")
+    with pytest.raises(ValueError, match="sha256"):
+        ParticipantOpacityBackendReadback(request, "backend-state:double", "not-a-digest")
+    with pytest.raises(ValueError, match="state source"):
+        ParticipantOpacityBackendReadback(request, "", canonical_json_digest({}))
+    with pytest.raises(ValueError, match="runner-issued"):
+        ParticipantOpacityBackendReadback("request", "backend-state:double", canonical_json_digest({}))
+
+
+def test_committed_history_that_no_longer_validates_cannot_establish_mediation() -> None:
+    class StaleContextResolver(_OpacityResolver):
+        stale = False
+
+        def validation_context(self, snapshot, participant_address):
+            context = super().validation_context(snapshot, participant_address)
+            return replace(context, known_subjects=()) if self.stale else context
+
+    class StaleContextHarness(OpacityHarness):
+        def __init__(self) -> None:
+            self.resolver = StaleContextResolver()
+            self.readbacks = 0
+
+        def protected_resolver(self):
+            return self.resolver
+
+        def backend_readback(self, target, case, request):
+            # The second readback is the last step before the runner validates
+            # history; the trusted context no longer admits the committed facts.
+            self.readbacks += 1
+            self.resolver.stale = self.readbacks == 2
+            return super().backend_readback(target, case, request)
+
+    case = _opacity_case(_run(StaleContextHarness()))
+
+    assert not case.passed
+    assert case.realization_owner == "declaration-only"
+    assert any(diag.message.startswith("committed history:") for diag in case.diagnostics)
+
+
+def test_cached_backend_readback_cannot_report_no_effect() -> None:
+    class CachingHarness(OpacityHarness):
+        cached = None
+
+        def backend_readback(self, target, case, request):
+            if self.cached is None:
+                self.cached = super().backend_readback(target, case, request)
+            return self.cached
+
+    case = _opacity_case(_run(CachingHarness()))
+
+    assert not case.passed
+    assert case.evidence_origin == "synthetic-model"
+    assert "external_effect" in _diagnostic(case, "conformance.participant-opacity-observation-missing").message
+
+
+def test_wrong_point_backend_readback_is_rejected() -> None:
+    class WrongPointHarness(OpacityHarness):
+        def backend_readback(self, target, case, request):
+            other = COMPLEMENT if request.point_ref == PROTECTED else PROTECTED
+            return super().backend_readback(target, case, replace(request, point_ref=other))
+
+    case = _opacity_case(_run(WrongPointHarness()))
+
+    assert not case.passed
+    assert case.evidence_origin == "synthetic-model"
+    assert any(diag.message.startswith("backend readback:") for diag in case.diagnostics)
+
+
+def test_readback_from_different_state_sources_is_not_compared() -> None:
+    class SourceSwitchingHarness(OpacityHarness):
+        def backend_readback(self, target, case, request):
+            readback = super().backend_readback(target, case, request)
+            return replace(readback, source_ref=f"backend-state:{request.phase}")
+
+    case = _opacity_case(_run(SourceSwitchingHarness()))
+
+    assert not case.passed
+    assert case.evidence_origin == "synthetic-model"
+    assert "external_effect" in _diagnostic(case, "conformance.participant-opacity-observation-missing").message
+
+
+def test_configuration_digest_commits_behavior_specification_contents() -> None:
+    specification = control_specification()
+
+    def with_specification(value):
+        class SpecificationHarness(OpacityHarness):
+            def cases(self, target):
+                case = super().cases(target)[0]
+                return (replace(case, behavior_specifications={PARTICIPANT: value}),)
+
+        return _opacity_case(_run(SpecificationHarness())).configuration_digest
+
+    changed = replace(specification, semantic_version="changed-under-the-same-key")
+
+    assert with_specification(specification) != with_specification(changed)

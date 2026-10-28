@@ -317,7 +317,11 @@ def _known_profile_report(
     )
     participant_feature_cases = _participant_feature_cases(target, profile)
     policy_cases = participant_policy_cases(target, profile, options.participant_policy_harness)
-    opacity_cases = participant_opacity_cases(target, options.participant_opacity_harness)
+    opacity_cases = participant_opacity_cases(
+        target,
+        options.participant_opacity_harness,
+        options.execution_basis,
+    )
     target_cases = tuple(replace(case, execution_basis=options.execution_basis.value) for case in adapter_cases)
     realization_run = run_realization_conformance(
         target,

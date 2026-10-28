@@ -375,25 +375,46 @@ failed, unsupported, and counterexample cases — are not all present.
 
 ## Participant-Opacity Backend Probes
 
-The `participant_predicate_opacity` family feature follows the same generic
-target runner but is intentionally separate from participant-policy
-operations. A typed in-process harness supplies only exact profile-bound case
-inputs and an observation adapter. The runner instruments the target, invokes
-both governed possible points, compares the complete closed transcript, and
-owns the verdict. A declaration with no harness is an explicit unsupported
-case; a harness that never calls the backend cannot claim backend-native
-realization.
+The `participant_predicate_opacity` family feature uses the same generic target
+runner. It stays separate from participant-policy operations.
+The [design](../../decisions/issue-1374-observed-opacity-evidence-design.md)
+describes the evidence boundary.
 
-Each passing case carries three independent catalog-validated bindings:
-`backend-declaration/declared/structural`,
-`backend-realization/realized/finite`, and
-`backend-conformance/conformant/finite`. The case separately records the
-realization owner and execution basis, plus exact profile, manifest,
-configuration, tool, environment, and probe-set digests. Report-level meaning
-remains `bounded-probe-success`. A method, boolean, payload-redaction pair,
-runtime-mediated denial, or `native-live` label cannot substitute for the
-observed backend transcript, and finite conformance is not proof or universal
-opacity.
+A typed in-process harness supplies exact profile-bound case inputs. Each of
+the two possible points binds one exact-cut crossing policy resolver. The
+harness also supplies the transcript that the backend reports and a digest of
+backend-owned state. It does not supply an expected transcript, a realization
+owner, or provenance digests.
+
+The runner executes each point in its own `RuntimeControlPlane` on the
+instrumented target. It admits the action, replays it with the same key, and
+requests the participant status view at a governed delivery opportunity. It
+reads backend state before and after these operations. Each readback must
+answer one runner-issued collection request with a fresh nonce. It validates the
+committed history and rejoins each opacity binding to the trusted runtime
+support. It derives the closed transcript from these measured facts.
+
+The runner compares the measured transcripts of the two points. It compares
+each measured transcript with the profile normal form and with the reported
+transcript. It also compares the participant-visible projections of the two
+points. An unobserved field, a difference, or an unexpected error fails the
+case. A declaration with no harness is an explicit unsupported case.
+
+The runner derives the realization owner from the committed records. RUN-319
+normalizes every protected crossing under
+`participant-opacity-runtime-reference-v1`, so a passing case is
+`runtime-mediated`. It keeps only the
+`backend-declaration/declared/structural` binding. The runner issues no
+backend-realization or backend-conformance binding for this profile.
+
+Each case records its evidence origin (`observed-execution`,
+`synthetic-model`, or `declaration`) and its actual execution basis. It also
+records the profile, manifest, configuration, tool, environment, and probe-set
+digests. The runner computes the configuration and tool digests from the actual
+runtime, backend, resolvers, and options. The report validator refuses a
+backend-realization or backend-conformance binding without `backend-native`
+ownership and `observed-execution` evidence. Report-level meaning remains
+`bounded-probe-success`. Finite conformance is not proof or universal opacity.
 
 ## Non-Goals
 
