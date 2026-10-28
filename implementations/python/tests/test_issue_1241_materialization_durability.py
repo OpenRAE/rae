@@ -70,7 +70,7 @@ def test_durable_restart_retains_references_or_cleanup_without_reapplying(tmp_pa
         assert receipt.accepted, receipt.diagnostics
         expected = OperationState.INDETERMINATE if archive_fails else OperationState.SUCCEEDED
         assert control.get_operation(receipt.operation_id).state == expected
-        assert ("provision.node.host" in control.snapshot.entries) is not archive_fails
+        assert "provision.node.host" in control.snapshot.entries
         assert bool(control.snapshot.materialization_attestations) is not archive_fails
         assert backend.calls == 1
     finally:
@@ -86,7 +86,7 @@ def test_durable_restart_retains_references_or_cleanup_without_reapplying(tmp_pa
         again = recovered.submit_provisioning(execution.provisioning, idempotency_key="materialization-once")
         assert again == receipt
         assert backend.calls == 1
-        assert ("provision.node.host" in recovered.snapshot.entries) is not archive_fails
+        assert "provision.node.host" in recovered.snapshot.entries
         assert bool(recovered.snapshot.materialization_attestations) is not archive_fails
     finally:
         recovered.close()

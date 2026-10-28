@@ -16,9 +16,8 @@ from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.contracts import ProcessorManifestV2Model
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
-from raes_contracts.materialization import MaterializationSource
 from raes_contracts.planning import EvaluationPlan, PlanScope, ProvisioningPlan, RuntimeDomain
-from raes_contracts.vocabulary import GeneratedArtifactKind, GeneratedArtifactRegenerationScope
+from raes_contracts.vocabulary import Closure, GeneratedArtifactKind, GeneratedArtifactRegenerationScope
 
 from ..capture_admission import capture_admission_diagnostics
 from ..compiler.realization_deferred_constraints import resolve_pending_recursive_constraints
@@ -39,9 +38,10 @@ from ..semantics.realization import (
     realization_support_diagnostics,
     resolve_apparatus_realization_defaults,
 )
-from .execution_policy import DomainPlan, attach_execution_policies
+from .execution_policy import attach_execution_policies
+from .interaction_context import fresh_evaluation_actions, retained_planning_context
 from .manifest_validation import _validate_manifest
-from .materialization import planned_materialization_source
+from .materialization import attach_materialization_sources
 from .mixed_control_admission import (
     MixedControlPlanningAdmission,
     mixed_control_semantics_diagnostics,
@@ -129,7 +129,13 @@ def _resolved_realization(
     model: RuntimeModel,
     manifest: BackendManifest,
     apparatus_realization_default: ApparatusRealizationDefaultResolver | None,
-) -> tuple[RuntimeModel, tuple[CompiledRealizationRequirement, ...], tuple[object, ...], list[Diagnostic]]:
+) -> tuple[
+    RuntimeModel,
+    tuple[CompiledRealizationRequirement, ...],
+    tuple[object, ...],
+    list[Diagnostic],
+    dict[tuple[str, str, str], Closure],
+]:
     """Resolve apparatus defaults, lower deferred constraints, and materialize authority."""
 
     apparatus_decisions = resolve_apparatus_realization_defaults(
@@ -153,6 +159,7 @@ def _resolved_realization(
         effective_requirements,
         resolved_authority,
         authority_diagnostics,
+        apparatus_decisions,
     )
 
 
@@ -326,22 +333,6 @@ def _augment_provisioning(
     return provisioning, extra
 
 
-def _with_materialization_source(
-    domain_plan: DomainPlan,
-    model: RuntimeModel,
-    source: MaterializationSource | None,
-    source_diagnostics: list[Diagnostic],
-    scope_required: bool,
-) -> DomainPlan:
-    return replace(
-        domain_plan,
-        purpose="inspection" if model.materialization_description is not None else domain_plan.purpose,
-        materialization_source=source,
-        augmentation_scope_required=scope_required,
-        diagnostics=[*domain_plan.diagnostics, *source_diagnostics],
-    )
-
-
 class PlanningOptions(TypedDict, total=False):
     """Typed keyword-only planning controls, retaining the established call surface."""
 
@@ -350,6 +341,7 @@ class PlanningOptions(TypedDict, total=False):
     artifact_availability: ArtifactAvailabilityContext | None
     profile_context: DomainProfileResolutionContextModel | None
     mixed_control_admission: MixedControlPlanningAdmission | None
+    refresh_evaluation: bool
     processor_manifest: ProcessorManifestV2Model | None
 
 
@@ -366,15 +358,17 @@ def plan(
     artifact_availability = options.pop("artifact_availability", None)
     profile_context = options.pop("profile_context", None)
     mixed_control_admission = options.pop("mixed_control_admission", None)
+    refresh_evaluation = options.pop("refresh_evaluation", False)
+    if not isinstance(refresh_evaluation, bool):
+        raise TypeError("refresh_evaluation must be a boolean")
     processor_manifest = options.pop("processor_manifest", None)
     if options:
         raise TypeError("unsupported planning owner context")
     snapshot = snapshot or RuntimeSnapshot()
-    target_name = scope.target_name if scope is not None else None
     run_id = scope.run_id if scope is not None else None
     instantiation_id = scope.instantiation_id if scope is not None else None
-    effective_model, effective_requirements, resolved_authority, authority_diagnostics = _resolved_realization(
-        model, manifest, apparatus_realization_default
+    effective_model, effective_requirements, resolved_authority, authority_diagnostics, apparatus_decisions = (
+        _resolved_realization(model, manifest, apparatus_realization_default)
     )
     resources = _collect_resources(effective_model)
     resources, profile_diagnostics, profile_authority = profile_resources(
@@ -404,6 +398,8 @@ def plan(
         snapshot,
         effective_requirements,
     )
+    if refresh_evaluation:
+        actions = fresh_evaluation_actions(resources, actions)
 
     provisioning, provisioning_diagnostics = _augment_provisioning(
         _build_provisioning_plan(
@@ -440,17 +436,13 @@ def plan(
     evaluation, policy_diagnostics = attach_execution_policies(effective_model, manifest, evaluation)
     diagnostics.extend(policy_diagnostics)
 
-    source, source_diagnostics = planned_materialization_source(model, manifest, scope)
-    diagnostics.extend(source_diagnostics)
-    scope_required = (
-        model.realization_instance is not None and model.realization_instance.augmentation_scope is not None
+    (provisioning, orchestration, evaluation), source_diagnostics = attach_materialization_sources(
+        (provisioning, orchestration, evaluation), model, manifest, scope
     )
-    provisioning = _with_materialization_source(provisioning, model, source, source_diagnostics, scope_required)
-    orchestration = _with_materialization_source(orchestration, model, source, source_diagnostics, scope_required)
-    evaluation = _with_materialization_source(evaluation, model, source, source_diagnostics, scope_required)
+    diagnostics.extend(source_diagnostics)
 
     return ExecutionPlan(
-        target_name=target_name,
+        target_name=scope.target_name if scope is not None else None,
         manifest=manifest,
         base_snapshot=snapshot,
         scenario_name=model.scenario_name,
@@ -461,4 +453,7 @@ def plan(
         observation_owner=_observation_owner(evaluation, orchestration),
         diagnostics=diagnostics,
         artifact_availability=artifact_availability or ArtifactAvailabilityContext(),
+        planning_context=retained_planning_context(
+            model, apparatus_decisions, profile_context, mixed_control_admission, processor_manifest
+        ),
     )

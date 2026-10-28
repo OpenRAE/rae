@@ -92,6 +92,7 @@ def test_profile_preparation_and_attestation_share_the_real_apply_pipeline(tmp_p
     manager = RuntimeManager(
         replace(target, manifest=manifest, provisioner=ReportingBackend()),
         materialization_archive=RunMaterializationArchive(tmp_path),
+        run_scope="run:run-1",
     )
     execution = manager.plan(
         parse_sdl("name: profiles\nnodes:\n  host: {type: compute}\n"),

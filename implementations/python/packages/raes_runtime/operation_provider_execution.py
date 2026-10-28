@@ -173,6 +173,7 @@ def _finalize_native_outcome(
         reference,
         message.proposed_state,
         timeout_ms=remaining(),
+        execute_observation=native_request.execute_observation,
         observation_request=_ObservationApplyRequest(
             address=native_request.address,
             snapshot=predecessor,
@@ -405,6 +406,8 @@ def _settle_provider_outcome(
         diagnostics=() if result is None else result.diagnostics,
         result_payload=payload,
     )
+    if native_request.result_sink is not None and result is not None:
+        native_request.result_sink(result)
 
 
 def _poll_provider_outcome(

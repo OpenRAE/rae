@@ -17,10 +17,14 @@ def runtime_plan_precondition_diagnostics(
     execution_plan: ExecutionPlan,
     target: RuntimeTarget,
     snapshot: RuntimeSnapshot,
+    *,
+    durable_lifecycle_available: bool = False,
 ) -> list[Diagnostic]:
     """Return every deterministic plan-admission failure for a manager apply."""
     diagnostics = _provenance_diagnostics(execution_plan, target, snapshot)
-    diagnostics.extend(participant_tool_support_diagnostics(execution_plan.model, target.manifest))
+    context = execution_plan.planning_context
+    processor = None if context is None else context.processor_manifest
+    diagnostics.extend(participant_tool_support_diagnostics(execution_plan.model, target.manifest, processor))
     diagnostics.extend(
         diagnostic
         for diagnostic in reference_participant_driver_diagnostics(execution_plan.model)
@@ -35,7 +39,7 @@ def runtime_plan_precondition_diagnostics(
         phase_plans[execution_plan.observation_owner.value],
         execution_plan.manifest,
         target.observation_runtime,
-        durable_lifecycle_available=False,
+        durable_lifecycle_available=durable_lifecycle_available,
     )
     if observation_diagnostic is not None:
         diagnostics.append(observation_diagnostic)

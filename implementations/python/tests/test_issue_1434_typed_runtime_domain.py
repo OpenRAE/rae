@@ -83,14 +83,15 @@ def test_manager_refuses_a_successful_result_with_a_string_domain():
     result = manager.apply(manager.plan(parse_sdl(_WITH_WEB)))
 
     assert result.success is False
-    assert _pairs(result.diagnostics) == [_UNTYPED_DOMAIN]
+    assert _pairs(result.diagnostics) == [_UNTYPED_DOMAIN, _OPERATION_INDETERMINATE]
     assert manager.snapshot.entries == {}
 
-    # The refused result committed nothing, so the next planned operation is coherent.
-    retry = manager.apply(manager.plan(parse_sdl(_WITH_WEB)))
-    assert retry.success is True, _pairs(retry.diagnostics)
-    assert manager.snapshot.entries
-    assert all(type(entry.domain) is RuntimeDomain for entry in manager.snapshot.entries.values())
+    # A rejected result says nothing about external effects. Retain exclusion.
+    retry = manager.plan(parse_sdl(_WITH_WEB))
+    with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
+        manager.apply(retry)
+    assert manager.snapshot.entries == {}
+    manager.close()
 
 
 @pytest.mark.parametrize(

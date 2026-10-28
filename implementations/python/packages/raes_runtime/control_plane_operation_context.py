@@ -176,6 +176,10 @@ def _request_run_scope(request: object) -> str | None:
 
 
 def _value_free_request_payload(request: object) -> JsonValue:
+    if isinstance(request, Mapping):
+        return {str(key): _value_free_request_payload(value) for key, value in request.items()}
+    if isinstance(request, Sequence) and not isinstance(request, (str, bytes, bytearray)):
+        return [_value_free_request_payload(value) for value in request]
     payload = _exact_request_payload(request)
     if isinstance(request, ProvisioningPlan):
         assert isinstance(payload, dict)
@@ -183,11 +187,14 @@ def _value_free_request_payload(request: object) -> JsonValue:
             operation_payload = operation["payload"]
             if account_placement_has_credential_bindings(operation_payload):
                 operation["payload"] = value_free_account_placement_payload(operation_payload)
-        return payload
     return payload
 
 
 def _exact_request_payload(request: object) -> JsonValue:
+    if isinstance(request, Mapping):
+        return {str(key): _exact_request_payload(value) for key, value in request.items()}
+    if isinstance(request, Sequence) and not isinstance(request, (str, bytes, bytearray)):
+        return [_exact_request_payload(value) for value in request]
     if isinstance(request, ProvisioningPlan):
         payload = provisioning_plan_model(request).model_dump(mode="json", exclude_none=True)
     elif isinstance(request, OrchestrationPlan):

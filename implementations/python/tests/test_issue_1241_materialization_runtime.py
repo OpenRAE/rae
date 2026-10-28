@@ -169,6 +169,7 @@ def test_manager_returns_the_attestation_through_the_existing_apply_flow(tmp_pat
     manager = RuntimeManager(
         RuntimeTarget(name="attesting", manifest=execution.manifest, provisioner=backend),
         materialization_archive=RunMaterializationArchive(tmp_path),
+        run_scope="run:run-1",
     )
     result = manager.apply(replace(execution, target_name="attesting"))
     assert result.success, result.diagnostics
@@ -185,6 +186,7 @@ def test_cleanup_does_not_require_a_new_materialization_attestation(tmp_path):
     manager = RuntimeManager(
         RuntimeTarget(name="attesting", manifest=execution.manifest, provisioner=backend),
         materialization_archive=RunMaterializationArchive(tmp_path),
+        run_scope="run:run-1",
     )
     applied = manager.apply(replace(execution, target_name="attesting"))
     assert applied.success

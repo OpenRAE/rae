@@ -358,14 +358,16 @@ def _stub_time(*, supports_coordinated_participant_reset: bool) -> TimeCapabilit
 
 def _stub_capabilities(
     *,
+    with_orchestrator: bool,
+    with_evaluator: bool,
     with_participant_runtime: bool,
     with_observation: bool,
     with_time: bool,
 ) -> BackendCapabilitySet:
     return BackendCapabilitySet(
         provisioner=_stub_provisioner(),
-        orchestrator=_stub_orchestrator(),
-        evaluator=_stub_evaluator(),
+        orchestrator=_stub_orchestrator() if with_orchestrator else None,
+        evaluator=_stub_evaluator() if with_evaluator else None,
         participant_runtime=_stub_participant_runtime() if with_participant_runtime else None,
         observation=(_stub_observation() if with_observation else None),
         cleanup=_stub_cleanup(),
@@ -375,11 +377,13 @@ def _stub_capabilities(
 
 def create_stub_manifest(
     *,
+    with_orchestrator: bool = True,
+    with_evaluator: bool = True,
     with_participant_runtime: bool = True,
     with_observation: bool = True,
     with_time: bool = False,
     with_realization_envelope: bool = False,
-    **config,
+    **config: object,
 ) -> BackendManifest:
     """Return the fully capable stub manifest.
 
@@ -390,7 +394,16 @@ def create_stub_manifest(
     should leave this at its default.
     """
 
-    del config
+    scenario = config.pop("scenario", None)
+    if scenario is not None:
+        from raes_runtime.registry import scenario_component_options
+
+        selected = scenario_component_options(scenario)
+        with_orchestrator = selected["with_orchestrator"]
+        with_evaluator = selected["with_evaluator"]
+        with_participant_runtime = selected["with_participant_runtime"]
+        with_time = selected["with_time"]
+        with_observation = selected["with_observation"]
     realization_envelope = load_stub_realization_envelope() if with_realization_envelope else None
     return BackendManifest(
         name="stub",
@@ -409,6 +422,8 @@ def create_stub_manifest(
         ),
         realization_support=_stub_realization_support(realization_envelope),
         capabilities=_stub_capabilities(
+            with_orchestrator=with_orchestrator,
+            with_evaluator=with_evaluator,
             with_participant_runtime=with_participant_runtime,
             with_observation=with_observation,
             with_time=with_time,
