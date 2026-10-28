@@ -123,6 +123,8 @@ The existing schema bundle, conformance registry, and repository policy tools en
 Source-bound research captures hold fresh observations for the delivered implementation.
 They retain protocol and corpus pins without changing historical evidence.
 These retained controls do not establish typed factorial compiler support.
+Runtime mapping evidence also uses separate captures for each source identity.
+Its existing publisher keeps the original bundle and earlier captures unchanged.
 No new workflow gate or infrastructure policy is required.
 The contract models provide the architecture as code.
 No deployment diagram changes because no deployment component changes.
