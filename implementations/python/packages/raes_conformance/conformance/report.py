@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 
 from raes_contracts.behavioral_relations import validate_behavioral_claim_binding
 from raes_contracts.contracts import BehavioralClaimBindingModel
 from raes_contracts.diagnostics import Diagnostic
 
 from raes_conformance.conformance.diagnostics import _diagnostic_payload
+from raes_conformance.conformance.modular_control_types import ModularControlEvidence
 from raes_conformance.realization import ExecutionBasis
 
 
@@ -102,6 +103,7 @@ class ConformanceCaseResult:
     manifest_digest: str | None = None
     tool_digest: str | None = None
     environment_digest: str | None = None
+    modular_control: ModularControlEvidence | None = None
 
     def __post_init__(self) -> None:
         """Keep the closed outcome vocabulary aligned with the gating boolean."""
@@ -151,6 +153,9 @@ def validate_backend_conformance_report(report: BackendConformanceReport) -> Bac
     run into an apparently clean one.
     """
 
+    from .modular_control_report import validate_modular_report
+
+    validate_modular_report(report)
     _validate_catalog_bindings(report)
     _validate_claim_strength(report)
     _validate_case_evidence(report)
@@ -362,6 +367,7 @@ def backend_conformance_report_payload(report: BackendConformanceReport) -> dict
                 "manifest_digest": case.manifest_digest,
                 "tool_digest": case.tool_digest,
                 "environment_digest": case.environment_digest,
+                "modular_control": asdict(case.modular_control) if case.modular_control is not None else None,
                 "diagnostics": [_diagnostic_payload(diag) for diag in case.diagnostics],
             }
             for case in report.cases

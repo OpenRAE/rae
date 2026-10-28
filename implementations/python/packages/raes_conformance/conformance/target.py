@@ -25,6 +25,8 @@ from raes_runtime.registry import RuntimeTarget
 
 from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_failure_message
 from raes_conformance.conformance.fixture_suite import run_fixture_suite
+from raes_conformance.conformance.modular_control import run_modular_control_conformance
+from raes_conformance.conformance.modular_control_types import ModularControlHarness
 from raes_conformance.conformance.participant_opacity_probes import (
     ParticipantOpacityProbeHarness,
     participant_opacity_cases,
@@ -154,6 +156,9 @@ class _TargetConformanceOptions:
     native_conformance: bool = False
     participant_policy_harness: ParticipantPolicyProbeHarness | None = None
     participant_opacity_harness: ParticipantOpacityProbeHarness | None = None
+    modular_control_harness: ModularControlHarness | None = None
+    modular_control_obligations: tuple[str, ...] | None = None
+    modular_control_effect_kinds: tuple[str, ...] = ()
 
 
 def _unknown_profile_report(
@@ -322,6 +327,21 @@ def _known_profile_report(
         options.participant_opacity_harness,
         options.execution_basis,
     )
+    modular_result = (
+        run_modular_control_conformance(
+            target,
+            harness=options.modular_control_harness,
+            obligations=options.modular_control_obligations,
+            effect_kinds=options.modular_control_effect_kinds,
+        )
+        if options.modular_control_harness is not None
+        or options.modular_control_obligations is not None
+        or options.modular_control_effect_kinds
+        else None
+    )
+    modular_cases = modular_result.cases if modular_result is not None else ()
+    if modular_result is not None:
+        diagnostics.extend(modular_result.diagnostics)
     target_cases = tuple(replace(case, execution_basis=options.execution_basis.value) for case in adapter_cases)
     realization_run = run_realization_conformance(
         target,
@@ -337,11 +357,13 @@ def _known_profile_report(
         *participant_feature_cases,
         *policy_cases,
         *opacity_cases,
+        *modular_cases,
         *target_cases,
         *realization_cases,
     )
     passed = (
         fixture_report.passed
+        and (modular_result is None or modular_result.passed)
         and not contract_gaps
         and not capability_gaps
         and all(
@@ -350,6 +372,7 @@ def _known_profile_report(
                 *participant_feature_cases,
                 *policy_cases,
                 *opacity_cases,
+                *modular_cases,
                 *target_cases,
                 *realization_cases,
             )

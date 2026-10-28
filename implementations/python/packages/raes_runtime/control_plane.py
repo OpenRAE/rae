@@ -52,6 +52,7 @@ from .control_plane_profiles import (
     store_capabilities,
 )
 from .control_plane_recovery import RuntimeRecoveryMixin, reconcile_startup_operations
+from .control_plane_security import ControlPlaneIdentity as ControlPlaneIdentity
 from .control_plane_store import (
     AuditEvent,
     ControlPlaneOperationRecord,
@@ -62,6 +63,7 @@ from .control_plane_store import (
     SnapshotState,
     require_operation_record_scopes,
 )
+from .control_plane_store import LocalControlPlaneStore as LocalControlPlaneStore
 from .control_plane_store_compatibility import adapt_control_plane_store
 from .control_plane_submission import control_plane_plan_diagnostics
 from .control_plane_submission import unavailable_backend_diagnostics as _unavailable_backend_diagnostics
