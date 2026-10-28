@@ -98,10 +98,11 @@ def _publish_continuation(
         source.evaluation_id + CONTINUATION_SUFFIX + canonical_json_digest(plan.model_dump(mode="json"))[7:23]
     )
     participant = source.request.context.participant_address
-    history = plane._snapshot.participant_control_evaluation_history
-    existing = next((item for item in history[participant] if item["evaluation_id"] == transition_id), None)
+    from .participant_control_projection import control_projection
+
+    existing = control_projection(plane).evaluations.get(transition_id)
     if existing is not None:
-        return ParticipantControlEvaluationV2Model.model_validate(existing)
+        return existing
     payload.update(
         evaluation_id=transition_id,
         effect_plan=plan.model_dump(mode="json"),
@@ -163,12 +164,16 @@ def _publish_continuation(
             result_payload=payload,
         )
     transition = committed_evaluation(transition, carrier)
+    from raes_contracts.immutable_history import append_history
+
     snapshot = plane._snapshot.with_entries(
         dict(plane._snapshot.entries),
-        participant_control_evaluation_history={
-            **history,
-            participant: [*history[participant], transition.model_dump(mode="json")],
-        },
+        participant_control_evaluation_history=append_history(
+            plane._snapshot,
+            "participant_control_evaluation_history",
+            participant,
+            [transition.model_dump(mode="json")],
+        ),
     )
     closed = cast(
         ControlPlaneOperationRecord,

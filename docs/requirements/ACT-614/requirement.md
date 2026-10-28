@@ -94,3 +94,4 @@ Requirement inventory expansion. Participant behavior over time is a first-class
 - IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-execution-binding-v1.json` (participant-execution-binding-v1 published schema)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/interaction_time.py` (Atomic shared-clock and participant lifecycle publication)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager_lifecycle.py` (Shared lifetime authority for time and participant calls)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/participant_temporal_history_index.py`

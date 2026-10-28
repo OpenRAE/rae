@@ -32,6 +32,7 @@ from raes_contracts.contracts.participant_control_resolution import (
     validate_participant_control_resolved_context,
 )
 from raes_contracts.contracts.participant_control_results import ControlRealizationBindingModel
+from raes_contracts.immutable_history import append_history, seal_history
 from raes_contracts.operation_lifecycle import OperationAdmissionContext
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -88,17 +89,24 @@ def commit_participant_control_realization(
     participant_address = evaluation.request.context.participant_address
     snapshot = control_plane._snapshot
     history = snapshot.participant_control_evaluation_history
-    if any(record.get("evaluation_id") == transition.evaluation_id for record in history.get(participant_address, ())):
+    if (
+        seal_history("participant_control_evaluation_history", history).find(
+            participant_address, transition.evaluation_id
+        )
+        is not None
+    ):
         return
     closed: ControlPlaneOperationRecord = _closed_carrier(control_plane, claim, transition, state, participant_address)
     control_plane._commit_participant_transition(
         expected_history_heads=expected_participant_history_heads(snapshot, participant_address),
         snapshot=snapshot.with_entries(
             dict(snapshot.entries),
-            participant_control_evaluation_history={
-                **history,
-                participant_address: [*history.get(participant_address, ()), transition.model_dump(mode="json")],
-            },
+            participant_control_evaluation_history=append_history(
+                snapshot,
+                "participant_control_evaluation_history",
+                participant_address,
+                [transition.model_dump(mode="json")],
+            ),
         ),
         record=closed,
         audit_event=_realization_audit(closed, participant_address, transition),

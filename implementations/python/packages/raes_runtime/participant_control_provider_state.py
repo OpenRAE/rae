@@ -66,19 +66,32 @@ def _require_serial_state_chain(chain: dict[ControlArtifactReferenceModel, Contr
 
 
 def require_provider_state_extension(
-    snapshot: RuntimeSnapshot, evaluation: ParticipantControlEvaluationV2Model
+    snapshot: RuntimeSnapshot, evaluation: ParticipantControlEvaluationV2Model, *, projection: object | None = None
 ) -> None:
     """Validate the proposed extension before its atomic history append."""
-    _state_chains(snapshot, (evaluation,))
+    if projection is None:
+        _state_chains(snapshot, (evaluation,))
+        return
+    proposed = {}
+    for proposal in evaluation.state_proposals:
+        key = _scope_key(evaluation.request.context, proposal.scope)
+        chain = proposed.setdefault(key, dict(projection.provider_chains.get(key, {})))
+        previous = chain.setdefault(proposal.before, proposal.after)
+        if previous != proposal.after:
+            raise ValueError("retained provider state has conflicting writers")
+    for chain in proposed.values():
+        _require_serial_state_chain(chain)
 
 
-def require_retained_provider_state(snapshot: RuntimeSnapshot, request: ParticipantControlRequestV2Model) -> None:
+def require_retained_provider_state(
+    snapshot: RuntimeSnapshot, request: ParticipantControlRequestV2Model, *, projection: object | None = None
+) -> None:
     """Match every shared read version against the retained transaction chain.
 
     All scopes live in this snapshot; the caller retains its original global
     revision CAS across evaluation. Cross-store sharing is not supported.
     """
-    chains = _state_chains(snapshot)
+    chains = _state_chains(snapshot) if projection is None else projection.provider_chains
     for binding in request.selection.bindings:
         state = next(
             (item.state for item in request.context.provider_states if item.instance_id == binding.instance_id), None

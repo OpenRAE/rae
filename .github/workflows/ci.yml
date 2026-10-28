@@ -112,7 +112,8 @@ jobs:
           RAES_TEMPORAL_CLI: implementations/tooling/.cache/runtime-integration-inputs/bin/temporal
         run: >-
           uv run --project implementations/python --frozen --extra dev --extra distributed pytest -q
-          implementations/python/tests/test_issue_1362_distributed_integration.py -m integration --no-cov
+          implementations/python/tests/test_issue_1362_distributed_integration.py
+          implementations/python/tests/test_issue_1373_postgresql_history.py -m integration --no-cov
 
   fuzz:
     runs-on: ubuntu-24.04

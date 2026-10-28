@@ -414,3 +414,15 @@ policy choices, recovery and composition limits.
 - DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-89feff1317c49aebbc096e7f8cb0a4e2235ea10ae386d15f47e33851b28a742e/manifest.json` (Fresh bounded witness after inject contract refactoring; retained research claim limits)
 - DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-7f7166d1912b9a05d105277585776c5e773b17446e0cd8b582a33c079d016eb7/manifest.json` (Fresh bounded witness after inject contract refactoring; retained research claim limits)
 - TESTS → TEST `implementations/python/tests/test_issue_1660_runtime_lifetime.py` (One lifetime owner, actor-scoped retries, durable reopening and uncertain-effect exclusion)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_changes.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_history_rows.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_local_cache.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_postgresql_projection.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_sql_changes.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/immutable_history.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/immutable_history_stats.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1373_history_prefixes.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1373_durable_history.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1373_operation_changes.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1373_postgresql_history.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1373_history_consumers.py` (Opaque stored records retain runtime shape validation)
