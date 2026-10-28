@@ -210,6 +210,7 @@ See the [normative profile](../../../specs/formal/experiment-core/README.md#type
 
 Issue #1665 publishes the contract and record validation.
 The current compiler explicitly rejects the new profile.
+It also rejects manual `required_selections` criteria without a factorial profile.
 Issue #1666 implements compilation, owner admission, and lifecycle verification.
 Record acceptance alone does not prove execution support.
 

@@ -38,6 +38,8 @@ Selection contents remain covered by authoring, entry, and plan digests.
 An optional plan `treatment_profile` explicitly identifies the new semantics.
 Its absence preserves legacy plan bytes.
 The current compiler rejects the new authoring profile until #1666 supplies support.
+It also rejects manual typed selection criteria when no factorial profile is present.
+The compiler must not produce a plan that drops those criteria.
 
 ## Admission rules
 

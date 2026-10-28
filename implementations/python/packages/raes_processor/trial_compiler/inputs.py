@@ -27,10 +27,16 @@ def _fail(code: str, address: str, message: str) -> CompilationFailure:
 def validate_treatment_profile(request: TrialCompilationRequest) -> None:
     """Reject typed treatments until the compiler implements their profile."""
     design = request.experiment.factorial_design
-    if design is not None and design.profile == "factorial-treatments-v1":
+    allocation = request.experiment.run_plan.allocation
+    typed_design = design is not None and design.profile == "factorial-treatments-v1"
+    typed_criteria = allocation is not None and any(
+        assignment.required_selections for assignment in allocation.condition_assignments.values()
+    )
+    if typed_design or typed_criteria:
+        address = "/factorial_design/profile" if typed_design else "/run_plan/allocation/condition_assignments"
         raise _fail(
             "factorial-profile-unsupported",
-            "/factorial_design/profile",
+            address,
             "typed factorial treatments require a supporting compiler profile",
         )
 

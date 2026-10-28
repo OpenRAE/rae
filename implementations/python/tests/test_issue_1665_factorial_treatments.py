@@ -228,6 +228,31 @@ def test_current_compiler_refuses_unimplemented_treatment_profile_explicitly() -
     assert result.diagnostics[0].code == "trial-compiler.factorial-profile-unsupported"
 
 
+def test_current_compiler_refuses_manual_typed_criteria_without_a_profile() -> None:
+    from raes_contracts.contracts.experiment_treatments import ExperimentFactorLevelSelectionModel
+    from raes_processor.trial_compiler import compile_admitted_trial_plan
+    from test_sce_002_trial_compiler import _request, _stratified_spec
+
+    request = _request()
+    payload = _stratified_spec().model_dump(mode="json")
+    template = _typed_payload()["factorial_design"]["level_effects"]["path"]["a"]["selections"][0]
+    template["target"].update(variation_point_id="payload-path", target_id="variables.payload_path")
+    template["scenario_family_digest"] = request.input_refs.scenario_family_ref.ref_digest
+    for condition, assignment in payload["run_plan"]["allocation"]["condition_assignments"].items():
+        level = assignment["factor_levels"]["red-tactic"]
+        template["outcome"] = {"kind": "literal", "value": "/opt/b" if level == "aggressive" else "/opt/a"}
+        selection = ExperimentFactorLevelSelectionModel.model_validate(template).descriptor(
+            "red-tactic", level, condition
+        )
+        assignment["required_selections"] = [selection.model_dump(mode="json")]
+    spec = ExperimentSpecModel.model_validate(payload)
+    assert spec.factorial_design is None
+    result = compile_admitted_trial_plan(request.with_experiment(spec))
+    assert result.plan is None
+    assert result.diagnostics[0].code == "trial-compiler.factorial-profile-unsupported"
+    assert result.diagnostics[0].address == "/run_plan/allocation/condition_assignments"
+
+
 def test_plan_aware_archive_rejects_missing_or_relabelled_treatment() -> None:
     from raes_contracts.contracts.trial_analysis import _validate_run_binding_provenance
     from test_sce_002_trial_realization import _RUN_FIXTURE

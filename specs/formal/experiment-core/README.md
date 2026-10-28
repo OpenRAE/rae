@@ -690,6 +690,8 @@ Resolved secrets MUST NOT enter these records, digests, diagnostics, or fixtures
 
 Issue #1665 publishes these contracts and record checks.
 The reference compiler rejects this profile explicitly until issue #1666 implements owner admission, generation, and replay support.
+It also rejects authoring allocations with `required_selections`, even without a factorial profile.
+The compiler must not produce a plan that omits these criteria.
 
 `run_plan.allocation_policy` names the executable randomized allocation
 procedure and stochastic control. Descriptive `allocation_method` and
