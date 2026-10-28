@@ -75,8 +75,9 @@ def test_failed_cleanup_retains_reservation_even_after_native_resources_are_dele
         with pytest.raises(RuntimeError, match="cleanup evidence"):
             runtime.retire_run(run._run_scope)
         other = runtime.open_run(run_scope="run:unrelated")
+        other_plan = other.plan(__import__("test_runtime_manager")._full_scenario())
         with pytest.raises(RuntimeError, match="reserved"):
-            other.apply(other.plan(__import__("test_runtime_manager")._full_scenario()))
+            other.apply(other_plan)
         (terminal,) = (
             record for record in runtime._store.load_runtime_decisions() if isinstance(record, TrialTerminalDecision)
         )
@@ -135,7 +136,8 @@ def test_invalid_later_realization_is_refused_before_any_configuration(monkeypat
         with pytest.raises(ValueError, match="trial plan cannot be admitted"):
             runtime.admit_experiment(inputs, services=services)
         assert len(calls) == 2
-        assert not services.events and not services.live
+        assert not services.events
+        assert not services.live
 
 
 def test_configuration_mismatch_cannot_provision_and_failed_capture_is_distinct():

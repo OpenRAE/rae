@@ -1,5 +1,7 @@
 """Reference-only delivery of admitted run and experiment progress."""
 
+from __future__ import annotations
+
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -23,7 +25,7 @@ class RuntimeSequenceReference(BaseModel):
     poll_interval_ms: Annotated[int, Field(strict=True, ge=100, le=60_000)] = 1000
 
     @property
-    def workflow_id(self):
+    def workflow_id(self) -> str:
         return "raes-" + self.kind + "-" + canonical_json_digest(self.model_dump(mode="json")).removeprefix("sha256:")
 
 
@@ -35,7 +37,7 @@ class RuntimeSequenceDecision(BaseModel):
     authorization_scope: tuple[Identifier, ...] = Field(min_length=1, max_length=64)
 
     @property
-    def decision_id(self):
+    def decision_id(self) -> str:
         # Rebinding the same execution to different artifacts, workers, or
         # delivery budgets conflicts before any workflow is submitted.
         return canonical_json_digest(

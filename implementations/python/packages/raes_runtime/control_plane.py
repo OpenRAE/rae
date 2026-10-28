@@ -35,6 +35,22 @@ __all__ = (
 )
 
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from raes_contracts.trial_unit import TrialUnitResult
+    from raes_processor.trial_realization import TrialRealizationInputs
+
+    from .control_plane_store import ControlPlaneStore
+    from .runtime_experiment import ExperimentProgress
+    from .runtime_experiment_replacement import ExperimentReplacementBinding
+    from .runtime_sequence_authority import RuntimeSequenceOptions
+    from .runtime_sequence_reference import RuntimeSequenceReference
+    from .runtime_trial_services import TrialRuntimeServices
+
+
 class RuntimeControlPlane(RuntimeRunContext):
     """One engine for all workloads; legacy calls use its fixed default run."""
 
@@ -46,22 +62,30 @@ class RuntimeControlPlane(RuntimeRunContext):
         self._sequence_bindings = {}
 
     @runtime_owned
-    def bind_workflow(self, **options):
+    def bind_workflow(self, **options: Unpack[RuntimeSequenceOptions]) -> RuntimeSequenceReference:
         """Bind exact owned artifacts before submitting reference-only delivery."""
         self._assert_runtime_owner()
         from .runtime_sequence_authority import bind_sequence
 
-        return bind_sequence(self, **options)
+        return bind_sequence(self, options)
 
     @runtime_owned
-    def advance_workflow(self, reference, *, identity):
+    def advance_workflow(self, reference: RuntimeSequenceReference, *, identity: object | None) -> str:
         self._assert_runtime_owner()
         from .runtime_sequence_authority import advance_sequence
 
         return advance_sequence(self, reference, identity)
 
     @runtime_owned
-    def admit_experiment(self, inputs, *, services, store_factory=None, identity=None, replacement=None):
+    def admit_experiment(
+        self,
+        inputs: TrialRealizationInputs,
+        *,
+        services: TrialRuntimeServices,
+        store_factory: Callable[[str], ControlPlaneStore] | None = None,
+        identity: object | None = None,
+        replacement: ExperimentReplacementBinding | None = None,
+    ) -> str:
         self._assert_runtime_owner()
         from .runtime_experiment import RuntimeExperiment
 
@@ -72,17 +96,17 @@ class RuntimeControlPlane(RuntimeRunContext):
         return experiment.experiment_id
 
     @runtime_owned
-    def advance_experiment(self, experiment_id, *, identity=None):
+    def advance_experiment(self, experiment_id: str, *, identity: object | None = None) -> ExperimentProgress:
         self._assert_runtime_owner()
         return self._experiments[experiment_id].advance(identity)
 
     @runtime_owned
-    def cancel_experiment(self, experiment_id, *, identity=None):
+    def cancel_experiment(self, experiment_id: str, *, identity: object | None = None) -> None:
         self._assert_runtime_owner()
         self._experiments[experiment_id].cancel(identity)
 
     @runtime_owned
-    def experiment_results(self, experiment_id, *, identity=None):
+    def experiment_results(self, experiment_id: str, *, identity: object | None = None) -> tuple[TrialUnitResult, ...]:
         self._assert_runtime_owner()
         return self._experiments[experiment_id].results(identity)
 

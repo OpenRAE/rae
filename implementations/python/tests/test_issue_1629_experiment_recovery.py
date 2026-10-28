@@ -141,6 +141,7 @@ def test_authored_attempt_allowance_caps_operation_budget_without_limiting_clean
     with policy.authored_attempt_budget(102.0):
         assert policy.execution_budget_ms(ProvisioningPlan(), configuration) == 2000
         now[0] = 103.0
+        expired_plan = ProvisioningPlan()
         with pytest.raises(ValueError, match="exhausted"):
-            policy.execution_budget_ms(ProvisioningPlan(), configuration)
+            policy.execution_budget_ms(expired_plan, configuration)
     assert policy.execution_budget_ms(ProvisioningPlan(), configuration) == 10000

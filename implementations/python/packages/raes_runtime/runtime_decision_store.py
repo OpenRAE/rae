@@ -1,20 +1,31 @@
 """Atomic append-only runtime decisions using incumbent store transactions."""
 
+from __future__ import annotations
+
 from contextlib import contextmanager
+from typing import TYPE_CHECKING
 
 from .control_plane_store_local_codec import decode_payload, encode_payload, transaction
 from .runtime_decisions import require_identical_decision, validate_runtime_decision
 
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+    from sqlite3 import Connection as SQLiteConnection
+
+    from psycopg import Connection as PostgreSQLConnection
+
+    from .runtime_decisions import RuntimeDecision
+
 
 class MemoryRuntimeDecisionStoreMixin:
-    def load_runtime_decisions(self):
+    def load_runtime_decisions(self) -> tuple[RuntimeDecision, ...]:
         with self._lock:
             # Entries were reconstructed at the append boundary. Return detached
             # copies without re-running compiler/archive validation on every
             # progress read; callers cannot mutate the retained decisions.
             return tuple(value.model_copy(deep=True) for value in self._runtime_decisions.values())
 
-    def claim_runtime_decision(self, decision) -> bool:
+    def claim_runtime_decision(self, decision: object) -> bool:
         candidate = validate_runtime_decision(decision)
         with self._lock:
             existing = self._runtime_decisions.get(candidate.decision_id)
@@ -29,13 +40,13 @@ class SQLRuntimeDecisionStoreMixin:
     _decision_placeholder = "?"
 
     @contextmanager
-    def _decision_transaction(self):
+    def _decision_transaction(self) -> Iterator[SQLiteConnection | PostgreSQLConnection[tuple[object, ...]]]:
         with self._connection() as connection:
             cut = transaction(connection) if self._decision_placeholder == "?" else connection.transaction()
             with cut:
                 yield connection
 
-    def load_runtime_decisions(self):
+    def load_runtime_decisions(self) -> tuple[RuntimeDecision, ...]:
         with self._connection() as connection:
             rows = connection.execute(
                 "SELECT decision_id, payload, digest FROM runtime_decisions ORDER BY decision_id"
@@ -48,7 +59,7 @@ class SQLRuntimeDecisionStoreMixin:
             decisions.append(decision)
         return tuple(decisions)
 
-    def claim_runtime_decision(self, decision) -> bool:
+    def claim_runtime_decision(self, decision: object) -> bool:
         candidate = validate_runtime_decision(decision)
         content, digest = encode_payload(candidate.model_dump(mode="json"))
         insert, select = (
@@ -79,7 +90,7 @@ class SQLRuntimeDecisionStoreMixin:
             return inserted
 
 
-def initialize_runtime_decisions(connection) -> None:
+def initialize_runtime_decisions(connection: SQLiteConnection | PostgreSQLConnection[tuple[object, ...]]) -> None:
     connection.execute(
         "CREATE TABLE IF NOT EXISTS runtime_decisions(decision_id TEXT PRIMARY KEY, "
         "payload TEXT NOT NULL, digest TEXT NOT NULL)"

@@ -36,7 +36,7 @@ class ExperimentDecision(BaseModel):
     authorization_scope: tuple[Identity, ...] = Field(min_length=1, max_length=64)
 
     @property
-    def decision_id(self):
+    def decision_id(self) -> str:
         return canonical_json_digest((self.schema_version, self.experiment_id))
 
 
@@ -52,7 +52,7 @@ class TrialAttemptDecision(BaseModel):
     deadline: Rfc3339DateTimeString
 
     @property
-    def decision_id(self):
+    def decision_id(self) -> str:
         return canonical_json_digest((self.schema_version, self.experiment_id, self.plan_entry_id, self.attempt))
 
 
@@ -71,7 +71,7 @@ class TrialObservationDecision(BaseModel):
     snapshot_json: Annotated[str, Field(max_length=16_777_216)] | None = None
 
     @property
-    def decision_id(self):
+    def decision_id(self) -> str:
         return canonical_json_digest((self.schema_version, self.execution_attempt_id, self.observation.kind))
 
 
@@ -84,7 +84,7 @@ class TrialTerminalDecision(BaseModel):
     reusable: bool
 
     @property
-    def decision_id(self):
+    def decision_id(self) -> str:
         return canonical_json_digest((self.schema_version, self.execution_attempt_id))
 
 
@@ -95,7 +95,7 @@ class ExperimentCancellationDecision(BaseModel):
     actor_id: Identity
 
     @property
-    def decision_id(self):
+    def decision_id(self) -> str:
         return canonical_json_digest((self.schema_version, self.experiment_id))
 
 
@@ -111,7 +111,7 @@ class TrialReplacementDecision(BaseModel):
     cleanup_receipts: tuple[TrialCleanupReceiptModel, ...] = Field(min_length=1, max_length=1000)
 
     @property
-    def decision_id(self):
+    def decision_id(self) -> str:
         return canonical_json_digest((self.schema_version, self.experiment_id, self.root_entry_id, self.ordinal))
 
 
@@ -122,7 +122,7 @@ class TrialArchiveDecision(BaseModel):
     run: ExperimentRunModel
 
     @property
-    def decision_id(self):
+    def decision_id(self) -> str:
         return canonical_json_digest((self.schema_version, self.experiment_id, self.run.run_id))
 
 
@@ -134,5 +134,5 @@ class TrialInterruptionDecision(BaseModel):
     disposition: Literal["cancel", "abort", "cleanup-and-fail"]
 
     @property
-    def decision_id(self):
+    def decision_id(self) -> str:
         return canonical_json_digest((self.schema_version, self.execution_attempt_id))

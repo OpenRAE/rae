@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from copy import deepcopy
 from threading import RLock
+from typing import TYPE_CHECKING
 
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -82,6 +83,12 @@ from .runtime_decisions import bind_run_operation_guarantees
 from .runtime_operation_routing import run_operation
 
 _P0_SCOPE_BOUND_ERROR = "control-plane profile P0 missing capabilities: store.scope-bound"
+
+
+if TYPE_CHECKING:
+    from raes_processor.models import ExecutionPlan
+
+    from .runtime_run_driver import RunProgress
 
 
 def _unavailable_backend(*_args: object, **_kwargs: object) -> object:
@@ -216,7 +223,9 @@ class RuntimeRunContext(
         return self._snapshot_state.snapshot
 
     @runtime_owned
-    def advance_plan(self, execution_plan, *, execution_id: str, identity: object | None = None):
+    def advance_plan(
+        self, execution_plan: ExecutionPlan, *, execution_id: str, identity: object | None = None
+    ) -> RunProgress:
         """Drive the next admitted application phase through this fixed context."""
         from .runtime_run_driver import advance_plan
 

@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Concatenate, Self
 
 if TYPE_CHECKING:
     from .operation_execution_adapter import LocalExecutionAdapter
+    from .runtime_engine import RuntimeEngineResources
 
 
 def runtime_owned[**P, R](
@@ -88,13 +89,7 @@ class RuntimeLifecycleMixin:
 
         engine = getattr(self, "_engine", None)
         if engine is not None:
-            if engine.owner is self:
-                engine.close()
-            elif getattr(self, "_runtime_ready", False):
-                engine.retire(self)
-            else:
-                self._close_runtime_provider()
-                self._close_runtime_lease()
+            self._close_engine_context(engine)
             return
         condition = getattr(self, "_lifecycle_condition", None)
         if condition is None:
@@ -129,6 +124,15 @@ class RuntimeLifecycleMixin:
         except BaseException:
             self._abort_runtime_close(condition, provider_close_started)
             raise
+
+    def _close_engine_context(self, engine: RuntimeEngineResources) -> None:
+        if engine.owner is self:
+            engine.close()
+        elif getattr(self, "_runtime_ready", False):
+            engine.retire(self)
+        else:
+            self._close_runtime_provider()
+            self._close_runtime_lease()
 
     def _begin_runtime_close(self, condition: Condition, budget: float) -> bool:
         with condition:

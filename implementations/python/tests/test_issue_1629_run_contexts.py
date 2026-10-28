@@ -87,8 +87,9 @@ def test_fixed_run_stores_reopen_without_retargeting_the_default_scope(tmp_path)
         first = engine.open_run(run_scope="run:first", store=LocalControlPlaneStore(tmp_path / "first"))
         assert first.snapshot == recorded
         second = engine.open_run(run_scope="run:second", store=LocalControlPlaneStore(tmp_path / "second"))
+        second_plan = _plan(second, "second")
         with pytest.raises(RuntimeError, match="reserved"):
-            second.apply(_plan(second, "second"))
+            second.apply(second_plan)
         assert first.destroy().success
         engine.retire_run("run:first")
         assert second.apply(_plan(second, "second")).success
@@ -113,8 +114,9 @@ def test_restoring_a_durable_run_cannot_drop_its_required_operation_guarantees(t
     with RuntimeControlPlane(
         target, store=LocalControlPlaneStore(tmp_path / "engine"), operation_evidence=Evidence()
     ) as engine:
+        conflicting_store = LocalControlPlaneStore(tmp_path / "run")
         with pytest.raises(ValueError, match="conflicts"):
-            engine.open_run(run_scope="run:guarantees", store=LocalControlPlaneStore(tmp_path / "run"))
+            engine.open_run(run_scope="run:guarantees", store=conflicting_store)
         run = engine.open_run(
             run_scope="run:guarantees",
             store=LocalControlPlaneStore(tmp_path / "run"),
@@ -165,8 +167,9 @@ def test_reopened_engine_cannot_skip_a_retained_run_reservation(tmp_path):
         first = engine.open_run(run_scope="run:first", store=LocalControlPlaneStore(tmp_path / "first"))
         assert first.apply(_plan(first, "first")).success
     with RuntimeControlPlane(target, store=LocalControlPlaneStore(tmp_path / "engine")) as engine:
+        default_plan = _plan(engine, "default")
         with pytest.raises(RuntimeError, match="restored|reserved"):
-            engine.apply(_plan(engine, "default"))
+            engine.apply(default_plan)
         first = engine.open_run(run_scope="run:first", store=LocalControlPlaneStore(tmp_path / "first"))
         assert first.destroy().success
         engine.retire_run("run:first")
@@ -206,8 +209,9 @@ def test_delayed_result_stays_with_original_run_and_unknown_effects_block_reuse(
         assert first.get_operation(receipts[0].operation_id).state is OperationState.INDETERMINATE
         with pytest.raises(RuntimeError, match="active|unresolved"):
             engine.retire_run("run:first")
+        second_request = ProvisioningPlan(run_id="second")
         with pytest.raises(RuntimeError, match="reserved"):
-            second.submit_provisioning(ProvisioningPlan(run_id="second"))
+            second.submit_provisioning(second_request)
         release.set()
         assert second.get_snapshot() == before
         assert second.get_operation(receipts[0].operation_id) is None
@@ -243,8 +247,9 @@ def test_retired_run_receipt_replay_does_not_acquire_the_next_runs_resources():
         second.submit_provisioning(ProvisioningPlan())
         assert first.submit_provisioning(ProvisioningPlan(), idempotency_key="original") == receipt
         assert engine._engine._reserved_run is second
+        fresh_request = ProvisioningPlan()
         with pytest.raises(RuntimeError, match="retired"):
-            first.submit_provisioning(ProvisioningPlan())
+            first.submit_provisioning(fresh_request)
 
 
 def test_durable_engine_refuses_ephemeral_children_before_recording_an_open(tmp_path):

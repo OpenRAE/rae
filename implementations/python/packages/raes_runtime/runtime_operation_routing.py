@@ -1,15 +1,24 @@
 """Select an operation's fixed context before entering its authority boundary."""
 
+from __future__ import annotations
+
+from collections.abc import Callable
 from functools import wraps
 from inspect import signature
+from typing import TYPE_CHECKING, Concatenate
+
+if TYPE_CHECKING:
+    from .runtime_run_context import RuntimeRunContext
 
 
-def run_operation(method):
+def run_operation[**P, R](
+    method: Callable[Concatenate[RuntimeRunContext, P], R],
+) -> Callable[Concatenate[RuntimeRunContext, P], R]:
     parameters = signature(method)
     reference_name = tuple(parameters.parameters)[1]
 
     @wraps(method)
-    def routed(owner, *args, **kwargs):
+    def routed(owner: RuntimeRunContext, *args: P.args, **kwargs: P.kwargs) -> R:
         engine = getattr(owner, "_engine", None)
         if engine is None or engine.owner is not owner:
             return method(owner, *args, **kwargs)

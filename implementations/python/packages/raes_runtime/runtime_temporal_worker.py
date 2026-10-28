@@ -1,6 +1,8 @@
 """State activity worker using the established authenticated authority client."""
 
-from typing import Any, Literal
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Literal
 
 import anyio
 from pydantic import TypeAdapter
@@ -13,8 +15,15 @@ _STATE = TypeAdapter(
 )
 
 
+if TYPE_CHECKING:
+    from temporalio.client import Client
+    from temporalio.worker import Worker
+
+    from .operation_remote_authority import RemoteOperationAuthority
+
+
 class TemporalRuntimeActivities:
-    def __init__(self, authority):
+    def __init__(self, authority: RemoteOperationAuthority) -> None:
         self.authority = authority
 
     @activity.defn(name="raes.runtime.advance")
@@ -36,7 +45,9 @@ class TemporalRuntimeActivities:
         return _STATE.validate_python(state)
 
 
-def create_runtime_state_worker(client, *, state_queue, activities, capacity=1):
+def create_runtime_state_worker(
+    client: Client, *, state_queue: str, activities: TemporalRuntimeActivities, capacity: int = 1
+) -> Worker:
     from temporalio.worker import Worker
 
     return Worker(

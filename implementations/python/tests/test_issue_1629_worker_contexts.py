@@ -17,8 +17,9 @@ def test_engine_routes_child_worker_grants_without_retargeting_default_state():
         receipt = run.submit_provisioning(ProvisioningPlan(run_id="first"))
         request = dispatcher.commands[0]
         assert engine.get_backend_invocation(receipt.operation_id, identity=worker()) == request
+        foreign_worker = worker("foreign")
         with pytest.raises(PermissionError):
-            engine.get_backend_invocation(receipt.operation_id, identity=worker("foreign"))
+            engine.get_backend_invocation(receipt.operation_id, identity=foreign_worker)
         grant = engine.claim_backend_invocation(
             request.binding, provider.operation_capabilities(), provider.check_operation(request), identity=worker()
         )
@@ -28,10 +29,13 @@ def test_engine_routes_child_worker_grants_without_retargeting_default_state():
         changed = request.binding.model_copy(
             update={"context": request.binding.context.model_copy(update={"run_scope": "run:other"})}
         )
+        capabilities, admission, identity = (
+            provider.operation_capabilities(),
+            provider.check_operation(request),
+            worker(),
+        )
         with pytest.raises((ValueError, PermissionError)):
-            engine.claim_backend_invocation(
-                changed, provider.operation_capabilities(), provider.check_operation(request), identity=worker()
-            )
+            engine.claim_backend_invocation(changed, capabilities, admission, identity=identity)
         assert not engine.snapshot.entries
 
 

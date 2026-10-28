@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import TYPE_CHECKING, Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 from raes_contracts.augmentation_preparation import AugmentationPreparation
@@ -24,6 +24,10 @@ from .runtime_trial_decisions import (
 
 DecisionIdentity = Annotated[str, Field(strict=True, min_length=1, max_length=256)]
 DecisionDigest = Annotated[str, Field(strict=True, pattern=r"^sha256:[a-f0-9]{64}$")]
+
+
+if TYPE_CHECKING:
+    from .control_plane_store import ControlPlaneStore
 
 
 class RunContextDecision(BaseModel):
@@ -130,7 +134,9 @@ def require_identical_decision(existing: RuntimeDecision, candidate: RuntimeDeci
         raise ValueError("runtime decision identity conflicts with its committed value")
 
 
-def bind_run_operation_guarantees(store, run_scope, required_guarantees) -> None:
+def bind_run_operation_guarantees(
+    store: ControlPlaneStore, run_scope: str, required_guarantees: tuple[OperationGuarantee, ...]
+) -> None:
     reader = getattr(store, "load_runtime_decisions", None)
     if reader is None:
         if required_guarantees:

@@ -1,7 +1,10 @@
 """Scoped state writer for Temporal progress; delivery references grant no rights."""
 
+from __future__ import annotations
+
 from copy import deepcopy
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
 
 from raes_contracts.canonical import canonical_json_digest
 
@@ -11,27 +14,37 @@ from .runtime_decisions import runtime_store_digest
 from .runtime_run_driver import program_decision
 from .runtime_sequence_reference import RuntimeSequenceDecision, RuntimeSequenceReference
 
+if TYPE_CHECKING:
+    from raes_processor.models import ExecutionPlan
+
+    from .control_plane import RuntimeControlPlane
+
+
+class RuntimeSequenceOptions(TypedDict):
+    kind: Literal["run", "experiment"]
+    scope_id: str
+    execution_id: str
+    worker_id: str
+    state_queue: str
+    identity: NotRequired[object | None]
+    plan: NotRequired[ExecutionPlan | None]
+    activity_budget_ms: NotRequired[int]
+    poll_interval_ms: NotRequired[int]
+
 
 @dataclass(frozen=True)
 class RuntimeSequenceBinding:
     decision: RuntimeSequenceDecision
-    identity: object
-    plan: object | None = None
+    identity: object | None
+    plan: ExecutionPlan | None = None
 
 
-def bind_sequence(
-    engine,
-    *,
-    kind,
-    scope_id,
-    execution_id,
-    worker_id,
-    state_queue,
-    identity=None,
-    plan=None,
-    activity_budget_ms=60_000,
-    poll_interval_ms=1000,
-):
+def bind_sequence(engine: RuntimeControlPlane, options: RuntimeSequenceOptions) -> RuntimeSequenceReference:
+    required = {"kind", "scope_id", "execution_id", "worker_id", "state_queue"}
+    if required - options.keys() or options.keys() - RuntimeSequenceOptions.__annotations__.keys():
+        raise TypeError("runtime sequence options contain missing or unexpected arguments")
+    kind, scope_id, execution_id = options["kind"], options["scope_id"], options["execution_id"]
+    identity, plan = options.get("identity"), options.get("plan")
     if kind == "run":
         run = engine.get_run(scope_id)
         plan = deepcopy(plan)
@@ -49,10 +62,10 @@ def bind_sequence(
         execution_id=execution_id,
         scope_id=scope_id,
         request_digest=commitment,
-        worker_id=worker_id,
-        state_queue=state_queue,
-        activity_budget_ms=activity_budget_ms,
-        poll_interval_ms=poll_interval_ms,
+        worker_id=options["worker_id"],
+        state_queue=options["state_queue"],
+        activity_budget_ms=options.get("activity_budget_ms", 60_000),
+        poll_interval_ms=options.get("poll_interval_ms", 1000),
     )
     decision = RuntimeSequenceDecision(reference=reference, actor_id=actor, authorization_scope=scopes)
     engine._store.claim_runtime_decision(decision)
@@ -60,7 +73,7 @@ def bind_sequence(
     return reference
 
 
-def advance_sequence(engine, reference, identity):
+def advance_sequence(engine: RuntimeControlPlane, reference: RuntimeSequenceReference, identity: object | None) -> str:
     reference = RuntimeSequenceReference.model_validate(reference.model_dump(mode="json"))
     if (
         not isinstance(identity, ControlPlaneIdentity)

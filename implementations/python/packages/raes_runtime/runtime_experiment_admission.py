@@ -1,5 +1,9 @@
 """Read-only complete-entry checks before experiment configuration effects."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from raes_backend_protocols.trial_control_admission import require_trial_control_capability
 from raes_contracts.contracts import BackendOperationCapabilitiesModel
 from raes_contracts.contracts.trial_controls import required_trial_operation_guarantees
@@ -9,8 +13,25 @@ from .control_plane_submission import _provisioning_submission_diagnostics
 from .manager_plan_admission import runtime_plan_precondition_diagnostics
 from .operation_policy_admission import execution_budget_ms
 
+if TYPE_CHECKING:
+    from raes_contracts.trial_unit import TrialUnitRequest
+    from raes_processor.trial_realization import TrialRealization
 
-def admit_trial(engine, realized, request, services):
+    from .control_plane import RuntimeControlPlane
+    from .runtime_trial_services import TrialRuntimeServices
+
+
+def admit_trial(
+    engine: RuntimeControlPlane, realized: TrialRealization, request: TrialUnitRequest, services: TrialRuntimeServices
+) -> None:
+    _require_plan(engine, realized)
+    require_trial_control_capability(engine._target.manifest, request.execution_controls, request.cleanup_plan)
+    _require_operation_guarantees(engine, request)
+    _require_retry_owner(request, services)
+    engine._execution_adapter.call("control", services.admit, request, timeout_ms=engine._supervision.admission_ms)
+
+
+def _require_plan(engine: RuntimeControlPlane, realized: TrialRealization) -> None:
     plan = realized.execution_plan
     if not plan.is_valid or plan.manifest != engine._target.manifest:
         raise ValueError("trial realization does not match the installed target")
@@ -29,7 +50,9 @@ def admit_trial(engine, realized, request, services):
         execution_budget_ms(phase, engine._supervision)
         if phase.operations and getattr(engine._target, component) is None:
             raise ValueError("trial plan requires an unavailable runtime component")
-    require_trial_control_capability(engine._target.manifest, request.execution_controls, request.cleanup_plan)
+
+
+def _require_operation_guarantees(engine: RuntimeControlPlane, request: TrialUnitRequest) -> None:
     required = set(required_trial_operation_guarantees(request.execution_controls, request.cleanup_plan.retry_policy))
     if required:
         provider = engine._target.operation_provider
@@ -41,6 +64,9 @@ def admit_trial(engine, realized, request, services):
         capabilities = BackendOperationCapabilitiesModel.model_validate(capabilities.model_dump(mode="json"))
         if capabilities.backend_id != engine.target_name or not required <= set(capabilities.guarantees):
             raise ValueError("installed operation provider cannot satisfy trial guarantees")
+
+
+def _require_retry_owner(request: TrialUnitRequest, services: TrialRuntimeServices) -> None:
     policy = request.cleanup_plan.retry_policy
     if policy.max_attempts > 1000:
         raise ValueError("authored retry limit exceeds installed runtime capacity")
@@ -50,4 +76,3 @@ def admit_trial(engine, realized, request, services):
         and not callable(getattr(services, "prepare_retry", None))
     ):
         raise ValueError("authored recovery policy requires an installed retry preparation owner")
-    engine._execution_adapter.call("control", services.admit, request, timeout_ms=engine._supervision.admission_ms)

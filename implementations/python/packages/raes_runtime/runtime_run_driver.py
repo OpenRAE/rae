@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 from raes_contracts.canonical import canonical_json_digest
@@ -11,7 +11,7 @@ from raes_contracts.runtime_state import OperationKind, OperationState
 
 from .control_plane_operation_context import operation_actor_scope, operation_idempotency_fingerprint
 from .interaction import _RuntimeApplyState
-from .runtime_decisions import DecisionIdentity, RunPhaseDecision, RunProgramDecision
+from .runtime_decisions import DecisionIdentity, RunPhaseDecision, RunProgramDecision, RuntimeDecision
 from .runtime_module_step import phase_states
 from .runtime_run_preparation import prepare_run, restore_run_modules
 
@@ -27,6 +27,15 @@ APPLICATION_PHASES = (
 )
 
 
+if TYPE_CHECKING:
+    from raes_contracts.augmentation_preparation import AugmentationPreparation
+    from raes_contracts.planning import RuntimeDomain
+    from raes_processor.models import ExecutionPlan
+
+    from .control_plane_store import ControlPlaneOperationRecord
+    from .runtime_run_context import RuntimeRunContext
+
+
 class RunProgress(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     execution_id: DecisionIdentity
@@ -36,7 +45,9 @@ class RunProgress(BaseModel):
     operation_ids: tuple[DecisionIdentity, ...] = Field(default=(), max_length=64)
 
 
-def program_decision(run, plan, execution_id, identity):
+def program_decision(
+    run: RuntimeRunContext, plan: ExecutionPlan, execution_id: str, identity: object | None
+) -> RunProgramDecision:
     actor, scopes = operation_actor_scope(identity)
     digest = operation_idempotency_fingerprint(
         kind=OperationKind.COMPOSITION_PHASE,
@@ -58,21 +69,14 @@ def program_decision(run, plan, execution_id, identity):
     )
 
 
-def advance_plan(run, plan, *, execution_id, identity=None):
+def advance_plan(
+    run: RuntimeRunContext, plan: ExecutionPlan, *, execution_id: str, identity: object | None = None
+) -> RunProgress:
     """Advance one phase; a pending or unknown operation is never re-invoked."""
     plan = deepcopy(plan)
     admission = program_decision(run, plan, execution_id, identity)
     decisions = {item.decision_id: item for item in run._store.load_runtime_decisions()}
-    prior = decisions.get(admission.decision_id)
-    if prior is None:
-        failure = run._apply_precondition_failure(plan, list(plan.diagnostics))
-        if failure is not None:
-            raise ValueError("run plan admission failed")
-        if run._participant_driver_apply_precondition() is not None:
-            raise RuntimeError("run participant driver remains active")
-        run._store.claim_runtime_decision(admission)
-    elif prior != admission or plan.manifest != run._target.manifest:
-        raise ValueError("run execution identity conflicts with its admitted inputs or actor")
+    _admit_program(run, plan, admission, decisions)
     plan, preparation = prepare_run(run, plan, admission, decisions)
     if not preparation.admitted:
         return RunProgress(execution_id=execution_id, run_scope=run._run_scope, phase=0, state="failed")
@@ -87,13 +91,43 @@ def advance_plan(run, plan, *, execution_id, identity=None):
         and record.state != "started"
     }
     restore_run_modules(run, plan, phases)
+    return _advance_phases(run, plan, admission, identity, preparation.previews, phases)
+
+
+def _admit_program(
+    run: RuntimeRunContext, plan: ExecutionPlan, admission: RunProgramDecision, decisions: dict[str, RuntimeDecision]
+) -> None:
+    prior = decisions.get(admission.decision_id)
+    if prior is None:
+        failure = run._apply_precondition_failure(plan, list(plan.diagnostics))
+        if failure is not None:
+            raise ValueError("run plan admission failed")
+        if run._participant_driver_apply_precondition() is not None:
+            raise RuntimeError("run participant driver remains active")
+        run._store.claim_runtime_decision(admission)
+    elif prior != admission or plan.manifest != run._target.manifest:
+        raise ValueError("run execution identity conflicts with its admitted inputs or actor")
+
+
+def _advance_phases(
+    run: RuntimeRunContext,
+    plan: ExecutionPlan,
+    admission: RunProgramDecision,
+    identity: object | None,
+    previews: dict[RuntimeDomain, AugmentationPreparation],
+    phases: dict[int, RunPhaseDecision],
+) -> RunProgress:
     for phase in range(len(APPLICATION_PHASES)):
         prior_phase = phases.get(phase)
         if prior_phase is not None:
             if prior_phase.state != "succeeded":
                 return _progress(prior_phase)
             continue
-        return _advance_phase(run, plan, admission, phase, identity, preparation.previews)
+        return _advance_phase(run, plan, admission, phase, identity, previews)
+    return _finalize_run(run, admission.execution_id, phases)
+
+
+def _finalize_run(run: RuntimeRunContext, execution_id: str, phases: dict[int, RunPhaseDecision]) -> RunProgress:
     finalization = phases.get(len(APPLICATION_PHASES))
     if finalization is not None and finalization.state != "succeeded":
         return _progress(finalization)
@@ -111,7 +145,14 @@ def advance_plan(run, plan, *, execution_id, identity=None):
     )
 
 
-def _advance_phase(run, plan, admission, phase, identity, previews):
+def _advance_phase(
+    run: RuntimeRunContext,
+    plan: ExecutionPlan,
+    admission: RunProgramDecision,
+    phase: int,
+    identity: object | None,
+    previews: dict[RuntimeDomain, AugmentationPreparation],
+) -> RunProgress:
     started = RunPhaseDecision(
         run_scope=run._run_scope, execution_id=admission.execution_id, phase=phase, state="started"
     )
@@ -141,13 +182,7 @@ def _advance_phase(run, plan, admission, phase, identity, previews):
             state="pending",
             operation_ids=operation_ids,
         )
-    outcome = "succeeded"
-    for candidate in (OperationState.INDETERMINATE, OperationState.CANCELLED, OperationState.FAILED):
-        if candidate in states:
-            outcome = candidate.value
-            break
-    if state is not None and state.failure is not None and not state.failure.success and outcome == "succeeded":
-        outcome = "failed"
+    outcome = _phase_outcome(states, state)
     terminal = started.model_copy(update={"state": outcome, "operation_ids": operation_ids})
     if outcome != "indeterminate":
         run._store.claim_runtime_decision(terminal)
@@ -162,7 +197,20 @@ def _advance_phase(run, plan, admission, phase, identity, previews):
     )
 
 
-def _phase_records(run, admission, key):
+def _phase_outcome(states: set[OperationState], state: _RuntimeApplyState | None) -> str:
+    outcome = "succeeded"
+    for candidate in (OperationState.INDETERMINATE, OperationState.CANCELLED, OperationState.FAILED):
+        if candidate in states:
+            outcome = candidate.value
+            break
+    if state is not None and state.failure is not None and not state.failure.success and outcome == "succeeded":
+        outcome = "failed"
+    return outcome
+
+
+def _phase_records(
+    run: RuntimeRunContext, admission: RunProgramDecision, key: str
+) -> tuple[ControlPlaneOperationRecord, ...]:
     run._reload_derived_state()
     return tuple(
         record
@@ -171,7 +219,7 @@ def _phase_records(run, admission, key):
     )
 
 
-def _progress(phase):
+def _progress(phase: RunPhaseDecision) -> RunProgress:
     return RunProgress(
         execution_id=phase.execution_id,
         run_scope=phase.run_scope,

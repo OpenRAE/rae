@@ -1,5 +1,7 @@
 """Temporal drives shared runtime progress without interpreting authored policy."""
 
+from __future__ import annotations
+
 from datetime import timedelta
 from typing import Any
 
@@ -11,7 +13,7 @@ with workflow.unsafe.imports_passed_through():
     from .runtime_sequence_reference import RuntimeSequenceReference
 
 
-async def _drive(payload):
+async def _drive(payload: dict[str, Any]) -> str:
     reference = RuntimeSequenceReference.model_validate(payload)
     for _ in range(128):
         # A delivered state step reconciles its existing operation claims.
@@ -36,7 +38,7 @@ async def _drive(payload):
 
 @workflow.defn(name="raes.run")
 class RaeRunWorkflow:
-    def __init__(self):
+    def __init__(self) -> None:
         self._reference = None
 
     @workflow.query(name="runtime_reference")
@@ -54,7 +56,7 @@ class RaeRunWorkflow:
 
 @workflow.defn(name="raes.experiment")
 class RaeExperimentWorkflow:
-    def __init__(self):
+    def __init__(self) -> None:
         self._reference = None
 
     @workflow.query(name="runtime_reference")

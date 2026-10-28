@@ -32,9 +32,11 @@ def test_state_worker_is_scoped_and_repeated_delivery_does_not_repeat_effects():
             state_queue="runtime-state",
         )
         payload = reference.model_dump_json()
-        assert "provisioning" not in payload and "participant_configurations" not in payload
+        assert "provisioning" not in payload
+        assert "participant_configurations" not in payload
+        foreign_worker = worker(target.name, "foreign")
         with pytest.raises(PermissionError):
-            engine.advance_workflow(reference, identity=worker(target.name, "foreign"))
+            engine.advance_workflow(reference, identity=foreign_worker)
         assert not calls
         for _ in range(10):
             state = engine.advance_workflow(reference, identity=worker(target.name))
@@ -43,10 +45,10 @@ def test_state_worker_is_scoped_and_repeated_delivery_does_not_repeat_effects():
         assert state == "succeeded"
         assert engine.advance_workflow(reference, identity=worker(target.name)) == "succeeded"
         assert len(calls) == 1
+        foreign_reference = reference.model_copy(update={"scope_id": "run:foreign"})
+        admitted_worker = worker(target.name)
         with pytest.raises(PermissionError):
-            engine.advance_workflow(
-                reference.model_copy(update={"scope_id": "run:foreign"}), identity=worker(target.name)
-            )
+            engine.advance_workflow(foreign_reference, identity=admitted_worker)
 
 
 def test_temporal_workflow_has_single_delivery_attempt_and_preserves_rollover_reference(monkeypatch):
@@ -80,8 +82,9 @@ def test_temporal_workflow_has_single_delivery_attempt_and_preserves_rollover_re
 
     monkeypatch.setattr(module.workflow, "execute_activity", execute)
     monkeypatch.setattr(module.workflow, "continue_as_new", rollover)
+    progress = module._drive(reference.model_dump(mode="json"))
     with pytest.raises(RolledOver):
-        asyncio.run(module._drive(reference.model_dump(mode="json")))
+        asyncio.run(progress)
     assert len(calls) == 128
     assert all(name == "raes.runtime.advance" and attempts == 1 for name, _, attempts in calls)
 

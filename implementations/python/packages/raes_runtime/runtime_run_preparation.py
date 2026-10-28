@@ -1,6 +1,9 @@
 """Bind durable run execution to the existing whole-run admission and modules."""
 
+from __future__ import annotations
+
 from dataclasses import replace
+from typing import TYPE_CHECKING
 from uuid import NAMESPACE_URL, uuid5
 
 from raes_contracts.augmentation_scope import AUGMENTATION_SCOPE_CONTRACT
@@ -11,8 +14,16 @@ from .diagnostics import _has_error_diagnostic
 from .manager_augmentation import prepare_execution_augmentation
 from .runtime_decisions import RunPreparationDecision
 
+if TYPE_CHECKING:
+    from raes_processor.models import ExecutionPlan
 
-def prepare_run(run, plan, admission, decisions):
+    from .runtime_decisions import RunPhaseDecision, RunProgramDecision, RuntimeDecision
+    from .runtime_run_context import RuntimeRunContext
+
+
+def prepare_run(
+    run: RuntimeRunContext, plan: ExecutionPlan, admission: RunProgramDecision, decisions: dict[str, RuntimeDecision]
+) -> tuple[ExecutionPlan, RunPreparationDecision]:
     # The compiler's explicit identities prevail. Otherwise every reconstruction
     # binds the same identity before prospective augmentation is negotiated.
     if AUGMENTATION_SCOPE_CONTRACT in plan.manifest.supported_contract_versions:
@@ -45,7 +56,7 @@ def prepare_run(run, plan, admission, decisions):
     return plan, prior
 
 
-def restore_run_modules(run, plan, phases):
+def restore_run_modules(run: RuntimeRunContext, plan: ExecutionPlan, phases: dict[int, RunPhaseDecision]) -> None:
     """Restore local bindings from the admitted plan; never initialize a backend."""
     if 1 in phases and phases[1].state == "succeeded":
         declaration = time_model_contract_model(plan.model.time_model)

@@ -1,13 +1,19 @@
 """Stable run/sequence workflow starts through the existing Temporal client."""
 
+from __future__ import annotations
+
 from datetime import timedelta
+from typing import TYPE_CHECKING
 
 import anyio
 
 from .runtime_sequence_reference import RuntimeSequenceReference
 
+if TYPE_CHECKING:
+    from .operation_temporal import TemporalExecutionAdapter
 
-async def start_runtime_workflow(adapter, reference):
+
+async def start_runtime_workflow(adapter: TemporalExecutionAdapter, reference: RuntimeSequenceReference) -> str:
     from temporalio.common import RetryPolicy, WorkflowIDConflictPolicy, WorkflowIDReusePolicy
     from temporalio.exceptions import WorkflowAlreadyStartedError
 

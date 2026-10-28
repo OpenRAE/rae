@@ -153,42 +153,10 @@ class RuntimeAdmissionMixin:
         legacy_request_fingerprint: str = "",
         new_claim_blocked: NewClaimBlock = None,
     ) -> ControlPlaneOperationRecord:
-        from .operation_invocation_ledger import control_record_is_supervisory
-
         self._assert_runtime_owner()
         require_idempotency_key(record.idempotency_key)
+        new_claim_blocked, reservation_error = self._effect_claim_block(record, new_claim_blocked)
         engine = getattr(self, "_engine", None)
-        reservation_error = None
-        if (
-            engine is not None
-            and record.status.context.operation_kind is not OperationKind.INDETERMINATE_RESOLUTION
-            and not control_record_is_supervisory(record)
-        ):
-            try:
-                engine.reserve(self)
-            except RuntimeError as error:
-                # Preserve authoritative idempotent readback after admission
-                # closes, retirement, or another run reserves the target.
-                reservation_error = error
-                new_claim_blocked = "current-state"
-        if (
-            getattr(self, "_effect_admission_stopped", False)
-            and record.status.context.operation_kind is not OperationKind.INDETERMINATE_RESOLUTION
-            and not control_record_is_supervisory(record)
-        ):
-            new_claim_blocked = "current-state"
-        if (
-            record.status.context.operation_kind is not OperationKind.INDETERMINATE_RESOLUTION
-            and not control_record_is_supervisory(record)
-        ):
-            from .control_plane_recovery import unresolved_indeterminate_operation_ids
-
-            if unresolved_indeterminate_operation_ids(
-                self,
-                target_scope=record.status.context.target_scope,
-                run_scope=record.status.context.run_scope,
-            ):
-                new_claim_blocked = "indeterminate"
         try:
             persisted = self._store_commits.claim_record(
                 record,
@@ -213,6 +181,34 @@ class RuntimeAdmissionMixin:
             if index is not None:
                 index.apply(persisted)
         return persisted
+
+    def _effect_claim_block(
+        self, record: ControlPlaneOperationRecord, blocked: NewClaimBlock
+    ) -> tuple[NewClaimBlock, RuntimeError | None]:
+        from .control_plane_recovery import unresolved_indeterminate_operation_ids
+        from .operation_invocation_ledger import control_record_is_supervisory
+
+        if (
+            record.status.context.operation_kind is OperationKind.INDETERMINATE_RESOLUTION
+            or control_record_is_supervisory(record)
+        ):
+            return blocked, None
+        engine = getattr(self, "_engine", None)
+        reservation_error = None
+        if engine is not None:
+            try:
+                engine.reserve(self)
+            except RuntimeError as error:
+                # Preserve exact readback after admission closes or a run retires.
+                reservation_error = error
+                blocked = "current-state"
+        if getattr(self, "_effect_admission_stopped", False):
+            blocked = "current-state"
+        if unresolved_indeterminate_operation_ids(
+            self, target_scope=record.status.context.target_scope, run_scope=record.status.context.run_scope
+        ):
+            blocked = "indeterminate"
+        return blocked, reservation_error
 
 
 __all__ = ("RuntimeAdmissionMixin",)

@@ -7,6 +7,7 @@ from copy import deepcopy
 from dataclasses import replace
 from datetime import UTC, datetime
 from time import monotonic
+from typing import TYPE_CHECKING
 
 from raes_contracts.contracts.trial_replacement_archive import replacement_resources_reusable
 from raes_contracts.trial_unit import TrialUnitResult, validate_trial_unit_result
@@ -19,13 +20,38 @@ from .runtime_run_cleanup import advance_destroy
 from .runtime_trial_decisions import TrialInterruptionDecision, TrialObservationDecision
 from .runtime_trial_services import TrialExecutionObservation
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from raes_contracts.contracts import ExperimentEvidenceRecordModel
+    from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
+    from raes_contracts.trial_unit import TrialUnitRequest
+    from raes_processor.trial_realization import TrialRealization
+
+    from .runtime_run_context import RuntimeRunContext
+    from .runtime_trial_decisions import TrialAttemptDecision
+    from .runtime_trial_services import (
+        TrialConfigurationObservation,
+        TrialObservation,
+        TrialRetryObservation,
+        TrialRuntimeServices,
+    )
+
 
 class TrialPending(RuntimeError):
     """The attempt needs observation or reconciliation, never blind redispatch."""
 
 
 class RuntimeTrialUnit:
-    def __init__(self, run, request, realization, services, attempt, identity):
+    def __init__(
+        self,
+        run: RuntimeRunContext,
+        request: TrialUnitRequest,
+        realization: TrialRealization,
+        services: TrialRuntimeServices,
+        attempt: TrialAttemptDecision,
+        identity: object | None,
+    ) -> None:
         self.run, self.request, self.realization = run, replace(request), realization
         self.services, self.attempt, self.identity = services, attempt, identity
         started = datetime.fromisoformat(attempt.started_at)
@@ -42,16 +68,21 @@ class RuntimeTrialUnit:
             experiment is None
             or experiment.services is not services
             or attempt not in owner._store.load_runtime_decisions()
-            or run._run_scope != "run:" + request.run_id
-            or attempt.execution_attempt_id != request.execution_attempt_id
-            or realization.snapshot_digest != request.instantiated_sdl_digest
-            or realization.provisioning_plan != request.provisioning_plan
-            or realization.orchestration_plan != request.orchestration_plan
-            or realization.evaluation_plan != request.evaluation_plan
         ):
             raise ValueError("trial adapter is not bound to its engine admission")
 
-    def observations(self):
+        self._require_request_binding()
+
+    def _require_request_binding(self) -> None:
+        request, realization = self.request, self.realization
+        retained = (self.run._run_scope, self.attempt.execution_attempt_id, realization.snapshot_digest)
+        supplied = ("run:" + request.run_id, request.execution_attempt_id, request.instantiated_sdl_digest)
+        plans = (realization.provisioning_plan, realization.orchestration_plan, realization.evaluation_plan)
+        requested_plans = (request.provisioning_plan, request.orchestration_plan, request.evaluation_plan)
+        if retained != supplied or plans != requested_plans:
+            raise ValueError("trial adapter is not bound to its engine admission")
+
+    def observations(self) -> dict[str, TrialObservationDecision]:
         return {
             record.observation.kind: record
             for record in self.run._store.load_runtime_decisions()
@@ -59,7 +90,7 @@ class RuntimeTrialUnit:
             and record.execution_attempt_id == self.request.execution_attempt_id
         }
 
-    def _validate(self, observation):
+    def _validate(self, observation: TrialObservation) -> TrialObservation:
         # Reconstruct nested untrusted values before their installed owner checks
         # content and live probes. A valid reference alone cannot pass this gate.
         observation = type(observation).model_validate(observation.model_dump(mode="json"))
@@ -69,10 +100,7 @@ class RuntimeTrialUnit:
         ):
             raise ValueError("trial evidence belongs to another run")
         if observation.kind == "configuration":
-            if observation.configurations != self.request.participant_configurations:
-                raise ValueError("observed participant configuration differs from admitted settings")
-            if observation.configurations and not observation.evidence:
-                raise ValueError("applied participant settings require observed evidence")
+            self._validate_configuration(observation)
         if observation.kind == "execution" and observation.ceased and not observation.evidence:
             raise ValueError("execution cessation requires observed evidence")
         if observation.kind == "retry":
@@ -86,7 +114,13 @@ class RuntimeTrialUnit:
         )
         return observation
 
-    def _validate_retry(self, observation):
+    def _validate_configuration(self, observation: TrialConfigurationObservation) -> None:
+        if observation.configurations != self.request.participant_configurations:
+            raise ValueError("observed participant configuration differs from admitted settings")
+        if observation.configurations and not observation.evidence:
+            raise ValueError("applied participant settings require observed evidence")
+
+    def _validate_retry(self, observation: TrialRetryObservation) -> None:
         plan = self.request.cleanup_plan
         evidence_ids = {item.evidence_record_id for item in observation.evidence}
         for key, result in observation.obligation_results.items():
@@ -96,28 +130,34 @@ class RuntimeTrialUnit:
             if not set(result.evidence_refs) <= evidence_ids:
                 raise ValueError("retry obligation evidence is missing")
         if observation.ready:
-            if not evidence_ids:
-                raise ValueError("retry readiness requires verified evidence")
-            owed = {
-                key
-                for key, value in plan.cleanup_obligations.items()
-                if value.requirement == "required" and "retry" in value.triggers
-            }
-            if any(
-                key not in observation.obligation_results or observation.obligation_results[key].status != "succeeded"
-                for key in owed
-            ):
-                raise ValueError("retry readiness omits required retry obligations")
-            if not set(plan.retry_policy.compensation_refs) <= set(observation.verified_compensations):
-                raise ValueError("retry readiness omits authored compensation")
+            self._validate_retry_ready(observation, evidence_ids)
 
-    def prepare_retry(self):
+    def _validate_retry_ready(self, observation: TrialRetryObservation, evidence_ids: set[str]) -> None:
+        plan = self.request.cleanup_plan
+        if not evidence_ids:
+            raise ValueError("retry readiness requires verified evidence")
+        owed = {
+            key
+            for key, value in plan.cleanup_obligations.items()
+            if value.requirement == "required" and "retry" in value.triggers
+        }
+        if any(
+            key not in observation.obligation_results or observation.obligation_results[key].status != "succeeded"
+            for key in owed
+        ):
+            raise ValueError("retry readiness omits required retry obligations")
+        if not set(plan.retry_policy.compensation_refs) <= set(observation.verified_compensations):
+            raise ValueError("retry readiness omits authored compensation")
+
+    def prepare_retry(self) -> str:
         return self._module(4, self.services.prepare_retry)
 
-    def _module(self, phase, method, *, outcome=None):
+    def _module(
+        self, phase: int, method: Callable[..., tuple[ApplyResult, TrialObservation]], *, outcome: str | None = None
+    ) -> str:
         run, request = self.run, self.request
 
-        def invoke(snapshot):
+        def invoke(snapshot: RuntimeSnapshot) -> ApplyResult:
             if outcome is None:
                 result, observation = method(request, snapshot)
             else:
@@ -155,7 +195,7 @@ class RuntimeTrialUnit:
             ),
         )
 
-    def _stop(self, cause):
+    def _stop(self, cause: str) -> str:
         run, request = self.run, self.request
         return advance_step(
             run,
@@ -174,18 +214,16 @@ class RuntimeTrialUnit:
             ),
         )
 
-    def advance(self, *, cancelled=False):
+    def advance(self, *, cancelled: bool = False) -> str:
         """Advance a bounded lifecycle cut; pending and unknown retain reservation."""
-        observed = self.observations()
-        execution = observed.get("execution")
+        execution = self.observations().get("execution")
         if execution is None:
-            state = self._execution(cancelled)
-            if state != "progress":
-                return state
-            return "progress"
-        execution = execution.observation
-        if not execution.ceased:
+            return self._execution(cancelled)
+        if not execution.observation.ceased:
             return "indeterminate"
+        return self._after_execution(execution.observation)
+
+    def _after_execution(self, execution: TrialExecutionObservation) -> str:
         capture = self._module(1, self.services.capture)
         if capture in {"pending", "indeterminate"}:
             return capture
@@ -194,14 +232,13 @@ class RuntimeTrialUnit:
         if teardown != "succeeded":
             return "cleanup-failed" if teardown in {"failed", "cancelled"} else teardown
         cleanup = self._module(2, self.services.cleanup, outcome=execution.state)
-        if cleanup in {"pending", "indeterminate"}:
-            return cleanup
-        if cleanup != "succeeded":
-            return "cleanup-failed"
-        self.result()
-        return "succeeded"
+        if cleanup == "succeeded":
+            self.result()
+        elif cleanup not in {"pending", "indeterminate"}:
+            cleanup = "cleanup-failed"
+        return cleanup
 
-    def _execution(self, cancelled):
+    def _interruption(self, cancelled: bool) -> TrialInterruptionDecision | None:
         run, request = self.run, self.request
         expired = monotonic() >= self._deadline or datetime.now(UTC) >= datetime.fromisoformat(self.attempt.deadline)
         interruption = next(
@@ -222,22 +259,33 @@ class RuntimeTrialUnit:
                 else request.execution_controls.on_timeout,
             )
             run._store.claim_runtime_decision(interruption)
+        return interruption
+
+    def _execution_progress(self, cancelled: bool) -> tuple[str | None, str | None]:
+        interruption = self._interruption(cancelled)
         forced = None
+        pending = None
         if interruption is not None:
-            forced = (
-                "aborted"
-                if interruption.disposition == "abort"
-                else ("cancelled" if interruption.cause == "cancellation" else "timed-out")
-            )
+            if interruption.disposition == "abort":
+                forced = "aborted"
+            else:
+                forced = "cancelled" if interruption.cause == "cancellation" else "timed-out"
             state = self._stop(interruption.cause)
             if state in {"pending", "indeterminate"}:
-                return state
+                pending = state
         else:
             state = self._apply()
             if state in {"progress", "pending", "indeterminate"}:
-                return state
-            if state != "succeeded":
+                pending = state
+            elif state != "succeeded":
                 forced = state
+        return pending, forced
+
+    def _execution(self, cancelled: bool) -> str:
+        run, request = self.run, self.request
+        pending, forced = self._execution_progress(cancelled)
+        if pending is not None:
+            return pending
         with run._mutation_authority.external_call():
             observation = run._execution_adapter.call(
                 "control",
@@ -262,7 +310,7 @@ class RuntimeTrialUnit:
         )
         return "progress"
 
-    def _apply(self):
+    def _apply(self) -> str:
         with authored_attempt_budget(self._deadline):
             configuration = self._module(0, self.services.configure)
             if configuration != "succeeded":
@@ -278,42 +326,49 @@ class RuntimeTrialUnit:
                 identity=self.identity,
             ).state
 
-    def result(self):
+    def result(self) -> TrialUnitResult:
         observed = self.observations()
         if "execution" not in observed or "cleanup" not in observed:
             raise TrialPending("trial does not have terminal execution and cleanup observations")
         cleanup = observed["cleanup"].observation
         if cleanup.receipt.trial_outcome != observed["execution"].observation.state:
             raise ValueError("cleanup receipt changed the observed trial outcome")
-        execution_ids = {self.request.execution_attempt_id + suffix for suffix in ("", ":apply", ":destroy")}
-        operation_ids = {
-            operation_id
-            for decision in self.run._store.load_runtime_decisions()
-            if isinstance(decision, RunPhaseDecision) and decision.execution_id in execution_ids
-            for operation_id in decision.operation_ids
-        }
+        operation_ids = self._operation_ids()
         result = TrialUnitResult(
             operation_receipts=tuple(
                 record.receipt for key, record in self.run._store.load_records().items() if key in operation_ids
             ),
             execution_snapshot=_snapshot_from_payload(json.loads(observed["execution"].snapshot_json)),
-            evidence=tuple(
-                item
-                for kind in ("configuration", "execution", "capture", "retry")
-                if kind in observed
-                for item in observed[kind].observation.evidence
-            ),
+            evidence=self._result_evidence(observed),
             cleanup_receipt=cleanup.receipt,
             cleanup_evidence=cleanup.evidence,
         )
         validate_trial_unit_result(self.request, result, target_scope=self.run._target_scope)
         return result
 
-    def reusable(self):
+    def _operation_ids(self) -> set[str]:
+        execution_ids = {self.request.execution_attempt_id + suffix for suffix in ("", ":apply", ":destroy")}
+        return {
+            operation_id
+            for decision in self.run._store.load_runtime_decisions()
+            if isinstance(decision, RunPhaseDecision) and decision.execution_id in execution_ids
+            for operation_id in decision.operation_ids
+        }
+
+    @staticmethod
+    def _result_evidence(observed: dict[str, TrialObservationDecision]) -> tuple[ExperimentEvidenceRecordModel, ...]:
+        return tuple(
+            item
+            for kind in ("configuration", "execution", "capture", "retry")
+            if kind in observed
+            for item in observed[kind].observation.evidence
+        )
+
+    def reusable(self) -> bool:
         result = self.result()
         return replacement_resources_reusable(self.request.cleanup_plan, result.cleanup_receipt)
 
-    def capture_succeeded(self):
+    def capture_succeeded(self) -> bool:
         capture = self.observations().get("capture")
         records = step_records(self.run, self.request.execution_attempt_id, 1)
         return bool(
@@ -323,7 +378,7 @@ class RuntimeTrialUnit:
             and all(record.status.state.value == "succeeded" for record in records)
         )
 
-    def execute_trial(self, request):
+    def execute_trial(self, request: TrialUnitRequest) -> TrialUnitResult:
         from raes_contracts.runtime_state import OperationKind
 
         from .control_plane_mutation import control_plane_mutation
