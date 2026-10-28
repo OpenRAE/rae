@@ -25,13 +25,10 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts import validate_participant_control_occurrence_context
 from raes_contracts.contracts.participant_control_occurrence_v2 import (
     ParticipantControlOccurrenceV2Model,
-    parse_participant_control_occurrence,
 )
 from raes_contracts.contracts.participant_control_occurrence_v2_policy import participant_control_validity_bounds
-from raes_contracts.contracts.participant_control_occurrence_v2_validation import fold_participant_control_episode_v2
 
 from .participant_control_operation import ParticipantControlOperationAuthority, participant_control_operation_artifacts
 from .participant_control_runtime import admitted_policy, archived_policies, resolve_live_cut
@@ -53,6 +50,7 @@ class _ApplicationHistory:
     available_targets: tuple[ParticipantControlOccurrenceTarget, ...]
     episode: list[ParticipantControlOccurrenceV2Model]
     live: ParticipantControlEpisodeStateV2
+    archive: object
 
 
 def prepare_control_application(
@@ -67,10 +65,9 @@ def prepare_control_application(
     from .participant_control_mediation import PreparedParticipantControlTransition, _history_head
 
     context = _application_history(plane, participant, intent)
-    policy, history, records = context.policy, context.history, context.records
-    policies, historical_targets = context.policies, context.historical_targets
+    policy, history = context.policy, context.history
+    historical_targets = context.historical_targets
     available_targets, live = context.available_targets, context.live
-    declarations = plane._mixed_control.legacy_declarations
     application = intent.application
     transition = policy.transition(intent.declaration_ref)
     if transition is None:
@@ -89,15 +86,16 @@ def prepare_control_application(
     ]
     reason = next((code for fails, code in reasons if fails), None)
     candidate, reason = _control_candidate(plane, participant, intent, source, context, bounds, reason)
-    validate_participant_control_occurrence_context(
-        [*records, candidate], declarations=declarations, policies=policies, available_targets=available_targets
-    )
+    trial = context.archive.trial(candidate, policy=policy, available_targets=available_targets)
+    if trial.violation is not None:
+        raise ValueError(trial.violation)
+    from raes_contracts.immutable_history import append_history
+
     next_snapshot = plane._snapshot.with_entries(
         dict(plane._snapshot.entries),
-        participant_control_history={
-            **plane._snapshot.participant_control_history,
-            participant: [*history, candidate.model_dump(mode="json")],
-        },
+        participant_control_history=append_history(
+            plane._snapshot, "participant_control_history", participant, [candidate.model_dump(mode="json")]
+        ),
     )
     record, audit = participant_control_operation_artifacts(
         participant_address=participant,
@@ -133,10 +131,11 @@ def _application_history(
     plane: RuntimeControlPlane, participant: str, intent: ParticipantControlIntent
 ) -> _ApplicationHistory:
     policy = admitted_policy(plane, participant, intent.episode_id)
-    history = list(plane._snapshot.participant_control_history.get(participant, ()))
+    from .participant_control_archive_projection import control_archive_projection
+
+    history = plane._snapshot.participant_control_history.get(participant, ())
     if len(history) >= 1_000_000:
         raise ValueError("participant control history capacity is exhausted")
-    records = [parse_participant_control_occurrence(payload) for payload in history]
     policies = archived_policies(plane, participant)
     historical_targets = archived_control_targets(plane, participant)
     known_identities = {control_target_identity(target) for target in historical_targets}
@@ -146,16 +145,13 @@ def _application_history(
         if control_target_identity(target) not in known_identities
     )
     available_targets = (*historical_targets, *fresh_targets)
-    declarations = plane._mixed_control.legacy_declarations
-    validate_participant_control_occurrence_context(
-        records, declarations=declarations, policies=policies, available_targets=historical_targets
+    archive = control_archive_projection(plane, participant, policies=policies, targets=historical_targets)
+    from raes_contracts.contracts.participant_control_episode_prefix import ControlEpisodePrefix
+
+    prefix = archive.episodes.get(intent.episode_id, ControlEpisodePrefix(policy, historical_targets))
+    return _ApplicationHistory(
+        policy, history, archive.records, policies, historical_targets, available_targets, (), prefix.state, archive
     )
-    episode = [record for record in records if record.episode_id == intent.episode_id]
-    folded = fold_participant_control_episode_v2(episode, policy=policy, available_targets=historical_targets)
-    if folded.violation is not None:
-        raise ValueError("mixed-control episode history is unverifiable")
-    live = folded.state
-    return _ApplicationHistory(policy, history, records, policies, historical_targets, available_targets, episode, live)
 
 
 def _require_source_controller(
@@ -256,9 +252,7 @@ def _control_candidate(
                 "occurrence": _accepted_detail(intent, context.policy, source, bounds, len(context.history) + 1),
             }
         )
-        trial = fold_participant_control_episode_v2(
-            [*context.episode, candidate], policy=context.policy, available_targets=context.available_targets
-        )
+        trial = context.archive.trial(candidate, policy=context.policy, available_targets=context.available_targets)
         if trial.violation is None:
             return candidate, None
         reason = trial.rejection_code

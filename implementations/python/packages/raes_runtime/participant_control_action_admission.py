@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -24,7 +25,6 @@ if TYPE_CHECKING:
 
 from raes_contracts.contracts.participant_control import ParticipantControlTargetKind
 from raes_contracts.contracts.participant_control_occurrence_v2 import parse_participant_control_occurrence
-from raes_contracts.contracts.participant_control_occurrence_v2_validation import fold_participant_control_episode_v2
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 
 from .participant_control_runtime import admitted_policy, resolve_owner_cut
@@ -67,20 +67,26 @@ def require_live_control_proposal(plane: RuntimeControlPlane, request: object) -
     participant = request.participant_address
     state = plane._snapshot.participant_episode_results.get(participant, {})
     episode = state.get("episode_id")
-    history = _current_control_history(plane, participant, episode, request.validated_selection.proposal_ref)
-    if not history or history[0].schema_version != "2.0.0":
+    from .participant_control_archive_projection import control_archive_projection
+    from .participant_control_runtime import archived_policies
+
+    targets = archived_control_targets(plane, participant)
+    archive = control_archive_projection(
+        plane, participant, policies=archived_policies(plane, participant), targets=targets
+    )
+    proposal_ref = request.validated_selection.proposal_ref
+    if archive.proposal_episodes.get(proposal_ref, set()) - {episode}:
+        raise ValueError("linked control proposal belongs to an ended episode")
+    if archive.lineages.get(episode) != "2.0.0":
         return
     policy = admitted_policy(plane, participant, episode)
-    fold = fold_participant_control_episode_v2(
-        history, policy=policy, available_targets=archived_control_targets(plane, participant)
-    )
-    if fold.violation is not None:
-        raise ValueError("linked control history is unverifiable")
-    proposal = fold.state.produced(ParticipantControlTargetKind.PROPOSAL, request.validated_selection.proposal_ref)
+    prefix = archive.episodes[episode]
+    history = tuple(prefix.records.values())
+    proposal = prefix.state.produced(ParticipantControlTargetKind.PROPOSAL, proposal_ref)
     if proposal is None:
         return
-    approval = _require_eligible_approval(request, state, fold.state, proposal, history)
-    _require_action_cut(plane, request, policy, fold.state.state_ref, approval)
+    approval = _require_eligible_approval(request, state, prefix.state, proposal, history)
+    _require_action_cut(plane, request, policy, prefix.state.state_ref, approval)
 
 
 def _current_control_history(
@@ -106,7 +112,7 @@ def _require_eligible_approval(
     state: dict[str, object],
     folded: ParticipantControlEpisodeStateV2,
     proposal: ParticipantControlProducedTargetV2,
-    history: list[ParticipantControlOccurrenceModel | ParticipantControlOccurrenceV2Model],
+    history: Sequence[ParticipantControlOccurrenceModel | ParticipantControlOccurrenceV2Model],
 ) -> ParticipantApprovalOccurrenceV2Model:
     lifecycle = folded.lifecycle(proposal.record_event_id)
     if state.get("status") != "running" or lifecycle.superseded or lifecycle.replaced:
@@ -121,7 +127,7 @@ def _require_eligible_approval(
 
 
 def _live_decisions(
-    history: list[ParticipantControlOccurrenceModel | ParticipantControlOccurrenceV2Model],
+    history: Sequence[ParticipantControlOccurrenceModel | ParticipantControlOccurrenceV2Model],
     folded: ParticipantControlEpisodeStateV2,
     proposal_ref: str,
 ) -> list[ParticipantControlOccurrenceModel | ParticipantControlOccurrenceV2Model]:

@@ -268,6 +268,8 @@ def external_control_targets(
     """Attest targets visible at this cut; API-409 owns internal control targets."""
 
     requested = _intent_target(intent)
+    if requested is None:
+        return ()
     return tuple(
         ParticipantControlOccurrenceTarget(
             item.context.target_kind,
@@ -295,13 +297,23 @@ def archived_control_targets(
     plane: RuntimeControlPlane, participant: str
 ) -> tuple[ParticipantControlOccurrenceTarget, ...]:
     """Retain the original visibility cut instead of backdating later targets."""
+    from .participant_control_operation_index import operation_index
+
     targets = []
-    events = {event["event_id"]: event for event in plane._snapshot.participant_control_history.get(participant, ())}
-    for record in plane._operations.values():
+    history = plane._snapshot.participant_control_history
+    from raes_contracts.immutable_history import HistoryMap
+
+    events = (
+        {} if isinstance(history, HistoryMap) else {event["event_id"]: event for event in history.get(participant, ())}
+    )
+    for record in operation_index(plane).target_records.values():
         if record.status.state not in {OperationState.SUCCEEDED, OperationState.FAILED}:
             continue
         for payload in (record.result_payload or {}).get("participant_control_available_targets", ()):
             if payload["participant_address"] == participant:
+                if isinstance(history, HistoryMap):
+                    event_id = record.result_payload.get("participant_control_occurrence_ref")
+                    events = {event_id: history.find(participant, event_id)}
                 targets.append(_archived_target(record, payload, events))
     return tuple(targets)
 

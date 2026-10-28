@@ -187,6 +187,9 @@ class RuntimeAdmissionMixin:
                 _require_sensitive_retry_proof(known_exact, exact_retry_fingerprint, competing_claim=competing)
                 self._ephemeral_idempotency_fingerprints[claim_identity] = exact_retry_fingerprint
             self._operations[persisted.receipt.operation_id] = persisted
+            index = getattr(self, "_control_operation_index", None)
+            if index is not None:
+                index.apply(persisted)
         return persisted
 
 

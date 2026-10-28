@@ -134,13 +134,13 @@ def originating_operations(control_plane: object, participant_address: str) -> d
     that left the head unchanged names the same value on both sides.
     """
 
-    key = f"{_CARRIER}:{participant_address}"
-    origins: dict[str, ControlPlaneOperationRecord] = {}
-    for record in control_plane._store.load_records().values():
-        produced = record.result_history_heads.get(key)
-        if produced is not None and record.decision_history_heads.get(key) != produced:
-            origins[produced] = record
-    return origins
+    from .participant_control_operation_index import operation_index
+
+    return {
+        evaluation: record
+        for (participant, evaluation), record in operation_index(control_plane).origins.items()
+        if participant == participant_address
+    }
 
 
 def origin_principal(
@@ -329,13 +329,17 @@ def _find_owner_record(
     *,
     v2: bool,
 ) -> ControlPlaneOperationRecord | None:
-    scopes = {(claim.status.context.actor_id, kind, key)}
+    scopes = [(claim.status.context.actor_id, kind, key)]
     if v2 and kind is OperationKind.PARTICIPANT_CONTROL:
-        scopes.add((claim.status.context.actor_id, OperationKind.PARTICIPANT_CROSSING, key))
+        scopes.append((claim.status.context.actor_id, OperationKind.PARTICIPANT_CROSSING, key))
+    from .participant_control_operation_index import operation_index
+
+    index = operation_index(control_plane)
     return next(
         (
             record
-            for record in control_plane._store.load_records().values()
+            for scope in scopes
+            if (record := index.scoped.get(scope)) is not None
             if record.idempotency_key == key
             and idempotency_claim_identity(record.receipt.context, key) in scopes
             and (not v2 or record.receipt.context.parent_operation_id == claim.receipt.operation_id)
