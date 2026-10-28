@@ -125,7 +125,15 @@ def prepare_mixed_invocation(
             "context": record.receipt.context,
         },
         command=mixed_backend_binding_reference(declaration),
-        required_guarantees=("effect-observation", "cessation-evidence"),
+        required_guarantees=tuple(
+            dict.fromkeys(
+                (
+                    *plane._required_operation_guarantees,
+                    "effect-observation",
+                    "cessation-evidence",
+                )
+            )
+        ),
         budget={"origin_id": str(uuid4()), "started_at": _utc_now(), "limit_ms": budget, "remaining_ms": budget},
     )
     time_state = snapshot.time_model_state

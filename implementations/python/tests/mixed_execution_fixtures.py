@@ -320,7 +320,15 @@ def seed_store(store, initial, run_id):
     return store
 
 
-def portable_plane(*, handoff=False, store=None, supervision=None, affine_destination=None, resolver=None):
+def portable_plane(
+    *,
+    handoff=False,
+    store=None,
+    supervision=None,
+    affine_destination=None,
+    resolver=None,
+    required_operation_guarantees=(),
+):
     configured = portable_configuration(handoff=handoff, affine_destination=affine_destination, resolver=resolver)
     state, run_id = configured.state, configured.run_id
     if store is None:
@@ -333,6 +341,7 @@ def portable_plane(*, handoff=False, store=None, supervision=None, affine_destin
         crossing_policy_resolver=state.resolver,
         run_scope=f"run:{run_id}",
         store=store,
+        required_operation_guarantees=required_operation_guarantees,
         **({"supervision": supervision} if supervision else {}),
     )
     state.plane = plane

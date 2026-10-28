@@ -26,6 +26,8 @@ class InteractionCallOptions(TypedDict, total=False):
     call: _BackendCallContext | None
     runtime_composition: bool
     result_validator: Callable[[ApplyResult, RuntimeSnapshot], ApplyResult] | None
+    idempotency_key: str
+    identity: object | None
 
 
 class RuntimeInteractionDispatchMixin:
@@ -57,10 +59,12 @@ class RuntimeInteractionDispatchMixin:
         snapshot: RuntimeSnapshot,
         *,
         request: _RuntimePlanApplyRequest,
+        idempotency_key: str = "",
+        identity: object | None = None,
     ) -> ApplyResult:
         domain = _phase_domain(phase)
         results = []
-        context = operation_admission_context(self, kind=OperationKind(domain.value), request=phase)
+        context = operation_admission_context(self, kind=OperationKind(domain.value), request=phase, identity=identity)
         receipt = execute_operation(
             self,
             OperationExecutionRequest(
@@ -70,7 +74,7 @@ class RuntimeInteractionDispatchMixin:
                 address=request.address,
                 diagnostics=[],
                 base_snapshot=snapshot,
-                idempotency_key="",
+                idempotency_key=idempotency_key,
                 context=context,
                 request_fingerprint=context.request_commitment,
                 realization=request.realization,
@@ -94,6 +98,8 @@ class RuntimeInteractionDispatchMixin:
         call = options.pop("call", None)
         runtime_composition = options.pop("runtime_composition", False)
         result_validator = options.pop("result_validator", None)
+        idempotency_key = options.pop("idempotency_key", "")
+        identity = options.pop("identity", None)
         if options:
             raise TypeError("unsupported interaction callback option")
         native_plan = bool(args and isinstance(args[0], (ProvisioningPlan, OrchestrationPlan, EvaluationPlan)))
@@ -103,6 +109,7 @@ class RuntimeInteractionDispatchMixin:
             self,
             kind=OperationKind(domain.value) if native_plan else OperationKind.COMPOSITION_PHASE,
             request={"phase": address, "plan": phase, "arguments": _interaction_arguments(args, call)},
+            identity=identity,
         )
         results = []
 
@@ -137,7 +144,7 @@ class RuntimeInteractionDispatchMixin:
                 address=address,
                 diagnostics=[],
                 base_snapshot=snapshot,
-                idempotency_key="",
+                idempotency_key=idempotency_key,
                 context=context,
                 request_fingerprint=context.request_commitment,
                 local_executor=None if native_plan else invoke,
