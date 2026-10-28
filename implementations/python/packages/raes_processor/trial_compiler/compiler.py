@@ -11,11 +11,10 @@ from raes import (
 from raes_backend_protocols.backend_manifest import BackendManifest
 from raes_backend_protocols.capabilities import ObservationCapabilities
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope
-from raes_contracts.canonical import canonical_json_bytes, canonical_json_digest
+from raes_contracts.canonical import canonical_json_bytes
 from raes_contracts.contracts import (
     AdmittedExecutionControlModel,
     AdmittedInstantiationProvenanceModel,
-    AdmittedSelectionRecordModel,
     AdmittedTrialEntryModel,
     AdmittedTrialPlanAdmissionModel,
     AdmittedTrialPlanModel,
@@ -47,6 +46,7 @@ from .apparatus import (
 )
 from .bindings import _admitted_descriptors, _entry_bindings, entry_participant_configurations
 from .control_admission import require_trial_controls
+from .effects import resolved_treatment_signature, validate_factorial_distinctness
 from .inputs import (
     canonical_input_refs,
     canonical_realization_binding,
@@ -92,18 +92,6 @@ def _diagnostic(failure: CompilationFailure) -> Diagnostic:
     )
 
 
-def _selection_records(row: CoordinateSelections) -> list[AdmittedSelectionRecordModel]:
-    return [
-        AdmittedSelectionRecordModel(
-            variation_point_id=selection.point_id,
-            origin_policy_id=selection.policy_id,
-            origin_policy_kind=selection.policy_kind,
-            outcome=selection.outcome,
-        )
-        for selection in row.selections
-    ]
-
-
 def _require_capture_admission(
     demands: tuple[CaptureDemand, ...],
     observations: tuple[ObservationCapabilities | None, ...],
@@ -123,7 +111,7 @@ def _compile_entry(
     descriptors: Mapping[str, ExperimentBindingDescriptorModel],
     backends: tuple[BackendManifest, ...],
     apparatus_manifests: Mapping[ApparatusManifestKey, ApparatusManifest],
-) -> tuple[str, AdmittedTrialEntryModel, str, TrialCleanupPlanModel]:
+) -> tuple[str, AdmittedTrialEntryModel, str, TrialCleanupPlanModel, str | None]:
     realization = request.realization_assignments.get(realization_assignment_key(coordinate))
     selected = _validate_selected_scenario(request, row, coordinate)
     require_selected_tool_support(selected, apparatus_manifests.values(), backends)
@@ -176,7 +164,7 @@ def _compile_entry(
         plan_entry_id=entry_id,
         coordinate=coordinate,
         run_id=run_id,
-        selections=_selection_records(row),
+        selections=row.records(),
         bindings=bindings,
         participant_configurations=entry_participant_configurations(
             request, bindings, apparatus.participant_manifest_refs, scenario=selected
@@ -197,7 +185,12 @@ def _compile_entry(
         ),
     )
     require_trial_controls(backends, entry.execution_controls, cleanup)
-    return entry_id, entry, cleanup_id, cleanup
+    typed = (
+        request.experiment.factorial_design is not None
+        and request.experiment.factorial_design.profile == "factorial-treatments-v1"
+    )
+    signature = resolved_treatment_signature(entry, selected) if typed else None
+    return entry_id, entry, cleanup_id, cleanup, signature
 
 
 def _failure_key(failure: CompilationFailure) -> tuple[str, str, str]:
@@ -210,7 +203,7 @@ def _compile_coordinate(
     coordinate: TrialCoordinateModel,
     row: CoordinateSelections,
     authority: compiler_models._EntryCompilationAuthority,
-) -> tuple[str, AdmittedTrialEntryModel, str, TrialCleanupPlanModel]:
+) -> tuple[str, AdmittedTrialEntryModel, str, TrialCleanupPlanModel, str | None]:
     realization = request.realization_assignments.get(realization_assignment_key(coordinate))
     profile_id = realization.profile_ref.ref_id if realization is not None else ""
     descriptors = authority.descriptors
@@ -243,13 +236,16 @@ def _compile_entries(
     entries: dict[str, AdmittedTrialEntryModel] = {}
     cleanup_plans: dict[str, TrialCleanupPlanModel] = {}
     used_control_ids: set[str] = set()
+    resolved_signatures: dict[str, str] = {}
     canonical_failure: CompilationFailure | None = None
     capture_failures: dict[tuple[str, str, str], Diagnostic] = {}
     for coordinate_index in visit_indices:
         coordinate = coordinates[coordinate_index]
         row = rows[coordinate_index]
         try:
-            entry_id, entry, cleanup_id, cleanup = _compile_coordinate(request, plan_id, coordinate, row, authority)
+            entry_id, entry, cleanup_id, cleanup, signature = _compile_coordinate(
+                request, plan_id, coordinate, row, authority
+            )
         except _CaptureAdmissionFailure as failure:
             capture_failures.update(
                 {
@@ -271,6 +267,8 @@ def _compile_entries(
             used_control_ids.update(draw.control_id for draw in row.draws)
             entries[entry_id] = entry
             cleanup_plans[cleanup_id] = cleanup
+            if signature is not None:
+                resolved_signatures[entry_id] = signature
             continue
         if canonical_failure is None or _failure_key(candidate_failure) < _failure_key(canonical_failure):
             canonical_failure = candidate_failure
@@ -278,6 +276,8 @@ def _compile_entries(
         raise _CaptureAdmissionFailure(tuple(capture_failures[key] for key in sorted(capture_failures)))
     if canonical_failure is not None:
         raise canonical_failure
+    if request.experiment.factorial_design is not None:
+        validate_factorial_distinctness(entries, resolved_signatures)
     return entries, cleanup_plans, used_control_ids
 
 
@@ -326,6 +326,13 @@ def _compile(
     coordinate_partitions: tuple[tuple[int, ...], ...] | None,
     replacement: ReplacementCompilationContext | None = None,
 ) -> AdmittedTrialPlanModel:
+    if (
+        request.experiment.factorial_design is not None
+        and request.experiment.factorial_design.profile == "factorial-treatments-v1"
+    ):
+        request = replace(
+            request, experiment=type(request.experiment).model_validate(request.experiment.model_dump(mode="python"))
+        )
     validate_treatment_profile(request)
     validate_input_identities(request)
     try:
@@ -373,8 +380,6 @@ def _compile(
         traversal,
         replace(authority, descriptors=descriptors),
     )
-    if request.experiment.factorial_design is not None:
-        _validate_factorial_distinctness(entries)
     controls, allocation = _compile_controls_and_allocation(request, entries, used_control_ids)
     policy = request.experiment.run_plan.allocation_policy
     plan = seal_admitted_trial_plan(
@@ -384,6 +389,8 @@ def _compile(
             replacement=replacement is not None,
             designed=request.experiment.factorial_design is not None or policy is not None,
             allocation=policy is not None,
+            treatments=request.experiment.factorial_design is not None
+            and request.experiment.factorial_design.profile == "factorial-treatments-v1",
         ),
         allocation=allocation,
         input_refs=(replacement.input_refs(request, entries) if replacement else canonical_input_refs(request)),
@@ -429,36 +436,6 @@ def _compile_controls_and_allocation(
         for entry in sorted(entries.values(), key=lambda entry: canonical_coordinate_sort_key(entry.coordinate))
     ]
     return controls, compile_experiment_allocation(policy, domain, controls)
-
-
-def _validate_factorial_distinctness(entries: Mapping[str, AdmittedTrialEntryModel]) -> None:
-    conditions_by_signature = {}
-    for entry in entries.values():
-        operational = sorted(
-            (
-                binding.descriptor.realization_payload()
-                for binding in entry.bindings
-                if binding.descriptor.target.plane != "participant-implementation"
-            ),
-            key=canonical_json_bytes,
-        )
-        participant_values = [
-            {
-                "participant_address": result.participant_address,
-                "configuration": result.configuration.model_dump(
-                    mode="json", exclude={"values": {"__all__": {"origin"}}}
-                ),
-            }
-            for result in sorted(entry.participant_configurations, key=lambda result: result.participant_address)
-        ]
-        signature = canonical_json_digest([operational, participant_values])
-        previous = conditions_by_signature.setdefault(signature, entry.coordinate.condition_id)
-        if previous != entry.coordinate.condition_id:
-            raise _fail(
-                "factorial-conditions-indistinguishable",
-                "/factorial_design",
-                "distinct factorial conditions must remain operationally distinguishable after owner resolution",
-            )
 
 
 def compile_admitted_trial_plan(

@@ -24,7 +24,12 @@ RANDOM_STREAM_PROFILE_VERSION: Final = RANDOM_STREAM_PROFILE_SCHEMA_VERSION
 
 
 def admitted_profiles(
-    *, mixed_composition: bool = False, replacement: bool = False, designed: bool = False, allocation: bool = False
+    *,
+    mixed_composition: bool = False,
+    replacement: bool = False,
+    designed: bool = False,
+    allocation: bool = False,
+    treatments: bool = False,
 ) -> AdmittedTrialPlanProfilesModel:
     """Return the single exact profile set implemented by this compiler."""
 
@@ -56,6 +61,7 @@ def admitted_profiles(
         cleanup_profile="trial-cleanup-v1",
         isolation_profile="scheduler-isolation-v1",
         allocation_profile="fisher-yates-allocation-v1" if allocation else "none",
+        treatment_profile="factorial-treatments-v1" if treatments else None,
     )
 
 

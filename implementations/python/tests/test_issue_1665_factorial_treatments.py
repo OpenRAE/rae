@@ -218,14 +218,14 @@ def test_resealed_plan_checks_treatment_family_coordinate_and_profile(tamper) ->
         )
 
 
-def test_current_compiler_refuses_unimplemented_treatment_profile_explicitly() -> None:
+def test_typed_profile_does_not_bypass_input_reference_validation() -> None:
     from raes_processor.trial_compiler import compile_admitted_trial_plan
     from test_sce_002_trial_compiler import _request
 
     request = _request().with_experiment(ExperimentSpecModel.model_validate(_typed_payload()))
     result = compile_admitted_trial_plan(request)
     assert result.plan is None
-    assert result.diagnostics[0].code == "trial-compiler.factorial-profile-unsupported"
+    assert result.diagnostics[0].code == "trial-compiler.binding-set-ref-mismatch"
 
 
 def test_current_compiler_refuses_manual_typed_criteria_without_a_profile() -> None:
