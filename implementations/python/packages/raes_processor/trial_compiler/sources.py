@@ -46,12 +46,7 @@ def validate_authoring_selections(
     # Reconstruct direct caller-held models before trusting their source joins.
     experiment = ExperimentSpecModel.model_validate(experiment.model_dump(mode="python"))
     coordinates = _authoring_coordinates(plan, experiment)
-    expected_coordinates = {canonical_json_bytes(coordinate.model_dump(mode="json")) for coordinate in coordinates}
-    actual_coordinates = {
-        canonical_json_bytes(entry.coordinate.model_dump(mode="json")) for entry in plan.entries.values()
-    }
-    if actual_coordinates != expected_coordinates or len(plan.entries) != len(coordinates):
-        raise ValueError("authoring selection coordinates differ from the admitted plan")
+    _validate_coordinate_set(plan, coordinates)
     rows = compile_coordinate_selections(
         family=family,
         spec=experiment,
@@ -68,6 +63,13 @@ def validate_authoring_selections(
     for entry in plan.entries.values():
         expected = records[canonical_json_bytes(entry.coordinate.model_dump(mode="json"))]
         _validate_entry_sources(entry, expected, descriptors)
+
+
+def _validate_coordinate_set(plan: AdmittedTrialPlanModel, coordinates: list[TrialCoordinateModel]) -> None:
+    expected = {canonical_json_bytes(coordinate.model_dump(mode="json")) for coordinate in coordinates}
+    actual = {canonical_json_bytes(entry.coordinate.model_dump(mode="json")) for entry in plan.entries.values()}
+    if actual != expected or len(plan.entries) != len(coordinates):
+        raise ValueError("authoring selection coordinates differ from the admitted plan")
 
 
 def _resolve_descriptors(
