@@ -8,6 +8,17 @@ imports directly; internal modules never import this facade.
 from __future__ import annotations
 
 from raes_conformance.conformance.fixture_suite import run_fixture_suite
+from raes_conformance.conformance.mixed_backend_cases import MIXED_BACKEND_CASES, MixedBackendCase
+from raes_conformance.conformance.mixed_backend_probes import run_mixed_backend_conformance
+from raes_conformance.conformance.mixed_backend_types import (
+    MixedBackendCaseBinding,
+    MixedBackendCondition,
+    MixedBackendProbeHarness,
+    MixedBackendProbeRequest,
+    MixedBackendSubject,
+    MixedCompositionProbeConfiguration,
+    MixedControlProbeConfiguration,
+)
 from raes_conformance.conformance.modular_control import (
     modular_control_obligations,
     run_modular_control_conformance,
@@ -48,21 +59,31 @@ from raes_conformance.conformance.validators import (
 )
 
 __all__ = [
-    "modular_control_obligations",
-    "run_modular_control_conformance",
+    "MIXED_BACKEND_CASES",
     "BackendCapabilityProfile",
     "BackendConformanceReport",
     "BackendProfileSelector",
     "ConformanceCaseResult",
+    "MixedBackendCase",
+    "MixedBackendCaseBinding",
+    "MixedBackendCondition",
+    "MixedBackendProbeHarness",
+    "MixedBackendProbeRequest",
+    "MixedBackendSubject",
+    "MixedCompositionProbeConfiguration",
+    "MixedControlProbeConfiguration",
     "backend_conformance_report_payload",
     "contract_payload_root",
     "contract_validation_strength",
     "fixtures_root",
+    "modular_control_obligations",
     "observability_evidence_conformance_diagnostics",
     "profile_for_manifest",
     "profiles_root",
     "required_contracts",
     "run_fixture_suite",
+    "run_mixed_backend_conformance",
+    "run_modular_control_conformance",
     "run_target_conformance",
     "supported_contract_ids",
     "validate_contract_payload",

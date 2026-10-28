@@ -149,6 +149,8 @@ module_boundaries:
           - raes_processor.reference
         raes_runtime:
           - raes_runtime.control_plane
+          # Issue #1017: the claim refusal signal that identifies a moved-phase refusal.
+          - raes_runtime.control_plane_store
           - raes_runtime.registry
           - raes_runtime.result_contracts
           - raes_runtime.snapshot_contract
