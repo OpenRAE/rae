@@ -150,7 +150,7 @@ def _legacy_surface_failures(repo_root: Path, tracked_paths: Sequence[str]) -> l
             if path.is_symlink() or not path.is_file() or path.stat().st_size > 2 * 1024 * 1024:
                 continue
             text = path.read_text(encoding="utf-8")
-        except OSError, UnicodeError:
+        except (OSError, UnicodeError):
             continue
         if "uv tool run" in text:
             failures.append(
@@ -278,7 +278,7 @@ def _projection_generation_failures(repo_root: Path) -> list[PolicyFailure]:
 
     try:
         projections_current = generate_python_closures(check=True, repo_root=repo_root)
-    except OSError, ValueError:
+    except (OSError, ValueError):
         projections_current = False
     if projections_current:
         return []

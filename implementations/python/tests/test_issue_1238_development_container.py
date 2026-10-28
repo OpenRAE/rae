@@ -870,16 +870,18 @@ def test_native_host_sizing_is_not_a_second_policy_schema(tmp_path: Path) -> Non
 
 
 # The image runs `tools.devcontainer_setup` with the Ubuntu 24.04 python3
-# (CPython 3.12) before the locked CPython 3.14 exists.
+# (CPython 3.12) before the locked CPython 3.14 exists. The setup also runs the
+# tooling policy validator script with that interpreter.
 _BASE_IMAGE_RELEASE = "24.04"
 _BASE_IMAGE_PYTHON = (3, 12)
+_BASE_IMAGE_ENTRY_MODULES = ("tools.devcontainer_setup", "tools.check_tooling_artifact_policy")
 
 
 def _setup_import_closure() -> set[str]:
-    """Return the repository modules that `tools.devcontainer_setup` can import."""
+    """Return the repository modules that the base-image interpreter can import."""
 
     seen: dict[str, Path] = {}
-    pending = ["tools.devcontainer_setup"]
+    pending = list(_BASE_IMAGE_ENTRY_MODULES)
     while pending:
         module = pending.pop()
         relative = module.replace(".", "/")
@@ -904,7 +906,7 @@ def test_container_setup_modules_parse_on_the_base_image_interpreter() -> None:
     (base_image,) = [item for item in lock["artifacts"] if item["artifact_id"] == BASE_IMAGE_ARTIFACT_ID]
     assert base_image["version"] == _BASE_IMAGE_RELEASE
     closure = _setup_import_closure()
-    assert "tools/bootstrap_profile.py" in closure
+    assert {"tools/bootstrap_profile.py", "tools/check_tooling_artifact_policy.py"} <= closure
     for relative in sorted(closure):
         ast.parse((REPO_ROOT / relative).read_text(encoding="utf-8"), relative, feature_version=_BASE_IMAGE_PYTHON)
 
