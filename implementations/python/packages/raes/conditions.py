@@ -48,7 +48,7 @@ class Condition(SDLModel):
         return data
 
     @model_validator(mode="after")
-    def validate_command_xor_source(self) -> "Condition":
+    def validate_command_xor_source(self) -> Condition:
         has_command = self.command is not None
         has_interval = self.interval is not None
         has_source = self.source is not None

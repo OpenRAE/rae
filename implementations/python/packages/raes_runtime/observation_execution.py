@@ -257,7 +257,7 @@ def _execute_admitted_plan_observation(
             manifest,
             operation_id=operation_id,
         )
-    except (KeyError, TypeError, ValueError):
+    except KeyError, TypeError, ValueError:
         return None, Diagnostic(
             code="observation.runtime-contract-invalid",
             domain="runtime",

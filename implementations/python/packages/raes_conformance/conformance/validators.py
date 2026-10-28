@@ -431,7 +431,7 @@ def _control_context_diagnostics(
         else:
             record = ParticipantControlEvaluationModel.model_validate(payload)
             validate_participant_control_resolved_context(record, resolver)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return [
             _diagnostic(
                 _SEMANTIC_INVALID_DIAGNOSTIC_CODE, contract_name, "participant control trusted context is invalid"

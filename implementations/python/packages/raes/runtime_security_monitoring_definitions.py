@@ -222,7 +222,7 @@ class RuntimeSecurityMonitoringDetectionDefinition(SDLModel):
         return validate_absolute_paths(v, field_name="evidence_refs")
 
     @model_validator(mode="after")
-    def validate_definition(self) -> "RuntimeSecurityMonitoringDetectionDefinition":
+    def validate_definition(self) -> RuntimeSecurityMonitoringDetectionDefinition:
         if self.canonical_digest and not self.digest_algorithm:
             raise ValueError("canonical_digest requires digest_algorithm")
         if self.digest_algorithm and not self.canonical_digest:

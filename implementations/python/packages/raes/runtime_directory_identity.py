@@ -217,7 +217,7 @@ class RuntimeIdentityAttribute(SDLModel):
         return parse_runtime_enum_or_var(v, RuntimeIdentityRecordOrigin, field_name="provenance")
 
     @model_validator(mode="after")
-    def align_origin_and_provenance(self) -> "RuntimeIdentityAttribute":
+    def align_origin_and_provenance(self) -> RuntimeIdentityAttribute:
         if (
             self.origin == RuntimeIdentityRecordOrigin.UNKNOWN
             and self.provenance != RuntimeIdentityRecordOrigin.UNKNOWN
@@ -232,7 +232,7 @@ class RuntimeIdentityAttribute(SDLModel):
         return self
 
     @model_validator(mode="after")
-    def validate_redacted_values(self) -> "RuntimeIdentityAttribute":
+    def validate_redacted_values(self) -> RuntimeIdentityAttribute:
         enforce_observed_value_redaction(
             owner_label=f"identity attribute '{self.name}'",
             value=self.values,
@@ -320,7 +320,7 @@ class RuntimeIdentitySubject(SDLModel):
         return coerce_string_list(v)
 
     @model_validator(mode="after")
-    def validate_subject(self) -> "RuntimeIdentitySubject":
+    def validate_subject(self) -> RuntimeIdentitySubject:
         reject_duplicates(
             self.service_principal_names,
             label="service_principal_name",
@@ -363,7 +363,7 @@ class RuntimeIdentityPolicy(SDLModel):
         return coerce_string_list(v)
 
     @model_validator(mode="after")
-    def validate_policy(self) -> "RuntimeIdentityPolicy":
+    def validate_policy(self) -> RuntimeIdentityPolicy:
         reject_duplicates(
             self.applies_to_refs,
             label="policy applies_to_ref",
@@ -413,7 +413,7 @@ class RuntimeIdentityRelationship(SDLModel):
         return require_non_empty(v, field_name=info.field_name) if v else v
 
     @model_validator(mode="after")
-    def validate_relationship_target(self) -> "RuntimeIdentityRelationship":
+    def validate_relationship_target(self) -> RuntimeIdentityRelationship:
         if bool(self.target_ref) == bool(self.external_target):
             raise ValueError("identity relationships require exactly one of target_ref or external_target")
         return self
@@ -451,7 +451,7 @@ class RuntimeIdentityAuthority(SDLModel):
         return parse_runtime_enum_or_var(v, RuntimeIdentityAuthorityKind, field_name="kind")
 
     @model_validator(mode="after")
-    def validate_authority(self) -> "RuntimeIdentityAuthority":
+    def validate_authority(self) -> RuntimeIdentityAuthority:
         container = f"identity authority '{self.identity_authority_id}'"
         reject_duplicates(
             (service.service_id for service in self.services),

@@ -376,7 +376,7 @@ class _VariationMixin:
             try:
                 candidate_scenario = type(self._s).model_validate(payload)
                 type(self)(candidate_scenario).validate()
-            except (ValidationError, SDLValidationError):
+            except ValidationError, SDLValidationError:
                 pass
             else:
                 valid = True

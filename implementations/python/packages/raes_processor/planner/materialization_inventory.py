@@ -141,7 +141,7 @@ def _validate_collection_inventory(
     live = {address: entry for address, entry in entries.items() if entry.domain == RuntimeDomain.PROVISIONING}
     try:
         validate_portable_node_inventory(live, originals, manifest)
-    except (AttributeError, KeyError, TypeError, ValueError):
+    except AttributeError, KeyError, TypeError, ValueError:
         raise ValueError(InventoryInvariant.CAPABILITY) from None
 
 

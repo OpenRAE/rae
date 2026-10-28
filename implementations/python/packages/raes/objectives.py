@@ -47,7 +47,7 @@ class ObjectiveSuccess(SDLModel):
         return parse_enum_or_var(v, SuccessMode, field_name="mode")
 
     @model_validator(mode="after")
-    def validate_non_empty(self) -> "ObjectiveSuccess":
+    def validate_non_empty(self) -> ObjectiveSuccess:
         if not self.assertions:
             raise ValueError("Objective success must reference at least one assertion")
         if self.mode == SuccessMode.AT_LEAST:
@@ -104,7 +104,7 @@ class Objective(SDLModel):
         return value
 
     @model_validator(mode="after")
-    def validate_relation_binding(self) -> "Objective":
+    def validate_relation_binding(self) -> Objective:
         if not self.owner and not self.assigned_participant:
             raise ValueError("Objective requires 'owner' or 'assigned_participant' (both are permitted)")
         return self

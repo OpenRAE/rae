@@ -145,7 +145,7 @@ class DnsResourceRecord(SDLModel):
         return v
 
     @model_validator(mode="after")
-    def validate_payload_present(self) -> "DnsResourceRecord":
+    def validate_payload_present(self) -> DnsResourceRecord:
         if any((self.rdata, self.address, self.target, self.text, self.soa, self.mx, self.srv)):
             return self
         raise ValueError("DNS record must carry rdata or a typed payload")
@@ -205,7 +205,7 @@ class DnsResourceRecordSet(SDLModel):
         return parse_runtime_enum_or_var(v, DnsRecordProvenance, field_name="provenance")
 
     @model_validator(mode="after")
-    def validate_rrset(self) -> "DnsResourceRecordSet":
+    def validate_rrset(self) -> DnsResourceRecordSet:
         if not self.records:
             raise ValueError("DNS RRset records must not be empty")
         record_type_is_variable = _is_unresolved_variable(self.record_type)

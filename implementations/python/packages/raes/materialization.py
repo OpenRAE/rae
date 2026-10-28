@@ -38,7 +38,7 @@ class MaterializedScenario(ScenarioContent):
                 continue
             try:
                 resolve_json_pointer(content, origin.field_pointer)
-            except (KeyError, IndexError, TypeError, ValueError):
+            except KeyError, IndexError, TypeError, ValueError:
                 raise ValueError("materialization origin must resolve to supplied SDL content") from None
         if any(binding.node_name not in self.nodes for binding in self.materialization_provenance.resource_bindings):
             raise ValueError("materialization resource binding must resolve to a node")

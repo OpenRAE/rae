@@ -11,7 +11,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from graphlib import TopologicalSorter
 from time import monotonic
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.participant_control_applicability import (
@@ -57,7 +57,6 @@ if TYPE_CHECKING:
     from .control_plane import RuntimeControlPlane
     from .participant_control_orchestration import ParticipantControlOutcome
 
-_T = TypeVar("_T")
 _StageResults = tuple[
     tuple[ControlInvocationV2Model, ...],
     tuple[ControlMechanismResultV2Model, ...],
@@ -97,7 +96,7 @@ class _EvaluationCut:
             # Do not refresh the CAS revision and then publish an old prepared snapshot.
             raise SnapshotRevisionConflict()
 
-    def call(self, method: Callable[..., _T], *args: object, provider: bool = False) -> _T:
+    def call[T](self, method: Callable[..., T], *args: object, provider: bool = False) -> T:
         self.require_current()
         remaining = min(self.plane._supervision.admission_ms, int((self.deadline - monotonic()) * 1000))
         if remaining <= 0:

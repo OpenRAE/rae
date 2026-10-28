@@ -13,7 +13,7 @@ from multiprocessing import get_context
 from pathlib import Path
 from threading import Barrier as ThreadBarrier
 from threading import Event
-from typing import Any, Protocol, TypeVar
+from typing import Any, Protocol
 
 import httpx
 import pytest
@@ -70,10 +70,8 @@ from store_commit_failure_fixtures import fail_sqlite_commit
 
 pytestmark = pytest.mark.control_plane_conformance
 
-_T = TypeVar("_T")
 
-
-def _run(coroutine: Coroutine[Any, Any, _T]) -> _T:
+def _run[T](coroutine: Coroutine[Any, Any, T]) -> T:
     """Run one coroutine without replacing or closing pytest's default loop."""
 
     loop = asyncio.new_event_loop()

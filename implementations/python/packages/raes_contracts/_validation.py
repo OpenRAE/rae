@@ -4,18 +4,15 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from enum import Enum
-from typing import TypeVar
-
-EnumT = TypeVar("EnumT", bound=Enum)
 
 
-def enum_value(enum_type: type[EnumT], raw: object) -> EnumT:
+def enum_value[EnumT: Enum](enum_type: type[EnumT], raw: object) -> EnumT:
     if isinstance(raw, enum_type):
         return raw
     return enum_type(str(raw))
 
 
-def optional_enum_value(enum_type: type[EnumT], raw: object) -> EnumT | None:
+def optional_enum_value[EnumT: Enum](enum_type: type[EnumT], raw: object) -> EnumT | None:
     if raw is None:
         return None
     return enum_value(enum_type, raw)

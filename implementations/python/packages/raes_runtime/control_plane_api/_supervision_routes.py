@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from pydantic import BaseModel, ConfigDict
@@ -28,7 +28,6 @@ from ._offload import _control_plane_calls
 if TYPE_CHECKING:
     from ..control_plane import RuntimeControlPlane
 
-_T = TypeVar("_T")
 _SUPERVISION_RESPONSES = {
     404: {"description": "Operation not found"},
     409: {"description": "Operation supervision conflict"},
@@ -48,14 +47,14 @@ class _AbsenceResolutionRequest(BaseModel):
     control_id: OperationIdentifier
 
 
-async def _call(request: Request, method: Callable[..., _T], *args: object, **kwargs: object) -> _T:
+async def _call[T](request: Request, method: Callable[..., T], *args: object, **kwargs: object) -> T:
     try:
         return await _control_plane_calls(request).control(method, *args, **kwargs)
-    except (KeyError, PermissionError):
+    except KeyError, PermissionError:
         raise HTTPException(status_code=404, detail="operation not found") from None
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         raise HTTPException(status_code=409, detail="operation supervision conflict") from None
-    except (RuntimeError, TimeoutError):
+    except RuntimeError, TimeoutError:
         raise HTTPException(status_code=503, detail="operation supervision unavailable") from None
 
 

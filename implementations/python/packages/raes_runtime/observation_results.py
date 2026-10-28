@@ -102,7 +102,7 @@ def observation_execution_from_payload(payload: object) -> ObservationExecution 
                         ExperimentRealizedFormDisclosureModel.model_validate(item) for item in disclosures
                     ),
                 )
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 execution = None
     return execution
 

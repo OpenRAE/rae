@@ -160,7 +160,7 @@ def _manifest_authority_diagnostic(
     else:
         try:
             requirements = plan_realization_requirements(plan)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             diagnostic = _invalid_runtime_view_diagnostic(plan)
         else:
             support_diagnostics = [
@@ -202,7 +202,7 @@ def _recursive_binding_diagnostic(plan: ProvisioningPlan) -> Diagnostic | None:
             valid = binding == authority.constraint_binding
             if valid and authority.mode is not RealizationAuthorityMode.OPEN:
                 valid = evaluate_realization_constraint(authority.constraint_document, projected).conformant
-        except (TypeError, ValueError, AttributeError):
+        except TypeError, ValueError, AttributeError:
             valid = False
         if not valid:
             return Diagnostic(
@@ -375,7 +375,7 @@ def _bound_value(value: object, bound: RealizationAuthorityBound) -> object:
 def _safe_process_limit_identity(value: object) -> str | None:
     try:
         return process_resource_limit_identity_digest(value)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
 
 
@@ -391,7 +391,7 @@ def _constraint_diagnostic(
     if realized is not _MISSING:
         try:
             projection = project_realization_concern(authority.requirement_kind, realized, observed=True)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             diagnostic = _runtime_authority_diagnostic(authority)
         else:
             outside_bounds = any(
@@ -445,7 +445,7 @@ def realization_authority_disclosure(
             for authority in declared_plan.realization_authority
             if authority.mode is not RealizationAuthorityMode.CLOSED
         }
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return [_invalid_runtime_view_diagnostic(declared_plan)], ()
     diagnostics: list[Diagnostic] = []
     provenance: list[RealizationProvenanceEntry] = []

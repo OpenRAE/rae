@@ -7,7 +7,6 @@ from enum import Enum
 from typing import Annotated
 
 from pydantic import Discriminator, Field, StrictInt, Tag, field_validator, model_validator
-from typing_extensions import TypeAliasType
 
 from ._base import SDLModel
 from ._classification_guard import LegacyClassificationGuard
@@ -35,11 +34,10 @@ class ParticipantBehaviorSpecificationLifecycle(str, Enum):
 _BEHAVIOR_SPEC_EXTENSION_KEY_RE = re.compile(r"^x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*$")
 _BEHAVIOR_SPEC_EXTENSION_POLICIES = frozenset({"closed", "governed-extension"})
 BehaviorSpecificationExtensionScalar = str | int | float | bool | None
-BehaviorSpecificationExtensionValue = TypeAliasType(
-    "BehaviorSpecificationExtensionValue",
+type BehaviorSpecificationExtensionValue = (
     BehaviorSpecificationExtensionScalar
-    | list["BehaviorSpecificationExtensionValue"]
-    | dict[str, "BehaviorSpecificationExtensionValue"],
+    | list[BehaviorSpecificationExtensionValue]
+    | dict[str, BehaviorSpecificationExtensionValue]
 )
 ToolAffordanceReference = Annotated[str, Field(min_length=1, pattern=r"\S")]
 

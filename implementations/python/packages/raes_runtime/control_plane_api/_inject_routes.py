@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TypeVar
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from raes_contracts.contracts import (
@@ -28,8 +27,6 @@ from ._auth import _AdministrativeMutationIdentity, _AdministrativeReadIdentity
 from ._offload import _control_plane_calls
 from ._operation_routes import _record_admission_denial_best_effort
 from ._responses import _conflict_detail, _receipt_response
-
-_Readback = TypeVar("_Readback")
 
 _MAX_TRIGGER_BYTES = 256 * 1024
 _TRIGGER_SCHEMA = InjectTriggerRequestModel.model_json_schema()
@@ -117,9 +114,9 @@ def _register_trigger_route(app: FastAPI, control_plane: RuntimeControlPlane) ->
 
 
 def _register_readback_routes(app: FastAPI, control_plane: RuntimeControlPlane) -> None:
-    async def read(
-        request: Request, operation_id: str, identity: ControlPlaneIdentity, reader: Callable[..., _Readback | None]
-    ) -> _Readback:
+    async def read[Readback](
+        request: Request, operation_id: str, identity: ControlPlaneIdentity, reader: Callable[..., Readback | None]
+    ) -> Readback:
         result = await _control_plane_calls(request).run(reader, operation_id, identity=identity)
         if result is None:
             raise HTTPException(status_code=404, detail="inject record not found")

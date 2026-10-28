@@ -205,7 +205,7 @@ jobs:
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12.14"
+          python-version: "3.14.7"
 
       - name: Install uv
         uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
@@ -218,7 +218,7 @@ jobs:
           DIST_DIR: ${{ runner.temp }}/raes-release-dist
         run: |
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
-            -m tools.python_closure build --profile public-linux-x86_64-cp312-all-extras \
+            -m tools.python_closure build --profile public-linux-x86_64-cp314-all-extras \
             --source implementations/python --out-dir "${DIST_DIR}"
 
       - name: Materialize the exact release smoke wheelhouse
@@ -226,7 +226,7 @@ jobs:
           WHEELHOUSE: ${{ runner.temp }}/raes-release-wheelhouse
         run: |
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
-            -m tools.python_closure materialize --profile public-linux-x86_64-cp312-all-extras \
+            -m tools.python_closure materialize --profile public-linux-x86_64-cp314-all-extras \
             --wheelhouse "${WHEELHOUSE}"
 
       - name: Verify the contract corpus is bundled in both distributions (#537)
@@ -312,7 +312,7 @@ jobs:
           fi
 
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
-            -m tools.python_closure smoke --profile public-linux-x86_64-cp312-all-extras \
+            -m tools.python_closure smoke --profile public-linux-x86_64-cp314-all-extras \
             --candidate "${wheels[0]}" --environment "${SMOKE_VENV}" \
             --wheelhouse "${WHEELHOUSE}" --offline
           smoke_home="$(mktemp -d "${RUNNER_TEMP}/raes-release-smoke-cwd.XXXXXX")"
@@ -359,7 +359,7 @@ jobs:
           fi
 
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
-            -m tools.python_closure smoke --profile public-linux-x86_64-cp312-all-extras \
+            -m tools.python_closure smoke --profile public-linux-x86_64-cp314-all-extras \
             --candidate "${sdist_wheels[0]}" --environment "${SMOKE_VENV}" \
             --wheelhouse "${WHEELHOUSE}" --offline
           smoke_home="$(mktemp -d "${RUNNER_TEMP}/raes-release-sdist-smoke-cwd.XXXXXX")"
@@ -407,7 +407,7 @@ jobs:
             --evidence-dir "${EVIDENCE_DIR}" \
             --environment "${SMOKE_VENV}" \
             --sdist-environment "${SDIST_SMOKE_VENV}" \
-            --profile public-linux-x86_64-cp312-all-extras \
+            --profile public-linux-x86_64-cp314-all-extras \
             --release-tag "${RELEASE_TAG}"
 
       - name: Upload the tested release distributions
@@ -532,7 +532,7 @@ jobs:
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12.14"
+          python-version: "3.14.7"
 
       - name: Install uv
         uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1

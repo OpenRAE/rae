@@ -227,7 +227,7 @@ class RuntimeFilesystemEntry(SDLModel):
         return parse_runtime_enum_or_var(v, RuntimeSensitivityClassification, field_name="sensitivity")
 
     @model_validator(mode="after")
-    def validate_digest_pair(self) -> "RuntimeFilesystemEntry":
+    def validate_digest_pair(self) -> RuntimeFilesystemEntry:
         if self.content_digest and not self.digest_algorithm:
             raise ValueError("content_digest requires digest_algorithm")
         if self.digest_algorithm and not self.content_digest:
@@ -235,7 +235,7 @@ class RuntimeFilesystemEntry(SDLModel):
         return self
 
     @model_validator(mode="after")
-    def validate_presence(self) -> "RuntimeFilesystemEntry":
+    def validate_presence(self) -> RuntimeFilesystemEntry:
         if self.presence != RuntimeFilesystemPresence.EXPECTED_ABSENT:
             return self
         for field_name in _PRESENT_ONLY_FIELDS:

@@ -430,8 +430,8 @@ class WorkflowRuntime(ResolvedResource):
     step_predicate_addresses: dict[str, tuple[str, ...]] = field(default_factory=dict)
     required_features: tuple[WorkflowFeature, ...] = ()
     required_state_predicate_features: tuple[WorkflowStatePredicateFeature, ...] = ()
-    result_contract: "WorkflowResultContract" = field(default_factory=lambda: WorkflowResultContract())
-    execution_contract: "WorkflowExecutionContract" = field(default_factory=lambda: WorkflowExecutionContract())
+    result_contract: WorkflowResultContract = field(default_factory=lambda: WorkflowResultContract())
+    execution_contract: WorkflowExecutionContract = field(default_factory=lambda: WorkflowExecutionContract())
     state_schema_version: str = WORKFLOW_STATE_SCHEMA_VERSION
 
 

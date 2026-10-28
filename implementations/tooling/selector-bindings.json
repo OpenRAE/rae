@@ -2,24 +2,17 @@
   "schema_version": "raes-development-selector-bindings/v1",
   "bindings": [
     {
-      "binding_id": "cpython-3.11-workflow-payload",
-      "artifact_id": "cpython-3.11",
+      "binding_id": "cpython-3.14-workflow-payload",
+      "artifact_id": "cpython-3.14",
       "authority_field": "version",
       "consumers": [
         {
           "path": ".github/workflows/ci.yml",
-          "template": "{feature: \"3.11\", payload: \"{selector}\", closure: public-linux-x86_64-cp311-all-extras}"
-        }
-      ]
-    },
-    {
-      "binding_id": "cpython-3.12-workflow-payload",
-      "artifact_id": "cpython-3.12",
-      "authority_field": "version",
-      "consumers": [
+          "template": "python-version: \"{selector}\""
+        },
         {
           "path": ".github/workflows/ci.yml",
-          "template": "{feature: \"3.12\", payload: \"{selector}\", closure: public-linux-x86_64-cp312-all-extras}"
+          "template": "UV_PYTHON: \"{selector}\""
         },
         {
           "path": ".github/workflows/canonical-verification.yml",
@@ -44,28 +37,6 @@
         {
           "path": ".github/workflows/release-please.yml",
           "template": "python-version: \"{selector}\""
-        }
-      ]
-    },
-    {
-      "binding_id": "cpython-3.13-workflow-payload",
-      "artifact_id": "cpython-3.13",
-      "authority_field": "version",
-      "consumers": [
-        {
-          "path": ".github/workflows/ci.yml",
-          "template": "{feature: \"3.13\", payload: \"{selector}\", closure: public-linux-x86_64-cp313-all-extras}"
-        }
-      ]
-    },
-    {
-      "binding_id": "cpython-3.14-workflow-payload",
-      "artifact_id": "cpython-3.14",
-      "authority_field": "version",
-      "consumers": [
-        {
-          "path": ".github/workflows/ci.yml",
-          "template": "{feature: \"3.14\", payload: \"{selector}\", closure: public-linux-x86_64-cp314-all-extras}"
         },
         {
           "path": ".github/workflows/bootstrap-qualification.yml",

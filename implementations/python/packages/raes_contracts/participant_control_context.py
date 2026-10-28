@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
-from typing import BinaryIO, Literal, TypeVar
+from typing import BinaryIO, Literal
 
 from .associated_artifacts import AssociatedArtifactValidationLimits, validate_associated_artifact_manifest
 from .contracts.associated_artifacts import AssociatedArtifactManifestModel
@@ -24,12 +24,6 @@ from .json_ingress import parse_bounded_json_object
 AssetKey = tuple[str, str]
 LifecycleKey = tuple[str, str, str]
 LifecycleState = Literal["unpublished", "active", "replaced", "withdrawn"]
-_ControlContextContract = TypeVar(
-    "_ControlContextContract",
-    ParticipantControlContextAssetModel,
-    ParticipantControlContextRecordModel,
-    ParticipantControlContextChangeModel,
-)
 
 
 @dataclass(frozen=True)
@@ -91,9 +85,13 @@ def control_context_asset_reference(
     )
 
 
-def load_control_context_json(
-    source: str | bytes | bytearray, model: type[_ControlContextContract]
-) -> _ControlContextContract:
+def load_control_context_json[
+    ControlContextContract: (
+        ParticipantControlContextAssetModel,
+        ParticipantControlContextRecordModel,
+        ParticipantControlContextChangeModel,
+    )
+](source: str | bytes | bytearray, model: type[ControlContextContract]) -> ControlContextContract:
     """Use shared duplicate-rejecting, depth- and byte-bounded JSON ingress."""
     if model not in (
         ParticipantControlContextAssetModel,

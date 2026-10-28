@@ -214,7 +214,7 @@ def _participant_episode_normalized_history_event(
         return None
     try:
         return ParticipantEpisodeHistoryEvent.from_payload(event)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
 
 

@@ -63,7 +63,7 @@ class ParticipantTemporalRuntimeContext:
     shared_time: ParticipantTemporalExecutionContextModel | None = None
 
     @classmethod
-    def from_payload(cls, payload: Mapping[str, Any]) -> "ParticipantTemporalRuntimeContext":
+    def from_payload(cls, payload: Mapping[str, Any]) -> ParticipantTemporalRuntimeContext:
         if not isinstance(payload, Mapping):
             raise TypeError("participant temporal runtime context must be a mapping")
         missing = [
@@ -151,7 +151,7 @@ class ParticipantTemporalStateTransition:
     evidence_refs: tuple[str, ...]
 
     @classmethod
-    def from_payload(cls, payload: Mapping[str, Any]) -> "ParticipantTemporalStateTransition":
+    def from_payload(cls, payload: Mapping[str, Any]) -> ParticipantTemporalStateTransition:
         if not isinstance(payload, Mapping):
             raise TypeError("participant temporal state transition must be a mapping")
         missing = [
