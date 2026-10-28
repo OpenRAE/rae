@@ -12,6 +12,8 @@ from pydantic import Field, model_validator
 from raes_contracts._base import ContractModel, NonEmptyString, PrefixedDigestString
 from raes_contracts.runtime_vocabulary_scopes import SDL_IDENTITY_VOCABULARY_SCOPES
 
+Sha256DigestString = Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")]
+
 BehavioralRelationId = Annotated[str, Field(pattern=r"^[a-z][a-z0-9-]*$")]
 
 
@@ -413,5 +415,6 @@ __all__ = [
     "Rfc3339DateTimeString",
     "SemanticAssumptionId",
     "SemanticProfileId",
+    "Sha256DigestString",
     "UnitIntervalFloat",
 ]

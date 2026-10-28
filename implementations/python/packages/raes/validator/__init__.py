@@ -3,6 +3,7 @@ validator.py). Public API is unchanged: import ``SemanticValidator``.
 """
 
 from ._accounts import _AccountsMixin
+from ._cloud_resources import _CloudResourcesMixin
 from ._content_objectives import _ContentObjectivesMixin
 from ._core import _ValidatorCore
 from ._deployment_tenancy import _DeploymentTenancyMixin
@@ -11,8 +12,11 @@ from ._enterprise_identity import _EnterpriseIdentityMixin
 from ._evidence_requirements import _EvidenceRequirementsMixin
 from ._execution_policy import _ExecutionPolicyMixin
 from ._mixed_control import _MixedControlMixin
+from ._mixed_control_policy import _MixedControlPolicyMixin
 from ._nodes_infra_network import _NodesInfraNetworkMixin
+from ._participant_effect_targets import _ParticipantEffectTargetsMixin
 from ._participant_inject_deliveries import _ParticipantInjectDeliveriesMixin
+from ._participant_inject_delivery_control import _ParticipantInjectDeliveryControlMixin
 from ._participant_relationships import _ParticipantRelationshipsMixin
 from ._participant_tool_affordances import _ParticipantToolAffordancesMixin
 from ._propositions import _PropositionsMixin
@@ -35,6 +39,7 @@ __all__ = ["SemanticValidator"]
 
 
 class SemanticValidator(
+    _CloudResourcesMixin,
     _ExecutionPolicyMixin,
     _NodesInfraNetworkMixin,
     _RuntimeServicesMixin,
@@ -49,12 +54,15 @@ class SemanticValidator(
     _RelationshipsMixin,
     _RelationshipsProxyMixin,
     _MixedControlMixin,
+    _MixedControlPolicyMixin,
     _ParticipantInjectDeliveriesMixin,
+    _ParticipantInjectDeliveryControlMixin,
     _ParticipantRelationshipsMixin,
     _ParticipantToolAffordancesMixin,
     _ServiceMaterializationMixin,
     _AccountsMixin,
     _ContentObjectivesMixin,
+    _ParticipantEffectTargetsMixin,
     _PropositionsMixin,
     _EvidenceRequirementsMixin,
     _WorkflowAnalysisMixin,
@@ -69,3 +77,17 @@ class SemanticValidator(
     Call ``validate()`` to run all passes. Raises ``SDLValidationError``
     with all collected errors if any pass fails.
     """
+
+    def validate_effect_targets(self) -> None:
+        """Check recognized effect targets before composition can remove a module's declarations.
+
+        Unknown tokens retain their boundary-information meaning. Full semantic
+        validation still checks references after expansion and instantiation.
+        """
+        from .._declarations import build_declaration_index
+        from .._errors import SDLValidationError
+
+        self._declaration_index = build_declaration_index(self._s)
+        self._verify_effect_target_refs()
+        if self._errors:
+            raise SDLValidationError(self._errors)

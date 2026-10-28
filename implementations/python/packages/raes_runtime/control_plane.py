@@ -7,13 +7,7 @@ from copy import deepcopy
 from threading import RLock
 from typing import TypeVar, Unpack
 
-from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.planning import (
-    EvaluationPlan,
-    OrchestrationPlan,
-    ProvisioningPlan,
-    RuntimeDomain,
-)
+from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
     OperationKind,
     OperationReceipt,
@@ -23,7 +17,7 @@ from raes_contracts.runtime_state import (
 )
 
 from .control_plane_admission import RuntimeAdmissionMixin
-from .control_plane_composition import compose_participant_boundary
+from .control_plane_composition import bind_execution_store, compose_operation_execution, compose_participant_boundary
 from .control_plane_configuration import ControlPlaneConfiguration, ControlPlaneOptions
 from .control_plane_durability import RuntimeDurabilityMixin
 from .control_plane_execution import (
@@ -31,6 +25,8 @@ from .control_plane_execution import (
     execute_operation,
     reject_new_operation_if_admission_fails,
 )
+from .control_plane_injects import RuntimeInjectMixin
+from .control_plane_inventory import provisioning_method, provisioning_validation
 from .control_plane_lifecycle import RuntimeLifecycleMixin, runtime_owned, store_authoritative_state
 from .control_plane_mutation import (
     RuntimeMutationAuthority,
@@ -68,11 +64,16 @@ from .control_plane_store import (
 )
 from .control_plane_store_compatibility import adapt_control_plane_store
 from .control_plane_submission import control_plane_plan_diagnostics
+from .control_plane_submission import unavailable_backend_diagnostics as _unavailable_backend_diagnostics
+from .control_plane_supervision import RuntimeSupervisionMixin
 from .control_plane_workflow_control import WorkflowControlMixin
+from .interaction import RuntimeInteractionMixin
 from .mixed_runtime import MixedRuntimeMixin
 from .mixed_runtime_recovery import validate_restored_mixed_crossing_cut
 from .observation_execution import ObservationExecution
 from .observation_results import observation_execution_from_payload
+from .operation_reconciliation import RuntimeInvocationReconciliationMixin
+from .operation_worker_authority import RuntimeWorkerAuthorityMixin
 from .operational_apparatus import operational_apparatus_summary
 from .participant_control import ParticipantControlMixin
 from .participant_information_state_validation import require_participant_information_state_snapshot
@@ -81,17 +82,6 @@ from .registry import RuntimeTarget as _RuntimeTarget
 
 _ProjectionT = TypeVar("_ProjectionT")
 _P0_SCOPE_BOUND_ERROR = "control-plane profile P0 missing capabilities: store.scope-bound"
-
-
-def _unavailable_backend_diagnostics(domain: RuntimeDomain, component: str) -> list[Diagnostic]:
-    return [
-        Diagnostic(
-            code="runtime.control-plane.rejected",
-            domain="runtime",
-            address=f"runtime.control-plane.{domain.value}",
-            message=f"Target does not provide {component}.",
-        )
-    ]
 
 
 def _unavailable_backend(*_args: object, **_kwargs: object) -> object:
@@ -121,7 +111,12 @@ def _require_selected_store_capabilities(declaration: ControlPlaneProfileDeclara
 
 
 class RuntimeControlPlane(
+    RuntimeInteractionMixin,
+    RuntimeInjectMixin,
     RuntimeLifecycleMixin,
+    RuntimeSupervisionMixin,
+    RuntimeWorkerAuthorityMixin,
+    RuntimeInvocationReconciliationMixin,
     RuntimeRecoveryMixin,
     RuntimePlanAuthorizationMixin,
     RuntimeDurabilityMixin,
@@ -131,7 +126,7 @@ class RuntimeControlPlane(
     ParticipantRetrievalMixin,
     MixedRuntimeMixin,
 ):
-    """Reference control plane for async runtime submission and observation."""
+    """One owner for the full run, also exported as ``RuntimeManager``."""
 
     def __init__(
         self,
@@ -139,6 +134,7 @@ class RuntimeControlPlane(
         **options: Unpack[ControlPlaneOptions],
     ) -> None:
         config = ControlPlaneConfiguration(**options)
+        self._initialize_interaction(target, config)
         target_scope = runtime_target_scope(target.name)
         declaration, selected_store = _prepare_control_plane_store(config)
         self._profile_declaration = declaration
@@ -150,12 +146,14 @@ class RuntimeControlPlane(
         self._materialization_archive = config.materialization_archive
         self._enforce_final_sink_flow_control = config.enforce_final_sink_flow_control
         self._store = selected_store
+        compose_operation_execution(self, config)
         try:
-            self._mutation_authority = RuntimeMutationAuthority()
+            self._mutation_authority = RuntimeMutationAuthority(admission_ms=config.supervision.admission_ms)
             self._operation_lock = RLock()
             self._snapshot_projection_depth = 0
             self._store_commits = adapt_control_plane_store(self._store)
             self._admit_store_owner()
+            bind_execution_store(self, config)
             self._restore_persisted_state(config)
             reconcile_startup_operations(self)
             self._runtime_ready = True
@@ -190,10 +188,15 @@ class RuntimeControlPlane(
         self._crossing_policy_resolver = config.crossing_policy_resolver
         self._information_state_context_resolver = config.information_state_context_resolver
         self._participant_control = config.participant_control
+        self._mixed_control = config.mixed_control
+        from .participant_control_replay import validate_restored_control_archive
+
+        validate_restored_control_archive(self)
         self._ephemeral_idempotency_fingerprints: dict[IdempotencyClaimIdentity, str] = {}
         self._participant_control_lock = SubordinateMutationGate(self._mutation_authority)
         self._trusted_runtime_plan_lock = RLock()
         self._trusted_runtime_plan_digests: set[str] = set()
+        self._trusted_orchestration_models: dict[str, object] = {}
         require_participant_information_state_snapshot(self._snapshot, config.information_state_context_resolver)
         if self._snapshot.participant_crossing_history:
             if config.crossing_policy_resolver is None:
@@ -318,11 +321,11 @@ class RuntimeControlPlane(
         )
         request = OperationExecutionRequest(
             domain=RuntimeDomain.PROVISIONING,
-            method=self._target.provisioner.apply,
+            method=provisioning_method(self._target, plan),
             plan=plan,
             address="runtime.control-plane.provisioning",
             diagnostics=[],
-            validation_method=(self._target.provisioner.validate if plan.preparation is None else None),
+            validation_method=provisioning_validation(self._target, plan),
             base_snapshot=base_snapshot,
             idempotency_key=idempotency_key,
             request_fingerprint=context.request_commitment,
@@ -405,45 +408,11 @@ class RuntimeControlPlane(
         request_fingerprint: str = "",
         identity: object | None = None,
     ) -> OperationReceipt:
+        from .control_plane_evaluation import evaluation_request
+
         self._assert_runtime_owner()
-        context = operation_admission_context(
-            self,
-            kind=OperationKind.EVALUATION,
-            request=plan,
-            base_snapshot=base_snapshot,
-            identity=identity,
-        )
-        exact_retry_fingerprint = (
-            operation_idempotency_fingerprint(
-                kind=OperationKind.EVALUATION,
-                request=plan,
-                base_snapshot=base_snapshot,
-            )
-            if operation_requires_ephemeral_retry_proof(request=plan, base_snapshot=base_snapshot)
-            else None
-        )
-        evaluator = self._target.evaluator
-        request = OperationExecutionRequest(
-            domain=RuntimeDomain.EVALUATION,
-            method=_unavailable_backend if evaluator is None else evaluator.start,
-            plan=plan,
-            address="runtime.control-plane.evaluation",
-            diagnostics=[],
-            base_snapshot=base_snapshot,
-            idempotency_key=idempotency_key,
-            request_fingerprint=context.request_commitment,
-            context=context,
-            legacy_request_fingerprint=legacy_operation_request_commitment(
-                kind=OperationKind.EVALUATION,
-                request=plan,
-                base_snapshot=base_snapshot,
-            ),
-            exact_retry_fingerprint=exact_retry_fingerprint,
-            admission_diagnostics=(
-                (lambda: _unavailable_backend_diagnostics(RuntimeDomain.EVALUATION, "an evaluator"))
-                if evaluator is None
-                else lambda: control_plane_plan_diagnostics(self, plan, RuntimeDomain.EVALUATION)
-            ),
+        request = evaluation_request(
+            self, plan, base_snapshot=base_snapshot, idempotency_key=idempotency_key, identity=identity
         )
         denied_or_replay = reject_new_operation_if_admission_fails(self, request)
         return denied_or_replay or execute_operation(self, request)

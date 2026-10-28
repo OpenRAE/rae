@@ -13,11 +13,13 @@ Delivery-level concerns (Docker, Terraform, cloud APIs) are outside the SDL.
 from collections.abc import Mapping
 from typing import ClassVar, Literal
 
-from pydantic import ConfigDict, Field, PrivateAttr, model_validator
+from pydantic import ConfigDict, Field, PrivateAttr, field_validator, model_validator
 from raes_contracts.augmentation_scope import OptionalAugmentationScope
+from raes_contracts.contracts.participant_control_context import ParticipantControlContextAssetModel
 from raes_contracts.execution_policy import OptionalExecutionPolicy
 
 from ._classification_guard import LegacyClassificationGuard
+from ._declaration_sources import DeclarationSource
 from ._errors import SDLParseDiagnostic
 from ._identifiers import (
     PortableIdentifier,
@@ -242,6 +244,9 @@ class ScenarioContent(LegacyClassificationGuard):
     deployment_cells: dict[str, DeploymentCell] = Field(default_factory=dict)
     relationships: dict[str, Relationship] = Field(default_factory=dict)
     forwarding_agents: list[RuntimeForwardingAgent] = Field(default_factory=list)
+    control_context_assets: dict[str, ParticipantControlContextAssetModel] = Field(
+        default_factory=dict, exclude_if=lambda value: not value, max_length=256
+    )
     agents: dict[str, Agent] = Field(default_factory=dict)
     action_contracts: dict[str, ParticipantActionContract] = Field(default_factory=dict)
     observation_boundaries: dict[str, ParticipantObservationBoundary] = Field(default_factory=dict)
@@ -261,6 +266,33 @@ class ScenarioContent(LegacyClassificationGuard):
     _source_diagnostics: tuple[SDLParseDiagnostic, ...] = PrivateAttr(default=())
     _semantic_validated: bool = PrivateAttr(default=False)
     _explicitness: dict[str, ExplicitnessRecord] = PrivateAttr(default_factory=dict)
+    _declaration_sources: dict[str, DeclarationSource] = PrivateAttr(default_factory=dict)
+
+    @field_validator("control_context_assets")
+    @classmethod
+    def _immutable_control_context_descriptors(
+        cls, assets: dict[str, ParticipantControlContextAssetModel]
+    ) -> dict[str, ParticipantControlContextAssetModel]:
+        if any(collect_variable_tokens(asset.model_dump(mode="json")) for asset in assets.values()):
+            raise ValueError("control-context.immutable-descriptor-token")
+        return assets
+
+    @property
+    def declaration_sources(self) -> dict[str, DeclarationSource]:
+        """Original authored locations, never serialized as scenario authority."""
+        return dict(self._declaration_sources)
+
+    def _set_declaration_sources(self, sources: Mapping[str, DeclarationSource]) -> None:
+        self._declaration_sources = dict(sources)
+
+    def __eq__(self, other: object) -> bool:
+        """Authored locations do not change the scenario's semantic equality."""
+        if not isinstance(other, ScenarioContent):
+            return super().__eq__(other)
+        left, right = self.model_copy(), other.model_copy()
+        for model in (left, right):
+            model.__pydantic_private__.pop("_declaration_sources", None)
+        return super(ScenarioContent, left).__eq__(right)
 
     @model_validator(mode="before")
     @classmethod

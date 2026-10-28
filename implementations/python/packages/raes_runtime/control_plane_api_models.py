@@ -5,16 +5,11 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
-from raes_contracts.account_credentials import (
-    account_placement_has_credential_bindings,
-    value_free_account_placement_payload,
-)
 from raes_contracts.contracts import (
     EvaluationPlanModel,
     OperationStatusModel,
     OrchestrationPlanModel,
     ProvisioningPlanModel,
-    RuntimeSnapshotEnvelopeModel,
 )
 from raes_contracts.diagnostics import Diagnostic, Severity, portable_diagnostic_payload
 from raes_contracts.participant_episode import ParticipantEpisodeTerminalReason
@@ -29,9 +24,9 @@ from raes_contracts.planning import (
     RealizationAuthorityBound,
     ResolvedRealizationAuthority,
 )
-from raes_contracts.runtime_state import OperationStatus, RuntimeSnapshotEnvelope
+from raes_contracts.runtime_state import OperationStatus
 
-from raes_runtime.control_plane_store_payloads import _realization_observations_payload
+from raes_runtime.snapshot_contract import runtime_snapshot_contract_model
 
 
 class _ParticipantInitializeBody(BaseModel):
@@ -78,6 +73,8 @@ def _provisioning_plan(model: ProvisioningPlanModel) -> ProvisioningPlan:
     from raes_contracts.planning import PlannedRealizationConstraint
 
     return ProvisioningPlan(
+        inventory_attempt_id=model.inventory_attempt_id,
+        inventory_refresh=model.inventory_refresh,
         materialization_source=model.materialization_source,
         augmentation_scope_required=model.augmentation_scope_required,
         purpose=model.purpose,
@@ -213,86 +210,4 @@ def _operation_status_model(status: OperationStatus) -> OperationStatusModel:
     )
 
 
-def published_snapshot_payload(envelope: RuntimeSnapshotEnvelope) -> dict[str, Any]:
-    """Return the JSON payload the ``/snapshot`` route publishes for ``envelope``.
-
-    Account-placement credential bindings are redacted to their value-free form.
-    Target conformance validates this payload, so it checks what clients read.
-    """
-
-    snapshot = envelope.snapshot
-    payload = {
-        "materialization_attestations": [
-            record.model_dump(mode="json") for record in snapshot.materialization_attestations
-        ],
-        "schema_version": envelope.schema_version,
-        "entries": {
-            address: {
-                "address": entry.address,
-                "domain": entry.domain.value,
-                "resource_type": entry.resource_type,
-                "payload": dict(entry.payload),
-                "ordering_dependencies": list(entry.ordering_dependencies),
-                "refresh_dependencies": list(entry.refresh_dependencies),
-                "status": entry.status,
-            }
-            for address, entry in snapshot.entries.items()
-        },
-        "orchestration_results": dict(snapshot.orchestration_results),
-        "orchestration_history": dict(snapshot.orchestration_history),
-        "evaluation_results": dict(snapshot.evaluation_results),
-        "evaluation_history": dict(snapshot.evaluation_history),
-        "proposition_truth_results": dict(snapshot.proposition_truth_results),
-        "participant_episode_results": dict(snapshot.participant_episode_results),
-        "participant_episode_history": dict(snapshot.participant_episode_history),
-        "participant_behavior_history": dict(snapshot.participant_behavior_history),
-        "participant_control_history": dict(snapshot.participant_control_history),
-        "participant_crossing_history": dict(snapshot.participant_crossing_history),
-        "participant_control_evaluation_history": dict(snapshot.participant_control_evaluation_history),
-        "information_state_history": dict(snapshot.information_state_history),
-        "participant_autonomous_execution_states": dict(snapshot.participant_autonomous_execution_states),
-        "participant_execution_services": dict(snapshot.participant_execution_services),
-        "participant_resource_budget_states": dict(snapshot.participant_resource_budget_states),
-        "participant_resource_pool_states": dict(snapshot.participant_resource_pool_states),
-        "participant_resource_budget_events": dict(snapshot.participant_resource_budget_events),
-        "shared_state_records": dict(snapshot.shared_state_records),
-        "shared_state_history": dict(snapshot.shared_state_history),
-        "joint_action_records": dict(snapshot.joint_action_records),
-        "time_management_contexts": dict(snapshot.time_management_contexts),
-        "time_model_state": (
-            snapshot.time_model_state.model_dump(mode="json") if snapshot.time_model_state is not None else None
-        ),
-        "realization_provenance": [
-            {
-                "address": entry.address,
-                "field_path": entry.field_path,
-                "domain": entry.domain,
-                "requirement_kind": entry.requirement_kind,
-                "explicitness": entry.explicitness.value,
-                "provenance": entry.provenance.value,
-                "governing_scope": entry.governing_scope,
-                **(
-                    {"artifact_satisfaction": entry.artifact_satisfaction.model_dump(mode="json")}
-                    if entry.artifact_satisfaction is not None
-                    else {}
-                ),
-            }
-            for entry in snapshot.realization_provenance
-        ],
-        "realization_observations": _realization_observations_payload(snapshot),
-        "realization_envelope": (
-            snapshot.realization_envelope.model_dump(mode="json") if snapshot.realization_envelope is not None else None
-        ),
-        "metadata": dict(snapshot.metadata),
-    }
-    for entry in payload["entries"].values():
-        if entry["resource_type"] != "account-placement":
-            continue
-        entry_payload = entry["payload"]
-        if account_placement_has_credential_bindings(entry_payload):
-            entry["payload"] = value_free_account_placement_payload(entry_payload)
-    return payload
-
-
-def _snapshot_model(envelope: RuntimeSnapshotEnvelope) -> RuntimeSnapshotEnvelopeModel:
-    return RuntimeSnapshotEnvelopeModel.model_validate(published_snapshot_payload(envelope))
+_snapshot_model = runtime_snapshot_contract_model

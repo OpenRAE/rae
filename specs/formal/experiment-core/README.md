@@ -517,6 +517,12 @@ validator runs regardless of the embedding contract.
     source: either a condition `allocation` plan or a scalar `target_run_count`.
     Red-variant selection map keys MUST match their embedded `variant_id`, and
     declared allocation blocking factors MUST resolve to declared spec factors.
+    Every condition factor and level MUST resolve to the containing spec's
+    declarations, in both `descriptive` and `explicit-required` postures.
+    Authors choose these declarations for each experiment; no exhaustive domain
+    catalog is required. Conditions need not assign every declared factor.
+    Membership alone grants no configuration authority and resolves no external
+    ontology.
 26. An experiment authoring input is an input artifact. It MUST NOT be treated
     as, or substituted for, an `experiment-run-v1`, `experiment-study-v1`, or
     `experiment-apparatus-context-v1` record. Its declared apparatus intent uses
@@ -544,6 +550,154 @@ validator runs regardless of the embedding contract.
     members of their declared scalar, governed-reference, alternative, subset,
     order, or logical-timing domain. Exhaustive and sampled populations MUST be
     finite and exactly bounded.
+
+### Factorial condition generation (EXP-719)
+
+`factorial_design` is an optional authoring child under
+`experiment-authoring-input-v1`. The `factorial-bindings-v1` profile crosses
+only its explicitly named `factor_ids`; each must resolve to a declared
+factor with nonempty unique levels, and `level_bindings` must cover exactly
+those levels. Templates reuse the binding contract's target, value, scalar
+type, and owner shapes for scenario and participant implementation planes.
+One level may bind multiple targets. Apparatus bindings retain their separate
+authority. No target is inferred from a parameter name.
+
+Before materialization, reject more than 16 dimensions, 64 levels per
+dimension, 16 bindings per level, the declared `condition_bound` (at most
+10000), more than 10000 logical runs, or more than 10000 generated bindings.
+Counts are strict integers. Empty, duplicate, unknown, conflicting, or
+operationally indistinguishable conditions fail atomically. Owner admission
+must also reject canonical/alias collisions and conditions that become
+indistinguishable after target resolution.
+Participant comparisons use complete effective values, including defaults,
+and exclude default/override origin. Every selected participant referenced
+anywhere in the design receives a complete configuration in each condition,
+even when that condition supplies no override for it. Configuration identity
+and manifest version must match the selected manifest authority.
+
+Sort factor and level identities by code point and generate their complete
+Cartesian product. A condition identity is `condition-` followed by the first
+48 lowercase hexadecimal characters of the JCS/SHA-256 digest of its
+factor-to-level map. A binding identity is `binding-` followed by the full
+JCS/SHA-256 hexadecimal digest of `[condition_id, factor_id, target.canonical_key()]`.
+Any identity collision fails the design. Emit the existing allocation and
+binding-descriptor children, sort conditions and descriptors by identity,
+select `explicit-required`, and preserve generation intent. Supplied children
+must equal the generated children; they cannot override them. Compact input
+may omit these generated children. Serialization records the materialization.
+
+Condition `required_bindings` are archival matching criteria. Their factor,
+level, and condition joins must agree with the assignment. Matching requires
+actual realized descriptor values and owners across both planes; source
+factor/condition labels alone are insufficient. When owner admission resolves
+aliases, archival study criteria use the canonical descriptors from admitted
+entries. Plan-aware run validation requires every admitted binding, exact
+participant configuration digest, selected implementation/manifest, and the
+allocation control. Existing ref/parameter and difficulty criteria continue
+to apply.
+
+#### Typed factorial treatments (`factorial-treatments-v1`)
+
+This profile adds typed scenario selections beside scalar bindings.
+The `factorial-bindings-v1` profile retains its existing meanings and bytes.
+The new profile replaces `level_bindings` with `level_effects`.
+Each declared factor level contains `bindings`, `selections`, or both.
+Bindings reuse the existing scalar template.
+Each level MUST contribute between one and sixteen combined effects.
+No factor, level, participant, node, model, prompt, or environment name has special meaning.
+
+A selection template contains these fields:
+
+| Field | Authority |
+| --- | --- |
+| `target` | Existing scenario target: family id, variation-point id, canonical owner target id, and `plane: scenario` |
+| `scenario_family_digest` | Exact composed family SHA-256 commitment |
+| `owner` | Existing contract and validator identity/version record |
+| `outcome` | Existing discriminated literal, reference, member, subset, or order outcome |
+
+An SDL alternative MUST use a `member` outcome with its declared member id.
+A member id MUST NOT become a scalar string binding.
+The family retains the member's typed payload.
+Node presence with coupled runtime inventory therefore needs one member selection.
+The experiment does not copy node or inventory definitions.
+Scalar node configuration uses declared SDL parameters.
+Structural configuration uses only the reviewed slots in
+[SDL variation points](../../sdl/variation-points.md#4-typed-target-slots).
+Packages, environment entries, filesystem entries, and nested structural writes remain unsupported.
+New slots require justification and admission at their owning SDL model.
+
+Generated `required_selections` retain each selection template and add
+`selection_id`, `source_factor_id`, `source_factor_level_id`, and `source_condition_id`.
+All source joins MUST match the enclosing assignment and declared factors.
+The selection id is `selection-` followed by the full JCS/SHA-256 hexadecimal digest of
+`[condition_id, factor_id, target.canonical_key()]`.
+The condition and scalar binding identity formulas remain unchanged.
+Selection-only conditions retain `explicit-required` without dummy descriptors or parameters.
+Supplied allocation and binding materializations MUST equal the generated result.
+Serialization preserves both design intent and generated criteria.
+
+Factor effects and invariant fixed policies MUST cover every family point exactly once in every condition.
+Accompanying policies MUST have `kind: fixed`, `purpose: fixed-configuration`, and `output_bound: 1`.
+They MUST NOT carry `binding_descriptor_refs` or invented factor provenance.
+Other accompanying policy kinds fail closed.
+Duplicate point selections fail even when their values agree.
+This includes overlap between fixed policies, scalar scenario bindings, and typed selections.
+Bindings also retain canonical target and alias collision checks.
+
+Owner admission MUST check the exact family, point, canonical target, owner, and outcome domain together.
+All choices apply against the unchanged composed family.
+Different points retain SDL's existing write agreement rules.
+Node absence conflicts with descendant writes.
+Coupled and separate inventory writes may agree on the same collection.
+Unequal writes fail.
+Whole-scenario validation checks constraints, surviving references, participant applicability, and realization requirements.
+One invalid Cartesian combination MUST reject the entire design.
+No condition may be omitted, resampled, renamed, or relabelled.
+
+The existing limits on dimensions, levels, conditions, and logical runs still apply.
+Combined work across logical runs MUST NOT exceed 10000.
+Each scalar binding costs one work unit.
+Each selection costs one plus its subset or order member count.
+Fixed selections contribute the same cost in every logical run.
+The bound uses each factor's maximum level cost before Cartesian expansion.
+Expanded authoring serialization MUST NOT exceed 8 MiB.
+Producers check a conservative upper bound before condition construction.
+The public authoring loader retains its 64 KiB input limit.
+Compiler entry, domain, plan-byte, and diagnostic limits remain separate and binding.
+
+Distinctness MUST compare effective scenario content and complete participant values after owner admission.
+Participant defaults apply in every condition, including conditions without overrides.
+Source labels, member labels, policy ids, and default/override provenance do not prove different effects.
+Typed member identities remain in provenance even when effective effects compare equal.
+
+Admitted selections embed the exact descriptor in `treatment`.
+Their point and outcome MUST agree with that descriptor.
+The plan records `profiles.treatment_profile: factorial-treatments-v1`.
+The descriptor's family id and digest MUST match the plan's pinned family.
+Its condition MUST match the entry coordinate.
+Conflicting source levels for one factor fail.
+Existing coordinate, entry, and archival run identity profiles retain their meanings.
+The new field is absent from legacy serialization.
+
+Archival runs carry exact descriptors in `realized_selections`.
+Study matching requires every `required_selections` descriptor, including its complete source joins.
+Plan-aware matching requires the exact admitted descriptor set.
+Omission, substitution, and relabelling fail even when the selected member is equal.
+These records state realized claims, not independent proof of execution.
+Existing participant configuration preserves ACT-620 asset and content commitments.
+Existing secret-reference bindings retain opaque references without secret resolution.
+Resolved secrets MUST NOT enter these records, digests, diagnostics, or fixtures.
+
+Issue #1665 publishes these contracts and record checks.
+The reference compiler rejects this profile explicitly until issue #1666 implements owner admission, generation, and replay support.
+It also rejects authoring allocations with `required_selections`, even without a factorial profile.
+The compiler must not produce a plan that omits these criteria.
+
+`run_plan.allocation_policy` names the executable randomized allocation
+procedure and stochastic control. Descriptive `allocation_method` and
+`blocking_factors` do not execute allocation. The exact plan-scope algorithm,
+sealed record, replay rules, and dispatch/receipt joins are specified in
+[trial realization](../scenario-variation-trial-realization/README.md#designed-compiler-and-allocation-profiles-exp-719).
 
 ### Provenance
 

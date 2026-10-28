@@ -374,9 +374,6 @@ adrs:
   - id: ADR-062
     path: docs/decisions/adrs/adr-062-concept-authority-catalog-governance-gate.md
     pin: b5a15b467977e433fbfff55a1de2b4744faada7dd54ea4806496e8293bedae91
-  - id: ADR-063
-    path: docs/decisions/adrs/adr-063-reference-emulation-backend.md
-    pin: 7c82b434119b802f8acc7c23148811316b21754fac39798b5790ff5e65bb2415
   - id: ADR-064
     path: docs/decisions/adrs/adr-064-experiment-evidence-and-measure-contract-boundary.md
     pin: 8bd179ba5c14c82b5998f9269d96a0c981cccb870c5b42bd27eb4b636b9c908b
@@ -596,7 +593,7 @@ adrs:
     pin: a44acbc2db1b5349ba316ba0d09bd9b46310db016cb87937b08bc6bc107755aa
   - id: ADR-104
     path: docs/decisions/adrs/adr-104-runtime-control-plane-architecture.md
-    pin: c71f377900dce99190bc1cf08d0d7c93a80fedbb6fcbb0f887cf6b5dc6b49fc6
+    pin: 2b64f96de6915f7fe67562739e91bc371d892b5edcf5d3b78d3a1633e8ffda00
     amendments:
       - date: 2026-09-03
         ref: "#1151"
@@ -616,6 +613,9 @@ adrs:
       - date: 2026-09-25
         ref: "#1356 follow-up"
         summary: "Clarified SDK method access, optional P2 identity scope, host policy, and the legacy no-resolver projection gap."
+      - date: 2026-10-27
+        ref: "#1660"
+        summary: "Required one runtime authority for the interaction lifetime, reusing control-plane invariants and composing only needed scenario components."
   - id: ADR-105
     path: docs/decisions/adrs/adr-105-recursive-partial-description-semantics.md
     pin: e50538c4e03d12ea92ad584322dc8618835f1724ae0086c444fba0527949a01e
@@ -678,3 +678,6 @@ adrs:
   - id: ADR-114
     path: docs/decisions/adrs/adr-114-ifc-profile-variability-and-publication.md
     pin: 432d75b65d0ef06e022b260240fa7b8f99513f568048796b2b3811a1aeefebcb
+  - id: ADR-115
+    path: docs/decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md
+    pin: d01cea802cfd206bcdc42ad7f92403fd3f070cfc41ecb5b7b7fdf1e5c5798558

@@ -6,14 +6,16 @@ type: FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-07-15T03:17:25.961655Z
-updated_at: 2026-07-30T14:48:41.795604Z
+updated_at: 2026-10-25T04:04:53.198209Z
 ---
 
 # SCE-006 — Isolated Batch Trial Scheduling
 
 ## Statement
 
-APTL shall schedule trials from an admitted experiment plan over the existing RAES single-scenario execution path. Scheduling shall default to serial execution and support explicitly configured bounded parallelism only when independent range instances, host capacity, ports, storage, and control-plane locks can be proven isolated. Every trial shall receive a clean or declared reusable initial state, deterministic ordering and identity, bounded timeouts, and verified cleanup. The scheduler shall not implement a second scenario lifecycle or a private comparison/scoring engine.
+The RAE processor and runtime shall orchestrate and execute trials from an admitted experiment plan over the existing RAES single-scenario execution path. The external scheduler, including APTL, shall manage placement, isolation, timeouts, and cleanup only.
+
+Scheduling shall default to serial execution. Explicitly configured bounded parallelism shall require proven isolation of independent range instances, host capacity, ports, storage, and control-plane locks. Every trial shall receive a clean or declared reusable initial state. Every trial shall receive deterministic ordering and identity, bounded timeouts, and verified cleanup. The scheduler shall not implement a second scenario lifecycle or a private comparison/scoring engine.
 
 ## Rationale
 
@@ -21,6 +23,11 @@ Batch execution is the apparatus mechanism that turns an RAES run allocation int
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `1624` (Correct trial orchestration ownership against ADR-084 and ADR-113)
+- IMPLEMENTS → DOCUMENTATION `docs/explain/reference/scenario-variation-and-trial-realization.md` (Processor/runtime orchestration and external scheduler authority)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1624-trial-orchestration-ownership-preflight.md` (Trial orchestration ownership and existing security boundaries)
+- IMPLEMENTS → CONFIG `tools/policy/requirement_order.yaml` (Explicit isolated-batch-scheduling phase under existing requirement governance)
+- TESTS → TEST `implementations/python/tests/test_sce_006_requirement_governance.py` (Admit SCE-006 documentation while retaining code traceability enforcement)
 - DOCUMENTS → GITHUB_ISSUE `785` (SCE-006 — Isolated Batch Trial Scheduling)
 - DOCUMENTS → GITHUB_ISSUE `788` (SCE-002: publish the admitted experiment trial-plan contract)
 - DOCUMENTS → GITHUB_ISSUE `790` (SCE-002: integrate trial realization with SDL instantiation and run provenance)

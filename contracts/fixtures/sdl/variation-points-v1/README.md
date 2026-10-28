@@ -1,6 +1,11 @@
 # SDL variation-points/v1 fixtures
 
-This corpus exercises the authored/expanded SCE-002 family surface. `valid`
-contains an admitted bounded family, `invalid` contains a semantically dangling
-candidate, `composition` proves exported/private namespace rewriting, and
-`canonical` proves that absent and explicit-empty registries are equivalent.
+This corpus tests the SCE-002 family surface.
+The `valid` folder contains valid bounded families.
+The `invalid` folder contains a dangling member reference.
+The `composition` folder tests exported and private names after import.
+The `canonical` folder tests equal bytes for absent and empty point maps.
+
+`valid/node-inventory.yaml` declares node presence and coupled inventory choices.
+Its choices preserve the family and select existing job records.
+The absent choice also removes the worker's deployment entry.

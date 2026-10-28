@@ -1,0 +1,219 @@
+{
+  "schema_version": "experiment-authoring-input/v1",
+  "spec_id": "spec-techvault-red-tactic-sweep-v1",
+  "spec_version": "1.0.0",
+  "title": "TechVault red-tactic sweep",
+  "description": "Pre-run design comparing aggressive vs stealthy red tactics over the fixed TechVault task, with seeded replication.",
+  "task_ref": {
+    "ref_kind": "task",
+    "ref_id": "task-techvault-red-team-v1",
+    "ref_version": "1.0.0"
+  },
+  "run_plan": {
+    "stochastic_controls": [
+      {
+        "control_id": "sample-control",
+        "role": "randomization",
+        "value": null,
+        "description": null,
+        "executable_binding": {
+          "profile_ref": {
+            "ref_kind": "profile",
+            "ref_id": "blake3-xof-v1",
+            "ref_version": "random-stream-profile/v1",
+            "ref_digest": null,
+            "ref_path": null
+          },
+          "namespace": "compiler-sampling",
+          "root_entropy": {
+            "kind": "public-seed",
+            "encoding": "hex-fixed-width",
+            "value": "0101010101010101010101010101010101010101010101010101010101010101"
+          }
+        }
+      }
+    ],
+    "episode_control": {
+      "turn_order": "sequential",
+      "termination_rule": "Terminate each episode after 100 logical steps (fixed horizon).",
+      "max_steps": 100,
+      "termination_condition_refs": [],
+      "description": "Fixed-horizon episode with sequential turns."
+    },
+    "allocation": null,
+    "selection_policies": {},
+    "difficulty_policy_registry": null,
+    "red_variant_selections": {},
+    "clock_intent": {
+      "clock_id": "sim-clock",
+      "authority": "reference-backend",
+      "time_domain": "simulated",
+      "synchronization": null
+    },
+    "observation_demands": null,
+    "evidence_requirement_relations": [],
+    "allocation_policy": {
+      "kind": "randomized",
+      "policy_id": "allocation",
+      "algorithm_profile": "fisher-yates-allocation-v1",
+      "stochastic_control_ref": "sample-control"
+    }
+  },
+  "intended_scenario_ref": {
+    "ref_kind": "scenario",
+    "ref_id": "compiler-family",
+    "ref_version": null,
+    "ref_digest": null,
+    "ref_path": null
+  },
+  "apparatus_intent": {
+    "allowed_processor_refs": [],
+    "allowed_backend_refs": [],
+    "required_manifest_refs": [],
+    "required_capabilities": [
+      "workflow-results",
+      "evaluation-results"
+    ],
+    "notes": [
+      "Any backend that realizes evaluation-results may execute this design."
+    ]
+  },
+  "factors": {
+    "path": {
+      "name": "Payload path",
+      "factor_kind": "treatment",
+      "levels": [
+        "a",
+        "b"
+      ]
+    },
+    "agent": {
+      "name": "Agent temperature",
+      "factor_kind": "treatment",
+      "levels": [
+        "cold",
+        "warm"
+      ]
+    }
+  },
+  "binding_semantics": "descriptive",
+  "binding_descriptors": null,
+  "capture_spec_refs": [
+    {
+      "ref_kind": "capture-spec",
+      "ref_id": "capture-techvault-evidence-v1",
+      "ref_version": "1.0.0"
+    }
+  ],
+  "validity_notes": [
+    {
+      "category": "internal",
+      "note": "Per-run seeds derive deterministically from the base seed.",
+      "mitigation": "Record derived seeds in each run's stochastic controls."
+    }
+  ],
+  "artifact_refs": [],
+  "factorial_design": {
+    "profile": "factorial-bindings-v1",
+    "factor_ids": [
+      "path",
+      "agent"
+    ],
+    "target_runs_per_condition": 2,
+    "condition_bound": 4,
+    "level_bindings": {
+      "path": {
+        "b": [
+          {
+            "target": {
+              "plane": "scenario",
+              "scenario_family_id": "compiler-family",
+              "variation_point_id": "payload-path",
+              "target_id": "variables.payload_path"
+            },
+            "value_type": "string",
+            "value": {
+              "kind": "literal",
+              "value": "/opt/b"
+            },
+            "owner": {
+              "contract_id": "sdl-authoring-input-v1",
+              "contract_version": "1",
+              "validator_id": "raes-selected-scenario",
+              "validator_version": "1"
+            }
+          }
+        ],
+        "unknown": [
+          {
+            "target": {
+              "plane": "scenario",
+              "scenario_family_id": "compiler-family",
+              "variation_point_id": "payload-path",
+              "target_id": "variables.payload_path"
+            },
+            "value_type": "string",
+            "value": {
+              "kind": "literal",
+              "value": "/opt/a"
+            },
+            "owner": {
+              "contract_id": "sdl-authoring-input-v1",
+              "contract_version": "1",
+              "validator_id": "raes-selected-scenario",
+              "validator_version": "1"
+            }
+          }
+        ]
+      },
+      "agent": {
+        "cold": [
+          {
+            "target": {
+              "plane": "participant-implementation",
+              "participant_address": "agents.red",
+              "implementation_name": "reference-agent",
+              "implementation_version": "1.0.0",
+              "manifest_version": "participant-implementation-manifest/v1",
+              "target_id": "policy.temperature"
+            },
+            "value_type": "number",
+            "value": {
+              "kind": "literal",
+              "value": 0.0
+            },
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            }
+          }
+        ],
+        "warm": [
+          {
+            "target": {
+              "plane": "participant-implementation",
+              "participant_address": "agents.red",
+              "implementation_name": "reference-agent",
+              "implementation_version": "1.0.0",
+              "manifest_version": "participant-implementation-manifest/v1",
+              "target_id": "policy.temperature"
+            },
+            "value_type": "number",
+            "value": {
+              "kind": "literal",
+              "value": 1.0
+            },
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

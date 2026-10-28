@@ -1370,7 +1370,7 @@ class TestVerifyObjectives:
             },
         )
         errors = _validate(s)
-        assert any("defined targetable element" in e for e in errors)
+        assert any("defined element eligible as an objective subject" in e for e in errors)
 
     def test_target_rejects_ambiguous_bare_ref(self):
         kwargs = self._base_kwargs()

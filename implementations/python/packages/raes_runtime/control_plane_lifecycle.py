@@ -6,7 +6,11 @@ from collections.abc import Callable, Iterator
 from contextlib import contextmanager, suppress
 from functools import wraps
 from threading import Condition, RLock, local
-from typing import Concatenate, ParamSpec, Self, TypeVar
+from time import monotonic
+from typing import TYPE_CHECKING, Concatenate, ParamSpec, Self, TypeVar
+
+if TYPE_CHECKING:
+    from .operation_execution_adapter import LocalExecutionAdapter
 
 _P = ParamSpec("_P")
 _R = TypeVar("_R")
@@ -83,40 +87,115 @@ class RuntimeLifecycleMixin:
             self.close()
 
     def close(self) -> None:
-        """Release this control plane's process-scoped runtime authority."""
+        """Bound drain and retain ownership until physical callbacks and close settle."""
 
         condition = getattr(self, "_lifecycle_condition", None)
         if condition is None:
             self._close_runtime_lease()
             return
-        with condition:
-            if self._closed:
-                return
-            if getattr(self._lifecycle_local, "depth", 0):
-                raise RuntimeError("cannot close a runtime control plane from one of its active calls")
-            while self._closing and not self._closed:
-                condition.wait()
-            if self._closed:
-                return
-            self._closing = True
-            self._runtime_ready = False
-            try:
-                condition.wait_for(lambda: self._active_runtime_calls == 0)
-            except BaseException:
-                self._closing = False
-                condition.notify_all()
-                raise
-            try:
-                self._close_runtime_provider()
-                self._close_runtime_lease()
+        claim = getattr(self, "_resource_claim", None)
+        if claim is not None and claim.active_calls:
+            raise RuntimeError("runtime callbacks remain active")
+        config = getattr(self, "_supervision", None)
+        budget = getattr(config, "drain_ms", 2000) / 1000
+        deadline = monotonic() + budget
+        if not self._begin_runtime_close(condition, budget):
+            return
+        provider_close_started = False
+        try:
+            stop_clock = getattr(self, "_stop_participant_clock_driver", None)
+            if stop_clock is not None and not stop_clock():
+                raise TimeoutError("runtime manager clock driver remains active")
+            adapter = getattr(self, "_execution_adapter", None)
+            self._drain_runtime_calls(condition, adapter, deadline)
+            self._close_runtime_dispatcher(adapter, deadline)
+            provider_close_started = True
+            self._close_runtime_provider()
+            self._close_runtime_lease()
+            if adapter is not None and not adapter.close(timeout_ms=max(1, int((deadline - monotonic()) * 1000))):
+                raise TimeoutError("runtime drain has unresolved external calls")
+            self._release_runtime_resources()
+            with condition:
                 self._closed = True
                 self._closing = False
                 condition.notify_all()
-            except BaseException:
+        except BaseException:
+            self._abort_runtime_close(condition, provider_close_started)
+            raise
+
+    def _begin_runtime_close(self, condition: Condition, budget: float) -> bool:
+        with condition:
+            if self._closed:
+                return False
+            if getattr(self._lifecycle_local, "depth", 0):
+                raise RuntimeError("cannot close a runtime control plane from one of its active calls")
+            if self._closing and not condition.wait_for(lambda: not self._closing or self._closed, timeout=budget):
+                raise TimeoutError("runtime drain could not be established")
+            if self._closed:
+                return False
+            self._closing = True
+            self._runtime_ready = False
+            self._effect_admission_stopped = True
+            return True
+
+    def _drain_runtime_calls(
+        self, condition: Condition, adapter: LocalExecutionAdapter | None, deadline: float
+    ) -> None:
+        with condition:
+            if not condition.wait_for(lambda: self._active_runtime_calls == 0, timeout=max(0, deadline - monotonic())):
+                raise TimeoutError("runtime drain could not be established")
+        remaining_ms = max(1, int((deadline - monotonic()) * 1000))
+        if adapter is not None and not adapter.drain(timeout_ms=remaining_ms):
+            raise TimeoutError("runtime drain has unresolved external calls")
+
+    def _close_runtime_dispatcher(self, adapter: LocalExecutionAdapter | None, deadline: float) -> None:
+        dispatcher = getattr(self, "_distributed_execution", None)
+        if dispatcher is None or adapter is None:
+            return
+        self._settle_shutdown_invocations()
+        adapter.call("control", dispatcher.close, timeout_ms=max(1, int((deadline - monotonic()) * 1000)))
+
+    def _settle_shutdown_invocations(self) -> None:
+        from raes_contracts.runtime_state import OperationState
+
+        from .control_plane_supervised_execution import settle
+
+        with self._mutation_authority.supervision():
+            self._reload_derived_state()
+            for record in tuple(self._operations.values()):
+                if record.invocation is not None and record.status.state in {
+                    OperationState.ACCEPTED,
+                    OperationState.RUNNING,
+                }:
+                    settle(
+                        self,
+                        record,
+                        OperationState.INDETERMINATE if record.invocation.consumed else OperationState.CANCELLED,
+                    )
+
+    def _release_runtime_resources(self) -> None:
+        resource_claim = getattr(self, "_resource_claim", None)
+        if resource_claim is None:
+            return
+        from .control_plane_recovery import unresolved_indeterminate_operation_ids_from_records
+
+        records = getattr(self, "_operations", {})
+        unresolved = (
+            self._durability_poisoned
+            or bool(unresolved_indeterminate_operation_ids_from_records(records))
+            or any(record.status.state.value == "running" for record in records.values())
+        )
+        resource_claim.release(unresolved=unresolved)
+
+    def _abort_runtime_close(self, condition: Condition, provider_close_started: bool) -> None:
+        resource_claim = getattr(self, "_resource_claim", None)
+        if resource_claim is not None:
+            resource_claim.retain_unresolved()
+        with condition:
+            if provider_close_started:
                 self._durability_poisoned = True
-                self._closing = False
-                condition.notify_all()
-                raise
+            self._closing = False
+            condition.notify_all()
 
     def _close_runtime_provider(self) -> None:
         store = getattr(self, "_store", None)
@@ -127,11 +206,13 @@ class RuntimeLifecycleMixin:
     def _close_runtime_lease(self) -> None:
         lease = getattr(self, "_runtime_lease", None)
         close = getattr(lease, "close", None)
-        try:
-            if callable(close):
+        if callable(close):
+            adapter = getattr(self, "_execution_adapter", None)
+            if adapter is None:
                 close()
-        finally:
-            self._runtime_lease = None
+            else:
+                adapter.call("store", close, timeout_ms=self._supervision.drain_ms)
+        self._runtime_lease = None
 
     @contextmanager
     def _runtime_call(self) -> Iterator[None]:
@@ -142,13 +223,10 @@ class RuntimeLifecycleMixin:
                 raise RuntimeError("runtime control plane requires restart after a durability reconciliation failure")
             if depth == 0 and (self._closed or self._closing):
                 raise RuntimeError("runtime control plane is closed")
-            lease = self._runtime_lease
-            assert_owner = getattr(lease, "assert_owner", None)
-            if callable(assert_owner):
-                assert_owner()
             self._active_runtime_calls += 1
             self._lifecycle_local.depth = depth + 1
         try:
+            self._assert_runtime_owner()
             yield
         finally:
             with condition:
@@ -167,7 +245,13 @@ class RuntimeLifecycleMixin:
         lease = self._runtime_lease
         assert_owner = getattr(lease, "assert_owner", None)
         if callable(assert_owner):
-            assert_owner()
+            adapter = getattr(self, "_execution_adapter", None)
+            if adapter is None:
+                assert_owner()
+            else:
+                from .control_plane_store_bounded import remaining_store_budget
+
+                adapter.call("store", assert_owner, timeout_ms=remaining_store_budget(self._supervision.admission_ms))
 
 
 __all__ = ("RuntimeLifecycleMixin", "runtime_owned", "store_authoritative_state")

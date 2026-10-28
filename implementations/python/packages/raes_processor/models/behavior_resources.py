@@ -4,6 +4,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
+from raes.participant_control_context import ResolvedControlContextSelection
 from raes.semantics.workflow import WorkflowStepSemanticContract
 from raes_backend_protocols.capabilities import WorkflowFeature, WorkflowStatePredicateFeature
 from raes_contracts.contracts.participant_temporal import ParticipantTemporalBindingModel
@@ -12,6 +13,7 @@ from raes_contracts.participant_behavior import ParticipantObservationStatus
 from raes_contracts.versions import WORKFLOW_STATE_SCHEMA_VERSION
 from raes_contracts.workflow import WorkflowExecutionContract, WorkflowResultContract, WorkflowStepOutcome
 
+from .mixed_control_resources import MixedControlPolicyRuntime, ParticipantInjectDeliveryControlRuntime
 from .participant_resources import (
     ParticipantResourceDemandRuntime,
     ParticipantResourceFairnessRuntime,
@@ -38,6 +40,7 @@ class ParticipantObservationBoundaryRuntime(ResolvedResource):
     view_transitions: tuple[dict[str, Any], ...] = ()
     view_relation_timeline: tuple[dict[str, Any], ...] = ()
     realized_view_disclosure: str = ""
+    reference_aliases: dict[str, tuple[str, ...]] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -73,6 +76,7 @@ class ParticipantInteractiveAccessRuntime:
 class ParticipantBehaviorRuntime(ResolvedResource):
     """Compiled role-neutral participant behavior binding."""
 
+    control_context: tuple[ResolvedControlContextSelection, ...] = ()
     participant_name: str = ""
     affiliation_names: tuple[str, ...] = ()
     role: str = ""
@@ -214,6 +218,7 @@ class MixedControlTransitionRuntime(ResolvedResource):
 class ParticipantBehaviorSpecificationRuntime(ResolvedResource):
     """Compiled first-class participant behavior specification aggregate."""
 
+    control_context: tuple[ResolvedControlContextSelection, ...] = ()
     spec_name: str = ""
     semantic_version: str = ""
     lifecycle_state: str = ""
@@ -233,6 +238,8 @@ class ParticipantBehaviorSpecificationRuntime(ResolvedResource):
     mixed_control_dispositions: MixedControlDispositionRulesRuntime | None = None
     controller_states: tuple[MixedControlControllerStateRuntime, ...] = ()
     control_transitions: tuple[MixedControlTransitionRuntime, ...] = ()
+    mixed_control_semantics: str = ""
+    mixed_control_policy: MixedControlPolicyRuntime | None = None
     realization_profile_ref: str = ""
     backend_feature_support_refs: tuple[str, ...] = ()
     evidence_contract_refs: tuple[str, ...] = ()
@@ -254,6 +261,9 @@ class ParticipantToolAffordanceRuntime(ResolvedResource):
     action_contract_addresses: tuple[str, ...] = ()
     observation_boundary_refs: tuple[str, ...] = ()
     observation_boundary_addresses: tuple[str, ...] = ()
+    participant_refs: tuple[str, ...] = ()
+    participant_role_refs: tuple[str, ...] = ()
+    participant_addresses: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -292,6 +302,7 @@ class ParticipantInjectDeliveryRuntime(ResolvedResource):
     control_valid_until_order: int | None = None
     control_evidence_refs: tuple[str, ...] = ()
     control_evidence_addresses: tuple[str, ...] = ()
+    control: ParticipantInjectDeliveryControlRuntime | None = None
 
 
 @dataclass(frozen=True)

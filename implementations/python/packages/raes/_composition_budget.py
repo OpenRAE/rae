@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, TypedDict
 
 from ._errors import SDLParseError
 from ._identifiers import QualifiedName
@@ -72,15 +72,33 @@ class CompositionBudget:
 
 @dataclass(frozen=True)
 class CompositionTraversal:
-    """Immutable ancestry plus the request-scoped mutable resource budget."""
+    """Immutable ancestry plus the request-scoped mutable resource budget.
+
+    ``local_sources_only`` marks an editor path-mode composition: every level
+    resolves local sources only and refuses registry imports before any request.
+    """
 
     seen: frozenset[Path]
     budget: CompositionBudget
     depth: int
+    local_sources_only: bool = False
+
+    @classmethod
+    def local_root(cls, limits: SDLParserLimits) -> CompositionTraversal:
+        """Start a root composition that resolves local imports only and fetches nothing."""
+
+        return cls(seen=frozenset(), budget=CompositionBudget(limits), depth=0, local_sources_only=True)
 
     def descend_from(self, path: Path) -> CompositionTraversal:
         return CompositionTraversal(
             seen=self.seen | {path},
             budget=self.budget,
             depth=self.depth + 1,
+            local_sources_only=self.local_sources_only,
         )
+
+
+class ParsePrivateOptions(TypedDict, total=False):
+    """Private ``parse_sdl`` keywords; ``_traversal`` starts composition from a given traversal."""
+
+    _traversal: CompositionTraversal | None

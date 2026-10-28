@@ -1,13 +1,40 @@
 """Retain authenticated full SDL context for negotiated materialization results."""
 
+from dataclasses import replace
+
 from raes import canonical_instantiated_sdl_bytes, canonical_instantiated_sdl_digest
+from raes.scenario import InstantiatedScenario
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.augmentation_scope import AUGMENTATION_SCOPE_CONTRACT
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.materialization import MATERIALIZATION_ATTESTATION_CONTRACT, MaterializationSource
+from raes_contracts.materialization_inventory import RUNTIME_DESCENDANTS_CONTRACT
 from raes_contracts.planning import PlanScope
 
 from ..models import RuntimeModel
+from .execution_policy import DomainPlan
+
+
+def attach_materialization_sources(
+    plans: tuple[DomainPlan, ...], model: RuntimeModel, manifest: BackendManifest, scope: PlanScope | None
+) -> tuple[tuple[DomainPlan, ...], list[Diagnostic]]:
+    source, diagnostics = planned_materialization_source(model, manifest, scope)
+    scope_required = (
+        model.realization_instance is not None and model.realization_instance.augmentation_scope is not None
+    )
+    return (
+        tuple(
+            replace(
+                domain_plan,
+                purpose="inspection" if model.materialization_description is not None else domain_plan.purpose,
+                materialization_source=source,
+                augmentation_scope_required=scope_required,
+                diagnostics=[*domain_plan.diagnostics, *diagnostics],
+            )
+            for domain_plan in plans
+        ),
+        diagnostics,
+    )
 
 
 def planned_materialization_source(
@@ -38,14 +65,10 @@ def planned_materialization_source(
     ) or model.materialization_description is not None:
         return None, diagnostics
     try:
-        if instance is None or scope is None or scope.run_id is None:
-            raise ValueError("missing source or run")
-        return MaterializationSource(
-            snapshot=canonical_instantiated_sdl_bytes(instance).decode("utf-8"),
-            authored_digest=instance.instantiation_provenance.authored_digest.value,
-            instantiated_digest=canonical_instantiated_sdl_digest(instance).value,
-            run_id=scope.run_id,
-        ), diagnostics
+        source = _build_materialization_source(
+            instance, scope, RUNTIME_DESCENDANTS_CONTRACT in manifest.supported_contract_versions
+        )
+        return source, diagnostics
     except (TypeError, ValueError):
         diagnostics.append(
             Diagnostic(
@@ -56,3 +79,19 @@ def planned_materialization_source(
             )
         )
         return None, diagnostics
+
+
+def _build_materialization_source(
+    instance: InstantiatedScenario | None, scope: PlanScope | None, descendants: bool
+) -> MaterializationSource:
+    if instance is None or scope is None or scope.run_id is None:
+        raise ValueError("missing source or run")
+    if descendants and not scope.target_name:
+        raise ValueError("runtime inventory reporting requires the selected target scope")
+    return MaterializationSource(
+        snapshot=canonical_instantiated_sdl_bytes(instance).decode("utf-8"),
+        authored_digest=instance.instantiation_provenance.authored_digest.value,
+        instantiated_digest=canonical_instantiated_sdl_digest(instance).value,
+        run_id=scope.run_id,
+        target_scope=f"target:{scope.target_name}" if descendants else None,
+    )

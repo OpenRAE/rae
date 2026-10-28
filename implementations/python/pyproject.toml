@@ -28,8 +28,8 @@ dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.34.0",
     "sse-starlette>=2.0.0",
-    "asyncssh>=2.24.0",
-    "mcp>=1.28.1,<3",
+    # GHSA-84m7-p3x7-pcfv: patched session lifecycle in 1.30.0 / 2.2.0.
+    "mcp>=1.30.0,<3,!=2.0.*,!=2.1.*",
     # Typed domain-profile validation is deliberately pinned to one inert,
     # in-process Draft 2020-12 implementation (issue #1202).
     "jsonschema==4.26.0",
@@ -46,6 +46,8 @@ dependencies = [
     # engine_version 4.16.0, so bumping this without re-pinning that governed
     # profile makes formal satisfiability evidence unreproducible.
     "z3-solver==4.16.0.0",
+    "anyio>=4.14.2,<5",
+    "rpds-py==0.30.0",
 ]
 
 [project.optional-dependencies]
@@ -66,6 +68,10 @@ docs = [
     "sphinx-copybutton>=0.5.2",
     "sphinx-autobuild>=2024.4.16",
     "sphinx-reredirects==1.1.0",
+]
+distributed = [
+    "psycopg[binary]==3.3.6",
+    "temporalio==1.33.0",
 ]
 
 [project.scripts]
@@ -90,9 +96,7 @@ packages = [
     "packages/raes_contracts",
     "packages/raes_backend_protocols",
     "packages/raes_backend_stubs",
-    "packages/raes_backend_libvirt",
     "packages/raes_operations",
-    "packages/raes_reference_backend",
     "packages/raes_cli",
     "packages/raes_conformance",
     "packages/raes_mcp",
@@ -127,9 +131,8 @@ markers = [
     "control_plane_conformance: ADR-104 P0/P1/P2 contract, crash, and explicit nonclaim evidence",
     "fuzz: property-based fuzz tests (run with: pytest -m fuzz)",
     "integration: subprocess, build, installed-distribution, or whole-system tests (run with: pytest -m integration)",
-    "docker: opt-in tests that require a real container runtime (run with: pytest -m docker / nox -s integration_docker)",
 ]
-addopts = "-m 'not fuzz and not integration and not docker'"
+addopts = "-m 'not fuzz and not integration'"
 timeout = 120
 
 [tool.coverage.run]
@@ -148,10 +151,6 @@ omit = [
 show_missing = true
 include_namespace_packages = true
 exclude_also = [
-    # The reference backend's OCI subprocess leaf (RUN-314): real container
-    # IO, exercised only by the opt-in docker integration tests, never in the
-    # hermetic suite.
-    "def _default_runner",
     # A module's CLI entry guard is never taken under import-based testing.
     "if __name__ == .__main__.:",
 ]

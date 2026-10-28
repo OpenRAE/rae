@@ -1,9 +1,9 @@
 {
-  "content_hash": "0bfb200de9c9899bef45c764ab2b02c903c871402d50781caaf372e2b48c342e",
+  "content_hash": "219d94972b0761f661a48a618f58dfe2c061b1467656102a02b7c803e5770dc1",
   "contract_id": "instantiated-scenario-v1",
   "last_change": {
-    "content_hash": "0bfb200de9c9899bef45c764ab2b02c903c871402d50781caaf372e2b48c342e",
-    "summary": "Reject empty and whitespace-only behavior specification version labels, matching existing parser validity; DSL-116 issue #297."
+    "content_hash": "219d94972b0761f661a48a618f58dfe2c061b1467656102a02b7c803e5770dc1",
+    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301). Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
   "stability": "draft"

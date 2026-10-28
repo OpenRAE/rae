@@ -128,6 +128,15 @@ def _reconcile_accepted_record(control_plane: object, record: ControlPlaneOperat
 
 
 def _reconcile_running_record(control_plane: object, record: ControlPlaneOperationRecord) -> None:
+    if record.invocation is not None:
+        _commit_recovery_terminal(
+            control_plane,
+            record,
+            state=OperationState.INDETERMINATE,
+            diagnostics=[_RECOVERY_UNOBSERVABLE],
+            mode=TerminalCommitMode.OPERATION_ONLY,
+        )
+        return
     classification, applied = _observe_running_record(control_plane, record)
     if classification is RecoveryEffectClassification.EFFECT_ABSENT:
         state = OperationState.FAILED
@@ -235,7 +244,9 @@ def _bound_observation_result(
 ) -> RecoveryObservationResult | None:
     try:
         with external_control_plane_call(control_plane):
-            result = observer.observe_effect(request)
+            result = control_plane._execution_adapter.call(
+                "control", observer.observe_effect, request, timeout_ms=control_plane._supervision.observation_ms
+            )
     except Exception:
         return None
     if not isinstance(result, RecoveryObservationResult) or (
@@ -296,7 +307,15 @@ def _commit_recovery_terminal(
     )
     control_plane._commit_terminal_operation(
         control_plane._snapshot if snapshot is None else snapshot,
-        replace(record, status=status),
+        replace(
+            record,
+            status=status,
+            invocation=(
+                record.invocation.model_copy(update={"reserved": False})
+                if record.invocation is not None and not record.invocation.consumed
+                else record.invocation
+            ),
+        ),
         mode=mode,
     )
 
@@ -309,12 +328,19 @@ def unresolved_indeterminate_operation_ids(
 ) -> tuple[str, ...]:
     """Return immutable indeterminate parents without a successful resolution child."""
 
-    records = control_plane._store.load_records()
-    return unresolved_indeterminate_operation_ids_from_records(
-        records,
-        target_scope=target_scope,
-        run_scope=run_scope,
-    )
+    from .participant_control_operation_index import operation_index
+
+    with control_plane._operation_lock:
+        control_plane._refresh_operation_records()
+        unresolved = operation_index(control_plane).unresolved
+        return tuple(
+            sorted(
+                identity
+                for identity, record in unresolved.items()
+                if (target_scope is None or record.status.context.target_scope == target_scope)
+                and (run_scope is None or record.status.context.run_scope == run_scope)
+            )
+        )
 
 
 def unresolved_indeterminate_operation_ids_from_records(

@@ -23,6 +23,13 @@ Executable realization must discharge the admitted edge and time obligations. A 
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_issue_1372_review_regressions.py` (Mixed absence recovery, phase progression after linked resolution and independent optional observation)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_backend_installation.py` (Pinned portable services joined to the admitted mixed obligation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_backend_invocation.py` (Owning shared invocation, coordinated dispatch and independent stage evidence)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_backend_action.py` (Native result/residual validation and atomic mixed-stage publication)
+- TESTS → TEST `implementations/python/tests/test_issue_1372_mixed_execution.py` (Executed portable mappings, coordination, handoff, partial effects, readback and replay)
+
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1016` (Coordinate mixed participant runtimes fail-closed)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_runtime.py` (Typed append-only runtime phase and coordination facts)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/mixed_runtime_history.py` (Runtime composition fold and append-only invariants)
