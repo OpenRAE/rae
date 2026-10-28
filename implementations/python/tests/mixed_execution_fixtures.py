@@ -46,6 +46,7 @@ class Bridge(Provider):
         self.execution_status = "succeeded"
         self.handoff_status = "committed"
         self.native_targets = []
+        self.requests = []
 
     def execution_binding(self):
         return self.declaration
@@ -62,6 +63,7 @@ class Bridge(Provider):
 
     def start_operation(self, request):
         self.request = request
+        self.requests.append(request)
         self.starts += 1
         self.started.set()
         assert self.release.wait(3)
@@ -233,13 +235,16 @@ class Evidence:
         self.state = state
 
     def validate_effects(self, request, response):
-        return response.binding == request.binding and self.state.bridge.starts == 1
+        # Effects bind to the exact request, which this bridge started once.
+        return response.binding == request.binding and self.state.bridge.requests.count(request) == 1
 
     def resolve_result(self, request, response, predecessor):
         return self.state.bridge.result
 
 
-def portable_plane(*, handoff=False, store=None, supervision=None, affine_destination=None, resolver=None):
+def portable_configuration(*, handoff=False, affine_destination=None, resolver=None, time_state=None):
+    """Return installed portable services and their admitted runtime binding without a control plane."""
+
     binding, run_id, runtimes = _admitted_binding(_runtime_staged_profile if handoff else _runtime_mixed_profile)
     payload = _fixture("mixed-backend-execution-binding-v1", "valid", "mixed-handoff" if handoff else "mixed-edge")
     payload["profile_digest"] = binding.profile.profile_digest
@@ -274,6 +279,8 @@ def portable_plane(*, handoff=False, store=None, supervision=None, affine_destin
             dict(initial.entries),
             time_model_state=_time_state((0, 2, 0), (0, affine_destination, 1), declaration=model),
         )
+    if time_state is not None:
+        initial = initial.with_entries(dict(initial.entries), time_model_state=time_state)
     installed = MixedBackendInstallation(
         binding=declaration,
         services={
@@ -286,20 +293,43 @@ def portable_plane(*, handoff=False, store=None, supervision=None, affine_destin
         evidence=Evidence(state),
     )
     binding = replace(binding, backend_installations={declaration.binding_id: installed}, handoff_bindings={})
-    if store is None:
-        store = InMemoryControlPlaneStore(snapshot=initial)
-    else:
-        owner = store.admit_runtime(target_scope="target:stub", run_scope=f"run:{run_id}")
-        try:
-            current = store.load_snapshot_state()
-            if current.snapshot.time_model_state is None:
-                store.save_snapshot(initial, expected_revision=current.revision)
-        finally:
-            owner.close()
     state.resolver = resolver or permit_resolver()
+    return SimpleNamespace(
+        binding=binding,
+        run_id=run_id,
+        runtimes=runtimes,
+        state=state,
+        roles=roles,
+        calls=calls,
+        initial=initial,
+        target=create_stub_target(with_participant_runtime=False),
+        declaration=declaration,
+    )
+
+
+def seed_store(store, initial, run_id):
+    """Commit the initial time cut into a fresh durable store, once."""
+
+    owner = store.admit_runtime(target_scope="target:stub", run_scope=f"run:{run_id}")
+    try:
+        current = store.load_snapshot_state()
+        if current.snapshot.time_model_state is None:
+            store.save_snapshot(initial, expected_revision=current.revision)
+    finally:
+        owner.close()
+    return store
+
+
+def portable_plane(*, handoff=False, store=None, supervision=None, affine_destination=None, resolver=None):
+    configured = portable_configuration(handoff=handoff, affine_destination=affine_destination, resolver=resolver)
+    state, run_id = configured.state, configured.run_id
+    if store is None:
+        store = InMemoryControlPlaneStore(snapshot=configured.initial)
+    else:
+        seed_store(store, configured.initial, run_id)
     plane = RuntimeControlPlane(
-        create_stub_target(with_participant_runtime=False),
-        mixed_runtime=binding,
+        configured.target,
+        mixed_runtime=configured.binding,
         crossing_policy_resolver=state.resolver,
         run_scope=f"run:{run_id}",
         store=store,
@@ -309,4 +339,4 @@ def portable_plane(*, handoff=False, store=None, supervision=None, affine_destin
     plane.activate_mixed_composition(identity=identity(), idempotency_key="initial-phase")
     if not handoff and not plane.snapshot.participant_episode_history.get(PARTICIPANT):
         plane.initialize_participant_episode(PARTICIPANT, episode_id="episode-1", identity=identity())
-    return plane, state, roles, calls, runtimes
+    return plane, state, configured.roles, configured.calls, configured.runtimes

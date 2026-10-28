@@ -8,6 +8,17 @@ imports directly; internal modules never import this facade.
 from __future__ import annotations
 
 from raes_conformance.conformance.fixture_suite import run_fixture_suite
+from raes_conformance.conformance.mixed_backend_cases import MIXED_BACKEND_CASES, MixedBackendCase
+from raes_conformance.conformance.mixed_backend_probes import run_mixed_backend_conformance
+from raes_conformance.conformance.mixed_backend_types import (
+    MixedBackendCaseBinding,
+    MixedBackendCondition,
+    MixedBackendProbeHarness,
+    MixedBackendProbeRequest,
+    MixedBackendSubject,
+    MixedCompositionProbeConfiguration,
+    MixedControlProbeConfiguration,
+)
 from raes_conformance.conformance.observability import (
     observability_evidence_conformance_diagnostics,
 )
@@ -44,10 +55,19 @@ from raes_conformance.conformance.validators import (
 )
 
 __all__ = [
+    "MIXED_BACKEND_CASES",
     "BackendCapabilityProfile",
     "BackendConformanceReport",
     "BackendProfileSelector",
     "ConformanceCaseResult",
+    "MixedBackendCase",
+    "MixedBackendCaseBinding",
+    "MixedBackendCondition",
+    "MixedBackendProbeHarness",
+    "MixedBackendProbeRequest",
+    "MixedBackendSubject",
+    "MixedCompositionProbeConfiguration",
+    "MixedControlProbeConfiguration",
     "backend_conformance_report_payload",
     "contract_payload_root",
     "contract_validation_strength",
@@ -57,6 +77,7 @@ __all__ = [
     "profiles_root",
     "required_contracts",
     "run_fixture_suite",
+    "run_mixed_backend_conformance",
     "run_target_conformance",
     "supported_contract_ids",
     "validate_contract_payload",

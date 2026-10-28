@@ -12,6 +12,9 @@ from __future__ import annotations
 import raes_conformance.conformance as facade
 from raes_conformance.conformance import (
     fixture_suite,
+    mixed_backend_cases,
+    mixed_backend_probes,
+    mixed_backend_types,
     observability,
     profiles,
     report,
@@ -21,6 +24,16 @@ from raes_conformance.conformance import (
 )
 
 _PUBLIC_EXPORTS = {
+    "MIXED_BACKEND_CASES",
+    "MixedBackendCase",
+    "MixedBackendCaseBinding",
+    "MixedBackendCondition",
+    "MixedBackendProbeHarness",
+    "MixedBackendProbeRequest",
+    "MixedBackendSubject",
+    "MixedCompositionProbeConfiguration",
+    "MixedControlProbeConfiguration",
+    "run_mixed_backend_conformance",
     "BackendCapabilityProfile",
     "BackendConformanceReport",
     "BackendProfileSelector",
@@ -41,6 +54,16 @@ _PUBLIC_EXPORTS = {
 
 # Each re-exported public name mapped to the subdomain module that defines it.
 _PUBLIC_ORIGINS = {
+    "MIXED_BACKEND_CASES": mixed_backend_cases,
+    "MixedBackendCase": mixed_backend_cases,
+    "MixedBackendCaseBinding": mixed_backend_types,
+    "MixedBackendCondition": mixed_backend_types,
+    "MixedBackendProbeHarness": mixed_backend_types,
+    "MixedBackendProbeRequest": mixed_backend_types,
+    "MixedBackendSubject": mixed_backend_types,
+    "MixedCompositionProbeConfiguration": mixed_backend_types,
+    "MixedControlProbeConfiguration": mixed_backend_types,
+    "run_mixed_backend_conformance": mixed_backend_probes,
     "BackendCapabilityProfile": profiles,
     "BackendProfileSelector": profiles,
     "fixtures_root": profiles,
