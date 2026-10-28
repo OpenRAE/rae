@@ -73,7 +73,7 @@ adrs:
         summary: "Superseded §6's no-SDL-episode-syntax non-goal for the joint episode+budget design (SEM-222/DSL-120/ACT-623, #122): DSL-120/ACT-623 add an authored episode-structure surface (init, turn structure, terminal/truncation conditions, reset policy) as intent compiling to the existing ParticipantEpisode* contracts; runtime identity, state/reason/action separation, and the schema-first boundary are unchanged."
   - id: ADR-014
     path: docs/decisions/adrs/adr-014-nox-as-canonical-verification-graph.md
-    pin: cecb6398e55a03fd5ec20c3768a1fe09b5c5fba302e878af0b19b4aa0f3d5afa
+    pin: 13225599251b9390265b78d86f073fd1bf726227c4719cec3eb927b2364d3951
     amendments:
       - date: 2026-07-31
         ref: "#963"
@@ -87,6 +87,9 @@ adrs:
       - date: 2026-09-22
         ref: "#1348"
         summary: Restricted local defaults, pre-push, changed verification, and completion to targeted feedback; reserved full test suites for CI/CD, superseding earlier local full-regression obligations while preserving required CI and Sonar gates.
+      - date: 2026-10-28
+        ref: "#1672"
+        summary: Narrowed standard interpreter support to CPython 3.14; the required python-compatibility check runs one time in smoke-only mode because the canonical graph runs the hermetic suite on the same interpreter.
   - id: ADR-015
     path: docs/decisions/adrs/adr-015-sdl-processor-layering-and-source-file-size-cap.md
     pin: bc5038164e535c4d506962e27cee07e720f5c8a77cb17d018dedb3dba927936f
