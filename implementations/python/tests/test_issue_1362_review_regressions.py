@@ -109,7 +109,9 @@ def test_deadline_classification_can_use_the_single_store_slot():
     plane._expire_backend_invocation = expiry
     try:
         receipt = plane.submit_provisioning(ProvisioningPlan())
-        assert expired.wait(1)
+        # The callback has a five-second admission budget of its own. Allow
+        # that budget and runner scheduling time before checking settlement.
+        assert expired.wait(10)
         assert not failures
         assert plane._store.raw_store.load_records()[receipt.operation_id].status.state is OperationState.CANCELLED
         assert receipt.operation_id not in plane._admitted_backend_requests
