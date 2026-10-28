@@ -19,6 +19,10 @@ from raes_conformance.conformance.mixed_backend_types import (
     MixedCompositionProbeConfiguration,
     MixedControlProbeConfiguration,
 )
+from raes_conformance.conformance.modular_control import (
+    modular_control_obligations,
+    run_modular_control_conformance,
+)
 from raes_conformance.conformance.observability import (
     observability_evidence_conformance_diagnostics,
 )
@@ -72,12 +76,14 @@ __all__ = [
     "contract_payload_root",
     "contract_validation_strength",
     "fixtures_root",
+    "modular_control_obligations",
     "observability_evidence_conformance_diagnostics",
     "profile_for_manifest",
     "profiles_root",
     "required_contracts",
     "run_fixture_suite",
     "run_mixed_backend_conformance",
+    "run_modular_control_conformance",
     "run_target_conformance",
     "supported_contract_ids",
     "validate_contract_payload",

@@ -52,6 +52,7 @@ from .control_plane_profiles import (
     store_capabilities,
 )
 from .control_plane_recovery import RuntimeRecoveryMixin, reconcile_startup_operations
+from .control_plane_security import ControlPlaneIdentity as ControlPlaneIdentity
 from .control_plane_store import (
     AuditEvent,
     ControlPlaneOperationRecord,
@@ -62,6 +63,7 @@ from .control_plane_store import (
     SnapshotState,
     require_operation_record_scopes,
 )
+from .control_plane_store import LocalControlPlaneStore as LocalControlPlaneStore
 from .control_plane_store_compatibility import adapt_control_plane_store
 from .control_plane_submission import control_plane_plan_diagnostics
 from .control_plane_submission import unavailable_backend_diagnostics as _unavailable_backend_diagnostics
@@ -76,9 +78,28 @@ from .operation_reconciliation import RuntimeInvocationReconciliationMixin
 from .operation_worker_authority import RuntimeWorkerAuthorityMixin
 from .operational_apparatus import operational_apparatus_summary
 from .participant_control import ParticipantControlMixin
+from .participant_control_binding import (
+    ParticipantControlResolution,
+    ParticipantControlRuntimeBinding,
+    ParticipantControlRuntimeResolver,
+)
+from .participant_control_effects import ParticipantControlEffectRealization
 from .participant_information_state_validation import require_participant_information_state_snapshot
 from .participant_retrieval import ParticipantRetrievalMixin
 from .registry import RuntimeTarget as _RuntimeTarget
+
+__all__ = (
+    "ControlPlaneIdentity",
+    "ControlPlaneOperationRecord",
+    "ControlPlaneOptions",
+    "LocalControlPlaneStore",
+    "ParticipantControlEffectRealization",
+    "ParticipantControlResolution",
+    "ParticipantControlRuntimeBinding",
+    "ParticipantControlRuntimeResolver",
+    "RuntimeControlPlane",
+    "operation_actor_scope",
+)
 
 _P0_SCOPE_BOUND_ERROR = "control-plane profile P0 missing capabilities: store.scope-bound"
 

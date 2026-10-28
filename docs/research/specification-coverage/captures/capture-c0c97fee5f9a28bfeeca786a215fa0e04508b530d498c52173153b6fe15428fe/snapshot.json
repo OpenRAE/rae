@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-10-28T17:55:14.767717+00:00",
+  "captured_at": "2026-10-28T17:34:51.093310+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -647,7 +647,7 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "aa3412083989cece39f096b38139386b7a67fc5308bc6e33af5b81cd84a00cce",
+      "content_sha256": "90c4b902625686631cd19bb9df2fd9292f0af97a9449c3968bcd779c44d3b7b7",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
@@ -671,17 +671,17 @@
     "Issue 1549 external-backend compatibility and trial realization are verified by dedicated regression tests; this retained offline corpus makes no independent-backend execution claim.",
     "Issue 1520 condition membership is verified by dedicated experiment-authoring regressions. This retained offline corpus adds no ontology, domain completeness, or execution claim.",
     "API-414 declarations and capacity checks have dedicated targeted tests. This offline corpus establishes no native participant tool execution.",
-    "Issue 1017 mixed-backend conformance probes are verified by dedicated regression tests with in-process test services; this retained offline corpus makes no backend realization or native conformance claim."
+    "This retained offline corpus adds no modular control runtime or independent backend conformance claim. Issue 1071 has separate bounded runtime probes."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "762b0e3327528de66d05e7934292c45b95807a5b",
-  "snapshot_id": "issue-1017-mixed-conformance-replay",
+  "raes_revision": "81bd7d5d613bd73622d49f4d788de9b12c491d83",
+  "snapshot_id": "issue-1071-specification-source-replay",
   "snapshot_revision": "1.0.0",
   "source_state": {
-    "base_revision": "762b0e3327528de66d05e7934292c45b95807a5b",
-    "checkout_state": "modified",
-    "implementation_digest": "5ba40e22be1c77d1ff7f09764624c0798e7707bafeac7dd73bf05508a04b7078",
+    "base_revision": "81bd7d5d613bd73622d49f4d788de9b12c491d83",
+    "checkout_state": "clean",
+    "implementation_digest": "cf2eeb01fca5817c8e84448e62ed3783e4ee8b2b2096036726043428cdcfda53",
     "profile": "python-reference-source/v2"
   }
 }

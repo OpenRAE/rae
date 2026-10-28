@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-1017-mixed-conformance-analysis",
+  "analysis_id": "issue-1071-specification-dispatch-type-analysis",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-10-28T17:55:14.767717+00:00",
+  "generated_at": "2026-10-28T18:24:36.513692+00:00",
   "limitations": [
     "This is bounded specification coverage, not universal range coverage, usability, adoption, backend substitution or behavioral equivalence.",
     "The retained protocol does not test recursive realization, plan allocation or live participant configuration.",
@@ -47,7 +47,7 @@
     "Issue 1549 external-backend compatibility and trial realization are verified by dedicated regression tests; this retained offline corpus makes no independent-backend execution claim.",
     "Issue 1520 condition membership is verified by dedicated experiment-authoring regressions. This retained offline corpus adds no ontology, domain completeness, or execution claim.",
     "This retained corpus does not establish native creator attribution or backend execution conformance for descendant inventory.",
-    "Issue 1017 mixed-backend conformance probes are verified by dedicated regression tests with in-process test services; this retained offline corpus makes no backend realization or native conformance claim."
+    "This retained offline corpus adds no modular control runtime or independent backend conformance claim. Issue 1071 has separate bounded runtime probes."
   ],
   "load_bearing_results": {
     "failed": 0,
@@ -55,7 +55,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "The retained offline corpus replays against the issue 1017 branch source. Existing classifications and claim limits are preserved; mixed-backend conformance probes are verified by dedicated regressions.",
+  "plain_language_outcome": "The retained offline corpus replays against the combined dev source for PR #1674. Existing classifications and claim limits are preserved.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -87,6 +87,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "issue-1017-mixed-conformance-replay",
-  "snapshot_sha256": "cbe622a4474ac916b878ad11314245e0ec4c49e580f479cfdcc4e717663c882d"
+  "snapshot_id": "issue-1071-specification-dispatch-type-replay",
+  "snapshot_sha256": "a2a6ecf4fa557ea1de18fdaf7987186b5b14ed7b285bf4c7e8c94f2806d5a35b"
 }

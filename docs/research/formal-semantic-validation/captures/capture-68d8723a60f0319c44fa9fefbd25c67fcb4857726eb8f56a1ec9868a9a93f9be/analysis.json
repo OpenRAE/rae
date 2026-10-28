@@ -124,7 +124,7 @@
   "corpus_revision": "4.0.0",
   "evidence_status": "partial",
   "execution_id": "issue-1017-mixed-conformance-replay",
-  "generated_at": "2026-10-28T17:55:14.767717+00:00",
+  "generated_at": "2026-10-28T20:10:56.214520+00:00",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
     "EXP-719 factorial generation, randomized allocation and participant configuration behavior are covered by their dedicated regressions; this retained corpus adds no treatment or live execution claim.",
@@ -132,8 +132,9 @@
     "Issue 1520 condition membership is verified by dedicated experiment-authoring regressions. This retained offline corpus adds no ontology, domain completeness, or execution claim.",
     "The retained research corpus does not certify native descendant creator attribution, ownership, physical effects or independent observation.",
     "API-414 support declarations do not establish native participant tool execution; the retained formal cases keep their existing bounded claims.",
+    "This retained offline corpus adds no modular control runtime or independent backend conformance claim. Issue 1071 has separate bounded runtime probes.",
     "Issue 1017 mixed-backend conformance probes are verified by dedicated regression tests with in-process test services; this retained offline corpus makes no backend realization or native conformance claim."
   ],
-  "plain_language_outcome": "The retained offline corpus replays against the issue 1017 branch source. Existing classifications and claim limits are preserved; mixed-backend conformance probes are verified by dedicated regressions.",
+  "plain_language_outcome": "The retained offline corpus replays against the issue 1017 branch merged with current dev source. Existing classifications and claim limits are preserved; mixed-backend conformance probes are verified by dedicated regressions.",
   "protocol_revision": "2.0.0"
 }
