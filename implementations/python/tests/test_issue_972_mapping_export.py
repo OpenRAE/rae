@@ -1,6 +1,7 @@
 """Mapping artifacts retain exact source and observed-case identities."""
 
 import json
+import re
 
 import pytest
 from crossing_model_fixtures import ROOT
@@ -78,3 +79,24 @@ def test_drift_is_rejected_without_overwriting_artifacts(tmp_path, reports, faul
     with patch.object(export, "build_bundle", return_value=candidate), pytest.raises(ValueError, match="drift"):
         export.check(tmp_path, reports)
     assert {name: (tmp_path / export.OUTPUT_PATH / name).read_bytes() for name in expected} == before
+
+
+def test_release_version_bump_keeps_mapping_capture_identity():
+    from tools.research_evidence import RELEASE_MANAGED_VERSION_SOURCE
+
+    current = (ROOT / RELEASE_MANAGED_VERSION_SOURCE).read_bytes()
+    released = re.sub(rb'(__version__ = ")[^"]+(")', rb"\g<1>999.0.0\g<2>", current, count=1)
+    assert released != current
+    reads = []
+
+    def read_bytes(root, relative, max_bytes):
+        reads.append(relative)
+        if relative == RELEASE_MANAGED_VERSION_SOURCE:
+            return released
+        return (ROOT / relative).read_bytes()
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(export, "read_bytes", read_bytes)
+        pins = export.source_pins(ROOT)
+    assert RELEASE_MANAGED_VERSION_SOURCE in reads
+    assert pins == export.source_pins(ROOT)
