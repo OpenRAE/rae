@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import replace
-from typing import TYPE_CHECKING, TypedDict, Unpack
+from typing import TYPE_CHECKING, TypedDict, Unpack, cast
 
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import ApplyResult, OperationKind, OperationReceipt, OperationState, RuntimeSnapshot
@@ -99,22 +99,10 @@ class RuntimeInteractionDispatchMixin:
         native_plan = bool(args and isinstance(args[0], (ProvisioningPlan, OrchestrationPlan, EvaluationPlan)))
         phase = args[0] if native_plan else ProvisioningPlan()
         domain = RuntimeDomain.PARTICIPANT if runtime_composition else realization.stop_domain or _phase_domain(phase)
-        dependencies = () if call is None else call.service_dependencies
-        arguments = [
-            next(
-                (
-                    {"installed_service": index}
-                    for index, dependency in enumerate(dependencies)
-                    if argument is dependency
-                ),
-                argument,
-            )
-            for argument in args[:-1]
-        ]
         context = operation_admission_context(
             self,
             kind=OperationKind(domain.value) if native_plan else OperationKind.COMPOSITION_PHASE,
-            request={"phase": address, "plan": phase, "arguments": arguments},
+            request={"phase": address, "plan": phase, "arguments": _interaction_arguments(args, call)},
         )
         results = []
 
@@ -166,14 +154,17 @@ class RuntimeInteractionDispatchMixin:
         if status is None:
             return ApplyResult(False, self._snapshot, diagnostics=list(receipt.diagnostics))
         if results and status.state not in {OperationState.ACCEPTED, OperationState.RUNNING}:
-            return replace(
-                results[0],
-                snapshot=self._snapshot,
-                success=status.state is OperationState.SUCCEEDED,
-                diagnostics=list(status.diagnostics),
-                changed_addresses=list(status.changed_addresses),
-                materialization_attestation=(
-                    results[0].materialization_attestation if results[0].snapshot == self._snapshot else None
+            return cast(
+                ApplyResult,
+                replace(
+                    results[0],
+                    snapshot=self._snapshot,
+                    success=status.state is OperationState.SUCCEEDED,
+                    diagnostics=list(status.diagnostics),
+                    changed_addresses=list(status.changed_addresses),
+                    materialization_attestation=(
+                        results[0].materialization_attestation if results[0].snapshot == self._snapshot else None
+                    ),
                 ),
             )
         return ApplyResult(
@@ -190,3 +181,14 @@ def _phase_domain(phase: object) -> RuntimeDomain:
     if isinstance(phase, OrchestrationPlan):
         return RuntimeDomain.ORCHESTRATION
     return RuntimeDomain.PROVISIONING
+
+
+def _interaction_arguments(args: tuple[object, ...], call: _BackendCallContext | None) -> list[object]:
+    dependencies = () if call is None else call.service_dependencies
+    return [
+        next(
+            ({"installed_service": index} for index, dependency in enumerate(dependencies) if argument is dependency),
+            argument,
+        )
+        for argument in args[:-1]
+    ]
