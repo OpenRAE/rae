@@ -91,7 +91,7 @@ def inspect_executable(  # NOSONAR -- explicit fail-closed outcomes are part of 
             timeout=PROBE_TIMEOUT_SECONDS,
             env=dict(_PROBE_ENV),
         )
-    except OSError, subprocess.SubprocessError:
+    except (OSError, subprocess.SubprocessError):
         return {
             "capability_id": capability_id,
             "outcome": "failed",
@@ -142,7 +142,7 @@ def observe_executable(  # NOSONAR -- explicit fail-closed outcomes are part of 
             timeout=PROBE_TIMEOUT_SECONDS,
             env=dict(_PROBE_ENV),
         )
-    except OSError, subprocess.SubprocessError:
+    except (OSError, subprocess.SubprocessError):
         return {
             "capability_id": capability_id,
             "outcome": "failed",
@@ -393,7 +393,7 @@ def qualify_generic_tools(
                     timeout=PROBE_TIMEOUT_SECONDS,
                     env=probe_environment,
                 )
-            except OSError, subprocess.SubprocessError:
+            except (OSError, subprocess.SubprocessError):
                 results.append(
                     {
                         "capability_id": capability_id,

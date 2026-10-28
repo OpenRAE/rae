@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from raes_contracts.contracts import BackendOperationRequestModel
     from temporalio.client import Client
     from temporalio.worker import Worker
+    from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner
 
     from .operation_execution_adapter import Lane
     from .operation_remote_authority import RemoteOperationAuthority
@@ -261,6 +262,21 @@ class TemporalOperationActivities:
         return True
 
 
+def workflow_sandbox_runner() -> SandboxedWorkflowRunner:
+    """Return the SDK sandbox with coverage measurement passed through.
+
+    Coverage's `sys.monitoring` core imports its own modules lazily from
+    callbacks that run inside workflow code. The sandbox would load those
+    modules again under its restrictions and fail the workflow task. The SDK
+    passes Pydantic through for the same lazy-import reason. Coverage does not
+    affect workflow determinism, and the other default restrictions stay.
+    """
+
+    from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner, SandboxRestrictions
+
+    return SandboxedWorkflowRunner(restrictions=SandboxRestrictions.default.with_passthrough_modules("coverage"))
+
+
 def create_temporal_workers(
     client: Client,
     configuration: TemporalExecutionConfiguration,
@@ -277,7 +293,10 @@ def create_temporal_workers(
         raise ValueError("Temporal worker namespace does not match configured authority")
     return (
         Worker(
-            client, task_queue=configuration.workflow_queue, workflows=[RaeOperationWorkflow, RaeSupervisionWorkflow]
+            client,
+            task_queue=configuration.workflow_queue,
+            workflows=[RaeOperationWorkflow, RaeSupervisionWorkflow],
+            workflow_runner=workflow_sandbox_runner(),
         ),
         Worker(
             client,

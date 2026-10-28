@@ -159,6 +159,28 @@ output = "coverage.xml"
 target-version = "py314"
 line-length = 120
 
+# The development container runs `tools.devcontainer_setup` with the base
+# image's python3 (CPython 3.12) to acquire the locked CPython 3.14. These
+# modules run under that interpreter, so they keep 3.12 syntax.
+# test_issue_1238_development_container.py checks that this list matches the
+# setup module's import closure.
+[tool.ruff.per-file-target-version]
+"**/tools/bootstrap_profile.py" = "py312"
+"**/tools/devcontainer_setup.py" = "py312"
+"**/tools/gitleaks_tool.py" = "py312"
+"**/tools/maintained_client_acquisition.py" = "py312"
+"**/tools/osv_scanner_tool.py" = "py312"
+"**/tools/policy/__init__.py" = "py312"
+"**/tools/policy/common.py" = "py312"
+"**/tools/policy/conftest_tool.py" = "py312"
+"**/tools/tool_versions.py" = "py312"
+"**/tools/tooling_artifact_policy_common.py" = "py312"
+"**/tools/tooling_installed_tree.py" = "py312"
+"**/tools/tooling_oci_selection.py" = "py312"
+"**/tools/tooling_policy_gate.py" = "py312"
+"**/tools/vale_tool.py" = "py312"
+"**/tools/verified_tool_installation.py" = "py312"
+
 [tool.ruff.lint]
 select = [
     "E",    # pycodestyle errors

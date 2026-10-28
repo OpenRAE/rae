@@ -123,7 +123,7 @@ def load_documents(
         try:
             document = load_bounded_json_object(repo_root, policy_path, max_bytes=MAX_JSON_BYTES)
             schema = load_bounded_json_object(repo_root, schema_path, max_bytes=MAX_JSON_BYTES)
-        except OSError, ValueError:
+        except (OSError, ValueError):
             failures.append(
                 failure(
                     "tooling-json-parse",
@@ -144,7 +144,7 @@ def read_tooling_document(repo_root: Path, path: str) -> dict[str, Any]:
         if not is_regular_repo_file(repo_root, path):
             raise ValueError
         return load_bounded_json_object(repo_root, path, max_bytes=MAX_JSON_BYTES)
-    except OSError, ValueError, RecursionError:
+    except (OSError, ValueError, RecursionError):
         raise ValueError("tooling authority is missing, unsafe, or malformed") from None
 
 
