@@ -297,6 +297,37 @@ def _participant_feature_cases(
     return tuple(cases)
 
 
+def _modular_report(target: RuntimeTarget, options: _TargetConformanceOptions) -> BackendConformanceReport | None:
+    return (
+        run_modular_control_conformance(
+            target,
+            harness=options.modular_control_harness,
+            obligations=options.modular_control_obligations,
+            effect_kinds=options.modular_control_effect_kinds,
+        )
+        if options.modular_control_harness is not None
+        or options.modular_control_obligations is not None
+        or options.modular_control_effect_kinds
+        else None
+    )
+
+
+def _target_passed(
+    fixture: BackendConformanceReport,
+    modular: BackendConformanceReport | None,
+    contract_gaps: tuple[str, ...],
+    capability_gaps: tuple[str, ...],
+    cases: tuple[ConformanceCaseResult, ...],
+) -> bool:
+    return (
+        fixture.passed
+        and (modular is None or modular.passed)
+        and not contract_gaps
+        and not capability_gaps
+        and all(case.passed for case in cases)
+    )
+
+
 def _known_profile_report(
     target: RuntimeTarget,
     profile: BackendProfileSelector,
@@ -327,18 +358,7 @@ def _known_profile_report(
         options.participant_opacity_harness,
         options.execution_basis,
     )
-    modular_result = (
-        run_modular_control_conformance(
-            target,
-            harness=options.modular_control_harness,
-            obligations=options.modular_control_obligations,
-            effect_kinds=options.modular_control_effect_kinds,
-        )
-        if options.modular_control_harness is not None
-        or options.modular_control_obligations is not None
-        or options.modular_control_effect_kinds
-        else None
-    )
+    modular_result = _modular_report(target, options)
     modular_cases = modular_result.cases if modular_result is not None else ()
     if modular_result is not None:
         diagnostics.extend(modular_result.diagnostics)
@@ -352,8 +372,7 @@ def _known_profile_report(
         native_conformance=options.native_conformance,
     )
     realization_cases = tuple(_realization_case_result(case) for case in realization_run.cases)
-    cases = (
-        *fixture_report.cases,
+    additional_cases = (
         *participant_feature_cases,
         *policy_cases,
         *opacity_cases,
@@ -361,23 +380,8 @@ def _known_profile_report(
         *target_cases,
         *realization_cases,
     )
-    passed = (
-        fixture_report.passed
-        and (modular_result is None or modular_result.passed)
-        and not contract_gaps
-        and not capability_gaps
-        and all(
-            case.passed
-            for case in (
-                *participant_feature_cases,
-                *policy_cases,
-                *opacity_cases,
-                *modular_cases,
-                *target_cases,
-                *realization_cases,
-            )
-        )
-    )
+    cases = (*fixture_report.cases, *additional_cases)
+    passed = _target_passed(fixture_report, modular_result, contract_gaps, capability_gaps, additional_cases)
     profile_id = _to_profile_id(profile)
     return BackendConformanceReport(
         profile=profile_id,

@@ -8,6 +8,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from threading import Lock
+from typing import cast
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import RuntimeSnapshotEnvelopeModel
@@ -19,7 +20,12 @@ from raes_runtime.snapshot_contract import runtime_snapshot_contract_payload
 
 from .modular_control_observation import observed_binding
 from .modular_control_replay import ledger_digest, record_replay, replay_input
-from .modular_control_types import ModularControlCase, ModularControlOperation, ModularOwnerObservation
+from .modular_control_types import (
+    ModularControlCase,
+    ModularControlOperation,
+    ModularControlStep,
+    ModularOwnerObservation,
+)
 
 _METHODS = {
     ModularControlOperation.ACTION: "admit_participant_action",
@@ -97,13 +103,16 @@ class _Measurement:
 
 
 def _instrument(target: RuntimeTarget, measured: _Measurement) -> RuntimeTarget:
-    return replace(
-        target,
-        **{
-            field: _Counter(getattr(target, field), field, measured.counts, measured.count_lock)
-            for field in ("participant_runtime", "operation_provider", "provisioner", "orchestrator")
-            if getattr(target, field) is not None
-        },
+    return cast(
+        RuntimeTarget,
+        replace(
+            target,
+            **{
+                field: _Counter(getattr(target, field), field, measured.counts, measured.count_lock)
+                for field in ("participant_runtime", "operation_provider", "provisioner", "orchestrator")
+                if getattr(target, field) is not None
+            },
+        ),
     )
 
 
@@ -134,7 +143,9 @@ def _capture(plane: RuntimeControlPlane, store: LocalControlPlaneStore, measured
     measured.audit = plane.audit_log()
 
 
-def _drive(plane: RuntimeControlPlane, store: LocalControlPlaneStore, step: object, measured: _Measurement) -> None:
+def _drive(
+    plane: RuntimeControlPlane, store: LocalControlPlaneStore, step: ModularControlStep, measured: _Measurement
+) -> None:
     arguments = step.arguments(plane, tuple(measured.outputs)) if callable(step.arguments) else step.arguments
     if not isinstance(arguments, Mapping):
         raise TypeError("modular probe inputs must be a keyword mapping")
@@ -154,6 +165,12 @@ def _drive(plane: RuntimeControlPlane, store: LocalControlPlaneStore, step: obje
     measured.outputs.append(output)
     _capture(plane, store, measured)
     record_replay(measured, replay_key, output, before)
+    _record_output(plane, step, output, measured)
+
+
+def _record_output(
+    plane: RuntimeControlPlane, step: ModularControlStep, output: object, measured: _Measurement
+) -> None:
     if step.operation in {
         ModularControlOperation.ACTION,
         ModularControlOperation.SELECTION_V2,

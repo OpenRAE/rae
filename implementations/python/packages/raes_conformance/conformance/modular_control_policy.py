@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from raes import parse_sdl
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.execution_policy import EffectiveExecutionPolicy
 from raes_contracts.plan_projection import provisioning_plan_model
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
@@ -35,6 +36,30 @@ execution_policy:
 """
 
 
+def _planned_policies(target: RuntimeTarget, response: str) -> list[dict[str, object]]:
+    scenario = parse_sdl(_SDL.replace("RESPONSE", response))
+    execution = plan(compile_runtime_model(scenario), target.manifest)
+    public = provisioning_plan_model(execution.provisioning)
+    if not public.operations:
+        raise ValueError("authored recovery probe produced no operation")
+    policies = [_policy_payload(operation.execution_policy, response) for operation in public.operations]
+    if response == "resume" and not any(item.code.startswith("execution-policy.") for item in execution.diagnostics):
+        raise ValueError("unsupported general resume was admitted")
+    return policies
+
+
+def _policy_payload(effective: EffectiveExecutionPolicy | None, response: str) -> dict[str, object]:
+    if (
+        effective is None
+        or effective.policy.response != response
+        or effective.policy.policy_id != "authored-conformance-policy"
+    ):
+        raise ValueError("authored recovery policy was lost in planning")
+    if effective.governing_scope != "#/":
+        raise ValueError("authored recovery scope was changed")
+    return effective.model_dump(mode="json")
+
+
 def authored_recovery_case(
     target: RuntimeTarget, obligations: tuple[str, ...], effects: tuple[str, ...]
 ) -> ConformanceCaseResult:
@@ -44,26 +69,7 @@ def authored_recovery_case(
     policies = []
     try:
         for response in ("terminate", "resume"):
-            scenario = parse_sdl(_SDL.replace("RESPONSE", response))
-            execution = plan(compile_runtime_model(scenario), target.manifest)
-            public = provisioning_plan_model(execution.provisioning)
-            if not public.operations:
-                raise ValueError("authored recovery probe produced no operation")
-            for operation in public.operations:
-                effective = operation.execution_policy
-                if (
-                    effective is None
-                    or effective.policy.response != response
-                    or effective.policy.policy_id != "authored-conformance-policy"
-                ):
-                    raise ValueError("authored recovery policy was lost in planning")
-                if effective.governing_scope != "#/":
-                    raise ValueError("authored recovery scope was changed")
-                policies.append(effective.model_dump(mode="json"))
-            if response == "resume" and not any(
-                item.code.startswith("execution-policy.") for item in execution.diagnostics
-            ):
-                raise ValueError("unsupported general resume was admitted")
+            policies.extend(_planned_policies(target, response))
     except Exception as exc:
         diagnostics.append(
             _diagnostic("conformance.modular-recovery-policy", "authored-recovery", sanitized_failure_message(exc))

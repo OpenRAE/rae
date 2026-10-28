@@ -78,9 +78,26 @@ from .operation_reconciliation import RuntimeInvocationReconciliationMixin
 from .operation_worker_authority import RuntimeWorkerAuthorityMixin
 from .operational_apparatus import operational_apparatus_summary
 from .participant_control import ParticipantControlMixin
+from .participant_control_binding import (
+    ParticipantControlResolution,
+    ParticipantControlRuntimeBinding,
+    ParticipantControlRuntimeResolver,
+)
 from .participant_information_state_validation import require_participant_information_state_snapshot
 from .participant_retrieval import ParticipantRetrievalMixin
 from .registry import RuntimeTarget as _RuntimeTarget
+
+__all__ = (
+    "ControlPlaneIdentity",
+    "ControlPlaneOperationRecord",
+    "ControlPlaneOptions",
+    "LocalControlPlaneStore",
+    "ParticipantControlResolution",
+    "ParticipantControlRuntimeBinding",
+    "ParticipantControlRuntimeResolver",
+    "RuntimeControlPlane",
+    "operation_actor_scope",
+)
 
 _P0_SCOPE_BOUND_ERROR = "control-plane profile P0 missing capabilities: store.scope-bound"
 

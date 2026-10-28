@@ -4,16 +4,30 @@ from __future__ import annotations
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.runtime_state import OperationState
+from raes_runtime.control_plane import ControlPlaneOperationRecord
 
 from .modular_control_execution import _Measurement
 from .modular_control_refusals import negative_condition as _negative_condition
 from .modular_control_replay import ledger_digest
-from .modular_control_types import ModularControlCase, ModularControlOperation
+from .modular_control_types import ModularControlCase, ModularControlOperation, ModularOwnerObservation
 
 _NEGATIVE = frozenset({"mandatory-coverage", "strict-denial", "authority", "stale-cut", "conflict", "integrity"})
 
 
 def case_checks(case: ModularControlCase, measured: _Measurement) -> tuple[str, ...]:
+    failures = _composition_checks(case, measured)
+    failures.extend(_expected_result_checks(case, measured))
+    if case.obligation in _NEGATIVE:
+        failures.extend(_negative_checks(case, measured))
+    check = _OBLIGATION_CHECKS.get(case.obligation)
+    if check is not None and not check(case, measured):
+        failures.append("obligation-evidence")
+    if case.obligation.startswith("effect:"):
+        failures.extend(_effect_checks(case, measured))
+    return tuple(failures)
+
+
+def _composition_checks(case: ModularControlCase, measured: _Measurement) -> list[str]:
     failures: list[str] = []
     actual = tuple(
         item.composition.disposition
@@ -22,6 +36,12 @@ def case_checks(case: ModularControlCase, measured: _Measurement) -> tuple[str, 
     )
     if actual != case.expected_compositions:
         failures.append("composition")
+    failures.extend(_parent_outcome_checks(measured))
+    return failures
+
+
+def _parent_outcome_checks(measured: _Measurement) -> list[str]:
+    failures: list[str] = []
     for identity in measured.parent_operation_ids:
         parent = measured.records.get(identity)
         evaluation = next(
@@ -38,6 +58,11 @@ def case_checks(case: ModularControlCase, measured: _Measurement) -> tuple[str, 
             and (parent is None or parent.status.state is not OperationState.SUCCEEDED)
         ):
             failures.append("parent-outcome")
+    return failures
+
+
+def _expected_result_checks(case: ModularControlCase, measured: _Measurement) -> list[str]:
+    failures: list[str] = []
     expected_calls = {key: value for key, value in case.expected_calls.items() if value}
     if dict(measured.counts) != expected_calls:
         failures.append("execution-count")
@@ -49,22 +74,21 @@ def case_checks(case: ModularControlCase, measured: _Measurement) -> tuple[str, 
         failures.append("cleanup")
     if not case.steps or not any(step.operation is not ModularControlOperation.REOPEN for step in case.steps):
         failures.append("no-operation")
-    if case.obligation in _NEGATIVE:
-        blocked = measured.refusals or (
-            measured.parent_states and all(state is not OperationState.SUCCEEDED for state in measured.parent_states)
-        )
-        if not blocked or measured.counts or "applied" in measured.outcomes.values():
-            failures.append("prohibited-execution")
-        if not _negative_condition(case, measured):
-            failures.append("unrelated-refusal")
-        else:
-            measured.refusal_causes.add(case.obligation)
-    check = _OBLIGATION_CHECKS.get(case.obligation)
-    if check is not None and not check(case, measured):
-        failures.append("obligation-evidence")
-    if case.obligation.startswith("effect:"):
-        failures.extend(_effect_checks(case, measured))
-    return tuple(failures)
+    return failures
+
+
+def _negative_checks(case: ModularControlCase, measured: _Measurement) -> list[str]:
+    failures: list[str] = []
+    blocked = measured.refusals or (
+        measured.parent_states and all(state is not OperationState.SUCCEEDED for state in measured.parent_states)
+    )
+    if not blocked or measured.counts or "applied" in measured.outcomes.values():
+        failures.append("prohibited-execution")
+    if not _negative_condition(case, measured):
+        failures.append("unrelated-refusal")
+    else:
+        measured.refusal_causes.add(case.obligation)
+    return failures
 
 
 def _has_subset(case: ModularControlCase, measured: _Measurement) -> bool:
@@ -173,33 +197,55 @@ def _effect_checks(case: ModularControlCase, measured: _Measurement) -> list[str
     if not any(effects[key].target.kind == kind for key in measured.outcomes if key in effects):
         failures.append("effect-kind")
     for identity, disposition in measured.outcomes.items():
-        observed = observations.get(identity)
-        claims = [
-            record
-            for record in measured.records.values()
-            if isinstance(record.result_payload, dict) and record.result_payload.get("effect_id") == identity
-        ]
-        if observed is None or not observed.evidence_refs or observed.disposition != disposition:
-            failures.append("owner-readback")
-            continue
-        owner = measured.records.get(observed.receipt_ref)
-        if owner is None or not claims:
-            failures.append("owner-receipt")
-            continue
-        if not any(
-            record.result_payload.get("disposition") == disposition
-            and record.result_payload.get("receipt", {}).get("ref") == observed.receipt_ref
-            and owner.receipt.context.parent_operation_id == record.receipt.operation_id
-            for record in claims
-        ):
-            failures.append("durable-owner-join")
-        if disposition == "applied" and owner.status.state is not OperationState.SUCCEEDED:
-            failures.append("owner-not-applied")
-        if kind == "inject" and disposition == "applied" and owner.inject_occurrence is None:
-            failures.append("missing-world-occurrence")
+        failures.extend(_owner_checks(identity, disposition, kind, observations.get(identity), measured))
     if kind == "inject" and not measured.counts.get("operation_provider.start_operation", 0):
         failures.append("missing-world-dispatch")
     return failures
+
+
+def _owner_checks(
+    identity: str, disposition: str, kind: str, observed: ModularOwnerObservation | None, measured: _Measurement
+) -> list[str]:
+    failures: list[str] = []
+    claims = [
+        record
+        for record in measured.records.values()
+        if isinstance(record.result_payload, dict) and record.result_payload.get("effect_id") == identity
+    ]
+    if observed is None or not observed.evidence_refs or observed.disposition != disposition:
+        failures.append("owner-readback")
+        return failures
+    owner = measured.records.get(observed.receipt_ref)
+    if owner is None or not claims:
+        failures.append("owner-receipt")
+        return failures
+    if not _owner_claim_matches(claims, owner, observed, disposition):
+        failures.append("durable-owner-join")
+    failures.extend(_applied_owner_checks(kind, disposition, owner))
+    return failures
+
+
+def _applied_owner_checks(kind: str, disposition: str, owner: ControlPlaneOperationRecord) -> list[str]:
+    failures: list[str] = []
+    if disposition == "applied" and owner.status.state is not OperationState.SUCCEEDED:
+        failures.append("owner-not-applied")
+    if kind == "inject" and disposition == "applied" and owner.inject_occurrence is None:
+        failures.append("missing-world-occurrence")
+    return failures
+
+
+def _owner_claim_matches(
+    claims: list[ControlPlaneOperationRecord],
+    owner: ControlPlaneOperationRecord,
+    observed: ModularOwnerObservation,
+    disposition: str,
+) -> bool:
+    return any(
+        record.result_payload.get("disposition") == disposition
+        and record.result_payload.get("receipt", {}).get("ref") == observed.receipt_ref
+        and owner.receipt.context.parent_operation_id == record.receipt.operation_id
+        for record in claims
+    )
 
 
 def artifact_bindings(case: ModularControlCase, measured: _Measurement) -> dict[str, str]:

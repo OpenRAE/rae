@@ -191,10 +191,12 @@ def test_serialization_refuses_unbound_or_overstated_modular_pass():
     assert report.passed
     item = report.cases[0]
     unbound = replace(item, modular_control=replace(item.modular_control, artifact_digests={}))
+    unbound_report = replace(report, cases=(unbound,))
+    native_report = replace(report, native_conformance=True)
     with pytest.raises(ValueError, match="modular"):
-        backend_conformance_report_payload(replace(report, cases=(unbound,)))
+        backend_conformance_report_payload(unbound_report)
     with pytest.raises(ValueError, match="modular"):
-        backend_conformance_report_payload(replace(report, native_conformance=True))
+        backend_conformance_report_payload(native_report)
 
 
 def test_cleanup_failure_is_visible_and_keeps_private_details_out():
