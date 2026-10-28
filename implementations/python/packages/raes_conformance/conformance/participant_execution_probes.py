@@ -160,7 +160,7 @@ def _participant_execution_action_case(
                 _diagnostic(
                     "conformance.participant-execution-action-failed",
                     f"runtime.participant-execution.{scope}",
-                    (f"Bounded native action execution raised {type(exc).__name__}: {exc}"),
+                    f"Bounded native action execution raised {type(exc).__name__}: {exc}",
                 )
             )
         else:
