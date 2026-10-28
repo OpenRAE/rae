@@ -12,6 +12,7 @@ from __future__ import annotations
 import raes_conformance.conformance as facade
 from raes_conformance.conformance import (
     fixture_suite,
+    modular_control,
     observability,
     profiles,
     report,
@@ -34,6 +35,8 @@ _PUBLIC_EXPORTS = {
     "profiles_root",
     "required_contracts",
     "run_fixture_suite",
+    "modular_control_obligations",
+    "run_modular_control_conformance",
     "run_target_conformance",
     "supported_contract_ids",
     "validate_contract_payload",
@@ -51,6 +54,8 @@ _PUBLIC_ORIGINS = {
     "backend_conformance_report_payload": report,
     "observability_evidence_conformance_diagnostics": observability,
     "run_fixture_suite": fixture_suite,
+    "modular_control_obligations": modular_control,
+    "run_modular_control_conformance": modular_control,
     "profile_for_manifest": target,
     "run_target_conformance": target,
     "contract_payload_root": validators,

@@ -1,5 +1,9 @@
 # Backend conformance guardrails
 
+The [modular control runner](modular-control-conformance.md) publishes ASR-538's
+installed shared-runtime probes. It requires explicit obligation/effect coverage
+and independent owner readback. Fixture validity does not establish that claim.
+
 This note is the architecture preflight for `ASR-502`. It is guidance, not an
 implementation plan.
 

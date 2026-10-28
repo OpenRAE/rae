@@ -7,9 +7,32 @@ from typing import Unpack
 
 from .control_plane_configuration import ControlPlaneConfiguration, ControlPlaneOptions
 from .control_plane_lifecycle import runtime_owned
+from .control_plane_operation_context import operation_actor_scope
+from .control_plane_security import ControlPlaneIdentity as ControlPlaneIdentity
+from .control_plane_store import ControlPlaneOperationRecord
+from .control_plane_store import LocalControlPlaneStore as LocalControlPlaneStore
+from .participant_control_binding import (
+    ParticipantControlResolution,
+    ParticipantControlRuntimeBinding,
+    ParticipantControlRuntimeResolver,
+)
+from .participant_control_effects import ParticipantControlEffectRealization
 from .registry import RuntimeTarget
 from .runtime_engine import RuntimeEngineResources
 from .runtime_run_context import RuntimeRunContext
+
+__all__ = (
+    "ControlPlaneIdentity",
+    "ControlPlaneOperationRecord",
+    "ControlPlaneOptions",
+    "LocalControlPlaneStore",
+    "ParticipantControlEffectRealization",
+    "ParticipantControlResolution",
+    "ParticipantControlRuntimeBinding",
+    "ParticipantControlRuntimeResolver",
+    "RuntimeControlPlane",
+    "operation_actor_scope",
+)
 
 
 class RuntimeControlPlane(RuntimeRunContext):
