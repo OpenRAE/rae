@@ -64,22 +64,30 @@ def validate_authoring_selections(
     }
     descriptors = experiment.binding_descriptors
     if descriptors is not None and participant_manifests:
-        try:
-            for entry in plan.entries.values():
-                validate_participant_manifest_references(
-                    entry.apparatus.participant_manifest_refs, participant_manifests
-                )
-        except CompilationFailure as exc:
-            raise ValueError("participant manifest authority differs from the admitted plan") from exc
-        descriptors = validate_experiment_binding_targets(
-            descriptors,
-            scenario_resolver=ExpandedScenarioBindingTargetResolver(family),
-            participant_manifests=participant_manifests,
-            apparatus_manifests=apparatus_manifests,
-        )
+        descriptors = _resolve_descriptors(plan, family, descriptors, apparatus_manifests, participant_manifests)
     for entry in plan.entries.values():
         expected = records[canonical_json_bytes(entry.coordinate.model_dump(mode="json"))]
         _validate_entry_sources(entry, expected, descriptors)
+
+
+def _resolve_descriptors(
+    plan: AdmittedTrialPlanModel,
+    family: ExpandedScenario,
+    descriptors: ExperimentBindingDescriptorSetModel,
+    apparatus_manifests: Mapping[ApparatusManifestKey, ApparatusManifest],
+    participant_manifests: Mapping[ParticipantManifestKey, ParticipantImplementationManifestModel],
+) -> ExperimentBindingDescriptorSetModel:
+    try:
+        for entry in plan.entries.values():
+            validate_participant_manifest_references(entry.apparatus.participant_manifest_refs, participant_manifests)
+    except CompilationFailure as exc:
+        raise ValueError("participant manifest authority differs from the admitted plan") from exc
+    return validate_experiment_binding_targets(
+        descriptors,
+        scenario_resolver=ExpandedScenarioBindingTargetResolver(family),
+        participant_manifests=participant_manifests,
+        apparatus_manifests=apparatus_manifests,
+    )
 
 
 def _authoring_coordinates(

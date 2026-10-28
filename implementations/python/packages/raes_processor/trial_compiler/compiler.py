@@ -185,16 +185,23 @@ def _compile_entry(
         ),
     )
     require_trial_controls(backends, entry.execution_controls, cleanup)
-    typed = (
-        request.experiment.factorial_design is not None
-        and request.experiment.factorial_design.profile == "factorial-treatments-v1"
-    )
-    signature = resolved_treatment_signature(entry, selected) if typed else None
+    signature = resolved_treatment_signature(entry, selected) if _has_typed_treatments(request) else None
     return entry_id, entry, cleanup_id, cleanup, signature
 
 
 def _failure_key(failure: CompilationFailure) -> tuple[str, str, str]:
     return failure.address, failure.code, failure.safe_message
+
+
+def _earliest_failure(current: CompilationFailure | None, candidate: CompilationFailure) -> CompilationFailure:
+    if current is None or _failure_key(candidate) < _failure_key(current):
+        return candidate
+    return current
+
+
+def _has_typed_treatments(request: TrialCompilationRequest) -> bool:
+    design = request.experiment.factorial_design
+    return design is not None and design.profile == "factorial-treatments-v1"
 
 
 def _compile_coordinate(
@@ -257,9 +264,10 @@ def _compile_entries(
         except CompilationFailure as failure:
             candidate_failure = failure
         except (TypeError, ValueError) as exc:
+            coordinate_id = coordinate.replicate_id or "coordinate"
             candidate_failure = _fail(
                 "entry-invalid",
-                _ENTRIES_ADDRESS + (coordinate.replicate_id or "coordinate"),
+                _ENTRIES_ADDRESS + coordinate_id,
                 "a trial entry failed closed construction",
             )
             candidate_failure.__cause__ = exc
@@ -270,8 +278,7 @@ def _compile_entries(
             if signature is not None:
                 resolved_signatures[entry_id] = signature
             continue
-        if canonical_failure is None or _failure_key(candidate_failure) < _failure_key(canonical_failure):
-            canonical_failure = candidate_failure
+        canonical_failure = _earliest_failure(canonical_failure, candidate_failure)
     if capture_failures:
         raise _CaptureAdmissionFailure(tuple(capture_failures[key] for key in sorted(capture_failures)))
     if canonical_failure is not None:
@@ -326,10 +333,7 @@ def _compile(
     coordinate_partitions: tuple[tuple[int, ...], ...] | None,
     replacement: ReplacementCompilationContext | None = None,
 ) -> AdmittedTrialPlanModel:
-    if (
-        request.experiment.factorial_design is not None
-        and request.experiment.factorial_design.profile == "factorial-treatments-v1"
-    ):
+    if _has_typed_treatments(request):
         request = replace(
             request, experiment=type(request.experiment).model_validate(request.experiment.model_dump(mode="python"))
         )
@@ -389,8 +393,7 @@ def _compile(
             replacement=replacement is not None,
             designed=request.experiment.factorial_design is not None or policy is not None,
             allocation=policy is not None,
-            treatments=request.experiment.factorial_design is not None
-            and request.experiment.factorial_design.profile == "factorial-treatments-v1",
+            treatments=_has_typed_treatments(request),
         ),
         allocation=allocation,
         input_refs=(replacement.input_refs(request, entries) if replacement else canonical_input_refs(request)),

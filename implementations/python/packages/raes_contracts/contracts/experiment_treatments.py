@@ -147,22 +147,26 @@ def _validate_entry_treatments(
             raise ValueError("entry treatment family must match the pinned family")
 
 
+def _validate_retained_treatments(entry: AdmittedTrialEntryModel) -> None:
+    bound_points = {
+        binding.descriptor.target.variation_point_id
+        for binding in entry.bindings
+        if binding.descriptor.target.plane == "scenario"
+    }
+    for record in entry.selections:
+        if (
+            record.origin_policy_id == "factorial-treatments-v1"
+            and record.origin_policy_kind == "stratified"
+            and record.treatment is None
+            and record.variation_point_id not in bound_points
+        ):
+            raise ValueError("claimed factorial selection must retain its treatment descriptor")
+
+
 def validate_plan_treatments(plan: AdmittedTrialPlanModel) -> None:
     """Check treatment profile, coordinate, and exact pinned family agreement."""
     for entry in plan.entries.values():
-        bound_points = {
-            binding.descriptor.target.variation_point_id
-            for binding in entry.bindings
-            if binding.descriptor.target.plane == "scenario"
-        }
-        for record in entry.selections:
-            if (
-                record.origin_policy_id == "factorial-treatments-v1"
-                and record.origin_policy_kind == "stratified"
-                and record.treatment is None
-                and record.variation_point_id not in bound_points
-            ):
-                raise ValueError("claimed factorial selection must retain its treatment descriptor")
+        _validate_retained_treatments(entry)
         selections = [record.treatment for record in entry.selections if record.treatment is not None]
         if not selections:
             continue

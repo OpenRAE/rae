@@ -72,10 +72,9 @@ def test_source_aware_one_entry_realization_rejects_resealed_treatment_changes(c
             update={"owner": typed.treatment.owner.model_copy(update={"validator_version": "other-owner-version"})}
         )
     altered = _reseal(plan, entry, selections=selections)
+    inputs = _realization_inputs(request, altered, request.task)
     with pytest.raises(ValueError, match="authoring.*selection|selection.*authoring"):
-        realize_admitted_trial_entry(
-            inputs=_realization_inputs(request, altered, request.task), plan_entry_id=entry.plan_entry_id
-        )
+        realize_admitted_trial_entry(inputs=inputs, plan_entry_id=entry.plan_entry_id)
 
 
 def _archived_treatment(*, replacement=False):

@@ -43,6 +43,7 @@ from .models import CompilationFailure
 from .profiles import RANDOM_STREAM_PROFILE_ID, RANDOM_STREAM_PROFILE_VERSION
 
 _SELECTION_POLICIES_ADDRESS = "/run_plan/selection_policies"
+_FACTORIAL_DESIGN_ADDRESS = "/factorial_design"
 
 
 @dataclass(frozen=True)
@@ -400,7 +401,7 @@ def _treatment_coordinate_selections(
             except ValueError as exc:
                 raise CompilationFailure(
                     "selection-treatment-rejected",
-                    "/factorial_design",
+                    _FACTORIAL_DESIGN_ADDRESS,
                     "a typed selection failed authoritative scenario-family admission",
                 ) from exc
             typed.append(
@@ -416,7 +417,7 @@ def _treatment_coordinate_selections(
         if {selection.point_id for selection in combined} != set(family.variation_points):
             raise CompilationFailure(
                 "variation-points-uncovered",
-                "/factorial_design",
+                _FACTORIAL_DESIGN_ADDRESS,
                 "factorial effects and fixed policies must cover every family point exactly once",
             )
         rows[condition_id] = CoordinateSelections(combined)
@@ -435,13 +436,13 @@ def _factorial_row(
     if any(not isinstance(selection.outcome, LiteralBindingValueModel) for selection in selections):
         raise CompilationFailure(
             "factorial-scenario-value-unsupported",
-            "/factorial_design",
+            _FACTORIAL_DESIGN_ADDRESS,
             "factorial scenario bindings require literal scalar outcomes",
         )
     if {selection.point_id for selection in selections} != set(family.variation_points):
         raise CompilationFailure(
             "variation-points-uncovered",
-            "/factorial_design",
+            _FACTORIAL_DESIGN_ADDRESS,
             "factorial bindings must cover every scenario variation point exactly once",
         )
     return CoordinateSelections(tuple(sorted(selections, key=lambda selection: selection.point_id)))
