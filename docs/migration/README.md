@@ -47,6 +47,10 @@ The removal of the bundled reference and libvirt backends, and the move of
 concrete realization to backend distributions such as LilRAE, is documented in
 [Concrete Backends Migration](concrete-backends.md).
 
+Backend-owned participant-opacity harnesses supply reported transcripts and
+backend readback as described in
+[Participant-Opacity Observed Evidence Migration](participant-opacity-observed-evidence.md).
+
 The reorganization moved existing material into the current long-term buckets:
 
 - root `schemas/` -> `contracts/schemas/`

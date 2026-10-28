@@ -33,8 +33,26 @@ class _SectionsMixin:
         )
 
     def _verify_variables(self) -> None:
-        defined = set(getattr(self._s, "variables", {}))
-        self._check_variable_refs(self._s, "", defined)
+        variables = getattr(self._s, "variables", {})
+        defined = set(variables)
+        scenario = self._s
+        for field_name in scenario.__class__.model_fields:
+            if isinstance(scenario, Scenario) and field_name == "variables":
+                continue
+            child = getattr(scenario, field_name)
+            # Each top-level field's references depend only on that field and
+            # the defined variables, so an unchanged field reuses its errors.
+            key = ("variable-refs", field_name, id(variables))
+            errors = self._session.walker_result(key, child)
+            if errors is None:
+                collected, self._errors = self._errors, []
+                try:
+                    self._check_variable_refs(child, field_name, defined)
+                    errors = tuple(self._errors)
+                finally:
+                    self._errors = collected
+                self._session.store_walker_result(key, child, errors)
+            self._errors.extend(errors)  # type: ignore[arg-type]
 
     def _check_variable_refs(self, value: object, path: str, defined: set[str]) -> None:
         if isinstance(value, BaseModel):
@@ -72,7 +90,7 @@ class _SectionsMixin:
                 self._err(f"Undefined variable '{variable_name}' referenced at '{path}'")
 
     def _verify_explicitness(self) -> None:
-        result = classify_scenario_explicitness(self._s)
+        result = classify_scenario_explicitness(self._s, session=self._session)
         self._s._set_explicitness(result.records)
         for error in result.errors:
             self._err(error)

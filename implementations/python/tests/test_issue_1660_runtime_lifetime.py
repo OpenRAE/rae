@@ -273,9 +273,12 @@ def test_pure_planning_does_not_hold_the_supervision_state_permit(monkeypatch):
     failures = []
     original = interaction.compile_scenario_runtime_model
 
+    # Planning stays blocked until the stop result is known, so a stop that
+    # waits for planning cannot finish inside any wait budget. The budgets
+    # only bound the failing case; they do not measure stop latency.
     def compile_slowly(*args, **kwargs):
         entered.set()
-        assert release.wait(3)
+        assert release.wait(10)
         return original(*args, **kwargs)
 
     def stop(runtime):
@@ -291,13 +294,13 @@ def test_pure_planning_does_not_hold_the_supervision_state_permit(monkeypatch):
         supervisor = Thread(target=stop, args=(runtime,))
         planner.start()
         try:
-            assert entered.wait(1)
+            assert entered.wait(5)
             supervisor.start()
-            assert stopped.wait(0.5)
+            assert stopped.wait(5)
         finally:
             release.set()
-            planner.join(3)
-            supervisor.join(3)
+            planner.join(5)
+            supervisor.join(5)
         assert not planner.is_alive()
         assert not supervisor.is_alive()
         assert failures == []

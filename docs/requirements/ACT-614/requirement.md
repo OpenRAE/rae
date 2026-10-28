@@ -33,6 +33,8 @@ Requirement inventory expansion. Participant behavior over time is a first-class
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/participant_temporal_assessment.py` (Focused temporal assessment checks)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/conformance/participant_temporal_probes.py` (Scenario-specific conformance)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_declarations.py` (Typed temporal authoring values)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_declaration_index.py` (Declaration model tokens and alias index)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_declaration_adders.py` (Declaration adders that record model paths)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_sections.py` (Temporal import rewriting)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/observation_scope.py` (Dwell observation scope)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/semantics/participant_behavior/_autonomous.py` (Temporal behavior validation)

@@ -2,6 +2,7 @@
 validator.py). Public API is unchanged: import ``SemanticValidator``.
 """
 
+from .._incremental_reuse import ValidationSession
 from ._accounts import _AccountsMixin
 from ._cloud_resources import _CloudResourcesMixin
 from ._content_objectives import _ContentObjectivesMixin
@@ -35,7 +36,7 @@ from ._variation import _VariationMixin
 from ._workflows_analysis import _WorkflowAnalysisMixin
 from ._workflows_verify import _WorkflowVerifyMixin
 
-__all__ = ["SemanticValidator"]
+__all__ = ["SemanticValidator", "ValidationSession"]
 
 
 class SemanticValidator(
