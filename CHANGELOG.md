@@ -8,6 +8,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [9.0.0](https://github.com/OpenRAE/rae/compare/v8.1.0...v9.0.0) (2026-10-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* derive participant opacity evidence from observed execution ([#1671](https://github.com/OpenRAE/rae/issues/1671))
+* RAES now requires CPython 3.14.
+* consolidate runtime lifetime ownership ([#1664](https://github.com/OpenRAE/rae/issues/1664))
+
+### Features
+
+* check backend trial controls at admission ([#1645](https://github.com/OpenRAE/rae/issues/1645)) ([a6195bc](https://github.com/OpenRAE/rae/commit/a6195bc05d083c0015e2ad45f185c7b9268185a1))
+* compile typed factorial model, prompt and structural treatments ([#1677](https://github.com/OpenRAE/rae/issues/1677)) ([e51f9e1](https://github.com/OpenRAE/rae/commit/e51f9e1f738874b366d8dec42c62db3cb1e1a8ba))
+* declare and check participant tool-profile support ([#1662](https://github.com/OpenRAE/rae/issues/1662)) ([9b387e6](https://github.com/OpenRAE/rae/commit/9b387e67d40a07d3e594323cdbb86694c44d8ab9))
+* **experiment:** define typed factorial treatment contracts ([#1668](https://github.com/OpenRAE/rae/issues/1668)) ([f5e5a29](https://github.com/OpenRAE/rae/commit/f5e5a298256a7f3a45941ff2dc111cdd61cb7d7b))
+* map runtime crossings to the finite proof model ([#1670](https://github.com/OpenRAE/rae/issues/1670)) ([340088f](https://github.com/OpenRAE/rae/commit/340088f57cae540705edbb542e916592f4f0eed9))
+* **sdl:** add reusable participant tool profiles ([#1576](https://github.com/OpenRAE/rae/issues/1576)) ([2ace10c](https://github.com/OpenRAE/rae/commit/2ace10c361630443238dc0d763b9a14ac6debf7f))
+* **sdl:** describe cloud ownership, workload identities and secret versions ([#1661](https://github.com/OpenRAE/rae/issues/1661)) ([4d469ca](https://github.com/OpenRAE/rae/commit/4d469cadfa60afc536ba2ae47c5765f7c3ab3732))
+* support only CPython 3.14 and shorten CI runs ([#1673](https://github.com/OpenRAE/rae/issues/1673)) ([3fe968d](https://github.com/OpenRAE/rae/commit/3fe968d61ad41190d204e7096610df9e56f90b87)), closes [#1672](https://github.com/OpenRAE/rae/issues/1672)
+
+
+### Bug Fixes
+
+* **conformance:** qualify negotiated materialization producers in target conformance ([#1669](https://github.com/OpenRAE/rae/issues/1669)) ([27fe8d6](https://github.com/OpenRAE/rae/commit/27fe8d666d4226d7d2d4cb0c6b50c44d87745dd5))
+* **conformance:** validate the published snapshot carriers in target conformance ([#1599](https://github.com/OpenRAE/rae/issues/1599)) ([3701a95](https://github.com/OpenRAE/rae/commit/3701a951e7c55b9018dd3cb6b7123a4105eec25b))
+* consolidate runtime lifetime ownership ([#1664](https://github.com/OpenRAE/rae/issues/1664)) ([f6189bb](https://github.com/OpenRAE/rae/commit/f6189bb906ab7510955fc43ac558de6cf3fa7a70))
+* derive participant opacity evidence from observed execution ([#1671](https://github.com/OpenRAE/rae/issues/1671)) ([8d733a4](https://github.com/OpenRAE/rae/commit/8d733a4fe668b6823f2016888aea315e0ea34ebd))
+* **evidence:** refresh captures for dev promotion ([#1676](https://github.com/OpenRAE/rae/issues/1676)) ([9398f8c](https://github.com/OpenRAE/rae/commit/9398f8c0c839c419035d768f5f63fdab8831383f))
+* remove redundant parentheses reported on dev promotion ([af04ee9](https://github.com/OpenRAE/rae/commit/af04ee9675f8d57842b4f36343fd423814bf5223))
+* resolve Sonar findings on dev promotion ([#1680](https://github.com/OpenRAE/rae/issues/1680)) ([af04ee9](https://github.com/OpenRAE/rae/commit/af04ee9675f8d57842b4f36343fd423814bf5223))
+* **runtime:** gate autonomous participant initialization ([#1659](https://github.com/OpenRAE/rae/issues/1659)) ([4aa67d0](https://github.com/OpenRAE/rae/commit/4aa67d069382f6a003ba43bd3685ccc15f7685b5))
+
+
+### Performance Improvements
+
+* update control state from validated history suffixes ([#1663](https://github.com/OpenRAE/rae/issues/1663)) ([068c812](https://github.com/OpenRAE/rae/commit/068c8124a1030c38c5c777e1b3efa5ecb3038f59))
+
 ## [8.1.0](https://github.com/OpenRAE/rae/compare/v8.0.0...v8.1.0) (2026-10-27)
 
 
