@@ -9,6 +9,7 @@ from weakref import ref
 from raes_contracts.runtime_state import OperationState
 
 from .control_plane_recovery import unresolved_indeterminate_operation_ids_from_records
+from .control_plane_store import NewClaimRejected
 from .operation_execution_adapter import LocalExecutionAdapter
 from .runtime_decisions import RunContextDecision, runtime_store_digest
 from .runtime_resource_ownership import RuntimeResourceClaim, ledger_identity
@@ -132,7 +133,7 @@ class RuntimeEngineResources:
             if context._retired:
                 raise RuntimeError("runtime run is retired")
             if self.owner._store.effect_admission_stopped():
-                raise RuntimeError("runtime engine effect admission is closed")
+                raise NewClaimRejected("runtime engine effect admission is closed")
             if self._reserved_run is not None and self._reserved_run is not context:
                 raise RuntimeError("target resources are reserved by another run")
             reader = getattr(self.owner._store, "load_runtime_decisions", None)
@@ -239,17 +240,21 @@ class RuntimeEngineResources:
         with self._lock:
             if self.closed:
                 return
-            if self.closing:
-                raise RuntimeError("runtime shutdown is already in progress")
             if self.claim is not None and self.claim.active_calls:
                 raise RuntimeError("runtime callbacks remain active")
+        owner = self.owner
+        bounds = self.configuration.supervision
+        budget = bounds.drain_ms / 1000
+        if not owner._begin_runtime_close(owner._lifecycle_condition, budget):
+            return
+        with self._lock:
             self.closing = True
         contexts = tuple(context for context in self.contexts() if hasattr(context, "_lifecycle_condition"))
-        bounds = self.configuration.supervision
-        deadline = monotonic() + bounds.drain_ms / 1000
+        deadline = monotonic() + budget
+        provider_close_started = False
         try:
             for context in contexts:
-                if context._begin_runtime_close(context._lifecycle_condition, bounds.drain_ms / 1000):
+                if context is owner or context._begin_runtime_close(context._lifecycle_condition, budget):
                     if not context._stop_participant_clock_driver():
                         raise TimeoutError("runtime clock driver remains active")
                     context._drain_runtime_calls(context._lifecycle_condition, None, deadline)
@@ -262,29 +267,35 @@ class RuntimeEngineResources:
             if dispatcher is not None and self.adapter is not None:
                 self.adapter.call("control", dispatcher.close, timeout_ms=self._remaining(deadline))
             unresolved = any(self.unresolved(context) for context in contexts)
+            provider_close_started = True
             for context in contexts:
                 if not context._closed:
                     context._close_runtime_provider()
+            for context in contexts:
+                if not context._closed:
                     context._close_runtime_lease()
-                    with context._lifecycle_condition:
-                        context._closed = True
-                        context._closing = False
-                        context._lifecycle_condition.notify_all()
             if self.adapter is not None and not self.adapter.close(timeout_ms=self._remaining(deadline)):
                 raise TimeoutError("runtime drain has unresolved external calls")
             if self.claim is not None:
                 self.claim.release(unresolved=unresolved)
-            self.closed = True
+            with self._lock:
+                self.closed = True
+                self.closing = False
+            for context in contexts:
+                with context._lifecycle_condition:
+                    context._closed = True
+                    context._closing = False
+                    context._lifecycle_condition.notify_all()
         except BaseException:
             if self.claim is not None:
                 self.claim.retain_unresolved()
-            for context in contexts:
-                with context._lifecycle_condition:
-                    context._closing = False
-                    context._lifecycle_condition.notify_all()
+            for context in reversed(contexts):
+                if context is not owner:
+                    context._abort_runtime_close(context._lifecycle_condition, provider_close_started)
+            with self._lock:
+                self.closing = False
+            owner._abort_runtime_close(owner._lifecycle_condition, provider_close_started)
             raise
-        finally:
-            self.closing = False
 
     @staticmethod
     def _remaining(deadline):

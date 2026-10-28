@@ -55,6 +55,26 @@ def test_run_scope_and_backend_owner_cannot_be_replaced():
         assert engine.snapshot.entries == {}
 
 
+def test_child_provider_close_failure_retains_every_lease_and_poisons_all_contexts():
+    from test_issue_1183_store_ownership_leases import _OrderedCloseStore
+
+    root_store = _OrderedCloseStore([])
+    child_store = _OrderedCloseStore([], fail_close=True)
+    engine = RuntimeControlPlane(create_stub_target(), store=root_store)
+    child = engine.open_run(run_scope="run:child", store=child_store)
+    try:
+        with pytest.raises(RuntimeError, match="provider close failed"):
+            engine.close()
+        assert not root_store.lease.closed
+        assert not child_store.lease.closed
+        for context in (engine, child):
+            with pytest.raises(RuntimeError, match="requires restart"):
+                context.get_snapshot()
+    finally:
+        child_store.fail_close = False
+        engine.close()
+
+
 def test_fixed_run_stores_reopen_without_retargeting_the_default_scope(tmp_path):
     from raes_runtime.control_plane_store_local import LocalControlPlaneStore
 
@@ -205,9 +225,10 @@ def test_engine_stop_admission_covers_existing_and_future_run_contexts():
         existing = engine.open_run(run_scope="run:existing")
         engine.stop_admission()
         future = engine.open_run(run_scope="run:future")
-        for run in (existing, future):
-            with pytest.raises(RuntimeError, match="effect admission is closed"):
-                run.submit_provisioning(ProvisioningPlan())
+        for run in (engine, existing, future):
+            receipt = run.submit_provisioning(ProvisioningPlan())
+            assert not receipt.accepted
+            assert any(item.code == "runtime.control-plane.effect-admission-closed" for item in receipt.diagnostics)
             assert not run.snapshot.entries
 
 

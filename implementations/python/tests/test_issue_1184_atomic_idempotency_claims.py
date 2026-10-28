@@ -8,7 +8,7 @@ from dataclasses import replace
 from threading import Barrier
 
 import pytest
-import raes_runtime.control_plane as control_plane_module
+import raes_runtime.runtime_run_context as run_context_module
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.diagnostics import Diagnostic
@@ -178,7 +178,7 @@ def test_retry_returns_incumbent_before_changed_admission_state(
         message="current admission state changed",
     )
     monkeypatch.setattr(
-        control_plane_module,
+        run_context_module,
         "control_plane_plan_diagnostics",
         lambda *_args, **_kwargs: [rejection],
     )
