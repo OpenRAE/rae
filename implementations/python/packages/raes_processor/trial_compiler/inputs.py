@@ -24,6 +24,17 @@ def _fail(code: str, address: str, message: str) -> CompilationFailure:
     return CompilationFailure(code, address, message)
 
 
+def validate_treatment_profile(request: TrialCompilationRequest) -> None:
+    """Reject typed treatments until the compiler implements their profile."""
+    design = request.experiment.factorial_design
+    if design is not None and design.profile == "factorial-treatments-v1":
+        raise _fail(
+            "factorial-profile-unsupported",
+            "/factorial_design/profile",
+            "typed factorial treatments require a supporting compiler profile",
+        )
+
+
 def _validate_primary_input_refs(request: TrialCompilationRequest) -> None:
     refs = request.input_refs
     family_digest = canonical_sdl_digest(request.family).value

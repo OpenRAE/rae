@@ -142,15 +142,17 @@ class ExperimentConditionAssignmentModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_run_level_criteria(self) -> ExperimentConditionAssignmentModel:
-        if (
-            not self.required_refs
-            and not self.required_parameters
-            and not self.required_bindings
-            and not self.required_selections
-        ):
+        if not any((self.required_refs, self.required_parameters, self.required_bindings, self.required_selections)):
             raise ValueError(
-                "condition assignments must include required_refs or required_parameters or required_bindings or required_selections"
+                "condition assignments must include required_refs or required_parameters "
+                "or required_bindings or required_selections"
             )
+        self._validate_treatment_sources()
+        if self.difficulty_condition != "fixed" and self.difficulty_policy_id is None:
+            raise ValueError("adaptive and scaffolded conditions require difficulty_policy_id")
+        return self
+
+    def _validate_treatment_sources(self) -> None:
         if self.required_bindings:
             ExperimentBindingDescriptorSetModel(descriptors=self.required_bindings)
             for binding in self.required_bindings:
@@ -166,9 +168,6 @@ class ExperimentConditionAssignmentModel(ContractModel):
                 or self.factor_levels.get(selection.source_factor_id) != selection.source_factor_level_id
             ):
                 raise ValueError("condition required selections must match their factor/level/condition assignment")
-        if self.difficulty_condition != "fixed" and self.difficulty_policy_id is None:
-            raise ValueError("adaptive and scaffolded conditions require difficulty_policy_id")
-        return self
 
     @classmethod
     def __get_pydantic_json_schema__(

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from itertools import product
+from typing import Any
 
 from pydantic_core import to_jsonable_python
 
@@ -28,7 +29,7 @@ def _outcome_cost(outcome: object) -> int:
     return 1 + len(getattr(outcome, "member_ids", ()))
 
 
-def _fixed_policies(run_plan: dict) -> list[ExperimentFixedSelectionPolicyModel]:
+def _fixed_policies(run_plan: dict[str, Any]) -> list[ExperimentFixedSelectionPolicyModel]:
     policies = run_plan.get("selection_policies", {})
     if not isinstance(policies, dict) or len(policies) > MAX_SELECTION_POLICIES:
         raise ValueError("factorial fixed policies must be a bounded mapping")
@@ -40,7 +41,11 @@ def _fixed_policies(run_plan: dict) -> list[ExperimentFixedSelectionPolicyModel]
     return fixed
 
 
-def _validate_work(design: ExperimentFactorialTreatmentDesignModel, count: int, fixed: list) -> None:
+def _validate_work(
+    design: ExperimentFactorialTreatmentDesignModel,
+    count: int,
+    fixed: list[ExperimentFixedSelectionPolicyModel],
+) -> None:
     runs = count * design.target_runs_per_condition
     if runs > 10000:
         raise ValueError("factorial coordinate bound exceeded before expansion")
@@ -56,12 +61,16 @@ def _validate_work(design: ExperimentFactorialTreatmentDesignModel, count: int, 
         raise ValueError("factorial combined effect work bound exceeded before expansion")
 
 
-def _validate_byte_bound(payload: dict, design: ExperimentFactorialTreatmentDesignModel, count: int) -> None:
+def _reject_unknown_carrier(value: object) -> None:
+    raise ValueError("factorial treatment input must contain JSON-compatible values")
+
+
+def _validate_byte_bound(payload: dict[str, Any], design: ExperimentFactorialTreatmentDesignModel, count: int) -> None:
     compact = {**payload, "factorial_design": design}
     compact.pop("binding_descriptors", None)
     compact["run_plan"] = dict(payload["run_plan"])
     compact["run_plan"].pop("allocation", None)
-    source_bytes = len(canonical_json_bytes(to_jsonable_python(compact)))
+    source_bytes = len(canonical_json_bytes(to_jsonable_python(compact, fallback=_reject_unknown_carrier)))
     # Reserve source joins, identifiers, and condition envelopes before expansion.
     # Both condition criteria and the descriptor-set child can carry each binding.
     condition_bytes = 512 + sum(
@@ -76,7 +85,7 @@ def _validate_byte_bound(payload: dict, design: ExperimentFactorialTreatmentDesi
         raise ValueError("expanded factorial treatment byte bound exceeded before expansion")
 
 
-def expand_treatment_input(payload: dict, design: ExperimentFactorialTreatmentDesignModel) -> dict:
+def expand_treatment_input(payload: dict[str, Any], design: ExperimentFactorialTreatmentDesignModel) -> dict[str, Any]:
     """Materialize all typed criteria; contextual SDL admission remains separate."""
     factors = {
         key: ExperimentStudyFactorModel.model_validate(value) for key, value in payload.get("factors", {}).items()
@@ -145,6 +154,9 @@ def expand_treatment_input(payload: dict, design: ExperimentFactorialTreatmentDe
         binding_semantics="explicit-required",
         factorial_design=design,
     )
-    if len(canonical_json_bytes(to_jsonable_python(payload))) > MAX_EXPANDED_TREATMENT_BYTES:
+    if (
+        len(canonical_json_bytes(to_jsonable_python(payload, fallback=_reject_unknown_carrier)))
+        > MAX_EXPANDED_TREATMENT_BYTES
+    ):
         raise ValueError("expanded factorial treatment byte bound exceeded")
     return payload

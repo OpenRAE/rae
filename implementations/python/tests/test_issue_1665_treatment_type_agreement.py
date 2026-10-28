@@ -70,8 +70,9 @@ def test_plan_aware_archive_agreement_preserves_boolean_types(boolean, number) -
     run_payload["realized_selections"] = [
         {**admitted.model_dump(mode="json"), "outcome": {"kind": "literal", "value": number}}
     ]
+    run = ExperimentRunModel.model_validate(run_payload)
     with pytest.raises(ValueError, match="selection"):
-        _validate_run_binding_provenance(entry, ExperimentRunModel.model_validate(run_payload))
+        _validate_run_binding_provenance(entry, run)
 
 
 @pytest.mark.parametrize("boolean,number", [(True, 1), (False, 0)])
@@ -83,3 +84,16 @@ def test_supplied_allocation_agreement_preserves_boolean_types(boolean, number) 
             assignment["required_selections"][0]["outcome"]["value"] = number
     with pytest.raises(ValidationError, match="supplied allocation"):
         ExperimentSpecModel.model_validate(materialized)
+
+
+def test_typed_authoring_rejects_unknown_carriers_without_rendering_them() -> None:
+    class PrivateCarrier:
+        def __repr__(self) -> str:
+            raise AssertionError("private carrier must not be rendered")
+
+    payload = _typed_payload()
+    payload["description"] = PrivateCarrier()
+    with pytest.raises(ValidationError) as caught:
+        ExperimentSpecModel.model_validate(payload)
+    errors = caught.value.errors(include_input=False)
+    assert errors[0]["msg"] == "Value error, factorial treatment input must contain JSON-compatible values"

@@ -240,7 +240,7 @@ class ExperimentSpecModel(ContractModel):
     def _validate_selection_factor_joins(self) -> None:
         _validate_selection_factor_joins(self)
 
-    def _validate_binding_descriptors(self) -> None:
+    def _binding_allocation(self) -> ExperimentRunAllocationPlanModel | None:
         typed = isinstance(self.factorial_design, ExperimentFactorialTreatmentDesignModel)
         if self.binding_semantics == "explicit-required" and self.binding_descriptors is None and not typed:
             raise ValueError("binding_semantics explicit-required requires binding_descriptors")
@@ -251,6 +251,12 @@ class ExperimentSpecModel(ContractModel):
         allocation = self.run_plan.allocation
         if allocation is None:
             raise ValueError("explicit binding descriptors require condition-based run allocation")
+        return allocation
+
+    def _validate_binding_descriptors(self) -> None:
+        allocation = self._binding_allocation()
+        if allocation is None:
+            return
         legacy_conditions = sorted(
             condition_id
             for condition_id, assignment in allocation.condition_assignments.items()
@@ -264,7 +270,7 @@ class ExperimentSpecModel(ContractModel):
             _validate_binding_descriptor_source(descriptor, self.factors, allocation)
             for descriptor in self.binding_descriptors.descriptors
         }
-        if typed:
+        if isinstance(self.factorial_design, ExperimentFactorialTreatmentDesignModel):
             covered_conditions.update(
                 key for key, assignment in allocation.condition_assignments.items() if assignment.required_selections
             )

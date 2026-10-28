@@ -239,8 +239,9 @@ def test_plan_aware_archive_rejects_missing_or_relabelled_treatment() -> None:
     _validate_run_binding_provenance(entry, ExperimentRunModel.model_validate(payload))
     for actual in ([], [{**criterion.model_dump(mode="json"), "source_factor_level_id": "other"}]):
         payload["realized_selections"] = actual
+        run = ExperimentRunModel.model_validate(payload)
         with pytest.raises(ValueError, match="selection"):
-            _validate_run_binding_provenance(entry, ExperimentRunModel.model_validate(payload))
+            _validate_run_binding_provenance(entry, run)
 
 
 def test_selection_template_rejects_nonfinite_literals_at_the_contract_boundary() -> None:
@@ -325,8 +326,9 @@ def test_author_names_mixed_scalar_effects_and_secret_references_are_preserved()
     secret["value"]["resolved_value"] = "sensitive-canary"
     from raes_contracts.experiment_spec import ExperimentSpecValidationError, parse_experiment_spec
 
+    serialized = json.dumps(payload)
     with pytest.raises(ExperimentSpecValidationError) as caught:
-        parse_experiment_spec(json.dumps(payload))
+        parse_experiment_spec(serialized)
     assert "sensitive-canary" not in str(caught.value)
 
 

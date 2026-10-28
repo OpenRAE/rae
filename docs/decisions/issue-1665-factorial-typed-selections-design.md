@@ -49,6 +49,7 @@ It includes repeated fixed selections and nested subset or order members.
 Counts are checked before product expansion.
 The 8 MiB byte budget uses a conservative bound before condition construction.
 Actual expanded bytes must also fit that budget.
+Objects with no JSON representation are rejected without rendering their contents.
 
 Factor effects and fixed configuration select every family point exactly once.
 Only existing fixed policies with `purpose: fixed-configuration` may accompany this profile.

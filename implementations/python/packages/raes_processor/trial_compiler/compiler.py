@@ -55,6 +55,7 @@ from .inputs import (
     plan_intent,
     validate_input_identities,
     validate_realization_assignments,
+    validate_treatment_profile,
     visit_indices,
 )
 from .models import CompilationFailure, TrialCompilationRequest, TrialCompilationResult
@@ -325,15 +326,7 @@ def _compile(
     coordinate_partitions: tuple[tuple[int, ...], ...] | None,
     replacement: ReplacementCompilationContext | None = None,
 ) -> AdmittedTrialPlanModel:
-    if (
-        request.experiment.factorial_design is not None
-        and request.experiment.factorial_design.profile == "factorial-treatments-v1"
-    ):
-        raise _fail(
-            "factorial-profile-unsupported",
-            "/factorial_design/profile",
-            "typed factorial treatments require a supporting compiler profile",
-        )
+    validate_treatment_profile(request)
     validate_input_identities(request)
     try:
         validate_experiment_selection_against_family(request.experiment, family=request.family)

@@ -22,7 +22,8 @@ from .experiment_selection import ExperimentSelectionOutcomeModel
 from .schema_invariants import _add_raes_invariant
 
 if TYPE_CHECKING:
-    from .admitted_trial_plan import AdmittedTrialPlanModel
+    from .admitted_trial_plan import AdmittedTrialEntryModel, AdmittedTrialPlanModel
+    from .admitted_trial_plan_components import ExperimentScenarioFamilyReferenceModel
 
 
 class ExperimentFactorLevelSelectionModel(ContractModel):
@@ -93,7 +94,10 @@ class ExperimentScenarioSelectionDescriptorModel(ExperimentFactorLevelSelectionM
             "experiment-selection-treatment-identity-valid",
             "Typed selection identity binds the exact source condition, factor and canonical scenario target. "
             "Parent condition, plan and archive validation also checks source levels, family pins and owner joins.",
-            validator="raes_contracts.contracts.experiment_treatments.ExperimentScenarioSelectionDescriptorModel._validate_identity",
+            validator=(
+                "raes_contracts.contracts.experiment_treatments."
+                "ExperimentScenarioSelectionDescriptorModel._validate_identity"
+            ),
             inputs=[
                 {
                     "contract_id": "experiment-authoring-input-v1",
@@ -122,26 +126,33 @@ def validate_selection_descriptor_set(
         raise ValueError("factorial effects must select each scenario point at most once")
 
 
+def _validate_entry_treatments(
+    entry: AdmittedTrialEntryModel,
+    selections: list[ExperimentScenarioSelectionDescriptorModel],
+    family: ExperimentScenarioFamilyReferenceModel,
+) -> None:
+    validate_selection_descriptor_set(selections, [binding.descriptor for binding in entry.bindings])
+    levels = {}
+    for descriptor in [*selections, *(binding.descriptor for binding in entry.bindings)]:
+        previous = levels.setdefault(descriptor.source_factor_id, descriptor.source_factor_level_id)
+        if previous != descriptor.source_factor_level_id:
+            raise ValueError("entry treatment source factor levels must agree")
+    for selection in selections:
+        if selection.source_condition_id != entry.coordinate.condition_id:
+            raise ValueError("entry treatment condition must match the coordinate")
+        if (
+            selection.target.scenario_family_id != family.ref_id
+            or selection.scenario_family_digest != family.ref_digest
+        ):
+            raise ValueError("entry treatment family must match the pinned family")
+
+
 def validate_plan_treatments(plan: AdmittedTrialPlanModel) -> None:
     """Check treatment profile, coordinate, and exact pinned family agreement."""
-    family = plan.input_refs.scenario_family_ref
     for entry in plan.entries.values():
         selections = [record.treatment for record in entry.selections if record.treatment is not None]
-        if selections and plan.profiles.treatment_profile != "factorial-treatments-v1":
-            raise ValueError("typed treatment records require the treatment profile")
         if not selections:
             continue
-        validate_selection_descriptor_set(selections, [binding.descriptor for binding in entry.bindings])
-        levels = {}
-        for descriptor in [*selections, *(binding.descriptor for binding in entry.bindings)]:
-            previous = levels.setdefault(descriptor.source_factor_id, descriptor.source_factor_level_id)
-            if previous != descriptor.source_factor_level_id:
-                raise ValueError("entry treatment source factor levels must agree")
-        for selection in selections:
-            if selection.source_condition_id != entry.coordinate.condition_id:
-                raise ValueError("entry treatment condition must match the coordinate")
-            if (
-                selection.target.scenario_family_id != family.ref_id
-                or selection.scenario_family_digest != family.ref_digest
-            ):
-                raise ValueError("entry treatment family must match the pinned family")
+        if plan.profiles.treatment_profile != "factorial-treatments-v1":
+            raise ValueError("typed treatment records require the treatment profile")
+        _validate_entry_treatments(entry, selections, plan.input_refs.scenario_family_ref)

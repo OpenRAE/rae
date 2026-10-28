@@ -89,9 +89,7 @@ def _validate_run_stochastic_provenance(
         raise ValueError("archival run stochastic draws do not preserve the admitted entry")
 
 
-def _validate_run_binding_provenance(entry: AdmittedTrialEntryModel, run: ExperimentRunModel) -> None:
-    from ..participant_configuration import validate_participant_configuration_selection
-
+def _validate_run_selection_provenance(entry: AdmittedTrialEntryModel, run: ExperimentRunModel) -> None:
     admitted_selections = {
         selection.treatment.selection_id: canonical_json_digest(selection.treatment.model_dump(mode="json"))
         for selection in entry.selections
@@ -102,6 +100,12 @@ def _validate_run_binding_provenance(entry: AdmittedTrialEntryModel, run: Experi
         for selection in run.realized_selections
     } != admitted_selections:
         raise ValueError("archival run realized selections must preserve the exact admitted treatments")
+
+
+def _validate_run_binding_provenance(entry: AdmittedTrialEntryModel, run: ExperimentRunModel) -> None:
+    from ..participant_configuration import validate_participant_configuration_selection
+
+    _validate_run_selection_provenance(entry, run)
     realized = {binding.descriptor.binding_id: binding for binding in run.realized_bindings}
     configurations = {result.participant_address: result for result in entry.participant_configurations}
     for binding in entry.bindings:
