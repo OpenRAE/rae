@@ -145,6 +145,10 @@ policy choices, recovery and composition limits.
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_issue_972_runtime_mapping.py` (V2 callback-output rejection preserves a safe caller and durable diagnostic)
+- TESTS → TEST `implementations/python/tests/test_issue_301_participant_tool_profiles.py` (Bound action constraints retain refusal with the fixed safe v2 diagnostic)
+- IMPLEMENTS → GITHUB_ISSUE `972` (Safe v2 callback-output rejection during runtime crossing mapping)
+
 - TESTS → TEST `implementations/python/tests/test_issue_1372_review_regressions.py` (C1/C2 original mixed absence authority, linked-resolution quiescence and optional-read timeout isolation)
 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_backend_invocation.py` (C1/C2 original mixed invocation authority, bounded calls and retained readback facts)
