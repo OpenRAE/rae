@@ -17,7 +17,14 @@ if TYPE_CHECKING:
 
 
 def register_runtime_routes(app: FastAPI, plane: RuntimeControlPlane) -> None:
-    @app.post("/runtime/progress")
+    @app.post(
+        "/runtime/progress",
+        responses={
+            404: {"description": "Runtime execution not found or unavailable to this worker."},
+            409: {"description": "Runtime execution conflicts with its admitted binding."},
+            503: {"description": "Runtime execution is temporarily unavailable."},
+        },
+    )
     async def advance(
         reference: RuntimeSequenceReference, request: Request, identity: _AdministrativeMutationIdentity
     ) -> str:

@@ -94,7 +94,8 @@ class RuntimeExperiment:
         required = ("admit", "configure", "observe", "capture", "cleanup", "stop", "verify")
         if services is None or not all(callable(getattr(services, name, None)) for name in required):
             raise ValueError("experiment requires installed trial services")
-        self.engine, self.inputs, self.services = engine, deepcopy(inputs), services
+        self.engine, self.services = engine, services
+        self.inputs: TrialRealizationInputs = deepcopy(inputs)
         self.identity, self._lock, self.replacement = identity, RLock(), replacement
         self.plan = revalidate_admitted_trial_plan(self.inputs.plan)
         self.schedule = plan_batch_schedule(self.plan)
@@ -278,8 +279,9 @@ class RuntimeExperiment:
             if child.decision_id not in self._children:
                 schedule = plan_batch_schedule(child.plan)
                 (entry,) = schedule.entries
+                child_inputs: TrialRealizationInputs = replace(self.inputs, plan=child.plan)
                 realized = realize_admitted_trial_entry(
-                    inputs=replace(self.inputs, plan=child.plan),
+                    inputs=child_inputs,
                     plan_entry_id=entry.plan_entry_id,
                     target_name=self.engine.target_name,
                 )
