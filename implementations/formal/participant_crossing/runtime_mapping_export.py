@@ -27,6 +27,7 @@ EXTRA_SOURCES = (
     "docs/governance/requirement-scopes/972.json",
 )
 ROOT = Path(__file__).resolve().parents[3]
+HISTORICAL_TOMBSTONES = "contracts/schema-publication/tombstones"
 
 
 def source_pins(root: Path) -> dict[str, str]:
@@ -36,6 +37,8 @@ def source_pins(root: Path) -> dict[str, str]:
         for path in directory.rglob("*"):
             if path.is_symlink():
                 raise ValueError("unsafe mapping source directory or file")
+            if path.is_relative_to(root / HISTORICAL_TOMBSTONES):
+                continue
             if path.suffix in {".py", ".json", ".yaml"}:
                 paths.add(path.relative_to(root).as_posix())
     if not 1 <= len(paths) <= 10000:
@@ -105,6 +108,9 @@ def build_bundle(root: Path, reports: dict[str, dict[str, object]]) -> dict[str,
         "projection": "participant-crossing-projection@rev1",
         "taxonomy": "raes-behavioral-relations@rev8",
         "source_digests": pins,
+        "source_exclusions": {
+            HISTORICAL_TOMBSTONES: "Historical schema removals are not live runtime-mapping inputs."
+        },
         "model_artifact_digests": model_pins,
         "artifact_digests": {"cases.json": export.digest(cases)},
         "case_counts": counts,

@@ -190,6 +190,8 @@ RAES_REQUIREMENT_UID=SEM-232 implementations/python/.venv/bin/python -m pytest \
 The retained bundle is `runtime-mapping/rev1` beside this document.
 Its manifest binds the source inventory, profile, historical model artifacts, and observed cases.
 The source inventory includes runtime packages, contracts, test drivers, formal code, configuration, and the Python lockfile.
+It excludes historical schema tombstones, which the live mapping does not consume.
+The manifest reports that exclusion; the active schema publication manifest remains pinned.
 The read-only command rejects source or artifact drift.
 The initial producer uses `--write` and refuses to replace a different bundle.
 

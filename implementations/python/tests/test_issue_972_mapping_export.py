@@ -20,6 +20,7 @@ def test_bundle_is_deterministic_and_keeps_claims_separate(reports):
     assert manifest["profile"] == "participant-crossing-dpbb-finite-v1@rev2"
     assert manifest["equivalence_result"] == manifest["runtime_realization"] == "not-established"
     assert manifest["historical_source_drift"]
+    assert "contracts/schema-publication/tombstones" in manifest["source_exclusions"]
     assert manifest["case_counts"]["match"] >= 4
     assert manifest["case_counts"]["incompatible"] > 0
     assert reports["ingress/backend-failure"]["classification"] == "incompatible"
@@ -32,6 +33,13 @@ def test_bundle_is_deterministic_and_keeps_claims_separate(reports):
 
 def test_published_cases_match_fresh_public_execution(reports):
     export.check(ROOT, reports)
+
+
+def test_historical_schema_tombstones_are_not_live_mapping_sources():
+    pins = export.source_pins(ROOT)
+    assert not any(path.startswith("contracts/schema-publication/tombstones/") for path in pins)
+    assert export.export.PROFILE_PATH in pins
+    assert "contracts/schema-publication-manifest.json" in pins
 
 
 def test_symlinked_source_directory_is_rejected(tmp_path, monkeypatch):
