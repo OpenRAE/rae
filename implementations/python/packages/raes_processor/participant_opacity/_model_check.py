@@ -300,7 +300,7 @@ def model_check_participant_opacity_file(
             request.profile_revision,
         )
         catalog = load_behavioral_relation_catalog_revision(request.taxonomy_revision)
-    except (OSError, ValidationError, ValueError):
+    except OSError, ValidationError, ValueError:
         raise ParticipantOpacityOperationalError(
             "participant-opacity model-check input failed bounded closed-world admission"
         ) from None

@@ -231,6 +231,10 @@ class OperationExecutionRequest:
     validation_method: Callable[..., object] | None = None
     admission_diagnostics: Callable[[], list[Diagnostic]] | None = None
     inject_occurrence: InjectOccurrenceModel | None = None
+    local_executor: Callable[..., object] | None = None
+    realization: _RealizationApplyContext | None = None
+    execute_observation: bool = True
+    result_sink: Callable[..., None] | None = None
 
 
 @dataclass(frozen=True)

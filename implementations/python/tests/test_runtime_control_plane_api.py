@@ -13,7 +13,7 @@ from multiprocessing import get_context
 from pathlib import Path
 from threading import Barrier as ThreadBarrier
 from threading import Event
-from typing import Any, Protocol, TypeVar
+from typing import Any, Protocol
 
 import httpx
 import pytest
@@ -70,10 +70,8 @@ from store_commit_failure_fixtures import fail_sqlite_commit
 
 pytestmark = pytest.mark.control_plane_conformance
 
-_T = TypeVar("_T")
 
-
-def _run(coroutine: Coroutine[Any, Any, _T]) -> _T:
+def _run[T](coroutine: Coroutine[Any, Any, T]) -> T:
     """Run one coroutine without replacing or closing pytest's default loop."""
 
     loop = asyncio.new_event_loop()
@@ -892,7 +890,8 @@ def test_control_plane_api_operational_apparatus_summary_requires_read_role():
     assert audits[-1].allowed is False
 
 
-def test_operational_apparatus_summary_snapshots_operations_safely_during_mutation() -> None:
+@pytest.mark.parametrize("incremental", [False, True])
+def test_operational_apparatus_summary_snapshots_operations_safely_during_mutation(incremental) -> None:
     target = create_stub_target()
     control_plane = RuntimeControlPlane(target)
     control_plane._claim_record(_participant_operation_record("existing", "participant.alice"))
@@ -916,8 +915,13 @@ def test_operational_apparatus_summary_snapshots_operations_safely_during_mutati
             super().__setitem__(key, value)
             mutation_completed.set()
 
+    control_plane._refresh_operation_records()
     pausing_records = PausingOperationRecords(control_plane._operations)
-    control_plane._store.load_records = lambda: pausing_records  # type: ignore[method-assign]
+    if incremental:
+        control_plane._operations = pausing_records
+    else:
+        control_plane._store.load_operation_changes = None
+        control_plane._store.load_records = lambda: pausing_records  # type: ignore[method-assign]
 
     with ThreadPoolExecutor(max_workers=2) as executor:
         summary = executor.submit(control_plane.operational_apparatus_summary)

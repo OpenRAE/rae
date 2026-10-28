@@ -1,9 +1,9 @@
 {
-  "content_hash": "9e0bf4982c9c49d17629faf03d1200c744343cd4dcefd6422b95c2d995df451b",
+  "content_hash": "37338a06d86968b9ea60b734c4b2d1a660b812630a44e995bc4fc38b2c892844",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "9e0bf4982c9c49d17629faf03d1200c744343cd4dcefd6422b95c2d995df451b",
-    "summary": "Add closed structural alternatives for node presence and owner-scoped runtime inventory membership; require the structural kind and preserve implicit legacy reference identity (issue #1625)."
+    "content_hash": "37338a06d86968b9ea60b734c4b2d1a660b812630a44e995bc4fc38b2c892844",
+    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301). Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

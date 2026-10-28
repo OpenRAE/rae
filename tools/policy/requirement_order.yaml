@@ -379,6 +379,13 @@ ownership:
     - implementations/python/tests
     - CHANGELOG.md
   sdl-language:
+    # Issue #299 connects exact SDL control-context pins to existing participant configuration.
+    - contracts/schemas/participant-implementation-manifest/participant-implementation-manifest-v1.json
+    - contracts/schemas/participant-implementation-configuration/participant-configuration-result-v1.json
+    - contracts/schemas/processor-manifest/processor-manifest-v2.json
+    - docs/decisions/issue-299-dsl-118-control-context-references-preflight.md
+    - docs/explain/reference/experiment-binding-contracts.md
+    - docs/governance/requirement-scopes/299.json
     # Issue #1353 installs the delivery finalizer needed to close its requirements.
     - .github/workflows/ground-control-phase-e.yml
     - contracts/concept-authority
@@ -1172,6 +1179,9 @@ ownership:
     - implementations/python/tests/test_issue_1016_mixed_runtime_coordination.py
   semantics-expansion:
     # Issue #1354 semantic publication; formal specs/tests already belong here.
+    # The crossing model and its offline execution mapping share this formal boundary.
+    - implementations/formal/participant_crossing
+    - docs/decisions/issue-972-runtime-crossing-mapping-preflight.md
     - docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md
     - docs/requirements/SEM-233/requirement.md
     - contracts/schemas/sdl

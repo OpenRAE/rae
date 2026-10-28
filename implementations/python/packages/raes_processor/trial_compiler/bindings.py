@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 
 from raes import ExpandedScenarioBindingTargetResolver
+from raes.scenario import InstantiatedScenario
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
     AdmittedBindingModel,
@@ -116,7 +117,17 @@ def _entry_bindings(
             _BINDING_DESCRIPTORS_ADDRESS,
             "an admitted binding descriptor is selected more than once",
         )
-    if len(bindings) > request.limits.max_bindings_per_entry:
+    selection_work = 0
+    if (
+        request.experiment.factorial_design is not None
+        and request.experiment.factorial_design.profile == "factorial-treatments-v1"
+    ):
+        selection_work = sum(
+            1 + len(getattr(selection.outcome, "member_ids", ()))
+            for selection in row.selections
+            if selection.treatment is not None or selection.policy_kind == "fixed"
+        )
+    if len(bindings) + selection_work > request.limits.max_bindings_per_entry:
         raise CompilationFailure(
             "binding-limit-exceeded",
             _BINDING_DESCRIPTORS_ADDRESS,
@@ -174,6 +185,8 @@ def entry_participant_configurations(
     request: TrialCompilationRequest,
     bindings: list[AdmittedBindingModel],
     participant_manifest_refs: Sequence[AdmittedParticipantManifestReferenceModel],
+    *,
+    scenario: InstantiatedScenario,
 ) -> list[ParticipantConfigurationResultModel]:
     """Realize each bound participant's complete configuration atomically."""
 
@@ -207,6 +220,14 @@ def entry_participant_configurations(
         manifest = request.participant_manifests[key]
         registry = manifest.configuration_registry
         try:
+            validator = request.participant_configuration_validators.get(
+                (registry.owner.validator_id, registry.owner.validator_version)
+            )
+            if any(target.control_context is not None for target in registry.targets.values()):
+                bind_scenario = getattr(validator, "for_scenario", None)
+                if not callable(bind_scenario):
+                    raise ValueError("control-context concrete owner validation is required")
+                validator = bind_scenario(scenario)
             results.append(
                 realize_participant_configuration(
                     participant_address=key[0],
@@ -214,9 +235,7 @@ def entry_participant_configurations(
                     manifest_ref=manifest.identity.name,
                     manifest_digest=canonical_json_digest(manifest.model_dump(mode="json")),
                     overrides=overrides,
-                    validator=request.participant_configuration_validators.get(
-                        (registry.owner.validator_id, registry.owner.validator_version)
-                    ),
+                    validator=validator,
                 )
             )
         except ValueError as exc:
@@ -233,7 +252,7 @@ def _factorial_participant_defaults(
     selected: set[ParticipantManifestKey],
 ) -> dict[ParticipantManifestKey, list[ConfigurationOverrideModel]]:
     grouped = {}
-    if request.experiment.factorial_design is None:
+    if request.experiment.factorial_design is None or request.experiment.binding_descriptors is None:
         return grouped
     for descriptor in request.experiment.binding_descriptors.descriptors:
         target = descriptor.target

@@ -194,6 +194,17 @@
           ],
           "default": null
         },
+        "operation_supervision": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OperationSupervisionCapabilitiesModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "orchestrator": {
           "anyOf": [
             {
@@ -426,6 +437,17 @@
           "minItems": 1,
           "title": "Allowed Value Kinds",
           "type": "array"
+        },
+        "control_context": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantControlContextTargetModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "default": {
           "anyOf": [
@@ -1634,6 +1656,40 @@
       "title": "OperationKind",
       "type": "string"
     },
+    "OperationSupervisionCapabilitiesModel": {
+      "additionalProperties": false,
+      "description": "Static support only; installed capability and willingness need live checks.",
+      "properties": {
+        "guarantees": {
+          "default": [],
+          "items": {
+            "enum": [
+              "cancellation",
+              "effect-observation",
+              "cessation-evidence",
+              "partial-effects",
+              "external-fencing"
+            ],
+            "type": "string"
+          },
+          "maxItems": 5,
+          "title": "Guarantees",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "name": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "OperationSupervisionCapabilitiesModel",
+      "type": "object"
+    },
     "OrchestratorCapabilitiesModel": {
       "additionalProperties": false,
       "allOf": [
@@ -1752,6 +1808,76 @@
         "supported_sections"
       ],
       "title": "OrchestratorCapabilitiesModel",
+      "type": "object"
+    },
+    "ParticipantControlContextAssetReferenceModel": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Asset Digest",
+          "type": "string"
+        },
+        "asset_id": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_version": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id",
+        "asset_version",
+        "asset_digest"
+      ],
+      "title": "ParticipantControlContextAssetReferenceModel",
+      "type": "object"
+    },
+    "ParticipantControlContextTargetModel": {
+      "additionalProperties": false,
+      "description": "Manifest-owned finite domain of exact public SDL asset references.",
+      "properties": {
+        "references": {
+          "additionalProperties": false,
+          "maxProperties": 256,
+          "minProperties": 1,
+          "patternProperties": {
+            "^control_context_assets\\.[a-z0-9][a-z0-9_-]*(?:\\.[a-z0-9][a-z0-9_-]*)*$": {
+              "$ref": "#/$defs/ParticipantControlContextAssetReferenceModel"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 1024,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_.-]"
+            }
+          },
+          "title": "References",
+          "type": "object"
+        },
+        "slot_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9][a-z0-9_-]*$",
+          "title": "Slot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "slot_id",
+        "references"
+      ],
+      "title": "ParticipantControlContextTargetModel",
       "type": "object"
     },
     "ParticipantExecutionBindingModel": {
@@ -1910,7 +2036,9 @@
                   "participant_predicate_opacity",
                   "participant_processing_role_trust",
                   "participant_quarantined_processing",
-                  "participant_transformation"
+                  "participant_transformation",
+                  "scoped_tool_affordances",
+                  "tool_affordances"
                 ]
               },
               "support_level": {
@@ -1954,7 +2082,9 @@
                   "participant_predicate_opacity",
                   "participant_processing_role_trust",
                   "participant_quarantined_processing",
-                  "participant_transformation"
+                  "participant_transformation",
+                  "scoped_tool_affordances",
+                  "tool_affordances"
                 ]
               },
               "support_level": {
@@ -1994,7 +2124,9 @@
                   "participant_predicate_opacity",
                   "participant_processing_role_trust",
                   "participant_quarantined_processing",
-                  "participant_transformation"
+                  "participant_transformation",
+                  "scoped_tool_affordances",
+                  "tool_affordances"
                 ]
               },
               "support_level": {
@@ -2392,7 +2524,7 @@
     },
     "ParticipantRuntimeCapabilitiesModel": {
       "additionalProperties": false,
-      "description": "Participant-episode lifecycle capability block (RUN-311).\n\nA backend that declares this block advertises that it implements\nthe full participant episode control surface on the\n``ParticipantRuntime`` protocol: ``initialize`` / ``reset`` /\n``restart`` / ``terminate`` plus ``status`` / ``results`` /\n``history``. Consumers of the manifest can infer the\n``FULL_REMOTE_CONTROL_PLANE`` conformance profile from this block.\n\nAPI-405 support dimensions live here because they are backend apparatus\nclaims: which participant roles, behavior features, and interaction\nfeatures this participant runtime can actually realize.",
+      "description": "Participant-episode lifecycle capability block (RUN-311).\n\nThis block declares the full ``ParticipantRuntime`` lifecycle surface:\ninitialize, reset, restart, terminate, status, results, and history.\nIt selects the ``FULL_REMOTE_CONTROL_PLANE`` conformance profile.\n\nAPI-405 support dimensions live here because they are backend apparatus\nclaims: which participant roles, behavior features, and interaction\nfeatures this participant runtime can actually realize.",
       "properties": {
         "constraints": {
           "additionalProperties": {
@@ -2671,6 +2803,17 @@
           "default": false,
           "title": "Supports Execution Control",
           "type": "boolean"
+        },
+        "tool_profiles": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantToolProfilesModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -2680,6 +2823,53 @@
         "supported_interaction_features"
       ],
       "title": "ParticipantRuntimeCapabilitiesModel",
+      "type": "object"
+    },
+    "ParticipantToolProfilesModel": {
+      "additionalProperties": false,
+      "description": "Exact semantic revisions and machine-evaluated capacity, not prose limits.",
+      "properties": {
+        "max_bindings_per_profile": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Bindings Per Profile"
+        },
+        "max_participants_per_binding": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Participants Per Binding"
+        },
+        "semantic_versions": {
+          "items": {
+            "const": "participant-tool-profile/v1",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Semantic Versions",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "semantic_versions"
+      ],
+      "title": "ParticipantToolProfilesModel",
       "type": "object"
     },
     "ProcessResourceLimitCapabilityModel": {
@@ -3493,6 +3683,56 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "allOf": [
+    {
+      "if": {
+        "properties": {
+          "capabilities": {
+            "properties": {
+              "operation_supervision": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "operation_supervision"
+            ]
+          }
+        },
+        "required": [
+          "capabilities"
+        ]
+      },
+      "then": {
+        "properties": {
+          "supported_contract_versions": {
+            "allOf": [
+              {
+                "contains": {
+                  "const": "backend-operation-request-v1"
+                }
+              },
+              {
+                "contains": {
+                  "const": "backend-operation-capabilities-v1"
+                }
+              },
+              {
+                "contains": {
+                  "const": "backend-operation-control-v1"
+                }
+              },
+              {
+                "contains": {
+                  "const": "backend-operation-response-v1"
+                }
+              }
+            ]
+          }
+        },
+        "required": [
+          "supported_contract_versions"
+        ]
+      }
+    },
     {
       "if": {
         "properties": {

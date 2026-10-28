@@ -1,5 +1,6 @@
 """Planner for compiled SDL runtime models."""
 
+from ..participant_tool_support import participant_tool_support_diagnostics
 from ..semantics.realization import realization_disclosure, sanitize_realization_snapshot
 from ..semantics.realization_snapshot_sanitization import realization_payload_projections
 from .account_credentials import account_credential_spec_is_valid
@@ -20,6 +21,7 @@ from .realization_preparation import prepared_delivery_violation, prepared_reali
 from .stateful_admission import generated_artifact_payload_diagnostic
 
 __all__ = [
+    "participant_tool_support_diagnostics",
     "admit_materialization_submission",
     "validate_materialization_archive_record",
     "account_credential_spec_is_valid",

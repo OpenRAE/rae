@@ -6,15 +6,12 @@ build-backend = "hatchling.build"
 name = "raes"
 description = "Contracts and reference tooling for reproducible agentic environments."
 dynamic = ["readme", "version"]
-requires-python = ">=3.11,<3.15"
+requires-python = ">=3.14,<3.15"
 # Trove classifiers are the only source PyPI and downstream badges read for
 # supported interpreter versions; `requires-python` alone leaves them blank.
 # Keep this list in step with `requires-python`.
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
@@ -47,6 +44,7 @@ dependencies = [
     # profile makes formal satisfiability evidence unreproducible.
     "z3-solver==4.16.0.0",
     "anyio>=4.14.2,<5",
+    "rpds-py==0.30.0",
 ]
 
 [project.optional-dependencies]
@@ -158,8 +156,45 @@ exclude_also = [
 output = "coverage.xml"
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py314"
 line-length = 120
+
+# The development container runs `tools.devcontainer_setup` with the base
+# image's python3 (CPython 3.12) to acquire the locked CPython 3.14. The setup
+# also runs `tools/check_tooling_artifact_policy.py` with that interpreter.
+# These modules keep 3.12 syntax. test_issue_1238_development_container.py
+# checks that this list matches their import closure.
+[tool.ruff.per-file-target-version]
+"**/tools/bootstrap_profile.py" = "py312"
+"**/tools/check_tooling_artifact_policy.py" = "py312"
+"**/tools/devcontainer_setup.py" = "py312"
+"**/tools/generate_python_closures.py" = "py312"
+"**/tools/generate_python_closures_locks.py" = "py312"
+"**/tools/gitleaks_tool.py" = "py312"
+"**/tools/maintained_client_acquisition.py" = "py312"
+"**/tools/osv_scanner_tool.py" = "py312"
+"**/tools/policy/__init__.py" = "py312"
+"**/tools/policy/common.py" = "py312"
+"**/tools/policy/conftest_tool.py" = "py312"
+"**/tools/tool_versions.py" = "py312"
+"**/tools/tooling_artifact_policy_actions.py" = "py312"
+"**/tools/tooling_artifact_policy_artifacts.py" = "py312"
+"**/tools/tooling_artifact_policy_common.py" = "py312"
+"**/tools/tooling_artifact_policy_container.py" = "py312"
+"**/tools/tooling_artifact_policy_devcontainer.py" = "py312"
+"**/tools/tooling_artifact_policy_oci.py" = "py312"
+"**/tools/tooling_artifact_policy_python.py" = "py312"
+"**/tools/tooling_artifact_policy_python_profiles.py" = "py312"
+"**/tools/tooling_artifact_policy_selectors.py" = "py312"
+"**/tools/tooling_artifact_selection.py" = "py312"
+"**/tools/tooling_installed_tree.py" = "py312"
+"**/tools/tooling_oci_selection.py" = "py312"
+"**/tools/tooling_policy_gate.py" = "py312"
+"**/tools/vale_tool.py" = "py312"
+"**/tools/verified_tool_installation.py" = "py312"
+"**/tools/verified_tree_archive.py" = "py312"
+"**/tools/verified_tree_manifest.py" = "py312"
+"**/tools/verified_tree_validation.py" = "py312"
 
 [tool.ruff.lint]
 select = [

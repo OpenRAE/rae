@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass, field, replace
-from typing import Annotated, TypeVar
+from typing import Annotated
 
 from pydantic import BaseModel, Field, StrictStr, TypeAdapter, ValidationError
 
@@ -26,7 +26,6 @@ from .realization_structure import RealizationRelationStatus, validate_realizati
 from .runtime_state import OperationReceipt, RuntimeSnapshot
 from .runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
 
-_Model = TypeVar("_Model", bound=BaseModel)
 _IDENTITY = TypeAdapter(Annotated[StrictStr, Field(min_length=1, max_length=256, pattern=r"^\S(?:.*\S)?$")])
 _DIGEST = TypeAdapter(Annotated[StrictStr, Field(pattern=r"^sha256:[a-f0-9]{64}$")])
 MAX_TRIAL_UNIT_ITEMS = 4096
@@ -38,7 +37,7 @@ def _require_bounded(value: object) -> None:
         raise ValueError("trial unit value exceeds portable value limits")
 
 
-def _reconstruct(model_type: type[_Model], value: _Model) -> _Model:
+def _reconstruct[Model: BaseModel](model_type: type[Model], value: Model) -> Model:
     if not isinstance(value, model_type):
         raise TypeError("trial unit requires typed contract values")
     try:

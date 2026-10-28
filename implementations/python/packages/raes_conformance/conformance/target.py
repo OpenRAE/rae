@@ -14,7 +14,10 @@ from raes_backend_protocols.capabilities import (
     resolve_participant_feature_support,
     time_capability_contract_gaps,
 )
+from raes_backend_protocols.manifest import backend_manifest_payload
+from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.manifest_authority import PARTICIPANT_TOOL_FEATURES
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 from raes_processor.reference import ScenarioInput
@@ -234,8 +237,12 @@ def _participant_feature_cases(
         return ()
     profile_id = _to_profile_id(profile)
     cases: list[ConformanceCaseResult] = []
+    try:
+        manifest_digest = canonical_json_digest(backend_manifest_payload(target.manifest))
+    except ValueError:
+        manifest_digest = None
     for entry in capability.feature_support:
-        if entry.feature not in PARTICIPANT_RUNTIME_POLICY_FEATURES:
+        if entry.feature not in PARTICIPANT_RUNTIME_POLICY_FEATURES | PARTICIPANT_TOOL_FEATURES:
             continue
         diagnostics: tuple[Diagnostic, ...] = ()
         effective_support_level: str | None = entry.support_level.value
@@ -263,8 +270,9 @@ def _participant_feature_cases(
                 passed=not diagnostics,
                 diagnostics=diagnostics,
                 capability_feature=entry.feature,
+                manifest_digest=manifest_digest if entry.feature in PARTICIPANT_TOOL_FEATURES else None,
                 declared_support_level=entry.support_level.value,
-                effective_support_level=effective_support_level,
+                effective_support_level=None if entry.feature in PARTICIPANT_TOOL_FEATURES else effective_support_level,
                 finite_scope=(
                     f"Static manifest declaration for target {target.name!r} under profile "
                     f"{profile_id!r}; no unexecuted participant behavior is quantified."
@@ -309,7 +317,11 @@ def _known_profile_report(
     )
     participant_feature_cases = _participant_feature_cases(target, profile)
     policy_cases = participant_policy_cases(target, profile, options.participant_policy_harness)
-    opacity_cases = participant_opacity_cases(target, options.participant_opacity_harness)
+    opacity_cases = participant_opacity_cases(
+        target,
+        options.participant_opacity_harness,
+        options.execution_basis,
+    )
     target_cases = tuple(replace(case, execution_basis=options.execution_basis.value) for case in adapter_cases)
     realization_run = run_realization_conformance(
         target,
@@ -377,6 +389,10 @@ def run_target_conformance(target: RuntimeTarget, **option_values: Any) -> Backe
     realization (issue #606 mutation guard) of whichever scenario is selected.
     This is a temporary runner-parameter bridge superseded by the
     realizability-envelope design (#667/#668).
+
+    A target that negotiates materialization reporting receives a fresh
+    target-bound run identity and a temporary protected archive owner for the
+    probe (issue #1667). Other targets keep the unscoped probe.
     """
 
     options = _TargetConformanceOptions(**option_values)

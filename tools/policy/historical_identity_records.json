@@ -24,7 +24,7 @@
       "binding_class": "external-service-project-key",
       "rationale": "Retains the existing service-owned SonarCloud project designation without treating it as current RAES product identity.",
       "occurrences": 2,
-      "content_sha256": "5b8c7c913712a23af97b45f21ee69296cbce3b0787647517c60d733cf058d00c"
+      "content_sha256": "9dbf27a844b5ab0b14aec987d707c4ed5f9e46c0881b0714f239b5bed5a5079f"
     }
   ],
   "records": [
@@ -495,7 +495,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "713ce0c184fdeb7a07aeaa1c87095225e1bc5793a8461f25df2a96141b60c247"
+      "content_sha256": "fccbe64e06811fbb10c78cbfee5f8ba79d1ea1567abab4e2665bb917de27eac3"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",
@@ -1783,7 +1783,7 @@
       "record_class": "lifecycle-record",
       "rationale": "Preserves the exact retired distribution identifier in its governed deprecation and removal record.",
       "occurrences": 2,
-      "content_sha256": "27a57b598257bdcb6e78322fbe932020f977ae4de7da81c7d8fbf266d4e14e0c"
+      "content_sha256": "22dc2951e78fc684eade138f41892e43e67729c5fe6d6c19cd3bba97a939b9ff"
     }
   ]
 }

@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import math
+from functools import cache
+from typing import Annotated
 
-from pydantic import ValidationError
+from pydantic import TypeAdapter, ValidationError
 from raes_contracts.bounded_domains import (
     BooleanDomain,
     EnumDomain,
@@ -13,9 +15,12 @@ from raes_contracts.bounded_domains import (
     NumericType,
 )
 
+from .._behavior_authoring import validate_authored_behavior_references
 from .._errors import SDLValidationError
 from .._identifiers import QualifiedName
+from .._incremental_reuse import ALL_FIELDS
 from .._reference_targetability import purpose_for_domain
+from ..scenario import Scenario
 from ..selected_structure import structural_writes
 from ..variables import Variable, VariableType
 from ..variation import (
@@ -102,8 +107,23 @@ def _domain_has_member(domain: object) -> bool:
     return has_member
 
 
+@cache
+def _section_adapter(scenario_type: type, section: str) -> TypeAdapter[dict[str, object]]:
+    """Validate one scenario section exactly as the scenario's field does."""
+
+    field = scenario_type.model_fields[section]
+    annotation = Annotated[field.annotation, *field.metadata] if field.metadata else field.annotation
+    return TypeAdapter(annotation)
+
+
 class _VariationMixin:
     def _verify_variation_points(self) -> None:
+        # Member admission proves that each member yields an admissible
+        # scenario. A base scenario that already failed an earlier pass makes
+        # every member inherit that unrelated failure, so admission would
+        # misreport the members and repeat a full validation per member. Like
+        # family satisfiability below, it runs only on an otherwise clean base.
+        self._admit_variation_members = not self._errors
         for point_name, point in getattr(self._s, "variation_points", {}).items():
             if isinstance(point, ParameterVariationPoint):
                 self._verify_parameter_point(point_name, point)
@@ -188,7 +208,7 @@ class _VariationMixin:
         for reference in candidates:
             if not self._resolves_to(reference, target_section):
                 self._err(f"Variation point '{name}' candidate reference is undefined or has the wrong type")
-            elif owner_valid and not self._candidate_is_valid_for_slot(
+            elif owner_valid and not self._member_admitted(
                 owner_section=owner_section,
                 owner_reference=point.target.owner,
                 slot=point.target.slot.value,
@@ -209,7 +229,7 @@ class _VariationMixin:
         for member in point.members.values():
             if not self._resolves_to(member.reference, target_section):
                 self._err(f"Variation point '{name}' candidate reference is undefined or has the wrong type")
-            elif owner_valid and not self._candidate_is_valid_for_slot(
+            elif owner_valid and not self._member_admitted(
                 owner_section=owner_section,
                 owner_reference=point.target.owner,
                 slot=point.target.slot.value,
@@ -355,6 +375,25 @@ class _VariationMixin:
                 clauses.append(((source, False), ((target_point, target_member), required)))
         return clauses
 
+    def _member_admitted(
+        self,
+        *,
+        owner_section: str,
+        owner_reference: str,
+        slot: str,
+        candidate: str,
+        collection: bool,
+    ) -> bool:
+        """Report a member as inadmissible only when the clean base is the reason."""
+
+        return not self._admit_variation_members or self._candidate_is_valid_for_slot(
+            owner_section=owner_section,
+            owner_reference=owner_reference,
+            slot=slot,
+            candidate=candidate,
+            collection=collection,
+        )
+
     def _candidate_is_valid_for_slot(
         self,
         *,
@@ -364,53 +403,57 @@ class _VariationMixin:
         candidate: str,
         collection: bool,
     ) -> bool:
-        payload = self._candidate_payload(
-            owner_section=owner_section,
-            owner_reference=owner_reference,
-            slot=slot,
-            candidate=candidate,
-            collection=collection,
-        )
+        owner_addresses = self._resolved_addresses(owner_reference, owner_section)
+        if len(owner_addresses) != 1:
+            return False
+        owner_name = owner_addresses[0].removeprefix(f"{owner_section}.")
+        # The member scenario keeps every outer field, so this pass depends on
+        # all of them even though it builds that scenario from the real object.
+        self._read_sink.note(ALL_FIELDS)
         valid = False
-        if payload is not None:
-            try:
-                candidate_scenario = type(self._s).model_validate(payload)
-                type(self)(candidate_scenario).validate()
-            except (ValidationError, SDLValidationError):
-                pass
-            else:
+        try:
+            entry = self._member_entry(owner_section, owner_name, slot.split(".", 1)[1], candidate, collection)
+            if entry is not None:
+                section = dict(getattr(self._scenario, owner_section))
+                section[owner_name] = entry
+                member = self._scenario.model_copy(update={owner_section: section, "variation_points": {}})
+                type(self)(member, session=self._session).validate()
                 valid = True
+        except ValidationError, SDLValidationError:
+            valid = False
         return valid
 
-    def _candidate_payload(
+    def _member_entry(
         self,
-        *,
         owner_section: str,
-        owner_reference: str,
-        slot: str,
+        owner_name: str,
+        field_name: str,
         candidate: str,
         collection: bool,
-    ) -> dict[str, object] | None:
-        owner_addresses = self._resolved_addresses(owner_reference, owner_section)
-        payload: dict[str, object] | None = None
-        if len(owner_addresses) != 1:
-            return payload
-        candidate_payload = self._s.model_dump(mode="python", by_alias=True)
-        owner_name = owner_addresses[0].removeprefix(f"{owner_section}.")
-        section_payload = candidate_payload.get(owner_section)
-        owner_payload = section_payload.get(owner_name) if isinstance(section_payload, dict) else None
-        if isinstance(owner_payload, dict):
-            field_name = slot.split(".", 1)[1]
-            if collection:
-                current = owner_payload.get(field_name)
-                owner_payload[field_name] = (
-                    {candidate: current.get(candidate, "")} if isinstance(current, dict) else [candidate]
-                )
-            else:
-                owner_payload[field_name] = candidate
-            candidate_payload["variation_points"] = {}
-            payload = candidate_payload
-        return payload
+    ) -> object | None:
+        """Structurally validate the owner entry with the member in its slot.
+
+        Semantic validation requires a structurally valid scenario, so only the
+        changed entry needs pydantic validation. It is validated through the
+        section's own field type, and the private-reference rule that authored
+        scenarios apply to every value also applies to it.
+        """
+
+        owner = getattr(self._scenario, owner_section).get(owner_name)
+        if owner is None:
+            return None
+        payload = owner.model_dump(mode="python", by_alias=True)
+        if collection:
+            current = payload.get(field_name)
+            payload[field_name] = {candidate: current.get(candidate, "")} if isinstance(current, dict) else [candidate]
+        else:
+            payload[field_name] = candidate
+        document = {owner_section: {owner_name: payload}}
+        if isinstance(self._scenario, Scenario):
+            validate_authored_behavior_references(document)
+        return _section_adapter(type(self._scenario), owner_section).validate_python(document[owner_section])[
+            owner_name
+        ]
 
     def _resolved_addresses(self, reference: str, section: str) -> list[str]:
         if self._declaration_index is None:

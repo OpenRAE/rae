@@ -136,6 +136,7 @@ def test_later_evaluator_addition_is_refused_before_provisioning(tmp_path):
             name="scoped", manifest=manifest, provisioner=provisioner, evaluator=CollectorEvaluator(calls, "evaluator")
         ),
         materialization_archive=RunMaterializationArchive(tmp_path),
+        run_scope="run:run-1",
     )
     scenario = parse_sdl("""
 name: scoped

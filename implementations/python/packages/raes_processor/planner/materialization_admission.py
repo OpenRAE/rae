@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import replace
-from typing import TypeAlias
 
 from raes import (
     MaterializedScenario,
@@ -36,7 +35,7 @@ from ..models import RuntimeModel
 from .ordering import _entry_matches_resource
 from .resources import _collect_resources
 
-MaterializationPlan: TypeAlias = ProvisioningPlan | OrchestrationPlan | EvaluationPlan
+type MaterializationPlan = ProvisioningPlan | OrchestrationPlan | EvaluationPlan
 
 
 def admit_materialization_submission(

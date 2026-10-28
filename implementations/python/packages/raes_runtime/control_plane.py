@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from copy import deepcopy
 from threading import RLock
-from typing import TypeVar, Unpack
+from typing import Unpack
 
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -67,6 +67,7 @@ from .control_plane_submission import control_plane_plan_diagnostics
 from .control_plane_submission import unavailable_backend_diagnostics as _unavailable_backend_diagnostics
 from .control_plane_supervision import RuntimeSupervisionMixin
 from .control_plane_workflow_control import WorkflowControlMixin
+from .interaction import RuntimeInteractionMixin
 from .mixed_runtime import MixedRuntimeMixin
 from .mixed_runtime_recovery import validate_restored_mixed_crossing_cut
 from .observation_execution import ObservationExecution
@@ -79,7 +80,6 @@ from .participant_information_state_validation import require_participant_inform
 from .participant_retrieval import ParticipantRetrievalMixin
 from .registry import RuntimeTarget as _RuntimeTarget
 
-_ProjectionT = TypeVar("_ProjectionT")
 _P0_SCOPE_BOUND_ERROR = "control-plane profile P0 missing capabilities: store.scope-bound"
 
 
@@ -110,6 +110,7 @@ def _require_selected_store_capabilities(declaration: ControlPlaneProfileDeclara
 
 
 class RuntimeControlPlane(
+    RuntimeInteractionMixin,
     RuntimeInjectMixin,
     RuntimeLifecycleMixin,
     RuntimeSupervisionMixin,
@@ -124,7 +125,7 @@ class RuntimeControlPlane(
     ParticipantRetrievalMixin,
     MixedRuntimeMixin,
 ):
-    """Reference control plane for async runtime submission and observation."""
+    """One owner for the full run, also exported as ``RuntimeManager``."""
 
     def __init__(
         self,
@@ -132,6 +133,7 @@ class RuntimeControlPlane(
         **options: Unpack[ControlPlaneOptions],
     ) -> None:
         config = ControlPlaneConfiguration(**options)
+        self._initialize_interaction(target, config)
         target_scope = runtime_target_scope(target.name)
         declaration, selected_store = _prepare_control_plane_store(config)
         self._profile_declaration = declaration
@@ -220,12 +222,12 @@ class RuntimeControlPlane(
         )
 
     @runtime_owned
-    def _project_snapshot_read(
+    def _project_snapshot_read[ProjectionT](
         self,
-        projector: Callable[[], _ProjectionT],
+        projector: Callable[[], ProjectionT],
         *,
         mutation_kind: OperationKind | None = None,
-    ) -> tuple[_ProjectionT, int]:
+    ) -> tuple[ProjectionT, int]:
         """Project one response from an authoritative, revision-bound state cut."""
 
         self._assert_runtime_owner()
@@ -405,45 +407,11 @@ class RuntimeControlPlane(
         request_fingerprint: str = "",
         identity: object | None = None,
     ) -> OperationReceipt:
+        from .control_plane_evaluation import evaluation_request
+
         self._assert_runtime_owner()
-        context = operation_admission_context(
-            self,
-            kind=OperationKind.EVALUATION,
-            request=plan,
-            base_snapshot=base_snapshot,
-            identity=identity,
-        )
-        exact_retry_fingerprint = (
-            operation_idempotency_fingerprint(
-                kind=OperationKind.EVALUATION,
-                request=plan,
-                base_snapshot=base_snapshot,
-            )
-            if operation_requires_ephemeral_retry_proof(request=plan, base_snapshot=base_snapshot)
-            else None
-        )
-        evaluator = self._target.evaluator
-        request = OperationExecutionRequest(
-            domain=RuntimeDomain.EVALUATION,
-            method=_unavailable_backend if evaluator is None else evaluator.start,
-            plan=plan,
-            address="runtime.control-plane.evaluation",
-            diagnostics=[],
-            base_snapshot=base_snapshot,
-            idempotency_key=idempotency_key,
-            request_fingerprint=context.request_commitment,
-            context=context,
-            legacy_request_fingerprint=legacy_operation_request_commitment(
-                kind=OperationKind.EVALUATION,
-                request=plan,
-                base_snapshot=base_snapshot,
-            ),
-            exact_retry_fingerprint=exact_retry_fingerprint,
-            admission_diagnostics=(
-                (lambda: _unavailable_backend_diagnostics(RuntimeDomain.EVALUATION, "an evaluator"))
-                if evaluator is None
-                else lambda: control_plane_plan_diagnostics(self, plan, RuntimeDomain.EVALUATION)
-            ),
+        request = evaluation_request(
+            self, plan, base_snapshot=base_snapshot, idempotency_key=idempotency_key, identity=identity
         )
         denied_or_replay = reject_new_operation_if_admission_fails(self, request)
         return denied_or_replay or execute_operation(self, request)

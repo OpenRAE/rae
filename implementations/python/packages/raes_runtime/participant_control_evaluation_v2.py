@@ -11,7 +11,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from graphlib import TopologicalSorter
 from time import monotonic
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.participant_control_applicability import (
@@ -57,7 +57,6 @@ if TYPE_CHECKING:
     from .control_plane import RuntimeControlPlane
     from .participant_control_orchestration import ParticipantControlOutcome
 
-_T = TypeVar("_T")
 _StageResults = tuple[
     tuple[ControlInvocationV2Model, ...],
     tuple[ControlMechanismResultV2Model, ...],
@@ -97,7 +96,7 @@ class _EvaluationCut:
             # Do not refresh the CAS revision and then publish an old prepared snapshot.
             raise SnapshotRevisionConflict()
 
-    def call(self, method: Callable[..., _T], *args: object, provider: bool = False) -> _T:
+    def call[T](self, method: Callable[..., T], *args: object, provider: bool = False) -> T:
         self.require_current()
         remaining = min(self.plane._supervision.admission_ms, int((self.deadline - monotonic()) * 1000))
         if remaining <= 0:
@@ -150,7 +149,9 @@ def resolve_v2_outcome(
         refusal = _request_refusal(plane, binding, crossing, request, sink_kind, heads)
         if refusal is not None:
             return refusal
-        require_retained_provider_state(plane._snapshot, request)
+        from .participant_control_projection import control_projection
+
+        require_retained_provider_state(plane._snapshot, request, projection=control_projection(plane))
         validate_control_support_v2(request, resolution.support)
         stages = _evaluate_slots(cut, binding, request, resolution.support)
         _, results, _ = stages
@@ -164,7 +165,7 @@ def resolve_v2_outcome(
         retained = retained_effect_intents(plane, effects)
         outcomes = tuple(item.outcome for item in retained.values() if item.outcome.disposition == "applied")
         evaluation = _compose(binding, crossing, request, resolution, stages, outcomes=outcomes)
-        require_provider_state_extension(plane._snapshot, evaluation)
+        require_provider_state_extension(plane._snapshot, evaluation, projection=control_projection(plane))
         context = cut.call(binding.resolver.validation_context, evaluation)
         context = with_retained_effect_evidence(context, retained)
         # Context validation invokes independently supplied support/owner callbacks.

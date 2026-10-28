@@ -64,7 +64,7 @@ class PreparedNodeCollectionAuthority(ContractModel):
     constraint_binding: str = Field(pattern=r"^sha256:[a-f0-9]{64}$")
 
     @model_validator(mode="after")
-    def _validate_profile(self) -> "PreparedNodeCollectionAuthority":
+    def _validate_profile(self) -> PreparedNodeCollectionAuthority:
         root = self.constraint_document.root
         if (
             self.constraint_document.semantic_profile != PORTABLE_NODE_COLLECTION_PROFILE

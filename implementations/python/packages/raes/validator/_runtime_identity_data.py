@@ -52,6 +52,9 @@ class _RuntimeIdentityDataMixin:
         refs.update(subject.subject_id for subject in authority.subjects)
         refs.update(policy.policy_id for policy in authority.policies)
         refs.update(relationship.relationship_id for relationship in authority.relationships)
+        refs.update(scope.scope_id for scope in authority.resource_scopes)
+        refs.update(use.use_id for use in authority.identity_uses)
+        refs.update(observation.observation_id for observation in authority.access_observations)
         return refs
 
     def _verify_identity_authority_relationships(

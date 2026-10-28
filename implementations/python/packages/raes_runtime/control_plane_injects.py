@@ -232,7 +232,7 @@ class RuntimeInjectMixin:
             return None
         try:
             _authorized_binding(self, record.inject_delivery.application, identity)
-        except (ValueError, PermissionError):
+        except ValueError, PermissionError:
             return None
         return deepcopy(record.inject_delivery)
 

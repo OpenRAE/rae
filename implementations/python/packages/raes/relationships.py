@@ -117,7 +117,7 @@ class Relationship(SDLModel):
         return normalize_enum_value(v)
 
     @model_validator(mode="after")
-    def validate_participant_detail(self) -> "Relationship":
+    def validate_participant_detail(self) -> Relationship:
         if (self.type == RelationshipType.PARTICIPANT) != (self.participant is not None):
             raise ValueError("participant relationship type and participant detail must be declared together")
         if self.participant is not None and (

@@ -44,6 +44,9 @@ class SnapshotState:
 
     def __post_init__(self) -> None:
         require_snapshot_revision(self.revision)
+        from raes_contracts.immutable_history import seal_snapshot_histories
+
+        object.__setattr__(self, "snapshot", seal_snapshot_histories(self.snapshot))
 
 
 __all__ = (

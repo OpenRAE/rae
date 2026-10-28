@@ -146,6 +146,7 @@ _RESOURCE_KINDS = (
     *sorted(RUNTIME_INVENTORY_KINDS),
 )
 _SUPPORT_KINDS = (
+    "control_context_assets",
     "evidence_requirements",
     "time_domains",
     "clocks",

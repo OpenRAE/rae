@@ -204,6 +204,7 @@ from .runtime_model import (
     CompiledCapabilityConstraint,
     ExecutionPlan,
     ObjectiveRuntime,
+    PlanningContext,
     RuntimeModel,
     resource_payload,
 )
@@ -252,6 +253,7 @@ __all__ = [
     "EvaluationResultStatus",
     "EventRuntime",
     "ExecutionPlan",
+    "PlanningContext",
     "FeatureBinding",
     "InjectBinding",
     "InjectRuntime",

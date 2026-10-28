@@ -60,6 +60,7 @@ from .base import ContractModel, NonEmptyString, PrefixedDigestString
 from .experiment_allocation import AdmittedExperimentAllocationModel, compile_experiment_allocation
 from .experiment_apparatus import ExperimentStochasticControlModel
 from .experiment_bindings import ParticipantConfigurationResultModel
+from .experiment_treatments import validate_plan_treatments
 from .random_stream import RandomStreamDrawRecordModel, TrialCoordinateModel
 from .schema_invariants import _add_raes_invariant
 from .trial_cleanup import SchedulerIsolationProofModel, TrialCleanupPlanModel
@@ -265,6 +266,7 @@ class AdmittedTrialPlanModel(ContractModel):
                 raise ValueError("recorded allocation does not match deterministic reconstruction")
 
     def _validate_authority_agreement(self) -> None:
+        validate_plan_treatments(self)
         # Values duplicated from incumbent authorities must agree, or a correctly
         # digested plan could still carry contradictory execution intent.
         profile = self.profiles.random_stream_profile

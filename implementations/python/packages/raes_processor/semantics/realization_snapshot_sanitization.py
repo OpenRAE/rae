@@ -73,7 +73,7 @@ def realization_payloads_match(
             requirements,
             observed=True,
         )
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         # A malformed or legacy snapshot is not equivalent to the desired
         # resource. Reconciliation repairs it with UPDATE instead of making
         # planning itself fail.

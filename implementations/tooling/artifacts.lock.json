@@ -411,112 +411,6 @@
       ]
     },
     {
-      "artifact_id": "cpython-3.11",
-      "artifact_class": "bootstrap",
-      "version": "3.11.16",
-      "support_level": "blocking",
-      "owner": "Tooling",
-      "consumers": ["python-compatibility", "bootstrap"],
-      "trust_root_refs": ["actions-python-versions-reviewed-release"],
-      "availability_class": "R",
-      "retention_class": "supported-input",
-      "license": {"spdx": "PSF-2.0", "redistribution": "allowed", "review_ref": "ADR-106"},
-      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
-      "policy_refs": ["artifact-integrity-v1"],
-      "source": {
-        "repository": "https://github.com/actions/python-versions",
-        "release": "3.11.16-31661435402",
-        "asset": "python-3.11.16-{distribution}-{architecture}.tar.gz",
-        "locator_refs": ["official-github-release"]
-      },
-      "platforms": [
-        {
-          "platform_id": "linux-x86_64",
-          "distribution_id": "ubuntu-24.04",
-          "source_urls": ["https://github.com/actions/python-versions/releases/download/3.11.16-31661435402/python-3.11.16-linux-24.04-x64.tar.gz"],
-          "raw_manifest": [{"path": "python-3.11.16-linux-24.04-x64.tar.gz", "sha256": "07b61e35f30861939ff95314297921de8f57cd48f85bb18d777651b3ea45f2ee", "size": 92555692}],
-          "installed_identity": {"implementation": "CPython", "version": "3.11.16", "abi": "cp311", "target": "x86_64-unknown-linux-gnu"},
-          "dependencies": [],
-          "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
-        }
-      ]
-    },
-    {
-      "artifact_id": "cpython-3.12",
-      "artifact_class": "bootstrap",
-      "version": "3.12.14",
-      "support_level": "blocking",
-      "owner": "Tooling",
-      "consumers": ["python-compatibility", "bootstrap"],
-      "trust_root_refs": ["actions-python-versions-reviewed-release"],
-      "availability_class": "R",
-      "retention_class": "supported-input",
-      "license": {"spdx": "PSF-2.0", "redistribution": "allowed", "review_ref": "ADR-106"},
-      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
-      "policy_refs": ["artifact-integrity-v1"],
-      "source": {
-        "repository": "https://github.com/actions/python-versions",
-        "release": "3.12.14-31661455385",
-        "asset": "python-3.12.14-{distribution}-{architecture}.tar.gz",
-        "locator_refs": ["official-github-release"]
-      },
-      "platforms": [
-        {
-          "platform_id": "linux-x86_64",
-          "distribution_id": "ubuntu-22.04",
-          "source_urls": ["https://github.com/actions/python-versions/releases/download/3.12.14-31661455385/python-3.12.14-linux-22.04-x64.tar.gz"],
-          "raw_manifest": [{"path": "python-3.12.14-linux-22.04-x64.tar.gz", "sha256": "e13bd8ab6ca32627711d5611d96737c0e8e84bb37cd3505a76ed9779adefc76e", "size": 95851350}],
-          "installed_identity": {"implementation": "CPython", "version": "3.12.14", "abi": "cp312", "target": "x86_64-unknown-linux-gnu"},
-          "dependencies": [],
-          "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["proof-ubuntu-22.04-x86_64"]
-        },
-        {
-          "platform_id": "linux-x86_64",
-          "distribution_id": "ubuntu-24.04",
-          "source_urls": ["https://github.com/actions/python-versions/releases/download/3.12.14-31661455385/python-3.12.14-linux-24.04-x64.tar.gz"],
-          "raw_manifest": [{"path": "python-3.12.14-linux-24.04-x64.tar.gz", "sha256": "5a03168292516f6dd6dcf630f4bf5369b108abd7c699a7e1db37f1e622257fff", "size": 95088884}],
-          "installed_identity": {"implementation": "CPython", "version": "3.12.14", "abi": "cp312", "target": "x86_64-unknown-linux-gnu"},
-          "dependencies": [],
-          "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
-        }
-      ]
-    },
-    {
-      "artifact_id": "cpython-3.13",
-      "artifact_class": "bootstrap",
-      "version": "3.13.15",
-      "support_level": "blocking",
-      "owner": "Tooling",
-      "consumers": ["python-compatibility", "bootstrap"],
-      "trust_root_refs": ["actions-python-versions-reviewed-release"],
-      "availability_class": "R",
-      "retention_class": "supported-input",
-      "license": {"spdx": "PSF-2.0", "redistribution": "allowed", "review_ref": "ADR-106"},
-      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
-      "policy_refs": ["artifact-integrity-v1"],
-      "source": {
-        "repository": "https://github.com/actions/python-versions",
-        "release": "3.13.15-31064747964",
-        "asset": "python-3.13.15-{distribution}-{architecture}.tar.gz",
-        "locator_refs": ["official-github-release"]
-      },
-      "platforms": [
-        {
-          "platform_id": "linux-x86_64",
-          "distribution_id": "ubuntu-24.04",
-          "source_urls": ["https://github.com/actions/python-versions/releases/download/3.13.15-31064747964/python-3.13.15-linux-24.04-x64.tar.gz"],
-          "raw_manifest": [{"path": "python-3.13.15-linux-24.04-x64.tar.gz", "sha256": "4e544242f8a4ef647a6f511b67f9b00eefc9ef366644e3c40a27a6eff709ae2b", "size": 102312718}],
-          "installed_identity": {"implementation": "CPython", "version": "3.13.15", "abi": "cp313", "target": "x86_64-unknown-linux-gnu"},
-          "dependencies": [],
-          "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
-        }
-      ]
-    },
-    {
       "artifact_id": "cpython-3.14",
       "artifact_class": "bootstrap",
       "version": "3.14.7",
@@ -544,7 +438,7 @@
           "installed_identity": {"implementation": "CPython", "version": "3.14.7", "abi": "cp314", "target": "x86_64-unknown-linux-gnu"},
           "dependencies": [],
           "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["container-ubuntu-24.04-x86_64", "public-ubuntu-24.04-x86_64"]
+          "host_profile_ids": ["container-ubuntu-24.04-x86_64", "proof-ubuntu-22.04-x86_64", "public-ubuntu-24.04-x86_64"]
         },
         {
           "platform_id": "linux-arm64",
@@ -684,7 +578,7 @@
     {
       "artifact_id": "scorecard-action-image",
       "artifact_class": "oci-image",
-      "version": "2.4.4",
+      "version": "2.5.0",
       "support_level": "blocking",
       "owner": "Security",
       "consumers": ["scorecard-workflow"],
@@ -696,16 +590,16 @@
       "policy_refs": ["oci-input-v1"],
       "source": {
         "repository": "https://github.com/ossf/scorecard-action",
-        "release": "sha256:ae5104dd3cc28466ebeb11144354be4cac4b7ff829654f9fab89021d71c46670",
+        "release": "sha256:1e1481c65fc2407d3fd6ab18a23c741eb4d1c0d9359ebafc4b3ab13aa61d8627",
         "asset": "ghcr.io/ossf/scorecard-action",
         "locator_refs": ["github-container-registry"]
       },
       "platforms": [
         {
           "platform_id": "linux-x86_64",
-          "source_urls": ["https://ghcr.io/v2/ossf/scorecard-action/manifests/sha256:ae5104dd3cc28466ebeb11144354be4cac4b7ff829654f9fab89021d71c46670"],
-          "raw_manifest": [{"path": "scorecard-action-2.4.4-manifest.json", "sha256": "ae5104dd3cc28466ebeb11144354be4cac4b7ff829654f9fab89021d71c46670", "size": 4281}],
-          "installed_identity": {"implementation": "OCI image", "version": "2.4.4", "abi": "oci-manifest-v2", "target": "linux-x86_64"},
+          "source_urls": ["https://ghcr.io/v2/ossf/scorecard-action/manifests/sha256:1e1481c65fc2407d3fd6ab18a23c741eb4d1c0d9359ebafc4b3ab13aa61d8627"],
+          "raw_manifest": [{"path": "scorecard-action-2.5.0-manifest.json", "sha256": "1e1481c65fc2407d3fd6ab18a23c741eb4d1c0d9359ebafc4b3ab13aa61d8627", "size": 4282}],
+          "installed_identity": {"implementation": "OCI image", "version": "2.5.0", "abi": "oci-manifest-v2", "target": "linux-x86_64"},
           "dependencies": [],
           "profile_ids": ["public-linux-x86_64"],
           "host_profile_ids": ["public-ubuntu-24.04-x86_64"]

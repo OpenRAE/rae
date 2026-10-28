@@ -128,6 +128,11 @@ RUNTIME_SERVICE_FAMILIES: tuple[RuntimeServiceFamily, ...] = (
             RuntimeReferenceChild("subjects", "subject_id", reference_policy=RuntimeReferencePolicy.RESOURCE),
             RuntimeReferenceChild("policies", "policy_id", reference_policy=RuntimeReferencePolicy.RESOURCE),
             RuntimeReferenceChild("relationships", "relationship_id", reference_policy=RuntimeReferencePolicy.RESOURCE),
+            RuntimeReferenceChild("resource_scopes", "scope_id", reference_policy=RuntimeReferencePolicy.RESOURCE),
+            RuntimeReferenceChild("identity_uses", "use_id", reference_policy=RuntimeReferencePolicy.RESOURCE),
+            RuntimeReferenceChild(
+                "access_observations", "observation_id", reference_policy=RuntimeReferencePolicy.RESOURCE
+            ),
         ),
         reference_policy=RuntimeReferencePolicy.RESOURCE,
     ),
@@ -261,6 +266,18 @@ RUNTIME_SERVICE_FAMILIES: tuple[RuntimeServiceFamily, ...] = (
         collection_name="platform_applications",
         id_field="platform_application_id",
         child_refs=(
+            RuntimeReferenceChild(
+                "secrets",
+                "secret_id",
+                children=(
+                    RuntimeReferenceChild("versions", "version_id", reference_policy=RuntimeReferencePolicy.RESOURCE),
+                    RuntimeReferenceChild(
+                        "consumers", "selection_id", reference_policy=RuntimeReferencePolicy.RESOURCE
+                    ),
+                ),
+                reference_policy=RuntimeReferencePolicy.RESOURCE,
+            ),
+            RuntimeReferenceChild("cloud_limits", "limit_id", reference_policy=RuntimeReferencePolicy.RESOURCE),
             RuntimeReferenceChild("capabilities", "capability_id", reference_policy=RuntimeReferencePolicy.RESOURCE),
             RuntimeReferenceChild("organizations", "organization_id", reference_policy=RuntimeReferencePolicy.RESOURCE),
             RuntimeReferenceChild("tenants", "tenant_id", reference_policy=RuntimeReferencePolicy.RESOURCE),

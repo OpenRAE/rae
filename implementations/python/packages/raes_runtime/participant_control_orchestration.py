@@ -371,13 +371,16 @@ def _with_appended_evaluation(
     evaluation: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model,
 ) -> PreparedParticipantCrossing:
     participant_address = crossing.intent.participant_address
-    history = crossing.next_snapshot.participant_control_evaluation_history
+    from raes_contracts.immutable_history import append_history
+
     next_snapshot = crossing.next_snapshot.with_entries(
         dict(crossing.next_snapshot.entries),
-        participant_control_evaluation_history={
-            **history,
-            participant_address: [*history.get(participant_address, ()), evaluation.model_dump(mode="json")],
-        },
+        participant_control_evaluation_history=append_history(
+            crossing.next_snapshot,
+            "participant_control_evaluation_history",
+            participant_address,
+            [evaluation.model_dump(mode="json")],
+        ),
     )
     return cast(
         PreparedParticipantCrossing,

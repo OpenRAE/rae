@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
-from typing import Any, TypeAlias
+from typing import Any
 
 from raes.explicitness import ExplicitnessProvenance
 from raes.materialization import MaterializedScenario
@@ -22,7 +22,7 @@ from raes_contracts.runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
 from ..semantics.realization_concerns import registered_realization_concern_descriptors
 
 _ABSENT = object()
-_CollectionProfiles: TypeAlias = dict[tuple[str, ...], tuple[str, ...]]
+type _CollectionProfiles = dict[tuple[str, ...], tuple[str, ...]]
 
 
 def materialization_differences(
@@ -185,7 +185,7 @@ def materialization_node_payloads_match(name: str, described: object, observed: 
         right = Node.model_validate(observed).model_dump(mode="json")
         path = ("nodes", name)
         return not any(_differences(left, right, path, path, _profiles({name}, set())))
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return False
 
 

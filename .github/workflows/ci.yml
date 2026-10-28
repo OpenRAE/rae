@@ -90,10 +90,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12.14"
-      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
+          python-version: "3.14.7"
+      - uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
         with:
           version: "0.13.4"
           enable-cache: false
@@ -112,7 +112,8 @@ jobs:
           RAES_TEMPORAL_CLI: implementations/tooling/.cache/runtime-integration-inputs/bin/temporal
         run: >-
           uv run --project implementations/python --frozen --extra dev --extra distributed pytest -q
-          implementations/python/tests/test_issue_1362_distributed_integration.py -m integration --no-cov
+          implementations/python/tests/test_issue_1362_distributed_integration.py
+          implementations/python/tests/test_issue_1373_postgresql_history.py -m integration --no-cov
 
   fuzz:
     runs-on: ubuntu-24.04
@@ -120,42 +121,38 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12.14"
+          python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
         with:
           enable-cache: false
           version: "0.13.4"
       - name: Run fuzz session
         run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s fuzz
 
-  interpreters:
-    name: CPython ${{ matrix.python.feature }} compatibility
+  # CPython 3.14 is the only supported interpreter, and the canonical graph runs
+  # the full suite on it. This job checks the exact runtime, then builds the
+  # wheel and sdist and installs both into clean environments (#1672).
+  distribution:
+    name: CPython 3.14 compatibility
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        python:
-          - {feature: "3.11", payload: "3.11.16", closure: public-linux-x86_64-cp311-all-extras}
-          - {feature: "3.12", payload: "3.12.14", closure: public-linux-x86_64-cp312-all-extras}
-          - {feature: "3.13", payload: "3.13.15", closure: public-linux-x86_64-cp313-all-extras}
-          - {feature: "3.14", payload: "3.14.7", closure: public-linux-x86_64-cp314-all-extras}
+    timeout-minutes: 20
     env:
-      UV_PYTHON: ${{ matrix.python.payload }}
-      RAES_EXPECTED_PYTHON: ${{ matrix.python.feature }}
-      RAES_PYTHON_CLOSURE_PROFILE: ${{ matrix.python.closure }}
+      UV_PYTHON: "3.14.7"
+      RAES_EXPECTED_PYTHON: "3.14"
+      RAES_PYTHON_CLOSURE_PROFILE: public-linux-x86_64-cp314-all-extras
+      RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: ${{ matrix.python.payload }}
+          python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
         with:
           enable-cache: false
           version: "0.13.4"
@@ -172,11 +169,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12.14"
+          python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
         with:
           enable-cache: false
           version: "0.13.4"
@@ -237,11 +234,11 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12.14"
+          python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
         with:
           enable-cache: false
           version: "0.13.4"

@@ -7,7 +7,6 @@ from typing import Annotated, Literal
 from pydantic import Field, GetJsonSchemaHandler, StrictInt, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
-from typing_extensions import TypeAliasType
 
 from .base import ContractModel, NonEmptyString
 from .participant_context import ParticipantContextViewModel
@@ -25,13 +24,9 @@ ParticipantDecisionSurfaceVisibility = Literal[
 ]
 ParticipantDecisionSurfaceEligibility = Literal["eligible", "ineligible", "unknown", "unsupported"]
 ParticipantDecisionSurfaceSupport = Literal["supported", "unsupported", "unknown"]
-ParticipantDecisionSurfaceArgumentScalar = TypeAliasType(
-    "ParticipantDecisionSurfaceArgumentScalar",
-    str | int | float | bool,
-)
-ParticipantDecisionSurfaceArgumentValue = TypeAliasType(
-    "ParticipantDecisionSurfaceArgumentValue",
-    ParticipantDecisionSurfaceArgumentScalar | list[ParticipantDecisionSurfaceArgumentScalar],
+type ParticipantDecisionSurfaceArgumentScalar = str | int | float | bool
+type ParticipantDecisionSurfaceArgumentValue = (
+    ParticipantDecisionSurfaceArgumentScalar | list[ParticipantDecisionSurfaceArgumentScalar]
 )
 
 

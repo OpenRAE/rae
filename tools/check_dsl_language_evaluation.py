@@ -85,7 +85,7 @@ def _manifest_claim_binding(repo_root: Path, analysis: dict[str, object]) -> obj
             if isinstance(entry[0].get("claim_binding"), Mapping)
             and entry[0]["claim_binding"].get("claim_id") == claim_id
         )
-    except (OSError, ValueError, StopIteration):
+    except OSError, ValueError, StopIteration:
         return None
 
 

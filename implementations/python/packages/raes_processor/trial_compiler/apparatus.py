@@ -7,6 +7,7 @@ from collections.abc import Iterable, Mapping
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
     AdmittedApparatusBindingModel,
+    AdmittedParticipantManifestReferenceModel,
     BackendManifestV2Model,
     ExperimentApparatusConstraintModel,
     ExperimentManifestReferenceModel,
@@ -333,16 +334,26 @@ def validate_selected_participant_manifests(
     request: TrialCompilationRequest,
 ) -> dict[ParticipantManifestKey, ParticipantImplementationManifestModel]:
     """Resolve every participant admission authority from its sealed digest reference."""
+    return validate_participant_manifest_references(
+        request.apparatus.participant_manifest_refs, request.participant_manifests
+    )
+
+
+def validate_participant_manifest_references(
+    references: Iterable[AdmittedParticipantManifestReferenceModel],
+    manifests: Mapping[ParticipantManifestKey, ParticipantImplementationManifestModel],
+) -> dict[ParticipantManifestKey, ParticipantImplementationManifestModel]:
+    """Use the same pinned manifest authority during compilation and realization."""
 
     selected: dict[ParticipantManifestKey, ParticipantImplementationManifestModel] = {}
-    for reference in request.apparatus.participant_manifest_refs:
+    for reference in references:
         key = (
             reference.participant_address,
             reference.implementation_name,
             reference.implementation_version,
             reference.manifest_version,
         )
-        manifest = request.participant_manifests.get(key)
+        manifest = manifests.get(key)
         if manifest is None:
             raise _fail(
                 "participant-manifest-payload-missing",

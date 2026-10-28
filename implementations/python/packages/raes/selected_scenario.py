@@ -14,6 +14,7 @@ from raes_contracts.contracts import (
     ExperimentSelectionSubsetOutcomeModel,
     LiteralBindingValueModel,
 )
+from raes_contracts.contracts.experiment_treatments import ExperimentScenarioSelectionDescriptorModel
 from raes_contracts.experiment_bindings import ScenarioBindingResolution
 
 from ._declarations import build_declaration_index
@@ -104,6 +105,22 @@ class ExpandedScenarioBindingTargetResolver:
     def __init__(self, family: ExpandedScenario) -> None:
         _require_family(family)
         self._family = family
+
+    def validate_selection(self, descriptor: ExperimentScenarioSelectionDescriptorModel) -> None:
+        """Admit a typed treatment through the same SDL owner and canonical targets."""
+        from .canonical import canonical_sdl_digest
+
+        target = descriptor.target
+        point = self._family.variation_points.get(target.variation_point_id)
+        if (
+            target.scenario_family_id != self._family.name
+            or descriptor.scenario_family_digest != canonical_sdl_digest(self._family).value
+            or point is None
+            or target.target_id != _canonical_target_id(self._family, point)
+            or descriptor.owner != _SDL_BINDING_OWNER
+        ):
+            raise ValueError("selection treatment does not match its authoritative SDL target")
+        validate_selection_outcome(point, descriptor.outcome)
 
     def resolve(
         self,

@@ -327,7 +327,7 @@ def _history_payloads(
         post_state_digest="sha256:scan",
         action_result=_action_result(status),
         outcome_interpretations=((outcome_record or _outcome_record()),),
-        details={"evidence_refs": ["evidence.alert"], "visible_refs": ["nodes.web.services.http"]},
+        details={"evidence_refs": ["evidence.alert"], "visible_refs": ["provision.node.web.service.http"]},
     )
     return [
         {
@@ -633,7 +633,7 @@ def test_participant_action_outcome_source_must_match_event_action_status() -> N
 def test_outcome_evidence_refs_must_be_grounded_in_event_payload() -> None:
     model = compile_runtime_model(parse_sdl(_scenario_yaml()))
     payloads = _history_payloads(status=ParticipantActionResultStatus.FAILED)
-    payloads[2]["details"] = {"visible_refs": ["nodes.web.services.http"]}
+    payloads[2]["details"] = {"visible_refs": ["provision.node.web.service.http"]}
     payloads[2]["action_result"]["evidence_refs"] = ["evidence.scan-output"]
     payloads[2]["action_result"]["effects"][0]["evidence_refs"] = ["evidence.scan-output"]
     payloads[2]["action_result"]["effects"][1]["evidence_refs"] = []

@@ -88,7 +88,7 @@ def _submitted_authority_matches(realization: _RealizationApplyContext) -> bool:
         return False
     try:
         matches = runtime_plan_digest(realization.plan) == runtime_plan_digest(realization.operation_plan)
-    except (AttributeError, TypeError, ValueError):
+    except AttributeError, TypeError, ValueError:
         matches = False
     return matches
 
