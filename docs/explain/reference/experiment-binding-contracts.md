@@ -208,11 +208,17 @@ Expanded serialization has an 8 MiB bound.
 The public input loader retains its 64 KiB bound.
 See the [normative profile](../../../specs/formal/experiment-core/README.md#typed-factorial-treatments-factorial-treatments-v1) for exact rules.
 
-Issue #1665 publishes the contract and record validation.
-The current compiler explicitly rejects the new profile.
-It also rejects manual `required_selections` criteria without a factorial profile.
-Issue #1666 implements compilation, owner admission, and lifecycle verification.
-Record acceptance alone does not prove execution support.
+The compiler supports typed factorial treatments through owner admission and complete scenario validation.
+Manual `required_selections` criteria still require the typed factorial profile.
+The compiler preserves source descriptors in admitted selections and participant results in sealed entries.
+The full realizer compares supplied authoring coordinates, bindings, treatments, and fixed selections.
+Supply participant manifests for canonical alias resolution during this check.
+`readmit_admitted_trial_plan()` recompiles separately trusted original inputs and compares the complete candidate plan.
+Plan-only reload checks internal consistency; it cannot authenticate original intent from its own seals.
+Prompt distinctness compares pinned content and operative slot and scope.
+A descriptor-only digest change does not establish different prompt effects.
+Recorded claims still do not prove execution.
+See the [model, prompt, and structural example](typed-factorial-example.md).
 
 ## Participant control-context factors
 
