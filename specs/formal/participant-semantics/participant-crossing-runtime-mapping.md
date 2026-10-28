@@ -208,6 +208,6 @@ No case invents delivery, observation, a silent error, or a second logical commi
 ## Reference basis
 
 - [Python documentation](https://docs.python.org/3.12/library/unittest.mock.html), Python 3.12, wrapping calls: observation retains the original callable.
-- [mCRL2 tool reference](https://www.mcrl2.org/web/user_manual/tools/release/ltscompare.html), 202607.0, equivalence and hiding: trace comparison is separate from bisimulation.
+- [mCRL2 tool reference](https://www.mcrl2.org/web/user_manual/tools/release/ltscompare.html), 202607.0, equivalence and hiding: trace comparison does not establish bisimulation.
 - [NIST systems security engineering](https://csrc.nist.gov/pubs/sp/800/160/v1/r1/final), volume 1 revision 1, trustworthy systems: evidence remains bound to its system boundary.
 - [ASD-STE100](https://www.asd-ste100.org/assets/files/ASD-STE100_ISSUE9.pdf), Issue 9, writing rules: short sentences and consistent technical names.
