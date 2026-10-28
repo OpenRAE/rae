@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [9.1.0](https://github.com/OpenRAE/rae/compare/v9.0.0...v9.1.0) (2026-10-28)
+
+
+### Features
+
+* add modular control runtime conformance ([#1684](https://github.com/OpenRAE/rae/issues/1684)) ([165162e](https://github.com/OpenRAE/rae/commit/165162ed99277dc1068a641c2a76a35b49d07dd5))
+* **conformance:** verify executable mixed-backend capability claims ([#1686](https://github.com/OpenRAE/rae/issues/1686)) ([676cbfc](https://github.com/OpenRAE/rae/commit/676cbfc24b0c8b64a038a5cf2835fd6f4c0d04ee))
+
+
+### Bug Fixes
+
+* **evidence:** keep runtime mapping capture stable across release version bumps ([#1688](https://github.com/OpenRAE/rae/issues/1688)) ([0184ce6](https://github.com/OpenRAE/rae/commit/0184ce6ade585e33d0569097d236a88c53674e1d))
+* **evidence:** record combined-source runtime mapping capture for dev ([#1691](https://github.com/OpenRAE/rae/issues/1691)) ([7743a95](https://github.com/OpenRAE/rae/commit/7743a9546f614fb6520477d79e6c22f84d150a14))
+
 ## [9.0.0](https://github.com/OpenRAE/rae/compare/v8.1.0...v9.0.0) (2026-10-28)
 
 
