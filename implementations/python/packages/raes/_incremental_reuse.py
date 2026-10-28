@@ -74,7 +74,9 @@ def _view_type(scenario_type: type) -> type:
         fields = frozenset(scenario_type.model_fields)
         private = frozenset(getattr(scenario_type, "__private_attributes__", {}))
 
-        def __getattribute__(self: object, name: str, _get: _AttributeGetter = object.__getattribute__) -> object:  # noqa: N807
+        def __getattribute__(  # noqa: N807
+            self: object, name: str, _get: _AttributeGetter = object.__getattribute__
+        ) -> object:
             sink: ReadSink | None = _get(self, "__dict__").get("__raes_read_sink__")
             if sink is not None:
                 if name in fields or name in private:
@@ -125,7 +127,9 @@ def tracking_index(index: object, sink: ReadSink) -> object:
     view_type = _INDEX_VIEW_TYPES.get(index_type)
     if view_type is None:
 
-        def __getattribute__(self: object, name: str, _get: _AttributeGetter = object.__getattribute__) -> object:  # noqa: N807
+        def __getattribute__(  # noqa: N807
+            self: object, name: str, _get: _AttributeGetter = object.__getattribute__
+        ) -> object:
             if not name.startswith("__"):
                 _get(self, "_raes_read_sink").note(DECLARATION_INDEX)
             return _get(self, name)
