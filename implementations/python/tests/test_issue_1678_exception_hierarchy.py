@@ -35,6 +35,8 @@ _FOREIGN_TEST_DOUBLES = frozenset(
         ("implementations/python/tests/test_issue_1678_sweep_c.py", "ObservationRuntimeOnlyError"),
         ("implementations/python/tests/test_issue_1678_cycle2_pointers.py", "ArchiveAdapterOnlyError"),
         ("implementations/python/tests/test_issue_1678_sweep_t.py", "_GuardWarning"),
+        # Simulates a host-installed evidence reader's foreign exception type.
+        ("implementations/python/tests/test_issue_1630_record_semantics.py", "ProviderFailure"),
     }
 )
 _CATEGORIES = (

@@ -5,6 +5,7 @@ import json
 import pytest
 from paths import REPO_ROOT
 from raes_contracts.contracts import ExperimentRunModel
+from raes_contracts.errors import ConflictError
 
 
 def partial_payload():
@@ -177,7 +178,7 @@ def test_failed_cleanup_remains_visible_and_publication_is_idempotent():
         assert after.study_validation == "failed"
         run = after.runs[0]
         assert run.execution_accounting.attempts[0].cleanup_receipt.cleanup_status == "failed"
-        with pytest.raises(RuntimeError, match="cleanup evidence"):
+        with pytest.raises(ConflictError, match="cleanup evidence"):
             runtime.retire_run("run:" + run.run_id)
 
 
@@ -337,7 +338,7 @@ def test_valid_scientific_capture_does_not_hide_failed_cleanup():
         )
         assert records.validation_by_run[source.run_id] == "passed"
         assert records.accounting.cleanup_outcomes == {"failed": 1}
-        with pytest.raises(RuntimeError, match="cleanup evidence"):
+        with pytest.raises(ConflictError, match="cleanup evidence"):
             runtime.retire_run("run:" + source.run_id)
 
 

@@ -17,6 +17,7 @@ Supply `outcome_status` from the scientific evaluation owner.
 It defaults to `not-evaluated`.
 Execution success and a reported measurement do not establish scientific success.
 A completed execution can have a failed or inconclusive scientific outcome.
+For complete records, an evaluation can succeed even when execution failed.
 The builder does not infer model identity or prompt delivery from a settings digest.
 Keep protected prompts and secrets with their authorized owners.
 

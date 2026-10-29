@@ -132,8 +132,6 @@ def _archive_attempts(
     except ValueError as exc:
         raise EvidenceIntegrityError("archive built an invalid trial run") from exc
     _validate_archive_attempts(run, results)
-    if results[-1].cleanup_receipt.trial_outcome != "succeeded" and run.outcome_status == "succeeded":
-        raise EvidenceIntegrityError("archive changed the runtime execution outcome")
     if not unit.capture_succeeded() and run.run_status == "completed":
         raise EvidenceIntegrityError("archive hides a failed capture")
     require_compatible_record_versions(engine._store.load_runtime_decisions(), experiment.experiment_id, (run,))

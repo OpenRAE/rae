@@ -58,6 +58,7 @@ Work, capture, checks, and cleanup have separate outcomes.
 Installed evaluation owners supply the scientific `outcome_status`.
 Absent evaluation remains `not-evaluated`, even when work completes and measurements exist.
 Completed work can have a failed or inconclusive scientific result.
+For complete records, the evaluation owner can report success even when execution failed.
 An archive write grants no retry, replacement, or resource-reuse authority.
 Existing attempt limits, cessation checks, cleanup probes, reset, and compensation remain required.
 Failed cleanup keeps reservations even when failure records are available.

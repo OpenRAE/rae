@@ -159,6 +159,11 @@ def test_replaced_parent_is_retained_but_not_counted_as_eligible():
             runtime.advance_experiment(experiment)
             if any(isinstance(item, TrialReplacementDecision) for item in runtime._store.load_runtime_decisions()):
                 break
+        change = next(
+            item for item in runtime._store.load_runtime_decisions() if isinstance(item, TrialReplacementDecision)
+        )
+        assert change.parent_run.run_status == "failed"
+        assert change.parent_run.outcome_status == "succeeded"
         source = runtime.experiment_records(experiment).sources[0]
         metadata = metadata_for(runtime, experiment, source)
         bundle = runtime.experiment_records(
