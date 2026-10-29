@@ -36,6 +36,9 @@ Requirement inventory expansion. Participant behavior needs normative semantic a
 - DOCUMENTS → SPEC `specs/formal/participant-runtime/README.md` (Participant runtime formal design and V1 traceability criteria)
 - TESTS → TEST `implementations/python/tests/test_issue_219_participant_semantic_coverage.py` (Coverage matrix parity and integrity guard for participant semantic artifacts)
 
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/runtime-mapping/capture-dd0ba4d888b2cbb4dce76715df8ea780b4f6554b910da57901acc7ab2f0c5d17/manifest.json` (Source-pinned bounded public runtime mapping; no equivalence or complete realization claim)
+- TESTS → TEST `implementations/python/tests/test_issue_972_mapping_export.py` (Fresh public execution must match the source-bound runtime-mapping capture)
+
 ## Coverage boundary
 
 The current matrix records 90 clause and family rows: 65 covered and 25 partial.

@@ -85,6 +85,15 @@ The current merge adds control-context authoring, PBM-13, and a runtime-mapping 
 Existing field, clause, and focused-specification parity tests detect their missing coverage.
 The original scope manifest supplies ASR-506 authority on the resumed PR branch.
 
+## Source-bound runtime mapping evidence
+
+The runtime-mapping exporter pins test source as well as shipped code.
+The coverage guard changes that source identity.
+Fresh public crossing observations therefore supply a new immutable mapping capture.
+The existing exporter selects its content-addressed path and rejects historical overwrite.
+The capture retains bounded cases, explicit incompatibilities, and the original nonclaims.
+No runtime-mapping model, source inventory, schema, or historical capture changes are needed.
+
 ## Reference and writing review
 
 - [Pydantic models](https://docs.pydantic.dev/latest/concepts/models/), version 2.12.5, extra data and model fields: compare the closed native field inventory.
