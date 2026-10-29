@@ -13,6 +13,7 @@ from ..artifact_requirements import ArtifactSatisfactionDisclosureModel
 from ..bounded_domains import DomainDescriptor
 from ..compute_substrate import validate_compute_substrate_constraint, validate_planned_substrate_targets
 from ..materialization import require_materialization_records
+from ..materialization_inventory import InventoryIdentity
 from ..observation_demand import EffectiveObservationDemand
 from ..planning import (
     RealizationAuthorityMode,
@@ -37,6 +38,7 @@ from .materialization_attestation import MaterializationArchiveRecord, Materiali
 from .mixed_runtime import MixedCompositionRuntimeEventModel, MixedCompositionRuntimeStateModel
 from .operating_systems import ObservedOperatingSystemIdentityModel
 from .participant_control import ParticipantControlOccurrenceModel
+from .participant_control_occurrence_v2 import ParticipantControlOccurrenceV2Model
 from .participant_crossing import ParticipantCrossingOccurrenceModel
 from .participant_envelopes import (
     ParticipantJointActionRecordModel,
@@ -242,6 +244,8 @@ class ResolvedRealizationAuthorityModel(ContractModel):
 
 
 class ProvisioningPlanModel(MaterializationPlanModel):
+    inventory_attempt_id: InventoryIdentity | None = Field(default=None, exclude_if=lambda value: value is None)
+    inventory_refresh: bool = Field(default=False, strict=True, exclude_if=lambda value: not value)
     operations: list[PlanOperationModel] = Field(default_factory=list)
     diagnostics: list[dict[str, Any]] = Field(default_factory=list)
     realization_authority: list[ResolvedRealizationAuthorityModel]
@@ -386,7 +390,15 @@ class RuntimeSnapshotEnvelopeModel(ContractModel):
     participant_episode_history: dict[str, list[ParticipantEpisodeHistoryEventModel]] = Field(default_factory=dict)
     participant_episode_closure_records: dict[str, list[dict[str, Any]]] = Field(default_factory=dict)
     participant_behavior_history: dict[str, list[ParticipantBehaviorHistoryEventModel]] = Field(default_factory=dict)
-    participant_control_history: dict[str, list[ParticipantControlOccurrenceModel]] = Field(default_factory=dict)
+    participant_control_history: dict[
+        str,
+        list[
+            Annotated[
+                ParticipantControlOccurrenceModel | ParticipantControlOccurrenceV2Model,
+                Field(discriminator="schema_version"),
+            ]
+        ],
+    ] = Field(default_factory=dict)
     participant_crossing_history: dict[str, list[ParticipantCrossingOccurrenceModel]] = Field(default_factory=dict)
     # The published participant-control-evaluation-v1 schema is the authority for
     # each retained record (RuntimeSnapshot validates every one against it); the

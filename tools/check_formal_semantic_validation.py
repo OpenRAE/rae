@@ -20,18 +20,27 @@ for import_root in (REPO_ROOT, PYTHON_PACKAGES):
     if str(import_root) not in sys.path:
         sys.path.insert(0, str(import_root))
 
-from tools.evidence_bundle_index import revision_key
+from tools.research_evidence import current_release_path
 from tools.policy.common import PolicyFailure, load_bounded_json_object
 from tools.formal_semantic_validation._bundle import validate_bundle
 from tools.formal_semantic_validation._claims import recompute_claim_results
-from tools.formal_semantic_validation._loading import load_release_bundles, load_retest_bundle
-from tools.formal_semantic_validation._releases import validate_release_bundle, validate_retest_bundle
+from tools.formal_semantic_validation._loading import (
+    load_release_bundles,
+    load_retest_bundle,
+)
+from tools.formal_semantic_validation._releases import (
+    validate_release_bundle,
+    validate_release_bundles,
+    validate_retest_bundle,
+)
 from tools.formal_semantic_validation._replay import (
     _participant_test_refs,
     _replay_participant_tests,
     replay_case,
 )
-from tools.formal_semantic_validation._satisfiability import validate_satisfiability_analysis
+from tools.formal_semantic_validation._satisfiability import (
+    validate_satisfiability_analysis,
+)
 from tools.formal_semantic_validation._supplement_loading import (
     load_bundle,
     load_satisfiability_analysis,
@@ -64,6 +73,7 @@ __all__ = [
     "replay_case",
     "validate_bundle",
     "validate_release_bundle",
+    "validate_release_bundles",
     "validate_retest_bundle",
     "validate_satisfiability_analysis",
 ]
@@ -74,7 +84,8 @@ def _participant_replay_failures(
     releases: list[EvidenceRelease],
     participant_test_runner: ParticipantTestRunner,
 ) -> list[PolicyFailure]:
-    latest = max(releases, key=lambda item: revision_key(item.manifest.get("revision")))
+    selected = current_release_path([(item.manifest_path, item.manifest) for item in releases], repo_root)
+    latest = next(item for item in releases if item.manifest_path == selected)
     test_refs = _participant_test_refs(latest.protocol)
     replayed, detail = participant_test_runner(repo_root, test_refs)
     if replayed:
@@ -98,9 +109,7 @@ def evaluate(
         load_retest_bundle(repo_root)
     except (OSError, ValueError) as exc:
         return [_failure("formal-validation-bundle-load", str(exc), MANIFEST_PATH)]
-    failures: list[PolicyFailure] = []
-    for release in releases:
-        failures.extend(validate_release_bundle(repo_root, release))
+    failures = validate_release_bundles(repo_root, releases)
     if not failures:
         failures = _participant_replay_failures(repo_root, releases, participant_test_runner)
     return failures

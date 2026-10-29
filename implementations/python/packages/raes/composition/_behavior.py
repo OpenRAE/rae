@@ -7,16 +7,26 @@ namespaced tool-affordance / inject-delivery identifiers.
 
 from __future__ import annotations
 
-from typing import Any
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
+from .._base import is_variable_ref
+from .._declarations import DeclarationIndex, build_declaration_index
+from .._errors import SDLValidationError
+from .._reference_targetability import PURPOSE_LABELS, ReferencePurpose
 from ..participant_behavior_specification import tool_affordance_reference
 from ..participant_inject_delivery import participant_inject_delivery_reference
+from ._control_context import rewrite_control_context as _rewrite_control_context
 from ._references import (
     _maybe_rename,
     _prefix,
     _rewrite_node_or_service_ref,
     _rewrite_section_ref,
 )
+from ._tool_affordance import _rewrite_tool_affordance
+
+if TYPE_CHECKING:
+    from ..scenario import ScenarioContent
 
 
 def _rewrite_participant_resource_budget(
@@ -77,6 +87,18 @@ def _rewrite_mixed_control_transition(
         transition[field_name] = [_maybe_rename(name, symbols["named"]) for name in transition.get(field_name, [])]
 
 
+def _rewrite_present_named_lists(
+    payload: dict[str, Any],
+    field_names: tuple[str, ...],
+    symbols: dict[str, dict[str, str] | set[str]],
+) -> None:
+    """Rewrite authored named-ref lists without adding fields a closed rev1 shape forbids."""
+
+    for field_name in field_names:
+        if isinstance(payload.get(field_name), list):
+            payload[field_name] = [_maybe_rename(name, symbols["named"]) for name in payload[field_name]]
+
+
 def _rewrite_mixed_control(
     mixed_control: object,
     symbols: dict[str, dict[str, str] | set[str]],
@@ -94,20 +116,62 @@ def _rewrite_mixed_control(
     for transition in mixed_control.get("transitions", {}).values():
         if isinstance(transition, dict):
             _rewrite_mixed_control_transition(transition, symbols)
+    for transition in mixed_control.get("permitted_transitions", {}).values():
+        if isinstance(transition, dict):
+            _rewrite_present_named_lists(transition, ("evidence_refs", "completion_evidence_refs"), symbols)
 
 
-def _rewrite_tool_affordance(
-    binding: dict[str, Any],
-    symbols: dict[str, dict[str, str] | set[str]],
-) -> None:
-    if binding.get("tool_ref"):
-        binding["tool_ref"] = _maybe_rename(str(binding["tool_ref"]), symbols["content"])
-    binding["action_contract_refs"] = [
-        _maybe_rename(name, symbols["action_contracts"]) for name in binding.get("action_contract_refs", [])
+def _unit_authority_scope_ambiguities(unit: ScenarioContent, index: DeclarationIndex) -> list[str]:
+    """Use the standalone authority-scope purpose and diagnostic candidate order."""
+
+    errors = []
+    purpose = ReferencePurpose.AUTHORITY_SCOPE
+    for spec_name, behavior_spec in unit.behavior_specifications.items():
+        for ref in behavior_spec.authority_scope_refs:
+            candidates = index.resolve_for(ref, purpose) if not is_variable_ref(ref) else set()
+            if len(candidates) <= 1:
+                continue
+            eligible = index.eligible(candidates, purpose)
+            refused = sorted(candidates - eligible)
+            detail = f"; not eligible as {PURPOSE_LABELS[purpose]}: {', '.join(refused)}" if refused else ""
+            errors.append(
+                f"Behavior specification '{spec_name}' authority_scope_ref '{ref}' "
+                f"is ambiguous; use one of: {', '.join(sorted(eligible))}{detail}"
+            )
+    return errors
+
+
+def _reject_ambiguous_unit_behavior_refs(unit: ScenarioContent, *, path: Path) -> None:
+    """Reject ambiguous tool identities and behavior authority scopes before rewriting.
+
+    The unit's own declaration index decides, as in standalone validation, so the
+    composed import fails with the standalone diagnostic instead of binding one
+    candidate by section order. The check binds nothing.
+    """
+
+    bindings = [
+        (spec_name, affordance_id, binding.tool_ref)
+        for spec_name, behavior_spec in unit.behavior_specifications.items()
+        for affordance_id, binding in behavior_spec.tool_affordances.items()
+        if binding.tool_ref is not None and not is_variable_ref(binding.tool_ref)
     ]
-    binding["observation_boundary_refs"] = [
-        _maybe_rename(name, symbols["observation_boundaries"]) for name in binding.get("observation_boundary_refs", [])
+    index = build_declaration_index(unit, raise_on_collision=False)
+    errors = [
+        f"Behavior specification '{spec_name}' tool affordance '{affordance_id}' tool_ref '{tool_ref}' "
+        f"is ambiguous; use one of: {', '.join(sorted(candidates))}"
+        for spec_name, affordance_id, tool_ref in bindings
+        if len(candidates := index.resolve(tool_ref)) > 1
     ]
+    if any(
+        len(index.resolve(binding.declaration_ref)) > 1
+        for owner in (*unit.agents.values(), *unit.behavior_specifications.values())
+        for binding in owner.control_context.values()
+        if not is_variable_ref(binding.declaration_ref)
+    ):
+        errors.append("control-context.reference-ambiguous")
+    errors.extend(_unit_authority_scope_ambiguities(unit, index))
+    if errors:
+        raise SDLValidationError(errors, path=path)
 
 
 def _rewrite_participant_inject_delivery(
@@ -147,6 +211,17 @@ def _rewrite_participant_inject_delivery(
     binding["control_evidence_refs"] = [
         _maybe_rename(ref, symbols["named"]) for ref in binding.get("control_evidence_refs", [])
     ]
+    _rewrite_delivery_control_block(binding.get("control"), symbols)
+
+
+def _rewrite_delivery_control_block(control: object, symbols: dict[str, dict[str, str] | set[str]]) -> None:
+    """Rewrite a rev1 directed-delivery ``control`` block; its permitted-transition ref stays local."""
+
+    if not isinstance(control, dict):
+        return
+    if control.get("controller_ref") and control["controller_ref"] != "self":
+        control["controller_ref"] = _maybe_rename(str(control["controller_ref"]), symbols["agents"])
+    _rewrite_present_named_lists(control, ("authority_scope_refs", "evidence_refs"), symbols)
 
 
 def _behavior_reference_maps(
@@ -226,6 +301,7 @@ def _rewrite_agent(
         ("operating_scope", "named"),
     ):
         agent[field_name] = [_maybe_rename(name, symbols[symbol_key]) for name in agent.get(field_name, [])]
+    _rewrite_control_context(agent, symbols)
     _rewrite_agent_access(agent, symbols)
     _rewrite_agent_knowledge(agent, symbols)
 
@@ -287,6 +363,7 @@ def _rewrite_behavior_specification(
         behavior_spec[field_name] = [
             _maybe_rename(name, symbols[symbol_key]) for name in behavior_spec.get(field_name, [])
         ]
+    _rewrite_control_context(behavior_spec, symbols)
     autonomous_execution = behavior_spec.get("autonomous_execution")
     if isinstance(autonomous_execution, dict):
         _rewrite_autonomous_execution(autonomous_execution, symbols)

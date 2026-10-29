@@ -3,11 +3,33 @@
 Part of the SemanticValidator mixin composition; see __init__.py.
 """
 
-from collections import defaultdict
+from collections.abc import Iterable
+from typing import cast
 
 from .._base import is_variable_ref
-from .._declarations import DeclarationIndex, build_declaration_index
+from .._declarations import DeclarationIndex, Purposes, build_declaration_index
 from .._errors import SDLValidationError
+from .._incremental_reuse import (
+    DECLARATION_INDEX,
+    MISSING,
+    PassOutputs,
+    ReadSink,
+    ValidationSession,
+    recording,
+    scenario_values,
+    tracking_index,
+    tracking_view,
+)
+from .._operating_scope_index import operating_scope_aliases
+from .._reference_targetability import (
+    ELIGIBLE_KINDS,
+    PURPOSE_LABELS,
+    ReferencePurpose,
+    canonical_purposes,
+    is_eligible,
+    resolution_domain,
+    runtime_eligibility_kind,
+)
 from .._runtime_service_families import (
     RuntimeFamilyReference,
     iter_runtime_family_references,
@@ -16,14 +38,92 @@ from ..entities import flatten_entities
 from ..nodes import NodeType
 from ..scenario import ScenarioContent
 
+# Semantic-validation error passes in their fixed order. A pass reads the
+# scenario only through ``self._s`` and reports through ``self._err``. Advisory
+# collection follows them in ``validate()``.
+VALIDATION_PASSES = (
+    # OCR passes
+    "_verify_nodes",
+    "_verify_infrastructure",
+    "_verify_runtime_configuration",
+    "_verify_features",
+    "_verify_conditions",
+    "_verify_entities",
+    "_verify_injects",
+    "_verify_events",
+    "_verify_scripts",
+    "_verify_stories",
+    "_verify_roles",
+    "_verify_stateful_resources",
+    # New section passes
+    "_verify_content",
+    "_verify_accounts",
+    "_verify_relationships",
+    "_verify_domain_topology",
+    "_verify_enterprise_identity",
+    "_verify_deployment_tenancy",
+    "_verify_relationship_database_access",
+    "_verify_relationship_mail_access",
+    "_verify_relationship_forwarding_edges",
+    "_verify_relationship_service_integrations",
+    "_verify_relationship_proxy_upstreams",
+    "_verify_agents",
+    "_verify_participant_behavior",
+    "_verify_propositions_and_assertions",
+    "_verify_objectives",
+    "_verify_objective_success_assertions",
+    "_verify_precondition_assertion_uses",
+    "_verify_workflows",
+    "_verify_participant_outcomes",
+    "_verify_evidence_requirements",
+    "_verify_augmentation_scope",
+    "_verify_execution_policy",
+    "_verify_time_model",
+    "_verify_variables",
+    "_verify_variation_points",
+    "_verify_realization_designations",
+    "_verify_explicitness",
+)
+
+
+def purpose_labels(purposes: Purposes) -> str:
+    """Label one purpose, or every member of a purpose tuple joined as a conjunction."""
+
+    return " and as ".join(PURPOSE_LABELS[purpose] for purpose in canonical_purposes(purposes))
+
+
+def eligible_element(purposes: Purposes) -> str:
+    """Name what a *purpose* reference must reference, for its unresolved diagnostic.
+
+    A purpose that admits every declared or every targetable declaration keeps
+    the general wording, which matches the inspection payload's flags; a
+    narrower purpose names itself, and a tuple of several purposes names each.
+    """
+
+    members = canonical_purposes(purposes)
+    kinds = ELIGIBLE_KINDS[members[0]] if len(members) == 1 else None
+    if kinds == ELIGIBLE_KINDS[ReferencePurpose.DECLARED]:
+        return "element"
+    if kinds == ELIGIBLE_KINDS[ReferencePurpose.TARGETABLE]:
+        return "targetable element"
+    return f"element eligible as {purpose_labels(members)}"
+
 
 class _ValidatorCore:
-    def __init__(self, scenario: ScenarioContent) -> None:
+    def __init__(self, scenario: ScenarioContent, *, session: ValidationSession | None = None) -> None:
         self._s = scenario
+        self._scenario = scenario
+        # A caller-supplied session spans validations whose scenarios the caller
+        # does not mutate. Without one, each validate() call owns a fresh session
+        # shared only with its nested member admissions.
+        self._caller_session = session
+        self._session = session if session is not None else ValidationSession()
+        self._read_sink = ReadSink()
         self._errors: list[str] = []
         self._warnings: list[str] = []
         self._declaration_index: DeclarationIndex | None = None
         self._runtime_references: dict[str, RuntimeFamilyReference] | None = None
+        self._runtime_references_reads: frozenset[str] = frozenset()
 
     def _err(self, msg: str) -> None:
         self._errors.append(msg)
@@ -66,92 +166,56 @@ class _ValidatorCore:
                 refs.add(f"{workflow_name}.{step_name}")
         return refs
 
-    def _named_ref_index(self, *, targetable: bool = False) -> dict[str, set[str]]:
-        """Build the alias map for generic relationship/objective refs.
+    def _named_ref_index(self, purpose: Purposes = ReferencePurpose.DECLARED) -> dict[str, set[str]]:
+        """Build the alias map of declarations the reference policy admits for *purpose*.
 
         Bare refs stay available for most top-level sections when they are
-        unambiguous. Qualified refs are always accepted for top-level sections,
-        and are required for infrastructure entries because those keys
-        intentionally mirror node names.
+        unambiguous among eligible declarations. Qualified refs are always
+        accepted for top-level sections, and are required for infrastructure
+        entries because those keys intentionally mirror node names.
         """
+        return self._require_declaration_index().reference_aliases(purpose)
+
+    def _require_declaration_index(self) -> DeclarationIndex:
         if self._declaration_index is None:
             raise RuntimeError("declaration index must be built before reference validation")
-        return self._declaration_index.reference_aliases(targetable=targetable)
+        return self._declaration_index
+
+    def _ineligible_detail(self, ref: str) -> str:
+        """Name the declarations that a refused reference does name, if any."""
+
+        declared = sorted(self._named_ref_index().get(ref, ()))
+        return f"; it names {', '.join(declared)}" if declared else ""
+
+    def _ambiguity_choices(self, candidates: Iterable[str], purpose: Purposes) -> str:
+        """List an ambiguous reference's eligible candidates, then those that *purpose* refuses."""
+
+        named = set(candidates)
+        eligible = self._require_declaration_index().eligible(named, purpose)
+        refused = sorted(named - eligible)
+        detail = f"; not eligible as {purpose_labels(purpose)}: {', '.join(refused)}" if refused else ""
+        return f"{', '.join(sorted(eligible))}{detail}"
+
+    def _failed_purposes(self, ref: str, purposes: tuple[ReferencePurpose, ...]) -> tuple[ReferencePurpose, ...]:
+        """Return the members of *purposes* that a reference's single resolution-domain match fails."""
+
+        index = self._require_declaration_index()
+        named = index.resolve_for(ref, resolution_domain(purposes[0]))
+        failed = tuple(purpose for purpose in purposes if len(named) == 1 and not index.eligible(named, purpose))
+        return failed or purposes
 
     def _operating_scope_ref_index(self) -> dict[str, set[str]]:
         """Build the alias map for ACT-601 ``Agent.operating_scope``.
 
         ADR-020 §2 defines operating scope as the declarative boundary for
-        where the participant may act or observe — concretely subnets,
-        hosts, services, and content (and content items). The split here
-        mirrors the pre-existing scope-validation patterns:
-
-        - hosts come from ``nodes.*`` but only compute nodes (matches
-          ``initial_knowledge.hosts``).
-        - subnets come from ``infrastructure.*`` but only switch-backed
-          entries (matches ``allowed_subnets``).
-        - services come from declared services on compute nodes.
-        - content references stay open across content sections and items.
-
-        Non-spatial, non-resource elements (conditions, accounts,
-        relationships, objectives, …) are not scope boundaries even though
-        they appear in the generic targetable index.
+        where the participant may act or observe: compute hosts, switch-backed
+        subnets, services, and content (and content items). The shared
+        reference policy names those declaration kinds; see
+        :func:`raes._operating_scope_index.operating_scope_aliases`. Non-spatial,
+        non-resource elements (conditions, accounts, relationships,
+        objectives, ...) are not scope boundaries.
         """
-        index: dict[str, set[str]] = defaultdict(set)
-
-        # Hosts: compute nodes only. Both bare and qualified references
-        # aliases are accepted. Switch nodes go through the subnets path,
-        # never the host path.
-        for node_name, node in self._s.nodes.items():
-            if node.type != NodeType.COMPUTE:
-                continue
-            canonical = f"nodes.{node_name}"
-            index[node_name].add(canonical)
-            index[canonical].add(canonical)
-
-        # Subnets: switch-backed infrastructure only. Both bare and
-        # qualified aliases. Compute-backed infrastructure entries (which
-        # mirror compute nodes' names) go through the host path's `nodes.*`
-        # alias, not here.
-        for infra_name, _infra in self._s.infrastructure.items():
-            if not self._is_switch_node(infra_name):
-                continue
-            canonical = f"infrastructure.{infra_name}"
-            index[infra_name].add(canonical)
-            index[canonical].add(canonical)
-
-        self._add_operating_scope_service_aliases(index)
-        self._add_operating_scope_content_aliases(index)
-
-        return {alias: set(candidates) for alias, candidates in index.items()}
-
-    def _add_operating_scope_service_aliases(self, index: dict[str, set[str]]) -> None:
-        # Services: qualified `nodes.<vm>.services.<svc>` refs plus bare
-        # service names. The service-ref helper only emits names declared
-        # on compute nodes (a service on a switch is meaningless), so no extra
-        # filtering is needed here.
-        for node_name, node in self._s.nodes.items():
-            for service in node.services:
-                if not service.name:
-                    continue
-                ref = f"nodes.{node_name}.services.{service.name}"
-                index[ref].add(ref)
-                index[service.name].add(ref)
-
-    def _add_operating_scope_content_aliases(self, index: dict[str, set[str]]) -> None:
-        # Content: sections and items keep the unrestricted aliasing from
-        # the targetable index; ADR-020 does not split content by sub-type.
-        for content_name in self._s.content:
-            canonical = f"content.{content_name}"
-            index[content_name].add(canonical)
-            index[canonical].add(canonical)
-        for content_name, content in self._s.content.items():
-            for item in content.items:
-                if not item.name:
-                    continue
-                canonical = f"content.{content_name}.items.{item.name}"
-                index[item.name].add(canonical)
-                index[canonical].add(canonical)
+        return operating_scope_aliases(self._require_declaration_index(), self._s)
 
     def _validate_operating_scope_ref(self, ref: str, *, owner_label: str) -> None:
         """Validate ``operating_scope`` against the spatial/resource index."""
@@ -170,73 +234,76 @@ class _ValidatorCore:
         *,
         owner_label: str,
         ref_label: str,
-        targetable: bool = False,
+        purpose: Purposes = ReferencePurpose.DECLARED,
     ) -> None:
-        """Validate a generic reference against the named-element index."""
-        index = self._named_ref_index(targetable=targetable)
-        candidates = index.get(ref)
+        """Validate a reference against the declarations eligible for *purpose* (every member of a tuple)."""
+        purposes = canonical_purposes(purpose)
+        candidates = self._require_declaration_index().resolve_for(ref, purposes)
         if not candidates:
-            qualifier = "targetable " if targetable else ""
-            self._err(f"{owner_label} {ref_label} '{ref}' does not reference any defined {qualifier}element")
+            self._err(
+                f"{owner_label} {ref_label} '{ref}' does not reference any defined "
+                f"{eligible_element(self._failed_purposes(ref, purposes))}{self._ineligible_detail(ref)}"
+            )
             return
 
         if len(candidates) > 1:
-            choices = ", ".join(sorted(candidates))
+            choices = self._ambiguity_choices(candidates, purpose)
             self._err(f"{owner_label} {ref_label} '{ref}' is ambiguous; use one of: {choices}")
 
     def validate(self) -> None:
-        """Run all validation passes and raise on errors."""
+        """Run all validation passes and raise on errors.
+
+        Each pass runs against a tracking view of the scenario. The session
+        reuses a pass result when every field it read is the identical object.
+        """
         self._errors = []
         self._warnings = []
-        self._declaration_index = build_declaration_index(self._s, raise_on_collision=False)
-        self._errors.extend(self._declaration_index.collision_errors)
-
-        # OCR passes
-        self._verify_nodes()
-        self._verify_infrastructure()
-        self._verify_runtime_configuration()
-        self._verify_features()
-        self._verify_conditions()
-        self._verify_entities()
-        self._verify_injects()
-        self._verify_events()
-        self._verify_scripts()
-        self._verify_stories()
-        self._verify_roles()
-        self._verify_stateful_resources()
-
-        # New section passes
-        self._verify_content()
-        self._verify_accounts()
-        self._verify_relationships()
-        self._verify_domain_topology()
-        self._verify_enterprise_identity()
-        self._verify_deployment_tenancy()
-        self._verify_relationship_database_access()
-        self._verify_relationship_mail_access()
-        self._verify_relationship_forwarding_edges()
-        self._verify_relationship_service_integrations()
-        self._verify_relationship_proxy_upstreams()
-        self._verify_agents()
-        self._verify_participant_behavior()
-        self._verify_propositions_and_assertions()
-        self._verify_objectives()
-        self._verify_objective_success_assertions()
-        self._verify_precondition_assertion_uses()
-        self._verify_workflows()
-        self._verify_participant_outcomes()
-        self._verify_evidence_requirements()
-        self._verify_augmentation_scope()
-        self._verify_execution_policy()
-        self._verify_time_model()
-        self._verify_variables()
-        self._verify_variation_points()
-        self._verify_realization_designations()
-        self._verify_explicitness()
-        self._collect_advisories()
+        self._runtime_references = None
+        self._runtime_references_reads = frozenset()
+        self._session = self._caller_session if self._caller_session is not None else ValidationSession()
+        index = build_declaration_index(self._scenario, raise_on_collision=False, session=self._session)
+        self._errors.extend(index.collision_errors)
+        index_token = self._session.index_token(tuple(index.declarations), tuple(index.collision_errors))
+        self._declaration_index = tracking_index(index, self._read_sink)  # type: ignore[assignment]
+        self._s = tracking_view(self._scenario, self._read_sink)
+        try:
+            for pass_name in VALIDATION_PASSES:
+                self._run_pass(pass_name, index_token)
+            self._collect_advisories()
+        finally:
+            self._s = self._scenario
+            self._declaration_index = index
 
         if self._errors:
             raise SDLValidationError(self._errors)
+
+    def _run_pass(self, pass_name: str, index_token: object) -> None:
+        values = scenario_values(self._scenario)
+        values[DECLARATION_INDEX] = index_token
+        scope = (pass_name, type(self._scenario), tuple(self._errors))
+        reused = cast("PassOutputs | None", self._session.lookup(scope, values))
+        private = object.__getattribute__(self._scenario, "__pydantic_private__")
+        if reused is not None:
+            self._errors.extend(reused.errors)
+            self._warnings.extend(reused.warnings)
+            if private is not None:
+                private.update(reused.private_writes)
+            return
+        errors_before = len(self._errors)
+        warnings_before = len(self._warnings)
+        private_before = dict(private or {})
+        with recording(self._read_sink) as reads:
+            getattr(self, pass_name)()
+        outputs = PassOutputs(
+            errors=tuple(self._errors[errors_before:]),
+            warnings=tuple(self._warnings[warnings_before:]),
+            private_writes=tuple(
+                (name, value)
+                for name, value in (private or {}).items()
+                if private_before.get(name, MISSING) is not value
+            ),
+        )
+        self._session.store(scope, reads, values, outputs)
 
     def validate_node_realization(self) -> None:
         """Validate a bounded portable node context, without creating author intent.
@@ -249,6 +316,7 @@ class _ValidatorCore:
         self._errors = []
         self._warnings = []
         self._runtime_references = None
+        self._declaration_index = None
         for name, node in self._s.nodes.items():
             self._verify_node_operating_system(name, node)
             self._verify_node_architecture(name, node)
@@ -282,6 +350,7 @@ class _ValidatorCore:
         self._verify_runtime_forwarding_agents()
         self._verify_runtime_orchestration_authorities()
         self._verify_runtime_mail_services()
+        self._verify_cloud_resources()
 
     @property
     def warnings(self) -> list[str]:
@@ -309,9 +378,14 @@ class _ValidatorCore:
             return None
         if self._runtime_references is None:
             references: dict[str, RuntimeFamilyReference] = {}
-            for reference in iter_runtime_family_references(self._s):
-                references.setdefault(reference.address, reference)
+            with recording(self._read_sink) as reads:
+                for reference in iter_runtime_family_references(self._s):
+                    references.setdefault(reference.address, reference)
             self._runtime_references = references
+            self._runtime_references_reads = frozenset(reads)
+        else:
+            # A later pass that resolves through the cache depends on what built it.
+            self._read_sink.note_all(self._runtime_references_reads)
         return self._runtime_references.get(ref)
 
     def _resolve_database_service_ref(self, ref: object) -> object | None:
@@ -322,11 +396,9 @@ class _ValidatorCore:
         ``database_access`` can be checked against it.
         """
         reference = self._runtime_reference(ref)
-        if reference is None or reference.family.collection_name != "database_services":
-            return None
-        if reference.collection_path not in {(), ("databases",)}:
-            return None
-        return reference.owning_item
+        return (
+            reference.owning_item if runtime_reference_eligible(reference, ReferencePurpose.DATABASE_ENDPOINT) else None
+        )
 
     def _resolve_application_ref(self, ref: object) -> object | None:
         """Resolve a qualified ``nodes.<node>.runtime.applications.<id>`` ref.
@@ -336,10 +408,16 @@ class _ValidatorCore:
         application (ADR-029 §4).
         """
         reference = self._runtime_reference(ref)
-        if (
-            reference is None
-            or reference.family.collection_name != "applications"
-            or reference.item is not reference.owning_item
-        ):
-            return None
-        return reference.item
+        return (
+            reference.item
+            if runtime_reference_eligible(reference, ReferencePurpose.RUNTIME_APPLICATION_ENDPOINT)
+            else None
+        )
+
+
+def runtime_reference_eligible(reference: RuntimeFamilyReference | None, purpose: ReferencePurpose) -> bool:
+    """Whether an exact runtime reference's family-qualified kind is eligible for an endpoint *purpose*."""
+
+    return reference is not None and is_eligible(
+        runtime_eligibility_kind(reference.family.collection_name, reference.collection_path), purpose
+    )

@@ -265,7 +265,7 @@ class DnsRuntimeSetting(SDLModel):
         return parse_runtime_enum_or_var(v, DnsSettingProvenance, field_name="provenance")
 
     @model_validator(mode="after")
-    def validate_redacted_value(self) -> "DnsRuntimeSetting":
+    def validate_redacted_value(self) -> DnsRuntimeSetting:
         enforce_observed_value_redaction(
             owner_label=f"DNS setting '{self.name}'",
             value=self.value,
@@ -330,7 +330,7 @@ class DnsZone(SDLModel):
         return [absolute_path_or_var(item, field_name="zone_file_refs") for item in v]
 
     @model_validator(mode="after")
-    def validate_zone(self) -> "DnsZone":
+    def validate_zone(self) -> DnsZone:
         reject_duplicates(
             (rrset.rrset_id for rrset in self.rrsets),
             label="rrset_id",
@@ -402,7 +402,7 @@ class RuntimeDnsService(SDLModel):
         return [absolute_path_or_var(item, field_name=info.field_name) for item in v]
 
     @model_validator(mode="after")
-    def validate_service(self) -> "RuntimeDnsService":
+    def validate_service(self) -> RuntimeDnsService:
         reject_duplicates(
             (zone.zone_id for zone in self.zones),
             label="zone_id",

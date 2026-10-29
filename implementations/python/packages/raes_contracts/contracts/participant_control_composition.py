@@ -122,13 +122,15 @@ def _validate_ifc_result(
     if result.payload is None or result.payload.kind != "ifc-fact":
         return
     profiles = {profile.ref for profile in binding.profiles}
-    expected = (
-        "teaching-influence"
-        if result.payload.domain == "teaching-influence-domain/rev1"
-        else "participant-boundary-flow-policy-v1"
-    )
+    expected = {
+        "teaching-influence-domain/rev1": "teaching-influence",
+        "sem-233/rev1": "participant-boundary-flow-policy-v1",
+        "owner-ifc/rev1": "participant-owner-flow-policy-v1",
+    }[result.payload.domain]
     if expected not in profiles:
         raise ValueError("IFC fact domain is not selected by its mechanism")
+    if expected == "participant-owner-flow-policy-v1" and result.payload.profile not in binding.profiles:
+        raise ValueError("owner IFC fact exact profile is not selected by its mechanism")
     if expected == "teaching-influence" and set(result.payload.source_refs) != set(context.inputs):
         raise ValueError("teaching propagation must cover every admitted input")
 
@@ -400,5 +402,5 @@ def parse_participant_control_evaluation(source: str | bytes) -> ParticipantCont
     try:
         payload = parse_bounded_json_object(source, max_bytes=1_048_576, max_depth=32)
         return ParticipantControlEvaluationModel.model_validate(payload)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         raise ValueError("invalid participant control evaluation") from None

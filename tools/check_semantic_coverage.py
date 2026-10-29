@@ -432,7 +432,7 @@ def _check_adr_links_note(repo_root: Path) -> list[PolicyFailure]:
 def _safe_parse(path: Path) -> ast.Module | None:
     try:
         return ast.parse(path.read_text(encoding="utf-8"))
-    except (OSError, SyntaxError, ValueError):
+    except OSError, SyntaxError, ValueError:
         return None
 
 

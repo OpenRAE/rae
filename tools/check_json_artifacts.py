@@ -150,7 +150,7 @@ def _frozen_historical_records(repo_root: Path) -> frozenset[str]:
     if is_regular_repo_file(repo_root, _HISTORICAL_IDENTITY_RECORDS_PATH):
         try:
             payload = json.loads((repo_root / _HISTORICAL_IDENTITY_RECORDS_PATH).read_text(encoding="utf-8"))
-        except (OSError, ValueError):
+        except OSError, ValueError:
             payload = {}
         records = payload.get("records") if isinstance(payload, dict) else None
     if not isinstance(records, list):

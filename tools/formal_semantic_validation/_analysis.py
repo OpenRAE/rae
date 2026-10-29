@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 
 from tools.formal_semantic_validation._claims import recompute_claim_results
@@ -21,15 +22,22 @@ from tools.formal_semantic_validation._types import (
 from tools.policy.common import PolicyFailure, safe_repo_path
 
 
+@dataclass(frozen=True)
+class _AnalysisContext:
+    repo_root: Path
+    path: str
+    snapshot_path: str | None = None
+
+
 def _validate_analysis(
-    repo_root: Path,
+    context: _AnalysisContext,
     protocol: _JsonObject,
     corpus: _JsonObject,
     snapshot: _JsonObject,
     analysis: _JsonObject,
     failures: list[PolicyFailure],
-    path: str,
 ) -> None:
+    repo_root, path, snapshot_path = context.repo_root, context.path, context.snapshot_path
     if not _closed_object(
         analysis,
         _ANALYSIS_KEYS,
@@ -85,7 +93,7 @@ def _validate_analysis(
             )
         )
     _overall_status_failures(recomputed, analysis, failures, path)
-    _claim_record_failures(repo_root, analysis, failures, path)
+    _claim_record_failures(repo_root, analysis, failures, path, snapshot_path=snapshot_path)
 
 
 def _claim_result_failures(
@@ -171,6 +179,8 @@ def _claim_record_failures(
     analysis: _JsonObject,
     failures: list[PolicyFailure],
     path: str,
+    *,
+    snapshot_path: str | None = None,
 ) -> None:
     if not _closed_object(
         analysis.get("claim"),
@@ -197,8 +207,7 @@ def _claim_record_failures(
                 )
             )
     for artifact in claim.get("evidence_artifacts", []):
-        resolved = safe_repo_path(repo_root, artifact) if isinstance(artifact, str) else None
-        if resolved is None or not resolved.is_file():
+        if not _claim_artifact_exists(repo_root, artifact, snapshot_path):
             failures.append(
                 _failure(
                     "formal-validation-claim-artifact",
@@ -214,3 +223,9 @@ def _claim_record_failures(
                 path,
             )
         )
+
+
+def _claim_artifact_exists(repo_root: Path, artifact: object, snapshot_path: str | None) -> bool:
+    selected = snapshot_path if artifact == "@snapshot" else artifact
+    resolved = safe_repo_path(repo_root, selected) if isinstance(selected, str) else None
+    return resolved is not None and resolved.is_file()

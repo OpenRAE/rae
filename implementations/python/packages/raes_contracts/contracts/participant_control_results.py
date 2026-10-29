@@ -18,6 +18,7 @@ from .participant_control_coordinates import (
     require_unique,
 )
 from .participant_control_effects import ControlEffectRequestModel
+from .participant_flow_control_semantics import ParticipantFlowFinalDisposition
 
 
 class ControlTeachingFactModel(ContractModel):
@@ -50,6 +51,32 @@ class ControlSecurityFactModel(ContractModel):
 
 
 ControlIFCFact = Annotated[ControlTeachingFactModel | ControlSecurityFactModel, Field(discriminator="domain")]
+
+
+class ControlOwnerSecurityFactModel(ControlSecurityFactModel):
+    """V2-only owner fact; retains the incumbent relation and label authority."""
+
+    domain: Literal["owner-ifc/rev1"]
+    profile: ControlArtifactReferenceModel
+    sink_decision_ref: ControlRef
+    sink_disposition: ParticipantFlowFinalDisposition
+
+    @model_validator(mode="after")
+    def _profile(self) -> Self:
+        from .participant_control_profiles import validate_control_profile_reference
+        from .participant_owner_flow import OWNER_FLOW_PROFILE_ID
+
+        require_kind(self.profile, "profile")
+        if self.profile.ref != OWNER_FLOW_PROFILE_ID:
+            raise ValueError("owner flow fact requires its exact published profile")
+        validate_control_profile_reference(self.profile)
+        return self
+
+
+ControlIFCFactV2 = Annotated[
+    ControlTeachingFactModel | ControlSecurityFactModel | ControlOwnerSecurityFactModel,
+    Field(discriminator="domain"),
+]
 
 
 class ControlDecisionModel(ContractModel):

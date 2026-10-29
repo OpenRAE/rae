@@ -21,6 +21,24 @@ SEM-230 defines participant information-flow labels and projection, API-423 and 
 
 ## Traceability
 
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/runtime_mapping.py` (Issue #972 bounded public-execution mapping; no equivalence or complete runtime-realization result)
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/runtime_mapping_integrity.py` (Independent operation-record preservation, audit-prefix and authorized-outcome checks)
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/runtime_mapping_export.py` (Mapping source, profile, model and observed-case digests with drift rejection)
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-runtime-mapping.md` (State/transition mapping, data flows, security boundary and reproduction)
+- DOCUMENTS → DOCUMENTATION `specs/formal/participant-semantics/runtime-mapping/rev1/manifest.json` (Bounded mapping evidence; incompatible and incomplete observations remain explicit)
+- TESTS → TEST `implementations/python/tests/test_issue_972_runtime_mapping.py` (Public ingress, v2 context, effect dispatch, final egress, refusal, retry, corruption and projection checks)
+- TESTS → TEST `implementations/python/tests/test_issue_972_mapping_export.py` (Reproduction, source and artifact drift, retained model integrity and bounded publication)
+- TESTS → TEST `implementations/python/tests/test_issue_972_mapping_ownership.py` (Formal mapping ownership remains separate from runtime implementation ownership)
+- TESTS → TEST `implementations/python/tests/crossing_runtime_cases.py` (Synthetic policy inputs driving real public entry points)
+- TESTS → TEST `implementations/python/tests/crossing_runtime_observer.py` (Read-only phase and transaction witnesses from unmodified runtime orchestration)
+
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/multi_export.py` (Issue #1395 complete two-operation construction and source drift evidence; equivalence and realization remain unestablished)
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-multi-operation-models.md` (Separate finite profile, projection and failure boundary)
+- DOCUMENTS → DOCUMENTATION `docs/research/participant-bisimulation/multi-operation-construction.md` (Independent construction and historical-source preservation)
+- TESTS → TEST `implementations/python/tests/test_issue_1395_crossing_models.py` (Complete closure, independent history/policy, retry and bounded failure cases)
+- TESTS → TEST `implementations/python/tests/test_issue_1395_crossing_export.py` (Deterministic counts, source pins, drift and no partial publication)
+- TESTS → TEST `implementations/python/tests/test_issue_1395_crossing_profile.py` (Closed profile, schema and carrier joins)
+
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1395` (Model multiple operations and interleaved retries)
 
 - TESTS → TEST `implementations/python/tests/test_issue_971_crossing_profile.py` (Closed carrier and binary profile validation tests)

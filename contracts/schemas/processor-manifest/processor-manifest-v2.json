@@ -115,6 +115,17 @@
           "title": "Allowed Value Kinds",
           "type": "array"
         },
+        "control_context": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantControlContextTargetModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "default": {
           "anyOf": [
             {
@@ -217,9 +228,315 @@
       "title": "LiteralBindingValueModel",
       "type": "object"
     },
+    "ParticipantControlContextAssetReferenceModel": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Asset Digest",
+          "type": "string"
+        },
+        "asset_id": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_version": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id",
+        "asset_version",
+        "asset_digest"
+      ],
+      "title": "ParticipantControlContextAssetReferenceModel",
+      "type": "object"
+    },
+    "ParticipantControlContextTargetModel": {
+      "additionalProperties": false,
+      "description": "Manifest-owned finite domain of exact public SDL asset references.",
+      "properties": {
+        "references": {
+          "additionalProperties": false,
+          "maxProperties": 256,
+          "minProperties": 1,
+          "patternProperties": {
+            "^control_context_assets\\.[a-z0-9][a-z0-9_-]*(?:\\.[a-z0-9][a-z0-9_-]*)*$": {
+              "$ref": "#/$defs/ParticipantControlContextAssetReferenceModel"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 1024,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_.-]"
+            }
+          },
+          "title": "References",
+          "type": "object"
+        },
+        "slot_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9][a-z0-9_-]*$",
+          "title": "Slot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "slot_id",
+        "references"
+      ],
+      "title": "ParticipantControlContextTargetModel",
+      "type": "object"
+    },
+    "ParticipantFeatureSupportLevel": {
+      "description": "ADR-054 guarantee-strength scale for per-feature participant runtime support.",
+      "enum": [
+        "unsupported",
+        "disclosed_weak",
+        "bounded",
+        "exact"
+      ],
+      "title": "ParticipantFeatureSupportLevel",
+      "type": "string"
+    },
+    "ParticipantFeatureSupportModel": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "support_level": {
+                "enum": [
+                  "unsupported",
+                  "disclosed_weak",
+                  "bounded"
+                ]
+              }
+            },
+            "required": [
+              "support_level"
+            ]
+          },
+          "then": {
+            "properties": {
+              "disclosure_refs": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "disclosure_refs"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "feature": {
+                "enum": [
+                  "participant_boundary_flow_resolution",
+                  "participant_declassification",
+                  "participant_directed_inject_delivery",
+                  "participant_egress_projection",
+                  "participant_final_sink_mediation",
+                  "participant_ingress_admission",
+                  "participant_intervention",
+                  "participant_modular_control",
+                  "participant_monitor_topology",
+                  "participant_predicate_opacity",
+                  "participant_processing_role_trust",
+                  "participant_quarantined_processing",
+                  "participant_transformation",
+                  "scoped_tool_affordances",
+                  "tool_affordances"
+                ]
+              },
+              "support_level": {
+                "enum": [
+                  "unsupported",
+                  "disclosed_weak",
+                  "bounded"
+                ]
+              }
+            },
+            "required": [
+              "feature",
+              "support_level"
+            ]
+          },
+          "then": {
+            "properties": {
+              "limitation_refs": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "limitation_refs"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "feature": {
+                "enum": [
+                  "participant_boundary_flow_resolution",
+                  "participant_declassification",
+                  "participant_directed_inject_delivery",
+                  "participant_egress_projection",
+                  "participant_final_sink_mediation",
+                  "participant_ingress_admission",
+                  "participant_intervention",
+                  "participant_modular_control",
+                  "participant_monitor_topology",
+                  "participant_predicate_opacity",
+                  "participant_processing_role_trust",
+                  "participant_quarantined_processing",
+                  "participant_transformation",
+                  "scoped_tool_affordances",
+                  "tool_affordances"
+                ]
+              },
+              "support_level": {
+                "const": "bounded"
+              }
+            },
+            "required": [
+              "feature",
+              "support_level"
+            ]
+          },
+          "then": {
+            "properties": {
+              "constraint_refs": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "constraint_refs"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "feature": {
+                "enum": [
+                  "participant_boundary_flow_resolution",
+                  "participant_declassification",
+                  "participant_directed_inject_delivery",
+                  "participant_egress_projection",
+                  "participant_final_sink_mediation",
+                  "participant_ingress_admission",
+                  "participant_intervention",
+                  "participant_modular_control",
+                  "participant_monitor_topology",
+                  "participant_predicate_opacity",
+                  "participant_processing_role_trust",
+                  "participant_quarantined_processing",
+                  "participant_transformation",
+                  "scoped_tool_affordances",
+                  "tool_affordances"
+                ]
+              },
+              "support_level": {
+                "enum": [
+                  "disclosed_weak",
+                  "bounded",
+                  "exact"
+                ]
+              }
+            },
+            "required": [
+              "feature",
+              "support_level"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence_refs": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "evidence_refs"
+            ]
+          }
+        }
+      ],
+      "description": "API-407 per-feature participant runtime support declaration.",
+      "properties": {
+        "constraint_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Constraint Refs",
+          "type": "array"
+        },
+        "disclosure_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Disclosure Refs",
+          "type": "array"
+        },
+        "evidence_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "feature": {
+          "minLength": 1,
+          "title": "Feature",
+          "type": "string"
+        },
+        "limitation_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Limitation Refs",
+          "type": "array"
+        },
+        "support_level": {
+          "$ref": "#/$defs/ParticipantFeatureSupportLevel"
+        }
+      },
+      "required": [
+        "feature",
+        "support_level"
+      ],
+      "title": "ParticipantFeatureSupportModel",
+      "type": "object"
+    },
     "ProcessorCapabilitiesV2Model": {
       "additionalProperties": false,
       "properties": {
+        "participant_tools": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProcessorParticipantToolsModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "supported_features": {
           "items": {
             "$ref": "#/$defs/ProcessorFeature"
@@ -281,6 +598,62 @@
       ],
       "title": "ProcessorFeature",
       "type": "string"
+    },
+    "ProcessorParticipantToolsModel": {
+      "additionalProperties": false,
+      "description": "Processor preservation claims use the existing API-407 support model.",
+      "properties": {
+        "feature_support": {
+          "items": {
+            "$ref": "#/$defs/ParticipantFeatureSupportModel"
+          },
+          "minItems": 1,
+          "title": "Feature Support",
+          "type": "array"
+        },
+        "max_bindings_per_profile": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Bindings Per Profile"
+        },
+        "max_participants_per_binding": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Participants Per Binding"
+        },
+        "semantic_versions": {
+          "items": {
+            "const": "participant-tool-profile/v1",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Semantic Versions",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "semantic_versions",
+        "feature_support"
+      ],
+      "title": "ProcessorParticipantToolsModel",
+      "type": "object"
     }
   },
   "$id": "https://openrae.github.io/rae/schemas/processor-manifest-v2.json",

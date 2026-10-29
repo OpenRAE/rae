@@ -28,6 +28,7 @@ from ..control_plane_security import (
     ControlPlaneRouteAuthority,
     ControlPlaneSecurityConfig,
 )
+from ._offload import _control_plane_calls
 
 _LOGGER = logging.getLogger(__name__)
 _UNAUTHORIZED_DETAIL = "unauthorized"
@@ -151,19 +152,24 @@ def _public_probe_dependency() -> None:
     """Declare a value-free public probe; it admits no identity."""
 
 
-def _administrative_read_dependency(request: Request) -> ControlPlaneIdentity:
-    return request.app.state.control_plane_api_auth.admit(request, ControlPlaneRouteAuthority.ADMINISTRATIVE_READ)
+async def _administrative_read_dependency(request: Request) -> ControlPlaneIdentity:
+    return await _control_plane_calls(request).authenticate(
+        request.app.state.control_plane_api_auth.admit, request, ControlPlaneRouteAuthority.ADMINISTRATIVE_READ
+    )
 
 
-def _administrative_mutation_dependency(request: Request) -> ControlPlaneIdentity:
-    return request.app.state.control_plane_api_auth.admit(
+async def _administrative_mutation_dependency(request: Request) -> ControlPlaneIdentity:
+    return await _control_plane_calls(request).authenticate(
+        request.app.state.control_plane_api_auth.admit,
         request,
         ControlPlaneRouteAuthority.ADMINISTRATIVE_MUTATION,
     )
 
 
-def _operator_resolution_dependency(request: Request) -> ControlPlaneIdentity:
-    return request.app.state.control_plane_api_auth.admit(request, ControlPlaneRouteAuthority.OPERATOR_RESOLUTION)
+async def _operator_resolution_dependency(request: Request) -> ControlPlaneIdentity:
+    return await _control_plane_calls(request).authenticate(
+        request.app.state.control_plane_api_auth.admit, request, ControlPlaneRouteAuthority.OPERATOR_RESOLUTION
+    )
 
 
 _PublicProbe = Depends(_public_probe_dependency)

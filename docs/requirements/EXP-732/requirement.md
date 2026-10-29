@@ -20,6 +20,7 @@ Honest experiment interpretation requires preserving not only what data were cap
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_issue_1547_capture_reference_version.py` (Capture references preserve the supplied version in proof and reject mismatching identities)
 - DOCUMENTS → GITHUB_ISSUE `347` (Issue #347 — Multi-Organizational Authority And Governance Contracts)
 - IMPLEMENTS → GITHUB_ISSUE `128` (Issue #128 - Observability evidence conformance implementation)
 - DOCUMENTS → DOCUMENTATION `docs/research/experiment-core/issue-342-exp-732-evidence-source-augmentation-provenance-preflight-guardrails.md` (Evidence source augmentation provenance preflight guardrails)

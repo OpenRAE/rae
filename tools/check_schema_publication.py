@@ -583,7 +583,7 @@ def _safe_schema_path(repo_root: Path, schema_path: str) -> tuple[Path | None, s
     try:
         resolved = candidate.resolve(strict=False)
         resolved.relative_to(schemas_root)
-    except (OSError, ValueError):
+    except OSError, ValueError:
         return None, f"schema manifest path resolves outside contracts/schemas/: {schema_path}"
     return resolved, None
 

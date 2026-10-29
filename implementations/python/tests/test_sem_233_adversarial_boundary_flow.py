@@ -451,7 +451,7 @@ def test_coordinate_rewrite_is_scoped_to_its_exact_sink_and_cut() -> None:
 def test_catalog_keeps_one_relation_and_bounds_sem_233_evidence() -> None:
     catalog = load_behavioral_relation_catalog()
 
-    assert catalog.taxonomy_revision == "rev12"
+    assert catalog.taxonomy_revision == "rev13"
     relation = catalog.relations["policy-noninterference"]
     assert "SEM-233" in relation.definition
     assert "sem-233/rev1" in relation.observation_projection.policy_revision

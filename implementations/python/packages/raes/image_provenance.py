@@ -196,7 +196,7 @@ class ImageBuildArg(SDLModel):
         )
 
     @model_validator(mode="after")
-    def validate_redacted_value(self) -> "ImageBuildArg":
+    def validate_redacted_value(self) -> ImageBuildArg:
         enforce_observed_value_redaction(
             owner_label=f"build argument '{self.name}'",
             value=self.value,
@@ -250,7 +250,7 @@ class ImageEnvironmentDefault(SDLModel):
         )
 
     @model_validator(mode="after")
-    def validate_redacted_value(self) -> "ImageEnvironmentDefault":
+    def validate_redacted_value(self) -> ImageEnvironmentDefault:
         enforce_observed_value_redaction(
             owner_label=f"image environment variable '{self.name}'",
             value=self.value,
@@ -311,7 +311,7 @@ class ImageConfig(SDLModel):
         return absolute_path_or_var(v, field_name="working_directory") if v else v
 
     @model_validator(mode="after")
-    def validate_unique_default_environment(self) -> "ImageConfig":
+    def validate_unique_default_environment(self) -> ImageConfig:
         seen: set[str] = set()
         for variable in self.default_environment:
             if variable.name in seen:
@@ -348,7 +348,7 @@ class ImageSourceInput(SDLModel):
         return absolute_path_or_var(v, field_name="destination_path") if v else v
 
     @model_validator(mode="after")
-    def validate_checksum_pair(self) -> "ImageSourceInput":
+    def validate_checksum_pair(self) -> ImageSourceInput:
         if self.checksum and not self.checksum_algorithm:
             raise ValueError("checksum requires checksum_algorithm")
         if self.checksum_algorithm and not self.checksum:
@@ -392,7 +392,7 @@ class ImageAttestation(SDLModel):
         return parse_runtime_enum_or_var(v, ImageAttestationType, field_name="attestation_type")
 
     @model_validator(mode="after")
-    def validate_status_verification(self) -> "ImageAttestation":
+    def validate_status_verification(self) -> ImageAttestation:
         if self.status == ImageAttestationStatus.ABSENT and self.verification == ImageVerificationStatus.VERIFIED:
             raise ValueError("an absent attestation cannot have a verified verification result")
         return self
@@ -414,7 +414,7 @@ class ContainerImageBuildProvenance(SDLModel):
     description: str = ""
 
     @model_validator(mode="after")
-    def validate_unique_entries(self) -> "ContainerImageBuildProvenance":
+    def validate_unique_entries(self) -> ContainerImageBuildProvenance:
         seen_build_args: set[str] = set()
         for build_arg in self.build_args:
             if build_arg.name in seen_build_args:

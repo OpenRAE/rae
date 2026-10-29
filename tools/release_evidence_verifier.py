@@ -17,14 +17,13 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
-from typing import TypeAlias
 
 from tools.release_evidence_admission import ProducerIdentity
 
 # The verifier emits a small JSON array. Anything larger is malformed output or
 # a hostile response rather than a verdict.
 # The verifier emits a JSON document tree; naming it beats `Any`.
-JsonValue: TypeAlias = "str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]"
+type JsonValue = "str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]"
 
 MAX_VERIFIER_OUTPUT_BYTES = 1 * 1024 * 1024
 
