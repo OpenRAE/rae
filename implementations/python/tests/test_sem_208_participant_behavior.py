@@ -2733,3 +2733,18 @@ def test_behavior_history_schema_is_published_as_closed_world_contract():
     assert "ParticipantActionResultModel" in schema_defs
     assert details_schema["additionalProperties"] is False
     assert set(details_schema["properties"]) == {"visible_refs", "disclosed_refs", "evidence_refs"}
+
+
+def test_behavior_history_violation_omits_the_event_parser_exception_text(monkeypatch):
+    secret = "history-secret-sentinel-1678"
+
+    def refuse(cls, payload):
+        raise ValueError(secret)
+
+    monkeypatch.setattr(ParticipantBehaviorHistoryEvent, "from_payload", classmethod(refuse))
+    violations = list(iter_participant_behavior_history_violations([{"event_type": "action_attempted"}]))
+
+    assert violations == [
+        ("runtime.snapshot.participant-behavior-history[0]", "participant behavior history event is invalid")
+    ]
+    assert all(secret not in message for _, message in violations)

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from raes_contracts.errors import OperationalError
 
 _GUIDANCE_RELATIVE_PATH = Path("specs") / "agent-guidance" / "agent-guidance.yaml"
 _ALLOWED_AUDIENCES = frozenset({"all", "contributor", "operator"})
@@ -65,4 +66,5 @@ def _find_repo_root(start: Path) -> Path:
     for candidate in (start, *start.parents):
         if (candidate / ".ground-control.yaml").exists() or (candidate / ".git").exists():
             return candidate
-    raise RuntimeError(f"could not locate RAES repo root from {start}")
+    # An installed distribution has no repository checkout, so the guidance resource is unavailable.
+    raise OperationalError(f"could not locate RAES repo root from {start}")

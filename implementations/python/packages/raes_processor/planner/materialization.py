@@ -2,6 +2,7 @@
 
 from dataclasses import replace
 
+from pydantic import ValidationError
 from raes import canonical_instantiated_sdl_bytes, canonical_instantiated_sdl_digest
 from raes.scenario import InstantiatedScenario
 from raes_backend_protocols.capabilities import BackendManifest
@@ -63,12 +64,10 @@ def planned_materialization_source(
         MATERIALIZATION_ATTESTATION_CONTRACT not in manifest.supported_contract_versions and not required
     ) or model.materialization_description is not None:
         return None, diagnostics
-    try:
-        source = _build_materialization_source(
-            instance, scope, RUNTIME_DESCENDANTS_CONTRACT in manifest.supported_contract_versions
-        )
-        return source, diagnostics
-    except TypeError, ValueError:
+    source = _build_materialization_source(
+        instance, scope, RUNTIME_DESCENDANTS_CONTRACT in manifest.supported_contract_versions
+    )
+    if source is None:
         diagnostics.append(
             Diagnostic(
                 code="materialization.source-context-required",
@@ -77,20 +76,29 @@ def planned_materialization_source(
                 message="Materialization reporting requires the admitted full source and a safe run identity.",
             )
         )
-        return None, diagnostics
+    return source, diagnostics
 
 
 def _build_materialization_source(
     instance: InstantiatedScenario | None, scope: PlanScope | None, descendants: bool
-) -> MaterializationSource:
-    if instance is None or scope is None or scope.run_id is None:
-        raise ValueError("missing source or run")
-    if descendants and not scope.target_name:
-        raise ValueError("runtime inventory reporting requires the selected target scope")
-    return MaterializationSource(
-        snapshot=canonical_instantiated_sdl_bytes(instance).decode("utf-8"),
-        authored_digest=instance.instantiation_provenance.authored_digest.value,
-        instantiated_digest=canonical_instantiated_sdl_digest(instance).value,
-        run_id=scope.run_id,
-        target_scope=f"target:{scope.target_name}" if descendants else None,
-    )
+) -> MaterializationSource | None:
+    """Return ``None`` when the admitted full source or a safe run identity is unavailable."""
+
+    # Runtime inventory reporting requires the selected target scope.
+    if instance is None or scope is None or scope.run_id is None or (descendants and not scope.target_name):
+        return None
+    snapshot = canonical_instantiated_sdl_bytes(instance).decode("utf-8")
+    authored_digest = instance.instantiation_provenance.authored_digest.value
+    instantiated_digest = canonical_instantiated_sdl_digest(instance).value
+    try:
+        source = MaterializationSource(
+            snapshot=snapshot,
+            authored_digest=authored_digest,
+            instantiated_digest=instantiated_digest,
+            run_id=scope.run_id,
+            target_scope=f"target:{scope.target_name}" if descendants else None,
+        )
+    except ValidationError:
+        # The source contract refuses an unsafe run identity or target scope.
+        return None
+    return source

@@ -6,6 +6,7 @@ from copy import deepcopy
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError, InvalidInputError, OperationalError
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
@@ -34,6 +35,7 @@ from .participant_temporal import assess_temporal_result, temporal_guarantees_me
 # Preserve the scheduler's existing test and integration seam while the
 # implementation lives in the focused binding module.
 _bound_action_request = bound_action_request
+_ACTIVITY_CONTROL_REQUIRED = "participant activity execution requires a random control"
 
 
 def _try_bound_action_request(
@@ -43,17 +45,24 @@ def _try_bound_action_request(
 ) -> ParticipantActionAdmissionRequest | None:
     try:
         return _bound_action_request(context, run.working, state)
-    except TypeError, ValueError:
-        run.diagnostics.append(
-            Diagnostic(
-                code="runtime.participant-autonomous-binding-invalid",
-                domain="participant",
-                address=context.participant_address,
-                message="Backend action binding does not match the compiled execution and observation context.",
-            )
+    except ConflictError, InvalidInputError:
+        diagnostic = Diagnostic(
+            code="runtime.participant-autonomous-binding-invalid",
+            domain="participant",
+            address=context.participant_address,
+            message="Backend action binding does not match the compiled execution and observation context.",
         )
-        run.failure = ApplyResult(success=False, snapshot=run.working, diagnostics=run.diagnostics)
-        return None
+    # The binding boundary already logged the backend failure with only the RAES frames.
+    except OperationalError:
+        diagnostic = Diagnostic(
+            code="runtime.participant-autonomous-binding-failed",
+            domain="participant",
+            address=context.participant_address,
+            message="Backend autonomous action binding did not complete.",
+        )
+    run.diagnostics.append(diagnostic)
+    run.failure = ApplyResult(success=False, snapshot=run.working, diagnostics=run.diagnostics)
+    return None
 
 
 def _record_protocol_result(
@@ -319,7 +328,7 @@ def _selected_activity_index(
         return state.next_action_index
     control = context.activity_control
     if control is None:
-        raise ValueError("participant activity execution requires a random control")
+        raise ConflictError(_ACTIVITY_CONTROL_REQUIRED)
     return select_activity_candidate(
         policy=context.policy,
         participant_address=context.participant_address,
@@ -339,7 +348,7 @@ def _empty_activity_state(
     if lifecycle == "running":
         control = context.activity_control
         if control is None:
-            raise ValueError("participant activity execution requires a random control")
+            raise ConflictError(_ACTIVITY_CONTROL_REQUIRED)
         selected_tick = next_activity_timing(
             policy=context.policy,
             time_model=context.time_model,

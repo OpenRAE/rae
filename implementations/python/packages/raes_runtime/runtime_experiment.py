@@ -13,6 +13,7 @@ from uuid import NAMESPACE_URL, uuid5
 from raes_contracts.admitted_trial_plan_ingress import revalidate_admitted_trial_plan
 from raes_contracts.contracts import AdmittedTrialPlanModel
 from raes_contracts.contracts.trial_controls import required_trial_operation_guarantees
+from raes_contracts.errors import AuthorizationError, ConflictError, InvalidInputError, NotFoundError
 from raes_contracts.trial_unit import TrialUnitRequest
 from raes_processor.trial_realization import TrialRealization, TrialRealizationInputs, realize_admitted_trial_entry
 from raes_processor.trial_scheduler import (
@@ -23,6 +24,7 @@ from raes_processor.trial_scheduler import (
 
 from .control_plane_operation_context import operation_actor_scope
 from .control_plane_store import InMemoryControlPlaneStore
+from .errors import RuntimeBudgetExhaustedError
 from .runtime_experiment_admission import admit_trial
 from .runtime_resource_ownership import ledger_identity
 from .runtime_run_driver import program_decision
@@ -138,19 +140,19 @@ class RuntimeExperiment:
                 raise TypeError("replacement requires a typed owner binding")
             self.replacement.require_root(self.plan)
         if len(self.schedule.entries) > 4096:
-            raise ValueError("experiment exceeds installed runtime entry capacity")
+            raise ConflictError("experiment exceeds installed runtime entry capacity")
 
     def _attempt_id(self, entry_id: str, ordinal: int) -> str:
         return "attempt:" + str(uuid5(NAMESPACE_URL, self.experiment_id + ":" + entry_id + ":" + str(ordinal)))
 
     def _authorize(self, identity: object | None) -> None:
         if operation_actor_scope(identity) != (self.admission.actor_id, self.admission.authorization_scope):
-            raise PermissionError("experiment actor does not match its admitted scope")
+            raise AuthorizationError("experiment actor does not match its admitted scope")
 
     @contextmanager
     def _advance_lease(self) -> Iterator[None]:
         if not self._lock.acquire(timeout=self.engine._supervision.admission_ms / 1000):
-            raise TimeoutError("experiment progress admission is busy")
+            raise RuntimeBudgetExhaustedError("experiment progress admission is busy")
         try:
             yield
         finally:
@@ -210,7 +212,7 @@ class RuntimeExperiment:
                         control_id="cancel:" + record.receipt.operation_id,
                         identity=identity,
                     )
-                except ValueError:
+                except ConflictError, InvalidInputError:
                     # Unsupported cancellation preserves pending/unknown state.
                     continue
 
@@ -222,7 +224,7 @@ class RuntimeExperiment:
         )
         try:
             run = self.engine.get_run(scope)
-        except ValueError:
+        except NotFoundError:
             store = self.store_factory(entry.run_id) if self.store_factory is not None else InMemoryControlPlaneStore()
             if self.durable and ledger_identity(store)[0] == "in-memory-ledger":
                 raise ValueError("durable experiments require an explicit durable run store factory") from None
@@ -233,7 +235,7 @@ class RuntimeExperiment:
                 required_operation_guarantees=required,
             )
         if run._required_operation_guarantees != required:
-            raise ValueError("trial operation guarantees differ from the fixed run binding")
+            raise ConflictError("trial operation guarantees differ from the fixed run binding")
         return run
 
     def _attempt(self, slot: TrialSlot, ordinal: int, records: tuple[RuntimeDecision, ...]) -> TrialAttemptDecision:

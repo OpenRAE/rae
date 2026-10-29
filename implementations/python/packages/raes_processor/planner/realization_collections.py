@@ -6,6 +6,7 @@ from typing import cast
 from raes.identifiers import QualifiedName
 from raes.realization_designation import resolve_realization_designation
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp, RuntimeDomain
 from raes_contracts.realization_collections import (
     PORTABLE_NODE_COLLECTION_PROFILE,
@@ -76,7 +77,7 @@ def planned_node_collection(model: RuntimeModel, plan: ProvisioningPlan) -> Prep
         ),
     )
     if built.status is not RealizationRelationStatus.CONFORMANT:
-        raise ValueError("portable node collection exceeds the admitted recursive membership bounds")
+        raise InvalidInputError("portable node collection exceeds the admitted recursive membership bounds")
     assert built.document is not None
     resolution = resolutions[""]
     return PreparedNodeCollectionAuthority(

@@ -310,10 +310,7 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
             values = getattr(self, field_name)
             _validate_unique_string_values(field_name, values)
             for address in values:
-                try:
-                    require_compiled_address(address, field_name=field_name)
-                except (TypeError, ValueError) as exc:
-                    raise ValueError(str(exc)) from exc
+                require_compiled_address(address, field_name=field_name)
 
 
 class ObservationCapabilitiesModel(ContractModel):

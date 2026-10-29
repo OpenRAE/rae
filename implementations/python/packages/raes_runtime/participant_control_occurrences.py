@@ -6,11 +6,13 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from uuid import uuid4
 
+from pydantic import ValidationError
 from raes_contracts.contracts import ParticipantControlOccurrenceModel
 from raes_contracts.contracts.participant_control import (
     ParticipantCancellationEffect,
     ParticipantControlTargetKind,
 )
+from raes_contracts.errors import InvalidInputError
 from raes_processor.models import (
     MixedControlControllerStateRuntime,
     MixedControlTransitionRuntime,
@@ -80,31 +82,34 @@ def build_participant_control_occurrence(
         "limitation_refs": list(intent.limitation_refs),
         **_kind_detail(intent, transition),
     }
-    return ParticipantControlOccurrenceModel.model_validate(
-        {
-            "event_id": f"participant-control.{uuid4()}",
-            "schema_name": "participant-control-occurrence",
-            "schema_version": "1.0.0",
-            "event_type": "participant-control-occurrence",
-            "extension_policy": "closed",
-            "participant_address": participant_address,
-            "episode_id": intent.episode_id,
-            "occurred_at": now,
-            "recorded_at": now,
-            "ingested_at": now,
-            "clock_authority": "runtime.control-plane.clock",
-            "ordering_basis": "logical_clock",
-            "logical_order_ref": f"effective-order:{transition.effective_order}",
-            "predecessor_event_refs": [resolved_target.predecessor_ref] if resolved_target is not None else [],
-            "actor_ref": state.controller_address,
-            "producer_ref": f"runtime.control-plane.{control_plane.target_name}",
-            "provenance_refs": list(intent.provenance_refs),
-            "evidence_refs": list(intent.evidence_refs),
-            "object_marking_refs": list(intent.object_marking_refs),
-            "authorization_scope": (state.scope_addresses or state.scope_refs)[0],
-            "occurrence": detail,
-        }
-    )
+    payload = {
+        "event_id": f"participant-control.{uuid4()}",
+        "schema_name": "participant-control-occurrence",
+        "schema_version": "1.0.0",
+        "event_type": "participant-control-occurrence",
+        "extension_policy": "closed",
+        "participant_address": participant_address,
+        "episode_id": intent.episode_id,
+        "occurred_at": now,
+        "recorded_at": now,
+        "ingested_at": now,
+        "clock_authority": "runtime.control-plane.clock",
+        "ordering_basis": "logical_clock",
+        "logical_order_ref": f"effective-order:{transition.effective_order}",
+        "predecessor_event_refs": [resolved_target.predecessor_ref] if resolved_target is not None else [],
+        "actor_ref": state.controller_address,
+        "producer_ref": f"runtime.control-plane.{control_plane.target_name}",
+        "provenance_refs": list(intent.provenance_refs),
+        "evidence_refs": list(intent.evidence_refs),
+        "object_marking_refs": list(intent.object_marking_refs),
+        "authorization_scope": (state.scope_addresses or state.scope_refs)[0],
+        "occurrence": detail,
+    }
+    try:
+        return ParticipantControlOccurrenceModel.model_validate(payload)
+    # The intent model admits values, such as an empty reference, that the occurrence contract refuses.
+    except ValidationError as exc:
+        raise InvalidInputError("participant control intent does not form a valid control occurrence") from exc
 
 
 def _kind_detail(

@@ -26,6 +26,7 @@ from raes_contracts.contracts import (
     RecoveryObservationCapabilitiesModel,
     TimeCapabilitiesModel,
 )
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.manifest_authority import BACKEND_SUPPORTED_CONTRACT_IDS
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 
@@ -53,8 +54,12 @@ from .process_resource_limits import (
 from .provisioner_manifest import provisioner_capability_payload, provisioner_from_model
 
 
-class BackendManifestEnvelopeUnsupportedError(ValueError):
+class BackendManifestEnvelopeUnsupportedError(InvalidInputError):
     """A backend manifest declares an envelope that cannot be resolved."""
+
+
+class BackendManifestInvalidError(InvalidInputError):
+    """A backend manifest does not satisfy the internal backend capability validators."""
 
 
 def _evaluator_capability_payload(manifest: BackendManifest) -> dict[str, Any] | None:
@@ -439,7 +444,7 @@ def backend_manifest_from_v2_model(model: BackendManifestV2Model) -> BackendMani
     re-runs the internal capability, controlled-vocabulary, compatibility, and
     contract-authority validators, so a payload that merely passed
     ``BackendManifestV2Model`` schema validation still cannot smuggle in an
-    inconsistent internal manifest.
+    inconsistent internal manifest. A rejection raises a value-free :class:`BackendManifestInvalidError`.
 
     Fails closed on realization-envelope-bearing manifests: a
     ``backend-manifest-v2`` payload carries only the realization-envelope
@@ -450,10 +455,9 @@ def backend_manifest_from_v2_model(model: BackendManifestV2Model) -> BackendMani
 
     if model.realization_envelope is not None or "realization-envelope-v1" in model.supported_contract_versions:
         raise BackendManifestEnvelopeUnsupportedError(
-            "backend manifest declares a realization envelope, but a backend-manifest-v2 payload "
-            "carries only the envelope identity, not the full digest-checked declaration the planner "
-            "requires. Supply an envelope-free manifest or omit it to use the default reference "
-            "dry-run manifest."
+            "backend manifest declares a realization envelope, but a backend-manifest-v2 payload carries only the "
+            "envelope identity, not the full digest-checked declaration the planner requires. Supply an "
+            "envelope-free manifest or omit it to use the default reference dry-run manifest."
         )
     return _backend_manifest_from_v2_model(model, realization_envelope=None)
 
@@ -472,23 +476,24 @@ def backend_manifest_from_v2_model_with_envelope(
 
 
 def _backend_manifest_from_v2_model(
-    model: BackendManifestV2Model,
-    *,
-    realization_envelope: BackendRealizationEnvelopeModel | None,
+    model: BackendManifestV2Model, *, realization_envelope: BackendRealizationEnvelopeModel | None
 ) -> BackendManifest:
-    return BackendManifest(
-        identity=ApparatusIdentity(name=model.identity.name, version=model.identity.version),
-        supported_contract_versions=frozenset(model.supported_contract_versions),
-        compatibility=BackendCompatibility(processors=frozenset(model.compatibility.processors)),
-        realization_support=tuple(
-            _realization_support_from_model(declaration) for declaration in model.realization_support
-        ),
-        concept_bindings=tuple(
-            ConceptBinding(scope=binding.scope, family=binding.family) for binding in model.concept_bindings
-        ),
-        constraints=dict(model.constraints),
-        capabilities=_capability_set_from_model(model.capabilities),
-        realization_envelope=realization_envelope,
-        domain_profile_context_digest=model.domain_profile_context_digest,
-        execution_policy=model.execution_policy,
-    )
+    try:
+        return BackendManifest(
+            identity=ApparatusIdentity(name=model.identity.name, version=model.identity.version),
+            supported_contract_versions=frozenset(model.supported_contract_versions),
+            compatibility=BackendCompatibility(processors=frozenset(model.compatibility.processors)),
+            realization_support=tuple(
+                _realization_support_from_model(declaration) for declaration in model.realization_support
+            ),
+            concept_bindings=tuple(
+                ConceptBinding(scope=binding.scope, family=binding.family) for binding in model.concept_bindings
+            ),
+            constraints=dict(model.constraints),
+            capabilities=_capability_set_from_model(model.capabilities),
+            realization_envelope=realization_envelope,
+            domain_profile_context_digest=model.domain_profile_context_digest,
+            execution_policy=model.execution_policy,
+        )
+    except ValueError as exc:
+        raise BackendManifestInvalidError("backend manifest was rejected by backend capability validation") from exc

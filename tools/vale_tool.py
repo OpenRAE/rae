@@ -21,6 +21,7 @@ def ensure_vale(
     installation_root: Path | None = None,
 ) -> Path:
     from tools.tooling_policy_gate import (
+        ArtifactPolicyError,
         host_platform_id,
         load_tooling_artifact_selection,
     )
@@ -33,7 +34,7 @@ def ensure_vale(
         profile_id=f"public-{platform_id}",
     )
     if len(selection.source_urls) != 1 or len(selection.raw_manifest) != 1 or len(selection.installed_manifest) != 1:
-        raise RuntimeError("Vale lock selection must contain one source, raw asset, and installed binary")
+        raise ArtifactPolicyError("Vale lock selection must contain one source, raw asset, and installed binary")
     raw = selection.raw_manifest[0]
     return installation.ensure_verified_installation(
         repo_root,

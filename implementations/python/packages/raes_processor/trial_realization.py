@@ -40,6 +40,7 @@ from raes_contracts.contracts import (
     TrialProcessorPlanReferenceModel,
     processor_backend_manifests_are_mutually_compatible,
 )
+from raes_contracts.errors import InvalidInputError, NotFoundError
 from raes_contracts.experiment_bindings import ApparatusManifest, ApparatusManifestKey, ParticipantManifestKey
 from raes_contracts.plan_projection import (
     evaluation_plan_model,
@@ -106,16 +107,16 @@ def instantiate_admitted_trial_entry(
     try:
         admitted_plan = revalidate_admitted_trial_plan(plan)
     except AdmittedTrialPlanIngressError as exc:
-        raise ValueError("admitted trial plan failed closed reconstruction") from exc
+        raise InvalidInputError("admitted trial plan failed closed reconstruction") from exc
     if not isinstance(family, ExpandedScenario) or not family.semantic_validated:
         raise ValueError("trial realization requires an admitted expanded scenario family")
     family_reference = admitted_plan.input_refs.scenario_family_ref
     family_digest = canonical_sdl_digest(family).value
     if family.name != family_reference.ref_id or family_digest != family_reference.ref_digest:
-        raise ValueError("scenario family identity does not match the admitted plan")
+        raise InvalidInputError("scenario family identity does not match the admitted plan")
     entry = admitted_plan.entries.get(plan_entry_id)
     if entry is None or entry.plan_entry_id != plan_entry_id:
-        raise ValueError("plan_entry_id does not resolve inside the admitted plan")
+        raise NotFoundError("plan_entry_id does not resolve inside the admitted plan")
     provenance = TrialInstantiationProvenance(
         scenario_family_id=family.name,
         scenario_family_digest=family_digest,
@@ -165,7 +166,7 @@ def _validate_experiment_and_task(
         or authoring_ref.ref_version != experiment.spec_version
         or authoring_ref.ref_digest != canonical_json_digest(experiment.model_dump(mode="json"))
     ):
-        raise ValueError("experiment identity does not match the admitted plan")
+        raise InvalidInputError("experiment identity does not match the admitted plan")
     task_ref = plan.input_refs.task_ref
     task_digest = canonical_json_digest(task.model_dump(mode="json"))
     if (
@@ -174,7 +175,7 @@ def _validate_experiment_and_task(
         or task_ref.ref_version != task.task_version
         or plan.input_refs.task_digest != task_digest
     ):
-        raise ValueError("task identity does not match the admitted plan")
+        raise InvalidInputError("task identity does not match the admitted plan")
 
 
 def _validate_capture_specs(
@@ -192,7 +193,7 @@ def _validate_capture_specs(
         or len(supplied_keys) != len(capture_specs)
         or any(key != capture_spec.capture_spec_id for key, capture_spec in capture_specs.items())
     ):
-        raise ValueError("capture specification identities do not match the admitted plan")
+        raise InvalidInputError("capture specification identities do not match the admitted plan")
     expected_pins = {
         (
             capture_spec.capture_spec_id,
@@ -206,7 +207,7 @@ def _validate_capture_specs(
         for reference in plan.input_refs.capture_spec_refs
     }
     if expected_pins != admitted_pins:
-        raise ValueError("capture specification digests do not match the admitted plan")
+        raise InvalidInputError("capture specification digests do not match the admitted plan")
     requirement_ids = {
         requirement.requirement_id
         for capture_spec in capture_specs.values()
@@ -219,7 +220,7 @@ def _validate_capture_specs(
         for reference in metric.evidence_requirements
     )
     if not task_requirement_ids.issubset(requirement_ids):
-        raise ValueError("task evidence requirements do not resolve to admitted capture requirements")
+        raise InvalidInputError("task evidence requirements do not resolve to admitted capture requirements")
 
 
 def _runtime_backend(
@@ -229,13 +230,13 @@ def _runtime_backend(
 ) -> BackendManifest:
     backend = selected.get(backend_key)
     if not isinstance(backend, BackendManifestV2Model):
-        raise ValueError("backend manifest key does not resolve to an admitted backend manifest")
+        raise InvalidInputError("backend manifest key does not resolve to an admitted backend manifest")
     processors = [manifest for manifest in selected.values() if isinstance(manifest, ProcessorManifestV2Model)]
     if len(processors) != 1:
-        raise ValueError("trial realization requires exactly one admitted processor manifest")
+        raise InvalidInputError("trial realization requires exactly one admitted processor manifest")
     processor = processors[0]
     if not processor_backend_manifests_are_mutually_compatible(processor, backend):
-        raise ValueError("processor and backend manifests are not mutually compatible")
+        raise InvalidInputError("processor and backend manifests are not mutually compatible")
     return backend_manifest_from_v2_model_with_envelope(backend, realization_envelope)
 
 
@@ -269,9 +270,9 @@ def realize_admitted_trial_entry(
     admitted_plan = revalidate_admitted_trial_plan(inputs.plan)
     entry = admitted_plan.entries.get(plan_entry_id)
     if entry is None:
-        raise ValueError("plan_entry_id does not resolve inside the admitted plan")
+        raise NotFoundError("plan_entry_id does not resolve inside the admitted plan")
     if isinstance(entry.apparatus, AdmittedMixedCompositionBindingModel):
-        raise ValueError("mixed-composition runtime coordination is not implemented")
+        raise InvalidInputError("mixed-composition runtime coordination is not implemented")
     _validate_experiment_and_task(admitted_plan, inputs.experiment, inputs.task)
     validate_authoring_selections(
         admitted_plan,
@@ -294,7 +295,7 @@ def realize_admitted_trial_entry(
             intent=inputs.experiment.apparatus_intent,
         )
     except CompilationFailure as exc:
-        raise ValueError(f"admitted apparatus manifest validation failed: {exc.code}") from exc
+        raise InvalidInputError(f"admitted apparatus manifest validation failed: {exc.code}") from exc
     runtime_backend = _runtime_backend(selected, inputs.backend_key, inputs.realization_envelope)
     instantiated = instantiate_admitted_trial_entry(
         plan=admitted_plan,
@@ -328,7 +329,7 @@ def realize_admitted_trial_entry(
         artifact_availability=artifact_availability,
     )
     if not execution_plan.is_valid:
-        raise ValueError("admitted trial processor planning failed")
+        raise InvalidInputError("admitted trial processor planning failed")
     provisioning = provisioning_plan_model(execution_plan.provisioning)
     orchestration = orchestration_plan_model(execution_plan.orchestration)
     evaluation = evaluation_plan_model(execution_plan.evaluation)

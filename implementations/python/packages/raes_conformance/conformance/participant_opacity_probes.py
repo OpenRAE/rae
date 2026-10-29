@@ -28,6 +28,8 @@ from raes_contracts.behavioral_relations import validate_behavioral_claim_bindin
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import BehavioralClaimBindingModel
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError, RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 from raes_runtime.registry import RuntimeTarget
 
@@ -60,6 +62,7 @@ from raes_conformance.conformance.participant_opacity_types import (
 from raes_conformance.conformance.report import ConformanceCaseResult
 from raes_conformance.realization import ExecutionBasis
 
+_LOGGER = get_logger(__name__)
 _FEATURE = "participant_predicate_opacity"
 _RELATION = "participant-predicate-opacity"
 _REFERENCE_PROFILE = "participant-opacity-runtime-reference-v1"
@@ -150,11 +153,11 @@ def _validate_probe_case(
 
     profile = load_behavioral_relation_profile(case.profile_id)
     if case.profile_revision != profile.profile_revision or case.profile_digest != profile.canonical_digest:
-        raise ValueError("probe profile coordinates do not match the governed profile")
+        raise InvalidInputError("probe profile coordinates do not match the governed profile")
     if f"profile:{case.profile_id}@{case.profile_revision}" not in declaration.constraint_refs:
-        raise ValueError("probe profile is outside the manifest's declared support constraints")
+        raise InvalidInputError("probe profile is outside the manifest's declared support constraints")
     if (case.profile_id, case.profile_revision) not in NORMAL_FORMS:
-        raise ValueError("probe profile has no runner-owned observation normal form")
+        raise InvalidInputError("probe profile has no runner-owned observation normal form")
 
 
 def _failed_measurement(point: ParticipantOpacityProbePoint, exc: Exception) -> _PointMeasurement:
@@ -180,8 +183,11 @@ def _reported(
     try:
         reported = harness.reported_observation(target, case, point.point_ref)
         if not isinstance(reported, ParticipantOpacityProbeObservation):
-            raise TypeError("reported transcript must be a ParticipantOpacityProbeObservation")
+            raise InvalidInputError("reported transcript must be a ParticipantOpacityProbeObservation")
     except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Isolation of the harness: a refusal category needs no record.
+            _LOGGER.exception("participant opacity reported transcript failed", exc_info=foreign_failure_record(exc))
         return None, f"reported transcript: {sanitized_failure_message(exc)}"
     return reported, None
 
@@ -200,6 +206,9 @@ def _execute(
         try:
             measurement = measure_point(target, harness, case, point)
         except Exception as exc:
+            if not isinstance(exc, RaesError):
+                # Isolation of the harness and the backend runtime: a refusal category needs no record.
+                _LOGGER.exception("participant opacity probe measurement failed", exc_info=foreign_failure_record(exc))
             measurement = _failed_measurement(point, exc)
         measurements.append(measurement)
         failures.extend(measurement.failures)
@@ -401,6 +410,9 @@ def _run_harness_cases(
                 ),
             )
     except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Isolation of the harness and its cases: a refusal category needs no record.
+            _LOGGER.exception("participant opacity harness failed", exc_info=foreign_failure_record(exc))
         results = (
             _harness_failure_case(
                 target,

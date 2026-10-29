@@ -13,8 +13,10 @@ from collections.abc import Iterator
 from pathlib import Path
 from uuid import uuid4
 
-from .._errors import SDLParseError
+from raes_contracts.errors import OperationalError
+from raes_contracts.operational_logging import get_logger
 
+_LOGGER = get_logger(__name__)
 _CURRENT_POINTER_NAME = ".raes-current"
 _POINTER_STAGE_PREFIX = f"{_CURRENT_POINTER_NAME}.staged-"
 _VERSION_STAGE_PREFIX = ".staged-"
@@ -22,6 +24,7 @@ _VERSIONS_DIRECTORY_NAME = "versions"
 _MAX_POINTER_BYTES = 256
 _MAX_RETAINED_VERSIONS = 8
 _VERSION_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,199}\Z")
+_INVALID_VERSION_NAME = "version name must be a bounded portable directory name"
 _VERSION_DIGEST_PREFIX_HEX = 20
 _VERSION_NONCE_HEX = 20
 _DIRECTORY_FSYNC_SUPPORTED = os.name != "nt"
@@ -78,7 +81,7 @@ def _fsync_directory(path: Path, *, error_message: str) -> None:
         }
         if exc.errno in unsupported:
             return
-        raise SDLParseError(error_message) from exc
+        raise OperationalError(error_message) from exc
     finally:
         if descriptor >= 0:
             os.close(descriptor)
@@ -100,46 +103,44 @@ def _fsync_tree(root: Path, *, error_message: str) -> None:
             path = pending.pop()
             expected = path.lstat()
             if stat.S_ISLNK(expected.st_mode):
-                raise SDLParseError(error_message)
+                raise OperationalError(error_message)
             if stat.S_ISDIR(expected.st_mode):
                 directories.append(path)
                 with os.scandir(path) as iterator:
                     pending.extend(Path(entry.path) for entry in iterator)
                 continue
             if not stat.S_ISREG(expected.st_mode):
-                raise SDLParseError(error_message)
+                raise OperationalError(error_message)
             flags = _REGULAR_FILE_FSYNC_ACCESS_MODE | _O_BINARY | _O_NOFOLLOW
             descriptor = os.open(path, flags)
             try:
                 actual = os.fstat(descriptor)
                 if not stat.S_ISREG(actual.st_mode) or not _same_file_identity(expected, actual):
-                    raise SDLParseError(error_message)
+                    raise OperationalError(error_message)
                 os.fsync(descriptor)
             finally:
                 os.close(descriptor)
         for directory in sorted(directories, key=lambda item: len(item.parts), reverse=True):
             _fsync_directory(directory, error_message=error_message)
-    except SDLParseError:
-        raise
     except OSError as exc:
-        raise SDLParseError(error_message) from exc
+        raise OperationalError(error_message) from exc
 
 
 def _require_directory(path: Path, *, error_message: str) -> None:
     """Create one directory while rejecting a file or symlink at its name."""
 
     if path.is_symlink() or (path.exists() and not path.is_dir()):
-        raise SDLParseError(error_message)
+        raise OperationalError(error_message)
     existed = path.exists()
     try:
         path.mkdir(parents=False, exist_ok=True)
     except OSError as exc:
-        raise SDLParseError(error_message) from exc
+        raise OperationalError(error_message) from exc
     # Recheck after mkdir so a concurrent replacement cannot turn the slot into a
     # link between the preflight and use. Domain writers serialize access to a
     # logical slot, while this check also fails closed on external interference.
     if path.is_symlink() or not path.is_dir():
-        raise SDLParseError(error_message)
+        raise OperationalError(error_message)
     if not existed:
         _fsync_directory(path.parent, error_message=error_message)
 
@@ -164,7 +165,7 @@ def _prepare_versioned_slot(*, slot: Path, error_message: str) -> Path:
             if child.name.startswith(_POINTER_STAGE_PREFIX):
                 _remove_path(child)
     except OSError as exc:
-        raise SDLParseError(error_message) from exc
+        raise OperationalError(error_message) from exc
     return versions
 
 
@@ -182,7 +183,7 @@ def _iter_version_directories(
     try:
         children = sorted(versions.iterdir(), key=lambda path: path.name)
     except OSError as exc:
-        raise SDLParseError(error_message) from exc
+        raise OperationalError(error_message) from exc
     for child in children:
         if _valid_version_name(child.name) and not child.is_symlink() and child.is_dir():
             yield child
@@ -204,7 +205,7 @@ def _prune_version_directories(
     """
 
     if max_versions < 2 or len(retain_names) > max_versions:
-        raise SDLParseError(error_message)
+        raise ValueError("version retention requires at least two slots and no more retained names than slots")
     try:
         ranked = sorted(
             _iter_version_directories(versions, error_message=error_message),
@@ -221,7 +222,7 @@ def _prune_version_directories(
                 _remove_path(version)
         _fsync_directory(versions, error_message=error_message)
     except OSError as exc:
-        raise SDLParseError(error_message) from exc
+        raise OperationalError(error_message) from exc
 
 
 def _read_version_pointer(*, slot: Path) -> str | None:
@@ -251,8 +252,11 @@ def _read_version_pointer_payload(pointer: Path) -> bytes | None:
                 actual = os.fstat(handle.fileno())
                 if stat.S_ISREG(actual.st_mode) and _same_file_identity(expected, actual):
                     payload = handle.read(_MAX_POINTER_BYTES + 1)
-    except OSError:
+    except FileNotFoundError:
         pass
+    except OSError:
+        # Callers recover from the immutable versions; the record shows the degraded read (rule H3).
+        _LOGGER.warning("version pointer could not be read; recovery treats it as absent", exc_info=True)
     finally:
         if descriptor >= 0:
             os.close(descriptor)
@@ -285,21 +289,21 @@ def _install_version_directory(
 
     if not _valid_version_name(version_name):
         _remove_path(staged)
-        raise SDLParseError(error_message)
+        raise ValueError(_INVALID_VERSION_NAME)
     target = versions / version_name
     if target.exists() or target.is_symlink():
         _remove_path(staged)
-        raise SDLParseError(error_message)
+        raise OperationalError(error_message)
     try:
         _fsync_tree(staged, error_message=error_message)
         os.replace(staged, target)
         _fsync_directory(versions, error_message=error_message)
-    except SDLParseError:
-        _remove_path(staged)
-        raise
     except OSError as exc:
         _remove_path(staged)
-        raise SDLParseError(error_message) from exc
+        raise OperationalError(error_message) from exc
+    except BaseException:
+        _remove_path(staged)
+        raise
     return target
 
 
@@ -318,10 +322,10 @@ def _write_version_pointer(
     """
 
     if not _valid_version_name(version_name):
-        raise SDLParseError(error_message)
+        raise ValueError(_INVALID_VERSION_NAME)
     version = slot / _VERSIONS_DIRECTORY_NAME / version_name
     if version.is_symlink() or not version.is_dir():
-        raise SDLParseError(error_message)
+        raise OperationalError(error_message)
     pointer = slot / _CURRENT_POINTER_NAME
     descriptor = -1
     temporary: Path | None = None
@@ -342,7 +346,7 @@ def _write_version_pointer(
         if temporary is not None:
             with contextlib.suppress(OSError):
                 _remove_path(temporary)
-        raise SDLParseError(error_message) from exc
+        raise OperationalError(error_message) from exc
 
 
 def _new_version_stage(*, versions: Path, error_message: str) -> Path:
@@ -351,4 +355,4 @@ def _new_version_stage(*, versions: Path, error_message: str) -> Path:
     try:
         return Path(tempfile.mkdtemp(prefix=_VERSION_STAGE_PREFIX, dir=versions))
     except OSError as exc:
-        raise SDLParseError(error_message) from exc
+        raise OperationalError(error_message) from exc

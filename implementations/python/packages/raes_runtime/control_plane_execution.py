@@ -7,8 +7,10 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from uuid import uuid4
 
+from pydantic import ValidationError
 from raes_contracts.contracts import InjectOccurrenceModel
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
     ApplyResult,
@@ -19,6 +21,7 @@ from raes_contracts.runtime_state import (
     OperationStatus,
     RuntimeSnapshot,
     operation_terminal_diagnostics,
+    validate_changed_addresses,
 )
 
 from .backend_calls import _call_backend_diagnostics, _RealizationApplyContext
@@ -84,6 +87,12 @@ def _execute_participant_action_locked(
     operation_id = str(uuid4())
     submitted_at = _utc_now()
     target_address = getattr(request, "participant_address", "")
+    changed_addresses = [target_address] if isinstance(target_address, str) and target_address else []
+    try:
+        # A participant route takes this address from the request path; the validator refuses with ValueError (E3).
+        validate_changed_addresses(changed_addresses)
+    except ValueError as exc:
+        raise InvalidInputError("participant address is not a canonical compiled address") from exc
     status = OperationStatus(
         operation_id=operation_id,
         domain=RuntimeDomain.PARTICIPANT,
@@ -91,7 +100,7 @@ def _execute_participant_action_locked(
         submitted_at=submitted_at,
         updated_at=submitted_at,
         context=context,
-        changed_addresses=[target_address] if isinstance(target_address, str) and target_address else [],
+        changed_addresses=changed_addresses,
     )
     receipt = OperationReceipt(
         operation_id=operation_id,
@@ -122,19 +131,20 @@ def _execute_participant_action_locked(
         request=request,
         address=address,
     )
-    final_status = OperationStatus(
-        operation_id=operation_id,
-        domain=RuntimeDomain.PARTICIPANT,
-        state=final_state,
-        submitted_at=submitted_at,
-        updated_at=_utc_now(),
-        context=context,
-        diagnostics=operation_terminal_diagnostics(
-            final_state,
-            [*status.diagnostics, *result.diagnostics],
-        ),
-        changed_addresses=list(result.changed_addresses),
-    )
+    try:
+        final_status = OperationStatus(
+            operation_id=operation_id,
+            domain=RuntimeDomain.PARTICIPANT,
+            state=final_state,
+            submitted_at=submitted_at,
+            updated_at=_utc_now(),
+            context=context,
+            diagnostics=operation_terminal_diagnostics(final_state, [*status.diagnostics, *result.diagnostics]),
+            changed_addresses=list(result.changed_addresses),
+        )
+    except ValidationError as exc:
+        # A diagnostic that names an oversized request value, such as a long scope reference, has no portable form.
+        raise InvalidInputError("participant action diagnostics have no portable form") from exc
     control_plane._commit_terminal_operation(
         result.snapshot,
         ControlPlaneOperationRecord(
@@ -235,6 +245,8 @@ class OperationExecutionRequest:
     realization: _RealizationApplyContext | None = None
     execute_observation: bool = True
     result_sink: Callable[..., None] | None = None
+    # The state that a cancelled local executor settled; the operation commits it before the cancellation propagates.
+    cancellation_result: Callable[[], ApplyResult | None] | None = None
 
 
 @dataclass(frozen=True)
@@ -424,7 +436,7 @@ def reject_new_operation_if_admission_fails(
             context=request.context,
         )
     if claimed_receipt.operation_id == operation_id:
-        raise AssertionError("a state-rejected operation cannot create a new claim")
+        raise RuntimeError("a state-rejected operation cannot create a new claim")
     return claimed_receipt
 
 
@@ -447,10 +459,18 @@ def _execute_operation_locked(
             current_state_rejects_new_claim=bool(admission_diagnostics),
         )
     except NewClaimRejected:
-        assert admission_diagnostics
+        # Stopped effect admission also rejects a new claim that carries no admission diagnostic.
         return control_plane._reject_diagnostics(
             domain=request.domain,
-            diagnostics=admission_diagnostics,
+            diagnostics=admission_diagnostics
+            or [
+                Diagnostic(
+                    code="runtime.control-plane.effect-admission-closed",
+                    domain="runtime",
+                    address="runtime.control-plane",
+                    message="Effect admission is closed or reserved.",
+                )
+            ],
             idempotency_key=request.idempotency_key,
             request_fingerprint=request.request_fingerprint,
             context=request.context,

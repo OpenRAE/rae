@@ -8,6 +8,8 @@ from itertools import product
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.realization_structure import RealizationIdentityAlias
 
+from .realization_structure import _UnrepresentableAuthority
+
 _MAX_IDENTITY_CHOICES = 4096
 _ADMITTED_IDENTITY_TYPES = frozenset({str, int, bool})
 
@@ -32,7 +34,7 @@ def _member_identity_choices(rule: object, member: object) -> tuple[tuple[object
         elif value.domain.kind == "enum":
             choices.append(tuple(value.domain.values))
         else:
-            raise ValueError("collection identity domains require finite choices")
+            raise _UnrepresentableAuthority("collection identity domains require finite choices")
     return tuple(choices)
 
 
@@ -44,11 +46,11 @@ def _record_identity_alias(
     """Record one alias, refusing an identity two members could both claim."""
 
     if any(type(candidate) not in _ADMITTED_IDENTITY_TYPES for candidate in identity):
-        raise ValueError("collection choices exceed bounded identity authority")
+        raise _UnrepresentableAuthority("collection choices exceed bounded identity authority")
     key = _identity_key(identity)
     if key in identities:
         if _identity_key(identities[key]) != _identity_key(member.identity):
-            raise ValueError("collection domains have ambiguous member identities")
+            raise _UnrepresentableAuthority("collection domains have ambiguous member identities")
         return None
     identities[key] = member.identity
     return RealizationIdentityAlias(identity=identity, target=member.identity)
@@ -68,7 +70,7 @@ def _collection_aliases(
         for identity in product(*choices):
             budget[0] -= 1
             if budget[0] < 0:
-                raise ValueError("collection choices exceed bounded identity authority")
+                raise _UnrepresentableAuthority("collection choices exceed bounded identity authority")
             alias = _record_identity_alias(identity, member, identities)
             if alias is not None:
                 aliases.append(alias)

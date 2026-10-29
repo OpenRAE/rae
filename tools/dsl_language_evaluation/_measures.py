@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from statistics import median
 
+from raes_contracts.errors import InvalidInputError
+
 from tools.dsl_language_evaluation._claims import _attempt_matches_scope
 from tools.dsl_language_evaluation._keys import _STRATUM_ROLES
 from tools.dsl_language_evaluation._shape import _protocol_records_by_id, _string_list
@@ -26,7 +28,7 @@ def _measure_stage_ids(
 
     declarations = measure.get("stage_applicability", [])
     if not isinstance(declarations, list):
-        raise ValueError(f"{measure.get('measure_id')}: stage applicability must be a list")
+        raise InvalidInputError(f"{measure.get('measure_id')}: stage applicability must be a list")
     matches: list[list[str]] = []
     for declaration in declarations:
         if not isinstance(declaration, Mapping) or declaration.get("task_id") != task_id:
@@ -36,7 +38,9 @@ def _measure_stage_ids(
         if variant_ids is not None and variant_id in variant_ids and stage_ids is not None:
             matches.append(stage_ids)
     if len(matches) != 1:
-        raise ValueError(f"{measure.get('measure_id')}: expected one stage declaration for {task_id}/{variant_id}")
+        raise InvalidInputError(
+            f"{measure.get('measure_id')}: expected one stage declaration for {task_id}/{variant_id}"
+        )
     return matches[0]
 
 
@@ -66,7 +70,7 @@ def _observation_index(observations: list[object]) -> dict[tuple[str, str, str],
             continue
         key = (attempt_id, measure_id, artifact_stage)
         if key in index:
-            raise ValueError(f"duplicate observation opportunity {attempt_id}/{measure_id}/{artifact_stage}")
+            raise InvalidInputError(f"duplicate observation opportunity {attempt_id}/{measure_id}/{artifact_stage}")
         index[key] = observation
     return index
 
@@ -129,7 +133,7 @@ def _check_observed_keys(
         }
     extras = sorted(observed_keys - expected_keys)
     if extras:
-        raise ValueError(f"observations without protocol-declared opportunities: {extras[:5]}")
+        raise InvalidInputError(f"observations without protocol-declared opportunities: {extras[:5]}")
 
 
 def _subjects_by_id(snapshot: Mapping[str, object]) -> dict[object, Mapping[str, object]]:
@@ -210,7 +214,7 @@ def _measure_opportunities(
     withdrawals = snapshot.get("withdrawals", [])
     subjects_by_id = _subjects_by_id(snapshot)
     if not isinstance(attempts, list) or not isinstance(observations, list) or not isinstance(withdrawals, list):
-        raise ValueError("snapshot execution records must be lists")
+        raise InvalidInputError("snapshot execution records must be lists")
 
     withdrawn_subjects = _withdrawn_subjects(withdrawals)
     observation_by_opportunity = _observation_index(observations)
@@ -225,9 +229,9 @@ def _validated_value(measure_id: str, aggregation: object, value: object) -> int
     if value is None:
         return None
     if isinstance(value, bool) or not isinstance(value, (int, float)):
-        raise ValueError(f"{measure_id}: observation values must be numeric or null")
+        raise InvalidInputError(f"{measure_id}: observation values must be numeric or null")
     if aggregation == "proportion" and value not in {0, 1}:
-        raise ValueError(f"{measure_id}: proportion observations must be 0 or 1")
+        raise InvalidInputError(f"{measure_id}: proportion observations must be 0 or 1")
     return value
 
 
@@ -252,7 +256,7 @@ def _observation_tallies(
             continue
         observation_id = observation.get("observation_id")
         if not isinstance(observation_id, str):
-            raise ValueError(f"{measure_id}: observations require ids")
+            raise InvalidInputError(f"{measure_id}: observations require ids")
         supporting_ids.append(observation_id)
         outcome = observation.get("outcome")
         if outcome in counts:
@@ -284,7 +288,7 @@ def _measure_result(
 ) -> dict[str, object]:
     aggregation = measure.get("aggregation")
     if aggregation not in _AGGREGATIONS:
-        raise ValueError(f"invalid measure aggregation for {measure_id!r}")
+        raise InvalidInputError(f"invalid measure aggregation for {measure_id!r}")
     matching = [item for item in opportunities if item[1].get("measure_id") == measure_id]
     withdrawn_count = sum(withdrawn for _, _, _, withdrawn in matching)
     eligible = [(attempt, artifact_stage) for attempt, _, artifact_stage, withdrawn in matching if not withdrawn]
@@ -329,15 +333,15 @@ def _resolved_conditions(
     resolved: list[tuple[Mapping[str, object], Mapping[str, object]]] = []
     for condition in conditions:
         if not isinstance(condition, Mapping):
-            raise ValueError(f"{dimension_id}: threshold condition must be an object")
+            raise InvalidInputError(f"{dimension_id}: threshold condition must be an object")
         measure_id = condition.get("measure_id")
         operator = condition.get("operator")
         target = condition.get("target")
         measure = measure_results.get(measure_id) if isinstance(measure_id, str) else None
         if operator not in _THRESHOLD_OPERATORS or isinstance(target, bool) or not isinstance(target, (int, float)):
-            raise ValueError(f"{dimension_id}: invalid threshold operator or target")
+            raise InvalidInputError(f"{dimension_id}: invalid threshold operator or target")
         if measure is None:
-            raise ValueError(f"{dimension_id}: threshold references unknown measure {measure_id!r}")
+            raise InvalidInputError(f"{dimension_id}: threshold references unknown measure {measure_id!r}")
         resolved.append((condition, measure))
     return resolved
 
@@ -353,7 +357,7 @@ def _condition_outcomes(
         operator = condition["operator"]
         target = condition["target"]
         if isinstance(actual, bool) or not isinstance(actual, (int, float)):
-            raise ValueError(f"{dimension_id}: measure value must be numeric")
+            raise InvalidInputError(f"{dimension_id}: measure value must be numeric")
         condition_results.append(
             {
                 "measure_id": condition["measure_id"],
@@ -365,7 +369,7 @@ def _condition_outcomes(
         )
         refs = measure.get("supporting_observation_ids", [])
         if not isinstance(refs, list) or not all(isinstance(item, str) for item in refs):
-            raise ValueError(f"{dimension_id}: measure observation refs must be text ids")
+            raise InvalidInputError(f"{dimension_id}: measure observation refs must be text ids")
         for observation_id in refs:
             if observation_id not in supporting_ids:
                 supporting_ids.append(observation_id)
@@ -415,7 +419,7 @@ def recompute_dimension_results(
             or not isinstance(conditions, list)
             or not conditions
         ):
-            raise ValueError(f"invalid threshold for {dimension_id!r}")
+            raise InvalidInputError(f"invalid threshold for {dimension_id!r}")
         if selected_dimensions is not None and dimension_id not in selected_dimensions:
             continue
         results[dimension_id] = _dimension_result(dimension_id, conditions, measure_results)
@@ -435,7 +439,7 @@ def recompute_stratum_results(
         role = stratum.get("role")
         scope = stratum.get("scope")
         if not isinstance(stratum_id, str) or role not in _STRATUM_ROLES or not isinstance(scope, Mapping):
-            raise ValueError("invalid resolved claim stratum")
+            raise InvalidInputError("invalid resolved claim stratum")
         measures = recompute_measure_results(protocol, snapshot, scope=scope)
         measure_results = [
             {

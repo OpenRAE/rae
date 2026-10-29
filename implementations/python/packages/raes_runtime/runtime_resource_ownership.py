@@ -8,6 +8,8 @@ from threading import RLock
 from typing import TYPE_CHECKING
 from weakref import ReferenceType, ref
 
+from raes_contracts.errors import ConflictError, OperationalError
+
 if TYPE_CHECKING:
     from .registry import RuntimeTarget
 
@@ -56,7 +58,7 @@ class RuntimeResourceClaim:
                     and (prior._owner() is not None or prior.unresolved)
                     and not (prior.closed and ledger is not None and prior.ledger == ledger)
                 ):
-                    raise RuntimeError(
+                    raise ConflictError(
                         "backend already has a runtime owner; use exactly one worker and the admitted ledger"
                     )
             for component in self.components:
@@ -65,7 +67,7 @@ class RuntimeResourceClaim:
     def release(self, *, unresolved: bool = False) -> None:
         with _LOCK:
             if self.active_calls:
-                raise RuntimeError("runtime callbacks remain active")
+                raise ConflictError("runtime callbacks remain active")
             self.closed = True
             self.closing = False
             self.unresolved = unresolved
@@ -92,9 +94,9 @@ class RuntimeResourceClaim:
     def runtime_call(self, owner: object) -> Iterator[None]:
         with _LOCK:
             if self.closed or self.closing or self._owner() is not owner:
-                raise RuntimeError("runtime manager is closed or closing")
+                raise OperationalError("runtime manager is closed or closing")
             if any(_CLAIMS.get(id(component)) is not self for component in self.components):
-                raise RuntimeError("backend runtime ownership has changed")
+                raise OperationalError("backend runtime ownership has changed")
             self.active_calls += 1
         try:
             yield
@@ -107,9 +109,9 @@ class RuntimeResourceClaim:
             if self.closed:
                 return False
             if self.active_calls:
-                raise RuntimeError("runtime callbacks remain active")
+                raise ConflictError("runtime callbacks remain active")
             if self.closing:
-                raise RuntimeError("runtime shutdown is already in progress")
+                raise OperationalError("runtime shutdown is already in progress")
             self.closing = True
             return True
 

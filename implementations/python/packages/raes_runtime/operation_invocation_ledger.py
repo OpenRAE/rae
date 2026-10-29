@@ -26,6 +26,7 @@ from raes_contracts.runtime_state import OperationState
 
 from .operation_temporal import EngineDeliveryBinding
 from .operation_transcript_policy import AUTOMATIC_CONTROL_LIMIT, require_transcript_capacity
+from .record_immutability import immutable_value_error
 
 if TYPE_CHECKING:
     from .control_plane_store import ControlPlaneOperationRecord
@@ -110,7 +111,7 @@ def require_record_invocation(record: ControlPlaneOperationRecord) -> None:
     InvocationLedger.model_validate(value.model_dump(mode="json"))
     binding = value.request.binding
     if binding.operation_id != record.receipt.operation_id or binding.context != record.receipt.context:
-        raise ValueError("invocation does not match immutable operation authority")
+        raise immutable_value_error("invocation does not match immutable operation authority")
     if record.status.state is OperationState.ACCEPTED and value.consumed:
         raise ValueError("accepted operation cannot carry a consumed grant")
     if record.status.state is OperationState.RUNNING and not value.consumed:
@@ -131,18 +132,18 @@ def require_invocation_transition(prior: InvocationLedger | None, replacement: I
 
 def _require_immutable_invocation_binding(prior: InvocationLedger, replacement: InvocationLedger) -> None:
     if prior.request != replacement.request or prior.native != replacement.native:
-        raise ValueError("invocation binding and command commitment are immutable")
+        raise immutable_value_error("invocation binding and command commitment are immutable")
     for name in ("mixed_binding", "mixed_time_state", "mixed_composition_state"):
         if getattr(prior, name) != getattr(replacement, name):
-            raise ValueError("mixed invocation cut is immutable")
+            raise immutable_value_error("mixed invocation cut is immutable")
     if prior.mixed_post_time_state is not None and replacement.mixed_post_time_state != prior.mixed_post_time_state:
-        raise ValueError("mixed post-effect readback is immutable")
+        raise immutable_value_error("mixed post-effect readback is immutable")
     _require_immutable_delivery_binding(prior, replacement)
 
 
 def _require_immutable_delivery_binding(prior: InvocationLedger, replacement: InvocationLedger) -> None:
     if prior.delivery is not None and prior.delivery != replacement.delivery:
-        raise ValueError("engine delivery binding is immutable")
+        raise immutable_value_error("engine delivery binding is immutable")
     if prior.consumed and prior.delivery != replacement.delivery:
         raise ValueError("consumed invocation cannot acquire another delivery binding")
 
@@ -153,7 +154,7 @@ def _require_monotonic_invocation_authority(prior: InvocationLedger, replacement
     if not prior.reserved and replacement.reserved:
         raise ValueError("released invocation cannot acquire another effect reservation")
     if prior.release_commitment is not None and prior.release_commitment != replacement.release_commitment:
-        raise ValueError("release evidence is immutable")
+        raise immutable_value_error("release evidence is immutable")
 
 
 def _require_append_only_invocation_history(prior: InvocationLedger, replacement: InvocationLedger) -> None:

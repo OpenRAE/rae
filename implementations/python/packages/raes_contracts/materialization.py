@@ -8,7 +8,7 @@ from pydantic import ConfigDict, Field, model_validator
 
 from ._base import ContractModel
 from .canonical import canonical_json_digest
-from .json_ingress import parse_bounded_json_object
+from .json_ingress import StrictJsonIngressError, parse_bounded_json_object
 from .materialization_inventory import InventoryTargetScope
 from .realization_structure import validate_realization_value
 from .runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
@@ -40,7 +40,10 @@ class MaterializationSource(ContractModel):
 
     @model_validator(mode="after")
     def _validate_source_identity(self) -> MaterializationSource:
-        payload = parse_bounded_json_object(self.snapshot, max_bytes=MATERIALIZATION_MAX_BYTES)
+        try:
+            payload = parse_bounded_json_object(self.snapshot, max_bytes=MATERIALIZATION_MAX_BYTES)
+        except StrictJsonIngressError as exc:
+            raise ValueError(f"materialization source snapshot failed strict JSON ingress ({exc.code})") from exc
         if not validate_realization_value(payload, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS).conformant:
             raise ValueError("materialization source exceeds portable bounds")
         if payload.get("profile") != "raes-sdl-instantiated-snapshot/v2" or set(payload) != {"profile", "scenario"}:

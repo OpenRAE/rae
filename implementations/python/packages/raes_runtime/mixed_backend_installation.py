@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 from raes_backend_protocols.mixed_backend import require_mixed_backend_service
 from raes_contracts.contracts import MixedBackendExecutionBindingModel, MixedBackendServiceModel
+from raes_contracts.errors import ConflictError
 
 from .operation_supervision_configuration import OperationEvidenceResolver
 
@@ -86,7 +87,7 @@ def mixed_installation(plane: object, invocation: object) -> MixedBackendInstall
     runtime = getattr(plane, "_mixed_runtime", None)
     installed = None if runtime is None else runtime.backend_installations.get(declaration.binding_id)
     if installed is None or installed.binding != declaration:
-        raise ValueError("original mixed invocation installation is unavailable")
+        raise ConflictError("original mixed invocation installation is unavailable")
     return installed
 
 

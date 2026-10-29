@@ -9,6 +9,7 @@ from fractions import Fraction
 from functools import partial
 
 from raes_contracts.contracts.time_model import TimeRuntimeStateModel, validate_time_runtime_state
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
@@ -22,6 +23,9 @@ from .mixed_runtime_edge import (
 )
 
 _UNSUPPORTED_EDGE_TIME = "executable edge time mapping or governed order is unsupported"
+# The mapped edge method runs as a participant backend method. The runtime backend
+# call boundary reports TypeError and ValueError from such a method as a backend
+# result that could not be constructed, so the method keeps those built-ins.
 
 
 def _mapped_edge_method(
@@ -42,7 +46,7 @@ def _mapped_edge_method(
         mapping.source_domain_address != source_clock.time_domain_address
         or mapping.target_domain_address != destination_clock.time_domain_address
     ):
-        raise ValueError("executable edge clock domains differ from admission")
+        raise ConflictError("executable edge clock domains differ from admission")
 
     context = _MappedEdgeContext(installed, edge, declaration, mapping, provider_method, operation_id, capture)
     return partial(_invoke_mapped_edge, context=context)
@@ -153,7 +157,7 @@ def _stage_readback_method(
             raise TypeError("executable edge post-effect time readback must be typed")
         validate_time_runtime_state(declaration, readback)
         if result.snapshot.time_model_state != readback:
-            raise ValueError("executable edge post-effect time readback differs from the result")
+            raise EvidenceIntegrityError("executable edge post-effect time readback differs from the result")
         capture.time_confirmed = True
         _require_stage_readbacks(
             installed,
@@ -193,12 +197,12 @@ def _require_delivery_readback(
     snapshot: RuntimeSnapshot,
 ) -> None:
     if installed.delivery_readback is None:
-        raise ValueError("mixed delivery requires destination readback")
+        raise EvidenceIntegrityError("mixed delivery requires destination readback")
     delivery = MixedDeliveryReadback.model_validate(installed.delivery_readback(operation_id, deepcopy(snapshot)))
     if (delivery.operation_id, delivery.destination_component_id) != (operation_id, edge.target_component_id):
-        raise ValueError("mixed destination receipt differs from the admitted edge")
+        raise EvidenceIntegrityError("mixed destination receipt differs from the admitted edge")
     if not set(report.delivery_evidence_refs).issubset(delivery.evidence_refs):
-        raise ValueError("mixed destination receipt differs from the admitted edge")
+        raise EvidenceIntegrityError("mixed destination receipt differs from the admitted edge")
 
 
 def _require_observation_readback(
@@ -210,7 +214,7 @@ def _require_observation_readback(
     snapshot: RuntimeSnapshot,
 ) -> None:
     if installed.observation_readback is None:
-        raise ValueError("mixed observation requires participant readback")
+        raise EvidenceIntegrityError("mixed observation requires participant readback")
     observation = MixedObservationReadback.model_validate(
         installed.observation_readback(operation_id, deepcopy(snapshot))
     )
@@ -219,9 +223,9 @@ def _require_observation_readback(
         request.participant_address,
         edge.audience_scope_ref,
     ):
-        raise ValueError("mixed participant observation differs from the authorized audience")
+        raise EvidenceIntegrityError("mixed participant observation differs from the authorized audience")
     if not set(report.observation_evidence_refs).issubset(observation.evidence_refs):
-        raise ValueError("mixed participant observation differs from the authorized audience")
+        raise EvidenceIntegrityError("mixed participant observation differs from the authorized audience")
 
 
 def _require_time_grant(
@@ -293,13 +297,13 @@ def _edge_action_dispatch(
     operation_id: str,
 ) -> tuple[Callable[..., object], MixedEdgeExecutionCapture, Callable[[ApplyResult], None]]:
     if edge.edge_id not in binding.edge_bindings:
-        raise ValueError("mixed action dispatch requires an executable edge binding")
+        raise ConflictError("mixed action dispatch requires an executable edge binding")
     installed = binding.edge_bindings[edge.edge_id]
     if (installed.source_action_address, installed.destination_action_address) != (
         request.action_contract_address,
         allocation.target_address,
     ):
-        raise ValueError("mixed destination action differs from admitted policy and provider allocation")
+        raise ConflictError("mixed destination action differs from admitted policy and provider allocation")
     capture = MixedEdgeExecutionCapture()
     mapped = _mapped_edge_method(binding, edge, installed, method, operation_id, capture)
     readback = _stage_readback_method(binding, edge, installed, request, operation_id, capture)

@@ -13,6 +13,7 @@ from raes import SDLError, SDLInstantiationError, SDLParseError, SDLValidationEr
 from raes_backend_protocols.manifest import (
     BackendManifest,
     BackendManifestEnvelopeUnsupportedError,
+    BackendManifestInvalidError,
     backend_manifest_from_v2_model,
 )
 from raes_backend_stubs.manifest import create_stub_manifest
@@ -22,6 +23,7 @@ from raes_contracts.account_credentials import (
 )
 from raes_contracts.contracts import BackendManifestV2Model
 from raes_contracts.diagnostics import diagnostic_payload
+from raes_contracts.errors import InvalidInputError, OperationalError
 from raes_contracts.plan_projection import (
     evaluation_plan_model,
     orchestration_plan_model,
@@ -80,8 +82,8 @@ def _manifest_validation_summary(error: ValidationError) -> str:
     return f"manifest is not a valid backend-manifest-v2: {locations}"
 
 
-def _sdl_error_summary(source: Path, exc: SDLError) -> str:
-    """Render a stable, sanitized SDL compilation-failure line for stderr.
+def _failure_detail(exc: InvalidInputError | OperationalError) -> str:
+    """Render a stable, sanitized failure description for stderr.
 
     Emits only the failure kind plus safe metadata -- diagnostic codes and
     1-based line:column positions for parse failures, error counts otherwise --
@@ -89,6 +91,7 @@ def _sdl_error_summary(source: Path, exc: SDLError) -> str:
     values, which can carry untrusted SDL content or terminal control sequences.
     """
 
+    name = next(item.__name__ for item in type(exc).__mro__ if not item.__name__.startswith("_"))
     if isinstance(exc, SDLParseError) and exc.diagnostics:
         markers = ", ".join(
             f"{diagnostic.code}@{diagnostic.primary_range.start.line}:{diagnostic.primary_range.start.column}"
@@ -101,9 +104,17 @@ def _sdl_error_summary(source: Path, exc: SDLError) -> str:
     elif isinstance(exc, SDLInstantiationError):
         count = len(exc.errors)
         detail = f"{count} SDL instantiation error{'s' if count != 1 else ''}"
+    elif isinstance(exc, OperationalError):
+        detail = f"an SDL module import could not be fetched or cached ({name})"
     else:
-        detail = f"SDL compilation failed ({type(exc).__name__})"
-    return f"error: could not compile {source}: {detail}"
+        detail = f"SDL compilation failed ({name})"
+    return detail
+
+
+def _sdl_error_summary(source: Path, exc: InvalidInputError | OperationalError) -> str:
+    """Render a stable, sanitized SDL compilation-failure line for stderr."""
+
+    return f"error: could not compile {source}: {_failure_detail(exc)}"
 
 
 def _load_backend_manifest(manifest_path: Path | None) -> BackendManifest:
@@ -130,6 +141,9 @@ def _load_backend_manifest(manifest_path: Path | None) -> BackendManifest:
         payload = json.loads(raw)
     except json.JSONDecodeError as exc:
         raise typer.BadParameter(f"manifest is not valid JSON: {exc.msg}") from exc
+    except (ValueError, RecursionError) as exc:
+        # The decoder raises a plain ValueError beyond the integer digit limit and RecursionError beyond its depth.
+        raise typer.BadParameter("manifest is not valid JSON: the document exceeds the decoder limits") from exc
     if not isinstance(payload, dict):
         raise typer.BadParameter("manifest must be a JSON object")
     try:
@@ -143,7 +157,7 @@ def _load_backend_manifest(manifest_path: Path | None) -> BackendManifest:
             "manifest declares a realization envelope the plan CLI cannot resolve; "
             "supply an envelope-free manifest or omit --manifest"
         ) from exc
-    except ValueError as exc:
+    except BackendManifestInvalidError as exc:
         # Deeper backend-capability validators can interpolate rejected manifest
         # values into their messages; render a stable, input-free message.
         raise typer.BadParameter("manifest was rejected by backend capability validation") from exc
@@ -197,7 +211,8 @@ def plan(
     backend_manifest = _load_backend_manifest(manifest_path)
     try:
         result = run_reference_processor(sdl, backend_manifest)
-    except SDLError as exc:
+    # SDL, compiler and planner refusals are InvalidInputError; an OCI import fetch or cache failure is operational.
+    except (InvalidInputError, OperationalError) as exc:
         typer.echo(_sdl_error_summary(sdl, exc), err=True)
         raise typer.Exit(code=1) from exc
 
@@ -313,6 +328,10 @@ def reconcile(
         source = baseline if exc.version is ScenarioVersion.BASELINE else candidate
         typer.echo(_sdl_error_summary(source, exc.cause), err=True)
         raise typer.Exit(code=1) from exc
+    # A compiler or planner refusal, or an OCI import failure, does not name the version that raised it.
+    except (InvalidInputError, OperationalError) as exc:
+        typer.echo(f"error: could not reconcile {baseline} with {candidate}: {_failure_detail(exc)}", err=True)
+        raise typer.Exit(code=1) from exc
 
     typer.echo(json.dumps(_reconciliation_payload(demonstration), indent=2, sort_keys=True))
     if demonstration.status is not ReconciliationStatus.RECONCILED:
@@ -347,6 +366,10 @@ def satisfiability(
     except SatisfiabilityOperationalError as exc:
         # The service deliberately exposes value-free operational messages.
         typer.echo(f"error: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    except OperationalError as exc:
+        # An OCI import failure message can carry a registry location, so the line shows only its kind.
+        typer.echo(f"error: satisfiability input could not be loaded: {_failure_detail(exc)}", err=True)
         raise typer.Exit(code=1) from exc
 
     typer.echo(json.dumps(evidence.model_dump(mode="json"), indent=2, sort_keys=True))

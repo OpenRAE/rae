@@ -16,9 +16,20 @@ out of scope. What this module owns is the boundary around that client:
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
+import subprocess
+import sys
+from collections.abc import Mapping, Sequence
+from pathlib import Path
 
-from tools.release_evidence_admission import ProducerIdentity
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError, RaesError  # noqa: E402
+
+from tools.release_evidence_admission import ProducerIdentity  # noqa: E402
 
 # The verifier emits a small JSON array. Anything larger is malformed output or
 # a hostile response rather than a verdict.
@@ -26,16 +37,35 @@ from tools.release_evidence_admission import ProducerIdentity
 type JsonValue = "str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]"
 
 MAX_VERIFIER_OUTPUT_BYTES = 1 * 1024 * 1024
+_VERIFIER_TIMEOUT_SECONDS = 120
 
 _GITHUB_PREFIX = "https://github.com/"
 
 
-class VerifierError(Exception):
-    """A verification-boundary failure carrying a stable, publishable code."""
+class VerifierError(RaesError):
+    """A verification-boundary failure carrying a stable, publishable code.
+
+    The codes cover rejected evidence and a verifier that cannot run, which
+    are different categories, so the family derives from ``RaesError``. Each
+    code means that no attestation was verified, and the release gate rejects
+    the evidence.
+    """
 
     def __init__(self, code: str, message: str) -> None:
         super().__init__(message)
         self.code = code
+
+
+class _IntegerDigitLimitError(InvalidInputError):
+    """A JSON integer exceeds the interpreter digit limit; it controls the flow of this module only."""
+
+
+def _bounded_integer(literal: str) -> int:
+    # The decoder passes only JSON integer literals, so int() fails only beyond the interpreter digit limit.
+    try:
+        return int(literal)
+    except ValueError as exc:
+        raise _IntegerDigitLimitError("JSON integer exceeds the interpreter digit limit") from exc
 
 
 def build_verify_command(
@@ -92,8 +122,8 @@ def _sole_attestation(payload: str) -> JsonValue:
             "attestation verifier output exceeds the reviewed size bound",
         )
     try:
-        document: JsonValue = json.loads(payload)
-    except ValueError as exc:
+        document: JsonValue = json.loads(payload, parse_int=_bounded_integer)
+    except (json.JSONDecodeError, _IntegerDigitLimitError) as exc:
         raise VerifierError(
             "verifier-output-unparsable",
             "attestation verifier output could not be parsed",
@@ -142,9 +172,33 @@ def parse_verifier_output(payload: str) -> ProducerIdentity:
     )
 
 
+def run_verifier(command: Sequence[str]) -> str:
+    """Run the maintained verifier with a fixed argument vector and return its output."""
+
+    try:
+        # Fixed argv, no shell, closed stdin.
+        completed = subprocess.run(  # noqa: S603
+            list(command),
+            capture_output=True,
+            text=True,
+            timeout=_VERIFIER_TIMEOUT_SECONDS,
+            check=False,
+            stdin=subprocess.DEVNULL,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise VerifierError("verifier-unavailable", "attestation verifier could not be executed") from exc
+    except UnicodeDecodeError as exc:
+        # Text mode decodes the verifier output; output that does not decode cannot be parsed.
+        raise VerifierError("verifier-output-unparsable", "attestation verifier output could not be parsed") from exc
+    if completed.returncode != 0:
+        raise VerifierError("verifier-rejected", "attestation verifier did not return a clean verdict")
+    return completed.stdout
+
+
 __all__ = [
     "MAX_VERIFIER_OUTPUT_BYTES",
     "VerifierError",
     "build_verify_command",
     "parse_verifier_output",
+    "run_verifier",
 ]

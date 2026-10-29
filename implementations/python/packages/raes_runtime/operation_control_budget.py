@@ -11,6 +11,9 @@ from pydantic import ConfigDict
 from raes_contracts.contracts import BackendOperationControlModel
 from raes_contracts.contracts.backend_operation import OperationPositive
 from raes_contracts.contracts.base import ContractModel
+from raes_contracts.errors import ConflictError, InvalidInputError
+
+from .errors import RuntimeBudgetExhaustedError
 
 if TYPE_CHECKING:
     from .control_plane import RuntimeControlPlane
@@ -31,26 +34,30 @@ def admit_control_budget(plane: RuntimeControlPlane, control: BackendOperationCo
     now = monotonic()
     plane._control_deadlines = {key: deadline for key, deadline in plane._control_deadlines.items() if deadline > now}
     if control_key(control) in plane._control_deadlines:
-        raise ValueError("control budget cannot be renewed")
+        raise ConflictError("control budget cannot be renewed")
     if len(plane._control_deadlines) >= 256:
-        raise ValueError("control clock capacity unavailable")
-    started = datetime.fromisoformat(control.budget.started_at.replace("Z", "+00:00"))
+        raise ConflictError("control clock capacity unavailable")
+    try:
+        started = datetime.fromisoformat(control.budget.started_at.replace("Z", "+00:00"))
+    except ValueError as exc:
+        # The control contract also admits a lowercase "z" and a leap second, which this clock does not read.
+        raise InvalidInputError("control budget start time is unsupported") from exc
     elapsed = (datetime.now(UTC) - started).total_seconds()
     if elapsed < 0:
-        raise ValueError("control clock continuity is unavailable")
+        raise ConflictError("control clock continuity is unavailable")
     remaining = min(control.budget.remaining_ms, control.budget.limit_ms - ceil(elapsed * 1000))
     if remaining <= 0:
-        raise TimeoutError("control budget exhausted before admission")
+        raise RuntimeBudgetExhaustedError("control budget exhausted before admission")
     plane._control_deadlines[control_key(control)] = now + remaining / 1000
 
 
 def remaining_control_budget(plane: RuntimeControlPlane, control: BackendOperationControlModel) -> int:
     deadline = plane._control_deadlines.get(control_key(control))
     if deadline is None:
-        raise ValueError("control clock continuity is unavailable")
+        raise ConflictError("control clock continuity is unavailable")
     remaining = int((deadline - monotonic()) * 1000)
     if remaining <= 0:
-        raise TimeoutError("control delivery budget exhausted")
+        raise RuntimeBudgetExhaustedError("control delivery budget exhausted")
     return remaining
 
 

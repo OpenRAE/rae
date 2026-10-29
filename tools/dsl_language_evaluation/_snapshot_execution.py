@@ -6,6 +6,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
+from raes_contracts.errors import InvalidInputError
+
 from tools.dsl_language_evaluation._keys import (
     _ATTEMPT_KEYS,
     _OBSERVATION_KEYS,
@@ -201,7 +203,7 @@ def _observation_stage_failures(
             if isinstance(parent_task_id, str) and isinstance(parent_variant_id, str)
             else []
         )
-    except ValueError:
+    except InvalidInputError:
         applicable_stages = []
     undeclared = any(
         (
@@ -325,7 +327,7 @@ def _opportunity_stages(
         return []
     try:
         return _measure_stage_ids(measure, task_id, variant_id)
-    except ValueError:
+    except InvalidInputError:
         return []
 
 

@@ -5,6 +5,7 @@ from dataclasses import replace
 import pytest
 from raes import parse_sdl
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_store import InMemoryControlPlaneStore
@@ -93,7 +94,7 @@ def test_failed_post_creation_readback_remains_in_recoverable_inventory(failure,
         ],
     )
     recovered.register_planner_produced_plan(replace(execution, provisioning=cleanup_plan))
-    with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
+    with pytest.raises(ConflictError, match="indeterminate operation requires resolution"):
         recovered.submit_provisioning(cleanup_plan)
     assert recovered.snapshot.entries == predecessor.entries
     assert "provision.node.vm" in driver.realized_addresses()

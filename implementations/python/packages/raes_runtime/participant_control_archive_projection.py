@@ -12,6 +12,7 @@ from raes_contracts.contracts.participant_control_occurrence_v2_policy import (
     ParticipantControlOccurrenceTarget,
 )
 from raes_contracts.contracts.participant_control_occurrence_v2_state import ParticipantControlEpisodeFoldV2
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError
 
 if TYPE_CHECKING:
     from .control_plane import RuntimeControlPlane
@@ -35,6 +36,7 @@ ArchiveContext = tuple[
 ]
 
 ARCHIVE_PROJECTION_VERSION = 1
+_COMPLETION_REUSED = "handoff completion evidence must not be reused"
 
 
 class ControlArchiveProjection:
@@ -74,12 +76,16 @@ class ControlArchiveProjection:
             self.__init__()
         if history is self.history and context == self.context:
             return
-        suffix = [
-            parse_participant_control_occurrence(history[index]) for index in range(len(self.history), len(history))
-        ]
-        # The legacy owner retains its complete-batch contract.
-        legacy = self.has_legacy or any(record.schema_version == "1.0.0" for record in suffix)
-        self._consume_suffix(suffix, declarations, policies, available_targets, legacy)
+        try:
+            suffix = [
+                parse_participant_control_occurrence(history[index]) for index in range(len(self.history), len(history))
+            ]
+            # The legacy owner retains its complete-batch contract.
+            legacy = self.has_legacy or any(record.schema_version == "1.0.0" for record in suffix)
+            self._consume_suffix(suffix, declarations, policies, available_targets, legacy)
+        # The published occurrence validators refuse retained history with ValueError.
+        except ValueError as exc:
+            raise EvidenceIntegrityError("participant control archive does not replay against its context") from exc
         self.history, self.context = history, context
         self.has_legacy = legacy
 
@@ -114,7 +120,7 @@ class ControlArchiveProjection:
         episode = record.episode_id
         lineage = self.lineages.setdefault(episode, record.schema_version)
         if lineage != record.schema_version:
-            raise ValueError("participant control episode must not mix occurrence lineages")
+            raise EvidenceIntegrityError("participant control episode must not mix occurrence lineages")
         occurrence = record.occurrence
         if occurrence.disposition == "accepted" and occurrence.kind == "proposal":
             self.proposal_episodes.setdefault(occurrence.proposal_id, set()).add(episode)
@@ -124,7 +130,7 @@ class ControlArchiveProjection:
             extended = prefix.append([record], available_targets=available_targets)
             introduced = extended.state.completion_evidence_refs - prefix.state.completion_evidence_refs
             if introduced & self.completions:
-                raise ValueError("handoff completion evidence must not be reused")
+                raise EvidenceIntegrityError(_COMPLETION_REUSED)
             self.completions.update(introduced)
             self.episodes[episode] = extended
         self.records.append(record)
@@ -141,7 +147,7 @@ class ControlArchiveProjection:
         if result.violation is None:
             introduced = result.state.completion_evidence_refs - prefix.state.completion_evidence_refs
             if introduced & self.completions:
-                raise ValueError("handoff completion evidence must not be reused")
+                raise ConflictError(_COMPLETION_REUSED)
         return result
 
 
@@ -173,7 +179,7 @@ def _policies_by_key(
     for policy in policies:
         key = (policy.participant_address, policy.episode_id, policy.semantics, policy_pin_key(policy.pin))
         if result.setdefault(key, policy) != policy:
-            raise ValueError("participant control policy identity was reused with different semantics")
+            raise EvidenceIntegrityError("participant control policy identity was reused with different semantics")
     return result
 
 

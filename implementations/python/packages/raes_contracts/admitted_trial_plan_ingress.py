@@ -5,12 +5,13 @@ from __future__ import annotations
 from pydantic import ValidationError
 
 from .contracts.admitted_trial_plan import AdmittedTrialPlanModel
+from .errors import InvalidInputError
 from .json_ingress import StrictJsonIngressError, parse_bounded_json_object
 
 MAX_ADMITTED_TRIAL_PLAN_BYTES = 32 * 1024 * 1024
 
 
-class AdmittedTrialPlanIngressError(ValueError):
+class AdmittedTrialPlanIngressError(InvalidInputError):
     """An admitted-plan document failed safe ingress or contract validation."""
 
     def __init__(self, code: str, message: str) -> None:

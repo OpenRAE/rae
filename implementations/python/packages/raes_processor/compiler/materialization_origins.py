@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Iterator
 from typing import Any
 
+from pydantic import ValidationError
 from raes.explicitness import ExplicitnessProvenance
 from raes.materialization import MaterializedScenario
 from raes.materialization_provenance import MaterializationOrigin
@@ -12,6 +13,7 @@ from raes.nodes import Node
 from raes.runtime_inventory import runtime_inventory_collection_identity
 from raes.scenario import InstantiatedScenario, ScenarioContent
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.realization_structure import (
     RealizationClosure,
     RealizationCollectionProfile,
@@ -35,7 +37,7 @@ def materialization_differences(
         if not validate_realization_value(
             content, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS, python_carriers=True
         ).conformant:
-            raise ValueError("materialization comparison exceeds portable bounds")
+            raise InvalidInputError("materialization comparison exceeds portable bounds")
     before = source.model_dump(mode="json", exclude={"instantiation_provenance"})
     after = materialized.model_dump(mode="json", exclude={"materialization_provenance"})
     profiles = _profiles(
@@ -113,10 +115,10 @@ def compose_materialization_content(
     )
     merged = _compose_owned(*values, (), profiles)
     if not validate_realization_value(merged, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS).conformant:
-        raise ValueError("cumulative prospective SDL exceeds portable bounds")
+        raise InvalidInputError("cumulative prospective SDL exceeds portable bounds")
     admitted = admit_prospective_content(merged)
     if len(admitted.model_dump_json().encode("utf-8")) > MATERIALIZATION_MAX_BYTES:
-        raise ValueError("cumulative prospective SDL exceeds the byte limit")
+        raise InvalidInputError("cumulative prospective SDL exceeds the byte limit")
     return admitted
 
 
@@ -146,7 +148,7 @@ def _compose_changed_containers(
         identity := _collection_identity(path, profiles)
     ):
         return _compose_owned_members(base, preceding, local, path, profiles, identity)
-    raise ValueError("prospective effects overlap another producer's ownership")
+    raise InvalidInputError("prospective effects overlap another producer's ownership")
 
 
 def _compose_owned_members(
@@ -183,10 +185,15 @@ def materialization_node_payloads_match(name: str, described: object, observed: 
     try:
         left = Node.model_validate(described).model_dump(mode="json")
         right = Node.model_validate(observed).model_dump(mode="json")
-        path = ("nodes", name)
-        return not any(_differences(left, right, path, path, _profiles({name}, set())))
-    except TypeError, ValueError:
+    except ValidationError:
         return False
+    path = ("nodes", name)
+    try:
+        differs = any(_differences(left, right, path, path, _profiles({name}, set())))
+    except InvalidInputError:
+        # A keyed collection without its native identity cannot match.
+        differs = True
+    return not differs
 
 
 def validate_materialization_origins(source: InstantiatedScenario, materialized: MaterializedScenario) -> None:
@@ -194,7 +201,7 @@ def validate_materialization_origins(source: InstantiatedScenario, materialized:
     actual = {item.model_dump_json() for item in materialization_differences(source, materialized)}
     claimed = {item.model_dump_json() for item in materialized.materialization_provenance.origins}
     if actual != claimed:
-        raise ValueError("materialization origins do not exactly account for the source differences")
+        raise InvalidInputError("materialization origins do not exactly account for the source differences")
 
 
 def _pointer(tokens: tuple[str, ...]) -> str:
@@ -227,10 +234,10 @@ def _indexed(values: list[object], identity: tuple[str, ...]) -> dict[str, tuple
     result = {}
     for index, value in enumerate(values):
         if not isinstance(value, dict) or any(field not in value for field in identity):
-            raise ValueError("materialization inventory lacks its owning collection identity")
+            raise InvalidInputError("materialization inventory lacks its owning collection identity")
         key = canonical_json_digest({field: value[field] for field in identity})
         if key in result:
-            raise ValueError("materialization inventory has duplicate collection identities")
+            raise InvalidInputError("materialization inventory has duplicate collection identities")
         result[key] = (index, value)
     return result
 

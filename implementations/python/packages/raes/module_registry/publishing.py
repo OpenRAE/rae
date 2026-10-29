@@ -16,6 +16,7 @@ from typing import Any
 from cryptography.exceptions import UnsupportedAlgorithm
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from raes_contracts.errors import ConflictError, InvalidInputError, OperationalError
 
 from .._errors import SDLParseError
 from ..scenario import ImportDecl, ModuleDescriptor
@@ -158,7 +159,7 @@ class _LayoutPublication:
     manifest_digest: str
 
 
-class _InvalidLayoutError(ValueError):
+class _InvalidLayoutError(InvalidInputError):
     """Internal marker for a filesystem object that is not an OCI layout."""
 
 
@@ -293,7 +294,7 @@ def _reject_legacy_layout(layout_slot: Path) -> None:
         return
     legacy_paths = (layout_slot / "oci-layout", layout_slot / "index.json", layout_slot / "blobs")
     if any(child.exists() or child.is_symlink() for child in legacy_paths):
-        raise SDLParseError(
+        raise ConflictError(
             "Existing OCI output uses the legacy root-layout format; move or remove "
             f"'{layout_slot}' before publishing into its versioned layout slot"
         )
@@ -304,7 +305,7 @@ def _populate_layout_stage(staging: Path, expected_files: Mapping[str, bytes]) -
     for relative, payload in sorted(expected_files.items()):
         staging.joinpath(*relative.split("/")).write_bytes(payload)
     if not _valid_oci_layout(staging, expected_files):
-        raise SDLParseError("Staged OCI layout failed validation")
+        raise OperationalError("Staged OCI layout failed validation")
 
 
 def _commit_layout_stage(
@@ -322,7 +323,7 @@ def _commit_layout_stage(
         error_message="Unable to publish the OCI layout atomically",
     )
     if not _valid_oci_layout(installed, publication.expected_files):
-        raise SDLParseError("Published OCI layout failed validation")
+        raise OperationalError("Published OCI layout failed validation")
     _prune_version_directories(
         versions=versions,
         retain_names={version_name, *(() if prior_version is None else (prior_version,))},
@@ -397,7 +398,7 @@ def _write_oci_layout(
                 prior_version=prior_version,
             )
     except OSError as exc:
-        raise SDLParseError("Unable to build the OCI layout") from exc
+        raise OperationalError("Unable to build the OCI layout") from exc
 
 
 def publish_module_to_oci_layout(

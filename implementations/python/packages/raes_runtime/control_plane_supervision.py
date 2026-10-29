@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, cast
 from uuid import uuid4
 
 from raes_contracts.contracts import BackendOperationControlModel, backend_operation_request_digest
+from raes_contracts.errors import AuthorizationError, ConflictError, InvalidInputError, NotFoundError
 from raes_contracts.runtime_state import OperationState
 
 from .control_plane_execution import _utc_now
@@ -21,12 +22,18 @@ from .runtime_operation_routing import run_operation
 
 if TYPE_CHECKING:
     from raes_contracts.contracts import BackendOperationResponseModel
+    from raes_contracts.contracts.backend_operation import OperationGuarantee
 
     from .control_plane import RuntimeControlPlane
     from .operation_invocation_ledger import InvocationLedger
 
 
 _OPERATION_NOT_FOUND = "operation not found"
+
+
+def required_guarantees(plane: RuntimeControlPlane, *evidence: OperationGuarantee) -> tuple[OperationGuarantee, ...]:
+    """Return the guarantees that the run requires, then the evidence guarantees of one command, once each."""
+    return tuple(dict.fromkeys((*plane._required_operation_guarantees, *evidence)))
 
 
 def authorize_supervisor(
@@ -52,7 +59,7 @@ def authorize_supervisor(
             == (plane._target_scope, plane._run_scope)
         )
     if not allowed:
-        raise PermissionError("supervision is forbidden")
+        raise AuthorizationError("supervision is forbidden")
 
 
 @bounded_store_commit
@@ -124,7 +131,7 @@ class RuntimeSupervisionMixin:
         _automatic_observation: bool = False,
     ) -> BackendOperationControlModel:
         if _automatic_observation and (identity is not None or action != "observe"):
-            raise PermissionError("automatic observation requires core authority")
+            raise AuthorizationError("automatic observation requires core authority")
         authorize_supervisor(self, identity)
         actor, scopes = operation_actor_scope(identity)
         with self._mutation_authority.supervision():
@@ -132,14 +139,14 @@ class RuntimeSupervisionMixin:
             self._reload_derived_state()
             parent = self._operations.get(operation_id)
             if parent is None:
-                raise KeyError(_OPERATION_NOT_FOUND)
+                raise NotFoundError(_OPERATION_NOT_FOUND)
             authorize_supervisor(self, identity, parent)
             if parent.invocation is None:
-                raise ValueError("historical operation has no supervised invocation binding")
+                raise ConflictError("historical operation has no supervised invocation binding")
             for existing in parent.invocation.controls:
                 if existing.control_id == control_id:
                     if (existing.actor_id, existing.authorization_scope, existing.action) != (actor, scopes, action):
-                        raise ValueError("control identity conflict")
+                        raise ConflictError("control identity conflict")
                     return existing
             control = BackendOperationControlModel(
                 binding=parent.invocation.request.binding,
@@ -164,26 +171,26 @@ class RuntimeSupervisionMixin:
         control = BackendOperationControlModel.model_validate(control.model_dump(mode="json"))
         authorize_supervisor(self, identity)
         if (control.actor_id, control.authorization_scope) != operation_actor_scope(identity):
-            raise PermissionError("control actor is forbidden")
+            raise AuthorizationError("control actor is forbidden")
         with self._mutation_authority.supervision():
             self._assert_runtime_owner()
             self._reload_derived_state()
             parent = self._operations.get(control.binding.operation_id)
             if parent is None or parent.invocation is None:
-                raise KeyError(_OPERATION_NOT_FOUND)
+                raise NotFoundError(_OPERATION_NOT_FOUND)
             authorize_supervisor(self, identity, parent)
             if (
                 control.binding != parent.invocation.request.binding
                 or control.request_digest != backend_operation_request_digest(parent.invocation.request)
             ):
-                raise ValueError("control binding mismatch")
+                raise ConflictError("control binding mismatch")
             for existing in parent.invocation.controls:
                 if existing.control_id == control.control_id:
                     if existing != control:
-                        raise ValueError("control identity conflict")
+                        raise ConflictError("control identity conflict")
                     return existing
             if control.budget.limit_ms > self._supervision.observation_ms:
-                raise ValueError("control budget is unsupported")
+                raise InvalidInputError("control budget is unsupported")
             return self._record_supervisor_control(parent, control)
 
     def _record_supervisor_control(
@@ -234,7 +241,7 @@ class RuntimeSupervisionMixin:
             self._reload_derived_state()
             parent = self._operations.get(operation_id)
         if parent is None or parent.invocation is None:
-            raise KeyError(_OPERATION_NOT_FOUND)
+            raise NotFoundError(_OPERATION_NOT_FOUND)
         authorize_supervisor(self, identity, parent)
         for response in reversed(parent.invocation.responses):
             if getattr(response.message, "control_id", None) == control_id:

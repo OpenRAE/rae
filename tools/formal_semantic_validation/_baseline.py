@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from pathlib import Path
 
+from raes_contracts.errors import InvalidInputError
+
 from tools.evidence_bundle_index import load_index_records, revision_key
 from tools.formal_semantic_validation._release_revisions import expected_corpus_revision
 from tools.formal_semantic_validation._shape import (
@@ -40,7 +42,7 @@ def _pinned_document(repo_root: Path, relative: str, digest: str) -> Mapping[str
         return None
     try:
         return load_bounded_json_object(repo_root, relative, max_bytes=_MAX_FILE_BYTES)
-    except OSError, ValueError:
+    except OSError, InvalidInputError:
         return None
 
 
@@ -144,7 +146,7 @@ def _selected_baseline_manifest(
                 max_bytes=_MAX_FILE_BYTES,
             )
         )
-    except (OSError, ValueError) as exc:
+    except (OSError, InvalidInputError) as exc:
         failures.append(
             _failure(
                 "formal-validation-baseline-selection",
@@ -159,7 +161,7 @@ def _selected_baseline_manifest(
     try:
         integrated = is_capture(baseline_revision) or revision_key(baseline_revision) >= (3, 0, 0)
         corpus_revision = expected_corpus_revision(baseline_revision) if integrated else "1.0.0"
-    except ValueError:
+    except InvalidInputError:
         integrated = False
         corpus_revision = "invalid"
     expected_protocol_path = f"docs/research/formal-semantic-validation/protocol-v{2 if integrated else 1}.json"

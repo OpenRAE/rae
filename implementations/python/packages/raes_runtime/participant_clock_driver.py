@@ -12,10 +12,11 @@ from typing import TypedDict, Unpack
 
 from raes_contracts.contracts.participant_execution import ParticipantExecutionServiceStateModel
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.models import CompiledTimeModel, ParticipantAutonomousExecutionRuntime
 
-_UNEXPECTED_FAILURES = (Exception,)
+_LOGGER = get_logger(__name__)
 
 
 class ClockDriverOptions(TypedDict, total=False):
@@ -120,7 +121,10 @@ class ParticipantClockDriver:
             keep_running = True
             while keep_running and not self._stop.is_set():
                 keep_running = self._run_once()
-        except _UNEXPECTED_FAILURES as exc:
+        # Boundary of the driver thread: record one typed failure and log it once. The serial
+        # scheduler calls participant runtime backends directly, so log only RAES frames.
+        except Exception as exc:
+            _LOGGER.exception("participant clock driver terminated unexpectedly", exc_info=foreign_failure_record(exc))
             self._record_unexpected_failure(exc)
 
     def _run_once(self) -> bool:

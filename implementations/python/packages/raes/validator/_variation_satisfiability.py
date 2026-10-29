@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from raes_contracts.errors import OperationalError
+
 from ..variation import VARIATION_SATISFIABILITY_STATE_LIMIT
 
 _SelectionVariable = tuple[str, str]
@@ -17,7 +19,7 @@ class _SelectionGroup:
     maximum: int
 
 
-class _SelectionBudgetExceeded(RuntimeError):
+class _SelectionBudgetExceeded(OperationalError):
     pass
 
 

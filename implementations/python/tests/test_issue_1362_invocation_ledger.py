@@ -3,6 +3,7 @@
 from dataclasses import replace
 
 import pytest
+from raes_contracts.errors import ConflictError
 from raes_contracts.runtime_state import OperationState
 from raes_runtime.control_plane_store import AuditEvent, InMemoryControlPlaneStore
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
@@ -49,7 +50,7 @@ def test_effect_claim_excludes_a_second_operation_even_without_a_live_process_pe
     initial = accepted()
     store.claim_record(initial)
     competing = _running_record("operation-competing-1362")
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ConflictError):
         store.claim_record(competing)
     assert len(store.load_records()) == 1
 
@@ -108,7 +109,7 @@ def test_control_intent_and_its_own_actor_audit_commit_atomically(local, tmp_pat
         delivery = replace(
             updated, invocation=updated.invocation.model_copy(update={"delivered_controls": (control.control_id,)})
         )
-        with pytest.raises(ValueError):
+        with pytest.raises(ConflictError):
             store.commit_invocation_transition(initial, delivery, audit_event=event)
     finally:
         if owner:
@@ -146,7 +147,7 @@ def test_reopening_retains_controls_stop_and_consumed_invocation(tmp_path):
         assert reopened.admit_execution_generation() > generation
         assert reopened.load_records()[initial.receipt.operation_id] == running
         rejected_record = _running_record("another-recovered-1362")
-        with pytest.raises(RuntimeError):
+        with pytest.raises(ConflictError):
             reopened.claim_record(rejected_record)
     finally:
         reopened.close()

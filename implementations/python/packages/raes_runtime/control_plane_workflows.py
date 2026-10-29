@@ -200,4 +200,8 @@ def parse_timestamp(raw: str) -> datetime:
         raise ValueError(_EXPLICIT_OFFSET_TIMESTAMP_ERROR) from None
     if parsed.tzinfo is None or offset is None:
         raise ValueError(_EXPLICIT_OFFSET_TIMESTAMP_ERROR)
-    return parsed.astimezone(UTC)
+    try:
+        return parsed.astimezone(UTC)
+    except OverflowError:
+        # A valid local time near the datetime range limit can have no UTC form.
+        raise ValueError(_EXPLICIT_OFFSET_TIMESTAMP_ERROR) from None
