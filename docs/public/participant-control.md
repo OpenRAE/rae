@@ -72,11 +72,14 @@ participant-control intent in:
 - simulation or emulation/operation as alternative realizations; and
 - simulation and emulation/operation together in one admitted trial.
 
-Issue #1013 publishes SEM-234's revisioned semantic definition and finite
-admission/phase examples. ASR-537's realization demonstration remains DRAFT.
-This does not mean current RAES runtimes can execute a mixed trial.
+Issue #1013 publishes SEM-234's revisioned semantic definition and finite admission examples.
+The installed runtime now executes simultaneous mixed arrangements and staged handoffs.
+The [mixed-control demonstration](https://github.com/OpenRAE/rae/blob/dev/docs/explain/reference/mixed-control-demonstration.md)
+checks these paths with controlled test providers.
+It establishes no native backend qualification or simulation-to-operation transfer.
+The broader ASR-537 research requirement remains DRAFT.
 
-Portable SDL stays backend-neutral. Future admitted trial intent will allocate
+Portable SDL stays backend-neutral. Admitted trial intent allocates
 stable participant-runtime, controlled-scope, action-family,
 observation-source, and crossing refs to exact apparatus components. Every
 component edge must state its adapter, authority, action/observation mapping,
@@ -120,8 +123,11 @@ Neither kind erases prior delivery or participant knowledge.
 
 Do not treat a shared adapter, passing conformance probe, paired backend run,
 or successful transfer trial as backend equivalence. The contract, runtime and
-evidence work is tracked by issues #1014 through #1019. See the
-[issue #813 design record](https://github.com/OpenRAE/rae/issues/813).
+evidence have separate owners and limits. Reusable control combined with mixed runtime remains refused.
+Distributed dispatch combined with local portable mixed services also remains refused.
+See the [current support reference](https://github.com/OpenRAE/rae/blob/dev/docs/explain/reference/revised-control-semantics.md),
+[migration checklist](https://github.com/OpenRAE/rae/blob/dev/docs/migration/revised-control.md),
+and [executable examples](https://github.com/OpenRAE/rae/blob/dev/docs/examples/revised-control.md).
 
 ## Choose the route for your role
 
