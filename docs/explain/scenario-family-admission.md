@@ -100,6 +100,10 @@ The existing capture recorder writes immutable content-addressed evidence.
 It retains published history and baseline pins.
 CI independently replays the selected current capture.
 
+A separate runtime-mapping capture records twenty-five bounded public calls with stubs.
+The existing [mapping boundary](../../specs/formal/participant-semantics/participant-crossing-runtime-mapping.md) governs these observations.
+This capture establishes no equivalence or backend conformance.
+
 ## References
 
 - [Pydantic models](https://docs.pydantic.dev/2.12/concepts/models/), version 2.12: validating data and model copies.
