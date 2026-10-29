@@ -105,7 +105,11 @@ def _compile_node_runtimes(
     networks: dict[str, NetworkRuntime] = {}
     node_deployments: dict[str, NodeRuntime] = {}
     targets = _NodeRuntimeTargets(networks=networks, node_deployments=node_deployments)
-    supplied_paths = scenario.explicitness.keys()
+    supplied_paths = (
+        frozenset(record.model_path for record in scenario.instantiation_provenance.explicitness)
+        if isinstance(scenario, InstantiatedScenario)
+        else scenario.explicitness.keys()
+    )
     for node_name, node in scenario.nodes.items():
         node_spec = _node_spec_with_supplied_concerns(node_name, node, supplied_paths)
         infra = scenario.infrastructure.get(node_name)

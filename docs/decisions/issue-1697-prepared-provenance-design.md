@@ -13,6 +13,7 @@ Explicit empty values remain supplied values.
 Absent and null values create no concern records.
 Serialized defaults do not establish author intent.
 The compiler uses retained explicitness paths to omit absent registered concern fields from node payloads.
+It reads those paths without rebuilding the explicitness map used for realization compilation.
 This keeps explicitly empty concerns distinct from model defaults after instantiation.
 Typed node admission still supplies defaults for validation.
 Later reporting compares sparse node payloads through the existing safe typed default projection.

@@ -102,8 +102,25 @@ def test_current_retest_bundle_is_coherent_and_clean() -> None:
         if item.manifest_path == snapshot["baseline"]["release_path"]
     )
     assert snapshot["baseline"]["release_revision"] == baseline.manifest["revision"]
-    assert snapshot["deviations"] == []
+    # Strict validation joins every governed change to its immutable baseline.
     assert validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis) == []
+
+
+def test_prepared_provenance_capture_preserves_recorded_digest_deviations() -> None:
+    release = next(
+        item
+        for item in copy_bundle(load_release_bundles, REPO_ROOT)
+        if item.manifest["revision"] == "capture-0201b448fa8453debc0ef6f1972a251e8085d4bf6c17f78c5d4ee40ca135b21d"
+    )
+    assert {item["case_id"] for item in release.snapshot["deviations"]} == {
+        "compile-repeatability-control",
+        "compile-non-vacuity-control",
+    }
+    assert all(item["changed_fields"] == ["result_digest"] for item in release.snapshot["deviations"])
+    assert all(
+        item["baseline"]["actual_outcome"] == item["retest"]["actual_outcome"]
+        for item in release.snapshot["deviations"]
+    )
 
 
 def test_materialization_capture_preserves_recorded_digest_deviations() -> None:

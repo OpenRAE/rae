@@ -27,6 +27,7 @@ Current state: identified gap. Honest portability requires normative semantics f
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_node_defaults.py` (Typed default comparison preserves supplied concern values and closed authority)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/artifact_requirements.py` (Artifact satisfaction contracts use neutral base primitives)
 - TESTS → TEST `implementations/python/tests/test_issue_1697_preparation_provenance.py` (Prepared addition provenance, failure, lifecycle, persistence and native proposal integrity)
+- TESTS → TEST `implementations/python/tests/test_issue_1099_compiler_explicitness_performance.py` (Explicitness snapshot preserves runtime and plan semantics with one reconstruction)
 - TESTS → TEST `implementations/python/tests/test_issue_1697_preparation_reporting.py` (First-party preparation with materialization, descendant reporting, refresh and deletion)
 - TESTS → TEST `implementations/python/tests/test_issue_1697_prepared_artifact_provenance.py` (Prepared artifact disclosure retains satisfaction checks)
 - TESTS → TEST `implementations/python/tests/test_issue_1362_runtime_imports.py` (Artifact carriers remain importable before the contract facade)
