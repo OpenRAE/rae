@@ -252,8 +252,9 @@ generated_artifacts:
     else:
         environment.value_from.output = "missing"
         error = SDLValidationError
-    with warnings.catch_warnings(record=True) as emitted, pytest.raises(error) as raised:
+    with warnings.catch_warnings(record=True) as emitted:
         warnings.simplefilter("always")
-        admit_scenario_family(authored)
+        with pytest.raises(error) as raised:
+            admit_scenario_family(authored)
     assert not emitted
     assert "sensitive-conflicting-value" not in str(raised.value)
