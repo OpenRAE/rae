@@ -265,8 +265,9 @@ def test_one_retained_dependent_rejects_the_whole_selection(point: str, member: 
     payload = _payload()
     del payload["variation_points"]["intel-host"]["alternatives"]["absent"]["requires"]
     outcomes = {**_absent_outcomes(), point: _outcome(member)}
+    family = _family(payload)
     with pytest.raises(SDLSelectionError, match=fragment):
-        select_scenario_family(_family(payload), outcomes)
+        select_scenario_family(family, outcomes)
 
 
 def test_consumer_choice_keeps_selected_rows_payload_and_source_order() -> None:
@@ -332,8 +333,10 @@ def test_last_volume_consumer_and_orphan_artifact_fail_admission(point: str, mem
     else:
         alternatives["without-intel"] = member
         member_id = "without-intel"
+    family = _family(payload)
+    outcomes = {"choice": _outcome(member_id)}
     with pytest.raises(SDLSelectionError, match="whole-scenario semantic admission"):
-        select_scenario_family(_family(payload), {"choice": _outcome(member_id)})
+        select_scenario_family(family, outcomes)
 
 
 def test_removing_the_only_consumer_of_an_ssh_output_fails_admission() -> None:
@@ -365,8 +368,9 @@ def test_removing_the_only_consumer_of_an_ssh_output_fails_admission() -> None:
     }
     family = _family(payload)
     assert len(select_scenario_family(family, {"access": _outcome("all")}).generated_artifacts["access"].consumers) == 2
+    outcomes = {"access": _outcome("without-intel")}
     with pytest.raises(SDLSelectionError, match="whole-scenario semantic admission"):
-        select_scenario_family(family, {"access": _outcome("without-intel")})
+        select_scenario_family(family, outcomes)
 
 
 def test_owner_resolves_only_in_the_slot_owner_section() -> None:
@@ -447,8 +451,9 @@ def test_declaration_absence_conflicts_with_descendant_writes(edit: str, reverse
         outcomes = {"volume": _outcome("absent"), "rules": _outcome("all")}
     if reverse:
         payload["variation_points"] = dict(reversed(payload["variation_points"].items()))
+    family = _family(payload)
     with pytest.raises(SDLSelectionError, match="conflict"):
-        select_scenario_family(_family(payload), outcomes)
+        select_scenario_family(family, outcomes)
 
 
 def test_equal_declaration_removals_are_idempotent() -> None:

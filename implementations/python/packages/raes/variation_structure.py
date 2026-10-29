@@ -92,6 +92,9 @@ class ResourceConsumerSlot(StrEnum):
     GENERATED_ARTIFACTS = "generated_artifacts.consumers"
 
 
+NODE_PRESENCE_SLOT = "nodes.presence"
+
+
 class StructuralTarget(SDLModel):
     kind: Literal["structural"]
     owner: QualifiedReference
@@ -177,35 +180,32 @@ AlternativeMember = (
 # Owner section, then candidate domain. Candidate domains are for navigation; semantic
 # admission further restricts inventory and consumer rows to the exact owner and family.
 STRUCTURAL_TARGET_SPECS: dict[str, tuple[str, str]] = {
-    "nodes.presence": ("nodes", "nodes"),
+    NODE_PRESENCE_SLOT: ("nodes", "nodes"),
     **{slot.value: ("nodes", "targetable") for slot in RuntimeInventorySlot},
     **{slot.value: (slot.value.split(".", 1)[0],) * 2 for slot in DeclarationPresenceSlot},
     **{slot.value: (slot.value.split(".", 1)[0], "nodes") for slot in ResourceConsumerSlot},
 }
 
 STRUCTURAL_MEMBER_KINDS: dict[str, tuple[str, ...]] = {
-    "node-presence": ("nodes.presence",),
+    "node-presence": (NODE_PRESENCE_SLOT,),
     "runtime-inventory": tuple(slot.value for slot in RuntimeInventorySlot),
     "declaration-presence": tuple(slot.value for slot in DeclarationPresenceSlot),
     "resource-consumers": tuple(slot.value for slot in ResourceConsumerSlot),
 }
 
-
-def _expected_structural_member(slot: str) -> type[_SelectionMember]:
-    if slot == "nodes.presence":
-        return NodePresenceAlternative
-    if slot in DeclarationPresenceSlot:
-        return DeclarationPresenceAlternative
-    if slot in ResourceConsumerSlot:
-        return ResourceConsumersAlternative
-    return RuntimeInventoryAlternative
+_STRUCTURAL_MEMBER_TYPES: dict[str, type[_SelectionMember]] = {
+    NODE_PRESENCE_SLOT: NodePresenceAlternative,
+    **dict.fromkeys(STRUCTURAL_MEMBER_KINDS["runtime-inventory"], RuntimeInventoryAlternative),
+    **dict.fromkeys(STRUCTURAL_MEMBER_KINDS["declaration-presence"], DeclarationPresenceAlternative),
+    **dict.fromkeys(STRUCTURAL_MEMBER_KINDS["resource-consumers"], ResourceConsumersAlternative),
+}
 
 
 def validate_alternative_members(
     target: object,
     alternatives: dict[str, AlternativeMember],
 ) -> None:
-    expected = _expected_structural_member(target.slot) if isinstance(target, StructuralTarget) else VariationMember
+    expected = _STRUCTURAL_MEMBER_TYPES[str(target.slot)] if isinstance(target, StructuralTarget) else VariationMember
     if any(not isinstance(member, expected) for member in alternatives.values()):
         raise ValueError("alternative member type must match its target slot")
     values = [alternative_value(member) for member in alternatives.values()]
