@@ -193,3 +193,37 @@ def test_public_example_refuses_an_uncompilable_request_with_a_category() -> Non
 
     with pytest.raises(InvalidInputError, match="typed treatment compilation failed: trial-compiler\\."):
         example["compile_example"](request)
+
+
+# Node-default comparison refuses a malformed node payload with a category (ADR-116 rules E9 and H5).
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [{}, {"spec": []}, {"spec": {"node": "not-a-node"}}, {"spec": {"node": {"type": 7}}}],
+    ids=["no-spec", "spec-not-mapping", "node-not-mapping", "node-refused-by-contract"],
+)
+def test_node_defaults_refuse_a_malformed_payload_as_invalid_input(payload):
+    from types import SimpleNamespace
+
+    from raes_contracts.errors import InvalidInputError
+    from raes_processor.semantics.realization_node_defaults import defaulted_node_payload, with_node_defaults
+
+    resource = SimpleNamespace(address="nodes.web", payload=payload)
+    with pytest.raises(InvalidInputError):
+        with_node_defaults(resource)
+    assert defaulted_node_payload(resource, {}) is None
+
+
+def test_node_defaults_do_not_report_a_defect_as_a_refusal(monkeypatch):
+    from types import SimpleNamespace
+
+    from raes_processor.semantics import realization_node_defaults
+
+    def defect(*_args: object, **_kwargs: object) -> object:
+        raise KeyError("node-defaults-defect-1678")
+
+    monkeypatch.setattr(realization_node_defaults, "typed_runtime_observation_shape", defect)
+    resource = SimpleNamespace(address="nodes.web", payload={"spec": {"node": {"type": "compute"}}})
+    with pytest.raises(KeyError):
+        realization_node_defaults.defaulted_node_payload(resource, {})

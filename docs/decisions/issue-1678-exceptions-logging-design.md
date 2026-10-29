@@ -180,7 +180,7 @@ The table compares the merged `dev` revision with this change.
 | `raes` | 921 to 868 | 118 to 138 | 5 to 5 |
 | `raes_contracts` | 2,803 to 2,788 | 70 to 76 | 3 to 9 |
 | `raes_backend_protocols` | 177 to 159 | 12 to 14 | 0 to 1 |
-| `raes_processor` | 537 to 446 | 58 to 75 | 0 to 2 |
+| `raes_processor` | 522 to 446 | 58 to 78 | 0 to 2 |
 | `raes_runtime` | 1,011 to 419 | 193 to 275 | 5 to 71 |
 | `raes_conformance` | 167 to 126 | 50 to 56 | 0 to 21 |
 | `raes_cli`, `raes_mcp`, `raes_operations` | 11 to 0 | 39 to 40 | 0 to 2 |

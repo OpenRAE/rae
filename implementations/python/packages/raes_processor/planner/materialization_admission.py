@@ -33,6 +33,8 @@ from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
 from ..compiler import compile_runtime_model, validate_materialization_origins
 from ..compiler.materialization_origins import materialization_node_payloads_match
 from ..models import RuntimeModel
+from ..semantics.realization_node_defaults import with_node_defaults
+from ..semantics.realization_requirement import CompiledRealizationRequirement
 from .ordering import _entry_matches_resource
 from .resources import _collect_resources
 
@@ -190,7 +192,9 @@ def _validate_other_scopes(
         if previous_scope.keys() != described_scope.keys() or any(
             not (
                 _entry_matches_resource(previous_scope[address], resource, original_model.realization_requirements)
-                or _materialized_entry_matches(previous_scope[address], resource)
+                or _materialized_entry_matches(
+                    previous_scope[address], resource, original_model.realization_requirements
+                )
             )
             for address, resource in described_scope.items()
         ):
@@ -230,17 +234,33 @@ def _validate_instance_indices(
             raise InvalidInputError("materialization inventory must bind every realized instance exactly once")
 
 
-def _materialized_entry_matches(entry: SnapshotEntry | PlannedResource, resource: PlannedResource) -> bool:
-    if resource.resource_type == "node":
+def _materialized_entry_matches(
+    entry: SnapshotEntry | PlannedResource,
+    resource: PlannedResource,
+    requirements: tuple[CompiledRealizationRequirement, ...] = (),
+) -> bool:
+    if resource.resource_type in {"node", "network"}:
         expected_spec, observed_spec = resource.payload.get("spec"), entry.payload.get("spec")
         if not isinstance(expected_spec, dict) or not isinstance(observed_spec, dict):
             return False
         if not materialization_node_payloads_match(
             resource.payload["name"], expected_spec.get("node"), observed_spec.get("node")
         ):
-            return False
+            return _defaulted_node_entry_matches(entry, resource, requirements)
         entry = replace(entry, payload={**entry.payload, "spec": {**observed_spec, "node": expected_spec["node"]}})
     return _entry_matches_resource(entry, resource)
+
+
+def _defaulted_node_entry_matches(
+    entry: SnapshotEntry | PlannedResource,
+    resource: PlannedResource,
+    requirements: tuple[CompiledRealizationRequirement, ...],
+) -> bool:
+    try:
+        defaulted_entry, defaulted_resource = with_node_defaults(entry), with_node_defaults(resource)
+    except InvalidInputError:
+        return False
+    return _entry_matches_resource(defaulted_entry, defaulted_resource, requirements)
 
 
 def validate_materialization_archive_record(

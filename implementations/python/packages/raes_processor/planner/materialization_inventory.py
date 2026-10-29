@@ -34,12 +34,9 @@ from raes_contracts.realization_structure import evaluate_realization_constraint
 from raes_contracts.runtime_state import RealizationProvenanceEntry, RuntimeSnapshot, SnapshotEntry
 
 from ..compiler import compile_runtime_model, materialization_differences, validate_materialization_origins
-from ..compiler.realization_value_domains import nested_authored_value
 from ..models import RuntimeModel
-from ..semantics.realization_concerns import realization_concern_descriptors
-from ..semantics.realization_requirement import CompiledRealizationRequirement
-from ..semantics.realization_runtime_common import realization_provenance_entry
 from .augmentation_admission import admit_augmentation_preparation
+from .backend_node_provenance import backend_node_concern_provenance
 from .materialization_admission import _inventory_resources, _validate_binding, admit_materialization_submission
 from .materialization_lineage import InventoryAdmissionError, admitted_inventory_predecessor, validate_inventory_lineage
 from .prepared_node_admission import validate_portable_node_inventory
@@ -158,17 +155,35 @@ def _provenance_ledger(
     materialized: MaterializedScenario,
 ) -> dict[ProvenanceKey, RealizationProvenanceEntry]:
     current = {entry.address for entry in report.descendants}
+    affected = {operation.address for operation in request.operations if operation.action is not ChangeAction.UNCHANGED}
     ledger = {
         _provenance_key(entry): entry
-        for entry in (*previous.realization_provenance, *accepted.realization_provenance)
-        if entry.address not in current
+        for entry in previous.realization_provenance
+        if entry.address not in current and entry.address not in affected and entry.address in accepted.entries
     }
+    ledger.update(
+        {
+            _provenance_key(entry): entry
+            for entry in accepted.realization_provenance
+            if entry.address not in current and entry.address in accepted.entries
+        }
+    )
     ledger.update({_provenance_key(entry): entry for entry in _descendant_provenance(report, materialized)})
-    unchanged = {operation.address for operation in request.operations if operation.action is ChangeAction.UNCHANGED}
-    for entry in previous.realization_provenance:
-        if entry.address in unchanged:
-            ledger[_provenance_key(entry)] = entry
+    ledger.update(_unchanged_provenance(previous, accepted, request))
     return ledger
+
+
+def _unchanged_provenance(
+    previous: RuntimeSnapshot, accepted: RuntimeSnapshot, request: ProvisioningPlan
+) -> dict[ProvenanceKey, RealizationProvenanceEntry]:
+    """Preserve original rows for live resources an operation leaves unchanged."""
+
+    unchanged = {operation.address for operation in request.operations if operation.action is ChangeAction.UNCHANGED}
+    return {
+        _provenance_key(entry): entry
+        for entry in previous.realization_provenance
+        if entry.address in unchanged and entry.address in accepted.entries
+    }
 
 
 def _admitted_choices(request: ProvisioningPlan) -> set[tuple[str, str, str]]:
@@ -290,13 +305,6 @@ def _validate_addition_permission(
         raise InvalidInputError("reported descendant effects exceed the original augmentation permission")
 
 
-def _concern_supplied(supplied: dict[str, object], path: tuple[str, ...]) -> bool:
-    current: object = supplied
-    for token in path:
-        current = current.get(token) if isinstance(current, dict) else None
-    return current is not None
-
-
 def _descendant_provenance(
     report: RuntimeInventoryReport, materialized: MaterializedScenario
 ) -> tuple[RealizationProvenanceEntry, ...]:
@@ -310,32 +318,5 @@ def _descendant_provenance(
         node_name = bindings[entry.address]
         node = materialized.nodes[node_name]
         supplied = node.model_dump(mode="json", exclude_unset=True)
-        records.extend(_node_concern_provenance(entry.address, node_name, node, supplied))
+        records.extend(backend_node_concern_provenance(entry.address, node_name, node, supplied))
     return tuple(records)
-
-
-def _node_concern_provenance(
-    address: str, node_name: str, node: object, supplied: dict[str, object]
-) -> list[RealizationProvenanceEntry]:
-    records = []
-    for descriptor in realization_concern_descriptors():
-        if descriptor.section != "nodes":
-            continue
-        value = nested_authored_value(node, descriptor.authored_path)
-        if (
-            not _concern_supplied(supplied, descriptor.authored_path)
-            or value is None
-            or not descriptor.includes_authored_value(value)
-        ):
-            continue
-        requirement = CompiledRealizationRequirement(
-            address=address,
-            field_path=f"nodes.{node_name}.{descriptor.authored_suffix}",
-            domain="runtime-realization",
-            requirement_kind=descriptor.concern_kind,
-            explicitness=ExplicitnessClass.OPEN,
-            provenance=ExplicitnessProvenance.BACKEND_REALIZED,
-            governing_scope="/nodes",
-        )
-        records.append(realization_provenance_entry(requirement, False))
-    return records

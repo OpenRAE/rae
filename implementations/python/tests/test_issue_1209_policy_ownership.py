@@ -13,6 +13,8 @@ def test_description_semantics_ownership_includes_contracts_and_excludes_backend
     paths = [
         "implementations/python/packages/raes_contracts/contracts/realization_descriptions.py",
         "implementations/python/packages/raes_runtime/observation_results.py",
+        "implementations/python/packages/raes_runtime/backend_apply_results.py",
+        "docs/migration/runtime-lifetime.md",
         "contracts/schemas/experiment-core/experiment-evidence-record-v1.json",
         "contracts/schema-publication/entries/experiment-run-v1.json",
         "contracts/fixtures/experiment-core/experiment-evidence-record-v1/valid/partial-description.json",
@@ -24,6 +26,8 @@ def test_description_semantics_ownership_includes_contracts_and_excludes_backend
     forbidden = [
         "implementations/python/packages/raes_backend_stubs/stubs.py",
         "implementations/python/packages/raes_backend_stubs/manifest.py",
+        "implementations/python/packages/raes_runtime/backend_calls.py",
+        "docs/migration/unrelated-runtime.md",
     ]
     failures = _check_path_ownership(policy, phase, forbidden)
     assert {(failure.rule_id, failure.path) for failure in failures} == {
