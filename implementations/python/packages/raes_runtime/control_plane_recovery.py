@@ -14,8 +14,7 @@ from raes_backend_protocols.recovery_observation import (
     RecoveryObserver,
 )
 from raes_contracts.diagnostics import Diagnostic, Severity
-from raes_contracts.errors import AuthorizationError, ConflictError, InvalidInputError, NotFoundError
-from raes_contracts.operation_lifecycle import OperationAdmissionContext
+from raes_contracts.errors import ConflictError, InvalidInputError, NotFoundError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import (
     ApplyResult,
@@ -33,8 +32,14 @@ from .control_plane_lifecycle import runtime_owned
 from .control_plane_mutation import control_plane_mutation, external_control_plane_call, mutation_entry
 from .control_plane_operation_context import legacy_operation_request_commitment, operation_admission_context
 from .control_plane_resolution_records import IndeterminateResolutionDisposition, is_valid_resolution_child
-from .control_plane_store import ControlPlaneOperationRecord, NewClaimRejected, TerminalCommitMode
+from .control_plane_resolution_records import authorize_resolution as _authorize_resolution
+from .control_plane_store import (
+    ControlPlaneOperationRecord,
+    NewClaimRejected,
+    TerminalCommitMode,
+)
 from .mixed_runtime_recovery import require_resolvable_mixed_action_cut, requires_mixed_stage_reconciliation
+from .runtime_operation_routing import run_operation
 
 _LOGGER = get_logger(__name__)
 
@@ -42,6 +47,7 @@ _LOGGER = get_logger(__name__)
 class RuntimeRecoveryMixin:
     """Runtime-owned administrative recovery entry points."""
 
+    @run_operation
     @runtime_owned
     @mutation_entry(OperationKind.INDETERMINATE_RESOLUTION)
     def resolve_indeterminate_operation(
@@ -454,38 +460,6 @@ def resolve_indeterminate_operation(
             mode=TerminalCommitMode.OPERATION_ONLY,
         )
         return receipt
-
-
-def _authorize_resolution(
-    control_plane: object,
-    parent: ControlPlaneOperationRecord,
-    context: OperationAdmissionContext,
-    identity: object | None,
-) -> None:
-    roles = {getattr(role, "value", role) for role in getattr(identity, "roles", ())}
-    target_name = getattr(identity, "target_name", None)
-    required_subjects = {
-        scope for scope in parent.status.context.authorization_scope if scope.startswith("participant-control:")
-    }
-    supplied_scopes = set(context.authorization_scope)
-    allowed = (
-        "operator" in roles
-        and target_name == control_plane._target.name
-        and parent.status.context.target_scope == context.target_scope
-        and parent.status.context.run_scope == context.run_scope
-        and required_subjects.issubset(supplied_scopes)
-    )
-    if allowed:
-        return
-    control_plane.record_audit(
-        action="resolve_indeterminate_operation",
-        identity=getattr(identity, "identity", "unattributed"),
-        allowed=False,
-        target=parent.status.context.target_scope,
-        operation_id=parent.receipt.operation_id,
-        reason="resolution-forbidden",
-    )
-    raise AuthorizationError("indeterminate resolution is forbidden")
 
 
 __all__ = (

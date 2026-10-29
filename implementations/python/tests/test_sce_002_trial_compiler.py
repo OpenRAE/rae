@@ -13,8 +13,9 @@ import raes_processor.trial_compiler.compiler as trial_compiler_module
 from hypothesis import given, settings
 from hypothesis import strategies as st
 from paths import REPO_ROOT
+from raes import admit_scenario_family, parse_sdl
 from raes.canonical import canonical_sdl_digest
-from raes.scenario import ExpandedScenario, Scenario
+from raes.scenario import ExpandedScenario
 from raes.validator import SemanticValidator
 from raes.variation import ParameterVariationPoint
 from raes_contracts.canonical import canonical_json_bytes, canonical_json_digest
@@ -117,11 +118,7 @@ def _family() -> ExpandedScenario:
             }
         },
     }
-    authored = Scenario.model_validate(payload)
-    SemanticValidator(authored).validate()
-    expanded = ExpandedScenario.model_validate(payload)
-    expanded._set_semantic_validated(True)
-    return expanded
+    return admit_scenario_family(parse_sdl(json.dumps(payload)))
 
 
 def _product_family() -> ExpandedScenario:

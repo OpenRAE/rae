@@ -16,6 +16,7 @@ from .errors import RuntimeBudgetExhaustedError
 
 if TYPE_CHECKING:
     from .operation_execution_adapter import LocalExecutionAdapter
+    from .runtime_engine import RuntimeEngineResources
 
 _LOGGER = get_logger(__name__)
 
@@ -87,6 +88,11 @@ class RuntimeLifecycleMixin:
         self.close()
 
     def __del__(self) -> None:
+        engine = getattr(self, "_engine", None)
+        if engine is not None and engine._owner() is None:
+            # Cyclic garbage collection clears the weak owner reference of the engine before a finalizer runs.
+            # Every engine close goes through the owner, so this finalizer has no close to attempt.
+            return
         try:
             self.close()
         except Exception:
@@ -96,6 +102,10 @@ class RuntimeLifecycleMixin:
     def close(self) -> None:
         """Bound drain and retain ownership until physical callbacks and close settle."""
 
+        engine = getattr(self, "_engine", None)
+        if engine is not None:
+            self._close_engine_context(engine)
+            return
         condition = getattr(self, "_lifecycle_condition", None)
         if condition is None:
             self._close_runtime_lease()
@@ -129,6 +139,15 @@ class RuntimeLifecycleMixin:
         except BaseException:
             self._abort_runtime_close(condition, provider_close_started)
             raise
+
+    def _close_engine_context(self, engine: RuntimeEngineResources) -> None:
+        if engine.owner is self:
+            engine.close()
+        elif getattr(self, "_runtime_ready", False):
+            engine.retire(self)
+        else:
+            self._close_runtime_provider()
+            self._close_runtime_lease()
 
     def _begin_runtime_close(self, condition: Condition, budget: float) -> bool:
         with condition:
@@ -232,6 +251,9 @@ class RuntimeLifecycleMixin:
                 )
             if depth == 0 and (self._closed or self._closing):
                 raise OperationalError("runtime control plane is closed")
+            engine = getattr(self, "_engine", None)
+            if depth == 0 and engine is not None and (engine.closed or engine.closing):
+                raise OperationalError("runtime engine is closed")
             self._active_runtime_calls += 1
             self._lifecycle_local.depth = depth + 1
         try:

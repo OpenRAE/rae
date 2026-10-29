@@ -304,3 +304,20 @@ def _load_module(name, path):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def test_frame_locations_survive_interpreter_shutdown_state(monkeypatch):
+    import sys
+
+    from raes_contracts.operational_logging import describe_exception
+
+    try:
+        raise ValueError("shutdown-state-1678")
+    except ValueError as caught:
+        error = caught
+    # At interpreter shutdown sys.path can be None; a finalizer that logs must not raise.
+    monkeypatch.setattr(sys, "path", None)
+    described = describe_exception(error)
+
+    assert "ValueError" in described
+    assert "shutdown-state-1678" not in described

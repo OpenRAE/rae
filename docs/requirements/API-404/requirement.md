@@ -174,6 +174,7 @@ policy choices, recovery and composition limits.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_temporal.py` (API-404-C2 opaque stable engine delivery and separately bounded control delivery)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_temporal_worker.py` (API-404-C1/C2 current grant checks and independent effect/control activity capacity)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/runtime_resource_ownership.py` (API-404-C1 component ownership across stores and direct manager composition)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_resource_ownership.py` (API-404-C1 active callbacks retain component ownership. Close and reuse remain refused until the callback returns.)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager_lifecycle.py` (API-404-C1 direct manager drain and guarded component handoff)
 - DOCUMENTS → DOCUMENTATION `docs/public/guides/supervised-execution.md` (API-404-C4 explicit supported compositions, policy limits and nonclaims)
 - TESTS → TEST `implementations/python/tests/test_issue_1362_state_authority.py` (API-404-C1 responsive supervision with retained exclusion and copied-context callback guards)

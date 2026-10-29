@@ -94,6 +94,9 @@ module_boundaries:
           - raes_processor.compiler
           - raes_processor.models
           - raes_processor.planner
+          - raes_processor.trial_compiler
+          - raes_processor.trial_realization
+          - raes_processor.trial_scheduler
     - id: raes_backend_protocols
       root: implementations/python/packages/raes_backend_protocols
       allowed_top_level_imports:
@@ -149,6 +152,8 @@ module_boundaries:
           - raes_processor.reference
         raes_runtime:
           - raes_runtime.control_plane
+          # Issue #1017: the claim refusal signal that identifies a moved-phase refusal.
+          - raes_runtime.control_plane_store
           - raes_runtime.registry
           - raes_runtime.result_contracts
           - raes_runtime.snapshot_contract

@@ -1,5 +1,8 @@
 # Migration Notes
 
+The [revised control migration checklist](revised-control.md) connects SDL conversion,
+contract and profile negotiation, installed interfaces, and historical readers.
+
 This note records the major documentation and repository-structure moves that
 established the current layout. The paths below describe historical moves, not
 current uncertainty about where authoritative material lives.
@@ -46,6 +49,10 @@ remains the producer and reader boundary.
 The removal of the bundled reference and libvirt backends, and the move of
 concrete realization to backend distributions such as LilRAE, is documented in
 [Concrete Backends Migration](concrete-backends.md).
+
+Backend-owned participant-opacity harnesses supply reported transcripts and
+backend readback as described in
+[Participant-Opacity Observed Evidence Migration](participant-opacity-observed-evidence.md).
 
 The reorganization moved existing material into the current long-term buckets:
 

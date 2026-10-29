@@ -596,7 +596,7 @@ adrs:
     pin: a44acbc2db1b5349ba316ba0d09bd9b46310db016cb87937b08bc6bc107755aa
   - id: ADR-104
     path: docs/decisions/adrs/adr-104-runtime-control-plane-architecture.md
-    pin: 2b64f96de6915f7fe67562739e91bc371d892b5edcf5d3b78d3a1633e8ffda00
+    pin: e5e614841ad22ae35f9f48cab4e1a1399c0f5b87936f1f12d406f820a57050a4
     amendments:
       - date: 2026-09-03
         ref: "#1151"
@@ -619,6 +619,9 @@ adrs:
       - date: 2026-10-27
         ref: "#1660"
         summary: "Required one runtime authority for the interaction lifetime, reusing control-plane invariants and composing only needed scenario components."
+      - date: 2026-10-28
+        ref: "#1629"
+        summary: "Separated shared engine lifetime from fixed run contexts, preserving resource reservations and authored retry policy across local and Temporal execution."
   - id: ADR-105
     path: docs/decisions/adrs/adr-105-recursive-partial-description-semantics.md
     pin: e50538c4e03d12ea92ad584322dc8618835f1724ae0086c444fba0527949a01e

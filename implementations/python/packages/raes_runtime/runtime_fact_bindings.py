@@ -17,7 +17,7 @@ from raes_contracts.contracts.runtime_facts import (
     RuntimeFactVersionModel,
 )
 from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.errors import ConflictError
+from raes_contracts.errors import ConflictError, InvalidInputError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
 
 from .runtime_fact_binding_policy import (
@@ -102,6 +102,17 @@ class RuntimeFactBindingPlane:
             or version.sensitivity != declaration.sensitivity
         ):
             raise ConflictError("fact version type, source, and sensitivity must match its declaration")
+        # The timestamps come from the fact source, so a value without an offset is a refusal (ADR-116 E9).
+        for field_name in ("observed_at", "expires_at"):
+            value = getattr(version, field_name)
+            if value is None:
+                continue
+            try:
+                parse_datetime(value, field_name)
+            except ValueError as exc:
+                raise InvalidInputError(
+                    f"{field_name} must be an ISO 8601 date-time with an explicit UTC offset"
+                ) from exc
         history = self._versions[version.fact_id]
         expected_sequence = len(history) + 1
         if version.sequence != expected_sequence:
@@ -277,17 +288,19 @@ class RuntimeFactBindingPlane:
         candidate_fact_ids: list[str],
     ) -> list[RuntimeFactVersionModel]:
         visible: list[RuntimeFactVersionModel] = []
-        requested_at = parse_datetime(admission.requested_at)
+        requested_at = parse_datetime(admission.requested_at, "requested_at")
         for fact_id in candidate_fact_ids:
             history = self._versions.get(fact_id)
             if not history:
                 continue
-            eligible = [version for version in history if parse_datetime(version.observed_at) <= requested_at]
+            eligible = [
+                version for version in history if parse_datetime(version.observed_at, "observed_at") <= requested_at
+            ]
             if not eligible:
                 continue
             version = max(
                 eligible,
-                key=lambda item: (parse_datetime(item.observed_at), item.sequence),
+                key=lambda item: (parse_datetime(item.observed_at, "observed_at"), item.sequence),
             )
             declaration = self._declarations[fact_id]
             if not candidate_visible(request, sink, declaration, version):

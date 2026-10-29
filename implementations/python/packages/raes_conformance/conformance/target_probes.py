@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from typing import Any
 
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import RaesError
@@ -20,7 +19,7 @@ from raes_processor.models import ExecutionPlan
 from raes_processor.reference import ScenarioInput
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.registry import RuntimeTarget
-from raes_runtime.snapshot_contract import runtime_snapshot_contract_model
+from raes_runtime.snapshot_contract import runtime_snapshot_contract_payload
 
 from raes_conformance._materialization_scope import materialization_probe_scope
 from raes_conformance.conformance.diagnostics import (
@@ -293,12 +292,6 @@ def _provisioning_probe_case(
     )
 
 
-def _hermetic_snapshot_payload(control_plane: RuntimeControlPlane) -> dict[str, Any]:
-    """Serialize the hermetic snapshot through the runtime's published contract projection."""
-
-    return runtime_snapshot_contract_model(control_plane.get_snapshot()).model_dump(mode="json")
-
-
 def _hermetic_snapshot_case(
     control_plane: RuntimeControlPlane,
     *,
@@ -306,18 +299,20 @@ def _hermetic_snapshot_case(
 ) -> ConformanceCaseResult:
     """Validate the post-provisioning snapshot and prove it was mutated.
 
-    Runs the ``runtime-snapshot-v1`` schema + semantic checks on the hermetic
-    snapshot and additionally requires at least one provisioning-domain entry
-    (issue #606), so a target cannot pass with a schema-valid but empty
+    Runs the ``runtime-snapshot-v1`` schema + semantic checks on the payload the
+    control plane's ``/snapshot`` route publishes (issue #1551), including the
+    realization envelope and realization provenance. Semantic checks run only on a
+    schema-valid payload, because they would raise on an invalid one instead of
+    reporting a diagnostic. The case also requires at least one provisioning-domain
+    entry (issue #606), so a target cannot pass with a schema-valid but empty
     (unmutated) snapshot. A negotiated materialization producer must also leave
     an archived attestation reference (issue #1667).
     """
 
-    snapshot_payload = _hermetic_snapshot_payload(control_plane)
-    diagnostics = [
-        *_validate_payload("runtime-snapshot-v1", snapshot_payload),
-        *_semantic_diagnostics("runtime-snapshot-v1", snapshot_payload),
-    ]
+    snapshot_payload = runtime_snapshot_contract_payload(control_plane.get_snapshot())
+    diagnostics = _validate_payload("runtime-snapshot-v1", snapshot_payload)
+    if not diagnostics:
+        diagnostics = _semantic_diagnostics("runtime-snapshot-v1", snapshot_payload)
     has_provisioning_entry = any(
         entry.domain == RuntimeDomain.PROVISIONING for entry in control_plane.snapshot.entries.values()
     )

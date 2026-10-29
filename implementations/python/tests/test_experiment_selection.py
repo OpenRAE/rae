@@ -8,7 +8,7 @@ from copy import deepcopy
 import pytest
 from paths import REPO_ROOT
 from pydantic import ValidationError
-from raes import SDLSelectionError, parse_sdl, validate_experiment_selection_against_family
+from raes import SDLSelectionError, admit_scenario_family, parse_sdl, validate_experiment_selection_against_family
 from raes.scenario import ExpandedScenario, Scenario
 from raes.validator import SemanticValidator
 from raes_contracts.contracts import ExperimentSpecModel, schema_bundle
@@ -147,14 +147,7 @@ def _spec_with_binding_family(binding_family_id: str) -> ExperimentSpecModel:
 
 def _expanded_family() -> ExpandedScenario:
     scenario = parse_sdl(_FAMILY_FIXTURE.read_text(encoding="utf-8"))
-    payload = scenario.model_dump(
-        mode="python",
-        by_alias=True,
-        exclude={"module", "imports", "realization"},
-    )
-    expanded = ExpandedScenario.model_validate(payload)
-    expanded._set_semantic_validated(True)
-    return expanded
+    return admit_scenario_family(scenario)
 
 
 def _all_kinds_expanded_family() -> ExpandedScenario:

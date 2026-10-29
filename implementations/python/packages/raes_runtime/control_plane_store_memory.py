@@ -24,6 +24,7 @@ from .control_plane_store_revision import (
 )
 from .inject_claims import require_inject_claim, require_inject_history
 from .operation_invocation_ledger import control_record_is_supervisory, supervised_claim_conflicts
+from .runtime_decision_store import MemoryRuntimeDecisionStoreMixin
 
 
 class _InMemoryRuntimeOwner:
@@ -40,7 +41,7 @@ class _InMemoryRuntimeOwner:
         self._store._release_runtime_owner(self._token)
 
 
-class InMemoryControlPlaneStore:
+class InMemoryControlPlaneStore(MemoryRuntimeDecisionStoreMixin):
     """Simple in-memory store."""
 
     control_plane_capabilities = ControlPlaneStoreCapabilities(
@@ -58,6 +59,7 @@ class InMemoryControlPlaneStore:
 
     def __init__(self, snapshot: RuntimeSnapshot | None = None) -> None:
         self._lock = RLock()
+        self._runtime_decisions = {}
         self._snapshot_state = SnapshotState(
             snapshot=snapshot if snapshot is not None else RuntimeSnapshot(),
             revision=0,

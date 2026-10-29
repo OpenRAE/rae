@@ -29,7 +29,7 @@ from raes_contracts.runtime_state import OperationReceipt, OperationState
 
 from .control_plane_execution import _utc_now
 from .control_plane_store_history import require_expected_history_heads
-from .control_plane_supervision import persist_invocation_update
+from .control_plane_supervision import persist_invocation_update, required_guarantees
 from .errors import RuntimeBudgetExhaustedError
 from .mixed_backend_installation import MixedBackendInstallation
 from .mixed_runtime_state import runtime_state
@@ -132,7 +132,7 @@ def prepare_mixed_invocation(
             "context": record.receipt.context,
         },
         command=mixed_backend_binding_reference(declaration),
-        required_guarantees=("effect-observation", "cessation-evidence"),
+        required_guarantees=required_guarantees(plane, "effect-observation", "cessation-evidence"),
         budget={"origin_id": str(uuid4()), "started_at": _utc_now(), "limit_ms": budget, "remaining_ms": budget},
     )
     time_state = snapshot.time_model_state

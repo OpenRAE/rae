@@ -450,17 +450,21 @@ def test_omission_and_logical_timing_require_declared_bases() -> None:
             )
 
 
-def test_catalog_preserves_runtime_assurance_while_extending_backend_axes() -> None:
+def test_catalog_preserves_runtime_assurance_while_withdrawing_backend_axes() -> None:
     catalog = load_behavioral_relation_catalog()
     relation = catalog.relations["participant-predicate-opacity"]
     historical = load_behavioral_relation_catalog_revision("rev10").relations["participant-predicate-opacity"]
+    withdrawn = load_behavioral_relation_catalog_revision("rev12").relations["participant-predicate-opacity"]
 
-    assert catalog.taxonomy_revision == "rev12"
+    assert catalog.taxonomy_revision == "rev13"
     assert relation.assurance.runtime_enforcement_status == "partial"
-    assert relation.assurance.backend_declaration_status == "declared"
-    assert relation.assurance.backend_realization_status == "partial"
-    assert relation.assurance.backend_conformance_status == "bounded"
+    assert relation.assurance.model_check_status == "model-checked"
+    assert relation.assurance.proof_status == "proved"
+    assert relation.assurance.backend_declaration_status == "not-declared"
+    assert relation.assurance.backend_realization_status == "not-realized"
+    assert relation.assurance.backend_conformance_status == "not-tested"
     assert historical.assurance.backend_realization_status == "not-realized"
+    assert withdrawn.assurance.backend_realization_status == "partial"
 
 
 class _OpacityResolver(StaticCrossingResolver):

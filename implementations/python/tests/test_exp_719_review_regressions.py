@@ -19,7 +19,10 @@ from test_sce_002_trial_realization import _archival_run_and_receipt
 
 
 @pytest.mark.parametrize("different_participant", [False, True])
-def test_different_override_subsets_cannot_hide_identical_effective_treatments(different_participant: bool) -> None:
+@pytest.mark.parametrize("typed", [False, True])
+def test_different_override_subsets_cannot_hide_identical_effective_treatments(
+    different_participant: bool, typed: bool
+) -> None:
     request = _factorial_request()
     key, manifest = next(iter(request.participant_manifests.items()))
     payload = manifest.model_dump(mode="json")
@@ -49,6 +52,13 @@ def test_different_override_subsets_cannot_hide_identical_effective_treatments(d
         warm["target"]["participant_address"] = other_key[0]
     else:
         warm["target"]["target_id"] = "policy.other"
+    if typed:
+        design = payload["factorial_design"]
+        design["profile"] = "factorial-treatments-v1"
+        design["level_effects"] = {
+            factor: {level: {"bindings": bindings} for level, bindings in levels.items()}
+            for factor, levels in design.pop("level_bindings").items()
+        }
     spec = ExperimentSpecModel.model_validate(payload)
     request = request.with_experiment(spec)
     refs = request.input_refs.model_copy(

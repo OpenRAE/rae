@@ -20,6 +20,7 @@ from .control_plane_store_local_codec import decode_contract, encode_payload
 from .control_plane_store_records import _audit_event_from_payload, _record_from_payload, _record_payload
 from .control_plane_store_revision import SnapshotState
 from .operation_execution_adapter import require_budget_ms
+from .runtime_decision_store import SQLRuntimeDecisionStoreMixin
 
 if TYPE_CHECKING:
     from psycopg import Connection
@@ -93,7 +94,7 @@ class _PostgreSQLOwner:
             self._store._owner = None
 
 
-class PostgreSQLControlPlaneStore:
+class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
     """One database, one target/run, one admitted owner; no P3/HA claim.
 
     initialize_schema() is a separate explicit bootstrap operation. Runtime
@@ -101,6 +102,7 @@ class PostgreSQLControlPlaneStore:
     shares Temporal's history, or acquires credentials from a request.
     """
 
+    _decision_placeholder = "%s"
     control_plane_capabilities = ControlPlaneStoreCapabilities(
         frozenset(
             {
@@ -174,7 +176,7 @@ class PostgreSQLControlPlaneStore:
                 # A dropped table must be refused before a query reaches it.
                 require_ledger_tables(ledger, projection=False)
                 metadata = dict(ledger.execute("SELECT key, value FROM raes_ledger_metadata FOR UPDATE").fetchall())
-                if metadata.get("schema-version") not in {"1", "2", "3", POSTGRES_LEDGER_SCHEMA_VERSION}:
+                if metadata.get("schema-version") not in {"1", "2", "3", "4", POSTGRES_LEDGER_SCHEMA_VERSION}:
                     # A schema that this build cannot open conflicts with the ledger state.
                     raise ConflictError("PostgreSQL ledger schema is missing or unsupported")
                 if metadata.get("schema-version") == POSTGRES_LEDGER_SCHEMA_VERSION:

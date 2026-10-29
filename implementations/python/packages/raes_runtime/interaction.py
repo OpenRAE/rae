@@ -55,6 +55,8 @@ class _RuntimeApplyState:
     failure: ApplyResult | None = None
     materialization_attestation: MaterializationSubmission | None = None
     augmentation_previews: dict[RuntimeDomain, AugmentationPreparation] = field(default_factory=dict)
+    phase_key: str = ""
+    identity: object | None = None
 
 
 class RuntimeInteractionMixin(
@@ -155,19 +157,16 @@ class RuntimeInteractionMixin(
         execution_plan: ExecutionPlan,
         state: _RuntimeApplyState,
     ) -> None:
-        self._apply_provisioning_phase(execution_plan, state)
-        if state.failure is None:
-            self._apply_time_phase(execution_plan, state)
-        if state.failure is None:
-            self._apply_participant_execution_phase(execution_plan, state)
-        if state.failure is None:
-            self._apply_evaluation_phase(execution_plan, state)
-        if state.failure is None:
-            self._apply_orchestration_phase(execution_plan, state)
-        if state.failure is None:
-            participant_started = self._start_participant_execution_phase(execution_plan, state)
-            if not participant_started:
-                self._fail_apply_state(state)
+        from .runtime_run_driver import APPLICATION_PHASES
+
+        for phase in APPLICATION_PHASES:
+            if state.failure is not None:
+                break
+            getattr(self, phase)(execution_plan, state)
+
+    def _apply_participant_start_phase(self, execution_plan: ExecutionPlan, state: _RuntimeApplyState) -> None:
+        if not self._start_participant_execution_phase(execution_plan, state):
+            self._fail_apply_state(state)
 
     def _apply_provisioning_phase(
         self,
@@ -178,6 +177,8 @@ class RuntimeInteractionMixin(
             self._target.provisioner.apply,
             execution_plan.provisioning,
             state.working_snapshot,
+            idempotency_key=state.phase_key,
+            identity=state.identity,
             request=_RuntimePlanApplyRequest(
                 materialization_archive=self._materialization_archive,
                 address="runtime.apply.provisioning",
@@ -213,6 +214,8 @@ class RuntimeInteractionMixin(
                 self._target.evaluator.start,
                 execution_plan.evaluation,
                 state.working_snapshot,
+                idempotency_key=state.phase_key,
+                identity=state.identity,
                 request=_RuntimePlanApplyRequest(
                     materialization_archive=self._materialization_archive,
                     address=_APPLY_EVALUATOR_ADDRESS,
@@ -245,6 +248,8 @@ class RuntimeInteractionMixin(
                 self._target.orchestrator.start,
                 execution_plan.orchestration,
                 state.working_snapshot,
+                idempotency_key=state.phase_key,
+                identity=state.identity,
                 request=_RuntimePlanApplyRequest(
                     materialization_archive=self._materialization_archive,
                     address=_APPLY_ORCHESTRATOR_ADDRESS,
@@ -295,6 +300,7 @@ class RuntimeInteractionMixin(
         from raes_contracts.runtime_state import OperationKind
 
         from .control_plane_operation_context import operation_admission_context
+        from .errors import RuntimeBudgetExhaustedError
         from .operation_policy_admission import execution_budget_ms
 
         for domain in (RuntimeDomain.PROVISIONING, RuntimeDomain.EVALUATION, RuntimeDomain.ORCHESTRATION):
@@ -302,7 +308,8 @@ class RuntimeInteractionMixin(
             operation_admission_context(self, kind=OperationKind(domain.value), request=phase)
             try:
                 execution_budget_ms(phase, self._supervision)
-            except ConflictError:
+            except ConflictError, RuntimeBudgetExhaustedError:
+                # An unsupported policy and an exhausted authored attempt budget both refuse the apply.
                 diagnostics.append(
                     _failure_diagnostic(
                         "runtime.control-plane.execution-policy-unsupported",

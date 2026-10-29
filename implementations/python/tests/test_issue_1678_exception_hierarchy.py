@@ -29,6 +29,8 @@ _FOREIGN_TEST_DOUBLES = frozenset(
         ("implementations/python/tests/test_asr_535_participant_flow_assurance.py", "_Boom"),
         ("implementations/python/tests/test_issue_1226_release_evidence_cli.py", "_StopAfterProfile"),
         ("implementations/python/tests/test_issue_1355_mixed_mapping_time.py", "Interrupted"),
+        # Simulates the Temporal SDK continue-as-new signal, which the SDK forbids a test to construct.
+        ("implementations/python/tests/test_issue_1629_temporal_runtime.py", "RolledOver"),
         ("implementations/python/tests/test_issue_1678_contracts_policy.py", "ProducerOnlyError"),
         ("implementations/python/tests/test_issue_1678_sweep_c.py", "ObservationRuntimeOnlyError"),
         ("implementations/python/tests/test_issue_1678_cycle2_pointers.py", "ArchiveAdapterOnlyError"),

@@ -1,5 +1,9 @@
 # Backend conformance guardrails
 
+The [modular control runner](modular-control-conformance.md) publishes ASR-538's
+installed shared-runtime probes. It requires explicit obligation/effect coverage
+and independent owner readback. Fixture validity does not establish that claim.
+
 This note is the architecture preflight for `ASR-502`. It is guidance, not an
 implementation plan.
 
@@ -291,6 +295,13 @@ gates that the backend distribution supplies. The probe needs a scenario to
 exercise, and it defaults to a generic linux-vm scenario
 (`_DEFAULT_CONFORMANCE_SCENARIO`).
 
+The `target-snapshot` case validates the payload that the control plane's
+`/snapshot` route publishes, built by the same serializer (issue #1551). That
+payload includes the realization envelope identity and the realization
+provenance, so an invalid published carrier fails the case with
+`conformance.schema-invalid`. Semantic checks run only after the schema check
+passes.
+
 A single hard-coded scenario wrongly assumes that *every* backend can realize
 it. Fixed-topology emulation backends map RAES nodes onto a pre-built
 environment. These backends and bounded simulation backends legitimately
@@ -432,27 +443,124 @@ failed, unsupported, and counterexample cases.
 
 ## Participant-opacity backend probes
 
-The `participant_predicate_opacity` family feature follows the same generic
-target runner. But it is intentionally separate from participant-policy
-operations. A typed in-process harness supplies only exact profile-bound case
-inputs and an observation adapter. The runner instruments the target and
-invokes both governed possible points. It compares the complete closed
-transcript and owns the verdict. A declaration with no harness is an explicit
-unsupported case. A harness that never calls the backend cannot claim
-backend-native realization.
+The `participant_predicate_opacity` family feature uses the same generic target
+runner. It stays separate from participant-policy operations.
+The [design](../../decisions/issue-1374-observed-opacity-evidence-design.md)
+describes the evidence boundary.
 
-Each passing case carries three independent catalog-validated bindings:
-`backend-declaration/declared/structural`,
-`backend-realization/realized/finite`, and
-`backend-conformance/conformant/finite`. The case separately records the
-realization owner and execution basis. It also records exact profile,
-manifest, configuration, tool, environment, and probe-set digests. Report-level
-meaning stays `bounded-probe-success`.
+A typed in-process harness supplies exact profile-bound case inputs. Each of
+the two possible points binds one exact-cut crossing policy resolver. The
+harness also supplies the transcript that the backend reports and a digest of
+backend-owned state. It does not supply an expected transcript, a realization
+owner, or provenance digests.
 
-These items cannot substitute for the observed backend transcript: a method, a
-boolean, a payload-redaction pair, a runtime-mediated denial, or a
-`native-live` label. Finite conformance is not proof, and it is not universal
-opacity.
+The runner executes each point in its own `RuntimeControlPlane` on the
+instrumented target. It admits the action, replays it with the same key, and
+requests the participant status view at a governed delivery opportunity. It
+reads backend state before and after these operations. Each readback must
+answer one runner-issued collection request with a fresh nonce. It validates the
+committed history and rejoins each opacity binding to the trusted runtime
+support. It derives the closed transcript from these measured facts.
+
+The runner compares the measured transcripts of the two points. It compares
+each measured transcript with the profile normal form and with the reported
+transcript. It also compares the participant-visible projections of the two
+points. An unobserved field, a difference, or an unexpected error fails the
+case. A declaration with no harness is an explicit unsupported case.
+
+The runner derives the realization owner from the committed records. RUN-319
+normalizes every protected crossing under
+`participant-opacity-runtime-reference-v1`, so a passing case is
+`runtime-mediated`. It keeps only the
+`backend-declaration/declared/structural` binding. The runner issues no
+backend-realization or backend-conformance binding for this profile.
+
+Each case records its evidence origin (`observed-execution`,
+`synthetic-model`, or `declaration`) and its actual execution basis. It also
+records the profile, manifest, configuration, tool, environment, and probe-set
+digests. The runner computes the configuration and tool digests from the actual
+runtime, backend, resolvers, and options. The report validator refuses a
+backend-realization or backend-conformance binding without `backend-native`
+ownership and `observed-execution` evidence. Report-level meaning remains
+`bounded-probe-success`. Finite conformance is not proof or universal opacity.
+
+## Mixed-backend capability probes
+
+The [mixed-control test demonstration](mixed-control-demonstration.md) runs
+these probes with controlled test providers. It includes local evidence
+collection, a fresh process recollection, and an explicit capability matrix.
+
+`run_mixed_backend_conformance()` probes executable mixed-backend capability
+(issue #1017). The probe family drives the installed bridge, coordinator and
+readers of an admitted edge or native handoff through the shared runtime. It
+also drives repeated reusable-control cycles on one target. A declaration, a
+method shape or a published fixture never passes a case.
+
+**The runner owns execution, expectations and the verdict.** The harness is a
+typed, in-process adapter of the trusted embedder. For each probe request, it
+realizes the requested backend condition and time cut. It then returns fresh
+configuration: the `MixedRuntimeBinding` with installed services, the primary
+target, the crossing policy resolver, a seeded control-plane store, the identity
+and the governed carriers. The harness supplies no expected outcome, stage fact,
+digest or verdict.
+
+The runner wraps each installed role and records its calls. The wrappers keep
+the role signatures, so the installation shape check stays in force. The runner
+rebuilds the installation and the binding, so their validators run again. It
+reads facts only from the runtime: operation status, the invocation ledger in
+the supplied store, and the composition, control and participant histories. The
+expected time comparison comes from the admitted time model.
+
+Each case is independently runnable. Select cases by identifier:
+
+```python
+from raes_conformance.conformance import backend_conformance_report_payload, run_mixed_backend_conformance
+
+report = run_mixed_backend_conformance(harness, cases=["edge-executes", "handoff-commits"])
+payload = backend_conformance_report_payload(report)
+```
+
+`MIXED_BACKEND_CASES` lists the catalog:
+
+| Case | Passing result |
+| --- | --- |
+| `edge-executes` | One start through the pinned services. Separate execution, delivery and declared observation facts. Admitted allocation, mapping and loss. Exact replay calls no service. |
+| `edge-time-mapped-incomparable`, `edge-time-segment-incomparable` | An incomparable grant fails the operation. No start. |
+| `edge-unbound-refused`, `edge-missing-mapping-refused`, `edge-reversed-mapping-refused`, `edge-undeclared-loss-refused` | A missing or contradictory installation refuses before any service call. |
+| `edge-refused-before-claim` | An audit-only refusal. No grant and no start. |
+| `edge-refused-after-time-grant` | Willingness is checked again after the grant. The operation is cancelled before the one-use start. |
+| `edge-start-refused` | The consumed grant stays unresolved. No later stage. |
+| `edge-partial-execution`, `edge-missing-delivery` | The operation stays indeterminate and keeps its known stages and residual state. |
+| `edge-restart-no-reissue` | A reopened durable store returns the original operation. No service runs again. |
+| `handoff-commits`, `handoff-stale-transfer`, `handoff-repeated-transition` | Transfers fence on the committed head and revision. Owner readback settles responsibility. A moved phase transfers nothing. |
+| `control-repeated-cycles`, `control-dispatch-refused` | Each control cycle advances one revision. Retry adds nothing. A stale proposal is rejected. The next action dispatches once. A backend refusal fails it without a control change. |
+| `combination-reusable-control-with-mixed-runtime`, `combination-distributed-portable-mixed` | Always `unsupported`. The runtime refuses both combinations. Separate passes do not establish a joint path. |
+
+A negative case passes only when the correct rejection occurs. The runner
+first checks the baseline inputs. It then requires evidence that the intended
+owner refused: the backend admission refusal code, the binding validator, the
+current-state claim boundary, or a dispatch refusal after the unmodified
+configuration executed. A missing configuration or an unrealized condition
+makes the case `unsupported`. An observed failure or a failed close still makes
+it `failed`. An unsupported case never passes, and the report lists it in
+`unsupported_capability_gaps`. The report passes only when every selected case
+passes.
+
+Each case records `mixed_binding` coordinates. These hold the profile, plan and
+run identity, the binding digest, the time requirement and declared loss, and
+each component's backend, manifest, envelope and configuration identity. They
+also hold each pinned service and every retained stage report with its producer
+and digest. The case records the expected and observed role calls, residual
+state, cleanup and the configuration, tool and environment digests.
+
+Every case uses the `hermetic-live` basis and the `installed-service`
+realization owner. The runner never sets `native_conformance`. An in-process,
+reference or test service is not concrete backend realization; native evidence
+stays with the backend distribution under ADR-115. The report validator refuses
+a native report that has a mixed case without a native basis. It also refuses
+inconsistent outcome and pass fields, and a passing case without resolvable
+coordinates. See the
+[design](../../decisions/issue-1017-executable-mixed-conformance-design.md).
 
 ## Non-goals
 

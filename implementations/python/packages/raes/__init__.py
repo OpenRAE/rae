@@ -18,6 +18,7 @@ except PackageNotFoundError:
 __all__ = [
     "admit_instantiated_scenario",
     "admit_materialized_scenario",
+    "admit_scenario_family",
     "MaterializedScenario",
     "MATERIALIZED_SDL_PROFILE",
     "canonical_materialized_sdl_bytes",
@@ -128,6 +129,7 @@ _LAZY_EXPORTS = {
         "admit_materialized_scenario",
     ),
     "raes.experiment_selection": ("validate_experiment_selection_against_family",),
+    "raes.family_admission": ("admit_scenario_family",),
     "raes.selected_scenario": (
         "ExpandedScenarioBindingTargetResolver",
         "select_scenario_family",

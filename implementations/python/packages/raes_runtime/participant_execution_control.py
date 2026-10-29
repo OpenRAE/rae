@@ -97,6 +97,8 @@ class RuntimeParticipantExecutionMixin:
                 if self._target.manifest.participant_runtime is not None
                 else None,
             ),
+            idempotency_key=state.phase_key,
+            identity=state.identity,
         )
         self._record_phase_result(state, result)
         if not result.success:
@@ -120,6 +122,8 @@ class RuntimeParticipantExecutionMixin:
                 self._participant_activity_controls,
                 cancellation_sink=cancellation_sink,
             ),
+            idempotency_key=state.phase_key,
+            identity=state.identity,
         )
         self._record_phase_result(state, due)
         return due.success
@@ -147,6 +151,9 @@ class RuntimeParticipantExecutionMixin:
         phase: str,
         predecessor: RuntimeSnapshot,
         method: Callable[[RuntimeSnapshot, Callable[[ApplyResult], None]], ApplyResult],
+        *,
+        idempotency_key: str = "",
+        identity: object | None = None,
     ) -> ApplyResult:
         """Run one scheduler phase as a composition operation.
 
@@ -163,6 +170,8 @@ class RuntimeParticipantExecutionMixin:
             realization=_RealizationApplyContext(effect_owners=frozenset({"participant"})),
             call=_BackendCallContext(information_state_context_resolver=self._information_state_context_resolver),
             runtime_composition=True,
+            idempotency_key=idempotency_key,
+            identity=identity,
         )
 
     def _start_participant_clock_driver(self) -> bool:

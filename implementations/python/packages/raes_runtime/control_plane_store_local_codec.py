@@ -36,6 +36,7 @@ CURRENT_LOCAL_TABLES: Mapping[str, frozenset[str]] = {
     "operation_changes": frozenset({"sequence", "operation_id", "removed"}),
     "snapshot_history_streams": frozenset({"field", "participant", "length", "head"}),
     "snapshot_history": frozenset({"field", "participant", "position", "payload", "digest"}),
+    "runtime_decisions": frozenset({"decision_id", "payload", "digest"}),
 }
 # The tables and columns that every supported schema has; the schema migration reads them.
 CORE_LOCAL_TABLES: Mapping[str, frozenset[str]] = {

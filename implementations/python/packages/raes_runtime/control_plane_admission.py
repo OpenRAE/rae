@@ -6,7 +6,7 @@ from uuid import uuid4
 
 from pydantic import ValidationError
 from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.errors import ConflictError, InvalidInputError
+from raes_contracts.errors import ConflictError, InvalidInputError, OperationalError
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
     OperationAdmissionContext,
@@ -21,6 +21,7 @@ from .control_plane_store import (
     AuditEvent,
     ControlPlaneOperationRecord,
     NewClaimBlock,
+    NewClaimRejected,
     idempotency_claim_identity,
     require_idempotency_key,
 )
@@ -159,33 +160,22 @@ class RuntimeAdmissionMixin:
         legacy_request_fingerprint: str = "",
         new_claim_blocked: NewClaimBlock = None,
     ) -> ControlPlaneOperationRecord:
-        from .operation_invocation_ledger import control_record_is_supervisory
-
         self._assert_runtime_owner()
         require_idempotency_key(record.idempotency_key)
-        if (
-            getattr(self, "_effect_admission_stopped", False)
-            and record.status.context.operation_kind is not OperationKind.INDETERMINATE_RESOLUTION
-            and not control_record_is_supervisory(record)
-        ):
-            new_claim_blocked = "current-state"
-        if (
-            record.status.context.operation_kind is not OperationKind.INDETERMINATE_RESOLUTION
-            and not control_record_is_supervisory(record)
-        ):
-            from .control_plane_recovery import unresolved_indeterminate_operation_ids
-
-            if unresolved_indeterminate_operation_ids(
-                self,
-                target_scope=record.status.context.target_scope,
-                run_scope=record.status.context.run_scope,
-            ):
-                new_claim_blocked = "indeterminate"
-        persisted = self._store_commits.claim_record(
-            record,
-            legacy_request_fingerprint=legacy_request_fingerprint,
-            new_claim_blocked=new_claim_blocked,
-        )
+        new_claim_blocked, reservation_error = self._effect_claim_block(record, new_claim_blocked)
+        engine = getattr(self, "_engine", None)
+        try:
+            persisted = self._store_commits.claim_record(
+                record,
+                legacy_request_fingerprint=legacy_request_fingerprint,
+                new_claim_blocked=new_claim_blocked,
+            )
+        except NewClaimRejected:
+            if reservation_error is not None:
+                raise reservation_error from None
+            raise
+        if engine is not None:
+            engine.register_operation(self, persisted.receipt.operation_id)
         with self._operation_lock:
             if exact_retry_fingerprint is not None and record.idempotency_key:
                 claim_identity = idempotency_claim_identity(record.receipt.context, record.idempotency_key)
@@ -198,6 +188,35 @@ class RuntimeAdmissionMixin:
             if index is not None:
                 index.apply(persisted)
         return persisted
+
+    def _effect_claim_block(
+        self, record: ControlPlaneOperationRecord, blocked: NewClaimBlock
+    ) -> tuple[NewClaimBlock, ConflictError | OperationalError | None]:
+        from .control_plane_recovery import unresolved_indeterminate_operation_ids
+        from .operation_invocation_ledger import control_record_is_supervisory
+
+        if (
+            record.status.context.operation_kind is OperationKind.INDETERMINATE_RESOLUTION
+            or control_record_is_supervisory(record)
+        ):
+            return blocked, None
+        engine = getattr(self, "_engine", None)
+        reservation_error = None
+        if engine is not None:
+            try:
+                engine.reserve(self)
+            # NewClaimRejected is a ConflictError, so closed effect admission also takes this path.
+            except (ConflictError, OperationalError) as error:
+                # Preserve exact readback after admission closes or a run retires.
+                reservation_error = error
+                blocked = "current-state"
+        if getattr(self, "_effect_admission_stopped", False):
+            blocked = "current-state"
+        if unresolved_indeterminate_operation_ids(
+            self, target_scope=record.status.context.target_scope, run_scope=record.status.context.run_scope
+        ):
+            blocked = "indeterminate"
+        return blocked, reservation_error
 
 
 __all__ = ("RuntimeAdmissionMixin",)

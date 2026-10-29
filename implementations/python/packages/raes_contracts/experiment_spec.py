@@ -137,6 +137,8 @@ def parse_experiment_spec(
         code = "duplicate-key" if isinstance(exc.__cause__, _DuplicateMappingKey) else "invalid-yaml"
         raise ExperimentSpecValidationError(code, "Experiment spec YAML is invalid.", path=path) from exc
     except (yaml.YAMLError, ValueError) as exc:
+        # PyYAML's timestamp constructor lets datetime's ValueError escape for
+        # impossible dates such as an unquoted 2026-02-30 (issue #1563).
         raise ExperimentSpecValidationError("invalid-yaml", "Experiment spec YAML is invalid.", path=path) from exc
     except RecursionError as exc:
         # The recursive YAML composer stops at the interpreter recursion limit for deeply nested input.

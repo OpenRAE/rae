@@ -29,7 +29,7 @@ from raes.mixed_control_migration import _error_pointers, migrate_mixed_control_
 from raes.semantics.objective_semantics import ObjectiveIssue
 from raes.semantics.participant_behavior import ParticipantBehaviorIssue, analyze_participant_affiliations
 from raes.semantics.participant_outcome import ParticipantOutcomeIssue
-from raes.validator import SemanticValidator
+from raes.validator import SemanticValidator, ValidationSession
 from raes.validator._content_objectives import _PARTICIPANT_BEHAVIOR_ISSUE_RENDERERS
 from raes.validator._issue_owners import (
     objective_issue_owner,
@@ -147,7 +147,8 @@ def _refusals(payload: dict) -> set[tuple[str, str]]:
     return {(item.code.removeprefix("mixed-control-migration."), item.address) for item in report.diagnostics}
 
 
-def _old_semantic_errors(scenario: object) -> set[str]:
+def _old_semantic_errors(scenario: object, _session: object = None) -> set[str]:
+    """Compare messages, as before #1678, and validate without a shared session."""
     try:
         SemanticValidator(scenario).validate()
     except SDLValidationError as exc:
@@ -478,7 +479,9 @@ def test_relationship_completion_keeps_the_candidates_that_message_comparison_ke
 ) -> None:
     payload, cursor = build()
     text = yaml.safe_dump(payload, sort_keys=False)
-    baseline = relationship_candidates._semantic_errors(parse_sdl(text, skip_semantic_validation=True))
+    baseline = relationship_candidates._semantic_errors(
+        parse_sdl(text, skip_semantic_validation=True), ValidationSession()
+    )
     assert all(isinstance(finding, SDLValidationFinding) for finding in baseline)
     assert all(finding.owner == _old_owner(finding.message) for finding in baseline)
 

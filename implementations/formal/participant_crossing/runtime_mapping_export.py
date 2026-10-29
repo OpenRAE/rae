@@ -7,6 +7,8 @@ from raes_contracts.canonical import canonical_json_bytes
 from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 from raes_contracts.json_ingress import parse_bounded_json_object
 
+from tools.research_evidence import release_managed_source_bytes
+
 from . import export
 from .ingress import read_bytes, safe_path
 
@@ -51,7 +53,8 @@ def source_pins(root: Path) -> dict[str, str]:
         total += len(data)
         if total > 128 * 1024 * 1024:
             raise InvalidInputError("mapping source bytes exceed limit")
-        pins[relative] = export.digest(data)
+        # A Release Please version bump must not change the source being released.
+        pins[relative] = export.digest(release_managed_source_bytes(relative, data))
     return pins
 
 

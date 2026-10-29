@@ -90,8 +90,12 @@ def _source_location(filename: str) -> str:
     """Show a file relative to its import root, so host paths stay out of records."""
 
     best = ""
-    for entry in sys.path:
-        root = os.path.abspath(entry) if entry else os.getcwd()
+    # At interpreter shutdown sys.path can be None, and a working directory can be gone.
+    for entry in sys.path or ():
+        try:
+            root = os.path.abspath(entry) if entry else os.getcwd()
+        except OSError:
+            continue
         prefix = root.rstrip(os.sep) + os.sep
         if filename.startswith(prefix) and len(prefix) > len(best):
             best = prefix

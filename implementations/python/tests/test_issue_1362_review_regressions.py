@@ -111,7 +111,9 @@ def test_deadline_classification_can_use_the_single_store_slot():
     plane._expire_backend_invocation = expiry
     try:
         receipt = plane.submit_provisioning(ProvisioningPlan())
-        assert expired.wait(1)
+        # The callback has a five-second admission budget of its own. Allow
+        # that budget and runner scheduling time before checking settlement.
+        assert expired.wait(10)
         assert not failures
         assert plane._store.raw_store.load_records()[receipt.operation_id].status.state is OperationState.CANCELLED
         assert receipt.operation_id not in plane._admitted_backend_requests
@@ -186,7 +188,7 @@ def test_blocked_worker_admission_leaves_the_single_control_slot_available(block
     from test_issue_1360_backend_operations import capabilities, control, request, response
 
     operation = request()
-    entered, release = Event(), Event()
+    entered, release, returned = Event(), Event(), Event()
     provider = Provider()
     provider.request = operation
     provider.operation_capabilities = capabilities
@@ -195,8 +197,11 @@ def test_blocked_worker_admission_leaves_the_single_control_slot_available(block
 
     def block(*args):
         entered.set()
-        assert release.wait(3)
-        return original(*args)
+        try:
+            assert release.wait(10)
+            return original(*args)
+        finally:
+            returned.set()
 
     setattr(provider, blocked_method, block)
 
@@ -231,8 +236,8 @@ def test_blocked_worker_admission_leaves_the_single_control_slot_available(block
         request_digest=backend_operation_request_digest(operation),
         effect_queue="effect",
         control_queue="control",
-        execution_budget_ms=1000,
-        control_budget_ms=1000,
+        execution_budget_ms=10000,
+        control_budget_ms=10000,
     )
     authority = Authority()
     activities = TemporalOperationActivities(
@@ -252,10 +257,15 @@ def test_blocked_worker_admission_leaves_the_single_control_slot_available(block
             limiter.total_tokens = outer_capacity
         invocation = asyncio.create_task(activities.invoke(reference.model_dump(mode="json")))
         try:
-            assert await asyncio.to_thread(entered.wait, 1)
+            assert await asyncio.to_thread(entered.wait, 5)
+            # Prove control completes while admission remains blocked; the
+            # timeout bounds a deadlock, rather than measuring runner speed.
+            assert not returned.is_set()
             await asyncio.wait_for(
-                activities.control({"reference": reference.model_dump(mode="json"), "control_id": "control-1"}), 0.3
+                activities.control({"reference": reference.model_dump(mode="json"), "control_id": "control-1"}), 5
             )
+            assert not returned.is_set()
+            assert not release.is_set()
             assert provider.cancels == 1
             assert authority.reports[0].message.disposition == "accepted"
         finally:

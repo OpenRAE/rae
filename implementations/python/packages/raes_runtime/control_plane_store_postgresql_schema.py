@@ -11,7 +11,7 @@ from raes_contracts.errors import ConflictError, EvidenceIntegrityError
 if TYPE_CHECKING:
     from psycopg import Connection
 
-POSTGRES_LEDGER_SCHEMA_VERSION = "4"
+POSTGRES_LEDGER_SCHEMA_VERSION = "5"
 # The columns that the ledger queries read in each table. Every supported schema version has the core columns.
 LEDGER_COLUMNS: Mapping[str, frozenset[str]] = {
     "raes_ledger_metadata": frozenset({"key", "value"}),
@@ -25,6 +25,7 @@ PROJECTION_COLUMNS: Mapping[str, frozenset[str]] = {
     "raes_ledger_history_streams": frozenset({"field", "participant", "length", "head"}),
     "raes_ledger_history": frozenset({"field", "participant", "position", "payload", "digest"}),
     "raes_ledger_changes": frozenset({"sequence", "operation_id", "removed"}),
+    "runtime_decisions": frozenset({"decision_id", "payload", "digest"}),
 }
 # The live columns of the relation that an unqualified table name resolves to, as the ledger queries resolve it.
 _TABLE_COLUMNS = "SELECT attname FROM pg_attribute WHERE attrelid = to_regclass(%s) AND attnum > 0 AND NOT attisdropped"
@@ -85,14 +86,14 @@ def initialize_schema(connection: Connection[tuple[object, ...]]) -> None:
         "ON raes_ledger_operations(actor_id, operation_kind, idempotency_key) WHERE idempotency_key<>''",
         "CREATE TABLE IF NOT EXISTS raes_ledger_audit(sequence BIGSERIAL PRIMARY KEY, "
         "payload TEXT NOT NULL, digest TEXT NOT NULL)",
-        "INSERT INTO raes_ledger_metadata(key, value) VALUES ('schema-version', '4') ON CONFLICT(key) DO NOTHING",
+        "INSERT INTO raes_ledger_metadata(key, value) VALUES ('schema-version', '5') ON CONFLICT(key) DO NOTHING",
     )
     with connection.transaction():
         for statement in statements:
             connection.execute(statement)
         version = connection.execute("SELECT value FROM raes_ledger_metadata WHERE key='schema-version'").fetchone()
-        if version in {("1",), ("2",), ("3",)}:
-            connection.execute("UPDATE raes_ledger_metadata SET value='4' WHERE key='schema-version'")
+        if version in {("1",), ("2",), ("3",), ("4",)}:
+            connection.execute("UPDATE raes_ledger_metadata SET value='5' WHERE key='schema-version'")
         elif version != (POSTGRES_LEDGER_SCHEMA_VERSION,):
             # A schema that this build cannot open conflicts with the ledger state.
             raise ConflictError("PostgreSQL ledger schema is unsupported")
@@ -102,6 +103,9 @@ def initialize_schema(connection: Connection[tuple[object, ...]]) -> None:
 def initialize_projection_schema(connection: Connection[tuple[object, ...]]) -> None:
     # A bootstrap statement must not reach a damaged existing table; an absent table is created below.
     _require_ledger_columns(connection, PROJECTION_COLUMNS, allow_absent=True)
+    from .runtime_decision_store import initialize_runtime_decisions
+
+    initialize_runtime_decisions(connection)
     statements = (
         "CREATE TABLE IF NOT EXISTS raes_ledger_history_streams(field TEXT NOT NULL, participant TEXT NOT NULL, "
         "length BIGINT NOT NULL, head TEXT NOT NULL, PRIMARY KEY(field, participant))",

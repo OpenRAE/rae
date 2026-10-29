@@ -28,6 +28,7 @@ from .control_plane_execution import _utc_now
 from .control_plane_local_execution import run_local_executor
 from .control_plane_store import ControlPlaneOperationRecord, NewClaimRejected, TerminalCommitMode
 from .control_plane_store_snapshots import _snapshot_payload
+from .control_plane_supervision import required_guarantees
 from .diagnostics import _has_error_diagnostic
 from .errors import RuntimeBudgetExhaustedError
 from .operation_command_commitment import native_command_commitment
@@ -49,6 +50,7 @@ if TYPE_CHECKING:
 def invocation_request(
     plane: RuntimeControlPlane, request: OperationExecutionRequest, operation_id: str, submitted_at: str
 ) -> BackendOperationRequestModel:
+    budget_ms = execution_budget_ms(request.plan, plane._supervision)
     return BackendOperationRequestModel(
         binding={
             "operation_id": operation_id,
@@ -72,12 +74,14 @@ def invocation_request(
             "digest": native_command_commitment(plane, request.plan),
         },
         requirement_refs=() if request.inject_occurrence is None else request.inject_occurrence.evidence_requirements,
-        required_guarantees=() if request.inject_occurrence is None else ("effect-observation", "cessation-evidence"),
+        required_guarantees=required_guarantees(
+            plane, *(("effect-observation", "cessation-evidence") if request.inject_occurrence is not None else ())
+        ),
         budget={
             "origin_id": "execution:" + canonical_json_digest(operation_id).removeprefix("sha256:"),
             "started_at": submitted_at,
-            "limit_ms": execution_budget_ms(request.plan, plane._supervision),
-            "remaining_ms": execution_budget_ms(request.plan, plane._supervision),
+            "limit_ms": budget_ms,
+            "remaining_ms": budget_ms,
         },
     )
 
@@ -248,7 +252,7 @@ def execute_supervised_operation(plane: RuntimeControlPlane, request: OperationE
     if receipt is None:
         try:
             budget = execution_budget_ms(request.plan, plane._supervision)
-        except ConflictError:
+        except ConflictError, RuntimeBudgetExhaustedError:
             receipt = plane._reject_diagnostics(
                 domain=request.domain,
                 context=request.context,
@@ -300,6 +304,9 @@ def _existing_supervised_receipt(
 def _execute_admitted_native(
     plane: RuntimeControlPlane, request: OperationExecutionRequest, budget: int
 ) -> OperationReceipt:
+    if request.local_executor is None and plane._required_operation_guarantees:
+        # The run requires guarantees that only an installed operation provider can give.
+        raise ConflictError("required operation guarantees need an installed provider")
     deadline = monotonic() + budget / 1000
     record, receipt = claim_accepted(plane, request)
     if record is None:

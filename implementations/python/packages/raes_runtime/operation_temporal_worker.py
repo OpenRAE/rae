@@ -316,6 +316,7 @@ def create_temporal_workers(
     from temporalio.worker import Worker
 
     from .operation_temporal_workflow import RaeOperationWorkflow, RaeSupervisionWorkflow
+    from .runtime_temporal_workflow import RaeExperimentWorkflow, RaeRunWorkflow
 
     if client.namespace != configuration.namespace:
         raise ValueError("Temporal worker namespace does not match configured authority")
@@ -323,7 +324,7 @@ def create_temporal_workers(
         Worker(
             client,
             task_queue=configuration.workflow_queue,
-            workflows=[RaeOperationWorkflow, RaeSupervisionWorkflow],
+            workflows=[RaeOperationWorkflow, RaeSupervisionWorkflow, RaeRunWorkflow, RaeExperimentWorkflow],
             workflow_runner=workflow_sandbox_runner(),
         ),
         Worker(

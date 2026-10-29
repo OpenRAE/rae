@@ -24,7 +24,7 @@ _MIGRATION_ID = "local-operation-record/v1-to-v2"
 # history. A build that predates it refuses a schema-6 store rather than
 # re-serializing its snapshot without that carrier, which is what keeps a
 # retained modular claim from being silently erased by a downgrade round-trip.
-LOCAL_OPERATION_SCHEMA_VERSION = "11"
+LOCAL_OPERATION_SCHEMA_VERSION = "12"
 # A schema version that this build cannot open conflicts with the store state; it is not a damaged store.
 UNSUPPORTED_SCHEMA = "unsupported local control-plane database schema"
 _RECORD_IDENTITY_MISMATCH = "operation record identity does not match its durable key"
@@ -154,7 +154,7 @@ def migrate_sqlite_schema(
             decode_payload=decode_payload,
             encode_payload=encode_payload,
         )
-    elif row is None or row[0] not in {"4", "5", "6", "7", "8", "9", "10", LOCAL_OPERATION_SCHEMA_VERSION}:
+    elif row is None or row[0] not in {"4", "5", "6", "7", "8", "9", "10", "11", LOCAL_OPERATION_SCHEMA_VERSION}:
         raise ConflictError(UNSUPPORTED_SCHEMA)
     _ensure_idempotency_claim_index(connection)
     if row is not None and row[0] != LOCAL_OPERATION_SCHEMA_VERSION:

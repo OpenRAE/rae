@@ -324,6 +324,7 @@ _HISTORICAL_CATALOG_PATHS = {
     "rev9": corpus_family_root(CONCEPT_AUTHORITY) / "history" / "behavioral-relations-v1-rev9.json",
     "rev10": corpus_family_root(CONCEPT_AUTHORITY) / "history" / "behavioral-relations-v1-rev10.json",
     "rev11": corpus_family_root(CONCEPT_AUTHORITY) / "history" / "behavioral-relations-v1-rev11.json",
+    "rev12": corpus_family_root(CONCEPT_AUTHORITY) / "history" / "behavioral-relations-v1-rev12.json",
 }
 
 

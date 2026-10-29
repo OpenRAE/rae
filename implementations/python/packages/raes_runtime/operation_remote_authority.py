@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from raes_contracts.contracts import BackendOperationCapabilitiesModel, BackendOperationResponseModel
 
     from .operation_temporal import EngineOperationReference
+    from .runtime_sequence_reference import RuntimeSequenceReference
 
 _LOGGER = get_logger(__name__)
 
@@ -115,6 +116,18 @@ class RemoteOperationAuthority:
             if not isinstance(exc, RaesError):
                 _LOGGER.exception("worker authority request failed")
             raise OperationalError("worker authority response could not be established") from None
+
+    def advance_runtime(self, reference: RuntimeSequenceReference) -> str:
+        """Reconcile a durable state cut; no fresh attempt is implied by redelivery."""
+        from .runtime_sequence_reference import RuntimeSequenceReference
+
+        reference = RuntimeSequenceReference.model_validate(reference.model_dump(mode="json"))
+        if reference.worker_id != self.configuration.identity.identity:
+            raise AuthorizationError("runtime worker reference is forbidden")
+        if self.configuration.rpc_budget_ms >= reference.activity_budget_ms:
+            # The delivered reference does not give this worker enough budget for one bounded call.
+            raise InvalidInputError("runtime activity budget must exceed its bounded authority call")
+        return self._rpc("POST", "runtime/progress", reference.model_dump(mode="json"))
 
     def _path(self, reference: EngineOperationReference, suffix: str = "") -> str:
         if reference.worker_id != self.configuration.identity.identity:

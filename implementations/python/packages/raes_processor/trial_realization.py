@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 
 from raes import canonical_instantiated_sdl_digest, select_scenario_family
 from raes.canonical import canonical_sdl_digest
@@ -14,6 +14,7 @@ from raes.phase_contracts import (
     TrialInstantiationProvenance,
 )
 from raes.scenario import ExpandedScenario, InstantiatedScenario
+from raes.selected_scenario import ExpandedScenarioBindingTargetResolver
 from raes_backend_protocols.backend_manifest import BackendManifest
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope
 from raes_contracts.admitted_trial_plan_ingress import (
@@ -33,13 +34,14 @@ from raes_contracts.contracts import (
     ExperimentTaskModel,
     OrchestrationPlanModel,
     ParticipantConfigurationResultModel,
+    ParticipantImplementationManifestModel,
     ProcessorManifestV2Model,
     ProvisioningPlanModel,
     TrialProcessorPlanReferenceModel,
     processor_backend_manifests_are_mutually_compatible,
 )
 from raes_contracts.errors import InvalidInputError, NotFoundError
-from raes_contracts.experiment_bindings import ApparatusManifest, ApparatusManifestKey
+from raes_contracts.experiment_bindings import ApparatusManifest, ApparatusManifestKey, ParticipantManifestKey
 from raes_contracts.plan_projection import (
     evaluation_plan_model,
     orchestration_plan_model,
@@ -54,6 +56,7 @@ from .models import ExecutionPlan
 from .planner import plan as build_execution_plan
 from .trial_compiler.apparatus import validate_admitted_apparatus
 from .trial_compiler.models import CompilationFailure
+from .trial_compiler.sources import validate_authoring_selections
 
 _PLAN_CONTRACT_IDS = {
     "provisioning": "provisioning-plan-v1",
@@ -88,6 +91,9 @@ class TrialRealizationInputs:
     apparatus_manifests: Mapping[ApparatusManifestKey, ApparatusManifest]
     realization_envelope: BackendRealizationEnvelopeModel
     backend_key: ApparatusManifestKey
+    participant_manifests: Mapping[ParticipantManifestKey, ParticipantImplementationManifestModel] = field(
+        default_factory=dict
+    )
 
 
 def instantiate_admitted_trial_entry(
@@ -138,6 +144,10 @@ def instantiate_admitted_trial_entry(
         ),
     )
     outcomes = {selection.variation_point_id: selection.outcome for selection in entry.selections}
+    resolver = ExpandedScenarioBindingTargetResolver(family)
+    for selection in entry.selections:
+        if selection.treatment is not None:
+            resolver.validate_selection(selection.treatment)
     return select_scenario_family(
         family,
         outcomes,
@@ -264,6 +274,13 @@ def realize_admitted_trial_entry(
     if isinstance(entry.apparatus, AdmittedMixedCompositionBindingModel):
         raise InvalidInputError("mixed-composition runtime coordination is not implemented")
     _validate_experiment_and_task(admitted_plan, inputs.experiment, inputs.task)
+    validate_authoring_selections(
+        admitted_plan,
+        inputs.family,
+        inputs.experiment,
+        inputs.apparatus_manifests,
+        inputs.participant_manifests,
+    )
     _validate_capture_specs(
         admitted_plan,
         inputs.experiment,

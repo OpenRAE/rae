@@ -49,8 +49,10 @@ Archive removal does not destroy backend resources.
 
 ### Snapshot validation
 
-`raes_runtime.snapshot_contract.runtime_snapshot_contract_model()` is the one public projection.
-The control-plane API and the snapshot probe both use it.
+`raes_runtime.snapshot_contract.runtime_snapshot_contract_payload()` builds the shared value-free projection.
+`runtime_snapshot_contract_model()` validates that payload for the control-plane API.
+The snapshot probe validates the payload before running semantic checks, so malformed
+realization carriers produce conformance diagnostics instead of serialization exceptions (issue #1551).
 The probe therefore validates the attestation records, realization provenance, observations and envelope.
 A negotiated producer must also leave at least one archived attestation record.
 The new failure code is `conformance.materialization-not-archived`.

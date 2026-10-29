@@ -310,7 +310,13 @@ Portable mixed installation currently executes in the local supervised compositi
 A distributed dispatcher combined with these services is refused because remote
 mixed-worker authority is not installed.
 
-### Abstract execution model (FM3)
+`run_mixed_backend_conformance()` probes an installation through this runtime.
+Its cases and evidence rules are in
+[backend conformance](../explain/reference/backend-conformance.md#mixed-backend-capability-probes).
+
+### Abstract execution model
+
+This model is at formal-methods level FM3.
 
 State is `(claimed, dispatched, reports, post_time, native_result, reservation,
 terminal)`. Reports are bounded append-only role-authenticated facts; the request
@@ -327,10 +333,16 @@ independent oracle, exposed by `established_mixed_backend_state()`.
 | Settle | Join contract-established state, shared effect/outcome evidence and native result gates; atomically commit through the owning history CAS. |
 | Interrupt/reopen | Retain consumed authority, known stages and residuals; perform no redispatch or inferred completion. |
 
-Invariants: no effect precedes an admitted ordered grant; no report crosses its
-invocation, producer or subject; no success follows partial execution or missing
-delivery; no backend boolean establishes observation; no phase advances before
-fenced owner readback; no consumed effect runs twice. Runtime witnesses live in
+Invariants:
+
+- No effect precedes an admitted ordered grant.
+- No report crosses its invocation, producer or subject.
+- No success follows partial execution or missing delivery.
+- No backend boolean establishes observation.
+- No phase advances before fenced owner readback.
+- No consumed effect runs twice.
+
+Runtime witnesses live in
 `implementations/python/tests/test_issue_1372_mixed_execution.py`.
 
 ## Limits

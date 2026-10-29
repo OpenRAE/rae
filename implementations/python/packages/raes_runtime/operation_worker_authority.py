@@ -36,6 +36,7 @@ from .operation_control_budget import (
     remaining_control_budget,
 )
 from .operation_transcript_policy import append_control
+from .runtime_operation_routing import run_operation
 
 if TYPE_CHECKING:
     from raes_contracts.runtime_state import OperationStatus
@@ -121,6 +122,7 @@ class RuntimeWorkerAuthorityMixin:
                     OperationState.INDETERMINATE if record.invocation.consumed else OperationState.CANCELLED,
                 )
 
+    @run_operation
     @runtime_owned
     def get_backend_invocation(
         self, operation_id: str, *, identity: ControlPlaneIdentity | None
@@ -133,6 +135,7 @@ class RuntimeWorkerAuthorityMixin:
         authorize_worker(self, identity, record)
         return record.invocation.request
 
+    @run_operation
     @runtime_owned
     def claim_backend_invocation(
         self,
@@ -190,6 +193,7 @@ class RuntimeWorkerAuthorityMixin:
                 raise ConflictError("invocation budget or admission expired before grant delivery")
             return InvocationGrant(request=running.invocation.request, remaining_budget_ms=remaining)
 
+    @run_operation
     @runtime_owned
     def record_worker_observation(
         self, control: BackendOperationControlModel, *, identity: ControlPlaneIdentity | None
@@ -237,6 +241,7 @@ class RuntimeWorkerAuthorityMixin:
                 raise
             return self.claim_worker_control(control.binding.operation_id, control.control_id, identity=identity)
 
+    @run_operation
     @runtime_owned
     def claim_worker_control(
         self, operation_id: str, control_id: str, *, identity: ControlPlaneIdentity | None
@@ -269,6 +274,7 @@ class RuntimeWorkerAuthorityMixin:
             forget_control_budget(self, control)
             return grant
 
+    @run_operation
     @runtime_owned
     def get_backend_operation_status(
         self, operation_id: str, *, identity: ControlPlaneIdentity | None
@@ -281,6 +287,7 @@ class RuntimeWorkerAuthorityMixin:
         authorize_worker(self, identity, record)
         return record.status
 
+    @run_operation
     @runtime_owned
     def publish_backend_response(
         self, response: BackendOperationResponseModel, *, identity: ControlPlaneIdentity | None
@@ -341,6 +348,7 @@ class RuntimeWorkerAuthorityMixin:
                         )
             return self._operations[record.receipt.operation_id].status
 
+    @run_operation
     @runtime_owned
     def mark_backend_indeterminate(
         self, binding: BackendOperationBindingModel, *, identity: ControlPlaneIdentity | None
