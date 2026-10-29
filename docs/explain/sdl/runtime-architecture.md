@@ -744,3 +744,22 @@ dispositions and scoped effect evidence. RAE retains native result validation
 and atomic terminal publication. The [migration guide](../reference/backend-operation-supervision.md)
 explains the additive profile and the limits of legacy conversions. These
 contracts do not enable a new RuntimeTarget provider or change P0–P3 guarantees.
+
+## Complete experiment records
+
+Every started trial remains visible through its allocated run identity and distinct attempt identities.
+The existing decision store retains live progress, failures, and unresolved effects.
+Run and study records preserve that history independently of scientific evidence acceptance.
+Partial records state which facts are unavailable; they do not invent completion, measurements, or cleanup success.
+Execution, capture, validation, and cleanup outcomes remain separate.
+Scientific outcomes come from explicit evaluation facts; successful execution does not establish scientific success.
+Export and archive publication do not grant permission to retry or reuse resources.
+Evidence-owner failures preserve records with a separate failed-check disposition.
+Proof limits do not truncate retained evidence history.
+Study membership and metric eligibility share the same replacement-aware population.
+Each archive write verifies the exact frozen version at the supplied destination.
+The record producer and replacement archive share version ownership across retained decisions.
+Both freeze candidates before external archive writes, including writes with uncertain acknowledgements.
+An additional accounting version can link to an exact scientific artifact without moving its proof.
+Study evaluation membership and returned validation records identify the original checked version.
+The [complete accounting design](../../decisions/issue-1630-run-accounting-design.md) describes data flows, security controls, and metric populations.

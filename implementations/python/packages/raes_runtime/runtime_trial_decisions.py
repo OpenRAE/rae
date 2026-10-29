@@ -69,6 +69,7 @@ class TrialObservationDecision(BaseModel):
         Field(discriminator="kind"),
     ]
     snapshot_json: Annotated[str, Field(max_length=16_777_216)] | None = None
+    observed_at: Rfc3339DateTimeString | None = Field(default=None, exclude_if=lambda value: value is None)
 
     @property
     def decision_id(self) -> str:
@@ -113,6 +114,17 @@ class TrialReplacementDecision(BaseModel):
     @property
     def decision_id(self) -> str:
         return canonical_json_digest((self.schema_version, self.experiment_id, self.root_entry_id, self.ordinal))
+
+
+class TrialArchiveCandidateDecision(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True, revalidate_instances="always")
+    schema_version: Literal["runtime-trial-archive-candidate/v1"] = "runtime-trial-archive-candidate/v1"
+    experiment_id: Identity
+    run: ExperimentRunModel
+
+    @property
+    def decision_id(self) -> str:
+        return canonical_json_digest((self.schema_version, self.experiment_id, self.run.run_id))
 
 
 class TrialArchiveDecision(BaseModel):

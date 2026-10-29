@@ -10,10 +10,12 @@ from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.backend_operation import OperationGuarantee
 from raes_contracts.planning import RuntimeDomain
 
+from .runtime_record_decisions import ExperimentRecordPublicationDecision, ExperimentStudyDefinitionDecision
 from .runtime_sequence_reference import RuntimeSequenceDecision
 from .runtime_trial_decisions import (
     ExperimentCancellationDecision,
     ExperimentDecision,
+    TrialArchiveCandidateDecision,
     TrialArchiveDecision,
     TrialAttemptDecision,
     TrialInterruptionDecision,
@@ -117,8 +119,11 @@ RuntimeDecision = Annotated[
     | TrialTerminalDecision
     | TrialReplacementDecision
     | TrialArchiveDecision
+    | TrialArchiveCandidateDecision
     | RuntimeSequenceDecision
-    | TrialInterruptionDecision,
+    | TrialInterruptionDecision
+    | ExperimentStudyDefinitionDecision
+    | ExperimentRecordPublicationDecision,
     Field(discriminator="schema_version"),
 ]
 _DECISION = TypeAdapter(RuntimeDecision)

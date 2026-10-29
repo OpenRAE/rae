@@ -508,11 +508,11 @@ def test_experiment_run_schema_publishes_canonical_provenance_surface():
     generated = schema_bundle()
     run_schema = generated["experiment-run-v1"]
 
-    assert run_schema["properties"]["traceability"]["$ref"] == "#/$defs/ExperimentRunTraceabilityModel"
+    assert {"$ref": "#/$defs/ExperimentRunTraceabilityModel"} in run_schema["properties"]["traceability"]["anyOf"]
     assert run_schema["properties"]["realized_form_disclosures"]["items"]["$ref"] == (
         "#/$defs/ExperimentRealizedFormDisclosureModel"
     )
-    assert "traceability" in run_schema["required"]
+    assert any("traceability" in rule.get("else", {}).get("required", []) for rule in run_schema["allOf"])
 
     traceability_schema = run_schema["$defs"]["ExperimentRunTraceabilityModel"]
     assert traceability_schema["additionalProperties"] is False

@@ -17,6 +17,7 @@ from .experiment_evidence_refinement import (
     ExperimentEvidenceRequirementRelationModel,
     validate_evidence_requirement_relation_carrier,
 )
+from .experiment_references import ExperimentReferenceModel
 from .experiment_study import (
     ExperimentAnalysisPlanModel,
     ExperimentRunAllocationPlanModel,
@@ -65,6 +66,7 @@ class ExperimentStudyModel(ContractModel):
     schema_version: Literal[EXPERIMENT_STUDY_SCHEMA_VERSION]
     study_id: NonEmptyString
     study_version: NonEmptyString
+    definition_ref: ExperimentReferenceModel | None = Field(default=None, exclude_if=lambda value: value is None)
     study_kind: Literal["study", "collection", "benchmark", "cohort"]
     title: NonEmptyString
     owner: NonEmptyString
@@ -87,6 +89,16 @@ class ExperimentStudyModel(ContractModel):
     def _validate_claim_bearing_study(self) -> ExperimentStudyModel:
         from ..behavioral_relations import validate_behavioral_claim_binding
 
+        if self.definition_ref is not None:
+            ref = self.definition_ref
+            if (
+                ref.ref_kind != "study"
+                or ref.ref_id != self.study_id
+                or ref.ref_version is None
+                or ref.ref_digest is None
+                or ref.ref_path is not None
+            ):
+                raise ValueError("study definition_ref must pin the same authored study identity and digest")
         relation_ids = [claim.relation_id for claim in self.behavioral_claims]
         if len(relation_ids) != len(set(relation_ids)):
             raise ValueError("study behavioral claim relation ids must be unique")
@@ -104,7 +116,7 @@ class ExperimentStudyModel(ContractModel):
             scope="study",
             authority_kind="study",
             authority_id=self.study_id,
-            authority_version=self.study_version,
+            authority_version=self.study_version if self.definition_ref is None else self.definition_ref.ref_version,
         )
         return self
 

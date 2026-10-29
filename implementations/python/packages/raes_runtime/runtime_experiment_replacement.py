@@ -5,11 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol
 
+from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import ExperimentRunModel, validate_admitted_trial_run
 from raes_processor.trial_compiler import TrialCompilationRequest, compile_admitted_trial_plan
 from raes_processor.trial_compiler.replacement import TrialReplacementResult, compile_replacement_trial
 
-from .runtime_trial_decisions import TrialArchiveDecision, TrialReplacementDecision
+from .runtime_record_versions import require_compatible_record_versions
+from .runtime_trial_decisions import TrialArchiveCandidateDecision, TrialArchiveDecision, TrialReplacementDecision
 
 if TYPE_CHECKING:
     from raes_contracts.contracts import AdmittedTrialPlanModel
@@ -45,9 +47,15 @@ class ExperimentReplacementBinding:
 
 
 def _write_archive(owner: TrialArchiveOwner, run: ExperimentRunModel) -> None:
-    owner.write_run(run)
+    expected = canonical_json_digest(run.model_dump(mode="json"))
+    owner.write_run(run.model_copy(deep=True))
     observed = owner.read_run(run.run_id, run.run_version)
-    if ExperimentRunModel.model_validate(observed.model_dump(mode="json")) != run:
+    if (
+        canonical_json_digest(
+            ExperimentRunModel.model_validate(observed.model_dump(mode="json")).model_dump(mode="json")
+        )
+        != expected
+    ):
         raise ValueError("archive readback differs from the committed trial run")
 
 
@@ -95,21 +103,35 @@ def _archive_attempts(
 ) -> TrialArchiveDecision:
     engine, archive = experiment.engine, experiment.replacement.archive
     results = tuple(item.result() for item in attempts)
-    run = engine._execution_adapter.call(
-        "control",
-        archive.build_run,
-        unit.request,
-        unit.realization,
-        results,
-        timeout_ms=engine._supervision.observation_ms,
+    frozen = next(
+        (
+            item
+            for item in engine._store.load_runtime_decisions()
+            if isinstance(item, TrialArchiveCandidateDecision)
+            and item.experiment_id == experiment.experiment_id
+            and item.run.run_id == unit.request.run_id
+        ),
+        None,
+    )
+    run = (
+        frozen.run
+        if frozen is not None
+        else engine._execution_adapter.call(
+            "control",
+            archive.build_run,
+            unit.request,
+            unit.realization,
+            results,
+            timeout_ms=engine._supervision.observation_ms,
+        )
     )
     run = ExperimentRunModel.model_validate(run.model_dump(mode="json"))
     validate_admitted_trial_run(slot.plan, run, [result.cleanup_receipt for result in results])
     _validate_archive_attempts(run, results)
-    if results[-1].cleanup_receipt.trial_outcome != "succeeded" and run.outcome_status == "succeeded":
-        raise ValueError("archive changed the runtime execution outcome")
     if not unit.capture_succeeded() and run.run_status == "completed":
         raise ValueError("archive hides a failed capture")
+    require_compatible_record_versions(engine._store.load_runtime_decisions(), experiment.experiment_id, (run,))
+    engine._store.claim_runtime_decision(TrialArchiveCandidateDecision(experiment_id=experiment.experiment_id, run=run))
     engine._execution_adapter.call("control", _write_archive, archive, run, timeout_ms=engine._supervision.commit_ms)
     prior = TrialArchiveDecision(experiment_id=experiment.experiment_id, run=run)
     engine._store.claim_runtime_decision(prior)
@@ -196,6 +218,9 @@ def _compile_replacement(
     )
     if result.plan is None:
         raise ValueError("replacement compiler refused the recorded runtime outcome")
+    require_compatible_record_versions(
+        experiment.engine._store.load_runtime_decisions(), experiment.experiment_id, (run, result.superseded_run)
+    )
     return TrialReplacementDecision(
         experiment_id=experiment.experiment_id,
         root_entry_id=slot.root_entry_id,

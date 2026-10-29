@@ -10,6 +10,8 @@ from ._participant_control_exports import PARTICIPANT_CONTROL_EXPORTS
 from ._runtime_fact_exports import RUNTIME_FACT_EXPORTS
 
 PUBLIC_EXPORTS = [
+    "ExperimentAttemptAccountingModel",
+    "ExperimentExecutionAccountingModel",
     *EXPERIMENT_DESIGN_EXPORTS,
     *EXECUTION_POLICY_EXPORTS,
     *BACKEND_OPERATION_EXPORTS,

@@ -152,6 +152,7 @@ from .experiment_artifacts import (
 from .experiment_bindings import *
 from .experiment_capture import *
 from .experiment_disclosure import *
+from .experiment_execution_accounting import ExperimentAttemptAccountingModel, ExperimentExecutionAccountingModel
 from .experiment_manifest_references import (
     ExperimentBackendReferenceModel,
     ExperimentCaptureSpecReferenceModel,
