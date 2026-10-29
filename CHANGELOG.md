@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [9.2.0](https://github.com/OpenRAE/rae/compare/v9.1.0...v9.2.0) (2026-10-29)
+
+
+### Features
+
+* admit import-free scenario families for experiments ([#1700](https://github.com/OpenRAE/rae/issues/1700)) ([0fd7ca3](https://github.com/OpenRAE/rae/commit/0fd7ca30b1f17965263533e1a610731e4ab8ad8a))
+
+
+### Bug Fixes
+
+* **contracts:** report unquoted invalid dates in experiment specs as invalid yaml ([#1597](https://github.com/OpenRAE/rae/issues/1597)) ([ff1dd2c](https://github.com/OpenRAE/rae/commit/ff1dd2c374c116d1e8e5d822934515247e0a6e39))
+* **runtime:** derive provenance for prepared additions ([#1703](https://github.com/OpenRAE/rae/issues/1703)) ([0ab5bf5](https://github.com/OpenRAE/rae/commit/0ab5bf575d7d178df43022d80a009da0a073c0f0))
+* **runtime:** reject runtime fact timestamps without a utc offset ([#1594](https://github.com/OpenRAE/rae/issues/1594)) ([cfa5202](https://github.com/OpenRAE/rae/commit/cfa5202360c86a95397b1a418423e035a422a57b))
+
 ## [9.1.0](https://github.com/OpenRAE/rae/compare/v9.0.0...v9.1.0) (2026-10-28)
 
 
