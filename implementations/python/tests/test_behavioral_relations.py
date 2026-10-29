@@ -150,7 +150,7 @@ def test_authoritative_catalog_covers_required_relation_classes_and_dimensions()
 
     assert catalog.schema_version == "behavioral-relations/v1"
     assert catalog.taxonomy_id == "raes-behavioral-relations"
-    assert catalog.taxonomy_revision == "rev12"
+    assert catalog.taxonomy_revision == "rev13"
     assert set(catalog.relations) >= REQUIRED_RELATION_IDS
     for relation_id, relation in catalog.relations.items():
         assert relation.left_carrier

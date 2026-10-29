@@ -7,12 +7,12 @@ from typing import TYPE_CHECKING, cast
 
 from raes_backend_protocols.protocols import CoordinatedParticipantTimeRuntime
 from raes_contracts.contracts.time_model import TimeRuntimeStateModel, validate_time_runtime_state
-from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
 from raes_contracts.runtime_state import ApplyResult
 from raes_processor.compiler.time_model import time_model_contract_model
 
-from .backend_calls import _BackendCallContext, _call_backend_apply, _RealizationApplyContext
+from .backend_calls import _BackendCallContext, _RealizationApplyContext
 from .diagnostics import _failure_diagnostic, _has_error_diagnostic
+from .interaction_time import finalize_time_result
 
 if TYPE_CHECKING:
     from raes_processor.models import ExecutionPlan
@@ -44,36 +44,31 @@ class RuntimeTimeControlMixin:
             )
             self._fail_apply_state(state)
             return
-        result = _call_backend_apply(
+        result = self._interaction_backend_call(
             self._target.time_runtime.initialize,
             declaration,
             state.working_snapshot,
             address=_APPLY_TIME_ADDRESS,
             snapshot=state.working_snapshot,
+            idempotency_key=state.phase_key,
+            identity=state.identity,
             realization=_RealizationApplyContext(
                 effect_owners=frozenset({"time"}), effect_targets=frozenset(declaration.clocks)
             ),
             call=_BackendCallContext(
                 information_state_context_resolver=self._information_state_context_resolver,
             ),
+            result_validator=lambda result, predecessor: finalize_time_result(
+                self,
+                result,
+                predecessor,
+                declaration=declaration,
+                method="initialize",
+            ),
         )
         self._record_phase_result(state, result)
         if result.success:
-            try:
-                if result.snapshot.time_model_state is None:
-                    raise ValueError("time runtime did not publish typed state")
-                validate_time_runtime_state(declaration, result.snapshot.time_model_state)
-            except ValueError as exc:
-                state.diagnostics.append(
-                    _failure_diagnostic(
-                        _TIME_READBACK_INVALID,
-                        _APPLY_TIME_ADDRESS,
-                        str(exc),
-                    )
-                )
-                self._fail_apply_state(state)
-            else:
-                self._time_declaration = declaration
+            self._time_declaration = declaration
             return
         if not _has_error_diagnostic(result.diagnostics):
             state.diagnostics.append(
@@ -97,7 +92,13 @@ class RuntimeTimeControlMixin:
     def _read_time_state_locked(self) -> TimeRuntimeStateModel:
         if self._target.time_runtime is None or self._time_declaration is None:
             raise ValueError("runtime manager has no initialized shared-time model")
-        state = self._target.time_runtime.state(deepcopy(self._snapshot))
+        with self._mutation_authority.external_call():
+            state = self._execution_adapter.call(
+                "control",
+                self._target.time_runtime.state,
+                deepcopy(self._snapshot),
+                timeout_ms=self._supervision.observation_ms,
+            )
         validate_time_runtime_state(self._time_declaration, state)
         if state != self._snapshot.time_model_state:
             raise ValueError("time runtime readback disagrees with the runtime snapshot")
@@ -131,12 +132,11 @@ class RuntimeTimeControlMixin:
         preflight_failure = self._time_control_preflight(method_name, args)
         if preflight_failure is not None:
             return preflight_failure
-        predecessor = self._snapshot
         invocation = self._time_control_invocation(method_name, args)
         if isinstance(invocation, ApplyResult):
             return invocation
         method, method_args, authority = invocation
-        result = _call_backend_apply(
+        result = self._interaction_backend_call(
             method,
             *method_args,
             address=f"runtime.time.{method_name}",
@@ -146,9 +146,17 @@ class RuntimeTimeControlMixin:
                 information_state_context_resolver=self._information_state_context_resolver,
                 service_dependencies=(self._target.participant_runtime,),
             ),
+            result_validator=lambda result, predecessor: finalize_time_result(
+                self,
+                result,
+                predecessor,
+                declaration=self._time_declaration,
+                method=method_name,
+                clock_address=str(args[0]),
+            ),
         )
         if result.success:
-            result = self._validated_time_control_result(method_name, result, predecessor, args)
+            result = self._synchronize_participant_clock(method_name, result)
         return result
 
     def _time_control_preflight(
@@ -220,46 +228,19 @@ class RuntimeTimeControlMixin:
             ),
         )
 
-    def _validated_time_control_result(
-        self,
-        method_name: str,
-        result: ApplyResult,
-        predecessor: object,
-        args: tuple[object, ...],
-    ) -> ApplyResult:
-        readback_failure = self._time_control_readback_failure(method_name, result)
-        if readback_failure is not None:
-            return readback_failure
-        self._snapshot = result.snapshot
-        result = self._synchronize_participant_clock(method_name, args, result, predecessor)
-        if result.success:
-            result = self._participant_readback_result(method_name, result, predecessor)
-        return result
-
     def _synchronize_participant_clock(
         self,
         method_name: str,
-        args: tuple[object, ...],
         result: ApplyResult,
-        predecessor: object,
     ) -> ApplyResult:
         sync = getattr(self, "_sync_participant_execution_clock", None)
-        sync_result = sync(method_name, str(args[0])) if sync is not None else None
+        sync_result = sync(method_name) if sync is not None else None
         if sync_result is not None and not sync_result.success:
-            if method_name in {"advance", "jump", "resume"}:
-                # Due work may already have native effects. Preserve the consumed
-                # attempt and its evidence; portable rewind is not native rollback.
-                return ApplyResult(
-                    success=False,
-                    snapshot=sync_result.snapshot,
-                    diagnostics=[*result.diagnostics, *sync_result.diagnostics],
-                    changed_addresses=list(dict.fromkeys([*result.changed_addresses, *sync_result.changed_addresses])),
-                )
-            self._snapshot = predecessor
             return ApplyResult(
                 success=False,
-                snapshot=predecessor,
+                snapshot=sync_result.snapshot,
                 diagnostics=[*result.diagnostics, *sync_result.diagnostics],
+                changed_addresses=list(dict.fromkeys([*result.changed_addresses, *sync_result.changed_addresses])),
             )
         return ApplyResult(
             success=True,
@@ -276,54 +257,4 @@ class RuntimeTimeControlMixin:
                     ]
                 )
             ),
-        )
-
-    def _participant_readback_result(
-        self,
-        method_name: str,
-        result: ApplyResult,
-        predecessor: object,
-    ) -> ApplyResult:
-        try:
-            require_participant_autonomous_runtime_snapshot(self._snapshot)
-        except ValueError as exc:
-            self._snapshot = predecessor
-            return ApplyResult(
-                success=False,
-                snapshot=predecessor,
-                diagnostics=[
-                    *result.diagnostics,
-                    _failure_diagnostic(
-                        "runtime.participant-autonomous-readback-invalid",
-                        f"runtime.time.{method_name}",
-                        str(exc),
-                    ),
-                ],
-            )
-        return result
-
-    def _time_control_readback_failure(
-        self,
-        method_name: str,
-        result: ApplyResult,
-    ) -> ApplyResult | None:
-        if result.snapshot.time_model_state is None:
-            message = "time runtime removed typed state"
-        else:
-            try:
-                validate_time_runtime_state(self._time_declaration, result.snapshot.time_model_state)
-            except ValueError as exc:
-                message = str(exc)
-            else:
-                return None
-        return ApplyResult(
-            success=False,
-            snapshot=self._snapshot,
-            diagnostics=[
-                _failure_diagnostic(
-                    _TIME_READBACK_INVALID,
-                    f"runtime.time.{method_name}",
-                    message,
-                )
-            ],
         )

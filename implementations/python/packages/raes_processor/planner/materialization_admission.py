@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import replace
-from typing import TypeAlias
 
 from raes import (
     MaterializedScenario,
@@ -33,10 +32,12 @@ from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
 from ..compiler import compile_runtime_model, validate_materialization_origins
 from ..compiler.materialization_origins import materialization_node_payloads_match
 from ..models import RuntimeModel
+from ..semantics.realization_node_defaults import with_node_defaults
+from ..semantics.realization_requirement import CompiledRealizationRequirement
 from .ordering import _entry_matches_resource
 from .resources import _collect_resources
 
-MaterializationPlan: TypeAlias = ProvisioningPlan | OrchestrationPlan | EvaluationPlan
+type MaterializationPlan = ProvisioningPlan | OrchestrationPlan | EvaluationPlan
 
 
 def admit_materialization_submission(
@@ -70,6 +71,11 @@ def _validate_binding(
     previous: RuntimeSnapshot,
 ) -> None:
     provenance = materialized.materialization_provenance
+    if provenance.inventory is not None and (
+        "backend-runtime-descendants-v1" not in manifest.supported_contract_versions
+        or not isinstance(request, ProvisioningPlan)
+    ):
+        raise ValueError("runtime descendant reporting requires negotiated provisioning admission")
     envelope = manifest.realization_envelope
     if envelope is None:
         raise ValueError("materialization does not bind this source and execution")
@@ -185,7 +191,9 @@ def _validate_other_scopes(
         if previous_scope.keys() != described_scope.keys() or any(
             not (
                 _entry_matches_resource(previous_scope[address], resource, original_model.realization_requirements)
-                or _materialized_entry_matches(previous_scope[address], resource)
+                or _materialized_entry_matches(
+                    previous_scope[address], resource, original_model.realization_requirements
+                )
             )
             for address, resource in described_scope.items()
         ):
@@ -225,17 +233,32 @@ def _validate_instance_indices(
             raise ValueError("materialization inventory must bind every realized instance exactly once")
 
 
-def _materialized_entry_matches(entry: SnapshotEntry | PlannedResource, resource: PlannedResource) -> bool:
-    if resource.resource_type == "node":
+def _materialized_entry_matches(
+    entry: SnapshotEntry | PlannedResource,
+    resource: PlannedResource,
+    requirements: tuple[CompiledRealizationRequirement, ...] = (),
+) -> bool:
+    if resource.resource_type in {"node", "network"}:
         expected_spec, observed_spec = resource.payload.get("spec"), entry.payload.get("spec")
         if not isinstance(expected_spec, dict) or not isinstance(observed_spec, dict):
             return False
         if not materialization_node_payloads_match(
             resource.payload["name"], expected_spec.get("node"), observed_spec.get("node")
         ):
-            return False
+            return _defaulted_node_entry_matches(entry, resource, requirements)
         entry = replace(entry, payload={**entry.payload, "spec": {**observed_spec, "node": expected_spec["node"]}})
     return _entry_matches_resource(entry, resource)
+
+
+def _defaulted_node_entry_matches(
+    entry: SnapshotEntry | PlannedResource,
+    resource: PlannedResource,
+    requirements: tuple[CompiledRealizationRequirement, ...],
+) -> bool:
+    try:
+        return _entry_matches_resource(with_node_defaults(entry), with_node_defaults(resource), requirements)
+    except TypeError, ValueError:
+        return False
 
 
 def validate_materialization_archive_record(
@@ -249,6 +272,7 @@ def validate_materialization_archive_record(
     provenance = scenario.materialization_provenance
     data = submission.sdl.encode("utf-8")
     recorded = (
+        record.inventory,
         record.run_id,
         record.operation_id,
         record.reference.ref_id,
@@ -260,6 +284,7 @@ def validate_materialization_archive_record(
         record.artifact.created_at,
     )
     expected = (
+        provenance.inventory,
         provenance.run_id,
         provenance.operation_id,
         provenance.attestation_id,

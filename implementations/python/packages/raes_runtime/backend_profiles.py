@@ -126,5 +126,5 @@ def prepared_profile_violation(
 
     try:
         return _selected_profile_violation(original, selected, context)
-    except (AttributeError, TypeError, ValueError, RecursionError):
+    except AttributeError, TypeError, ValueError, RecursionError:
         return "Backend preparation returned invalid profile bindings."

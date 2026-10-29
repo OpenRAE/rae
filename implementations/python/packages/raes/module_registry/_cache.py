@@ -101,7 +101,7 @@ def _anchored_lock_parent(
         parent_actual = os.fstat(parent_descriptor)
         if not stat.S_ISDIR(parent_actual.st_mode) or not _same_file_identity(parent_expected, parent_actual):
             raise SDLParseError(error_message)
-    except (OSError, SDLParseError):
+    except OSError, SDLParseError:
         os.close(parent_descriptor)
         raise
     return parent_descriptor, parent_actual, lock_path.name, {"dir_fd": parent_descriptor}

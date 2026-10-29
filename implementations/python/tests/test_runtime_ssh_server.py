@@ -569,6 +569,7 @@ class TestRuntimeFamilyRegistrySshCoverage:
             module=ssh_family.module,
             collection_name="duplicate_ssh_servers",
             id_field="ssh_server_id",
+            reference_policy=ssh_family.reference_policy,
         )
         monkeypatch.setattr(
             runtime_family_registry,

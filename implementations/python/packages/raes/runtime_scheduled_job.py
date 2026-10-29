@@ -98,5 +98,5 @@ class RuntimeScheduledJob(SDLModel):
         return parse_optional_bool_or_var(v, field_name="enabled")
 
     @model_validator(mode="after")
-    def validate_scheduled_job(self) -> "RuntimeScheduledJob":
+    def validate_scheduled_job(self) -> RuntimeScheduledJob:
         return self

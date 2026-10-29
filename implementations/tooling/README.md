@@ -56,8 +56,8 @@ dependencies outside the checkout. A verified local smoke wheelhouse is a test
 input, not support for complete disconnected development. Enterprise/offline
 package contexts and redundant tool-wheelhouse manifests are retired.
 
-Project smoke targets remain Linux x86_64 CPython 3.11–3.14, Linux arm64 CPython
-3.14 and macOS arm64 CPython 3.14. Separating the TLS fixture does not restore
+Project smoke targets remain Linux x86_64, Linux arm64 and macOS arm64 CPython
+3.14. Separating the TLS fixture does not restore
 Intel Mac support: #1268's patched runtime dependency/binary-closure limitation
 still needs a tested resolution. No vulnerable pins or new platform claims are
 introduced. Frozen resolution does not imply bit-reproducible native builds.

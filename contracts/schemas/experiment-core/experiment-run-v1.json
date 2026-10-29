@@ -3968,6 +3968,111 @@
         }
       ]
     },
+    "ExperimentScenarioSelectionDescriptorModel": {
+      "additionalProperties": false,
+      "description": "An exact typed selection with its complete treatment source joins.",
+      "properties": {
+        "outcome": {
+          "discriminator": {
+            "mapping": {
+              "literal": "#/$defs/LiteralBindingValueModel",
+              "member": "#/$defs/ExperimentSelectionMemberOutcomeModel",
+              "order": "#/$defs/ExperimentSelectionOrderOutcomeModel",
+              "reference": "#/$defs/ExperimentSelectionReferenceOutcomeModel",
+              "subset": "#/$defs/ExperimentSelectionSubsetOutcomeModel"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LiteralBindingValueModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionReferenceOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionMemberOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionSubsetOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionOrderOutcomeModel"
+            }
+          ],
+          "title": "Outcome"
+        },
+        "owner": {
+          "$ref": "#/$defs/BindingOwnerModel"
+        },
+        "scenario_family_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Scenario Family Digest",
+          "type": "string"
+        },
+        "selection_id": {
+          "minLength": 1,
+          "title": "Selection Id",
+          "type": "string"
+        },
+        "source_condition_id": {
+          "minLength": 1,
+          "title": "Source Condition Id",
+          "type": "string"
+        },
+        "source_factor_id": {
+          "minLength": 1,
+          "title": "Source Factor Id",
+          "type": "string"
+        },
+        "source_factor_level_id": {
+          "minLength": 1,
+          "title": "Source Factor Level Id",
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/ScenarioBindingTargetModel"
+        }
+      },
+      "required": [
+        "target",
+        "scenario_family_digest",
+        "owner",
+        "outcome",
+        "selection_id",
+        "source_factor_id",
+        "source_factor_level_id",
+        "source_condition_id"
+      ],
+      "title": "ExperimentScenarioSelectionDescriptorModel",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Typed selection identity binds the exact source condition, factor and canonical scenario target. Parent condition, plan and archive validation also checks source levels, family pins and owner joins.",
+          "id": "experiment-selection-treatment-identity-valid",
+          "inputs": [
+            {
+              "contract_id": "experiment-authoring-input-v1",
+              "instance_path": "#/run_plan/allocation/condition_assignments"
+            },
+            {
+              "contract_id": "experiment-study-v1",
+              "instance_path": "#/run_allocation/condition_assignments"
+            },
+            {
+              "contract_id": "admitted-trial-plan-v1",
+              "instance_path": "#/entries"
+            },
+            {
+              "contract_id": "experiment-run-v1",
+              "instance_path": "#/realized_selections"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.experiment_treatments.ExperimentScenarioSelectionDescriptorModel._validate_identity"
+        }
+      ]
+    },
     "ExperimentScenarioSnapshotReferenceModel": {
       "additionalProperties": false,
       "description": "Reference constrained to a sealed scenario snapshot.",
@@ -4028,6 +4133,118 @@
         "ref_id"
       ],
       "title": "ExperimentScenarioSnapshotReferenceModel",
+      "type": "object"
+    },
+    "ExperimentSelectionMemberOutcomeModel": {
+      "additionalProperties": false,
+      "description": "One named alternative/member outcome.",
+      "properties": {
+        "kind": {
+          "const": "member",
+          "title": "Kind",
+          "type": "string"
+        },
+        "member_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Member Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "member_id"
+      ],
+      "title": "ExperimentSelectionMemberOutcomeModel",
+      "type": "object"
+    },
+    "ExperimentSelectionOrderOutcomeModel": {
+      "additionalProperties": false,
+      "description": "One complete canonical order of declared structural member ids.",
+      "properties": {
+        "kind": {
+          "const": "order",
+          "title": "Kind",
+          "type": "string"
+        },
+        "member_ids": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
+          },
+          "maxItems": 1024,
+          "minItems": 1,
+          "title": "Member Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "member_ids"
+      ],
+      "title": "ExperimentSelectionOrderOutcomeModel",
+      "type": "object"
+    },
+    "ExperimentSelectionReferenceOutcomeModel": {
+      "additionalProperties": false,
+      "description": "One governed-reference outcome named by its declared reference id.",
+      "properties": {
+        "kind": {
+          "const": "reference",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reference_id": {
+          "minLength": 1,
+          "title": "Reference Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reference_id"
+      ],
+      "title": "ExperimentSelectionReferenceOutcomeModel",
+      "type": "object"
+    },
+    "ExperimentSelectionSubsetOutcomeModel": {
+      "additionalProperties": false,
+      "description": "One canonical subset of declared structural member ids.",
+      "properties": {
+        "kind": {
+          "const": "subset",
+          "title": "Kind",
+          "type": "string"
+        },
+        "member_ids": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
+          },
+          "maxItems": 1024,
+          "title": "Member Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "member_ids"
+      ],
+      "title": "ExperimentSelectionSubsetOutcomeModel",
       "type": "object"
     },
     "ExperimentStochasticControlModel": {
@@ -4310,6 +4527,17 @@
       "properties": {
         "artifact": {
           "$ref": "#/$defs/ExperimentArtifactRefModel"
+        },
+        "inventory": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeInventoryReport"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "operation_id": {
           "minLength": 1,
@@ -6007,6 +6235,254 @@
         "fields"
       ],
       "title": "RecordDomain",
+      "type": "object"
+    },
+    "RuntimeConcernSelection": {
+      "additionalProperties": false,
+      "description": "A choice claim naming an admitted concern, never a provenance ledger write.",
+      "properties": {
+        "address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Address",
+          "type": "string"
+        },
+        "field_path": {
+          "maxLength": 4096,
+          "minLength": 1,
+          "title": "Field Path",
+          "type": "string"
+        },
+        "requirement_kind": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Requirement Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address",
+        "field_path",
+        "requirement_kind"
+      ],
+      "title": "RuntimeConcernSelection",
+      "type": "object"
+    },
+    "RuntimeDescendantBinding": {
+      "additionalProperties": false,
+      "description": "Stable causal identity; topology and ownership remain separate facts.",
+      "properties": {
+        "address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Address",
+          "type": "string"
+        },
+        "creation": {
+          "$ref": "#/$defs/RuntimeInventoryEvidence"
+        },
+        "lifecycle": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeInventoryEvidence"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "native_identity_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Native Identity Digest",
+          "type": "string"
+        },
+        "parent_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Parent Address",
+          "type": "string"
+        },
+        "parent_instance_index": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Parent Instance Index",
+          "type": "integer"
+        },
+        "source_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Source Address",
+          "type": "string"
+        },
+        "state": {
+          "default": "active",
+          "enum": [
+            "active",
+            "terminated",
+            "autoremoved"
+          ],
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address",
+        "parent_address",
+        "source_address",
+        "native_identity_digest",
+        "creation"
+      ],
+      "title": "RuntimeDescendantBinding",
+      "type": "object"
+    },
+    "RuntimeInventoryEvidence": {
+      "additionalProperties": false,
+      "description": "Producer-scoped native receipt identity, not independent observation.",
+      "properties": {
+        "attempt_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "evidence_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Evidence Digest",
+          "type": "string"
+        },
+        "operation_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "run_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "operation_id",
+        "attempt_id",
+        "evidence_digest"
+      ],
+      "title": "RuntimeInventoryEvidence",
+      "type": "object"
+    },
+    "RuntimeInventoryReport": {
+      "additionalProperties": false,
+      "description": "Complete bounded producer inventory, joined to the descriptive SDL bytes.",
+      "properties": {
+        "attempt_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "backend_selections": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RuntimeConcernSelection"
+          },
+          "maxItems": 4096,
+          "title": "Backend Selections",
+          "type": "array"
+        },
+        "complete": {
+          "title": "Complete",
+          "type": "boolean"
+        },
+        "contract_id": {
+          "const": "backend-runtime-descendants-v1",
+          "default": "backend-runtime-descendants-v1",
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "descendants": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RuntimeDescendantBinding"
+          },
+          "maxItems": 4096,
+          "title": "Descendants",
+          "type": "array"
+        },
+        "run_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "scope": {
+          "const": "/nodes",
+          "default": "/nodes",
+          "title": "Scope",
+          "type": "string"
+        },
+        "sequence": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "source_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "target_scope": {
+          "maxLength": 256,
+          "minLength": 8,
+          "pattern": "^target:[^\\s\\x00-\\x1f]+$",
+          "title": "Target Scope",
+          "type": "string"
+        },
+        "unavailable_evidence": {
+          "default": [],
+          "items": {
+            "pattern": "^sha256:[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Unavailable Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "attempt_id",
+        "sequence",
+        "complete",
+        "source_digest",
+        "run_id",
+        "target_scope"
+      ],
+      "title": "RuntimeInventoryReport",
       "type": "object"
     },
     "ScenarioBindingTargetModel": {
@@ -7756,6 +8232,14 @@
         "$ref": "#/$defs/ExperimentRealizedFormDisclosureModel"
       },
       "title": "Realized Form Disclosures",
+      "type": "array"
+    },
+    "realized_selections": {
+      "items": {
+        "$ref": "#/$defs/ExperimentScenarioSelectionDescriptorModel"
+      },
+      "maxItems": 256,
+      "title": "Realized Selections",
       "type": "array"
     },
     "realized_time_model": {

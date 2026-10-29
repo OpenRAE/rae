@@ -14,6 +14,7 @@ from raes_contracts.evaluation import (
     EvaluationResultStatus,
     validate_evaluation_result,
 )
+from raes_contracts.immutable_history import EventHistory, HistoryMap
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
 
@@ -68,7 +69,7 @@ def _snapshot_shape_diagnostics(snapshot: RuntimeSnapshot) -> list[Diagnostic]:
                 "RuntimeSnapshot.evaluation_results must be a dict.",
             )
         ]
-    if not isinstance(snapshot.evaluation_history, dict):
+    if not isinstance(snapshot.evaluation_history, dict) and type(snapshot.evaluation_history) is not HistoryMap:
         return [
             _contract_diagnostic(
                 _EVALUATION_HISTORY_ADDRESS,
@@ -257,7 +258,7 @@ def _normalized_evaluation_history(
                 "Evaluation results must include a history stream for each observable address.",
             )
         ]
-    if not isinstance(history_payload, list):
+    if not isinstance(history_payload, (list, EventHistory)):
         return None, [
             _contract_diagnostic(evaluation_address, "Evaluation history payload must be a list of event mappings.")
         ]

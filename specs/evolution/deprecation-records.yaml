@@ -35,6 +35,17 @@ adr_refs:
 spec: specs/evolution/versioning-deprecation-and-migration.md
 
 records:
+  - id: independent-runtime-manager-owner
+    surface_class: python-distribution
+    identifier: "RuntimeManager's independent backend owner, implicit compensation after failed startup, and reuse of one owner across different plan run identities"
+    status: removed
+    first_notice: "Issue #1660 and ADR-104 section 11; raes 8.0.0 is the preceding independent-manager lineage"
+    replacement: "One RuntimeControlPlane lifetime owner; RuntimeManager remains its compatibility name, with explicit immutable run scope and existing execution/recovery semantics"
+    migration_reference: "docs/migration/runtime-lifetime.md; specs/sdl/execution-recovery.md; specs/formal/runtime-control-plane/supervision.md"
+    notice_window: "Removal eligibility is the issue #1660 single-owner implementation, retained public manager lifecycle methods, explicit run-scope migration, and behavioral tests for post-apply evaluation and uncertainty exclusion. The RuntimeManager public name remains supported indefinitely."
+    verification_evidence: "test_issue_1660_runtime_lifetime.py and test_runtime_manager.py verify single ownership, fresh evaluation, scoped retries, policy refusal before effects, failed-stop exclusion and retained committed state; existing reconciliation and participant tests verify their owning boundaries."
+    removal_record: "Issue #1660 replaces the independent implementation and its conflicting failure behavior under ADR-104 section 11. No public symbol or published schema is removed."
+
   - id: sdl-participant-identity-relations
     surface_class: sdl-scenario-module
     identifier: "Agent.entity; Objective.agent and Objective.entity; objectives.agent/entity variation slots"
@@ -82,3 +93,17 @@ records:
     migration_reference: "docs/decisions/adrs/adr-053-sdl-module-composition-for-inventory-backed-scenarios.md; docs/explain/sdl/parser.md"
     notice_window: "Supported indefinitely as a backward-compatible alias; removal eligible only after a complete removal record and a deterministic source rewrite per the migration rules."
     verification_evidence: "raes.scenario.ImportDecl.normalized_source maps a `path:` value to `local:{path}`, and validate_source_fields keeps deprecated-but-supported use non-fatal; parser tests exercise both the `source:` and `path:` forms."
+
+  # Concrete backend realization moved to backend distributions (ADR-115). This
+  # removes installed Python packages, modules, and commands from the `raes`
+  # distribution; it removes no published schema and no contract fixture.
+  - id: bundled-concrete-backends
+    surface_class: python-distribution
+    identifier: "the `raes_reference_backend` and `raes_backend_libvirt` packages, the backend workflow modules in `raes_operations`, `raes_conformance.conformance.reference_participant_opacity`, and the `raes libvirt` and `raes corpus` commands of the `raes` distribution"
+    status: removed
+    first_notice: "Issue #967 and ADR-115 (concrete backends are owned outside RAES); RAES 7.0.0 is the last release that bundles them"
+    replacement: "LilRAE (PyPI `lilrae`, first independent release 8.1.0) for local realization; `raes_backend_stubs` for test doubles; the installed `raes_conformance.conformance` facade and `raes conformance backend` for conformance"
+    migration_reference: "docs/migration/concrete-backends.md; docs/decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md"
+    notice_window: "Removal eligibility is an independently released, working backend distribution (LilRAE 8.1.0, pinned to the released RAES 6.0.1). The removal ships as a breaking change in the release after RAES 7.0.0. The libvirt backend has no successor; RAES 7.0.0 stays available for operators who must clean up its native resources."
+    verification_evidence: "test_corpus_packaging.py builds the wheel and sdist and asserts that no concrete backend package or command ships, that `raes --help` works, and that the removed imports do not resolve from an installed wheel."
+    removal_record: "Issue #967 removes the packages, commands, CI container lanes, and backend-only tooling in one change. Published schemas, contract fixtures, realization envelopes, and portable runtime contracts are unchanged."

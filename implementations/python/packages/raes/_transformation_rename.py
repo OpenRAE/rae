@@ -275,7 +275,7 @@ def _build_renamed_artifacts(
             old_key=selection.old_key,
             new_key=selection.new_key,
         )
-    except (SDLValidationError, ValidationError, TypeError, ValueError):
+    except SDLValidationError, ValidationError, TypeError, ValueError:
         result = refused_rename(
             source_digest=source_digest,
             request=request,
@@ -296,7 +296,7 @@ def _build_renamed_artifacts(
                 before=request.target_address,
                 after=selection.new_address,
             )
-        except (ValidationError, ValueError):
+        except ValidationError, ValueError:
             result = refused_rename(
                 source_digest=source_digest,
                 request=request,
@@ -329,7 +329,7 @@ def _rename_preservation_verified(
             new_key=selection.old_key,
         )
         round_trip_digest = canonical_sdl_digest(round_trip)
-    except (SDLValidationError, ValidationError, TypeError, ValueError):
+    except SDLValidationError, ValidationError, TypeError, ValueError:
         return False
     target_index = build_declaration_index(target)
     target_declaration = target_index.declaration_for(selection.new_address)

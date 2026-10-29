@@ -30,6 +30,7 @@ from raes_contracts.contracts import (
     ExperimentRunModel,
     ExperimentSpecModel,
     ExperimentStudyModel,
+    ExperimentTaskModel,
     ExternalConceptBindingDocumentModel,
     FipaCommunicativeActsSourceModel,
     OperationReceiptModel,
@@ -43,6 +44,7 @@ from raes_contracts.contracts import (
     ParticipantControlEvaluationModel,
     ParticipantControlEvaluationV2Model,
     ParticipantControlOccurrenceModel,
+    ParticipantControlOccurrenceV2Model,
     ParticipantControlSelectionModel,
     ParticipantControlSelectionV2Model,
     ParticipantControlTeachingProfileModel,
@@ -59,6 +61,7 @@ from raes_contracts.contracts import (
     ParticipantLifecycleEventModel,
     ParticipantObservationEnvelopeModel,
     ParticipantOutcomeReportV2Model,
+    ParticipantOwnerFlowPolicyProfileModel,
     ParticipantSharedStateRecordModel,
     ProvisioningPlanModel,
     RuntimeFactBindingPlaneModel,
@@ -80,6 +83,11 @@ from raes_contracts.contracts.mixed_composition_resolution import (
     MixedCompositionResolutionContext,
     validate_mixed_composition_context,
 )
+from raes_contracts.contracts.participant_control_context import (
+    ParticipantControlContextAssetModel,
+    ParticipantControlContextChangeModel,
+    ParticipantControlContextRecordModel,
+)
 from raes_contracts.contracts.participant_execution import (
     ParticipantExecutionBindingModel,
     ParticipantExecutionControlRequestModel,
@@ -94,7 +102,9 @@ from raes_contracts.domain_profiles import (
     DomainProfileSupportDeclarationModel,
 )
 from raes_contracts.materialization import MaterializationSubmission
+from raes_contracts.materialization_inventory import RuntimeInventoryReport
 from raes_contracts.observation_demand import ObservationDemandDocument
+from raes_contracts.participant_control_context import ParticipantControlContextValidationContext
 from raes_contracts.participant_opacity import (
     ParticipantOpacityAnalysisEvidenceModel,
     ParticipantOpacityAnalysisInputModel,
@@ -108,12 +118,16 @@ from raes_contracts.scientific_completeness import (
 )
 from raes_contracts.validation_profiles import ValidationProfileCatalogModel
 
+from raes_conformance.conformance.control_context_assets import _control_context_asset_diagnostics
 from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_failure_message
 
 _SCHEMA_INVALID_DIAGNOSTIC_CODE = "conformance.schema-invalid"
 _SEMANTIC_CONTEXT_REQUIRED_DIAGNOSTIC_CODE = "conformance.semantic-context-required"
 _SEMANTIC_INVALID_DIAGNOSTIC_CODE = "conformance.semantic-invalid"
 _MODEL_VALIDATORS = {
+    "participant-control-context-asset-v1": ParticipantControlContextAssetModel.model_validate,
+    "participant-control-context-change-v1": ParticipantControlContextChangeModel.model_validate,
+    "participant-control-context-record-v1": ParticipantControlContextRecordModel.model_validate,
     "authoring-adapter-profile-v1": AuthoringAdapterProfileModel.model_validate,
     "authoring-adapter-vector-v1": AuthoringAdapterVectorModel.model_validate,
     "authoring-adapter-comparison-v1": AuthoringAdapterComparisonModel.model_validate,
@@ -141,6 +155,7 @@ _MODEL_VALIDATORS = {
         ParticipantInformationReconstructionProfileModel.model_validate
     ),
     "participant-boundary-flow-policy-v1": ParticipantBoundaryFlowPolicyProfileModel.model_validate,
+    "participant-owner-flow-policy-v1": ParticipantOwnerFlowPolicyProfileModel.model_validate,
     "participant-shared-state-record-v1": ParticipantSharedStateRecordModel.model_validate,
     "participant-control-occurrence-v1": ParticipantControlOccurrenceModel.model_validate,
     "participant-crossing-occurrence-v1": ParticipantCrossingOccurrenceModel.model_validate,
@@ -161,9 +176,11 @@ _STRUCTURAL_ONLY_VALIDATORS = {
     "participant-control-evaluation-v1": ParticipantControlEvaluationModel.model_validate,
     "participant-control-selection-v2": ParticipantControlSelectionV2Model.model_validate,
     "participant-control-evaluation-v2": ParticipantControlEvaluationV2Model.model_validate,
+    "participant-control-occurrence-v2": ParticipantControlOccurrenceV2Model.model_validate,
     "backend-augmentation-scope-v1": AugmentationPreparation.model_validate,
     "materialized-scenario-v1": MaterializedScenario.model_validate,
     "backend-materialization-attestation-v1": MaterializationSubmission.model_validate,
+    "backend-runtime-descendants-v1": RuntimeInventoryReport.model_validate,
     "materialization-archive-record-v1": MaterializationArchiveRecord.model_validate,
     "associated-artifact-manifest-v1": AssociatedArtifactManifestModel.model_validate,
     "artifact-transformation-report-v1": ArtifactTransformationReportModel.model_validate,
@@ -182,6 +199,7 @@ _STRUCTURAL_ONLY_VALIDATORS = {
     "fipa-communicative-acts-source-v1": FipaCommunicativeActsSourceModel.model_validate,
     "experiment-apparatus-context-v1": ExperimentApparatusContextModel.model_validate,
     "experiment-authoring-input-v1": ExperimentSpecModel.model_validate,
+    "experiment-task-v1": ExperimentTaskModel.model_validate,
     "experiment-study-v1": ExperimentStudyModel.model_validate,
     "realization-envelope-v1": BackendRealizationEnvelopeModel.model_validate,
     "scientific-completeness-assessment-v1": ScientificCompletenessAssessmentModel.model_validate,
@@ -199,9 +217,13 @@ _STRUCTURAL_ONLY_VALIDATORS = {
 
 _SEMANTIC_CONTEXT_REQUIRED_CONTRACTS = frozenset(
     {
+        "participant-control-context-asset-v1",
+        "participant-control-context-change-v1",
+        "participant-control-context-record-v1",
         "participant-outcome-report-v2",
         "participant-control-evaluation-v1",
         "participant-control-evaluation-v2",
+        "participant-control-occurrence-v2",
         "associated-artifact-manifest-v1",
         "external-concept-bindings-v1",
         "semantic-projection-report-v1",
@@ -409,7 +431,7 @@ def _control_context_diagnostics(
         else:
             record = ParticipantControlEvaluationModel.model_validate(payload)
             validate_participant_control_resolved_context(record, resolver)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return [
             _diagnostic(
                 _SEMANTIC_INVALID_DIAGNOSTIC_CODE, contract_name, "participant control trusted context is invalid"
@@ -426,17 +448,22 @@ def validate_contract_payload(
     flow_control_context_resolver: ParticipantFlowControlContextResolver | None = None,
     mixed_composition_context: MixedCompositionResolutionContext | None = None,
     control_context_resolver: ParticipantControlContextResolver | ParticipantControlContextResolverV2 | None = None,
+    control_context_asset_context: ParticipantControlContextValidationContext | None = None,
 ) -> tuple[Diagnostic, ...]:
     """Validate one payload through its structural and available contextual boundary."""
 
     diagnostics = _validate_payload(contract_name, payload)
-    if not diagnostics and contract_name in {"participant-control-evaluation-v1", "participant-control-evaluation-v2"}:
+    if diagnostics:
+        return tuple(diagnostics)
+    if contract_name.startswith("participant-control-context-"):
+        diagnostics.extend(_control_context_asset_diagnostics(contract_name, payload, control_context_asset_context))
+    elif contract_name in {"participant-control-evaluation-v1", "participant-control-evaluation-v2"}:
         diagnostics.extend(_control_context_diagnostics(contract_name, payload, control_context_resolver))
-    if not diagnostics and contract_name == "participant-information-state-record-v1":
+    elif contract_name == "participant-information-state-record-v1":
         diagnostics.extend(_information_state_context_diagnostics(payload, information_state_context_resolver))
-    if not diagnostics and contract_name == "participant-flow-control-relation-v1":
+    elif contract_name == "participant-flow-control-relation-v1":
         diagnostics.extend(_flow_control_context_diagnostics(payload, flow_control_context_resolver))
-    if not diagnostics and contract_name == "mixed-participant-composition-profile-v1":
+    elif contract_name == "mixed-participant-composition-profile-v1":
         diagnostics.extend(_mixed_composition_context_diagnostics(payload, mixed_composition_context))
     return tuple(diagnostics)
 

@@ -31,33 +31,24 @@ verification graph to pass for the exact commit named by the release (GOV-928).
    now distributed across concurrent jobs, with the same 90% coverage floor. The
    release caller leaves the SonarCloud quality gate disabled. It does not poll
    branch status or accept a check from another commit.
-5. A separate read-only job checks out that SHA and must complete the RUN-314
-   reference-backend tests against a real container runtime. Before the lane
-   runs, the native runtime pulls the pinned platform manifest from the public
-   registry. The lane verifies daemon OS, architecture, and uncompressed layer
-   identities against `implementations/tooling/artifacts.lock.json`.
-   Release-required mode fails when the runtime or reviewed image is unavailable,
-   its identity differs, pytest collects zero tests, or any selected test skips.
-   Retired mirror/pre-seed environment switches are rejected. The ordinary
-   PR/local Docker lane remains optional.
-6. A read-only job checks out the verified SHA, builds the corpus-bundled wheel
+5. A read-only job checks out the verified SHA, builds the corpus-bundled wheel
    and sdist, checks the corpus in both archives, installs each exact artifact in
    its own fresh environment, and runs `raes conformance backend --profile
    provisioning-only` outside the checkout.
-7. An admission job downloads those distributions and their evidence, runs the
+6. An admission job downloads those distributions and their evidence, runs the
    full evidence admission, and checks that the admitted wheel and sdist
    filenames correspond to the resolved tag version. Because it is the last job
    permitted to run repository code, it is the trust bridge: on success it
    exports only four validated scalars — the wheel and sdist basenames and
    their SHA-256 digests — as job outputs. A refused release exports nothing.
-8. Only those tested distributions cross into the `pypi` environment. Each
+7. Only those tested distributions cross into the `pypi` environment. Each
    publisher independently downloads the artifact, requires exactly the two
    admitted filenames, and rehashes the bytes against the admitted digests
    immediately before its destination operation. Neither publisher checks out
    or executes repository source, so publication credentials never coexist
    with candidate code in the same job; the identity checks they need are made
    over the API.
-9. Each destination is then reconciled independently — this is deliberately
+8. Each destination is then reconciled independently — this is deliberately
    not a transaction:
    - **PyPI.** The workflow queries the release's JSON API before uploading.
      PyPI reports a SHA-256 for every file it stores, so an "already exists"

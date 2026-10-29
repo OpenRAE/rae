@@ -30,7 +30,7 @@ def _catalog_entries(repo_root: Path) -> tuple[list[dict[str, object]], list[Pol
 
     try:
         catalog = load_schema_publication_catalog(repo_root)
-    except (OSError, ValueError):
+    except OSError, ValueError:
         message = "schema publication catalog could not be read; check_schema_publication.py owns the detail"
         return [], [PolicyFailure(CATALOG_RULE_ID, message, MANIFEST_RELATIVE_PATH)]
     entries = catalog.get("schemas")

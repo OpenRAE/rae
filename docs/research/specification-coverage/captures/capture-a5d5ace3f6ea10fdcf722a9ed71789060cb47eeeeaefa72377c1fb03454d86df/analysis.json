@@ -1,0 +1,94 @@
+{
+  "analysis_id": "issue-1696-synchronized-specification-analysis",
+  "backend_leakage": [],
+  "claim": {
+    "allowed_evidence": [
+      "pinned source metadata and bounded paraphrases",
+      "production parser, semantic, instantiation, admission, compiler, contract, and profile results",
+      "exact artifact digests and typed pointers",
+      "documented missing-concept and backend-specific dispositions"
+    ],
+    "claim_id": "raes-standardized-configurable-specification-coverage",
+    "disallowed_evidence": [
+      "field-count or schema breadth alone",
+      "the existing scenario stress corpus as the representative request corpus",
+      "free-form metadata as typed coverage",
+      "backend-private interpretation",
+      "post-hoc removal or repair of falsifying concepts"
+    ],
+    "evidence_artifacts": [
+      "docs/research/specification-coverage/protocol-v1.json",
+      "@snapshot",
+      "docs/research/specification-coverage/analysis-v68.json"
+    ],
+    "falsification_protocol": "docs/research/specification-coverage/protocol-v1.json",
+    "objective_fail_criteria": "A load-bearing concept is missing or lossy, an applicable stage fails, or backend vocabulary is required in core SDL while the result claims success.",
+    "objective_pass_criteria": "Every load-bearing concept passes at every owning stage, backend-specific mechanics stay outside core SDL, and no requested concept is silently lost.",
+    "statement": "RAES provides a standardized configurable portable specification surface for the preregistered representative cyber-agent evaluation environment requirements without backend vocabulary in core SDL.",
+    "threats_to_validity": [
+      "The representative corpus contains four source strata and sixteen atomic concepts rather than every cyber-range requirement.",
+      "The reference processor and repository fixtures are not independent backend implementations.",
+      "No live range, simulator federation, or participant execution was part of this offline specification-coverage test."
+    ]
+  },
+  "classification_counts": {
+    "deliberately-backend-specific": 1,
+    "directly-expressible": 10,
+    "missing": 3,
+    "profile-or-manifest-constraint": 2
+  },
+  "evidence_status": "partial",
+  "execution_status": "complete",
+  "generated_at": "2026-10-29T02:41:17.026542+00:00",
+  "limitations": [
+    "This is bounded specification coverage, not universal range coverage, usability, adoption, backend substitution or behavioral equivalence.",
+    "The retained protocol does not test recursive realization, plan allocation or live participant configuration.",
+    "EXP-719 factorial generation, randomized allocation and participant configuration evidence are verified by dedicated regression tests; this retained offline corpus makes no additional treatment, runtime or backend realization claim.",
+    "Issue 1549 external-backend compatibility and trial realization are verified by dedicated regression tests; this retained offline corpus makes no independent-backend execution claim.",
+    "Issue 1520 condition membership is verified by dedicated experiment-authoring regressions. This retained offline corpus adds no ontology, domain completeness, or execution claim.",
+    "This retained corpus does not establish native creator attribution or backend execution conformance for descendant inventory.",
+    "This retained offline corpus adds no modular control runtime or independent backend conformance claim. Issue 1071 has separate bounded runtime probes.",
+    "Issue 1629 shared runtime sequencing, Temporal recovery and authored retry behavior have separate targeted tests; this offline corpus adds no live backend or durable workflow assurance.",
+    "The retained offline corpus adds no formal proof of family admission. Dedicated public-API regressions cover that transition. No live backend assurance is claimed."
+  ],
+  "load_bearing_results": {
+    "failed": 0,
+    "missing": 0,
+    "passed": 10,
+    "total": 10
+  },
+  "plain_language_outcome": "The retained offline controls replay against public import-free family admission source. Existing classifications and claim limits are preserved.",
+  "protocol_revision": "1.0.0",
+  "request_results": [
+    {
+      "concept_count": 6,
+      "failed_stage_count": 0,
+      "missing_count": 0,
+      "request_id": "survey-representative-range",
+      "status": "demonstrated"
+    },
+    {
+      "concept_count": 5,
+      "failed_stage_count": 1,
+      "missing_count": 1,
+      "request_id": "cyborg-participant-evaluation",
+      "status": "partial"
+    },
+    {
+      "concept_count": 3,
+      "failed_stage_count": 1,
+      "missing_count": 1,
+      "request_id": "vsdl-configurable-infrastructure",
+      "status": "partial"
+    },
+    {
+      "concept_count": 2,
+      "failed_stage_count": 1,
+      "missing_count": 1,
+      "request_id": "cyber-dem-federation",
+      "status": "partial"
+    }
+  ],
+  "snapshot_id": "issue-1696-synchronized-specification-replay",
+  "snapshot_sha256": "0992a1f454213f41ef0537663130b1d22f457ecc7be8abbe0bc90c8396f12c3f"
+}

@@ -125,7 +125,7 @@ def test_advisory_preparation_does_not_fail_whole_run_or_emit_duplicates(tmp_pat
         supported_contract_versions=execution.manifest.supported_contract_versions
         | {"backend-realization-preparation-v1"},
     )
-    notice = Diagnostic("test.advisory", "runtime", "runtime.prepare", "Advisory.", severity=Severity(severity))
+    notice = Diagnostic("test.advisory", "runtime", "/runtime.prepare", "Advisory.", severity=Severity(severity))
 
     class AdvisoryProducer(ScopeReportingProvisioner):
         def prepare(self, request, previous):
@@ -138,6 +138,7 @@ def test_advisory_preparation_does_not_fail_whole_run_or_emit_duplicates(tmp_pat
     manager = RuntimeManager(
         RuntimeTarget(name="scope", manifest=manifest, provisioner=backend),
         materialization_archive=RunMaterializationArchive(tmp_path),
+        run_scope="run:run-1",
     )
     request = replace(
         execution.provisioning,
@@ -303,6 +304,7 @@ def test_manager_composes_all_phases_before_mutation_and_preserves_cumulative_wo
             orchestrator=Orchestrator(calls, "orchestration"),
         ),
         materialization_archive=RunMaterializationArchive(tmp_path),
+        run_scope="run:run-1",
     )
     result = manager.apply(execution)
     assert result.success is not overlap, result.diagnostics

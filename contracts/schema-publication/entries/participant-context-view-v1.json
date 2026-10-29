@@ -1,10 +1,10 @@
 {
+  "content_hash": "47cbe2c1ba0ae38acaa4e4da80d9ab4e0fb38b4b7269292cd8320e862a9739ee",
   "contract_id": "participant-context-view-v1",
-  "schema_path": "contracts/schemas/control-plane/participant-context-view-v1.json",
-  "stability": "draft",
-  "content_hash": "8f8ab8309c7d00ea83982b284832e9618abc239586b004c601519485f451def5",
   "last_change": {
-    "summary": "Added the closed participant-information-state source layer for ACT-604 derived context joins.",
-    "content_hash": "8f8ab8309c7d00ea83982b284832e9618abc239586b004c601519485f451def5"
-  }
+    "content_hash": "47cbe2c1ba0ae38acaa4e4da80d9ab4e0fb38b4b7269292cd8320e862a9739ee",
+    "summary": "Add the explicit participant control-context asset source layer; preserve existing source meanings (ACT-620, #302)."
+  },
+  "schema_path": "contracts/schemas/control-plane/participant-context-view-v1.json",
+  "stability": "draft"
 }

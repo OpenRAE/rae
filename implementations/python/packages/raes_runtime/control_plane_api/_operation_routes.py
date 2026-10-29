@@ -16,7 +16,6 @@ from raes_contracts.contracts import (
     ProvisioningPlanModel,
     RuntimeSnapshotEnvelopeModel,
 )
-from starlette.concurrency import run_in_threadpool
 
 from ..control_plane import RuntimeControlPlane
 from ..control_plane_api_guards import (
@@ -139,7 +138,9 @@ async def _refuse_unadmitted_caller(request: Request) -> JSONResponse | None:
     if authority is None or authority is ControlPlaneRouteAuthority.PUBLIC_PROBE:
         return None
     try:
-        await run_in_threadpool(request.app.state.control_plane_api_auth.admit, request, authority)
+        await _control_plane_calls(request).authenticate(
+            request.app.state.control_plane_api_auth.admit, request, authority
+        )
     except HTTPException as refusal:
         return JSONResponse(status_code=refusal.status_code, content={"detail": refusal.detail})
     return None
