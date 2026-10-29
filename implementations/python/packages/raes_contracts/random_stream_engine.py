@@ -104,7 +104,8 @@ def canonical_stream_address_bytes(
     try:
         return rfc8785.dumps(payload)
     except rfc8785.CanonicalizationError as exc:
-        raise ValueError(f"stream address canonicalization failed: {exc}") from exc
+        # The library message can carry address values; the cause stays chained (E7).
+        raise ValueError("stream address canonicalization failed") from exc
 
 
 def raw_block(

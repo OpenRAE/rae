@@ -6,6 +6,7 @@ Provides ``parse_sdl()`` as the primary entry point. Handles:
 - Shorthand expansion (``source: "pkg"`` → ``{name: "pkg", version: "*"}``)
 """
 
+from collections.abc import Hashable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal, Unpack
@@ -245,6 +246,13 @@ def _expand_roles(roles: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+def _names_mapping(names: list[Any], *, node: object, field: str, path: Path | None) -> dict[Any, str]:
+    """Expand a node list shorthand: [a, b] → {a: '', b: ''}; a nested list or mapping is not a name."""
+    if not all(isinstance(name, Hashable) for name in names):
+        raise SDLParseError(f"Node '{node}' {field} list must contain only names", path=path)
+    return {name: "" for name in names}
+
+
 # OCR scoring sections removed from the SDL by ADR-073. Detected up front so
 # authors get a migration pointer instead of a raw "extra fields" error.
 _REMOVED_SCORING_SECTIONS = ("metrics", "evaluations", "tlos", "goals")
@@ -267,7 +275,7 @@ def _reject_removed_scoring_sections(data: dict[str, Any], *, path: Path | None)
     )
 
 
-def _expand_shorthands(data: dict[str, Any]) -> dict[str, Any]:
+def _expand_shorthands(data: dict[str, Any], *, path: Path | None = None) -> dict[str, Any]:
     """Apply all shorthand expansions to normalized data."""
     # Scopes where "source" is a plain string reference, NOT a Source package.
     _SOURCE_SKIP_SECTIONS = frozenset({"relationships", "agents", "imports", "runtime"})
@@ -320,14 +328,14 @@ def _expand_shorthands(data: dict[str, Any]) -> dict[str, Any]:
 
     # Expand roles and feature/condition/inject list shorthands within nodes
     if "nodes" in data and isinstance(data["nodes"], dict):
-        for node_data in data["nodes"].values():
+        for node_name, node_data in data["nodes"].items():
             if isinstance(node_data, dict):
-                if "roles" in node_data:
+                if isinstance(node_data.get("roles"), dict):
                     node_data["roles"] = _expand_roles(node_data["roles"])
                 # G6: features/conditions/injects as list -> dict with empty role
                 for field in ("features", "conditions", "injects"):
                     if field in node_data and isinstance(node_data[field], list):
-                        node_data[field] = {name: "" for name in node_data[field]}
+                        node_data[field] = _names_mapping(node_data[field], node=node_name, field=field, path=path)
 
     return data
 
@@ -481,7 +489,7 @@ def _load_normalized_data(
     if any(not isinstance(key, str) for key in data):
         raise SDLParseError("SDL top-level mapping keys must be strings", path=path)
     _reject_variable_mapping_keys(data)
-    data = _expand_shorthands(data)
+    data = _expand_shorthands(data, path=path)
     migrate_legacy_vm_nodes(
         data,
         path=path,

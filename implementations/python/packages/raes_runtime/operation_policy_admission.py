@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from raes_contracts.errors import ConflictError
+
 if TYPE_CHECKING:
     from .operation_supervision_configuration import OperationSupervisionConfiguration
 
@@ -22,7 +24,7 @@ def execution_budget_ms(plan: object, configuration: OperationSupervisionConfigu
                 or policy.clock_basis != "apparatus"
                 or policy.on_exhausted != "terminate"
             ):
-                raise ValueError("runtime execution policy is unsupported")
+                raise ConflictError("runtime execution policy is unsupported")
             if policy.budget_ms is not None:
                 budget = min(budget, policy.budget_ms)
     return budget

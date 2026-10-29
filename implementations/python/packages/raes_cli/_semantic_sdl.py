@@ -20,6 +20,7 @@ from raes import (
     format_sdl_source,
     parse_sdl,
 )
+from raes_contracts.errors import InvalidInputError
 from raes_processor.compiler import compile_scenario_runtime_model
 from raes_processor.models import RuntimeModel
 
@@ -306,7 +307,22 @@ def _execute_resolve(context: _SdlContext) -> SemanticCommandResult:
 
 
 def _execute_compile(context: _SdlContext) -> SemanticCommandResult:
-    runtime_model = compile_scenario_runtime_model(context.scenario)
+    try:
+        runtime_model = compile_scenario_runtime_model(context.scenario)
+    except InvalidInputError as exc:
+        # The compiler refuses authored input; the result reports the stage, never the refusal text.
+        diagnostics = (
+            _sdl_diagnostics(exc)
+            if isinstance(exc, SDLError)
+            else (command_diagnostic("sdl.compile", "sdl-compile", "SDL input was rejected at the compile stage."),)
+        )
+        return command_result(
+            context.operation,
+            status=CommandStatus.INVALID,
+            contract_id=SDL_SOURCE_FORMAT,
+            diagnostics=diagnostics,
+            metadata=_metadata(context),
+        )
     compiler_diagnostics = tuple(
         command_diagnostic(
             item.code,

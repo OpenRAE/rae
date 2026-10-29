@@ -146,3 +146,84 @@ def test_current_identity_cannot_reuse_pre_cutover_authoring_or_snapshot_profile
     snapshot["profile"] = "raes-sdl-instantiated-snapshot/v1"
     with pytest.raises(ValidationError):
         InstantiatedScenarioSnapshot.model_validate(snapshot)
+
+
+def _raise_defect(*_args, **_kwargs):
+    raise ValueError("SECRET-DEFECT-DETAIL")
+
+
+@pytest.mark.parametrize(
+    ("module_name", "function_name", "patched_name", "refusal_code"),
+    [
+        (
+            "raes.semantic_migration",
+            "migrate_sdl_semantics",
+            "load_sdl_yaml",
+            "semantic-migration.source-or-target-invalid",
+        ),
+        (
+            "raes.mixed_control_migration",
+            "migrate_mixed_control_to_finite_script",
+            "parse_sdl",
+            "mixed-control-migration.source-or-target-invalid",
+        ),
+        (
+            "raes.participant_migration",
+            "migrate_participant_identity",
+            "load_sdl_yaml",
+            "participant-migration.source-or-target-invalid",
+        ),
+        (
+            "raes.classification_migration",
+            "migrate_sdl_classifications",
+            "read_legacy_classification_source",
+            "classification-migration.source-invalid",
+        ),
+    ],
+)
+def test_sdl_migrations_refuse_invalid_sources_but_do_not_hide_defects(
+    monkeypatch, module_name, function_name, patched_name, refusal_code
+):
+    """An invalid source is a refusal; a built-in exception from a defect propagates (ADR-116 rule H5)."""
+    import importlib
+
+    module = importlib.import_module(module_name)
+    migrate = getattr(module, function_name)
+
+    refused = migrate("name: [\n")
+    assert refused.output is None
+    assert refusal_code in {diagnostic.code for diagnostic in refused.report.diagnostics}
+
+    monkeypatch.setattr(module, patched_name, _raise_defect)
+    with pytest.raises(ValueError, match="SECRET-DEFECT-DETAIL"):
+        migrate("name: source\n")
+
+
+@pytest.mark.parametrize("operation", ["remove", "rename"])
+def test_sdl_transformations_do_not_report_defects_as_refusals(monkeypatch, operation):
+    from raes import parse_sdl
+    from raes.transformations import (
+        ArtifactTransformationPolicy,
+        RemoveSDLDeclarationRequest,
+        RenameSDLDeclarationRequest,
+        remove_sdl_declaration,
+        rename_sdl_declaration,
+    )
+    from raes_contracts.contracts import ArtifactTransformationLossKind
+
+    scenario = parse_sdl("name: transform\nnodes:\n  web: {type: switch}\n  extra: {type: switch}\n")
+    if operation == "remove":
+        monkeypatch.setattr("raes._transformation_remove.SemanticValidator", _raise_defect)
+        with pytest.raises(ValueError, match="SECRET-DEFECT-DETAIL"):
+            remove_sdl_declaration(
+                scenario,
+                RemoveSDLDeclarationRequest(target_address="nodes.extra"),
+                policy=ArtifactTransformationPolicy((ArtifactTransformationLossKind.DECLARATION_REMOVED,)),
+            )
+    else:
+        monkeypatch.setattr("raes._transformation_rename.SemanticValidator", _raise_defect)
+        with pytest.raises(ValueError, match="SECRET-DEFECT-DETAIL"):
+            rename_sdl_declaration(
+                scenario,
+                RenameSDLDeclarationRequest(target_address="nodes.web", new_local_name="frontend"),
+            )

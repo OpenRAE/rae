@@ -9,9 +9,9 @@ from raes_contracts.contracts import AdmittedTrialEntryModel, AdmittedTrialPlanI
 from raes_contracts.contracts.trial_coordinate_order import replicate_ordinal
 from raes_contracts.contracts.trial_replacement import TrialReplacementOriginModel
 
-from .inputs import canonical_input_refs
+from .inputs import canonical_input_refs, coordinate_replicate_id
 from .models import TrialCompilationRequest
-from .profiles import derive_identity, realization_assignment_key, replicate_id
+from .profiles import derive_identity, realization_assignment_key
 
 
 @dataclass(frozen=True)
@@ -49,7 +49,7 @@ class ReplacementCompilationContext:
         coordinate = TrialCoordinateModel(
             condition_id=original.condition_id,
             block_id=original.block_id,
-            replicate_id=replicate_id(ordinal),
+            replicate_id=coordinate_replicate_id(ordinal),
         )
         updated = list(coordinates)
         updated[self.coordinate_index] = coordinate

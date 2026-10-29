@@ -32,12 +32,23 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
 
 import yaml
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
 
-from tools.policy.common import PolicyFailure, apply_exceptions, failures_to_json, load_exceptions, safe_repo_path
+from tools.policy.common import (
+    YAML_CONTENT_FAILURES,
+    PolicyFailure,
+    apply_exceptions,
+    failures_to_json,
+    load_exceptions,
+    safe_repo_path,
+)
 
 # --------------------------------------------------------------------------- #
 # Canonical paths and baseline policy invariants. Test code imports these     #
@@ -339,7 +350,7 @@ def _check_levels(levels: list[Any], path: str) -> list[PolicyFailure]:
     # covers the baseline canonical levels AND any future FM4+ -- inserting
     # FM4 before FM2 or between FM0 and FM1 is a failure.
     fm_numbered_ids = [lid for lid in present_ids if isinstance(lid, str) and _fm_index(lid) is not None]
-    expected_fm_order = sorted(fm_numbered_ids, key=lambda lid: _fm_index(lid) or -1)
+    expected_fm_order = sorted(fm_numbered_ids, key=_fm_index)
     if fm_numbered_ids != expected_fm_order:
         failures.append(
             _fail(
@@ -350,11 +361,17 @@ def _check_levels(levels: list[Any], path: str) -> list[PolicyFailure]:
             )
         )
 
-    # Per-level shape: required keys, sequence fields actually lists.
-    for level in levels:
+    # Per-level shape: an FM level id, required keys, sequence fields actually lists.
+    for index, level in enumerate(levels):
         if not isinstance(level, dict):
             failures.append(_fail("assurance-policy-level-field", f"level entry is not a mapping: {level!r}", path))
             continue
+        # ADR-018 enumerates FM levels, so an id that is not FM-numbered would escape the order and
+        # proportionality checks.
+        if "id" in level and _fm_index(level["id"]) is None:
+            failures.append(
+                _fail("assurance-policy-level-id", f"level {index} id must be FM followed by ASCII digits", path)
+            )
         for field in _REQUIRED_LEVEL_FIELDS:
             if field not in level:
                 failures.append(
@@ -391,7 +408,8 @@ def _check_levels(levels: list[Any], path: str) -> list[PolicyFailure]:
     # Each level must claim its primary canonical category. This pins the
     # category-to-level binding, not just the union (the ASR-505 statement
     # guard).
-    by_id = {lv.get("id"): lv for lv in levels if isinstance(lv, dict)}
+    # Only a text id can name a canonical level; an unhashable id cannot be a dictionary key.
+    by_id = {lv["id"]: lv for lv in levels if isinstance(lv, dict) and isinstance(lv.get("id"), str)}
     for level_id, expected_category in _LEVEL_PRIMARY_CATEGORY.items():
         level = by_id.get(level_id)
         if level is None:
@@ -477,7 +495,7 @@ def _check_levels(levels: list[Any], path: str) -> list[PolicyFailure]:
     # just FM2/FM3. FM4 (if present) must be a superset of FM3, and so on.
     fm_levels_ordered = sorted(
         (lv for lv in levels if isinstance(lv, dict) and _fm_index(lv.get("id")) is not None),
-        key=lambda lv: _fm_index(lv.get("id")) or -1,
+        key=lambda lv: _fm_index(lv.get("id")),
     )
     for parent, child in zip(fm_levels_ordered, fm_levels_ordered[1:], strict=False):
         child_id = child.get("id", "?")
@@ -498,14 +516,21 @@ def _check_levels(levels: list[Any], path: str) -> list[PolicyFailure]:
     return failures
 
 
-def _fm_index(level_id: Any) -> int | None:
-    """Return the numeric index of an FM-numbered level id (FM0 → 0), else None."""
+def _fm_index(level_id: Any) -> tuple[int, str] | None:
+    """Return the numeric order key of an FM-numbered level id, else None.
+
+    The key compares the significant digits by count and then by value, so FM10
+    follows FM9 without int(), which refuses a string beyond the interpreter
+    digit limit.
+    """
     if not isinstance(level_id, str) or not level_id.startswith("FM"):
         return None
     suffix = level_id[2:]
-    if not suffix.isdigit():
+    # str.isdigit() also accepts digits that int() refuses, such as "²".
+    if not (suffix.isascii() and suffix.isdigit()):
         return None
-    return int(suffix)
+    digits = suffix.lstrip("0") or "0"
+    return len(digits), digits
 
 
 def _drift_targets(levels: list[Any]) -> list[tuple[str, str]]:
@@ -536,7 +561,8 @@ def _baseline_drift_targets(levels: list[Any]) -> list[tuple[str, str]]:
     nothing more. Extending the ladder requires a superseding or
     complementary ADR (e.g. ADR-018, which governs the canonical YAML).
     """
-    by_id = {lv.get("id"): lv for lv in levels if isinstance(lv, dict)}
+    # Only a text id can name a canonical level; an unhashable id cannot be a dictionary key.
+    by_id = {lv["id"]: lv for lv in levels if isinstance(lv, dict) and isinstance(lv.get("id"), str)}
     targets: list[tuple[str, str]] = []
     for canonical_id in CANONICAL_LEVEL_IDS:
         level = by_id.get(canonical_id)
@@ -812,6 +838,14 @@ def _check_fm_classification_ledger(repo_root: Path, levels: list[Any]) -> list[
             _fail(
                 "fm-classification-ledger-parse",
                 f"failed to parse {FM_CLASSIFICATION_LEDGER_RELATIVE_PATH}: {exc}",
+                FM_CLASSIFICATION_LEDGER_RELATIVE_PATH,
+            )
+        ]
+    except YAML_CONTENT_FAILURES:
+        return [
+            _fail(
+                "fm-classification-ledger-parse",
+                f"failed to parse {FM_CLASSIFICATION_LEDGER_RELATIVE_PATH}",
                 FM_CLASSIFICATION_LEDGER_RELATIVE_PATH,
             )
         ]
@@ -1174,6 +1208,8 @@ def _check_assurance_fulfillment(repo_root: Path, levels: list[Any]) -> list[Pol
         raw = yaml.safe_load(fulfillment_path.read_text(encoding="utf-8"))
     except yaml.YAMLError as exc:
         return [_fail("assurance-fulfillment-parse", f"failed to parse {path}: {exc}", path)]
+    except YAML_CONTENT_FAILURES:
+        return [_fail("assurance-fulfillment-parse", f"failed to parse {path}", path)]
     if not isinstance(raw, dict):
         return [_fail("assurance-fulfillment-shape", f"{path} must be a YAML mapping at the top level", path)]
 
@@ -1491,6 +1527,14 @@ def evaluate_assurance_policy(repo_root: Path) -> list[PolicyFailure]:
                 ASSURANCE_POLICY_RELATIVE_PATH,
             )
         ]
+    except YAML_CONTENT_FAILURES:
+        return [
+            _fail(
+                "assurance-policy-parse",
+                f"failed to parse {ASSURANCE_POLICY_RELATIVE_PATH}",
+                ASSURANCE_POLICY_RELATIVE_PATH,
+            )
+        ]
 
     if not isinstance(raw, dict):
         return [
@@ -1596,7 +1640,11 @@ def main(argv: Iterable[str] | None = None) -> int:
     failures = evaluate_assurance_policy(args.repo_root)
     exceptions_file = args.repo_root / "tools" / "policy" / "exceptions.yaml"
     if exceptions_file.is_file():
-        failures = apply_exceptions(failures, load_exceptions(args.repo_root))
+        try:
+            failures = apply_exceptions(failures, load_exceptions(args.repo_root))
+        except InvalidInputError as exc:
+            print(f"assurance-policy: {exc}", file=sys.stderr)
+            return 1
     if failures:
         if args.json:
             print(failures_to_json(failures))
@@ -1608,4 +1656,4 @@ def main(argv: Iterable[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

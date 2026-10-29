@@ -11,6 +11,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from raes_contracts.bounded_domains import DomainDescriptor
 from raes_contracts.compute_substrate import validate_compute_substrate_constraint
+from raes_contracts.json_pointer import array_index
 from raes_contracts.vocabulary import Closure
 
 from ._base import SDLModel
@@ -250,10 +251,9 @@ def resolve_json_pointer_surface(root: object, pointer: str) -> tuple[bool, obje
         elif (
             isinstance(current, Sequence)
             and not isinstance(current, (str, bytes, bytearray))
-            and segment.isdigit()
-            and int(segment) < len(current)
+            and (index := array_index(segment, len(current))) is not None
         ):
-            current = current[int(segment)]
+            current = current[index]
         else:
             return False, None
     return True, current

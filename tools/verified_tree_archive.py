@@ -23,6 +23,8 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import BinaryIO, Protocol
 
+from tools.verified_tool_installation import ToolInstallationError, has_bounded_utf8_form
+
 TREE_MANIFEST_SCHEMA = "raes-installed-tree/v1"
 TREE_FORMAT = "tar.gz"
 MAX_TREE_MEMBERS = 262_144
@@ -46,8 +48,8 @@ class InstalledTree(Protocol):
     expanded_bytes: int
 
 
-def failure(reason: str) -> RuntimeError:
-    return RuntimeError(f"tool-installation: {reason}")
+def failure(reason: str) -> ToolInstallationError:
+    return ToolInstallationError(f"tool-installation: {reason}")
 
 
 @dataclass(frozen=True)
@@ -104,7 +106,7 @@ def _path_is_unsafe(value: str, path: PurePosixPath) -> bool:
         "\\" in value,
         "\x00" in value,
         re.match(r"^[A-Za-z]:", value) is not None,
-        len(value.encode("utf-8")) > MAX_TREE_PATH_BYTES,
+        not has_bounded_utf8_form(value, MAX_TREE_PATH_BYTES),
         len(path.parts) > MAX_TREE_PATH_DEPTH,
         bool(_UNSAFE_PATH_PARTS.intersection(path.parts)),
     )
@@ -129,7 +131,7 @@ def symlink_target_shape_is_safe(target: object) -> bool:
         and "\x00" not in target
         and "\\" not in target
         and not target.startswith("/")
-        and len(target.encode("utf-8")) <= MAX_SYMLINK_TARGET_BYTES
+        and has_bounded_utf8_form(target, MAX_SYMLINK_TARGET_BYTES)
     )
 
 
@@ -353,7 +355,7 @@ def admit_archive_stream(stream: BinaryIO, limits: TreeLimits, sink: StageSink |
                 for member in archive:
                     admission.admit(member, archive)
             _drain_compressed_trailer(decompressed)
-    except RuntimeError:
+    except ToolInstallationError:
         raise
     except (OSError, EOFError, UnicodeError, tarfile.TarError, zlib.error) as exc:
         if isinstance(exc, OSError) and exc.errno in {errno.ENOSPC, getattr(errno, "EDQUOT", -1)}:

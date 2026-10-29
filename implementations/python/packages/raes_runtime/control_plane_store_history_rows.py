@@ -9,9 +9,12 @@ if TYPE_CHECKING:
     from raes_contracts.runtime_state import RuntimeSnapshot
 
 
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError
 from raes_contracts.immutable_history import HISTORY_FIELDS, HistoryMap, seal_history
 
 from .control_plane_store_local_codec import decode_payload, encode_payload
+
+_MISSING_SNAPSHOT_HEADER = "snapshot history has no committed snapshot header"
 
 
 class HistorySQLRows(Protocol):
@@ -93,27 +96,29 @@ def restore_history_rows(connection: HistorySQLConnection, payload: dict[str, ob
     if marker is None:
         return payload
     if marker != ("1",):
-        raise ValueError("snapshot history format is unsupported")
+        # A format that this build cannot read conflicts with the store state; it is not a damaged store.
+        raise ConflictError("snapshot history format is unsupported")
     histories: dict[str, dict[str, list[dict[str, object]]]] = {field: {} for field in HISTORY_FIELDS}
     streams = connection.execute(
         "SELECT field, participant, length, head FROM snapshot_history_streams ORDER BY field, participant"
     ).fetchall()
     count = connection.execute("SELECT COUNT(*) FROM snapshot_history").fetchone()[0]
-    if count != sum(length for _, _, length, _ in streams):
-        raise ValueError("snapshot history contains unbound records")
+    lengths = [length for _, _, length, _ in streams]
+    if any(type(length) is not int for length in lengths) or count != sum(lengths):
+        raise EvidenceIntegrityError("snapshot history contains unbound records")
     for stream in streams:
         field, participant, records = _restore_stream(connection, stream)
         histories[field][participant] = records
     if any(payload.get(field) for field in HISTORY_FIELDS):
-        raise ValueError("normalized snapshot header contains duplicate history")
+        raise EvidenceIntegrityError("normalized snapshot header contains duplicate history")
     return {**payload, **{field: HistoryMap(field, records) for field, records in histories.items()}}
 
 
 def require_empty_history_without_snapshot(connection: HistorySQLConnection) -> None:
     if connection.execute("SELECT COUNT(*) FROM snapshot_history_streams").fetchone()[0]:
-        raise ValueError("snapshot history has no committed snapshot header")
+        raise EvidenceIntegrityError(_MISSING_SNAPSHOT_HEADER)
     if connection.execute("SELECT COUNT(*) FROM snapshot_history").fetchone()[0]:
-        raise ValueError("snapshot history has no committed snapshot header")
+        raise EvidenceIntegrityError(_MISSING_SNAPSHOT_HEADER)
 
 
 def _restore_stream(
@@ -122,15 +127,20 @@ def _restore_stream(
 ) -> tuple[str, str, list[dict[str, object]]]:
     field, participant, length, head = stream
     if field not in HISTORY_FIELDS or type(length) is not int or length < 0:
-        raise ValueError("snapshot history stream coordinates are invalid")
+        raise EvidenceIntegrityError("snapshot history stream coordinates are invalid")
     rows = connection.execute(
         "SELECT position, payload, digest FROM snapshot_history WHERE field=? AND participant=? ORDER BY position",
         (field, participant),
     ).fetchall()
     if len(rows) != length or any(position != index for index, (position, _, _) in enumerate(rows)):
-        raise ValueError("snapshot history stream is incomplete")
+        raise EvidenceIntegrityError("snapshot history stream is incomplete")
     records = [decode_payload(content, digest, kind="snapshot history record") for _, content, digest in rows]
-    history = HistoryMap(field, {participant: records})
-    if history[participant].prefix_digest(length) != head:
-        raise ValueError("snapshot history stream failed its prefix integrity check")
+    try:
+        # The history value object refuses a malformed record with ValueError (E3).
+        history = HistoryMap(field, {participant: records})
+        prefix = history[participant].prefix_digest(length)
+    except ValueError as exc:
+        raise EvidenceIntegrityError("snapshot history stream failed its prefix integrity check") from exc
+    if prefix != head:
+        raise EvidenceIntegrityError("snapshot history stream failed its prefix integrity check")
     return field, participant, records

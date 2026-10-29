@@ -45,8 +45,13 @@ from collections import defaultdict
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
 
 from tools.policy.common import PolicyFailure, apply_exceptions, failures_to_json, load_exceptions
 from tools.policy.repository_requirements import RepositoryRequirementClient, RepositoryRequirementError
@@ -170,7 +175,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.report:
         print(build_tracing_report(args.repo_root), end="")
         return 0
-    failures = apply_exceptions(evaluate_contract_tracing(args.repo_root), _active_waivers(args.repo_root))
+    failures = evaluate_contract_tracing(args.repo_root)
+    try:
+        failures = apply_exceptions(failures, _active_waivers(args.repo_root))
+    except InvalidInputError as exc:
+        print(f"contract-requirement-tracing: {exc}", file=sys.stderr)
+        return 1
     if failures:
         _print_failures(failures, as_json=args.json)
         return 1
@@ -178,4 +188,4 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

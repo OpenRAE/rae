@@ -134,6 +134,21 @@ def test_dsl_124_rejects_capture_requirement_without_window_trigger_or_boundary(
         parse_sdl(_scenario_yaml(trigger=None))
 
 
+def test_dsl_124_damaged_published_schema_stays_a_model_validation_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A RAES exception from the media check never escapes the model validator (ADR-116 rule E3)."""
+    import raes_contracts.evidence_output_validation as evidence_output_validation
+    from raes_contracts.json_ingress import StrictJsonIngressError
+
+    def damaged_schema(*_args: object, **_kwargs: object) -> object:
+        raise StrictJsonIngressError("json.invalid", "SECRET-SCHEMA-DETAIL")
+
+    monkeypatch.setattr(evidence_output_validation, "parse_bounded_json_object", damaged_schema)
+    with pytest.raises(SDLParseError) as excinfo:
+        parse_sdl(_scenario_yaml())
+
+    assert "SECRET-SCHEMA-DETAIL" not in str(excinfo.value)
+
+
 @pytest.mark.parametrize(
     ("source_ref", "expected"),
     [

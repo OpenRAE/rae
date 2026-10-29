@@ -98,8 +98,8 @@ def _validated_family_constraint(
 def _parse_family_domain_value(raw_value: object, variable_name: str) -> tuple[str | None, str | None]:
     try:
         return parse_runtime_enum_identity(raw_value, OSFamily, field_name="os"), None
-    except ValueError as exc:
-        return None, f"Variable '{variable_name}' has an invalid nodes.os domain: {exc}."
+    except ValueError:
+        return None, f"Variable '{variable_name}' has an invalid nodes.os domain."
 
 
 def _scalar_domain_or_open(
@@ -173,10 +173,8 @@ def _normalize_scalar_domain_value(
     message = None
     try:
         parsed = normalizer(raw_value)
-    except (TypeError, ValueError) as exc:
-        message = (
-            f"Variable '{label}' allowed_values contain value {raw_value!r} invalid for nodes.{field_name}: {exc}."
-        )
+    except ValueError:
+        message = f"Variable '{label}' allowed_values contain value {raw_value!r} invalid for nodes.{field_name}."
     if message is None and extract_variable_name(parsed) is not None:
         message = f"Variable '{label}' has a non-concrete nodes.{field_name} domain."
     token = getattr(parsed, "value", parsed)

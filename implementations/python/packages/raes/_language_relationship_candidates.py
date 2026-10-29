@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from ._declarations import Declaration
-from ._errors import SDLValidationError
+from ._errors import SDLValidationError, SDLValidationFinding
 from ._language_context import PurposeResolver
 from ._reference_targetability import ReferencePurpose
 from ._relationship_endpoint_policy import RELATIONSHIP_DETAIL_BINDINGS
@@ -30,7 +30,7 @@ class _RelationshipContext:
     scenario: ScenarioContent | None
     incomplete: bool
     resolver: PurposeResolver
-    baseline: set[str]
+    baseline: set[SDLValidationFinding]
 
 
 def filter_relationship_candidates(
@@ -53,11 +53,11 @@ def filter_relationship_candidates(
     return [item for item in items if _candidate_allowed(item, context)]
 
 
-def _semantic_errors(scenario: ScenarioContent) -> set[str]:
+def _semantic_errors(scenario: ScenarioContent) -> set[SDLValidationFinding]:
     try:
         SemanticValidator(scenario).validate()
     except SDLValidationError as exc:
-        return set(exc.errors)
+        return set(exc.findings)
     return set()
 
 

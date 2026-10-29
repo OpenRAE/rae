@@ -209,7 +209,9 @@ def test_invalid_local_input_is_terminal_without_network_fallback(
     )
     expected = _expected(expected_payload)
 
-    with pytest.raises(RuntimeError, match="conftest local input failed locked identity validation") as raised:
+    with pytest.raises(
+        acquisition.ArtifactAcquisitionError, match="conftest local input failed locked identity validation"
+    ) as raised:
         acquisition.acquire_locked_bytes(
             artifact_id="conftest",
             source_url="https://example.test/conftest",
@@ -236,7 +238,7 @@ def test_network_output_must_match_the_locked_raw_identity(
     monkeypatch.setattr(acquisition, "run_curl_transfer", transfer)
     expected = _expected(expected_payload)
 
-    with pytest.raises(RuntimeError, match="vale acquired bytes differ from the reviewed lock"):
+    with pytest.raises(acquisition.ArtifactAcquisitionError, match="vale acquired bytes differ from the reviewed lock"):
         acquisition.acquire_locked_bytes(
             artifact_id="vale",
             source_url="https://example.test/vale",

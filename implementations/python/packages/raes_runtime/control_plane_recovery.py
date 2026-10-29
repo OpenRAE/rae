@@ -14,7 +14,9 @@ from raes_backend_protocols.recovery_observation import (
     RecoveryObserver,
 )
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.errors import AuthorizationError, ConflictError, InvalidInputError, NotFoundError
 from raes_contracts.operation_lifecycle import OperationAdmissionContext
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import (
     ApplyResult,
     OperationKind,
@@ -29,17 +31,12 @@ from .backend_calls import _BackendCallContext, _RealizationApplyContext, _valid
 from .control_plane_execution import _utc_now
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_mutation import control_plane_mutation, external_control_plane_call, mutation_entry
-from .control_plane_operation_context import (
-    legacy_operation_request_commitment,
-    operation_admission_context,
-)
+from .control_plane_operation_context import legacy_operation_request_commitment, operation_admission_context
 from .control_plane_resolution_records import IndeterminateResolutionDisposition, is_valid_resolution_child
-from .control_plane_store import (
-    ControlPlaneOperationRecord,
-    NewClaimRejected,
-    TerminalCommitMode,
-)
+from .control_plane_store import ControlPlaneOperationRecord, NewClaimRejected, TerminalCommitMode
 from .mixed_runtime_recovery import require_resolvable_mixed_action_cut, requires_mixed_stage_reconciliation
+
+_LOGGER = get_logger(__name__)
 
 
 class RuntimeRecoveryMixin:
@@ -247,7 +244,9 @@ def _bound_observation_result(
             result = control_plane._execution_adapter.call(
                 "control", observer.observe_effect, request, timeout_ms=control_plane._supervision.observation_ms
             )
-    except Exception:
+    except Exception as exc:
+        # Isolation of the backend observer: the interrupted effect stays indeterminate.
+        _LOGGER.exception("recovery observer failed", exc_info=foreign_failure_record(exc))
         return None
     if not isinstance(result, RecoveryObservationResult) or (
         result.operation_id != request.operation_id or result.request_commitment != request.request_commitment
@@ -386,7 +385,7 @@ def resolve_indeterminate_operation(
         control_plane._reload_derived_state()
         parent = control_plane._operations.get(operation_id)
         if parent is None:
-            raise KeyError("indeterminate operation was not found")
+            raise NotFoundError("indeterminate operation was not found")
         context = operation_admission_context(
             control_plane,
             kind=OperationKind.INDETERMINATE_RESOLUTION,
@@ -397,12 +396,12 @@ def resolve_indeterminate_operation(
         )
         _authorize_resolution(control_plane, parent, context, identity)
         if parent.status.state is not OperationState.INDETERMINATE:
-            raise ValueError("resolution parent must be indeterminate")
+            raise ConflictError("resolution parent must be indeterminate")
         require_resolvable_mixed_action_cut(control_plane, parent)
         if not idempotency_key:
-            raise ValueError("resolution requires an idempotency key")
+            raise InvalidInputError("resolution requires an idempotency key")
         if idempotency_key == parent.idempotency_key:
-            raise ValueError("resolution requires a fresh idempotency key")
+            raise ConflictError("resolution requires a fresh idempotency key")
         child_id = str(uuid4())
         submitted_at = _utc_now()
         receipt = OperationReceipt(
@@ -439,7 +438,7 @@ def resolve_indeterminate_operation(
                 ),
             )
         except NewClaimRejected:
-            raise ValueError("indeterminate operation is already resolved") from None
+            raise ConflictError("indeterminate operation is already resolved") from None
         if claimed.receipt.operation_id != child_id:
             return claimed.receipt
         terminal = replace(running, state=OperationState.SUCCEEDED, updated_at=_utc_now())
@@ -486,7 +485,7 @@ def _authorize_resolution(
         operation_id=parent.receipt.operation_id,
         reason="resolution-forbidden",
     )
-    raise PermissionError("indeterminate resolution is forbidden")
+    raise AuthorizationError("indeterminate resolution is forbidden")
 
 
 __all__ = (

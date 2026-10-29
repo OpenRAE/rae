@@ -19,6 +19,7 @@ from pydantic import Field, WithJsonSchema, model_validator
 
 from .contracts import ContractModel
 from .corpus import PROFILES, corpus_family_root
+from .errors import InvalidInputError
 from .manifest_authority import (
     BACKEND_SUPPORTED_CONTRACT_IDS,
     validate_backend_supported_contract_versions,
@@ -82,6 +83,10 @@ class BackendProfileModel(ContractModel):
         return self
 
 
+class BackendProfileIdentityError(InvalidInputError):
+    """A profile artifact declares a profile id other than the requested id."""
+
+
 def load_backend_profile_from_path(profile_id: str, path: Path) -> BackendProfileModel:
     """Load a backend profile from ``path`` and assert the payload identity.
 
@@ -105,7 +110,7 @@ def load_backend_profile_from_path(profile_id: str, path: Path) -> BackendProfil
         # surface in a conformance diagnostic. The resolved filesystem path is
         # deliberately omitted: these failures are reported into persisted
         # backend-conformance artifacts, which must not carry host paths.
-        raise ValueError(
+        raise BackendProfileIdentityError(
             f"backend profile artifact declares profile {model.profile!r} "
             f"but was requested as {profile_id!r}; "
             "the published profile id and request id must match."
@@ -120,6 +125,7 @@ def load_backend_profile(profile_id: str) -> BackendProfileModel:
 
 __all__ = [
     "BACKEND_SUPPORTED_CONTRACT_IDS",
+    "BackendProfileIdentityError",
     "BackendProfileModel",
     "backend_profile_path",
     "backend_profiles_root",

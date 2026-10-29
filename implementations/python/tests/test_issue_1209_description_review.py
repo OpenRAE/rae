@@ -5,6 +5,7 @@ from copy import deepcopy
 import pytest
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.realization_descriptions import TypedRealizationDescriptionModel
+from raes_contracts.description_coverage import DescriptionCoverageUnsatisfied
 from raes_contracts.description_projection import assess_realization_description, description_conflict
 from raes_contracts.observation_demand import (
     AchievedObservationValue,
@@ -112,7 +113,7 @@ def test_required_exhaustive_description_rejects_unmatched_coverage(change):
         payload["facts"][0].update(state="not-observed", value=None)
     else:
         payload["coverage"][0]["limitations"] = ["A requested field was excluded."]
-    with pytest.raises(ValueError, match="coverage|unsatisfied"):
+    with pytest.raises(DescriptionCoverageUnsatisfied, match="coverage|unsatisfied"):
         _report(payload, exhaustive=True)
 
 
@@ -162,7 +163,7 @@ def test_selector_exclusions_remove_complete_coverage_claims():
         TypedRealizationDescriptionModel.model_validate(payload), ObservationBasis.BACKEND_SELECTED
     )
     resolution = ObservationDemandResolution(demands)
-    with pytest.raises(ValueError, match="coverage|unsatisfied"):
+    with pytest.raises(DescriptionCoverageUnsatisfied, match="coverage|unsatisfied"):
         realization_description_report(resolution, {selector.key: value})
 
 

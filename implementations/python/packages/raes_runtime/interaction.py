@@ -11,6 +11,7 @@ from raes_contracts.contracts import (
     ArtifactAvailabilityContext,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
 from raes_contracts.immutable_history import mutable_history_value
 from raes_contracts.materialization import MaterializationSubmission
 from raes_contracts.planning import PlanScope, RuntimeDomain
@@ -301,7 +302,7 @@ class RuntimeInteractionMixin(
             operation_admission_context(self, kind=OperationKind(domain.value), request=phase)
             try:
                 execution_budget_ms(phase, self._supervision)
-            except ValueError:
+            except ConflictError:
                 diagnostics.append(
                     _failure_diagnostic(
                         "runtime.control-plane.execution-policy-unsupported",

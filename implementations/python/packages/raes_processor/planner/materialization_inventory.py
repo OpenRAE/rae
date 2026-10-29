@@ -8,6 +8,7 @@ from raes.scenario import InstantiatedScenario
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_protocols.manifest import backend_manifest_v2_model
 from raes_contracts.augmentation_preparation import AugmentationEffect, AugmentationPreparation
+from raes_contracts.errors import ConflictError, InvalidInputError
 from raes_contracts.json_ingress import parse_bounded_json_object
 from raes_contracts.materialization import (
     MATERIALIZATION_MAX_BYTES,
@@ -40,7 +41,7 @@ from ..semantics.realization_requirement import CompiledRealizationRequirement
 from ..semantics.realization_runtime_common import realization_provenance_entry
 from .augmentation_admission import admit_augmentation_preparation
 from .materialization_admission import _inventory_resources, _validate_binding, admit_materialization_submission
-from .materialization_lineage import admitted_inventory_predecessor, validate_inventory_lineage
+from .materialization_lineage import InventoryAdmissionError, admitted_inventory_predecessor, validate_inventory_lineage
 from .prepared_node_admission import validate_portable_node_inventory
 from .prepared_node_projection import prepared_node_payload_projection
 from .realization_collections import planned_node_collection
@@ -58,7 +59,7 @@ def admit_runtime_inventory(
 ) -> tuple[MaterializationSubmission, RuntimeSnapshot]:
     """Return admitted SDL and runtime-owned projections; never mint execution plans."""
     if RUNTIME_DESCENDANTS_CONTRACT not in manifest.supported_contract_versions:
-        raise ValueError("runtime descendant reporting was not negotiated")
+        raise InvalidInputError("runtime descendant reporting was not negotiated")
     submission = MaterializationSubmission.model_validate(submission.model_dump(mode="json"))
     materialized, report, source = _inventory_document(submission, request, manifest, previous)
     original = admit_instantiated_scenario(
@@ -71,7 +72,7 @@ def admit_runtime_inventory(
     resources = _inventory_resources(compile_runtime_model(materialized), request, previous)
     preceding = admitted_inventory_predecessor(request, manifest, previous, archive)
     if request.inventory_refresh and preceding is None:
-        raise ValueError("inventory refresh requires an accepted predecessor report")
+        raise ConflictError("inventory refresh requires an accepted predecessor report")
     validate_inventory_lineage(
         report, preceding, originals, previous, operation_id=request.operation_id, resources=resources
     )
@@ -93,12 +94,12 @@ def _inventory_document(
 ) -> tuple[MaterializedScenario, RuntimeInventoryReport, MaterializationSource]:
     materialized = parse_sdl(submission.sdl)
     if not isinstance(materialized, MaterializedScenario):
-        raise ValueError("runtime inventory requires descriptive SDL")
+        raise InvalidInputError("runtime inventory requires descriptive SDL")
     report, source = _bound_inventory_report(materialized, request)
     try:
         _validate_binding(materialized, source, request, manifest, previous)
-    except ValueError:
-        raise ValueError(InventoryInvariant.BINDING) from None
+    except InvalidInputError as exc:
+        raise InventoryAdmissionError(InventoryInvariant.BINDING) from exc
     return materialized, report, source
 
 
@@ -108,14 +109,14 @@ def _bound_inventory_report(
     report = materialized.materialization_provenance.inventory
     source = request.materialization_source
     if report is None or source is None:
-        raise ValueError(InventoryInvariant.BINDING)
+        raise InventoryAdmissionError(InventoryInvariant.BINDING)
     if (
         not request.inventory_attempt_id
         or source.target_scope is None
         or (report.attempt_id, report.run_id, report.source_digest, report.target_scope)
         != (request.inventory_attempt_id, source.run_id, source.instantiated_digest, source.target_scope)
     ):
-        raise ValueError(InventoryInvariant.BINDING)
+        raise InventoryAdmissionError(InventoryInvariant.BINDING)
     return report, source
 
 
@@ -137,12 +138,12 @@ def _validate_collection_inventory(
             ),
         ).conformant
     ):
-        raise ValueError(InventoryInvariant.MEMBERSHIP)
+        raise InventoryAdmissionError(InventoryInvariant.MEMBERSHIP)
     live = {address: entry for address, entry in entries.items() if entry.domain == RuntimeDomain.PROVISIONING}
     try:
         validate_portable_node_inventory(live, originals, manifest)
-    except AttributeError, KeyError, TypeError, ValueError:
-        raise ValueError(InventoryInvariant.CAPABILITY) from None
+    except InvalidInputError as exc:
+        raise InventoryAdmissionError(InventoryInvariant.CAPABILITY) from exc
 
 
 def _provenance_key(entry: RealizationProvenanceEntry) -> ProvenanceKey:
@@ -198,7 +199,7 @@ def _apply_backend_selections(
             or ledger[identity].explicitness is ExplicitnessClass.EXACT
             or (selected not in admitted_choices and selection.address not in current)
         ):
-            raise ValueError(InventoryInvariant.PROVENANCE)
+            raise InventoryAdmissionError(InventoryInvariant.PROVENANCE)
         ledger[identity] = replace(ledger[identity], provenance=ExplicitnessProvenance.BACKEND_REALIZED)
 
 
@@ -217,7 +218,7 @@ def _validate_description_coverage(
     }
     described = {address for address, entry in resources.items() if entry.domain == RuntimeDomain.PROVISIONING}
     if described - originals != declared | foreign:
-        raise ValueError("descriptive inventory does not cover its descendants exactly")
+        raise InvalidInputError("descriptive inventory does not cover its descendants exactly")
 
 
 def _project_entries(
@@ -233,7 +234,7 @@ def _project_entries(
     for record in report.descendants:
         if record.state == "autoremoved":
             if record.address in resources:
-                raise ValueError("autoremoved descendant still appears in live SDL")
+                raise InvalidInputError("autoremoved descendant still appears in live SDL")
             entries.pop(record.address, None)
         else:
             entries[record.address] = _live_descendant_entry(record, resources.get(record.address))
@@ -246,10 +247,10 @@ def _live_descendant_entry(record: RuntimeDescendantBinding, resource: PlannedRe
         or resource.domain != RuntimeDomain.PROVISIONING
         or resource.resource_type not in {"node", "network"}
     ):
-        raise ValueError("descendant has no admitted portable SDL resource")
+        raise InvalidInputError("descendant has no admitted portable SDL resource")
     require_plan_operation_identity(resource.domain, resource.address, resource.resource_type)
     if (resource.payload.get("count") or 1) != 1 or resource.profile_bindings:
-        raise ValueError("descendant requires its own single portable identity and native profile admission")
+        raise InvalidInputError("descendant requires its own single portable identity and native profile admission")
     return SnapshotEntry(
         resource.address,
         resource.domain,
@@ -286,7 +287,7 @@ def _validate_addition_permission(
         ),
     )
     if not admit_augmentation_preparation(prospective, request, manifest, previous).is_valid:
-        raise ValueError("reported descendant effects exceed the original augmentation permission")
+        raise InvalidInputError("reported descendant effects exceed the original augmentation permission")
 
 
 def _concern_supplied(supplied: dict[str, object], path: tuple[str, ...]) -> bool:

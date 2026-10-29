@@ -12,9 +12,10 @@ def _validate(scenario: Scenario) -> list[str]:
     v = SemanticValidator(scenario)
     try:
         v.validate()
-        return []
     except SDLValidationError as e:
         return e.errors
+    else:
+        return []
 
 
 def _make_scenario(**kwargs) -> Scenario:

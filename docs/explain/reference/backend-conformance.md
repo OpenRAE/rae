@@ -251,7 +251,8 @@ the Typer `raes_cli` app next to `raes sdl` and `raes processor`. It accepts
 `--profile`, `--fixtures-root`, and `--profiles-root` overrides. The defaults
 point at the canonical `contracts/` tree. The runner exits non-zero when the
 report has any failing case or top-level diagnostic. Thus CI gates can run the
-command directly.
+command directly. If a fixture file cannot be read, the command writes an error
+to standard error, writes no report, and exits with status 1.
 
 ## Observability and evidence fixture profile
 

@@ -17,6 +17,7 @@ from raes_backend_protocols.capabilities import (
 from raes_backend_protocols.manifest import backend_manifest_payload
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
 from raes_contracts.manifest_authority import PARTICIPANT_TOOL_FEATURES
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
@@ -253,7 +254,7 @@ def _participant_feature_cases(
                     entry.feature,
                     required_level=entry.support_level,
                 )
-            except ValueError as exc:
+            except ConflictError as exc:
                 effective_support_level = None
                 diagnostics = (
                     _diagnostic(

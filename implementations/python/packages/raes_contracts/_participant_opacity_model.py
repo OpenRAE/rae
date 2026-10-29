@@ -178,7 +178,8 @@ def _validate_model_identities(request: ParticipantOpacityModelCheckInputModel) 
         raise ValueError("model transition refs must be unique")
     if request.initial_state_ordinals != tuple(sorted(set(request.initial_state_ordinals))):
         raise ValueError("initial state ordinals must be unique and sorted")
-    if any(ordinal >= len(request.states) for ordinal in request.initial_state_ordinals):
+    # A negative ordinal would index from the end of the states, so require the declared range.
+    if any(not 0 <= ordinal < len(request.states) for ordinal in request.initial_state_ordinals):
         raise ValueError("initial state ordinals must reference declared states")
 
 

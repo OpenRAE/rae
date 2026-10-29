@@ -7,13 +7,16 @@ from dataclasses import replace
 from typing import TYPE_CHECKING, cast
 
 from raes_backend_protocols.capabilities import BackendManifest
+from raes_contracts.errors import RaesError
 from raes_contracts.materialization import MaterializationArchive
 from raes_contracts.materialization_inventory import InventoryInvariant
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.planner.augmentation_admission import validate_actual_augmentation
 from raes_processor.planner.materialization_admission import validate_materialization_archive_record
 from raes_processor.planner.materialization_inventory import admit_runtime_inventory
+from raes_processor.planner.materialization_lineage import InventoryAdmissionError
 
 from .backend_account_credentials import plan_has_account_credentials, value_free_backend_diagnostics
 from .backend_call_contracts import _apply_result_contract_violation
@@ -23,6 +26,8 @@ from .diagnostics import _failure_diagnostic
 
 if TYPE_CHECKING:
     from .backend_realization_authority import _RealizationApplyContext
+
+_LOGGER = get_logger(__name__)
 
 
 def admit_refresh_proposal(result: object, previous: RuntimeSnapshot, plan: ProvisioningPlan) -> ApplyResult:
@@ -53,7 +58,7 @@ def finalize_runtime_inventory(
     stage = InventoryInvariant.SHAPE
     try:
         if raw.materialization_attestation is None or archive is None:
-            raise ValueError("inventory report or archive owner is missing")
+            raise InventoryAdmissionError(InventoryInvariant.SHAPE)
         request, manifest = _inventory_context(context)
         admitted, snapshot = admit_runtime_inventory(
             raw.materialization_attestation,
@@ -65,7 +70,7 @@ def finalize_runtime_inventory(
         )
         validate_actual_augmentation(admitted, context.augmentation)
         if snapshot_shape_violation(snapshot):
-            raise ValueError(InventoryInvariant.SHAPE)
+            raise InventoryAdmissionError(InventoryInvariant.SHAPE)
         stage = InventoryInvariant.ARCHIVE
         record = archive.publish(admitted.sdl)
         validate_materialization_archive_record(admitted, record)
@@ -73,8 +78,13 @@ def finalize_runtime_inventory(
             dict(snapshot.entries), materialization_attestations=(*previous.materialization_attestations, record)
         )
         if snapshot_shape_violation(snapshot):
-            raise ValueError(InventoryInvariant.SHAPE)
+            raise InventoryAdmissionError(InventoryInvariant.SHAPE)
     except Exception as error:
+        if not isinstance(error, RaesError):
+            # Isolation of untrusted inventory content and archive delivery: a refusal category needs no record.
+            _LOGGER.exception(
+                "runtime inventory admission or archive delivery failed", exc_info=foreign_failure_record(error)
+            )
         invariant = _inventory_failure_invariant(error, stage)
         return _failed_apply_result(
             deepcopy(previous),
@@ -99,12 +109,9 @@ def finalize_runtime_inventory(
 def _inventory_context(context: _RealizationApplyContext) -> tuple[ProvisioningPlan, BackendManifest]:
     request, manifest = context.operation_plan, context.manifest
     if not isinstance(request, ProvisioningPlan) or manifest is None:
-        raise ValueError(InventoryInvariant.BINDING)
+        raise InventoryAdmissionError(InventoryInvariant.BINDING)
     return request, manifest
 
 
 def _inventory_failure_invariant(error: Exception, stage: InventoryInvariant) -> InventoryInvariant:
-    invariant = error.args[0] if type(error) is ValueError and len(error.args) == 1 else stage
-    if not isinstance(invariant, InventoryInvariant):
-        invariant = stage
-    return invariant
+    return error.invariant if isinstance(error, InventoryAdmissionError) else stage

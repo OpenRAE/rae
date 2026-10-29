@@ -8,7 +8,13 @@ Launch via:
 
 from __future__ import annotations
 
+import functools
+from collections.abc import Callable
+from typing import Any
+
 from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp.exceptions import ToolError
+from raes_contracts.operational_logging import get_logger, run_application
 
 from raes_mcp.tools.authoring import register as register_authoring_tools
 from raes_mcp.tools.completeness import register as register_completeness_tools
@@ -50,9 +56,42 @@ to check it.\
 """
 
 
+_LOGGER = get_logger(__name__)
+_INTERNAL_TOOL_ERROR = "the tool failed with an internal error; the server log records the failure"
+
+
+def _tool_boundary(function: Callable[..., Any]) -> Callable[..., Any]:
+    """Keep the text of an unexpected exception out of the tool result (ADR-116).
+
+    FastMCP puts the text of any exception that a tool raises in the tool
+    result. Tools render their expected failures themselves; this boundary
+    logs each other failure one time, value-free, and gives the client a
+    fixed message.
+    """
+
+    @functools.wraps(function)
+    def boundary(*args: Any, **kwargs: Any) -> Any:
+        try:
+            return function(*args, **kwargs)
+        except ToolError:
+            raise
+        except Exception:
+            _LOGGER.exception("MCP tool %s stopped after an unexpected error", function.__name__)
+            raise ToolError(_INTERNAL_TOOL_ERROR) from None
+
+    return boundary
+
+
+class _BoundaryFastMCP(FastMCP):
+    """FastMCP server that registers each tool inside the RAES tool boundary."""
+
+    def add_tool(self, fn: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
+        super().add_tool(_tool_boundary(fn), *args, **kwargs)
+
+
 def create_server() -> FastMCP:
     """Build and return the configured MCP server instance."""
-    mcp = FastMCP(
+    mcp = _BoundaryFastMCP(
         name="raes",
         instructions=_INSTRUCTIONS,
     )
@@ -66,6 +105,11 @@ def create_server() -> FastMCP:
     return mcp
 
 
-def main() -> None:
-    """Console-script entry point for the `raes-mcp` command."""
-    create_server().run()
+def main() -> int:
+    """Console-script entry point for the `raes-mcp` command.
+
+    Logging is configured before FastMCP is constructed, so log records go to
+    standard error with the value-free formatter and stdout carries only the
+    MCP protocol.
+    """
+    return run_application(lambda: create_server().run())

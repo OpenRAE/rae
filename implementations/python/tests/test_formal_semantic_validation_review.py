@@ -4,6 +4,7 @@ import subprocess
 
 import pytest
 from evidence_test_fixtures import copy_bundle
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError, OperationalError
 from test_formal_semantic_validation import REPO_ROOT, _bundle
 from tools.check_formal_semantic_validation import (
     load_release_bundles,
@@ -93,7 +94,7 @@ def test_unsupported_observations_cannot_fabricate_results(version, field, value
 
 
 @pytest.mark.parametrize("version", [1, 2])
-@pytest.mark.parametrize("error", [OSError, ValueError])
+@pytest.mark.parametrize("error", [OSError, InvalidInputError])
 def test_retained_replay_exceptions_are_failures(monkeypatch, version, error):
     module = _snapshot if version == 1 else _retest
 
@@ -112,9 +113,28 @@ def test_retained_replay_exceptions_are_failures(monkeypatch, version, error):
     assert identities(failures) == {("formal-validation-replay-error", message, "snapshot.json")}
 
 
-@pytest.mark.parametrize("case_id", ["finite-domain-satisfiable-v2", "typed-exploit-path-valid-v2"])
-@pytest.mark.parametrize("error", [OSError, ValueError, RuntimeError, subprocess.SubprocessError])
-def test_production_replay_exceptions_are_failures(monkeypatch, case_id, error):
+@pytest.mark.parametrize("version", [1, 2])
+@pytest.mark.parametrize("error", [ValueError, RuntimeError])
+def test_retained_replay_defects_are_not_reported_as_replay_failures(monkeypatch, version, error):
+    module = _snapshot if version == 1 else _retest
+
+    def fail(*_args):
+        raise error("seeded defect")
+
+    monkeypatch.setattr(module, "replay_case", fail)
+    case, observation = {"case_id": "control", "replay_mode": "parse"}, {"case_id": "control"}
+    failures = []
+    with pytest.raises(error, match="seeded defect"):
+        if version == 1:
+            _snapshot._validate_snapshot_replay(
+                REPO_ROOT, case, observation, failures, "snapshot.json", replay_cases=True
+            )
+        else:
+            _retest._validate_retained_retest_observation(REPO_ROOT, case, observation, failures, "snapshot.json")
+    assert failures == []
+
+
+def _production_case(case_id):
     release, _protocol, corpus, snapshot, _analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
     case = next(item for item in corpus["cases"] if item["case_id"] == case_id)
     observation = next(item for item in snapshot["observations"] if item["case_id"] == case_id)
@@ -122,6 +142,16 @@ def test_production_replay_exceptions_are_failures(monkeypatch, case_id, error):
     context = _production._ProductionObservationContext(
         REPO_ROOT, {item["path"]: item for item in release.manifest["artifacts"]}
     )
+    return context, case, observation, command
+
+
+@pytest.mark.parametrize("case_id", ["finite-domain-satisfiable-v2", "typed-exploit-path-valid-v2"])
+@pytest.mark.parametrize(
+    "error",
+    [OSError, subprocess.SubprocessError, InvalidInputError, OperationalError, EvidenceIntegrityError],
+)
+def test_production_replay_exceptions_are_failures(monkeypatch, case_id, error):
+    context, case, observation, command = _production_case(case_id)
 
     def fail(*_args, **_kwargs):
         raise error("seeded failure")
@@ -138,6 +168,76 @@ def test_production_replay_exceptions_are_failures(monkeypatch, case_id, error):
             "snapshot.json",
         )
     }
+
+
+@pytest.mark.parametrize("case_id", ["finite-domain-satisfiable-v2", "typed-exploit-path-valid-v2"])
+@pytest.mark.parametrize("error", [ValueError, RuntimeError, TypeError])
+def test_production_replay_defects_are_not_reported_as_replay_failures(monkeypatch, case_id, error):
+    context, case, observation, command = _production_case(case_id)
+
+    def fail(*_args, **_kwargs):
+        raise error("seeded defect")
+
+    monkeypatch.setattr(_production, "_replay_production_evidence", fail)
+    failures = []
+    with pytest.raises(error, match="seeded defect"):
+        _production._validate_production_evidence_observation(
+            context, case, observation, command, failures, "snapshot.json"
+        )
+    assert not any(failure.rule_id == "formal-validation-production-replay" for failure in failures)
+
+
+def test_production_cli_output_that_is_not_json_is_an_operational_failure(tmp_path, monkeypatch):
+    executable = tmp_path / "raes"
+    executable.write_text("")
+
+    def completed(*_args, **_kwargs):
+        return subprocess.CompletedProcess(args=[], returncode=0, stdout="not json", stderr="")
+
+    monkeypatch.setattr(_production.subprocess, "run", completed)
+    with pytest.raises(OperationalError, match="did not emit JSON"):
+        _production._run_production_evidence_cli(tmp_path, ["raes", "processor"])
+
+
+def test_stored_production_evidence_outside_its_contract_is_an_integrity_failure(tmp_path):
+    (tmp_path / "evidence.json").write_text('{"profile": "not-evidence"}\n', encoding="utf-8")
+    case = {"replay_mode": "satisfiability", "fixture_path": "fixture.sdl"}
+    with pytest.raises(EvidenceIntegrityError, match="does not satisfy its contract"):
+        _production._replay_production_evidence(
+            tmp_path, case, {}, tmp_path / "fixture.sdl", "evidence.json", [], replay_current=True
+        )
+
+
+def _satisfiability_replay(monkeypatch, tmp_path, error, message):
+    from raes_processor import satisfiability
+    from tools.formal_semantic_validation import _satisfiability
+
+    def fail(*_args, **_kwargs):
+        raise error(message)
+
+    monkeypatch.setattr(satisfiability, "analyze_scenario_file", fail)
+    scope = _satisfiability._SatisfiabilityScope(tmp_path, {}, {}, "analysis.json", "snapshot.json", True)
+    failures = []
+    _satisfiability._current_control_failures(scope, {"case_id": "control"}, tmp_path / "fixture.sdl", failures)
+    return failures
+
+
+@pytest.mark.parametrize("error", [OSError, InvalidInputError, OperationalError, EvidenceIntegrityError])
+def test_satisfiability_control_replay_refusals_are_failures(monkeypatch, tmp_path, error):
+    failures = _satisfiability_replay(monkeypatch, tmp_path, error, "seeded refusal")
+    assert identities(failures) == {
+        (
+            "formal-satisfiability-replay-error",
+            f"case 'control' could not complete production replay ({error.__name__})",
+            "analysis.json",
+        )
+    }
+
+
+@pytest.mark.parametrize("error", [ValueError, RuntimeError])
+def test_satisfiability_control_replay_defects_propagate(monkeypatch, tmp_path, error):
+    with pytest.raises(error, match="seeded defect"):
+        _satisfiability_replay(monkeypatch, tmp_path, error, "seeded defect")
 
 
 @pytest.mark.integration

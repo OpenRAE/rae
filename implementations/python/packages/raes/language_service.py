@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from raes_contracts.errors import InvalidInputError
 
 from ._base import is_variable_ref
 from ._composition_budget import CompositionTraversal
@@ -255,7 +256,7 @@ def apply_structured_edit(
     try:
         tokens = _split_pointer(pointer)
         edited = apply_edit(data, operation=operation, tokens=tokens, value=value)
-    except ValueError as exc:
+    except InvalidInputError as exc:
         return _invalid("edit", "sdl.edit", str(exc))
 
     content = yaml.safe_dump(
@@ -470,7 +471,7 @@ def _split_pointer_or_empty(pointer: str) -> list[str]:
         return []
     try:
         return _split_pointer(pointer)
-    except ValueError:
+    except InvalidInputError:
         return []
 
 
@@ -478,7 +479,7 @@ def _split_pointer(pointer: str) -> list[str]:
     if pointer in {"", "/"}:
         return []
     if not pointer.startswith("/"):
-        raise ValueError("pointer must be empty or start with '/'")
+        raise InvalidInputError("pointer must be empty or start with '/'")
     return [_unescape_pointer_token(token) for token in pointer.split("/")[1:]]
 
 

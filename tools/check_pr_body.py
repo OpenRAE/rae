@@ -9,6 +9,7 @@ and performs read-only GitHub API requests.
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import os
 import re
@@ -61,6 +62,12 @@ _REPOSITORY = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
 
 
 IssueLookup = Callable[[int], IssueFacts]
+# How an issue lookup reports that it could not answer: GitHubIssueLookup raises
+# RuntimeError for an HTTP status or a malformed response, OSError for a
+# transport failure, ValueError for an undecodable response, and HTTPException
+# for a broken HTTP exchange; the fixture lookup raises ValueError. Any other
+# exception is a defect and is not reported as an unverifiable issue.
+_LOOKUP_FAILURES = (OSError, RuntimeError, ValueError, http.client.HTTPException)
 
 
 @dataclass(frozen=True)
@@ -127,6 +134,22 @@ def _meaningful(text: str, *, minimum_words: int = 3) -> bool:
     return len(remaining) >= 12 and len(words) >= minimum_words
 
 
+def _canonical_issue_number(reference: str) -> bool:
+    """Return whether a reference is a canonical decimal issue number.
+
+    A reference beyond the interpreter integer digit limit cannot name an issue,
+    so it is malformed, like a reference with a leading zero.
+    """
+
+    digit_limit = sys.get_int_max_str_digits()
+    return (
+        reference.isascii()
+        and reference.isdecimal()
+        and not reference.startswith("0")
+        and (digit_limit == 0 or len(reference) <= digit_limit)
+    )
+
+
 def _issue_numbers(body: str, keyword: str) -> tuple[int, ...]:
     """Return unique standalone same-repository references in source order."""
 
@@ -137,7 +160,7 @@ def _issue_numbers(body: str, keyword: str) -> tuple[int, ...]:
         if len(parts) != 2 or parts[0] != keyword or not parts[1].startswith("#"):
             continue
         reference = parts[1].removeprefix("#")
-        if reference.isascii() and reference.isdecimal() and not reference.startswith("0"):
+        if _canonical_issue_number(reference):
             numbers.append(int(reference))
     return tuple(dict.fromkeys(numbers))
 
@@ -238,7 +261,7 @@ def _inspect_issue(number: int, keyword: str, issue_lookup: IssueLookup) -> Body
     # Fail closed on API and configuration errors from the injected lookup.
     try:
         issue = issue_lookup(number)
-    except Exception as exc:
+    except _LOOKUP_FAILURES as exc:
         violation = BodyViolation(RULE_ISSUES, f"Could not verify issue #{number}: {exc}")
     else:
         violation = None
@@ -353,7 +376,12 @@ def _read_json_object(path: Path, description: str) -> dict[str, Any]:
     if not resolved.is_file():
         raise ValueError(f"{description} must be a regular file")
     with resolved.open(encoding="utf-8") as stream:
-        payload = json.load(stream)
+        try:
+            payload = json.load(stream)
+        except RecursionError as exc:
+            # The recursive decoder stops at the interpreter recursion limit. This module is
+            # standard-library only, so a configuration error is a ValueError, as above.
+            raise ValueError(f"{description} nests beyond the JSON decoder depth limit") from exc
     if not isinstance(payload, dict):
         raise ValueError(f"{description} must be a JSON object")
     return payload
@@ -387,7 +415,7 @@ def _open_issue_report(body: str, issue_lookup: IssueLookup, pr_number: int | st
         # A failed lookup must be visible in the audit without mutating issues.
         try:
             issue = issue_lookup(number)
-        except Exception as exc:
+        except _LOOKUP_FAILURES as exc:
             errors.append(f"- Could not inspect `#{number}`: {exc}")
             continue
         if not issue.exists:

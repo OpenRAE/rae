@@ -3,14 +3,21 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterator
-from contextlib import contextmanager, suppress
+from contextlib import contextmanager
 from functools import wraps
 from threading import Condition, RLock, local
 from time import monotonic
 from typing import TYPE_CHECKING, Concatenate, Self
 
+from raes_contracts.errors import ConflictError, OperationalError
+from raes_contracts.operational_logging import get_logger
+
+from .errors import RuntimeBudgetExhaustedError
+
 if TYPE_CHECKING:
     from .operation_execution_adapter import LocalExecutionAdapter
+
+_LOGGER = get_logger(__name__)
 
 
 def runtime_owned[**P, R](
@@ -80,8 +87,11 @@ class RuntimeLifecycleMixin:
         self.close()
 
     def __del__(self) -> None:
-        with suppress(Exception):
+        try:
             self.close()
+        except Exception:
+            # Boundary of the finalizer: the failed close already retained its resources.
+            _LOGGER.exception("runtime control plane finalizer could not close the runtime")
 
     def close(self) -> None:
         """Bound drain and retain ownership until physical callbacks and close settle."""
@@ -92,7 +102,7 @@ class RuntimeLifecycleMixin:
             return
         claim = getattr(self, "_resource_claim", None)
         if claim is not None and claim.active_calls:
-            raise RuntimeError("runtime callbacks remain active")
+            raise ConflictError("runtime callbacks remain active")
         config = getattr(self, "_supervision", None)
         budget = getattr(config, "drain_ms", 2000) / 1000
         deadline = monotonic() + budget
@@ -102,7 +112,7 @@ class RuntimeLifecycleMixin:
         try:
             stop_clock = getattr(self, "_stop_participant_clock_driver", None)
             if stop_clock is not None and not stop_clock():
-                raise TimeoutError("runtime manager clock driver remains active")
+                raise RuntimeBudgetExhaustedError("runtime manager clock driver remains active")
             adapter = getattr(self, "_execution_adapter", None)
             self._drain_runtime_calls(condition, adapter, deadline)
             self._close_runtime_dispatcher(adapter, deadline)
@@ -110,7 +120,7 @@ class RuntimeLifecycleMixin:
             self._close_runtime_provider()
             self._close_runtime_lease()
             if adapter is not None and not adapter.close(timeout_ms=max(1, int((deadline - monotonic()) * 1000))):
-                raise TimeoutError("runtime drain has unresolved external calls")
+                raise RuntimeBudgetExhaustedError("runtime drain has unresolved external calls")
             self._release_runtime_resources()
             with condition:
                 self._closed = True
@@ -127,7 +137,7 @@ class RuntimeLifecycleMixin:
             if getattr(self._lifecycle_local, "depth", 0):
                 raise RuntimeError("cannot close a runtime control plane from one of its active calls")
             if self._closing and not condition.wait_for(lambda: not self._closing or self._closed, timeout=budget):
-                raise TimeoutError("runtime drain could not be established")
+                raise RuntimeBudgetExhaustedError("runtime drain could not be established")
             if self._closed:
                 return False
             self._closing = True
@@ -140,10 +150,10 @@ class RuntimeLifecycleMixin:
     ) -> None:
         with condition:
             if not condition.wait_for(lambda: self._active_runtime_calls == 0, timeout=max(0, deadline - monotonic())):
-                raise TimeoutError("runtime drain could not be established")
+                raise RuntimeBudgetExhaustedError("runtime drain could not be established")
         remaining_ms = max(1, int((deadline - monotonic()) * 1000))
         if adapter is not None and not adapter.drain(timeout_ms=remaining_ms):
-            raise TimeoutError("runtime drain has unresolved external calls")
+            raise RuntimeBudgetExhaustedError("runtime drain has unresolved external calls")
 
     def _close_runtime_dispatcher(self, adapter: LocalExecutionAdapter | None, deadline: float) -> None:
         dispatcher = getattr(self, "_distributed_execution", None)
@@ -217,9 +227,11 @@ class RuntimeLifecycleMixin:
         with condition:
             depth = getattr(self._lifecycle_local, "depth", 0)
             if self._durability_poisoned:
-                raise RuntimeError("runtime control plane requires restart after a durability reconciliation failure")
+                raise OperationalError(
+                    "runtime control plane requires restart after a durability reconciliation failure"
+                )
             if depth == 0 and (self._closed or self._closing):
-                raise RuntimeError("runtime control plane is closed")
+                raise OperationalError("runtime control plane is closed")
             self._active_runtime_calls += 1
             self._lifecycle_local.depth = depth + 1
         try:
@@ -238,7 +250,7 @@ class RuntimeLifecycleMixin:
 
     def _assert_runtime_owner(self) -> None:
         if self._closed:
-            raise RuntimeError("runtime control plane is closed")
+            raise OperationalError("runtime control plane is closed")
         lease = self._runtime_lease
         assert_owner = getattr(lease, "assert_owner", None)
         if callable(assert_owner):

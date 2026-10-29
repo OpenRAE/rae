@@ -8,6 +8,7 @@ from typing import cast
 
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.runtime_state import ApplyResult, RealizationProvenanceEntry, RuntimeSnapshot
 from raes_processor.models import CompiledRealizationRequirement
 from raes_processor.planner import (
@@ -247,7 +248,7 @@ def _sanitize_backend_realization(
                 baseline_snapshot,
                 requirements=_supplemental_realization_requirements(realization),
             )
-        except ValueError:
+        except InvalidInputError:
             return _failed_apply_result(
                 baseline_snapshot,
                 _backend_contract_invalid(

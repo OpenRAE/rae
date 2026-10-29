@@ -597,6 +597,32 @@ def test_validation_and_report_record_lookup_errors() -> None:
     report = pr_body._open_issue_report(_body(), failing, 7)
     assert "Inspection errors" in report
     assert "never closes issues" in report
+
+
+@pytest.mark.parametrize(
+    "failure",
+    [
+        OSError("network unreachable"),
+        ValueError("undecodable response"),
+        pr_body.http.client.IncompleteRead(b""),
+    ],
+)
+def test_documented_lookup_failures_are_recorded(failure: Exception) -> None:
+    def failing(_number: int) -> IssueFacts:
+        raise failure
+
+    assert any("Could not verify issue #123" in item.message for item in validate_pr_body(_body(), failing))
+    assert "Inspection errors" in pr_body._open_issue_report(_body(), failing, 7)
+
+
+def test_a_defect_in_the_issue_lookup_is_not_reported_as_an_unverifiable_issue() -> None:
+    def defective(_number: int) -> IssueFacts:
+        raise TypeError("lookup defect")
+
+    with pytest.raises(TypeError, match="lookup defect"):
+        validate_pr_body(_body(), defective)
+    with pytest.raises(TypeError, match="lookup defect"):
+        pr_body._open_issue_report(_body(), defective, 7)
     assert "All declared closing issues are closed" in pr_body._open_issue_report(_body(), _lookup({123: "closed"}), 7)
     assert "No issue-tracking declaration" in pr_body._open_issue_report("No references", _lookup({}), 7)
 

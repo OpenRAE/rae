@@ -32,6 +32,7 @@ def _exercise_process_loss(phase, tmp_path, database):
     from raes_contracts.planning import ProvisioningPlan
     from raes_contracts.runtime_state import OperationState
     from raes_runtime.control_plane import RuntimeControlPlane
+    from raes_runtime.control_plane_store import IndeterminateClaimBlocked
     from raes_runtime.control_plane_store_postgresql import PostgreSQLControlPlaneStore
 
     config = ledger_configuration(database)
@@ -66,7 +67,7 @@ def _exercise_process_loss(phase, tmp_path, database):
         assert receipt == record.receipt
         if record.invocation.reserved:
             rejected_plan = ProvisioningPlan()
-            with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
+            with pytest.raises(IndeterminateClaimBlocked, match="indeterminate operation requires resolution"):
                 plane.submit_provisioning(rejected_plan)
         assert calls == []
         assert plane._store.load_records()[record.receipt.operation_id].invocation == record.invocation

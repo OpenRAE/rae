@@ -16,9 +16,19 @@ out of scope. What this module owns is the boundary around that client:
 from __future__ import annotations
 
 import json
+import sys
 from collections.abc import Mapping
+from pathlib import Path
 
-from tools.release_evidence_admission import ProducerIdentity
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError, RaesError  # noqa: E402
+
+from tools.release_evidence_admission import ProducerIdentity  # noqa: E402
 
 # The verifier emits a small JSON array. Anything larger is malformed output or
 # a hostile response rather than a verdict.
@@ -30,12 +40,30 @@ MAX_VERIFIER_OUTPUT_BYTES = 1 * 1024 * 1024
 _GITHUB_PREFIX = "https://github.com/"
 
 
-class VerifierError(Exception):
-    """A verification-boundary failure carrying a stable, publishable code."""
+class VerifierError(RaesError):
+    """A verification-boundary failure carrying a stable, publishable code.
+
+    The codes cover rejected evidence and a verifier that cannot run, which
+    are different categories, so the family derives from ``RaesError``. Each
+    code means that no attestation was verified, and the release gate rejects
+    the evidence.
+    """
 
     def __init__(self, code: str, message: str) -> None:
         super().__init__(message)
         self.code = code
+
+
+class _IntegerDigitLimitError(InvalidInputError):
+    """A JSON integer exceeds the interpreter digit limit; it controls the flow of this module only."""
+
+
+def _bounded_integer(literal: str) -> int:
+    # The decoder passes only JSON integer literals, so int() fails only beyond the interpreter digit limit.
+    try:
+        return int(literal)
+    except ValueError as exc:
+        raise _IntegerDigitLimitError("JSON integer exceeds the interpreter digit limit") from exc
 
 
 def build_verify_command(
@@ -92,8 +120,8 @@ def _sole_attestation(payload: str) -> JsonValue:
             "attestation verifier output exceeds the reviewed size bound",
         )
     try:
-        document: JsonValue = json.loads(payload)
-    except ValueError as exc:
+        document: JsonValue = json.loads(payload, parse_int=_bounded_integer)
+    except (json.JSONDecodeError, _IntegerDigitLimitError) as exc:
         raise VerifierError(
             "verifier-output-unparsable",
             "attestation verifier output could not be parsed",

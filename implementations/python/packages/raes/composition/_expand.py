@@ -401,6 +401,9 @@ def expand_sdl_modules(
 
     merged = dict(data)
     merged.setdefault("imports", [])
+    # The editor context composes before structural validation, so the import list can have any shape.
+    if not isinstance(merged["imports"], list):
+        raise SDLParseError("SDL imports must be a list", path=path)
     merged.setdefault("version", "*")
     import_records: list[ResolvedImportProvenance] = []
     capability_constraints: list[CapabilityConstraint] = []

@@ -208,12 +208,19 @@ def _resolve_local_import(
 
     relative = source.removeprefix("local:")
     if context.verified_sources is None:
+        # Path functions refuse a NUL character with ValueError; the verified-cache reader refuses it the same way.
+        if "\x00" in relative:
+            raise SDLParseError(f"Local import path escapes base directory: {relative!r}")
         import_path = (context.base_dir / relative).resolve()
         if not import_path.is_relative_to(context.base_dir.resolve()):
             raise SDLParseError(f"Local import path escapes base directory: {relative!r}")
         if not import_path.exists():
             raise SDLParseError(f"Imported SDL file not found: {relative}")
-        imported_source = read_sdl_source(import_path, limits=context.source_options.limits)
+        try:
+            imported_source = read_sdl_source(import_path, limits=context.source_options.limits)
+        except OSError as exc:
+            # The authored import can name a directory or a file that this process cannot read.
+            raise SDLParseError(f"Imported SDL file cannot be read: {relative}") from exc
     else:
         import_path, imported_source = context.verified_sources.resolve_local(
             base_dir=context.base_dir,
@@ -425,7 +432,7 @@ def _resolve_oci_import(
         source_options=source_options,
     )
     if not isinstance(verified_sources, _VerifiedSourceBundle):
-        raise SDLParseError("OCI module cache did not return verified source documents")
+        raise RuntimeError("OCI module cache did not return verified source documents")
     resolved_root, resolved_source_document = verified_sources.resolve_local(
         base_dir=verified_sources.cache_root,
         relative=root_file,

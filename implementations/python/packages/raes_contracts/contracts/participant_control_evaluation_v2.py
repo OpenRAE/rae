@@ -5,9 +5,17 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Annotated, Literal, Self
 
-from pydantic import ConfigDict, Field, SerializerFunctionWrapHandler, model_serializer, model_validator
+from pydantic import (
+    ConfigDict,
+    Field,
+    SerializerFunctionWrapHandler,
+    ValidationError,
+    model_serializer,
+    model_validator,
+)
 
-from ..json_ingress import parse_bounded_json_object
+from ..errors import InvalidInputError
+from ..json_ingress import StrictJsonIngressError, parse_bounded_json_object
 from .base import ContractModel, PrefixedDigestString
 from .participant_control_applicability import (
     ControlStateScopeV2Model,
@@ -373,6 +381,7 @@ def parse_participant_control_evaluation_v2(source: str | bytes) -> ParticipantC
 
     try:
         payload = parse_bounded_json_object(source, max_bytes=1_048_576, max_depth=32)
-        return ParticipantControlEvaluationV2Model.model_validate(payload)
-    except TypeError, ValueError:
-        raise ValueError("invalid participant control evaluation") from None
+        evaluation = ParticipantControlEvaluationV2Model.model_validate(payload)
+    except StrictJsonIngressError, ValidationError:
+        raise InvalidInputError("invalid participant control evaluation") from None
+    return evaluation

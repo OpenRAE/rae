@@ -15,6 +15,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from raes_contracts.errors import InvalidInputError, OperationalError
 from tools import bootstrap_profile, maintained_client_acquisition
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -658,7 +659,7 @@ def test_bootstrap_python_install_extracts_only_the_locked_relocatable_archive(
     installed = kit_root / result["path"] / "bin/python3.14"
     assert installed.read_bytes() == b"relocatable-python"
     archive.write_bytes(archive.read_bytes() + b"tampered")
-    with pytest.raises(ValueError, match="differs from the validated lock"):
+    with pytest.raises(InvalidInputError, match="differs from the validated lock"):
         bootstrap_profile.install_python_payload("host-a", kit_root, "cpython-3.14")
 
 
@@ -717,7 +718,7 @@ def test_bootstrap_payload_fetch_uses_the_validated_exact_raw_object(
         return {"outcome": "passed", "reason_code": "curl-transfer-qualified"}
 
     monkeypatch.setattr(bootstrap_profile, "run_curl_qualification", fake_transfer)
-    with pytest.raises(ValueError, match="locator is not approved"):
+    with pytest.raises(InvalidInputError, match="locator is not approved"):
         bootstrap_profile.fetch_bootstrap_payloads("host-a", kit_root, ("uv",), locator_ref="unapproved")
     assert not (kit_root / "archives").exists()
     result = bootstrap_profile.fetch_bootstrap_payloads("host-a", kit_root, ("uv",), locator_ref=locator_ref)
@@ -729,7 +730,7 @@ def test_bootstrap_payload_fetch_uses_the_validated_exact_raw_object(
             "size": len(payload),
         }
     ]
-    with pytest.raises(ValueError, match="already exists"):
+    with pytest.raises(InvalidInputError, match="already exists"):
         bootstrap_profile.fetch_bootstrap_payloads("host-a", kit_root, ("uv",), locator_ref=locator_ref)
 
     tampered_root = tmp_path / "tampered-kit"
@@ -754,7 +755,7 @@ def test_bootstrap_payload_fetch_uses_the_validated_exact_raw_object(
 
     monkeypatch.setattr(bootstrap_profile, "run_curl_qualification", fake_tampered_transfer)
     tampered_target = tampered_root / "archives/uv/uv.tar.gz"
-    with pytest.raises(ValueError, match="failed exact verification"):
+    with pytest.raises(OperationalError, match="failed exact verification"):
         bootstrap_profile.fetch_bootstrap_payloads("host-a", tampered_root, ("uv",), locator_ref=locator_ref)
     assert not tampered_target.exists()
 

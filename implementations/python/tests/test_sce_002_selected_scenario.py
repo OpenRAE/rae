@@ -8,6 +8,7 @@ from raes import (
     select_scenario_family,
 )
 from raes.scenario import ExpandedScenario, Scenario
+from raes.selected_scenario import SDLSelectionError
 from raes.validator import SemanticValidator
 from raes_contracts.contracts import (
     ExperimentSelectionMemberOutcomeModel,
@@ -214,7 +215,7 @@ def test_incomplete_selection_fails_closed_without_disclosing_values() -> None:
     family = _family()
     outcomes = {"payload-path": LiteralBindingValueModel(kind="literal", value="/opt/b")}
 
-    with pytest.raises(ValueError) as raised:
+    with pytest.raises(SDLSelectionError) as raised:
         select_scenario_family(family, outcomes)
 
     assert "payload-host" in str(raised.value)
@@ -251,7 +252,7 @@ def test_conflicting_writers_to_one_canonical_target_fail_before_application() -
     )
     family = _all_kinds_family()
 
-    with pytest.raises(ValueError, match="conflicting values"):
+    with pytest.raises(SDLSelectionError, match="conflicting values"):
         select_scenario_family(family, outcomes)
 
 
@@ -267,7 +268,7 @@ def test_cross_point_requires_constraint_is_enforced_before_application() -> Non
     outcomes = _all_kinds_outcomes()
     outcomes["feature-set"] = ExperimentSelectionSubsetOutcomeModel(kind="subset", member_ids=["base"])
 
-    with pytest.raises(ValueError, match="violates requires"):
+    with pytest.raises(SDLSelectionError, match="violates requires"):
         select_scenario_family(constrained, outcomes)
 
 
@@ -276,7 +277,7 @@ def test_post_selection_whole_scenario_semantics_reject_invalid_timing() -> None
     outcomes["start-offset"] = LiteralBindingValueModel(kind="literal", value=5)
     family = _all_kinds_family()
 
-    with pytest.raises(ValueError, match="whole-scenario semantic admission") as raised:
+    with pytest.raises(SDLSelectionError, match="whole-scenario semantic admission") as raised:
         select_scenario_family(family, outcomes)
 
     assert "input_value" not in str(raised.value)

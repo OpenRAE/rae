@@ -105,25 +105,26 @@ def _domain_has_member(domain: object) -> bool:
 class _VariationMixin:
     def _verify_variation_points(self) -> None:
         for point_name, point in getattr(self._s, "variation_points", {}).items():
-            if isinstance(point, ParameterVariationPoint):
-                self._verify_parameter_point(point_name, point)
-            elif isinstance(point, GovernedReferenceVariationPoint):
-                self._verify_reference_point(point_name, point, list(point.domain.allowed_refs))
-            elif isinstance(point, AlternativeVariationPoint):
-                if isinstance(point.target, StructuralTarget):
-                    self._verify_structural_point(point_name, point)
-                else:
-                    self._verify_reference_point(
-                        point_name,
-                        point,
-                        [member.reference for member in point.alternatives.values()],
-                    )
-                self._verify_member_relations(point_name, point)
-            elif isinstance(point, (SubsetVariationPoint, OrderVariationPoint)):
-                self._verify_collection_point(point_name, point)
-                self._verify_member_relations(point_name, point)
-            elif isinstance(point, LogicalTimingVariationPoint):
-                self._verify_timing_point(point_name, point)
+            with self._owner(("variation_points", point_name)):
+                if isinstance(point, ParameterVariationPoint):
+                    self._verify_parameter_point(point_name, point)
+                elif isinstance(point, GovernedReferenceVariationPoint):
+                    self._verify_reference_point(point_name, point, list(point.domain.allowed_refs))
+                elif isinstance(point, AlternativeVariationPoint):
+                    if isinstance(point.target, StructuralTarget):
+                        self._verify_structural_point(point_name, point)
+                    else:
+                        self._verify_reference_point(
+                            point_name,
+                            point,
+                            [member.reference for member in point.alternatives.values()],
+                        )
+                    self._verify_member_relations(point_name, point)
+                elif isinstance(point, (SubsetVariationPoint, OrderVariationPoint)):
+                    self._verify_collection_point(point_name, point)
+                    self._verify_member_relations(point_name, point)
+                elif isinstance(point, LogicalTimingVariationPoint):
+                    self._verify_timing_point(point_name, point)
         if not self._errors:
             self._verify_family_satisfiability()
 
@@ -333,10 +334,11 @@ class _VariationMixin:
             for group in groups:
                 for point_name, member_name in group.members:
                     if not solver.has_witness({(point_name, member_name): True}):
-                        self._err(
-                            f"Variation point '{point_name}' member '{member_name}' cannot participate "
-                            "in any satisfying selection"
-                        )
+                        with self._owner(("variation_points", point_name)):
+                            self._err(
+                                f"Variation point '{point_name}' member '{member_name}' cannot participate "
+                                "in any satisfying selection"
+                            )
 
     def _selection_relation_clauses(
         self,

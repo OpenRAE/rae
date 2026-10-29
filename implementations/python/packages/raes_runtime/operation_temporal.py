@@ -19,6 +19,7 @@ from raes_contracts.contracts.backend_operation import (
     OperationPositive,
 )
 from raes_contracts.contracts.base import ContractModel
+from raes_contracts.errors import ConflictError, OperationalError
 
 from .operation_execution_adapter import require_budget_ms
 
@@ -140,7 +141,7 @@ class TemporalExecutionAdapter:
 
     def submit(self, request: BackendOperationRequestModel) -> str:
         if self._closed:
-            raise RuntimeError("Temporal execution adapter is closed")
+            raise OperationalError("Temporal execution adapter is closed")
         delivery = self.binding(request)
         self._portal.call(self._start, delivery.reference, delivery.workflow_id)
         return delivery.workflow_id
@@ -189,12 +190,16 @@ class TemporalExecutionAdapter:
                     "control_reference", rpc_timeout=timedelta(milliseconds=self.configuration.rpc_budget_ms)
                 )
                 if retained != payload:
-                    raise ValueError("Temporal control binding conflict") from None
+                    raise ConflictError("Temporal control binding conflict") from None
 
     async def _connected(self) -> Client:
         if self._client is None:
-            with anyio.fail_after(self.configuration.rpc_budget_ms / 1000):
-                self._client = await self._factory()
+            try:
+                with anyio.fail_after(self.configuration.rpc_budget_ms / 1000):
+                    self._client = await self._factory()
+            except RuntimeError as exc:
+                # The Temporal SDK reports a service that it cannot reach with RuntimeError.
+                raise OperationalError("Temporal client connection failed") from exc
             if self._client.namespace != self.configuration.namespace:
                 self._client = None
                 raise ValueError("Temporal client namespace does not match configuration")
@@ -227,7 +232,7 @@ class TemporalExecutionAdapter:
                     "operation_reference", rpc_timeout=timedelta(milliseconds=self.configuration.rpc_budget_ms)
                 )
                 if EngineOperationReference.model_validate(retained) != reference:
-                    raise ValueError("Temporal execution binding conflict") from None
+                    raise ConflictError("Temporal execution binding conflict") from None
 
     def close(self) -> None:
         if not self._closed:

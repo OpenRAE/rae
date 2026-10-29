@@ -14,6 +14,7 @@ from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingInteractionKind,
     ParticipantCrossingOperation,
 )
+from raes_contracts.errors import AuthorizationError, ConflictError
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 
 from .control_plane_security import ControlPlaneIdentity, ControlPlaneRole
@@ -126,7 +127,7 @@ def _resolve_single_backend_support(
                 downgrade_policy_ref=resolution.downgrade_policy_ref,
                 downgrade_provenance_ref=resolution.downgrade_provenance_ref,
             )
-        except ValueError:
+        except ConflictError:
             return _unsupported_support(f"limitation:{feature}:unsupported", feature)
         if declaration is not None:
             declarations.append(declaration)
@@ -186,7 +187,7 @@ def _require_crossing_identity(
 ) -> ControlPlaneIdentity:
     if not isinstance(identity, ControlPlaneIdentity):
         _record_identity_denial(control_plane, intent, "authentication-required")
-        raise PermissionError("participant crossing requires an authenticated identity")
+        raise AuthorizationError("participant crossing requires an authenticated identity")
     if identity.target_name is not None and identity.target_name != control_plane.target_name:
         _record_identity_denial(
             control_plane,
@@ -194,7 +195,7 @@ def _require_crossing_identity(
             "target-forbidden",
             identity=identity.identity,
         )
-        raise PermissionError("participant crossing identity is not authorized for this target")
+        raise AuthorizationError("participant crossing identity is not authorized for this target")
     _require_crossing_role(control_plane, intent, identity)
     _require_crossing_subject_binding(control_plane, intent, identity)
     return identity
@@ -218,7 +219,7 @@ def _require_crossing_role(
             "caller-forbidden",
             identity=identity.identity,
         )
-        raise PermissionError("participant crossing identity is not authorized for this operation")
+        raise AuthorizationError("participant crossing identity is not authorized for this operation")
 
 
 def _require_crossing_subject_binding(
@@ -239,7 +240,7 @@ def _require_crossing_subject_binding(
                 "subject-forbidden",
                 identity=identity.identity,
             )
-            raise PermissionError("participant crossing identity is not authorized for this subject")
+            raise AuthorizationError("participant crossing identity is not authorized for this subject")
     else:
         bound = any(
             binding.participant_address == intent.participant_address
@@ -253,7 +254,7 @@ def _require_crossing_subject_binding(
                 "audience-forbidden",
                 identity=identity.identity,
             )
-            raise PermissionError("participant crossing identity is not authorized for this audience")
+            raise AuthorizationError("participant crossing identity is not authorized for this audience")
 
 
 def _record_identity_denial(

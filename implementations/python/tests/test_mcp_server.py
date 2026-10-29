@@ -11,6 +11,7 @@ import json
 
 import pytest
 from paths import EXAMPLES_DIR
+from raes_contracts.errors import InvalidInputError
 from raes_mcp.server import create_server
 
 # ---------------------------------------------------------------------------
@@ -869,6 +870,49 @@ class TestOperationTools:
         )
         assert payload["status"] == "invalid"
         assert payload["stage"] == "parameter_parsing"
+
+    def test_compile_refusal_reports_compilation_stage_without_values(self, server, monkeypatch):
+        import raes_processor.compiler as compiler
+
+        def _refuse(*_args, **_kwargs):
+            raise InvalidInputError("observation scope does not resolve: SECRET-MARKER")
+
+        monkeypatch.setattr(compiler, "compile_runtime_model", _refuse)
+        payload = _json_call(server, "sdl_compile", {"sdl_content": MINIMAL_SDL})
+
+        assert payload["status"] == "invalid"
+        assert payload["stage"] == "compilation"
+        assert "SECRET-MARKER" not in json.dumps(payload)
+
+    @pytest.mark.parametrize("tool", ["sdl_plan", "sdl_design_assessment", "sdl_claims_assessment"])
+    def test_planner_refusal_reports_planning_stage_without_values(self, server, monkeypatch, tool):
+        import raes_processor.planner as planner
+
+        def _refuse(*_args, **_kwargs):
+            raise InvalidInputError("retained descendants exceed their bound: SECRET-MARKER")
+
+        monkeypatch.setattr(planner, "plan", _refuse)
+        payload = _json_call(server, tool, {"sdl_content": MINIMAL_SDL})
+
+        assert payload["status"] == "invalid"
+        assert payload["stage"] == "planning"
+        assert "SECRET-MARKER" not in json.dumps(payload)
+
+    def test_missing_repository_checkout_is_an_operational_failure(self, tmp_path):
+        from pathlib import Path
+
+        from raes_contracts.errors import OperationalError
+        from raes_mcp.tools import experiment_authoring, reference
+
+        class _InstalledLocation(type(Path())):
+            """A location with no repository markers, as in an installed distribution."""
+
+            def exists(self, *, follow_symlinks: bool = True) -> bool:
+                return False
+
+        for module in (reference, experiment_authoring):
+            with pytest.raises(OperationalError, match="could not locate RAES repo root"):
+                module._find_repo_root(_InstalledLocation(tmp_path))
 
 
 # ---------------------------------------------------------------------------

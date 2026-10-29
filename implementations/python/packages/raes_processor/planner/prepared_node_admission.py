@@ -9,6 +9,7 @@ from raes.infrastructure import InfraNode
 from raes.nodes import Node, NodeType
 from raes_backend_protocols.manifest import BackendManifest
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot
 
@@ -34,47 +35,68 @@ _NODE_IDENTITY_FIELDS = (
 
 def _node_runtime(operation: object) -> NetworkRuntime | NodeRuntime:
     resource = NetworkRuntime if operation.resource_type == "network" else NodeRuntime
-    return resource(
-        address=operation.address,
-        ordering_dependencies=operation.ordering_dependencies,
-        refresh_dependencies=operation.refresh_dependencies,
-        **operation.payload,
-    )
+    try:
+        return resource(
+            address=operation.address,
+            ordering_dependencies=operation.ordering_dependencies,
+            refresh_dependencies=operation.refresh_dependencies,
+            **operation.payload,
+        )
+    except TypeError as exc:
+        # The record call refuses missing, unknown or non-mapping proposed fields with TypeError.
+        raise InvalidInputError("prepared node payload is not a closed portable node record") from exc
+
+
+def _canonical_node_address(name: object, node_type: NodeType) -> str:
+    if not isinstance(name, str):
+        raise InvalidInputError("prepared node does not preserve its canonical identity")
+    try:
+        return _network_address(name) if node_type is NodeType.SWITCH else _node_address(name)
+    except ValueError as exc:
+        # The address owner refuses a non-canonical name with ValueError (E3).
+        raise InvalidInputError("prepared node does not preserve its canonical identity") from exc
 
 
 def _require_canonical_identity(resource: NetworkRuntime | NodeRuntime, node: Node) -> None:
     """Require a prepared node to keep the address its own typed identity implies."""
 
-    canonical = _network_address(resource.name) if node.type is NodeType.SWITCH else _node_address(resource.name)
+    canonical = _canonical_node_address(resource.name, node.type)
     if resource.name != resource.node_name or resource.address != canonical or resource.node_kind != node.type.value:
-        raise ValueError("prepared node does not preserve its canonical identity")
+        raise InvalidInputError("prepared node does not preserve its canonical identity")
     if node.features or node.conditions or node.injects or node.roles:
-        raise ValueError("a node collection cannot grant separate bindings or participant roles")
+        raise InvalidInputError("a node collection cannot grant separate bindings or participant roles")
 
 
 def _require_node_runtime_identity(resource: NodeRuntime, node: Node) -> None:
     """Require a prepared compute node to match its own typed specification."""
 
     if resource.domain_topology is not None:
-        raise ValueError("a node collection cannot grant identity-domain membership")
+        raise InvalidInputError("a node collection cannot grant identity-domain membership")
     if resource.count != resource.spec["infrastructure"].get("count"):
-        raise ValueError("prepared node count differs from its specification")
+        raise InvalidInputError("prepared node count differs from its specification")
     if resource.count is not None and (type(resource.count) is not int or resource.count < 1):
-        raise ValueError("prepared node requires a known positive count")
+        raise InvalidInputError("prepared node requires a known positive count")
     for field, source in _NODE_IDENTITY_FIELDS:
         selected = getattr(node, source)
         if (getattr(selected, "value", selected) or "") != getattr(resource, field):
-            raise ValueError("prepared node identity differs from its typed specification")
+            raise InvalidInputError("prepared node identity differs from its typed specification")
+
+
+def _available_reference(name: str, available: Mapping[str, object]) -> object:
+    if name not in available:
+        raise InvalidInputError("prepared node references an unavailable dependency")
+    return available[name]
 
 
 def _referenced_addresses(infrastructure: InfraNode, available: Mapping[str, object]) -> set[str]:
     """Collect the addresses a prepared node's own references require."""
 
-    required = {available[name].address for name in infrastructure.dependencies}
+    required = {_available_reference(name, available).address for name in infrastructure.dependencies}
     for name in infrastructure.links:
-        if available[name].resource_type != "network":
-            raise ValueError("prepared infrastructure link requires a network")
-        required.add(available[name].address)
+        linked = _available_reference(name, available)
+        if linked.resource_type != "network":
+            raise InvalidInputError("prepared infrastructure link requires a network")
+        required.add(linked.address)
     return required
 
 
@@ -82,11 +104,15 @@ def _namespace_target_address(resource: NodeRuntime, node: Node, available: Mapp
     """Resolve the namespace target a prepared compute node references."""
 
     target_name = _network_namespace_target(node)
-    target_address = _node_address(target_name) if target_name else ""
+    try:
+        target_address = _node_address(target_name) if target_name else ""
+    except ValueError as exc:
+        # The address owner refuses a non-canonical name with ValueError (E3).
+        raise InvalidInputError("prepared node namespace target differs from its typed reference") from exc
     if resource.network_namespace_target != target_address:
-        raise ValueError("prepared node namespace target differs from its typed reference")
-    if target_name and available[target_name].resource_type != "node":
-        raise ValueError("prepared namespace target requires a compute node")
+        raise InvalidInputError("prepared node namespace target differs from its typed reference")
+    if target_name and _available_reference(target_name, available).resource_type != "node":
+        raise InvalidInputError("prepared namespace target requires a compute node")
     return target_address
 
 
@@ -94,10 +120,14 @@ def _validate_added_node(
     operation: object, available: Mapping[str, object]
 ) -> tuple[NetworkRuntime | NodeRuntime, Node]:
     resource = _node_runtime(operation)
-    if set(resource.spec) != _CLOSED_NODE_SPEC_KEYS:
-        raise ValueError("prepared node requires its closed node/infrastructure specification")
-    node = typed_runtime_observation_shape(resource.spec["node"], adapter=TypeAdapter(Node))
-    infrastructure = InfraNode.model_validate(resource.spec["infrastructure"])
+    if not isinstance(resource.spec, Mapping) or set(resource.spec) != _CLOSED_NODE_SPEC_KEYS:
+        raise InvalidInputError("prepared node requires its closed node/infrastructure specification")
+    try:
+        node = typed_runtime_observation_shape(resource.spec["node"], adapter=TypeAdapter(Node))
+        infrastructure = InfraNode.model_validate(resource.spec["infrastructure"])
+    except ValueError as exc:
+        # The typed shape owners refuse with ValueError or ValidationError (E3).
+        raise InvalidInputError("prepared node specification failed typed validation") from exc
     _require_canonical_identity(resource, node)
     if isinstance(resource, NodeRuntime):
         _require_node_runtime_identity(resource, node)
@@ -107,7 +137,7 @@ def _validate_added_node(
         if target_address:
             required.add(target_address)
     if not required <= set(operation.ordering_dependencies) & set(operation.refresh_dependencies):
-        raise ValueError("prepared node omitted an owned reference dependency")
+        raise InvalidInputError("prepared node omitted an owned reference dependency")
     return resource, node
 
 
@@ -138,10 +168,10 @@ def _require_admitted_additions(
 
     for operation in added:
         if operation.resource_type not in _PORTABLE_RESOURCE_TYPES:
-            raise ValueError("collection does not authorize this resource type")
+            raise InvalidInputError("collection does not authorize this resource type")
     for operation in additional_live:
         if {*operation.ordering_dependencies, *operation.refresh_dependencies} - live.keys():
-            raise ValueError("prepared node references an unavailable dependency")
+            raise InvalidInputError("prepared node references an unavailable dependency")
         resource, node = _validate_added_node(operation, available)
         prepared_node_document(operation.payload)
         validate_prepared_node_support(resource, node, manifest, availability)
@@ -172,7 +202,7 @@ def prepared_node_capability_violation(
     live = _live_provisioning_entries(selected, previous)
     try:
         validate_portable_node_inventory(live, original_addresses, manifest, availability, added=added)
-    except AttributeError, KeyError, TypeError, ValueError:
+    except InvalidInputError:
         return "Backend preparation selected an inadmissible portable node completion."
     return None
 
@@ -185,15 +215,25 @@ def validate_portable_node_inventory(
     *,
     added: Sequence[object] = (),
 ) -> None:
-    """Admit portable additions with the same native semantics at either boundary."""
+    """Admit portable additions with the same native semantics at either boundary.
+
+    Raise ``InvalidInputError`` when the proposed inventory is not admissible.
+    """
     portable = {address: entry for address, entry in live.items() if entry.resource_type in _PORTABLE_RESOURCE_TYPES}
-    available = {entry.payload.get("name"): entry for entry in portable.values()}
+    available: dict[str, object] = {}
+    for entry in portable.values():
+        name = entry.payload.get("name")
+        if not isinstance(name, str) or name in available:
+            raise InvalidInputError("portable membership has duplicate names or cyclic ordering")
+        available[name] = entry
     additional_live = [entry for address, entry in portable.items() if address not in original_addresses]
-    if len(available) != len(portable) or resource_dependency_cycles(live):
-        raise ValueError("portable membership has duplicate names or cyclic ordering")
+    if resource_dependency_cycles(live):
+        raise InvalidInputError("portable membership has duplicate names or cyclic ordering")
     _require_admitted_additions(
         added, additional_live, live=live, available=available, manifest=manifest, availability=availability
     )
     validate_prepared_node_semantics(live)
-    if any(diagnostic.is_error for diagnostic in _validate_manifest(_prepared_runtime_model(live), manifest)):
-        raise ValueError("portable node inventory lacks configured capability support")
+    if manifest is None or any(
+        diagnostic.is_error for diagnostic in _validate_manifest(_prepared_runtime_model(live), manifest)
+    ):
+        raise InvalidInputError("portable node inventory lacks configured capability support")

@@ -31,15 +31,15 @@ from raes_contracts.contracts.participant_control_composition import (
     derive_control_composition,
 )
 from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
-from raes_contracts.contracts.participant_control_resolution import (
-    validate_participant_control_resolved_context,
-)
+from raes_contracts.contracts.participant_control_resolution import validate_participant_control_resolved_context
 from raes_contracts.contracts.participant_control_results import ControlMechanismResultModel
 from raes_contracts.contracts.participant_control_selection import (
     ControlMechanismBindingModel,
     ControlResultSlotModel,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import OperationReceipt, OperationState, operation_terminal_diagnostics
 
 from .control_plane_mutation import external_control_plane_call
@@ -59,6 +59,7 @@ from .participant_crossing_state_cut import (
 from .participant_flow_sink import early_crossing_receipt, resolve_flow_sink_denial
 
 _UNRESOLVED = "unresolved"
+_LOGGER = get_logger(__name__)
 
 
 @dataclass(frozen=True)
@@ -116,7 +117,7 @@ def _resolved_outcome(
     resolution = _resolve(control_plane, binding, crossing, sink_kind, head_refs)
     if not isinstance(resolution, ParticipantControlResolution):
         return resolution
-    request = _revalidated_request(resolution.request)
+    request = resolution.request
     refusal = _request_refusal(control_plane, binding, crossing, request, sink_kind, head_refs)
     return refusal or _composed_outcome(control_plane, binding, crossing, request, resolution)
 
@@ -174,23 +175,19 @@ def _resolve(
                 sink_kind=sink_kind,
                 expected_history_head_refs=head_refs,
             )
-    except Exception:
-        # Fail closed for every resolver failure; its detail never leaks.
+        if isinstance(resolution, ParticipantControlResolution):
+            # Rebuild the request from its portable projection; unchecked mutation cannot pass.
+            request = ParticipantControlRequestModel.model_validate(resolution.request.model_dump(mode="python"))
+            resolution = replace(resolution, request=request)
+    # Isolation: fail closed for every resolver failure or request that does not revalidate; no detail leaks.
+    except Exception as exc:
+        _LOGGER.exception(
+            "participant control resolver failed; control is unresolved", exc_info=foreign_failure_record(exc)
+        )
         return _unresolved(_UNRESOLVED, "control-unresolved")
     if resolution is None or isinstance(resolution, ParticipantControlResolution):
         return resolution
     return _unresolved(_UNRESOLVED, "control-unresolved")
-
-
-def _revalidated_request(request: object) -> ParticipantControlRequestModel | None:
-    """Rebuild from the portable projection; unchecked mutation cannot pass."""
-
-    try:
-        return ParticipantControlRequestModel.model_validate(
-            cast(ParticipantControlRequestModel, request).model_dump(mode="python")
-        )
-    except Exception:
-        return None
 
 
 def _composed_outcome(
@@ -221,9 +218,15 @@ def _composed_outcome(
         validate_participant_control_resolved_context(
             evaluation, fenced_validation_context(control_plane, binding, evaluation)
         )
-    except Exception:
-        # Bounded: a rejected composition or trusted-context failure never
-        # discloses its rejected value, and never widens permission.
+    # A refused composition or trusted context never discloses its rejected value and never widens
+    # permission. The fenced context and the published validation already logged any resolver failure.
+    except ValueError:
+        return _unresolved(_UNRESOLVED, "control-context-invalid")
+    # Isolation: the composition reads the support and gate evidence that the installed resolver returned.
+    except Exception as exc:
+        _LOGGER.exception(
+            "participant control composition failed on resolver input", exc_info=foreign_failure_record(exc)
+        )
         return _unresolved(_UNRESOLVED, "control-context-invalid")
     # V1 wire evidence keeps its original interpretation. Fresh parent-targeted
     # crossing decisions are nevertheless enforced before any scheduled effect;
@@ -306,10 +309,14 @@ def _provider_results(
                 cast(ControlMechanismResultModel, item).model_dump(mode="python")
             )
             if result.slot_id in resolved or result.slot_id not in owned:
-                raise ValueError("provider returned a duplicate or unowned result slot")
+                raise InvalidInputError("provider returned a duplicate or unowned result slot")
             resolved[result.slot_id] = result
-    except Exception:
-        # A malformed or failing provider contributes no fact and no permit.
+    # Isolation of the provider (foreign code): a malformed or failing provider contributes no fact and no permit.
+    except Exception as exc:
+        _LOGGER.exception(
+            "participant control provider failed or returned a malformed response",
+            exc_info=foreign_failure_record(exc),
+        )
         return None
     return resolved
 

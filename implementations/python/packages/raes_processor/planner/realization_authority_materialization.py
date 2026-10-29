@@ -57,17 +57,17 @@ def _resolved_mode(
     manifest: BackendManifest,
     apparatus_default: ApparatusRealizationDefaultResolver | None,
     apparatus_decisions: ApparatusRealizationDecisions | None,
-) -> RealizationAuthorityMode:
+) -> RealizationAuthorityMode | None:
+    """Return the effective mode, or ``None`` when delegated authority has no demand or decision."""
+
     if not authority.delegated:
         return authority.mode
     if requirement is None:
-        raise ValueError("delegated realization authority requires a matching compiled demand")
+        return None
     if apparatus_decisions is not None:
-        identity = (requirement.address, requirement.field_path, requirement.requirement_kind)
-        try:
-            closure = apparatus_decisions[identity]
-        except KeyError as exc:
-            raise ValueError("delegated realization authority has no resolved apparatus decision") from exc
+        closure = apparatus_decisions.get((requirement.address, requirement.field_path, requirement.requirement_kind))
+        if closure is None:
+            return None
     else:
         closure = apparatus_default(requirement, manifest) if apparatus_default is not None else Closure.CLOSED_WORLD
     return RealizationAuthorityMode.OPEN if closure is Closure.OPEN_WORLD else RealizationAuthorityMode.CLOSED
@@ -193,9 +193,8 @@ def _materialized_authority(
     requirement = _matching_requirement(model.realization_requirements, authority)
     if requirement is not None and (requirement.structure_error or requirement.recursive_pending):
         return _unsafe_bound_diagnostic(authority)
-    try:
-        mode = _resolved_mode(authority, requirement, manifest, apparatus_default, apparatus_decisions)
-    except ValueError:
+    mode = _resolved_mode(authority, requirement, manifest, apparatus_default, apparatus_decisions)
+    if mode is None:
         return _unresolved_authority_diagnostic(authority)
     bounds = (
         _authority_bounds(model, authority, requirement, manifest)

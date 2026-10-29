@@ -9,8 +9,10 @@ from typing import TYPE_CHECKING
 
 from raes_contracts.augmentation_scope import AUGMENTATION_SCOPE_CONTRACT
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError, RaesError
 from raes_contracts.json_ingress import parse_bounded_json_object
 from raes_contracts.materialization import MATERIALIZATION_MAX_BYTES
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_processor.planner.augmentation_admission import (
     AugmentationAdmission,
     admit_augmentation_preparation,
@@ -26,6 +28,7 @@ if TYPE_CHECKING:
     from raes_contracts.runtime_state import RuntimeSnapshot
 
 _SCOPE_ADDRESS = "/augmentation_scope"
+_LOGGER = get_logger(__name__)
 
 
 def compose_augmentation_invocation(
@@ -46,8 +49,10 @@ def compose_augmentation_invocation(
             archive,
             preceding=preceding.cumulative_content if preceding is not None else None,
         )
-        return replace(context, augmentation=admitted), []
-    except Exception:
+    except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Isolation of untrusted prior effects and archive reads: a refusal category needs no record.
+            _LOGGER.exception("augmentation composition failed", exc_info=foreign_failure_record(exc))
         return context, [
             Diagnostic(
                 code="augmentation.composition-invalid",
@@ -59,6 +64,7 @@ def compose_augmentation_invocation(
                 ),
             )
         ]
+    return replace(context, augmentation=admitted), []
 
 
 def prepare_augmentation_invocation(
@@ -71,7 +77,7 @@ def prepare_augmentation_invocation(
     prepare = getattr(getattr(method, "__self__", None), "prepare_augmentation", None)
     try:
         if not callable(prepare):
-            raise ValueError("missing pure augmentation preparation")
+            raise InvalidInputError("missing pure augmentation preparation")
         report = prepare(deepcopy(request), deepcopy(previous))
         admitted = admit_augmentation_preparation(report, request, manifest, previous)
         expected = context.expected_augmentation
@@ -80,8 +86,11 @@ def prepare_augmentation_invocation(
             or parse_bounded_json_object(report.content, max_bytes=MATERIALIZATION_MAX_BYTES)
             != parse_bounded_json_object(expected.content, max_bytes=MATERIALIZATION_MAX_BYTES)
         ):
-            raise ValueError("producer changed its whole-run prospective effects")
-    except Exception:
+            raise InvalidInputError("producer changed its whole-run prospective effects")
+    except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Isolation of the backend preparation callback: a refusal category needs no record.
+            _LOGGER.exception("backend augmentation preparation failed", exc_info=foreign_failure_record(exc))
         return context, [
             Diagnostic(
                 code="augmentation.preparation-invalid",

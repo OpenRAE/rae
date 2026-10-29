@@ -57,6 +57,7 @@ import tools.verified_tool_installation as verified_tool_installation
 import yaml
 from packaging.requirements import Requirement
 from packaging.version import Version
+from raes_contracts.errors import InvalidInputError, OperationalError
 from tools.check_adr_immutability import (
     amendment_refs,
     canonical_content,
@@ -71,10 +72,12 @@ from tools.check_schema_publication import (
     validate_schema_publication_manifest,
 )
 from tools.gitleaks_tool import gitleaks_binary_path
+from tools.maintained_client_acquisition import ArtifactAcquisitionError
 from tools.parallel_verification import VerificationLane, run_verification_lanes
 from tools.policy.common import PolicyFailure
 from tools.policy.conftest_tool import run_conftest_policy
 from tools.policy.repo_policy import evaluate_repo_policy
+from tools.tooling_policy_gate import ArtifactPolicyError
 
 NOX_SUPPORT_MODULES = (
     "config",
@@ -600,7 +603,7 @@ def test_parallel_graph_executes_success_and_reports_all_failures(
         ],
     )
     failure_reporter = ImmediateReporter()
-    with pytest.raises(RuntimeError, match=r"unit-tests \(exit 2\), contracts \(exit 3\)"):
+    with pytest.raises(OperationalError, match=r"unit-tests \(exit 2\), contracts \(exit 3\)"):
         nox_graph._run_parallel_verification(session, failure_reporter, include_policy=False)
     assert any(
         "failure summary unit-tests: FAILED tests/test_runtime.py::test_atomic_commit" in message
@@ -640,7 +643,7 @@ def test_completion_uses_targeted_feedback(monkeypatch: pytest.MonkeyPatch) -> N
 
 def test_graph_base_revision_and_cpu_fallbacks(monkeypatch: pytest.MonkeyPatch) -> None:
     assert nox_graph._changed_base_rev(["--base-rev", "base"]) == "base"
-    with pytest.raises(ValueError, match="requires a revision"):
+    with pytest.raises(InvalidInputError, match="requires a revision"):
         nox_graph._changed_base_rev(["--base-rev"])
     monkeypatch.setattr(nox_graph, "resolve_upstream", lambda _root: "origin/dev")
     assert nox_graph._changed_base_rev([]) == "origin/dev"
@@ -895,7 +898,7 @@ def test_python_compatibility_rejects_restored_wheelhouse_outside_smoke_executio
     monkeypatch.setenv(nox_config.PYTHON_CLOSURE_WHEELHOUSE_ENV, "/verified-wheelhouse")
     reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
 
-    with pytest.raises(RuntimeError, match="valid only for compatibility smoke execution"):
+    with pytest.raises(InvalidInputError, match="valid only for compatibility smoke execution"):
         nox_compatibility_lanes._compatibility_runtime_stages(
             reporter.session,
             reporter,
@@ -912,7 +915,7 @@ def test_python_compatibility_distribution_requires_reviewed_closure_profile(
     monkeypatch.delenv(nox_config.PYTHON_CLOSURE_PROFILE_ENV, raising=False)
     reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
 
-    with pytest.raises(RuntimeError, match="must select a reviewed closure profile"):
+    with pytest.raises(InvalidInputError, match="must select a reviewed closure profile"):
         nox_compatibility_lanes._compatibility_distribution_stages(
             reporter.session,
             reporter,
@@ -939,7 +942,7 @@ def test_python_compatibility_rejects_unsupported_or_missing_interpreter_selecti
     monkeypatch.setenv("UV_PYTHON", selector)
     reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
 
-    with pytest.raises(RuntimeError, match=message):
+    with pytest.raises(InvalidInputError, match=message):
         nox_compatibility_lanes._run_python_compatibility(reporter.session, reporter)
 
 
@@ -952,14 +955,14 @@ def test_python_compatibility_rejects_profile_for_another_interpreter(
     monkeypatch.setenv(nox_config.PYTHON_CLOSURE_PROFILE_ENV, "public-linux-x86_64-cp313-all-extras")
     reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
 
-    with pytest.raises(RuntimeError, match="must match the selected interpreter"):
+    with pytest.raises(InvalidInputError, match="must match the selected interpreter"):
         nox_compatibility_lanes._run_python_compatibility(reporter.session, reporter)
 
 
 def test_python_compatibility_rejects_incomplete_distribution_build(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    with pytest.raises(RuntimeError, match="must produce exactly one wheel and one source distribution"):
+    with pytest.raises(OperationalError, match="must produce exactly one wheel and one source distribution"):
         _exercise_python_compatibility(monkeypatch, build_artifacts=False)
 
 
@@ -1022,7 +1025,7 @@ def test_line_coverage_threshold_is_fixed_at_ninety_percent(
         json.dumps({"totals": {"covered_lines": 899, "num_statements": 1000}}),
         encoding="utf-8",
     )
-    with pytest.raises(RuntimeError, match="89.900% is below required 90.000%"):
+    with pytest.raises(InvalidInputError, match="89.900% is below required 90.000%"):
         nox_runner._enforce_line_coverage(report_path)
 
 
@@ -1264,9 +1267,9 @@ def test_policy_arg_parsers_reject_missing_option_values(
 ) -> None:
     args = [option, *trailing]
 
-    with pytest.raises(ValueError, match=rf"^{option} requires a value$"):
+    with pytest.raises(InvalidInputError, match=rf"^{option} requires a value$"):
         nox_runner._split_policy_session_args(args)
-    with pytest.raises(ValueError, match=rf"^{option} requires a value$"):
+    with pytest.raises(InvalidInputError, match=rf"^{option} requires a value$"):
         nox_runner._parse_hygiene_posargs(args, default_all_files=False)
 
 
@@ -3091,7 +3094,7 @@ def _pin_fake_osv_download(monkeypatch: pytest.MonkeyPatch, payload: bytes) -> N
 
     def selection(**kwargs: object) -> object:
         if kwargs.get("version") != "2.4.0":
-            raise RuntimeError("no reviewed lock selection")
+            raise ArtifactPolicyError("no reviewed lock selection")
         return types.SimpleNamespace(
             artifact_id="osv-scanner",
             artifact_class="generic-cli",
@@ -3166,7 +3169,7 @@ def test_osv_scanner_invalid_legacy_cache_is_terminal(
         lambda **_kwargs: pytest.fail("integrity failure triggered acquisition"),
     )
 
-    with pytest.raises(RuntimeError, match="legacy-integrity-failure"):
+    with pytest.raises(verified_tool_installation.ToolInstallationError, match="legacy-integrity-failure"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
 
     assert not binary.exists()
@@ -3179,14 +3182,14 @@ def test_osv_scanner_unsafe_cache_shapes_fail_closed(monkeypatch: pytest.MonkeyP
     binary = osv_scanner_tool.osv_scanner_binary_path(tmp_path)
     binary.mkdir(parents=True)
 
-    with pytest.raises(RuntimeError, match="legacy-integrity-failure"):
+    with pytest.raises(verified_tool_installation.ToolInstallationError, match="legacy-integrity-failure"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
 
     shutil.rmtree(tmp_path / ".cache")
     outside = tmp_path / "outside-cache"
     outside.mkdir()
     (tmp_path / ".cache").symlink_to(outside, target_is_directory=True)
-    with pytest.raises(RuntimeError, match="unsafe-private-root"):
+    with pytest.raises(verified_tool_installation.ToolInstallationError, match="unsafe-private-root"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
 
 
@@ -3218,7 +3221,7 @@ def test_osv_scanner_policy_rejection_prevents_an_untrusted_release_url(
     tmp_path: Path,
 ) -> None:
     def reject_selection(**_kwargs: object) -> object:
-        raise RuntimeError("policy rejected unsafe source URL")
+        raise ArtifactPolicyError("policy rejected unsafe source URL")
 
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", reject_selection)
     monkeypatch.setattr(
@@ -3227,7 +3230,7 @@ def test_osv_scanner_policy_rejection_prevents_an_untrusted_release_url(
         lambda **_kwargs: pytest.fail("unsafe URL reached the acquisition boundary"),
     )
 
-    with pytest.raises(RuntimeError, match="policy rejected unsafe source URL"):
+    with pytest.raises(ArtifactPolicyError, match="policy rejected unsafe source URL"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
 
 
@@ -3236,11 +3239,11 @@ def test_osv_scanner_acquisition_failure_is_terminal(monkeypatch: pytest.MonkeyP
     _pin_fake_osv_download(monkeypatch, payload)
 
     def timeout(**_kwargs: object) -> bytes:
-        raise RuntimeError("osv-scanner acquisition failed: curl-wall-deadline")
+        raise ArtifactAcquisitionError("osv-scanner acquisition failed: curl-wall-deadline")
 
     monkeypatch.setattr(osv_scanner_tool, "acquire_locked_bytes", timeout)
 
-    with pytest.raises(RuntimeError, match="curl-wall-deadline"):
+    with pytest.raises(ArtifactAcquisitionError, match="curl-wall-deadline"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
 
 
@@ -3250,11 +3253,11 @@ def test_osv_scanner_unpinned_version_and_download_mismatch_fail_closed(
 ) -> None:
     payload = b"reviewed-scanner"
     _pin_fake_osv_download(monkeypatch, payload)
-    with pytest.raises(RuntimeError, match="no reviewed lock selection"):
+    with pytest.raises(ArtifactPolicyError, match="no reviewed lock selection"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path, version="9.9.9")
 
     monkeypatch.setattr(osv_scanner_tool, "acquire_locked_bytes", lambda **_kwargs: b"different")
-    with pytest.raises(RuntimeError, match="raw-manifest-mismatch"):
+    with pytest.raises(verified_tool_installation.ToolInstallationError, match="raw-manifest-mismatch"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
     assert not osv_scanner_tool.osv_scanner_binary_path(tmp_path).exists()
 
@@ -3343,7 +3346,7 @@ def test_nox_osv_scan_gates_vulnerability_findings(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    with pytest.raises(RuntimeError, match=r"reported vulnerabilities \(exit code 1\)"):
+    with pytest.raises(InvalidInputError, match=r"reported vulnerabilities \(exit code 1\)"):
         _run_nox_osv_scan(monkeypatch, tmp_path, exit_code=1)
 
 
@@ -3351,7 +3354,7 @@ def test_nox_osv_scan_surfaces_scanner_errors_distinctly(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    with pytest.raises(RuntimeError, match="scanner/setup error exit code 127"):
+    with pytest.raises(OperationalError, match="scanner/setup error exit code 127"):
         _run_nox_osv_scan(monkeypatch, tmp_path, exit_code=127)
 
 
@@ -3888,3 +3891,89 @@ def test_adr_pin_gate_base_rev_flags_boundary_blank_line_edit(tmp_path: Path) ->
 
     failures = evaluate_adr_immutability(tmp_path, base_rev="HEAD")
     assert _rule_ids(failures) == ["adr-amendment-unrecorded"]
+
+
+def test_a_defect_while_loading_the_policy_config_is_not_reported_as_malformed_yaml(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import tools.policy.repo_policy as repo_policy_module
+
+    def defective(_repo_root: Path) -> dict:
+        raise TypeError("policy loader defect")
+
+    monkeypatch.setattr(repo_policy_module, "load_policy", defective)
+    with pytest.raises(TypeError, match="policy loader defect"):
+        evaluate_repo_policy(tmp_path, [], structural_runner=lambda _document: [])
+
+
+def test_a_defect_while_loading_the_allowlist_is_not_reported_as_malformed_yaml(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import tools.policy.repo_policy as repo_policy_module
+
+    (tmp_path / "allowlist.yaml").write_text("files: []\n", encoding="utf-8")
+
+    def defective(_path: Path) -> dict:
+        raise TypeError("allowlist loader defect")
+
+    monkeypatch.setattr(repo_policy_module, "load_yaml", defective)
+    with pytest.raises(TypeError, match="allowlist loader defect"):
+        repo_policy_module._validate_allowlist(tmp_path, "allowlist.yaml")
+
+
+def test_a_defect_while_loading_the_adr_manifest_is_not_reported_as_invalid_yaml(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import tools.check_adr_immutability as adr_gate
+
+    manifest = tmp_path / adr_gate.MANIFEST_PATH
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text("hash_algorithm: sha256\nadrs: []\n", encoding="utf-8")
+
+    def defective(_path: Path) -> dict:
+        raise TypeError("manifest loader defect")
+
+    monkeypatch.setattr(adr_gate, "load_yaml", defective)
+    with pytest.raises(TypeError, match="manifest loader defect"):
+        evaluate_adr_immutability(tmp_path)
+
+
+def test_adr_parsing_refuses_a_missing_header_or_an_empty_section(tmp_path: Path) -> None:
+    from raes_contracts.errors import InvalidInputError
+    from tools.policy.adr import parse_adr_file
+
+    headerless = tmp_path / "adr-001-headerless.md"
+    headerless.write_text("## Status\n\naccepted\n\n## Date\n\n2026-01-01\n", encoding="utf-8")
+    with pytest.raises(InvalidInputError, match="missing ADR header"):
+        parse_adr_file(headerless)
+    empty_date = tmp_path / "adr-002-empty-date.md"
+    empty_date.write_text("# ADR-002: Empty date\n\n## Status\n\naccepted\n\n## Date\n\n", encoding="utf-8")
+    with pytest.raises(InvalidInputError, match="missing Date section"):
+        parse_adr_file(empty_date)
+
+
+def test_the_adr_pin_gate_skips_unparseable_adr_files(tmp_path: Path) -> None:
+    import tools.check_adr_immutability as adr_gate
+
+    adr_dir = tmp_path / adr_gate.ADR_DIR
+    adr_dir.mkdir(parents=True)
+    (adr_dir / "adr-001-headerless.md").write_text("## Status\n\naccepted\n", encoding="utf-8")
+    (adr_dir / "adr-002-binary.md").write_bytes(b"\xff\xfe")
+
+    assert adr_gate._accepted_adrs(tmp_path) == {}
+
+
+@pytest.mark.parametrize("category", ["InvalidInputError", "OperationalError"])
+def test_repo_policy_main_reports_domain_failures_as_messages(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], category: str
+) -> None:
+    import raes_contracts.errors as errors
+
+    def failing(*_args, **_kwargs):
+        raise getattr(errors, category)("conftest repo policy evaluation failed: rego error")
+
+    monkeypatch.setattr(check_repo_policy, "evaluate_repo_policy", failing)
+    monkeypatch.setattr(check_repo_policy.sys, "argv", ["check_repo_policy.py", "README.md"])
+
+    assert check_repo_policy.main() == 1
+    assert "repo-policy: conftest repo policy evaluation failed: rego error" in capsys.readouterr().err

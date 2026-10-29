@@ -105,11 +105,21 @@ class RuntimeInteractionDispatchMixin:
             request={"phase": address, "plan": phase, "arguments": _interaction_arguments(args, call)},
         )
         results = []
+        # A composition method reports the state that it settled before a cancellation, with its predecessor.
+        cancelled: list[tuple[ApplyResult, RuntimeSnapshot]] = []
+
+        def cancellation_result() -> ApplyResult | None:
+            if not cancelled:
+                return None
+            from .interaction_results import validated_composition_result
+
+            settled, predecessor = cancelled[-1]
+            return validated_composition_result(self, settled, predecessor, address)
 
         def invoke(predecessor: RuntimeSnapshot, operation_id: str, attempt_id: str) -> tuple[ApplyResult, None]:
             bound_args = (*args[:-1], predecessor)
             result = (
-                method(predecessor)
+                method(predecessor, lambda settled: cancelled.append((settled, predecessor)))
                 if runtime_composition
                 else _call_backend_apply(
                     method,
@@ -144,6 +154,7 @@ class RuntimeInteractionDispatchMixin:
                 realization=realization,
                 execute_observation=False,
                 result_sink=results.append,
+                cancellation_result=cancellation_result if runtime_composition else None,
             ),
         )
         return self._interaction_phase_result(receipt, results)

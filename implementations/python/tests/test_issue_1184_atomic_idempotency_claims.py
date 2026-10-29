@@ -12,6 +12,7 @@ import raes_runtime.control_plane as control_plane_module
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError, InvalidInputError
 from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
     OperationAdmissionContext,
@@ -224,7 +225,7 @@ def test_stale_explicit_base_does_not_persist_a_new_claim() -> None:
     plan = ProvisioningPlan()
 
     with pytest.raises(
-        ValueError,
+        ConflictError,
         match="explicit base snapshot does not match the authoritative runtime snapshot",
     ):
         control_plane.submit_provisioning(plan, base_snapshot=stale, idempotency_key="stale-base")
@@ -248,7 +249,7 @@ def test_atomic_claim_rejects_changed_immutable_replay_conditions(
     admitted_store.claim_record(_record("operation-original"))
     conflicting_record = _record("operation-conflict", context=changed_context)
 
-    with pytest.raises(ValueError, match="idempotency claim conflicts with the original request"):
+    with pytest.raises(ConflictError, match="idempotency claim conflicts with the original request"):
         admitted_store.claim_record(conflicting_record)
 
     assert set(admitted_store.load_records()) == {"operation-original"}
@@ -286,7 +287,7 @@ def test_idempotency_key_shape_is_bounded_at_the_core(key: str) -> None:
     control_plane = RuntimeControlPlane(create_stub_target())
     plan = ProvisioningPlan()
 
-    with pytest.raises(ValueError, match="Idempotency-Key must be 1-256 visible ASCII characters"):
+    with pytest.raises(InvalidInputError, match="Idempotency-Key must be 1-256 visible ASCII characters"):
         control_plane.submit_provisioning(plan, idempotency_key=key)
 
     assert control_plane.snapshot.entries == {}
@@ -388,7 +389,7 @@ def test_v3_store_migration_builds_composite_claims_and_quarantines_opaque_parti
             context=_context(kind=OperationKind.PARTICIPANT_CONTROL),
             key="original-client-key-is-not-recoverable",
         )
-        with pytest.raises(ValueError, match="idempotency claim conflicts with the original request"):
+        with pytest.raises(ConflictError, match="idempotency claim conflicts with the original request"):
             migrated.claim_record(conflicting_record)
         assert set(migrated.load_records()) == {legacy.receipt.operation_id}
     finally:

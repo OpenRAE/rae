@@ -5,6 +5,7 @@ from dataclasses import replace
 import pytest
 from raes import parse_sdl
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.errors import ConflictError
 from raes_contracts.execution_policy import EffectiveExecutionPolicy, ExecutionPolicy
 from raes_contracts.planning import ChangeAction, PlanScope
 from raes_contracts.runtime_state import OperationState
@@ -60,7 +61,7 @@ def test_same_owner_evaluates_later_evidence_and_destroys():
         applied = runtime.apply(execution)
         assert applied.success, applied.diagnostics
         assert runtime.get_snapshot().snapshot == runtime.snapshot
-        with pytest.raises(RuntimeError, match="runtime owner"):
+        with pytest.raises(ConflictError, match="runtime owner"):
             RuntimeControlPlane(target)
         evidence["value"] = "after"
         receipt = runtime.evaluate(execution, idempotency_key="later-evidence")
@@ -138,9 +139,9 @@ def test_evaluation_rejects_another_target_and_run_before_backend_effects():
         assert runtime.apply(execution).success
         another_target = replace(execution, target_name="another")
         another_run = replace(execution, evaluation=replace(execution.evaluation, run_id="another"))
-        with pytest.raises(ValueError, match="target"):
+        with pytest.raises(ConflictError, match="target"):
             runtime.evaluate(another_target)
-        with pytest.raises(ValueError, match="run scope"):
+        with pytest.raises(ConflictError, match="run scope"):
             runtime.evaluate(another_run)
         assert len(calls) == 1
 
@@ -203,7 +204,7 @@ def test_uncertain_start_preserves_its_parent_and_blocks_cleanup_effects():
         assert parent.invocation.reserved
         assert calls == ["provision-apply", "evaluator-start", "orchestrator-start"]
         assert runtime.get_snapshot().snapshot == result.snapshot
-        with pytest.raises(RuntimeError, match="indeterminate"):
+        with pytest.raises(ConflictError, match="indeterminate"):
             runtime.destroy()
         assert runtime.get_operation(parent.receipt.operation_id) == parent.status
         assert calls == ["provision-apply", "evaluator-start", "orchestrator-start"]
@@ -241,7 +242,7 @@ def test_durable_owner_reopens_and_retries_evaluation_without_another_effect(tmp
             ],
         )
         changed_execution = replace(execution, evaluation=changed)
-        with pytest.raises(ValueError, match="original request"):
+        with pytest.raises(ConflictError, match="original request"):
             runtime.evaluate(changed_execution, idempotency_key="observed-evidence")
         assert calls == ["evaluation", "evaluation"]
         assert runtime.destroy().success
@@ -258,9 +259,9 @@ def test_invalid_later_evaluation_preserves_the_trusted_snapshot_and_exclusion()
         receipt = runtime.evaluate(execution, idempotency_key="invalid-evidence")
         assert runtime.get_operation(receipt.operation_id).state is OperationState.INDETERMINATE
         assert runtime.get_snapshot().snapshot == predecessor.snapshot
-        with pytest.raises(RuntimeError, match="indeterminate"):
+        with pytest.raises(ConflictError, match="indeterminate"):
             runtime.destroy()
-    with pytest.raises(RuntimeError, match="runtime owner"):
+    with pytest.raises(ConflictError, match="runtime owner"):
         RuntimeManager(target)
 
 
@@ -282,7 +283,7 @@ def test_pure_planning_does_not_hold_the_supervision_state_permit(monkeypatch):
         try:
             runtime.stop_admission()
             stopped.set()
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001 - the worker hands the exception to the test thread, which asserts it.
             failures.append(error)
 
     monkeypatch.setattr(interaction, "compile_scenario_runtime_model", compile_slowly)

@@ -11,10 +11,14 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
 
 import yaml
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
 
 from tools.example_library_checks import (
     check_entry_metadata,
@@ -23,7 +27,13 @@ from tools.example_library_checks import (
     check_worked_example_file,
     load_template_file,
 )
-from tools.policy.common import PolicyFailure, apply_exceptions, failures_to_json, load_exceptions
+from tools.policy.common import (
+    YAML_CONTENT_FAILURES,
+    PolicyFailure,
+    apply_exceptions,
+    failures_to_json,
+    load_exceptions,
+)
 
 CATALOG_RELATIVE_PATH = "examples/library/catalog.yaml"
 LIBRARY_VALUE = "raes-example-pattern-library"
@@ -99,6 +109,8 @@ def _load_yaml_file(path: Path, relative_path: str) -> tuple[dict[str, Any] | No
         raw = yaml.safe_load(path.read_text(encoding="utf-8"))
     except yaml.YAMLError as exc:
         return None, [_fail("example-library-parse", f"failed to parse {relative_path}: {exc}", relative_path)]
+    except YAML_CONTENT_FAILURES:
+        return None, [_fail("example-library-parse", f"failed to parse {relative_path}", relative_path)]
     if not isinstance(raw, dict):
         return None, [
             _fail(
@@ -459,12 +471,21 @@ def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(list(argv) if argv is not None else None)
 
 
+def _evaluate(repo_root: Path) -> list[PolicyFailure]:
+    failures = evaluate_example_library(repo_root)
+    exceptions_file = repo_root / "tools" / "policy" / "exceptions.yaml"
+    if exceptions_file.is_file():
+        failures = apply_exceptions(failures, load_exceptions(repo_root))
+    return failures
+
+
 def main(argv: Iterable[str] | None = None) -> int:
     args = parse_args(argv)
-    failures = evaluate_example_library(args.repo_root)
-    exceptions_file = args.repo_root / "tools" / "policy" / "exceptions.yaml"
-    if exceptions_file.is_file():
-        failures = apply_exceptions(failures, load_exceptions(args.repo_root))
+    try:
+        failures = _evaluate(args.repo_root)
+    except (OSError, UnicodeDecodeError, yaml.YAMLError, InvalidInputError) as exc:
+        print(f"example-library: {exc}", file=sys.stderr)
+        return 1
     if failures:
         if args.json:
             print(failures_to_json(failures))
@@ -476,4 +497,4 @@ def main(argv: Iterable[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

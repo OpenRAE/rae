@@ -28,6 +28,7 @@ from raes_contracts.contracts.participant_execution import (
     ParticipantExecutionServiceStateModel,
 )
 from raes_contracts.contracts.semantic_projection import SemanticProjectionReportModel
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.realization_profiles import PlanProfileAuthority
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -35,9 +36,12 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from tools.check_json_artifacts import (  # noqa: E402
+    JSON_SCHEMA_WORKERS_ENV,
+    ValidationTarget,
     _frozen_historical_records,
     collect_validation_targets,
     covered_schema_paths,
+    validate_targets,
 )
 from tools.check_schema_coverage import (  # noqa: E402
     COVERAGE_KEY,
@@ -348,6 +352,25 @@ def test_a_symlinked_exclusion_manifest_excludes_nothing(tmp_path: Path) -> None
     assert "contracts/provenance/operation-status-v1.json" in {
         target.path for target in collect_validation_targets(tmp_path)
     }
+
+
+@pytest.mark.parametrize("content", [b"\xff\xfe not utf-8", b"{ not json"])
+def test_an_undecodable_exclusion_manifest_excludes_nothing(tmp_path: Path, content: bytes) -> None:
+    manifest = tmp_path / "tools/policy/historical_identity_records.json"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_bytes(content)
+
+    assert _frozen_historical_records(tmp_path) == frozenset()
+
+
+@pytest.mark.parametrize(("workers", "message"), [("many", "must be an integer"), ("0", "must be at least one")])
+def test_an_invalid_schema_worker_count_is_refused_as_invalid_input(
+    monkeypatch: pytest.MonkeyPatch, workers: str, message: str
+) -> None:
+    monkeypatch.setenv(JSON_SCHEMA_WORKERS_ENV, workers)
+
+    with pytest.raises(InvalidInputError, match=message):
+        validate_targets([ValidationTarget("contracts/schemas/example.json", None, "metaschema")])
 
 
 def test_symlinked_corpus_artifacts_are_never_dereferenced(tmp_path: Path) -> None:
@@ -787,6 +810,37 @@ def test_unreadable_catalog_fails_closed(tmp_path: Path) -> None:
 
     assert failures
     assert MISSING_RULE_ID not in _rule_ids(failures)
+
+
+def test_malformed_catalog_raises_the_invalid_input_category(tmp_path: Path) -> None:
+    _write(tmp_path / "contracts/schema-publication-manifest.json", "{ not json\n")
+
+    with pytest.raises(InvalidInputError, match="schema publication manifest is not valid JSON"):
+        load_schema_publication_catalog(tmp_path)
+
+
+def test_non_utf8_catalog_fails_closed(tmp_path: Path) -> None:
+    manifest = tmp_path / "contracts/schema-publication-manifest.json"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_bytes(b"\xff\xfe{}")
+
+    failures = evaluate_schema_coverage(tmp_path)
+
+    assert failures
+    assert MISSING_RULE_ID not in _rule_ids(failures)
+
+
+def test_cli_reports_an_invalid_policy_exception_as_one_message(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    _publish(tmp_path, "operation-status-v1", "control-plane")
+    _write(
+        tmp_path / "tools/policy/exceptions.yaml",
+        f"exceptions:\n  - rule_id: {MISSING_RULE_ID}\n    expires_at: not-a-date\n",
+    )
+
+    assert main(["--repo-root", str(tmp_path)]) == 1
+    assert capsys.readouterr().err == "schema-coverage: policy exception expires_at must be an ISO date\n"
 
 
 # --- reporting and CLI -------------------------------------------------------

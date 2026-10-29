@@ -27,9 +27,10 @@ def _validate(scenario: Scenario) -> list[str]:
     validator = SemanticValidator(scenario)
     try:
         validator.validate()
-        return []
     except SDLValidationError as exc:
         return exc.errors
+    else:
+        return []
 
 
 def _suricata_sensor() -> dict:

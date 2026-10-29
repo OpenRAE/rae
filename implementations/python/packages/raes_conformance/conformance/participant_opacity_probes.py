@@ -13,6 +13,8 @@ from raes_contracts.behavioral_relations import validate_behavioral_claim_bindin
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import BehavioralClaimBindingModel
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError, RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 from raes_runtime.registry import RuntimeTarget
 
@@ -20,6 +22,7 @@ from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_fail
 from raes_conformance.conformance.participant_policy_execution import _instrumented_target
 from raes_conformance.conformance.report import ConformanceCaseResult
 
+_LOGGER = get_logger(__name__)
 _FEATURE = "participant_predicate_opacity"
 _RELATION = "participant-predicate-opacity"
 
@@ -198,15 +201,15 @@ def _validate_probe_case(
 
     profile = load_behavioral_relation_profile(case.profile_id)
     if case.profile_revision != profile.profile_revision or case.profile_digest != profile.canonical_digest:
-        raise ValueError("probe profile coordinates do not match the governed profile")
+        raise InvalidInputError("probe profile coordinates do not match the governed profile")
     declared_profile = f"profile:{case.profile_id}@{case.profile_revision}"
     if declared_profile not in declaration.constraint_refs:
-        raise ValueError("probe profile is outside the manifest's declared support constraints")
+        raise InvalidInputError("probe profile is outside the manifest's declared support constraints")
     actual_manifest_digest = canonical_json_digest(backend_manifest_payload(target.manifest))
     if case.manifest_digest != actual_manifest_digest:
-        raise ValueError("probe manifest digest does not match the target declaration")
+        raise InvalidInputError("probe manifest digest does not match the target declaration")
     if case.execution_basis not in {"fixture-only", "hermetic-live", "native-live"}:
-        raise ValueError("probe execution basis is unsupported")
+        raise InvalidInputError("probe execution basis is unsupported")
 
 
 def _execute_probe(
@@ -223,6 +226,9 @@ def _execute_probe(
         for point_ref in (case.actual_point_ref, case.alternative_point_ref):
             observations.append(harness.observe(instrumented, case, point_ref))
     except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Isolation of the harness and the backend runtime: a refusal category needs no record.
+            _LOGGER.exception("participant opacity probe observation failed", exc_info=foreign_failure_record(exc))
         diagnostics.append(
             _diagnostic(
                 "conformance.participant-opacity-probe-rejected",
@@ -394,6 +400,9 @@ def _run_harness_cases(
                 ),
             )
     except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Isolation of the harness and its cases: a refusal category needs no record.
+            _LOGGER.exception("participant opacity harness failed", exc_info=foreign_failure_record(exc))
         results = (
             _harness_failure_case(
                 target,

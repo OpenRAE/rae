@@ -36,7 +36,10 @@ def _validate_descriptor_exports(
         if section_name not in {*_HASHMAP_SECTIONS, FORWARDING_AGENTS_SECTION}:
             raise SDLParseError(f"Module '{descriptor.id}' exports unknown SDL section '{section_name}'")
         for exported_name in exported_names:
-            QualifiedName.parse(exported_name)
+            try:
+                QualifiedName.parse(exported_name)
+            except ValueError as exc:
+                raise SDLParseError(f"Module '{descriptor.id}' exports an invalid {section_name} name") from exc
         if section_name == FORWARDING_AGENTS_SECTION:
             available_names = {agent.forwarding_agent_id for agent in scenario.forwarding_agents}
         elif section_name == "entities":

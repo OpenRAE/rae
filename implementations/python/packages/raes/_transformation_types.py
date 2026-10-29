@@ -12,11 +12,16 @@ from raes_contracts.contracts import (
     ExternalConceptBindingDocumentModel,
 )
 from raes_contracts.contracts.base import ContractModel
+from raes_contracts.errors import InvalidInputError
 
 from ._identifiers import require_portable_identifier
 from .scenario import ExpandedScenario, Scenario
 
 SDLAuthoringArtifact = Scenario | ExpandedScenario
+
+
+class _TransformationRefusal(InvalidInputError):
+    """A supplied artifact or linked document cannot complete the requested transformation."""
 
 
 @dataclass(frozen=True, slots=True)

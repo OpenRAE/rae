@@ -1274,3 +1274,37 @@ def test_compilation_has_no_filesystem_side_effect(tmp_path: Path) -> None:
     _compile_bytes(_request())
 
     assert tuple(tmp_path.iterdir()) == before
+
+
+def test_compilation_defect_propagates_instead_of_becoming_an_input_diagnostic(monkeypatch) -> None:
+    def defect(*_args, **_kwargs):
+        raise TypeError("programming defect")
+
+    monkeypatch.setattr(trial_compiler_module, "plan_intent", defect)
+
+    with pytest.raises(TypeError, match="programming defect"):
+        compile_admitted_trial_plan(_request())
+
+
+def test_entry_defect_propagates_instead_of_becoming_an_entry_diagnostic(monkeypatch) -> None:
+    def defect(*_args, **_kwargs):
+        raise ValueError("programming defect")
+
+    monkeypatch.setattr(trial_compiler_module, "_entry_bindings", defect)
+
+    with pytest.raises(ValueError, match="programming defect"):
+        compile_admitted_trial_plan(_request())
+
+
+def test_replacement_defect_propagates_instead_of_becoming_a_replacement_diagnostic(monkeypatch) -> None:
+    import raes_processor.trial_compiler.replacement as replacement_module
+
+    def defect(*_args, **_kwargs):
+        raise KeyError("programming defect")
+
+    monkeypatch.setattr(replacement_module, "_validated_root", defect)
+
+    with pytest.raises(KeyError):
+        replacement_module.compile_replacement_trial(
+            _request(), original_plan=None, root_entry_id="entry", failed_run=None, cleanup_receipts=()
+        )

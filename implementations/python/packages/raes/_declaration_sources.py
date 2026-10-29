@@ -112,59 +112,14 @@ def namespace_declaration_sources(
     return result
 
 
-_OWNER_SECTIONS = {
-    "Node": "nodes",
-    "Infrastructure": "infrastructure",
-    "Relationship": "relationships",
-    "Behavior specification": "behavior_specifications",
-    "Action contract": "action_contracts",
-    "Agent": "agents",
-    "Participant": "agents",
-    "Objective": "objectives",
-    "Proposition": "propositions",
-    "Assertion": "assertions",
-    "Condition": "conditions",
-    "Feature": "features",
-    "Content": "content",
-    "Account": "accounts",
-    "Workflow": "workflows",
-    "Identity domain": "identity_domains",
-    "Identity forest": "identity_forests",
-    "Identity facade": "identity_facades",
-    "Deployment cell": "deployment_cells",
-    "Deployment tenant": "deployment_tenants",
-    "Evidence requirement": "evidence_requirements",
-    "Entity": "entities",
-    "Compute node": "nodes",
-    "Inject": "injects",
-    "Event": "events",
-    "Script": "scripts",
-    "Story": "stories",
-    "Generated artifact": "generated_artifacts",
-    "Persistent volume": "persistent_volumes",
-    "Observation boundary": "observation_boundaries",
-    "Outcome interpretation rule": "outcome_interpretation_rules",
-    "Time domain": "time_domains",
-    "Clock": "clocks",
-    "Time domain mapping": "time_domain_mappings",
-    "Time progression policy": "time_progression_policies",
-    "Temporal constraint": "temporal_constraints",
-    "Variable": "variables",
-    "Variation point": "variation_points",
-}
-
-
 def semantic_source_diagnostics(error: SDLValidationError, scenario: ScenarioContent) -> None:
-    """Anchor owner-labelled semantic errors at real declaration keys, retaining both paths."""
+    """Anchor each owned semantic error at its owner's real declaration key, retaining both paths."""
     from ._declarations import build_declaration_index
 
     index = build_declaration_index(scenario, raise_on_collision=False)
     diagnostics = []
-    for message in error.errors:
-        label, separator, remainder = message.partition(" '")
-        name, closing, _suffix = remainder.partition("'")
-        section = _OWNER_SECTIONS.get(label)
-        declaration = index.declaration_for(f"{section}.{name}") if section and separator and closing else None
+    for finding in error.findings:
+        declaration = index.declaration_for(".".join(finding.owner)) if finding.owner is not None else None
         location = declaration.source_location if declaration is not None else None
         if location is None or location.source is None:
             diagnostics.append(None)
@@ -172,7 +127,7 @@ def semantic_source_diagnostics(error: SDLValidationError, scenario: ScenarioCon
         diagnostics.append(
             SDLParseDiagnostic(
                 code="sdl.semantic",
-                message=message,
+                message=finding.message,
                 pointer=model_pointer(declaration.model_tokens),
                 primary_range=location.source_range,
                 stage="semantic_validation",

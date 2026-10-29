@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
 from raes_contracts.participant_episode import ParticipantEpisodeResetRequest
 from raes_contracts.runtime_state import ApplyResult, OperationKind, RuntimeSnapshot
 
@@ -86,7 +87,7 @@ class RuntimeParticipantExecutionMixin:
         result = self._participant_scheduler_call(
             "initialize",
             state.working_snapshot,
-            lambda predecessor: self._participant_scheduler.initialize(
+            lambda predecessor, _cancellation_sink: self._participant_scheduler.initialize(
                 policies,
                 execution_plan.model.time_model,
                 self._target.participant_runtime,
@@ -111,12 +112,13 @@ class RuntimeParticipantExecutionMixin:
         due = self._participant_scheduler_call(
             "start",
             state.working_snapshot,
-            lambda predecessor: self._participant_scheduler.run_due(
+            lambda predecessor, cancellation_sink: self._participant_scheduler.run_due(
                 self._participant_execution_policies,
                 execution_plan.model.time_model,
                 self._target.participant_runtime,
                 predecessor,
                 self._participant_activity_controls,
+                cancellation_sink=cancellation_sink,
             ),
         )
         self._record_phase_result(state, due)
@@ -125,23 +127,34 @@ class RuntimeParticipantExecutionMixin:
     def run_due_participant_actions(self) -> ApplyResult:
         with self._participant_execution_lock:
             if self._target.participant_runtime is None or self._participant_scheduler is None:
-                raise ValueError("runtime manager has no participant runtime")
+                raise ConflictError("runtime manager has no participant runtime")
             result = self._participant_scheduler_call(
                 "due",
                 self._snapshot,
-                lambda predecessor: self._participant_scheduler.run_due(
+                lambda predecessor, cancellation_sink: self._participant_scheduler.run_due(
                     self._participant_execution_policies,
                     self._participant_execution_time_model,
                     self._target.participant_runtime,
                     predecessor,
                     self._participant_activity_controls,
+                    cancellation_sink=cancellation_sink,
                 ),
             )
             return result
 
     def _participant_scheduler_call(
-        self, phase: str, predecessor: RuntimeSnapshot, method: Callable[[RuntimeSnapshot], ApplyResult]
+        self,
+        phase: str,
+        predecessor: RuntimeSnapshot,
+        method: Callable[[RuntimeSnapshot, Callable[[ApplyResult], None]], ApplyResult],
     ) -> ApplyResult:
+        """Run one scheduler phase as a composition operation.
+
+        The method receives the predecessor and a sink for the state it settled
+        before a cancellation; the operation commits that state, then the
+        cancellation propagates.
+        """
+
         return self._interaction_backend_call(
             method,
             predecessor,

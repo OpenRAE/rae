@@ -29,3 +29,29 @@ def test_parse_bounded_json_preserves_strict_ingress_failures(source: bytes, cod
 
 def test_finite_exponent_remains_a_number() -> None:
     assert parse_bounded_json(b"[1e100]", max_bytes=128, root="array") == [1e100]
+
+
+# Decoder and encoding failures caused by the input are ingress refusals (ADR-116, issue #1678).
+@pytest.mark.parametrize(
+    ("source", "code"),
+    [
+        ("[" + "7" * 5000 + "]", "integer-too-long"),
+        (b"[-" + b"7" * 5000 + b"]", "integer-too-long"),
+        ('["\ud800"]', "invalid-json"),
+        ("[" * 100_000 + "]" * 100_000, "input-too-deep"),
+    ],
+)
+def test_parse_bounded_json_refuses_input_that_the_decoder_cannot_convert(source: str | bytes, code: str) -> None:
+    with pytest.raises(StrictJsonIngressError) as caught:
+        parse_bounded_json(source, max_bytes=1_000_000, root="array")
+
+    assert caught.value.code == code
+
+
+def test_integer_at_the_digit_limit_remains_a_number() -> None:
+    import sys
+
+    digits = sys.get_int_max_str_digits()
+    assert parse_bounded_json(("[" + "7" * digits + "]").encode(), max_bytes=10_000, root="array") == [
+        int("7" * digits)
+    ]

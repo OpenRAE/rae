@@ -12,6 +12,10 @@ from raes_contracts.contracts.runtime_facts import (
     RuntimeFactBindingSelectionModel,
     RuntimeFactSinkModel,
 )
+from raes_contracts.errors import RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
+
+_LOGGER = get_logger(__name__)
 
 
 @dataclass(frozen=True)
@@ -64,7 +68,7 @@ class _RuntimeFactDispatchBinding:
     secret_ref: str | None
 
 
-class _RuntimeFactDispatchFailure(RuntimeError):
+class _RuntimeFactDispatchFailure(RaesError):
     def __init__(self, disposition: RuntimeFactBindingDisposition) -> None:
         super().__init__(disposition.value)
         self.disposition = disposition
@@ -104,6 +108,8 @@ class RuntimeFactDispatchCommand:
         except _RuntimeFactDispatchFailure:
             raise
         except Exception as exc:
+            # Isolation of the trusted send callback: the disposition replaces its failure.
+            _LOGGER.exception("runtime fact dispatch callback failed", exc_info=foreign_failure_record(exc))
             raise _RuntimeFactDispatchFailure(RuntimeFactBindingDisposition.DISPATCH_FAILED) from exc
         finally:
             inputs.clear()
@@ -141,6 +147,8 @@ def _materialize_binding(
         try:
             value = secret_resolver(binding.secret_ref)
         except Exception as exc:
+            # Isolation of the secret resolver: the record stays value-free, and the disposition replaces it.
+            _LOGGER.exception("runtime fact secret resolution failed", exc_info=foreign_failure_record(exc))
             raise _RuntimeFactDispatchFailure(RuntimeFactBindingDisposition.SECRET_UNAVAILABLE) from exc
     if value is None:
         raise _RuntimeFactDispatchFailure(RuntimeFactBindingDisposition.SECRET_UNAVAILABLE)

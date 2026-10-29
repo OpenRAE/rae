@@ -4,11 +4,24 @@ from collections.abc import Iterable
 
 from raes_contracts.contracts import ExperimentStochasticControlModel
 from raes_contracts.contracts.participant_temporal import ParticipantTemporalAssessmentModel
+from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError, InvalidInputError, RaesError
+from raes_contracts.operational_logging import get_logger
 from raes_contracts.participant_temporal import require_participant_temporal_history
 from raes_runtime.registry import RuntimeTarget, participant_temporal_probe_manager
 
 from .diagnostics import _diagnostic, sanitized_failure_message
 from .report import ConformanceCaseResult
+
+_LOGGER = get_logger(__name__)
+
+
+class _TemporalProbeRefusal(RaesError):
+    """Control signal: a contract owner refused the probe input or its evidence; the message is value-free."""
+
+
+def _guarantee_failed(message: str) -> Diagnostic:
+    return _diagnostic("conformance.participant-temporal-guarantee-failed", "participant.temporal", message)
 
 
 def _stop_probe_clock_driver(manager: object | None) -> bool:
@@ -17,6 +30,8 @@ def _stop_probe_clock_driver(manager: object | None) -> bool:
     try:
         return manager._stop_participant_clock_driver()  # type: ignore[attr-defined]
     except Exception:  # NOSONAR - shutdown must report failure without leaking exception payloads
+        # Boundary of the probe cleanup: the case reports unconfirmed shutdown, so record the cause once.
+        _LOGGER.exception("participant temporal probe could not confirm clock driver shutdown")
         return False
 
 
@@ -40,20 +55,17 @@ def participant_temporal_scenario_case(
     manager = None
     driver_stopped = True
     try:
-        manager = participant_temporal_probe_manager(target, stochastic_controls=stochastic_controls)
+        manager = _probe_manager(target, stochastic_controls)
         diagnostics, assessments = _run_temporal_probe(
             manager,
             scenario,
             clock_advances,
         )
-    except (TypeError, ValueError) as exc:
-        diagnostics.append(
-            _diagnostic(
-                "conformance.participant-temporal-guarantee-failed",
-                "participant.temporal",
-                sanitized_failure_message(exc),
-            )
-        )
+    except _TemporalProbeRefusal as refusal:
+        diagnostics.append(_guarantee_failed(str(refusal)))
+    # The fixture, the runtime manager and its time control refuse with these categories.
+    except (InvalidInputError, ConflictError, EvidenceIntegrityError) as exc:
+        diagnostics.append(_guarantee_failed(sanitized_failure_message(exc)))
     finally:
         driver_stopped = _stop_probe_clock_driver(manager)
     if not driver_stopped:
@@ -95,6 +107,14 @@ def participant_temporal_scenario_case(
     )
 
 
+def _probe_manager(target: RuntimeTarget, stochastic_controls: Iterable[ExperimentStochasticControlModel]) -> object:
+    try:
+        return participant_temporal_probe_manager(target, stochastic_controls=stochastic_controls)
+    except ValueError as exc:
+        # The runtime configuration refuses an invalid stochastic control set with ValueError (E3).
+        raise _TemporalProbeRefusal(sanitized_failure_message(exc)) from exc
+
+
 def _run_temporal_probe(
     manager: object,
     scenario: object,
@@ -103,12 +123,20 @@ def _run_temporal_probe(
     plan = manager.plan(scenario)
     required = _required_temporal_contract_digests(plan)
     if not required:
-        raise ValueError("Temporal conformance requires a fixture with explicit shared-time bindings.")
+        raise InvalidInputError("Temporal conformance requires a fixture with explicit shared-time bindings.")
     result = _apply_temporal_probe_plan(manager, plan, clock_advances)
-    require_participant_temporal_history(result.snapshot)
-    assessments = _temporal_assessments(result.snapshot)
+    assessments = _validated_temporal_assessments(result.snapshot)
     _require_admitted_guarantees(result.success, required, assessments)
     return list(result.diagnostics), assessments
+
+
+def _validated_temporal_assessments(snapshot: object) -> list[ParticipantTemporalAssessmentModel]:
+    try:
+        # The history and assessment contract owners refuse invalid evidence with ValueError or ValidationError (E3).
+        require_participant_temporal_history(snapshot)
+        return _temporal_assessments(snapshot)
+    except ValueError as exc:
+        raise _TemporalProbeRefusal(sanitized_failure_message(exc)) from exc
 
 
 def _required_temporal_contract_digests(plan: object) -> set[str]:
@@ -149,4 +177,4 @@ def _require_admitted_guarantees(
 ) -> None:
     observed = {item.context.binding.contract_digest for item in assessments}
     if not success or observed != required or any(item.status != "met" for item in assessments):
-        raise ValueError("The fixture did not establish every admitted temporal guarantee.")
+        raise EvidenceIntegrityError("The fixture did not establish every admitted temporal guarantee.")

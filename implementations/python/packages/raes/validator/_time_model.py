@@ -14,16 +14,18 @@ class _TimeModelMixin:
     def _verify_clock_refs(self) -> None:
         for name, clock in self._s.clocks.items():
             if clock.time_domain_ref not in self._s.time_domains:
-                self._err(
-                    f"Clock '{name}' time_domain_ref '{clock.time_domain_ref}' "
-                    "does not reference a declared time domain"
-                )
+                with self._owner(("clocks", name)):
+                    self._err(
+                        f"Clock '{name}' time_domain_ref '{clock.time_domain_ref}' "
+                        "does not reference a declared time domain"
+                    )
 
     def _verify_time_domain_mappings(self) -> None:
         graph: dict[str, list[str]] = {name: [] for name in self._s.time_domains}
         pairs: set[tuple[str, str]] = set()
         for name, mapping in self._s.time_domain_mappings.items():
-            self._verify_time_domain_mapping(name, mapping, graph, pairs)
+            with self._owner(("time_domain_mappings", name)):
+                self._verify_time_domain_mapping(name, mapping, graph, pairs)
         if graph and _topological_sort(graph) is None:
             self._err("Time-domain mapping graph contains a cycle")
 
@@ -58,44 +60,46 @@ class _TimeModelMixin:
     def _verify_time_progression_policies(self) -> None:
         owners: dict[str, str] = {}
         for name, policy in self._s.time_progression_policies.items():
-            previous_owner = owners.get(policy.clock_ref)
-            if previous_owner is not None:
-                self._err(
-                    f"Time progression policy '{name}' duplicates clock_ref "
-                    f"'{policy.clock_ref}' already owned by '{previous_owner}'"
-                )
-            owners[policy.clock_ref] = name
-            clock = self._s.clocks.get(policy.clock_ref)
-            if clock is None:
-                self._err(
-                    f"Time progression policy '{name}' clock_ref '{policy.clock_ref}' "
-                    "does not reference a declared clock"
-                )
-                continue
-            if policy.reset_behavior != TimeResetBehavior.UNSUPPORTED and not clock.supports_reset:
-                self._err(
-                    f"Time progression policy '{name}' requires reset behavior but clock "
-                    f"'{policy.clock_ref}' does not support reset"
-                )
-            if policy.replay_behavior != TimeReplayBehavior.UNSUPPORTED and not clock.supports_reset:
-                self._err(
-                    f"Time progression policy '{name}' requires replay behavior but clock "
-                    f"'{policy.clock_ref}' cannot establish a reset segment"
-                )
+            with self._owner(("time_progression_policies", name)):
+                previous_owner = owners.get(policy.clock_ref)
+                if previous_owner is not None:
+                    self._err(
+                        f"Time progression policy '{name}' duplicates clock_ref "
+                        f"'{policy.clock_ref}' already owned by '{previous_owner}'"
+                    )
+                owners[policy.clock_ref] = name
+                clock = self._s.clocks.get(policy.clock_ref)
+                if clock is None:
+                    self._err(
+                        f"Time progression policy '{name}' clock_ref '{policy.clock_ref}' "
+                        "does not reference a declared clock"
+                    )
+                    continue
+                if policy.reset_behavior != TimeResetBehavior.UNSUPPORTED and not clock.supports_reset:
+                    self._err(
+                        f"Time progression policy '{name}' requires reset behavior but clock "
+                        f"'{policy.clock_ref}' does not support reset"
+                    )
+                if policy.replay_behavior != TimeReplayBehavior.UNSUPPORTED and not clock.supports_reset:
+                    self._err(
+                        f"Time progression policy '{name}' requires replay behavior but clock "
+                        f"'{policy.clock_ref}' cannot establish a reset segment"
+                    )
 
     def _verify_temporal_constraints(self) -> None:
         workflow_steps = self._workflow_step_refs()
         for name, constraint in self._s.temporal_constraints.items():
-            if constraint.clock_ref not in self._s.clocks:
-                self._err(
-                    f"Temporal constraint '{name}' clock_ref '{constraint.clock_ref}' "
-                    "does not reference a declared clock"
-                )
-            for subject_ref in constraint.subject_refs:
-                if subject_ref in workflow_steps:
-                    continue
-                self._validate_named_ref(
-                    subject_ref,
-                    owner_label=f"Temporal constraint '{name}'",
-                    ref_label="subject_ref",
-                )
+            with self._owner(("temporal_constraints", name)):
+                if constraint.clock_ref not in self._s.clocks:
+                    self._err(
+                        f"Temporal constraint '{name}' clock_ref '{constraint.clock_ref}' "
+                        "does not reference a declared clock"
+                    )
+                for subject_ref in constraint.subject_refs:
+                    if subject_ref in workflow_steps:
+                        continue
+                    self._validate_named_ref(
+                        subject_ref,
+                        owner_label=f"Temporal constraint '{name}'",
+                        ref_label="subject_ref",
+                    )

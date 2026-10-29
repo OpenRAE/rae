@@ -26,7 +26,10 @@ from tools.specification_coverage._primitives import (
     _bounded_list,
     _exact_keys,
     _failure,
+    _hashable,
     _json_pointer_get,
+    _member,
+    _members,
     _record_ids,
     _sha256,
 )
@@ -96,7 +99,7 @@ def _result_classification_failures(
 ) -> None:
     concept_id = result.get("concept_id")
     classification = result.get("classification")
-    if classification not in EXPECTED_CLASSIFICATIONS:
+    if not _member(classification, EXPECTED_CLASSIFICATIONS):
         failures.append(
             _failure(
                 "specification-coverage-classifications",
@@ -113,7 +116,9 @@ def _result_classification_failures(
             )
         )
     pointer = result.get("typed_pointer")
-    if classification in _TYPED_CLASSIFICATIONS and (not isinstance(pointer, str) or not pointer.startswith("/")):
+    if _member(classification, _TYPED_CLASSIFICATIONS) and (
+        not isinstance(pointer, str) or not pointer.startswith("/")
+    ):
         failures.append(
             _failure(
                 "specification-coverage-typed-evidence",
@@ -155,7 +160,7 @@ def _stage_outcome_failures(
 ) -> None:
     stage_id = stage.get("stage_id")
     outcome = stage.get("outcome")
-    if outcome not in context.valid_outcomes:
+    if not _member(outcome, context.valid_outcomes):
         failures.append(
             _failure(
                 "specification-coverage-stage-coverage",
@@ -163,7 +168,7 @@ def _stage_outcome_failures(
                 path,
             )
         )
-    if stage.get("validation_strength") not in context.valid_strengths:
+    if not _member(stage.get("validation_strength"), context.valid_strengths):
         failures.append(
             _failure(
                 "specification-coverage-stage-coverage",
@@ -181,7 +186,8 @@ def _stage_outcome_failures(
             )
         )
     if outcome == "passed" and context.replay_current:
-        payload = context.executed.get(artifact_path, {}).get(stage_id)
+        executed = context.executed.get(artifact_path, {}) if _hashable(artifact_path) else {}
+        payload = executed.get(stage_id) if _hashable(stage_id) else None
         exists, _ = _json_pointer_get(payload, stage.get("pointer"))
         if payload is None or not exists:
             failures.append(
@@ -202,7 +208,7 @@ def _stage_classification_failures(
     failures: list[PolicyFailure],
     path: str,
 ) -> None:
-    if classification in _TYPED_CLASSIFICATIONS and outcome != "passed":
+    if _member(classification, _TYPED_CLASSIFICATIONS) and outcome != "passed":
         failures.append(
             _failure(
                 "specification-coverage-stage-coverage",
@@ -210,10 +216,7 @@ def _stage_classification_failures(
                 path,
             )
         )
-    if classification == "missing" and outcome not in {
-        "unsupported",
-        "not_run",
-    }:
+    if classification == "missing" and not _member(outcome, {"unsupported", "not_run"}):
         failures.append(
             _failure(
                 "specification-coverage-stage-coverage",
@@ -264,6 +267,7 @@ def _stage_results_failures(
     expected_stages = concept.get("artifact_stage_ids")
     if (
         not isinstance(expected_stages, list)
+        or not all(_hashable(item) for item in (*stage_ids, *expected_stages))
         or len(stage_ids) != len(set(stage_ids))
         or set(stage_ids) != set(expected_stages)
     ):
@@ -383,12 +387,12 @@ def _validate_snapshot(
     _validate_implementation_surfaces(repo_root, snapshot, failures, path, replay_current=replay_current)
 
     artifacts_by_id, executed = _validate_artifacts(repo_root, snapshot, failures, path, replay_current=replay_current)
-    carrier_artifacts = {
+    carrier_artifacts = [
         item.get("artifact_id")
-        for item in protocol.get("carriers", [])
+        for item in _members(protocol.get("carriers", []))
         if isinstance(item, dict) and item.get("artifact_id") is not None
-    }
-    if not carrier_artifacts.issubset(artifacts_by_id):
+    ]
+    if not all(_member(artifact_id, artifacts_by_id) for artifact_id in carrier_artifacts):
         failures.append(
             _failure(
                 "specification-coverage-carriers",
@@ -401,8 +405,8 @@ def _validate_snapshot(
     context = _SnapshotContext(
         repo_root=repo_root,
         executed=executed,
-        valid_outcomes=set(rules.get("stage_outcomes", [])),
-        valid_strengths=set(rules.get("validation_strength_values", [])),
+        valid_outcomes={item for item in _members(rules.get("stage_outcomes", [])) if _hashable(item)},
+        valid_strengths={item for item in _members(rules.get("validation_strength_values", [])) if _hashable(item)},
         replay_current=replay_current,
     )
     _concept_results_failures(context, snapshot, catalogs, failures, path)
@@ -449,7 +453,8 @@ def _concept_results_failures(
             path=path,
         ):
             continue
-        concept = concepts.get(result.get("concept_id")) if isinstance(concepts, dict) else None
+        concept_id = result.get("concept_id")
+        concept = concepts.get(concept_id) if isinstance(concepts, dict) and _hashable(concept_id) else None
         if not isinstance(concept, dict):
             continue
         _result_classification_failures(result, concept, failures, path)

@@ -157,7 +157,7 @@ def test_blocked_bridge_has_responsive_controls_and_no_late_completion():
     def invoke():
         try:
             receipts.append(execute(plane))
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001 - the worker hands the exception to the test thread, which asserts it.
             failures.append(error)
 
     thread = Thread(target=invoke)

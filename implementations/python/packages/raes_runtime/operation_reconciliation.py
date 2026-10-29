@@ -6,7 +6,9 @@ from dataclasses import replace
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
+from pydantic import ValidationError
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.errors import AuthorizationError, ConflictError, EvidenceIntegrityError, NotFoundError
 from raes_contracts.runtime_state import OperationKind, OperationReceipt, OperationState, OperationStatus
 
 from .control_plane_execution import _utc_now
@@ -31,13 +33,13 @@ class RuntimeInvocationReconciliationMixin:
         from .control_plane_store import ControlPlaneOperationRecord, TerminalCommitMode
 
         if ControlPlaneRole.OPERATOR not in identity.roles or not idempotency_key:
-            raise PermissionError("reconciliation requires an operator and a fresh identity")
+            raise AuthorizationError("reconciliation requires an operator and a fresh identity")
         with self._mutation_authority.supervision():
             self._assert_runtime_owner()
             self._reload_derived_state()
             parent = self._operations.get(operation_id)
             if parent is None or parent.invocation is None:
-                raise KeyError("operation not found")
+                raise NotFoundError("operation not found")
             authorize_supervisor(self, identity, parent)
             evidence = _verified_absence(self, parent, control_id, identity)
             self._reload_derived_state()
@@ -96,7 +98,7 @@ def _verified_absence(
 
         resolver = mixed_installation(plane, parent.invocation).evidence
     if resolver is None or parent.status.state is not OperationState.INDETERMINATE:
-        raise ValueError("reconciliation evidence authority is unavailable")
+        raise ConflictError("reconciliation evidence authority is unavailable")
     with plane._mutation_authority.external_call():
         if (
             plane._execution_adapter.call(
@@ -108,7 +110,7 @@ def _verified_absence(
             )
             is not True
         ):
-            raise ValueError("reconciliation evidence could not be verified")
+            raise EvidenceIntegrityError("reconciliation evidence could not be verified")
     return evidence
 
 
@@ -129,14 +131,18 @@ def _scoped_reconciliation_evidence(
         or response is None
         or (control.actor_id, control.authorization_scope) != operation_actor_scope(identity)
     ):
-        raise PermissionError("reconciliation authority is unavailable")
-    return InvocationReconciliation(request=parent.invocation.request, control=control, response=response)
+        raise AuthorizationError("reconciliation authority is unavailable")
+    try:
+        return InvocationReconciliation(request=parent.invocation.request, control=control, response=response)
+    except ValidationError as exc:
+        # The retained provider reconciliation does not report scoped absence and cessation (E3 validator).
+        raise EvidenceIntegrityError("reconciliation evidence does not establish scoped absence") from exc
 
 
 def _require_unchanged_reconciliation_cut(
     parent: ControlPlaneOperationRecord, evidence: InvocationReconciliation, idempotency_key: str
 ) -> None:
     if parent.status.state is not OperationState.INDETERMINATE or evidence.response not in parent.invocation.responses:
-        raise ValueError("reconciliation cut changed")
+        raise ConflictError("reconciliation cut changed")
     if idempotency_key == parent.idempotency_key:
-        raise ValueError("reconciliation requires a fresh identity")
+        raise ConflictError("reconciliation requires a fresh identity")

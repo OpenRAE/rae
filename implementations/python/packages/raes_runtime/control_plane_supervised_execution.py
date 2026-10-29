@@ -12,6 +12,8 @@ from uuid import uuid4
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import BackendOperationRequestModel, inject_occurrence_reference
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError, OperationalError, RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import (
     OperationReceipt,
@@ -23,12 +25,16 @@ from raes_contracts.runtime_state import (
 from .backend_calls import _call_backend_diagnostics, _RealizationApplyContext
 from .backend_observation_calls import _call_backend_apply_with_observation, _ObservationApplyRequest
 from .control_plane_execution import _utc_now
+from .control_plane_local_execution import run_local_executor
 from .control_plane_store import ControlPlaneOperationRecord, NewClaimRejected, TerminalCommitMode
 from .control_plane_store_snapshots import _snapshot_payload
 from .diagnostics import _has_error_diagnostic
+from .errors import RuntimeBudgetExhaustedError
 from .operation_command_commitment import native_command_commitment
 from .operation_invocation_ledger import InvocationLedger
 from .operation_policy_admission import execution_budget_ms
+
+_LOGGER = get_logger(__name__)
 
 if TYPE_CHECKING:
     from raes_backend_protocols.inject_execution import ResolvedInjectOutcome
@@ -201,9 +207,9 @@ def commit_settlement(
     if current.status.state not in {OperationState.ACCEPTED, OperationState.RUNNING}:
         return
     if current.invocation.request.binding != record.invocation.request.binding:
-        raise ValueError("invocation binding changed before settlement")
+        raise ConflictError("invocation binding changed before settlement")
     if current.invocation.request.binding.owner_generation != plane._execution_generation:
-        raise RuntimeError("stale execution owner cannot publish state")
+        raise ConflictError("stale execution owner cannot publish state")
     snapshot = plane._snapshot
     mode = TerminalCommitMode.OPERATION_ONLY
     if result is not None:
@@ -242,7 +248,7 @@ def execute_supervised_operation(plane: RuntimeControlPlane, request: OperationE
     if receipt is None:
         try:
             budget = execution_budget_ms(request.plan, plane._supervision)
-        except ValueError:
+        except ConflictError:
             receipt = plane._reject_diagnostics(
                 domain=request.domain,
                 context=request.context,
@@ -287,7 +293,7 @@ def _existing_supervised_receipt(
     except NewClaimRejected:
         return None
     if candidate_id == incumbent.operation_id:
-        raise AssertionError("a replay probe cannot create an invocation")
+        raise RuntimeError("a replay probe cannot create an invocation")
     return incumbent
 
 
@@ -304,7 +310,7 @@ def _execute_admitted_native(
     def remaining() -> int:
         budget = int((deadline - monotonic()) * 1000)
         if budget <= 0:
-            raise TimeoutError("execution budget exhausted")
+            raise RuntimeBudgetExhaustedError("execution budget exhausted")
         return budget
 
     try:
@@ -312,12 +318,20 @@ def _execute_admitted_native(
             running = _dispatch_native_invocation(plane, request, record, remaining)
             if running is not None:
                 _complete_native_invocation(plane, request, running, snapshot, diagnostics, remaining)
-    except Exception:
-        if plane._durability_poisoned:
-            raise
-        plane._reload_derived_state()
-        record = plane._operations[record.receipt.operation_id]
-        settle(plane, record, OperationState.INDETERMINATE if record.invocation.consumed else OperationState.CANCELLED)
+    except Exception as exc:
+        # Isolation of the external work: settle without a result; a refusal category needs no record,
+        # unless the runtime requires restart and refuses the work instead (H2).
+        poisoned = plane._durability_poisoned
+        if poisoned or not isinstance(exc, RaesError):
+            _LOGGER.exception("native operation work failed before settlement", exc_info=foreign_failure_record(exc))
+    else:
+        return receipt
+    # Raised and settled after the handler, so no later record carries the foreign exception as context.
+    if poisoned:
+        raise OperationalError("runtime control plane requires restart after a durability reconciliation failure")
+    plane._reload_derived_state()
+    record = plane._operations[record.receipt.operation_id]
+    settle(plane, record, OperationState.INDETERMINATE if record.invocation.consumed else OperationState.CANCELLED)
     return receipt
 
 
@@ -389,15 +403,7 @@ def _complete_native_invocation(
     remaining: Callable[[], int],
 ) -> None:
     if request.local_executor is not None:
-        with plane._mutation_authority.external_call():
-            result, observation = plane._execution_adapter.call(
-                "effect",
-                request.local_executor,
-                snapshot,
-                record.receipt.operation_id,
-                record.invocation.request.binding.attempt_id,
-                timeout_ms=remaining(),
-            )
+        result, observation = run_local_executor(plane, request, record, snapshot, diagnostics, remaining)
     else:
         result, observation = _invoke_plan_phase(plane, request, record, snapshot, remaining)
     if record.invocation.request.command.digest != native_command_commitment(plane, request.plan):

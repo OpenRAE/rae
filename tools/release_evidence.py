@@ -30,8 +30,13 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError, OperationalError
+from raes_contracts.operational_logging import run_application
 
 from tools.check_tooling_artifact_policy import tooling_policy_sha256
 from tools.generate_python_closures import reviewed_python_full_version
@@ -83,7 +88,7 @@ _REQUIRED_ENVIRONMENT = (
 )
 
 
-class ReleaseEvidenceError(Exception):
+class ReleaseEvidenceError(InvalidInputError):
     """A CLI-boundary failure carrying a stable, publishable code."""
 
     def __init__(self, code: str, message: str) -> None:
@@ -302,6 +307,9 @@ def _run_verifier(command: Sequence[str]) -> str:
         )
     except (OSError, subprocess.SubprocessError) as exc:
         raise VerifierError("verifier-unavailable", "attestation verifier could not be executed") from exc
+    except UnicodeDecodeError as exc:
+        # Text mode decodes the verifier output; output that does not decode cannot be parsed.
+        raise VerifierError("verifier-output-unparsable", "attestation verifier output could not be parsed") from exc
     if completed.returncode != 0:
         raise VerifierError("verifier-rejected", "attestation verifier did not return a clean verdict")
     return completed.stdout
@@ -382,7 +390,12 @@ def _load_index(evidence_dir: Path) -> dict[str, Any]:
     path = evidence_dir / INDEX_FILENAME
     if not path.is_file() or path.is_symlink():
         raise ReleaseEvidenceError("evidence-index-absent", "release evidence index is absent")
-    return json.loads(path.read_text(encoding="utf-8"))
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, RecursionError) as exc:
+        # The try holds only the read and the decoder. ValueError covers text that is not UTF-8, malformed
+        # JSON and an integer beyond the interpreter digit limit; RecursionError covers excessive nesting.
+        raise ReleaseEvidenceError("evidence-index-unparsable", "release evidence index could not be parsed") from exc
 
 
 def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
@@ -476,8 +489,6 @@ def main(argv: Sequence[str] | None = None) -> int:
                 render_publication_outputs(subjects) + "\n",
                 encoding="utf-8",
             )
-        print("release evidence admitted")
-        return 0
     except (
         AdmissionError,
         EvidenceDocumentError,
@@ -487,7 +498,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     ) as exc:
         print(f"release evidence refused [{exc.code}]: {exc}", file=sys.stderr)
         return 1
+    except (InvalidInputError, OperationalError) as exc:
+        # Reviewed closure, lock and operator-path inputs carry no publishable code; a host failure,
+        # such as an unavailable working directory, is refused the same way.
+        print(f"release evidence refused: {exc}", file=sys.stderr)
+        return 1
+    else:
+        print("release evidence admitted")
+        return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

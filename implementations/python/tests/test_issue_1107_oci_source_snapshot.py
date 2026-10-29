@@ -2,21 +2,27 @@
 
 from __future__ import annotations
 
+import dataclasses
 import gzip
 import hashlib
+import http.client
 import io
+import logging
 import os
 import stat
 import tarfile
 from pathlib import Path, PurePosixPath
+from urllib.error import URLError
 
 import pytest
 import raes.module_registry as module_registry
+import raes.module_registry._filesystem as module_registry_filesystem
 import raes.module_registry._verified_sources as verified_sources
 import raes.module_registry.resolution as module_registry_resolution
 from raes._errors import SDLParseError
 from raes._source_profile import DEFAULT_SOURCE_PARSE_OPTIONS, SDLParserLimits, SDLSourceParseOptions
 from raes.composition import expand_sdl_modules
+from raes_contracts.errors import OperationalError
 
 
 def _entry(path: Path, relative: str, *, digest: str | None = None) -> dict[str, object]:
@@ -167,7 +173,7 @@ def test_verified_source_rejects_initial_metadata_mismatch(tmp_path: Path, misma
     else:
         expected["mode"] = int(expected["mode"]) ^ 0o100
 
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         verified_sources._read_verified_cache_source(
             path,
             expected_entry=expected,
@@ -203,7 +209,7 @@ def test_verified_source_rejects_opened_descriptor_mismatch(
         return _changed_stat(real_fstat(descriptor), mismatch)
 
     monkeypatch.setattr(verified_sources.os, "fstat", changed_fstat)
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         verified_sources._read_verified_cache_source(
             path,
             expected_entry=expected,
@@ -230,7 +236,7 @@ def test_verified_source_rejects_descriptor_change_while_reading(
         return metadata if calls == 1 else _changed_stat(metadata, mismatch)
 
     monkeypatch.setattr(verified_sources.os, "fstat", changed_second_fstat)
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         verified_sources._read_verified_cache_source(
             path,
             expected_entry=expected,
@@ -245,7 +251,7 @@ def test_verified_source_rejects_io_digest_utf8_and_source_limit_failures(
     path = tmp_path / "source.yaml"
     path.write_bytes(b"name: source\n")
     expected = _entry(path, path.name)
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         verified_sources._read_verified_cache_source(
             tmp_path / "missing.yaml",
             expected_entry=expected,
@@ -253,7 +259,7 @@ def test_verified_source_rejects_io_digest_utf8_and_source_limit_failures(
         )
 
     bad_digest = dict(expected, digest="sha256:" + "0" * 64)
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         verified_sources._read_verified_cache_source(
             path,
             expected_entry=bad_digest,
@@ -287,7 +293,7 @@ def test_verified_source_rejects_io_digest_utf8_and_source_limit_failures(
         raise OSError("sensitive descriptor failure")
 
     monkeypatch.setattr(verified_sources.os, "fdopen", fail_fdopen)
-    with pytest.raises(SDLParseError) as exc_info:
+    with pytest.raises(OperationalError) as exc_info:
         verified_sources._read_verified_cache_source(
             path,
             expected_entry=expected,
@@ -402,7 +408,7 @@ def test_oci_resolution_requires_verified_source_documents(
         registries={"registry.example": module_registry.RegistryTrustPolicy(require_signatures=False)}
     )
 
-    with pytest.raises(SDLParseError, match="did not return verified source documents"):
+    with pytest.raises(RuntimeError, match="did not return verified source documents"):
         module_registry_resolution._resolve_oci_import(
             import_decl,
             source,
@@ -411,3 +417,142 @@ def test_oci_resolution_requires_verified_source_documents(
             trust_policy=trust_policy,
             source_options=DEFAULT_SOURCE_PARSE_OPTIONS,
         )
+
+
+class _FailingResponse:
+    """A registry response whose body read fails in transport."""
+
+    headers: dict[str, str] = {}
+
+    def __init__(self, failure: BaseException) -> None:
+        self._failure = failure
+
+    def __enter__(self) -> _FailingResponse:
+        return self
+
+    def __exit__(self, *_exc_info: object) -> bool:
+        return False
+
+    def read(self, _amount: int = -1) -> bytes:
+        raise self._failure
+
+
+@pytest.mark.parametrize("request_name", ["_json_request", "_bytes_request"])
+@pytest.mark.parametrize(
+    ("stage", "failure"),
+    [
+        ("open", URLError("SECRET-TRANSPORT-DETAIL")),
+        ("read", TimeoutError("SECRET-READ-TIMEOUT")),
+        ("read", http.client.IncompleteRead(b"SECRET-PARTIAL-BODY")),
+    ],
+)
+def test_oci_transport_failures_are_operational_and_value_free(
+    monkeypatch: pytest.MonkeyPatch,
+    request_name: str,
+    stage: str,
+    failure: BaseException,
+) -> None:
+    def fake_urlopen(*_args: object, **_kwargs: object) -> _FailingResponse:
+        if stage == "open":
+            raise failure
+        return _FailingResponse(failure)
+
+    monkeypatch.setattr(module_registry, "urlopen", fake_urlopen)
+
+    with pytest.raises(OperationalError) as exc_info:
+        getattr(module_registry, request_name)("https://registry.example/v2/acme/resource")
+
+    assert not isinstance(exc_info.value, SDLParseError)
+    assert "SECRET" not in str(exc_info.value)
+    assert exc_info.value.__cause__ is failure
+
+
+def test_oci_cache_host_failure_is_operational_not_an_invalid_bundle(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    bundle = _bundle([("module.yaml", b"name: module\nmodule: {id: acme/module, version: 1.0.0}\n")])
+
+    def fail_extract(*_args: object, **_kwargs: object) -> None:
+        raise OSError("SECRET-DISK-DETAIL")
+
+    monkeypatch.setattr(tarfile.TarFile, "extractall", fail_extract)
+
+    with pytest.raises(OperationalError) as exc_info:
+        module_registry._extract_bundle_to_cache(
+            bundle_bytes=bundle,
+            manifest_digest="host-failure",
+            content_digest=f"sha256:{module_registry._sha256_digest(bundle)}",
+            root_file="module.yaml",
+            base_dir=tmp_path,
+        )
+
+    assert str(exc_info.value) == "Unable to extract the OCI module bundle into the cache"
+
+
+def test_oci_cache_lock_timeout_is_operational(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    fcntl = pytest.importorskip("fcntl")
+    monkeypatch.setattr(
+        module_registry,
+        "_OCI_LIMITS",
+        dataclasses.replace(module_registry._OCI_LIMITS, timeout_seconds=0),
+    )
+    lock_path = tmp_path / "entry.lock"
+    lock_path.write_bytes(b"\0")
+    with lock_path.open("r+b") as holder, lock_path.open("r+b") as contender:
+        fcntl.flock(holder.fileno(), fcntl.LOCK_EX)
+        with pytest.raises(OperationalError, match="Timed out waiting for the OCI module cache lock"):
+            module_registry._acquire_file_lock(contender)
+
+
+def test_unreadable_version_pointer_is_logged_without_values(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    slot = tmp_path / "slot"
+    (slot / "versions" / "v1").mkdir(parents=True)
+    (slot / ".raes-current").write_bytes(b"v1\n")
+
+    def fail_fdopen(*_args: object, **_kwargs: object) -> None:
+        raise PermissionError("SECRET-POINTER-DETAIL")
+
+    monkeypatch.setattr(module_registry_filesystem.os, "fdopen", fail_fdopen)
+    with caplog.at_level(logging.WARNING, logger=module_registry_filesystem.__name__):
+        assert module_registry_filesystem._read_version_pointer(slot=slot) is None
+
+    records = [record for record in caplog.records if record.name == module_registry_filesystem.__name__]
+    assert [record.levelno for record in records] == [logging.WARNING]
+    assert "SECRET" not in records[0].getMessage()
+    assert "SECRET" not in (records[0].exc_text or "")
+    assert "PermissionError" in (records[0].exc_text or "")
+
+
+def test_unreadable_workspace_configuration_cause_is_logged_without_values(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    import raes.module_registry.models as module_registry_models
+
+    (tmp_path / module_registry.TRUST_POLICY_NAME).write_text("registries: {}\n", encoding="utf-8")
+    real_open = Path.open
+
+    def fail_open(self: Path, *args: object, **kwargs: object):
+        if self.name == module_registry.TRUST_POLICY_NAME:
+            raise PermissionError("SECRET-CONFIG-DETAIL")
+        return real_open(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", fail_open)
+    with (
+        caplog.at_level(logging.WARNING, logger=module_registry_models.__name__),
+        pytest.raises(SDLParseError, match="Cannot load workspace configuration") as exc_info,
+    ):
+        module_registry.load_trust_policy(tmp_path)
+
+    assert "SECRET" not in str(exc_info.value)
+    records = [record for record in caplog.records if record.name == module_registry_models.__name__]
+    assert [record.levelno for record in records] == [logging.WARNING]
+    assert "SECRET" not in records[0].getMessage()
+    assert "SECRET" not in (records[0].exc_text or "")
+    assert "PermissionError" in (records[0].exc_text or "")

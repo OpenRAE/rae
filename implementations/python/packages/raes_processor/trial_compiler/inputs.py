@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pydantic import ValidationError
 from raes import canonical_sdl_digest
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
@@ -10,6 +11,7 @@ from raes_contracts.contracts import (
     AdmittedTrialPlanInputRefsModel,
     TrialCoordinateModel,
 )
+from raes_contracts.errors import InvalidInputError
 
 from .models import CompilationFailure, TrialCompilationRequest
 from .policies import CoordinateSelections
@@ -22,6 +24,15 @@ _REALIZATION_ASSIGNMENTS_ADDRESS = "/realization_assignments"
 
 def _fail(code: str, address: str, message: str) -> CompilationFailure:
     return CompilationFailure(code, address, message)
+
+
+def coordinate_replicate_id(ordinal: int) -> str:
+    """Encode an ordinal derived from compiler input; refuse one the profile cannot encode."""
+
+    try:
+        return replicate_id(ordinal)
+    except ValueError as exc:
+        raise InvalidInputError("trial coordinates exceed the trial-coordinate-v1 replicate range") from exc
 
 
 def validate_treatment_profile(request: TrialCompilationRequest) -> None:
@@ -187,7 +198,7 @@ def validate_input_identities(request: TrialCompilationRequest) -> None:
     for _, profile in sorted(request.mixed_profiles.items()):
         try:
             reconstructed = type(profile).model_validate(profile.model_dump(mode="python"))
-        except (TypeError, ValueError) as exc:
+        except ValidationError as exc:
             raise _fail(
                 "mixed-profile-invalid",
                 "/input_refs/mixed_composition_profile_refs",
@@ -323,7 +334,7 @@ def coordinates(request: TrialCompilationRequest) -> list[TrialCoordinateModel]:
     output: list[TrialCoordinateModel] = []
     for condition_id in sorted(run_plan.allocation.compared_conditions):
         output.extend(
-            TrialCoordinateModel(condition_id=condition_id, replicate_id=replicate_id(ordinal))
+            TrialCoordinateModel(condition_id=condition_id, replicate_id=coordinate_replicate_id(ordinal))
             for ordinal in range(1, per_condition + 1)
         )
     return output
@@ -339,7 +350,7 @@ def _unconditioned_coordinates(request: TrialCompilationRequest) -> list[TrialCo
             _RUN_PLAN_ADDRESS,
             "logical trial coordinates exceed the compilation limit",
         )
-    return [TrialCoordinateModel(replicate_id=replicate_id(ordinal)) for ordinal in range(1, count + 1)]
+    return [TrialCoordinateModel(replicate_id=coordinate_replicate_id(ordinal)) for ordinal in range(1, count + 1)]
 
 
 def plan_intent(request: TrialCompilationRequest, planned_coordinates: list[TrialCoordinateModel]) -> dict[str, object]:

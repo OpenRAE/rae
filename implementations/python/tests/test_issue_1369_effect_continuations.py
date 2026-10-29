@@ -15,6 +15,7 @@ from participant_crossing_fixtures import (
     identity,
 )
 from raes_contracts.contracts.participant_control_applicability import ParticipantControlSelectionV2Model
+from raes_contracts.errors import ConflictError
 from raes_contracts.runtime_state import OperationState
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_store import LocalControlPlaneStore
@@ -220,7 +221,7 @@ def test_interrupted_continuation_keeps_recovery_barrier_and_resumes(tmp_path, m
         )
     reopened = chain_plane(owner, LocalControlPlaneStore(directory), plane._crossing_policy_resolver)
     with reopened:
-        with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
+        with pytest.raises(ConflictError, match="indeterminate operation requires resolution"):
             reopened.dispatch_participant_control_effects(PARTICIPANT, identity=caller)
         reopened.resolve_indeterminate_operation(
             claim.receipt.operation_id,

@@ -5,9 +5,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import replace
 
-from raes import (
-    validate_experiment_selection_against_family,
-)
+from pydantic import ValidationError
+from raes import SDLSelectionError, validate_experiment_selection_against_family
 from raes_backend_protocols.backend_manifest import BackendManifest
 from raes_backend_protocols.capabilities import ObservationCapabilities
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope
@@ -33,7 +32,9 @@ from raes_contracts.contracts.experiment_allocation import (
 )
 from raes_contracts.contracts.trial_coordinate_order import canonical_coordinate_sort_key
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.experiment_bindings import ApparatusManifest, ApparatusManifestKey
+from rfc8785 import CanonicalizationError
 
 from ..capture_admission import (
     CaptureDemand,
@@ -68,11 +69,13 @@ from .tool_support import require_selected_tool_support
 _DOMAIN = "trial-compiler"
 _BINDING_DESCRIPTORS_ADDRESS = "/binding_descriptors"
 _ENTRIES_ADDRESS = "/entries/"
+# Domain refusals from the SDL, contract and compiler owners; defects still propagate (H5).
+_INPUT_REFUSALS = (InvalidInputError, ValidationError, CanonicalizationError)
 # Preserve the established monkeypatch seam used by compiler failure-path tests.
 _validate_selected_scenario = validate_selected_scenario
 
 
-class _CaptureAdmissionFailure(Exception):
+class _CaptureAdmissionFailure(InvalidInputError):
     def __init__(self, diagnostics: tuple[Diagnostic, ...]) -> None:
         super().__init__("required capture is not supported by the admitted apparatus")
         self.diagnostics = diagnostics
@@ -260,7 +263,7 @@ def _compile_entries(
             continue
         except CompilationFailure as failure:
             candidate_failure = failure
-        except (TypeError, ValueError) as exc:
+        except _INPUT_REFUSALS as exc:
             candidate_failure = _fail(
                 "entry-invalid",
                 _ENTRIES_ADDRESS + (coordinate.replicate_id or "coordinate"),
@@ -330,7 +333,7 @@ def _compile(
     validate_input_identities(request)
     try:
         validate_experiment_selection_against_family(request.experiment, family=request.family)
-    except ValueError as exc:
+    except SDLSelectionError as exc:
         raise _fail(
             "selection-intent-rejected",
             "/run_plan/selection_policies",
@@ -428,7 +431,12 @@ def _compile_controls_and_allocation(
         entry.plan_entry_id
         for entry in sorted(entries.values(), key=lambda entry: canonical_coordinate_sort_key(entry.coordinate))
     ]
-    return controls, compile_experiment_allocation(policy, domain, controls)
+    try:
+        allocation = compile_experiment_allocation(policy, domain, controls)
+    except ValueError as exc:
+        # The contract owner reports an unallocatable domain with ValueError (E3); refuse here (E9).
+        raise InvalidInputError("experiment allocation failed closed compilation") from exc
+    return controls, allocation
 
 
 def _validate_factorial_distinctness(entries: Mapping[str, AdmittedTrialEntryModel]) -> None:
@@ -474,7 +482,7 @@ def compile_admitted_trial_plan(
         result = TrialCompilationResult(plan=None, diagnostics=failure.diagnostics)
     except CompilationFailure as failure:
         result = TrialCompilationResult(plan=None, diagnostics=(_diagnostic(failure),))
-    except (TypeError, ValueError) as exc:
+    except _INPUT_REFUSALS as exc:
         failure = _fail(
             "input-invalid",
             "",

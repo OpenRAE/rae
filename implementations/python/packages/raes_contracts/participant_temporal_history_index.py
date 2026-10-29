@@ -11,10 +11,11 @@ from .canonical import JsonValue
 
 
 def explicit_temporal_record(record: Mapping[str, object]) -> bool:
-    return bool(
-        record.get("temporal_assessments")
-        or any(item.get("shared_time") for item in record.get("temporal_contexts", ()))
-    )
+    contexts = record.get("temporal_contexts", ())
+    # Stored history is input to its validator, so a malformed context list is a refusal (ADR-116 rule E3).
+    if not isinstance(contexts, list | tuple) or not all(isinstance(item, Mapping) for item in contexts):
+        raise ValueError("temporal contexts must be a list of objects")
+    return bool(record.get("temporal_assessments") or any(item.get("shared_time") for item in contexts))
 
 
 @dataclass(frozen=True)
@@ -28,8 +29,9 @@ class TemporalRecordIndex:
         try:
             explicit = explicit_temporal_record(record)
             records = self.by_action.get(key, HashTrieMap()).insert(position, record)
-        except TypeError, AttributeError:
-            # Malformed public input must still meet the exhaustive validator.
+        # An unhashable identity or a malformed context list is malformed public input,
+        # which must still meet the exhaustive validator.
+        except TypeError, ValueError:
             return TemporalRecordIndex(self.by_action, self.explicit_actions, False)
         return TemporalRecordIndex(
             self.by_action.insert(key, records),

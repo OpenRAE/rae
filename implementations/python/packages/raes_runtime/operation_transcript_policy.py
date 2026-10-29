@@ -4,8 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pydantic import ValidationError
+from raes_contracts.errors import ConflictError
+
 if TYPE_CHECKING:
-    from raes_contracts.contracts import BackendOperationControlModel
+    from raes_contracts.contracts import BackendOperationControlModel, BackendOperationResponseModel
 
     from .operation_invocation_ledger import InvocationLedger
 
@@ -75,5 +78,23 @@ def append_control(
     if automatic:
         update["automatic_controls"] = (*invocation.automatic_controls, control.control_id)
     replacement = invocation.model_copy(update=update)
-    require_transcript_capacity(replacement)
+    try:
+        # The ledger validator owns these checks (ValueError); a new control is a refusal of state (E9).
+        require_transcript_capacity(replacement)
+    except ValueError as exc:
+        raise ConflictError("operation control transcript capacity is exhausted") from exc
+    return replacement
+
+
+def append_response(invocation: InvocationLedger, response: BackendOperationResponseModel) -> InvocationLedger:
+    """Retain one more provider response, or refuse it as a conflict with the retained transcript."""
+
+    from .operation_invocation_ledger import InvocationLedger  # The ledger module imports this policy.
+
+    replacement = invocation.model_copy(update={"responses": (*invocation.responses, response)})
+    try:
+        # The ledger validator refuses an out-of-order, repeated or excess response (E3); that is a refusal of state.
+        InvocationLedger.model_validate(replacement.model_dump(mode="json"))
+    except ValidationError as exc:
+        raise ConflictError("operation response conflicts with the retained invocation transcript") from exc
     return replacement

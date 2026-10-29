@@ -15,7 +15,7 @@ from referencing.exceptions import Unresolvable
 
 from ._domain_profile_schema_registry import profile_schema_registry
 from .corpus import SCHEMAS, corpus_family_root
-from .json_ingress import parse_bounded_json_object
+from .json_ingress import StrictJsonIngressError, parse_bounded_json_object
 
 
 @dataclass(frozen=True)
@@ -82,6 +82,7 @@ def resolve_evidence_output_contract(output_contract: str) -> EvidenceOutputCont
         raise ValueError("evidence output_contract is not present in the authoritative contract registry")
     if not callable(registration.semantic_validator):
         raise ValueError("evidence output_contract has no owning semantic validator")
+    # Validators call this resolver, so a damaged published schema stays a ValueError (E3).
     try:
         path = corpus_family_root(SCHEMAS) / registration.schema_path
         with path.open("rb") as source:
@@ -90,7 +91,7 @@ def resolve_evidence_output_contract(output_contract: str) -> EvidenceOutputCont
             raise ValueError("unexpected schema root")
         Draft202012Validator.check_schema(schema)
         validator = Draft202012Validator(schema, registry=profile_schema_registry(schema))
-    except (OSError, RuntimeError, ValueError, KeyError, SchemaError) as exc:
+    except (OSError, RuntimeError, StrictJsonIngressError, ValueError, KeyError, SchemaError) as exc:
         raise ValueError("evidence output_contract has no valid published schema") from exc
     return EvidenceOutputContract(registration.root, validator, registration.semantic_validator)
 

@@ -41,6 +41,7 @@ from raes.module_registry import (
 )
 from raes.parser import parse_sdl_file
 from raes_cli.main import app
+from raes_contracts.errors import ConflictError, OperationalError
 from raes_processor.compiler import compile_runtime_model
 from typer.testing import CliRunner
 
@@ -735,7 +736,7 @@ def test_publish_missing_entrypoint_and_unwritable_layout_fail_stably(tmp_path: 
     module_path = _local_module(tmp_path / "shared.yaml")
     output_file = tmp_path / "not-a-directory"
     output_file.write_text("occupied\n", encoding="utf-8")
-    with pytest.raises(SDLParseError, match="Unable to build the OCI layout"):
+    with pytest.raises(OperationalError, match="Unable to build the OCI layout"):
         publish_module_to_oci_layout(module_path, output_dir=output_file)
 
 
@@ -750,7 +751,7 @@ def test_publish_rejects_linked_layout_lock_parent_without_writing_target(tmp_pa
     except OSError:
         pytest.skip("symlink creation is unavailable")
 
-    with pytest.raises(SDLParseError, match="Unable to open the OCI module cache lock"):
+    with pytest.raises(OperationalError, match="Unable to open the OCI module cache lock"):
         publish_module_to_oci_layout(module_path, output_dir=output_dir)
 
     assert not list(outside.iterdir())
@@ -794,7 +795,7 @@ def test_failed_layout_commit_restores_prior_layout(tmp_path: Path, monkeypatch:
 
     monkeypatch.setattr(module_registry_filesystem.os, "replace", fail_staged_install)
 
-    with pytest.raises(SDLParseError, match="atomically"):
+    with pytest.raises(OperationalError, match="atomically"):
         publish_module_to_oci_layout(module_path, output_dir=tmp_path / "dist")
 
     after = {path.relative_to(layout).as_posix(): path.read_bytes() for path in layout.rglob("*") if path.is_file()}
@@ -834,7 +835,7 @@ def test_layout_rejects_non_directory_target(tmp_path: Path):
     layout.parent.mkdir()
     layout.write_text("occupied\n", encoding="utf-8")
 
-    with pytest.raises(SDLParseError, match="atomically"):
+    with pytest.raises(OperationalError, match="atomically"):
         publish_module_to_oci_layout(module_path, output_dir=tmp_path / "dist")
 
     assert layout.read_text(encoding="utf-8") == "occupied\n"
@@ -851,7 +852,7 @@ def test_layout_build_failure_removes_staging_directory(tmp_path: Path, monkeypa
 
     monkeypatch.setattr(Path, "write_bytes", fail_blob_write)
 
-    with pytest.raises(SDLParseError, match="Unable to build the OCI layout"):
+    with pytest.raises(OperationalError, match="Unable to build the OCI layout"):
         publish_module_to_oci_layout(module_path, output_dir=tmp_path / "dist")
 
     versions = tmp_path / "dist" / "acme_shared-1.2.3.oci" / "versions"
@@ -935,7 +936,7 @@ def test_layout_rejects_invalid_staged_and_installed_versions(tmp_path: Path, mo
         return real_rglob(path, pattern)
 
     monkeypatch.setattr(Path, "rglob", hide_staged_inventory)
-    with pytest.raises(SDLParseError, match="Staged OCI layout failed validation"):
+    with pytest.raises(OperationalError, match="Staged OCI layout failed validation"):
         publish_module_to_oci_layout(module_path, output_dir=tmp_path / "dist-a")
 
     monkeypatch.undo()
@@ -947,7 +948,7 @@ def test_layout_rejects_invalid_staged_and_installed_versions(tmp_path: Path, mo
         return installed
 
     monkeypatch.setattr(module_registry_publishing, "_install_version_directory", corrupt_installed)
-    with pytest.raises(SDLParseError, match="Published OCI layout failed validation"):
+    with pytest.raises(OperationalError, match="Published OCI layout failed validation"):
         publish_module_to_oci_layout(module_path, output_dir=tmp_path / "dist-b")
 
 
@@ -1011,7 +1012,7 @@ def test_layout_fails_closed_on_pre_versioned_root_inventory(tmp_path: Path):
     }
     module_path.write_text(module_path.read_text(encoding="utf-8") + "# changed publication\n", encoding="utf-8")
 
-    with pytest.raises(SDLParseError, match="legacy root-layout format"):
+    with pytest.raises(ConflictError, match="legacy root-layout format"):
         publish_module_to_oci_layout(module_path, output_dir=tmp_path / "dist")
 
     after = {
@@ -1078,7 +1079,7 @@ def test_version_install_failure_preserves_current_tree(tmp_path: Path, monkeypa
 
     monkeypatch.setattr(module_registry_filesystem.os, "replace", fail_install)
 
-    with pytest.raises(SDLParseError, match="transaction failed"):
+    with pytest.raises(OperationalError, match="transaction failed"):
         module_registry_filesystem._install_version_directory(
             staged=staged,
             versions=versions,
@@ -1110,7 +1111,7 @@ def test_pointer_failure_never_removes_prior_pointer(tmp_path: Path, monkeypatch
 
     monkeypatch.setattr(module_registry_filesystem.os, "replace", fail_pointer)
 
-    with pytest.raises(SDLParseError, match="transaction failed"):
+    with pytest.raises(OperationalError, match="transaction failed"):
         module_registry_filesystem._write_version_pointer(
             slot=slot,
             version_name="next",
@@ -1188,7 +1189,7 @@ def test_version_fsync_failures_and_unsafe_tree_nodes_fail_closed(
             return real_open(path, *args, **kwargs)
 
         monkeypatch.setattr(module_registry_filesystem.os, "open", fail_directory_open)
-        with pytest.raises(SDLParseError, match="sync failed"):
+        with pytest.raises(OperationalError, match="sync failed"):
             module_registry_filesystem._fsync_directory(tmp_path, error_message="sync failed")
 
         monkeypatch.undo()
@@ -1197,7 +1198,7 @@ def test_version_fsync_failures_and_unsafe_tree_nodes_fail_closed(
             "fsync",
             lambda descriptor: (_ for _ in ()).throw(OSError("SECRET-FSYNC")),
         )
-        with pytest.raises(SDLParseError, match="sync failed"):
+        with pytest.raises(OperationalError, match="sync failed"):
             module_registry_filesystem._fsync_directory(tmp_path, error_message="sync failed")
 
         monkeypatch.undo()
@@ -1216,24 +1217,24 @@ def test_version_fsync_failures_and_unsafe_tree_nodes_fail_closed(
         linked.symlink_to(outside)
     except OSError:
         pytest.skip("symlink creation is unavailable")
-    with pytest.raises(SDLParseError, match="sync failed"):
+    with pytest.raises(OperationalError, match="sync failed"):
         module_registry_filesystem._fsync_tree(linked, error_message="sync failed")
 
     if hasattr(os, "mkfifo"):
         fifo = tmp_path / "fifo"
         os.mkfifo(fifo)
-        with pytest.raises(SDLParseError, match="sync failed"):
+        with pytest.raises(OperationalError, match="sync failed"):
             module_registry_filesystem._fsync_tree(fifo, error_message="sync failed")
 
     regular = tmp_path / "regular"
     regular.write_text("regular\n", encoding="utf-8")
     directory_stat = tmp_path.stat()
     monkeypatch.setattr(module_registry_filesystem.os, "fstat", lambda descriptor: directory_stat)
-    with pytest.raises(SDLParseError, match="sync failed"):
+    with pytest.raises(OperationalError, match="sync failed"):
         module_registry_filesystem._fsync_tree(regular, error_message="sync failed")
 
     monkeypatch.undo()
-    with pytest.raises(SDLParseError, match="sync failed"):
+    with pytest.raises(OperationalError, match="sync failed"):
         module_registry_filesystem._fsync_tree(tmp_path / "missing", error_message="sync failed")
 
     original = tmp_path.stat()
@@ -1350,24 +1351,32 @@ def test_version_store_rejects_links_files_collisions_and_invalid_names(tmp_path
         pytest.skip("symlink creation is unavailable")
 
     assert list(module_registry_filesystem._iter_version_directories(versions)) == [valid]
-    for version_name in ("../escape", "valid"):
-        staged = module_registry_filesystem._new_version_stage(versions=versions, error_message="transaction failed")
-        with pytest.raises(SDLParseError, match="transaction failed"):
-            module_registry_filesystem._install_version_directory(
-                staged=staged,
-                versions=versions,
-                version_name=version_name,
-                error_message="transaction failed",
-            )
-        assert not staged.exists()
+    staged = module_registry_filesystem._new_version_stage(versions=versions, error_message="transaction failed")
+    with pytest.raises(ValueError, match="version name"):
+        module_registry_filesystem._install_version_directory(
+            staged=staged,
+            versions=versions,
+            version_name="../escape",
+            error_message="transaction failed",
+        )
+    assert not staged.exists()
+    staged = module_registry_filesystem._new_version_stage(versions=versions, error_message="transaction failed")
+    with pytest.raises(OperationalError, match="transaction failed"):
+        module_registry_filesystem._install_version_directory(
+            staged=staged,
+            versions=versions,
+            version_name="valid",
+            error_message="transaction failed",
+        )
+    assert not staged.exists()
 
-    with pytest.raises(SDLParseError, match="transaction failed"):
+    with pytest.raises(ValueError, match="version name"):
         module_registry_filesystem._write_version_pointer(
             slot=slot,
             version_name="../escape",
             error_message="transaction failed",
         )
-    with pytest.raises(SDLParseError, match="transaction failed"):
+    with pytest.raises(OperationalError, match="transaction failed"):
         module_registry_filesystem._write_version_pointer(
             slot=slot,
             version_name="missing",
@@ -1385,21 +1394,21 @@ def test_version_slot_rejects_symlink_without_following_it(tmp_path: Path):
     except OSError:
         pytest.skip("symlink creation is unavailable")
 
-    with pytest.raises(SDLParseError, match="transaction failed"):
+    with pytest.raises(OperationalError, match="transaction failed"):
         module_registry_filesystem._prepare_versioned_slot(slot=slot, error_message="transaction failed")
 
     assert (outside / "keep").read_text(encoding="utf-8") == "keep\n"
 
 
 def test_version_store_translates_directory_and_stage_creation_failures(tmp_path: Path):
-    with pytest.raises(SDLParseError, match="transaction failed"):
+    with pytest.raises(OperationalError, match="transaction failed"):
         module_registry_filesystem._prepare_versioned_slot(
             slot=tmp_path / "missing-parent" / "slot",
             error_message="transaction failed",
         )
-    with pytest.raises(SDLParseError, match="Unable to inspect immutable version directories"):
+    with pytest.raises(OperationalError, match="Unable to inspect immutable version directories"):
         list(module_registry_filesystem._iter_version_directories(tmp_path / "missing-versions"))
-    with pytest.raises(SDLParseError, match="transaction failed"):
+    with pytest.raises(OperationalError, match="transaction failed"):
         module_registry_filesystem._new_version_stage(
             versions=tmp_path / "missing-versions",
             error_message="transaction failed",
@@ -1417,7 +1426,7 @@ def test_version_pointer_translates_temporary_file_failure(tmp_path: Path, monke
 
     monkeypatch.setattr(module_registry_filesystem.tempfile, "mkstemp", fail_mkstemp)
 
-    with pytest.raises(SDLParseError) as exc_info:
+    with pytest.raises(OperationalError) as exc_info:
         module_registry_filesystem._write_version_pointer(
             slot=slot,
             version_name="version",
@@ -1439,7 +1448,7 @@ def test_version_store_detects_post_create_replacement_and_cleanup_io(
         return real_is_dir(path)
 
     monkeypatch.setattr(Path, "is_dir", hide_created_directory)
-    with pytest.raises(SDLParseError, match="transaction failed"):
+    with pytest.raises(OperationalError, match="transaction failed"):
         module_registry_filesystem._require_directory(target, error_message="transaction failed")
 
     monkeypatch.undo()
@@ -1453,7 +1462,7 @@ def test_version_store_detects_post_create_replacement_and_cleanup_io(
         return real_iterdir(path)
 
     monkeypatch.setattr(Path, "iterdir", fail_cleanup_scan)
-    with pytest.raises(SDLParseError) as exc_info:
+    with pytest.raises(OperationalError) as exc_info:
         module_registry_filesystem._prepare_versioned_slot(slot=slot, error_message="transaction failed")
     assert str(exc_info.value) == "transaction failed"
 
@@ -1479,7 +1488,7 @@ def test_version_pointer_closes_descriptor_when_fdopen_fails(tmp_path: Path, mon
         raise OSError("SECRET-FDOPEN-DETAIL")
 
     monkeypatch.setattr(module_registry_filesystem.os, "fdopen", fail_fdopen)
-    with pytest.raises(SDLParseError) as exc_info:
+    with pytest.raises(OperationalError) as exc_info:
         module_registry_filesystem._write_version_pointer(
             slot=slot,
             version_name="version",
@@ -1508,7 +1517,7 @@ def test_version_pruning_rejects_invalid_bound_and_translates_io(tmp_path: Path,
     versions.mkdir()
     version = versions / "version"
     version.mkdir()
-    with pytest.raises(SDLParseError, match="prune failed"):
+    with pytest.raises(ValueError, match="version retention"):
         module_registry_filesystem._prune_version_directories(
             versions=versions,
             retain_names={"version"},
@@ -1524,7 +1533,7 @@ def test_version_pruning_rejects_invalid_bound_and_translates_io(tmp_path: Path,
         return real_stat(path, *args, **kwargs)
 
     monkeypatch.setattr(Path, "stat", fail_version_stat)
-    with pytest.raises(SDLParseError) as exc_info:
+    with pytest.raises(OperationalError) as exc_info:
         module_registry_filesystem._prune_version_directories(
             versions=versions,
             retain_names={"version"},
@@ -1575,7 +1584,7 @@ def test_oci_registry_transport_errors_are_stable(monkeypatch: pytest.MonkeyPatc
     monkeypatch.setattr(module_registry, "urlopen", fail_urlopen)
     request = getattr(module_registry, request_name)
 
-    with pytest.raises(SDLParseError) as exc_info:
+    with pytest.raises(OperationalError) as exc_info:
         request("https://registry.example/v2/acme/resource")
 
     assert "SECRET-TRANSPORT-DETAIL" not in str(exc_info.value)
@@ -1983,7 +1992,7 @@ def test_oci_directory_mode_normalization_rejects_invalid_and_unstable_entries(
 ) -> None:
     not_directory = tmp_path / "file"
     not_directory.write_text("payload", encoding="utf-8")
-    with pytest.raises(SDLParseError, match="non-directory entry"):
+    with pytest.raises(OperationalError, match="non-directory entry"):
         module_registry_extraction._normalize_extracted_directory_modes(
             tmp_path,
             [{"mode": 0o700, "path": "file", "type": "directory"}],
@@ -1991,7 +2000,7 @@ def test_oci_directory_mode_normalization_rejects_invalid_and_unstable_entries(
 
     expected_mode = stat.S_IMODE(tmp_path.stat().st_mode) ^ 0o100
     monkeypatch.setattr(module_registry_extraction.os, "chmod", lambda *args, **kwargs: None)
-    with pytest.raises(SDLParseError, match="changed during normalization"):
+    with pytest.raises(OperationalError, match="changed during normalization"):
         module_registry_extraction._normalize_extracted_directory_modes(
             tmp_path,
             [{"mode": expected_mode, "path": ".", "type": "directory"}],
@@ -2007,7 +2016,7 @@ def test_oci_directory_mode_normalization_wraps_platform_errors(
 
     monkeypatch.setattr(module_registry_extraction.os, "name", "posix")
     monkeypatch.setattr(module_registry_extraction.os, "chmod", fail_chmod)
-    with pytest.raises(SDLParseError, match="Unable to normalize"):
+    with pytest.raises(OperationalError, match="Unable to normalize"):
         module_registry_extraction._normalize_extracted_directory_modes(
             tmp_path,
             [{"mode": 0o700, "path": ".", "type": "directory"}],
@@ -2360,7 +2369,7 @@ def test_verified_oci_cache_source_graph_rejects_replacement_after_tree_validati
 
     monkeypatch.setattr(module_registry_cache, "_validated_cache_root", replace_after_validation)
 
-    with pytest.raises(SDLParseError, match="cache tree failed integrity validation"):
+    with pytest.raises(OperationalError, match="cache tree failed integrity validation"):
         module_registry._extract_bundle_to_cache(
             bundle_bytes=bundle,
             manifest_digest="verified-source-race",
@@ -2637,7 +2646,7 @@ def test_oci_cache_detects_noncommitting_transaction(tmp_path: Path, monkeypatch
         lambda *, versions, **kwargs: versions / "missing",
     )
 
-    with pytest.raises(SDLParseError, match="failed validation"):
+    with pytest.raises(OperationalError, match="failed validation"):
         module_registry._extract_bundle_to_cache(
             bundle_bytes=bundle,
             manifest_digest="no-commit",
@@ -2891,7 +2900,7 @@ def test_oci_cache_tree_inventory_enforces_limits(tmp_path: Path, monkeypatch: p
         "_OCI_LIMITS",
         dataclasses.replace(limits, max_member_bytes=4, max_total_bytes=7),
     )
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         module_registry._cache_tree_entries(root)
 
     monkeypatch.setattr(
@@ -2899,7 +2908,7 @@ def test_oci_cache_tree_inventory_enforces_limits(tmp_path: Path, monkeypatch: p
         "_OCI_LIMITS",
         dataclasses.replace(limits, max_bundle_members=-1),
     )
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(ValueError, match="non-negative"):
         module_registry._cache_tree_entries(root)
 
     monkeypatch.setattr(
@@ -2907,7 +2916,7 @@ def test_oci_cache_tree_inventory_enforces_limits(tmp_path: Path, monkeypatch: p
         "_OCI_LIMITS",
         dataclasses.replace(limits, max_member_bytes=3, max_total_bytes=100),
     )
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         module_registry._cache_tree_entries(root)
 
     monkeypatch.setattr(
@@ -2920,7 +2929,7 @@ def test_oci_cache_tree_inventory_enforces_limits(tmp_path: Path, monkeypatch: p
             max_bundle_members=1,
         ),
     )
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         module_registry._cache_tree_entries(root)
 
 
@@ -2943,7 +2952,7 @@ def test_oci_cache_tree_inventory_counts_nested_entries(
         dataclasses.replace(module_registry._OCI_LIMITS, max_bundle_members=2),
     )
 
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         module_registry._cache_tree_entries(root)
 
 
@@ -2954,7 +2963,7 @@ def test_oci_cache_tree_inventory_rejects_special_file(tmp_path: Path):
     root.mkdir()
     os.mkfifo(root / "pipe")
 
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         module_registry._cache_tree_entries(root)
 
 
@@ -2986,7 +2995,7 @@ def test_oci_cache_manifest_size_and_reserved_path_fail_closed(tmp_path: Path, m
 def test_oci_cache_manifest_io_failures_are_bounded_and_stable(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     manifest = tmp_path / "manifest"
     manifest.mkdir()
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         module_registry._read_cache_manifest_bytes(manifest)
 
     manifest.rmdir()
@@ -2996,7 +3005,7 @@ def test_oci_cache_manifest_io_failures_are_bounded_and_stable(tmp_path: Path, m
         "_OCI_LIMITS",
         dataclasses.replace(module_registry._OCI_LIMITS, max_metadata_bytes=1),
     )
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         module_registry._read_cache_manifest_bytes(manifest)
 
     root = tmp_path / "tree"
@@ -3015,7 +3024,7 @@ def test_oci_cache_manifest_io_failures_are_bounded_and_stable(tmp_path: Path, m
         return real_write_bytes(path, payload)
 
     monkeypatch.setattr(Path, "write_bytes", fail_manifest_write)
-    with pytest.raises(SDLParseError) as exc_info:
+    with pytest.raises(OperationalError) as exc_info:
         module_registry._write_cache_tree_manifest(
             root=root,
             content_digest="sha256:" + "0" * 64,
@@ -3035,13 +3044,13 @@ def test_oci_cache_manifest_rejects_open_and_identity_races(tmp_path: Path, monk
         return real_open(path, flags)
 
     monkeypatch.setattr(module_registry.os, "open", fail_open)
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         module_registry._read_cache_manifest_bytes(manifest)
 
     monkeypatch.undo()
     directory_stat = tmp_path.stat()
     monkeypatch.setattr(module_registry.os, "fstat", lambda descriptor: directory_stat)
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         module_registry._read_cache_manifest_bytes(manifest)
 
     monkeypatch.undo()
@@ -3051,12 +3060,12 @@ def test_oci_cache_manifest_rejects_open_and_identity_races(tmp_path: Path, monk
         raise OSError("SECRET-FDOPEN-DETAIL")
 
     monkeypatch.setattr(module_registry.os, "fdopen", fail_fdopen)
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         module_registry._read_cache_manifest_bytes(manifest)
 
 
 def test_oci_cache_tree_translates_missing_and_scan_failures(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         module_registry._cache_tree_entries(tmp_path / "missing")
 
     root = tmp_path / "tree"
@@ -3069,7 +3078,7 @@ def test_oci_cache_tree_translates_missing_and_scan_failures(tmp_path: Path, mon
         return real_scandir(path)
 
     monkeypatch.setattr(module_registry.os, "scandir", fail_scandir)
-    with pytest.raises(SDLParseError) as exc_info:
+    with pytest.raises(OperationalError) as exc_info:
         module_registry._cache_tree_entries(root)
     assert str(exc_info.value) == "OCI module cache tree failed integrity validation"
 
@@ -3096,7 +3105,7 @@ def test_oci_cache_tree_detects_directory_race(tmp_path: Path, monkeypatch: pyte
         return os.stat_result(changed)
 
     monkeypatch.setattr(Path, "lstat", race_lstat)
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         module_registry._cache_tree_entries(root)
 
 
@@ -3104,7 +3113,7 @@ def test_oci_cache_file_open_and_identity_failures_are_stable(tmp_path: Path, mo
     existing = tmp_path / "existing"
     existing.write_text("data\n", encoding="utf-8")
     expected = existing.lstat()
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         module_registry._hash_cache_file(tmp_path / "missing", expected)
 
     different_values = list(expected)
@@ -3119,7 +3128,7 @@ def test_oci_cache_file_hash_detects_fstat_read_and_size_races(tmp_path: Path, m
     expected = path.lstat()
     directory_stat = tmp_path.stat()
     monkeypatch.setattr(module_registry.os, "fstat", lambda descriptor: directory_stat)
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         module_registry._hash_cache_file(path, expected)
 
     monkeypatch.undo()
@@ -3130,7 +3139,7 @@ def test_oci_cache_file_hash_detects_fstat_read_and_size_races(tmp_path: Path, m
         raise OSError("SECRET-FSTAT-DETAIL")
 
     monkeypatch.setattr(module_registry.os, "fstat", fail_fstat)
-    with pytest.raises(SDLParseError) as exc_info:
+    with pytest.raises(OperationalError) as exc_info:
         module_registry._hash_cache_file(path, expected)
     assert str(exc_info.value) == "OCI module cache tree failed integrity validation"
 
@@ -3146,7 +3155,7 @@ def test_oci_cache_file_hash_detects_fstat_read_and_size_races(tmp_path: Path, m
         return result
 
     monkeypatch.setattr(module_registry.os, "fstat", truncate_after_stat)
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         module_registry._hash_cache_file(path, expected)
 
     monkeypatch.undo()
@@ -3157,7 +3166,7 @@ def test_oci_cache_file_hash_detects_fstat_read_and_size_races(tmp_path: Path, m
 
     monkeypatch.setattr(module_registry.os, "fdopen", fail_fdopen)
     expected = path.lstat()
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         module_registry._hash_cache_file(path, expected)
 
 
@@ -3183,7 +3192,7 @@ def test_oci_cache_file_hash_detects_growth_after_fstat(tmp_path: Path, monkeypa
         return result
 
     monkeypatch.setattr(module_registry.os, "fstat", grow_after_stat)
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         module_registry._hash_cache_file(path, expected)
 
 
@@ -3274,7 +3283,7 @@ def test_oci_cache_rejects_invalid_trusted_manifest_shape_and_tree_digest(tmp_pa
     ],
 )
 def test_oci_cache_trusted_inventory_projection_rejects_invalid_entries(entries: list[object]):
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         module_registry._trusted_entry_projection(entries)
 
 
@@ -3282,7 +3291,7 @@ def test_oci_cache_staging_validation_failure_cleans_stage(tmp_path: Path, monke
     bundle = _cache_test_bundle(b"name: invalid-stage\n")
     monkeypatch.setattr(module_registry, "_validated_cache_root", lambda **kwargs: None)
 
-    with pytest.raises(SDLParseError, match="Staged OCI module cache entry failed validation"):
+    with pytest.raises(OperationalError, match="Staged OCI module cache entry failed validation"):
         module_registry._extract_bundle_to_cache(
             bundle_bytes=bundle,
             manifest_digest="invalid-stage",
@@ -3299,7 +3308,7 @@ def test_oci_cache_creation_failure_is_stable(tmp_path: Path):
     occupied.write_text("not a directory\n", encoding="utf-8")
     bundle = _cache_test_bundle(b"name: blocked\n")
 
-    with pytest.raises(SDLParseError, match="Unable to create the OCI module cache"):
+    with pytest.raises(OperationalError, match="Unable to create the OCI module cache"):
         module_registry._extract_bundle_to_cache(
             bundle_bytes=bundle,
             manifest_digest="blocked",
@@ -3319,7 +3328,7 @@ def test_oci_cache_lock_open_failure_is_stable(tmp_path: Path, monkeypatch: pyte
 
     monkeypatch.setattr(os, "open", fail_lock_open)
 
-    with pytest.raises(SDLParseError) as exc_info, module_registry._cache_entry_lock(lock_path):
+    with pytest.raises(OperationalError) as exc_info, module_registry._cache_entry_lock(lock_path):
         pass
 
     assert str(exc_info.value) == "Unable to open the OCI module cache lock"
@@ -3332,7 +3341,7 @@ def test_oci_cache_lock_rejects_identity_and_fdopen_races(tmp_path: Path, monkey
     lock_path.write_bytes(b"")
     directory_stat = lock_parent.stat()
     monkeypatch.setattr(module_registry.os, "fstat", lambda descriptor: directory_stat)
-    with pytest.raises(SDLParseError, match="Unable to open the OCI module cache lock"):
+    with pytest.raises(OperationalError, match="Unable to open the OCI module cache lock"):
         module_registry._open_cache_lock(lock_path)
 
     monkeypatch.undo()
@@ -3342,7 +3351,7 @@ def test_oci_cache_lock_rejects_identity_and_fdopen_races(tmp_path: Path, monkey
         raise OSError("SECRET-FDOPEN-DETAIL")
 
     monkeypatch.setattr(module_registry.os, "fdopen", fail_fdopen)
-    with pytest.raises(SDLParseError) as exc_info:
+    with pytest.raises(OperationalError) as exc_info:
         module_registry._open_cache_lock(lock_path)
     assert str(exc_info.value) == "Unable to open the OCI module cache lock"
 
@@ -3354,7 +3363,7 @@ def test_oci_cache_lock_rechecks_parent_type_and_descriptor_identity(
     occupied_parent = tmp_path / "occupied"
     occupied_parent.write_bytes(b"")
     monkeypatch.setattr(module_registry_cache, "_require_directory", lambda *args, **kwargs: None)
-    with pytest.raises(SDLParseError, match="Unable to open the OCI module cache lock"):
+    with pytest.raises(OperationalError, match="Unable to open the OCI module cache lock"):
         module_registry_cache._open_cache_lock(occupied_parent / "entry.lock")
 
     monkeypatch.undo()
@@ -3363,7 +3372,7 @@ def test_oci_cache_lock_rechecks_parent_type_and_descriptor_identity(
     lock_parent = tmp_path / "locks"
     lock_parent.mkdir()
     monkeypatch.setattr(module_registry_cache.os, "fstat", lambda descriptor: tmp_path.stat())
-    with pytest.raises(SDLParseError, match="Unable to open the OCI module cache lock"):
+    with pytest.raises(OperationalError, match="Unable to open the OCI module cache lock"):
         module_registry_cache._open_cache_lock(lock_parent / "entry.lock")
 
 
@@ -3382,7 +3391,7 @@ def test_oci_cache_rejects_linked_cache_root_without_writing_target(tmp_path: Pa
         pytest.skip("symlink creation is unavailable")
 
     bundle = _cache_test_bundle(b"name: blocked\n")
-    with pytest.raises(SDLParseError, match="Unable to create the OCI module cache"):
+    with pytest.raises(OperationalError, match="Unable to create the OCI module cache"):
         module_registry._extract_bundle_to_cache(
             bundle_bytes=bundle,
             manifest_digest="linked-root",
@@ -3404,7 +3413,7 @@ def test_oci_cache_rejects_linked_real_lock_parent_without_writing_target(tmp_pa
         pytest.skip("symlink creation is unavailable")
 
     bundle = _cache_test_bundle(b"name: blocked\n")
-    with pytest.raises(SDLParseError, match="Unable to open the OCI module cache lock"):
+    with pytest.raises(OperationalError, match="Unable to open the OCI module cache lock"):
         module_registry._extract_bundle_to_cache(
             bundle_bytes=bundle,
             manifest_digest="linked-lock-parent",
@@ -3425,7 +3434,7 @@ def test_oci_cache_lock_rejects_linked_parent_and_file(tmp_path: Path):
         pytest.skip("symlink creation is unavailable")
 
     with (
-        pytest.raises(SDLParseError, match="Unable to open the OCI module cache lock"),
+        pytest.raises(OperationalError, match="Unable to open the OCI module cache lock"),
         module_registry._cache_entry_lock(linked_parent / "entry.lock"),
     ):
         pytest.fail("a linked lock parent must not be entered")
@@ -3437,7 +3446,7 @@ def test_oci_cache_lock_rejects_linked_parent_and_file(tmp_path: Path):
     outside_file.write_bytes(b"")
     (real_parent / "entry.lock").symlink_to(outside_file)
     with (
-        pytest.raises(SDLParseError, match="Unable to open the OCI module cache lock"),
+        pytest.raises(OperationalError, match="Unable to open the OCI module cache lock"),
         module_registry._cache_entry_lock(real_parent / "entry.lock"),
     ):
         pytest.fail("a linked lock file must not be entered")
@@ -3469,7 +3478,7 @@ def test_oci_cache_lock_parent_swap_cannot_escape_anchored_directory(
 
     monkeypatch.setattr(module_registry_cache.os, "open", swap_parent_before_lock_open)
     with (
-        pytest.raises(SDLParseError, match="Unable to open the OCI module cache lock"),
+        pytest.raises(OperationalError, match="Unable to open the OCI module cache lock"),
         module_registry._cache_entry_lock(lock_path),
     ):
         pytest.fail("a replaced lock parent must not be entered")
@@ -3547,7 +3556,7 @@ def test_oci_cache_lock_rejects_peer_created_link_after_exclusive_race(
 
     monkeypatch.setattr(module_registry_cache.os, "open", create_link_as_peer_then_report_collision)
 
-    with pytest.raises(SDLParseError, match="Unable to open the OCI module cache lock"):
+    with pytest.raises(OperationalError, match="Unable to open the OCI module cache lock"):
         module_registry_cache._open_cache_lock(lock_path)
 
     assert collided is True
@@ -3564,7 +3573,7 @@ def test_oci_cache_lock_rejects_fifo_without_blocking(tmp_path: Path):
     os.mkfifo(lock_path)
 
     with (
-        pytest.raises(SDLParseError, match="Unable to open the OCI module cache lock"),
+        pytest.raises(OperationalError, match="Unable to open the OCI module cache lock"),
         module_registry._cache_entry_lock(lock_path),
     ):
         pytest.fail("a FIFO lock must not be entered")
@@ -3633,7 +3642,7 @@ def test_oci_cache_lock_timeout_is_bounded(tmp_path: Path, monkeypatch: pytest.M
     )
     monkeypatch.setattr(fcntl, "flock", lambda *args, **kwargs: (_ for _ in ()).throw(BlockingIOError()))
 
-    with (tmp_path / "lock").open("a+b") as handle, pytest.raises(SDLParseError, match="Timed out"):
+    with (tmp_path / "lock").open("a+b") as handle, pytest.raises(OperationalError, match="Timed out"):
         module_registry._acquire_file_lock(handle)
 
     assert sleeps == [0.01]
@@ -4135,7 +4144,7 @@ def test_oci_tree_depth_is_bounded_before_extraction_and_during_inventory(
     for component in ("a", "b", "c", "d"):
         current = current / component
         current.mkdir()
-    with pytest.raises(SDLParseError, match="integrity validation"):
+    with pytest.raises(OperationalError, match="integrity validation"):
         module_registry._cache_tree_entries(tree)
 
 
@@ -4225,7 +4234,7 @@ def test_oci_decoded_tar_rejects_invalid_limit_configuration(monkeypatch: pytest
     )
 
     with (
-        pytest.raises(SDLParseError, match="non-negative"),
+        pytest.raises(ValueError, match="non-negative"),
         module_registry._bounded_gzip_tar_stream(b""),
     ):
         pass

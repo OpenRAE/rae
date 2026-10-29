@@ -8,7 +8,10 @@ from pathlib import Path
 from tools.formal_semantic_validation._shape import (
     _closed_object,
     _failure,
+    _hashable,
     _is_sequence,
+    _member,
+    _members,
     _nonempty_string,
     _stable_ids,
 )
@@ -32,7 +35,8 @@ def _case_reference_failures(
 ) -> None:
     case_id = item.get("case_id")
     claim_id = item.get("claim_class_id")
-    if claim_id not in claim_ids:
+    polarity = item.get("polarity")
+    if not _member(claim_id, claim_ids):
         failures.append(
             _failure(
                 "formal-validation-case-claim",
@@ -41,8 +45,9 @@ def _case_reference_failures(
             )
         )
     else:
-        polarities[claim_id].add(item.get("polarity"))
-    if item.get("polarity") not in {"positive", "negative"}:
+        # An unhashable polarity is invalid; None keeps the polarity coverage incomplete.
+        polarities[claim_id].add(polarity if _hashable(polarity) else None)
+    if not _member(polarity, {"positive", "negative"}):
         failures.append(
             _failure(
                 "formal-validation-case-polarity",
@@ -50,7 +55,7 @@ def _case_reference_failures(
                 path,
             )
         )
-    if item.get("replay_mode") not in REPLAY_MODES | PRODUCTION_EVIDENCE_REPLAY_MODES:
+    if not _member(item.get("replay_mode"), REPLAY_MODES | PRODUCTION_EVIDENCE_REPLAY_MODES):
         failures.append(
             _failure(
                 "formal-validation-replay-mode",
@@ -159,7 +164,11 @@ def _validate_corpus(
     _, unique_case_ids = _stable_ids(cases, "case_id")
     if not unique_case_ids:
         failures.append(_failure("formal-validation-case-ids", "case ids must be unique stable ids", path))
-    claim_ids = {item.get("claim_class_id") for item in protocol.get("claim_classes", []) if isinstance(item, Mapping)}
+    claim_ids = {
+        item.get("claim_class_id")
+        for item in _members(protocol.get("claim_classes", []))
+        if isinstance(item, Mapping) and _hashable(item.get("claim_class_id"))
+    }
     cases_by_id: dict[str, Mapping[str, object]] = {}
     polarities: dict[object, set[object]] = {claim_id: set() for claim_id in claim_ids}
     for item in cases:

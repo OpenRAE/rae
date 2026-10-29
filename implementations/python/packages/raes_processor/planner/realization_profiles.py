@@ -35,9 +35,10 @@ def profile_resources(
         "profiles",
         "Plan profiles lack supported, pinned target authority.",
     )
+    # The contract owner refuses an authored selection with ValueError (E3).
     try:
         authority = selected_profile_authority(authored_resource_profiles(resources.values()), context, authority)
-    except AttributeError, TypeError, ValueError:
+    except ValueError:
         return resources, [diagnostic], authority
     if authority is None:
         diagnostics = []
@@ -61,21 +62,26 @@ def _retained_profile_resources(
 ) -> tuple[Mapping[str, object], list[Diagnostic]]:
     """Retain a still-admitted backend choice, or report the unsupported authority."""
 
-    try:
-        by_address = {}
-        for binding in authority.bindings:
+    by_address: dict[str, list[object]] = {}
+    for binding in authority.bindings:
+        try:
             address = profile_resource_address(binding)
-            if address not in resources:
-                raise ValueError("Missing profile owner")
-            by_address.setdefault(address, []).append(binding)
-        previous = tuple(
-            binding for address in by_address if (entry := snapshot.get(address)) for binding in entry.profile_bindings
-        )
-        retain = profile_selection_violation(authority, previous, context) is None
-        resources = dict(resources)
-        for address, bindings in by_address.items():
-            values = snapshot.get(address).profile_bindings if retain else tuple(bindings)
-            resources[address] = replace(resources[address], profile_bindings=values)
-    except AttributeError, TypeError, ValueError:
-        return resources, [diagnostic]
-    return resources, []
+        except ValueError:
+            # The contract owner refuses an unaddressable binding with ValueError (E3).
+            return resources, [diagnostic]
+        if address not in resources:
+            # Every profile binding needs its owning planned resource.
+            return resources, [diagnostic]
+        by_address.setdefault(address, []).append(binding)
+    previous = tuple(
+        binding for address in by_address if (entry := snapshot.get(address)) for binding in entry.profile_bindings
+    )
+    retain = profile_selection_violation(authority, previous, context) is None
+    retained = dict(resources)
+    for address, bindings in by_address.items():
+        entry = snapshot.get(address)
+        if retain and entry is None:
+            return retained, [diagnostic]
+        values = entry.profile_bindings if retain else tuple(bindings)
+        retained[address] = replace(retained[address], profile_bindings=values)
+    return retained, []

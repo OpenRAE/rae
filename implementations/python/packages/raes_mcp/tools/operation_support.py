@@ -48,6 +48,7 @@ def compile_pipeline(
         instantiate_scenario,
         parse_sdl,
     )
+    from raes_contracts.errors import InvalidInputError
     from raes_processor.compiler import compile_runtime_model
 
     params, parameter_error = parse_parameters(parameters_json)
@@ -90,7 +91,11 @@ def compile_pipeline(
         }
     stages.append(stage_ok("instantiation"))
 
-    model = compile_runtime_model(concrete)
+    try:
+        model = compile_runtime_model(concrete)
+    except InvalidInputError:
+        # The refusal text can quote authored content, so the result names only the stage.
+        return {"error": refusal("compilation"), "stages": stages, "scenario": scenario, "model": None}
     stages.append(stage_ok("compilation"))
     return {
         "error": None,
@@ -107,27 +112,56 @@ def compile_pipeline(
     }
 
 
+def refusal(stage: str) -> dict[str, Any]:
+    """Return the invalid result of a stage that refused the input, without the refusal text."""
+
+    return {
+        "status": "invalid",
+        "stage": stage,
+        "diagnostics": text_diagnostics(stage, [f"The scenario was rejected at the {stage} stage."]),
+    }
+
+
+def reference_plan(model: Any) -> tuple[Any, Any, dict[str, Any] | None]:
+    """Plan a compiled model against the reference stub backend manifest.
+
+    Return the manifest, the execution plan and no error, or the manifest, no
+    plan and the invalid result when the planner refuses the model.
+    """
+
+    from raes_backend_stubs.stubs import create_stub_manifest
+    from raes_contracts.errors import InvalidInputError
+    from raes_processor.planner import plan
+
+    manifest = create_stub_manifest()
+    try:
+        execution_plan = plan(model, manifest)
+    except InvalidInputError:
+        return manifest, None, refusal("planning")
+    return manifest, execution_plan, None
+
+
+def _parameter_error(message: str) -> tuple[dict[str, Any], dict[str, Any]]:
+    return (
+        {},
+        {
+            "status": "invalid",
+            "stage": "parameter_parsing",
+            "diagnostics": text_diagnostics("parameter_parsing", [message]),
+        },
+    )
+
+
 def parse_parameters(parameters_json: str) -> tuple[dict[str, Any], dict[str, Any] | None]:
     try:
         parsed = json.loads(parameters_json)
     except json.JSONDecodeError as exc:
-        return (
-            {},
-            {
-                "status": "invalid",
-                "stage": "parameter_parsing",
-                "diagnostics": text_diagnostics("parameter_parsing", [f"Invalid JSON in parameters_json: {exc}"]),
-            },
-        )
+        return _parameter_error(f"Invalid JSON in parameters_json: {exc}")
+    except ValueError, RecursionError:
+        # The decoder raises a plain ValueError beyond the integer digit limit and RecursionError beyond its depth.
+        return _parameter_error("Invalid JSON in parameters_json: the document exceeds the decoder limits.")
     if not isinstance(parsed, dict):
-        return (
-            {},
-            {
-                "status": "invalid",
-                "stage": "parameter_parsing",
-                "diagnostics": text_diagnostics("parameter_parsing", ["parameters_json must be a JSON object."]),
-            },
-        )
+        return _parameter_error("parameters_json must be a JSON object.")
     return parsed, None
 
 
@@ -160,7 +194,7 @@ def stage_error(stage: str, error: object) -> dict[str, Any]:
             "stage": stage,
             "diagnostics": [item.as_dict() for item in structured],
         }
-    message = getattr(error, "details", str(error))
+    message = getattr(error, "details", f"The scenario was rejected at the {stage} stage.")
     return {
         "status": "invalid",
         "stage": stage,

@@ -47,6 +47,17 @@ import re
 import sys
 from collections.abc import Sequence
 from dataclasses import dataclass
+from pathlib import Path
+
+# The shared logging module is standard-library-only, so the guard still runs
+# on a bare interpreter from the base checkout.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.operational_logging import run_application  # noqa: E402
 
 # --- Policy data (the extensibility seam: parameterize, do not hard-fork) ---
 
@@ -182,10 +193,11 @@ def validate_pr_title(
     """Validate ``title`` (and any changelog-bound part of ``body``) and return
     violations.
 
-    An empty list means the title is acceptable.
+    An empty list means the title is acceptable. A title from an event payload
+    that is not text has no title text, so it is reported as an empty title.
     """
     violations: list[TitleViolation] = []
-    stripped = (title or "").strip()
+    stripped = title.strip() if isinstance(title, str) else ""
 
     if not stripped:
         violations.append(TitleViolation(RULE_EMPTY, "PR title is empty."))
@@ -261,13 +273,18 @@ def _resolve_title(args: argparse.Namespace) -> tuple[str | None, str | None]:
         try:
             with open(event_path, encoding="utf-8") as handle:
                 event = json.load(handle)
-        except (OSError, json.JSONDecodeError) as exc:
+        # The try holds only the read and the decoder. ValueError covers text that is not UTF-8, malformed
+        # JSON and an integer beyond the interpreter digit limit; RecursionError covers excessive nesting.
+        except (OSError, ValueError, RecursionError) as exc:
             print(
                 f"pr-title-guard: could not read event JSON from {event_path}: {exc}",
                 file=sys.stderr,
             )
             return None, None
-        pull_request = event.get("pull_request") or {}
+        pull_request = event.get("pull_request") if isinstance(event, dict) else None
+        if not isinstance(pull_request, dict):
+            # A payload without a pull_request object carries no title.
+            pull_request = {}
         title = pull_request.get("title")
         body = pull_request.get("body")
         if title is None:
@@ -316,7 +333,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         try:
             with open(args.commit_messages_file, encoding="utf-8") as handle:
                 commit_messages = handle.read()
-        except OSError as exc:
+        # The try holds only the read: ValueError covers text that is not UTF-8 and a path with a NUL.
+        except (OSError, ValueError) as exc:
             # Fail closed: the caller asked for commit messages to be checked.
             print(
                 f"pr-title-guard: could not read commit messages from {args.commit_messages_file}: {exc}",
@@ -345,4 +363,4 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

@@ -21,6 +21,7 @@ from raes_contracts.contracts.experiment_bindings import ParticipantConfiguratio
 from raes_contracts.experiment_bindings import (
     ApparatusManifest,
     ApparatusManifestKey,
+    ExperimentBindingTargetError,
     ParticipantManifestKey,
     validate_experiment_binding_targets,
 )
@@ -86,7 +87,7 @@ def _admitted_descriptors(
             participant_manifests=participant_manifests,
             apparatus_manifests=apparatus_manifests,
         )
-    except ValueError as exc:
+    except ExperimentBindingTargetError as exc:
         raise CompilationFailure(
             "binding-target-rejected",
             _BINDING_DESCRIPTORS_ADDRESS,
@@ -209,14 +210,17 @@ def entry_participant_configurations(
     for key, overrides in sorted(grouped.items()):
         manifest = request.participant_manifests[key]
         registry = manifest.configuration_registry
+        validator = request.participant_configuration_validators.get(
+            (registry.owner.validator_id, registry.owner.validator_version)
+        )
+        bind_scenario = None
+        if any(target.control_context is not None for target in registry.targets.values()):
+            bind_scenario = getattr(validator, "for_scenario", None)
+            if not callable(bind_scenario):
+                # Control-context targets require a concrete owner validator.
+                raise _configuration_rejected()
         try:
-            validator = request.participant_configuration_validators.get(
-                (registry.owner.validator_id, registry.owner.validator_version)
-            )
-            if any(target.control_context is not None for target in registry.targets.values()):
-                bind_scenario = getattr(validator, "for_scenario", None)
-                if not callable(bind_scenario):
-                    raise ValueError("control-context concrete owner validation is required")
+            if bind_scenario is not None:
                 validator = bind_scenario(scenario)
             results.append(
                 realize_participant_configuration(
@@ -229,12 +233,17 @@ def entry_participant_configurations(
                 )
             )
         except ValueError as exc:
-            raise CompilationFailure(
-                "participant-configuration-rejected",
-                _BINDING_DESCRIPTORS_ADDRESS,
-                "participant complete configuration failed owner validation",
-            ) from exc
+            # The trusted owner hook and the contract owner refuse with ValueError (E3); refuse here (E9).
+            raise _configuration_rejected() from exc
     return results
+
+
+def _configuration_rejected() -> CompilationFailure:
+    return CompilationFailure(
+        "participant-configuration-rejected",
+        _BINDING_DESCRIPTORS_ADDRESS,
+        "participant complete configuration failed owner validation",
+    )
 
 
 def _factorial_participant_defaults(

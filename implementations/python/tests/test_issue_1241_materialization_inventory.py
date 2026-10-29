@@ -4,6 +4,7 @@ from copy import deepcopy
 from dataclasses import replace
 
 import pytest
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.planner import admit_materialization_submission
 from test_issue_1241_materialization_context import attesting_plan
@@ -58,7 +59,7 @@ def test_replica_cardinality_is_bounded_before_enumerating_indices(monkeypatch):
         raise AssertionError("cardinality must be checked before allocating indices")
 
     monkeypatch.setattr(admission, "range", bounded_range, raising=False)
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidInputError):
         admit_materialization_submission(
             result.materialization_attestation, request, execution.manifest, previous, result.snapshot
         )
@@ -90,7 +91,7 @@ def test_later_phase_checks_retained_safe_inventory_without_revealing_values(pha
     request = replace(getattr(execution, phase), operation_id=phase)
     report = reporter.report(request, previous, ApplyResult(True, previous)).materialization_attestation
     if tampered:
-        with pytest.raises(ValueError, match="outside its operation domain"):
+        with pytest.raises(InvalidInputError, match="outside its operation domain"):
             admit_materialization_submission(report, request, execution.manifest, previous, previous)
     else:
         admitted = admit_materialization_submission(report, request, execution.manifest, previous, previous)

@@ -49,6 +49,10 @@ from .participant_episode_control import ParticipantEpisodeControlMixin
 from .participant_outcome_control import ParticipantOutcomeControlMixin
 from .participant_submission_options import ParticipantSubmissionOptions, submit_bound_participant_action
 
+# The refusal text of a validator can echo caller values, so these diagnostics are fixed (E7).
+_ADMISSION_FIELDS_REJECTED = "The admission fields do not satisfy the participant action admission contract."
+_DECISION_SURFACE_REJECTED = "The decision surface selection does not satisfy its binding contract."
+
 
 def _participant_binding_diagnostics(
     participant_behavior: object,
@@ -118,8 +122,9 @@ def _participant_admission_request_from_fields(
             ),
             [],
         )
-    except (TypeError, ValueError) as exc:
-        return None, [_participant_binding_diagnostic(address, str(exc))]
+    # The request refuses an unknown or wrongly typed field with TypeError and an invalid value with ValueError.
+    except TypeError, ValueError:
+        return None, [_participant_binding_diagnostic(address, _ADMISSION_FIELDS_REJECTED)]
 
 
 def _validated_participant_admission_request(
@@ -229,10 +234,12 @@ def _bind_participant_decision_surface(
                 argument_shape_resolver=resolvers.argument_shape,
                 apparatus_resolver=resolvers.apparatus,
             )
-    except (TypeError, ValueError) as exc:
+    # The binding refuses a selection with ValueError and isolates host resolver failures itself;
+    # any other exception is a defect and propagates.
+    except ValueError:
         return None, _participant_binding_diagnostic(
             _participant_binding_address(participant_behavior),
-            str(exc),
+            _DECISION_SURFACE_REJECTED,
         )
     return request, None
 

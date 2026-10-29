@@ -11,6 +11,7 @@ from raes._errors import SDLInstantiationError, SDLValidationError
 from raes.scenario import Scenario
 from raes.validator import SemanticValidator
 from raes_backend_stubs.stubs import create_stub_manifest
+from raes_contracts.errors import InvalidInputError
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
 from raes_processor.semantics.realization import project_realization_concern
@@ -248,7 +249,7 @@ def test_live_payload_content_reference_retains_bounded_validation_context(bound
     elif not content_is_live:
         originals = set(live)
         manifest = create_stub_manifest()
-        with pytest.raises(ValueError, match="native semantics"):
+        with pytest.raises(InvalidInputError, match="native semantics"):
             validate_portable_node_inventory(live, originals, manifest)
     else:
         validate_portable_node_inventory(live, set(live), create_stub_manifest())

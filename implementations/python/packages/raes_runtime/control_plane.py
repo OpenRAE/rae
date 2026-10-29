@@ -84,7 +84,7 @@ _P0_SCOPE_BOUND_ERROR = "control-plane profile P0 missing capabilities: store.sc
 
 
 def _unavailable_backend(*_args: object, **_kwargs: object) -> object:
-    raise AssertionError("an unavailable backend cannot be invoked")
+    raise RuntimeError("an unavailable backend cannot be invoked")
 
 
 def _prepare_control_plane_store(

@@ -3,11 +3,12 @@
 Part of the SemanticValidator mixin composition; see __init__.py.
 """
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
+from contextlib import contextmanager
 
 from .._base import is_variable_ref
 from .._declarations import DeclarationIndex, Purposes, build_declaration_index
-from .._errors import SDLValidationError
+from .._errors import SDLValidationError, SDLValidationFinding
 from .._operating_scope_index import operating_scope_aliases
 from .._reference_targetability import (
     ELIGIBLE_KINDS,
@@ -53,13 +54,24 @@ def eligible_element(purposes: Purposes) -> str:
 class _ValidatorCore:
     def __init__(self, scenario: ScenarioContent) -> None:
         self._s = scenario
-        self._errors: list[str] = []
+        self._errors: list[SDLValidationFinding] = []
+        self._finding_owner: tuple[str, str] | None = None
         self._warnings: list[str] = []
         self._declaration_index: DeclarationIndex | None = None
         self._runtime_references: dict[str, RuntimeFamilyReference] | None = None
 
-    def _err(self, msg: str) -> None:
-        self._errors.append(msg)
+    def _err(self, msg: str, *, pointer: str | None = None) -> None:
+        """Record one error. The innermost ``_owner`` block gives its owner."""
+        self._errors.append(SDLValidationFinding(msg, self._finding_owner, pointer))
+
+    @contextmanager
+    def _owner(self, owner: tuple[str, str] | None) -> Iterator[None]:
+        """Set the owner of each error that the block records: a ``(section, name)`` pair, or None."""
+        outer, self._finding_owner = self._finding_owner, owner
+        try:
+            yield
+        finally:
+            self._finding_owner = outer
 
     def _warn(self, msg: str) -> None:
         self._warnings.append(msg)
@@ -168,6 +180,7 @@ class _ValidatorCore:
         owner_label: str,
         ref_label: str,
         purpose: Purposes = ReferencePurpose.DECLARED,
+        pointer: str | None = None,
     ) -> None:
         """Validate a reference against the declarations eligible for *purpose* (every member of a tuple)."""
         purposes = canonical_purposes(purpose)
@@ -175,13 +188,14 @@ class _ValidatorCore:
         if not candidates:
             self._err(
                 f"{owner_label} {ref_label} '{ref}' does not reference any defined "
-                f"{eligible_element(self._failed_purposes(ref, purposes))}{self._ineligible_detail(ref)}"
+                f"{eligible_element(self._failed_purposes(ref, purposes))}{self._ineligible_detail(ref)}",
+                pointer=pointer,
             )
             return
 
         if len(candidates) > 1:
             choices = self._ambiguity_choices(candidates, purpose)
-            self._err(f"{owner_label} {ref_label} '{ref}' is ambiguous; use one of: {choices}")
+            self._err(f"{owner_label} {ref_label} '{ref}' is ambiguous; use one of: {choices}", pointer=pointer)
 
     def validate(self) -> None:
         """Run all validation passes and raise on errors."""
@@ -189,7 +203,7 @@ class _ValidatorCore:
         self._warnings = []
         self._runtime_references = None
         self._declaration_index = build_declaration_index(self._s, raise_on_collision=False)
-        self._errors.extend(self._declaration_index.collision_errors)
+        self._errors.extend(SDLValidationFinding(message) for message in self._declaration_index.collision_errors)
 
         # OCR passes
         self._verify_nodes()
@@ -251,8 +265,9 @@ class _ValidatorCore:
         self._runtime_references = None
         self._declaration_index = None
         for name, node in self._s.nodes.items():
-            self._verify_node_operating_system(name, node)
-            self._verify_node_architecture(name, node)
+            with self._owner(("nodes", name)):
+                self._verify_node_operating_system(name, node)
+                self._verify_node_architecture(name, node)
         self._verify_infrastructure()
         self._verify_runtime_configuration()
         self._verify_stateful_resources()

@@ -85,13 +85,18 @@ class ExperimentStudyModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_claim_bearing_study(self) -> ExperimentStudyModel:
+        from ..behavioral_authority_errors import BehavioralAuthorityArtifactError
         from ..behavioral_relations import validate_behavioral_claim_binding
 
         relation_ids = [claim.relation_id for claim in self.behavioral_claims]
         if len(relation_ids) != len(set(relation_ids)):
             raise ValueError("study behavioral claim relation ids must be unique")
-        for claim in self.behavioral_claims:
-            validate_behavioral_claim_binding(claim)
+        try:
+            for claim in self.behavioral_claims:
+                validate_behavioral_claim_binding(claim)
+        except BehavioralAuthorityArtifactError as exc:
+            # A Pydantic validator raises only ValueError (E3); the loader has logged the damage.
+            raise ValueError("the packaged behavioral relation authority is damaged") from exc
         if self.run_allocation is not None:
             self._validate_run_allocation_blocking_factors(self.run_allocation)
             self._validate_run_allocation_condition_assignments(self.run_allocation)
