@@ -12,6 +12,7 @@ from raes_conformance.conformance import (
     backend_conformance_report_payload,
     run_fixture_suite,
 )
+from raes_contracts.errors import OperationalError
 
 _DEFAULT_PROFILE_ID = BackendCapabilityProfile.ORCHESTRATION_EVALUATION.value
 _KNOWN_PROFILE_HINT = ", ".join(sorted(profile.value for profile in BackendCapabilityProfile))
@@ -54,10 +55,16 @@ def backend(
     from ``contracts/fixtures/`` (or the supplied overrides). Exits non-zero
     when any case or top-level diagnostic fails so CI gates can wire it in.
     A missing/malformed/mislabeled profile JSON surfaces as a structured
-    ``conformance.profile-load-failed`` diagnostic in the report.
+    ``conformance.profile-load-failed`` diagnostic in the report. A fixture
+    file that cannot be read fails the command with exit status 1 and no report.
     """
 
-    report = run_fixture_suite(profile=profile, root=fixtures_root, profiles_root=profiles_root)
+    try:
+        report = run_fixture_suite(profile=profile, root=fixtures_root, profiles_root=profiles_root)
+    except OperationalError as exc:
+        # The line names the failure kind only; host paths and OS error text stay out of the output.
+        typer.echo("error: the conformance fixture corpus could not be read", err=True)
+        raise typer.Exit(code=1) from exc
     typer.echo(json.dumps(_report_payload(report), indent=2))
     if not report.passed:
         raise typer.Exit(code=1)

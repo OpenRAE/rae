@@ -26,6 +26,7 @@ from raes_contracts.contracts import (
     TransformationCheckOutcome,
     schema_bundle,
 )
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.json_ingress import StrictJsonIngressError
 from raes_contracts.semantic_comparison import (
     ArtifactKind,
@@ -357,7 +358,7 @@ def test_profile_digest_mismatch_is_rejected_before_analysis(
         update={"comparison_profile_digest": "sha256:" + "0" * 64}
     )
 
-    with pytest.raises(ValueError, match="comparison profile digest"):
+    with pytest.raises(InvalidInputError, match="comparison profile digest"):
         analyze_semantic_comparison(profile, request, scenario, scenario)
 
 

@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from asyncio import CancelledError
+from collections.abc import Callable, Iterable
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
 from raes_contracts.contracts.participant_execution import ParticipantExecutionServiceStateModel
@@ -297,13 +298,28 @@ class ParticipantScheduler:
         participant_runtime: object,
         snapshot: RuntimeSnapshot,
         activity_controls: dict[str, ParticipantActivityRandomControl] | None = None,
+        *,
+        cancellation_sink: Callable[[ApplyResult], None] | None = None,
     ) -> ApplyResult:
+        """Run each due action; on cancellation, give the settled state to ``cancellation_sink``.
+
+        A cancelled concurrent batch has fenced its indeterminate native work in the
+        scheduler state. The commit owner must commit that state before the
+        cancellation leaves it, or the same action ids become due again.
+        """
+
         run = SchedulerRunState(working=snapshot, diagnostics=[], changed=[])
         resolved_activity_controls = activity_controls or {}
-        for policy in policies:
-            _run_due_policy(policy, time_model, participant_runtime, resolved_activity_controls, run)
-            if run.failure is not None:
-                break
+        try:
+            for policy in policies:
+                _run_due_policy(policy, time_model, participant_runtime, resolved_activity_controls, run)
+                if run.failure is not None:
+                    break
+        except CancelledError:
+            # Cleanup: hand the settled scheduler state to its commit owner, then propagate (ADR-116 H4).
+            if cancellation_sink is not None:
+                cancellation_sink(run.result())
+            raise
         return run.result()
 
     @staticmethod

@@ -6,6 +6,7 @@ from datetime import timedelta
 from typing import TYPE_CHECKING
 
 import anyio
+from raes_contracts.errors import ConflictError
 
 from .runtime_sequence_reference import RuntimeSequenceReference
 
@@ -36,5 +37,5 @@ async def start_runtime_workflow(adapter: TemporalExecutionAdapter, reference: R
                 "runtime_reference", rpc_timeout=timedelta(milliseconds=adapter.configuration.rpc_budget_ms)
             )
             if RuntimeSequenceReference.model_validate(retained) != reference:
-                raise ValueError("Temporal runtime binding conflict") from None
+                raise ConflictError("Temporal runtime binding conflict") from None
     return reference.workflow_id

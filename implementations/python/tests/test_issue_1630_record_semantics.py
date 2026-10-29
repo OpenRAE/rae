@@ -4,6 +4,7 @@ import pytest
 from issue_1629_archive_fixture import TrialArchive
 from issue_1629_trial_fixture import factorial_inputs
 from issue_1630_record_fixture import ContentServices, RuntimeArchive, metadata_for, readers, record_request
+from raes_contracts.errors import EvidenceIntegrityError, OperationalError
 from raes_runtime import ExperimentRunMetadata, RuntimeControlPlane
 from raes_runtime.runtime_experiment_replacement import ExperimentReplacementBinding
 from raes_runtime.runtime_record_decisions import ExperimentRecordPublicationDecision
@@ -44,9 +45,9 @@ def test_missing_metric_keys_do_not_overwrite_supplied_results():
     assert result == _run_metadata(experiment, metadata)
 
 
-@pytest.mark.parametrize("error", [KeyError, ProviderFailure])
+@pytest.mark.parametrize("error", [KeyError, ProviderFailure, OperationalError, EvidenceIntegrityError])
 @pytest.mark.parametrize("stage", ["run", "study"])
-def test_ordinary_provider_exceptions_preserve_records(completed_run, error, stage):
+def test_ordinary_provider_exceptions_preserve_records(completed_run, error, stage, caplog):
     runtime, experiment, inputs, services, first, metadata = completed_run
     calls = 0
 
@@ -67,6 +68,9 @@ def test_ordinary_provider_exceptions_preserve_records(completed_run, error, sta
     )
     assert len(archive.runs) == bundle.accounting.started_runs
     assert "private catalog details" not in str(bundle.validation_failures)
+    assert "private catalog details" not in caplog.text
+    owner_failures = [record for record in caplog.records if record.getMessage() == "record evidence owner failed"]
+    assert len(owner_failures) == (0 if issubclass(error, (OperationalError, EvidenceIntegrityError)) else 1)
     if stage == "run":
         assert bundle.validation_by_run[first] == "failed"
     else:

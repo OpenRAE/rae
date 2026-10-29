@@ -165,6 +165,12 @@ line-length = 120
 # These modules keep 3.12 syntax. test_issue_1238_development_container.py
 # checks that this list matches their import closure.
 [tool.ruff.per-file-target-version]
+"**/implementations/tooling/__init__.py" = "py312"
+"**/implementations/tooling/action_policy_yaml.py" = "py312"
+# The setup modules import the shared exception and logging modules from the source tree (ADR-116).
+"**/raes_contracts/__init__.py" = "py312"
+"**/raes_contracts/errors.py" = "py312"
+"**/raes_contracts/operational_logging.py" = "py312"
 "**/tools/bootstrap_profile.py" = "py312"
 "**/tools/check_tooling_artifact_policy.py" = "py312"
 "**/tools/devcontainer_setup.py" = "py312"
@@ -206,6 +212,17 @@ select = [
     "B",    # flake8-bugbear
     "SIM",  # flake8-simplify
     "S",    # flake8-bandit (security)
+    # Exceptions and operational logging (ADR-116, docs/develop/exceptions-and-logging.md).
+    "BLE",     # blind except: a broad handler raises again or logs (H2, H3)
+    "LOG",     # logger use (L1, L4)
+    "G",       # lazy log arguments (L5)
+    "TID251",  # banned APIs: logging configuration stays in the shared module (L1, L2)
+    "TRY002",  # no vanilla Exception (E5)
+    "TRY201",  # bare raise to raise the same exception again (E6)
+    "TRY203",  # no handler that only raises again (H1)
+    "TRY300",  # minimal try block (H1)
+    "TRY400",  # exception() in handlers (L4)
+    "TRY401",  # no exception object in exception() messages (L4)
 ]
 ignore = [
     "S101",   # assert is fine in tests and dataclass contracts
@@ -216,11 +233,16 @@ ignore = [
     "SIM102", # nested if merging — harms readability in complex conditionals
 ]
 
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"logging.getLogger".msg = "Use raes_contracts.operational_logging.get_logger (docs/develop/exceptions-and-logging.md, rule L1)."
+"logging.basicConfig".msg = "Only raes_contracts.operational_logging configures logging (rule L2)."
+"logging.config".msg = "Only raes_contracts.operational_logging configures logging (rule L2)."
+
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "S105", "S106", "S108", "E402", "SIM105", "F841"]
+"tests/**" = ["S101", "S105", "S106", "S108", "E402", "SIM105", "F841", "TID251"]  # TID251: tests attach capture handlers to named loggers
+"packages/raes_contracts/operational_logging.py" = ["TID251"]  # the one module that owns logging configuration (ADR-116)
 "packages/raes_contracts/contracts/__init__.py" = ["F403", "F405"]  # intentional package re-exports
 "packages/raes_cli/**" = ["B008"]      # typer requires function calls in defaults
-"packages/raes_runtime/control_plane.py" = ["S112"]      # intentional exception suppression
 "packages/raes/module_registry/__init__.py" = ["S310", "S202", "F401"]  # S310/S202: explicit OCI URL fetch + tar extract; F401: intentional facade re-exports
 "packages/raes_runtime/control_plane_api/__init__.py" = ["F401"]  # intentional facade re-exports (_receipt_response)
 "packages/raes_mcp/tools/authoring/__init__.py" = ["F401"]  # intentional facade re-export (register)

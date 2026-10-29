@@ -193,6 +193,16 @@ def test_a_shared_policy_waiver_suppresses_only_the_named_finding(tmp_path: Path
     assert main(["--repo-root", str(tmp_path)]) == 0
 
 
+def test_a_malformed_waiver_date_is_reported_as_a_message(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    _publish(tmp_path)
+    waivers = tmp_path / "tools" / "policy" / "exceptions.yaml"
+    waivers.parent.mkdir(parents=True)
+    waivers.write_text(f"exceptions:\n  - rule_id: {MISSING_RULE_ID}\n    expires_at: not-a-date\n", encoding="utf-8")
+
+    assert main(["--repo-root", str(tmp_path)]) == 1
+    assert "contract-requirement-tracing: policy exception expires_at must be an ISO date" in capsys.readouterr().err
+
+
 def test_report_names_owners_untraced_contracts_and_unreadable_records_without_gating(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:

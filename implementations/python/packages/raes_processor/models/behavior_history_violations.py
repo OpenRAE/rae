@@ -96,8 +96,9 @@ def _normalize_participant_behavior_events(
             continue
         try:
             normalized = ParticipantBehaviorHistoryEvent.from_payload(event)
-        except (TypeError, ValueError) as exc:
-            violations.append((locator, f"participant behavior history event is invalid: {exc}"))
+        except TypeError, ValueError:
+            # The value object refuses a malformed payload with TypeError or ValueError (E3).
+            violations.append((locator, "participant behavior history event is invalid"))
             continue
         if expected_participant_address is not None and normalized.participant_address != expected_participant_address:
             violations.append(

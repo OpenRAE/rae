@@ -119,6 +119,7 @@ Changed scientific facts cannot borrow the original record's evidence.
 Evidence acquisition, checks, and reader closure run in one bounded worker.
 The worker closes transferred readers even when the caller times out.
 Evidence-owner failures produce a safe failed-check disposition and preserve records.
+Errors and operational logs follow [ADR-116](adrs/adr-116-shared-exceptions-and-operational-logging.md).
 This includes ordinary provider exceptions such as a missing catalog key.
 Archive writes use a separate existing worker lane.
 An enabled replacement policy selects replacement-aware study checks even when no replacement occurred.

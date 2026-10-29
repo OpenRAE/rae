@@ -4,6 +4,7 @@ import json
 from dataclasses import replace
 
 import pytest
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_operations.run_artifacts import RunMaterializationArchive
 from raes_runtime.backend_calls import _BackendCallContext, _call_backend_apply, _RealizationApplyContext
@@ -235,10 +236,10 @@ def test_composition_uses_native_member_identity_and_rejects_overlapping_ownersh
     local = content([{"name": "listener", "port": 9090}, {"name": "original", "port": 80}])
     combined = compose_materialization_content(base, prior, local)
     assert {service.name for service in combined.nodes["host"].services} == {"original", "collector", "listener"}
-    with pytest.raises(ValueError, match="overlap"):
+    with pytest.raises(InvalidInputError, match="overlap"):
         compose_materialization_content(base, prior, prior)
     removed = admit_prospective_content({"name": "scope", "nodes": {}})
-    with pytest.raises(ValueError, match="overlap"):
+    with pytest.raises(InvalidInputError, match="overlap"):
         compose_materialization_content(base, prior, removed)
 
 
@@ -338,5 +339,6 @@ def test_prior_attestation_read_refuses_corruption_and_unsafe_paths(tmp_path, da
             update={"reference": record.reference.model_copy(update={"ref_path": "/tmp/foreign.sdl"})}
         )
     archive = RunMaterializationArchive(tmp_path)
-    with pytest.raises((ValueError, OSError)):
+    with pytest.raises(EvidenceIntegrityError) as caught:
         archive.read(record)
+    assert type(caught.value) is EvidenceIntegrityError

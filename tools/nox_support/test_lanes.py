@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 
 import nox
+from raes_contracts.errors import InvalidInputError, OperationalError
 
 from tools.nox_support.config import (
     DEFAULT_SUITE_EXPRESSION,
@@ -37,7 +38,7 @@ from tools.osv_scanner_tool import (
     ensure_osv_scanner,
     run_osv_scanner,
 )
-from tools.pytest_shard import read_manifest, verify_shard_partition
+from tools.pytest_shard import ShardManifestError, read_manifest, verify_shard_partition
 from tools.vale_tool import ensure_vale
 
 
@@ -163,7 +164,7 @@ def _collect_canonical_nodeids(session: nox.Session) -> list[str]:
         )
     nodeids = [line.strip() for line in (output or "").splitlines() if "::" in line]
     if not nodeids:
-        raise RuntimeError("canonical collection returned no node ids")
+        raise OperationalError("canonical collection returned no node ids")
     return nodeids
 
 
@@ -186,7 +187,7 @@ def _run_coverage_reduce(
     _sync_project(session)
     manifests = [read_manifest(path) for path in sorted(reduce_dir.glob("shard-*.json"))]
     if not manifests:
-        raise RuntimeError(f"no shard manifests found under {reduce_dir}")
+        raise ShardManifestError(f"no shard manifests found under {reduce_dir}")
     canonical = _collect_canonical_nodeids(session)
     reporter.run(
         "coverage / shard completeness proof",
@@ -235,15 +236,16 @@ def _run_osv_scan(_session: nox.Session, reporter: SessionReporter) -> None:
     def _scan() -> None:
         lockfile = OSV_LOCKFILE_PATH
         if not lockfile.exists():
-            raise RuntimeError(f"osv-scan: tracked lockfile not found: {lockfile.relative_to(REPO_ROOT)}")
+            raise InvalidInputError(f"osv-scan: tracked lockfile not found: {lockfile.relative_to(REPO_ROOT)}")
         binary = ensure_osv_scanner(REPO_ROOT)
         exit_code = run_osv_scanner(lockfile, OSV_REPORT_PATH, binary=binary)
         report_rel = OSV_REPORT_PATH.relative_to(REPO_ROOT)
         outcome = classify_osv_exit_code(exit_code)
         if outcome is OSVScanOutcome.FINDINGS:
-            raise RuntimeError(f"osv-scanner reported vulnerabilities (exit code {exit_code}); see {report_rel}")
+            # The scanned lock does not satisfy the vulnerability gate; the caller must correct it.
+            raise InvalidInputError(f"osv-scanner reported vulnerabilities (exit code {exit_code}); see {report_rel}")
         if outcome is OSVScanOutcome.SCANNER_ERROR:
-            raise RuntimeError(
+            raise OperationalError(
                 f"osv-scanner failed with scanner/setup error exit code {exit_code}; report at {report_rel}"
             )
 

@@ -14,11 +14,13 @@ from .contracts import (
     ExperimentEvidenceRecordModel,
 )
 from .evidence_output_validation import resolve_evidence_output_contract
-from .json_ingress import JSONValue, parse_bounded_json, parse_bounded_json_object
+from .json_ingress import JSONValue, StrictJsonIngressError, parse_bounded_json, parse_bounded_json_object
+from .json_pointer import array_index
 from .uri_safety import validate_safe_absolute_uri
 
 _CHUNK_SIZE = 64 * 1024
 _MAX_ARTIFACT_BYTES = 64 * 1024 * 1024
+_OUTPUT_CONTRACT_UNSATISFIED = "emitted evidence does not satisfy the declared output_contract"
 
 
 @dataclass
@@ -78,8 +80,8 @@ def _json_pointer_resolves(document: object, pointer: str) -> bool:
         token = encoded.replace("~1", "/").replace("~0", "~")
         if isinstance(current, dict) and token in current:
             current = current[token]
-        elif isinstance(current, list) and token.isdigit() and int(token) < len(current):
-            current = current[int(token)]
+        elif isinstance(current, list) and (index := array_index(token, len(current))) is not None:
+            current = current[index]
         else:
             return False
     return True
@@ -88,18 +90,19 @@ def _json_pointer_resolves(document: object, pointer: str) -> bool:
 def _parse_contract_document(payload: bytes, *, media_type: str, output_contract: str) -> JSONValue:
     contract = resolve_evidence_output_contract(output_contract)
     root = contract.root
+    if media_type not in contract.media_types:
+        raise ValueError(_OUTPUT_CONTRACT_UNSATISFIED)
+    json_document = media_type == "application/json"
+    lines = [] if json_document else payload.splitlines()
+    if not json_document and (not lines or any(not line.strip() for line in lines)):
+        raise ValueError(_OUTPUT_CONTRACT_UNSATISFIED)
     try:
-        if media_type not in contract.media_types:
-            raise ValueError("evidence media type is not supported by the declared output_contract")
-        if media_type == "application/json":
+        if json_document:
             document = parse_bounded_json(payload, max_bytes=_MAX_ARTIFACT_BYTES, root=root)
         else:
-            lines = payload.splitlines()
-            if not lines or any(not line.strip() for line in lines):
-                raise ValueError("JSON Lines evidence must contain non-empty object records")
             document = [parse_bounded_json_object(line, max_bytes=_MAX_ARTIFACT_BYTES) for line in lines]
-    except ValueError as exc:
-        raise ValueError("emitted evidence does not satisfy the declared output_contract") from exc
+    except StrictJsonIngressError as exc:
+        raise ValueError(_OUTPUT_CONTRACT_UNSATISFIED) from exc
     contract.validate(document)
     return document
 

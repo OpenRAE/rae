@@ -6,6 +6,8 @@ from dataclasses import replace
 from typing import cast
 
 from raes_contracts.contracts import ParticipantFlowSinkKind
+from raes_contracts.errors import AuthorizationError, ConflictError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.runtime_state import ApplyResult, OperationKind, OperationReceipt, OperationState
 from raes_processor.models import ParticipantBehaviorRuntime
@@ -62,6 +64,9 @@ from .participant_flow_sink import (
     apply_flow_sink_details,
 )
 
+_LOGGER = get_logger(__name__)
+_EVIDENCE_REQUIRED = "configured participant ingress requires crossing evidence"
+
 
 class ParticipantCrossingControlIngressMixin:
     """Own one RUN-319 decision and RUN-310 transition under one state cut."""
@@ -85,7 +90,7 @@ class ParticipantCrossingControlIngressMixin:
             return replay
         if getattr(self, "_crossing_policy_resolver", None) is None:
             if crossing_evidence is not None:
-                raise ValueError("participant crossing policy resolver is required")
+                raise ConflictError("participant crossing policy resolver is required")
             receipt = record_participant_control(
                 self,
                 participant_address=participant_address,
@@ -113,9 +118,9 @@ class ParticipantCrossingControlIngressMixin:
         crossing_evidence: ParticipantCrossingEvidence | None,
     ) -> OperationReceipt:
         if crossing_evidence is None:
-            raise ValueError("configured participant ingress requires crossing evidence")
+            raise ConflictError(_EVIDENCE_REQUIRED)
         if not isinstance(identity, ControlPlaneIdentity):
-            raise PermissionError("participant control requires an authenticated identity")
+            raise AuthorizationError("participant control requires an authenticated identity")
         with control_supervision(self, intent), control_plane_mutation(self, OperationKind.PARTICIPANT_CONTROL):
             return self._record_governed_participant_control_authorized(
                 participant_address,
@@ -243,9 +248,9 @@ def execute_action_ingress_crossing(
     """Durably authorize, execute, and finalize one action admission."""
 
     if execution.crossing_evidence is None:
-        raise ValueError("configured participant ingress requires crossing evidence")
+        raise ConflictError(_EVIDENCE_REQUIRED)
     if not isinstance(execution.identity, ControlPlaneIdentity):
-        raise PermissionError("participant crossing requires an authenticated identity")
+        raise AuthorizationError("participant crossing requires an authenticated identity")
     with control_plane_mutation(control_plane, OperationKind.PARTICIPANT_CROSSING):
         return _execute_action_ingress_crossing_authorized(
             control_plane,
@@ -394,7 +399,12 @@ def _apply_action_effect(
         if mixed is not None and mixed.stage_readback is not None and result.success:
             try:
                 mixed.stage_readback(result)
-            except Exception:
+            # Isolation: the readback calls the backend time and stage readers; log only RAES frames.
+            except Exception as exc:
+                _LOGGER.exception(
+                    "mixed stage readback failed after a participant action effect",
+                    exc_info=foreign_failure_record(exc),
+                )
                 assert mixed.capture is not None
                 mixed.capture.stage_readback_failed = True
         return result
@@ -457,11 +467,11 @@ def _require_action_binding(
     request: ParticipantActionAdmissionRequest,
 ) -> None:
     if request.participant_address != behavior.address:
-        raise ValueError("governed action participant does not match the compiled behavior")
+        raise ConflictError("governed action participant does not match the compiled behavior")
     if request.action_contract_address not in behavior.action_contract_addresses:
-        raise ValueError("governed action is not declared by the compiled participant behavior")
+        raise ConflictError("governed action is not declared by the compiled participant behavior")
     if request.observation_boundary_address not in behavior.observation_boundary_addresses:
-        raise ValueError("governed observation boundary is not declared by the compiled participant behavior")
+        raise ConflictError("governed observation boundary is not declared by the compiled participant behavior")
 
 
 __all__ = (

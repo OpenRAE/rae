@@ -4,6 +4,7 @@ import pytest
 from issue_1629_archive_fixture import TrialArchive
 from issue_1629_trial_fixture import factorial_inputs
 from issue_1630_record_fixture import ContentServices, RuntimeArchive, metadata_for, readers, record_request
+from raes_contracts.errors import OperationalError
 from raes_runtime import RuntimeControlPlane
 from raes_runtime.control_plane_store import LocalControlPlaneStore
 from raes_runtime.runtime_experiment_replacement import ExperimentReplacementBinding
@@ -39,7 +40,7 @@ def test_lost_legacy_acknowledgement_reserves_the_version_before_export(tmp_path
             if any(isinstance(item, TrialTerminalDecision) for item in runtime._store.load_runtime_decisions()):
                 break
         archive.lose_ack = True
-        with pytest.raises(OSError, match="acknowledgement lost"):
+        with pytest.raises(OperationalError, match="could not publish the trial run"):
             runtime.advance_experiment(experiment)
         before = runtime.experiment_records(experiment)
         source = before.sources[0]

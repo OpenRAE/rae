@@ -172,6 +172,7 @@ def test_replaced_parent_is_retained_but_not_counted_as_eligible():
 
 @pytest.mark.parametrize("legacy", [False, True])
 def test_archive_callback_cannot_change_the_frozen_candidate(legacy):
+    from raes_contracts.errors import EvidenceIntegrityError
     from raes_runtime.runtime_experiment_replacement import _write_archive
     from raes_runtime.runtime_record_decisions import ExperimentRecordPublicationDecision
     from raes_runtime.runtime_record_publication import _write_and_read
@@ -195,7 +196,8 @@ def test_archive_callback_cannot_change_the_frozen_candidate(legacy):
         if legacy
         else ExperimentRecordPublicationDecision(experiment_id="experiment", run=run, validation_status="passed")
     )
-    with pytest.raises(ValueError, match="readback"):
+    error = EvidenceIntegrityError if legacy else ValueError
+    with pytest.raises(error, match="readback"):
         write(archive, record)
     assert run.model_dump(mode="json") == expected
 

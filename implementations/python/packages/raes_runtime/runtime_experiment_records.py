@@ -13,6 +13,7 @@ from raes_contracts.contracts import (
     ExperimentStudyModel,
     validate_admitted_trial_run,
 )
+from raes_contracts.errors import RaesError
 
 from .control_plane_store_snapshots import _snapshot_from_payload
 from .experiment_records import (
@@ -65,7 +66,7 @@ def experiment_records(
                 from .runtime_record_validation import validate_run_evidence
 
                 validate_run_evidence(experiment, source, checked, evidence_reader)
-            except ValueError, OSError, RuntimeError, TypeError, AttributeError:
+            except RaesError, ValueError, OSError, RuntimeError, TypeError, AttributeError:
                 # Validator inputs and provider exception messages can contain secrets.
                 validation[run.run_id] = "failed"
                 failures[run.run_id] = ("task-evidence-validation-failed",)

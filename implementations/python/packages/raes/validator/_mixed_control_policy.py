@@ -15,6 +15,7 @@ from ..participant_mixed_control_vocabulary import (
     MixedControlTransitionKind,
     ParticipantControlTargetKind,
 )
+from ._mixed_control import transition_pointer
 
 _Policy = MixedControlPolicy
 _REVOKED = MixedControlAuthorityStatus.REVOKED
@@ -66,33 +67,40 @@ class _MixedControlPolicyMixin:
         if declaration.controller_states[declaration.initial_state_ref].authority_status is _REVOKED:
             self._err(f"{label} initial state cannot use revoked authority")
         for transition_id, transition in declaration.permitted_transitions.items():
-            self._verify_permitted_transition(label, declaration, transition_id, transition)
+            pointer = transition_pointer(spec_name, "permitted_transitions", transition_id)
+            self._verify_permitted_transition(label, declaration, transition_id, transition, pointer)
         if declaration.script_steps is not None:
             self._verify_script_steps(label, declaration)
 
     def _verify_permitted_transition(
-        self, label: str, declaration: _Policy, transition_id: str, transition: MixedControlPermittedTransition
+        self,
+        label: str,
+        declaration: _Policy,
+        transition_id: str,
+        transition: MixedControlPermittedTransition,
+        pointer: str,
     ) -> None:
         owner_label = f"{label} permitted transition '{transition_id}'"
         source = declaration.controller_states[transition.from_state_ref]
         destination = declaration.controller_states[transition.to_state_ref]
         if source.authority_status is _REVOKED:
-            self._err(f"{owner_label} starts from revoked authority")
+            self._err(f"{owner_label} starts from revoked authority", pointer=pointer)
         if destination.authority_status is _REVOKED:
-            self._err(f"{owner_label} enters revoked authority")
+            self._err(f"{owner_label} enters revoked authority", pointer=pointer)
         window = (transition.valid_from_order, transition.valid_until_order)
         if not _windows_intersect(window, _state_window(source)):
-            self._err(f"{owner_label} window does not intersect its from-state validity")
+            self._err(f"{owner_label} window does not intersect its from-state validity", pointer=pointer)
         if not _windows_intersect(window, _state_window(destination)):
-            self._err(f"{owner_label} window does not intersect its to-state validity")
+            self._err(f"{owner_label} window does not intersect its to-state validity", pointer=pointer)
         changes_controller = _resolved_controller(declaration, source) != _resolved_controller(declaration, destination)
         if transition.transition_kind == MixedControlTransitionKind.HANDOFF and not changes_controller:
-            self._err(f"{owner_label} handoff must change controller")
+            self._err(f"{owner_label} handoff must change controller", pointer=pointer)
         if transition.transition_kind != MixedControlTransitionKind.HANDOFF and changes_controller:
-            self._err(f"{owner_label} changes controller; only a handoff changes controller identity")
+            self._err(f"{owner_label} changes controller; only a handoff changes controller identity", pointer=pointer)
         self._verify_evidence_refs(
             (*transition.evidence_refs, *(transition.completion_evidence_refs or ())),
             owner_label=owner_label,
+            pointer=pointer,
         )
 
     def _verify_script_steps(self, label: str, declaration: MixedControlPolicy) -> None:

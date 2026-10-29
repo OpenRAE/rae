@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import replace
 
 import pytest
@@ -302,3 +303,16 @@ def test_executor_failure_is_sanitized_and_fails_closed() -> None:
     assert "RuntimeError" in diagnostic.message
     assert "credential" not in diagnostic.message
     assert "do-not-leak" not in diagnostic.message
+
+
+def test_executor_failure_is_logged_once_without_values(caplog: pytest.LogCaptureFixture) -> None:
+    executor = _Executor(error=RuntimeError("credential=do-not-leak"))
+
+    with caplog.at_level(logging.ERROR, logger="raes_conformance"):
+        run_behavioral_validation_probe(_case(), executor)
+
+    records = [record for record in caplog.records if record.name == "raes_conformance.behavioral_validation"]
+    assert len(records) == 1
+    assert "do-not-leak" not in records[0].getMessage()
+    assert "do-not-leak" not in (records[0].exc_text or "")
+    assert "ForeignCodeFailure" in (records[0].exc_text or "")

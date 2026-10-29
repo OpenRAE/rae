@@ -15,8 +15,12 @@ from raes_contracts.contracts import (
     validate_experiment_apparatus_context_against_manifests,
     validate_experiment_run_against_task,
 )
+from raes_contracts.errors import EvidenceIntegrityError, OperationalError, RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 
 from .runtime_record_assembly import _observed_evidence
+
+_LOGGER = get_logger(__name__)
 
 if TYPE_CHECKING:
     from raes_contracts.evidence_proof import ValidatedRunEvidence
@@ -62,20 +66,23 @@ def record_evidence(
         None,
     )
     if capture is None or not capture.complete:
-        raise ValueError("trial capture is incomplete")
+        raise EvidenceIntegrityError("trial capture is incomplete")
     if reader is None:
         yield None
         return
     evidence = reader(run.model_copy(deep=True))
     if not isinstance(evidence, ExperimentRunEvidenceInputs):
-        raise ValueError("record evidence requires its typed input context")
+        raise EvidenceIntegrityError("record evidence requires its typed input context")
     with ExitStack() as cleanup:
         seen = set()
         for stream in evidence.artifact_readers.values():
             if id(stream) not in seen:
                 cleanup.callback(stream.close)
                 seen.add(id(stream))
-        _validate_evidence_inputs(experiment, source, evidence)
+        try:
+            _validate_evidence_inputs(experiment, source, evidence)
+        except ValueError as exc:
+            raise EvidenceIntegrityError("record evidence does not match retained inputs") from exc
         yield evidence
 
 
@@ -108,11 +115,17 @@ def with_record_evidence[T](
                     run.run_id: cleanup.enter_context(record_evidence(experiment, source, run, reader))
                     for source, run in pairs
                 }
-                return check(evidence)
-        except Exception:
+                try:
+                    return check(evidence)
+                except ValueError as exc:
+                    raise EvidenceIntegrityError("record evidence failed validation") from exc
+        except RaesError:
+            raise
+        except Exception as exc:
             # Ordinary installed-provider failures must not abort record retention.
             # Process-control exceptions remain outside this boundary.
-            raise ValueError("record evidence operation failed") from None
+            _LOGGER.exception("record evidence owner failed", exc_info=foreign_failure_record(exc))
+            raise OperationalError("record evidence operation failed") from None
 
     return experiment.engine._execution_adapter.call(
         "control", invoke, timeout_ms=experiment.engine._supervision.observation_ms

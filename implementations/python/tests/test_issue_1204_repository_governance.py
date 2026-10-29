@@ -198,6 +198,14 @@ def test_invalid_repository_requirement_fails_closed(tmp_path, mutation):
         client.get_requirement("raes-sdl", uid)
 
 
+def test_repository_requirement_refusals_are_invalid_input():
+    from raes_contracts.errors import InvalidInputError
+    from tools.policy.repository_requirements import RepositoryRequirementError
+
+    assert issubclass(RepositoryRequirementError, InvalidInputError)
+    assert not issubclass(RepositoryRequirementError, ValueError)
+
+
 def test_configured_repository_governance_never_uses_or_falls_back_to_http(tmp_path, monkeypatch, capsys):
     from tools import check_requirement_governance as gate
 

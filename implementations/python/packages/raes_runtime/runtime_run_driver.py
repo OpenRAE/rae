@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.errors import ConflictError
 from raes_contracts.runtime_state import OperationKind, OperationState
 
 from .control_plane_operation_context import operation_actor_scope, operation_idempotency_fingerprint
@@ -101,12 +102,12 @@ def _admit_program(
     if prior is None:
         failure = run._apply_precondition_failure(plan, list(plan.diagnostics))
         if failure is not None:
-            raise ValueError("run plan admission failed")
+            raise ConflictError("run plan admission failed")
         if run._participant_driver_apply_precondition() is not None:
-            raise RuntimeError("run participant driver remains active")
+            raise ConflictError("run participant driver remains active")
         run._store.claim_runtime_decision(admission)
     elif prior != admission or plan.manifest != run._target.manifest:
-        raise ValueError("run execution identity conflicts with its admitted inputs or actor")
+        raise ConflictError("run execution identity conflicts with its admitted inputs or actor")
 
 
 def _advance_phases(

@@ -203,7 +203,9 @@ def test_record_source_pins_survive_restart_and_actor_scope_is_preserved(tmp_pat
         assert before.runs == after.runs
         assert after.sources[0].realization.snapshot_digest == before.sources[0].realization.snapshot_digest
         other = ControlPlaneIdentity(identity="other")
-        with pytest.raises(PermissionError):
+        from raes_contracts.errors import AuthorizationError
+
+        with pytest.raises(AuthorizationError):
             runtime.experiment_records(experiment, identity=other)
 
 

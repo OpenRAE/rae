@@ -6,6 +6,7 @@ import hashlib
 import json
 from dataclasses import dataclass
 
+from pydantic import ValidationError
 from raes.realization_envelope import (
     NegativeProbe,
     PositiveProbe,
@@ -14,6 +15,7 @@ from raes.realization_envelope import (
 )
 from raes.scenario import Scenario
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 from raes_processor.reference import run_reference_processor
 from raes_runtime.registry import RuntimeTarget
@@ -177,7 +179,8 @@ def _positive_case(
             context.target.manifest,
             scope=materialization_probe_scope(context.target),
         ).execution_plan
-    except Exception:
+    # The SDL model, the processor or the planner refused the generated probe.
+    except InvalidInputError, ValidationError:
         execution_plan = None
     # A plan with error diagnostics is not an executable probe; never hand it to the harness.
     if execution_plan is None or any(diagnostic.is_error for diagnostic in execution_plan.diagnostics):

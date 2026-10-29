@@ -7,6 +7,7 @@ import pytest
 from crossing_model_fixtures import ROOT
 from crossing_runtime_cases import collect_cases
 from implementations.formal.participant_crossing import runtime_mapping_export as export
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 
 
 @pytest.fixture(scope="module")
@@ -50,7 +51,7 @@ def test_symlinked_source_directory_is_rejected(tmp_path, monkeypatch):
         ROOT / "implementations/python/packages/raes_contracts", target_is_directory=True
     )
     monkeypatch.setattr(export, "read_bytes", lambda *args, **kwargs: b"synthetic")
-    with pytest.raises(ValueError, match="unsafe mapping source directory"):
+    with pytest.raises(InvalidInputError, match="unsafe mapping source directory"):
         export.source_pins(tmp_path)
 
 
@@ -76,7 +77,10 @@ def test_drift_is_rejected_without_overwriting_artifacts(tmp_path, reports, faul
             manifest["source_digests" if fault == "source" else "profile"] = "changed"
             candidate["manifest.json"] = json.dumps(manifest).encode()
     before = {name: (tmp_path / export.OUTPUT_PATH / name).read_bytes() for name in expected}
-    with patch.object(export, "build_bundle", return_value=candidate), pytest.raises(ValueError, match="drift"):
+    with (
+        patch.object(export, "build_bundle", return_value=candidate),
+        pytest.raises(EvidenceIntegrityError, match="drift"),
+    ):
         export.check(tmp_path, reports)
     assert {name: (tmp_path / export.OUTPUT_PATH / name).read_bytes() for name in expected} == before
 

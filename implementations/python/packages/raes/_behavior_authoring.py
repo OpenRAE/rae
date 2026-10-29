@@ -4,7 +4,7 @@ from collections.abc import Iterator, Mapping
 
 from pydantic import BaseModel, ValidationError
 
-from ._identifiers import PRIVATE_NAMESPACE_SEGMENT
+from ._identifiers import PRIVATE_NAMESPACE_SEGMENT, identifier_refusal
 
 _REFERENCE_FIELDS = (
     "participant_refs",
@@ -116,14 +116,11 @@ def validate_authored_behavior_references(
             continue
         errors.append(
             {
-                "type": "value_error",
+                "type": identifier_refusal(
+                    "authored qualified SDL identifier must not contain the reserved __private segment"
+                ),
                 "loc": location,
                 "input": ref,
-                "ctx": {
-                    "error": ValueError(
-                        "authored qualified SDL identifier must not contain the reserved __private segment"
-                    )
-                },
             }
         )
     if errors:

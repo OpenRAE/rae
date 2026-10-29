@@ -6,7 +6,8 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any
 
-from pydantic import TypeAdapter
+import rfc8785
+from pydantic import TypeAdapter, ValidationError
 from raes_contracts.canonical import canonical_json_digest
 
 from ._base import contains_variable_token
@@ -42,6 +43,10 @@ class LegacyClassificationSource:
     source_digest: SDLCanonicalDigest
 
 
+class _LegacySourceRefusal(SDLParseError):
+    """The exact historical extraction does not support this authored legacy source."""
+
+
 def _token(value: str) -> str:
     return value.replace("~", "~0").replace("/", "~1")
 
@@ -49,9 +54,9 @@ def _token(value: str) -> str:
 def _strings(value: object) -> list[str]:
     values = _STRINGS.validate_python(value, strict=True)
     if any(not item.strip() or contains_variable_token(item) for item in values):
-        raise ValueError("Legacy classification values must be concrete non-empty strings.")
+        raise _LegacySourceRefusal("Legacy classification values must be concrete non-empty strings.")
     if len(values) != len(set(values)):
-        raise ValueError("Legacy classification values must be unique.")
+        raise _LegacySourceRefusal("Legacy classification values must be unique.")
     return values
 
 
@@ -71,7 +76,7 @@ def _extract_fields(
             declaration = None
             if field in {"vulnerabilities", "vulnerability_refs"}:
                 if identifier not in declarations:
-                    raise ValueError("Legacy vulnerability association has no exact declaration.")
+                    raise _LegacySourceRefusal("Legacy vulnerability association has no exact declaration.")
                 declaration = f"vulnerabilities.{identifier}"
                 identifier = declarations[identifier].vuln_class
             records.append(
@@ -140,7 +145,7 @@ def _extract_application_routes(
         if any(
             not isinstance(value, str) or not value or contains_variable_token(value) for value in (app_id, route_id)
         ):
-            raise ValueError("Route classification migration requires exact concrete route identity.")
+            raise _LegacySourceRefusal("Route classification migration requires exact concrete route identity.")
         _extract_fields(
             route,
             pointer=f"/nodes/{_token(node_name)}/runtime/applications/{app_index}/routes/{route_index}",
@@ -159,31 +164,34 @@ def read_legacy_classification_source(
     """Load bounded canonical-spelling legacy YAML and extract only known fields."""
     original = _load_normalized_data(content, source_options=SDLSourceParseOptions(limits=limits))
     if original.get("imports") or "instantiation_provenance" in original:
-        raise ValueError("Migrate each authored source before composition or instantiation.")
+        raise _LegacySourceRefusal("Migrate each authored source before composition or instantiation.")
     native = deepcopy(original)
     raw_declarations = native.pop("vulnerabilities", {})
     if not isinstance(raw_declarations, dict):
-        raise ValueError("Legacy vulnerabilities must be a declaration map.")
+        raise _LegacySourceRefusal("Legacy vulnerabilities must be a declaration map.")
     declarations = {name: Vulnerability.model_validate(value) for name, value in raw_declarations.items()}
     if any(
         model.model_dump(mode="json", by_alias=True, exclude_unset=True) != raw_declarations[name]
         for name, model in declarations.items()
     ):
-        raise ValueError("Normalize historical declaration values with the source-version formatter first.")
+        raise _LegacySourceRefusal("Normalize historical declaration values with the source-version formatter first.")
     records: list[LegacyClassification] = []
     _extract_sections(native, declarations, records)
     _extract_entities(
         native.get("entities"), pointer="/entities", subject="entities", declarations=declarations, records=records
     )
     _extract_actions(native.get("action_contracts", {}), records)
-    digest = canonical_json_digest(
-        {
-            "profile": SDL_CANONICAL_PROFILE,
-            "scenario": original,
-            "module_variable_specs": {},
-            "module_node_variable_refs": {},
-        }
-    )
+    try:
+        digest = canonical_json_digest(
+            {
+                "profile": SDL_CANONICAL_PROFILE,
+                "scenario": original,
+                "module_variable_specs": {},
+                "module_node_variable_refs": {},
+            }
+        )
+    except rfc8785.CanonicalizationError as exc:
+        raise _LegacySourceRefusal("Legacy classification source has no canonical JSON form.") from exc
     return LegacyClassificationSource(
         native,
         original,
@@ -228,10 +236,10 @@ def _extract_actions(actions: object, records: list[LegacyClassification]) -> No
         raw_mappings = action.pop("external_mappings")
         mappings = TypeAdapter(list[ExternalMappingLoss]).validate_python(raw_mappings)
         if [model.model_dump(mode="json", by_alias=True, exclude_unset=True) for model in mappings] != raw_mappings:
-            raise ValueError("Normalize historical action mappings with the source-version formatter first.")
+            raise _LegacySourceRefusal("Normalize historical action mappings with the source-version formatter first.")
         for index, mapping in enumerate(mappings):
             if contains_variable_token(mapping.identifier):
-                raise ValueError("Legacy action mappings require concrete identifiers.")
+                raise _LegacySourceRefusal("Legacy action mappings require concrete identifiers.")
             records.append(
                 LegacyClassification(
                     pointer=f"/action_contracts/{_token(name)}/external_mappings/{index}",
@@ -245,5 +253,5 @@ def legacy_classification_source_digest(content: str) -> SDLCanonicalDigest:
     """Digest of the supported, normalized legacy authoring-source projection."""
     try:
         return read_legacy_classification_source(content).source_digest
-    except (TypeError, ValueError) as exc:
+    except (_LegacySourceRefusal, ValidationError) as exc:
         raise SDLParseError("Legacy classification source is invalid or needs an explicit subject migration.") from exc

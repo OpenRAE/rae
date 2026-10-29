@@ -16,12 +16,13 @@ class _ParticipantInjectDeliveriesMixin:
             raise RuntimeError(_DECLARATION_INDEX_REQUIRED)
         for spec_name, behavior_spec in self._s.behavior_specifications.items():
             for binding_id, binding in behavior_spec.participant_inject_deliveries.items():
-                self._verify_participant_inject_delivery(
-                    spec_name=str(spec_name),
-                    binding_id=str(binding_id),
-                    behavior_spec=behavior_spec,
-                    binding=binding,
-                )
+                with self._owner(("behavior_specifications", str(spec_name))):
+                    self._verify_participant_inject_delivery(
+                        spec_name=str(spec_name),
+                        binding_id=str(binding_id),
+                        behavior_spec=behavior_spec,
+                        binding=binding,
+                    )
 
     def _verify_participant_inject_delivery(
         self,

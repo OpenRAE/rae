@@ -146,9 +146,10 @@ def _validate(scenario: Scenario) -> list[str]:
     validator = SemanticValidator(scenario)
     try:
         validator.validate()
-        return []
     except SDLValidationError as exc:
         return exc.errors
+    else:
+        return []
 
 
 def test_dsl_123_exposes_scenario_native_observability_refs_without_second_resolver() -> None:

@@ -555,7 +555,7 @@ def test_public_stop_during_provider_call_fences_late_evaluation():
     def submit():
         try:
             admit(plane, idempotency_key="stop-evaluation")
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001 - the worker hands the exception to the test thread, which asserts it.
             failures.append(error)
 
     worker = Thread(target=submit)

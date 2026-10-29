@@ -15,6 +15,7 @@ from raes_contracts.contracts import (
     validate_admitted_trial_study,
     validate_replacement_trial_study,
 )
+from raes_contracts.errors import RaesError
 
 from .experiment_records import ExperimentRecordBundle
 from .runtime_record_decisions import ExperimentStudyDefinitionDecision
@@ -55,7 +56,7 @@ def assemble_study(
             evidence_reader,
             lambda evidence: _validate_study(experiment, bundle, study, definition, selected, evidence),
         )
-    except ValueError, OSError, RuntimeError, TypeError, AttributeError:
+    except RaesError, ValueError, OSError, RuntimeError, TypeError, AttributeError:
         status = "failed"
         failures["study"] = ("study-validation-failed",)
     return cast(

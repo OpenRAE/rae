@@ -127,7 +127,8 @@ def observed_projection(
             observed=True,
             recursive=requirement.constraint_document is not None,
         )
-    except TypeError, ValueError:
+    except ValueError:
+        # Observed values pass their closed observation contract first, which refuses with ValueError (E3).
         return invalid_observation_diagnostic(requirement), MISSING_CONCERN_VALUE
     return None, projection
 

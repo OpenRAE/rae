@@ -20,15 +20,26 @@ import sys
 import sysconfig
 import tarfile
 import tempfile
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
+from contextlib import contextmanager
 from pathlib import Path, PurePosixPath
 
-from tools import maintained_client_acquisition
-from tools.tooling_policy_gate import (
-    load_tooling_host_profile_selection_with_current_interpreter as load_tooling_host_profile_selection,
-)
-from tools.tooling_policy_gate import (
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError, OperationalError  # noqa: E402
+from raes_contracts.operational_logging import run_application  # noqa: E402
+
+from tools import maintained_client_acquisition  # noqa: E402
+from tools.tooling_policy_gate import (  # noqa: E402
+    ArtifactPolicyError,
     safe_tooling_cache_parent,
+)
+from tools.tooling_policy_gate import (  # noqa: E402
+    load_tooling_host_profile_selection_with_current_interpreter as load_tooling_host_profile_selection,
 )
 
 PROBE_TIMEOUT_SECONDS = 15
@@ -97,6 +108,13 @@ def inspect_executable(  # NOSONAR -- explicit fail-closed outcomes are part of 
             "outcome": "failed",
             "reason_code": "native-client-unavailable",
         }
+    except UnicodeDecodeError:
+        # Text mode decodes the banner strictly; a banner that is not text cannot show the reviewed version.
+        return {
+            "capability_id": capability_id,
+            "outcome": "failed",
+            "reason_code": "native-client-version",
+        }
     if completed.returncode != 0:
         return {
             "capability_id": capability_id,
@@ -147,6 +165,13 @@ def observe_executable(  # NOSONAR -- explicit fail-closed outcomes are part of 
             "capability_id": capability_id,
             "outcome": "failed",
             "reason_code": "native-client-unavailable",
+        }
+    except UnicodeDecodeError:
+        # Text mode decodes the banner strictly; a banner that is not text cannot show a version.
+        return {
+            "capability_id": capability_id,
+            "outcome": "failed",
+            "reason_code": "native-client-version",
         }
     if completed.returncode != 0:
         return {
@@ -283,13 +308,13 @@ def _generic_tool_local_artifacts(
     if local_input_root is None:
         return {}
     if not local_input_root.is_dir() or local_input_root.is_symlink():
-        raise ValueError("generic-tool local input root must be a regular directory")
+        raise InvalidInputError("generic-tool local input root must be a regular directory")
 
     from tools.tooling_policy_gate import host_platform_id
 
     host_profile_id = _GENERIC_TOOL_HOST_PROFILES.get(host_platform_id())
     if host_profile_id is None:
-        raise RuntimeError("generic-tool local inputs do not support this host platform")
+        raise OperationalError("generic-tool local inputs do not support this host platform")
     _host, artifacts, _policy_sha256 = _load_host_selection(host_profile_id)
     return artifacts
 
@@ -304,16 +329,16 @@ def _generic_tool_local_input(
         return None
     artifact = local_artifacts.get(artifact_id)
     if artifact is None or artifact.get("version") != version:
-        raise RuntimeError(f"{artifact_id} is not selected by the reviewed host profile")
+        raise ArtifactPolicyError(f"{artifact_id} is not selected by the reviewed host profile")
     platform = artifact.get("platform")
     if not isinstance(platform, dict):
-        raise RuntimeError(f"{artifact_id} host selection has an invalid platform")
+        raise ArtifactPolicyError(f"{artifact_id} host selection has an invalid platform")
     raw_manifest = platform.get("raw_manifest")
     if not isinstance(raw_manifest, list) or len(raw_manifest) != 1:
-        raise RuntimeError(f"{artifact_id} lock selection must contain one raw asset")
+        raise ArtifactPolicyError(f"{artifact_id} lock selection must contain one raw asset")
     raw = raw_manifest[0]
     if not isinstance(raw, dict) or not isinstance(raw.get("path"), str):
-        raise RuntimeError(f"{artifact_id} lock selection has an invalid raw asset")
+        raise ArtifactPolicyError(f"{artifact_id} lock selection has an invalid raw asset")
     return local_input_root / "archives" / artifact_id / raw["path"]
 
 
@@ -375,7 +400,7 @@ def qualify_generic_tools(
         raise ValueError("generic-tool selections and local input root are mutually exclusive")
     selected = tuple(selections) if selections is not None else _default_generic_tool_selections(local_input_root)
     results: list[dict[str, str]] = []
-    with tempfile.TemporaryDirectory(prefix="raes-generic-tool-probe-") as probe_root:
+    with _private_stage("raes-generic-tool-probe-", None, "generic-tool probe") as probe_root:
         probe_environment = {
             **_PROBE_ENV,
             "XDG_CACHE_HOME": f"{probe_root}/cache",
@@ -442,6 +467,42 @@ def _transfer_budget(
     return maintained_client_acquisition.GENERIC_TRANSFER_BUDGET
 
 
+def _payload_verified(transfer: dict[str, str], target: Path, expected: dict[str, object]) -> bool:
+    if transfer.get("outcome") != "passed" or not target.is_file() or target.is_symlink():
+        return False
+    try:
+        return target.stat().st_size == expected["size"] and _sha256(target) == expected["sha256"]
+    except OSError:
+        # A payload that cannot be read back is not verified, so the fetch refuses it.
+        return False
+
+
+def _archive_matches(archive: Path, raw: dict[str, object], label: str) -> bool:
+    if not archive.is_file() or archive.is_symlink():
+        return False
+    try:
+        return archive.stat().st_size == raw["size"] and _sha256(archive) == raw["sha256"]
+    except OSError as exc:
+        raise OperationalError(f"bootstrap {label} archive could not be read") from exc
+
+
+@contextmanager
+def _private_stage(prefix: str, parent: Path | None, label: str) -> Iterator[Path]:
+    """Hold one private temporary directory; a host failure refuses as operational."""
+
+    try:
+        stage = tempfile.TemporaryDirectory(prefix=prefix, dir=parent)
+    except OSError as exc:
+        raise OperationalError(f"bootstrap {label} directory could not be created") from exc
+    try:
+        yield Path(stage.name)
+    finally:
+        try:
+            stage.cleanup()
+        except OSError as exc:
+            raise OperationalError(f"bootstrap {label} directory could not be removed") from exc
+
+
 def fetch_bootstrap_payloads(  # NOSONAR -- explicit validation branches keep acquisition fail-closed.
     host_profile_id: str,
     kit_root: Path,
@@ -452,13 +513,13 @@ def fetch_bootstrap_payloads(  # NOSONAR -- explicit validation branches keep ac
     """Fetch exact raw payloads with the qualified native curl client."""
 
     if not kit_root.is_dir() or kit_root.is_symlink():
-        raise ValueError("bootstrap root must be a regular directory")
+        raise InvalidInputError("bootstrap root must be a regular directory")
     host, artifacts, _ = _load_host_selection(host_profile_id)
     requested = sorted(set(artifact_ids))
     if not requested or not set(requested) <= set(host["bootstrap_payload_ids"]):
-        raise ValueError("bootstrap fetch must select reviewed payload ids")
+        raise InvalidInputError("bootstrap fetch must select reviewed payload ids")
     if locator_ref is not None and len(requested) != 1:
-        raise ValueError("bootstrap locator selection requires exactly one artifact")
+        raise InvalidInputError("bootstrap locator selection requires exactly one artifact")
     results: list[dict[str, object]] = []
     for artifact_id in requested:
         artifact = artifacts[artifact_id]
@@ -467,35 +528,51 @@ def fetch_bootstrap_payloads(  # NOSONAR -- explicit validation branches keep ac
         # A different approved locator is explicit, never an automatic failover.
         source_urls = platform["source_urls"]
         if len(raw_manifest) != 1 or not source_urls:
-            raise ValueError("bootstrap fetch requires one exact source object per payload")
+            raise InvalidInputError("bootstrap fetch requires one exact source object per payload")
         source_url = source_urls[0]
         if locator_ref is not None:
             locator_refs = artifact["source"]["locator_refs"]
             if locator_ref not in locator_refs or len(locator_refs) != len(source_urls):
-                raise ValueError("bootstrap locator is not approved by the reviewed lock")
+                raise InvalidInputError("bootstrap locator is not approved by the reviewed lock")
             source_url = source_urls[locator_refs.index(locator_ref)]
         expected = raw_manifest[0]
         target = kit_root / "archives" / artifact_id / expected["path"]
-        safe_tooling_cache_parent(kit_root, target, artifact_id=artifact_id)
+        try:
+            safe_tooling_cache_parent(kit_root, target, artifact_id=artifact_id)
+        except OSError as exc:
+            raise OperationalError(f"bootstrap {artifact_id} cache directory could not be created") from exc
         if target.exists() or target.is_symlink():
-            raise ValueError(f"bootstrap {artifact_id} raw target already exists")
-        transfer = run_curl_qualification(
-            _SYSTEM_CURL,
-            source_url,
-            target,
-            ca_cert=None,
-            max_bytes=expected["size"],
-            budget=_transfer_budget(artifact),
-        )
-        if (
-            transfer.get("outcome") != "passed"
-            or not target.is_file()
-            or target.is_symlink()
-            or target.stat().st_size != expected["size"]
-            or _sha256(target) != expected["sha256"]
-        ):
-            target.unlink(missing_ok=True)
-            raise ValueError(f"bootstrap {artifact_id} raw payload failed exact verification")
+            raise InvalidInputError(f"bootstrap {artifact_id} raw target already exists")
+        budget = _transfer_budget(artifact)
+        try:
+            # The lock supplies the locator and the size; the client argv contract refuses them with ValueError.
+            curl_qualification_argv(
+                _SYSTEM_CURL, source_url, target, ca_cert=None, max_bytes=expected["size"], budget=budget
+            )
+        except ValueError as exc:
+            raise InvalidInputError(f"bootstrap {artifact_id} lock selection is outside the transfer contract") from exc
+        try:
+            transfer = run_curl_qualification(
+                _SYSTEM_CURL,
+                source_url,
+                target,
+                ca_cert=None,
+                max_bytes=expected["size"],
+                budget=budget,
+            )
+        except OSError as exc:
+            # The client run handles its own failures; only removing a refused output can still fail.
+            raise OperationalError(
+                f"bootstrap {artifact_id} raw payload could not be removed after its transfer"
+            ) from exc
+        if not _payload_verified(transfer, target, expected):
+            try:
+                target.unlink(missing_ok=True)
+            except OSError as exc:
+                raise OperationalError(
+                    f"bootstrap {artifact_id} raw payload failed exact verification and could not be removed"
+                ) from exc
+            raise OperationalError(f"bootstrap {artifact_id} raw payload failed exact verification")
         results.append(
             {
                 "artifact_id": artifact_id,
@@ -515,37 +592,37 @@ def install_python_payload(  # NOSONAR -- archive validation is intentionally ex
     _host, artifacts, _policy_sha256 = _load_host_selection(host_profile_id)
     artifact = artifacts.get(python_artifact_id)
     if artifact is None:
-        raise ValueError("bootstrap Python payload is not selected by the host profile")
+        raise InvalidInputError("bootstrap Python payload is not selected by the host profile")
     raw_manifest = artifact["platform"]["raw_manifest"]
     if not isinstance(raw_manifest, list) or len(raw_manifest) != 1:
-        raise ValueError("bootstrap Python payload must have exactly one raw archive")
+        raise InvalidInputError("bootstrap Python payload must have exactly one raw archive")
     raw = raw_manifest[0]
     archive = kit_root / "archives" / python_artifact_id / raw["path"]
-    if (
-        not archive.is_file()
-        or archive.is_symlink()
-        or archive.stat().st_size != raw["size"]
-        or _sha256(archive) != raw["sha256"]
-    ):
-        raise ValueError("bootstrap Python archive differs from the validated lock")
+    if not _archive_matches(archive, raw, "Python"):
+        raise InvalidInputError("bootstrap Python archive differs from the validated lock")
     destination = kit_root / "python" / f"cpython-{artifact['version']}"
     if destination.exists() or destination.is_symlink():
-        raise ValueError("bootstrap Python destination must be new")
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix=".python-extract-", dir=kit_root) as temporary_dir:
-        temporary_root = Path(temporary_dir)
+        raise InvalidInputError("bootstrap Python destination must be new")
+    try:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise OperationalError("bootstrap Python destination could not be created") from exc
+    with _private_stage(".python-extract-", kit_root, "kit extraction") as temporary_root:
         try:
             with tarfile.open(archive, mode="r:gz") as bundle:
                 members = bundle.getmembers()
                 if not members or any(PurePosixPath(member.name).parts[:1] != ("python",) for member in members):
-                    raise ValueError("bootstrap Python archive has an unexpected root")
+                    raise InvalidInputError("bootstrap Python archive has an unexpected root")
                 bundle.extractall(temporary_root, filter="data")
         except (OSError, tarfile.TarError) as exc:
-            raise ValueError("bootstrap Python archive could not be extracted safely") from exc
+            raise InvalidInputError("bootstrap Python archive could not be extracted safely") from exc
         extracted = temporary_root / "python"
         if not extracted.is_dir() or extracted.is_symlink():
-            raise ValueError("bootstrap Python archive omits its payload root")
-        extracted.rename(destination)
+            raise InvalidInputError("bootstrap Python archive omits its payload root")
+        try:
+            extracted.rename(destination)
+        except OSError as exc:
+            raise OperationalError("bootstrap Python payload could not be moved into the kit root") from exc
     return {
         "artifact_id": python_artifact_id,
         "path": destination.relative_to(kit_root).as_posix(),
@@ -565,43 +642,51 @@ def install_uv_payload(  # NOSONAR -- archive validation is intentionally explic
     _host, artifacts, _policy_sha256 = _load_host_selection(host_profile_id)
     artifact = artifacts.get(uv_artifact_id)
     if artifact is None:
-        raise ValueError("bootstrap uv payload is not selected by the host profile")
+        raise InvalidInputError("bootstrap uv payload is not selected by the host profile")
     raw_manifest = artifact["platform"]["raw_manifest"]
     if not isinstance(raw_manifest, list) or len(raw_manifest) != 1:
-        raise ValueError("bootstrap uv payload must have exactly one raw archive")
+        raise InvalidInputError("bootstrap uv payload must have exactly one raw archive")
     raw = raw_manifest[0]
     archive = kit_root / "archives" / uv_artifact_id / raw["path"]
-    if (
-        not archive.is_file()
-        or archive.is_symlink()
-        or archive.stat().st_size != raw["size"]
-        or _sha256(archive) != raw["sha256"]
-    ):
-        raise ValueError("bootstrap uv archive differs from the validated lock")
+    if not _archive_matches(archive, raw, "uv"):
+        raise InvalidInputError("bootstrap uv archive differs from the validated lock")
     destination = kit_root / "bin"
-    destination.mkdir(parents=True, exist_ok=True)
+    try:
+        destination.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise OperationalError("bootstrap uv destination could not be created") from exc
     installed: list[str] = []
-    with tempfile.TemporaryDirectory(prefix=".uv-extract-", dir=kit_root) as temporary_dir:
-        temporary_root = Path(temporary_dir)
+    with _private_stage(".uv-extract-", kit_root, "kit extraction") as temporary_root:
         try:
             with tarfile.open(archive, mode="r:gz") as bundle:
                 members = bundle.getmembers()
                 roots = {PurePosixPath(member.name).parts[:1] for member in members}
-                if not members or len(roots) != 1 or any(not (member.isfile() or member.isdir()) for member in members):
-                    raise ValueError("bootstrap uv archive has an unexpected shape")
+                # A member named "." or "" has no root component, so it cannot name the client directory.
+                if (
+                    not members
+                    or len(roots) != 1
+                    or () in roots
+                    or any(not (member.isfile() or member.isdir()) for member in members)
+                ):
+                    raise InvalidInputError("bootstrap uv archive has an unexpected shape")
                 bundle.extractall(temporary_root, filter="data")
         except (OSError, tarfile.TarError) as exc:
-            raise ValueError("bootstrap uv archive could not be extracted safely") from exc
+            raise InvalidInputError("bootstrap uv archive could not be extracted safely") from exc
         extracted = temporary_root / next(iter(roots))[0]
         for name in ("uv", "uvx"):
             source = extracted / name
             target = destination / name
             if not source.is_file() or source.is_symlink():
-                raise ValueError(f"bootstrap uv archive omits its {name} client")
+                raise InvalidInputError(f"bootstrap uv archive omits its {name} client")
             if target.exists() or target.is_symlink():
-                raise ValueError(f"bootstrap uv destination {name} must be new")
-            source.rename(target)
-            target.chmod(target.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+                raise InvalidInputError(f"bootstrap uv destination {name} must be new")
+            try:
+                source.rename(target)
+                target.chmod(target.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+            except OSError as exc:
+                raise OperationalError(
+                    f"bootstrap uv payload could not install its {name} client in the kit root"
+                ) from exc
             installed.append(target.relative_to(kit_root).as_posix())
     return {
         "artifact_id": uv_artifact_id,
@@ -640,7 +725,7 @@ def _load_host_selection(
     selected_artifacts = selection["artifacts"]
     policy_sha256 = selection["policy_sha256"]
     if not isinstance(host, dict) or not isinstance(selected_artifacts, list) or not isinstance(policy_sha256, str):
-        raise RuntimeError("validated host selection has an invalid response shape")
+        raise ArtifactPolicyError("validated host selection has an invalid response shape")
     artifacts = {
         item["artifact_id"]: item
         for item in selected_artifacts
@@ -754,8 +839,16 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main() -> int:  # NOSONAR -- CLI dispatch keeps operation exit semantics explicit.
+def main() -> int:
     args = _parse_args()
+    try:
+        return _run_operation(args)
+    except (InvalidInputError, OperationalError) as exc:
+        print(f"bootstrap-profile: {exc}", file=sys.stderr)
+        return 1
+
+
+def _run_operation(args: argparse.Namespace) -> int:  # NOSONAR -- CLI dispatch keeps operation exit semantics explicit.
     if args.operation == "setup-plan":
         host, _, _ = _load_host_selection(args.host_profile_id)
         print(json.dumps(native_setup_plan(host), sort_keys=True))
@@ -812,4 +905,4 @@ def main() -> int:  # NOSONAR -- CLI dispatch keeps operation exit semantics exp
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

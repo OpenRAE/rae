@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, cast
 
 from raes_backend_protocols.protocols import CoordinatedParticipantTimeRuntime
 from raes_contracts.contracts.time_model import TimeRuntimeStateModel, validate_time_runtime_state
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError
 from raes_contracts.runtime_state import ApplyResult
 from raes_processor.compiler.time_model import time_model_contract_model
 
@@ -91,7 +92,7 @@ class RuntimeTimeControlMixin:
 
     def _read_time_state_locked(self) -> TimeRuntimeStateModel:
         if self._target.time_runtime is None or self._time_declaration is None:
-            raise ValueError("runtime manager has no initialized shared-time model")
+            raise ConflictError("runtime manager has no initialized shared-time model")
         with self._mutation_authority.external_call():
             state = self._execution_adapter.call(
                 "control",
@@ -101,7 +102,7 @@ class RuntimeTimeControlMixin:
             )
         validate_time_runtime_state(self._time_declaration, state)
         if state != self._snapshot.time_model_state:
-            raise ValueError("time runtime readback disagrees with the runtime snapshot")
+            raise EvidenceIntegrityError("time runtime readback disagrees with the runtime snapshot")
         return state
 
     def advance_time(self, clock_address: str, *, ticks: int, microstep: int = 0) -> ApplyResult:
@@ -128,7 +129,7 @@ class RuntimeTimeControlMixin:
 
     def _apply_time_control_locked(self, method_name: str, *args: object) -> ApplyResult:
         if self._target.time_runtime is None or self._time_declaration is None:
-            raise ValueError("runtime manager has no initialized shared-time model")
+            raise ConflictError("runtime manager has no initialized shared-time model")
         preflight_failure = self._time_control_preflight(method_name, args)
         if preflight_failure is not None:
             return preflight_failure

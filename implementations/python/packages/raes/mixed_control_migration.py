@@ -9,7 +9,6 @@ needs an author decision and is not offered.
 
 from __future__ import annotations
 
-import re
 from typing import Any
 
 import yaml
@@ -38,13 +37,11 @@ MIXED_CONTROL_MIGRATION_PROFILE = "convert-mixed-control-finite-script/v1"
 _SPECS = "behavior_specifications"
 _MIXED_CONTROL = "mixed_control"
 _TRANSITIONS = "transitions"
+_PERMITTED_TRANSITIONS = "permitted_transitions"
 _INVALID = "source-or-target-invalid"
 _HANDOFF = MixedControlTransitionKind.HANDOFF
 _PROPOSAL_OUTSIDE_KIND_SET = frozenset(
     {MixedControlTransitionKind.INTERVENTION, MixedControlTransitionKind.HANDOFF, MixedControlTransitionKind.OVERRIDE}
-)
-_TRANSITION_ERROR_RE = re.compile(
-    r"Behavior specification '([^']+)' mixed_control (transition|permitted transition) '([^']+)'"
 )
 _LIMITATIONS = (
     "Conversion preserves authored trace constraints; it is not evidence of an executed or equivalent runtime trace.",
@@ -59,15 +56,16 @@ def _pointer(*parts: str) -> str:
 def _error_pointers(error: SDLValidationError) -> list[str]:
     """Point each failure at its source transition; converted edges keep the legacy transition ids."""
 
-    pointers = []
-    for message in error.errors:
-        match = _TRANSITION_ERROR_RE.search(message)
-        if match is None:
-            pointers.append("")
-            continue
-        spec_name, _, transition_id = match.groups()
-        pointers.append(_pointer(_SPECS, spec_name, _MIXED_CONTROL, _TRANSITIONS, transition_id))
-    return pointers or [""]
+    return [_source_pointer(finding.pointer) for finding in error.findings] or [""]
+
+
+def _source_pointer(pointer: str | None) -> str:
+    """Return the legacy transition location of a validator finding pointer, or "" when it has none."""
+
+    tokens = pointer.split("/") if pointer is not None else [""]
+    if len(tokens) == 6 and tokens[1] == _SPECS and tokens[3:5] == [_MIXED_CONTROL, _PERMITTED_TRANSITIONS]:
+        tokens[4] = _TRANSITIONS
+    return "/".join(tokens)
 
 
 def _controller(declaration: MixedControlParticipantOperation, state_ref: str) -> str:
@@ -208,6 +206,7 @@ def migrate_mixed_control_to_finite_script(
 
     digest = source_byte_digest(content)
     output: Scenario | None = None
+    target_digest: str | None = None
     refusals: list[tuple[str, str]] = []
     affected: list[str] = []
     try:
@@ -215,10 +214,13 @@ def migrate_mixed_control_to_finite_script(
         payload = load_sdl_yaml(content, source_options=SDLSourceParseOptions(limits=limits))
         converted, refusals, affected = _convert(payload, scenario)
         if converted is not None:
-            output = parse_sdl(yaml.safe_dump(converted, sort_keys=False), limits=limits)
+            candidate = parse_sdl(yaml.safe_dump(converted, sort_keys=False), limits=limits)
+            # A target without a canonical digest, such as one with an integer outside I-JSON, is refused.
+            target_digest = canonical_sdl_digest(candidate).value
+            output = candidate
     except SDLValidationError as error:
         refusals = [(_INVALID, pointer) for pointer in _error_pointers(error)]
-    except SDLError, ValueError, TypeError:
+    except SDLError:
         refusals = [(_INVALID, "")]
     codes = sorted({(f"mixed-control-migration.{code}", pointer) for code, pointer in refusals})
     policy_digest = canonical_json_digest(None)
@@ -230,7 +232,7 @@ def migrate_mixed_control_to_finite_script(
         target_profile="sdl-authoring-input/v1",
         canonicalization_profile="mixed-control-migration-digest-pair/v1",
         source_digest=digest,
-        target_digest=canonical_sdl_digest(output).value if output is not None else None,
+        target_digest=target_digest,
         policy_digest=policy_digest,
         derivation_digest=canonical_json_digest(
             {"operation": MIXED_CONTROL_MIGRATION_PROFILE, "source": digest, "policy": policy_digest}

@@ -3,6 +3,7 @@
 import pytest
 from raes import parse_sdl
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.errors import ConflictError, OperationalError
 from raes_contracts.planning import PlanScope
 from raes_runtime import RuntimeControlPlane
 
@@ -25,14 +26,14 @@ def test_runs_share_engine_capacity_but_keep_state_and_operations_separate():
         assert first.snapshot.entries
         assert not second.snapshot.entries
         assert not engine.snapshot.entries
-        with pytest.raises(RuntimeError, match="reserved"):
+        with pytest.raises(ConflictError, match="reserved"):
             second.apply(second_plan)
         assert first.destroy().success
         engine.retire_run("run:first")
         assert second.apply(second_plan).success
         assert not first.snapshot.entries
         assert second.snapshot.entries
-        with pytest.raises(RuntimeError, match="retired"):
+        with pytest.raises(ConflictError, match="retired"):
             first.apply(first_plan)
         assert second.destroy().success
         engine.retire_run("run:second")
@@ -43,12 +44,12 @@ def test_run_scope_and_backend_owner_cannot_be_replaced():
     target = create_stub_target()
     with RuntimeControlPlane(target) as engine:
         first = engine.open_run(run_scope="run:first")
-        with pytest.raises(ValueError, match="already"):
+        with pytest.raises(ConflictError, match="already"):
             engine.open_run(run_scope="run:first")
-        with pytest.raises(RuntimeError, match="runtime owner"):
+        with pytest.raises(ConflictError, match="runtime owner"):
             RuntimeControlPlane(target)
         assert first.apply(_plan(first, "first")).success
-        with pytest.raises(RuntimeError, match="cleanup"):
+        with pytest.raises(ConflictError, match="cleanup"):
             engine.retire_run("run:first")
         assert first.destroy().success
         engine.retire_run("run:first")
@@ -68,7 +69,7 @@ def test_child_provider_close_failure_retains_every_lease_and_poisons_all_contex
         assert not root_store.lease.closed
         assert not child_store.lease.closed
         for context in (engine, child):
-            with pytest.raises(RuntimeError, match="requires restart"):
+            with pytest.raises(OperationalError, match="requires restart"):
                 context.get_snapshot()
     finally:
         child_store.fail_close = False
@@ -88,7 +89,7 @@ def test_fixed_run_stores_reopen_without_retargeting_the_default_scope(tmp_path)
         assert first.snapshot == recorded
         second = engine.open_run(run_scope="run:second", store=LocalControlPlaneStore(tmp_path / "second"))
         second_plan = _plan(second, "second")
-        with pytest.raises(RuntimeError, match="reserved"):
+        with pytest.raises(ConflictError, match="reserved"):
             second.apply(second_plan)
         assert first.destroy().success
         engine.retire_run("run:first")
@@ -115,7 +116,7 @@ def test_restoring_a_durable_run_cannot_drop_its_required_operation_guarantees(t
         target, store=LocalControlPlaneStore(tmp_path / "engine"), operation_evidence=Evidence()
     ) as engine:
         conflicting_store = LocalControlPlaneStore(tmp_path / "run")
-        with pytest.raises(ValueError, match="conflicts"):
+        with pytest.raises(ConflictError, match="conflicts"):
             engine.open_run(run_scope="run:guarantees", store=conflicting_store)
         run = engine.open_run(
             run_scope="run:guarantees",
@@ -142,7 +143,7 @@ def test_default_context_also_retains_required_guarantees_across_restart(tmp_pat
     ):
         pass
     with (
-        pytest.raises(ValueError, match="conflicts"),
+        pytest.raises(ConflictError, match="conflicts"),
         RuntimeControlPlane(target, store=LocalControlPlaneStore(tmp_path), operation_evidence=Evidence()),
     ):
         pass
@@ -168,7 +169,7 @@ def test_reopened_engine_cannot_skip_a_retained_run_reservation(tmp_path):
         assert first.apply(_plan(first, "first")).success
     with RuntimeControlPlane(target, store=LocalControlPlaneStore(tmp_path / "engine")) as engine:
         default_plan = _plan(engine, "default")
-        with pytest.raises(RuntimeError, match="restored|reserved"):
+        with pytest.raises(ConflictError, match="restored|reserved"):
             engine.apply(default_plan)
         first = engine.open_run(run_scope="run:first", store=LocalControlPlaneStore(tmp_path / "first"))
         assert first.destroy().success
@@ -207,10 +208,10 @@ def test_delayed_result_stays_with_original_run_and_unknown_effects_block_reuse(
         worker.join(2)
         assert not worker.is_alive()
         assert first.get_operation(receipts[0].operation_id).state is OperationState.INDETERMINATE
-        with pytest.raises(RuntimeError, match="active|unresolved"):
+        with pytest.raises(ConflictError, match="active|unresolved"):
             engine.retire_run("run:first")
         second_request = ProvisioningPlan(run_id="second")
-        with pytest.raises(RuntimeError, match="reserved"):
+        with pytest.raises(ConflictError, match="reserved"):
             second.submit_provisioning(second_request)
         release.set()
         assert second.get_snapshot() == before
@@ -248,7 +249,7 @@ def test_retired_run_receipt_replay_does_not_acquire_the_next_runs_resources():
         assert first.submit_provisioning(ProvisioningPlan(), idempotency_key="original") == receipt
         assert engine._engine._reserved_run is second
         fresh_request = ProvisioningPlan()
-        with pytest.raises(RuntimeError, match="retired"):
+        with pytest.raises(ConflictError, match="retired"):
             first.submit_provisioning(fresh_request)
 
 

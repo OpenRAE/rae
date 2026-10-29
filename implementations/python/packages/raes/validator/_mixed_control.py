@@ -1,5 +1,6 @@
 """Semantic validation for ACT-617 mixed-control participant operation."""
 
+from .._declaration_sources import model_pointer
 from .._reference_targetability import ReferencePurpose
 from ..participant_behavior_specification import (
     MixedControlControllerState,
@@ -13,27 +14,34 @@ from ..participant_mixed_control_policy import MixedControlPolicy
 from ..participant_mixed_control_vocabulary import MixedControlAuthorityStatus
 
 
+def transition_pointer(spec_name: str, collection: str, transition_id: str) -> str:
+    """Return the JSON pointer of one authored mixed-control transition in *collection*."""
+
+    return model_pointer(("behavior_specifications", spec_name, "mixed_control", collection, transition_id))
+
+
 class _MixedControlMixin:
     def _verify_mixed_control_semantics(self) -> None:
         for spec_name, behavior_spec in self._s.behavior_specifications.items():
             declaration = behavior_spec.mixed_control
-            self._verify_mixed_control_pairing(
-                spec_name=spec_name,
-                behavior_mode=behavior_spec.behavior_mode,
-                declaration=declaration,
-            )
-            if isinstance(declaration, MixedControlPolicy):
-                self._verify_mixed_control_policy(
+            with self._owner(("behavior_specifications", spec_name)):
+                self._verify_mixed_control_pairing(
                     spec_name=spec_name,
-                    behavior_spec=behavior_spec,
+                    behavior_mode=behavior_spec.behavior_mode,
                     declaration=declaration,
                 )
-            elif declaration is not None:
-                self._verify_mixed_control_declaration(
-                    spec_name=spec_name,
-                    behavior_spec=behavior_spec,
-                    declaration=declaration,
-                )
+                if isinstance(declaration, MixedControlPolicy):
+                    self._verify_mixed_control_policy(
+                        spec_name=spec_name,
+                        behavior_spec=behavior_spec,
+                        declaration=declaration,
+                    )
+                elif declaration is not None:
+                    self._verify_mixed_control_declaration(
+                        spec_name=spec_name,
+                        behavior_spec=behavior_spec,
+                        declaration=declaration,
+                    )
 
     def _verify_mixed_control_pairing(
         self,
@@ -86,6 +94,7 @@ class _MixedControlMixin:
                 transition=transition,
                 declaration=declaration,
                 label=label,
+                pointer=transition_pointer(spec_name, "transitions", transition_id),
             )
 
     def _verify_mixed_control_state(
@@ -176,6 +185,7 @@ class _MixedControlMixin:
         transition: MixedControlTransition,
         declaration: MixedControlParticipantOperation,
         label: str,
+        pointer: str,
     ) -> None:
         from_state = declaration.controller_states[transition.from_state_ref]
         to_state = declaration.controller_states[transition.to_state_ref]
@@ -185,21 +195,25 @@ class _MixedControlMixin:
             from_state=from_state,
             to_state=to_state,
             owner_label=owner_label,
+            pointer=pointer,
         )
         self._verify_proposal_transition(
             transition=transition,
             declaration=declaration,
             owner_label=owner_label,
+            pointer=pointer,
         )
         self._verify_handoff_transition(
             transition=transition,
             from_state=from_state,
             to_state=to_state,
             owner_label=owner_label,
+            pointer=pointer,
         )
         self._verify_evidence_refs(
             (*transition.evidence_refs, *transition.completion_evidence_refs),
             owner_label=owner_label,
+            pointer=pointer,
         )
 
     def _verify_transition_validity(
@@ -209,13 +223,14 @@ class _MixedControlMixin:
         from_state: MixedControlControllerState,
         to_state: MixedControlControllerState,
         owner_label: str,
+        pointer: str,
     ) -> None:
         if self._enum_value(from_state.authority_status) == "revoked":
-            self._err(f"{owner_label} starts from revoked authority")
+            self._err(f"{owner_label} starts from revoked authority", pointer=pointer)
         if not from_state.valid_from_order <= transition.effective_order <= from_state.valid_until_order:
-            self._err(f"{owner_label} is late for its from-state validity")
+            self._err(f"{owner_label} is late for its from-state validity", pointer=pointer)
         if not to_state.valid_from_order <= transition.effective_order <= to_state.valid_until_order:
-            self._err(f"{owner_label} precedes its to-state validity")
+            self._err(f"{owner_label} precedes its to-state validity", pointer=pointer)
 
     def _verify_proposal_transition(
         self,
@@ -223,14 +238,15 @@ class _MixedControlMixin:
         transition: MixedControlTransition,
         declaration: MixedControlParticipantOperation,
         owner_label: str,
+        pointer: str,
     ) -> None:
         if transition.proposal_ref is None:
             return
         proposal = declaration.transitions[transition.proposal_ref]
         if transition.from_state_ref != proposal.to_state_ref:
-            self._err(f"{owner_label} must start from its proposal's resulting state")
+            self._err(f"{owner_label} must start from its proposal's resulting state", pointer=pointer)
         if transition.expected_state_revision != proposal.resulting_state_revision:
-            self._err(f"{owner_label} must expect its proposal's resulting state revision")
+            self._err(f"{owner_label} must expect its proposal's resulting state revision", pointer=pointer)
 
     def _verify_handoff_transition(
         self,
@@ -239,17 +255,23 @@ class _MixedControlMixin:
         from_state: MixedControlControllerState,
         to_state: MixedControlControllerState,
         owner_label: str,
+        pointer: str,
     ) -> None:
         if self._enum_value(transition.transition_kind) != "handoff":
             return
+        # Split at the transition part, so a specification name that contains "transition" stays intact.
+        prefix, _separator, transition_part = owner_label.rpartition(" transition '")
+        handoff_label = f"{prefix} handoff transition '{transition_part}"
         if from_state.controller_ref == to_state.controller_ref:
-            self._err(f"{owner_label.replace('transition', 'handoff transition', 1)} must change controller")
+            self._err(f"{handoff_label} must change controller", pointer=pointer)
         if not transition.completion_evidence_refs:
-            self._err(f"{owner_label.replace('transition', 'handoff transition', 1)} requires completion evidence")
+            self._err(f"{handoff_label} requires completion evidence", pointer=pointer)
 
-    def _verify_evidence_refs(self, refs: tuple[str, ...] | list[str], *, owner_label: str) -> None:
+    def _verify_evidence_refs(
+        self, refs: tuple[str, ...] | list[str], *, owner_label: str, pointer: str | None = None
+    ) -> None:
         for ref in refs:
-            self._validate_named_ref(ref, owner_label=owner_label, ref_label="evidence_ref")
+            self._validate_named_ref(ref, owner_label=owner_label, ref_label="evidence_ref", pointer=pointer)
 
     @staticmethod
     def _enum_value(value: MixedControlAuthorityStatus | MixedControlTransitionKind) -> str:

@@ -11,6 +11,7 @@ from raes_contracts.contracts.participant_inject_application import (
     ParticipantInjectApplicationModel,
     ParticipantInjectContentModel,
 )
+from raes_contracts.errors import InvalidInputError
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.models import ParticipantInjectDeliveryRuntime, RuntimeModel
 
@@ -49,7 +50,10 @@ class ParticipantInjectRuntimeBinding:
             raise TypeError("inject delivery requires retained compiler context")
         if not callable(getattr(self.resolver, "resolve_delivery", None)):
             raise TypeError("inject delivery requires an installed projection owner")
-        canonical = compile_runtime_model(self.model.realization_instance)
+        try:
+            canonical = compile_runtime_model(self.model.realization_instance)
+        except InvalidInputError as exc:
+            raise ValueError("inject delivery must match its original compiler context") from exc
         if canonical != self.model:
             raise ValueError("inject delivery must match its original compiler context")
         object.__setattr__(self, "model", deepcopy(self.model))

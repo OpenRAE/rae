@@ -293,13 +293,14 @@ class BaseParticipantRuntime(ParticipantExecutionRuntimeMixin):
                 action_result=native.action_result,
                 post_state_digest=native.post_state_digest or request.post_state_digest,
             )
-        except (TypeError, ValueError) as exc:
+        except TypeError, ValueError:
+            # The validation text can repeat native outcome values; the diagnostic stays value-free (E7).
             return reject_participant_action_outcome(
                 snapshot,
                 modeled,
                 address,
                 "runtime.participant-autonomous-native-outcome-mismatch",
-                f"Native action outcome contradicts its autonomous binding: {exc}",
+                "Native action outcome contradicts its autonomous binding.",
             )
         working_snapshot = modeled.snapshot
         now = _now_iso()
@@ -444,8 +445,9 @@ class BaseParticipantRuntime(ParticipantExecutionRuntimeMixin):
             return self._reject(snapshot, message, address)
         try:
             return ParticipantEpisodeExecutionState.from_payload(current)
-        except (TypeError, ValueError) as exc:
-            return self._reject(snapshot, f"current state is invalid: {exc}", address)
+        except TypeError, ValueError:
+            # The validation text can repeat stored state values; the diagnostic stays value-free (E7).
+            return self._reject(snapshot, "current state is invalid", address)
 
     def _apply(
         self,

@@ -694,3 +694,6 @@ adrs:
   - id: ADR-115
     path: docs/decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md
     pin: d01cea802cfd206bcdc42ad7f92403fd3f070cfc41ecb5b7b7fdf1e5c5798558
+  - id: ADR-116
+    path: docs/decisions/adrs/adr-116-shared-exceptions-and-operational-logging.md
+    pin: a4e20904762d23ff25162b910ab91032fdaac84b38ef727401c7fe501dde6ffa

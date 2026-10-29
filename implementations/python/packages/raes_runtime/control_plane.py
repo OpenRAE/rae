@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from typing import Unpack
+from typing import TYPE_CHECKING, Unpack
+
+from raes_contracts.errors import NotFoundError
 
 from .control_plane_configuration import ControlPlaneConfiguration, ControlPlaneOptions
 from .control_plane_lifecycle import runtime_owned
@@ -34,9 +36,6 @@ __all__ = (
     "operation_actor_scope",
 )
 
-
-from typing import TYPE_CHECKING
-
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
 
@@ -51,7 +50,7 @@ if TYPE_CHECKING:
         ExperimentRecordBundle,
         ExperimentRunMetadata,
     )
-    from .runtime_experiment import ExperimentProgress
+    from .runtime_experiment import ExperimentProgress, RuntimeExperiment
     from .runtime_experiment_replacement import ExperimentReplacementBinding
     from .runtime_sequence_authority import RuntimeSequenceOptions
     from .runtime_sequence_reference import RuntimeSequenceReference
@@ -102,20 +101,26 @@ class RuntimeControlPlane(RuntimeRunContext):
         self._experiments.setdefault(experiment.experiment_id, experiment)
         return experiment.experiment_id
 
+    def _admitted_experiment(self, experiment_id: str) -> RuntimeExperiment:
+        experiment = self._experiments.get(experiment_id)
+        if experiment is None:
+            raise NotFoundError("runtime experiment is not admitted")
+        return experiment
+
     @runtime_owned
     def advance_experiment(self, experiment_id: str, *, identity: object | None = None) -> ExperimentProgress:
         self._assert_runtime_owner()
-        return self._experiments[experiment_id].advance(identity)
+        return self._admitted_experiment(experiment_id).advance(identity)
 
     @runtime_owned
     def cancel_experiment(self, experiment_id: str, *, identity: object | None = None) -> None:
         self._assert_runtime_owner()
-        self._experiments[experiment_id].cancel(identity)
+        self._admitted_experiment(experiment_id).cancel(identity)
 
     @runtime_owned
     def experiment_results(self, experiment_id: str, *, identity: object | None = None) -> tuple[TrialUnitResult, ...]:
         self._assert_runtime_owner()
-        return self._experiments[experiment_id].results(identity)
+        return self._admitted_experiment(experiment_id).results(identity)
 
     @runtime_owned
     def experiment_records(
@@ -133,7 +138,7 @@ class RuntimeControlPlane(RuntimeRunContext):
         from .runtime_experiment_records import experiment_records
 
         return experiment_records(
-            self._experiments[experiment_id],
+            self._admitted_experiment(experiment_id),
             identity=identity,
             metadata=metadata,
             study=study,

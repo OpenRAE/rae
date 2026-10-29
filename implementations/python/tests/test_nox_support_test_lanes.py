@@ -9,6 +9,7 @@ from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
 import pytest
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError, OperationalError
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
@@ -301,7 +302,7 @@ def test_coverage_reduce_fails_closed_without_manifests(
 
     session = _FakeSession()
     reporter = _Reporter()
-    with pytest.raises(RuntimeError, match="no shard manifests"):
+    with pytest.raises(EvidenceIntegrityError, match="no shard manifests"):
         test_lanes._run_coverage_reduce(session, reporter, tmp_path, shard_count=2, source_sha="x")
 
     assert combined == []
@@ -312,5 +313,75 @@ def test_collect_canonical_nodeids_parses_and_fails_closed(test_lanes: ModuleTyp
     assert test_lanes._collect_canonical_nodeids(session) == ["tests/a.py::t1", "tests/a.py::t2"]
 
     empty_session = _FakeSession(run_output="0 tests collected\n")
-    with pytest.raises(RuntimeError, match="no node ids"):
+    with pytest.raises(OperationalError, match="no node ids"):
         test_lanes._collect_canonical_nodeids(empty_session)
+
+
+class _LogSession:
+    def __init__(self) -> None:
+        self.messages: list[str] = []
+
+    def log(self, message: str) -> None:
+        self.messages.append(message)
+
+
+@pytest.mark.parametrize("failure", [OperationalError("stage failed"), KeyboardInterrupt()])
+def test_session_reporter_records_a_failed_stage_and_reraises_it_unchanged(
+    test_lanes: ModuleType, failure: BaseException
+) -> None:
+    from tools.nox_support.runner import SessionReporter
+
+    session = _LogSession()
+    reporter = SessionReporter(session, "lane")
+
+    def stage() -> None:
+        raise failure
+
+    with pytest.raises(type(failure)) as raised:
+        reporter.run("stage", stage)
+    assert raised.value is failure
+    assert [(result.name, result.status) for result in reporter.results] == [("stage", "FAIL")]
+    assert session.messages[-1].startswith("[lane] FAIL: stage")
+
+
+def test_git_path_selection_failure_omits_git_output(monkeypatch: pytest.MonkeyPatch, test_lanes: ModuleType) -> None:
+    import subprocess
+
+    from tools.nox_support import runner
+
+    def failed(*_args: object, **_kwargs: object) -> subprocess.CompletedProcess:
+        return subprocess.CompletedProcess(["git"], 128, stdout="", stderr="fatal: secret-sentinel")
+
+    monkeypatch.setattr(runner.subprocess, "run", failed)
+    with pytest.raises(OperationalError) as raised:
+        runner._changed_paths(base_rev="base-sentinel")
+    assert str(raised.value) == "git diff failed with exit code 128"
+
+
+def test_session_reporter_records_a_passed_stage(test_lanes: ModuleType) -> None:
+    from tools.nox_support.runner import SessionReporter
+
+    reporter = SessionReporter(_LogSession(), "lane")
+    reporter.run("stage", lambda: None)
+    assert [(result.name, result.status) for result in reporter.results] == [("stage", "PASS")]
+
+
+@pytest.mark.parametrize(
+    ("report", "failure", "message"),
+    [
+        ("{not json", OperationalError, "could not read line coverage totals"),
+        ('{"totals": []}', OperationalError, "could not read line coverage totals"),
+        ('{"totals": {"covered_lines": 1}}', OperationalError, "could not read line coverage totals"),
+        ('{"totals": {"covered_lines": 5, "num_statements": 4}}', OperationalError, "invalid line coverage totals"),
+        ('{"totals": {"covered_lines": 1, "num_statements": 4}}', InvalidInputError, "is below required"),
+    ],
+)
+def test_line_coverage_gate_separates_tool_failures_from_a_low_coverage_finding(
+    tmp_path: Path, test_lanes: ModuleType, report: str, failure: type[Exception], message: str
+) -> None:
+    from tools.nox_support.runner import _enforce_line_coverage
+
+    path = tmp_path / "coverage.json"
+    path.write_text(report, encoding="utf-8")
+    with pytest.raises(failure, match=message):
+        _enforce_line_coverage(path)

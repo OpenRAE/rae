@@ -312,6 +312,30 @@ def test_malformed_evidence_document_is_refused(release: dict[str, object]) -> N
     _expect(release, "admission-evidence-unparsable", corrupt)
 
 
+def test_evidence_document_with_a_duplicate_key_is_refused(release: dict[str, object]) -> None:
+    def duplicate() -> None:
+        path = release["evidence"] / "wheel.cdx.json"
+        payload = b'{"bomFormat": "CycloneDX", "bomFormat": "secret-sentinel"}'
+        path.write_bytes(payload)
+        for item in release["index"]["evidence"]:
+            if item["filename"] == "wheel.cdx.json":
+                item["sha256"] = _sha256(payload)
+
+    duplicate()
+    with pytest.raises(AdmissionError) as excinfo:
+        _verify(release)
+    assert excinfo.value.code == "admission-evidence-unparsable"
+    assert str(excinfo.value) == "wheel.cdx.json could not be parsed"
+    assert "secret-sentinel" not in str(excinfo.value.__cause__)
+
+
+def test_admission_errors_reject_evidence() -> None:
+    from raes_contracts.errors import EvidenceIntegrityError
+
+    assert issubclass(AdmissionError, EvidenceIntegrityError)
+    assert not issubclass(AdmissionError, ValueError)
+
+
 def test_oversized_evidence_document_is_refused(release: dict[str, object]) -> None:
     def inflate() -> None:
         path = release["evidence"] / "wheel.cdx.json"

@@ -8,7 +8,7 @@ from pydantic import ConfigDict, Field, model_validator
 
 from ._base import ContractModel
 from .canonical import canonical_json_digest
-from .json_ingress import parse_bounded_json_object
+from .json_ingress import StrictJsonIngressError, parse_bounded_json_object
 from .materialization import MATERIALIZATION_MAX_BYTES, MaterializationDigest
 from .observation_demand import SemanticScope
 from .realization_structure import validate_realization_value
@@ -47,7 +47,10 @@ class AugmentationPreparation(ContractModel):
     def _bounded_content(self) -> AugmentationPreparation:
         if sum(1 + len(effect.requirement_refs) + len(effect.affected_scopes) for effect in self.effects) > 16384:
             raise ValueError("prospective scope resolution exceeds the aggregate work budget")
-        value = parse_bounded_json_object(self.content, max_bytes=MATERIALIZATION_MAX_BYTES)
+        try:
+            value = parse_bounded_json_object(self.content, max_bytes=MATERIALIZATION_MAX_BYTES)
+        except StrictJsonIngressError as exc:
+            raise ValueError(f"prospective SDL content failed strict JSON ingress ({exc.code})") from exc
         if not validate_realization_value(value, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS).conformant:
             raise ValueError("prospective SDL exceeds portable bounds")
         if len({effect.field_pointer for effect in self.effects}) != len(self.effects):

@@ -6,6 +6,7 @@ import io
 import json
 
 import pytest
+from raes_contracts.errors import InvalidInputError
 from tools.ci_latency_report import RunTiming, load_cohort, main, parse_run, percentile, summarize
 
 
@@ -88,12 +89,28 @@ def test_load_cohort_parses_entries_and_fails_closed() -> None:
     assert len(timings) == 1
     assert timings[0].queue_s == 30.0
 
-    with pytest.raises(ValueError, match="JSON array"):
+    with pytest.raises(InvalidInputError, match="JSON array"):
         load_cohort({"run": {}}, ("verify",))
-    with pytest.raises(ValueError, match="'run' object"):
+    with pytest.raises(InvalidInputError, match="'run' object"):
         load_cohort([{"jobs": []}], ("verify",))
-    with pytest.raises(ValueError, match="'jobs' must be"):
+    with pytest.raises(InvalidInputError, match="'jobs' must be"):
         load_cohort([{"run": {"id": 1}, "jobs": {}}], ("verify",))
+
+
+@pytest.mark.parametrize(
+    ("stdin", "message"),
+    [
+        ('{"run": {}}', "ci-latency-report: cohort payload must be a JSON array of {run, jobs} entries\n"),
+        ("[not json secret-sentinel", "ci-latency-report: cohort payload on stdin is not valid JSON\n"),
+    ],
+)
+def test_main_reports_an_invalid_cohort_as_a_message(
+    capsys: pytest.CaptureFixture[str], stdin: str, message: str
+) -> None:
+    assert main([], stdin=io.StringIO(stdin)) == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == message
 
 
 def test_main_reads_stdin_and_prints_summary(capsys: pytest.CaptureFixture[str]) -> None:

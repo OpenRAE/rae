@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, TypedDict, Unpack
+from typing import TYPE_CHECKING, Any, TypedDict, Unpack
 from urllib.parse import quote
 
 from pydantic import ValidationError
@@ -16,14 +16,10 @@ from ..scenario import ImportDecl, ModuleDescriptor, Scenario
 from ._constants import LOCKFILE_NAME, OCI_BUNDLE_MEDIA_TYPE, OCI_LAYOUT_MEDIA_TYPE
 from ._digests import _SHA256_PREFIX, _descriptor_digest, _satisfies_version, _select_tag
 from ._verified_sources import _local_resolved_source, _VerifiedSourceBundle
-from .models import (
-    Lockfile,
-    LockRecord,
-    ResolvedModule,
-    TrustPolicy,
-    _scenario_module_descriptor,
-    load_trust_policy,
-)
+from .models import Lockfile, LockRecord, ResolvedModule, TrustPolicy, _scenario_module_descriptor, load_trust_policy
+
+if TYPE_CHECKING:
+    from ..parser import SDLSourceDocument
 
 _LOCKED_PREFIX = "locked:"
 
@@ -197,27 +193,42 @@ def _resolve_locked_import(
     return _resolve_import_with_context(import_decl, context)
 
 
+def _read_unverified_local_import(relative: str, context: _ResolutionContext) -> tuple[Path, SDLSourceDocument]:
+    """Read a local import below the base directory when no verified source bundle applies."""
+
+    from ..parser import read_sdl_source
+
+    # Path functions refuse a NUL character with ValueError; the verified-cache reader refuses it the same way.
+    if "\x00" in relative:
+        raise SDLParseError(f"Local import path escapes base directory: {relative!r}")
+    import_path = (context.base_dir / relative).resolve()
+    if not import_path.is_relative_to(context.base_dir.resolve()):
+        raise SDLParseError(f"Local import path escapes base directory: {relative!r}")
+    if not import_path.exists():
+        raise SDLParseError(f"Imported SDL file not found: {relative}")
+    try:
+        imported_source = read_sdl_source(import_path, limits=context.source_options.limits)
+    except OSError as exc:
+        # The authored import can name a directory or a file that this process cannot read.
+        raise SDLParseError(f"Imported SDL file cannot be read: {relative}") from exc
+    return import_path, imported_source
+
+
 def _resolve_local_import(
     import_decl: ImportDecl,
     source: str,
     *,
     context: _ResolutionContext,
 ) -> ResolvedModule:
-    from ..parser import _load_normalized_data, read_sdl_source
+    from ..parser import _load_normalized_data
     from . import _sha256_digest
 
     relative = source.removeprefix("local:")
     if context.verified_sources is None:
-        import_path = (context.base_dir / relative).resolve()
-        if not import_path.is_relative_to(context.base_dir.resolve()):
-            raise SDLParseError(f"Local import path escapes base directory: {relative!r}")
-        if not import_path.exists():
-            raise SDLParseError(f"Imported SDL file not found: {relative}")
-        imported_source = read_sdl_source(import_path, limits=context.source_options.limits)
+        import_path, imported_source = _read_unverified_local_import(relative, context)
     else:
         import_path, imported_source = context.verified_sources.resolve_local(
-            base_dir=context.base_dir,
-            relative=relative,
+            base_dir=context.base_dir, relative=relative
         )
     source_ranges: dict[str, SDLSourceRange] = {}
     imported_raw = _load_normalized_data(
@@ -425,7 +436,7 @@ def _resolve_oci_import(
         source_options=source_options,
     )
     if not isinstance(verified_sources, _VerifiedSourceBundle):
-        raise SDLParseError("OCI module cache did not return verified source documents")
+        raise RuntimeError("OCI module cache did not return verified source documents")
     resolved_root, resolved_source_document = verified_sources.resolve_local(
         base_dir=verified_sources.cache_root,
         relative=root_file,

@@ -36,6 +36,7 @@ from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.participant_control_coordinates import ControlArtifactReferenceModel
 from raes_contracts.contracts.participant_control_effects import ControlEffectRequestModel
 from raes_contracts.contracts.participant_control_results import ControlRealizationBindingModel
+from raes_contracts.errors import AuthorizationError
 from raes_contracts.operation_lifecycle import OperationAdmissionContext
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -53,10 +54,10 @@ from .control_plane_security import (
     ParticipantControlSubjectBinding,
 )
 from .control_plane_store import (
-    IDEMPOTENCY_CLAIM_CONFLICT,
     ControlPlaneOperationRecord,
     idempotency_claim_identity,
 )
+from .errors import IdempotencyClaimConflictError
 
 if TYPE_CHECKING:
     from raes_contracts.contracts.participant_control_decisions_v2 import ControlEffectRequestV2Model
@@ -109,7 +110,7 @@ def require_drain_authority(control_plane: object, participant_address: str, ide
         reason=reason or "authorized",
     )
     if reason is not None:
-        raise PermissionError("participant control effect dispatch is not authorized: " + reason)
+        raise AuthorizationError("participant control effect dispatch is not authorized: " + reason)
 
 
 def _drain_refusal(control_plane: object, participant_address: str, identity: object) -> str | None:
@@ -243,14 +244,13 @@ def claim_effect(
     )
     try:
         claimed = control_plane._claim_record(record)
-    except ValueError as error:
-        if str(error) == IDEMPOTENCY_CLAIM_CONFLICT:
-            if isinstance(request, ControlEffectRequestV2Model):
-                existing = retained_effect_claim(control_plane, origin, request)
-                if existing is not None:
-                    return EffectClaim(record=existing, fresh=False)
-            return None
-        raise
+    except IdempotencyClaimConflictError:
+        # The store refuses a different request under the same claim identity; other refusals propagate.
+        if isinstance(request, ControlEffectRequestV2Model):
+            existing = retained_effect_claim(control_plane, origin, request)
+            if existing is not None:
+                return EffectClaim(record=existing, fresh=False)
+        return None
     return EffectClaim(record=claimed, fresh=claimed.receipt.operation_id == operation_id)
 
 

@@ -10,6 +10,7 @@ from raes_contracts.contracts.random_stream import (
     ParticipantStreamAddressModel,
     PublicSeedModel,
 )
+from raes_contracts.errors import ConflictError, OperationalError
 from raes_contracts.random_stream_engine import (
     decode_public_seed,
     derive_stream_key,
@@ -138,7 +139,7 @@ def draw_activity_integer(
         max_rejection_attempts=32,
     )
     if draw.rejection_exhausted or draw.value is None:
-        raise ValueError("participant activity bounded random draw exhausted")
+        raise OperationalError("participant activity bounded random draw exhausted")
     return draw.value
 
 
@@ -153,7 +154,7 @@ def _window_ranges(
     for address in addresses:
         constraint = selected[address]
         if constraint.start_tick is None or constraint.end_tick is None:
-            raise ValueError("participant activity windows require finite start and end ticks")
+            raise ConflictError("participant activity windows require finite start and end ticks")
         ranges.append(
             (
                 (constraint.start_tick, constraint.start_microstep or 0),

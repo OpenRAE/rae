@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 
-from ..admitted_trial_plan_ingress import revalidate_admitted_trial_plan
+from ..admitted_trial_plan_ingress import AdmittedTrialPlanIngressError, revalidate_admitted_trial_plan
 from ..canonical import canonical_json_digest
 from .admitted_trial_plan import AdmittedTrialEntryModel, AdmittedTrialPlanModel
 from .experiment_run import ExperimentRunModel
@@ -41,6 +41,15 @@ def _digest(run: ExperimentRunModel) -> str:
     return canonical_json_digest(run.model_dump(mode="json"))
 
 
+def _revalidated(plan: AdmittedTrialPlanModel) -> AdmittedTrialPlanModel:
+    """Keep the ValueError contract of this lineage validation (E3)."""
+
+    try:
+        return revalidate_admitted_trial_plan(plan)
+    except AdmittedTrialPlanIngressError as exc:
+        raise ValueError("Admitted trial plan contract validation failed") from exc
+
+
 def _index(
     root: AdmittedTrialPlanModel,
     replacements: list[AdmittedTrialPlanModel],
@@ -60,7 +69,7 @@ def _index(
 def _index_plans(root: AdmittedTrialPlanModel, replacements: list[AdmittedTrialPlanModel]) -> _Plans:
     plans = {root.plan_id: root}
     for candidate in replacements:
-        plan = revalidate_admitted_trial_plan(candidate)
+        plan = _revalidated(candidate)
         if plan.plan_id in plans or plan.replacement_origin is None:
             raise ValueError("replacement plans must be distinct linked children")
         plans[plan.plan_id] = plan
@@ -295,7 +304,7 @@ def reconcile_replacement_trials(
     Study evaluation membership must name only a returned eligible leaf. Failed
     scientific outcomes stay eligible when they have not been replaced.
     """
-    root = revalidate_admitted_trial_plan(original_plan)
+    root = _revalidated(original_plan)
     runs = [ExperimentRunModel.model_validate(run.model_dump(mode="python")) for run in runs]
     cleanup_receipts = [
         TrialCleanupReceiptModel.model_validate(item.model_dump(mode="python")) for item in cleanup_receipts
