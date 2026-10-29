@@ -132,7 +132,12 @@ def _assert_rejected(result, address, message):
     assert result.changed_addresses == []
     assert result.details == {}
     assert [(item.code, item.address, item.message) for item in result.diagnostics] == [
-        ("runtime.backend-contract-invalid", address, message)
+        ("runtime.backend-contract-invalid", f"/{address}", message),
+        (
+            "runtime.control-plane.operation-indeterminate",
+            "/state",
+            "Operation outcome could not be established; explicit resolution is required.",
+        ),
     ]
 
 
@@ -156,9 +161,14 @@ def test_success_with_predecessor_snapshot_is_rejected_with_transition_diagnosti
     assert [(diagnostic.code, diagnostic.address, diagnostic.message) for diagnostic in result.diagnostics] == [
         (
             "runtime.backend-contract-invalid",
-            "runtime.changed-addresses",
+            "/runtime.changed-addresses",
             "Backend reported a changed address outside the snapshot transition.",
-        )
+        ),
+        (
+            "runtime.control-plane.operation-indeterminate",
+            "/state",
+            "Operation outcome could not be established; explicit resolution is required.",
+        ),
     ]
 
 

@@ -129,6 +129,8 @@ def parse_experiment_spec(
         code = "duplicate-key" if "duplicate mapping key" in str(exc) else "invalid-yaml"
         raise ExperimentSpecValidationError(code, "Experiment spec YAML is invalid.", path=path) from exc
     except (yaml.YAMLError, ValueError) as exc:
+        # PyYAML's timestamp constructor lets datetime's ValueError escape for
+        # impossible dates such as an unquoted 2026-02-30 (issue #1563).
         raise ExperimentSpecValidationError("invalid-yaml", "Experiment spec YAML is invalid.", path=path) from exc
 
     if not isinstance(payload, dict):

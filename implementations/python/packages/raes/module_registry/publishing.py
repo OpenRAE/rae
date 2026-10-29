@@ -243,7 +243,7 @@ def _valid_oci_layout(version: Path, expected_files: Mapping[str, bytes]) -> boo
         expected_directories = {".", "blobs", "blobs/sha256"}
         valid_inventory = actual_directories == expected_directories and actual_files == set(expected_files)
         return valid_inventory and _layout_file_bytes_match(version, expected_files)
-    except (OSError, _InvalidLayoutError):
+    except OSError, _InvalidLayoutError:
         return False
 
 

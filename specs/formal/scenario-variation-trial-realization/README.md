@@ -323,7 +323,7 @@ remain in the plan identity projection, so changes to design, seed, namespace,
 or allocation policy produce new plan/entry/run identities. Allocation slots
 are separate from those logical coordinates.
 
-For factorial designs, every coordinate selects the scalar scenario bindings
+For `factorial-bindings-v1` designs, every coordinate selects the scalar scenario bindings
 from its exact generated condition through the public SDL selection and
 whole-scenario admission path. All family points must be covered exactly once;
 additional selection policies and nonliteral scenario binding outcomes fail
@@ -334,6 +334,23 @@ entry records each normalized configuration with its manifest and digest.
 Normalization must preserve declared binding values. Retry and replacement
 lineage retain their incumbent authorities; a replacement child contains one
 new entry for the original slot's condition and no reshuffle of original slots.
+
+The contract profile `factorial-treatments-v1` adds typed scenario selections.
+Its normative rules are in
+[experiment-core](../experiment-core/README.md#typed-factorial-treatments-factorial-treatments-v1).
+`AdmittedSelectionRecordModel.treatment` retains the exact source descriptor.
+The optional `profiles.treatment_profile` field selects the new record semantics.
+Legacy plans omit this field.
+The existing coordinate and identity profiles remain unchanged.
+New content remains covered by authoring, entry, and plan commitments.
+The reference compiler supports typed treatments through the existing public SDL APIs.
+It verifies complete point coverage, owner admission, effective distinctness, and atomic failure.
+Comparison retains operative capability bounds, parameter derivations, and realization constraints.
+Prompt comparison uses pinned content and operative slot and scope, excluding provenance-only descriptor differences.
+`readmit_admitted_trial_plan()` compares a candidate with deterministic reconstruction from separately trusted original inputs.
+The public realizer checks authoring coordinates, bindings, typed records, and fixed selections without rerunning participant normalization.
+Plan-only reload establishes internal consistency, not agreement with unavailable original authority.
+See the [public example](../../../docs/explain/reference/typed-factorial-example.md).
 
 The accepted executable allocation procedure is `fisher-yates-allocation-v1`:
 

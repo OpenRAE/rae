@@ -1,9 +1,8 @@
-# Experiment Binding Contracts
+# Experiment binding contracts
 
-Issue #903 publishes the portable contract surfaces that connect experiment
-factors and conditions to scenario variation, participant implementation
-configuration, and apparatus configuration. The contracts state intent and
-validation results; they do not mutate a runtime.
+These contracts bind experiment factors to three authority planes.
+They state intent and validation results.
+They do not change a runtime.
 
 ## Authority planes
 
@@ -13,94 +12,132 @@ validation results; they do not mutate a runtime.
 | `participant-implementation` | Selected participant implementation manifest | Manifest `configuration_registry` target |
 | `apparatus` | Selected processor or backend manifest | Manifest `configuration_registry` target |
 
-A descriptor carries its source factor, factor level, and condition. These
-joins are validated by `ExperimentSpecModel` when
-`binding_semantics: explicit-required` is selected. Legacy
-`required_parameters` remain descriptive data and are rejected in that mode.
+Each descriptor names its source factor, level, and condition.
+Every condition factor and level must belong to that experiment's declarations,
+in both `descriptive` and `explicit-required` modes.
+Authors or their tools choose those declarations; RAE supplies no domain catalog.
+This local validation does not resolve an ontology or prove treatment execution.
+`ExperimentSpecModel` also checks each descriptor's source joins in `explicit-required` mode.
+That mode rejects legacy `required_parameters`.
+Those parameters remain descriptive data in other modes.
 
-Targets never fall back across planes. A participant target that is absent
-from the selected participant manifest does not become a scenario or backend
-target because the same spelling exists elsewhere.
+A target belongs to one plane.
+The same name in another plane grants no authority.
+A missing participant target cannot become a scenario or backend target.
 
 ## Target registries
 
-An owner registry declares canonical target ids, bounded aliases, exact scalar
-types, admitted literal/secret-reference forms, sensitivity, optional defaults,
-and the governing contract and validator version.
+An owner registry declares canonical target ids and bounded aliases.
+It defines exact scalar types and allowed value kinds.
+It also defines sensitivity, defaults, and the contract and validator versions.
 
-Aliases are input spellings only. Admission resolves aliases to canonical ids
-before constructing a configuration or digest. Alias/canonical collisions and
-two inputs that resolve to one target fail, including equal-value duplicates.
+Aliases are input spellings, not identities.
+Admission resolves them before it builds a result or digest.
+Two inputs for one canonical target fail.
+This rule also rejects equal duplicate values.
 
-The extension seam is the owner registry: a manifest can add a target or a new
-validator version without changing the cross-plane resolver. A new authority
-plane is not an extension id; it requires a versioned contract change.
+A manifest can add targets or validator versions through its registry.
+A new authority plane needs a versioned contract change.
 
 ## Participant configuration realization
 
-`realize_participant_configuration()` accepts a selected participant manifest
-and an override list. It resolves the whole list, applies defaults, requires
-missing values, enforces strict types, and optionally invokes a trusted
-`ParticipantConfigurationValidator` over the complete configuration. It
-returns no partial result.
+`realize_participant_configuration()` accepts a selected manifest and overrides.
+It resolves the whole list and applies defaults.
+It requires every target without a default.
+It enforces strict types.
+A trusted `ParticipantConfigurationValidator` can check the complete configuration.
+Failure returns no partial result.
 
-The normalized entries are sorted by canonical target id and preserve whether
-each value came from a default or override.
-`participant-configuration-result-v1` records the selected manifest identity,
-governed validator, normalized values, and a `canonical_contract_digest()`
-RFC 8785/JCS digest. Alias spelling and input ordering do not affect that
-digest.
+The result sorts values by canonical target id.
+Each value retains its default or override origin.
+`participant-configuration-result-v1` records the manifest, validator, and normalized values.
+Its `canonical_contract_digest()` uses RFC 8785/JCS.
+Alias spelling and input order do not affect that digest.
+
+## Participant bindings on trial entries
+
+Each entry carries the participant descriptors for its condition.
+This applies to factorial designs and explicit condition descriptors.
+Participant bindings need no scenario selection-policy reference.
+Two conditions can differ only in participant configuration.
+Their `required_bindings` record that difference without invented `required_refs`.
+
+Admission checks each target against the selected manifest.
+The compiler realizes the complete configuration once, before entry sealing.
+Entry and plan digests cover the result.
+One-entry realization passes the sealed result to the run producer.
+Run validation compares the archived digest with the admitted result.
+
+```mermaid
+flowchart LR
+    Author[Experiment author] -->|Condition descriptors| Admission[Target admission]
+    Manifests[(Selected manifest inputs)] -->|Pinned identity and target registry| Admission
+    Admission -->|Admitted participant overrides| Configuration[Complete configuration realization]
+    Manifests -->|Defaults and owner validator| Configuration
+    Configuration -->|Normalized result and digest| Plan[(Sealed trial plan)]
+    Plan -->|Entry bindings and configurations| Producer[Run producer]
+    Producer -->|Binding and selection digests| Run[(Experiment run)]
+    Plan -->|Admitted digest| Validation[Run validation]
+    Run -->|Archived digest| Validation
+```
+
+Author input crosses the manifest-owner boundary at target admission.
+Unknown targets or wrong owners produce no plan.
+Missing required values or owner rejection also produce no plan.
+Compiler errors exclude values and owner exception text.
+Secret references remain references throughout this flow.
+A matching digest proves configuration identity only.
+The run producer must still prove execution.
 
 ## Scalar and secret posture
 
-The scalar vocabulary is closed: string, integer, number, Boolean, and null.
-Validation is non-coercing. Boolean does not satisfy integer, numeric strings
-remain strings, and NaN or infinity is invalid.
+The scalar types are string, integer, number, Boolean, and null.
+Values must retain their types.
+Boolean does not satisfy integer.
+Numeric strings remain strings.
+NaN and infinity are invalid.
 
-A secret reference is structurally different from a string literal. Portable
-artifacts carry only its non-sensitive reference identity. They contain no
-resolved-secret field and do not resolve environment variables, files,
-commands, provider objects, or private locators. The digest commits to the
-reference identity, never to resolved secret material.
+A secret reference is distinct from a string literal.
+Portable artifacts carry only its non-sensitive reference identity.
+They have no resolved-secret field.
+They do not resolve environment variables, files, commands, or private locators.
+The digest covers the reference identity, never resolved secret material.
 
 ## Lifecycle integration
 
-- `experiment-authoring-input-v1` carries explicit descriptors and validates
-  their factor/condition provenance.
-- Scenario admission delegates target resolution to the public SDL
-  variation/instantiation authority.
-- Participant, processor, and backend manifests publish their own target
-  registries.
-- `participant-configuration-result-v1` is the authoritative normalized
-  participant configuration result.
-- `experiment-run-v1` may archive the realized descriptor, its origin, and the
-  configuration digest.
+- `experiment-authoring-input-v1` carries descriptors and checks their source joins.
+- The public SDL authority resolves scenario targets.
+- Each selected manifest owns its target registry.
+- `participant-configuration-result-v1` holds the complete normalized result.
+- `experiment-run-v1` can archive the descriptor, origin, and configuration digest.
 
 ## Factorial designs and randomized allocation
 
-An experiment can declare `factorial_design` with the
-`factorial-bindings-v1` profile, explicit `factor_ids`, a `condition_bound`,
-`target_runs_per_condition`, and `level_bindings[factor_id][level_id]`.
-Each level holds one or more existing typed target/value/owner templates.
-For example, two scenario path levels crossed with two participant temperature
-levels produce four conditions; two replicates produce eight admitted entries.
-A factor may affect targets in both planes. Unnamed factors are not crossed.
+An experiment can declare `factorial_design` with the `factorial-bindings-v1` profile.
+It names `factor_ids`, a `condition_bound`, and `target_runs_per_condition`.
+Each `level_bindings[factor_id][level_id]` holds typed target/value/owner templates.
+Two scenario path levels and two participant temperature levels produce four conditions.
+Two replicates produce eight entries.
+A factor can affect both planes.
+Unnamed factors are not crossed.
 
-The authoring loader generates the existing allocation, condition
-`required_bindings`, and binding descriptors. It rejects inconsistent supplied
-materializations and retains the generation intent on serialization. Scenario
-targets must cover every family variation point with scalar literal outcomes;
-factorial generation cannot also declare selection policies. Participant
-targets resolve against selected manifests and produce complete configuration
-results with defaults and digests. Normalization cannot change the declared
-binding values. Missing owner targets, alias collisions, incomplete
-configurations, and operationally identical conditions fail admission.
-Comparison includes complete effective defaults across the design's selected
-participants and ignores whether an equal value came from a default or override.
-The public one-entry realization result carries those admitted configurations
-to the downstream participant owner alongside the processor plans.
+The loader generates allocation, condition `required_bindings`, and descriptors.
+It rejects supplied records that differ from the generated result.
+It retains the design intent when serialized.
+Scenario targets must cover every family variation point.
+Their outcomes must be scalar literals.
+Factorial generation cannot also declare selection policies.
 
-Select executable order explicitly in the existing run plan:
+Participant targets resolve against selected manifests.
+The complete results include defaults and digests.
+Normalization cannot change declared binding values.
+Missing targets, alias collisions, or incomplete results fail admission.
+Distinct conditions must also have distinct effects after owner resolution.
+Comparison includes all effective defaults across the design's selected participants.
+Equal values compare the same, regardless of default or override origin.
+The one-entry result carries admitted configurations with the processor plans.
+
+Select the order through the run plan:
 
 ```yaml
 allocation_policy:
@@ -110,19 +147,91 @@ allocation_policy:
   stochastic_control_ref: allocation-control
 ```
 
-The referenced control needs `role: randomization` and an executable
-`blake3-xof-v1` / `random-stream-profile/v1` binding with a namespace and public
-seed. Compilation seals the policy, permutation, and bounded plan-scope draws;
-dispatch and receipt validation consume that same order. Reconstruction checks
-the whole record. A seed, free-text allocation method, or blocking-factor list
-alone does not activate this behavior.
+The control needs `role: randomization` and an executable binding.
+Use `blake3-xof-v1` / `random-stream-profile/v1` with a namespace and public seed.
+Compilation seals the policy, order, and bounded plan-scope draws.
+Dispatch and receipt checks use that same order.
+Reconstruction checks the whole record.
+A seed, free-text method, or blocking-factor list alone does not activate this behavior.
 
-Archive canonical admitted descriptors as study matching criteria when input
-aliases were used. Runs must preserve every admitted realized binding,
-participant configuration digest, selected manifest, and allocation control.
-Retain actual apparatus evidence and deviations for model/API or host drift:
-random order mitigates confounding and does not certify unchanged conditions.
+When input uses aliases, archive canonical admitted descriptors as study criteria.
+Runs must preserve every admitted binding and configuration digest.
+They must also preserve the selected manifest and allocation control.
+Retain actual apparatus evidence and deviations for model/API or host drift.
+Random order reduces confounding; it does not prove unchanged conditions.
 
 See the [normative generation rules](../../../specs/formal/experiment-core/README.md#factorial-condition-generation-exp-719),
 [allocation procedure](../../../specs/formal/scenario-variation-trial-realization/README.md#designed-compiler-and-allocation-profiles-exp-719),
 and [architecture guardrails](../../decisions/issue-275-exp-719-treatment-controlled-variation-preflight.md).
+
+## Typed factorial scenario selections
+
+The `factorial-treatments-v1` contract combines scalar bindings and typed selections.
+Its `level_effects[factor_id][level_id]` contains `bindings`, `selections`, or both.
+Factor and level identifiers come from the experiment author.
+A level can affect several participants and scenario points.
+Selection-only and participant-only designs need no invented scalar target.
+
+A selection names the family, its digest, a variation point, its canonical target, and its owner.
+Its `outcome` reuses the existing selection types.
+For example, `{kind: member, member_id: baseline}` selects an authored SDL alternative.
+The family can define that alternative as node presence with coupled scheduled jobs.
+The member retains that typed identity through generated criteria and archival records.
+The experiment does not embed the node definition or encode the member as a scalar binding.
+
+Node settings use declared scalar parameters or the reviewed
+[structural slots](../../../specs/sdl/variation-points.md#4-typed-target-slots).
+These slots cover node presence and declared runtime inventory collections.
+They do not permit arbitrary packages, environment entries, filesystem entries, or nested patches.
+New slots need review at the owning SDL model.
+Model settings use participant manifest targets.
+Prompt and instruction choices use the existing pinned control-context targets below.
+Secret configuration retains opaque secret references.
+
+Every condition must select every family point exactly once.
+Invariant points can use existing fixed policies with `purpose: fixed-configuration` and `output_bound: 1`.
+These policies cannot carry binding claims.
+Other accompanying policy kinds and duplicate points fail.
+The full Cartesian design fails if any combination violates SDL constraints, references, owner rules, or participant applicability.
+No condition is silently removed or relabelled.
+Different labels cannot disguise equal effective scenario and participant configurations.
+
+`required_selections`, admitted `treatment` records, and run `realized_selections` share exact descriptors.
+They preserve factor, level, condition, family, point, target, owner, and typed outcome.
+Plan-aware archival checks reject missing or changed descriptors.
+The plan's optional `treatment_profile` explicitly identifies these semantics.
+Existing scalar profiles and identity formulas remain unchanged.
+
+The contract limits combined effect work to 10000 units across logical runs.
+Nested subset and order members and repeated fixed choices consume this budget.
+Expanded serialization has an 8 MiB bound.
+The public input loader retains its 64 KiB bound.
+See the [normative profile](../../../specs/formal/experiment-core/README.md#typed-factorial-treatments-factorial-treatments-v1) for exact rules.
+
+The compiler supports typed factorial treatments through owner admission and complete scenario validation.
+Manual `required_selections` criteria still require the typed factorial profile.
+The compiler preserves source descriptors in admitted selections and participant results in sealed entries.
+The full realizer compares supplied authoring coordinates, bindings, treatments, and fixed selections.
+Supply participant manifests for canonical alias resolution during this check.
+`readmit_admitted_trial_plan()` recompiles separately trusted original inputs and compares the complete candidate plan.
+Plan-only reload checks internal consistency; it cannot authenticate original intent from its own seals.
+Prompt distinctness compares pinned content and operative slot and scope.
+A descriptor-only digest change does not establish different prompt effects.
+Recorded claims still do not prove execution.
+See the [model, prompt, and structural example](typed-factorial-example.md).
+
+## Participant control-context factors
+
+A participant configuration target can declare a typed `control_context` domain.
+It names a `slot_id` and exact SDL declaration references with ACT-620 pins.
+The factor value is a literal reference string.
+The trusted owner must implement contextual validation and `for_scenario()`.
+Trial compilation binds that validator to the concrete selected scenario.
+It checks the participant's scope and rejects direct or reusable slot conflicts.
+Missing validation rejects the whole plan.
+
+The realized value retains `control_context_selection` inside the configuration digest.
+The sealed entry and public trial result retain that exact pin across reload.
+The run producer consumes this retained selection, without resolving a current catalog again.
+The selection remains authored intent; ACT-620 lifecycle and exposure checks still apply before use.
+See [SDL control context](../../../specs/sdl/participant-control-context.md).

@@ -15,10 +15,11 @@ define revised coverage, predecessor-input, state and parent/effect meaning.
 The v1 runtime boundary documented below does not implement that amendment. In
 particular, its whole-selection applicability check cannot express disjoint
 sink subsets of one apparatus; profile presence alone does not prove required
-slot coverage; provider/v1 carries no fresh predecessor results; optional
-failures can block composition; and phase handling can mark a subsequent
-parent-targeted denial eligible. The existing verification map is bounded
-legacy evidence, not proof that those gaps are repaired in the runtime.
+slot coverage; provider/v1 carries no fresh predecessor results; and optional failures can block composition.
+Historical v1 evaluation records can retain phase-dependent eligibility claims.
+Fresh legacy parent deny/withhold is enforced before execution, as described below.
+The v1 verification map remains bounded legacy evidence.
+The explicit v2 runtime path below implements the revised applicability relation.
 
 The amendment keeps the full admitted apparatus, records coverage at each cut,
 evaluates typed slot/stage dependencies, isolates genuinely optional failure,
@@ -133,22 +134,93 @@ Refused parents retain only independently authorized evaluation-state changes.
 
 The immutable v2 evaluation, accepted state proposals, coverage, result and
 intent digests, causal consumption, operation and audit join the incumbent
-atomic participant transition. Its wire `commit.status="prepared"` describes
-transaction content; authoritative store snapshot/operation/audit readback
-establishes durable acceptance. The runtime does not manufacture a committed
-wire receipt or rewrite an appended evaluation. A failed or uncertain commit
-permits no dispatch or disclosure.
+atomic participant transition. Providers supply `commit.status="prepared"`.
+The transaction seals only newly appended v2 records as `committed`, binding the
+actual operation receipt, admitted intent digests and dispatchable IDs before
+publication. Store readback establishes durable acceptance; existing prepared
+history is never upgraded. A failed or uncertain commit permits no dispatch or
+disclosure. Committed evaluations remain immutable.
 
 History readers select the recorded v1/v2 discriminator. SQLite reader version
 8 admits the new interpretation while preserving legacy bytes, claims and
 budgets. Valid retained evaluations consume attempts across interpretation
 changes; v2 shared causal roots include all participant histories in this store,
 including later v1 work after a binding change.
-V2 executable effects are recorded with canonical admitted intent digests, but
-the legacy effect drain returns `unsupported` for them with zero execution.
-Optional effect requests without an installed v2 execution path are discarded
-as unsupported advice. V1 effects keep their original owner admission and
-realization rules; an unsupported v2 effect never becomes a v1 request.
+V2 executable effects require an installed owner at admission and a fresh,
+bounded owner-input resolution at dispatch. Required unsupported combinations
+block the parent; optional unsupported contributions become lost advice. V1
+records keep their original interpretation. Fresh legacy parent-targeted deny
+and withhold are enforced before execution, regardless of their phase label.
+No v2 effect becomes a v1 request.
+
+### Governed v2 effect execution (#1369)
+
+`dispatch_participant_control_effects` uses the originating operation principal,
+actor-scoped logical claims and the existing operation store. The supported
+subset is:
+
+| Target | Owner and observed outcome |
+| --- | --- |
+| `handoff` | The exact compiled transition and both controller identities, through `record_participant_control`. |
+| `inject` | The target pins the complete typed `world_request` (plan, bindings, input, placement/slot, head, request and occurrence identities). `submit_inject` submits that exact request, and missing v2 pins refuse admission. Applied requires the world's validated outcome and evidence. An optional delivery application uses `deliver_participant_inject` separately; a disclosure failure cannot undo or repeat the world effect. |
+| `interrupt` / `cancel` / `execution` | An exact revisioned attempt through an installed cancellation policy, `record_participant_control` and `dispatch_participant_cancellation`. Prevention is applied; completion wins as too late; missing cessation proof remains indeterminate. |
+
+An absent `world_request` stays omitted when historical inject evidence is serialized, preserving its original canonical digests. New v2 producer/consumer bindings must negotiate the updated exact schema content pins. Delivery inputs also bind the exact participant, episode, delivery address and digest before any world dispatch.
+
+A resolver input cannot install a missing owner. Other target/operation
+combinations refuse during required-slot admission. Owner calls still enforce
+current authority, exact participant specification/transition, target scope, policy, evidence and time. The drain caller
+lends no authority. Eligible committed cancellations get a bounded supervisory pass independently
+of ordinary or historical backlog. Ordinary effects keep their normal claim
+exclusion and remain available for the next ordinary pass.
+Each drain attempts that ordinary pass after leaving supervision, even when
+cancellation remains unsupported or indeterminate; the incumbent mutation and
+recovery barriers still apply.
+
+Required predecessors leave their original parent refused. Their exact applied
+receipt may satisfy a fresh-cut evaluation of the same parent subject, episode
+and causal root. Parent admission and application prerequisites join distinct
+owner-observed facts; a new immutable admission record retains those receipts.
+Rejected control transitions supply no admission receipt. Cancellation
+acceptance supplies admission only; application requires the cancellation
+owner's evidenced prevention, never generic operation success.
+An optional typed `continuation` pins the original evaluation, its commit
+receipt and exact realized claims. It lets a dependent effect become runnable
+after its predecessor applies, including after restart, without changing the
+original request, provider results, logical keys or budgets. Each new admission
+revalidates independently resolved effect authority and canonical owner context.
+Before admitting new continuation keys, the runtime also folds current shared
+root consumption, including intervening evaluations, and checks effect and
+per-rule firing limits. Replays add no charge. Every pending owner call checks
+current effect approval again, including unchanged plans, retained
+continuations and fallback after a refused promotion. A stored admission is
+historical evidence, not continuing permission to execute.
+Ordinary fresh-evaluation validation cannot accept a continuation without its
+exact committed source. Absent continuation fields stay omitted in historical
+serialization; consumers negotiate the updated v2 schema pin.
+Authorized independent effects may survive a complete parent denial or
+withhold, while missing mandatory coverage or support grants no effect.
+
+The trigger commit, effect claim, owner operation and typed realization receipt
+are separate durable records. Owner operations name their effect claim as
+parent. `ControlRealizationBindingModel` is validated on claim construction and
+reopen; outcome publication and its bounded audit share the incumbent atomic
+transition. A failed effect consumes its budget. Unknown dispatch is observed
+through its owner's ledger and is never blindly repeated. Owner re-entry must
+preserve the causal root and increase depth. Exact replay retains the original
+identities and receipts across restart.
+Accepted cancellations resume delivery through the cancellation owner's
+existing control ledger after an interruption. The same control identity and
+one-use delivery rules prevent another backend cancellation; acceptance alone
+still supplies no application evidence.
+
+Public-provider witnesses are `test_issue_1369_governed_effects.py`,
+`test_issue_1369_effect_recovery.py`, `test_issue_1369_effect_continuations.py`
+and `test_issue_1369_cancellation_effects.py`.
+Additional regressions are `test_issue_1369_continuation_limits.py`,
+`test_issue_1369_deferred_authority.py` and `test_issue_1369_cancel_recovery.py`.
+They use synthetic installed owners and do not establish distributed atomicity,
+external exactly-once execution or production provider conformance.
 
 The public-runtime witnesses are
 [`test_issue_1069_provider_evaluation_v2.py`](../../../implementations/python/tests/test_issue_1069_provider_evaluation_v2.py):

@@ -24,6 +24,22 @@ def _fail(code: str, address: str, message: str) -> CompilationFailure:
     return CompilationFailure(code, address, message)
 
 
+def validate_treatment_profile(request: TrialCompilationRequest) -> None:
+    """Require the typed design whenever condition criteria contain selections."""
+    design = request.experiment.factorial_design
+    allocation = request.experiment.run_plan.allocation
+    typed_design = design is not None and design.profile == "factorial-treatments-v1"
+    typed_criteria = allocation is not None and any(
+        assignment.required_selections for assignment in allocation.condition_assignments.values()
+    )
+    if typed_criteria and not typed_design:
+        raise _fail(
+            "factorial-profile-unsupported",
+            "/run_plan/allocation/condition_assignments",
+            "typed factorial treatments require a supporting compiler profile",
+        )
+
+
 def _validate_primary_input_refs(request: TrialCompilationRequest) -> None:
     refs = request.input_refs
     family_digest = canonical_sdl_digest(request.family).value
@@ -268,7 +284,13 @@ def entry_descriptor_ids(
             for descriptor in declared.values()
             if descriptor.source_condition_id == coordinate.condition_id
         }
-    return {
+    participant_ids = {
+        descriptor.binding_id
+        for descriptor in declared.values()
+        if descriptor.source_condition_id == coordinate.condition_id
+        and descriptor.target.plane == "participant-implementation"
+    }
+    return participant_ids | {
         descriptor_id
         for selection in row.selections
         for descriptor_id in getattr(
@@ -330,6 +352,8 @@ def plan_intent(request: TrialCompilationRequest, planned_coordinates: list[Tria
             designed=request.experiment.factorial_design is not None
             or request.experiment.run_plan.allocation_policy is not None,
             allocation=request.experiment.run_plan.allocation_policy is not None,
+            treatments=request.experiment.factorial_design is not None
+            and request.experiment.factorial_design.profile == "factorial-treatments-v1",
         ).model_dump(mode="json"),
         "input_refs": input_refs.model_dump(mode="json"),
         "execution_authority": request.execution_authority.model_dump(mode="json"),

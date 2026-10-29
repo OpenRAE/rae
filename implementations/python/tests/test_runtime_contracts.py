@@ -1082,7 +1082,7 @@ def test_experiment_core_validates_apparatus_context_against_manifest_payloads()
 
     incompatible_processor_manifest_payload = _processor_manifest_fixture()
     incompatible_processor_manifest_payload["compatibility"]["backends"] = ["different-backend"]
-    with pytest.raises(ValueError, match="compatibility.backends"):
+    with pytest.raises(ValueError, match="not mutually compatible"):
         validate_experiment_apparatus_context_against_manifests(
             apparatus,
             ProcessorManifestV2Model.model_validate(incompatible_processor_manifest_payload),
@@ -1091,7 +1091,7 @@ def test_experiment_core_validates_apparatus_context_against_manifest_payloads()
 
     incompatible_backend_manifest_payload = _backend_manifest_fixture()
     incompatible_backend_manifest_payload["compatibility"]["processors"] = ["different-processor"]
-    with pytest.raises(ValueError, match="compatibility.processors"):
+    with pytest.raises(ValueError, match="not mutually compatible"):
         validate_experiment_apparatus_context_against_manifests(
             apparatus,
             processor_manifest,

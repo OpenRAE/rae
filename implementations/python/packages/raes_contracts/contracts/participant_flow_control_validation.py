@@ -65,7 +65,7 @@ def validate_participant_flow_control_resolved_context(
         raise ValueError("participant flow-control context did not resolve")
     try:
         validate_participant_flow_control_context(document, context)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         raise
     except Exception:
         raise ValueError("participant flow-control context validation failed") from None

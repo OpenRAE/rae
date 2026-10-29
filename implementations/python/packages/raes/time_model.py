@@ -112,7 +112,7 @@ class ExactRatio(SDLModel):
     denominator: int = Field(gt=0)
 
     @model_validator(mode="after")
-    def _require_reduced(self) -> "ExactRatio":
+    def _require_reduced(self) -> ExactRatio:
         if gcd(self.numerator, self.denominator) != 1:
             raise ValueError("exact ratios must be reduced")
         return self
@@ -142,7 +142,7 @@ class TimeDomain(SDLModel):
         return value
 
     @model_validator(mode="after")
-    def _validate_epoch(self) -> "TimeDomain":
+    def _validate_epoch(self) -> TimeDomain:
         if self.kind == TimeDomainKind.WALL_CLOCK and self.epoch != TimeEpochKind.UNIX:
             raise ValueError("wall_clock time domains require the unix epoch")
         if self.kind == TimeDomainKind.MONOTONIC and self.epoch == TimeEpochKind.UNIX:
@@ -170,7 +170,7 @@ class Clock(SDLModel):
         return value
 
     @model_validator(mode="after")
-    def _validate_jump_policy(self) -> "Clock":
+    def _validate_jump_policy(self) -> Clock:
         if self.monotonicity == ClockMonotonicity.MAY_JUMP and not self.supports_jump:
             raise ValueError("may_jump clocks must declare supports_jump")
         if self.monotonicity != ClockMonotonicity.MAY_JUMP and self.supports_jump:
@@ -196,7 +196,7 @@ class TimeDomainMapping(SDLModel):
         return value
 
     @model_validator(mode="after")
-    def _validate_mapping(self) -> "TimeDomainMapping":
+    def _validate_mapping(self) -> TimeDomainMapping:
         if self.source_domain_ref == self.target_domain_ref:
             raise ValueError("time-domain mappings must connect distinct domains")
         if self.mapping_kind == TimeMappingKind.IDENTITY and (
@@ -227,7 +227,7 @@ class TimeProgressionPolicy(SDLModel):
         return value
 
     @model_validator(mode="after")
-    def _validate_progression(self) -> "TimeProgressionPolicy":
+    def _validate_progression(self) -> TimeProgressionPolicy:
         if self.advancement_mode == TimeAdvancementMode.STEPPED and self.step_ticks is None:
             raise ValueError("stepped time progression requires step_ticks")
         if self.advancement_mode != TimeAdvancementMode.STEPPED and self.step_ticks is not None:
@@ -268,7 +268,7 @@ class TemporalConstraint(SDLModel):
         return values
 
     @model_validator(mode="after")
-    def _validate_constraint_shape(self) -> "TemporalConstraint":
+    def _validate_constraint_shape(self) -> TemporalConstraint:
         self._validate_coordinate_order()
         self._validate_subject_cardinality()
         self._validate_required_coordinates()

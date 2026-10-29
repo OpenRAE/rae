@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Literal
 from pydantic import Field, SerializerFunctionWrapHandler, model_serializer, model_validator
 from raes.identifiers import PortableIdentifier
 
+from .._canonical import canonical_json_digest
 from ..diagnostics import DiagnosticModel
 from .base import ContractModel, NonEmptyString, PositiveInteger, PrefixedDigestString
 from .experiment_bindings import ExperimentBindingDescriptorModel, ParticipantConfigurationResultModel
@@ -24,6 +25,7 @@ from .experiment_references import (
     ExperimentTaskReferenceModel,
 )
 from .experiment_selection import ExperimentSelectionOutcomeModel
+from .experiment_treatments import ExperimentScenarioSelectionDescriptorModel
 from .realization_plans import RealizationEnvelopeIdentityModel
 
 SelectionPolicyKind = Literal["fixed", "enumerate", "product", "stratified", "sample"]
@@ -75,6 +77,9 @@ class AdmittedTrialPlanProfilesModel(ContractModel):
     cleanup_profile: Literal["trial-cleanup-v1"]
     isolation_profile: Literal["scheduler-isolation-v1"]
     allocation_profile: Literal["none", "fisher-yates-allocation-v1"] = "none"
+    treatment_profile: Literal["factorial-treatments-v1"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
     @model_serializer(mode="wrap")
     def _serialize_allocation_profile(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
@@ -162,6 +167,19 @@ class AdmittedSelectionRecordModel(ContractModel):
     origin_policy_id: PortableIdentifier
     origin_policy_kind: SelectionPolicyKind
     outcome: ExperimentSelectionOutcomeModel
+    treatment: ExperimentScenarioSelectionDescriptorModel | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+
+    @model_validator(mode="after")
+    def _validate_treatment(self) -> AdmittedSelectionRecordModel:
+        if self.treatment is not None and (
+            self.treatment.target.variation_point_id != self.variation_point_id
+            or canonical_json_digest(self.treatment.outcome.model_dump(mode="json"))
+            != canonical_json_digest(self.outcome.model_dump(mode="json"))
+        ):
+            raise ValueError("admitted treatment must match its selected point and typed outcome")
+        return self
 
 
 class AdmittedBindingModel(ContractModel):

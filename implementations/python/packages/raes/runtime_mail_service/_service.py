@@ -60,7 +60,7 @@ class RuntimeMailService(SDLModel):
         return require_symbol(v, field_name="mail_service_id")
 
     @model_validator(mode="after")
-    def validate_service(self) -> "RuntimeMailService":
+    def validate_service(self) -> RuntimeMailService:
         self._reject_duplicate_collection_ids()
         self._reject_duplicate_local_ref_ids()
         return self

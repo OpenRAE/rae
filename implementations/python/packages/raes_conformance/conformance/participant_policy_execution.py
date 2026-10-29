@@ -261,7 +261,7 @@ def _run_case(case: ParticipantPolicyProbeCase, target: RuntimeTarget) -> _Outco
         before = _ledger(plane)
         try:
             released, refused = _drive(case, plane)
-        except (PermissionError, ValueError):
+        except PermissionError, ValueError:
             # Both are the runtime's fail-closed signals: PermissionError for an
             # identity/audience refusal, ValueError for a structural one such as a
             # replay after the state cut advanced. Either way nothing was released,

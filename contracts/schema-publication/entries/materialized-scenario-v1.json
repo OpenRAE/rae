@@ -1,9 +1,9 @@
 {
-  "content_hash": "299daa23e27d7a735e840a154c9ec26b833fcf3e22d43fde711f09dc61d48d4d",
+  "content_hash": "0c5459657f9905de4aa566accd90a237ae0356a2e1d39419f8cf85ee95ab2f40",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "299daa23e27d7a735e840a154c9ec26b833fcf3e22d43fde711f09dc61d48d4d",
-    "summary": "Publish reusable and finite-script mixed-control rev1 policies, paired script windows, closed portable-key maps and directed-delivery control blocks; retain canonical relationship eligibility from #1339; issue #1363."
+    "content_hash": "0c5459657f9905de4aa566accd90a237ae0356a2e1d39419f8cf85ee95ab2f40",
+    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301). Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

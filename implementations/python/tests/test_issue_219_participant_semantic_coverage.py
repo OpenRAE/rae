@@ -21,6 +21,7 @@ import pytest
 import yaml
 from raes.participant_behavior_specification import ParticipantBehaviorSpecification
 from raes_runtime.participant_control import ParticipantControlMixin
+from tools.policy.adr import parse_adr_file
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SEMANTICS_DIR = REPO_ROOT / "specs/formal/participant-semantics"
@@ -174,14 +175,23 @@ def _resolves(reference: str) -> bool:
 
 def _imports_shipped_package(file_name: str) -> bool:
     packages = {path.name for path in PACKAGES_DIR.iterdir() if (path / "__init__.py").exists()}
-    modules = {
-        alias.name.split(".")[0] for node in ast.walk(_test_module(file_name)) if isinstance(node, ast.Import)
-        for alias in node.names
-    } | {
-        node.module.split(".")[0] for node in ast.walk(_test_module(file_name))
-        if isinstance(node, ast.ImportFrom) and node.module and node.level == 0
-    }  # fmt: skip
-    return bool(modules & packages)
+    pending, visited = [file_name], set()
+    while pending:
+        current = pending.pop()
+        if current in visited:
+            continue
+        visited.add(current)
+        modules = {
+            alias.name.split(".")[0] for node in ast.walk(_test_module(current)) if isinstance(node, ast.Import)
+            for alias in node.names
+        } | {
+            node.module.split(".")[0] for node in ast.walk(_test_module(current))
+            if isinstance(node, ast.ImportFrom) and node.module and node.level == 0
+        }  # fmt: skip
+        if modules & packages:
+            return True
+        pending.extend(f"{module}.py" for module in modules if (TESTS_DIR / f"{module}.py").is_file())
+    return False
 
 
 def _paths(cell: str) -> list[str]:
@@ -361,3 +371,29 @@ def test_participant_waivers_are_tracked_by_matrix_owners() -> None:
     }  # fmt: skip
     owners = {owner for row in OPEN_ROWS for owner in _owners(row)}
     assert sorted(tracking - owners) == []
+
+
+def test_decision_crosswalk_resolves_live_status_sources_and_evidence() -> None:
+    rows = _table_rows(INDEX, "| Decision | ADR file | Status | Normative surface | Evidence |")
+    expected = {"ADR-067", "ADR-083", "ADR-095", *(f"ADR-{n}" for n in range(108, 116))}
+    assert {decision.strip("`") for decision, *_rest in rows} == expected
+    for decision, source, status, normative, evidence in rows:
+        number, _title, live_status, _date = parse_adr_file(REPO_ROOT / CODE.findall(source)[0])
+        assert decision.strip("`") == f"ADR-{number}"
+        assert status == live_status
+        assert _paths(normative)
+        assert all((REPO_ROOT / path).is_file() for path in _paths(normative))
+        assert CODE.findall(evidence)
+        assert all(_resolves(reference) for reference in CODE.findall(evidence))
+
+
+@pytest.mark.parametrize(
+    "module,expected",
+    [
+        ("test_issue_1018_mixed_control_demonstration.py", True),
+        ("test_sem_208_participant_behavior.py", True),
+        ("test_participant_semantics_invariant_oracle.py", False),
+    ],
+)
+def test_evidence_classification_recognizes_helpers_without_promoting_abstract_models(module, expected):
+    assert _imports_shipped_package(module) is expected

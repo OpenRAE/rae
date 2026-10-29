@@ -27,7 +27,7 @@ def compiled_execution_contract(
         if isinstance(payload, dict):
             try:
                 contract = WorkflowExecutionContract.from_mapping(payload)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 contract = None
     return contract
 
@@ -86,7 +86,7 @@ def _completed_compensable_event(
     completed_event = None
     try:
         event = WorkflowHistoryEvent.from_payload(raw)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         event = None
     if event is not None and _is_compensable_completion(event, contract):
         completed_event = event
@@ -196,7 +196,7 @@ def parse_timestamp(raw: str) -> datetime:
     try:
         parsed = datetime.fromisoformat(normalized)
         offset = parsed.utcoffset()
-    except (OverflowError, TypeError, ValueError):
+    except OverflowError, TypeError, ValueError:
         raise ValueError(_EXPLICIT_OFFSET_TIMESTAMP_ERROR) from None
     if parsed.tzinfo is None or offset is None:
         raise ValueError(_EXPLICIT_OFFSET_TIMESTAMP_ERROR)

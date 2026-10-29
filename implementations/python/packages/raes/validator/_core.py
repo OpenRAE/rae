@@ -4,10 +4,22 @@ Part of the SemanticValidator mixin composition; see __init__.py.
 """
 
 from collections.abc import Iterable
+from typing import cast
 
 from .._base import is_variable_ref
 from .._declarations import DeclarationIndex, Purposes, build_declaration_index
 from .._errors import SDLValidationError
+from .._incremental_reuse import (
+    DECLARATION_INDEX,
+    MISSING,
+    PassOutputs,
+    ReadSink,
+    ValidationSession,
+    recording,
+    scenario_values,
+    tracking_index,
+    tracking_view,
+)
 from .._operating_scope_index import operating_scope_aliases
 from .._reference_targetability import (
     ELIGIBLE_KINDS,
@@ -25,6 +37,53 @@ from .._runtime_service_families import (
 from ..entities import flatten_entities
 from ..nodes import NodeType
 from ..scenario import ScenarioContent
+
+# Semantic-validation error passes in their fixed order. A pass reads the
+# scenario only through ``self._s`` and reports through ``self._err``. Advisory
+# collection follows them in ``validate()``.
+VALIDATION_PASSES = (
+    # OCR passes
+    "_verify_nodes",
+    "_verify_infrastructure",
+    "_verify_runtime_configuration",
+    "_verify_features",
+    "_verify_conditions",
+    "_verify_entities",
+    "_verify_injects",
+    "_verify_events",
+    "_verify_scripts",
+    "_verify_stories",
+    "_verify_roles",
+    "_verify_stateful_resources",
+    # New section passes
+    "_verify_content",
+    "_verify_accounts",
+    "_verify_relationships",
+    "_verify_domain_topology",
+    "_verify_enterprise_identity",
+    "_verify_deployment_tenancy",
+    "_verify_relationship_database_access",
+    "_verify_relationship_mail_access",
+    "_verify_relationship_forwarding_edges",
+    "_verify_relationship_service_integrations",
+    "_verify_relationship_proxy_upstreams",
+    "_verify_agents",
+    "_verify_participant_behavior",
+    "_verify_propositions_and_assertions",
+    "_verify_objectives",
+    "_verify_objective_success_assertions",
+    "_verify_precondition_assertion_uses",
+    "_verify_workflows",
+    "_verify_participant_outcomes",
+    "_verify_evidence_requirements",
+    "_verify_augmentation_scope",
+    "_verify_execution_policy",
+    "_verify_time_model",
+    "_verify_variables",
+    "_verify_variation_points",
+    "_verify_realization_designations",
+    "_verify_explicitness",
+)
 
 
 def purpose_labels(purposes: Purposes) -> str:
@@ -51,12 +110,20 @@ def eligible_element(purposes: Purposes) -> str:
 
 
 class _ValidatorCore:
-    def __init__(self, scenario: ScenarioContent) -> None:
+    def __init__(self, scenario: ScenarioContent, *, session: ValidationSession | None = None) -> None:
         self._s = scenario
+        self._scenario = scenario
+        # A caller-supplied session spans validations whose scenarios the caller
+        # does not mutate. Without one, each validate() call owns a fresh session
+        # shared only with its nested member admissions.
+        self._caller_session = session
+        self._session = session if session is not None else ValidationSession()
+        self._read_sink = ReadSink()
         self._errors: list[str] = []
         self._warnings: list[str] = []
         self._declaration_index: DeclarationIndex | None = None
         self._runtime_references: dict[str, RuntimeFamilyReference] | None = None
+        self._runtime_references_reads: frozenset[str] = frozenset()
 
     def _err(self, msg: str) -> None:
         self._errors.append(msg)
@@ -184,58 +251,59 @@ class _ValidatorCore:
             self._err(f"{owner_label} {ref_label} '{ref}' is ambiguous; use one of: {choices}")
 
     def validate(self) -> None:
-        """Run all validation passes and raise on errors."""
+        """Run all validation passes and raise on errors.
+
+        Each pass runs against a tracking view of the scenario. The session
+        reuses a pass result when every field it read is the identical object.
+        """
         self._errors = []
         self._warnings = []
-        self._declaration_index = build_declaration_index(self._s, raise_on_collision=False)
-        self._errors.extend(self._declaration_index.collision_errors)
-
-        # OCR passes
-        self._verify_nodes()
-        self._verify_infrastructure()
-        self._verify_runtime_configuration()
-        self._verify_features()
-        self._verify_conditions()
-        self._verify_entities()
-        self._verify_injects()
-        self._verify_events()
-        self._verify_scripts()
-        self._verify_stories()
-        self._verify_roles()
-        self._verify_stateful_resources()
-
-        # New section passes
-        self._verify_content()
-        self._verify_accounts()
-        self._verify_relationships()
-        self._verify_domain_topology()
-        self._verify_enterprise_identity()
-        self._verify_deployment_tenancy()
-        self._verify_relationship_database_access()
-        self._verify_relationship_mail_access()
-        self._verify_relationship_forwarding_edges()
-        self._verify_relationship_service_integrations()
-        self._verify_relationship_proxy_upstreams()
-        self._verify_agents()
-        self._verify_participant_behavior()
-        self._verify_propositions_and_assertions()
-        self._verify_objectives()
-        self._verify_objective_success_assertions()
-        self._verify_precondition_assertion_uses()
-        self._verify_workflows()
-        self._verify_participant_outcomes()
-        self._verify_evidence_requirements()
-        self._verify_augmentation_scope()
-        self._verify_execution_policy()
-        self._verify_time_model()
-        self._verify_variables()
-        self._verify_variation_points()
-        self._verify_realization_designations()
-        self._verify_explicitness()
-        self._collect_advisories()
+        self._runtime_references = None
+        self._runtime_references_reads = frozenset()
+        self._session = self._caller_session if self._caller_session is not None else ValidationSession()
+        index = build_declaration_index(self._scenario, raise_on_collision=False, session=self._session)
+        self._errors.extend(index.collision_errors)
+        index_token = self._session.index_token(tuple(index.declarations), tuple(index.collision_errors))
+        self._declaration_index = tracking_index(index, self._read_sink)  # type: ignore[assignment]
+        self._s = tracking_view(self._scenario, self._read_sink)
+        try:
+            for pass_name in VALIDATION_PASSES:
+                self._run_pass(pass_name, index_token)
+            self._collect_advisories()
+        finally:
+            self._s = self._scenario
+            self._declaration_index = index
 
         if self._errors:
             raise SDLValidationError(self._errors)
+
+    def _run_pass(self, pass_name: str, index_token: object) -> None:
+        values = scenario_values(self._scenario)
+        values[DECLARATION_INDEX] = index_token
+        scope = (pass_name, type(self._scenario), tuple(self._errors))
+        reused = cast("PassOutputs | None", self._session.lookup(scope, values))
+        private = object.__getattribute__(self._scenario, "__pydantic_private__")
+        if reused is not None:
+            self._errors.extend(reused.errors)
+            self._warnings.extend(reused.warnings)
+            if private is not None:
+                private.update(reused.private_writes)
+            return
+        errors_before = len(self._errors)
+        warnings_before = len(self._warnings)
+        private_before = dict(private or {})
+        with recording(self._read_sink) as reads:
+            getattr(self, pass_name)()
+        outputs = PassOutputs(
+            errors=tuple(self._errors[errors_before:]),
+            warnings=tuple(self._warnings[warnings_before:]),
+            private_writes=tuple(
+                (name, value)
+                for name, value in (private or {}).items()
+                if private_before.get(name, MISSING) is not value
+            ),
+        )
+        self._session.store(scope, reads, values, outputs)
 
     def validate_node_realization(self) -> None:
         """Validate a bounded portable node context, without creating author intent.
@@ -248,6 +316,7 @@ class _ValidatorCore:
         self._errors = []
         self._warnings = []
         self._runtime_references = None
+        self._declaration_index = None
         for name, node in self._s.nodes.items():
             self._verify_node_operating_system(name, node)
             self._verify_node_architecture(name, node)
@@ -281,6 +350,7 @@ class _ValidatorCore:
         self._verify_runtime_forwarding_agents()
         self._verify_runtime_orchestration_authorities()
         self._verify_runtime_mail_services()
+        self._verify_cloud_resources()
 
     @property
     def warnings(self) -> list[str]:
@@ -308,9 +378,14 @@ class _ValidatorCore:
             return None
         if self._runtime_references is None:
             references: dict[str, RuntimeFamilyReference] = {}
-            for reference in iter_runtime_family_references(self._s):
-                references.setdefault(reference.address, reference)
+            with recording(self._read_sink) as reads:
+                for reference in iter_runtime_family_references(self._s):
+                    references.setdefault(reference.address, reference)
             self._runtime_references = references
+            self._runtime_references_reads = frozenset(reads)
+        else:
+            # A later pass that resolves through the cache depends on what built it.
+            self._read_sink.note_all(self._runtime_references_reads)
         return self._runtime_references.get(ref)
 
     def _resolve_database_service_ref(self, ref: object) -> object | None:

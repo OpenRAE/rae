@@ -1,10 +1,10 @@
 {
+  "content_hash": "1143da11a07cd9e98fd93693e8026e4764de06e738bd287c48503278d8683e4e",
   "contract_id": "participant-implementation-manifest-v1",
-  "schema_path": "contracts/schemas/participant-implementation-manifest/participant-implementation-manifest-v1.json",
-  "stability": "draft",
-  "content_hash": "d53b16c326d9e10df9da685fcff0e89ba2803aa7fef8205004053d977fef1b21",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "d53b16c326d9e10df9da685fcff0e89ba2803aa7fef8205004053d977fef1b21"
-  }
+    "content_hash": "1143da11a07cd9e98fd93693e8026e4764de06e738bd287c48503278d8683e4e",
+    "summary": "Add exact authored participant control-context references and pinned ADR-094 configuration selections; preserve omitted-field compatibility (DSL-118, #299)."
+  },
+  "schema_path": "contracts/schemas/participant-implementation-manifest/participant-implementation-manifest-v1.json",
+  "stability": "draft"
 }

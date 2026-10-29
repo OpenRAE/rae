@@ -87,7 +87,7 @@ at least one family row. SEM-219, SEM-220, and
 SEM-226 share a family row that points to the ADR-083 §7
 source-to-contract-to-test matrix in this document instead of restating it.
 The matrix also has clause rows for the behavior model's invariants PBM-01 to
-PBM-12 and three participant-runtime criteria. Each row records contracts,
+PBM-13 and three participant-runtime criteria. Each row records contracts,
 implementation, tests, evidence class, and coverage, and each row that is not
 `covered` names the open owner of its gap.
 
@@ -117,7 +117,9 @@ Issue #812 and ADR-101 add the SEM-233 boundary-flow and ASR-536
 intentional-subversion evaluation design. Issue #1001 publishes the exact
 `sem-233/rev1` two-coordinate obligation algebra, carrier mapping, and bounded
 falsification evidence. Issue #1002 publishes the immutable flow profile and
-portable relation contract; ASR-536 remains design-only. Their normative profiles are in
+portable relation contract. Issue #1007 adds bounded executed evaluation with
+controlled providers. ASR-536 retains its native-realization evidence boundary.
+Their normative profiles are in
 [`adversarial-flow-control.md`](adversarial-flow-control.md). The design
 extends the existing participant, control, crossing, runtime, backend, and
 experiment carriers with independent confidentiality and integrity
@@ -153,11 +155,12 @@ slices, but is not sufficient for the complete participant-semantics family.
 
 What exists:
 
-- `agents.*` declares participant framing inputs: `entity`, `actions`,
+- `agents.*` declares participant framing inputs: `affiliations`, `role`, `actions`,
   `starting_accounts`, `initial_knowledge`, `allowed_subnets`,
   `starting_assertions`, `authority_anchors`, and `operating_scope`.
-- ADR-020 defines identity, role, starting conditions, authority anchors, and
-  operating scope as authored participant framing.
+- ADR-020, as amended by ADR-109, separates participant identity, affiliation,
+  effective role, objective owner and assignment from runtime actor attribution.
+  Starting conditions, authority anchors and operating scope remain authored framing.
 - ADR-013 and the participant-episode contracts define lifecycle state and
   history for initialization, reset, restart, termination, and terminal reason.
 - Objective, workflow, assessment, planner, runtime-result, and semantic-profile
@@ -1865,9 +1868,9 @@ Taxonomy revision `rev6` defines the exact relation and claim surface. Issue
 #811 supplies the closed carrier, label projection, relation clauses, witness
 family, mapping boundary, proof-tool contract, counterexample design, DRAFT
 SEM-232 authority, and child program. It does not run the model check. Issue
-#971 (PR #1397) delivered independent model construction; issues #972 through
-#976 own live-runtime mapping, negative mutations, finite equivalence checking,
-independent reproduction, and reproduction-gated scientific documentation.
+#971 (PR #1397) delivered independent model construction. Issue #972 delivered
+[bounded runtime mapping](participant-crossing-runtime-mapping.md) against the single-operation rev2 carrier.
+Issues #973–#976 own negative mutations, finite equivalence checking, independent reproduction, and reproduced scientific documentation.
 
 ## SEM-233 and ASR-536 - Adversarial Participant Flow Control
 

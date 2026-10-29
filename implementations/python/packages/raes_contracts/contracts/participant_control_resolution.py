@@ -36,6 +36,7 @@ from .participant_control_evaluation_v2 import (
     ParticipantControlEvaluationV2Model,
     admitted_control_effect_ids_v2,
 )
+from .participant_control_inject_resolution import _validate_inject
 from .participant_control_invocation import ControlMechanismResultV2Model
 from .participant_control_results import (
     ControlEffectiveSupportModel,
@@ -134,72 +135,6 @@ def _validate_crossing(cut: ParticipantControlContextModel, context: Participant
         or cut.authority.ref not in owner.authority_basis_refs
     ):
         raise ValueError("participant control crossing coordinates differ")
-
-
-def _validate_inject(
-    target: ControlInjectEffectModel, cut: ParticipantControlContextModel, context: ParticipantControlValidationContext
-) -> None:
-    delivery = context.inject_deliveries.get(target.delivery_ref.ref)
-    if delivery is None or control_digest(delivery) != target.delivery_ref.digest:
-        raise ValueError("inject request has no exact owning delivery")
-    if delivery.control is not None:
-        _validate_control_inject(target, cut, context, delivery)
-        return
-    expected = (
-        target.participant_address,
-        target.inject_ref,
-        target.event_ref,
-        target.script_ref,
-        target.story_ref,
-        target.source_item_ref,
-        target.result_item_ref,
-        target.disclosure_ref.ref,
-    )
-    observed = (
-        delivery.participant_ref,
-        delivery.inject_ref,
-        delivery.occurrence.event_ref,
-        delivery.occurrence.script_ref,
-        delivery.occurrence.story_ref,
-        delivery.source_item_ref,
-        delivery.result_item_ref,
-        delivery.delivery_policy.disclosure_basis_ref,
-    )
-    if (
-        expected != observed
-        or target.episode_id != cut.episode_id
-        or delivery.delivery_policy.audience_scope_ref != cut.audience_ref
-    ):
-        raise ValueError("inject request owner coordinates differ")
-
-
-def _validate_control_inject(
-    target: ControlInjectEffectModel,
-    cut: ParticipantControlContextModel,
-    context: ParticipantControlValidationContext,
-    delivery: ParticipantInjectDelivery,
-) -> None:
-    application = getattr(context, "inject_applications", {}).get(target.delivery_ref.ref)
-    canonical = getattr(context, "inject_coordinates", {}).get(target.delivery_ref.ref)
-    if application is None or canonical != target or application.application.control is None:
-        raise ValueError(
-            "inject request cannot join a mixed-control-policy-occurrence/rev1 delivery binding "
-            "without its exact owner application"
-        )
-    application = ParticipantInjectContentModel.model_validate(application.model_dump(mode="json"))
-    selected = application.application
-    if (
-        selected.delivery_address != target.delivery_ref.ref
-        or selected.delivery_digest != target.delivery_ref.digest
-        or (
-            application.participant_address,
-            application.episode_id,
-            application.disclosed_item.artifact_id,
-            application.visibility_projection_ref,
-        )
-        != (target.participant_address, cut.episode_id, target.result_item_ref, target.disclosure_ref.ref)
-    ):
-        raise ValueError("inject request exact owner application differs")
 
 
 def _validate_incumbents(
@@ -350,6 +285,8 @@ def validate_participant_control_resolved_context_v2(
 def _validate_v2_trusted_context(
     record: ParticipantControlEvaluationV2Model, context: ParticipantControlValidationContextV2
 ) -> None:
+    if record.continuation is not None:
+        raise ValueError("continuation requires exact committed source validation")
     _validate_admitted_v2_identity(record, context)
     _validate_v2_results_and_support(record, context)
     _validate_v2_effect_authority(record, context)
@@ -394,14 +331,17 @@ def _validate_v2_results_and_support(
 
 
 def _validate_v2_effect_authority(
-    record: ParticipantControlEvaluationV2Model, context: ParticipantControlValidationContextV2
+    record: ParticipantControlEvaluationV2Model,
+    context: ParticipantControlValidationContextV2,
+    *,
+    same_cut: bool = False,
 ) -> None:
     if {item.invocation_id: item for item in record.state_proposals} != context.authorized_state_proposals:
         raise ValueError("state write and commit timing differ from owner authorization")
     effects = {item.effect_id: item for item in record.effect_plan.effects}
     current_outcomes = {item.effect_id: item for item in record.effect_plan.effect_outcomes}
     for effect_id in record.effect_plan.realized_effect_ids:
-        _validate_prior_effect(record, context, effects[effect_id], current_outcomes.get(effect_id))
+        _validate_prior_effect(record, context, effects[effect_id], current_outcomes.get(effect_id), same_cut=same_cut)
     for effect_id in admitted_control_effect_ids_v2(record.composition, record.effect_plan):
         effect = effects[effect_id]
         if context.authorized_effects.get(control_digest(effect)) != record.request.context:
@@ -415,12 +355,14 @@ def _validate_prior_effect(
     context: ParticipantControlValidationContextV2,
     effect: ControlEffectRequestV2Model,
     current_outcome: ControlRealizationBindingModel | None,
+    *,
+    same_cut: bool = False,
 ) -> None:
     prior = context.committed_effect_intents.get(effect.effect_id)
     if not isinstance(prior, ControlCommittedEffectIntentV2):
         raise ValueError("realized effect lacks an owner-resolved committed intent")
     origin = ParticipantControlEvaluationV2Model.model_validate(prior.evaluation.model_dump(mode="python"))
-    _validate_prior_identity(record, origin, effect)
+    _validate_prior_identity(record, origin, effect, same_cut=same_cut)
     _validate_prior_commit(origin, effect.effect_id)
     if (
         context.authorized_effects.get(control_digest(effect)) != origin.request.context
@@ -436,17 +378,29 @@ def _validate_prior_identity(
     record: ParticipantControlEvaluationV2Model,
     origin: ParticipantControlEvaluationV2Model,
     effect: ControlEffectRequestV2Model,
+    *,
+    same_cut: bool = False,
 ) -> None:
     origin_effects = {item.effect_id: item for item in origin.effect_plan.effects}
     if (
         origin_effects.get(effect.effect_id) != effect
         or origin.request.context.run != record.request.context.run
         or origin.request.context.trigger_root != record.request.context.trigger_root
-        or origin.request.context.crossing != record.request.context.crossing
+        or origin.request.context.subject != record.request.context.subject
+        or origin.request.context.participant_address != record.request.context.participant_address
+        or origin.request.context.episode_id != record.request.context.episode_id
         or origin.request.context.order > record.request.context.order
-        or origin.request.context.effects_consumed >= record.request.context.effects_consumed
+        or not _prior_consumption_valid(record, origin, same_cut=same_cut)
     ):
         raise ValueError(_COMMITTED_EFFECT_MISMATCH)
+
+
+def _prior_consumption_valid(
+    record: ParticipantControlEvaluationV2Model, origin: ParticipantControlEvaluationV2Model, *, same_cut: bool
+) -> bool:
+    return origin.request.context.effects_consumed < record.request.context.effects_consumed or (
+        same_cut and origin.request == record.request
+    )
 
 
 def _validate_prior_commit(origin: ParticipantControlEvaluationV2Model, effect_id: str) -> None:

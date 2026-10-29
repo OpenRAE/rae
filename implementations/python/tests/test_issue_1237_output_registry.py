@@ -70,3 +70,39 @@ def test_offer_encoding_must_have_a_registered_content_validator(ingress: str) -
     validate = calls[ingress]
     with pytest.raises(ValueError, match="media.*output_contract"):
         validate()
+
+
+def test_one_exact_schema_is_checked_once_and_a_changed_schema_again(tmp_path, monkeypatch) -> None:
+    import json
+    import shutil
+
+    import raes_contracts.corpus as corpus
+    import raes_contracts.evidence_output_validation as registry
+    from jsonschema import Draft202012Validator
+
+    checks = []
+    original = Draft202012Validator.check_schema
+
+    def counted(schema):
+        checks.append(schema["$id"])
+        return original(schema)
+
+    published = corpus.corpus_root()
+    shutil.copytree(published / "schemas", tmp_path / "schemas")
+    monkeypatch.setattr(corpus, "corpus_root", lambda: tmp_path)
+    monkeypatch.setattr(Draft202012Validator, "check_schema", staticmethod(counted))
+    clear = getattr(getattr(registry, "_checked_schema_validator", None), "cache_clear", lambda: None)
+    clear()
+    contract = "experiment-evidence-record-v1"
+    schema_path = tmp_path / "schemas" / registry.evidence_output_registrations()[contract].schema_path
+
+    for _ in range(3):
+        registry.resolve_evidence_output_contract(contract)
+    assert len(checks) == 1
+
+    changed = json.loads(schema_path.read_text(encoding="utf-8"))
+    changed["type"] = "array"
+    schema_path.write_text(json.dumps(changed), encoding="utf-8")
+    with pytest.raises(ValueError, match="published schema"):
+        registry.resolve_evidence_output_contract(contract)
+    clear()

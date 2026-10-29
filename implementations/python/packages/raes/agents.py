@@ -26,6 +26,7 @@ from raes_contracts.domain_profiles import DomainProfileBindingModel
 from ._base import SDLModel, WholeFieldVariableReference, is_variable_ref, parse_enum_or_var
 from ._identifiers import PortableIdentifier
 from .entities import Entity, ExerciseRole
+from .participant_control_context import ParticipantControlContextReference
 from .profile_selections import parse_profile_or_enum
 
 
@@ -102,6 +103,12 @@ class Agent(SDLModel):
     experiment/evaluator plane (ADR-055/064/069).
     """
 
+    control_context: dict[PortableIdentifier, ParticipantControlContextReference] = Field(
+        default_factory=dict,
+        max_length=256,
+        exclude_if=lambda value: not value,
+        json_schema_extra={"additionalProperties": False},
+    )
     affiliations: list[str] = Field(default_factory=list)
     role: ExerciseRole | WholeFieldVariableReference | None = None
     description: str = ""

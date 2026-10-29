@@ -20,10 +20,10 @@ import json
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, TypeAlias
+from typing import Any
 
 # Parsed JSON is an untyped document tree; naming it is clearer than `Any`.
-JsonValue: TypeAlias = "str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]"
+type JsonValue = "str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]"
 
 SCHEMA_VERSION = "raes-release-evidence/v1"
 BUILD_INVENTORY_SCHEMA_VERSION = "raes-build-inventory/v1"

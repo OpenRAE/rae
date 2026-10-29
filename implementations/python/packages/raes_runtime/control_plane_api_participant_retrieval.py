@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Annotated, Generic, TypeVar
+from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from raes_contracts.contracts import (
@@ -28,19 +28,19 @@ from .control_plane_api._responses import _set_snapshot_revision_header
 from .control_plane_security import ControlPlaneIdentity, ParticipantAudienceSubjectBinding
 
 _NOT_FOUND_RESPONSES = {404: {"description": "Not found"}}
+_CROSSING_EVIDENCE_UNAVAILABLE = "participant view crossing evidence is unavailable"
 _GOVERNED_VIEW_RESPONSES = {
     **_NOT_FOUND_RESPONSES,
     403: {"description": "Forbidden"},
     409: {"description": "Participant projection conflict"},
 }
-_ViewT = TypeVar("_ViewT")
 
 
 @dataclass(frozen=True)
-class _GovernedViewResolution(Generic[_ViewT]):
+class _GovernedViewResolution[ViewT]:
     action: str
     not_found_detail: str
-    resolve: Callable[[ParticipantAudienceSubjectBinding | None, str], _ViewT | None]
+    resolve: Callable[[ParticipantAudienceSubjectBinding | None, str], ViewT | None]
 
 
 @dataclass(frozen=True)
@@ -63,14 +63,14 @@ def _participant_context_query(
 _ContextQuery = Annotated[_ParticipantContextQuery, Depends(_participant_context_query)]
 
 
-async def _resolved_governed_view(
+async def _resolved_governed_view[ViewT](
     control_plane: RuntimeControlPlane,
     request: Request,
     response: Response,
     identity: ControlPlaneIdentity,
     participant_address: str,
-    resolution: _GovernedViewResolution[_ViewT],
-) -> _ViewT:
+    resolution: _GovernedViewResolution[ViewT],
+) -> ViewT:
     """Resolve one governed participant view with the shared audit and error flow."""
 
     audience_binding = _require_governed_audience_candidate(control_plane, identity, participant_address)
@@ -228,15 +228,13 @@ def _require_governed_audience_candidate(
     return matches[0]
 
 
-def _governed_view(resolve: Callable[[], _ViewT]) -> _ViewT:
+def _governed_view[ViewT](resolve: Callable[[], ViewT]) -> ViewT:
     try:
         return resolve()
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail="forbidden") from exc
     except ValueError as exc:
-        detail = (
-            "participant view crossing evidence is unavailable"
-            if str(exc) == "participant view crossing evidence is unavailable"
-            else "participant projection conflict"
-        )
+        detail = "participant projection conflict"
+        if str(exc) == _CROSSING_EVIDENCE_UNAVAILABLE:
+            detail = _CROSSING_EVIDENCE_UNAVAILABLE
         raise HTTPException(status_code=409, detail=detail) from exc

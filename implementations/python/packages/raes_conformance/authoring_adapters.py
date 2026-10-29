@@ -101,7 +101,7 @@ def _observation(
         return None, None
     try:
         return observe_output(vector, output)
-    except (SDLError, ValueError, TypeError, AttributeError):
+    except SDLError, ValueError, TypeError, AttributeError:
         # Only fixed typed reasons enter a persisted comparison. No raw exception data.
         reasons.append(f"{side}-invalid")
         return None, None

@@ -48,8 +48,8 @@ profiles, assets, examples, vocabularies, backends, and evidence rules.
 
 ## Validate your first scenario
 
-You need standard CPython 3.11 through 3.14. Install the published package in
-a virtual environment:
+You need standard CPython 3.14. Install the published package in a virtual
+environment:
 
 ```console
 python -m venv .venv

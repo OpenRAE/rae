@@ -50,7 +50,7 @@ def validate_current_deviations(
             if artifact in seen:
                 raise ValueError("duplicate source deviation")
             seen.add(artifact)
-    except (OSError, ValueError, KeyError, TypeError):
+    except OSError, ValueError, KeyError, TypeError:
         return [
             _failure(
                 "specification-coverage-baseline-drift",

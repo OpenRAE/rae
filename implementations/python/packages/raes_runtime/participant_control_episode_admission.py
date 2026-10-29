@@ -70,7 +70,7 @@ def execute_participant_policy_call(
 
         require_live_control_proposal(plane, request)
         request = _prepare_episode_request(plane, request)
-    except (ValueError, PermissionError, TimeoutError):
+    except ValueError, PermissionError, TimeoutError:
         return _unverified(plane, address), OperationState.FAILED, None
     return _execute_prepared_policy_call(plane, method, request, address)
 
@@ -103,7 +103,7 @@ def _retain_episode_admissions(
 ) -> tuple[ApplyResult, OperationState, dict[str, object] | None]:
     try:
         admissions = episode_policy_admissions(plane, predecessor, result.snapshot)
-    except (ValueError, PermissionError, TimeoutError):
+    except ValueError, PermissionError, TimeoutError:
         # The callback ran. Preserve the current committed cut, record uncertainty
         # and retain exclusion; neither rollback nor initial authority is proved.
         return _unverified(plane, address), OperationState.INDETERMINATE, None

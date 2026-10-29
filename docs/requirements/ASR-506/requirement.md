@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: SHOULD
 wave: 2
 created_at: 2026-04-03T06:16:16.574031Z
-updated_at: 2026-10-25T00:00:00Z
+updated_at: 2026-10-29T00:00:00Z
 ---
 
 # ASR-506 — Participant Semantic Artifacts
@@ -30,8 +30,15 @@ Requirement inventory expansion. Participant behavior needs normative semantic a
 - DOCUMENTS → SPEC `specs/formal/participant-semantics/semantic-coverage/design-commitments-sem-208-to-211.md` (Coverage rows for the SEM-208 to SEM-211 design commitments)
 - DOCUMENTS → SPEC `specs/formal/participant-semantics/semantic-coverage/design-commitments-sem-212-to-215.md` (Coverage rows for the SEM-212 to SEM-215 design commitments)
 - DOCUMENTS → SPEC `specs/formal/participant-semantics/semantic-coverage/invariants-i1-to-i18.md` (Coverage rows for invariants I1 to I18)
-- DOCUMENTS → SPEC `specs/formal/participant-semantics/semantic-coverage/behavior-model-and-runtime.md` (Coverage rows for PBM-01 to PBM-12 and PRT-07, PRT-09, PRT-10)
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/semantic-coverage/behavior-model-and-runtime.md` (Coverage rows for PBM-01 to PBM-13 and PRT-07, PRT-09, PRT-10)
 - DOCUMENTS → SPEC `specs/formal/participant-semantics/semantic-coverage/family-rows.md` (Coverage rows for requirement families and focused specifications)
 - DOCUMENTS → SPEC `specs/formal/participant-behavior-model/README.md` (Participant behavior model formal design and PBM cross-clause invariants)
 - DOCUMENTS → SPEC `specs/formal/participant-runtime/README.md` (Participant runtime formal design and V1 traceability criteria)
 - TESTS → TEST `implementations/python/tests/test_issue_219_participant_semantic_coverage.py` (Coverage matrix parity and integrity guard for participant semantic artifacts)
+
+## Coverage boundary
+
+The current matrix records 90 clause and family rows: 65 covered and 25 partial.
+Its decision crosswalk includes accepted ADR-108 through ADR-114 and current revised-control guidance.
+The record remains DRAFT while the mapped obligations are incomplete.
+Covered rows establish their cited bounded evidence, not universal proof or native backend qualification.
