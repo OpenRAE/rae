@@ -311,11 +311,12 @@ def _execute_compile(context: _SdlContext) -> SemanticCommandResult:
         runtime_model = compile_scenario_runtime_model(context.scenario)
     except InvalidInputError as exc:
         # The compiler refuses authored input; the result reports the stage, never the refusal text.
-        diagnostics = (
-            _sdl_diagnostics(exc)
-            if isinstance(exc, SDLError)
-            else (command_diagnostic("sdl.compile", "sdl-compile", "SDL input was rejected at the compile stage."),)
-        )
+        if isinstance(exc, SDLError):
+            diagnostics = _sdl_diagnostics(exc)
+        else:
+            diagnostics = (
+                command_diagnostic("sdl.compile", "sdl-compile", "SDL input was rejected at the compile stage."),
+            )
         return command_result(
             context.operation,
             status=CommandStatus.INVALID,

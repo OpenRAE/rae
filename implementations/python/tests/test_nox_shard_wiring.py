@@ -241,8 +241,10 @@ def test_fast_feedback_does_not_hide_a_defect_as_unavailable_classification(
     monkeypatch.setattr(graph, "collect_git_changes", defect)
     _stub_fast_feedback_lanes(monkeypatch, graph, calls)
 
+    session = _Session()
+    reporter = _Reporter()
     with pytest.raises(ValueError, match="synthetic defect"):
-        graph._run_fast_feedback(_Session(), _Reporter(), ["--base-rev", "BASE"])
+        graph._run_fast_feedback(session, reporter, ["--base-rev", "BASE"])
     assert calls == []
 
 

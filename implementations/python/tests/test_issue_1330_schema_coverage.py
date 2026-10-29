@@ -369,8 +369,9 @@ def test_an_invalid_schema_worker_count_is_refused_as_invalid_input(
 ) -> None:
     monkeypatch.setenv(JSON_SCHEMA_WORKERS_ENV, workers)
 
+    targets = [ValidationTarget("contracts/schemas/example.json", None, "metaschema")]
     with pytest.raises(InvalidInputError, match=message):
-        validate_targets([ValidationTarget("contracts/schemas/example.json", None, "metaschema")])
+        validate_targets(targets)
 
 
 def test_symlinked_corpus_artifacts_are_never_dereferenced(tmp_path: Path) -> None:

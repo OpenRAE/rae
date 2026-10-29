@@ -1279,8 +1279,9 @@ def test_compilation_defect_propagates_instead_of_becoming_an_input_diagnostic(m
 
     monkeypatch.setattr(trial_compiler_module, "plan_intent", defect)
 
+    request = _request()
     with pytest.raises(TypeError, match="programming defect"):
-        compile_admitted_trial_plan(_request())
+        compile_admitted_trial_plan(request)
 
 
 def test_entry_defect_propagates_instead_of_becoming_an_entry_diagnostic(monkeypatch) -> None:
@@ -1289,8 +1290,9 @@ def test_entry_defect_propagates_instead_of_becoming_an_entry_diagnostic(monkeyp
 
     monkeypatch.setattr(trial_compiler_module, "_entry_bindings", defect)
 
+    request = _request()
     with pytest.raises(ValueError, match="programming defect"):
-        compile_admitted_trial_plan(_request())
+        compile_admitted_trial_plan(request)
 
 
 def test_replacement_defect_propagates_instead_of_becoming_a_replacement_diagnostic(monkeypatch) -> None:
@@ -1301,7 +1303,8 @@ def test_replacement_defect_propagates_instead_of_becoming_a_replacement_diagnos
 
     monkeypatch.setattr(replacement_module, "_validated_root", defect)
 
+    request = _request()
     with pytest.raises(KeyError):
         replacement_module.compile_replacement_trial(
-            _request(), original_plan=None, root_entry_id="entry", failed_run=None, cleanup_receipts=()
+            request, original_plan=None, root_entry_id="entry", failed_run=None, cleanup_receipts=()
         )

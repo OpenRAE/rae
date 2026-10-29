@@ -107,11 +107,12 @@ def test_a_failure_that_is_not_an_optional_loss_propagates_without_a_record(life
     from raes_contracts.observation_demand import execute_observation_lifecycle
 
     resolution, key = _resolution(required=required)
+    supported = frozenset({key})
     with pytest.raises(ObservationRuntimeOnlyError):
         execute_observation_lifecycle(
             resolution,
             producers={key: _fail},
-            supported=frozenset({key}),
+            supported=supported,
             optional_failure_is_loss=required,
         )
     assert lifecycle_records() == []
@@ -154,8 +155,9 @@ def test_evidence_field_selector_with_a_non_index_token_does_not_resolve(token):
 
     document = {"items": [{"a": 1}, {"a": 2}, {"a": 3}, {"a": 4}]}
     assert _json_pointer_resolves(document, f"/items/{token}") is False
+    requirement = SimpleNamespace(field_selectors=[f"/items/{token}"])
     with pytest.raises(ValueError, match="^emitted evidence is missing required field selector"):
-        _validate_field_selectors(SimpleNamespace(field_selectors=[f"/items/{token}"]), document)
+        _validate_field_selectors(requirement, document)
 
 
 def test_evidence_field_selector_keeps_ascii_indexes():
@@ -227,10 +229,9 @@ def test_scope_normalization_treats_a_non_index_token_like_a_member_name(keyed):
 def test_semantic_address_with_a_non_index_token_does_not_resolve(token):
     from raes_contracts.realization_structure import RealizationConstraintLimits, canonical_semantic_address
 
+    limits = RealizationConstraintLimits(max_scalar_bytes=8192)
     with pytest.raises(ValueError, match="^semantic sequence address does not resolve$"):
-        canonical_semantic_address(
-            f"/items/{token}", {"items": ["a"]}, limits=RealizationConstraintLimits(max_scalar_bytes=8192)
-        )
+        canonical_semantic_address(f"/items/{token}", {"items": ["a"]}, limits=limits)
 
 
 @pytest.mark.parametrize("token", _NOT_INDEX_TOKENS, ids=_NOT_INDEX_IDS)

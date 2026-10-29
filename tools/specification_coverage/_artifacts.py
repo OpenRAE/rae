@@ -33,6 +33,20 @@ from tools.specification_coverage._primitives import (
 )
 
 
+def _surface_digest_valid(
+    repo_root: Path, recorded_path: object, expected_path: str, expected_sha: object, *, replay_current: bool
+) -> bool:
+    if not isinstance(expected_sha, str) or not _SHA256_RE.fullmatch(expected_sha):
+        return False
+    try:
+        current = not replay_current or (
+            recorded_path == expected_path and expected_sha == surface_digest(repo_root, expected_path)
+        )
+    except OSError, InvalidInputError:
+        current = False
+    return current
+
+
 def _surface_entry_failures(
     repo_root: Path,
     surface: dict[str, object],
@@ -71,13 +85,7 @@ def _surface_entry_failures(
         )
         return
     expected_sha = surface.get("content_sha256")
-    current_valid = True
-    if replay_current:
-        try:
-            current_valid = recorded_path == expected_path and expected_sha == surface_digest(repo_root, expected_path)
-        except OSError, InvalidInputError:
-            current_valid = False
-    if not isinstance(expected_sha, str) or not _SHA256_RE.fullmatch(expected_sha) or not current_valid:
+    if not _surface_digest_valid(repo_root, recorded_path, expected_path, expected_sha, replay_current=replay_current):
         failures.append(
             _failure(
                 "specification-coverage-implementation-identity",

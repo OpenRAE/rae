@@ -84,16 +84,14 @@ def _build_materialization_source(
 ) -> MaterializationSource | None:
     """Return ``None`` when the admitted full source or a safe run identity is unavailable."""
 
-    if instance is None or scope is None or scope.run_id is None:
-        return None
-    if descendants and not scope.target_name:
-        # Runtime inventory reporting requires the selected target scope.
+    # Runtime inventory reporting requires the selected target scope.
+    if instance is None or scope is None or scope.run_id is None or (descendants and not scope.target_name):
         return None
     snapshot = canonical_instantiated_sdl_bytes(instance).decode("utf-8")
     authored_digest = instance.instantiation_provenance.authored_digest.value
     instantiated_digest = canonical_instantiated_sdl_digest(instance).value
     try:
-        return MaterializationSource(
+        source = MaterializationSource(
             snapshot=snapshot,
             authored_digest=authored_digest,
             instantiated_digest=instantiated_digest,
@@ -103,3 +101,4 @@ def _build_materialization_source(
     except ValidationError:
         # The source contract refuses an unsafe run identity or target scope.
         return None
+    return source

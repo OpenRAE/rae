@@ -112,13 +112,8 @@ def _load_yaml_file(path: Path, relative_path: str) -> tuple[dict[str, Any] | No
     except YAML_CONTENT_FAILURES:
         return None, [_fail("example-library-parse", f"failed to parse {relative_path}", relative_path)]
     if not isinstance(raw, dict):
-        return None, [
-            _fail(
-                "example-library-shape",
-                f"{relative_path} must be a YAML mapping at the top level",
-                relative_path,
-            )
-        ]
+        message = f"{relative_path} must be a YAML mapping at the top level"
+        return None, [_fail("example-library-shape", message, relative_path)]
     return raw, []
 
 

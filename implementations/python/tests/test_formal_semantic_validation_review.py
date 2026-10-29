@@ -1,6 +1,7 @@
 """Evidence failures identify the exact integrity boundary that rejected them."""
 
 import subprocess
+from functools import partial
 
 import pytest
 from evidence_test_fixtures import copy_bundle
@@ -124,13 +125,22 @@ def test_retained_replay_defects_are_not_reported_as_replay_failures(monkeypatch
     monkeypatch.setattr(module, "replay_case", fail)
     case, observation = {"case_id": "control", "replay_mode": "parse"}, {"case_id": "control"}
     failures = []
+    if version == 1:
+        validate = partial(
+            _snapshot._validate_snapshot_replay,
+            REPO_ROOT,
+            case,
+            observation,
+            failures,
+            "snapshot.json",
+            replay_cases=True,
+        )
+    else:
+        validate = partial(
+            _retest._validate_retained_retest_observation, REPO_ROOT, case, observation, failures, "snapshot.json"
+        )
     with pytest.raises(error, match="seeded defect"):
-        if version == 1:
-            _snapshot._validate_snapshot_replay(
-                REPO_ROOT, case, observation, failures, "snapshot.json", replay_cases=True
-            )
-        else:
-            _retest._validate_retained_retest_observation(REPO_ROOT, case, observation, failures, "snapshot.json")
+        validate()
     assert failures == []
 
 

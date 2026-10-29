@@ -16,8 +16,9 @@ out of scope. What this module owns is the boundary around that client:
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -36,6 +37,7 @@ from tools.release_evidence_admission import ProducerIdentity  # noqa: E402
 type JsonValue = "str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]"
 
 MAX_VERIFIER_OUTPUT_BYTES = 1 * 1024 * 1024
+_VERIFIER_TIMEOUT_SECONDS = 120
 
 _GITHUB_PREFIX = "https://github.com/"
 
@@ -170,9 +172,33 @@ def parse_verifier_output(payload: str) -> ProducerIdentity:
     )
 
 
+def run_verifier(command: Sequence[str]) -> str:
+    """Run the maintained verifier with a fixed argument vector and return its output."""
+
+    try:
+        # Fixed argv, no shell, closed stdin.
+        completed = subprocess.run(  # noqa: S603
+            list(command),
+            capture_output=True,
+            text=True,
+            timeout=_VERIFIER_TIMEOUT_SECONDS,
+            check=False,
+            stdin=subprocess.DEVNULL,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise VerifierError("verifier-unavailable", "attestation verifier could not be executed") from exc
+    except UnicodeDecodeError as exc:
+        # Text mode decodes the verifier output; output that does not decode cannot be parsed.
+        raise VerifierError("verifier-output-unparsable", "attestation verifier output could not be parsed") from exc
+    if completed.returncode != 0:
+        raise VerifierError("verifier-rejected", "attestation verifier did not return a clean verdict")
+    return completed.stdout
+
+
 __all__ = [
     "MAX_VERIFIER_OUTPUT_BYTES",
     "VerifierError",
     "build_verify_command",
     "parse_verifier_output",
+    "run_verifier",
 ]

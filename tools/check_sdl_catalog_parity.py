@@ -96,11 +96,12 @@ def evaluate_sdl_catalog_parity(repo_root: Path) -> list[PolicyFailure]:
         ]
     try:
         schema = json.loads((repo_root / SCHEMA_PATH).read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        return [_failure("sdl-catalog-schema-parse", str(exc), SCHEMA_PATH)]
-    except ValueError, RecursionError:
-        # The schema is not UTF-8, has an integer beyond the interpreter digit limit or nests beyond the decoder.
-        return [_failure("sdl-catalog-schema-parse", "schema is not UTF-8 JSON within the decoder limits", SCHEMA_PATH)]
+    except (OSError, ValueError, RecursionError) as exc:
+        # Another ValueError means the schema is not UTF-8 or has an integer beyond the interpreter digit
+        # limit; RecursionError means it nests beyond the decoder. Neither message names the location.
+        reported = isinstance(exc, (OSError, json.JSONDecodeError))
+        detail = str(exc) if reported else "schema is not UTF-8 JSON within the decoder limits"
+        return [_failure("sdl-catalog-schema-parse", detail, SCHEMA_PATH)]
     sections_text = (repo_root / SECTIONS_PATH).read_text(encoding="utf-8")
     top_failures, top_rows = _check_top_level(sections_text, schema)
     failures = list(top_failures)

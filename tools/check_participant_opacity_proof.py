@@ -149,7 +149,7 @@ def _has_utf8_form(value: str) -> bool:
     return True
 
 
-def _resolve_repo_path(repo_root: Path, raw_path: Any) -> Path:
+def _safe_relative_path(raw_path: object) -> Path:
     # The file system refuses a NUL character or a name without a UTF-8 form, so neither names a repository file.
     if (
         not isinstance(raw_path, str)
@@ -162,6 +162,11 @@ def _resolve_repo_path(repo_root: Path, raw_path: Any) -> Path:
     relative = Path(raw_path)
     if relative.is_absolute() or ".." in relative.parts:
         raise ProofEvidenceError("proof evidence contains an unsafe repository path")
+    return relative
+
+
+def _resolve_repo_path(repo_root: Path, raw_path: object) -> Path:
+    relative = _safe_relative_path(raw_path)
     resolved = (repo_root / relative).resolve()
     root = repo_root.resolve()
     if resolved != root and root not in resolved.parents:

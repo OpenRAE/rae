@@ -221,12 +221,14 @@ def _composed_outcome(
     # A refused composition or trusted context never discloses its rejected value and never widens
     # permission. The fenced context and the published validation already logged any resolver failure.
     except ValueError:
-        return _unresolved(_UNRESOLVED, "control-context-invalid")
+        evaluation = None
     # Isolation: the composition reads the support and gate evidence that the installed resolver returned.
     except Exception as exc:
         _LOGGER.exception(
             "participant control composition failed on resolver input", exc_info=foreign_failure_record(exc)
         )
+        evaluation = None
+    if evaluation is None:
         return _unresolved(_UNRESOLVED, "control-context-invalid")
     # V1 wire evidence keeps its original interpretation. Fresh parent-targeted
     # crossing decisions are nevertheless enforced before any scheduled effect;

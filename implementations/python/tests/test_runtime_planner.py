@@ -1874,8 +1874,10 @@ def test_inventory_predecessor_archive_failure_is_logged_value_free_and_fails_cl
     request = SimpleNamespace(materialization_source=SimpleNamespace(run_id="run-1"))
     previous = SimpleNamespace(materialization_attestations=(record,))
     logger_name = "raes_processor.planner.materialization_lineage"
+    manifest = SimpleNamespace(name="backend")
+    archive = FailingArchive()
     with caplog.at_level(logging.WARNING, logger=logger_name), pytest.raises(InventoryAdmissionError) as raised:
-        admitted_inventory_predecessor(request, SimpleNamespace(name="backend"), previous, FailingArchive())
+        admitted_inventory_predecessor(request, manifest, previous, archive)
 
     assert raised.value.invariant is InventoryInvariant.ARCHIVE
     assert secret not in str(raised.value)
@@ -1897,8 +1899,10 @@ def test_inventory_lineage_refusal_carries_its_invariant_for_the_runtime():
     from raes_processor.planner.materialization_lineage import InventoryAdmissionError, validate_inventory_lineage
 
     report = SimpleNamespace(complete=False, unavailable_evidence=())
+    original_addresses = set()
+    previous = RuntimeSnapshot()
     with pytest.raises(InventoryAdmissionError) as raised:
-        validate_inventory_lineage(report, None, set(), RuntimeSnapshot(), operation_id=None, resources={})
+        validate_inventory_lineage(report, None, original_addresses, previous, operation_id=None, resources={})
 
     assert isinstance(raised.value, InvalidInputError)
     assert raised.value.invariant is InventoryInvariant.COVERAGE
@@ -1924,8 +1928,9 @@ def test_prepared_node_admission_defect_is_not_reported_as_an_inadmissible_compl
         raise KeyError("programming defect")
 
     monkeypatch.setattr(prepared_node_admission, "validate_prepared_node_semantics", defect)
+    snapshot = RuntimeSnapshot()
     with pytest.raises(KeyError):
-        prepared_node_admission.prepared_node_capability_violation(empty, empty, None, RuntimeSnapshot())
+        prepared_node_admission.prepared_node_capability_violation(empty, empty, None, snapshot)
 
 
 def test_prepared_node_inventory_refuses_an_unhashable_proposed_name():

@@ -32,7 +32,7 @@ _PROJECT_SCOPED_PURPOSES = frozenset({"wheel-smoke", "sdist-smoke", "compatibili
 _PROJECTION_SIZE_LIMIT = 2 * 1024 * 1024
 
 
-def _value_set(value: Any) -> set[Any] | None:
+def _value_set(value: object) -> set[object] | None:
     """Return the set of one authored collection, or None when the value has no set form."""
 
     try:
@@ -121,30 +121,28 @@ def _closure_binding_failures(
             )
         )
     expected_extras = {"dev", "docs", "distributed"} if project_scoped else set()
-    if _value_set(value.get("project_extras", [])) != expected_extras:
-        failures.append(
-            failure(
-                "tooling-python-extras",
-                "project smoke closures must include all extras and tool/build closures must include none",
-                PROFILES_PATH,
-            )
-        )
-    if _value_set(value.get("tool_groups", [])) != {"default", "build"}:
-        failures.append(
-            failure(
-                "tooling-python-groups",
-                "every Python closure must bind tool and build groups",
-                PROFILES_PATH,
-            )
-        )
-    if _value_set(value.get("acquisition_context_ids", [])) != set(context_ids):
-        failures.append(
-            failure(
-                "tooling-python-context-binding",
-                "Python closure profile must bind every acquisition context",
-                PROFILES_PATH,
-            )
-        )
+    for field, expected, rule_id, message in (
+        (
+            "project_extras",
+            expected_extras,
+            "tooling-python-extras",
+            "project smoke closures must include all extras and tool/build closures must include none",
+        ),
+        (
+            "tool_groups",
+            {"default", "build"},
+            "tooling-python-groups",
+            "every Python closure must bind tool and build groups",
+        ),
+        (
+            "acquisition_context_ids",
+            set(context_ids),
+            "tooling-python-context-binding",
+            "Python closure profile must bind every acquisition context",
+        ),
+    ):
+        if _value_set(value.get(field, [])) != expected:
+            failures.append(failure(rule_id, message, PROFILES_PATH))
     return failures
 
 

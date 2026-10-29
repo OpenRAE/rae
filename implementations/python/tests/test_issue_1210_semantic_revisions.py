@@ -214,16 +214,19 @@ def test_sdl_transformations_do_not_report_defects_as_refusals(monkeypatch, oper
     scenario = parse_sdl("name: transform\nnodes:\n  web: {type: switch}\n  extra: {type: switch}\n")
     if operation == "remove":
         monkeypatch.setattr("raes._transformation_remove.SemanticValidator", _raise_defect)
+        request = RemoveSDLDeclarationRequest(target_address="nodes.extra")
+        policy = ArtifactTransformationPolicy((ArtifactTransformationLossKind.DECLARATION_REMOVED,))
         with pytest.raises(ValueError, match="SECRET-DEFECT-DETAIL"):
             remove_sdl_declaration(
                 scenario,
-                RemoveSDLDeclarationRequest(target_address="nodes.extra"),
-                policy=ArtifactTransformationPolicy((ArtifactTransformationLossKind.DECLARATION_REMOVED,)),
+                request,
+                policy=policy,
             )
     else:
         monkeypatch.setattr("raes._transformation_rename.SemanticValidator", _raise_defect)
+        request = RenameSDLDeclarationRequest(target_address="nodes.web", new_local_name="frontend")
         with pytest.raises(ValueError, match="SECRET-DEFECT-DETAIL"):
             rename_sdl_declaration(
                 scenario,
-                RenameSDLDeclarationRequest(target_address="nodes.web", new_local_name="frontend"),
+                request,
             )

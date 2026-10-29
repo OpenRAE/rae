@@ -127,7 +127,8 @@ class SDLValidationError(SDLError):
 
     Attributes:
         errors: List of individual error descriptions.
-        findings: One finding for each error, in the same order. A plain message gives a finding without owner or pointer.
+        findings: One finding for each error, in the same order. A plain
+            message gives a finding without owner or pointer.
         path: The file that failed validation (if applicable).
     """
 

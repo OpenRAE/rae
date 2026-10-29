@@ -21,7 +21,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import subprocess
 import sys
 import tomllib
 from collections.abc import Callable, Mapping, Sequence
@@ -68,15 +67,10 @@ from tools.release_evidence_sbom import (
     reconcile_runtime_closure,
     wheel_metadata,
 )
-from tools.release_evidence_verifier import (
-    VerifierError,
-    build_verify_command,
-    parse_verifier_output,
-)
+from tools.release_evidence_verifier import VerifierError, build_verify_command, parse_verifier_output, run_verifier
 from tools.release_evidence_workflows import WorkflowInputError, workflow_actions
 
 INVENTORY_FILENAME = "build-inventory.json"
-_VERIFIER_TIMEOUT_SECONDS = 120
 
 _REQUIRED_ENVIRONMENT = (
     "GITHUB_REPOSITORY",
@@ -294,27 +288,6 @@ def _workflow_actions(repo_root: Path) -> list[dict[str, str]]:
         raise ReleaseEvidenceError("workflow-input-invalid", str(exc)) from exc
 
 
-def _run_verifier(command: Sequence[str]) -> str:
-    try:
-        # Fixed argv, no shell, closed stdin.
-        completed = subprocess.run(  # noqa: S603
-            list(command),
-            capture_output=True,
-            text=True,
-            timeout=_VERIFIER_TIMEOUT_SECONDS,
-            check=False,
-            stdin=subprocess.DEVNULL,
-        )
-    except (OSError, subprocess.SubprocessError) as exc:
-        raise VerifierError("verifier-unavailable", "attestation verifier could not be executed") from exc
-    except UnicodeDecodeError as exc:
-        # Text mode decodes the verifier output; output that does not decode cannot be parsed.
-        raise VerifierError("verifier-output-unparsable", "attestation verifier output could not be parsed") from exc
-    if completed.returncode != 0:
-        raise VerifierError("verifier-rejected", "attestation verifier did not return a clean verdict")
-    return completed.stdout
-
-
 def collect_attestations(
     *,
     distribution_dir: Path,
@@ -322,7 +295,7 @@ def collect_attestations(
     index: Mapping[str, Any],
     repository: str,
     signer_workflow: str,
-    runner: Callable[[Sequence[str]], str] = _run_verifier,
+    runner: Callable[[Sequence[str]], str] = run_verifier,
 ) -> dict[str, ProducerIdentity]:
     """Verify every admitted artifact through the maintained verifier."""
 
@@ -426,6 +399,54 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     return parser.parse_args(list(argv) if argv is not None else None)
 
 
+def _generate(args: argparse.Namespace) -> str:
+    generate(
+        paths=GeneratePaths(
+            repo_root=args.repo_root,
+            distribution_dir=args.distribution_dir,
+            evidence_dir=args.evidence_dir,
+            environment_dir=args.environment,
+            sdist_environment_dir=args.sdist_environment,
+        ),
+        profile_id=args.profile,
+        release_tag=args.release_tag,
+        environment=os.environ,
+    )
+    return "release evidence generated"
+
+
+def _verify(args: argparse.Namespace) -> str:
+    index = _load_index(args.evidence_dir)
+    identity = release_identity(os.environ)
+    policy_hashes = {"tooling_policy_sha256": tooling_policy_sha256(args.repo_root)}
+    approved = approved_producers(args.repo_root)
+    attestations = collect_attestations(
+        distribution_dir=args.distribution_dir,
+        evidence_dir=args.evidence_dir,
+        index=index,
+        repository=identity["repository"],
+        signer_workflow=args.signer_workflow,
+    )
+    verify_admission(
+        distribution_dir=args.distribution_dir,
+        evidence_dir=args.evidence_dir,
+        index=index,
+        attestations=attestations,
+        approved_producers=approved,
+        expected=ReleaseIdentity(**identity, tag=args.release_tag),
+        policy_hashes=policy_hashes,
+    )
+    # Unconditional: the admitted subject names must correspond to the
+    # release being published on every admission, not only when a caller
+    # asks for the handoff to be written out.
+    subjects = admitted_publication_subjects(index, expected_tag=args.release_tag)
+    if args.emit_subjects is not None:
+        # Written only here, after admission accepted the release, so a
+        # refused release leaves no scalars a publisher could act on.
+        args.emit_subjects.write_text(render_publication_outputs(subjects) + "\n", encoding="utf-8")
+    return "release evidence admitted"
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parse_args(argv)
     try:
@@ -442,70 +463,17 @@ def main(argv: Sequence[str] | None = None) -> int:
             value = getattr(args, name, None)
             if value is not None:
                 setattr(args, name, operator_path(Path(value), purpose=purpose))
-        if args.command == "generate":
-            generate(
-                paths=GeneratePaths(
-                    repo_root=args.repo_root,
-                    distribution_dir=args.distribution_dir,
-                    evidence_dir=args.evidence_dir,
-                    environment_dir=args.environment,
-                    sdist_environment_dir=args.sdist_environment,
-                ),
-                profile_id=args.profile,
-                release_tag=args.release_tag,
-                environment=os.environ,
-            )
-            print("release evidence generated")
-            return 0
-
-        index = _load_index(args.evidence_dir)
-        identity = release_identity(os.environ)
-        policy_hashes = {"tooling_policy_sha256": tooling_policy_sha256(args.repo_root)}
-        approved = approved_producers(args.repo_root)
-        attestations = collect_attestations(
-            distribution_dir=args.distribution_dir,
-            evidence_dir=args.evidence_dir,
-            index=index,
-            repository=identity["repository"],
-            signer_workflow=args.signer_workflow,
-        )
-        verify_admission(
-            distribution_dir=args.distribution_dir,
-            evidence_dir=args.evidence_dir,
-            index=index,
-            attestations=attestations,
-            approved_producers=approved,
-            expected=ReleaseIdentity(**identity, tag=args.release_tag),
-            policy_hashes=policy_hashes,
-        )
-        # Unconditional: the admitted subject names must correspond to the
-        # release being published on every admission, not only when a caller
-        # asks for the handoff to be written out.
-        subjects = admitted_publication_subjects(index, expected_tag=args.release_tag)
-        if args.emit_subjects is not None:
-            # Written only here, after admission accepted the release, so a
-            # refused release leaves no scalars a publisher could act on.
-            args.emit_subjects.write_text(
-                render_publication_outputs(subjects) + "\n",
-                encoding="utf-8",
-            )
-    except (
-        AdmissionError,
-        EvidenceDocumentError,
-        ReleaseEvidenceError,
-        RuntimeClosureError,
-        VerifierError,
-    ) as exc:
-        print(f"release evidence refused [{exc.code}]: {exc}", file=sys.stderr)
-        return 1
+        outcome = _generate(args) if args.command == "generate" else _verify(args)
+    except (AdmissionError, EvidenceDocumentError, ReleaseEvidenceError, RuntimeClosureError, VerifierError) as exc:
+        refusal = f"release evidence refused [{exc.code}]: {exc}"
     except (InvalidInputError, OperationalError) as exc:
-        # Reviewed closure, lock and operator-path inputs carry no publishable code; a host failure,
-        # such as an unavailable working directory, is refused the same way.
-        print(f"release evidence refused: {exc}", file=sys.stderr)
-        return 1
+        # Reviewed closure, lock and operator-path inputs carry no publishable code, and neither does a host failure.
+        refusal = f"release evidence refused: {exc}"
     else:
-        print("release evidence admitted")
+        print(outcome)
         return 0
+    print(refusal, file=sys.stderr)
+    return 1
 
 
 if __name__ == "__main__":

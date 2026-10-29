@@ -182,8 +182,9 @@ def test_participant_execution_read_maps_refusals_to_404_and_defects_to_500(
 def test_governed_view_leaves_the_mutation_reservation_signal_to_the_executor() -> None:
     signal = MutationReservationRequired(RuntimeMutationAuthority(), "participant-crossing")
 
+    view = _raising(signal)
     with pytest.raises(MutationReservationRequired):
-        _governed_view(_raising(signal))
+        _governed_view(view)
 
 
 def test_auth_audit_failure_is_recorded_once_without_values(
@@ -204,8 +205,9 @@ def test_auth_audit_failure_is_recorded_once_without_values(
 def test_worker_interruption_cause_is_recorded_before_it_is_hidden(
     caplog: pytest.LogCaptureFixture, interruption: BaseException
 ) -> None:
+    call = run_in_threadpool(_raising(interruption))
     with caplog.at_level(logging.ERROR), pytest.raises(RuntimeError, match="^control-plane worker interrupted$"):
-        asyncio.run(run_in_threadpool(_raising(interruption)))
+        asyncio.run(call)
 
     # Only backend or provider code can end a worker with an interruption, so its type is foreign content.
     [record] = _records(caplog, "raes_runtime.control_plane_api._offload")
@@ -381,8 +383,9 @@ def test_activity_failure_cause_is_recorded_before_the_value_free_failure(caplog
         provider=object(), effect_authority=None, control_authority=None, worker_identity="worker-1"
     )
     try:
+        job = activities._job(activities._control_jobs, "control", _raising(_foreign()), budget_ms=1000)
         with caplog.at_level(logging.ERROR), pytest.raises(OperationalError) as raised:
-            asyncio.run(activities._job(activities._control_jobs, "control", _raising(_foreign()), budget_ms=1000))
+            asyncio.run(job)
     finally:
         assert activities.close()
 
@@ -451,8 +454,9 @@ def test_worker_authority_transport_failure_is_recorded_without_values(caplog: p
         transport=httpx.MockTransport(refuse),
     )
     try:
+        reference = _engine_reference()
         with caplog.at_level(logging.ERROR), pytest.raises(OperationalError) as raised:
-            authority.get_request(_engine_reference())
+            authority.get_request(reference)
     finally:
         assert authority.close()
 
@@ -466,8 +470,10 @@ def test_runtime_fact_dispatch_failures_are_recorded_without_values(caplog: pyte
     from raes_runtime.runtime_fact_bindings import RuntimeFactBindingPlane
     from raes_runtime.runtime_fact_dispatch import RuntimeFactDispatchCommand, _RuntimeFactDispatchFailure
 
+    command = RuntimeFactDispatchCommand(())
+    send = _raising(_foreign())
     with caplog.at_level(logging.ERROR), pytest.raises(_RuntimeFactDispatchFailure):
-        RuntimeFactDispatchCommand(()).dispatch(send=_raising(_foreign()))
+        command.dispatch(send=send)
     plane = RuntimeFactBindingPlane(action_dispatcher=_raising(_foreign()))
     with caplog.at_level(logging.ERROR):
         assert plane._dispatch(()) is RuntimeFactBindingDisposition.DISPATCH_FAILED

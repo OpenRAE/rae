@@ -619,10 +619,12 @@ def test_a_defect_in_the_issue_lookup_is_not_reported_as_an_unverifiable_issue()
     def defective(_number: int) -> IssueFacts:
         raise TypeError("lookup defect")
 
+    body = _body()
     with pytest.raises(TypeError, match="lookup defect"):
-        validate_pr_body(_body(), defective)
+        validate_pr_body(body, defective)
+    body = _body()
     with pytest.raises(TypeError, match="lookup defect"):
-        pr_body._open_issue_report(_body(), defective, 7)
+        pr_body._open_issue_report(body, defective, 7)
     assert "All declared closing issues are closed" in pr_body._open_issue_report(_body(), _lookup({123: "closed"}), 7)
     assert "No issue-tracking declaration" in pr_body._open_issue_report("No references", _lookup({}), 7)
 

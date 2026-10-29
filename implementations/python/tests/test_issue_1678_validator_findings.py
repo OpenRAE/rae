@@ -12,6 +12,7 @@ from __future__ import annotations
 import copy
 import re
 import textwrap
+from functools import partial
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -133,12 +134,13 @@ def _anchors(error: SDLValidationError) -> list[str | None]:
 
 
 def _validation_error(text: str, path: Path | None = None) -> SDLValidationError:
+    if path is None:
+        parse = partial(parse_sdl, text)
+    else:
+        path.write_text(text, encoding="utf-8")
+        parse = partial(parse_sdl_file, path)
     with pytest.raises(SDLValidationError) as raised:
-        if path is None:
-            parse_sdl(text)
-        else:
-            path.write_text(text, encoding="utf-8")
-            parse_sdl_file(path)
+        parse()
     return raised.value
 
 
@@ -547,8 +549,9 @@ def test_existing_invalid_fixtures_keep_their_owners_pointers_and_diagnostics() 
             scenario = parse_sdl_file(path, skip_semantic_validation=True)
         except SDLParseError:
             continue
+        validator = SemanticValidator(scenario)
         with pytest.raises(SDLValidationError) as raised:
-            SemanticValidator(scenario).validate()
+            validator.validate()
         error = raised.value
         semantic_source_diagnostics(error, scenario)
         assert [finding.owner for finding in error.findings] == [_old_owner(m) for m in error.errors], path.name

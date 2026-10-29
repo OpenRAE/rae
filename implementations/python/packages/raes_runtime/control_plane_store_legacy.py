@@ -110,19 +110,20 @@ def _read_audits(path: Path, control_state: dict[str, Any]) -> list[AuditEvent]:
             lines = path.read_text(encoding="utf-8").splitlines()
         except UnicodeDecodeError as exc:
             raise EvidenceIntegrityError("legacy control-plane audit file is not UTF-8 text") from exc
-        for line in lines:
-            if not line.strip():
-                continue
-            try:
-                payload = json.loads(line)
-            except (ValueError, RecursionError) as exc:
-                raise EvidenceIntegrityError("legacy control-plane audit line is not valid JSON") from exc
-            if exceeds_durable_nesting(line, payload):
-                raise EvidenceIntegrityError("legacy control-plane audit line exceeds the durable nesting limit")
-            event = _legacy_value(_audit_event_from_payload, payload)
+        for event in (_audit_line_event(line) for line in lines if line.strip()):
             if event not in audits:
                 audits.append(event)
     return audits
+
+
+def _audit_line_event(line: str) -> AuditEvent:
+    try:
+        payload = json.loads(line)
+    except (ValueError, RecursionError) as exc:
+        raise EvidenceIntegrityError("legacy control-plane audit line is not valid JSON") from exc
+    if exceeds_durable_nesting(line, payload):
+        raise EvidenceIntegrityError("legacy control-plane audit line exceeds the durable nesting limit")
+    return _legacy_value(_audit_event_from_payload, payload)
 
 
 __all__ = ("_read_legacy_state",)

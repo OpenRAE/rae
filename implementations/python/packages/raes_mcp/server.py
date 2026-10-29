@@ -60,7 +60,7 @@ _LOGGER = get_logger(__name__)
 _INTERNAL_TOOL_ERROR = "the tool failed with an internal error; the server log records the failure"
 
 
-def _tool_boundary(function: Callable[..., Any]) -> Callable[..., Any]:
+def _tool_boundary[**P, R](function: Callable[P, R]) -> Callable[P, R]:
     """Keep the text of an unexpected exception out of the tool result (ADR-116).
 
     FastMCP puts the text of any exception that a tool raises in the tool
@@ -70,7 +70,7 @@ def _tool_boundary(function: Callable[..., Any]) -> Callable[..., Any]:
     """
 
     @functools.wraps(function)
-    def boundary(*args: Any, **kwargs: Any) -> Any:
+    def boundary(*args: P.args, **kwargs: P.kwargs) -> R:
         try:
             return function(*args, **kwargs)
         except ToolError:

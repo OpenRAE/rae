@@ -159,9 +159,13 @@ def _validate_https_locator(locator: object) -> bool:
     except ValueError:
         # urlsplit() refuses a malformed authority, such as an unclosed IPv6 bracket.
         return False
-    if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
-        return False
-    return not any(key.lower() in _SENSITIVE_QUERY_KEYS for key, _ in parse_qsl(parsed.query))
+    return (
+        parsed.scheme == "https"
+        and bool(parsed.hostname)
+        and not parsed.username
+        and not parsed.password
+        and not any(key.lower() in _SENSITIVE_QUERY_KEYS for key, _ in parse_qsl(parsed.query))
+    )
 
 
 _POINTER_MISS = object()

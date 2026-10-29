@@ -602,29 +602,39 @@ def _graph_failures(
 
 
 def _has_dependency_cycle(known_artifacts: set[str], dependency_graph: Mapping[str, set[str]]) -> bool:
-    # An iterative depth-first search, so a dependency chain longer than the interpreter
-    # recursion limit is checked; a dependency on an artifact in progress closes a cycle.
     visiting: set[str] = set()
     visited: set[str] = set()
-    for root in sorted(known_artifacts):
-        if root in visited:
-            continue
-        visiting.add(root)
-        stack = [(root, iter(dependency_graph.get(root, set())))]
-        while stack:
-            artifact_id, dependencies = stack[-1]
-            for dependency in dependencies:
-                if dependency not in known_artifacts or dependency in visited:
-                    continue
-                if dependency in visiting:
-                    return True
-                visiting.add(dependency)
-                stack.append((dependency, iter(dependency_graph.get(dependency, set()))))
-                break
-            else:
-                stack.pop()
-                visiting.remove(artifact_id)
-                visited.add(artifact_id)
+    return any(
+        root not in visited and _reaches_cycle(root, known_artifacts, dependency_graph, visiting, visited)
+        for root in sorted(known_artifacts)
+    )
+
+
+def _reaches_cycle(
+    root: str,
+    known_artifacts: set[str],
+    dependency_graph: Mapping[str, set[str]],
+    visiting: set[str],
+    visited: set[str],
+) -> bool:
+    # An iterative depth-first search, so a dependency chain longer than the interpreter
+    # recursion limit is checked; a dependency on an artifact in progress closes a cycle.
+    visiting.add(root)
+    stack = [(root, iter(dependency_graph.get(root, set())))]
+    while stack:
+        artifact_id, dependencies = stack[-1]
+        for dependency in dependencies:
+            if dependency not in known_artifacts or dependency in visited:
+                continue
+            if dependency in visiting:
+                return True
+            visiting.add(dependency)
+            stack.append((dependency, iter(dependency_graph.get(dependency, set()))))
+            break
+        else:
+            stack.pop()
+            visiting.remove(artifact_id)
+            visited.add(artifact_id)
     return False
 
 

@@ -260,7 +260,10 @@ def _git_show(repo_root: Path, gitref: str) -> str | None:
     Content that is not UTF-8 is read again with surrogate escapes. They keep
     every byte distinct, so content_hash and the amendment check compare the
     exact revision."""
-    command = ["git", "show", gitref]
+    if gitref.startswith("-"):
+        # git would read the reference as an option, not as a revision.
+        raise InvalidInputError("a git revision must not start with '-'")
+    command = ["git", "show", "--end-of-options", gitref]
     try:
         proc = subprocess.run(command, cwd=repo_root, capture_output=True, text=True)
     except UnicodeDecodeError:
@@ -405,10 +408,17 @@ def evaluate_adr_immutability(
     return failures
 
 
+def _git_revision(value: str) -> str:
+    """Accept a revision argument that git cannot read as an option."""
+    if not value or value.startswith("-"):
+        raise argparse.ArgumentTypeError("a git revision must not be empty or start with '-'")
+    return value
+
+
 def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Enforce ADR-059 acceptance-content pins for accepted ADRs.")
     parser.add_argument("--staged", action="store_true", help="Compare staged content against HEAD.")
-    parser.add_argument("--base-rev", help="Compare against a specific git revision.")
+    parser.add_argument("--base-rev", type=_git_revision, help="Compare against a specific git revision.")
     parser.add_argument("--json", action="store_true", help="Emit JSON failures.")
     # Accepted for CLI parity with the other policy entry points. The pin gate
     # always evaluates the whole accepted-ADR corpus — a partial path list could

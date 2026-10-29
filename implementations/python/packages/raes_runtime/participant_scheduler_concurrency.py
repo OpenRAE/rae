@@ -332,32 +332,37 @@ def _execute_concurrent_due_contexts(batch: _ConcurrentBatch) -> None:
     bound_batch = _bound_concurrent_policy_batch(batch, requests)
     offset = _execute_capacity_bounded_batches(bound_batch)
 
-    if batch.run.failure is None:
-        try:
-            batch.run.working = _materialize_concurrent_snapshot(batch.run.working)
-        except (Exception, CancelledError) as exc:  # NOSONAR - normalize the deferred batch boundary
-            cancelled = isinstance(exc, CancelledError)
-            if not cancelled:
-                _LOGGER.exception("concurrent participant batch state failed final invariant validation")
-            _set_concurrent_failure(
-                batch.run,
-                Diagnostic(
-                    code="runtime.participant-concurrent-commit-invalid",
-                    domain="participant",
-                    address=batch.policy.address,
-                    message="Concurrent participant batch state failed final invariant validation.",
-                ),
-            )
-            if cancelled:
-                # Cleanup: the dispatched batches are settled; propagate the cancellation (ADR-116 H4).
-                raise
-            return
+    if batch.run.failure is None and _materialized_concurrent_snapshot(batch):
         from .participant_scheduler_operations import run_participant_due
 
         for context in batch.contexts[offset:]:
             run_participant_due(context, batch.run)
             if batch.run.failure is not None:
                 break
+
+
+def _materialized_concurrent_snapshot(batch: _ConcurrentBatch) -> bool:
+    """Materialize the batch state, or record the commit failure; a cancellation propagates."""
+    try:
+        batch.run.working = _materialize_concurrent_snapshot(batch.run.working)
+    except (Exception, CancelledError) as exc:  # NOSONAR - normalize the deferred batch boundary
+        cancelled = isinstance(exc, CancelledError)
+        if not cancelled:
+            _LOGGER.exception("concurrent participant batch state failed final invariant validation")
+        _set_concurrent_failure(
+            batch.run,
+            Diagnostic(
+                code="runtime.participant-concurrent-commit-invalid",
+                domain="participant",
+                address=batch.policy.address,
+                message="Concurrent participant batch state failed final invariant validation.",
+            ),
+        )
+        if cancelled:
+            # Cleanup: the dispatched batches are settled; propagate the cancellation (ADR-116 H4).
+            raise
+        return False
+    return True
 
 
 def run_policy_due_concurrently(

@@ -207,12 +207,20 @@ def _require_snapshot_payload_shape(payload: dict[str, Any]) -> None:
         raise ValueError("runtime snapshot metadata must be an object")
     if not all(_is_array(payload.get(name, []), items=dict) for name in _SNAPSHOT_ARRAYS):
         raise ValueError("runtime snapshot carriers must be arrays of objects")
+    _require_snapshot_histories(payload)
+    _require_snapshot_entries(payload)
+
+
+def _require_snapshot_histories(payload: dict[str, Any]) -> None:
     for name in HISTORY_FIELDS:
         history = payload.get(name, {})
         if isinstance(history, HistoryMap):
             continue
         if not isinstance(history, dict) or not all(_is_array(events, items=dict) for events in history.values()):
             raise ValueError(f"runtime snapshot {name} must map names to arrays of objects")
+
+
+def _require_snapshot_entries(payload: dict[str, Any]) -> None:
     entries = payload.get("entries", {})
     if not isinstance(entries, dict):
         raise ValueError("runtime snapshot entries must be an object")

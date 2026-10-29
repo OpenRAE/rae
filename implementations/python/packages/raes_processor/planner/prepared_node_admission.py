@@ -24,6 +24,7 @@ from .prepared_node_semantics import validate_prepared_node_semantics
 from .prepared_node_support import validate_prepared_node_support
 
 _PORTABLE_RESOURCE_TYPES = frozenset({"node", "network"})
+_NONCANONICAL_IDENTITY = "prepared node does not preserve its canonical identity"
 _CLOSED_NODE_SPEC_KEYS = frozenset({"node", "infrastructure"})
 _NODE_IDENTITY_FIELDS = (
     ("os_family", "os"),
@@ -49,12 +50,12 @@ def _node_runtime(operation: object) -> NetworkRuntime | NodeRuntime:
 
 def _canonical_node_address(name: object, node_type: NodeType) -> str:
     if not isinstance(name, str):
-        raise InvalidInputError("prepared node does not preserve its canonical identity")
+        raise InvalidInputError(_NONCANONICAL_IDENTITY)
     try:
         return _network_address(name) if node_type is NodeType.SWITCH else _node_address(name)
     except ValueError as exc:
         # The address owner refuses a non-canonical name with ValueError (E3).
-        raise InvalidInputError("prepared node does not preserve its canonical identity") from exc
+        raise InvalidInputError(_NONCANONICAL_IDENTITY) from exc
 
 
 def _require_canonical_identity(resource: NetworkRuntime | NodeRuntime, node: Node) -> None:
@@ -62,7 +63,7 @@ def _require_canonical_identity(resource: NetworkRuntime | NodeRuntime, node: No
 
     canonical = _canonical_node_address(resource.name, node.type)
     if resource.name != resource.node_name or resource.address != canonical or resource.node_kind != node.type.value:
-        raise InvalidInputError("prepared node does not preserve its canonical identity")
+        raise InvalidInputError(_NONCANONICAL_IDENTITY)
     if node.features or node.conditions or node.injects or node.roles:
         raise InvalidInputError("a node collection cannot grant separate bindings or participant roles")
 

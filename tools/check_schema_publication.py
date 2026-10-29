@@ -81,7 +81,7 @@ def _json_integer(literal: str) -> int:
         raise InvalidInputError("schema publication JSON contains an integer beyond the digit limit") from exc
 
 
-def _parse_json(text: str) -> Any:
+def _parse_json(text: str) -> object:
     """Decode JSON text; raise ``InvalidInputError`` for a value the decoder cannot build."""
 
     try:
@@ -155,24 +155,29 @@ def _load_record_directory(
     records: list[dict[str, Any]] = []
     failures: list[str] = []
     for path in paths:
-        relative = path.relative_to(repo_root).as_posix()
-        try:
-            record = _parse_json(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
-            failures.append(f"schema publication {record_kind} is not valid JSON: {relative}: {exc.msg}")
-            continue
-        except InvalidInputError as exc:
-            failures.append(f"schema publication {record_kind} is not valid JSON: {relative}: {exc}")
-            continue
-        if not isinstance(record, dict):
-            failures.append(f"schema publication {record_kind} must be a JSON object: {relative}")
-            continue
-        identity = record.get("contract_id" if record_kind == "entry" else "schema_path")
-        if not isinstance(identity, str) or path.stem != Path(identity).stem:
-            failures.append(f"schema publication {record_kind} filename does not match its identity: {relative}")
-            continue
-        records.append(record)
+        record, failure = _load_record(path, path.relative_to(repo_root).as_posix(), record_kind)
+        if failure is not None:
+            failures.append(failure)
+        else:
+            records.append(record)
     return records, failures
+
+
+def _load_record(path: Path, relative: str, record_kind: str) -> tuple[dict[str, Any], str | None]:
+    """Return one publication record, or a failure that names why it cannot be used."""
+    try:
+        record = _parse_json(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, InvalidInputError) as exc:
+        detail = exc.msg if isinstance(exc, json.JSONDecodeError) else exc
+        return {}, f"schema publication {record_kind} is not valid JSON: {relative}: {detail}"
+    if not isinstance(record, dict):
+        return {}, f"schema publication {record_kind} must be a JSON object: {relative}"
+    identity = record.get("contract_id" if record_kind == "entry" else "schema_path")
+    matches = isinstance(identity, str) and path.stem == Path(identity).stem
+    return (
+        record,
+        None if matches else f"schema publication {record_kind} filename does not match its identity: {relative}",
+    )
 
 
 def load_schema_publication_catalog(repo_root: Path = REPO_ROOT) -> dict[str, Any]:

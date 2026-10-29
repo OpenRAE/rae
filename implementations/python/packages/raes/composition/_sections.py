@@ -35,21 +35,27 @@ def _validate_descriptor_exports(
     for section_name, exported_names in descriptor.exports.items():
         if section_name not in {*_HASHMAP_SECTIONS, FORWARDING_AGENTS_SECTION}:
             raise SDLParseError(f"Module '{descriptor.id}' exports unknown SDL section '{section_name}'")
-        for exported_name in exported_names:
-            try:
-                QualifiedName.parse(exported_name)
-            except ValueError as exc:
-                raise SDLParseError(f"Module '{descriptor.id}' exports an invalid {section_name} name") from exc
-        if section_name == FORWARDING_AGENTS_SECTION:
-            available_names = {agent.forwarding_agent_id for agent in scenario.forwarding_agents}
-        elif section_name == "entities":
-            available_names = set(flatten_entities(scenario.entities))
-        else:
-            section_payload = getattr(scenario, section_name, None)
-            available_names = set(section_payload.keys()) if isinstance(section_payload, Mapping) else set()
-        undefined = sorted(set(exported_names) - available_names)
+        _require_qualified_export_names(descriptor, section_name, exported_names)
+        undefined = sorted(set(exported_names) - _section_names(scenario, section_name))
         if undefined:
             raise SDLParseError(f"Module '{descriptor.id}' exports undefined {section_name}: " + ", ".join(undefined))
+
+
+def _require_qualified_export_names(descriptor: ModuleDescriptor, section_name: str, exported_names: list[str]) -> None:
+    for exported_name in exported_names:
+        try:
+            QualifiedName.parse(exported_name)
+        except ValueError as exc:
+            raise SDLParseError(f"Module '{descriptor.id}' exports an invalid {section_name} name") from exc
+
+
+def _section_names(scenario: ScenarioContent, section_name: str) -> set[str]:
+    if section_name == FORWARDING_AGENTS_SECTION:
+        return {agent.forwarding_agent_id for agent in scenario.forwarding_agents}
+    if section_name == "entities":
+        return set(flatten_entities(scenario.entities))
+    section_payload = getattr(scenario, section_name, None)
+    return set(section_payload.keys()) if isinstance(section_payload, Mapping) else set()
 
 
 def _rewrite_node_named_mappings(

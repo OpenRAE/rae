@@ -65,6 +65,17 @@ def _validate_analysis(
         )
     recomputed = recompute_claim_results(protocol, corpus, snapshot)
     expected_by_id = {item["claim_class_id"]: item for item in recomputed if _hashable(item["claim_class_id"])}
+    _claim_results_failures(analysis, expected_by_id, failures, path)
+    _overall_status_failures(recomputed, analysis, failures, path)
+    _claim_record_failures(repo_root, analysis, failures, path, snapshot_path=snapshot_path)
+
+
+def _claim_results_failures(
+    analysis: _JsonObject,
+    expected_by_id: dict[object, dict[str, object]],
+    failures: list[PolicyFailure],
+    path: str,
+) -> None:
     results = analysis.get("claim_results")
     if not _is_sequence(results):
         failures.append(
@@ -100,8 +111,6 @@ def _validate_analysis(
                 path,
             )
         )
-    _overall_status_failures(recomputed, analysis, failures, path)
-    _claim_record_failures(repo_root, analysis, failures, path, snapshot_path=snapshot_path)
 
 
 def _claim_result_failures(

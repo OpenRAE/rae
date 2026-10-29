@@ -419,8 +419,9 @@ def test_policy_yaml_loader_keeps_decode_syntax_and_valid_outcomes(tmp_path):
     with pytest.raises(UnicodeDecodeError):
         load_yaml(undecodable)
     # The parser keeps reading the file stream, so a syntax error still names the file.
+    path = _write(tmp_path, "syntax.yaml", "value: [unclosed\n")
     with pytest.raises(yaml.YAMLError, match="syntax.yaml"):
-        load_yaml(_write(tmp_path, "syntax.yaml", "value: [unclosed\n"))
+        load_yaml(path)
     valid = _write(tmp_path, "valid.yaml", "when: 2024-12-01\ncount: 3\n")
     assert load_yaml(valid) == {"when": date(2024, 12, 1), "count": 3}
     assert load_yaml(_write(tmp_path, "empty.yaml", "")) == {}
@@ -433,8 +434,9 @@ def test_policy_yaml_loader_keeps_a_parser_defect_out_of_the_refusal(tmp_path, m
         raise TypeError(_SECRET)
 
     monkeypatch.setattr(common.yaml, "safe_load", defect)
+    path = _write(tmp_path, "policy.yaml", "value: 1\n")
     with pytest.raises(TypeError, match=_SECRET):
-        common.load_yaml(_write(tmp_path, "policy.yaml", "value: 1\n"))
+        common.load_yaml(path)
 
 
 def test_public_docs_keep_a_redirect_loader_defect_out_of_the_refusal(tmp_path, monkeypatch):
@@ -595,8 +597,9 @@ def _installers_manifest(entries: str) -> bytes:
 def test_retained_tree_manifest_input_failures_stay_tree_integrity_failures(payload: bytes) -> None:
     from tools.verified_tree_manifest import parse_manifest
 
+    descriptor = SimpleNamespace()
     with pytest.raises(ToolInstallationError) as refused:
-        parse_manifest(payload, SimpleNamespace())
+        parse_manifest(payload, descriptor)
     assert str(refused.value) == _INSTALLERS_TREE_INTEGRITY_FAILURE
 
 
@@ -609,10 +612,10 @@ def test_retained_tree_manifest_parser_does_not_report_a_defect_as_tree_integrit
         raise ValueError(_INSTALLERS_DEFECT_DETAIL)
 
     monkeypatch.setattr(verified_tree_manifest, "tree_path", defective)
+    payload = _installers_manifest('{"kind":"directory","path":"a"}')
+    descriptor = SimpleNamespace()
     with pytest.raises(ValueError, match=_INSTALLERS_DEFECT_DETAIL):
-        verified_tree_manifest.parse_manifest(
-            _installers_manifest('{"kind":"directory","path":"a"}'), SimpleNamespace()
-        )
+        verified_tree_manifest.parse_manifest(payload, descriptor)
 
 
 def test_closure_lock_with_an_integer_beyond_the_digit_limit_is_invalid_input(tmp_path: Path) -> None:
@@ -638,8 +641,9 @@ def test_locked_wheel_with_a_malformed_url_is_invalid_input() -> None:
     from tools.generate_python_closures import _select_wheel, _supported_tags
 
     package = {"name": "example", "version": "1.0", "wheels": [{"url": "https://[::1/example-1.0-py3-none-any.whl"}]}
+    tags = _supported_tags("3.14", "cp314", "x86_64-unknown-linux-gnu")
     with pytest.raises(InvalidInputError, match=r"example==1\.0 has an invalid wheel URL"):
-        _select_wheel(package, _supported_tags("3.14", "cp314", "x86_64-unknown-linux-gnu"))
+        _select_wheel(package, tags)
 
 
 def test_existing_projection_that_is_not_utf8_is_invalid_input(tmp_path: Path) -> None:
@@ -901,8 +905,9 @@ def test_release_admission_refuses_an_evidence_integer_beyond_the_digit_limit(tm
 
     evidence = _nox_write(tmp_path / "wheel.cdx.json", f'{{"note": "{_NOX_SENTINEL}", "size": {_NOX_LONG_INTEGER}}}')
 
+    digest = _nox_digest(evidence)
     with pytest.raises(AdmissionError) as refused:
-        _load_bounded_json(evidence, _nox_digest(evidence))
+        _load_bounded_json(evidence, digest)
 
     assert refused.value.code == "admission-evidence-unparsable"
     assert str(refused.value) == "wheel.cdx.json could not be parsed"
@@ -932,8 +937,9 @@ def test_release_admission_does_not_report_a_decoder_hook_defect_as_unparsable(
         raise ValueError(_NOX_DEFECT)
 
     monkeypatch.setattr(admission, "_reject_duplicate_keys", defective)
+    digest = _nox_digest(evidence)
     with pytest.raises(ValueError, match=_NOX_DEFECT):
-        admission._load_bounded_json(evidence, _nox_digest(evidence))
+        admission._load_bounded_json(evidence, digest)
 
 
 def test_attestation_verifier_refuses_output_with_an_integer_beyond_the_digit_limit() -> None:
@@ -1055,8 +1061,9 @@ def test_research_retest_release_revision_defect_still_propagates(monkeypatch):
         raise ValueError(_RESEARCH_DEFECT_SENTINEL)
 
     monkeypatch.setattr(_releases, "evidence_key", defect)
+    release = _research_release("1.0.0")
     with pytest.raises(ValueError, match=_RESEARCH_DEFECT_SENTINEL):
-        _releases.validate_retest_bundle(REPO_ROOT, _research_release("1.0.0"), {}, {}, {}, {})
+        _releases.validate_retest_bundle(REPO_ROOT, release, {}, {}, {}, {})
 
 
 def _research_historical_archive(tmp_path: Path, content_base64: str) -> str:
@@ -1164,18 +1171,18 @@ def _research_uncanonical_historical_evidence() -> dict[str, object]:
 def test_research_historical_evidence_without_a_canonical_form_is_an_integrity_failure():
     from tools.formal_semantic_validation._archival_invariants import validate_archival_evidence_invariants
 
+    evidence = _research_uncanonical_historical_evidence()
     with pytest.raises(EvidenceIntegrityError) as refused:
-        validate_archival_evidence_invariants(_research_uncanonical_historical_evidence(), "satisfiability")
+        validate_archival_evidence_invariants(evidence, "satisfiability")
     assert "\ud800" not in str(refused.value)
 
 
 def test_research_historical_production_replay_refuses_evidence_without_a_canonical_form():
     from tools.formal_semantic_validation._production import _historical_production_replay
 
+    evidence = _research_uncanonical_historical_evidence()
     with pytest.raises(EvidenceIntegrityError):
-        _historical_production_replay(
-            _research_uncanonical_historical_evidence(), {}, "satisfiability", repo_root=REPO_ROOT
-        )
+        _historical_production_replay(evidence, {}, "satisfiability", repo_root=REPO_ROOT)
 
 
 def test_research_schema_catalog_with_an_oversized_integer_is_a_catalog_failure(tmp_path):
@@ -1452,8 +1459,9 @@ _DEEP_YAML_FLOW = "[" * 100_000 + "]" * 100_000
 def test_policy_yaml_loader_refuses_nesting_beyond_the_parser_depth(tmp_path):
     from tools.policy.common import load_yaml
 
+    path = _write(tmp_path, "policy.yaml", f"value: {_DEEP_YAML_FLOW}\n")
     with pytest.raises(InvalidInputError, match="nests beyond the YAML parser depth"):
-        load_yaml(_write(tmp_path, "policy.yaml", f"value: {_DEEP_YAML_FLOW}\n"))
+        load_yaml(path)
 
 
 _EXCEPTIONS_PATH = "tools/policy/exceptions.yaml"
@@ -1492,8 +1500,9 @@ def test_policy_exceptions_matching_refuses_an_entry_it_cannot_read(tmp_path, co
 
     # Matching reads the entries only for a failure, so an unused malformed list keeps its old outcome.
     assert apply_exceptions([], entries) == []
+    failures = [PolicyFailure("example", "x", "docs/a.md")]
     with pytest.raises(InvalidInputError, match="exceptions"):
-        apply_exceptions([PolicyFailure("example", "x", "docs/a.md")], entries, requirement_uid="GOV-1")
+        apply_exceptions(failures, entries, requirement_uid="GOV-1")
 
 
 def test_policy_exceptions_loader_refuses_an_undecodable_exceptions_file(tmp_path):
@@ -1734,7 +1743,8 @@ def test_example_library_reports_an_unreadable_catalog(tmp_path, content):
     raw, failures = check_example_library._load_yaml_file(path, "catalog.yaml")
     assert raw is None
     assert _rules(failures) == [("example-library-parse", "catalog.yaml")]
-    assert "maybe" not in failures[0].message and _BEYOND_DIGIT_LIMIT not in failures[0].message
+    assert "maybe" not in failures[0].message
+    assert _BEYOND_DIGIT_LIMIT not in failures[0].message
 
 
 @_YAML_CASES
@@ -1861,7 +1871,8 @@ def test_vocabulary_remote_check_refuses_a_malformed_locked_url(module_name):
 
     gate = importlib.import_module(f"tools.{module_name}")
     failure = gate._remote_url_failure(SimpleNamespace(source_url="https://[::1/x"), "https://[::1/x")
-    assert failure is not None and failure.startswith(f"{gate.SOURCE_RELATIVE_PATH}: remote verification URL")
+    assert failure is not None
+    assert failure.startswith(f"{gate.SOURCE_RELATIVE_PATH}: remote verification URL")
 
 
 def test_autonomous_vocabulary_remote_check_refuses_a_malformed_locked_url():
@@ -2191,8 +2202,9 @@ def test_closure_wheel_without_its_locked_identity_is_invalid_input(package: dic
 def test_closure_package_wheels_that_are_not_an_array_are_invalid_input() -> None:
     from tools.generate_python_closures import _select_wheel, _supported_tags
 
+    tags = _supported_tags("3.14", "cp314", "x86_64-unknown-linux-gnu")
     with pytest.raises(InvalidInputError, match="lock package wheels must be an array"):
-        _select_wheel({"name": "dep", "wheels": 5}, _supported_tags("3.14", "cp314", "x86_64-unknown-linux-gnu"))
+        _select_wheel({"name": "dep", "wheels": 5}, tags)
 
 
 def test_build_constraint_without_a_locked_version_is_invalid_input(tmp_path: Path) -> None:
@@ -2536,8 +2548,9 @@ def test_closure_candidate_that_cannot_be_read_is_refused(tmp_path: Path) -> Non
 
     candidate = tmp_path / "raes-1.0.tar.gz"
     candidate.write_bytes(b"candidate")
+    unreadable = _installers2_unreadable(candidate)
     with pytest.raises(InvalidInputError, match="candidate distribution is unreadable"):
-        candidate_digest(_installers2_unreadable(candidate))
+        candidate_digest(unreadable)
 
 
 def test_closure_wheelhouse_that_cannot_be_read_is_refused(tmp_path: Path) -> None:
@@ -2823,9 +2836,10 @@ def test_closure_build_refuses_an_output_directory_the_host_cannot_create(tmp_pa
     from tools.python_closure import REPO_ROOT, _build
 
     (tmp_path / "file").write_text("not a directory", encoding="utf-8")
+    profile = _installers2_closure_profile()
     with pytest.raises(OperationalError, match="^candidate build output could not be created$"):
         _build(
-            _installers2_closure_profile(),
+            profile,
             REPO_ROOT / "implementations" / "python",
             tmp_path / "file" / "out",
             context_id="python-public",
@@ -2838,9 +2852,10 @@ def test_closure_build_refuses_a_private_workspace_the_host_cannot_create(
     from tools import python_closure
 
     monkeypatch.setattr(python_closure.tempfile, "TemporaryDirectory", _installers2_host_failure)
+    profile = _installers2_closure_profile()
     with pytest.raises(OperationalError, match="^Python closure private workspace could not be created$"):
         python_closure._build(
-            _installers2_closure_profile(),
+            profile,
             python_closure.REPO_ROOT / "implementations" / "python",
             tmp_path / "out",
             context_id="python-public",
@@ -2851,8 +2866,9 @@ def test_closure_materialize_refuses_a_wheelhouse_the_host_cannot_create(tmp_pat
     from tools.python_closure import _materialize
 
     (tmp_path / "file").write_text("not a directory", encoding="utf-8")
+    profile = _installers2_closure_profile()
     with pytest.raises(OperationalError, match="^wheelhouse destination could not be created$"):
-        _materialize(_installers2_closure_profile(), tmp_path / "file" / "wheelhouse")
+        _materialize(profile, tmp_path / "file" / "wheelhouse")
 
 
 def test_closure_manifest_show_refuses_a_manifest_the_host_cannot_read(
@@ -3284,12 +3300,12 @@ def test_release_evidence_index_the_decoder_cannot_read_is_unparsable(tmp_path: 
 def test_release_evidence_verifier_output_that_is_not_utf8_is_unparsable() -> None:
     import sys
 
-    from tools.release_evidence import VerifierError, _run_verifier
+    from tools.release_evidence_verifier import VerifierError, run_verifier
 
     command = [sys.executable, "-c", "import sys; sys.stdout.buffer.write(b'[\\xff]')"]
 
     with pytest.raises(VerifierError) as refused:
-        _run_verifier(command)
+        run_verifier(command)
 
     assert refused.value.code == "verifier-output-unparsable"
 
@@ -3303,7 +3319,7 @@ def test_release_evidence_verifier_output_that_is_not_utf8_is_unparsable() -> No
     ids=["requirement", "extra", "version"],
 )
 def test_runtime_closure_refuses_a_wheel_metadata_field_it_cannot_parse(tmp_path: Path, field: str) -> None:
-    from tools.release_evidence_sbom import RuntimeClosureError, reconcile_runtime_closure, wheel_metadata
+    from tools.release_evidence_sbom import RuntimeClosureError, wheel_metadata
 
     header = "Metadata-Version: 2.3\nName: raes\n"
     version = "" if field.startswith("Version:") else "Version: 1.2.3\n"
@@ -3312,7 +3328,7 @@ def test_runtime_closure_refuses_a_wheel_metadata_field_it_cannot_parse(tmp_path
         archive.writestr("raes-1.2.3.dist-info/METADATA", f"{header}{version}{field}\n")
 
     with pytest.raises(RuntimeClosureError) as refused:
-        reconcile_runtime_closure(wheel_metadata(wheel), lock={"package": []}, installed_versions={}, environment={})
+        wheel_metadata(wheel)
 
     assert refused.value.code == "wheel-metadata-invalid"
 
@@ -3437,8 +3453,9 @@ def test_repository_requirement_with_an_unconstructable_status_is_unreadable_aut
 
     _nox2_write(tmp_path / "docs/requirements/SEM-001/requirement.md", f"---\nid: SEM-001\nstatus: {status}\n---\n")
 
+    client = RepositoryRequirementClient(tmp_path)
     with pytest.raises(RepositoryRequirementError) as refused:
-        RepositoryRequirementClient(tmp_path).get_requirement("", "SEM-001")
+        client.get_requirement("", "SEM-001")
 
     assert str(refused.value) == "Requirement authority cannot be read and validated."
 
@@ -3454,8 +3471,9 @@ def test_repository_requirement_keeps_a_record_defect_out_of_the_refusal(
         raise ValueError(_NOX2_DEFECT)
 
     monkeypatch.setattr(requirements, "_governed_requirement", defective)
+    client = requirements.RepositoryRequirementClient(tmp_path)
     with pytest.raises(ValueError, match=_NOX2_DEFECT):
-        requirements.RepositoryRequirementClient(tmp_path).get_requirement("", "SEM-001")
+        client.get_requirement("", "SEM-001")
 
 
 def test_repository_requirement_keeps_a_loader_defect_out_of_the_refusal(
@@ -3469,8 +3487,9 @@ def test_repository_requirement_keeps_a_loader_defect_out_of_the_refusal(
         raise ValueError(_NOX2_DEFECT)
 
     monkeypatch.setattr(requirements._RequirementLoader, "construct_mapping", defective)
+    client = requirements.RepositoryRequirementClient(tmp_path)
     with pytest.raises(ValueError, match=_NOX2_DEFECT):
-        requirements.RepositoryRequirementClient(tmp_path).get_requirement("", "SEM-001")
+        client.get_requirement("", "SEM-001")
 
 
 # tools/policy/requirement_scope.py
@@ -3521,8 +3540,9 @@ def test_ground_control_response_the_decoder_cannot_read_is_unavailable(
 
     monkeypatch.setattr(governance, "urlopen", lambda _request, *, timeout: _Nox2Response(payload))
 
+    client = governance.GroundControlHttpClient("http://ground-control.invalid")
     with pytest.raises(governance.GroundControlUnavailable) as refused:
-        governance.GroundControlHttpClient("http://ground-control.invalid").get_requirement("project", "ASR-1")
+        client.get_requirement("project", "ASR-1")
 
     assert str(refused.value) == "malformed response"
     assert _NOX2_SENTINEL not in str(refused.value)
@@ -3557,8 +3577,9 @@ def test_ground_control_response_defect_is_not_reported_as_unavailable(monkeypat
 
     monkeypatch.setattr(governance, "urlopen", lambda _request, *, timeout: _Nox2Response(ValueError(_NOX2_DEFECT)))
 
+    client = governance.GroundControlHttpClient("http://ground-control.invalid")
     with pytest.raises(ValueError, match=_NOX2_DEFECT):
-        governance.GroundControlHttpClient("http://ground-control.invalid").get_requirement("project", "ASR-1")
+        client.get_requirement("project", "ASR-1")
 
 
 # tools/check_identity_cutover.py
@@ -3741,8 +3762,9 @@ def test_ground_control_requirement_record_of_the_wrong_shape_is_a_malformed_res
 
     monkeypatch.setattr(governance, "urlopen", lambda _request, *, timeout: _Nox2Response(payload))
 
+    client = governance.GroundControlHttpClient("http://ground-control.invalid")
     with pytest.raises(governance.GroundControlUnavailable) as refused:
-        governance.GroundControlHttpClient("http://ground-control.invalid").get_requirement("project", "ASR-1")
+        client.get_requirement("project", "ASR-1")
 
     assert str(refused.value) == "malformed response"
 
@@ -3759,8 +3781,9 @@ def test_ground_control_traceability_of_the_wrong_shape_is_a_malformed_response(
 
     monkeypatch.setattr(governance, "urlopen", lambda _request, *, timeout: _Nox2Response(payload))
 
+    client = governance.GroundControlHttpClient("http://ground-control.invalid")
     with pytest.raises(governance.GroundControlUnavailable) as refused:
-        governance.GroundControlHttpClient("http://ground-control.invalid").get_traceability("req-1")
+        client.get_traceability("req-1")
 
     assert str(refused.value) == "malformed response"
 
@@ -4002,6 +4025,24 @@ def test_adr_pin_gate_compares_a_base_revision_that_is_not_utf8(tmp_path: Path) 
     failures = adr_gate.evaluate_adr_immutability(tmp_path, base_rev=base_tree)
 
     assert [failure.rule_id for failure in failures] == [adr_gate.RULE_AMENDMENT_UNRECORDED]
+
+
+@pytest.mark.parametrize("revision", ["", "--output=/tmp/adr-gate-probe"])
+def test_adr_pin_gate_refuses_a_base_revision_that_git_reads_as_an_option(revision: str) -> None:
+    import tools.check_adr_immutability as adr_gate
+
+    with pytest.raises(SystemExit) as refused:
+        adr_gate.parse_args([f"--base-rev={revision}"])
+
+    assert refused.value.code == 2
+
+
+def test_adr_pin_gate_git_reader_refuses_a_reference_that_starts_with_a_dash(tmp_path: Path) -> None:
+    import tools.check_adr_immutability as adr_gate
+    from raes_contracts.errors import InvalidInputError
+
+    with pytest.raises(InvalidInputError, match="must not start with '-'"):
+        adr_gate._git_show(tmp_path, "--output=/tmp/adr-gate-probe:docs/a.md")
 
 
 # tools/nox_support/runner.py and tools/pytest_shard.py
@@ -4727,16 +4768,18 @@ def test_tooling2_governed_pin_defects_still_propagate(tmp_path, monkeypatch):
         raise KeyError(_TOOLING2_DEFECT)
 
     monkeypatch.setattr(python_policy, "Requirement", requirement_defect)
+    project = _tooling2_project()
     with pytest.raises(KeyError, match=_TOOLING2_DEFECT):
-        python_policy._governed_pin_failures(root, _tooling2_project())
+        python_policy._governed_pin_failures(root, project)
     monkeypatch.undo()
 
     def constraints_defect(_text):
         raise ValueError(_TOOLING2_DEFECT)
 
     monkeypatch.setattr(python_policy, "_constraint_records", constraints_defect)
+    project = _tooling2_project()
     with pytest.raises(ValueError, match=_TOOLING2_DEFECT):
-        python_policy._governed_pin_failures(root, _tooling2_project())
+        python_policy._governed_pin_failures(root, project)
 
 
 _TOOLING2_UNUSABLE_LOCKS = {

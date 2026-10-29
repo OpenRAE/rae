@@ -62,11 +62,9 @@ _REPOSITORY = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
 
 
 IssueLookup = Callable[[int], IssueFacts]
-# How an issue lookup reports that it could not answer: GitHubIssueLookup raises
-# RuntimeError for an HTTP status or a malformed response, OSError for a
-# transport failure, ValueError for an undecodable response, and HTTPException
-# for a broken HTTP exchange; the fixture lookup raises ValueError. Any other
-# exception is a defect and is not reported as an unverifiable issue.
+# GitHubIssueLookup reports an HTTP status or malformed response (RuntimeError), a transport failure
+# (OSError), an undecodable response (ValueError) or a broken exchange (HTTPException); the fixture
+# lookup raises ValueError. Any other exception is a defect, not an unverifiable issue.
 _LOOKUP_FAILURES = (OSError, RuntimeError, ValueError, http.client.HTTPException)
 
 
@@ -134,22 +132,6 @@ def _meaningful(text: str, *, minimum_words: int = 3) -> bool:
     return len(remaining) >= 12 and len(words) >= minimum_words
 
 
-def _canonical_issue_number(reference: str) -> bool:
-    """Return whether a reference is a canonical decimal issue number.
-
-    A reference beyond the interpreter integer digit limit cannot name an issue,
-    so it is malformed, like a reference with a leading zero.
-    """
-
-    digit_limit = sys.get_int_max_str_digits()
-    return (
-        reference.isascii()
-        and reference.isdecimal()
-        and not reference.startswith("0")
-        and (digit_limit == 0 or len(reference) <= digit_limit)
-    )
-
-
 def _issue_numbers(body: str, keyword: str) -> tuple[int, ...]:
     """Return unique standalone same-repository references in source order."""
 
@@ -160,8 +142,12 @@ def _issue_numbers(body: str, keyword: str) -> tuple[int, ...]:
         if len(parts) != 2 or parts[0] != keyword or not parts[1].startswith("#"):
             continue
         reference = parts[1].removeprefix("#")
-        if _canonical_issue_number(reference):
-            numbers.append(int(reference))
+        if reference.isascii() and reference.isdecimal() and not reference.startswith("0"):
+            try:
+                numbers.append(int(reference))
+            except ValueError:
+                # A reference beyond the interpreter integer digit limit cannot name an issue.
+                continue
     return tuple(dict.fromkeys(numbers))
 
 
@@ -229,24 +215,11 @@ def _validate_required_sections(sections: dict[str, list[str]]) -> list[BodyViol
         name = heading.casefold()
         contents = sections.get(name, [])
         if len(contents) != 1:
-            violations.append(
-                BodyViolation(
-                    RULE_SECTION,
-                    f"PR body must contain exactly one '## {heading}' section; found {len(contents)}.",
-                )
-            )
+            message = f"PR body must contain exactly one '## {heading}' section; found {len(contents)}."
+            violations.append(BodyViolation(RULE_SECTION, message))
         # Summary, Related Issues and Test Plan have their own content rules.
-        elif not contents[0] and name not in {
-            SUMMARY_SECTION,
-            TRACKING_SECTION,
-            VERIFICATION_SECTION,
-        }:
-            violations.append(
-                BodyViolation(
-                    RULE_SECTION,
-                    f"'## {heading}' must not be empty or placeholder-only.",
-                )
-            )
+        elif not contents[0] and name not in {SUMMARY_SECTION, TRACKING_SECTION, VERIFICATION_SECTION}:
+            violations.append(BodyViolation(RULE_SECTION, f"'## {heading}' must not be empty or placeholder-only."))
     return violations
 
 

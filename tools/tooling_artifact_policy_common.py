@@ -181,6 +181,30 @@ def _schema_failures(
     policy_path: str,
     schema_path: str,
 ) -> list[PolicyFailure]:
+    if contains_nonlocal_schema_reference(schema):
+        message = "internal tooling schemas may use only local fragment references"
+        return [failure("tooling-schema-reference", message, schema_path)]
+    errors = _schema_errors(document, schema, policy_path, schema_path)
+    if isinstance(errors, PolicyFailure):
+        return [errors]
+    return [
+        failure(
+            "tooling-schema",
+            f"schema validation failed at {'.'.join(str(part) for part in error.absolute_path) or '<root>'}",
+            policy_path,
+        )
+        for error in errors
+    ]
+
+
+def _schema_errors(
+    document: Mapping[str, Any],
+    schema: Mapping[str, Any],
+    policy_path: str,
+    schema_path: str,
+) -> list[Any] | PolicyFailure:
+    """Return the validation errors of a policy document, or the failure that prevents validation."""
+
     from jsonschema import Draft202012Validator, FormatChecker
     from jsonschema.exceptions import SchemaError
 
@@ -191,20 +215,13 @@ def _schema_failures(
         # base image uses, resolves references itself and raises RefResolutionError.
         from jsonschema.exceptions import RefResolutionError as Unresolvable
 
-    if contains_nonlocal_schema_reference(schema):
-        return [
-            failure(
-                "tooling-schema-reference",
-                "internal tooling schemas may use only local fragment references",
-                schema_path,
-            )
-        ]
+    malformed = failure("tooling-schema", "internal tooling schema is malformed or nested too deeply", schema_path)
     try:
         Draft202012Validator.check_schema(schema)
     except (SchemaError, RecursionError):
         # The metaschema check refuses a malformed keyword or pattern, and stops at the
         # recursion limit for a schema that nests too deeply.
-        return [failure("tooling-schema", "internal tooling schema is malformed or nested too deeply", schema_path)]
+        return malformed
     validator = Draft202012Validator(schema, format_checker=FormatChecker())
     try:
         errors = sorted(validator.iter_errors(document), key=lambda item: list(item.absolute_path))
@@ -212,18 +229,11 @@ def _schema_failures(
         # The metaschema check does not resolve references, so a dangling local $ref fails here. A
         # jsonschema release whose metaschema check does not test regular expressions (4.10 on the
         # base image) compiles a malformed schema pattern here.
-        return [failure("tooling-schema", "internal tooling schema is malformed or nested too deeply", schema_path)]
+        errors = malformed
     except RecursionError:
         # The validator descends once for each level where the schema and the document nest together.
-        return [failure("tooling-schema", "policy document nests too deeply to validate", policy_path)]
-    return [
-        failure(
-            "tooling-schema",
-            f"schema validation failed at {'.'.join(str(part) for part in error.absolute_path) or '<root>'}",
-            policy_path,
-        )
-        for error in errors
-    ]
+        errors = failure("tooling-schema", "policy document nests too deeply to validate", policy_path)
+    return errors
 
 
 def is_regular_repo_file(repo_root: Path, relative_path: str) -> bool:
@@ -278,6 +288,21 @@ def string_set(value: object) -> set[str]:
     return {item for item in as_list(value) if isinstance(item, str)}
 
 
+def _policy_compatibility_failures(
+    subject: object, evidence_compatible: bool, expected_subjects: set[str], path: str, context: str
+) -> list[PolicyFailure]:
+    failures: list[PolicyFailure] = []
+    # The expected subjects are text, so a subject of another type, also one that cannot be hashed, is incompatible.
+    if not isinstance(subject, str) or subject not in expected_subjects:
+        failures.append(
+            failure("tooling-policy-subject", f"{context} admission policy has an incompatible subject", path)
+        )
+    if not evidence_compatible:
+        message = f"{context} does not supply evidence accepted by its admission policy"
+        failures.append(failure("tooling-policy-evidence", message, path))
+    return failures
+
+
 def policy_join_failures(
     *,
     policy_refs: set[str],
@@ -309,28 +334,12 @@ def policy_join_failures(
         if isinstance(subject, str):
             joined_subjects.add(subject)
         joined_evidence.update(accepted_evidence)
-        # The expected subjects are text, so a subject of another type, also one that cannot be hashed, is incompatible.
-        if not isinstance(subject, str) or subject not in expected_subjects:
-            failures.append(
-                failure(
-                    "tooling-policy-subject",
-                    f"{context} admission policy has an incompatible subject",
-                    path,
-                )
-            )
         evidence_compatible = (
             provided_evidence <= accepted_evidence
             if require_all_evidence_per_policy
             else bool(provided_evidence & accepted_evidence)
         )
-        if not evidence_compatible:
-            failures.append(
-                failure(
-                    "tooling-policy-evidence",
-                    f"{context} does not supply evidence accepted by its admission policy",
-                    path,
-                )
-            )
+        failures.extend(_policy_compatibility_failures(subject, evidence_compatible, expected_subjects, path, context))
     if expected_subjects - joined_subjects:
         failures.append(
             failure(

@@ -175,7 +175,8 @@ def refuse_invalid_database() -> Iterator[None]:
         # The extended result code keeps the primary result code in its low byte. An error
         # that the sqlite3 module raises itself, such as use of a closed connection, has no code.
         code = getattr(exc, "sqlite_errorcode", None)
-        if not isinstance(code, int) or (code & 0xFF) not in _INVALID_DATABASE_RESULT_CODES:
+        primary_code = code & 0xFF if isinstance(code, int) else None
+        if primary_code not in _INVALID_DATABASE_RESULT_CODES:
             raise
         raise EvidenceIntegrityError("local control-plane database file is not a valid SQLite database") from exc
 

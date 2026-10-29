@@ -218,8 +218,9 @@ def test_a_defect_is_not_reported_as_a_release_refusal(
     (tmp_path / "evidence").mkdir()
     monkeypatch.setattr(release_evidence, "_load_index", defect)
 
+    verify_args = _verify_args(tmp_path)
     with pytest.raises(ValueError, match="synthetic-private-value"):
-        release_evidence.main(_verify_args(tmp_path))
+        release_evidence.main(verify_args)
     assert "refused" not in capsys.readouterr().err
 
 

@@ -84,12 +84,14 @@ def _lease_available(control_plane: object, lease: object | None) -> bool:
         control_plane._assert_runtime_owner()
     except RaesError:
         # A closed runtime, a lost lease or an exhausted check budget is an expected unready state.
-        return False
+        available = False
     except Exception:
         # Isolation of the store lease check: readiness reports it without failing the probe.
         _LOGGER.exception("control-plane readiness could not confirm the runtime lease")
-        return False
-    return True
+        available = False
+    else:
+        available = True
+    return available
 
 
 __all__ = (

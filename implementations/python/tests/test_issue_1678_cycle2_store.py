@@ -59,8 +59,9 @@ def test_runtime_admission_refuses_a_store_with_a_damaged_page(tmp_path: Path, t
     store_path = tmp_path / "store"
     _damage_root_page(_bound_store(store_path), table)
 
+    store = LocalControlPlaneStore(store_path)
     with pytest.raises(EvidenceIntegrityError, match="not a valid SQLite database") as caught:
-        LocalControlPlaneStore(store_path).admit_runtime(**_SCOPE)
+        store.admit_runtime(**_SCOPE)
     assert isinstance(caught.value.__cause__, sqlite3.DatabaseError)
 
 
@@ -116,8 +117,9 @@ def test_a_stored_snapshot_with_a_non_object_element_is_an_integrity_failure(tmp
 
     with pytest.raises(EvidenceIntegrityError, match=_SNAPSHOT_REFUSAL):
         _check(store_path)
+    store = LocalControlPlaneStore(store_path)
     with pytest.raises(EvidenceIntegrityError, match=_SNAPSHOT_REFUSAL):
-        LocalControlPlaneStore(store_path).admit_runtime(**_SCOPE)
+        store.admit_runtime(**_SCOPE)
 
 
 # core-F6: stored inject history that does not replay is damaged evidence, not a request conflict.
@@ -167,8 +169,9 @@ def test_stored_inject_history_that_does_not_replay_is_an_integrity_failure(tmp_
     finally:
         store.close()
         lease.close()
+    reopened = LocalControlPlaneStore(store_path)
     with pytest.raises(EvidenceIntegrityError):
-        LocalControlPlaneStore(store_path).admit_runtime(**_INJECT_SCOPE)
+        reopened.admit_runtime(**_INJECT_SCOPE)
 
 
 def test_postgresql_loader_refuses_stored_inject_history_that_does_not_replay() -> None:
@@ -193,11 +196,13 @@ def _orphan_delivery() -> object:
 
 
 def test_a_delivery_without_its_world_predecessor_keeps_the_category_of_its_caller() -> None:
+    records = (_orphan_delivery(),)
     with pytest.raises(ConflictError) as claimed:
-        require_inject_history((_orphan_delivery(),))
+        require_inject_history(records)
     assert type(claimed.value) is ConflictError
+    records = (_orphan_delivery(),)
     with pytest.raises(EvidenceIntegrityError) as stored:
-        require_stored_inject_history((_orphan_delivery(),))
+        require_stored_inject_history(records)
     assert type(stored.value) is EvidenceIntegrityError
 
 
@@ -206,8 +211,9 @@ def test_a_live_claim_against_a_valid_stored_history_stays_a_conflict(tmp_path: 
     lease = store.admit_runtime(**_INJECT_SCOPE)
     try:
         store.claim_record(claimed_record())
+        competing = claimed_record(key="other-key", operation_id="other-operation")
         with pytest.raises(ConflictError) as caught:
-            store.claim_record(claimed_record(key="other-key", operation_id="other-operation"))
+            store.claim_record(competing)
         assert type(caught.value) is ConflictError
     finally:
         store.close()
@@ -255,8 +261,9 @@ class _Ledger:
     ids=["state-revision", "operations-actor", "audit-sequence", "history-position", "changes-removed"],
 )
 def test_postgresql_admission_refuses_a_ledger_that_lost_a_column(lost: dict[str, str], projection: bool) -> None:
+    ledger = _Ledger(lost=lost)
     with pytest.raises(EvidenceIntegrityError, match="missing a required table or column") as caught:
-        require_ledger_tables(_Ledger(lost=lost), projection=projection)
+        require_ledger_tables(ledger, projection=projection)
     assert type(caught.value) is EvidenceIntegrityError
 
 
@@ -387,8 +394,9 @@ def test_a_retained_record_whose_bytes_are_not_text_is_an_integrity_failure(
             "checksum": record.artifact.checksum.model_copy(update={"value": digest}),
         }
     )
+    damaged = record.model_copy(update={"artifact": artifact})
     with pytest.raises(EvidenceIntegrityError) as caught:
-        archive.read(record.model_copy(update={"artifact": artifact}))
+        archive.read(damaged)
     assert isinstance(caught.value.__cause__, UnicodeDecodeError)
 
 
@@ -413,8 +421,9 @@ def test_an_unusable_archive_root_is_an_operational_error(
     retained: tuple[object, object, Path], tmp_path: Path
 ) -> None:
     _archive, record, _path = retained
+    archive = RunMaterializationArchive(tmp_path / "absent")
     with pytest.raises(OperationalError):
-        RunMaterializationArchive(tmp_path / "absent").read(record)
+        archive.read(record)
 
 
 def test_a_planted_symlink_at_a_published_name_is_an_integrity_failure(

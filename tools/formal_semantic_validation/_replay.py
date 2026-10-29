@@ -137,7 +137,7 @@ def _validate_test_ref(repo_root: Path, value: object) -> bool:
         source = path.read_text(encoding="utf-8")
     except UnicodeDecodeError:
         # A referenced file that is not UTF-8 text cannot define the test.
-        return False
+        source = ""
     return re.search(rf"^def {re.escape(function_name)}\s*\(", source, re.MULTILINE) is not None
 
 

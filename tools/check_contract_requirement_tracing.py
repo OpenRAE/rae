@@ -183,8 +183,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     if failures:
         _print_failures(failures, as_json=args.json)
-        return 1
-    return 0
+    return 1 if failures else 0
 
 
 if __name__ == "__main__":

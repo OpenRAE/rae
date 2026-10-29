@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import json
 import logging
+from functools import partial
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -231,8 +232,9 @@ def test_opacity_file_with_a_bad_document_is_invalid_input(tmp_path, module, rea
 
     path = tmp_path / "input.json"
     path.write_text(content, encoding="utf-8")
+    read = getattr(importlib.import_module(module), reader)
     with pytest.raises(ParticipantOpacityInputError, match="bounded closed-world admission") as refused:
-        getattr(importlib.import_module(module), reader)(path)
+        read(path)
     assert isinstance(refused.value, InvalidInputError)
     assert not isinstance(refused.value, OperationalError)
     assert refused.value.__suppress_context__ is True
@@ -244,8 +246,9 @@ def test_opacity_file_that_cannot_be_read_is_an_operational_failure(tmp_path, mo
 
     from raes_processor.participant_opacity import ParticipantOpacityOperationalError
 
+    read = getattr(importlib.import_module(module), reader)
     with pytest.raises(ParticipantOpacityOperationalError, match="bounded closed-world admission"):
-        getattr(importlib.import_module(module), reader)(tmp_path / "absent.json")
+        read(tmp_path / "absent.json")
 
 
 @_OPACITY_FILE_READERS
@@ -260,8 +263,9 @@ def test_opacity_file_ingress_defect_still_propagates(tmp_path, monkeypatch, mod
     monkeypatch.setattr(target, "parse_bounded_json_object", defect)
     path = tmp_path / "input.json"
     path.write_text("{}", encoding="utf-8")
+    read = getattr(target, reader)
     with pytest.raises(ValueError, match=DEFECT):
-        getattr(target, reader)(path)
+        read(path)
 
 
 # --- The archive adapter is isolated with a foreign-failure record ----------------------------------------------
@@ -292,8 +296,9 @@ def test_foreign_archive_failure_logs_only_a_foreign_failure_record(caplog):
         def read(self, _record):
             raise ArchiveAdapterOnlyError(_ARCHIVE_SECRET)
 
+    archive = ForeignArchive()
     with caplog.at_level(logging.WARNING, logger=_LINEAGE_LOGGER), pytest.raises(InventoryAdmissionError) as raised:
-        _predecessor(ForeignArchive())
+        _predecessor(archive)
 
     assert raised.value.invariant is InventoryInvariant.ARCHIVE
     assert raised.value.__cause__ is None
@@ -317,8 +322,9 @@ def test_retained_archive_integrity_refusal_is_not_logged_as_a_foreign_failure(c
         def read(self, _record):
             raise refusal
 
+    archive = RetainedArchive()
     with caplog.at_level(logging.DEBUG, logger=_LINEAGE_LOGGER), pytest.raises(InventoryAdmissionError) as raised:
-        _predecessor(RetainedArchive())
+        _predecessor(archive)
 
     assert raised.value.invariant is InventoryInvariant.ARCHIVE
     assert raised.value.__cause__ is refusal
@@ -337,8 +343,9 @@ def test_retained_archive_validation_defect_still_propagates(monkeypatch):
         def read(self, _record):
             return SimpleNamespace(sdl="name: x\n")
 
+    archive = Archive()
     with pytest.raises(ValueError, match=DEFECT):
-        _predecessor(Archive())
+        _predecessor(archive)
 
 
 # --- The base-image import closure follows relative imports ------------------------------------------------------
@@ -436,14 +443,15 @@ def test_damaged_packaged_catalog_is_an_operational_failure(caplog, revision):
     from raes_contracts.errors import OperationalError
 
     logger = behavioral_relations.__name__
+    if revision is None:
+        load = behavioral_relations.load_behavioral_relation_catalog
+    else:
+        load = partial(behavioral_relations.load_behavioral_relation_catalog_revision, revision)
     with (
         caplog.at_level(logging.ERROR, logger=logger),
         pytest.raises(BehavioralAuthorityArtifactError, match="catalog is invalid") as refused,
     ):
-        if revision is None:
-            behavioral_relations.load_behavioral_relation_catalog()
-        else:
-            behavioral_relations.load_behavioral_relation_catalog_revision(revision)
+        load()
     assert isinstance(refused.value, OperationalError)
     assert refused.value.__suppress_context__ is True
     assert len([item for item in caplog.records if item.name == behavioral_relations.__name__]) == 1
@@ -472,8 +480,9 @@ def _unsupported_claim(**changes: object):
 def test_claim_binding_naming_an_unpackaged_revision_fails_its_field_check():
     from raes_contracts.behavioral_relations import validate_behavioral_claim_binding
 
+    claim = _unsupported_claim(taxonomy_revision="rev99")
     with pytest.raises(ValueError, match="unsupported catalog revision") as refused:
-        validate_behavioral_claim_binding(_unsupported_claim(taxonomy_revision="rev99"))
+        validate_behavioral_claim_binding(claim)
     assert type(refused.value) is ValueError
 
 
@@ -482,8 +491,9 @@ def test_claim_binding_against_a_damaged_catalog_propagates_the_operational_fail
     from raes_contracts.behavioral_authority_errors import BehavioralAuthorityArtifactError
     from raes_contracts.behavioral_relations import validate_behavioral_claim_binding
 
+    claim = _unsupported_claim()
     with pytest.raises(BehavioralAuthorityArtifactError):
-        validate_behavioral_claim_binding(_unsupported_claim())
+        validate_behavioral_claim_binding(claim)
 
 
 @pytest.mark.usefixtures("_damaged_catalogs")
@@ -565,8 +575,9 @@ def test_opacity_file_maps_authority_failures_to_their_category(tmp_path, monkey
     target = importlib.import_module(module)
     path = _opacity_request_file(tmp_path, module)
     monkeypatch.setattr(target, "load_behavioral_relation_profile_revision", _authority_failure(kind))
+    read = getattr(target, reader)
     with pytest.raises(getattr(participant_opacity, expected)):
-        getattr(target, reader)(path)
+        read(path)
 
 
 @_OPACITY_FILE_READERS
@@ -576,8 +587,9 @@ def test_opacity_file_authority_defect_still_propagates(tmp_path, monkeypatch, m
     target = importlib.import_module(module)
     path = _opacity_request_file(tmp_path, module)
     monkeypatch.setattr(target, "load_behavioral_relation_profile_revision", _authority_failure("defect"))
+    read = getattr(target, reader)
     with pytest.raises(ValueError, match=DEFECT):
-        getattr(target, reader)(path)
+        read(path)
 
 
 @pytest.mark.parametrize(

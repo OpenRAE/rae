@@ -354,11 +354,11 @@ class _VariationMixin:
             for group in groups:
                 for point_name, member_name in group.members:
                     if not solver.has_witness({(point_name, member_name): True}):
-                        with self._owner(("variation_points", point_name)):
-                            self._err(
-                                f"Variation point '{point_name}' member '{member_name}' cannot participate "
-                                "in any satisfying selection"
-                            )
+                        self._err_for(
+                            ("variation_points", point_name),
+                            f"Variation point '{point_name}' member '{member_name}' cannot participate "
+                            "in any satisfying selection",
+                        )
 
     def _selection_relation_clauses(
         self,

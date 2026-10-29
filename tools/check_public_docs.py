@@ -179,13 +179,7 @@ def evaluate_public_sources(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
     try:
         redirects = _load_redirects(public_root)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, InvalidInputError) as exc:
-        failures.append(
-            PolicyFailure(
-                "public-docs-redirect-map",
-                str(exc),
-                _relative(repo_root, redirects_path),
-            )
-        )
+        failures.append(PolicyFailure("public-docs-redirect-map", str(exc), _relative(repo_root, redirects_path)))
     else:
         if redirects != REQUIRED_PUBLIC_REDIRECTS:
             failures.append(
@@ -215,22 +209,12 @@ def evaluate_public_sources(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
             oversized = source.stat().st_size > MAX_SOURCE_BYTES
             text = "" if oversized else source.read_text(encoding="utf-8")
         except OSError, UnicodeDecodeError:
-            failures.append(
-                PolicyFailure(
-                    "public-docs-source-readable",
-                    "public source must be readable UTF-8 text",
-                    relative_path,
-                )
-            )
+            message = "public source must be readable UTF-8 text"
+            failures.append(PolicyFailure("public-docs-source-readable", message, relative_path))
             continue
         if oversized:
-            failures.append(
-                PolicyFailure(
-                    "public-docs-source-size",
-                    f"public source exceeds the {MAX_SOURCE_BYTES}-byte inspection limit",
-                    relative_path,
-                )
-            )
+            message = f"public source exceeds the {MAX_SOURCE_BYTES}-byte inspection limit"
+            failures.append(PolicyFailure("public-docs-source-size", message, relative_path))
             continue
         if any(not _target_is_contained(public_root, source, target) for target in directive_targets(text)):
             failures.append(

@@ -189,10 +189,11 @@ def materialization_node_payloads_match(name: str, described: object, observed: 
         return False
     path = ("nodes", name)
     try:
-        return not any(_differences(left, right, path, path, _profiles({name}, set())))
+        differs = any(_differences(left, right, path, path, _profiles({name}, set())))
     except InvalidInputError:
         # A keyed collection without its native identity cannot match.
-        return False
+        differs = True
+    return not differs
 
 
 def validate_materialization_origins(source: InstantiatedScenario, materialized: MaterializedScenario) -> None:

@@ -13,6 +13,8 @@ from raes_processor.trial_compiler.replacement import TrialReplacementResult, co
 from .runtime_trial_decisions import TrialArchiveDecision, TrialReplacementDecision
 from .runtime_trial_services import call_installed_owner
 
+_READBACK_DIFFERS = "archive readback differs from the committed trial run"
+
 if TYPE_CHECKING:
     from raes_contracts.contracts import AdmittedTrialPlanModel
     from raes_contracts.trial_unit import TrialUnitRequest, TrialUnitResult
@@ -51,14 +53,14 @@ def _write_archive(owner: TrialArchiveOwner, run: ExperimentRunModel) -> None:
     owner.write_run(run)
     observed = owner.read_run(run.run_id, run.run_version)
     if not isinstance(observed, ExperimentRunModel):
-        raise EvidenceIntegrityError("archive readback differs from the committed trial run")
+        raise EvidenceIntegrityError(_READBACK_DIFFERS)
     # The run model refuses with ValueError; the archive readback owns the refusal (E9).
     try:
         retained = ExperimentRunModel.model_validate(observed.model_dump(mode="json"))
     except ValueError as exc:
-        raise EvidenceIntegrityError("archive readback differs from the committed trial run") from exc
+        raise EvidenceIntegrityError(_READBACK_DIFFERS) from exc
     if retained != run:
-        raise EvidenceIntegrityError("archive readback differs from the committed trial run")
+        raise EvidenceIntegrityError(_READBACK_DIFFERS)
 
 
 def _publish_archive(engine: RuntimeControlPlane, owner: TrialArchiveOwner, run: ExperimentRunModel) -> None:

@@ -224,8 +224,9 @@ def test_crossing_extension_refusal_is_a_conflict(monkeypatch: pytest.MonkeyPatc
         _crossing_policy_resolver=SimpleNamespace(validation_context=lambda _snapshot, _participant: object()),
     )
 
+    intent = SimpleNamespace(participant_address="participant.behavior.green")
     with pytest.raises(ConflictError, match="conflicts with its retained history") as raised:
-        _next_crossing_snapshot(plane, SimpleNamespace(participant_address="participant.behavior.green"), [])
+        _next_crossing_snapshot(plane, intent, [])
 
     assert isinstance(raised.value.__cause__, ValueError)
 

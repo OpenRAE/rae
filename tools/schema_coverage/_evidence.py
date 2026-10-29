@@ -164,6 +164,20 @@ def _definition_wrapper(root: dict[str, object], schema_pointer: str) -> tuple[d
     return {"$schema": root.get("$schema", METASCHEMA), "$defs": definitions, "$ref": schema_pointer}, None
 
 
+def _published_schema(
+    repo_root: Path, schema_path: str, schema_pointer: str | None
+) -> tuple[dict[str, object] | None, str | None]:
+    """Read the published schema, or one of its published ``$defs``, or return why it is unusable."""
+
+    try:
+        root = load_bounded_json_object(repo_root, schema_path, max_bytes=MAX_SCHEMA_BYTES)
+    except InvalidInputError:
+        return None, f"published schema is not a readable bounded JSON object: {schema_path}"
+    if schema_pointer is None:
+        return root, None
+    return _definition_wrapper(root, schema_pointer)
+
+
 def _published_validator(
     repo_root: Path, schema_path: str, schema_pointer: str | None
 ) -> tuple[Draft202012Validator | None, str | None]:
@@ -173,16 +187,9 @@ def _published_validator(
     the named sub-schema resolves without any network or registry lookup.
     """
 
-    try:
-        root = load_bounded_json_object(repo_root, schema_path, max_bytes=MAX_SCHEMA_BYTES)
-    except InvalidInputError:
-        return None, f"published schema is not a readable bounded JSON object: {schema_path}"
-    if schema_pointer is None:
-        schema = root
-    else:
-        schema, reason = _definition_wrapper(root, schema_pointer)
-        if reason is not None:
-            return None, reason
+    schema, reason = _published_schema(repo_root, schema_path, schema_pointer)
+    if reason is not None:
+        return None, reason
     try:
         # A malformed keyword or regular expression otherwise fails inside validation.
         Draft202012Validator.check_schema(schema)

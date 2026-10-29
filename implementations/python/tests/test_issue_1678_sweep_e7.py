@@ -359,8 +359,9 @@ def _vocabulary_refusal_with_secret(*_args: object, **_kwargs: object) -> None:
 def _goal_validation_errors(old: str = "", new: str = "") -> list[str]:
     from test_sce_004_goal_oriented_steps import _governed_goal_scenario
 
+    source = _governed_goal_scenario().replace(old, new)
     with pytest.raises(SDLValidationError) as raised:
-        parse_sdl(_governed_goal_scenario().replace(old, new))
+        parse_sdl(source)
     return raised.value.errors
 
 

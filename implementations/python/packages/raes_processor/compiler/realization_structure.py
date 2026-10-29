@@ -175,6 +175,17 @@ def compile_realization_structure(
         return None, False, False
     if not identity_fields:
         return _unkeyed_structure(compiler, authored_value, root_open)
+    return _keyed_structure(compiler, authored_value, field_pointer, root_open=root_open, nested_open=nested_open)
+
+
+def _keyed_structure(
+    compiler: _StructureCompiler,
+    authored_value: object,
+    field_pointer: str,
+    *,
+    root_open: bool,
+    nested_open: bool,
+) -> tuple[RealizationStructure | None, bool, bool]:
     if not (isinstance(authored_value, list) and authored_value):
         return None, False, root_open
     # The structure models refuse a collection beyond their bounds with ValidationError.

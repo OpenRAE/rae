@@ -81,10 +81,9 @@ def test_manifest_without_contract_form_is_an_unresolved_refusal(monkeypatch: py
     record = ParticipantControlEvaluationModel.model_validate(evaluation_payload())
     monkeypatch.setattr(participant_control_admission, "backend_manifest_v2_model", no_contract_form)
 
+    manifest = manifest_with_modular_support()
     with pytest.raises(ConflictError, match=_UNRESOLVED):
-        participant_control_admission.resolve_participant_control_support(
-            manifest_with_modular_support(), record.support[0]
-        )
+        participant_control_admission.resolve_participant_control_support(manifest, record.support[0])
 
 
 def test_defect_in_support_resolution_is_not_reported_as_a_refusal(monkeypatch: pytest.MonkeyPatch):

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, TypedDict, Unpack, cast
 
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
@@ -28,6 +28,61 @@ class InteractionCallOptions(TypedDict, total=False):
     result_validator: Callable[[ApplyResult, RuntimeSnapshot], ApplyResult] | None
     idempotency_key: str
     identity: object | None
+
+
+@dataclass(frozen=True)
+class _InteractionInvocation:
+    address: str
+    realization: _RealizationApplyContext
+    call: _BackendCallContext | None
+    runtime_composition: bool
+    result_validator: Callable[[ApplyResult, RuntimeSnapshot], ApplyResult] | None
+    cancelled: list[tuple[ApplyResult, RuntimeSnapshot]]
+
+
+def _cancellation_reader(
+    plane: object, cancelled: list[tuple[ApplyResult, RuntimeSnapshot]], address: str
+) -> Callable[[], ApplyResult | None]:
+    """Read the last state that a composition method settled before a cancellation."""
+
+    def cancellation_result() -> ApplyResult | None:
+        if not cancelled:
+            return None
+        from .interaction_results import validated_composition_result
+
+        settled, predecessor = cancelled[-1]
+        return validated_composition_result(plane, settled, predecessor, address)
+
+    return cancellation_result
+
+
+def _interaction_invoker(
+    plane: object, method: Callable[..., object], args: tuple[object, ...], invocation: _InteractionInvocation
+) -> Callable[[RuntimeSnapshot, str, str], tuple[ApplyResult, None]]:
+    """Return the local executor that applies one interaction callback at its predecessor state."""
+
+    def invoke(predecessor: RuntimeSnapshot, operation_id: str, attempt_id: str) -> tuple[ApplyResult, None]:
+        if invocation.runtime_composition:
+            from .interaction_results import validated_composition_result
+
+            settled = method(predecessor, lambda value: invocation.cancelled.append((value, predecessor)))
+            result = validated_composition_result(plane, settled, predecessor, invocation.address)
+        else:
+            call = replace(invocation.call or _BackendCallContext(), operation_id=operation_id, attempt_id=attempt_id)
+            result = _call_backend_apply(
+                method,
+                *args[:-1],
+                predecessor,
+                address=invocation.address,
+                snapshot=predecessor,
+                realization=invocation.realization,
+                call=call,
+            )
+        if invocation.result_validator is not None:
+            result = invocation.result_validator(result, predecessor)
+        return result, None
+
+    return invoke
 
 
 class RuntimeInteractionDispatchMixin:
@@ -114,37 +169,12 @@ class RuntimeInteractionDispatchMixin:
         results = []
         # A composition method reports the state that it settled before a cancellation, with its predecessor.
         cancelled: list[tuple[ApplyResult, RuntimeSnapshot]] = []
-
-        def cancellation_result() -> ApplyResult | None:
-            if not cancelled:
-                return None
-            from .interaction_results import validated_composition_result
-
-            settled, predecessor = cancelled[-1]
-            return validated_composition_result(self, settled, predecessor, address)
-
-        def invoke(predecessor: RuntimeSnapshot, operation_id: str, attempt_id: str) -> tuple[ApplyResult, None]:
-            bound_args = (*args[:-1], predecessor)
-            result = (
-                method(predecessor, lambda settled: cancelled.append((settled, predecessor)))
-                if runtime_composition
-                else _call_backend_apply(
-                    method,
-                    *bound_args,
-                    address=address,
-                    snapshot=predecessor,
-                    realization=realization,
-                    call=replace(call or _BackendCallContext(), operation_id=operation_id, attempt_id=attempt_id),
-                )
-            )
-            if runtime_composition:
-                from .interaction_results import validated_composition_result
-
-                result = validated_composition_result(self, result, predecessor, address)
-            if result_validator is not None:
-                result = result_validator(result, predecessor)
-            return result, None
-
+        invoke = _interaction_invoker(
+            self,
+            method,
+            args,
+            _InteractionInvocation(address, realization, call, runtime_composition, result_validator, cancelled),
+        )
         receipt = execute_operation(
             self,
             OperationExecutionRequest(
@@ -161,7 +191,7 @@ class RuntimeInteractionDispatchMixin:
                 realization=realization,
                 execute_observation=False,
                 result_sink=results.append,
-                cancellation_result=cancellation_result if runtime_composition else None,
+                cancellation_result=_cancellation_reader(self, cancelled, address) if runtime_composition else None,
             ),
         )
         return self._interaction_phase_result(receipt, results)

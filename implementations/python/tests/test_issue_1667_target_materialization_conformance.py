@@ -262,8 +262,9 @@ def test_positive_probe_planning_defect_is_not_reported_as_a_refusal(monkeypatch
 
     monkeypatch.setattr(realization, "run_reference_processor", defective_processor)
 
+    honesty_target = _honesty_target()
     with pytest.raises(RuntimeError, match="planner defect"):
-        _run_positive_probes(_honesty_target())
+        _run_positive_probes(honesty_target)
 
 
 class _UndrainedRuntime(RuntimeControlPlane):

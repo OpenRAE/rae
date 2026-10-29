@@ -223,11 +223,7 @@ def language_diagnostics(
             "diagnostics": [
                 exc.diagnostics[index].as_dict()
                 if index < len(exc.diagnostics) and exc.diagnostics[index] is not None
-                else _diagnostic(
-                    "semantic_validation",
-                    "sdl.semantic",
-                    message,
-                )
+                else _diagnostic("semantic_validation", "sdl.semantic", message)
                 for index, message in enumerate(exc.errors)
             ],
         }

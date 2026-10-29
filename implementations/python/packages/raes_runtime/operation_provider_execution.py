@@ -58,7 +58,8 @@ def provider_call(
     control: BackendOperationControlModel | None = None,
     lane: Lane = "effect",
 ) -> BackendOperationCapabilitiesModel | BackendOperationResponseModel:
-    arguments = () if allowed is None else (request,) if control is None else (control,)
+    payload = request if control is None else control
+    arguments = () if allowed is None else (payload,)
     with plane._mutation_authority.external_call():
         value = plane._execution_adapter.call(lane, method, *arguments, timeout_ms=budget_ms)
         model = BackendOperationCapabilitiesModel if allowed is None else BackendOperationResponseModel
@@ -95,12 +96,7 @@ def accept_response(
         actor = next(
             item.actor_id for item in current.invocation.controls if item.control_id == response.message.control_id
         )
-    return persist_invocation_update(
-        plane,
-        current,
-        append_response(current.invocation, response),
-        actor=actor,
-    )
+    return persist_invocation_update(plane, current, append_response(current.invocation, response), actor=actor)
 
 
 def validate_outcome(
@@ -129,11 +125,7 @@ def validate_outcome(
 
     with plane._mutation_authority.external_call():
         verified = plane._execution_adapter.call(
-            "effect",
-            resolver.validate_effects,
-            record.invocation.request,
-            response,
-            timeout_ms=remaining(),
+            "effect", resolver.validate_effects, record.invocation.request, response, timeout_ms=remaining()
         )
         if verified is not True:
             raise EvidenceIntegrityError("operation effect evidence could not be established")
@@ -226,27 +218,33 @@ def execute_provider_operation(
         capabilities, admission = _check_provider_admission(plane, backend_request, remaining)
         _require_provider_policy(plane, native_request, backend_request, capabilities, admission)
         record, receipt = claim_accepted(
-            plane,
-            native_request,
-            backend_request=backend_request,
-            native=False,
-            responses=(admission,),
+            plane, native_request, backend_request=backend_request, native=False, responses=(admission,)
         )
         if record is not None:
-            predecessor = deepcopy(plane._snapshot)
-            if plane._distributed_execution is not None:
-                _deliver_provider_invocation(
-                    plane, native_request, backend_request, record, predecessor, deadline, remaining
-                )
-            else:
-                running = _start_local_provider(plane, native_request, backend_request, record, deadline, remaining)
-                if running is not None:
-                    _poll_provider_outcome(plane, native_request, running, predecessor, remaining)
+            _dispatch_provider_invocation(plane, native_request, backend_request, record, deadline, remaining)
     except Exception as exc:
         if plane._durability_poisoned or not isinstance(exc, RaesError):
             _LOGGER.exception("backend operation provider failed", exc_info=foreign_failure_record(exc))
-        receipt = None  # Classify after the handler, so a settlement failure chains no provider exception.
+        # Classify after the handler, so a settlement failure chains no provider exception.
+        receipt = None
     return receipt if receipt is not None else _classify_provider_failure(plane, native_request, record)
+
+
+def _dispatch_provider_invocation(
+    plane: RuntimeControlPlane,
+    native_request: OperationExecutionRequest,
+    request: BackendOperationRequestModel,
+    record: ControlPlaneOperationRecord,
+    deadline: float,
+    remaining: Callable[[], int],
+) -> None:
+    predecessor = deepcopy(plane._snapshot)
+    if plane._distributed_execution is not None:
+        _deliver_provider_invocation(plane, native_request, request, record, predecessor, deadline, remaining)
+        return
+    running = _start_local_provider(plane, native_request, request, record, deadline, remaining)
+    if running is not None:
+        _poll_provider_outcome(plane, native_request, running, predecessor, remaining)
 
 
 def _check_provider_admission(
@@ -254,9 +252,7 @@ def _check_provider_admission(
 ) -> tuple[BackendOperationCapabilitiesModel, BackendOperationResponseModel]:
     provider = plane._target.operation_provider
     capabilities = provider_call(
-        plane,
-        provider.operation_capabilities,
-        budget_ms=min(remaining(), plane._supervision.admission_ms),
+        plane, provider.operation_capabilities, budget_ms=min(remaining(), plane._supervision.admission_ms)
     )
     admission = provider_call(
         plane,
@@ -282,7 +278,8 @@ def _require_provider_policy(
 
         require_inject_plan(plane, InjectAdmission(native_request.plan, native_request.inject_occurrence))
     commitment = native_command_commitment(plane, native_request.plan)
-    try:  # The admission contracts refuse with ValueError; this boundary owns the refusal (E9).
+    # The admission contracts refuse with ValueError; this boundary owns the refusal (E9).
+    try:
         if native_request.inject_occurrence is not None:
             require_inject_occurrence_invocation(native_request.inject_occurrence, request)
             require_backend_plan_policy_capabilities(native_request.plan, capabilities)
@@ -463,10 +460,7 @@ def observe_provider_outcome(
             raise OperationalError("operation outcome could not be established")
         with plane._mutation_authority.external_call():
             plane._execution_adapter.pause(
-                min(
-                    remaining(),
-                    automatic_poll_interval_ms(record.invocation.request.budget.limit_ms),
-                )
+                min(remaining(), automatic_poll_interval_ms(record.invocation.request.budget.limit_ms))
             )
 
 

@@ -31,7 +31,8 @@ def _validated_state(
                 if error["loc"] and error["loc"][0] in declared
             }
         )
-        return None, "autonomous participant state is invalid" + (f": {', '.join(fields)}" if fields else "")
+        detail = f": {', '.join(fields)}" if fields else ""
+        return None, f"autonomous participant state is invalid{detail}"
 
 
 def _state_identity_violations(

@@ -456,10 +456,8 @@ def validate_participant_information_state_resolved_context(
         context = resolver(record, scope)
     if not isinstance(context, ParticipantInformationStateValidationContext):
         raise ValueError("participant information-state context did not resolve")
-    if any(
-        not isinstance(coordinate, ParticipantInformationStateSourceCoordinate)
-        for coordinate in context.source_coordinates.values()
-    ):
+    coordinates = context.source_coordinates.values()
+    if not all(isinstance(coordinate, ParticipantInformationStateSourceCoordinate) for coordinate in coordinates):
         raise ValueError("participant information-state source coordinate resolution is invalid")
     reconstruction_profiles: dict[str, ParticipantInformationReconstructionProfileModel] = {}
     if record.reconstruction_profile_ref is not None:

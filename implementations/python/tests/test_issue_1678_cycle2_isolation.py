@@ -213,8 +213,9 @@ def test_continuation_first_party_defect_is_not_reported_as_a_refusal(monkeypatc
 
     monkeypatch.setattr(continuations, "validate_participant_control_continuation_v2", defect)
 
+    resolver = SimpleNamespace(validation_context=lambda _record: _Context())
     with pytest.raises(KeyError, match="internal defect"):
-        _continuation_admitted(monkeypatch, SimpleNamespace(validation_context=lambda _record: _Context()))
+        _continuation_admitted(monkeypatch, resolver)
 
 
 # --- core-F9: resolver, owner and provider boundaries ------------------------
@@ -326,8 +327,9 @@ def test_v2_first_party_defect_is_not_reported_as_a_refusal(monkeypatch: pytest.
 
     monkeypatch.setattr(evaluation_v2, "validate_control_support_v2", defect)
 
+    resolver = Resolver()
     with pytest.raises(KeyError, match="internal defect"):
-        _v2_admission(Resolver(), "cycle2-v2-defect")
+        _v2_admission(resolver, "cycle2-v2-defect")
 
 
 def test_v2_projection_resolver_failure_logs_only_raes_frames(
@@ -380,8 +382,12 @@ def test_inject_resolver_failure_refusal_carries_no_foreign_exception(caplog: py
 
 
 def test_inject_resolver_content_failure_carries_no_foreign_exception(caplog: pytest.LogCaptureFixture) -> None:
+    application = object()
+    delivery = object()
+    content = SimpleNamespace(model_dump=_raise_foreign_type_1678c2)
+    correlation = object()
     with pytest.raises(InvalidInputError) as raised:
-        require_projected_inject(object(), object(), SimpleNamespace(model_dump=_raise_foreign_type_1678c2), object())
+        require_projected_inject(application, delivery, content, correlation)
 
     _assert_no_foreign_chain(raised.value)
     _single_foreign(caplog, "raes_runtime.participant_inject_application", logging.WARNING)
@@ -452,8 +458,9 @@ def test_malformed_retained_admission_list_is_an_integrity_refusal(
         operation_index, "operation_index", lambda _plane: SimpleNamespace(policy_records={"r": record})
     )
 
+    plane = SimpleNamespace()
     with pytest.raises(EvidenceIntegrityError, match="admission evidence is unverifiable"):
-        archived_policies(SimpleNamespace(), "participant")
+        archived_policies(plane, "participant")
 
 
 @pytest.mark.parametrize("payload", ["record", ["event_id"], 7])
@@ -517,8 +524,10 @@ def _binding_context(bind: object) -> SimpleNamespace:
 
 @pytest.mark.parametrize("bind", [_raise_foreign_1678c2, _raise_foreign_type_1678c2])
 def test_backend_binding_failure_is_not_a_domain_refusal(caplog: pytest.LogCaptureFixture, bind: object) -> None:
+    binding_context = _binding_context(bind)
+    snapshot = RuntimeSnapshot()
     with pytest.raises(OperationalError) as raised:
-        _bound_runtime_request(_binding_context(bind), RuntimeSnapshot(), None, "action", "attempt", (), False)
+        _bound_runtime_request(binding_context, snapshot, None, "action", "attempt", (), False)
 
     assert not isinstance(raised.value, InvalidInputError)
     _assert_no_foreign_chain(raised.value)
@@ -526,8 +535,10 @@ def test_backend_binding_failure_is_not_a_domain_refusal(caplog: pytest.LogCaptu
 
 
 def test_backend_binding_returning_a_non_request_is_a_contract_refusal() -> None:
+    binding_context = _binding_context(lambda *_args: object())
+    snapshot = RuntimeSnapshot()
     with pytest.raises(InvalidInputError, match="does not satisfy its contract"):
-        _bound_runtime_request(_binding_context(lambda *_args: object()), RuntimeSnapshot(), None, "a", "b", (), False)
+        _bound_runtime_request(binding_context, snapshot, None, "a", "b", (), False)
 
 
 def test_serial_backend_binding_failure_settles_with_its_own_diagnostic(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -667,8 +678,9 @@ def _exposure_calls() -> list[object]:
 
 @pytest.mark.parametrize("index", range(7))
 def test_exposure_resolver_failure_carries_no_foreign_exception(caplog: pytest.LogCaptureFixture, index: int) -> None:
+    expose = _exposure_calls()[index]
     with pytest.raises(OperationalError, match="resolution failed") as raised:
-        _exposure_calls()[index]()
+        expose()
 
     _assert_no_foreign_chain(raised.value)
     _single_foreign(caplog, "raes_processor.models.participant_exposure_policy")
@@ -691,8 +703,11 @@ def test_owner_cut_refusal_chains_only_the_foreign_record(refusal: type[Exceptio
     def owner(*_args: object) -> object:
         raise owner_refusal(_SENTINEL)
 
+    plane = _cut_plane(None)
+    policy = object()
+    request = object()
     with pytest.raises(RaesError) as raised:
-        resolve_owner_cut(_cut_plane(None), object(), object(), owner)
+        resolve_owner_cut(plane, policy, request, owner)
 
     assert type(raised.value).__name__ == category
     described = describe_exception(raised.value)

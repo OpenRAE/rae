@@ -31,10 +31,13 @@ _MESSAGE_LIMIT = DiagnosticModel.model_json_schema()["properties"]["message"]["m
 
 
 def test_missing_participant_execution_scope_is_not_found() -> None:
+    snapshot = RuntimeSnapshot()
     with pytest.raises(NotFoundError, match="participant execution scope is not configured"):
-        participant_execution_state("participant-execution.missing", RuntimeSnapshot())
+        participant_execution_state("participant-execution.missing", snapshot)
+    runtime = StubParticipantRuntime()
+    snapshot = RuntimeSnapshot()
     with pytest.raises(NotFoundError):
-        StubParticipantRuntime().execution_state("participant-execution.missing", RuntimeSnapshot())
+        runtime.execution_state("participant-execution.missing", snapshot)
 
 
 def _controller_operation(profile: object) -> ProvisionOp:
@@ -168,10 +171,10 @@ def test_defect_in_private_service_binding_is_not_an_unsupported_profile(monkeyp
 
     monkeypatch.setattr(service_materialization, "profile_selection_binding", defective)
 
+    placement = _content_placement({"binding_id": "binding"})
+    provisioner = create_stub_manifest().provisioner
     with pytest.raises(TypeError, match="binding-reader-defect"):
-        service_materialization.service_materialization_plan_diagnostics(
-            _content_placement({"binding_id": "binding"}), create_stub_manifest().provisioner, None
-        )
+        service_materialization.service_materialization_plan_diagnostics(placement, provisioner, None)
 
 
 def test_concurrent_admission_records_every_failure_after_the_first(caplog: pytest.LogCaptureFixture) -> None:
@@ -180,8 +183,10 @@ def test_concurrent_admission_records_every_failure_after_the_first(caplog: pyte
         def admit_action(self, request, snapshot):
             raise RuntimeError(f"{request} failed with {_SECRET}")
 
+    runtime = FailingRuntime()
+    baseline = RuntimeSnapshot()
     with caplog.at_level("WARNING"), pytest.raises(RuntimeError, match="first"):
-        FailingRuntime().admit_actions_concurrently(("first", "second"), RuntimeSnapshot(), 2)
+        runtime.admit_actions_concurrently(("first", "second"), baseline, 2)
 
     records = [record for record in caplog.records if record.name.startswith("raes_backend_protocols")]
     assert len(records) == 1

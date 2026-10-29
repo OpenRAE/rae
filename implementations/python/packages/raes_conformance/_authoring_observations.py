@@ -81,23 +81,30 @@ def diagnostic_digest(diagnostics: tuple[DiagnosticModel | SDLParseDiagnostic, .
         raise InvalidInputError("diagnostics must use an incumbent structured carrier")
     if len(diagnostics) > 64:
         raise InvalidInputError("diagnostic count exceeds the profile limit")
-    keys: list[tuple[str, str, str, str]] = []
-    for item in diagnostics:
-        if isinstance(item, DiagnosticModel):
-            item = DiagnosticModel.model_validate(_carrier_payload(item))
-            key = item.domain, item.code, item.severity.value, item.address
-        elif isinstance(item, SDLParseDiagnostic):
-            key = item.stage, item.code, item.severity, item.pointer
-            if not isinstance(item.severity, str) or item.severity not in {"error", "warning", "info"}:
-                raise InvalidInputError("invalid source diagnostic severity")
-        else:
-            raise InvalidInputError("diagnostics must use an incumbent structured carrier")
-        if any(not isinstance(value, str) or _utf8_size(value) > 4096 for value in key):
-            raise InvalidInputError("diagnostic key exceeds the profile limit")
-        if not key[0] or not key[1] or not isinstance(item.message, str) or _utf8_size(item.message) > 512:
-            raise InvalidInputError("diagnostic requires bounded code, stage and message")
-        keys.append(key)
+    keys = [_diagnostic_key(item) for item in diagnostics]
     return canonical_json_digest({"profile": "authoring-diagnostic-semantics/v1", "keys": sorted(keys)})
+
+
+def _diagnostic_key(item: object) -> tuple[str, str, str, str]:
+    """Return the incumbent semantic key of one bounded diagnostic."""
+    if isinstance(item, DiagnosticModel):
+        item = DiagnosticModel.model_validate(_carrier_payload(item))
+        key = item.domain, item.code, item.severity.value, item.address
+    elif isinstance(item, SDLParseDiagnostic):
+        key = item.stage, item.code, item.severity, item.pointer
+        if not isinstance(item.severity, str) or item.severity not in {"error", "warning", "info"}:
+            raise InvalidInputError("invalid source diagnostic severity")
+    else:
+        raise InvalidInputError("diagnostics must use an incumbent structured carrier")
+    _require_bounded_diagnostic(key, item.message)
+    return key
+
+
+def _require_bounded_diagnostic(key: tuple[object, ...], message: object) -> None:
+    if any(not isinstance(value, str) or _utf8_size(value) > 4096 for value in key):
+        raise InvalidInputError("diagnostic key exceeds the profile limit")
+    if not key[0] or not key[1] or not isinstance(message, str) or _utf8_size(message) > 512:
+        raise InvalidInputError("diagnostic requires bounded code, stage and message")
 
 
 def observe_output(

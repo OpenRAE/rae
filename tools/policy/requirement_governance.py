@@ -19,6 +19,7 @@ UID_RE = re.compile(r"\b([A-Z]{3}-\d{3})\b", re.IGNORECASE)
 DEFAULT_HTTP_TIMEOUT_SECONDS = 5.0
 HTTP_TIMEOUT_ENV = "GC_HTTP_TIMEOUT_SECONDS"
 BASE_URL_ENV = "GC_BASE_URL"
+_MALFORMED_RESPONSE = "malformed response"
 # Name of the environment variable that carries the Ground Control bearer
 # credential (matches the MCP server's own GROUND_CONTROL_API_TOKEN). This is an
 # env-var name, not a credential value.
@@ -132,30 +133,37 @@ def _is_text_list(value: object) -> bool:
     return isinstance(value, list) and all(isinstance(item, str) for item in value)
 
 
-def _require_order_policy_shape(policy: object) -> None:
-    """Refuse a requirement order policy whose structure the governance gate cannot read."""
-
-    if not isinstance(policy, dict) or not isinstance(policy.get("project"), str):
-        raise InvalidInputError(f"{_ORDER_POLICY} must be a mapping with a text project")
-    phases = policy.get("phases", [])
+def _require_phases_shape(phases: object) -> None:
     if not isinstance(phases, list) or not all(
         isinstance(phase, dict) and isinstance(phase.get("id"), str) for phase in phases
     ):
         raise InvalidInputError(f"{_ORDER_POLICY} phases must be a list of mappings with a text id")
     phase_ids = {phase["id"] for phase in phases}
     for index, phase in enumerate(phases):
-        for field in ("requirements", "patterns", "blocked_until"):
-            if field in phase and not _is_text_list(phase[field]):
-                raise InvalidInputError(f"{_ORDER_POLICY} phases[{index}].{field} must be a list of text")
-        if not set(phase.get("blocked_until", [])) <= phase_ids:
-            raise InvalidInputError(f"{_ORDER_POLICY} phases[{index}].blocked_until names an unknown phase")
-        for pattern in phase.get("patterns", []):
-            try:
-                re.compile(pattern)
-            # re.compile reports a malformed pattern, a repetition count beyond its limit and
-            # excessive group nesting with these exceptions.
-            except (re.error, OverflowError, RecursionError) as exc:
-                raise InvalidInputError(f"{_ORDER_POLICY} phases[{index}].patterns has an invalid pattern") from exc
+        _require_phase_shape(index, phase, phase_ids)
+
+
+def _require_phase_shape(index: int, phase: dict[str, object], phase_ids: set[str]) -> None:
+    for field in ("requirements", "patterns", "blocked_until"):
+        if field in phase and not _is_text_list(phase[field]):
+            raise InvalidInputError(f"{_ORDER_POLICY} phases[{index}].{field} must be a list of text")
+    if not set(phase.get("blocked_until", [])) <= phase_ids:
+        raise InvalidInputError(f"{_ORDER_POLICY} phases[{index}].blocked_until names an unknown phase")
+    for pattern in phase.get("patterns", []):
+        try:
+            re.compile(pattern)
+        # re.compile reports a malformed pattern, a repetition count beyond its limit and
+        # excessive group nesting with these exceptions.
+        except (re.error, OverflowError, RecursionError) as exc:
+            raise InvalidInputError(f"{_ORDER_POLICY} phases[{index}].patterns has an invalid pattern") from exc
+
+
+def _require_order_policy_shape(policy: object) -> None:
+    """Refuse a requirement order policy whose structure the governance gate cannot read."""
+
+    if not isinstance(policy, dict) or not isinstance(policy.get("project"), str):
+        raise InvalidInputError(f"{_ORDER_POLICY} must be a mapping with a text project")
+    _require_phases_shape(policy.get("phases", []))
     ownership = policy.get("ownership", {})
     if not isinstance(ownership, dict) or not all(_is_text_list(roots) for roots in ownership.values()):
         raise InvalidInputError(f"{_ORDER_POLICY} ownership must map phases to lists of text")
@@ -217,7 +225,7 @@ class GroundControlHttpClient:
         except (ValueError, RecursionError) as exc:
             # The try holds only the decoder. ValueError covers bytes that are not UTF-8, malformed JSON
             # and an integer beyond the interpreter digit limit; RecursionError covers excessive nesting.
-            raise GroundControlUnavailable("malformed response") from exc
+            raise GroundControlUnavailable(_MALFORMED_RESPONSE) from exc
 
     def get_requirement(self, project: str, uid: str) -> dict[str, object]:
         requirement = self._request(f"/api/v1/requirements/uid/{uid}", params={"project": project})
@@ -227,13 +235,13 @@ class GroundControlHttpClient:
             or not isinstance(requirement.get("status"), str)
             or not {"id", "uid"} <= requirement.keys()
         ):
-            raise GroundControlUnavailable("malformed response")
+            raise GroundControlUnavailable(_MALFORMED_RESPONSE)
         return requirement
 
     def get_traceability(self, requirement_id: str) -> list[dict[str, object]]:
         traceability = self._request(f"/api/v1/requirements/{requirement_id}/traceability")
         if not isinstance(traceability, list) or not all(_is_traceability_link(link) for link in traceability):
-            raise GroundControlUnavailable("malformed response")
+            raise GroundControlUnavailable(_MALFORMED_RESPONSE)
         return traceability
 
 

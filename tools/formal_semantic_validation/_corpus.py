@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 from tools.formal_semantic_validation._shape import (
@@ -169,6 +169,16 @@ def _validate_corpus(
         for item in _members(protocol.get("claim_classes", []))
         if isinstance(item, Mapping) and _hashable(item.get("claim_class_id"))
     }
+    return _cases_by_id(repo_root, cases, claim_ids, failures, path)
+
+
+def _cases_by_id(
+    repo_root: Path,
+    cases: Sequence[object],
+    claim_ids: set[object],
+    failures: list[PolicyFailure],
+    path: str,
+) -> dict[str, Mapping[str, object]]:
     cases_by_id: dict[str, Mapping[str, object]] = {}
     polarities: dict[object, set[object]] = {claim_id: set() for claim_id in claim_ids}
     for item in cases:

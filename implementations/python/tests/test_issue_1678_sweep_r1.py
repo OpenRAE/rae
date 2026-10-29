@@ -372,8 +372,9 @@ def test_activity_settles_after_its_handler_so_no_provider_failure_is_chained(ac
         provider=object(), effect_authority=Authority(), control_authority=Authority(), worker_identity="worker-1"
     )
     try:
+        run_activity = getattr(activities, activity)
         with pytest.raises(OperationalError) as raised:
-            getattr(activities, activity)(reference)
+            run_activity(reference)
     finally:
         assert activities.close()
 
@@ -402,8 +403,9 @@ def test_contract_decoder_lets_programming_errors_propagate() -> None:
     def _defect(_payload: dict[str, object]) -> None:
         raise KeyError(SENTINEL)
 
+    digest = hashlib.sha256(b"{}").hexdigest()
     with pytest.raises(KeyError):
-        decode_contract("{}", hashlib.sha256(b"{}").hexdigest(), kind="audit event", rebuild=_defect)
+        decode_contract("{}", digest, kind="audit event", rebuild=_defect)
 
 
 # HTTP routes: request content that the pre-branch handlers refused keeps its refusal status.
@@ -620,8 +622,10 @@ def test_credential_sanitizer_refuses_backend_output_as_invalid_input() -> None:
     from test_issue_673_account_credential_bindings import _credential_plan
 
     result = ApplyResult(True, RuntimeSnapshot(), details={"leak": SENTINEL})
+    plan = _credential_plan()
+    snapshot = RuntimeSnapshot()
     with pytest.raises(InvalidInputError, match="must not publish arbitrary details") as caught:
-        sanitize_account_credential_result(result, _credential_plan(), RuntimeSnapshot())
+        sanitize_account_credential_result(result, plan, snapshot)
 
     assert SENTINEL not in str(caught.value)
 
@@ -649,12 +653,14 @@ def test_credential_sanitizer_boundary_lets_a_planner_defect_propagate(monkeypat
         raise ValueError(SENTINEL)
 
     monkeypatch.setattr(backend_account_credentials, "plan_realization_requirements", _defect)
+    baseline_snapshot = RuntimeSnapshot()
+    realization = _RealizationApplyContext(plan=plan)
     with pytest.raises(ValueError, match=SENTINEL):
         _sanitize_backend_realization(
             result,
             address="runtime.sweep-r1",
-            baseline_snapshot=RuntimeSnapshot(),
-            realization=_RealizationApplyContext(plan=plan),
+            baseline_snapshot=baseline_snapshot,
+            realization=realization,
         )
 
 
@@ -820,8 +826,9 @@ def test_native_work_settles_after_its_handler(monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.setattr(supervised, "settle", _failed_settlement)
     control_plane = RuntimeControlPlane(create_stub_target())
     try:
+        plan = ProvisioningPlan()
         with pytest.raises(OperationalError) as raised:
-            control_plane.submit_provisioning(ProvisioningPlan(), idempotency_key="native")
+            control_plane.submit_provisioning(plan, idempotency_key="native")
     finally:
         control_plane.close()
 
@@ -856,8 +863,9 @@ def test_worker_outcome_settles_after_its_evidence_handler(monkeypatch: pytest.M
         outcome = provider.observe_operation(None)
         monkeypatch.setattr(operation_provider_execution, "validate_outcome", _foreign_failure)
         monkeypatch.setattr(operation_worker_authority, "settle", _failed_settlement)
+        identity = worker()
         with pytest.raises(OperationalError) as raised:
-            control_plane.publish_backend_response(outcome, identity=worker())
+            control_plane.publish_backend_response(outcome, identity=identity)
     finally:
         monkeypatch.undo()
         control_plane.close()
@@ -979,8 +987,9 @@ def test_stores_raise_the_typed_idempotency_claim_conflict(tmp_path: Path) -> No
     try:
         for store in (InMemoryControlPlaneStore(), local):
             store.claim_record(_record("first", f"sha256:{'1' * 64}"))
+            second = _record("second", f"sha256:{'2' * 64}")
             with pytest.raises(IdempotencyClaimConflictError, match=IDEMPOTENCY_CLAIM_CONFLICT):
-                store.claim_record(_record("second", f"sha256:{'2' * 64}"))
+                store.claim_record(second)
     finally:
         local.close()
         lease.close()
@@ -1021,8 +1030,9 @@ def _has_table(database: Path, table: str) -> bool:
 
 
 def _assert_store_refused(store_path: Path, message: str) -> None:
+    store = LocalControlPlaneStore(store_path)
     with pytest.raises(EvidenceIntegrityError, match=message):
-        LocalControlPlaneStore(store_path).admit_runtime(target_scope="target:stub", run_scope="run:ops")
+        store.admit_runtime(target_scope="target:stub", run_scope="run:ops")
     with pytest.raises(EvidenceIntegrityError, match=message):
         _check(store_path)
     _assert_refused(_store_command("check", str(store_path), *_OPTIONS), "check")
@@ -1152,8 +1162,9 @@ def test_postgresql_admission_refuses_a_ledger_that_lost_a_table(
     if refusal is None:
         require_ledger_tables(_Ledger(missing), projection=projection)
         return
+    ledger = _Ledger(missing)
     with pytest.raises(refusal) as caught:
-        require_ledger_tables(_Ledger(missing), projection=projection)
+        require_ledger_tables(ledger, projection=projection)
     assert type(caught.value) is refusal
 
 
@@ -1313,8 +1324,9 @@ def test_the_store_does_not_write_a_value_that_it_refuses_to_read() -> None:
     content, digest = encode_payload(deepest)
     assert decode_payload(content, digest, kind="audit event") == deepest
 
+    too_deep = {"a": json.loads(_nested(DURABLE_MAX_NESTING))}
     with pytest.raises(ValueError, match="durable nesting limit"):
-        encode_payload({"a": json.loads(_nested(DURABLE_MAX_NESTING))})
+        encode_payload(too_deep)
 
 
 def test_a_stored_history_record_nested_beyond_the_durable_limit_is_an_integrity_failure(tmp_path: Path) -> None:
@@ -1346,8 +1358,9 @@ def test_malformed_legacy_state_is_an_integrity_failure(tmp_path: Path, name: st
     store_path.mkdir(mode=0o700)
     (store_path / name).write_text(content, encoding="utf-8")
 
+    store = LocalControlPlaneStore(store_path)
     with pytest.raises(EvidenceIntegrityError):
-        LocalControlPlaneStore(store_path).admit_runtime(target_scope="target:stub", run_scope="run:ops")
+        store.admit_runtime(target_scope="target:stub", run_scope="run:ops")
 
 
 # A runtime that requires restart refuses the work with its restart category. The handler logs the foreign
@@ -1377,8 +1390,9 @@ def test_poisoned_native_work_refuses_with_the_restart_category(
     monkeypatch.setattr(supervised, "_validate_native_invocation", _poisoning_failure)
     control_plane = RuntimeControlPlane(create_stub_target())
     try:
+        plan = ProvisioningPlan()
         with caplog.at_level(logging.ERROR), pytest.raises(OperationalError, match=_RESTART) as raised:
-            control_plane.submit_provisioning(ProvisioningPlan(), idempotency_key="poisoned")
+            control_plane.submit_provisioning(plan, idempotency_key="poisoned")
         with pytest.raises(OperationalError, match=_RESTART):
             control_plane.get_snapshot()
     finally:
@@ -1426,8 +1440,9 @@ def test_poisoned_provider_execution_refuses_with_the_restart_category(
     monkeypatch.setattr(operation_provider_execution, "_start_local_provider", _poisoning_failure)
     control_plane = RuntimeControlPlane(target(Provider()), operation_evidence=Evidence())
     try:
+        plan = ProvisioningPlan()
         with caplog.at_level(logging.ERROR), pytest.raises(OperationalError, match=_RESTART) as raised:
-            control_plane.submit_provisioning(ProvisioningPlan())
+            control_plane.submit_provisioning(plan)
     finally:
         control_plane.close()
 
@@ -1453,8 +1468,9 @@ def test_poisoned_control_delivery_refuses_with_the_restart_category(
                 assert provider.started.wait(5)
                 parent_id = next(iter(control_plane._store.load_records()))
                 monkeypatch.setattr(operation_provider_control, "provider_call", _poisoning_failure)
+                identity = supervisor()
                 with caplog.at_level(logging.ERROR), pytest.raises(OperationalError, match=_RESTART) as raised:
-                    control_plane.cancel_operation(parent_id, control_id="poisoned-cancel", identity=supervisor())
+                    control_plane.cancel_operation(parent_id, control_id="poisoned-cancel", identity=identity)
             finally:
                 provider.release.set()
             # The work of the poisoned runtime ends with the same refusal.
@@ -1481,8 +1497,9 @@ def test_provider_failure_settles_after_its_handler(monkeypatch: pytest.MonkeyPa
     monkeypatch.setattr(operation_provider_execution, "settle", _failed_settlement)
     control_plane = RuntimeControlPlane(target(Provider()), operation_evidence=Evidence())
     try:
+        plan = ProvisioningPlan()
         with pytest.raises(OperationalError) as raised:
-            control_plane.submit_provisioning(ProvisioningPlan())
+            control_plane.submit_provisioning(plan)
     finally:
         control_plane.close()
 
@@ -1535,12 +1552,16 @@ def test_a_terminal_rewrite_keeps_the_marked_immutable_value_error() -> None:
     from raes_runtime.control_plane_store_transitions import _require_terminal_operation_transition
     from raes_runtime.record_immutability import is_immutable_value_error
 
+    existing = _terminal_record()
+    replacement = _terminal_record(idempotency_key="key-2")
     with pytest.raises(ValueError, match="operation identity is immutable after its durable claim") as raised:
-        _require_terminal_operation_transition(_terminal_record(), _terminal_record(idempotency_key="key-2"))
+        _require_terminal_operation_transition(existing, replacement)
     assert is_immutable_value_error(raised.value)
 
+    existing = _terminal_record()
+    replacement = _terminal_record(state="failed")
     with pytest.raises(ValueError, match="a terminal operation record cannot be rewritten") as rewritten:
-        _require_terminal_operation_transition(_terminal_record(), _terminal_record(state="failed"))
+        _require_terminal_operation_transition(existing, replacement)
     assert not is_immutable_value_error(rewritten.value)
 
 
@@ -1553,8 +1574,10 @@ def test_the_text_of_an_unmarked_error_does_not_select_the_immutable_value_handl
         raise ValueError("operation identity is immutable after its durable claim")
 
     monkeypatch.setattr(transitions, "_require_operation_record_transition", _unmarked)
+    existing = _terminal_record()
+    replacement = _terminal_record(state="failed")
     with pytest.raises(ValueError, match="a terminal operation record cannot be rewritten"):
-        transitions._require_terminal_operation_transition(_terminal_record(), _terminal_record(state="failed"))
+        transitions._require_terminal_operation_transition(existing, replacement)
 
 
 @pytest.mark.parametrize("poisoned", [True, False], ids=["poisoned", "settled"])

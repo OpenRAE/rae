@@ -887,8 +887,9 @@ def test_participant_feature_support_gaps_do_not_report_defects_as_gaps(monkeypa
 
     monkeypatch.setattr(participant_feature_admission, "_participant_feature_declaration", defective)
 
+    manifest = create_stub_manifest()
     with pytest.raises(ValueError, match="resolution-defect"):
-        participant_feature_support_gaps(create_stub_manifest(), ("participant_ingress_admission",))
+        participant_feature_support_gaps(manifest, ("participant_ingress_admission",))
 
 
 def test_time_model_capability_admission_refuses_with_a_conflict():

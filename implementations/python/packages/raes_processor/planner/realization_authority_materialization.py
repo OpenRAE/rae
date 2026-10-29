@@ -62,15 +62,25 @@ def _resolved_mode(
 
     if not authority.delegated:
         return authority.mode
+    closure = _delegated_closure(requirement, manifest, apparatus_default, apparatus_decisions)
+    if closure is None:
+        return None
+    return RealizationAuthorityMode.OPEN if closure is Closure.OPEN_WORLD else RealizationAuthorityMode.CLOSED
+
+
+def _delegated_closure(
+    requirement: CompiledRealizationRequirement | None,
+    manifest: BackendManifest,
+    apparatus_default: ApparatusRealizationDefaultResolver | None,
+    apparatus_decisions: ApparatusRealizationDecisions | None,
+) -> Closure | None:
+    """Return the apparatus closure for a delegated demand, or ``None`` without a demand or decision."""
+
     if requirement is None:
         return None
     if apparatus_decisions is not None:
-        closure = apparatus_decisions.get((requirement.address, requirement.field_path, requirement.requirement_kind))
-        if closure is None:
-            return None
-    else:
-        closure = apparatus_default(requirement, manifest) if apparatus_default is not None else Closure.CLOSED_WORLD
-    return RealizationAuthorityMode.OPEN if closure is Closure.OPEN_WORLD else RealizationAuthorityMode.CLOSED
+        return apparatus_decisions.get((requirement.address, requirement.field_path, requirement.requirement_kind))
+    return apparatus_default(requirement, manifest) if apparatus_default is not None else Closure.CLOSED_WORLD
 
 
 def _publication_safe_enum_domain(values: tuple[object, ...]) -> EnumDomain | None:

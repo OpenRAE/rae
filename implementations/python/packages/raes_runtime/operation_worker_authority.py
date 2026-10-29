@@ -301,7 +301,7 @@ class RuntimeWorkerAuthorityMixin:
             if record is None:
                 raise NotFoundError(_OPERATION_NOT_FOUND)
             authorize_worker(self, identity, record)
-            from .operation_provider_execution import accept_response, validate_outcome
+            from .operation_provider_execution import accept_response
 
             control = next(
                 (
@@ -319,34 +319,40 @@ class RuntimeWorkerAuthorityMixin:
             ):
                 settle(self, record, OperationState.INDETERMINATE)
             if response.message.kind == "outcome" and record.status.state is OperationState.RUNNING:
-                admitted = self._admitted_backend_requests.get(record.receipt.operation_id)
-                if admitted is None:
-                    settle(self, record, OperationState.INDETERMINATE)
-                else:
-                    native_request, predecessor = admitted
-                    try:
-                        outcome = validate_outcome(self, record, response, native_request, predecessor)
-                    except Exception as exc:
-                        outcome = None
-                        if not isinstance(exc, RaesError):
-                            # Isolation of the evidence resolver: the outcome stays indeterminate.
-                            _LOGGER.exception(
-                                "worker outcome evidence could not be validated", exc_info=foreign_failure_record(exc)
-                            )
-                    # Settled after the handler, so a settlement failure carries no resolver exception as context.
-                    if outcome is None:
-                        settle(self, record, OperationState.INDETERMINATE)
-                    else:
-                        result, release, payload = outcome
-                        settle(
-                            self,
-                            record,
-                            response.message.proposed_state,
-                            result=result,
-                            release_commitment=release,
-                            result_payload=payload,
-                        )
+                self._settle_worker_outcome(record, response)
             return self._operations[record.receipt.operation_id].status
+
+    def _settle_worker_outcome(
+        self, record: ControlPlaneOperationRecord, response: BackendOperationResponseModel
+    ) -> None:
+        """Settle a running operation from a worker outcome, or as indeterminate without valid evidence."""
+        from .operation_provider_execution import validate_outcome
+
+        admitted = self._admitted_backend_requests.get(record.receipt.operation_id)
+        outcome = None
+        if admitted is not None:
+            native_request, predecessor = admitted
+            try:
+                outcome = validate_outcome(self, record, response, native_request, predecessor)
+            except Exception as exc:
+                if not isinstance(exc, RaesError):
+                    # Isolation of the evidence resolver: the outcome stays indeterminate.
+                    _LOGGER.exception(
+                        "worker outcome evidence could not be validated", exc_info=foreign_failure_record(exc)
+                    )
+        # Settled after the handler, so a settlement failure carries no resolver exception as context.
+        if outcome is None:
+            settle(self, record, OperationState.INDETERMINATE)
+            return
+        result, release, payload = outcome
+        settle(
+            self,
+            record,
+            response.message.proposed_state,
+            result=result,
+            release_commitment=release,
+            result_payload=payload,
+        )
 
     @run_operation
     @runtime_owned

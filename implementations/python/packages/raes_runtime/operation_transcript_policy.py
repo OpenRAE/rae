@@ -89,7 +89,8 @@ def append_control(
 def append_response(invocation: InvocationLedger, response: BackendOperationResponseModel) -> InvocationLedger:
     """Retain one more provider response, or refuse it as a conflict with the retained transcript."""
 
-    from .operation_invocation_ledger import InvocationLedger  # The ledger module imports this policy.
+    # The ledger module imports this policy.
+    from .operation_invocation_ledger import InvocationLedger
 
     replacement = invocation.model_copy(update={"responses": (*invocation.responses, response)})
     try:

@@ -36,7 +36,7 @@ def isolated_host_call(refusal: str, *, keep_cause: bool = True) -> Iterator[Non
         record = foreign_failure_record(exc)
         _LOGGER.warning("host callback dependency failed", exc_info=record)
     except (ValueError, RaesError) as exc:
-        raise ValueError(refusal) from (exc if keep_cause else None)
+        raise ValueError(refusal) from exc if keep_cause else None
     except Exception as exc:
         # Isolation: host code failed outside its refusal contract.
         record = foreign_failure_record(exc)

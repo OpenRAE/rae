@@ -103,8 +103,11 @@ def _unserializable_cut() -> ParticipantControlLiveCut:
 def test_owner_cut_that_does_not_serialize_is_an_invalid_owner_cut() -> None:
     cut = _unserializable_cut()
 
+    cut_plane = _cut_plane(cut)
+    policy = object()
+    request = object()
     with pytest.raises(InvalidInputError, match="owner returned an invalid live cut") as raised:
-        resolve_owner_cut(_cut_plane(cut), object(), object(), lambda *_args: cut)
+        resolve_owner_cut(cut_plane, policy, request, lambda *_args: cut)
 
     assert isinstance(raised.value, CONTROL_CUT_REFUSALS)
     assert isinstance(raised.value.__cause__, PydanticSerializationError)
@@ -123,8 +126,11 @@ def test_owner_cut_revalidation_defect_still_propagates(monkeypatch: pytest.Monk
         evidence_refs=("evidence:1",),
     )
 
+    cut_plane = _cut_plane(cut)
+    policy = object()
+    request = object()
     with pytest.raises(KeyError):
-        resolve_owner_cut(_cut_plane(cut), object(), object(), lambda *_args: cut)
+        resolve_owner_cut(cut_plane, policy, request, lambda *_args: cut)
 
 
 def test_episode_admission_keeps_its_unverified_outcome_for_an_unserializable_owner_cut() -> None:
@@ -148,10 +154,9 @@ def test_policy_application_refuses_an_unserializable_owner_cut_as_invalid_input
         owner.broken = True
         intent = handoff(plane, owner, "take", revision=0, head=0, order=1, key="take")
 
+        identity = policy_identity()
         with pytest.raises(InvalidInputError) as raised:
-            plane.record_participant_control(
-                POLICY_PARTICIPANT, intent, identity=policy_identity(), idempotency_key="take"
-            )
+            plane.record_participant_control(POLICY_PARTICIPANT, intent, identity=identity, idempotency_key="take")
         history = plane.snapshot.participant_control_history.get(POLICY_PARTICIPANT, ())
 
     assert _refusal(raised.value).status_code == 409
@@ -211,8 +216,10 @@ def test_legacy_retained_record_refuses_supervisory_control_as_an_integrity_fail
     try:
         _seed(plane, **_with_secret(_LEGACY_RETAINED_HISTORY[retained]))
 
+        proposal = _proposal()
+        identity = _identity()
         with pytest.raises(EvidenceIntegrityError) as raised:
-            plane.record_participant_control(_PARTICIPANT, _proposal(), identity=_identity())
+            plane.record_participant_control(_PARTICIPANT, proposal, identity=identity)
         with TestClient(create_control_plane_app(plane, security=_api_security())) as client:
             response = client.post(
                 f"/participants/{_PARTICIPANT}/control-occurrences",
@@ -242,8 +249,10 @@ def test_control_target_registration_defect_still_propagates(monkeypatch: pytest
             raise ValueError(_SENTINEL)
 
         monkeypatch.setattr(control_targets, "_register", defect)
+        proposal = _proposal()
+        identity = _identity()
         with pytest.raises(ValueError, match=_SENTINEL):
-            plane.record_participant_control(_PARTICIPANT, _proposal(), identity=_identity())
+            plane.record_participant_control(_PARTICIPANT, proposal, identity=identity)
     finally:
         plane.close()
 
@@ -282,10 +291,9 @@ def test_legacy_retained_control_record_refuses_a_policy_application_as_an_integ
     with plane:
         intent = handoff(plane, owner, "take", revision=0, head=0, order=1, key="take")
 
+        identity = policy_identity()
         with pytest.raises(EvidenceIntegrityError) as raised:
-            plane.record_participant_control(
-                POLICY_PARTICIPANT, intent, identity=policy_identity(), idempotency_key="take"
-            )
+            plane.record_participant_control(POLICY_PARTICIPANT, intent, identity=identity, idempotency_key="take")
         history = plane.snapshot.participant_control_history.get(POLICY_PARTICIPANT, ())
 
     assert _refusal(raised.value).status_code == 409
@@ -525,8 +533,9 @@ def test_supervisory_intent_that_cannot_form_its_records_is_invalid_input(field:
             action_contract_ref="action-contract:contain-host",
             payload_ref="payload:proposal-1",
         )
+        identity = _identity()
         with pytest.raises(InvalidInputError):
-            plane.record_participant_control(_PARTICIPANT, intent, identity=_identity())
+            plane.record_participant_control(_PARTICIPANT, intent, identity=identity)
         with TestClient(create_control_plane_app(plane, security=_api_security())) as client:
             response = client.post(
                 f"/participants/{_PARTICIPANT}/control-occurrences",
@@ -550,10 +559,9 @@ def test_policy_application_that_cannot_form_an_occurrence_is_invalid_input(revi
         intent = handoff(plane, owner, "take", revision=revision, head=0, order=1, key="take")
         intent = intent.model_copy(update={"provenance_refs": [""]})
 
+        identity = policy_identity()
         with pytest.raises(InvalidInputError) as raised:
-            plane.record_participant_control(
-                POLICY_PARTICIPANT, intent, identity=policy_identity(), idempotency_key="take"
-            )
+            plane.record_participant_control(POLICY_PARTICIPANT, intent, identity=identity, idempotency_key="take")
         history = plane.snapshot.participant_control_history.get(POLICY_PARTICIPANT, ())
 
     assert _refusal(raised.value).status_code == 409

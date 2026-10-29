@@ -10,6 +10,8 @@ digest-checked declaration the planner needs.
 
 from __future__ import annotations
 
+from functools import partial
+
 import pytest
 from raes_backend_protocols.manifest import (
     BackendManifestEnvelopeUnsupportedError,
@@ -92,11 +94,13 @@ def test_capability_rejection_is_value_free_invalid_input(with_envelope: bool) -
     original = create_stub_manifest(with_realization_envelope=with_envelope)
     tampered = _with_rejected_evaluator_section(backend_manifest_v2_model(original))
 
+    if with_envelope:
+        convert = partial(backend_manifest_from_v2_model_with_envelope, tampered, original.realization_envelope)
+    else:
+        convert = partial(backend_manifest_from_v2_model, tampered)
+
     with pytest.raises(BackendManifestInvalidError) as caught:
-        if with_envelope:
-            backend_manifest_from_v2_model_with_envelope(tampered, original.realization_envelope)
-        else:
-            backend_manifest_from_v2_model(tampered)
+        convert()
 
     assert isinstance(caught.value, InvalidInputError)
     assert str(caught.value) == "backend manifest was rejected by backend capability validation"

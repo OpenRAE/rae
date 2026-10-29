@@ -92,11 +92,12 @@ def _parse_contract_document(payload: bytes, *, media_type: str, output_contract
     root = contract.root
     if media_type not in contract.media_types:
         raise ValueError(_OUTPUT_CONTRACT_UNSATISFIED)
-    lines = [] if media_type == "application/json" else payload.splitlines()
-    if media_type != "application/json" and (not lines or any(not line.strip() for line in lines)):
+    json_document = media_type == "application/json"
+    lines = [] if json_document else payload.splitlines()
+    if not json_document and (not lines or any(not line.strip() for line in lines)):
         raise ValueError(_OUTPUT_CONTRACT_UNSATISFIED)
     try:
-        if media_type == "application/json":
+        if json_document:
             document = parse_bounded_json(payload, max_bytes=_MAX_ARTIFACT_BYTES, root=root)
         else:
             document = [parse_bounded_json_object(line, max_bytes=_MAX_ARTIFACT_BYTES) for line in lines]

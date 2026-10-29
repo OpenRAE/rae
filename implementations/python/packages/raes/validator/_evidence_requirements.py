@@ -5,6 +5,7 @@ from __future__ import annotations
 from raes_contracts.augmentation_scope import AugmentationScopeRule
 
 from raes._reference_targetability import ReferencePurpose
+from raes.evidence_requirements import ObservationDemandRule
 from raes.observation_scope import resolve_observation_scope, semantic_scope_namespace
 from raes.runtime_forwarding_agent import RuntimeForwardingAgentOwnershipRole
 from raes.scenario import ExpandedScenario, InstantiatedScenario, Scenario
@@ -46,26 +47,23 @@ class _EvidenceRequirementsMixin:
                 self._verify_evidence_requirement_refs(requirement.channel_refs, owner_label, "channel_ref")
                 self._verify_evidence_requirement_ref(requirement.trigger_ref, owner_label, "trigger_ref")
                 self._verify_evidence_requirement_ref(requirement.boundary_ref, owner_label, "boundary_ref")
-                demand = requirement.observation_demand
-                if demand is not None:
-                    self._verify_observation_scope(demand.scope, owner_label, "observation_demand.scope")
-                    if demand.selector is not None:
-                        for excluded in demand.selector.excluded_scopes:
-                            self._verify_observation_scope(
-                                excluded, owner_label, "observation_demand.selector.exclusion"
-                            )
-                        self._verify_observation_scope(
-                            demand.selector.semantic_scope,
-                            owner_label,
-                            "observation_demand.selector.semantic_scope",
-                        )
-                        self._verify_evidence_requirement_refs(
-                            list(demand.selector.component_refs),
-                            owner_label,
-                            "observation_demand.selector.component_ref",
-                            _SUBJECT,
-                        )
+                if requirement.observation_demand is not None:
+                    self._verify_observation_demand(requirement.observation_demand, owner_label)
         self._verify_forwarding_agent_evidence_roles()
+
+    def _verify_observation_demand(self, demand: ObservationDemandRule, owner_label: str) -> None:
+        self._verify_observation_scope(demand.scope, owner_label, "observation_demand.scope")
+        selector = demand.selector
+        if selector is None:
+            return
+        for excluded in selector.excluded_scopes:
+            self._verify_observation_scope(excluded, owner_label, "observation_demand.selector.exclusion")
+        self._verify_observation_scope(
+            selector.semantic_scope, owner_label, "observation_demand.selector.semantic_scope"
+        )
+        self._verify_evidence_requirement_refs(
+            list(selector.component_refs), owner_label, "observation_demand.selector.component_ref", _SUBJECT
+        )
 
     def _verify_observation_scope(self, pointer: str, owner_label: str, field_label: str) -> None:
         found, _value = resolve_observation_scope(self._s, pointer)

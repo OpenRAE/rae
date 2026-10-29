@@ -790,8 +790,9 @@ def test_cleanup_plan_admission_rejects_unsupported_state_semantics(
     assert base is not None
     manifest = _manifest_with_cleanup(replace(base, **cleanup_change))
 
+    plan = _plan(**plan_change)
     with pytest.raises(ConflictError, match=message):
-        require_cleanup_plan_capability(manifest, _plan(**plan_change))
+        require_cleanup_plan_capability(manifest, plan)
 
 
 def test_cleanup_plan_admission_accepts_supported_required_cleanup() -> None:
@@ -808,8 +809,10 @@ def test_trial_control_admission_refuses_undeclared_operation_guarantees() -> No
         cleanup_plan_ref="cleanup-plan-a",
     )
 
+    manifest = create_stub_manifest()
+    plan = _plan()
     with pytest.raises(ConflictError, match="required trial operation guarantees"):
-        require_trial_control_capability(create_stub_manifest(), controls, _plan())
+        require_trial_control_capability(manifest, controls, plan)
     require_trial_control_capability(
         create_stub_manifest(), controls.model_copy(update={"on_timeout": "abort"}), _plan()
     )

@@ -756,15 +756,12 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     if report is not None:
         print(report)
-        return 0
-    if failures:
-        if args.json:
-            print(failures_to_json(failures))
-        else:
-            for failure in failures:
-                print(failure.render(), file=sys.stderr)
-        return 1
-    return 0
+    elif failures and args.json:
+        print(failures_to_json(failures))
+    else:
+        for failure in failures:
+            print(failure.render(), file=sys.stderr)
+    return 1 if failures else 0
 
 
 if __name__ == "__main__":

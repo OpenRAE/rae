@@ -25,6 +25,7 @@ from raes_contracts.operational_logging import run_application  # noqa: E402
 
 from tools import isabelle_sandbox  # noqa: E402
 from tools.tool_versions import ISABELLE_VERSION  # noqa: E402
+from tools.verified_tool_installation import ToolInstallationError  # noqa: E402
 
 if TYPE_CHECKING:
     from tools.tooling_policy_gate import LockedArtifactSelection
@@ -142,7 +143,6 @@ def acquire_isabelle(
         ArtifactAcquisitionError,
         acquire_locked_file,
     )
-    from tools.verified_tool_installation import ToolInstallationError
 
     selection = _load_selection()
     _require_supported_platform()
@@ -184,15 +184,12 @@ def require_isabelle(repo_root: Path = REPO_ROOT, *, installation_root: Path | N
     """Resolve and completely reverify an acquired distribution without network access."""
 
     from tools import verified_tree_installation as tree_installation
-    from tools.verified_tool_installation import ToolInstallationError
 
     selection = _load_selection()
     _require_supported_platform()
     try:
         tree = tree_installation.require_verified_tree_installation(
-            repo_root,
-            selection,
-            installation_root=installation_root,
+            repo_root, selection, installation_root=installation_root
         )
     except ToolInstallationError as exc:
         if str(exc) == "tool-installation: installation-missing":
@@ -205,7 +202,6 @@ def describe_isabelle_tree(local_input: Path) -> dict[str, object]:
     """Return the reviewable installed-tree identity of a lock-verified archive."""
 
     from tools import verified_tree_installation as tree_installation
-    from tools.verified_tool_installation import ToolInstallationError
 
     selection = _load_selection(require_installed_tree=False)
     try:
@@ -375,9 +371,6 @@ def _require_bubblewrap(bwrap: Path = ISABELLE_BUBBLEWRAP_PATH) -> Path:
     return bwrap
 
 
-_PROOF_STATE_UNAVAILABLE = "the private proof state could not be prepared"
-
-
 @contextmanager
 def _private_proof_state() -> Iterator[Path]:
     """Hold the private proof state directory; a host failure is a proof tool failure."""
@@ -385,7 +378,7 @@ def _private_proof_state() -> Iterator[Path]:
     try:
         stage = tempfile.TemporaryDirectory(prefix="isabelle-proof-")
     except OSError as exc:
-        raise IsabelleToolError(_PROOF_STATE_UNAVAILABLE) from exc
+        raise IsabelleToolError("the private proof state could not be prepared") from exc
     try:
         yield Path(stage.name).resolve()
     finally:
@@ -407,7 +400,7 @@ def _prepare_proof_state(state_root: Path) -> None:
             encoding="ascii",
         )
     except OSError as exc:
-        raise IsabelleToolError(_PROOF_STATE_UNAVAILABLE) from exc
+        raise IsabelleToolError("the private proof state could not be prepared") from exc
 
 
 def run_isabelle_build(repo_root: Path = REPO_ROOT, *, bwrap: Path = ISABELLE_BUBBLEWRAP_PATH) -> dict[str, object]:
@@ -469,18 +462,11 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Acquire or replay the pinned participant-opacity proof tool.")
     commands = parser.add_subparsers(dest="command", required=True)
     acquire = commands.add_parser("acquire", help="admit the pinned distribution into a verified private tree")
-    acquire.add_argument(
-        "--local-input",
-        type=Path,
-        help="explicit pre-seeded archive admitted by exact identity",
-    )
+    acquire.add_argument("--local-input", type=Path, help="explicit pre-seeded archive admitted by exact identity")
     acquire.add_argument("--locator-ref", help="approved same-byte locator selected for this invocation")
     describe = commands.add_parser("describe-tree", help="print the reviewable installed-tree identity")
     describe.add_argument("--local-input", type=Path, required=True)
-    commands.add_parser(
-        "preflight",
-        help="list missing proof prerequisites without network or execution",
-    )
+    commands.add_parser("preflight", help="list missing proof prerequisites without network or execution")
     commands.add_parser("verify", help="kernel-check the fixed session offline")
     return parser.parse_args()
 

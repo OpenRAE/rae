@@ -311,7 +311,7 @@ class _SourceMetadata:
         if (
             pointer.endswith(("_present", "_commitment"))
             or not isinstance(source, (str, int, float, bool))
-            or projected != to_jsonable_python(source)
+            or projected != to_jsonable_python(source, fallback=jsonable_fallback)
         ):
             raise _UnrepresentableAuthority("parameter derivation requires a public scalar projection")
         try:

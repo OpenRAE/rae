@@ -246,7 +246,7 @@ class _SectionsMixin:
                     if self._is_unresolved_var(entity_ref):
                         continue
                     if entity_ref not in flat_names:
-                        with self._owner(("nodes", node_name)):
-                            self._err(
-                                f"Node '{node_name}' role '{role_name}' references undefined entity '{entity_ref}'"
-                            )
+                        self._err_for(
+                            ("nodes", node_name),
+                            f"Node '{node_name}' role '{role_name}' references undefined entity '{entity_ref}'",
+                        )

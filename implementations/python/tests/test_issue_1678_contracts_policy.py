@@ -73,8 +73,10 @@ def test_control_context_resolver_failure_is_logged_and_refused(records):
         validate_participant_control_resolved_context,
     )
 
+    evaluation = object()
+    resolver = _fail(RuntimeError(SENTINEL))
     with pytest.raises(ValueError, match="trusted-context validation failed") as refused:
-        validate_participant_control_resolved_context(object(), _fail(RuntimeError(SENTINEL)))
+        validate_participant_control_resolved_context(evaluation, resolver)
     assert SENTINEL not in str(refused.value)
     [record] = records("raes_contracts._host_isolation")
     _assert_value_free(record)
@@ -86,10 +88,14 @@ def test_flow_control_resolver_and_trusted_context_failures_are_logged(records):
         validate_participant_flow_control_resolved_context,
     )
 
+    document = object()
+    resolver = _fail(RuntimeError(SENTINEL))
     with pytest.raises(ValueError, match="context resolution failed"):
-        validate_participant_flow_control_resolved_context(object(), _fail(RuntimeError(SENTINEL)))
+        validate_participant_flow_control_resolved_context(document, resolver)
+    document = object()
+    resolver = _fail(ValueError(SENTINEL))
     with pytest.raises(ValueError, match="context resolution failed"):
-        validate_participant_flow_control_resolved_context(object(), _fail(ValueError(SENTINEL)))
+        validate_participant_flow_control_resolved_context(document, resolver)
     [resolver_record] = records("raes_contracts._host_isolation")
     _assert_value_free(resolver_record)
 
@@ -110,8 +116,9 @@ def test_feature_support_resolver_refusal_is_quiet_and_its_failure_is_logged(rec
     allocation = SimpleNamespace(feature_requirements=(requirement,), provider_component_id="provider")
     for failure in (ValueError(SENTINEL), ConflictError(SENTINEL), LookupError(SENTINEL)):
         context = SimpleNamespace(feature_support_resolver=_fail(failure))
+        work_budget = _WorkBudget(8)
         with pytest.raises(ValueError, match="feature support resolution failed") as refused:
-            _validate_feature_requirements("profile", allocation, context, _WorkBudget(8))
+            _validate_feature_requirements("profile", allocation, context, work_budget)
         assert refused.value.__suppress_context__ is True
     [record] = records("raes_contracts._host_isolation")
     assert "ForeignCodeFailure" in record.exc_text
@@ -126,12 +133,15 @@ def test_information_state_and_delivery_resolver_failures_name_their_record(reco
     from raes_contracts.participant_decision_surface_delivery import validate_participant_decision_surface_v2_delivery
 
     # The refusal names the value-free record as its cause, never the host exception.
+    state_record = object()
+    resolver = _fail(RuntimeError(SENTINEL))
     with pytest.raises(ValueError, match="information-state context resolution failed") as state:
-        validate_participant_information_state_resolved_context(object(), _fail(RuntimeError(SENTINEL)))
+        validate_participant_information_state_resolved_context(state_record, resolver)
     assert isinstance(state.value.__cause__, ForeignCodeFailure)
     surface = SimpleNamespace(surface_state="delivered", delivery=SimpleNamespace(delivery_ref="delivery-1"))
+    resolver = _fail(RuntimeError(SENTINEL))
     with pytest.raises(ValueError, match="delivery resolution failed") as delivery:
-        validate_participant_decision_surface_v2_delivery(surface, _fail(RuntimeError(SENTINEL)))
+        validate_participant_decision_surface_v2_delivery(surface, resolver)
     assert isinstance(delivery.value.__cause__, ForeignCodeFailure)
     logged = records("raes_contracts._host_isolation")
     assert len(logged) == 2
@@ -243,9 +253,10 @@ def test_damaged_published_evidence_schema_and_emitted_json_stay_value_errors(tm
     from raes_contracts import evidence_output_validation
     from raes_contracts._evidence_content_validation import _parse_contract_document
 
+    content = _DUPLICATE_OBJECT.encode()
     with pytest.raises(ValueError, match="does not satisfy the declared output_contract") as emitted:
         _parse_contract_document(
-            _DUPLICATE_OBJECT.encode(), media_type="application/json", output_contract="experiment-evidence-record-v1"
+            content, media_type="application/json", output_contract="experiment-evidence-record-v1"
         )
     assert isinstance(emitted.value.__cause__, StrictJsonIngressError)
 
@@ -313,10 +324,12 @@ def test_mixed_composition_ingress_limits_raise_invalid_input():
         parse_mixed_composition_profile,
     )
 
+    limits = MixedCompositionValidationLimits(max_json_nodes=2)
     with pytest.raises(InvalidInputError, match="node limit"):
-        parse_mixed_composition_profile('{"a":[1,2,3]}', limits=MixedCompositionValidationLimits(max_json_nodes=2))
+        parse_mixed_composition_profile('{"a":[1,2,3]}', limits=limits)
+    limits = MixedCompositionValidationLimits(max_json_depth=2)
     with pytest.raises(StrictJsonIngressError, match="depth limit"):
-        parse_mixed_composition_profile('{"a":[[1]]}', limits=MixedCompositionValidationLimits(max_json_depth=2))
+        parse_mixed_composition_profile('{"a":[[1]]}', limits=limits)
 
 
 def test_run_archive_raises_categories_and_lets_defects_propagate(tmp_path, monkeypatch):
@@ -330,16 +343,18 @@ def test_run_archive_raises_categories_and_lets_defects_propagate(tmp_path, monk
     assert SENTINEL not in str(invalid.value)
 
     record = archive.publish(json.dumps(materialized_payload()))
+    document = json.dumps(materialized_payload(description="different"))
     with pytest.raises(ConflictError, match="already binds different bytes"):
-        archive.publish(json.dumps(materialized_payload(description="different")))
+        archive.publish(document)
     path = tmp_path / "archive" / record.reference.ref_path
     path.write_bytes(path.read_bytes().replace(b"materialized-example", b"materialized-tampered"))
     with pytest.raises(EvidenceIntegrityError, match="do not match the retained record"):
         archive.read(record)
 
     monkeypatch.setattr("raes.parser.parse_sdl", _fail(KeyError(SENTINEL)))
+    document = json.dumps(materialized_payload())
     with pytest.raises(KeyError):
-        archive.publish(json.dumps(materialized_payload()))
+        archive.publish(document)
 
 
 # Messages carry no values that the surface must not show (E7).

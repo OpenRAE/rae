@@ -159,8 +159,15 @@ def _reserve_concurrent_batch_for_dispatch(
     batch: _ConcurrentBatch,
     pre_batch: RuntimeSnapshot,
 ) -> tuple[RuntimeSnapshot, RuntimeSnapshot] | None:
-    reserved = None
     batch.run.working = pre_batch
+    if not _reserved_concurrent_capacity(batch, pre_batch):
+        return None
+    base = batch.run.working
+    dispatch_snapshot = _isolated_dispatch_snapshot(batch, pre_batch, base)
+    return None if dispatch_snapshot is None else (base, dispatch_snapshot)
+
+
+def _reserved_concurrent_capacity(batch: _ConcurrentBatch, pre_batch: RuntimeSnapshot) -> bool:
     try:
         _reserve_concurrent_actions(batch.run, batch.contexts)
     except (Exception, CancelledError) as exc:  # NOSONAR - capacity/readback drift fails before dispatch
@@ -177,26 +184,30 @@ def _reserve_concurrent_batch_for_dispatch(
         )
         if cancelled:
             raise
-    else:
-        base = batch.run.working
-        try:
-            dispatch_snapshot = deepcopy(base)
-        except (Exception, CancelledError) as exc:  # NOSONAR - no backend action has been submitted yet
-            cancelled = isinstance(exc, CancelledError)
-            if not cancelled:
-                _LOGGER.exception("concurrent participant dispatch isolation failed before dispatch")
-            _fail_concurrent_batch_before_dispatch(
-                batch.run,
-                pre_batch,
-                policy_address=batch.policy.address,
-                code=_CONCURRENT_SNAPSHOT_ISOLATION_FAILED,
-                message="Concurrent participant dispatch isolation did not complete before dispatch.",
-            )
-            if cancelled:
-                raise
-        else:
-            reserved = (base, dispatch_snapshot)
-    return reserved
+        return False
+    return True
+
+
+def _isolated_dispatch_snapshot(
+    batch: _ConcurrentBatch, pre_batch: RuntimeSnapshot, base: RuntimeSnapshot
+) -> RuntimeSnapshot | None:
+    try:
+        dispatch_snapshot = deepcopy(base)
+    except (Exception, CancelledError) as exc:  # NOSONAR - no backend action has been submitted yet
+        cancelled = isinstance(exc, CancelledError)
+        if not cancelled:
+            _LOGGER.exception("concurrent participant dispatch isolation failed before dispatch")
+        _fail_concurrent_batch_before_dispatch(
+            batch.run,
+            pre_batch,
+            policy_address=batch.policy.address,
+            code=_CONCURRENT_SNAPSHOT_ISOLATION_FAILED,
+            message="Concurrent participant dispatch isolation did not complete before dispatch.",
+        )
+        if cancelled:
+            raise
+        return None
+    return dispatch_snapshot
 
 
 def _prepare_concurrent_batch(

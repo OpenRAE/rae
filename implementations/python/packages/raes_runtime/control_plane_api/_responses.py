@@ -16,6 +16,11 @@ _SNAPSHOT_REVISION_CONFLICT_DETAIL = "snapshot revision conflict"
 _FORBIDDEN_DETAIL = "forbidden"
 _NOT_FOUND_DETAIL = "not found"
 _UNAVAILABLE_DETAIL = "control-plane unavailable"
+_REFUSAL_STATUSES: tuple[tuple[type[RaesError], int, str], ...] = (
+    (AuthorizationError, 403, _FORBIDDEN_DETAIL),
+    (NotFoundError, 404, _NOT_FOUND_DETAIL),
+    (OperationalError, 503, _UNAVAILABLE_DETAIL),
+)
 _NOT_FOUND_RESPONSES = {404: {"description": "Not found"}}
 _BAD_REQUEST_CONFLICT_RESPONSES = {
     400: {"description": "Bad request"},
@@ -51,12 +56,9 @@ def _refusal(error: RaesError, conflict_detail: str | None = None) -> HTTPExcept
     500 handler instead.
     """
 
-    if isinstance(error, AuthorizationError):
-        return HTTPException(status_code=403, detail=_FORBIDDEN_DETAIL)
-    if isinstance(error, NotFoundError):
-        return HTTPException(status_code=404, detail=_NOT_FOUND_DETAIL)
-    if isinstance(error, OperationalError):
-        return HTTPException(status_code=503, detail=_UNAVAILABLE_DETAIL)
+    for category, status_code, detail in _REFUSAL_STATUSES:
+        if isinstance(error, category):
+            return HTTPException(status_code=status_code, detail=detail)
     return HTTPException(status_code=409, detail=conflict_detail or _conflict_detail(error))
 
 

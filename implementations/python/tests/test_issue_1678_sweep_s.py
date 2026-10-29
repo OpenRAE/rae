@@ -84,8 +84,9 @@ _TARGET_REFUSALS = [
 @_needs_digit_limit
 @pytest.mark.parametrize("literal", [_DECIMAL, _HEX], ids=["decimal", "hexadecimal"])
 def test_loader_refuses_an_integer_without_a_decimal_form_and_omits_its_digits(literal):
+    source = _integer_source(literal)
     with pytest.raises(SDLParseError) as refused:
-        load_sdl_fragment(_integer_source(literal))
+        load_sdl_fragment(source)
 
     [diagnostic] = refused.value.diagnostics
     assert diagnostic.code == "sdl.parse"
@@ -324,8 +325,9 @@ def test_realization_pointer_with_a_unicode_digit_is_a_validation_finding():
     from raes import SDLValidationError
 
     # str.isdigit() accepts a superscript two, but int() refuses it.
+    source = _realization_source("²")
     with pytest.raises(SDLValidationError, match="does not resolve to a typed SDL surface"):
-        parse_sdl(_realization_source("²"))
+        parse_sdl(source)
 
 
 @pytest.mark.parametrize(("migrate", "code"), _TARGET_REFUSALS)
@@ -382,8 +384,9 @@ def _oversized_asset_source() -> str:
 def test_control_context_asset_without_a_canonical_digest_is_a_validation_finding():
     from raes import SDLValidationError
 
+    source = _oversized_asset_source()
     with pytest.raises(SDLValidationError, match="control-context.descriptor-not-canonical"):
-        parse_sdl(_oversized_asset_source())
+        parse_sdl(source)
 
 
 @pytest.mark.parametrize(("migrate", "code"), _SOURCE_REFUSALS)
@@ -505,12 +508,14 @@ def test_selection_refusals_are_sdl_selection_errors_and_defects_propagate(monke
     family = _family(_payload())
     with pytest.raises(SDLSelectionError, match="complete scenario-family selection required"):
         selected_scenario.select_scenario_family(family, {})
+    outcomes = {"host-state": _outcome("missing-member")}
     with pytest.raises(SDLSelectionError):
-        selected_scenario.select_scenario_family(family, {"host-state": _outcome("missing-member")})
+        selected_scenario.select_scenario_family(family, outcomes)
 
     monkeypatch.setattr(selected_scenario, "_validate_cross_point_relations", _defect)
+    outcomes = {"host-state": _outcome("baseline")}
     with pytest.raises(ValueError, match="SECRET-DEFECT-DETAIL"):
-        selected_scenario.select_scenario_family(family, {"host-state": _outcome("baseline")})
+        selected_scenario.select_scenario_family(family, outcomes)
 
 
 def test_selection_intent_refusals_are_sdl_selection_errors():
@@ -524,12 +529,15 @@ def test_selection_intent_refusals_are_sdl_selection_errors():
     spec = ExperimentSpecModel.model_validate(payload)
     spec.intended_scenario_ref.ref_id = "other-family"
 
+    family = _expanded_family()
     with pytest.raises(SDLSelectionError, match="family identity must match") as refused:
-        validate_experiment_selection_against_family(spec, family=_expanded_family())
+        validate_experiment_selection_against_family(spec, family=family)
     assert isinstance(refused.value, InvalidInputError)
     assert not isinstance(refused.value, ValueError)
+    binding_spec = _spec_with_binding_family("other")
+    family = _expanded_family()
     with pytest.raises(SDLSelectionError, match="binding target family identity"):
-        validate_experiment_selection_against_family(_spec_with_binding_family("other"), family=_expanded_family())
+        validate_experiment_selection_against_family(binding_spec, family=family)
 
 
 def test_compiler_reports_selection_intent_refusals_and_propagates_defects(monkeypatch):
@@ -546,8 +554,9 @@ def test_compiler_reports_selection_intent_refusals_and_propagates_defects(monke
     assert [item.code for item in result.diagnostics] == ["trial-compiler.selection-intent-rejected"]
 
     monkeypatch.setattr(compiler_module, "validate_experiment_selection_against_family", _defect)
+    request = _request()
     with pytest.raises(ValueError, match="SECRET-DEFECT-DETAIL"):
-        compile_admitted_trial_plan(_request())
+        compile_admitted_trial_plan(request)
 
 
 def test_binding_target_refusals_are_binding_target_errors():
@@ -559,10 +568,11 @@ def test_binding_target_refusals_are_binding_target_errors():
     from test_sce_002_selected_scenario import _family
 
     descriptors = ExperimentBindingDescriptorSetModel.model_validate(_scenario_binding_payload())
+    scenario_resolver = _ScenarioOwnerMismatchResolver()
     with pytest.raises(ExperimentBindingTargetError, match="owner does not match") as refused:
         validate_experiment_binding_targets(
             descriptors,
-            scenario_resolver=_ScenarioOwnerMismatchResolver(),
+            scenario_resolver=scenario_resolver,
             participant_manifests={},
             apparatus_manifests={},
         )

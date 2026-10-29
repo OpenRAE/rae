@@ -321,10 +321,7 @@ def _execute_admitted_native(
         return budget
 
     try:
-        if _validate_native_invocation(plane, request, record, diagnostics, remaining):
-            running = _dispatch_native_invocation(plane, request, record, remaining)
-            if running is not None:
-                _complete_native_invocation(plane, request, running, snapshot, diagnostics, remaining)
+        _run_native_invocation(plane, request, record, snapshot, diagnostics, remaining)
     except Exception as exc:
         # Isolation of the external work: settle without a result; a refusal category needs no record,
         # unless the runtime requires restart and refuses the work instead (H2).
@@ -399,6 +396,21 @@ def _dispatch_native_invocation(
         plane._poison_runtime_durability()
         raise
     return running
+
+
+def _run_native_invocation(
+    plane: RuntimeControlPlane,
+    request: OperationExecutionRequest,
+    record: ControlPlaneOperationRecord,
+    snapshot: RuntimeSnapshot,
+    diagnostics: list[Diagnostic],
+    remaining: Callable[[], int],
+) -> None:
+    if not _validate_native_invocation(plane, request, record, diagnostics, remaining):
+        return
+    running = _dispatch_native_invocation(plane, request, record, remaining)
+    if running is not None:
+        _complete_native_invocation(plane, request, running, snapshot, diagnostics, remaining)
 
 
 def _complete_native_invocation(

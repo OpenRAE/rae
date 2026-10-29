@@ -146,8 +146,9 @@ def test_dsl_124_damaged_published_schema_stays_a_model_validation_failure(monke
     # The checked-schema cache keeps a validator from an earlier test; clear it so the damaged read runs.
     evidence_output_validation._checked_schema_validator.cache_clear()
     try:
+        scenario_yaml = _scenario_yaml()
         with pytest.raises(SDLParseError) as excinfo:
-            parse_sdl(_scenario_yaml())
+            parse_sdl(scenario_yaml)
     finally:
         evidence_output_validation._checked_schema_validator.cache_clear()
 

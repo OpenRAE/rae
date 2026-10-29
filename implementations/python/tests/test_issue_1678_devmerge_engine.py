@@ -130,8 +130,9 @@ def test_archive_readback_mismatch_is_an_evidence_refusal(readback):
 
     run = _archived_run()
     observed = run.model_copy(update={"started_at": "2026-05-26T00:11:00Z"}) if readback == "changed" else object()
+    archive = _Archive(observed)
     with pytest.raises(EvidenceIntegrityError, match="archive readback differs"):
-        _write_archive(_Archive(observed), run)
+        _write_archive(archive, run)
 
 
 def test_provider_capabilities_carrier_is_an_input_refusal(monkeypatch):
@@ -209,20 +210,26 @@ def test_runtime_activity_reports_a_lost_authority_response_as_unavailable():
 
 
 def test_runtime_activity_refuses_a_foreign_worker_reference():
+    authority = _Authority(RuntimeError("unused"))
+    payload = _reference_payload("foreign")
     with pytest.raises(AuthorizationError, match="forbidden"):
-        _advance(_Authority(RuntimeError("unused")), _reference_payload("foreign"))
+        _advance(authority, payload)
 
 
 def test_runtime_activity_refusal_carries_no_cause_and_logs_only_unexpected_failures(caplog):
     caplog.set_level(logging.ERROR, logger="raes_runtime.runtime_temporal_worker")
+    authority = _Authority(AuthorizationError("runtime worker reference is forbidden"))
+    payload = _reference_payload()
     with pytest.raises(ConflictError, match="refused") as refused:
-        _advance(_Authority(AuthorizationError("runtime worker reference is forbidden")), _reference_payload())
+        _advance(authority, payload)
     assert refused.value.__cause__ is None
     assert refused.value.__context__ is None
     assert not caplog.records
 
+    authority = _Authority(RuntimeError("secret-value"))
+    payload = _reference_payload()
     with pytest.raises(ConflictError, match="refused") as refused:
-        _advance(_Authority(RuntimeError("secret-value")), _reference_payload())
+        _advance(authority, payload)
     assert refused.value.__context__ is None
     (record,) = caplog.records
     assert record.getMessage() == "runtime state activity failed before its outcome was established"
@@ -259,8 +266,9 @@ def test_installed_owner_refusal_passes_through_without_a_record(caplog):
     def refuse() -> None:
         raise refusal
 
+    adapter = _DirectAdapter()
     with pytest.raises(ConflictError) as raised:
-        call_installed_owner(_DirectAdapter(), refuse, timeout_ms=1, failure=OperationalError, message="unused")
+        call_installed_owner(adapter, refuse, timeout_ms=1, failure=OperationalError, message="unused")
     assert raised.value is refusal
     assert not caplog.records
 
@@ -274,8 +282,9 @@ def test_installed_owner_budget_exhaustion_is_a_budget_category(caplog):
     def expire() -> None:
         raise TimeoutError(_FOREIGN_SECRET)
 
+    adapter = _DirectAdapter()
     with pytest.raises(RuntimeBudgetExhaustedError) as raised:
-        call_installed_owner(_DirectAdapter(), expire, timeout_ms=1, failure=OperationalError, message="unused")
+        call_installed_owner(adapter, expire, timeout_ms=1, failure=OperationalError, message="unused")
     assert raised.value.__context__ is None
     assert not caplog.records
 
@@ -284,10 +293,9 @@ def test_installed_owner_foreign_failure_logs_one_value_free_record(caplog):
     from raes_runtime.runtime_trial_services import call_installed_owner
 
     caplog.set_level(logging.WARNING)
+    adapter = _DirectAdapter()
     with pytest.raises(OperationalError, match="owner failed here") as raised:
-        call_installed_owner(
-            _DirectAdapter(), _foreign, timeout_ms=1, failure=OperationalError, message="owner failed here"
-        )
+        call_installed_owner(adapter, _foreign, timeout_ms=1, failure=OperationalError, message="owner failed here")
     assert raised.value.__context__ is None
     assert raised.value.__cause__ is None
     _assert_one_value_free_owner_record(caplog)

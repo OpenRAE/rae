@@ -250,7 +250,7 @@ def _names_mapping(names: list[Any], *, node: object, field: str, path: Path | N
     """Expand a node list shorthand: [a, b] → {a: '', b: ''}; a nested list or mapping is not a name."""
     if not all(isinstance(name, Hashable) for name in names):
         raise SDLParseError(f"Node '{node}' {field} list must contain only names", path=path)
-    return {name: "" for name in names}
+    return dict.fromkeys(names, "")
 
 
 # OCR scoring sections removed from the SDL by ADR-073. Detected up front so
@@ -275,68 +275,48 @@ def _reject_removed_scoring_sections(data: dict[str, Any], *, path: Path | None)
     )
 
 
+# Scopes where "source" is a plain string reference, NOT a Source package.
+_SOURCE_SKIP_SECTIONS = frozenset({"relationships", "agents", "imports", "runtime"})
+
+
+def _expand_sources_scoped(obj: object, *, is_hashmap: bool = False, skip: bool = False) -> object:
+    """Expand ``source`` shorthands outside the scopes where ``source`` is a plain reference."""
+    if isinstance(obj, list):
+        return [_expand_sources_scoped(item, is_hashmap=is_hashmap, skip=skip) for item in obj]
+    if not isinstance(obj, dict):
+        return obj
+    result = {}
+    for k, v in obj.items():
+        if is_hashmap:
+            result[k] = _expand_sources_scoped(v, skip=skip)
+        elif k == "source" and not skip:
+            result[k] = _expand_source(v)
+        else:
+            child_skip = skip or k in _SOURCE_SKIP_SECTIONS
+            result[k] = _expand_sources_scoped(v, is_hashmap=_child_is_hashmap_field(k, v), skip=child_skip)
+    return result
+
+
+def _expand_node_shorthands(node_name: object, node_data: dict[str, Any], *, path: Path | None) -> None:
+    """Expand the roles and the feature, condition and inject list shorthands of one node."""
+    if isinstance(node_data.get("roles"), dict):
+        node_data["roles"] = _expand_roles(node_data["roles"])
+    # G6: features/conditions/injects as list -> dict with empty role
+    for field in ("features", "conditions", "injects"):
+        if isinstance(node_data.get(field), list):
+            node_data[field] = _names_mapping(node_data[field], node=node_name, field=field, path=path)
+
+
 def _expand_shorthands(data: dict[str, Any], *, path: Path | None = None) -> dict[str, Any]:
     """Apply all shorthand expansions to normalized data."""
-    # Scopes where "source" is a plain string reference, NOT a Source package.
-    _SOURCE_SKIP_SECTIONS = frozenset({"relationships", "agents", "imports", "runtime"})
-
-    def expand_sources_scoped(
-        obj: Any,
-        *,
-        is_hashmap: bool = False,
-        skip: bool = False,
-    ) -> Any:
-        if isinstance(obj, dict):
-            result = {}
-            for k, v in obj.items():
-                if is_hashmap:
-                    result[k] = expand_sources_scoped(
-                        v,
-                        is_hashmap=False,
-                        skip=skip,
-                    )
-                    continue
-
-                child_skip = skip or k in _SOURCE_SKIP_SECTIONS
-                child_is_hashmap = _child_is_hashmap_field(k, v)
-
-                if k == "source" and not skip:
-                    result[k] = _expand_source(v)
-                else:
-                    result[k] = expand_sources_scoped(
-                        v,
-                        is_hashmap=child_is_hashmap,
-                        skip=child_skip,
-                    )
-            return result
-        if isinstance(obj, list):
-            return [
-                expand_sources_scoped(
-                    item,
-                    is_hashmap=is_hashmap,
-                    skip=skip,
-                )
-                for item in obj
-            ]
-        return obj
-
-    data = expand_sources_scoped(data)
-
-    # Expand infrastructure shorthand
-    if "infrastructure" in data and isinstance(data["infrastructure"], dict):
+    data = _expand_sources_scoped(data)
+    if isinstance(data.get("infrastructure"), dict):
         data["infrastructure"] = _expand_infrastructure(data["infrastructure"])
-
-    # Expand roles and feature/condition/inject list shorthands within nodes
-    if "nodes" in data and isinstance(data["nodes"], dict):
-        for node_name, node_data in data["nodes"].items():
+    nodes = data.get("nodes")
+    if isinstance(nodes, dict):
+        for node_name, node_data in nodes.items():
             if isinstance(node_data, dict):
-                if isinstance(node_data.get("roles"), dict):
-                    node_data["roles"] = _expand_roles(node_data["roles"])
-                # G6: features/conditions/injects as list -> dict with empty role
-                for field in ("features", "conditions", "injects"):
-                    if field in node_data and isinstance(node_data[field], list):
-                        node_data[field] = _names_mapping(node_data[field], node=node_name, field=field, path=path)
-
+                _expand_node_shorthands(node_name, node_data, path=path)
     return data
 
 

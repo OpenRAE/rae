@@ -158,7 +158,6 @@ def _stage_outcome_failures(
     failures: list[PolicyFailure],
     path: str,
 ) -> None:
-    stage_id = stage.get("stage_id")
     outcome = stage.get("outcome")
     if not _member(outcome, context.valid_outcomes):
         failures.append(
@@ -186,17 +185,29 @@ def _stage_outcome_failures(
             )
         )
     if outcome == "passed" and context.replay_current:
-        executed = context.executed.get(artifact_path, {}) if _hashable(artifact_path) else {}
-        payload = executed.get(stage_id) if _hashable(stage_id) else None
-        exists, _ = _json_pointer_get(payload, stage.get("pointer"))
-        if payload is None or not exists:
-            failures.append(
-                _failure(
-                    "specification-coverage-typed-evidence",
-                    f"{concept_id!r} stage {stage_id!r} does not resolve its declared pointer",
-                    artifact_path if isinstance(artifact_path, str) else path,
-                )
+        _passed_stage_evidence_failures(context, stage, concept_id, failures, path)
+
+
+def _passed_stage_evidence_failures(
+    context: _SnapshotContext,
+    stage: dict[str, object],
+    concept_id: object,
+    failures: list[PolicyFailure],
+    path: str,
+) -> None:
+    stage_id = stage.get("stage_id")
+    artifact_path = stage.get("artifact_path")
+    executed = context.executed.get(artifact_path, {}) if _hashable(artifact_path) else {}
+    payload = executed.get(stage_id) if _hashable(stage_id) else None
+    exists, _ = _json_pointer_get(payload, stage.get("pointer"))
+    if payload is None or not exists:
+        failures.append(
+            _failure(
+                "specification-coverage-typed-evidence",
+                f"{concept_id!r} stage {stage_id!r} does not resolve its declared pointer",
+                artifact_path if isinstance(artifact_path, str) else path,
             )
+        )
 
 
 def _stage_classification_failures(

@@ -117,7 +117,8 @@ def _validate_evidence_paths(
                 )
                 continue
             except ValueError, RecursionError:
-                # The witness is not UTF-8, has an integer beyond the interpreter digit limit or nests beyond the decoder.
+                # The witness is not UTF-8, has an integer beyond the interpreter digit limit
+                # or nests beyond the decoder.
                 failures.append(
                     PolicyFailure(
                         "scientific-completeness-witness-invalid",
@@ -277,7 +278,8 @@ def evaluate(repo_root: Path) -> list[PolicyFailure]:
         return [PolicyFailure("scientific-completeness-invalid", str(exc))]
     try:
         outcomes = evaluate_profile_completeness(taxonomy, assessment)
-    except ValueError as exc:  # the model cross-check reports a mismatch with ValueError (E3)
+    except ValueError as exc:
+        # The model cross-check reports a mismatch with ValueError (E3).
         return [PolicyFailure("scientific-completeness-invalid", str(exc))]
 
     failures: list[PolicyFailure] = []

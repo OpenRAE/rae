@@ -4,6 +4,8 @@ Each function returns the ``(section, name)`` pair of the declaration that the
 error message of an issue names first, or None when the message names none.
 """
 
+from operator import attrgetter
+
 from ..semantics.objective_semantics import ObjectiveIssue
 from ..semantics.participant_behavior import ParticipantBehaviorIssue
 from ..semantics.participant_outcome import ParticipantOutcomeIssue
@@ -25,6 +27,11 @@ _OBSERVATION_BOUNDARY_ISSUES = frozenset(
         "participant.view-transition-ref-unbound",
     }
 )
+_BEHAVIOR_ISSUE_OWNERS = (
+    (_AGENT_ISSUES, "agents", attrgetter("participant_name")),
+    (_ACTION_CONTRACT_ISSUES, "action_contracts", attrgetter("action_name")),
+    (_OBSERVATION_BOUNDARY_ISSUES, "observation_boundaries", attrgetter("boundary_name")),
+)
 
 
 def objective_issue_owner(issue: ObjectiveIssue) -> tuple[str, str] | None:
@@ -36,12 +43,9 @@ def objective_issue_owner(issue: ObjectiveIssue) -> tuple[str, str] | None:
 def participant_behavior_issue_owner(issue: ParticipantBehaviorIssue) -> tuple[str, str]:
     """Return the agent, action contract, observation boundary or behavior specification of a behavior issue."""
 
-    if issue.code in _AGENT_ISSUES:
-        return "agents", issue.participant_name
-    if issue.code in _ACTION_CONTRACT_ISSUES:
-        return "action_contracts", issue.action_name
-    if issue.code in _OBSERVATION_BOUNDARY_ISSUES:
-        return "observation_boundaries", issue.boundary_name
+    for codes, section, name in _BEHAVIOR_ISSUE_OWNERS:
+        if issue.code in codes:
+            return section, name(issue)
     return "behavior_specifications", issue.spec_name
 
 

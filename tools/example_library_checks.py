@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import re
-from functools import cache
+from functools import cache, partial
 from pathlib import Path
 from typing import Any
 
@@ -172,21 +172,15 @@ def load_template_file(
     mapping holds the template fields, so its keys are read literally; the
     body below it gets the same structural key checks as an SDL document root.
     """
-    try:
-        text = path.read_text(encoding="utf-8")
-    except UnicodeDecodeError as exc:
-        return None, [_parse_failure(relative_path, exc)]
     if contract == EXPERIMENT_CONTRACT:
-        try:
-            raw = _read_experiment_yaml(text)
         # The experiment reader raises ValueError for an invalid timestamp such as 2026-02-30.
-        except (yaml.YAMLError, ValueError) as exc:
-            return None, [_parse_failure(relative_path, exc)]
+        read, refusals = _read_experiment_yaml, (yaml.YAMLError, ValueError)
     else:
-        try:
-            raw = load_sdl_fragment(text, mapping_keys="literal")
-        except (SDLParseError, yaml.YAMLError) as exc:
-            return None, [_parse_failure(relative_path, exc)]
+        read, refusals = partial(load_sdl_fragment, mapping_keys="literal"), (SDLParseError, yaml.YAMLError)
+    try:
+        raw = read(path.read_text(encoding="utf-8"))
+    except (UnicodeDecodeError, *refusals) as exc:
+        return None, [_parse_failure(relative_path, exc)]
     if not isinstance(raw, dict):
         return None, [
             _fail("example-library-shape", f"{relative_path} must be a YAML mapping at the top level", relative_path)

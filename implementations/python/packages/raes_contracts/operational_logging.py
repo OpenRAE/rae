@@ -63,6 +63,7 @@ _SUPPRESSED_CONTEXT = (
 )
 _UNSAFE_CHARACTERS = re.compile("[\x00-\x1f\x7f-\x9f\u200e\u200f\u2028\u2029\u202a-\u202e\u2066-\u2069]")
 _NAMED_ESCAPES = {"\t": "\\t", "\n": "\\n", "\r": "\\r"}
+_ExcInfo = tuple[type[BaseException], BaseException, TracebackType | None] | tuple[None, None, None]
 
 
 def _escape_character(match: re.Match[str]) -> str:
@@ -141,7 +142,8 @@ def _render_one(exception: BaseException, depth: int) -> list[str]:
             lines.append(f"  [{omitted} earlier frames omitted]")
         lines.extend(f'  File "{filename}", line {line}, in {function}' for filename, line, function in frames)
     lines.append(_type_name(type(exception)))
-    if isinstance(exception, BaseExceptionGroup) and depth < _MAX_GROUP_DEPTH:
+    # BaseExceptionGroup is a builtin since Python 3.11, and this module requires Python 3.12.
+    if isinstance(exception, BaseExceptionGroup) and depth < _MAX_GROUP_DEPTH:  # NOSONAR -- builtin name
         members = exception.exceptions
         for index, member in enumerate(members[:_MAX_GROUP_MEMBERS], start=1):
             lines.append(f"  Group member {index} of {len(members)}:")
@@ -264,7 +266,7 @@ class ValueFreeFormatter(logging.Formatter):
         _make_value_free(safe_record)
         return super().format(safe_record)
 
-    def formatException(self, ei) -> str:
+    def formatException(self, ei: _ExcInfo) -> str:
         exception = ei[1]
         return "\n".join(_render_chain(exception)) if exception is not None else ""
 

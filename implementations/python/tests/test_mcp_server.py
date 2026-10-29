@@ -911,8 +911,9 @@ class TestOperationTools:
                 return False
 
         for module in (reference, experiment_authoring):
+            installed_location = _InstalledLocation(tmp_path)
             with pytest.raises(OperationalError, match="could not locate RAES repo root"):
-                module._find_repo_root(_InstalledLocation(tmp_path))
+                module._find_repo_root(installed_location)
 
 
 # ---------------------------------------------------------------------------

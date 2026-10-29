@@ -141,10 +141,9 @@ def test_participant_control_digest_defect_still_propagates(monkeypatch: pytest.
 
     monkeypatch.setattr(participant_control_admission, "control_digest", defect)
     record = ParticipantControlEvaluationModel.model_validate(evaluation_payload())
+    manifest = manifest_with_modular_support()
     with pytest.raises(ValueError, match=DEFECT):
-        participant_control_admission.resolve_participant_control_support(
-            manifest_with_modular_support(), record.support[0]
-        )
+        participant_control_admission.resolve_participant_control_support(manifest, record.support[0])
 
 
 # --- Live conformance: participant execution readback isolates the backend ---------------------------------

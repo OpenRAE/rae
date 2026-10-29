@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import json
 from collections import Counter
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from raes_backend_protocols.capabilities import BackendManifest
+    from raes_processor.models import ExecutionPlan, RuntimeModel
 
 _MAX_INPUT_BYTES = 64 * 1024
 
@@ -122,7 +126,7 @@ def refusal(stage: str) -> dict[str, Any]:
     }
 
 
-def reference_plan(model: Any) -> tuple[Any, Any, dict[str, Any] | None]:
+def reference_plan(model: RuntimeModel) -> tuple[BackendManifest, ExecutionPlan | None, dict[str, Any] | None]:
     """Plan a compiled model against the reference stub backend manifest.
 
     Return the manifest, the execution plan and no error, or the manifest, no
@@ -155,11 +159,11 @@ def _parameter_error(message: str) -> tuple[dict[str, Any], dict[str, Any]]:
 def parse_parameters(parameters_json: str) -> tuple[dict[str, Any], dict[str, Any] | None]:
     try:
         parsed = json.loads(parameters_json)
-    except json.JSONDecodeError as exc:
-        return _parameter_error(f"Invalid JSON in parameters_json: {exc}")
-    except ValueError, RecursionError:
-        # The decoder raises a plain ValueError beyond the integer digit limit and RecursionError beyond its depth.
-        return _parameter_error("Invalid JSON in parameters_json: the document exceeds the decoder limits.")
+    except (ValueError, RecursionError) as exc:
+        # JSONDecodeError names the syntax error; the decoder raises a plain ValueError beyond the
+        # integer digit limit and RecursionError beyond its depth.
+        detail = exc if isinstance(exc, json.JSONDecodeError) else "the document exceeds the decoder limits."
+        return _parameter_error(f"Invalid JSON in parameters_json: {detail}")
     if not isinstance(parsed, dict):
         return _parameter_error("parameters_json must be a JSON object.")
     return parsed, None

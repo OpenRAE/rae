@@ -60,8 +60,9 @@ def test_opacity_egress_treats_the_authorization_refusal_as_withholding() -> Non
 def test_opacity_egress_does_not_treat_another_category_as_withholding() -> None:
     from raes_conformance.conformance.participant_opacity_execution import _egress
 
+    plane = _view_plane(ConflictError("conflict"))
     with pytest.raises(ConflictError):
-        _egress(_view_plane(ConflictError("conflict")), _VIEW_CASE)
+        _egress(plane, _VIEW_CASE)
 
 
 def _governed(failures: list[str]):
@@ -279,8 +280,9 @@ def test_mixed_combination_refused_by_the_configuration_validator_is_unsupported
 def test_mixed_combination_failure_outside_the_refusal_contract_is_not_unsupported(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    failure = LookupError(SENTINEL)
     with pytest.raises(LookupError):
-        _combination(monkeypatch, LookupError(SENTINEL))
+        _combination(monkeypatch, failure)
 
 
 # --- Modular-control probes ----------------------------------------------------------------------------------
@@ -314,8 +316,9 @@ def test_modular_expected_refusal_accepts_each_runtime_refusal_category(monkeypa
 
 
 def test_modular_failed_dependency_is_not_an_expected_refusal(monkeypatch: pytest.MonkeyPatch) -> None:
+    failure = OperationalError("offline")
     with pytest.raises(OperationalError):
-        _drive_projection(monkeypatch, OperationalError("offline"), expect_refusal=True)
+        _drive_projection(monkeypatch, failure, expect_refusal=True)
 
 
 def test_modular_runtime_that_does_not_refuse_is_an_evidence_finding(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -328,8 +331,10 @@ def test_modular_options_that_do_not_configure_the_runtime_are_invalid_input(tmp
     from raes_runtime.control_plane import LocalControlPlaneStore
     from test_issue_1069_participant_control_orchestration import control_target
 
+    target = control_target()
+    store = LocalControlPlaneStore(tmp_path)
     with pytest.raises(InvalidInputError, match="options") as refused:
-        _open_plane(control_target(), LocalControlPlaneStore(tmp_path), {"run_scope": SENTINEL})
+        _open_plane(target, store, {"run_scope": SENTINEL})
     assert SENTINEL not in str(refused.value)
     assert isinstance(refused.value.__cause__, ValueError)
 

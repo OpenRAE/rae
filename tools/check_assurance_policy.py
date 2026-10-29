@@ -516,7 +516,7 @@ def _check_levels(levels: list[Any], path: str) -> list[PolicyFailure]:
     return failures
 
 
-def _fm_index(level_id: Any) -> tuple[int, str] | None:
+def _fm_index(level_id: object) -> tuple[int, str] | None:
     """Return the numeric order key of an FM-numbered level id, else None.
 
     The key compares the significant digits by count and then by value, so FM10

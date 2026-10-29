@@ -22,17 +22,22 @@ _TOO_MANY_DIAGNOSTICS = "Backend returned too many diagnostics."
 _LOGGER = get_logger(__name__)
 
 
-def _materialize_diagnostics(result: object, address: str) -> tuple[list[Diagnostic], str | None]:
-    message = _diagnostics_iterable_violation(result, address)
-    if message:
-        return [], message
+def _drained_diagnostics(result: object, address: str) -> list[Diagnostic] | None:
     try:
         # Drain one diagnostics iterable under its bound; its iterator is backend code.
         diagnostics = list(islice(result, _MAX_DIAGNOSTICS + 1))
     except Exception as exc:
         # Isolation of the backend iterator: record its failure once, without its type, then refuse the result.
         _LOGGER.exception("backend diagnostics iterable failed at %s", address, exc_info=foreign_failure_record(exc))
-        return [], "Backend returned a diagnostics iterable that could not be validated."
+        return None
+    return diagnostics
+
+
+def _materialize_diagnostics(result: object, address: str) -> tuple[list[Diagnostic], str | None]:
+    message = _diagnostics_iterable_violation(result, address)
+    diagnostics = None if message else _drained_diagnostics(result, address)
+    if diagnostics is None:
+        return [], message or "Backend returned a diagnostics iterable that could not be validated."
     if len(diagnostics) > _MAX_DIAGNOSTICS:
         return [], _TOO_MANY_DIAGNOSTICS
     return diagnostics, _diagnostics_values_violation(diagnostics, address)

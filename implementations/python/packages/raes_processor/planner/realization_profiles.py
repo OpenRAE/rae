@@ -53,6 +53,18 @@ def profile_resources(
     return resources, diagnostics, authority
 
 
+def _owned_profile_address(binding: object, resources: Mapping[str, object]) -> str | None:
+    """Return the address of the planned resource that owns a profile binding, or ``None``."""
+
+    try:
+        address = profile_resource_address(binding)
+    except ValueError:
+        # The contract owner refuses an unaddressable binding with ValueError (E3).
+        return None
+    # Every profile binding needs its owning planned resource.
+    return address if address in resources else None
+
+
 def _retained_profile_resources(
     authority: object,
     resources: Mapping[str, object],
@@ -64,13 +76,8 @@ def _retained_profile_resources(
 
     by_address: dict[str, list[object]] = {}
     for binding in authority.bindings:
-        try:
-            address = profile_resource_address(binding)
-        except ValueError:
-            # The contract owner refuses an unaddressable binding with ValueError (E3).
-            return resources, [diagnostic]
-        if address not in resources:
-            # Every profile binding needs its owning planned resource.
+        address = _owned_profile_address(binding, resources)
+        if address is None:
             return resources, [diagnostic]
         by_address.setdefault(address, []).append(binding)
     previous = tuple(

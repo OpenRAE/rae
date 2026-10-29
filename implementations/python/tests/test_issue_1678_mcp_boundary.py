@@ -18,8 +18,9 @@ def test_unexpected_tool_failure_returns_a_fixed_error_and_a_value_free_record(m
     monkeypatch.setattr(authoring_tools, "_run_sdl_validate", _fail)
     server = create_server()
 
+    call = server.call_tool("sdl_validate", {"sdl_content": "name: probe\n"})
     with caplog.at_level(logging.ERROR), pytest.raises(ToolError) as raised:
-        asyncio.run(server.call_tool("sdl_validate", {"sdl_content": "name: probe\n"}))
+        asyncio.run(call)
 
     assert SENTINEL not in str(raised.value)
     assert "internal error" in str(raised.value)

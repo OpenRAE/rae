@@ -186,6 +186,39 @@ def _backup_store(
             )
 
 
+def _restore_destination(
+    database_path: Path, backup_path: Path, conflict_policy: DestinationConflictPolicy
+) -> os.stat_result | None:
+    """Return the metadata of an existing destination that the restore may replace, or None."""
+
+    existing = _secure_database_file(database_path, allow_missing=True)
+    if existing is not None and conflict_policy is DestinationConflictPolicy.REFUSE:
+        raise ConflictError("restore destination already exists")
+    backup_metadata = _secure_database_file(backup_path, allow_missing=False)
+    assert backup_metadata is not None
+    if existing is not None and os.path.samestat(existing, backup_metadata):
+        raise InvalidInputError("restore source must differ from the destination store")
+    return existing
+
+
+def _rolled_back(database_path: Path, previous_copy: Path | None, working_path: Path, lease: RuntimeOwnerLease) -> bool:
+    """Roll back a published restore, or retain its lease as uncertain and log the cause once."""
+
+    try:
+        _rollback_restored_destination(
+            database_path,
+            previous_copy=previous_copy,
+            working_path=working_path,
+            directory=database_path.parent,
+        )
+    except Exception:
+        _UNCERTAIN_RESTORE_LEASES.append(lease)
+        # The failed rollback leaves the destination uncertain; record its cause once (L3).
+        _LOGGER.exception("local control-plane restore rollback could not be confirmed")
+        return False
+    return True
+
+
 def _restore_store(
     store_path: Path,
     backup_path: Path,
@@ -200,13 +233,7 @@ def _restore_store(
     release_lease = True
     try:
         database_path = store_path / _DATABASE_NAME
-        existing = _secure_database_file(database_path, allow_missing=True)
-        if existing is not None and conflict_policy is DestinationConflictPolicy.REFUSE:
-            raise ConflictError("restore destination already exists")
-        backup_metadata = _secure_database_file(backup_path, allow_missing=False)
-        assert backup_metadata is not None
-        if existing is not None and os.path.samestat(existing, backup_metadata):
-            raise InvalidInputError("restore source must differ from the destination store")
+        existing = _restore_destination(database_path, backup_path, conflict_policy)
         working_path = _working_path(store_path, prefix=".restore-")
         previous_copy: Path | None = None
         published = False
@@ -238,22 +265,12 @@ def _restore_store(
             _fsync_regular_file(database_path)
             _fsync_directory(store_path)
         except BaseException as error:
-            if published:
-                try:
-                    _rollback_restored_destination(
-                        database_path,
-                        previous_copy=previous_copy,
-                        working_path=working_path,
-                        directory=store_path,
-                    )
-                except Exception:
-                    release_lease = False
-                    _UNCERTAIN_RESTORE_LEASES.append(lease)
-                    # The failed rollback leaves the destination uncertain; record its cause once (L3).
-                    _LOGGER.exception("local control-plane restore rollback could not be confirmed")
-                    if not isinstance(error, Exception):
-                        raise error from None  # An interruption stays an interruption (H4).
-                    raise OperationalError("local control-plane restore rollback could not be confirmed") from None
+            if published and not _rolled_back(database_path, previous_copy, working_path, lease):
+                release_lease = False
+                if not isinstance(error, Exception):
+                    # An interruption stays an interruption (H4).
+                    raise error from None
+                raise OperationalError("local control-plane restore rollback could not be confirmed") from None
             raise
         finally:
             working_path.unlink(missing_ok=True)

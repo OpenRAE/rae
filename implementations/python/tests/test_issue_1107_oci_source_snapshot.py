@@ -459,8 +459,9 @@ def test_oci_transport_failures_are_operational_and_value_free(
 
     monkeypatch.setattr(module_registry, "urlopen", fake_urlopen)
 
+    request = getattr(module_registry, request_name)
     with pytest.raises(OperationalError) as exc_info:
-        getattr(module_registry, request_name)("https://registry.example/v2/acme/resource")
+        request("https://registry.example/v2/acme/resource")
 
     assert not isinstance(exc_info.value, SDLParseError)
     assert "SECRET" not in str(exc_info.value)
@@ -478,11 +479,12 @@ def test_oci_cache_host_failure_is_operational_not_an_invalid_bundle(
 
     monkeypatch.setattr(tarfile.TarFile, "extractall", fail_extract)
 
+    content_digest = f"sha256:{module_registry._sha256_digest(bundle)}"
     with pytest.raises(OperationalError) as exc_info:
         module_registry._extract_bundle_to_cache(
             bundle_bytes=bundle,
             manifest_digest="host-failure",
-            content_digest=f"sha256:{module_registry._sha256_digest(bundle)}",
+            content_digest=content_digest,
             root_file="module.yaml",
             base_dir=tmp_path,
         )

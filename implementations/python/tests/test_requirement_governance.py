@@ -205,8 +205,9 @@ def test_ground_control_transport_failure_never_carries_the_reason_text(monkeypa
 
     monkeypatch.setattr(requirement_governance, "urlopen", failing_urlopen)
 
+    client = GroundControlHttpClient("http://ground-control.invalid")
     with pytest.raises(GroundControlUnavailable) as raised:
-        GroundControlHttpClient("http://ground-control.invalid").get_requirement("project", "ASR-1")
+        client.get_requirement("project", "ASR-1")
     assert str(raised.value) == "connection failed (OSError)"
     assert sentinel not in str(raised.value)
 

@@ -387,7 +387,12 @@ def _run_gitleaks_dir_scan(_session: nox.Session, paths: list[str]) -> None:
         )
 
 
-def _enforce_line_coverage(report_path: Path) -> float:
+def _is_count(value: object) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 0
+
+
+def _line_coverage_totals(report_path: Path) -> tuple[int, int]:
+    """Return the covered line and statement counts of a coverage JSON report."""
     try:
         report = json.loads(report_path.read_text(encoding="utf-8"))
     # The try holds only the read and the decoder. ValueError covers text that is not UTF-8, malformed
@@ -397,18 +402,14 @@ def _enforce_line_coverage(report_path: Path) -> float:
     totals = report.get("totals") if isinstance(report, dict) else None
     if not isinstance(totals, dict) or "covered_lines" not in totals or "num_statements" not in totals:
         raise OperationalError(f"could not read line coverage totals from {report_path}")
-    covered_lines = totals["covered_lines"]
-    statements = totals["num_statements"]
-    if (
-        not isinstance(covered_lines, int)
-        or isinstance(covered_lines, bool)
-        or not isinstance(statements, int)
-        or isinstance(statements, bool)
-        or covered_lines < 0
-        or statements < 0
-        or covered_lines > statements
-    ):
+    covered_lines, statements = totals["covered_lines"], totals["num_statements"]
+    if not (_is_count(covered_lines) and _is_count(statements)) or covered_lines > statements:
         raise OperationalError(f"invalid line coverage totals in {report_path}")
+    return covered_lines, statements
+
+
+def _enforce_line_coverage(report_path: Path) -> float:
+    covered_lines, statements = _line_coverage_totals(report_path)
     percent = 100.0 if statements == 0 else 100.0 * covered_lines / statements
     if percent + 1e-12 < MINIMUM_LINE_COVERAGE_PERCENT:
         raise InvalidInputError(f"line coverage {percent:.3f}% is below required {MINIMUM_LINE_COVERAGE_PERCENT:.3f}%")

@@ -131,6 +131,10 @@ class _ValidatorCore:
         """Record one error. The innermost ``_owner`` block gives its owner."""
         self._errors.append(SDLValidationFinding(msg, self._finding_owner, pointer))
 
+    def _err_for(self, owner: tuple[str, str] | None, msg: str) -> None:
+        """Record one error with the given owner, inside or outside an ``_owner`` block."""
+        self._errors.append(SDLValidationFinding(msg, owner, None))
+
     @contextmanager
     def _owner(self, owner: tuple[str, str] | None) -> Iterator[None]:
         """Set the owner of each error that the block records: a ``(section, name)`` pair, or None."""

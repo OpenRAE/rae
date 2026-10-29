@@ -48,5 +48,6 @@ class _InstalledLocation(type(Path())):
 def test_agent_guidance_outside_a_checkout_is_an_operational_failure(tmp_path: Path) -> None:
     from raes.agent_guidance import _find_repo_root
 
+    installed_location = _InstalledLocation(tmp_path)
     with pytest.raises(OperationalError, match="could not locate RAES repo root"):
-        _find_repo_root(_InstalledLocation(tmp_path))
+        _find_repo_root(installed_location)

@@ -56,11 +56,10 @@ def _plan(run: object, run_id: str) -> object:
 
 @pytest.mark.parametrize("method", ["advance_experiment", "cancel_experiment", "experiment_results"])
 def test_unknown_experiment_is_not_found_rather_than_a_key_error(method: str) -> None:
-    with (
-        RuntimeControlPlane(create_stub_target()) as engine,
-        pytest.raises(NotFoundError, match="runtime experiment is not admitted") as raised,
-    ):
-        getattr(engine, method)("experiment:absent")
+    with RuntimeControlPlane(create_stub_target()) as engine:
+        operation = getattr(engine, method)
+        with pytest.raises(NotFoundError, match="runtime experiment is not admitted") as raised:
+            operation("experiment:absent")
 
     assert "experiment:absent" not in str(raised.value)
 
@@ -103,8 +102,9 @@ def _authority(rpc_budget_ms: int = 2000) -> tuple[object, list[httpx.Request]]:
 def test_remote_runtime_advance_refuses_a_foreign_reference_with_the_authorization_category() -> None:
     authority, sent = _authority()
     try:
+        reference = _reference(worker_id="foreign")
         with pytest.raises(AuthorizationError, match="runtime worker reference is forbidden"):
-            authority.advance_runtime(_reference(worker_id="foreign"))
+            authority.advance_runtime(reference)
     finally:
         assert authority.close()
 
@@ -114,8 +114,9 @@ def test_remote_runtime_advance_refuses_a_foreign_reference_with_the_authorizati
 def test_remote_runtime_advance_refuses_a_reference_budget_below_the_authority_call() -> None:
     authority, sent = _authority(rpc_budget_ms=2000)
     try:
+        reference = _reference(activity_budget_ms=2000)
         with pytest.raises(InvalidInputError, match="runtime activity budget"):
-            authority.advance_runtime(_reference(activity_budget_ms=2000))
+            authority.advance_runtime(reference)
     finally:
         assert authority.close()
 
@@ -128,8 +129,9 @@ def test_closed_temporal_adapter_refuses_runtime_delivery_as_operational() -> No
 
     adapter = object.__new__(TemporalExecutionAdapter)
     adapter._closed = True
+    reference = _reference()
     with pytest.raises(OperationalError, match="Temporal execution adapter is closed"):
-        adapter.submit_runtime(_reference())
+        adapter.submit_runtime(reference)
 
 
 @pytest.mark.parametrize(

@@ -145,8 +145,9 @@ def test_cancelled_policy_snapshot_isolation_propagates_before_dispatch(
     before = batch.run.working
     monkeypatch.setattr(scheduler_concurrency, "deepcopy", _cancel)
 
+    policy = _policy(batch)
     with caplog.at_level(logging.DEBUG), pytest.raises(asyncio.CancelledError):
-        run_policy_due_concurrently(_policy(batch), None, backend, 0, 1, batch.run)
+        run_policy_due_concurrently(policy, None, backend, 0, 1, batch.run)
 
     assert calls == []
     assert batch.run.working is before
@@ -162,8 +163,9 @@ def test_cancelled_policy_request_binding_restores_the_predecessor(
     before = deepcopy(batch.run.working)
     monkeypatch.setattr(scheduler_operations, "_bound_action_request", _cancel)
 
+    policy = _policy(batch)
     with caplog.at_level(logging.DEBUG), pytest.raises(asyncio.CancelledError):
-        run_policy_due_concurrently(_policy(batch), None, backend, 0, 1, batch.run)
+        run_policy_due_concurrently(policy, None, backend, 0, 1, batch.run)
 
     assert calls == []
     assert batch.run.working == before
@@ -338,8 +340,9 @@ def test_cancelled_deferred_policy_materialization_stops_the_serial_fallback(
     backend = _succeeding_backend()
     batch = _batch(backend)
 
+    policy = _policy(batch)
     with pytest.raises(asyncio.CancelledError):
-        run_policy_due_concurrently(_policy(batch), None, backend, 0, 1, batch.run)
+        run_policy_due_concurrently(policy, None, backend, 0, 1, batch.run)
 
     assert serial_calls == []
     assert _codes(batch)[-1] == "runtime.participant-concurrent-commit-invalid"
@@ -611,8 +614,9 @@ class TestCommittedCancellationSettlement:
         scenario, target = _two_participant_target(runtime)
         with RuntimeManager(target) as manager:
             try:
+                plan = manager.plan(scenario)
                 with pytest.raises(asyncio.CancelledError):
-                    manager.apply(manager.plan(scenario))
+                    manager.apply(plan)
 
                 assert (runtime.batches, len(runtime.native_actions)) == (1, 2)
                 _assert_committed_fenced_state(manager, attempts=1)

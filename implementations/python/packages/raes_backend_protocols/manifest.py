@@ -444,8 +444,7 @@ def backend_manifest_from_v2_model(model: BackendManifestV2Model) -> BackendMani
     re-runs the internal capability, controlled-vocabulary, compatibility, and
     contract-authority validators, so a payload that merely passed
     ``BackendManifestV2Model`` schema validation still cannot smuggle in an
-    inconsistent internal manifest. A rejected manifest raises
-    :class:`BackendManifestInvalidError` with a message that contains no manifest values.
+    inconsistent internal manifest. A rejection raises a value-free :class:`BackendManifestInvalidError`.
 
     Fails closed on realization-envelope-bearing manifests: a
     ``backend-manifest-v2`` payload carries only the realization-envelope

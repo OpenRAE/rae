@@ -64,16 +64,13 @@ def _toml(repo_root: Path, relative_path: str) -> Mapping[str, Any] | None:
     if payload is None:
         return None
     try:
-        text = payload.decode("utf-8")
-    except UnicodeDecodeError:
-        return None
-    try:
-        return tomllib.loads(text)
+        document = tomllib.loads(payload.decode("utf-8"))
     except (ValueError, RecursionError):
-        # TOMLDecodeError is a ValueError. tomllib also converts an integer literal with
-        # int(), which raises a plain ValueError beyond the interpreter digit limit, and
+        # UnicodeDecodeError and TOMLDecodeError are ValueErrors. tomllib also converts an integer
+        # literal with int(), which raises a plain ValueError beyond the interpreter digit limit, and
         # its recursive parser stops at the interpreter recursion limit for deep nesting.
         return None
+    return document
 
 
 def _exact_pin(value: object, seen: Mapping[str, str]) -> tuple[str, str]:

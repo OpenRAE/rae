@@ -41,16 +41,24 @@ def _load_policy_guarded(repo_root: Path) -> tuple[dict | None, list[PolicyFailu
         policy = load_policy(repo_root)
     except _YAML_LOAD_FAILURES:
         return None, [fail(f"{_POLICY_CONFIG_PATH} could not be parsed (missing or invalid YAML)")]
+    reason = _policy_shape_failure(policy)
+    if reason is not None:
+        return None, [fail(reason)]
+    return policy, []
+
+
+def _policy_shape_failure(policy: object) -> str | None:
+    """Return why a loaded policy is not a JSON-compatible mapping, or None."""
     if not isinstance(policy, dict):
-        return None, [fail(f"{_POLICY_CONFIG_PATH} root must be a YAML mapping; got {type(policy).__name__}")]
+        return f"{_POLICY_CONFIG_PATH} root must be a YAML mapping; got {type(policy).__name__}"
     try:
         # The structural runner gives the policy to conftest as sorted JSON. A YAML timestamp, set or
         # binary value, or a mapping whose keys do not sort, has no JSON form (TypeError); a recursive
         # alias is a circular reference (ValueError). The try holds only the encoder.
         json.dumps(policy, sort_keys=True)
     except TypeError, ValueError:
-        return None, [fail(f"{_POLICY_CONFIG_PATH} must contain only JSON data")]
-    return policy, []
+        return f"{_POLICY_CONFIG_PATH} must contain only JSON data"
+    return None
 
 
 def evaluate_repo_policy(
