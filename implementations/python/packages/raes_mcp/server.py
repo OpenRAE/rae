@@ -97,11 +97,9 @@ class _RaesFastMCP(FastMCP):
         except ToolError as exc:
             cause = exc.__cause__
             tool = self._tool_manager.get_tool(name)
-            if (
-                tool is None
-                or not isinstance(cause, ValidationError)
-                or cause.title != tool.fn_metadata.arg_model.__name__
-            ):
+            if tool is None or not isinstance(cause, ValidationError):
+                raise
+            if cause.title != tool.fn_metadata.arg_model.__name__:
                 raise
             raise ToolError(_argument_error_message(tool, cause)) from None
 
