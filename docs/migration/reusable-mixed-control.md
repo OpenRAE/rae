@@ -3,7 +3,9 @@
 This is the adoption contract for
 [ADR-110](../decisions/adrs/adr-110-reusable-mixed-control-policies-and-occurrences.md)
 and [MC-01–MC-09](../../specs/formal/participant-semantics/reusable-mixed-control.md).
-It publishes rules, not a working migrator, new parser form or wire schema.
+This document defines the adoption rules. The separate
+[finite-script converter](mixed-control-finite-script-conversion.md) implements the supported source conversion.
+The compiler accepts explicit reusable-policy and finite-script forms; API-409 v2 carries their occurrences.
 
 Implementation status after #1364: the compiler and API-409 v2 reader are
 available, and an explicitly configured RUN-310 control owner can execute
@@ -26,7 +28,7 @@ interpretation discriminants. A new occurrence lineage must carry the changed
 meaning; do not reinterpret historical v1 data through optional fields or
 default values. Policy revision, semantic pin, wire discriminator, schema hash
 and store version remain independently recorded. The following matrix is the
-required adoption behavior, not a claim that a new reader already ships:
+required producer/reader behavior. The current installed path is described above:
 
 | Producer artifact | Existing reader | Reader implementing the amendment |
 | --- | --- | --- |

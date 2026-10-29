@@ -3,6 +3,7 @@
 Issue #1018 adds a test harness for RAE.
 The harness uses test providers that meet the backend protocols.
 It needs no backend distribution, daemon, credentials, or network service.
+The [control reference](revised-control-semantics.md) connects these results to current semantics and migration.
 
 ## Run the demonstration
 

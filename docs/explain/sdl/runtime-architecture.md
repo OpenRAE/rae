@@ -114,6 +114,34 @@ ADR-036 enforces this boundary through `tools/check_repo_policy.py`.
 The full policy gate scans each Python package root.
 The pre-commit gate checks the staged files against the same rules.
 
+## Control and effect evidence flow
+
+The current [control reference](../reference/revised-control-semantics.md) distinguishes the installed paths and their support limits.
+The following diagram shows data ownership across the caller, provider, and participant boundaries.
+
+```text
+Caller -- SDL / request / identity --> Parser and runtime admission
+Plan store -- original plan pins ----> Runtime admission
+Trusted resolvers -- cut / coverage -> Runtime admission
+Runtime admission -- bounded inputs -> Installed control provider
+Installed control provider -- result -> Atomic evaluation and operation store
+Operation store -- one-use invocation -> Backend effect owner
+Backend effect owner -- outcome -----> Evidence validation and retained store
+Independent reader -- state readback -> Evidence validation and retained store
+Retained store -- exact result join --> Final-sink policy
+Final-sink policy -- governed carrier -> Participant interface
+Observer -- separate observed fact --> Retained store
+```
+
+A provider result grants no dispatch authority by itself.
+The committed operation and installed effect owner govern dispatch.
+World effects can exist without participants.
+Participant delivery requires its own authorized result join and policy cut.
+Its local carrier return does not establish participant observation.
+Mixed installations preserve separate bridge, time, delivery, and observation roles.
+The [execution model](../../migration/mixed-backend-execution.md#runtime-installation) defines their stage and settlement checks.
+The [runnable examples](../../examples/revised-control.md) exercise these boundaries through controlled test providers.
+
 ## Runtime stages
 
 Negotiated backends also return a distinct descriptive SDL phase after
