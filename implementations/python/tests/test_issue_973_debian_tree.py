@@ -82,9 +82,10 @@ def test_debian_format_binds_manifest_and_lock(tmp_path: Path) -> None:
     ]
     payload = archive.manifest_bytes(entries, archive_format="deb")
     assert set(parse_manifest(payload, locked)) == {entry.path for entry in entries}
-    assert archive.manifest_bytes(entries) != payload
+    default_payload = archive.manifest_bytes(entries)
+    assert default_payload != payload
     with pytest.raises(RuntimeError, match="tree-integrity-failure"):
-        parse_manifest(archive.manifest_bytes(entries), locked)
+        parse_manifest(default_payload, locked)
 
 
 @pytest.mark.parametrize(
@@ -97,8 +98,9 @@ def test_debian_format_binds_manifest_and_lock(tmp_path: Path) -> None:
     ],
 )
 def test_debian_members_still_cross_existing_admission(tmp_path: Path, name: str, kind: bytes) -> None:
+    payload = deb_bytes(name, kind=kind)
     with pytest.raises(RuntimeError, match="unsafe-archive-member"):
-        describe(tmp_path, deb_bytes(name, kind=kind))
+        describe(tmp_path, payload)
 
 
 def test_bad_debian_decoder_input_has_no_manifest(tmp_path: Path) -> None:

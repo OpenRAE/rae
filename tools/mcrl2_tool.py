@@ -10,7 +10,7 @@ from pathlib import Path
 
 from tools.bounded_tool_process import run_bounded
 from tools.tool_versions import MCRL2_VERSION
-from tools.tooling_policy_gate import load_tooling_artifact_selection
+from tools.tooling_policy_gate import LockedArtifactSelection, load_tooling_artifact_selection
 
 MODES = ("bisim", "weak-bisim", "branching-bisim", "dpbranching-bisim")
 FORMULA_MODES = frozenset({"bisim", "branching-bisim"})
@@ -18,7 +18,7 @@ MAX_OUTPUT_BYTES = 65536
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
-def selection():
+def selection() -> LockedArtifactSelection:
     """Resolve the exact release and complete tree before any tool use."""
 
     if platform.system() != "Linux" or platform.machine().lower() not in {"x86_64", "amd64"}:

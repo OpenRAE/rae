@@ -35,7 +35,8 @@ def test_later_cut_fault_preserves_request_input_and_retained_cut() -> None:
 
     case = next(case for case in build_mutations() if case.case_id == "later-cut-replay")
     origin = case.graph.states[case.location]
-    assert origin.cut == "p1" and origin.intent == ("request-0", "plain", "p0", "later-cut")
+    assert origin.cut == "p1"
+    assert origin.intent == ("request-0", "plain", "p0", "later-cut")
     assert origin.last == ("request-0", "p0", "permit")
     for index in {target for _, _, target in case.added}:
         state = case.graph.states[index]
@@ -52,13 +53,16 @@ def test_undeclared_and_empty_deltas_are_refused() -> None:
 
     baseline = concrete.build()
     case = build_mutations()[0]
+    empty_delta = replace(case, added=(), removed=())
     with pytest.raises(ValueError, match="invalid mutation delta"):
-        validate_delta(baseline, replace(case, added=(), removed=()))
+        validate_delta(baseline, empty_delta)
     changed = replace(case.graph, edges=case.graph.edges + ((baseline.initial, "internal.validate", baseline.initial),))
+    changed_graph = replace(case, graph=changed)
     with pytest.raises(ValueError, match="invalid mutation delta"):
-        validate_delta(baseline, replace(case, graph=changed))
+        validate_delta(baseline, changed_graph)
+    invalid_location = replace(case, location=len(baseline.states) + 5)
     with pytest.raises(ValueError, match="invalid mutation delta"):
-        validate_delta(baseline, replace(case, location=len(baseline.states) + 5))
+        validate_delta(baseline, invalid_location)
 
 
 def test_removed_delivery_is_structural_deadlock_and_observation_stays_visible() -> None:
@@ -77,5 +81,6 @@ def test_removed_delivery_is_structural_deadlock_and_observation_stays_visible()
 
 def test_error_and_native_tau_are_not_hidden_by_the_carrier() -> None:
     for label in ("tau", "crossing.error", "payload.secret"):
+        payload = f'des (0, 1, 1)\n(0,"{label}",0)\n'.encode()
         with pytest.raises(ValueError):
-            parse_aut(f'des (0, 1, 1)\n(0,"{label}",0)\n'.encode())
+            parse_aut(payload)

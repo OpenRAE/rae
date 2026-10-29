@@ -51,8 +51,9 @@ def test_metadata_is_closed_even_with_a_new_pin(constructed, field, value) -> No
     manifest = corpus.decoded(constructed["manifest.json"])
     manifest[field] = value
     constructed["manifest.json"] = corpus.encoded(manifest)
+    manifest_digest = corpus.digest(constructed["manifest.json"])
     with pytest.raises(ValueError, match="metadata"):
-        corpus.admit_bundle(ROOT, constructed, corpus.digest(constructed["manifest.json"]))
+        corpus.admit_bundle(ROOT, constructed, manifest_digest)
 
 
 def test_executing_source_drift_stops_before_checker(monkeypatch) -> None:

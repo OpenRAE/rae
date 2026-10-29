@@ -24,8 +24,10 @@ def test_command_hides_only_internal_and_has_no_host_root(tmp_path: Path) -> Non
     from tools.mcrl2_tool import sandbox_command
 
     command = sandbox_command(tmp_path / "tool", tmp_path / "input", tmp_path / "output", "dpbranching-bisim", False)
-    assert "--unshare-net" in command and "--clearenv" in command
-    assert "--tau=internal" in command and "--equivalence=dpbranching-bisim" in command
+    assert "--unshare-net" in command
+    assert "--clearenv" in command
+    assert "--tau=internal" in command
+    assert "--equivalence=dpbranching-bisim" in command
     assert "--counter-example" not in command
     for index, option in enumerate(command):
         if option in {"--ro-bind", "--bind"}:

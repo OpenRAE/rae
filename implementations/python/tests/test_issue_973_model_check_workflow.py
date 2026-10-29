@@ -29,6 +29,8 @@ def test_model_check_has_distinct_host_and_exact_replay() -> None:
     assert job["runs-on"] == "ubuntu-26.04"
     assert job["needs"] == "generic-tool-local-inputs"
     commands = "\n".join(step.get("run", "") for step in job["steps"])
-    assert "tools.mcrl2_tool acquire" in commands and "--local-input" in commands
+    assert "tools.mcrl2_tool acquire" in commands
+    assert "--local-input" in commands
     assert "participant_crossing.counterexample_corpus replay" in commands
-    assert "sysctl" not in commands and "apparmor_parser" not in commands
+    assert "sysctl" not in commands
+    assert "apparmor_parser" not in commands
