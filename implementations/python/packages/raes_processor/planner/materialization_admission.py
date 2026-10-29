@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 from dataclasses import replace
 
+from pydantic import TypeAdapter
 from raes import (
     MaterializedScenario,
     admit_instantiated_scenario,
@@ -13,6 +14,7 @@ from raes import (
     render_sdl_source,
 )
 from raes.materialization_provenance import MaterializedResourceBinding
+from raes.nodes import Node
 from raes.scenario import InstantiatedScenario
 from raes_backend_protocols.manifest import BackendManifest, backend_manifest_v2_model
 from raes_contracts.canonical import canonical_json_digest
@@ -32,6 +34,9 @@ from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
 from ..compiler import compile_runtime_model, validate_materialization_origins
 from ..compiler.materialization_origins import materialization_node_payloads_match
 from ..models import RuntimeModel
+from ..semantics.realization_concern_observations import typed_runtime_observation_shape
+from ..semantics.realization_concerns import realization_concern_descriptors
+from ..semantics.realization_requirement import CompiledRealizationRequirement
 from .ordering import _entry_matches_resource
 from .resources import _collect_resources
 
@@ -189,7 +194,9 @@ def _validate_other_scopes(
         if previous_scope.keys() != described_scope.keys() or any(
             not (
                 _entry_matches_resource(previous_scope[address], resource, original_model.realization_requirements)
-                or _materialized_entry_matches(previous_scope[address], resource)
+                or _materialized_entry_matches(
+                    previous_scope[address], resource, original_model.realization_requirements
+                )
             )
             for address, resource in described_scope.items()
         ):
@@ -229,17 +236,45 @@ def _validate_instance_indices(
             raise ValueError("materialization inventory must bind every realized instance exactly once")
 
 
-def _materialized_entry_matches(entry: SnapshotEntry | PlannedResource, resource: PlannedResource) -> bool:
-    if resource.resource_type == "node":
+def _materialized_entry_matches(
+    entry: SnapshotEntry | PlannedResource,
+    resource: PlannedResource,
+    requirements: tuple[CompiledRealizationRequirement, ...] = (),
+) -> bool:
+    if resource.resource_type in {"node", "network"}:
         expected_spec, observed_spec = resource.payload.get("spec"), entry.payload.get("spec")
         if not isinstance(expected_spec, dict) or not isinstance(observed_spec, dict):
             return False
         if not materialization_node_payloads_match(
             resource.payload["name"], expected_spec.get("node"), observed_spec.get("node")
         ):
-            return False
+            try:
+                return _entry_matches_resource(_with_node_defaults(entry), _with_node_defaults(resource), requirements)
+            except TypeError, ValueError:
+                return False
         entry = replace(entry, payload={**entry.payload, "spec": {**observed_spec, "node": expected_spec["node"]}})
     return _entry_matches_resource(entry, resource)
+
+
+def _with_node_defaults(resource: SnapshotEntry | PlannedResource) -> SnapshotEntry | PlannedResource:
+    """Restore typed defaults while retaining validated value commitments."""
+
+    spec = resource.payload["spec"]
+    adapter = TypeAdapter(Node)
+    node = adapter.dump_python(typed_runtime_observation_shape(spec.get("node"), adapter=adapter), mode="json")
+    for descriptor in realization_concern_descriptors():
+        if descriptor.section == "nodes":
+            _restore_supplied_concern(spec["node"], node, descriptor.authored_path)
+    return replace(resource, payload={**resource.payload, "spec": {**spec, "node": node}})
+
+
+def _restore_supplied_concern(original: object, normalized: object, path: tuple[str, ...]) -> None:
+    for token in path[:-1]:
+        original = original.get(token) if isinstance(original, dict) else None
+        normalized = normalized.get(token) if isinstance(normalized, dict) else None
+    leaf = path[-1]
+    if isinstance(original, dict) and isinstance(normalized, dict) and leaf in original:
+        normalized[leaf] = original[leaf]
 
 
 def validate_materialization_archive_record(

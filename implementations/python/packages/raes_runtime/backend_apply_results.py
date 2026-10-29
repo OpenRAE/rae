@@ -8,10 +8,12 @@ from typing import cast
 
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.planning import ChangeAction
 from raes_contracts.runtime_state import ApplyResult, RealizationProvenanceEntry, RuntimeSnapshot
 from raes_processor.models import CompiledRealizationRequirement
 from raes_processor.planner import (
     prepared_delivery_violation,
+    prepared_node_disclosure,
     realization_authority_disclosure,
     realization_disclosure,
     sanitize_plan_realization_snapshot,
@@ -100,8 +102,23 @@ def _gated_backend_result(
     )
     if final_diagnostics:
         return ApplyResult(False, baseline_snapshot, diagnostics=final_diagnostics)
-    attach = realization_provenance and finalized.success
-    return _with_realization_provenance(finalized, realization_provenance) if attach else finalized
+    if finalized.success:
+        affected = (
+            {
+                operation.address
+                for operation in (realization.completion_plan or realization.operation_plan).operations
+                if operation.action is not ChangeAction.UNCHANGED
+            }
+            if realization.operation_plan is not None
+            else set()
+        )
+        retained = tuple(
+            entry
+            for entry in baseline_snapshot.realization_provenance
+            if entry.address in finalized.snapshot.entries and entry.address not in affected
+        )
+        return _with_realization_provenance(finalized, (*retained, *realization_provenance))
+    return finalized
 
 
 def _finalize_backend_apply(
@@ -192,7 +209,7 @@ def _realization_disclosure_result(
         manifest=realization.manifest,
     )
     supplemental = _supplemental_realization_requirements(realization)
-    if diagnostics or not supplemental:
+    if diagnostics:
         return diagnostics, provenance
     supplemental_diagnostics, supplemental_provenance = realization_disclosure(
         supplemental,
@@ -202,7 +219,16 @@ def _realization_disclosure_result(
         artifact_availability=realization.artifact_availability,
     )
     diagnostics.extend(supplemental_diagnostics)
-    return diagnostics, (*provenance, *supplemental_provenance)
+    prepared_provenance = ()
+    if result.success and not diagnostics and realization.completion_plan is not None:
+        prepared_diagnostics, prepared_provenance = prepared_node_disclosure(
+            realization.completion_plan,
+            result.snapshot,
+            manifest=realization.manifest,
+            artifact_availability=realization.artifact_availability,
+        )
+        diagnostics.extend(prepared_diagnostics)
+    return diagnostics, (*provenance, *supplemental_provenance, *prepared_provenance)
 
 
 def _backend_snapshot_contract_diagnostics(
@@ -320,7 +346,12 @@ def _with_realization_provenance(
             result,
             snapshot=result.snapshot.with_entries(
                 dict(result.snapshot.entries),
-                realization_provenance=provenance,
+                realization_provenance=tuple(
+                    {
+                        (entry.address, entry.field_path, entry.domain, entry.requirement_kind): entry
+                        for entry in provenance
+                    }.values()
+                ),
             ),
         ),
     )
