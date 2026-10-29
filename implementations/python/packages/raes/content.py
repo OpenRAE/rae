@@ -199,7 +199,7 @@ class Content(SDLModel):
             raise ValueError("Dataset content requires either 'source' or non-empty 'items'")
 
     @model_validator(mode="after")
-    def validate_type_requirements(self) -> "Content":
+    def validate_type_requirements(self) -> Content:
         """Require the minimum anchors needed to describe real content."""
         if not self.target:
             raise ValueError("Content requires 'target'")

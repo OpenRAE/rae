@@ -71,7 +71,7 @@ class ParticipantRelationship(SDLModel):
         return refs
 
     @model_validator(mode="after")
-    def validate_control_kind(self) -> "ParticipantRelationship":
+    def validate_control_kind(self) -> ParticipantRelationship:
         if self.control_specification_ref is not None and self.kind not in {
             ParticipantRelationshipKind.DELEGATION,
             ParticipantRelationshipKind.SUPERVISION,

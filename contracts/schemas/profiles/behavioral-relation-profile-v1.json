@@ -523,6 +523,643 @@
       "title": "IndividualOpacityObserverModel",
       "type": "object"
     },
+    "MultiAbstractCarrierModel": {
+      "additionalProperties": false,
+      "properties": {
+        "initial_state_ordinal": {
+          "maximum": 0,
+          "minimum": 0,
+          "title": "Initial State Ordinal",
+          "type": "integer"
+        },
+        "model_id": {
+          "const": "sem-230-participant-crossing-multi-abstract",
+          "title": "Model Id",
+          "type": "string"
+        },
+        "revision": {
+          "const": "rev1",
+          "title": "Revision",
+          "type": "string"
+        },
+        "source_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "source_path": {
+          "const": "implementations/formal/participant_crossing/multi_abstract.py",
+          "title": "Source Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "model_id",
+        "revision",
+        "source_path",
+        "source_digest",
+        "initial_state_ordinal"
+      ],
+      "title": "MultiAbstractCarrierModel",
+      "type": "object"
+    },
+    "MultiConcreteCarrierModel": {
+      "additionalProperties": false,
+      "properties": {
+        "initial_state_ordinal": {
+          "maximum": 0,
+          "minimum": 0,
+          "title": "Initial State Ordinal",
+          "type": "integer"
+        },
+        "model_id": {
+          "const": "api-423-run-319-crossing-multi-kernel",
+          "title": "Model Id",
+          "type": "string"
+        },
+        "revision": {
+          "const": "rev1",
+          "title": "Revision",
+          "type": "string"
+        },
+        "source_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "source_path": {
+          "const": "implementations/formal/participant_crossing/multi_concrete.py",
+          "title": "Source Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "model_id",
+        "revision",
+        "source_path",
+        "source_digest",
+        "initial_state_ordinal"
+      ],
+      "title": "MultiConcreteCarrierModel",
+      "type": "object"
+    },
+    "MultiCrossingDomainsModel": {
+      "additionalProperties": false,
+      "properties": {
+        "abstract_phase": {
+          "const": [
+            "idle",
+            "offered",
+            "decided",
+            "delivering",
+            "responding"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Abstract Phase",
+          "type": "array"
+        },
+        "actor": {
+          "const": [
+            "actor-0"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Actor",
+          "type": "array"
+        },
+        "attempt_role": {
+          "const": [
+            "fresh-attempt",
+            "retry-attempt"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Attempt Role",
+          "type": "array"
+        },
+        "audience": {
+          "const": [
+            "audience-0"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Audience",
+          "type": "array"
+        },
+        "authority": {
+          "const": [
+            "authority-0"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Authority",
+          "type": "array"
+        },
+        "capability": {
+          "const": [
+            "unresolved",
+            "supported",
+            "unsupported"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Capability",
+          "type": "array"
+        },
+        "concrete_phase": {
+          "const": [
+            "idle",
+            "validating",
+            "resolving-cut",
+            "resolving-capability",
+            "gating",
+            "preparing-record",
+            "committing",
+            "delivering",
+            "responding"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Concrete Phase",
+          "type": "array"
+        },
+        "controller": {
+          "const": [
+            "controller-0"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Controller",
+          "type": "array"
+        },
+        "decision": {
+          "const": [
+            "none",
+            "permit",
+            "deny",
+            "unsupported",
+            "transform",
+            "declassify",
+            "unresolved"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Decision",
+          "type": "array"
+        },
+        "effect_count": {
+          "const": [
+            "e0",
+            "e1",
+            "e2"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Effect Count",
+          "type": "array"
+        },
+        "episode": {
+          "const": [
+            "episode-0"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Episode",
+          "type": "array"
+        },
+        "gate": {
+          "const": [
+            "unresolved",
+            "permit",
+            "deny"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Gate",
+          "type": "array"
+        },
+        "history_head": {
+          "const": [
+            "h0",
+            "h1",
+            "h2"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "History Head",
+          "type": "array"
+        },
+        "idempotency_key": {
+          "const": [
+            "key-a",
+            "key-b"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Idempotency Key",
+          "type": "array"
+        },
+        "input_class": {
+          "const": [
+            "plain",
+            "transform",
+            "declassify",
+            "unsupported",
+            "forbidden",
+            "unresolved"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Input Class",
+          "type": "array"
+        },
+        "knowledge": {
+          "const": [
+            "k0",
+            "k1",
+            "k2",
+            "k3"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Knowledge",
+          "type": "array"
+        },
+        "operation_id": {
+          "const": [
+            "operation-a",
+            "operation-b"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Operation Id",
+          "type": "array"
+        },
+        "operation_kind": {
+          "const": [
+            "participant-crossing"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Operation Kind",
+          "type": "array"
+        },
+        "participant": {
+          "const": [
+            "participant-0"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Participant",
+          "type": "array"
+        },
+        "policy_cut": {
+          "const": [
+            "p0",
+            "p1"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Policy Cut",
+          "type": "array"
+        },
+        "receipt_id": {
+          "const": [
+            "receipt-a",
+            "receipt-b"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Receipt Id",
+          "type": "array"
+        },
+        "replay": {
+          "const": [
+            "fresh",
+            "retry"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Replay",
+          "type": "array"
+        },
+        "request_body": {
+          "const": [
+            "original",
+            "changed"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Request Body",
+          "type": "array"
+        },
+        "run": {
+          "const": [
+            "run-0"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Run",
+          "type": "array"
+        },
+        "target": {
+          "const": [
+            "target-0"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Target",
+          "type": "array"
+        }
+      },
+      "required": [
+        "participant",
+        "audience",
+        "controller",
+        "episode",
+        "actor",
+        "authority",
+        "target",
+        "run",
+        "operation_kind",
+        "idempotency_key",
+        "operation_id",
+        "receipt_id",
+        "attempt_role",
+        "policy_cut",
+        "input_class",
+        "request_body",
+        "decision",
+        "replay",
+        "history_head",
+        "effect_count",
+        "knowledge",
+        "gate",
+        "capability",
+        "abstract_phase",
+        "concrete_phase"
+      ],
+      "title": "MultiCrossingDomainsModel",
+      "type": "object"
+    },
+    "MultiParticipantCrossingParametersModel": {
+      "additionalProperties": false,
+      "properties": {
+        "checker_tau": {
+          "const": "internal",
+          "title": "Checker Tau",
+          "type": "string"
+        },
+        "complete_carrier": {
+          "const": true,
+          "title": "Complete Carrier",
+          "type": "boolean"
+        },
+        "completion": {
+          "const": "cached-result-observation",
+          "title": "Completion",
+          "type": "string"
+        },
+        "concurrency": {
+          "const": "excluded",
+          "title": "Concurrency",
+          "type": "string"
+        },
+        "context_scope": {
+          "const": "synthetic-fixed-authority-with-exact-request-commitments",
+          "title": "Context Scope",
+          "type": "string"
+        },
+        "controller_handoff": {
+          "const": "excluded",
+          "title": "Controller Handoff",
+          "type": "string"
+        },
+        "depth_or_sample_bound": {
+          "title": "Depth Or Sample Bound",
+          "type": "null"
+        },
+        "domains": {
+          "$ref": "#/$defs/MultiCrossingDomainsModel"
+        },
+        "failure_scope": {
+          "const": "response-loss-after-durable-completion-and-clean-p1-restart",
+          "title": "Failure Scope",
+          "type": "string"
+        },
+        "fresh_operations": {
+          "maximum": 2,
+          "minimum": 2,
+          "title": "Fresh Operations",
+          "type": "integer"
+        },
+        "hidden_labels": {
+          "const": [
+            "internal.validate",
+            "internal.resolve-policy-cut",
+            "internal.resolve-capability",
+            "internal.prepare-record",
+            "internal.atomic-commit"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Hidden Labels",
+          "type": "array"
+        },
+        "history_scope": {
+          "const": "crossing-batch-heads-other-histories-fixed",
+          "title": "History Scope",
+          "type": "string"
+        },
+        "identity_reuse": {
+          "const": "conflict-only-no-recycling",
+          "title": "Identity Reuse",
+          "type": "string"
+        },
+        "kind": {
+          "const": "participant-crossing-multi-dpbb/v1",
+          "title": "Kind",
+          "type": "string"
+        },
+        "left": {
+          "$ref": "#/$defs/MultiAbstractCarrierModel"
+        },
+        "order": {
+          "const": "sequential-total-order",
+          "title": "Order",
+          "type": "string"
+        },
+        "probability": {
+          "const": "excluded",
+          "title": "Probability",
+          "type": "string"
+        },
+        "right": {
+          "$ref": "#/$defs/MultiConcreteCarrierModel"
+        },
+        "time": {
+          "const": "untimed",
+          "title": "Time",
+          "type": "string"
+        },
+        "visible_labels": {
+          "const": [
+            "crossing.decision.deny.a",
+            "crossing.decision.deny.b",
+            "crossing.decision.permit.a",
+            "crossing.decision.permit.b",
+            "crossing.decision.unresolved.a",
+            "crossing.decision.unresolved.b",
+            "crossing.decision.unsupported.a",
+            "crossing.decision.unsupported.b",
+            "crossing.declassify.a",
+            "crossing.declassify.b",
+            "crossing.delivery.a",
+            "crossing.delivery.b",
+            "crossing.outcome.unknown.a",
+            "crossing.outcome.unknown.b",
+            "crossing.replay.reject.a",
+            "crossing.replay.reject.b",
+            "crossing.request.fresh.a",
+            "crossing.request.fresh.b",
+            "crossing.request.retry.a",
+            "crossing.request.retry.b",
+            "crossing.result.declassify.a",
+            "crossing.result.declassify.b",
+            "crossing.result.deny.a",
+            "crossing.result.deny.b",
+            "crossing.result.permit.a",
+            "crossing.result.permit.b",
+            "crossing.result.transform.a",
+            "crossing.result.transform.b",
+            "crossing.result.unresolved.a",
+            "crossing.result.unresolved.b",
+            "crossing.result.unsupported.a",
+            "crossing.result.unsupported.b",
+            "crossing.status.completed.a",
+            "crossing.status.completed.b",
+            "crossing.status.failed.a",
+            "crossing.status.failed.b",
+            "crossing.transform.a",
+            "crossing.transform.b",
+            "policy.cut.advance",
+            "runtime.restart"
+          ],
+          "items": {
+            "maxLength": 256,
+            "pattern": "^[a-z][a-z0-9._:/-]*$",
+            "type": "string"
+          },
+          "title": "Visible Labels",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "domains",
+        "left",
+        "right",
+        "visible_labels",
+        "hidden_labels",
+        "checker_tau",
+        "complete_carrier",
+        "depth_or_sample_bound",
+        "fresh_operations",
+        "identity_reuse",
+        "order",
+        "time",
+        "probability",
+        "concurrency",
+        "controller_handoff",
+        "completion",
+        "failure_scope",
+        "history_scope",
+        "context_scope"
+      ],
+      "title": "MultiParticipantCrossingParametersModel",
+      "type": "object"
+    },
     "OpacityFiniteBoundsModel": {
       "additionalProperties": false,
       "properties": {
@@ -1314,10 +1951,29 @@
   "allOf": [
     {
       "else": {
-        "properties": {
-          "relation_id": {
-            "const": "participant-predicate-opacity"
+        "else": {
+          "properties": {
+            "relation_id": {
+              "const": "participant-predicate-opacity"
+            }
           }
+        },
+        "if": {
+          "properties": {
+            "parameters": {
+              "properties": {
+                "kind": {
+                  "const": "participant-crossing-multi-dpbb/v1"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          },
+          "required": [
+            "parameters"
+          ]
         }
       },
       "if": {
@@ -1356,6 +2012,53 @@
           },
           "profile_revision": {
             "const": "rev2"
+          },
+          "relation_id": {
+            "const": "divergence-preserving-branching-bisimulation"
+          },
+          "taxonomy_revision": {
+            "const": "rev8"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "parameters": {
+            "properties": {
+              "kind": {
+                "const": "participant-crossing-multi-dpbb/v1"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          }
+        },
+        "required": [
+          "parameters"
+        ]
+      },
+      "then": {
+        "properties": {
+          "finite_analysis_scope": {
+            "const": "declared-complete-finite-carrier"
+          },
+          "left_carrier_ref": {
+            "const": "sem-230-participant-crossing-multi-abstract"
+          },
+          "observation_projection_ref": {
+            "const": "participant-crossing-multi-operation-projection"
+          },
+          "observation_projection_revision": {
+            "const": "rev1"
+          },
+          "profile_id": {
+            "const": "participant-crossing-multi-operation-dpbb-finite-v1"
+          },
+          "profile_revision": {
+            "const": "rev1"
           },
           "relation_id": {
             "const": "divergence-preserving-branching-bisimulation"
@@ -1485,6 +2188,7 @@
       "discriminator": {
         "mapping": {
           "participant-crossing-dpbb/v1": "#/$defs/ParticipantCrossingParametersModel",
+          "participant-crossing-multi-dpbb/v1": "#/$defs/MultiParticipantCrossingParametersModel",
           "participant-predicate-opacity/v1": "#/$defs/ParticipantPredicateOpacityParametersModel"
         },
         "propertyName": "kind"
@@ -1495,6 +2199,9 @@
         },
         {
           "$ref": "#/$defs/ParticipantCrossingParametersModel"
+        },
+        {
+          "$ref": "#/$defs/MultiParticipantCrossingParametersModel"
         }
       ],
       "title": "Parameters"

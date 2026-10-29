@@ -5,18 +5,10 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-from typing_extensions import TypeAliasType
-
 _ACTION_CONTRACT_PREFIX = "participant.action-contract."
 
-ParticipantActionArgumentScalar = TypeAliasType(
-    "ParticipantActionArgumentScalar",
-    str | int | float | bool,
-)
-ParticipantActionArgumentValue = TypeAliasType(
-    "ParticipantActionArgumentValue",
-    ParticipantActionArgumentScalar | tuple[ParticipantActionArgumentScalar, ...],
-)
+type ParticipantActionArgumentScalar = str | int | float | bool
+type ParticipantActionArgumentValue = ParticipantActionArgumentScalar | tuple[ParticipantActionArgumentScalar, ...]
 
 
 def _require_non_empty(value: str, field_name: str) -> None:

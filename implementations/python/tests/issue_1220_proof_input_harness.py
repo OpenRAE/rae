@@ -522,7 +522,7 @@ def _bubblewrap_network_namespace_available() -> bool:
             check=False,
             timeout=15,
         )
-    except (OSError, subprocess.SubprocessError):
+    except OSError, subprocess.SubprocessError:
         return False
     return completed.returncode == 0
 
@@ -648,7 +648,7 @@ def _real_proof_closure() -> dict[str, object]:
 def _native_version(argv: list[str]) -> str:
     try:
         completed = subprocess.run(argv, capture_output=True, text=True, check=False, timeout=15)
-    except (OSError, subprocess.SubprocessError):
+    except OSError, subprocess.SubprocessError:
         return "unavailable"
     line = (completed.stdout or completed.stderr).strip().splitlines()
     return line[0][:128] if completed.returncode == 0 and line else "unavailable"

@@ -15,8 +15,8 @@ from raes.artifact_requirements import (
     Source,
 )
 
+from ._base import ContractModel, NonEmptyString
 from .apparatus import ApparatusIdentity
-from .contracts.base import ContractModel, NonEmptyString
 from .versions import ARTIFACT_REQUIREMENT_SCHEMA_VERSION
 
 Sha256DigestString = Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")]

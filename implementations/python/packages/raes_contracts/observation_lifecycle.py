@@ -57,6 +57,7 @@ def execute_observation_lifecycle(
     producers: Mapping[str, Callable[[], tuple[object, ...]]],
     supported: frozenset[str],
     protector: Callable[[ObservationLifecycleItem, EffectiveObservationDemand], ObservationLifecycleItem] | None = None,
+    optional_failure_is_loss: bool = False,
 ) -> ObservationLifecycleResult:
     """Apply an admitted finite lifecycle plan, checking all gates first."""
 
@@ -65,11 +66,7 @@ def execute_observation_lifecycle(
     for demand in resolution.effective:
         if not _collects_data(demand):
             continue
-        for selector in demand.selectors:
-            item = _produce_item(resolution, demand, selector, producers, supported)
-            if item is None:
-                continue
-            accumulator.add(demand, item, protector)
+        _collect_demand(resolution, demand, producers, supported, protector, accumulator, optional_failure_is_loss)
     return accumulator.result()
 
 
@@ -126,3 +123,24 @@ def _protected_item(
     if demand.integrity not in {None, "none"} and integrity_missing:
         raise ValueError("observation integrity policy must produce an integrity reference")
     return protected
+
+
+def _collect_demand(
+    resolution: ObservationDemandResolution,
+    demand: EffectiveObservationDemand,
+    producers: Mapping[str, Callable[[], tuple[object, ...]]],
+    supported: frozenset[str],
+    protector: Callable[[ObservationLifecycleItem, EffectiveObservationDemand], ObservationLifecycleItem] | None,
+    accumulator: _LifecycleAccumulator,
+    optional_failure_is_loss: bool,
+) -> None:
+    for selector in demand.selectors:
+        try:
+            item = _produce_item(resolution, demand, selector, producers, supported)
+            if item is not None:
+                accumulator.add(demand, item, protector)
+        except Exception:
+            if demand.required or not optional_failure_is_loss:
+                raise
+            # An optional failed collection/protection contributes no evidence.
+            # Preserve independently achieved mandatory selector results.

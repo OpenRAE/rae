@@ -69,7 +69,7 @@ def _mcp_ground_control_env(repo_root: Path) -> dict[str, str]:
     """
     try:
         data = json.loads((repo_root / ".mcp.json").read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except OSError, json.JSONDecodeError:
         return {}
     servers = data.get("mcpServers") if isinstance(data, dict) else None
     server = servers.get("ground-control") if isinstance(servers, dict) else None
@@ -210,7 +210,7 @@ def evaluate_requirement_governance(
         ]
 
     failures.extend(_check_phase_predecessors(policy, client, phase_match))
-    failures.extend(_check_path_ownership(policy, phase_match, changed))
+    failures.extend(_check_path_ownership(policy, phase_match, changed, requirement_uid=requirement_uid))
     failures.extend(_check_traceability(client, requirement, policy, changed))
 
     return failures
@@ -260,14 +260,23 @@ def _check_phase_predecessors(
     return failures
 
 
-def _check_path_ownership(policy: dict[str, object], match: PhaseMatch, changed: list[str]) -> list[PolicyFailure]:
+def _check_path_ownership(
+    policy: dict[str, object],
+    match: PhaseMatch,
+    changed: list[str],
+    *,
+    requirement_uid: str | None = None,
+) -> list[PolicyFailure]:
     allowed = policy.get("ownership", {}).get(match.phase_id, [])
     if not allowed:
         return []
+    # Contract owners must maintain their traceability in the same change;
+    # this grants only the evaluated owner's exact record, never a directory.
+    owner_record = f"docs/requirements/{requirement_uid}/requirement.md" if requirement_uid else None
     failures: list[PolicyFailure] = []
     relevant = [path for path in changed if path.startswith(("implementations/", "contracts/", "specs/", "docs/"))]
     for path in relevant:
-        if not path_matches_any(path, allowed):
+        if path != owner_record and not path_matches_any(path, allowed):
             failures.append(
                 PolicyFailure(
                     "requirement-ownership-mismatch",

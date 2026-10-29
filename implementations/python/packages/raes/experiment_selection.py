@@ -52,7 +52,8 @@ def validate_experiment_selection_against_family(
 
     family_id = _admitted_family_id(family)
     policies = spec.run_plan.selection_policies
-    if not policies:
+    typed = spec.factorial_design is not None and spec.factorial_design.profile == "factorial-treatments-v1"
+    if not policies and not typed:
         return spec
     intended = spec.intended_scenario_ref
     if intended is None or intended.ref_kind != "scenario" or intended.ref_id != family_id:

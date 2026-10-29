@@ -1,9 +1,9 @@
 {
-  "content_hash": "d9c7a0ac6f2086f6972f16fcc7ae187207adffb4cd299f63503e2a7295c2b518",
+  "content_hash": "75008a7d0bdaaa44a8a005eb26f01d06a101eaa492ea00fb237170be5394f264",
   "contract_id": "backend-profile-v1",
   "last_change": {
-    "summary": "Allow declarations of the mixed-backend execution binding and stage report contracts (#1371).",
-    "content_hash": "d9c7a0ac6f2086f6972f16fcc7ae187207adffb4cd299f63503e2a7295c2b518"
+    "content_hash": "75008a7d0bdaaa44a8a005eb26f01d06a101eaa492ea00fb237170be5394f264",
+    "summary": "Publish negotiated runtime descendant lineage, target and attempt binding, lifecycle and concern selection with committed refresh and durable archive joins; issue #1649."
   },
   "schema_path": "contracts/schemas/profiles/backend-profile-v1.json",
   "stability": "draft"

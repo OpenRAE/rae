@@ -4,6 +4,7 @@ from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from typing import Any
 
+from raes_contracts.immutable_history import EventHistory
 from raes_contracts.participant_behavior import ParticipantBehaviorHistoryEventType, ParticipantObservationStatus
 
 from .behavior_anchor_checks import (
@@ -273,7 +274,7 @@ def iter_participant_behavior_history_violations(
     against the time-indexed participant view relation.
     """
 
-    if not isinstance(participant_behavior_history, list):
+    if not isinstance(participant_behavior_history, (list, EventHistory)):
         yield (_PARTICIPANT_BEHAVIOR_HISTORY_KEY, "participant behavior history must be a list of events")
         return
     yield from _iter_validated_participant_behavior_violations(
@@ -423,7 +424,7 @@ def iter_participant_behavior_joint_action_violations(
 
     normalized_events: list[ParticipantBehaviorHistoryEvent] = []
     for history in participant_behavior_history_by_participant.values():
-        if not isinstance(history, list):
+        if not isinstance(history, (list, EventHistory)):
             continue
         participant_events, entry_violations = _normalize_participant_behavior_events(
             history,

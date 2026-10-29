@@ -50,13 +50,7 @@ def control_plane_readiness(control_plane: object) -> ControlPlaneHealth:
             reasons.append("closed")
         store = control_plane._store
         lease = control_plane._runtime_lease
-        if isinstance(store, RuntimeAdmittedControlPlaneStore):
-            try:
-                if lease is None:
-                    raise RuntimeError
-                lease.assert_owner()
-            except Exception:
-                reasons.append("lease-unavailable")
+        requires_lease = isinstance(getattr(store, "raw_store", store), RuntimeAdmittedControlPlaneStore)
 
         with control_plane._operation_lock:
             records = dict(control_plane._operations)
@@ -67,9 +61,18 @@ def control_plane_readiness(control_plane: object) -> ControlPlaneHealth:
         ):
             reasons.append("recovery-required")
 
-        deduplicated = tuple(dict.fromkeys(reasons))
-        status = ControlPlaneHealthStatus.READY if not deduplicated else ControlPlaneHealthStatus.UNREADY
-        return ControlPlaneHealth(status=status, reasons=deduplicated)
+    if requires_lease:
+        try:
+            if lease is None:
+                raise RuntimeError
+            control_plane._assert_runtime_owner()
+        except Exception:
+            reasons.append("lease-unavailable")
+    if getattr(control_plane, "_effect_admission_stopped", False):
+        reasons.append("effect-admission-stopped")
+    deduplicated = tuple(dict.fromkeys(reasons))
+    status = ControlPlaneHealthStatus.READY if not deduplicated else ControlPlaneHealthStatus.UNREADY
+    return ControlPlaneHealth(status=status, reasons=deduplicated)
 
 
 __all__ = (

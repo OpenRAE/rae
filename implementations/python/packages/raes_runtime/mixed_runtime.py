@@ -7,7 +7,8 @@ from dataclasses import dataclass, field, replace
 from types import MappingProxyType
 from uuid import uuid4
 
-from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope
+from pydantic import ValidationError
+from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope, backend_manifest_v2_model
 from raes_contracts.admitted_trial_plan_ingress import revalidate_admitted_trial_plan
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
@@ -43,6 +44,7 @@ from .control_plane_mutation import control_plane_mutation, mutation_entry
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_security import ControlPlaneIdentity
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
+from .mixed_backend_installation import MixedBackendInstallation
 from .mixed_runtime_edge import MixedEdgeExecutionBinding
 from .mixed_runtime_handoff import MixedHandoffBinding
 from .registry import RuntimeTarget
@@ -80,6 +82,7 @@ class MixedRuntimeBinding:
     transition_evaluators: Mapping[str, Callable[..., MixedPhaseTransitionEvaluation]] = field(default_factory=dict)
     edge_bindings: Mapping[str, MixedEdgeExecutionBinding] = field(default_factory=dict)
     handoff_bindings: Mapping[str, MixedHandoffBinding] = field(default_factory=dict)
+    backend_installations: Mapping[str, MixedBackendInstallation] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         plan = revalidate_admitted_trial_plan(self.plan)
@@ -87,6 +90,14 @@ class MixedRuntimeBinding:
         validate_mixed_composition_context(self.profile, self.context, require_trial_admission=True)
         _require_bound_components(self.profile, self.components)
         _require_transition_evaluators(self.profile, self.transition_evaluators)
+        if self.backend_installations:
+            from raes_contracts.contracts import validate_mixed_backend_bindings
+
+            if any(key != value.binding.binding_id for key, value in self.backend_installations.items()):
+                raise ValueError("mixed installation key differs from its binding identity")
+            validate_mixed_backend_bindings(
+                self.profile, self.context, [value.binding for value in self.backend_installations.values()]
+            )
         if set(self.edge_bindings) - set(self.profile.edges):
             raise ValueError("mixed runtime edge bindings must name admitted edges")
         if set(self.handoff_bindings) - set(self.profile.transitions):
@@ -100,6 +111,7 @@ class MixedRuntimeBinding:
         object.__setattr__(self, "transition_evaluators", MappingProxyType(dict(self.transition_evaluators)))
         object.__setattr__(self, "edge_bindings", MappingProxyType(dict(self.edge_bindings)))
         object.__setattr__(self, "handoff_bindings", MappingProxyType(dict(self.handoff_bindings)))
+        object.__setattr__(self, "backend_installations", MappingProxyType(dict(self.backend_installations)))
 
     def _require_handoff_binding(self, transition_id: str, handoff: MixedHandoffBinding) -> None:
         if not isinstance(handoff, MixedHandoffBinding):
@@ -210,7 +222,17 @@ def _require_bound_component(bound: MixedRuntimeComponent, declaration: MixedCom
     if configured_manifest != admitted_manifest:
         raise ValueError("mixed runtime component manifest or envelope differs from admission")
     expected_manifest = backend_manifest_from_v2_model_with_envelope(bound.manifest, bound.envelope)
-    if bound.target.manifest != expected_manifest:
+    # A backend may hold the admitted contract in another sequence order or container type, so compare
+    # contract forms. The contract form names the envelope only by identity; compare the envelope too.
+    try:
+        target_contract = backend_manifest_v2_model(bound.target.manifest)
+    except ValidationError as exc:
+        # A target manifest with no backend-manifest-v2 form cannot carry the admitted contract.
+        raise ValueError("mixed runtime target manifest differs from the admitted component") from exc
+    if (
+        target_contract != backend_manifest_v2_model(expected_manifest)
+        or bound.target.manifest.realization_envelope != bound.envelope
+    ):
         raise ValueError("mixed runtime target manifest differs from the admitted component")
 
 

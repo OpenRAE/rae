@@ -22,7 +22,9 @@ PUBLIC_DOCS_EXAMPLE_TESTS = (
     "implementations/python/tests/test_public_docs_policy.py::test_checked_in_quickstart_scenario_parses",
     "implementations/python/tests/test_sdl_reference_quick_example.py::test_quick_example_passes_semantic_validation",
     "implementations/python/tests/test_public_docs_policy.py::test_readme_quickstart_matches_checked_in_scenario",
+    "implementations/python/tests/test_public_docs_policy.py::test_first_scenario_tutorial_shows_real_format_results",
     "implementations/python/tests/test_public_docs_policy.py::test_participant_control_claim_example_is_bounded",
+    "implementations/python/tests/test_issue_938_landing_page.py::test_quickstart_prints_the_output_each_page_shows",
 )
 RUFF_CONFIG = PROJECT_ROOT / "pyproject.toml"
 OSV_LOCKFILE_PATH = PROJECT_ROOT / "uv.lock"
@@ -82,7 +84,7 @@ COVERAGE_REDUCE_DIR_ENV = "RAES_COVERAGE_REDUCE_DIR"
 # before the ini ``pythonpath`` is applied.
 SHARD_PLUGIN = "tools.pytest_shard_plugin"
 # The incumbent default-marker selection recorded in every shard manifest.
-DEFAULT_SUITE_EXPRESSION = "not fuzz and not integration and not docker"
+DEFAULT_SUITE_EXPRESSION = "not fuzz and not integration"
 EXPECTED_PYTHON_ENV = "RAES_EXPECTED_PYTHON"
 EXPECT_FREE_THREADED_ENV = "RAES_EXPECT_FREE_THREADED"
 PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV = "RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY"

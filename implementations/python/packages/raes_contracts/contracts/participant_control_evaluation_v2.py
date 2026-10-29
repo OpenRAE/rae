@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Annotated, Literal, Self
 
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import ConfigDict, Field, SerializerFunctionWrapHandler, model_serializer, model_validator
 
 from ..json_ingress import parse_bounded_json_object
 from .base import ContractModel, PrefixedDigestString
@@ -22,6 +22,7 @@ from .participant_control_composition_v2 import (
 from .participant_control_coordinates import (
     ControlArtifactReferenceModel,
     ControlCount,
+    ControlPriorEffectClaimModel,
     ControlRef,
     ControlRefs,
     Evidence,
@@ -110,12 +111,13 @@ def validate_effect_budget_v2(
     context: ParticipantControlContextModel,
     bounds: ControlCausalBoundsModel,
     plan: ControlEffectPlanV2Model,
+    continuation_claims: tuple[ControlPriorEffectClaimModel, ...] = (),
 ) -> None:
     """Reuse retained claim and causal bounds authority for v2 effect intents."""
 
     effects = set(plan.effects)
     by_id = {effect.effect_id: effect for effect in effects}
-    prior_claims = {claim.effect_id: claim for claim in context.prior_effect_claims}
+    prior_claims = {claim.effect_id: claim for claim in (*context.prior_effect_claims, *continuation_claims)}
     for effect_id in plan.realized_effect_ids:
         effect = by_id[effect_id]
         claim = prior_claims.get(effect_id)
@@ -180,6 +182,22 @@ class ControlCommitBoundaryV2Model(ContractModel):
         return self
 
 
+class ControlEffectContinuationV2Model(ContractModel):
+    """Exact source and claims credited by a separate effect admission commit."""
+
+    model_config = ConfigDict(frozen=True)
+    source_evaluation_id: ControlRef
+    source_commit_receipt: ControlArtifactReferenceModel
+    realized_claims: Annotated[tuple[ControlPriorEffectClaimModel, ...], Field(max_length=256)]
+
+    @model_validator(mode="after")
+    def _source(self) -> Self:
+        require_kind(self.source_commit_receipt, "receipt")
+        require_unique(tuple(item.effect_id for item in self.realized_claims))
+        require_unique(tuple(item.key for item in self.realized_claims))
+        return self
+
+
 class ParticipantControlEvaluationV2Model(ContractModel):
     """Complete v2 contract record; eligibility is not dispatch authority."""
 
@@ -195,12 +213,25 @@ class ParticipantControlEvaluationV2Model(ContractModel):
     state_proposals: Annotated[tuple[ControlStateProposalV2Model, ...], Field(max_length=256)]
     composition: ControlCompositionV2Model
     commit: ControlCommitBoundaryV2Model
+    continuation: ControlEffectContinuationV2Model | None = None
+
+    @model_serializer(mode="wrap")
+    def _legacy_serialization(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        result = handler(self)
+        if self.continuation is None:
+            result.pop("continuation", None)
+        return result
 
     @model_validator(mode="after")
     def _complete(self) -> Self:
         validate_control_invocations_v2(self.request, self.invocations, self.results)
         validate_state_proposals_v2(self.state_proposals)
-        validate_effect_budget_v2(self.request.context, self.request.selection.bounds, self.effect_plan)
+        validate_effect_budget_v2(
+            self.request.context,
+            self.request.selection.bounds,
+            self.effect_plan,
+            () if self.continuation is None else self.continuation.realized_claims,
+        )
         _validate_parent_decisions(self)
         _validate_requested_effects(self)
         _validate_state_bindings(self)
@@ -343,5 +374,5 @@ def parse_participant_control_evaluation_v2(source: str | bytes) -> ParticipantC
     try:
         payload = parse_bounded_json_object(source, max_bytes=1_048_576, max_depth=32)
         return ParticipantControlEvaluationV2Model.model_validate(payload)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         raise ValueError("invalid participant control evaluation") from None

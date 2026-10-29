@@ -184,7 +184,7 @@ def migrate_participant_identity(
         payload, code, pointer = _adopt(payload, context, digest)
         if payload is not None:
             output = parse_sdl(yaml.safe_dump(payload, sort_keys=False), limits=limits)
-    except (SDLError, ValueError, TypeError):
+    except SDLError, ValueError, TypeError:
         code = "source-or-target-invalid"
     diagnostic_code = f"participant-migration.{code}" if code else None
     report = ArtifactTransformationReportModel(

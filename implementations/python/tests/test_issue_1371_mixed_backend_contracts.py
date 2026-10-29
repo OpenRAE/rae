@@ -992,9 +992,8 @@ def test_a_bridge_needs_its_mixed_methods_beyond_the_shared_operation_protocol(m
         require_mixed_backend_service(bridge, "bridge", DECLARED)
 
 
-def test_stub_and_reference_backends_do_not_advertise_mixed_backend_contracts() -> None:
-    from raes_backend_stubs.manifest import create_stub_manifest
-    from raes_reference_backend.manifest import REFERENCE_BACKEND_SUPPORTED_CONTRACT_VERSIONS
+def test_stub_backend_does_not_advertise_mixed_backend_contracts() -> None:
+    from raes_backend_stubs.manifest import REFERENCE_BACKEND_SUPPORTED_CONTRACT_VERSIONS, create_stub_manifest
 
     assert set(MIXED_BACKEND_CONTRACT_IDS).isdisjoint(create_stub_manifest().supported_contract_versions)
     assert set(MIXED_BACKEND_CONTRACT_IDS).isdisjoint(REFERENCE_BACKEND_SUPPORTED_CONTRACT_VERSIONS)

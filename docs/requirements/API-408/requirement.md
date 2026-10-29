@@ -30,3 +30,5 @@ Requirement inventory expansion. Participant execution must be observable throug
 - TESTS → TEST `implementations/python/tests/test_runtime_control_plane.py` (Runtime participant retrieval projection tests)
 - TESTS → TEST `implementations/python/tests/test_runtime_control_plane_api.py` (HTTP participant retrieval route tests)
 - TESTS → TEST `implementations/python/tests/test_act_614_temporal_durability.py` (Temporal assessments through history retrieval and durable readback)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/participant-history-view-v1.json` (participant-history-view-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/participant-status-view-v1.json` (participant-status-view-v1 published schema)

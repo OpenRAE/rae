@@ -80,75 +80,30 @@ success, Wazuh effectiveness, or model-defense robustness.
 
 ## Runtime Binding
 
-The runtime/backend binding is intentionally downstream. APTL and the libvirt
-reference backend should bind `participant-agent` to a participant implementation
-manifest and provenance record, realize the declared portal probe, retain
-participant/Wazuh/policy evidence, and record negative boundary evidence where
-the backend supports live checks. That binding must not require new SDL syntax,
-a new backend manifest shape, or APTL-private keys inside the scenario body.
+The runtime and backend binding is downstream of this scenario. A backend
+distribution, such as [LilRAE](https://github.com/OpenRAE/lilrae), binds
+`participant-agent` to a participant implementation manifest and provenance
+record. It realizes the declared portal probe, keeps participant, Wazuh, and
+policy evidence, and records negative boundary evidence where it supports live
+checks. That binding must not require new SDL syntax, a new backend manifest
+shape, or backend-private keys inside the scenario body.
 
-## Libvirt Scenario Evidence Artifact (#615)
+## Historical Libvirt Evidence Artifact (#615)
 
-`raes_operations.libvirt_evidence_run.run_libvirt_evidence_run` (CLI: `raes
-libvirt evidence validate`) produces a stable, validated evaluator-evidence
-run artifact for this scenario — `raes.libvirt.scenario-evidence-run/v1`, written to
-`runs/<run-id>/scenario-evidence/libvirt-scenario-evidence-run.json`. It composes the
-existing RAES surfaces (libvirt deterministic participant runtime #614, native
-substrate realization #601, backend manifest/capability contracts, and the
-experiment/evaluation contracts) into one artifact carrying scenario+compiled
-identity, backend manifest/capability profile and realization provenance, the
-realized/planned topology and network-attachment matrix, the participant action
-proof, the terminal participant-projected history under the named observation
-boundary (explicitly not an equivalence comparison), evaluator-only
-Wazuh/SOC evidence, negative boundary checks, an evaluator outcome record, and
-redaction/provenance metadata. Embedded published-contract payloads
-(`BackendManifestV2Model`, `EvaluationResultStateModel`,
-`EvaluationHistoryEventModel`, `ExperimentRealizedFormDisclosureModel`)
-re-validate against their contracts; the artifact carries a strict redaction gate
-(no raw libvirt XML, domain UUIDs, QEMU command lines, host paths, connection
-URIs, credentials, or private keys).
+RAES 7.0.0 and earlier bundled a libvirt evidence producer for this scenario
+(`raes libvirt evidence validate`). Issue #967 removed it with the libvirt
+backend. See the
+[concrete backends migration](../../docs/migration/concrete-backends.md) and
+[ADR-115](../../docs/decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md).
+RAES now ships no producer for this artifact. A backend distribution that
+realizes this scenario owns its evidence artifact and its claims.
 
-### Evidence-source modes
-
-- `deterministic` (default; no libvirt daemon; used by CI): participant proof,
-  compiled topology, structural negative-boundary evidence, and declared
-  evaluator-only defensive evidence channels. No SOC state is observed.
-- `native-live` (operator-run): additionally realizes the libvirt VM/network
-  substrate only when every concern passes the TechVault admission gate, then
-  records bounded daemon-observed fields with a realization binding. Native
-  realization is **gating**. The reference scenario declares unsupported guest
-  content/account/feature concerns, so native-live reports the realization gate
-  as **failed** and surfaces those concerns under `unrealized_capabilities`
-  (disclosed, not faked). The artifact is still written and validates, recording
-  the attempt. Native realization can pass for an admitted VM/network-only
-  substrate scenario. Guest readiness, services, and SOC state remain
-  `not-observed` in both modes.
-
-### How libvirt evidence differs from APTL Docker/Wazuh evidence
-
-APTL realizes the scenario as Docker/Compose containers with a full upstream
-Wazuh stack, so its scenario evidence artifact (Brad-Edwards/aptl#558) carries live
-container-native Wazuh detection telemetry and Docker-network reachability
-evidence. The libvirt proof realizes a different substrate — native libvirt/QEMU
-appliances — and its participant runtime is deterministic (#614), so:
-
-- the **substrate** is genuinely different (VM/network appliances vs.
-  containers) only for concerns admitted and daemon-verified by the bounded
-  native mode;
-- the **defensive evidence** is a declaration of evaluator-only evidence
-  channels, not native SOC readback — the artifact makes no Wazuh
-  detection-quality claim;
-- the **participant action proof** is structural (deterministic domain adapter),
-  disclosed as such.
-
-The claim is narrow: RAES can compile the same authored scenario and execute its
-deterministic participant contract while honestly disclosing that the full
-guest/application provisioning plane is not realized by the libvirt TechVault
-mode. A separate bounded scenario demonstrates an independent VM/network
-substrate. This is **not** a claim that the reference scenario is fully realized
-on two backends, nor a claim of byte-equivalence, application-internals
-equivalence, Wazuh detection-quality parity, model-defense robustness, or full
-semantic equivalence.
+The historical artifact made a narrow claim. RAES can compile this authored
+scenario and execute its deterministic participant contract. It disclosed that
+the bounded libvirt mode did not realize the full guest and application
+provisioning plane. It made no claim of full realization on two backends,
+byte equivalence, Wazuh detection-quality parity, model-defense robustness, or
+full semantic equivalence.
 
 ## Downstream Links
 
@@ -161,8 +116,8 @@ semantic equivalence.
 - APTL realization and proof: Brad-Edwards/aptl#556,
   Brad-Edwards/aptl#557, Brad-Edwards/aptl#558
 
-This RAES scenario supplies the authored scenario that downstream APTL and
-libvirt proof issues can consume.
+This RAES scenario supplies the authored scenario that downstream backend
+distributions can consume.
 
 ## Limitations
 
@@ -174,5 +129,5 @@ libvirt proof issues can consume.
 - It does not include a private runner command, prompt, sandbox policy,
   credential, backend log, Wazuh ruleset, model-defense policy body, or hidden
   answer key.
-- It is designed for small n=2 reference-emulation proof work and should remain
-  reusable as a corpus example.
+- It was designed for small n=2 backend proof work and remains reusable as a
+  corpus example.

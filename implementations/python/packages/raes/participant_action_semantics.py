@@ -104,7 +104,7 @@ class ParticipantActionEffect(SDLModel):
         return values
 
     @model_validator(mode="after")
-    def _validate_effect_evidence(self) -> "ParticipantActionEffect":
+    def _validate_effect_evidence(self) -> ParticipantActionEffect:
         if self.effect_class not in {ParticipantEffectClass.NO_EFFECT, ParticipantEffectClass.UNKNOWN_EFFECT}:
             if not self.target_refs and not self.evidence_refs:
                 raise ValueError(f"{self.effect_class.value} effects require target_refs or evidence_refs")

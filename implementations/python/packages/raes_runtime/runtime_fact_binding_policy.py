@@ -17,7 +17,7 @@ from raes_contracts.contracts.runtime_facts import (
     RuntimeFactVersionModel,
 )
 
-from .runtime_fact_dispatch import RuntimeFactBindingAdmission
+from .runtime_fact_dispatch import RuntimeFactBindingAdmission, _parse_datetime
 
 
 class RuntimeFactActionDisposition(str, Enum):
@@ -116,12 +116,12 @@ def _validate_freshness(
     sink: RuntimeFactSinkModel,
     version: RuntimeFactVersionModel,
 ) -> RuntimeFactBindingDisposition:
-    requested_at = _parse_datetime(admission.requested_at)
-    observed_at = _parse_datetime(version.observed_at)
+    requested_at = _parse_datetime(admission.requested_at, "requested_at")
+    observed_at = _parse_datetime(version.observed_at, "observed_at")
     within_max_age = sink.max_age_seconds is None or (
         observed_at <= requested_at and (requested_at - observed_at).total_seconds() <= sink.max_age_seconds
     )
-    unexpired = version.expires_at is None or requested_at <= _parse_datetime(version.expires_at)
+    unexpired = version.expires_at is None or requested_at <= _parse_datetime(version.expires_at, "expires_at")
     if within_max_age and unexpired:
         disposition = RuntimeFactBindingDisposition.BOUND
     else:
@@ -152,11 +152,7 @@ def aggregate_action_disposition(failures: list[RuntimeFactActionDisposition]) -
     )
 
 
-def parse_datetime(value: str) -> datetime:
-    """Parse a contract RFC 3339 timestamp for comparison."""
+def parse_datetime(value: str, field_name: str = "timestamp") -> datetime:
+    """Parse an offset-qualified timestamp for comparison; reject naive values with ``ValueError``."""
 
-    return _parse_datetime(value)
-
-
-def _parse_datetime(value: str) -> datetime:
-    return datetime.fromisoformat(value.replace("Z", "+00:00").replace("z", "+00:00"))
+    return _parse_datetime(value, field_name)
