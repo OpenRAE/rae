@@ -85,6 +85,9 @@ Usefulness and costs retain their measured proxy meanings.
 Amend ASR-536 to require exact RAE harness compositions for RAE results.
 Preserve exact realization requirements for concrete backend claims.
 Record ADR-101 and ADR-108 amendments with their matching manifest pins.
+The identity-cutover classification also pins the ADR index.
+Recorded ADR-index amendments refresh that classification's content digest.
+The record class and occurrence count stay unchanged.
 Remove backend prerequisites from the RAE evaluation and publication graph nodes.
 Keep conditional backend gates for backend consumer guidance.
 Update the dependency checker against the corrected graph.

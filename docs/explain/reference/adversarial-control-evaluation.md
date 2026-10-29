@@ -50,10 +50,11 @@ The publication has no combined score, confidence interval, or population robust
 
 ## Reproduction and retained evidence
 
-The [retained collection](../../research/adversarial-participant-control/evaluations/sha256-882e959aeddbc422452600b87a3215bb84f478e485037e736ec0b56d4d830030.json)
+The [retained collection](../../research/adversarial-participant-control/evaluations/sha256-20fce4e8c88a8b324d62ea65d699f898cc27e733ccc066c6861017e924a2a741.json)
 contains the seven executed results and safe conformance reports.
-Its [shared source inventory](../../../specs/formal/participant-semantics/runtime-mapping/capture-3865d15b91b45736d8b52b8733914356d7f6d99510b8d7ff9110d263160c7b4b/manifest.json)
+Its [shared source inventory](../../../specs/formal/participant-semantics/runtime-mapping/capture-73613cec378f3e5645d00e183c86990b32051b3ae813dcac7f75d9e09c818bac/manifest.json)
 pins the exact source content.
+Earlier committed captures retain their original source identities.
 
 Run from the source checkout with its frozen Python 3.14 dependency environment.
 The collector uses synthetic fixtures and local files only.
