@@ -52,10 +52,7 @@ from .participant_control_binding import (
 from .participant_control_cut import binds_live_cut, declares_committed_consumption
 from .participant_crossing_commit import commit_prepared_crossing
 from .participant_crossing_mediation import PreparedParticipantCrossing
-from .participant_crossing_state_cut import (
-    control_history_head_refs,
-    expected_participant_history_heads,
-)
+from .participant_crossing_state_cut import control_history_head_refs, expected_participant_history_heads
 from .participant_flow_sink import early_crossing_receipt, resolve_flow_sink_denial
 
 _UNRESOLVED = "unresolved"
@@ -149,11 +146,7 @@ def _request_refusal(
         ("stale", "control-stale-cut", lambda: binds_live_cut(request, crossing, sink_kind, head_refs)),
         # PC-11/PC-12: budgets and logical claims are durable, so a fresh
         # context may not re-spend what this causal root already consumed.
-        (
-            "stale",
-            "control-exhausted-or-stale-claims",
-            lambda: declares_committed_consumption(control_plane, request),
-        ),
+        ("stale", "control-exhausted-or-stale-claims", lambda: declares_committed_consumption(control_plane, request)),
     )
     failed = next(((disposition, reason) for disposition, reason, passes in gates if not passes()), None)
     return None if failed is None else _unresolved(*failed)
@@ -188,6 +181,23 @@ def _resolve(
     if resolution is None or isinstance(resolution, ParticipantControlResolution):
         return resolution
     return _unresolved(_UNRESOLVED, "control-unresolved")
+
+
+def _parent_crossing_decisions(
+    request: ParticipantControlRequestModel, results: tuple[ControlMechanismResultModel, ...]
+) -> set[str]:
+    """Return the deny or withhold decisions that mandatory slots make on the parent crossing."""
+    required = {slot.slot_id for slot in request.selection.slots if slot.role == "mandatory"}
+    return {
+        result.payload.target.kind
+        for result in results
+        if result.slot_id in required
+        and result.payload is not None
+        and result.payload.kind == "effect-request"
+        and result.payload.target.kind in {"deny", "withhold"}
+        and result.payload.target.crossing_decision == request.context.crossing
+        and result.payload.target.subject == request.context.subject
+    }
 
 
 def _composed_outcome(
@@ -233,17 +243,7 @@ def _composed_outcome(
     # V1 wire evidence keeps its original interpretation. Fresh parent-targeted
     # crossing decisions are nevertheless enforced before any scheduled effect;
     # a phase label can never postpone a refusal until after parent execution.
-    required = {slot.slot_id for slot in request.selection.slots if slot.role == "mandatory"}
-    parent_decisions = {
-        result.payload.target.kind
-        for result in results
-        if result.slot_id in required
-        and result.payload is not None
-        and result.payload.kind == "effect-request"
-        and result.payload.target.kind in {"deny", "withhold"}
-        and result.payload.target.crossing_decision == request.context.crossing
-        and result.payload.target.subject == request.context.subject
-    }
+    parent_decisions = _parent_crossing_decisions(request, results)
     if parent_decisions:
         disposition = "deny" if "deny" in parent_decisions else "withhold"
         return _unresolved(disposition, "control-" + disposition)
@@ -438,10 +438,7 @@ def resolve_participant_control_denial(
     if outcome is None or outcome.eligible:
         return outcome, None
     denied = with_participant_control_evaluation(crossing, outcome, allowed=False)
-    rejected = cast(
-        PreparedParticipantCrossing,
-        replace(denied, record=control_denied_record(denied)),
-    )
+    rejected = cast(PreparedParticipantCrossing, replace(denied, record=control_denied_record(denied)))
     return outcome, commit_prepared_crossing(control_plane, rejected)
 
 

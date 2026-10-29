@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-10-29T06:21:51.434238+00:00",
+  "generated_at": "2026-10-29T06:48:56.829152+00:00",
   "limitations": [
     "This is bounded specification coverage, not universal range coverage, usability, adoption, backend substitution or behavioral equivalence.",
     "The retained protocol does not test recursive realization, plan allocation or live participant configuration.",
@@ -89,5 +89,5 @@
     }
   ],
   "snapshot_id": "issue-1678-exceptions-logging-specification-snapshot",
-  "snapshot_sha256": "60d2c03177de2d772fd0fdb0d5beff1933ef2b14b1dc12dec610312fd99fd4fb"
+  "snapshot_sha256": "1f7853623928100ced133f5a0bda4ce12ce12e736a83571b3209e78ecb653099"
 }

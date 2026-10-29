@@ -260,9 +260,10 @@ def _git_show(repo_root: Path, gitref: str) -> str | None:
     Content that is not UTF-8 is read again with surrogate escapes. They keep
     every byte distinct, so content_hash and the amendment check compare the
     exact revision."""
-    if gitref.startswith("-"):
-        # git would read the reference as an option, not as a revision.
-        raise InvalidInputError("a git revision must not start with '-'")
+    # Only a revision that starts with a letter, digit or underscore, an optional repository path, or an
+    # index path can reach git; git would read a value that starts with "-" as an option.
+    if not re.match(r"^(?:[A-Za-z0-9_][A-Za-z0-9_./@^~{}-]*(?::[A-Za-z0-9_./-]+)?|:[A-Za-z0-9_./-]+)\Z", gitref):
+        raise InvalidInputError("a git revision must not start with '-' or contain other characters")
     command = ["git", "show", "--end-of-options", gitref]
     try:
         proc = subprocess.run(command, cwd=repo_root, capture_output=True, text=True)
@@ -410,8 +411,8 @@ def evaluate_adr_immutability(
 
 def _git_revision(value: str) -> str:
     """Accept a revision argument that git cannot read as an option."""
-    if not value or value.startswith("-"):
-        raise argparse.ArgumentTypeError("a git revision must not be empty or start with '-'")
+    if not re.match(r"^[A-Za-z0-9_][A-Za-z0-9_./@^~{}-]*\Z", value):
+        raise argparse.ArgumentTypeError("a git revision must not be empty, start with '-' or contain other characters")
     return value
 
 
