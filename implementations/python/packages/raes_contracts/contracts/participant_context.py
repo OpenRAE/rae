@@ -33,6 +33,7 @@ ParticipantContextSourceLayer = Literal[
     "evidence_record",
     "derived_measure",
     "control_plane_operation",
+    "participant_control_context_asset",
 ]
 
 

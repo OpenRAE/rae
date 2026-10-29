@@ -255,7 +255,7 @@ def _fontconfig_has_fonts(font_list: Path = ISABELLE_FONTCONFIG_LIST) -> bool:
             timeout=ISABELLE_FONTCONFIG_QUERY_TIMEOUT_SECONDS,
             env={"LANG": ISABELLE_LOCALE, "LC_ALL": ISABELLE_LOCALE},
         )
-    except (OSError, subprocess.TimeoutExpired):
+    except OSError, subprocess.TimeoutExpired:
         return False
     return completed.returncode == 0 and bool(completed.stdout.strip())
 
@@ -292,7 +292,7 @@ def _locale_listing(locale_list: Path) -> bytes | None:
             timeout=ISABELLE_LOCALE_QUERY_TIMEOUT_SECONDS,
             env={"LANG": "C", "LC_ALL": "C", "PATH": "/usr/bin:/bin"},
         )
-    except (OSError, subprocess.TimeoutExpired):
+    except OSError, subprocess.TimeoutExpired:
         return None
     usable = completed.returncode == 0 and len(completed.stdout) <= ISABELLE_LOCALE_OUTPUT_LIMIT_BYTES
     return completed.stdout if usable else None

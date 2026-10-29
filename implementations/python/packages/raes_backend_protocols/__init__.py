@@ -7,10 +7,12 @@ from .mixed_backend import MixedTimeCoordinator as MixedTimeCoordinator
 from .mixed_backend import require_mixed_backend_service as require_mixed_backend_service
 from .operation_supervision import BackendOperationProvider as BackendOperationProvider
 from .operation_supervision import require_operation_provider as require_operation_provider
+from .trial_unit import BackendTrialUnit as BackendTrialUnit
 
 __all__ = [
     "DomainTopologyBinding",
     "BackendOperationProvider",
+    "BackendTrialUnit",
     "MixedBackendBridge",
     "MixedStageReader",
     "MixedTimeCoordinator",

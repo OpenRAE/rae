@@ -71,7 +71,7 @@ def _concurrent_result_protocol_invalid(
                 )
                 is not None
             )
-    except (Exception, CancelledError):  # NOSONAR - a malformed backend envelope must fail closed
+    except Exception, CancelledError:  # NOSONAR - a malformed backend envelope must fail closed
         invalid = True
     return invalid
 
@@ -123,7 +123,7 @@ def _commit_valid_concurrent_result(
     result = assess_temporal_result(request, result, run.working)
     try:
         run.working = _stage_concurrent_action_snapshot(base, run.working, result.snapshot)
-    except (Exception, CancelledError):  # NOSONAR - backend snapshot merge is a trust boundary
+    except Exception, CancelledError:  # NOSONAR - backend snapshot merge is a trust boundary
         should_stop = _settle_failed_concurrent_occurrence(
             context,
             state,

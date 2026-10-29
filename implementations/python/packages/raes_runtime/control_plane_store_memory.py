@@ -6,12 +6,14 @@ from threading import RLock
 
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
 from raes_contracts.runtime_state import OperationAdmissionContext, RuntimeSnapshot
+from rpds import HashTrieMap
 
 from . import control_plane_store as _store
 from .control_plane_profiles import (
     ControlPlaneCapability,
     ControlPlaneStoreCapabilities,
 )
+from .control_plane_store_changes import OperationChanges
 from .control_plane_store_history import require_expected_control_head, require_expected_history_heads
 from .control_plane_store_revision import (
     SnapshotRevisionConflict,
@@ -21,6 +23,7 @@ from .control_plane_store_revision import (
 )
 from .inject_claims import require_inject_claim, require_inject_history
 from .operation_invocation_ledger import control_record_is_supervisory, supervised_claim_conflicts
+from .runtime_decision_store import MemoryRuntimeDecisionStoreMixin
 
 
 class _InMemoryRuntimeOwner:
@@ -37,7 +40,7 @@ class _InMemoryRuntimeOwner:
         self._store._release_runtime_owner(self._token)
 
 
-class InMemoryControlPlaneStore:
+class InMemoryControlPlaneStore(MemoryRuntimeDecisionStoreMixin):
     """Simple in-memory store."""
 
     control_plane_capabilities = ControlPlaneStoreCapabilities(
@@ -55,12 +58,17 @@ class InMemoryControlPlaneStore:
 
     def __init__(self, snapshot: RuntimeSnapshot | None = None) -> None:
         self._lock = RLock()
+        self._runtime_decisions = {}
         self._snapshot_state = SnapshotState(
             snapshot=snapshot if snapshot is not None else RuntimeSnapshot(),
             revision=0,
         )
         self._records: dict[str, _store.ControlPlaneOperationRecord] = {}
-        self._idempotency: dict[_store.IdempotencyClaimIdentity, str] = {}
+        from .participant_control_operation_index import ControlOperationIndex
+
+        self._claim_guards = ControlOperationIndex()
+        self._operation_changes: list[str] = []
+        self._idempotency = HashTrieMap()
         self._audit: list[_store.AuditEvent] = []
         self._bound_scope: tuple[str, str] | None = None
         self._runtime_owner_token: object | None = None
@@ -109,6 +117,17 @@ class InMemoryControlPlaneStore:
             require_inject_history(self._records.values())
             return dict(self._records)
 
+    def load_operation_changes(self, cursor: int | None = None) -> OperationChanges:
+        from .control_plane_store_changes import OperationChanges, require_change_cursor
+
+        require_change_cursor(cursor)
+        with self._lock:
+            reset = cursor is None or cursor > len(self._operation_changes)
+            identities = self._records if reset else dict.fromkeys(self._operation_changes[cursor:])
+            return OperationChanges(
+                len(self._operation_changes), {key: self._records[key] for key in identities}, reset
+            )
+
     def save_record(self, record: _store.ControlPlaneOperationRecord) -> None:
         with self._lock:
             self._save_record(record)
@@ -145,9 +164,9 @@ class InMemoryControlPlaneStore:
                 and not control_record_is_supervisory(record)
             ):
                 _store._raise_new_claim_block("current-state")
-            if _store.mixed_claim_conflicts(record, self._records.values()):
+            if _store.mixed_claim_conflicts(record, self._claim_guards.guard_records()):
                 _store._raise_new_claim_block("current-state")
-            if supervised_claim_conflicts(record, self._records.values()):
+            if supervised_claim_conflicts(record, self._claim_guards.guard_records()):
                 _store._raise_new_claim_block("current-state")
             self._save_record(record)
             return record
@@ -260,7 +279,7 @@ class InMemoryControlPlaneStore:
         self,
         record: _store.ControlPlaneOperationRecord,
     ) -> dict[_store.IdempotencyClaimIdentity, str]:
-        idempotency = dict(self._idempotency)
+        idempotency = self._idempotency
         if not record.idempotency_key:
             return idempotency
         claim_identity = _store.idempotency_claim_identity(
@@ -270,8 +289,7 @@ class InMemoryControlPlaneStore:
         existing_operation_id = idempotency.get(claim_identity)
         if existing_operation_id is not None and existing_operation_id != record.receipt.operation_id:
             raise ValueError(_store._IDEMPOTENCY_KEY_CONFLICT)
-        idempotency[claim_identity] = record.receipt.operation_id
-        return idempotency
+        return idempotency.insert(claim_identity, record.receipt.operation_id)
 
     def _publish(
         self,
@@ -281,9 +299,11 @@ class InMemoryControlPlaneStore:
     ) -> None:
         idempotency = self._updated_idempotency(record)
         self._snapshot_state = committed
-        self._records = {**self._records, record.receipt.operation_id: record}
+        self._records[record.receipt.operation_id] = record
+        self._operation_changes.append(record.receipt.operation_id)
+        self._claim_guards.apply(record)
         self._idempotency = idempotency
-        self._audit = [*self._audit, event]
+        self._audit.append(event)
 
     def find_by_idempotency(
         self,
@@ -393,6 +413,8 @@ class InMemoryControlPlaneStore:
             return
         self._idempotency = self._updated_idempotency(record)
         self._records[record.receipt.operation_id] = record
+        self._operation_changes.append(record.receipt.operation_id)
+        self._claim_guards.apply(record)
 
 
 __all__ = ("InMemoryControlPlaneStore",)

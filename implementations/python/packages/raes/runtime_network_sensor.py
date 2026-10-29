@@ -150,7 +150,7 @@ class RuntimeNetworkSensor(SDLModel):
         return validate_absolute_paths(v, field_name=info.field_name)
 
     @model_validator(mode="after")
-    def validate_unique_refs(self) -> "RuntimeNetworkSensor":
+    def validate_unique_refs(self) -> RuntimeNetworkSensor:
         _reject_duplicate_values(
             self.capture_interfaces,
             field_name="capture_interfaces",

@@ -18,6 +18,7 @@ from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 from raes_processor.reference import run_reference_processor
 from raes_runtime.registry import RuntimeTarget
 
+from ._materialization_scope import materialization_probe_scope
 from ._realization_models import (
     ExecutionBasis,
     ExpectedRealizationObservation,
@@ -171,10 +172,15 @@ def _positive_case(
     context: _CaseContext,
 ) -> RealizationProbeCase:
     try:
-        plan = run_reference_processor(
-            Scenario.model_validate(probe.payload), context.target.manifest
-        ).execution_plan.provisioning
+        execution_plan = run_reference_processor(
+            Scenario.model_validate(probe.payload),
+            context.target.manifest,
+            scope=materialization_probe_scope(context.target),
+        ).execution_plan
     except Exception:
+        execution_plan = None
+    # A plan with error diagnostics is not an executable probe; never hand it to the harness.
+    if execution_plan is None or any(diagnostic.is_error for diagnostic in execution_plan.diagnostics):
         return _base_case(
             name=f"realization-positive-{index}",
             outcome=ProbeOutcome.FAILED,
@@ -188,6 +194,7 @@ def _positive_case(
             ),
             context=context,
         )
+    plan = execution_plan.provisioning
     request = RealizationProbeRequest(
         probe_digest=probe.digest,
         probe_kind="positive",

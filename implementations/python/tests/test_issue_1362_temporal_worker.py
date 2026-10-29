@@ -136,15 +136,26 @@ def test_native_control_exception_is_not_serialized_into_engine_history():
 
 
 def test_installed_workflows_are_accepted_by_the_real_sdk_sandbox():
+    from raes_runtime.operation_temporal_worker import workflow_sandbox_runner
     from raes_runtime.operation_temporal_workflow import RaeOperationWorkflow, RaeSupervisionWorkflow
     from temporalio import workflow
-    from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner
 
     async def exercise():
         for definition in (RaeOperationWorkflow, RaeSupervisionWorkflow):
-            SandboxedWorkflowRunner().prepare_workflow(workflow._Definition.must_from_class(definition))
+            workflow_sandbox_runner().prepare_workflow(workflow._Definition.must_from_class(definition))
 
     asyncio.run(exercise())
+
+
+def test_workflow_sandbox_passes_only_coverage_through_beyond_the_sdk_defaults():
+    from raes_runtime.operation_temporal_worker import workflow_sandbox_runner
+    from temporalio.worker.workflow_sandbox import SandboxRestrictions
+
+    restrictions = workflow_sandbox_runner().restrictions
+    default = SandboxRestrictions.default
+    assert restrictions.passthrough_modules == default.passthrough_modules | {"coverage"}
+    assert restrictions.invalid_modules == default.invalid_modules
+    assert restrictions.invalid_module_members == default.invalid_module_members
 
 
 @pytest.mark.parametrize("entrypoint", ["operation", "supervision", "invoke", "observe", "control", "indeterminate"])
@@ -176,3 +187,43 @@ def test_sdk_decodes_opaque_payload_using_registered_entrypoint_annotations(entr
     encoded = converter.to_payload(payload)
     decoded = converter.from_payload(encoded, get_type_hints(method)["payload"])
     assert decoded == payload
+
+
+def test_timed_out_activity_keeps_its_slot_until_the_callback_settles():
+    from threading import Event
+    from time import monotonic
+
+    from raes_runtime.operation_temporal_worker import TemporalOperationActivities
+
+    held, release = Event(), Event()
+    calls = []
+    activities = TemporalOperationActivities(
+        provider=Provider(), effect_authority=None, control_authority=None, worker_identity="worker-1"
+    )
+
+    def blocked():
+        held.set()
+        assert release.wait(3)
+
+    async def exercise():
+        first = asyncio.create_task(activities._job(activities._effect_jobs, "effect", blocked, budget_ms=50))
+        assert await asyncio.to_thread(held.wait, 1)
+        with pytest.raises(RuntimeError):
+            await first
+        assert activities._effect_jobs.pending_calls == 1
+        with pytest.raises(RuntimeError):
+            await activities._job(activities._effect_jobs, "effect", lambda: calls.append("premature"), budget_ms=100)
+        assert calls == []
+        release.set()
+        deadline = monotonic() + 1
+        while activities._effect_jobs.pending_calls:
+            assert monotonic() < deadline
+            await asyncio.sleep(0.01)
+        await activities._job(activities._effect_jobs, "effect", lambda: calls.append("settled"), budget_ms=100)
+        assert calls == ["settled"]
+
+    try:
+        asyncio.run(exercise())
+    finally:
+        release.set()
+        assert activities.close()

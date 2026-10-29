@@ -133,6 +133,10 @@ def _request_refusal(
 
     if request is None:
         return _unresolved(_UNRESOLVED, "control-unresolved")
+    from .participant_control_effect_evidence import declares_effect_parent
+
+    if not declares_effect_parent(control_plane, crossing, request):
+        return _unresolved("stale", "control-stale-effect-parent")
     gates = (
         # PC-01: a different profile, mechanism, authority or bound is a new
         # admitted binding at an explicit cut, never a resolve-time swap.
@@ -221,6 +225,23 @@ def _composed_outcome(
         # Bounded: a rejected composition or trusted-context failure never
         # discloses its rejected value, and never widens permission.
         return _unresolved(_UNRESOLVED, "control-context-invalid")
+    # V1 wire evidence keeps its original interpretation. Fresh parent-targeted
+    # crossing decisions are nevertheless enforced before any scheduled effect;
+    # a phase label can never postpone a refusal until after parent execution.
+    required = {slot.slot_id for slot in request.selection.slots if slot.role == "mandatory"}
+    parent_decisions = {
+        result.payload.target.kind
+        for result in results
+        if result.slot_id in required
+        and result.payload is not None
+        and result.payload.kind == "effect-request"
+        and result.payload.target.kind in {"deny", "withhold"}
+        and result.payload.target.crossing_decision == request.context.crossing
+        and result.payload.target.subject == request.context.subject
+    }
+    if parent_decisions:
+        disposition = "deny" if "deny" in parent_decisions else "withhold"
+        return _unresolved(disposition, "control-" + disposition)
     return ParticipantControlOutcome(
         disposition=composition.disposition,
         reason_code="control-" + composition.disposition,
@@ -350,13 +371,16 @@ def _with_appended_evaluation(
     evaluation: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model,
 ) -> PreparedParticipantCrossing:
     participant_address = crossing.intent.participant_address
-    history = crossing.next_snapshot.participant_control_evaluation_history
+    from raes_contracts.immutable_history import append_history
+
     next_snapshot = crossing.next_snapshot.with_entries(
         dict(crossing.next_snapshot.entries),
-        participant_control_evaluation_history={
-            **history,
-            participant_address: [*history.get(participant_address, ()), evaluation.model_dump(mode="json")],
-        },
+        participant_control_evaluation_history=append_history(
+            crossing.next_snapshot,
+            "participant_control_evaluation_history",
+            participant_address,
+            [evaluation.model_dump(mode="json")],
+        ),
     )
     return cast(
         PreparedParticipantCrossing,

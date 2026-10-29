@@ -198,10 +198,10 @@ def test_proof_workflow_retains_only_the_harness_output_it_produces() -> None:
     assert uploads == ["proof-input-qualification.json"]
 
 
-def test_interpreter_workflow_has_no_upload_without_an_evidence_producer() -> None:
+def test_distribution_workflow_has_no_upload_without_an_evidence_producer() -> None:
     root = Path(__file__).resolve().parents[3]
     workflow = yaml.safe_load((root / ".github/workflows/ci.yml").read_text())
-    steps = workflow["jobs"]["interpreters"]["steps"]
+    steps = workflow["jobs"]["distribution"]["steps"]
     assert any("-s python-compatibility" in step.get("run", "") for step in steps)
     assert not any(step.get("uses", "").startswith("actions/upload-artifact@") for step in steps)
 

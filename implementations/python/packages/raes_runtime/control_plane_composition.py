@@ -44,18 +44,9 @@ def compose_operation_execution(control_plane: RuntimeControlPlane, config: Cont
 def bind_execution_store(control_plane: RuntimeControlPlane, config: ControlPlaneConfiguration) -> None:
     from .control_plane_store_bounded import BoundedControlPlaneStore
     from .control_plane_store_compatibility import adapt_control_plane_store
-    from .operation_execution_adapter import LocalExecutionAdapter
-    from .runtime_resource_ownership import RuntimeResourceClaim, ledger_identity
 
     bounds = config.supervision
-    control_plane._resource_claim = RuntimeResourceClaim(
-        control_plane, control_plane._target, ledger=ledger_identity(control_plane._store)
-    )
-    control_plane._execution_adapter = LocalExecutionAdapter(
-        effect_capacity=bounds.effect_capacity,
-        control_capacity=bounds.control_capacity,
-        store_capacity=bounds.store_capacity,
-    )
+    control_plane._engine.bind(control_plane)
     control_plane._store = BoundedControlPlaneStore(
         control_plane._store, control_plane._execution_adapter, bounds.commit_ms
     )

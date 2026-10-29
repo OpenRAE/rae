@@ -22,36 +22,29 @@ def test_direct_manager_close_releases_components_and_refuses_later_effects():
 
 
 def test_direct_manager_close_retains_components_until_a_physical_callback_returns():
-    from threading import Event, Thread
+    from concurrent.futures import ThreadPoolExecutor
 
     from raes import parse_sdl
 
     target = create_stub_target()
     planned = plan_for_target(target, parse_sdl("name: manager-drain"))
-    started, release = Event(), Event()
     original = target.provisioner.apply
-    results = []
 
-    def apply(plan, snapshot):
-        started.set()
-        assert release.wait(3)
-        return original(plan, snapshot)
-
-    target.provisioner.apply = apply
-    manager = RuntimeManager(target)
-    worker = Thread(target=lambda: results.append(manager.apply(planned)))
-    worker.start()
-    try:
-        assert started.wait(1)
+    def assert_owned():
         with pytest.raises(RuntimeError, match="callbacks remain active"):
             manager.close()
         with pytest.raises(RuntimeError, match="runtime owner"):
             RuntimeControlPlane(target)
-    finally:
-        release.set()
-        worker.join(3)
-    assert not worker.is_alive()
-    assert results[0].success
+
+    def apply(plan, snapshot):
+        # The callback stays active until the concurrent ownership checks finish.
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            executor.submit(assert_owned).result()
+        return original(plan, snapshot)
+
+    target.provisioner.apply = apply
+    manager = RuntimeManager(target)
+    assert manager.apply(planned).success
     manager.close()
     with RuntimeControlPlane(target):
         pass

@@ -13,16 +13,65 @@ _REFERENCE_FIELDS = (
     "outcome_interpretation_rule_refs",
     "authority_scope_refs",
 )
+_REFERENCE_PATHS = (
+    (("behavior_specifications", "*"), _REFERENCE_FIELDS),
+    (
+        ("agents", "*"),
+        (
+            "affiliations",
+            "actions",
+            "observation_boundaries",
+            "starting_accounts",
+            "allowed_subnets",
+            "starting_assertions",
+            "authority_anchors",
+            "operating_scope",
+        ),
+    ),
+    (("agents", "*", "initial_knowledge"), ("hosts", "subnets", "services", "accounts")),
+    (("agents", "*", "interactive_access", "*"), ("target_ref", "account_ref")),
+    (("agents", "*", "control_context", "*"), ("declaration_ref",)),
+    (("behavior_specifications", "*", "control_context", "*"), ("declaration_ref",)),
+    (
+        ("behavior_specifications", "*", "tool_affordances", "*"),
+        ("participant_refs", "action_contract_refs", "observation_boundary_refs", "tool_ref"),
+    ),
+    (
+        ("behavior_specifications", "*", "participant_inject_deliveries", "*"),
+        (
+            "participant_ref",
+            "inject_ref",
+            "observation_boundary_ref",
+            "source_item_ref",
+            "result_item_ref",
+            "controller_ref",
+            "temporal_constraint_refs",
+            "evidence_requirement_refs",
+            "control_authority_scope_refs",
+            "control_evidence_refs",
+        ),
+    ),
+    (
+        ("behavior_specifications", "*", "participant_inject_deliveries", "*", "occurrence"),
+        ("event_ref", "script_ref", "story_ref"),
+    ),
+)
 
 
-def _private_refs(specification: Mapping[str, object]) -> Iterator[tuple[str, int, str]]:
-    for field in _REFERENCE_FIELDS:
+def _private_refs(
+    specification: Mapping[str, object], fields: tuple[str, ...]
+) -> Iterator[tuple[tuple[str | int, ...], str]]:
+    for field in fields:
         refs = specification.get(field, ())
-        if not isinstance(refs, (list, tuple)):
+        if isinstance(refs, str):
+            values = [((field,), refs)]
+        elif isinstance(refs, (list, tuple)):
+            values = [((field, index), ref) for index, ref in enumerate(refs)]
+        else:
             continue
-        for index, ref in enumerate(refs):
+        for location, ref in values:
             if isinstance(ref, str) and PRIVATE_NAMESPACE_SEGMENT in ref.split("."):
-                yield field, index, ref
+                yield location, ref
 
 
 def _authoring_mapping(value: object) -> Mapping[str, object]:
@@ -31,25 +80,23 @@ def _authoring_mapping(value: object) -> Mapping[str, object]:
     return value if isinstance(value, Mapping) else {}
 
 
-def _private_tool_locations(specification: Mapping[str, object]) -> Iterator[tuple[tuple[str | int, ...], str]]:
-    for affordance_id, value in _authoring_mapping(specification.get("tool_affordances")).items():
-        binding = _authoring_mapping(value)
-        prefix = ("tool_affordances", affordance_id)
-        tool_ref = binding.get("tool_ref")
-        if isinstance(tool_ref, str) and PRIVATE_NAMESPACE_SEGMENT in tool_ref.split("."):
-            yield (*prefix, "tool_ref"), tool_ref
-        for field, index, ref in _private_refs(binding):
-            yield (*prefix, field, index), ref
-
-
 def _private_locations(document: Mapping[str, object]) -> Iterator[tuple[tuple[str | int, ...], str]]:
-    for name, value in _authoring_mapping(document.get("behavior_specifications")).items():
-        specification = _authoring_mapping(value)
-        prefix = ("behavior_specifications", name)
-        for field, index, ref in _private_refs(specification):
-            yield (*prefix, field, index), ref
-        for location, ref in _private_tool_locations(specification):
-            yield (*prefix, *location), ref
+    for path, fields in _REFERENCE_PATHS:
+        for location, record in _records_at_path(document, path):
+            for relative, ref in _private_refs(record, fields):
+                yield (*location, *relative), ref
+
+
+def _records_at_path(
+    value: object, path: tuple[str, ...], location: tuple[str | int, ...] = ()
+) -> Iterator[tuple[tuple[str | int, ...], Mapping[str, object]]]:
+    value = _authoring_mapping(value)
+    if not path:
+        yield location, value
+        return
+    children = value.items() if path[0] == "*" else ((path[0], value.get(path[0])),)
+    for key, child in children:
+        yield from _records_at_path(child, path[1:], (*location, key))
 
 
 def validate_authored_behavior_references(

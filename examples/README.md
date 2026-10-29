@@ -16,6 +16,7 @@ backends, and evidence requirements.
 
 | File | Best use | Current coverage | Limits |
 |------|----------|------------------|--------|
+| [`scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml`](scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml) | Cross-project identity, policy and secret-version descriptions | Focused schema, reference, composition and compilation tests | Synthetic metadata and illustrative evidence references; no cloud deployment or certified access result |
 | [`scenarios/hospital-ransomware-surgery-day.sdl.yaml`](scenarios/hospital-ransomware-surgery-day.sdl.yaml) | Large enterprise and clinical operations scenario | Disk-backed example test; complex example checks for objectives, agents, relationships, content, stories, conditions, direct refs | Does not deploy a hospital range or prove clinical exercise adequacy |
 | [`scenarios/satcom-release-poisoning.sdl.yaml`](scenarios/satcom-release-poisoning.sdl.yaml) | Supply-chain, release, tenant, and rollback scenario | Disk-backed example test; complex example checks for objectives, agents, relationships, content, stories, conditions, workflows, enum-backed variables | Does not implement a CI/CD backend or production release system |
 | [`scenarios/port-authority-surge-response.sdl.yaml`](scenarios/port-authority-surge-response.sdl.yaml) | IT/OT, customs, yard operations, and recovery scenario | Disk-backed example test; complex example checks for objectives, agents, relationships, content, stories, conditions, workflows, direct refs | Does not implement OT control, safety validation, or port operations |
@@ -27,6 +28,7 @@ backends, and evidence requirements.
 | [`scenarios/reconciliation-demo-v1.sdl.yaml`](scenarios/reconciliation-demo-v1.sdl.yaml) | Baseline version of the reconciliation demonstration pair | Planner reconciliation across scenario versions, exercised end to end through `raes processor reconcile` | Plans only; the projected snapshot is assumed state, never backend readback or proof of realization |
 | [`scenarios/reconciliation-demo-v2.sdl.yaml`](scenarios/reconciliation-demo-v2.sdl.yaml) | Modified version that creates, updates, deletes, and leaves resources unchanged in one plan | Exact `create`/`update`/`delete`/`unchanged` outcomes across provisioning, orchestration, and evaluation | Same limits as the baseline; the pair demonstrates planner behavior, not a deployable environment |
 | [`scenarios/guided-web-probe.sdl.yaml`](scenarios/guided-web-probe.sdl.yaml) | Finished file of the public [validate, compile, and inspect a scenario plan](../docs/public/sdl/validate-compile-plan.md) guide | Disk-backed example test; focused checks that the guide's steps rebuild this file, each step validates, and the guide's outputs and diagnostics match the CLI | Plans with a `capture.offer-missing` error against the reference dry-run manifest, which declares no capture offers; realizes nothing |
+| [`scenarios/participant-control-context/`](scenarios/participant-control-context/README.md) | Exact shared and distinct control-context assets, withheld intent, and repeated imports | Parser, compiler, navigation, and participant-factor tests | References grant no visibility, delivery, execution, or permission |
 | [`scenarios/participant-tools/`](scenarios/participant-tools/README.md) | Reusable participant tool unit imported twice, with a local tool affordance over an imported action and tool | Focused composition, compilation, rename and runtime-admission checks for tool affordances and SSH/RDP access carriers | Declares authored intent only; installs no tool, opens no session, and a declared or displayed tool authorizes no invocation |
 
 The corpus tests are in
@@ -161,6 +163,12 @@ The task, run, and study surfaces keep these parts separate:
   `seeded-run-plan` declares the run count, seed, and episode controls for one
   task. `two-condition-study-design` declares a treatment factor, two compared
   conditions, and the runs per condition.
+  Each condition must name factors and levels declared in that experiment,
+  in both `descriptive` and `explicit-required` modes. Authors choose these
+  declarations; RAE supplies no domain catalog. Descriptive parameters do not
+  apply configuration. Explicit bindings retain their additional source and
+  target checks under
+  [ADR-094](../docs/decisions/adrs/adr-094-authoritative-cross-plane-experiment-bindings.md).
 - **Guidance:** the task, run, and study patterns, which are prose.
 - **Experiment tasks:** validate an authored JSON task with
   `raes semantic validate --contract experiment-task-v1 my-task.json`.
@@ -171,13 +179,9 @@ The task, run, and study surfaces keep these parts separate:
 - **Outside current support:**
   - Automatically acquiring the task named by `task_ref`. The loader checks
     a supplied task as shown below; without one, the reference is unresolved.
-  - Checking condition factor levels that no binding descriptor or stratified
-    selection stratum joins (tracked in issue #1520). The loader checks joined levels against
-    the declared factors and the condition assignment: binding descriptors
-    under `binding_semantics: explicit-required`
-    ([ADR-094](../docs/decisions/adrs/adr-094-authoritative-cross-plane-experiment-bindings.md))
-    and stratified selection strata. The shipped `two-condition-study-design`
-    body joins none, so the loader does not check its levels.
+  - Establishing domain meaning from factor labels. Membership validation uses
+    the experiment's own declarations. It does not resolve an ontology or prove
+    that a declared treatment was applied.
   - Admitting, scheduling, or running a plan, and the `experiment-run-v1` and
     `experiment-study-v1` records that describe actual executions and
     analyses.

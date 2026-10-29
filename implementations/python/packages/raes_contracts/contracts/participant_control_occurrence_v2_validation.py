@@ -12,8 +12,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field, replace
 
-from raes.participant_behavior_specification import MixedControlTransitionKind
-from raes.participant_mixed_control_vocabulary import ParticipantControlTargetKind
+from raes.participant_mixed_control_vocabulary import MixedControlTransitionKind, ParticipantControlTargetKind
 
 from .participant_control import ParticipantControlDeclarationModel, ParticipantControlTargetContextModel
 from .participant_control_history_verifiability import (
@@ -403,7 +402,7 @@ def validate_participant_control_history_v2(
         if lineages == {"v1"}:
             v1_records.extend(episode_records)
             continue
-        policy = _episode_policy(policies, participant, episode, episode_records[0])
+        policy = resolve_participant_control_episode_policy(policies, participant, episode, episode_records[0])
         completions = _fold_episode(episode_records, policy, available_targets, completions)
     if v1_records:
         validate_v1(v1_records, declarations=declarations, known_targets=known_targets)
@@ -439,7 +438,7 @@ def _fold_episode(
     return completions | result.state.completion_evidence_refs
 
 
-def _episode_policy(
+def resolve_participant_control_episode_policy(
     policies: Sequence[ParticipantControlOccurrencePolicyModel],
     participant: str,
     episode: str,

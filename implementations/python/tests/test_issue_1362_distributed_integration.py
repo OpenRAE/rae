@@ -17,38 +17,30 @@ pytestmark = pytest.mark.integration
 def test_actual_process_loss_never_reissues_a_consumed_grant(phase, tmp_path):
     if os.environ.get("RAES_EXECUTION_INTEGRATION") != "1":
         pytest.skip("requires the hosted runtime-execution integration composition")
+    from postgresql_ledger_fixtures import disposable_ledger_database
+
+    with disposable_ledger_database() as database:
+        _exercise_process_loss(phase, tmp_path, database)
+
+
+def _exercise_process_loss(phase, tmp_path, database):
     import subprocess
     import sys
 
-    import psycopg
-    from pydantic import SecretStr
+    from postgresql_ledger_fixtures import ledger_configuration
     from raes_backend_stubs.stubs import create_stub_target
     from raes_contracts.planning import ProvisioningPlan
     from raes_contracts.runtime_state import OperationState
     from raes_runtime.control_plane import RuntimeControlPlane
-    from raes_runtime.control_plane_store_postgresql import PostgreSQLControlPlaneStore, PostgreSQLStoreConfiguration
+    from raes_runtime.control_plane_store_postgresql import PostgreSQLControlPlaneStore
 
-    config = PostgreSQLStoreConfiguration(
-        host=os.environ["RAES_TEST_PG_HOST"],
-        database="rae_ledger",
-        user="rae_ledger",
-        password=SecretStr("integration-only"),
-        sslmode="disable",
-    )
-    with psycopg.connect(
-        host=config.host,
-        dbname=config.database,
-        user=config.user,
-        password=config.password.get_secret_value(),
-        autocommit=True,
-    ) as cleanup:
-        cleanup.execute(
-            "DROP TABLE IF EXISTS raes_ledger_audit, raes_ledger_operations, raes_ledger_state, raes_ledger_metadata"
-        )
+    config = ledger_configuration(database)
     PostgreSQLControlPlaneStore(config).initialize_schema()
     marker = tmp_path / "effect-witness"
     fixture = Path(__file__).with_name("control_plane_supervision_crash_fixture.py")
-    stopped = subprocess.run([sys.executable, str(fixture), phase, str(marker)], timeout=25, capture_output=True)
+    stopped = subprocess.run(
+        [sys.executable, str(fixture), phase, str(marker), database], timeout=25, capture_output=True
+    )
     assert stopped.returncode == 86
     reopened_target = create_stub_target()
     calls = []
@@ -95,19 +87,22 @@ async def _until(predicate, *, timeout=15):
 def test_real_delivery_control_and_reopening_preserve_the_consumed_fence(blocked, tmp_path):
     if os.environ.get("RAES_EXECUTION_INTEGRATION") != "1":
         pytest.skip("requires the hosted runtime-execution integration composition")
-    asyncio.run(_exercise(blocked, tmp_path))
+    from postgresql_ledger_fixtures import disposable_ledger_database
+
+    with disposable_ledger_database() as database:
+        asyncio.run(_exercise(blocked, tmp_path, database))
 
 
-async def _exercise(blocked, tmp_path):
-    import psycopg
+async def _exercise(blocked, tmp_path, database):
     import uvicorn
+    from postgresql_ledger_fixtures import ledger_configuration
     from pydantic import SecretStr
     from raes_contracts.planning import ProvisioningPlan
     from raes_contracts.runtime_state import OperationState
     from raes_runtime.control_plane import RuntimeControlPlane
     from raes_runtime.control_plane_api import create_control_plane_app
     from raes_runtime.control_plane_security import ControlPlaneSecurityConfig
-    from raes_runtime.control_plane_store_postgresql import PostgreSQLControlPlaneStore, PostgreSQLStoreConfiguration
+    from raes_runtime.control_plane_store_postgresql import PostgreSQLControlPlaneStore
     from raes_runtime.operation_remote_authority import RemoteAuthorityConfiguration, RemoteOperationAuthority
     from raes_runtime.operation_supervision_configuration import OperationSupervisionConfiguration
     from raes_runtime.operation_temporal import TemporalExecutionAdapter, TemporalExecutionConfiguration
@@ -118,24 +113,7 @@ async def _exercise(blocked, tmp_path):
     from test_issue_1362_provider_execution import Evidence, Provider, target
     from test_issue_1362_runtime_supervision import supervisor
 
-    config = PostgreSQLStoreConfiguration(
-        host=os.environ["RAES_TEST_PG_HOST"],
-        database="rae_ledger",
-        user="rae_ledger",
-        password=SecretStr("integration-only"),
-        sslmode="disable",
-    )
-    # The disposable CI database is reused by these two parametrized cases.
-    with psycopg.connect(
-        host=config.host,
-        dbname=config.database,
-        user=config.user,
-        password=config.password.get_secret_value(),
-        autocommit=True,
-    ) as cleanup:
-        cleanup.execute(
-            "DROP TABLE IF EXISTS raes_ledger_audit, raes_ledger_operations, raes_ledger_state, raes_ledger_metadata"
-        )
+    config = ledger_configuration(database)
     store = PostgreSQLControlPlaneStore(config)
     await asyncio.to_thread(store.initialize_schema)
     # The budget runs from acceptance, so it must cover cold engine submission
@@ -224,6 +202,12 @@ async def _exercise(blocked, tmp_path):
                 assert (
                     await asyncio.to_thread(delivery.submit, record.invocation.request)
                     == record.invocation.delivery.workflow_id
+                )
+                # Terminal state does not imply that the abandoned activity has
+                # released its worker slot. Test redelivery after that callback
+                # settles; busy-worker refusal is a separate safety boundary.
+                await _until(
+                    lambda: activities._effect_jobs.pending_calls == 0 and activities._executor.pending_calls == 0
                 )
                 await activities.invoke(record.invocation.delivery.reference.model_dump(mode="json"))
                 assert provider.starts == 1

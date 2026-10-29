@@ -15,7 +15,7 @@ from typing import Any, ClassVar
 from pydantic import ConfigDict, Field, ValidationError
 
 from ._base import VARIABLE_TOKEN_RE, extract_variable_name
-from ._capability_constraints import capture_capability_constraints, capture_parameter_derivations
+from ._capability_constraints import capture_bound_parameter_provenance
 from ._errors import SDLInstantiationError, SDLValidationError
 from ._identifiers import QualifiedName
 from ._mapping_scopes import HASHMAP_SECTIONS
@@ -315,27 +315,19 @@ def _bind_scenario_content(
     if errors:
         raise SDLInstantiationError(errors)
 
-    local_constraints = tuple(
-        constraint
-        for constraint in capture_capability_constraints(raw_scenario)
-        if not constraint.parameter or constraint.parameter[0] not in preserved
-    )
-    derivations = tuple(
-        derivation
-        for derivation in capture_parameter_derivations(raw_scenario)
-        if not any(
-            segment.parameter[0] in preserved for segment in derivation.segments if hasattr(segment, "parameter")
-        )
-    )
+    local_constraints, derivations = capture_bound_parameter_provenance(raw_scenario, preserved)
     raw_payload = raw_scenario.model_dump(mode="python", by_alias=True)
     _preserve_listener_protocol_presence(raw_payload, raw_scenario)
     unresolved_refs: set[str] = set()
+    pinned_assets = raw_payload.pop("control_context_assets", None)
     substituted_payload = _substitute_value(
         raw_payload,
         variable_values=variable_values,
         unresolved_refs=unresolved_refs,
         preserved=preserved,
     )
+    if pinned_assets is not None:
+        substituted_payload["control_context_assets"] = pinned_assets
     if unresolved_refs:
         unresolved_list = ", ".join(sorted(unresolved_refs))
         raise SDLInstantiationError(

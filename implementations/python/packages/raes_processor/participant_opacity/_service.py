@@ -359,7 +359,7 @@ def analyze_participant_opacity_file(
             request.profile_id,
             request.profile_revision,
         )
-    except (OSError, ValidationError, ValueError):
+    except OSError, ValidationError, ValueError:
         raise ParticipantOpacityOperationalError(
             "opacity analysis input failed bounded closed-world admission"
         ) from None

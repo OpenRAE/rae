@@ -262,15 +262,10 @@
               "const": "cpython"
             },
             "version": {
-              "enum": [
-                "3.11",
-                "3.12",
-                "3.13",
-                "3.14"
-              ]
+              "const": "3.14"
             },
             "abi": {
-              "pattern": "^cp3(11|12|13|14)$"
+              "const": "cp314"
             },
             "platform": {
               "enum": [

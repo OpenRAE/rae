@@ -13,6 +13,7 @@ from ..versions import EXPERIMENT_AUTHORING_INPUT_SCHEMA_VERSION
 from . import experiment_study_contract as _experiment_study_contract
 from .base import ContractModel, NonEmptyString, PositiveInteger
 from .difficulty_adaptation import DifficultyPolicyRegistryModel
+from .experiment_allocation import ExperimentAllocationPolicyModel, resolve_allocation_control
 from .experiment_apparatus import ExperimentClockContextModel, ExperimentStochasticControlModel
 from .experiment_artifacts import ExperimentArtifactRefModel
 from .experiment_bindings import ExperimentBindingDescriptorModel, ExperimentBindingDescriptorSetModel
@@ -26,6 +27,7 @@ from .experiment_evidence_refinement import (
     ExperimentEvidenceRequirementRelationModel,
     validate_evidence_requirement_relation_carrier,
 )
+from .experiment_factorial import ExperimentFactorialTreatmentDesignModel, FactorialDesign, expand_factorial_input
 from .experiment_manifest_references import ExperimentCaptureSpecReferenceModel
 from .experiment_plan_controls import (
     ExperimentEpisodeControlModel,
@@ -41,11 +43,16 @@ from .experiment_selection import (
     _validate_selection_factor_joins,
     _validate_selection_policy_registry,
 )
-from .experiment_study import ExperimentRunAllocationPlanModel, ExperimentStudyFactorModel
+from .experiment_study import (
+    ExperimentRunAllocationPlanModel,
+    ExperimentStudyFactorModel,
+    _validate_condition_factor_levels,
+)
 from .schema_invariants import _add_raes_invariant
 from .trial_replacement import TrialReplacementPolicyModel
 
 ExperimentStudyModel = _experiment_study_contract.ExperimentStudyModel
+_EXPERIMENT_SPEC_VALIDATOR = "raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec"
 
 
 class ExperimentRunPlanModel(ContractModel):
@@ -62,6 +69,7 @@ class ExperimentRunPlanModel(ContractModel):
     allocation: ExperimentRunAllocationPlanModel | None = None
     target_run_count: PositiveInteger | None = None
     replacement_policy: TrialReplacementPolicyModel | None = None
+    allocation_policy: ExperimentAllocationPolicyModel | None = None
     selection_policies: dict[NonEmptyString, ExperimentSelectionPolicyModel] = Field(
         default_factory=dict,
         max_length=MAX_SELECTION_POLICIES,
@@ -77,6 +85,8 @@ class ExperimentRunPlanModel(ContractModel):
         payload = handler(self)
         if self.replacement_policy is None:
             payload.pop("replacement_policy", None)
+        if self.allocation_policy is None:
+            payload.pop("allocation_policy", None)
         return payload
 
     @model_validator(mode="after")
@@ -90,6 +100,10 @@ class ExperimentRunPlanModel(ContractModel):
                     f"'{selection.variant_id}'"
                 )
         self._validate_selection_policies()
+        if self.allocation_policy is not None:
+            resolve_allocation_control(
+                self.allocation_policy, {control.control_id: control for control in self.stochastic_controls}
+            )
         self._validate_difficulty_policy_registry()
         return self
 
@@ -117,6 +131,7 @@ class ExperimentRunPlanModel(ContractModel):
                     "required": ["target_run_count"],
                     "properties": {"target_run_count": {"not": {"type": "null"}}, "allocation": {"type": "null"}},
                 },
+                {"properties": {"allocation": {"type": "null"}, "target_run_count": {"type": "null"}}},
             ]
         )
         _add_raes_invariant(
@@ -181,6 +196,19 @@ class ExperimentSpecModel(ContractModel):
     capture_spec_refs: list[ExperimentCaptureSpecReferenceModel] = Field(default_factory=list)
     validity_notes: list[ExperimentValidityNoteModel] = Field(default_factory=list)
     artifact_refs: list[ExperimentArtifactRefModel] = Field(default_factory=list)
+    factorial_design: FactorialDesign | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _expand_factorial(cls, value: object) -> object:
+        return expand_factorial_input(value)
+
+    @model_serializer(mode="wrap")
+    def _serialize_factorial(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        payload = handler(self)
+        if self.factorial_design is None:
+            payload.pop("factorial_design", None)
+        return payload
 
     @model_validator(mode="after")
     def _validate_experiment_spec(self) -> ExperimentSpecModel:
@@ -192,6 +220,9 @@ class ExperimentSpecModel(ContractModel):
                     raise ValueError(
                         f"run_plan allocation blocking factor '{blocking_factor}' must be a declared factor"
                     )
+            _validate_condition_factor_levels(
+                self.factors, allocation.condition_assignments, scope="run_plan allocation"
+            )
         self._validate_binding_descriptors()
         self._validate_selection_factor_joins()
         if self.run_plan.evidence_requirement_relations and self.intended_scenario_ref is None:
@@ -209,16 +240,23 @@ class ExperimentSpecModel(ContractModel):
     def _validate_selection_factor_joins(self) -> None:
         _validate_selection_factor_joins(self)
 
-    def _validate_binding_descriptors(self) -> None:
-        if self.binding_semantics == "explicit-required" and self.binding_descriptors is None:
+    def _binding_allocation(self) -> ExperimentRunAllocationPlanModel | None:
+        typed = isinstance(self.factorial_design, ExperimentFactorialTreatmentDesignModel)
+        if self.binding_semantics == "explicit-required" and self.binding_descriptors is None and not typed:
             raise ValueError("binding_semantics explicit-required requires binding_descriptors")
         if self.binding_descriptors is None:
-            return
+            return None
         if self.binding_semantics != "explicit-required":
             raise ValueError("binding_descriptors require binding_semantics explicit-required")
         allocation = self.run_plan.allocation
         if allocation is None:
             raise ValueError("explicit binding descriptors require condition-based run allocation")
+        return allocation
+
+    def _validate_binding_descriptors(self) -> None:
+        allocation = self._binding_allocation()
+        if allocation is None:
+            return
         legacy_conditions = sorted(
             condition_id
             for condition_id, assignment in allocation.condition_assignments.items()
@@ -232,6 +270,10 @@ class ExperimentSpecModel(ContractModel):
             _validate_binding_descriptor_source(descriptor, self.factors, allocation)
             for descriptor in self.binding_descriptors.descriptors
         }
+        if isinstance(self.factorial_design, ExperimentFactorialTreatmentDesignModel):
+            covered_conditions.update(
+                key for key, assignment in allocation.condition_assignments.items() if assignment.required_selections
+            )
         missing_conditions = sorted(set(allocation.compared_conditions) - covered_conditions)
         if missing_conditions:
             raise ValueError(
@@ -246,35 +288,22 @@ class ExperimentSpecModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        json_schema.setdefault("allOf", []).extend(
-            [
-                {
-                    "if": {
-                        "properties": {"binding_semantics": {"const": "explicit-required"}},
-                        "required": ["binding_semantics"],
-                    },
-                    "then": {
-                        "required": ["binding_descriptors"],
-                        "properties": {"binding_descriptors": {"not": {"type": "null"}}},
-                    },
-                },
-                {
-                    "if": {
-                        "properties": {"binding_descriptors": {"not": {"type": "null"}}},
-                        "required": ["binding_descriptors"],
-                    },
-                    "then": {
-                        "properties": {"binding_semantics": {"const": "explicit-required"}},
-                    },
-                },
-            ]
-        )
+        _add_authoring_conditionals(json_schema)
         _add_raes_invariant(
             json_schema,
             "experiment-spec-blocking-factors-declared",
             "When a run plan declares an allocation with blocking factors, every blocking factor must be a "
             "declared experiment-spec factor.",
-            validator="raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec",
+            validator=_EXPERIMENT_SPEC_VALIDATOR,
+            inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
+        )
+        _add_raes_invariant(
+            json_schema,
+            "experiment-spec-condition-factor-levels-declared",
+            "In every binding posture, each condition assignment must reference a factor and level declared "
+            "by the containing experiment spec. Authors define these local declarations; "
+            "no domain catalog is required.",
+            validator=_EXPERIMENT_SPEC_VALIDATOR,
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
@@ -307,10 +336,68 @@ class ExperimentSpecModel(ContractModel):
         )
         _add_raes_invariant(
             json_schema,
+            "experiment-factorial-generation-valid",
+            "Factorial intent resolves exact declared levels, bounded Cartesian output, collision-free bindings, "
+            "and matching supplied materializations before authoring admission.",
+            validator="raes_contracts.contracts.ExperimentSpecModel._expand_factorial",
+            inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
+        )
+        _add_raes_invariant(
+            json_schema,
             "run-plan-evidence-requirement-relation-owner-valid",
             "Prospective run-scoped evidence requirement relations must identify this exact authoring input and "
             "its intended scenario snapshot.",
-            validator="raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec",
+            validator=_EXPERIMENT_SPEC_VALIDATOR,
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
         return json_schema
+
+
+def _add_authoring_conditionals(json_schema: JsonSchemaValue) -> None:
+    json_schema.setdefault("allOf", []).extend(
+        [
+            {
+                "if": {"properties": {"factorial_design": {"type": "null"}}},
+                "then": {
+                    "properties": {
+                        "run_plan": {
+                            "anyOf": [
+                                {
+                                    "required": ["allocation"],
+                                    "properties": {"allocation": {"not": {"type": "null"}}},
+                                },
+                                {
+                                    "required": ["target_run_count"],
+                                    "properties": {"target_run_count": {"not": {"type": "null"}}},
+                                },
+                            ]
+                        }
+                    }
+                },
+            },
+            {
+                "if": {
+                    "allOf": [
+                        {
+                            "properties": {"binding_semantics": {"const": "explicit-required"}},
+                            "required": ["binding_semantics"],
+                        },
+                        {"properties": {"factorial_design": {"type": "null"}}},
+                    ]
+                },
+                "then": {
+                    "required": ["binding_descriptors"],
+                    "properties": {"binding_descriptors": {"not": {"type": "null"}}},
+                },
+            },
+            {
+                "if": {
+                    "properties": {"binding_descriptors": {"not": {"type": "null"}}},
+                    "required": ["binding_descriptors"],
+                },
+                "then": {
+                    "properties": {"binding_semantics": {"const": "explicit-required"}},
+                },
+            },
+        ]
+    )

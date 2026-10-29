@@ -203,7 +203,7 @@ class RuntimeDatastoreMapping(SDLModel):
         return coerce_string_list(v)
 
     @model_validator(mode="after")
-    def validate_mapping(self) -> "RuntimeDatastoreMapping":
+    def validate_mapping(self) -> RuntimeDatastoreMapping:
         _reject_duplicate_values(self.evidence_refs, field_name="evidence_refs", owner=self.mapping_id)
         return self
 
@@ -235,7 +235,7 @@ class RuntimeDatastoreTemplate(SDLModel):
         return coerce_string_list(v)
 
     @model_validator(mode="after")
-    def validate_template(self) -> "RuntimeDatastoreTemplate":
+    def validate_template(self) -> RuntimeDatastoreTemplate:
         _reject_duplicate_values(self.index_patterns, field_name="index_patterns", owner=self.template_id)
         _reject_duplicate_values(self.evidence_refs, field_name="evidence_refs", owner=self.template_id)
         return self
@@ -357,7 +357,7 @@ class RuntimeDatastoreSetting(SDLModel):
         return parse_runtime_enum_or_var(v, RuntimeSensitivityClassification, field_name="classification")
 
     @model_validator(mode="after")
-    def validate_setting(self) -> "RuntimeDatastoreSetting":
+    def validate_setting(self) -> RuntimeDatastoreSetting:
         enforce_observed_value_redaction(
             owner_label=f"datastore setting '{self.setting_id}'",
             value=self.value,
