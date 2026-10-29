@@ -15,7 +15,9 @@ from .stateful_resources import GeneratedArtifact, PersistentVolume, ResourceSen
 _GENERATED_ARTIFACTS_PREFIX = "generated_artifacts."
 
 
-def _node_name(reference: str, nodes: Mapping[str, Node]) -> str | None:
+def consumer_node_name(reference: str, nodes: Mapping[str, object]) -> str | None:
+    """Resolve a bare or ``nodes.``-qualified consumer node reference to its node key."""
+
     name = reference.removeprefix("nodes.") if reference.startswith("nodes.") else reference
     return name if name in nodes else None
 
@@ -216,7 +218,7 @@ def _consumer_reference_errors(
 ) -> list[SDLValidationFinding]:
     errors: list[SDLValidationFinding] = []
     for consumer in resource.consumers:
-        node_name = _node_name(consumer.node, nodes)
+        node_name = consumer_node_name(consumer.node, nodes)
         if node_name is None:
             errors.append(
                 SDLValidationFinding(f"{owner} consumer node reference {consumer.node!r} is missing", declaration)
@@ -386,4 +388,4 @@ def stateful_resource_reference_errors(
     return errors
 
 
-__all__ = ["stateful_resource_reference_errors"]
+__all__ = ["consumer_node_name", "stateful_resource_reference_errors"]

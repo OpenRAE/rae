@@ -341,7 +341,7 @@ def _rewrite_resource_consumers(
 ) -> None:
     for consumer in resource.get("consumers", []):
         if isinstance(consumer, dict) and consumer.get("node"):
-            consumer["node"] = _maybe_rename(str(consumer["node"]), symbols["nodes"])
+            consumer["node"] = _rewrite_section_ref(str(consumer["node"]), "nodes", symbols["nodes"])
 
 
 def _rewrite_resource_dependencies(
