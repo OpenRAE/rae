@@ -18,6 +18,7 @@ from tools.policy.common import (
     apply_exceptions,
     changed_paths,
     failures_to_json,
+    git_paths,
     load_exceptions,
     run_git,
 )
@@ -315,11 +316,9 @@ def requirement_changed_paths(*, staged: bool, base_rev: str | None) -> list[str
     # Use the actual merge parent, even when the remote integration ref has
     # advanced since synchronization began. Its tree retains committed feature
     # work and conflict resolutions without relabelling unchanged imports.
-    output = run_git(
-        ["diff", "--name-only", "--diff-filter=d", "-z", *(["--cached"] if staged else []), merge, "--"],
-        repo_root=REPO_ROOT,
+    return git_paths(
+        "diff", "--name-only", "--diff-filter=d", *(["--cached"] if staged else []), merge, "--", repo_root=REPO_ROOT
     )
-    return [path for path in output.split("\0") if path]
 
 
 def main() -> int:

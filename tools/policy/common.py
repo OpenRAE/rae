@@ -94,6 +94,22 @@ def run_git(args: list[str], repo_root: Path = REPO_ROOT) -> str:
     return proc.stdout
 
 
+def git_paths(command: str, *options: str, repo_root: Path = REPO_ROOT) -> list[str]:
+    """Run a git path listing with -z and return every name exactly as git stores it (#1473).
+
+    -z stops git quoting names. The output is read as bytes, because text mode would turn a carriage return or CRLF
+    in a name into LF, and each name is decoded as strict UTF-8, like the repository's other -z listings: a name that
+    is not UTF-8 raises UnicodeDecodeError instead of being dropped.
+    """
+    proc = subprocess.run(
+        ["git", command, "-z", *options],
+        cwd=repo_root,
+        check=True,
+        capture_output=True,
+    )
+    return [path.decode("utf-8") for path in proc.stdout.split(b"\0") if path]
+
+
 def changed_paths(
     repo_root: Path = REPO_ROOT,
     *,
@@ -101,15 +117,12 @@ def changed_paths(
     base_rev: str | None = None,
 ) -> list[str]:
     if staged:
-        output = run_git(["diff", "--name-only", "--diff-filter=d", "--cached"], repo_root=repo_root)
+        comparison = ["--cached"]
     elif base_rev:
-        output = run_git(
-            ["diff", "--name-only", "--diff-filter=d", base_rev, "HEAD"],
-            repo_root=repo_root,
-        )
+        comparison = [base_rev, "HEAD"]
     else:
-        output = run_git(["diff", "--name-only", "--diff-filter=d", "HEAD"], repo_root=repo_root)
-    return [line.strip() for line in output.splitlines() if line.strip()]
+        comparison = ["HEAD"]
+    return git_paths("diff", "--name-only", "--diff-filter=d", *comparison, repo_root=repo_root)
 
 
 def path_matches_prefix(path: str, prefix: str) -> bool:

@@ -25,6 +25,7 @@ from tools.nox_support.config import (
     RUFF_CONFIG,
     VERIFY_PROJECT_SYNCED_ENV,
 )
+from tools.policy.common import git_paths
 from tools.policy.requirement_scope import RequirementScopeError
 from tools.python_closure_profiles import frozen_tool_command
 from tools.requirement_context import current_requirement_branch, resolve_requirement_context
@@ -93,15 +94,8 @@ def _run(
     session.run(*args, external=True, silent=silent, env=env)
 
 
-def _git_lines(*args: str) -> list[str]:
-    proc = subprocess.run(
-        ["git", *args],
-        cwd=REPO_ROOT,
-        text=True,
-        capture_output=True,
-        check=True,
-    )
-    return [line.strip() for line in proc.stdout.splitlines() if line.strip()]
+def _git_paths(command: str, *options: str) -> list[str]:
+    return git_paths(command, *options, repo_root=REPO_ROOT)
 
 
 _EXCLUDE_DELETED_FILTER = "--diff-filter=d"
@@ -109,10 +103,10 @@ _EXCLUDE_DELETED_FILTER = "--diff-filter=d"
 
 def _changed_paths(*, staged: bool = False, base_rev: str | None = None) -> list[str]:
     if staged:
-        return _normalize_paths(_git_lines("diff", "--name-only", _EXCLUDE_DELETED_FILTER, "--cached"))
+        return _normalize_paths(_git_paths("diff", "--name-only", _EXCLUDE_DELETED_FILTER, "--cached"))
     if base_rev:
-        return _normalize_paths(_git_lines("diff", "--name-only", _EXCLUDE_DELETED_FILTER, base_rev, "HEAD"))
-    return _normalize_paths(_git_lines("diff", "--name-only", _EXCLUDE_DELETED_FILTER, "HEAD"))
+        return _normalize_paths(_git_paths("diff", "--name-only", _EXCLUDE_DELETED_FILTER, base_rev, "HEAD"))
+    return _normalize_paths(_git_paths("diff", "--name-only", _EXCLUDE_DELETED_FILTER, "HEAD"))
 
 
 def _sync_project(session: nox.Session) -> None:
@@ -303,7 +297,7 @@ def _parse_hygiene_posargs(posargs: Sequence[str], *, default_all_files: bool) -
 
 
 def _tracked_repo_paths() -> list[str]:
-    return _normalize_paths(_git_lines("ls-files", "--cached", "--others", "--exclude-standard"))
+    return _normalize_paths(_git_paths("ls-files", "--cached", "--others", "--exclude-standard"))
 
 
 def _normalize_paths(paths: Iterable[str]) -> list[str]:
