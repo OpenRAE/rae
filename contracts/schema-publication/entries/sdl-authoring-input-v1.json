@@ -1,9 +1,9 @@
 {
-  "content_hash": "37338a06d86968b9ea60b734c4b2d1a660b812630a44e995bc4fc38b2c892844",
+  "content_hash": "2b0fcdfb460773d66c3424312e645276a887cbd09cf15a8a6664095e9c404e18",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "37338a06d86968b9ea60b734c4b2d1a660b812630a44e995bc4fc38b2c892844",
-    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301). Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
+    "content_hash": "2b0fcdfb460773d66c3424312e645276a887cbd09cf15a8a6664095e9c404e18",
+    "summary": "Add closed structural alternatives for whole-declaration presence of accounts, content, persistent volumes, generated artifacts, relationships, propositions, assertions and evidence requirements, and for consumer-row membership of persistent volumes and generated artifacts; bind each structural slot group to its member kind (issue #1733)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

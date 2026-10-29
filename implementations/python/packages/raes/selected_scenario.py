@@ -25,7 +25,7 @@ from .experiment_selection import validate_selection_outcome
 from .instantiate import instantiate_scenario
 from .phase_contracts import TrialInstantiationProvenance
 from .scenario import ExpandedScenario, InstantiatedScenario
-from .selected_structure import apply_structural_writes, structural_owner, structural_writes
+from .selected_structure import apply_structural_writes, structural_target_owner, structural_writes
 from .variation import (
     COLLECTION_TARGET_SPECS,
     REFERENCE_TARGET_SPECS,
@@ -72,9 +72,8 @@ def _canonical_target_id(family: ExpandedScenario, point: VariationPoint) -> str
     if isinstance(target, VariableTarget):
         target_id = f"variables.{target.variable}"
     elif isinstance(target, StructuralTarget):
-        owner = structural_owner(family, target.owner)
-        slot = str(getattr(target.slot, "value", target.slot))
-        target_id = f"nodes.{owner}.{slot.removeprefix('nodes.')}"
+        section, owner = structural_target_owner(family, target)
+        target_id = f"{section}.{owner}.{str(target.slot).split('.', 1)[1]}"
     elif isinstance(target, ReferenceTarget):
         owner_section, _ = REFERENCE_TARGET_SPECS[target.slot]
         owner = _canonical_owner_address(family, target.owner, owner_section)
@@ -380,7 +379,7 @@ def _record_target_write(
     if prior is not None and prior != fingerprint:
         raise SDLSelectionError("multiple variation points resolve conflicting values for one canonical target")
     writes[path] = fingerprint
-    return len(path) == 3 and path[0] == "nodes" and path[2] == "presence" and value is False
+    return len(path) == 3 and path[2] == "presence" and value is False
 
 
 def _validate_target_writes(
@@ -389,15 +388,15 @@ def _validate_target_writes(
     outcomes: Mapping[str, object],
 ) -> None:
     writes: dict[tuple[str, ...], tuple[type[object], bytes]] = {}
-    absent: set[str] = set()
+    absent: set[tuple[str, ...]] = set()
     for point_id in sorted(family.variation_points):
         point = family.variation_points[point_id]
         resolved = _resolved_point_writes(payload, family, point, outcomes[point_id])
         for path, value in resolved.items():
             if _record_target_write(writes, path, value):
-                absent.add(path[1])
-    if any(path[0] == "nodes" and path[1] in absent and path[2:] != ("presence",) for path in writes):
-        raise SDLSelectionError("node absence conflicts with a descendant variation write")
+                absent.add(path[:2])
+    if any(path[:2] in absent and path[2:] != ("presence",) for path in writes):
+        raise SDLSelectionError("declaration absence conflicts with a descendant variation write")
 
 
 def select_scenario_family(

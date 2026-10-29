@@ -448,39 +448,156 @@
             }
           },
           "then": {
-            "else": {
-              "properties": {
-                "alternatives": {
-                  "additionalProperties": {
-                    "required": [
-                      "references"
-                    ]
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "target": {
+                      "properties": {
+                        "slot": {
+                          "enum": [
+                            "nodes.presence"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "alternatives": {
+                      "additionalProperties": {
+                        "properties": {
+                          "kind": {
+                            "const": "node-presence"
+                          }
+                        },
+                        "required": [
+                          "kind"
+                        ]
+                      }
+                    }
                   }
                 }
-              }
-            },
-            "if": {
-              "properties": {
-                "target": {
+              },
+              {
+                "if": {
                   "properties": {
-                    "slot": {
-                      "const": "nodes.presence"
+                    "target": {
+                      "properties": {
+                        "slot": {
+                          "enum": [
+                            "nodes.runtime.service_listeners",
+                            "nodes.runtime.applications",
+                            "nodes.runtime.database_services",
+                            "nodes.runtime.dns_services",
+                            "nodes.runtime.identity_authorities",
+                            "nodes.runtime.file_services",
+                            "nodes.runtime.mail_services",
+                            "nodes.runtime.network_sensors",
+                            "nodes.runtime.network_detection_engines",
+                            "nodes.runtime.security_monitoring_managers",
+                            "nodes.runtime.ssh_servers",
+                            "nodes.runtime.app_authorizations",
+                            "nodes.runtime.scheduled_jobs",
+                            "nodes.runtime.datastore_services",
+                            "nodes.runtime.platform_applications",
+                            "nodes.runtime.forwarding_agents",
+                            "nodes.runtime.orchestration_authorities"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "alternatives": {
+                      "additionalProperties": {
+                        "properties": {
+                          "kind": {
+                            "const": "runtime-inventory"
+                          }
+                        },
+                        "required": [
+                          "kind"
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "target": {
+                      "properties": {
+                        "slot": {
+                          "enum": [
+                            "accounts.presence",
+                            "content.presence",
+                            "persistent_volumes.presence",
+                            "generated_artifacts.presence",
+                            "relationships.presence",
+                            "propositions.presence",
+                            "assertions.presence",
+                            "evidence_requirements.presence"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "alternatives": {
+                      "additionalProperties": {
+                        "properties": {
+                          "kind": {
+                            "const": "declaration-presence"
+                          }
+                        },
+                        "required": [
+                          "kind"
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "target": {
+                      "properties": {
+                        "slot": {
+                          "enum": [
+                            "persistent_volumes.consumers",
+                            "generated_artifacts.consumers"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "alternatives": {
+                      "additionalProperties": {
+                        "properties": {
+                          "kind": {
+                            "const": "resource-consumers"
+                          }
+                        },
+                        "required": [
+                          "kind"
+                        ]
+                      }
                     }
                   }
                 }
               }
-            },
-            "then": {
-              "properties": {
-                "alternatives": {
-                  "additionalProperties": {
-                    "required": [
-                      "present"
-                    ]
-                  }
-                }
-              }
-            }
+            ]
           }
         }
       ],
@@ -498,6 +615,12 @@
                 },
                 {
                   "$ref": "#/$defs/RuntimeInventoryAlternative"
+                },
+                {
+                  "$ref": "#/$defs/DeclarationPresenceAlternative"
+                },
+                {
+                  "$ref": "#/$defs/ResourceConsumersAlternative"
                 }
               ]
             }
@@ -1592,6 +1715,28 @@
       "title": "ConsumerAccessMode",
       "type": "string"
     },
+    "ConsumerSelector": {
+      "additionalProperties": false,
+      "description": "One existing consumer row, identified by its node and mount destination.",
+      "properties": {
+        "mount_destination": {
+          "title": "Mount Destination",
+          "type": "string"
+        },
+        "node": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Node",
+          "type": "string"
+        }
+      },
+      "required": [
+        "node",
+        "mount_destination"
+      ],
+      "title": "ConsumerSelector",
+      "type": "object"
+    },
     "ContainerImageBuildProvenance": {
       "additionalProperties": false,
       "description": "Observed build/provenance facts for a custom container image artifact.",
@@ -2323,6 +2468,61 @@
       ],
       "title": "DatabaseTable",
       "type": "object"
+    },
+    "DeclarationPresenceAlternative": {
+      "additionalProperties": false,
+      "description": "Whole-declaration presence; absence never removes incoming references.",
+      "properties": {
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "excludes": {
+          "items": {
+            "$ref": "#/$defs/SelectionRelation"
+          },
+          "title": "Excludes",
+          "type": "array"
+        },
+        "kind": {
+          "const": "declaration-presence",
+          "title": "Kind",
+          "type": "string"
+        },
+        "present": {
+          "title": "Present",
+          "type": "boolean"
+        },
+        "requires": {
+          "items": {
+            "$ref": "#/$defs/SelectionRelation"
+          },
+          "title": "Requires",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "present"
+      ],
+      "title": "DeclarationPresenceAlternative",
+      "type": "object"
+    },
+    "DeclarationPresenceSlot": {
+      "description": "Reviewed whole-declaration presence; the slot prefix names the owner section.",
+      "enum": [
+        "accounts.presence",
+        "content.presence",
+        "persistent_volumes.presence",
+        "generated_artifacts.presence",
+        "relationships.presence",
+        "propositions.presence",
+        "assertions.presence",
+        "evidence_requirements.presence"
+      ],
+      "title": "DeclarationPresenceSlot",
+      "type": "string"
     },
     "DeploymentCell": {
       "additionalProperties": false,
@@ -13497,6 +13697,59 @@
       ],
       "title": "RelationshipType",
       "type": "string"
+    },
+    "ResourceConsumerSlot": {
+      "description": "Reviewed consumer-row membership of one stateful resource.",
+      "enum": [
+        "persistent_volumes.consumers",
+        "generated_artifacts.consumers"
+      ],
+      "title": "ResourceConsumerSlot",
+      "type": "string"
+    },
+    "ResourceConsumersAlternative": {
+      "additionalProperties": false,
+      "description": "The consumer rows that the owner resource keeps, in source order.",
+      "properties": {
+        "consumers": {
+          "items": {
+            "$ref": "#/$defs/ConsumerSelector"
+          },
+          "title": "Consumers",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "excludes": {
+          "items": {
+            "$ref": "#/$defs/SelectionRelation"
+          },
+          "title": "Excludes",
+          "type": "array"
+        },
+        "kind": {
+          "const": "resource-consumers",
+          "title": "Kind",
+          "type": "string"
+        },
+        "requires": {
+          "items": {
+            "$ref": "#/$defs/SelectionRelation"
+          },
+          "title": "Requires",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "consumers"
+      ],
+      "title": "ResourceConsumersAlternative",
+      "type": "object"
     },
     "ResourceSensitivity": {
       "enum": [
@@ -28199,6 +28452,12 @@
             },
             {
               "$ref": "#/$defs/RuntimeInventorySlot"
+            },
+            {
+              "$ref": "#/$defs/DeclarationPresenceSlot"
+            },
+            {
+              "$ref": "#/$defs/ResourceConsumerSlot"
             }
           ],
           "title": "Slot"

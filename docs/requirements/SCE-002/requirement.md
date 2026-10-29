@@ -37,10 +37,11 @@ These show that the use of parameters is standard practice.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/control_admission.py` (Reject a complete trial plan when a selected backend cannot support entry controls.)
 - TESTS → TEST `implementations/python/tests/test_issue_1628_trial_control_admission.py` (Test selected-backend isolation and deterministic whole-plan refusal.)
 
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/variation_structure.py` (Define closed choices for node presence. Keep runtime inventory scoped to its owner.)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/selected_structure.py` (Resolve explicit node and inventory choices. Apply those choices.)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_selection_provenance.py` (Keep selected inventory constraints and derivation evidence. Use stable IDs to retain them.)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/variation_structure.py` (Define closed choices for node and declaration presence. Keep inventory and consumer rows with their owner.)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/selected_structure.py` (Resolve explicit node, declaration, inventory, and consumer choices. Apply those choices.)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_selection_provenance.py` (Keep selected inventory, declaration, and consumer evidence. Use stable IDs to retain them.)
 - TESTS → TEST `implementations/python/tests/test_issue_1625_structural_variation.py` (Test structural choices and composition. Test identity, provenance, schema, and atomic trial admission.)
+- TESTS → TEST `implementations/python/tests/test_issue_1733_dependent_declaration_variation.py` (Test choices that remove declarations or consumer rows. Test conflicts, imports, evidence, schema, and trial plans.)
 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/bindings.py` (Admit canonical descriptors. This code is extracted from the trial compiler.)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/replacement.py` (Admit explicit replacements within bounds. Use the existing compiler.)
