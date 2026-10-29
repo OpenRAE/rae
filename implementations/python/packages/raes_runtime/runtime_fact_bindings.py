@@ -98,6 +98,9 @@ class RuntimeFactBindingPlane:
             or version.sensitivity != declaration.sensitivity
         ):
             raise ValueError("fact version type, source, and sensitivity must match its declaration")
+        parse_datetime(version.observed_at, "observed_at")
+        if version.expires_at is not None:
+            parse_datetime(version.expires_at, "expires_at")
         history = self._versions[version.fact_id]
         expected_sequence = len(history) + 1
         if version.sequence != expected_sequence:
@@ -271,17 +274,19 @@ class RuntimeFactBindingPlane:
         candidate_fact_ids: list[str],
     ) -> list[RuntimeFactVersionModel]:
         visible: list[RuntimeFactVersionModel] = []
-        requested_at = parse_datetime(admission.requested_at)
+        requested_at = parse_datetime(admission.requested_at, "requested_at")
         for fact_id in candidate_fact_ids:
             history = self._versions.get(fact_id)
             if not history:
                 continue
-            eligible = [version for version in history if parse_datetime(version.observed_at) <= requested_at]
+            eligible = [
+                version for version in history if parse_datetime(version.observed_at, "observed_at") <= requested_at
+            ]
             if not eligible:
                 continue
             version = max(
                 eligible,
-                key=lambda item: (parse_datetime(item.observed_at), item.sequence),
+                key=lambda item: (parse_datetime(item.observed_at, "observed_at"), item.sequence),
             )
             declaration = self._declarations[fact_id]
             if not candidate_visible(request, sink, declaration, version):
