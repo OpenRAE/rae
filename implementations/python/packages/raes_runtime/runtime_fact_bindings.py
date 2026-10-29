@@ -17,6 +17,8 @@ from raes_contracts.contracts.runtime_facts import (
     RuntimeFactVersionModel,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError, InvalidInputError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 
 from .runtime_fact_binding_policy import (
     RuntimeFactActionDisposition,
@@ -33,6 +35,8 @@ from .runtime_fact_dispatch import (
     _RuntimeFactDispatchBinding,
     _RuntimeFactDispatchFailure,
 )
+
+_LOGGER = get_logger(__name__)
 
 
 @dataclass(frozen=True)
@@ -82,29 +86,37 @@ class RuntimeFactBindingPlane:
     def declare(self, declaration: RuntimeFactDeclarationModel) -> None:
         current = self._declarations.get(declaration.fact_id)
         if current is not None and current != declaration:
-            raise ValueError(f"fact_id {declaration.fact_id!r} is already declared differently")
+            raise ConflictError(f"fact_id {declaration.fact_id!r} is already declared differently")
         self._declarations[declaration.fact_id] = declaration
         self._versions.setdefault(declaration.fact_id, [])
 
     def append(self, version: RuntimeFactVersionModel) -> None:
         declaration = self._declarations.get(version.fact_id)
         if declaration is None:
-            raise ValueError(f"fact_id {version.fact_id!r} is not declared")
+            raise ConflictError(f"fact_id {version.fact_id!r} is not declared")
         if version.version_id in self._version_ids:
-            raise ValueError(f"version_id {version.version_id!r} already exists")
+            raise ConflictError(f"version_id {version.version_id!r} already exists")
         if (
             version.value_type != declaration.value_type
             or version.source_kind != declaration.source_kind
             or version.sensitivity != declaration.sensitivity
         ):
-            raise ValueError("fact version type, source, and sensitivity must match its declaration")
-        parse_datetime(version.observed_at, "observed_at")
-        if version.expires_at is not None:
-            parse_datetime(version.expires_at, "expires_at")
+            raise ConflictError("fact version type, source, and sensitivity must match its declaration")
+        # The timestamps come from the fact source, so a value without an offset is a refusal (ADR-116 E9).
+        for field_name in ("observed_at", "expires_at"):
+            value = getattr(version, field_name)
+            if value is None:
+                continue
+            try:
+                parse_datetime(value, field_name)
+            except ValueError as exc:
+                raise InvalidInputError(
+                    f"{field_name} must be an ISO 8601 date-time with an explicit UTC offset"
+                ) from exc
         history = self._versions[version.fact_id]
         expected_sequence = len(history) + 1
         if version.sequence != expected_sequence:
-            raise ValueError(f"fact version sequence must be {expected_sequence}")
+            raise ConflictError(f"fact version sequence must be {expected_sequence}")
         history.append(version)
         self._version_ids.add(version.version_id)
 
@@ -114,7 +126,7 @@ class RuntimeFactBindingPlane:
     def bind_action_inputs(self, request: RuntimeFactBindingRequestModel) -> RuntimeFactBindingResult:
         action_key = _action_key(request)
         if action_key in self._bound_action_instances:
-            raise ValueError(
+            raise ConflictError(
                 f"action_instance_id {request.action_instance_id!r} already has immutable fact binding history"
             )
         admission = self._admissions.get(action_key)
@@ -246,7 +258,9 @@ class RuntimeFactBindingPlane:
                 )
             except _RuntimeFactDispatchFailure as exc:
                 disposition = exc.disposition
-            except Exception:
+            except Exception as exc:
+                # Isolation of the trusted action dispatcher: the disposition replaces its failure.
+                _LOGGER.exception("runtime fact action dispatcher failed", exc_info=foreign_failure_record(exc))
                 disposition = RuntimeFactBindingDisposition.DISPATCH_FAILED
         return disposition
 

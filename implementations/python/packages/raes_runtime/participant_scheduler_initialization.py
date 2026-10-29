@@ -2,6 +2,7 @@
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
 from raes_contracts.participant_episode import ParticipantEpisodeInitializeRequest
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.models import CompiledTimeModel, ParticipantAutonomousExecutionRuntime
@@ -23,10 +24,10 @@ _RESOURCE_GOVERNED_PROFILE = "participant-autonomous-execution/v3"
 
 def clock_tick(snapshot: RuntimeSnapshot, clock_address: str) -> int:
     if snapshot.time_model_state is None:
-        raise ValueError("autonomous participant execution requires typed shared-time state")
+        raise ConflictError("autonomous participant execution requires typed shared-time state")
     clock = snapshot.time_model_state.clocks.get(clock_address)
     if clock is None:
-        raise ValueError(f"autonomous participant clock {clock_address!r} has no runtime state")
+        raise ConflictError(f"autonomous participant clock {clock_address!r} has no runtime state")
     return clock.coordinate.tick
 
 

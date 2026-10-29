@@ -7,6 +7,7 @@ from raes_contracts.contracts import (
     InjectOccurrenceModel,
     inject_occurrence_reference,
 )
+from raes_contracts.errors import ConflictError
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
     OperationReceipt,
@@ -90,15 +91,16 @@ def test_occurrence_identity_is_claimed_atomically_with_the_operation(store):
     assert store.claim_record(first) == first
     assert store.claim_record(first) == first
     candidate_record_1 = claimed_record(key="another-key", operation_id="another-operation")
-    with pytest.raises(ValueError, match="occurrence.*claimed"):
+    with pytest.raises(ConflictError, match="claim reuses an admitted claim identity") as caught:
         store.claim_record(candidate_record_1)
+    assert str(caught.value.__cause__) == "inject occurrence occurrence is already claimed"
     assert store.load_records() == {first.receipt.operation_id: first}
 
 
 def test_stale_snapshot_revision_or_order_head_cannot_claim_an_occurrence(store):
     for kwargs in ({"revision": "1"}, {"predecessor": "foreign-head"}, {"position": 2}):
         candidate_record_9 = claimed_record(**kwargs)
-        with pytest.raises(ValueError, match="inject.*(revision|head|position)"):
+        with pytest.raises(ConflictError, match="inject.*(revision|head|position)"):
             store.claim_record(candidate_record_9)
         assert store.load_records() == {}
 
@@ -145,7 +147,7 @@ def test_occurrence_pins_cannot_change_after_the_durable_claim(store):
 
 def test_direct_record_creation_cannot_bypass_atomic_inject_claim_checks(store):
     candidate_record_4 = claimed_record(revision="8")
-    with pytest.raises(ValueError, match="inject.*revision"):
+    with pytest.raises(ConflictError, match="inject.*revision"):
         store.save_record(candidate_record_4)
     assert store.load_records() == {}
 
@@ -163,7 +165,7 @@ def test_concurrent_claims_cannot_fork_the_same_order_head(store):
         ready.wait(2)
         try:
             return store.claim_record(record)
-        except ValueError:
+        except ConflictError:
             return None
 
     with ThreadPoolExecutor(max_workers=2) as workers:
@@ -199,8 +201,9 @@ def test_a_scheduled_slot_cannot_be_reclaimed_under_a_fresh_occurrence(store):
         predecessor=checked_value_5,
         placement=placement,
     )
-    with pytest.raises(ValueError, match="schedule slot.*claimed"):
+    with pytest.raises(ConflictError, match="claim reuses an admitted claim identity") as caught:
         store.claim_record(candidate_record_6)
+    assert str(caught.value.__cause__) == "inject occurrence schedule slot is already claimed"
 
 
 def test_sqlite_reopen_retains_the_occurrence_and_retry_claim(tmp_path):
@@ -215,8 +218,9 @@ def test_sqlite_reopen_retains_the_occurrence_and_retry_claim(tmp_path):
             assert store.claim_record(first) == first
             assert store.load_records()[first.receipt.operation_id].inject_occurrence == first.inject_occurrence
             candidate_record_10 = claimed_record(key="different-key", operation_id="different-operation")
-            with pytest.raises(ValueError, match="occurrence.*claimed"):
+            with pytest.raises(ConflictError, match="claim reuses an admitted claim identity") as caught:
                 store.claim_record(candidate_record_10)
+            assert str(caught.value.__cause__) == "inject occurrence occurrence is already claimed"
         finally:
             store.close()
             lease.close()
@@ -250,5 +254,5 @@ def test_postgresql_claim_checks_the_same_snapshot_cut_before_any_write():
     ledger_7 = Ledger()
     candidate_record_8 = claimed_record(revision="2")
     connection = Connection()
-    with pytest.raises(ValueError, match="inject.*revision"):
+    with pytest.raises(ConflictError, match="inject.*revision"):
         claim_record(ledger_7, connection, candidate_record_8)

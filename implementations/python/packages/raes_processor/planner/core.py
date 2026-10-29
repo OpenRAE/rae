@@ -16,6 +16,7 @@ from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.contracts import ProcessorManifestV2Model
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.planning import EvaluationPlan, PlanScope, ProvisioningPlan, RuntimeDomain
 from raes_contracts.vocabulary import Closure, GeneratedArtifactKind, GeneratedArtifactRegenerationScope
 
@@ -288,10 +289,8 @@ def _augment_provisioning(
     extra: list[Diagnostic] = []
     if preparation is not None:
         try:
-            preparation = preparation.model_copy(
-                update={"node_collection": planned_node_collection(effective_model, provisioning)}
-            )
-        except TypeError, ValueError:
+            node_collection = planned_node_collection(effective_model, provisioning)
+        except InvalidInputError:
             extra.append(
                 Diagnostic(
                     code="realization.invalid-node-collection",
@@ -300,6 +299,8 @@ def _augment_provisioning(
                     message="Portable node membership cannot be represented by a bounded collection authority.",
                 )
             )
+        else:
+            preparation = preparation.model_copy(update={"node_collection": node_collection})
     provisioning = retain_open_collection_nodes(
         cast(
             "ProvisioningPlan",

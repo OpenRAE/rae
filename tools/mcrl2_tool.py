@@ -4,25 +4,34 @@ from __future__ import annotations
 
 import argparse
 import platform
+import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-from tools.bounded_tool_process import run_bounded
-from tools.tool_versions import MCRL2_VERSION
-from tools.tooling_policy_gate import LockedArtifactSelection, load_tooling_artifact_selection
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import EvidenceIntegrityError, OperationalError, RaesError  # noqa: E402
+from raes_contracts.operational_logging import run_application  # noqa: E402
+
+from tools.bounded_tool_process import run_bounded  # noqa: E402
+from tools.tool_versions import MCRL2_VERSION  # noqa: E402
+from tools.tooling_policy_gate import LockedArtifactSelection, load_tooling_artifact_selection  # noqa: E402
 
 MODES = ("bisim", "weak-bisim", "branching-bisim", "dpbranching-bisim")
 FORMULA_MODES = frozenset({"bisim", "branching-bisim"})
 MAX_OUTPUT_BYTES = 65536
-REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def selection() -> LockedArtifactSelection:
     """Resolve the exact release and complete tree before any tool use."""
 
     if platform.system() != "Linux" or platform.machine().lower() not in {"x86_64", "amd64"}:
-        raise RuntimeError("unsupported model-check host")
+        raise OperationalError("unsupported model-check host")
     selected = load_tooling_artifact_selection(
         artifact_id="mcrl2",
         version=MCRL2_VERSION,
@@ -37,7 +46,7 @@ def selection() -> LockedArtifactSelection:
         or selected.installed_tree is None
         or selected.installed_tree.format != "deb"
     ):
-        raise RuntimeError("invalid model-check selection")
+        raise OperationalError("invalid model-check selection")
     return selected
 
 
@@ -68,7 +77,7 @@ def require_mcrl2(repo_root: Path = REPO_ROOT) -> Path:
 
 def parse_decision(payload: bytes) -> bool:
     if payload not in (b"true\n", b"false\n"):
-        raise ValueError("invalid checker decision")
+        raise EvidenceIntegrityError("invalid checker decision")
     return payload == b"true\n"
 
 
@@ -162,9 +171,9 @@ def compare(repo_root: Path, left: bytes, right: bytes, mode: str, *, formula: b
         if formula and not equivalent:
             candidate = read_bytes(output, "witness.mcf", max_bytes=MAX_OUTPUT_BYTES)
         elif list(output.iterdir()):
-            raise ValueError("unexpected checker output")
+            raise EvidenceIntegrityError("unexpected checker output")
         if any(path.name != "witness.mcf" for path in output.iterdir()):
-            raise ValueError("unexpected checker output")
+            raise EvidenceIntegrityError("unexpected checker output")
         return Comparison(equivalent, candidate)
 
 
@@ -178,7 +187,7 @@ def main() -> int:
             acquire_mcrl2(local_input=args.local_input)
         else:
             require_mcrl2()
-    except OSError, ValueError, RuntimeError:
+    except OSError, RaesError:
         print("mcrl2: tool admission failed")
         return 1
     print("mcrl2: admitted installation verified")
@@ -186,4 +195,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

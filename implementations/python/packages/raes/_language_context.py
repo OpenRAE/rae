@@ -123,7 +123,7 @@ def _composed_data(data: dict[str, Any], path: Path, sources: dict[str, Declarat
             _traversal=CompositionTraversal.local_root(DEFAULT_PARSER_LIMITS),
             _declaration_sources=sources,
         )
-    except SDLError, ValueError:
+    except SDLError, ValidationError:
         sources.clear()
         return None
     return composed

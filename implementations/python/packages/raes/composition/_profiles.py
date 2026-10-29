@@ -6,6 +6,7 @@ from typing import Any
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.profile_selections import profile_selection_binding
 
+from .._errors import SDLParseError
 from ._references import _maybe_rename
 
 _RESOURCE_PREFIX = "#/resources/"
@@ -65,7 +66,7 @@ def _rewrite_controller_owner(compiled: str, symbols: dict[str, dict[str, str]])
         if suffix.startswith(domain + ".") and suffix[len(domain) + 1 :] in symbols["nodes"]
     ]
     if len(matches) > 1:
-        raise ValueError("Ambiguous composed profile owner")
+        raise SDLParseError("Ambiguous composed profile owner")
     if matches:
         domain, node = matches[0]
         return prefix + symbols["identity_domains"][domain] + "." + symbols["nodes"][node]

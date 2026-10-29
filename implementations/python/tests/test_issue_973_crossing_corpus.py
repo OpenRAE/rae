@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+from raes_contracts.errors import EvidenceIntegrityError, OperationalError
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -52,7 +53,7 @@ def test_metadata_is_closed_even_with_a_new_pin(constructed, field, value) -> No
     manifest[field] = value
     constructed["manifest.json"] = corpus.encoded(manifest)
     manifest_digest = corpus.digest(constructed["manifest.json"])
-    with pytest.raises(ValueError, match="metadata"):
+    with pytest.raises(EvidenceIntegrityError, match="metadata"):
         corpus.admit_bundle(ROOT, constructed, manifest_digest)
 
 
@@ -67,7 +68,7 @@ def test_executing_source_drift_stops_before_checker(monkeypatch) -> None:
         lambda root, name, **kwargs: b"changed" if name == path else original(root, name, **kwargs),
     )
     monkeypatch.setattr(corpus, "compare", lambda *args, **kwargs: pytest.fail("checker ran with stale source"))
-    with pytest.raises(ValueError, match="executing source"):
+    with pytest.raises(EvidenceIntegrityError, match="executing source"):
         corpus.build_bundle(ROOT)
 
 
@@ -90,7 +91,7 @@ def test_corpus_inventory_refuses_paths_and_missing_cases() -> None:
     from implementations.formal.participant_crossing.counterexample_corpus import validate_inventory
 
     for bundle in ({"../escape": b"x"}, {}, {"manifest.json": b"{}"}):
-        with pytest.raises(ValueError, match="invalid corpus inventory"):
+        with pytest.raises(EvidenceIntegrityError, match="invalid corpus inventory"):
             validate_inventory(bundle)
 
 
@@ -98,10 +99,10 @@ def test_failure_does_not_publish_completed_corpus(monkeypatch: pytest.MonkeyPat
     from implementations.formal.participant_crossing import counterexample_corpus as corpus
 
     monkeypatch.setattr(
-        corpus, "compare", lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("bounded-tool-failed"))
+        corpus, "compare", lambda *args, **kwargs: (_ for _ in ()).throw(OperationalError("bounded-tool-failed"))
     )
     monkeypatch.setattr(corpus, "publish_bundle", lambda *args, **kwargs: pytest.fail("partial corpus published"))
-    with pytest.raises(RuntimeError, match="bounded-tool-failed"):
+    with pytest.raises(OperationalError, match="bounded-tool-failed"):
         corpus.publish(ROOT)
 
 
@@ -129,7 +130,7 @@ def test_pinned_admission_rejects_tampering(fault: str) -> None:
     bundle, pin = load_retained(ROOT)
     admit_bundle(ROOT, bundle, pin)
     if fault == "authenticity":
-        with pytest.raises(ValueError, match="unsigned"):
+        with pytest.raises(EvidenceIntegrityError, match="unsigned"):
             admit_bundle(ROOT, bundle, pin, require_authenticity=True)
         return
     if fault == "unsafe-name":
@@ -148,7 +149,7 @@ def test_pinned_admission_rejects_tampering(fault: str) -> None:
         else:
             manifest["tool"]["version"] = "substituted"
         bundle["manifest.json"] = encoded(manifest)
-    with pytest.raises(ValueError):
+    with pytest.raises(EvidenceIntegrityError):
         admit_bundle(ROOT, bundle, pin)
 
 

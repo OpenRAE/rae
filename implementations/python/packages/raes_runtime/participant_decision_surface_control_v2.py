@@ -48,7 +48,9 @@ def _bind_participant_decision_surface_v2(
                 apparatus_resolver=resolvers.apparatus,
                 delivery_resolver=resolvers.delivery,
             )
-    except TypeError, ValueError:
+    # The anchor check and the binding refuse with ValueError and the binding isolates host resolver
+    # failures itself; any other exception is a defect and propagates.
+    except ValueError:
         return None, _participant_binding_diagnostic(
             _participant_binding_address(participant_behavior),
             "Participant decision surface binding could not be validated.",

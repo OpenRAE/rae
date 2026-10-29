@@ -10,6 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
+from raes_contracts.errors import OperationalError
 
 # Docs / examples on disk — allowlisted filenames only
 
@@ -23,7 +24,8 @@ def _find_repo_root(start: Path) -> Path:
     for candidate in (start, *start.parents):
         if (candidate / ".git").exists() or (candidate / ".ground-control.yaml").exists():
             return candidate
-    raise RuntimeError(f"could not locate RAES repo root from {start}")
+    # An installed distribution has no repository checkout, so the reference documents are unavailable.
+    raise OperationalError(f"could not locate RAES repo root from {start}")
 
 
 _REPO_ROOT = _find_repo_root(Path(__file__).resolve().parent)
@@ -481,6 +483,8 @@ for advisory in scenario.advisories:
 - `SDLParseError` — YAML syntax or structural issues
 - `SDLValidationError` — semantic issues (has `.errors` list with ALL issues)
 - `SDLInstantiationError` — variable binding failures
+
+All three derive from `InvalidInputError` and the root `RaesError` (`raes_contracts.errors`).
 
 Use `sdl_section_reference` for details, `sdl_get_example` for scenarios, and
 `sdl_validate` to validate SDL YAML.

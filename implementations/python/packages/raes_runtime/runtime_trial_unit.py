@@ -10,6 +10,7 @@ from time import monotonic
 from typing import TYPE_CHECKING
 
 from raes_contracts.contracts.trial_replacement_archive import replacement_resources_reusable
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError, OperationalError
 from raes_contracts.trial_unit import TrialUnitResult, validate_trial_unit_result
 
 from .control_plane_store_snapshots import _snapshot_from_payload, _snapshot_payload
@@ -18,7 +19,7 @@ from .runtime_decisions import RunPhaseDecision
 from .runtime_module_step import advance_step, step_records
 from .runtime_run_cleanup import advance_destroy
 from .runtime_trial_decisions import TrialInterruptionDecision, TrialObservationDecision
-from .runtime_trial_services import TrialExecutionObservation
+from .runtime_trial_services import TrialExecutionObservation, call_installed_owner
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -38,7 +39,7 @@ if TYPE_CHECKING:
     )
 
 
-class TrialPending(RuntimeError):
+class TrialPending(ConflictError):
     """The attempt needs observation or reconciliation, never blind redispatch."""
 
 
@@ -58,7 +59,7 @@ class RuntimeTrialUnit:
         deadline = datetime.fromisoformat(attempt.deadline)
         now = datetime.now(UTC)
         if now < started or deadline <= started:
-            raise ValueError("trial clock continuity is unavailable")
+            raise OperationalError("trial clock continuity is unavailable")
         # A local wall-clock adjustment cannot renew an admitted allowance.
         # Restoration uses only the remaining part of the retained UTC bound.
         self._deadline = monotonic() + max(0, (deadline - now).total_seconds())
@@ -69,7 +70,7 @@ class RuntimeTrialUnit:
             or experiment.services is not services
             or attempt not in owner._store.load_runtime_decisions()
         ):
-            raise ValueError("trial adapter is not bound to its engine admission")
+            raise ConflictError("trial adapter is not bound to its engine admission")
 
         self._require_request_binding()
 
@@ -80,7 +81,7 @@ class RuntimeTrialUnit:
         plans = (realization.provisioning_plan, realization.orchestration_plan, realization.evaluation_plan)
         requested_plans = (request.provisioning_plan, request.orchestration_plan, request.evaluation_plan)
         if retained != supplied or plans != requested_plans:
-            raise ValueError("trial adapter is not bound to its engine admission")
+            raise ConflictError("trial adapter is not bound to its engine admission")
 
     def observations(self) -> dict[str, TrialObservationDecision]:
         return {
@@ -93,32 +94,39 @@ class RuntimeTrialUnit:
     def _validate(self, observation: TrialObservation) -> TrialObservation:
         # Reconstruct nested untrusted values before their installed owner checks
         # content and live probes. A valid reference alone cannot pass this gate.
-        observation = type(observation).model_validate(observation.model_dump(mode="json"))
+        # The observation model refuses with ValueError; this trial boundary owns the refusal (E9).
+        try:
+            observation = type(observation).model_validate(observation.model_dump(mode="json"))
+        except ValueError as exc:
+            raise EvidenceIntegrityError("trial observation does not satisfy its contract") from exc
         if any(
             item.run_ref.ref_kind != "run" or item.run_ref.ref_id != self.request.run_id
             for item in observation.evidence
         ):
-            raise ValueError("trial evidence belongs to another run")
+            raise EvidenceIntegrityError("trial evidence belongs to another run")
         if observation.kind == "configuration":
             self._validate_configuration(observation)
         if observation.kind == "execution" and observation.ceased and not observation.evidence:
-            raise ValueError("execution cessation requires observed evidence")
+            raise EvidenceIntegrityError("execution cessation requires observed evidence")
         if observation.kind == "retry":
             self._validate_retry(observation)
-        self.run._execution_adapter.call(
-            "control",
+        # The verification contract rejects evidence by raising.
+        call_installed_owner(
+            self.run._execution_adapter,
             self.services.verify,
             self.request,
             observation,
             timeout_ms=self.run._supervision.observation_ms,
+            failure=EvidenceIntegrityError,
+            message="installed owner did not verify the trial evidence",
         )
         return observation
 
     def _validate_configuration(self, observation: TrialConfigurationObservation) -> None:
         if observation.configurations != self.request.participant_configurations:
-            raise ValueError("observed participant configuration differs from admitted settings")
+            raise EvidenceIntegrityError("observed participant configuration differs from admitted settings")
         if observation.configurations and not observation.evidence:
-            raise ValueError("applied participant settings require observed evidence")
+            raise EvidenceIntegrityError("applied participant settings require observed evidence")
 
     def _validate_retry(self, observation: TrialRetryObservation) -> None:
         plan = self.request.cleanup_plan
@@ -126,16 +134,16 @@ class RuntimeTrialUnit:
         for key, result in observation.obligation_results.items():
             obligation = plan.cleanup_obligations.get(key)
             if obligation is None or key != result.obligation_id or "retry" not in obligation.triggers:
-                raise ValueError("retry observation does not match an authored retry obligation")
+                raise EvidenceIntegrityError("retry observation does not match an authored retry obligation")
             if not set(result.evidence_refs) <= evidence_ids:
-                raise ValueError("retry obligation evidence is missing")
+                raise EvidenceIntegrityError("retry obligation evidence is missing")
         if observation.ready:
             self._validate_retry_ready(observation, evidence_ids)
 
     def _validate_retry_ready(self, observation: TrialRetryObservation, evidence_ids: set[str]) -> None:
         plan = self.request.cleanup_plan
         if not evidence_ids:
-            raise ValueError("retry readiness requires verified evidence")
+            raise EvidenceIntegrityError("retry readiness requires verified evidence")
         owed = {
             key
             for key, value in plan.cleanup_obligations.items()
@@ -145,9 +153,9 @@ class RuntimeTrialUnit:
             key not in observation.obligation_results or observation.obligation_results[key].status != "succeeded"
             for key in owed
         ):
-            raise ValueError("retry readiness omits required retry obligations")
+            raise EvidenceIntegrityError("retry readiness omits required retry obligations")
         if not set(plan.retry_policy.compensation_refs) <= set(observation.verified_compensations):
-            raise ValueError("retry readiness omits authored compensation")
+            raise EvidenceIntegrityError("retry readiness omits authored compensation")
 
     def prepare_retry(self) -> str:
         return self._module(4, self.services.prepare_retry)
@@ -157,14 +165,17 @@ class RuntimeTrialUnit:
     ) -> str:
         run, request = self.run, self.request
 
-        def invoke(snapshot: RuntimeSnapshot) -> ApplyResult:
+        def invoke(
+            snapshot: RuntimeSnapshot, _settled_before_cancellation: Callable[[ApplyResult], None]
+        ) -> ApplyResult:
+            # A trial module reports no partial state before a cancellation.
             if outcome is None:
                 result, observation = method(request, snapshot)
             else:
                 result, observation = method(request, outcome, snapshot)
             expected = {0: "configuration", 1: "capture", 2: "cleanup", 4: "retry"}[phase]
             if getattr(observation, "kind", None) != expected:
-                raise ValueError("trial module returned another evidence kind")
+                raise EvidenceIntegrityError("trial module returned another evidence kind")
             observation = self._validate(observation)
             run._store.claim_runtime_decision(
                 TrialObservationDecision(
@@ -202,7 +213,7 @@ class RuntimeTrialUnit:
             execution_id=request.execution_attempt_id,
             phase=3,
             dispatch=lambda key: run._interaction_backend_call(
-                lambda snapshot: self.services.stop(request, cause, snapshot),
+                lambda snapshot, _settled_before_cancellation: self.services.stop(request, cause, snapshot),
                 request,
                 cause,
                 run.snapshot,
@@ -287,16 +298,18 @@ class RuntimeTrialUnit:
         if pending is not None:
             return pending
         with run._mutation_authority.external_call():
-            observation = run._execution_adapter.call(
-                "control",
+            observation = call_installed_owner(
+                run._execution_adapter,
                 self.services.observe,
                 request,
                 deepcopy(run.snapshot),
                 timeout_ms=run._supervision.observation_ms,
+                failure=OperationalError,
+                message="installed trial observer failed",
             )
             observation = self._validate(observation)
         if not isinstance(observation, TrialExecutionObservation):
-            raise ValueError("execution observer returned another evidence kind")
+            raise EvidenceIntegrityError("execution observer returned another evidence kind")
         if observation.state == "running" or not observation.ceased:
             return "indeterminate" if forced is not None else "pending"
         if forced is not None:
@@ -332,18 +345,24 @@ class RuntimeTrialUnit:
             raise TrialPending("trial does not have terminal execution and cleanup observations")
         cleanup = observed["cleanup"].observation
         if cleanup.receipt.trial_outcome != observed["execution"].observation.state:
-            raise ValueError("cleanup receipt changed the observed trial outcome")
+            raise EvidenceIntegrityError("cleanup receipt changed the observed trial outcome")
         operation_ids = self._operation_ids()
-        result = TrialUnitResult(
-            operation_receipts=tuple(
-                record.receipt for key, record in self.run._store.load_records().items() if key in operation_ids
-            ),
-            execution_snapshot=_snapshot_from_payload(json.loads(observed["execution"].snapshot_json)),
-            evidence=self._result_evidence(observed),
-            cleanup_receipt=cleanup.receipt,
-            cleanup_evidence=cleanup.evidence,
+        receipts = tuple(
+            record.receipt for key, record in self.run._store.load_records().items() if key in operation_ids
         )
-        validate_trial_unit_result(self.request, result, target_scope=self.run._target_scope)
+        execution_snapshot = _snapshot_from_payload(json.loads(observed["execution"].snapshot_json))
+        # The trial unit contract refuses with ValueError; the retained evidence owns the refusal (E9).
+        try:
+            result = TrialUnitResult(
+                operation_receipts=receipts,
+                execution_snapshot=execution_snapshot,
+                evidence=self._result_evidence(observed),
+                cleanup_receipt=cleanup.receipt,
+                cleanup_evidence=cleanup.evidence,
+            )
+            validate_trial_unit_result(self.request, result, target_scope=self.run._target_scope)
+        except ValueError as exc:
+            raise EvidenceIntegrityError("trial evidence does not match its admitted request") from exc
         return result
 
     def _operation_ids(self) -> set[str]:
@@ -384,7 +403,7 @@ class RuntimeTrialUnit:
         from .control_plane_mutation import control_plane_mutation
 
         if replace(request) != self.request:
-            raise ValueError("trial adapter request conflicts with its admitted entry")
+            raise ConflictError("trial adapter request conflicts with its admitted entry")
         self.run._assert_runtime_owner()
         self.run._engine.reserve(self.run)
         with (

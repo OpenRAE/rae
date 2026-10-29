@@ -21,6 +21,7 @@ from raes_contracts.contracts.trial_cleanup import (
     SchedulerIsolationProofModel,
     TrialCleanupReceiptModel,
 )
+from raes_contracts.errors import InvalidInputError, NotFoundError
 from raes_processor.trial_scheduler import (
     CANONICAL_ORDER_POLICY_ID,
     AllocatorGrant,
@@ -377,7 +378,7 @@ def test_build_receipt_rejects_entry_outside_schedule() -> None:
     outcome = AttemptOutcome(
         execution_attempt_id="attempt-1", trial_outcome="succeeded", cleanup_receipt_ref="cleanup-receipt-1"
     )
-    with pytest.raises(ValueError, match="not part of the batch schedule"):
+    with pytest.raises(NotFoundError, match="not part of the batch schedule"):
         build_batch_execution_receipt(schedule, "entry-absent", receipt_id="receipt-1", outcome=outcome)
 
 
@@ -387,7 +388,7 @@ def test_build_receipt_rejects_effective_above_ceiling() -> None:
         execution_attempt_id="attempt-1", trial_outcome="succeeded", cleanup_receipt_ref="cleanup-receipt-1"
     )
     grant = AllocatorGrant(effective_parallelism=2, lease_evidence_refs=["lease:a"])
-    with pytest.raises(ValueError, match="cannot exceed the schedule's admitted parallelism ceiling"):
+    with pytest.raises(InvalidInputError, match="cannot exceed the schedule's admitted parallelism ceiling"):
         build_batch_execution_receipt(schedule, "entry-a", receipt_id="receipt-1", outcome=outcome, grant=grant)
 
 

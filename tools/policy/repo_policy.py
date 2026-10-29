@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 import ast
+import json
 import re
 from collections.abc import Callable, Iterator
 from pathlib import Path
+
+import yaml
+from raes_contracts.errors import InvalidInputError, OperationalError
 
 from .adr import (
     normalize_adr_status as _normalize_adr_status,
@@ -16,6 +20,10 @@ from .common import safe_repo_path as _safe_repo_path
 from .conftest_tool import run_conftest_policy
 
 StructuralPolicyRunner = Callable[[dict], list[PolicyFailure]]
+# What load_yaml raises for a missing, unreadable, non-UTF-8, malformed or
+# excessively nested policy file, and InvalidInputError for a scalar that the
+# safe constructor cannot build. The message never echoes the file content.
+_YAML_LOAD_FAILURES = (OSError, UnicodeDecodeError, yaml.YAMLError, RecursionError, InvalidInputError)
 
 
 def load_policy(repo_root: Path) -> dict:
@@ -31,11 +39,26 @@ def _load_policy_guarded(repo_root: Path) -> tuple[dict | None, list[PolicyFailu
     fail = lambda msg: PolicyFailure("policy-config-malformed", msg, _POLICY_CONFIG_PATH)  # noqa: E731
     try:
         policy = load_policy(repo_root)
-    except Exception:  # noqa: BLE001 — yaml.YAMLError / OSError / anything load_yaml raises; surface, don't echo
+    except _YAML_LOAD_FAILURES:
         return None, [fail(f"{_POLICY_CONFIG_PATH} could not be parsed (missing or invalid YAML)")]
-    if not isinstance(policy, dict):
-        return None, [fail(f"{_POLICY_CONFIG_PATH} root must be a YAML mapping; got {type(policy).__name__}")]
+    reason = _policy_shape_failure(policy)
+    if reason is not None:
+        return None, [fail(reason)]
     return policy, []
+
+
+def _policy_shape_failure(policy: object) -> str | None:
+    """Return why a loaded policy is not a JSON-compatible mapping, or None."""
+    if not isinstance(policy, dict):
+        return f"{_POLICY_CONFIG_PATH} root must be a YAML mapping; got {type(policy).__name__}"
+    try:
+        # The structural runner gives the policy to conftest as sorted JSON. A YAML timestamp, set or
+        # binary value, or a mapping whose keys do not sort, has no JSON form (TypeError); a recursive
+        # alias is a circular reference (ValueError). The try holds only the encoder.
+        json.dumps(policy, sort_keys=True)
+    except TypeError, ValueError:
+        return f"{_POLICY_CONFIG_PATH} must contain only JSON data"
+    return None
 
 
 def evaluate_repo_policy(
@@ -305,7 +328,7 @@ def _validate_allowlist(repo_root: Path, allowlist_path: str) -> tuple[frozenset
         return None, [fail(f"{allowlist_path} is missing or is not a regular file")]
     try:
         data = load_yaml(safe)
-    except Exception:  # noqa: BLE001 — yaml.YAMLError + anything load_yaml raises; do not echo content
+    except _YAML_LOAD_FAILURES:
         return None, [fail(f"{allowlist_path} could not be parsed (invalid YAML)")]
     if not isinstance(data, dict):
         return None, [fail(f"{allowlist_path} root must be a YAML mapping; got {type(data).__name__}")]
@@ -418,14 +441,41 @@ def _check_oversized_debt_consistency(repo_root: Path, config: dict, allowlist: 
 
 
 def _file_line_count(path: Path) -> int | None:
-    """Line count of ``path``, or None if it is not a readable regular file."""
+    """Line count of ``path``, or None if it is not a readable regular file.
+
+    The bytes are split at the same universal line breaks that text mode uses,
+    so the line cap also applies to a file that is not UTF-8.
+    """
     if not path.is_file():
         return None
     try:
-        with path.open("r", encoding="utf-8") as handle:
-            return sum(1 for _ in handle)
+        content = path.read_bytes()
     except OSError:
         return None
+    return len(content.splitlines())
+
+
+def _read_repository_text(path: Path, rel_path: str) -> str:
+    """Read one repository text file; refuse text that is not UTF-8 or a file the host cannot read."""
+
+    try:
+        return path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise InvalidInputError(f"{rel_path} is not UTF-8 text") from exc
+    except OSError as exc:
+        raise OperationalError(f"{rel_path} could not be read") from exc
+
+
+def _parse_python_source(path: Path, rel_path: str) -> ast.Module:
+    """Parse one Python file for an import check; refuse source that is not UTF-8 Python."""
+
+    source = _read_repository_text(path, rel_path)
+    try:
+        return ast.parse(source, filename=rel_path)
+    except (SyntaxError, RecursionError, MemoryError) as exc:
+        # The parser reports invalid source with SyntaxError. Source that nests too deeply stops the
+        # AST conversion at the recursion limit or the parser at its fixed stack limit (MemoryError).
+        raise InvalidInputError(f"{rel_path} is not valid Python source") from exc
 
 
 def _check_layering(repo_root: Path, layering_rules: list[dict], changed: list[str]) -> list[PolicyFailure]:
@@ -445,7 +495,7 @@ def _check_layering(repo_root: Path, layering_rules: list[dict], changed: list[s
             path = repo_root / rel_path
             if not path.is_file():
                 continue
-            tree = ast.parse(path.read_text(encoding="utf-8"), filename=rel_path)
+            tree = _parse_python_source(path, rel_path)
             for node in ast.walk(tree):
                 if isinstance(node, ast.Import):
                     for alias in node.names:
@@ -676,7 +726,7 @@ def _check_module_boundaries(
             path = repo_root / rel_path
             if not path.is_file():
                 continue
-            tree = ast.parse(path.read_text(encoding="utf-8"), filename=rel_path)
+            tree = _parse_python_source(path, rel_path)
             failures.extend(_check_module_imports(rel_path, rule, known_modules, tree))
             if rule["id"] == "raes_backend_protocols":
                 failures.extend(_check_backend_protocol_contract_annotations(rel_path, tree))
@@ -850,7 +900,7 @@ def _check_changelog_versioned(repo_root: Path) -> list[PolicyFailure]:
     changelog = repo_root / "CHANGELOG.md"
     if not changelog.exists():
         return []
-    text = changelog.read_text(encoding="utf-8")
+    text = _read_repository_text(changelog, "CHANGELOG.md")
     for match in CHANGELOG_HEADING_RE.finditer(text):
         label = match.group(1)
         if label.lower() == "unreleased":
@@ -902,7 +952,7 @@ def _check_adr_template(repo_root: Path, changed: list[str]) -> list[PolicyFailu
             )
         ]
 
-    text = template.read_text(encoding="utf-8")
+    text = _read_repository_text(template, ADR_TEMPLATE_PATH)
     headings = {match.group(1).strip() for match in ADR_TEMPLATE_HEADING_RE.finditer(text)}
     missing = [section for section in ADR_TEMPLATE_REQUIRED_SECTIONS if section not in headings]
     if missing:
@@ -928,7 +978,7 @@ def _check_adr_index(repo_root: Path, policy: dict, changed: list[str]) -> list[
         number, title, status, date_value = _parse_adr_file(adr_file)
         expected[number] = (adr_file.name, title, status, date_value)
 
-    readme_text = (repo_root / index_path).read_text(encoding="utf-8")
+    readme_text = _read_repository_text(repo_root / index_path, index_path)
     actual = {
         number: (
             Path(link).name,

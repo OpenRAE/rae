@@ -197,6 +197,15 @@ phases:
   - id: trial-cleanup-contracts
     requirements:
       - SCE-007
+  # ASR-506 indexes participant semantic artifacts that already exist and
+  # records each remaining gap with an open owner instead of requiring it
+  # closed, so it depends on no other phase (#219). No ownership list: the
+  # reconciliation spans specifications, assurance waivers and requirement
+  # records of other phases, and requirement-scopes/219.json assigns each
+  # delivery file exactly.
+  - id: participant-semantic-artifacts
+    requirements:
+      - ASR-506
 
 ownership:
   participant-relation-assurance:

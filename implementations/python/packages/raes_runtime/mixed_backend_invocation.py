@@ -23,11 +23,14 @@ from raes_contracts.contracts import (
 from raes_contracts.contracts.mixed_backend_transcript import established_mixed_backend_state
 from raes_contracts.contracts.time_model import TimeRuntimeStateModel, validate_time_runtime_state
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError, InvalidInputError, OperationalError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import OperationReceipt, OperationState
 
 from .control_plane_execution import _utc_now
 from .control_plane_store_history import require_expected_history_heads
-from .control_plane_supervision import persist_invocation_update
+from .control_plane_supervision import persist_invocation_update, required_guarantees
+from .errors import RuntimeBudgetExhaustedError
 from .mixed_backend_installation import MixedBackendInstallation
 from .mixed_runtime_state import runtime_state
 from .operation_invocation_ledger import InvocationLedger
@@ -40,6 +43,10 @@ if TYPE_CHECKING:
     from .control_plane import RuntimeControlPlane
     from .control_plane_store import ControlPlaneOperationRecord
     from .operation_execution_adapter import Lane
+
+_LOGGER = get_logger(__name__)
+# Adapters and asyncio raise the built-in TimeoutError for an exhausted budget.
+_BUDGET_EXHAUSTED = (TimeoutError, RuntimeBudgetExhaustedError)
 
 
 @dataclass
@@ -61,7 +68,7 @@ class MixedInvocation:
     def remaining(self, limit: int | None = None) -> int:
         budget = int((self.deadline - monotonic()) * 1000)
         if budget <= 0:
-            raise TimeoutError("mixed invocation budget exhausted")
+            raise RuntimeBudgetExhaustedError("mixed invocation budget exhausted")
         return budget if limit is None else min(limit, budget)
 
 
@@ -77,7 +84,7 @@ def _external[T](
     try:
         with plane._mutation_authority.external_call():
             return plane._execution_adapter.call(lane, method, *deepcopy(args), timeout_ms=execution.remaining(limit))
-    except TimeoutError:
+    except _BUDGET_EXHAUSTED:
         if uncertain_on_timeout:
             execution.uncertain = True
         raise
@@ -125,20 +132,12 @@ def prepare_mixed_invocation(
             "context": record.receipt.context,
         },
         command=mixed_backend_binding_reference(declaration),
-        required_guarantees=tuple(
-            dict.fromkeys(
-                (
-                    *plane._required_operation_guarantees,
-                    "effect-observation",
-                    "cessation-evidence",
-                )
-            )
-        ),
+        required_guarantees=required_guarantees(plane, "effect-observation", "cessation-evidence"),
         budget={"origin_id": str(uuid4()), "started_at": _utc_now(), "limit_ms": budget, "remaining_ms": budget},
     )
     time_state = snapshot.time_model_state
     if time_state is None:
-        raise ValueError("mixed invocation requires committed time")
+        raise ConflictError("mixed invocation requires committed time")
     execution = MixedInvocation(
         installation,
         InvocationLedger(
@@ -151,7 +150,9 @@ def prepare_mixed_invocation(
     )
     try:
         _admit(plane, execution)
-    except Exception:
+    # Isolation: admission probes the backend provider; a failure refuses admission. Log only RAES frames.
+    except Exception as exc:
+        _LOGGER.exception("mixed provider admission could not be established", exc_info=foreign_failure_record(exc))
         return None
     return execution
 
@@ -180,7 +181,7 @@ def _admit(
     provider, request = execution.installation.provider, execution.ledger.request
     installed = _external(plane, execution, provider.execution_binding, limit=plane._supervision.admission_ms)
     if installed != execution.installation.binding:
-        raise ValueError("mixed provider changed its installed binding")
+        raise EvidenceIntegrityError("mixed provider changed its installed binding")
     caps = _probe(
         plane,
         execution,
@@ -211,9 +212,9 @@ def _reload(plane: RuntimeControlPlane, execution: MixedInvocation) -> ControlPl
         record.invocation.request != execution.ledger.request
         or record.invocation.mixed_binding != execution.installation.binding
     ):
-        raise ValueError("mixed invocation changed its original authority")
+        raise ConflictError("mixed invocation changed its original authority")
     if record.invocation.request.binding.owner_generation != plane._execution_generation:
-        raise ValueError("mixed invocation has a stale execution owner")
+        raise ConflictError("mixed invocation has a stale execution owner")
     require_expected_history_heads(plane._snapshot, record.result_history_heads)
     execution.ledger = record.invocation
     return record
@@ -227,7 +228,7 @@ def _probe(
 ) -> BackendOperationCapabilitiesModel | BackendOperationResponseModel:
     try:
         return provider_call(plane, method, **kwargs)
-    except TimeoutError:
+    except _BUDGET_EXHAUSTED:
         execution.uncertain = True
         raise
 
@@ -241,10 +242,10 @@ def _time_readback(plane: RuntimeControlPlane, execution: MixedInvocation) -> Ti
         limit=plane._supervision.observation_ms,
     )
     if not isinstance(value, TimeRuntimeStateModel):
-        raise ValueError("mixed time readback must be typed")
+        raise InvalidInputError("mixed time readback must be typed")
     validate_time_runtime_state(_context(plane, execution).time_model, value)
     if value != plane._snapshot.time_model_state:
-        raise ValueError("mixed time readback differs from committed time")
+        raise EvidenceIntegrityError("mixed time readback differs from committed time")
     return value
 
 
@@ -252,21 +253,32 @@ def run_mixed_invocation(plane: RuntimeControlPlane, execution: MixedInvocation)
     """Consume once, collect independent evidence and leave publication to the owning path."""
 
     _reload(plane, execution)
+    poisoned = False
     try:
         if _admit_running(plane, execution) and _coordinate_dispatch(plane, execution):
             _dispatch(plane, execution)
-    except Exception:
-        if plane._durability_poisoned:
-            raise
-        # A non-consumed grant proves no invocation; consumed or timed-out work
-        # retains its reservation and every authenticated fact collected so far.
-        _reload(plane, execution)
-        unresolved = execution.dispatched or execution.uncertain
-        execution.state = OperationState.INDETERMINATE if unresolved else OperationState.FAILED
+    except Exception as exc:
+        # Boundary of the mixed invocation: the backend provider, readers and time runtime
+        # are foreign code, so log only RAES frames.
+        poisoned = plane._durability_poisoned
+        if poisoned:
+            _LOGGER.exception(
+                "mixed invocation failed while the runtime requires restart", exc_info=foreign_failure_record(exc)
+            )
+        else:
+            # A non-consumed grant proves no invocation; consumed or timed-out work retains
+            # its reservation and every authenticated fact collected so far.
+            _LOGGER.exception("mixed invocation did not settle normally", exc_info=foreign_failure_record(exc))
+            _reload(plane, execution)
+            unresolved = execution.dispatched or execution.uncertain
+            execution.state = OperationState.INDETERMINATE if unresolved else OperationState.FAILED
     finally:
         _reload(plane, execution)
         if not execution.dispatched and not execution.uncertain:
             confirm_no_dispatch(execution)
+    if poisoned:
+        # Raised after the handler, so no boundary record carries the provider exception as context.
+        raise OperationalError("runtime control plane requires restart after a durability reconciliation failure")
 
 
 def _admit_running(
@@ -277,7 +289,11 @@ def _admit_running(
 ) -> bool:
     try:
         _admit(plane, execution, record=_reload(plane, execution))
-    except Exception:
+    # Isolation: admission probes the backend provider. Log only RAES frames.
+    except Exception as exc:
+        _LOGGER.exception(
+            "mixed provider admission failed for a running invocation", exc_info=foreign_failure_record(exc)
+        )
         execution.state = OperationState.INDETERMINATE if execution.uncertain else OperationState.CANCELLED
         return False
     record = _reload(plane, execution)
@@ -291,7 +307,7 @@ def _admit_running(
 
 def _coordinate_dispatch(plane: RuntimeControlPlane, execution: MixedInvocation) -> bool:
     if _time_readback(plane, execution) != execution.ledger.mixed_time_state:
-        raise ValueError("mixed time cut changed before dispatch")
+        raise ConflictError("mixed time cut changed before dispatch")
     subject = execution.installation.binding.subject
     grant = _external(
         plane,
@@ -364,7 +380,7 @@ def _collect_stages(plane: RuntimeControlPlane, execution: MixedInvocation) -> N
         limit=plane._supervision.observation_ms,
     )
     if not isinstance(reports, tuple) or len(reports) > 64:
-        raise ValueError("mixed provider stage reports exceed the transcript bound")
+        raise InvalidInputError("mixed provider stage reports exceed the transcript bound")
     # Validate the stages before checking a provider's proposed terminal state.
     producer = subject.bridge if subject.kind == "edge" else subject.transfer
     for report in reports:
@@ -376,7 +392,9 @@ def _collect_stages(plane: RuntimeControlPlane, execution: MixedInvocation) -> N
 def _settle_stages(plane: RuntimeControlPlane, execution: MixedInvocation) -> None:
     try:
         execution.post_time = _time_readback(plane, execution)
-    except Exception:
+    # Isolation: the backend time runtime failed; the settlement has no post-effect time.
+    except Exception as exc:
+        _LOGGER.exception("mixed post-effect time readback failed", exc_info=foreign_failure_record(exc))
         execution.post_time = None
     record = _reload(plane, execution)
     if execution.post_time is not None:
@@ -430,9 +448,12 @@ def _read_stages(
                 limit=plane._supervision.observation_ms,
                 uncertain_on_timeout=kind != "observation",
             )
-        except Exception:
-            # An unavailable observation adds no observation fact. Delivery and
-            # time still determine edge settlement under the published model.
+        except Exception as exc:
+            # Isolation of the backend stage reader: an unavailable observation adds no observation
+            # fact. Delivery and time still determine edge settlement under the published model.
+            _LOGGER.exception(
+                "mixed stage reader failed; no further stage facts are collected", exc_info=foreign_failure_record(exc)
+            )
             break
         _retain(plane, execution, report, pin, kind)
 
@@ -455,7 +476,7 @@ def _retain(
         or report.stage.producer != producer
         or report.stage.stage != kind
     ):
-        raise ValueError("mixed report did not come from its installed role")
+        raise EvidenceIntegrityError("mixed report did not come from its installed role")
     report = MixedBackendStageReportModel.model_validate(report.model_dump(mode="json"))
     if report in original.mixed_reports:
         execution.ledger = original

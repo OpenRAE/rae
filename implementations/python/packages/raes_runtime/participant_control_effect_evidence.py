@@ -11,6 +11,7 @@ from raes_contracts.contracts.participant_control_composition_v2 import admitted
 from raes_contracts.contracts.participant_control_coordinates import ControlArtifactReferenceModel
 from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
 from raes_contracts.contracts.participant_control_results import ControlRealizationBindingModel
+from raes_contracts.errors import ConflictError
 from raes_contracts.runtime_state import OperationState, operation_terminal_diagnostics
 
 from .control_plane_execution import _utc_now
@@ -259,7 +260,7 @@ def finalize_evaluation_commits(
     if not changed:
         return proposed
     if previous.participant_control_evaluation_history.keys() - history.keys():
-        raise ValueError("participant control evaluation history must preserve every participant")
+        raise ConflictError("participant control evaluation history must preserve every participant")
     result = seal_history("participant_control_evaluation_history", previous.participant_control_evaluation_history)
     for participant, amended in suffixes.items():
         if amended or participant not in result:
@@ -286,7 +287,7 @@ def _prepared_suffix(
     record: ControlPlaneOperationRecord,
 ) -> tuple[list[dict[str, object]], bool]:
     if not _preserves_evaluation_prefix(previous, current):
-        raise ValueError("participant control evaluation history must preserve its exact prefix")
+        raise ConflictError("participant control evaluation history must preserve its exact prefix")
     amended = []
     changed = False
     for index in range(len(previous), len(current)):

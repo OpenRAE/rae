@@ -70,20 +70,21 @@ class _RuntimeMailMixin:
             local_user_names = self._node_local_user_names(node)
             for service in mail_services:
                 label = f"Node '{node_name}' runtime mail service '{service.mail_service_id}'"
-                self._verify_owned_service_ref(
-                    node_name,
-                    service.service,
-                    service_names,
-                    owner_label=label,
-                )
-                self._verify_mail_service_children(
-                    node_name=node_name,
-                    label=label,
-                    service=service,
-                    service_names=service_names,
-                    observed_paths=observed_paths,
-                    local_user_names=local_user_names,
-                )
+                with self._owner(("nodes", node_name)):
+                    self._verify_owned_service_ref(
+                        node_name,
+                        service.service,
+                        service_names,
+                        owner_label=label,
+                    )
+                    self._verify_mail_service_children(
+                        node_name=node_name,
+                        label=label,
+                        service=service,
+                        service_names=service_names,
+                        observed_paths=observed_paths,
+                        local_user_names=local_user_names,
+                    )
 
     def _verify_mail_service_children(
         self,
@@ -225,27 +226,28 @@ class _RuntimeMailMixin:
             if access is None:
                 continue
             label = f"Relationship '{name}'"
-            mail_service = self._check_mail_access_target(relationship.target, label)
-            if mail_service is None:
-                continue
-            self._verify_mail_ref(
-                access.listener_ref,
-                {listener.listener_id for listener in mail_service.listeners},
-                label=f"{label} mail_access",
-                field_name="listener_ref",
-            )
-            self._verify_mail_ref(
-                access.mailbox_ref,
-                {mailbox.mailbox_id for mailbox in mail_service.mailboxes},
-                label=f"{label} mail_access",
-                field_name="mailbox_ref",
-            )
-            self._verify_mail_ref(
-                access.domain_ref,
-                {domain.domain_id for domain in mail_service.domains},
-                label=f"{label} mail_access",
-                field_name="domain_ref",
-            )
+            with self._owner(("relationships", name)):
+                mail_service = self._check_mail_access_target(relationship.target, label)
+                if mail_service is None:
+                    continue
+                self._verify_mail_ref(
+                    access.listener_ref,
+                    {listener.listener_id for listener in mail_service.listeners},
+                    label=f"{label} mail_access",
+                    field_name="listener_ref",
+                )
+                self._verify_mail_ref(
+                    access.mailbox_ref,
+                    {mailbox.mailbox_id for mailbox in mail_service.mailboxes},
+                    label=f"{label} mail_access",
+                    field_name="mailbox_ref",
+                )
+                self._verify_mail_ref(
+                    access.domain_ref,
+                    {domain.domain_id for domain in mail_service.domains},
+                    label=f"{label} mail_access",
+                    field_name="domain_ref",
+                )
 
     def _check_mail_access_target(self, target: str, label: str) -> object | None:
         mail_service = self._resolve_mail_service_ref(target)

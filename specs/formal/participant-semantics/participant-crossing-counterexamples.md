@@ -90,6 +90,9 @@ Each invocation hides exactly `internal`.
 The result parser accepts the selected tool's Boolean output only after successful process completion.
 Missing tools, timeouts, resource failures, malformed output, and unsupported modes produce no decision.
 A process exit code alone is never an equivalence result.
+Error categories follow ADR-116.
+Command-line handlers report expected operational and evidence failures.
+Programming defects reach the shared application boundary instead of becoming a comparison decision.
 
 The selected release is mCRL2 `202607.0` for Linux x86_64.
 Its archive and complete installed tree belong in the existing tooling lock.

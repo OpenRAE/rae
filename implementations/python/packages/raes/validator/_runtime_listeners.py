@@ -16,17 +16,18 @@ class _RuntimeListenersMixin:
             for listener_index, listener in enumerate(runtime.service_listeners):
                 label = f"Node '{node_name}' runtime service listener '{listener.service_listener_id}'"
                 field_prefix = f"nodes.{node_name}.runtime.service_listeners[{listener_index}]"
-                self._verify_listener_transport_shape(label, field_prefix, listener)
-                service = self._resolve_owned_service_ref(
-                    node_name,
-                    getattr(listener, "service", ""),
-                    services_by_name,
-                    owner_label=label,
-                )
-                if service is not None:
-                    self._verify_listener_service_binding(label, field_prefix, listener, service)
-                self._verify_listener_process_ref(label, listener, process_refs)
-                self._verify_listener_published_port_refs(label, field_prefix, listener, published_ports)
+                with self._owner(("nodes", node_name)):
+                    self._verify_listener_transport_shape(label, field_prefix, listener)
+                    service = self._resolve_owned_service_ref(
+                        node_name,
+                        getattr(listener, "service", ""),
+                        services_by_name,
+                        owner_label=label,
+                    )
+                    if service is not None:
+                        self._verify_listener_service_binding(label, field_prefix, listener, service)
+                    self._verify_listener_process_ref(label, listener, process_refs)
+                    self._verify_listener_published_port_refs(label, field_prefix, listener, published_ports)
 
     def _verify_listener_transport_shape(self, label: str, field_prefix: str, listener: object) -> None:
         """Resolve legacy TCP-default ambiguity with scenario provenance."""

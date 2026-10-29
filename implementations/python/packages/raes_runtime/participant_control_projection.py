@@ -6,6 +6,7 @@ from _thread import RLock
 from typing import TYPE_CHECKING
 
 from raes_contracts.contracts.participant_control_composition import ParticipantControlEvaluationModel
+from raes_contracts.errors import ConflictError
 from raes_contracts.runtime_state import RuntimeSnapshot
 
 if TYPE_CHECKING:
@@ -105,7 +106,7 @@ class ControlStateProjection:
             chain = self.provider_chains.setdefault(key, {})
             retained = chain.setdefault(proposal.before, proposal.after)
             if retained != proposal.after:
-                raise ValueError("retained provider state has conflicting writers")
+                raise ConflictError("retained provider state has conflicting writers")
             # Only the scope touched by this append is revisited.
             self._touched_provider_scopes.add(key)
         if evaluation.commit.status == "committed":

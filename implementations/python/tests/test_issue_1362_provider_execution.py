@@ -221,7 +221,7 @@ def test_cancel_uses_independent_capacity_is_idempotent_and_acceptance_is_not_ce
     def submit():
         try:
             receipts.append(plane.submit_provisioning(ProvisioningPlan()))
-        except BaseException as exc:
+        except BaseException as exc:  # noqa: BLE001 - the worker hands the exception to the test thread, which asserts it.
             failures.append(exc)
 
     worker = Thread(target=submit)

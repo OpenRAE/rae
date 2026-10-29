@@ -17,6 +17,7 @@ from raes.scenario import InstantiatedScenario
 from raes_backend_protocols.manifest import BackendManifest, backend_manifest_v2_model
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 from raes_contracts.json_ingress import parse_bounded_json_object
 from raes_contracts.materialization import (
     MATERIALIZATION_MAX_BYTES,
@@ -50,13 +51,13 @@ def admit_materialization_submission(
     """Check source, execution binding, origins and complete scoped inventory."""
     submission = MaterializationSubmission.model_validate(submission.model_dump(mode="json"))
     if request.materialization_source is None:
-        raise ValueError("materialization requires trusted source context")
+        raise InvalidInputError("materialization requires trusted source context")
     source = MaterializationSource.model_validate(request.materialization_source.model_dump(mode="json"))
     source_payload = parse_bounded_json_object(source.snapshot, max_bytes=MATERIALIZATION_MAX_BYTES)
     original = admit_instantiated_scenario(source_payload["scenario"])
     materialized = parse_sdl(submission.sdl)
     if not isinstance(materialized, MaterializedScenario):
-        raise ValueError("materialization requires descriptive SDL")
+        raise InvalidInputError("materialization requires descriptive SDL")
     _validate_binding(materialized, source, request, manifest, previous)
     validate_materialization_origins(original, materialized)
     _validate_inventory(materialized, original, request, previous, actual)
@@ -75,10 +76,10 @@ def _validate_binding(
         "backend-runtime-descendants-v1" not in manifest.supported_contract_versions
         or not isinstance(request, ProvisioningPlan)
     ):
-        raise ValueError("runtime descendant reporting requires negotiated provisioning admission")
+        raise InvalidInputError("runtime descendant reporting requires negotiated provisioning admission")
     envelope = manifest.realization_envelope
     if envelope is None:
-        raise ValueError("materialization does not bind this source and execution")
+        raise InvalidInputError("materialization does not bind this source and execution")
     described = (
         provenance.authored_digest.value,
         provenance.instantiated_digest.value,
@@ -104,7 +105,7 @@ def _validate_binding(
         canonical_json_digest(backend_manifest_v2_model(manifest).model_dump(mode="json")),
     )
     if described != expected:
-        raise ValueError("materialization does not bind this source and execution")
+        raise InvalidInputError("materialization does not bind this source and execution")
 
 
 def _inventory_resources(
@@ -135,7 +136,7 @@ def _inventory_resources(
             resources, run_id=request.run_id, instantiation_id=request.instantiation_id
         )
         if diagnostics:
-            raise ValueError("materialization inventory lacks admitted regeneration scope")
+            raise InvalidInputError("materialization inventory lacks admitted regeneration scope")
     return resources
 
 
@@ -167,7 +168,7 @@ def _validate_current_scope(
     if expected.keys() != observed.keys() or any(
         not _materialized_entry_matches(observed[address], resource) for address, resource in expected.items()
     ):
-        raise ValueError("materialization inventory does not match the complete returned scope")
+        raise InvalidInputError("materialization inventory does not match the complete returned scope")
 
 
 def _resources_for_domain(resources: dict[str, PlannedResource], domain: RuntimeDomain) -> dict[str, PlannedResource]:
@@ -197,15 +198,15 @@ def _validate_other_scopes(
             )
             for address, resource in described_scope.items()
         ):
-            raise ValueError("materialization cannot invent or omit effects outside its operation domain")
+            raise InvalidInputError("materialization cannot invent or omit effects outside its operation domain")
 
 
 def _validate_binding_origin(binding: MaterializedResourceBinding, original: InstantiatedScenario) -> None:
     if binding.node_name in original.nodes:
         if binding.source_node != binding.node_name:
-            raise ValueError("materialization inventory changed an authored resource identity")
+            raise InvalidInputError("materialization inventory changed an authored resource identity")
     elif binding.source_node is not None:
-        raise ValueError("materialization inventory has an invalid added resource origin")
+        raise InvalidInputError("materialization inventory has an invalid added resource origin")
 
 
 def _validate_node_bindings(
@@ -213,12 +214,12 @@ def _validate_node_bindings(
 ) -> None:
     bindings = materialized.materialization_provenance.resource_bindings
     if {binding.node_name for binding in bindings} != materialized.nodes.keys():
-        raise ValueError("materialization inventory lacks complete node bindings")
+        raise InvalidInputError("materialization inventory lacks complete node bindings")
     instances: dict[str, set[int | None]] = {}
     for binding in bindings:
         resource = resources.get(binding.address)
         if resource is None or resource.payload.get("name") != binding.node_name:
-            raise ValueError("materialization inventory has a mismatched resource binding")
+            raise InvalidInputError("materialization inventory has a mismatched resource binding")
         _validate_binding_origin(binding, original)
         instances.setdefault(binding.address, set()).add(binding.instance_index)
     _validate_instance_indices(resources, instances, len(bindings))
@@ -230,7 +231,7 @@ def _validate_instance_indices(
     for address, indices in instances.items():
         count = resources[address].payload.get("count") or 1
         if count > binding_count or (indices != set(range(count)) and not (count == 1 and indices == {None})):
-            raise ValueError("materialization inventory must bind every realized instance exactly once")
+            raise InvalidInputError("materialization inventory must bind every realized instance exactly once")
 
 
 def _materialized_entry_matches(
@@ -256,9 +257,10 @@ def _defaulted_node_entry_matches(
     requirements: tuple[CompiledRealizationRequirement, ...],
 ) -> bool:
     try:
-        return _entry_matches_resource(with_node_defaults(entry), with_node_defaults(resource), requirements)
-    except TypeError, ValueError:
+        defaulted_entry, defaulted_resource = with_node_defaults(entry), with_node_defaults(resource)
+    except InvalidInputError:
         return False
+    return _entry_matches_resource(defaulted_entry, defaulted_resource, requirements)
 
 
 def validate_materialization_archive_record(
@@ -268,7 +270,7 @@ def validate_materialization_archive_record(
     require_materialization_records((record,))
     scenario = parse_sdl(submission.sdl)
     if not isinstance(scenario, MaterializedScenario):
-        raise ValueError("materialization archive requires descriptive SDL")
+        raise EvidenceIntegrityError("materialization archive requires descriptive SDL")
     provenance = scenario.materialization_provenance
     data = submission.sdl.encode("utf-8")
     recorded = (
@@ -296,7 +298,7 @@ def validate_materialization_archive_record(
         provenance.recorded_at.isoformat(),
     )
     if recorded != expected:
-        raise ValueError("materialization archive record does not bind the admitted result")
+        raise EvidenceIntegrityError("materialization archive record does not bind the admitted result")
 
 
 __all__ = ["admit_materialization_submission", "validate_materialization_archive_record"]

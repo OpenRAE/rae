@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from raes_contracts.operational_logging import get_logger
 from raes_contracts.runtime_state import OperationState, RuntimeSnapshot
 
 from .control_plane_store import (
@@ -15,6 +16,8 @@ from .control_plane_store import (
 )
 from .control_plane_store_bounded import bounded_store_commit
 from .control_plane_store_compatibility import ControlPlaneStoreCommitAdapter
+
+_LOGGER = get_logger(__name__)
 
 
 class RuntimeDurabilityMixin:
@@ -211,6 +214,8 @@ class RuntimeDurabilityMixin:
                 if expected_audit not in self._store.read_audit():
                     raise RuntimeError("terminal operation is missing its actor-bound audit")
         except Exception:
+            # Isolation of the store readback: the caller re-raises the original store error.
+            _LOGGER.exception("control-plane durable state could not be reconciled; the runtime requires restart")
             self._poison_runtime_durability()
             error.add_note(
                 "Durable state could not be reconciled after the store error; this runtime is poisoned until restart."

@@ -21,8 +21,17 @@ VERSIONED_SDL_CANONICAL_PROFILE = "raes-versioned-sdl/v1"
 
 
 def source_byte_digest(content: str) -> str:
-    """Bind provenance to exact UTF-8 source bytes, including presentation."""
-    return "sha256:" + hashlib.sha256(content.encode("utf-8")).hexdigest()
+    """Bind provenance to exact UTF-8 source bytes, including presentation.
+
+    Text with an unpaired surrogate has no UTF-8 form, and parsing refuses it.
+    Its digest binds the surrogate-pass encoding, so a refusal report can still
+    identify the exact submitted text.
+    """
+    try:
+        source = content.encode("utf-8")
+    except UnicodeEncodeError:
+        source = content.encode("utf-8", errors="surrogatepass")
+    return "sha256:" + hashlib.sha256(source).hexdigest()
 
 
 @dataclass(frozen=True)

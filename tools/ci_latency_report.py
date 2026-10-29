@@ -34,7 +34,17 @@ import sys
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import TextIO
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError  # noqa: E402
+from raes_contracts.operational_logging import run_application  # noqa: E402
 
 DEFAULT_REQUIRED_CHECKS = ("verify", "sonar")
 FAST_FEEDBACK_CHECK = "fast-feedback"
@@ -52,6 +62,9 @@ def _parse_timestamp(value: object) -> datetime | None:
 def _seconds(start: datetime | None, end: datetime | None) -> float | None:
     if start is None or end is None:
         return None
+    if (start.utcoffset() is None) != (end.utcoffset() is None):
+        # A timestamp with a UTC offset has no defined order against one without an offset.
+        raise InvalidInputError("cohort timestamps must all have a UTC offset or all have no UTC offset")
     delta = (end - start).total_seconds()
     return delta if delta >= 0 else None
 
@@ -183,16 +196,18 @@ def load_cohort(payload: object, required_checks: Iterable[str]) -> list[RunTimi
 
     checks = tuple(required_checks)
     if not isinstance(payload, list):
-        raise ValueError("cohort payload must be a JSON array of {run, jobs} entries")
+        raise InvalidInputError("cohort payload must be a JSON array of {run, jobs} entries")
     timings: list[RunTiming] = []
     for entry in payload:
         if not isinstance(entry, Mapping) or not isinstance(entry.get("run"), Mapping):
-            raise ValueError("each cohort entry must be an object with a 'run' object")
+            raise InvalidInputError("each cohort entry must be an object with a 'run' object")
         jobs = entry.get("jobs")
         if jobs is None:
             jobs = []
         if not isinstance(jobs, list):
-            raise ValueError("cohort entry 'jobs' must be a JSON array")
+            raise InvalidInputError("cohort entry 'jobs' must be a JSON array")
+        if not all(isinstance(job, Mapping) for job in jobs):
+            raise InvalidInputError("cohort entry 'jobs' must contain only objects")
         timings.append(parse_run(entry["run"], jobs, checks))
     return timings
 
@@ -203,11 +218,21 @@ def main(argv: Sequence[str] | None = None, *, stdin: TextIO | None = None) -> i
     args = parser.parse_args(list(argv) if argv is not None else None)
     required_checks = tuple(args.required_checks or DEFAULT_REQUIRED_CHECKS)
 
-    payload = json.load(stdin if stdin is not None else sys.stdin)
-    timings = load_cohort(payload, required_checks)
+    try:
+        payload = json.load(stdin if stdin is not None else sys.stdin)
+    except ValueError, RecursionError:
+        # The try holds only the decoder. ValueError covers text that is not UTF-8, malformed JSON
+        # and an integer beyond the interpreter digit limit; RecursionError covers excessive nesting.
+        print("ci-latency-report: cohort payload on stdin is not valid JSON", file=sys.stderr)
+        return 1
+    try:
+        timings = load_cohort(payload, required_checks)
+    except InvalidInputError as exc:
+        print(f"ci-latency-report: {exc}", file=sys.stderr)
+        return 1
     print(json.dumps(summarize(timings), indent=2, sort_keys=True))
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

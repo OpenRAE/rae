@@ -5,9 +5,10 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from raes.explicitness import ExplicitnessClass, ExplicitnessRecord
 from raes.scenario import InstantiatedScenario
+from raes_contracts.errors import RaesError
 from raes_contracts.realization_structure import (
     ExactRealizationValue,
     OpenRealizationValue,
@@ -20,6 +21,10 @@ from raes_contracts.realization_structure import (
 from ..semantics.realization_concerns import RegisteredRealizationConcern
 from .realization_authority_posture import designated_registered_posture
 from .realization_concern_explicitness import semantic_explicitness_leaves
+
+
+class _UnrepresentableAuthority(RaesError):
+    """Control signal: an authored value has no supported realization authority form."""
 
 
 @dataclass
@@ -40,7 +45,7 @@ class _StructureCompiler:
 
     def build(self, value: object, path: str, pointer: str, *, depth: int = 0) -> RealizationStructure:
         if depth > 64:
-            raise ValueError("realization structure exceeds the supported depth")
+            raise _UnrepresentableAuthority("realization structure exceeds the supported depth")
         record = self.records.get(path)
         if isinstance(value, dict):
             structure = self.record(value, path, pointer, depth)
@@ -76,16 +81,21 @@ class _StructureCompiler:
         descriptor = self.registered.descriptor
         identity_fields = descriptor.collection_identity_fields
         indices = _authored_member_indices(source, identity_fields)
-        projection = descriptor.project(source)
+        try:
+            projection = descriptor.project(source)
+        except (TypeError, ValueError) as exc:
+            # The concern projection refuses a value outside its closed shape (E3).
+            raise _UnrepresentableAuthority("keyed concern value violates its projection") from exc
         if not isinstance(projection, list):
-            raise ValueError("keyed concern must project a collection")
+            raise _UnrepresentableAuthority("keyed concern must project a collection")
         members = {}
         for item in projection:
-            identity = tuple(item[key] for key in identity_fields)
-            index = indices[identity]
+            index = indices.get(_member_identity(item, identity_fields))
+            if index is None:
+                raise _UnrepresentableAuthority("projected member does not resolve to an authored identity")
             digest = realization_member_identity(item, identity_fields)
             if digest is None:
-                raise ValueError("collection identity is not a concrete scalar tuple")
+                raise _UnrepresentableAuthority("collection identity is not a concrete scalar tuple")
             members[digest] = self.build(item, f"{self.registered.field_path}[{index}]", f"{pointer}/{index}")
         return RealizationCollection(
             kind="collection", members=members, identity_fields=identity_fields, additional=root_open
@@ -95,27 +105,34 @@ class _StructureCompiler:
 def _sequence_structure(record: ExplicitnessRecord | None) -> RealizationStructure:
     # Exact nested sequences retain their projector's comparison semantics.
     if record is not None and record.classification is not ExplicitnessClass.EXACT:
-        raise ValueError("mixed nested collection has no declared identity policy")
+        raise _UnrepresentableAuthority("mixed nested collection has no declared identity policy")
     return ExactRealizationValue(kind="exact")
 
 
 def _scalar_structure(record: ExplicitnessRecord | None) -> RealizationStructure:
     if record is not None and record.classification is ExplicitnessClass.CONSTRAINED:
-        raise ValueError("mixed scalar bound has no publication-safe domain")
+        raise _UnrepresentableAuthority("mixed scalar bound has no publication-safe domain")
     if record is not None and record.classification is ExplicitnessClass.OPEN:
         return OpenRealizationValue(kind="open", taxonomy_sentinel=True)
     return ExactRealizationValue(kind="exact")
+
+
+def _member_identity(record: object, identity_fields: tuple[str, ...]) -> tuple[object, ...]:
+    if not isinstance(record, Mapping) or any(key not in record for key in identity_fields):
+        raise _UnrepresentableAuthority("keyed concern must contain identified records")
+    identity = tuple(record[key] for key in identity_fields)
+    if any(isinstance(value, (dict, list)) for value in identity):
+        raise _UnrepresentableAuthority("collection identity is not a scalar tuple")
+    return identity
 
 
 def _authored_member_indices(source: list[object], identity_fields: tuple[str, ...]) -> dict[tuple[object, ...], int]:
     indices = {}
     for index, item in enumerate(source):
         raw = item.model_dump(mode="json") if isinstance(item, BaseModel) else item
-        if not isinstance(raw, dict):
-            raise ValueError("keyed concern must contain records")
-        identity = tuple(raw[key] for key in identity_fields)
+        identity = _member_identity(raw, identity_fields)
         if identity in indices:
-            raise ValueError("duplicate authored identity")
+            raise _UnrepresentableAuthority("duplicate authored identity")
         indices[identity] = index
     return indices
 
@@ -158,12 +175,22 @@ def compile_realization_structure(
         return None, False, False
     if not identity_fields:
         return _unkeyed_structure(compiler, authored_value, root_open)
+    return _keyed_structure(compiler, authored_value, field_pointer, root_open=root_open, nested_open=nested_open)
+
+
+def _keyed_structure(
+    compiler: _StructureCompiler,
+    authored_value: object,
+    field_pointer: str,
+    *,
+    root_open: bool,
+    nested_open: bool,
+) -> tuple[RealizationStructure | None, bool, bool]:
+    if not (isinstance(authored_value, list) and authored_value):
+        return None, False, root_open
+    # The structure models refuse a collection beyond their bounds with ValidationError.
     try:
-        if isinstance(authored_value, list) and authored_value:
-            structure = compiler.collection(authored_value, field_pointer, root_open)
-            result = structure, False, root_open or nested_open
-        else:
-            result = None, False, root_open
-    except TypeError, ValueError, KeyError:
-        result = None, True, root_open
-    return result
+        structure = compiler.collection(authored_value, field_pointer, root_open)
+    except _UnrepresentableAuthority, ValidationError:
+        return None, True, root_open
+    return structure, False, root_open or nested_open

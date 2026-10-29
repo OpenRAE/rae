@@ -6,6 +6,8 @@ import dataclasses
 from collections.abc import Mapping
 from pathlib import Path
 
+from raes_contracts.errors import InvalidInputError
+
 from tools.formal_semantic_validation._production import (
     _ProductionObservationContext,
     _validate_production_evidence_observation,
@@ -24,7 +26,10 @@ from tools.formal_semantic_validation._retest_participants import (
 from tools.formal_semantic_validation._shape import (
     _closed_object,
     _failure,
+    _hashable,
     _is_sequence,
+    _member,
+    _members,
     _stable_ids,
     _string_list,
 )
@@ -74,7 +79,7 @@ def _validate_retest_snapshot(
     _validate_retest_header(protocol, corpus, snapshot, failures, path)
     command_ids, commands_by_id = _validate_retest_commands(protocol, snapshot, failures, path)
 
-    release_artifacts = [item for item in release.manifest.get("artifacts", []) if isinstance(item, Mapping)]
+    release_artifacts = [item for item in _members(release.manifest.get("artifacts", [])) if isinstance(item, Mapping)]
     release_artifacts_by_path = {
         item.get("path"): item for item in release_artifacts if isinstance(item.get("path"), str)
     }
@@ -97,7 +102,7 @@ def _validate_release_selection(
     required_commands = {
         case_id
         for case_id, case in scope.cases_by_id.items()
-        if case.get("replay_mode") in PRODUCTION_EVIDENCE_REPLAY_MODES
+        if _member(case.get("replay_mode"), PRODUCTION_EVIDENCE_REPLAY_MODES)
     }
     if not command_ids.issuperset(required_commands):
         failures.append(
@@ -109,8 +114,8 @@ def _validate_release_selection(
         )
     selected_release_paths = {
         str(item.get("path"))
-        for item in scope.release.manifest.get("artifacts", [])
-        if isinstance(item, Mapping) and item.get("kind") in {"corpus-input", "production-evidence"}
+        for item in _members(scope.release.manifest.get("artifacts", []))
+        if isinstance(item, Mapping) and _member(item.get("kind"), {"corpus-input", "production-evidence"})
     }
     if selected_release_paths != expected_paths:
         failures.append(
@@ -172,7 +177,11 @@ def _validate_retest_commands(
     commands = snapshot.get("commands")
     command_ids, unique_command_ids = _stable_ids(commands, "command_id")
     commands_by_id = (
-        {item.get("command_id"): item for item in commands if isinstance(item, Mapping)}
+        {
+            item.get("command_id"): item
+            for item in commands
+            if isinstance(item, Mapping) and _hashable(item.get("command_id"))
+        }
         if _is_sequence(commands)
         else {}
     )
@@ -265,7 +274,7 @@ def _validate_retest_observation(
         )
     else:
         _validate_retest_observation_metadata(scope.snapshot, case, observation, failures, path)
-        if case.get("replay_mode") in PRODUCTION_EVIDENCE_REPLAY_MODES:
+        if _member(case.get("replay_mode"), PRODUCTION_EVIDENCE_REPLAY_MODES):
             release_artifacts_by_path, commands_by_id = replay_context
             _validate_production_evidence_observation(
                 _ProductionObservationContext(scope.repo_root, release_artifacts_by_path, scope.replay_current),
@@ -374,7 +383,7 @@ def _validate_retained_retest_observation(
         return
     try:
         replayed = replay_case(repo_root, case)
-    except (OSError, ValueError) as exc:
+    except (OSError, InvalidInputError) as exc:
         failures.append(
             _failure(
                 "formal-validation-replay-error",

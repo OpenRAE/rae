@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING, cast
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.mixed_runtime import MixedCompositionRuntimeEventModel
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import ApplyResult, OperationReceipt, OperationState, RuntimeSnapshot
 
 from .control_plane_participant_apply import apply_authorized_participant_action
@@ -27,6 +29,8 @@ if TYPE_CHECKING:
     from .mixed_backend_installation import MixedBackendInstallation
     from .participant_crossing_action import _PreparedActionEffect
     from .participant_crossing_mediation import PreparedParticipantCrossing
+
+_LOGGER = get_logger(__name__)
 
 
 def replay_action(plane: RuntimeControlPlane, crossing: PreparedParticipantCrossing) -> OperationReceipt | None:
@@ -62,7 +66,7 @@ def prepare_backend_action(
         request.action_contract_address,
         allocation.allocation_id,
     ):
-        raise ValueError("mixed portable binding differs from the governed action")
+        raise ConflictError("mixed portable binding differs from the governed action")
     return prepare_mixed_invocation(plane, portable, crossing.record, crossing.next_snapshot)
 
 
@@ -80,7 +84,12 @@ def apply_mixed_backend_action(plane: RuntimeControlPlane, prepared: _PreparedAc
         try:
             result = _validated_native_action(plane, prepared, predecessor, reference.contract_id, reference.digest)
             execution.native_validated = True
-        except Exception:
+        # Isolation: the backend evidence resolver supplies the native result; log only RAES frames.
+        except Exception as exc:
+            _LOGGER.exception(
+                "mixed native result did not validate; the action is indeterminate",
+                exc_info=foreign_failure_record(exc),
+            )
             execution.state, execution.release_commitment = OperationState.INDETERMINATE, None
             result = ApplyResult(False, predecessor)
     elif execution.state is OperationState.SUCCEEDED:
@@ -112,7 +121,7 @@ def _validated_native_action(
         or contract_id != "runtime-snapshot-v1"
         or canonical_json_digest(_snapshot_payload(native.snapshot)) != digest
     ):
-        raise ValueError("mixed native result commitment mismatch")
+        raise EvidenceIntegrityError("mixed native result commitment mismatch")
     result = _external(
         plane,
         execution,
@@ -127,9 +136,9 @@ def _validated_native_action(
         limit=plane._supervision.observation_ms,
     )
     if canonical_json_digest(_snapshot_payload(result.snapshot)) != digest:
-        raise ValueError("mixed native result was rejected")
+        raise EvidenceIntegrityError("mixed native result was rejected")
     if execution.state is OperationState.SUCCEEDED and not result.success:
-        raise ValueError("mixed native release gates failed")
+        raise EvidenceIntegrityError("mixed native release gates failed")
     return result
 
 
@@ -143,7 +152,7 @@ def record_mixed_backend_action(
     state = runtime_state(binding, snapshot)
     attempt = snapshot.mixed_composition_history[state.run_id][-1]
     if attempt["event_id"] != f"composition:{execution.ledger.request.binding.operation_id}:attempt":
-        raise ValueError("mixed result no longer owns the committed attempt")
+        raise ConflictError("mixed result no longer owns the committed attempt")
     common = {
         key: attempt[key]
         for key in (
@@ -229,7 +238,7 @@ def retain_mixed_invocation(
     current = plane._operations[record.receipt.operation_id]
     ledger = current.invocation
     if ledger.request.binding.owner_generation != plane._execution_generation:
-        raise ValueError("stale mixed execution owner")
+        raise ConflictError("stale mixed execution owner")
     released = not ledger.consumed or execution.release_commitment is not None
     ledger = ledger.model_copy(update={"reserved": not released, "release_commitment": execution.release_commitment})
     plane._execution_deadlines.pop(record.receipt.operation_id, None)

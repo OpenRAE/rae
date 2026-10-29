@@ -31,6 +31,7 @@ from control_plane_conformance_fixtures import (
     witness_events,
 )
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.errors import ConflictError
 from raes_contracts.plan_projection import evaluation_plan_model
 from raes_contracts.planning import ChangeAction, EvaluationOp, EvaluationPlan
 from raes_runtime import control_plane_store_postgresql_mutations as ledger_mutations
@@ -39,7 +40,11 @@ from raes_runtime.control_plane_operation_context import runtime_target_scope
 from raes_runtime.control_plane_profiles import ControlPlaneProfile, profile_declaration
 from raes_runtime.control_plane_store_memory import InMemoryControlPlaneStore
 from raes_runtime.control_plane_store_postgresql import PostgreSQLControlPlaneStore, PostgreSQLStoreConfiguration
-from raes_runtime.control_plane_store_postgresql_schema import POSTGRES_LEDGER_SCHEMA_VERSION
+from raes_runtime.control_plane_store_postgresql_schema import (
+    LEDGER_COLUMNS,
+    POSTGRES_LEDGER_SCHEMA_VERSION,
+    PROJECTION_COLUMNS,
+)
 from test_issue_1181_unified_control_plane_mutations import _running_record
 from test_issue_1185_api_404_profile_alignment import (
     COMMON_GUARANTEES,
@@ -119,7 +124,7 @@ def _evaluate(harness: ProfileHarness, plan: EvaluationPlan) -> str:
         return ACCEPTED if accepted else f"{response.status_code} {response.text}"
     try:
         receipt = harness.plane.submit_evaluation(plan, idempotency_key=KEY, identity=identities()["alice"])
-    except ValueError as refusal:
+    except ConflictError as refusal:
         return str(refusal)
     return ACCEPTED if receipt.accepted else repr(receipt.diagnostics)
 
@@ -165,7 +170,7 @@ def test_selected_p0_store_cannot_be_rebound_to_another_run() -> None:
     RuntimeControlPlane(create_stub_target(), store=store, run_scope=RUN_SCOPE, profile=ControlPlaneProfile.P0).close()
     target = create_stub_target()
 
-    with pytest.raises(ValueError, match="store scope does not match runtime admission"):
+    with pytest.raises(ConflictError, match="store scope does not match runtime admission"):
         RuntimeControlPlane(target, store=store, run_scope="run:another", profile=ControlPlaneProfile.P0)
 
     # The refusal leaves the store bound to its first scope, which reopens.
@@ -241,6 +246,12 @@ class _LedgerConnection:
             return _Rows([(self.database.lock_holder is self,)])
         if statement.startswith("SELECT EXISTS(SELECT 1 FROM pg_locks"):
             return _Rows([(self.database.lock_holder is self,)])
+        if statement == "SELECT to_regclass(%s)":
+            # Admission looks up each ledger table. This ledger has all of them.
+            return _Rows([params])
+        if statement.startswith("SELECT attname FROM pg_attribute"):
+            # Admission reads the columns of each ledger table. This ledger has all of them.
+            return _Rows([(name,) for name in {**LEDGER_COLUMNS, **PROJECTION_COLUMNS}[params[0]]])
         if statement.startswith("SELECT key, value FROM raes_ledger_metadata"):
             return _Rows(sorted(self._pending.items()))
         if statement.startswith("INSERT INTO raes_ledger_metadata(key, value) VALUES ('owner-generation'"):
@@ -275,7 +286,7 @@ def test_selected_p1_refuses_a_postgresql_ledger_for_another_scope(
     target = replace(create_stub_target(), name=target_name)
 
     # P1 selection accepts the ledger, so the refusal comes from its admission.
-    with pytest.raises(RuntimeError, match="PostgreSQL ledger scope does not match runtime admission"):
+    with pytest.raises(ConflictError, match="PostgreSQL ledger scope does not match runtime admission"):
         RuntimeControlPlane(target, store=ledger, run_scope=run, profile=ControlPlaneProfile.P1)
 
     assert database.metadata == _scoped_ledger_metadata()
@@ -295,7 +306,7 @@ def test_selected_p1_admits_one_postgresql_ledger_owner(monkeypatch: pytest.Monk
     ledger = _ledger(database, monkeypatch)
     target = create_stub_target()
 
-    with pytest.raises(RuntimeError, match="PostgreSQL ledger already has a runtime owner"):
+    with pytest.raises(ConflictError, match="PostgreSQL ledger already has a runtime owner"):
         RuntimeControlPlane(target, store=ledger, run_scope=RUN_SCOPE, profile=ControlPlaneProfile.P1)
     assert database.metadata == _scoped_ledger_metadata()
     assert all(connection.closed for connection in database.connections)
@@ -304,7 +315,7 @@ def test_selected_p1_admits_one_postgresql_ledger_owner(monkeypatch: pytest.Monk
     database.lock_holder = None
     target_scope = runtime_target_scope("stub")
     ledger.admit_runtime(target_scope=target_scope, run_scope=RUN_SCOPE)
-    with pytest.raises(RuntimeError, match="PostgreSQL ledger already has runtime admission"):
+    with pytest.raises(ConflictError, match="PostgreSQL ledger already has runtime admission"):
         ledger.admit_runtime(target_scope=target_scope, run_scope=RUN_SCOPE)
     assert database.metadata["owner-generation"] == "2"
 

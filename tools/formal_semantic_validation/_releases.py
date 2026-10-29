@@ -6,6 +6,8 @@ from collections.abc import Mapping
 from contextvars import ContextVar
 from pathlib import Path
 
+from raes_contracts.errors import InvalidInputError
+
 from tools.evidence_bundle_index import load_index_records
 from tools.formal_semantic_validation._analysis import _AnalysisContext, _validate_analysis
 from tools.formal_semantic_validation._baseline import _validate_baseline_drift
@@ -26,7 +28,9 @@ from tools.formal_semantic_validation._satisfiability import (
 from tools.formal_semantic_validation._shape import (
     _closed_object,
     _failure,
+    _hashable,
     _is_sequence,
+    _members,
     _sha256_file,
     _stable_ids,
 )
@@ -162,7 +166,7 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
         return failures
     try:
         evidence_key(manifest.get("revision"))
-    except ValueError:
+    except InvalidInputError:
         failures.append(
             _failure(
                 "formal-validation-release-revision",
@@ -224,7 +228,9 @@ def _validate_legacy_release(repo_root: Path, release: EvidenceRelease, artifact
             replay_cases=False,
         )
     )
-    artifact_by_kind = {item.get("kind"): item for item in artifacts if isinstance(item, Mapping)}
+    artifact_by_kind = {
+        item.get("kind"): item for item in artifacts if isinstance(item, Mapping) and _hashable(item.get("kind"))
+    }
     sat_snapshot_pin = artifact_by_kind.get("satisfiability-snapshot")
     sat_analysis_pin = artifact_by_kind.get("satisfiability-analysis")
     if sat_snapshot_pin is not None or sat_analysis_pin is not None:
@@ -305,7 +311,7 @@ def validate_retest_bundle(
     try:
         evidence_key(release_revision)
         expected_corpus = expected_corpus_revision(release_revision)
-    except ValueError:
+    except InvalidInputError:
         return [
             _failure(
                 "formal-validation-retest-release",
@@ -390,6 +396,13 @@ def _current_retest_source_failures(
         )
 
 
+def _successor_fixture(fixture_path: object) -> object:
+    """Return the governed participant-identity successor of a retained fixture path."""
+    if not _hashable(fixture_path):
+        return fixture_path
+    return PARTICIPANT_IDENTITY_FIXTURE_SUCCESSORS.get(fixture_path, fixture_path)
+
+
 def _retained_historical_cases(
     repo_root: Path,
     cases_by_id: Mapping[str, Mapping[str, object]],
@@ -403,7 +416,7 @@ def _retained_historical_cases(
             "docs/research/formal-semantic-validation/corpus/manifest-v1.json",
             max_bytes=_MAX_FILE_BYTES,
         )
-    except (OSError, ValueError) as exc:
+    except (OSError, InvalidInputError) as exc:
         failures.append(
             _failure(
                 "formal-validation-historical-retention",
@@ -412,17 +425,15 @@ def _retained_historical_cases(
             )
         )
         historical_corpus = {}
-    historical_cases = {
-        item.get("case_id"): item for item in historical_corpus.get("cases", []) if isinstance(item, Mapping)
-    }
-    retained_cases_match = all(
+    historical_items = [item for item in _members(historical_corpus.get("cases", [])) if isinstance(item, Mapping)]
+    historical_cases = {item.get("case_id"): item for item in historical_items if _hashable(item.get("case_id"))}
+    # A case whose id has no hash cannot be retained, so it fails the retention check.
+    retained_cases_match = all(_hashable(item.get("case_id")) for item in historical_items) and all(
         cases_by_id.get(str(case_id))
         == {
             **case,
             "fixture_path": (
-                PARTICIPANT_IDENTITY_FIXTURE_SUCCESSORS.get(case.get("fixture_path"), case.get("fixture_path"))
-                if corpus_revision == "4.0.0"
-                else case.get("fixture_path")
+                _successor_fixture(case.get("fixture_path")) if corpus_revision == "4.0.0" else case.get("fixture_path")
             ),
             "limitation": _RETAINED_CASE_TEXT_REPLACEMENTS.get(
                 str(case.get("limitation")),

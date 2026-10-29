@@ -4,7 +4,9 @@ from collections import Counter
 from pathlib import Path
 
 from raes_contracts.canonical import canonical_json_bytes
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 from raes_contracts.json_ingress import parse_bounded_json_object
+
 from tools.research_evidence import release_managed_source_bytes
 
 from . import export
@@ -37,20 +39,20 @@ def source_pins(root: Path) -> dict[str, str]:
         directory = safe_path(root, relative)
         for path in directory.rglob("*"):
             if path.is_symlink():
-                raise ValueError("unsafe mapping source directory or file")
+                raise InvalidInputError("unsafe mapping source directory or file")
             if path.is_relative_to(root / HISTORICAL_TOMBSTONES):
                 continue
             if path.suffix in {".py", ".json", ".yaml"}:
                 paths.add(path.relative_to(root).as_posix())
     if not 1 <= len(paths) <= 10000:
-        raise ValueError("mapping source inventory exceeds limit")
+        raise InvalidInputError("mapping source inventory exceeds limit")
     pins = {}
     total = 0
     for relative in sorted(paths):
         data = read_bytes(root, relative, max_bytes=16 * 1024 * 1024)
         total += len(data)
         if total > 128 * 1024 * 1024:
-            raise ValueError("mapping source bytes exceed limit")
+            raise InvalidInputError("mapping source bytes exceed limit")
         # A Release Please version bump must not change the source being released.
         pins[relative] = export.digest(release_managed_source_bytes(relative, data))
     return pins
@@ -64,7 +66,8 @@ OUTPUT_PATH = f"{OUTPUT_ROOT}/capture-{_SOURCE_ID}"
 def build_bundle(root: Path, reports: dict[str, dict[str, object]]) -> dict[str, bytes]:
     pins = source_pins(root)
     if pins != _EXECUTING_PINS:
-        raise ValueError("mapping executing source identity drift")
+        raise EvidenceIntegrityError("mapping executing source identity drift")
+    # The case reports come from the executing mapping code, not from repository input (rule E2).
     if not 1 <= len(reports) <= 64 or any(
         item.get("classification")
         not in {"match", "incompatible", "observation-gap", "invalid-evidence"}
@@ -86,7 +89,7 @@ def build_bundle(root: Path, reports: dict[str, dict[str, object]]) -> dict[str,
         "participant-crossing-projection@rev1",
         "rev8",
     ):
-        raise ValueError("mapping profile identity drift")
+        raise EvidenceIntegrityError("mapping profile identity drift")
     retained_manifest_bytes = read_bytes(root, export.OUTPUT_PATH + "/manifest.json")
     retained = parse_bounded_json_object(
         retained_manifest_bytes, max_bytes=2 * 1024 * 1024, max_depth=32
@@ -97,7 +100,7 @@ def build_bundle(root: Path, reports: dict[str, dict[str, object]]) -> dict[str,
         data = read_bytes(root, relative)
         model_pins[relative] = export.digest(data)
         if model_pins[relative] != expected or current[name] != data:
-            raise ValueError("retained model artifact drift")
+            raise EvidenceIntegrityError("retained model artifact drift")
     model_pins[export.OUTPUT_PATH + "/manifest.json"] = export.digest(
         retained_manifest_bytes
     )
@@ -141,7 +144,7 @@ def build_bundle(root: Path, reports: dict[str, dict[str, object]]) -> dict[str,
         "manifest.json": canonical_json_bytes(manifest) + b"\n",
     }
     if any(len(value) > 2 * 1024 * 1024 for value in result.values()):
-        raise ValueError("mapping artifact exceeds limit")
+        raise InvalidInputError("mapping artifact exceeds limit")
     return result
 
 

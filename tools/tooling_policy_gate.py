@@ -15,6 +15,7 @@ from pathlib import Path, PurePosixPath
 
 from tools.tooling_installed_tree import (
     SHA256_PATTERN,
+    ArtifactPolicyError,
     LockedInstalledTree,
     locked_installed_tree,
 )
@@ -24,6 +25,10 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 _VALIDATOR_TIMEOUT_SECONDS = 180
 _INVALID_SELECTION_RESPONSE = "development artifact policy failed before acquisition: invalid selection response"
 _INVALID_HOST_RESPONSE = "development artifact policy failed before acquisition: invalid host selection response"
+_SELECTION_REJECTED = "development artifact policy failed before acquisition: selection rejected"
+_VALIDATOR_INCOMPLETE = (
+    "development artifact policy failed before acquisition: the frozen project validator could not complete"
+)
 
 
 @dataclass(frozen=True)
@@ -69,19 +74,19 @@ def _is_portable_manifest_path(path: str) -> bool:
 
 def _locked_manifest_entry(value: object) -> LockedManifestEntry:
     if not isinstance(value, dict):
-        raise RuntimeError("development artifact policy failed before acquisition: invalid manifest entry")
+        raise ArtifactPolicyError("development artifact policy failed before acquisition: invalid manifest entry")
     path = value.get("path")
     digest = value.get("sha256")
     size = value.get("size")
     executable = value.get("executable", False)
     if not isinstance(path, str) or not _is_portable_manifest_path(path):
-        raise RuntimeError("development artifact policy failed before acquisition: invalid manifest path")
+        raise ArtifactPolicyError("development artifact policy failed before acquisition: invalid manifest path")
     if not isinstance(digest, str) or SHA256_PATTERN.fullmatch(digest) is None:
-        raise RuntimeError("development artifact policy failed before acquisition: invalid manifest digest")
+        raise ArtifactPolicyError("development artifact policy failed before acquisition: invalid manifest digest")
     if not isinstance(size, int) or isinstance(size, bool) or size < 1:
-        raise RuntimeError("development artifact policy failed before acquisition: invalid manifest size")
+        raise ArtifactPolicyError("development artifact policy failed before acquisition: invalid manifest size")
     if not isinstance(executable, bool):
-        raise RuntimeError("development artifact policy failed before acquisition: invalid executable intent")
+        raise ArtifactPolicyError("development artifact policy failed before acquisition: invalid executable intent")
     return LockedManifestEntry(path, digest, size, executable)
 
 
@@ -89,11 +94,11 @@ def _locked_installed_identity(value: object) -> tuple[tuple[str, str], ...]:
     """Return the closed installed identity of an image-class selection."""
 
     if not isinstance(value, dict):
-        raise RuntimeError("development artifact policy failed before acquisition: invalid installed identity")
+        raise ArtifactPolicyError("development artifact policy failed before acquisition: invalid installed identity")
     fields = ("implementation", "version", "abi", "target")
     entries = tuple((name, value.get(name)) for name in fields)
     if any(not isinstance(item, str) or not item for _, item in entries):
-        raise RuntimeError("development artifact policy failed before acquisition: invalid installed identity")
+        raise ArtifactPolicyError("development artifact policy failed before acquisition: invalid installed identity")
     return tuple((name, str(item)) for name, item in entries)
 
 
@@ -104,7 +109,7 @@ def safe_tooling_cache_parent(repo_root: Path, target: Path, *, artifact_id: str
     try:
         parts = target.parent.relative_to(repo_root).parts
     except ValueError as exc:
-        raise RuntimeError(f"{artifact_id} cache path escapes the repository") from exc
+        raise ArtifactPolicyError(f"{artifact_id} cache path escapes the repository") from exc
     current = canonical_root
     for part in parts:
         current /= part
@@ -117,7 +122,7 @@ def safe_tooling_cache_parent(repo_root: Path, target: Path, *, artifact_id: str
             except FileExistsError:
                 mode = current.lstat().st_mode
         if stat.S_ISLNK(mode) or not stat.S_ISDIR(mode):
-            raise RuntimeError(f"unsafe {artifact_id} cache directory")
+            raise ArtifactPolicyError(f"unsafe {artifact_id} cache directory")
     return current
 
 
@@ -130,7 +135,7 @@ def host_platform_id() -> str:
         "x86_64": "x86_64",
     }.get(platform.machine().lower())
     if system is None or machine is None:
-        raise RuntimeError("development artifact policy does not support this host platform")
+        raise ArtifactPolicyError("development artifact policy does not support this host platform")
     return f"{system}-{machine}"
 
 
@@ -139,7 +144,7 @@ def _frozen_validator_command(policy_root: Path) -> list[str]:
     validator_python = project_root / ".venv" / "bin" / "python"
     validator = policy_root / "tools" / "check_tooling_artifact_policy.py"
     if not validator.is_file():
-        raise RuntimeError(
+        raise ArtifactPolicyError(
             "development artifact policy failed before acquisition: the frozen tool validator is unavailable"
         )
     if validator_python.is_file():
@@ -150,7 +155,7 @@ def _frozen_validator_command(policy_root: Path) -> list[str]:
         or not (project_root / "pyproject.toml").is_file()
         or not (project_root / "uv.lock").is_file()
     ):
-        raise RuntimeError(
+        raise ArtifactPolicyError(
             "development artifact policy failed before acquisition: the frozen tool validator is unavailable"
         )
     return [
@@ -169,7 +174,7 @@ def _current_interpreter_validator_command(policy_root: Path) -> list[str]:
     validator_python = Path(sys.executable)
     validator = policy_root / "tools" / "check_tooling_artifact_policy.py"
     if not validator_python.is_absolute() or not validator_python.is_file() or not validator.is_file():
-        raise RuntimeError(
+        raise ArtifactPolicyError(
             "development artifact policy failed before acquisition: the active tool validator is unavailable"
         )
     return [str(validator_python), str(validator)]
@@ -187,6 +192,34 @@ def _validator_environment() -> dict[str, str]:
     return environment
 
 
+def _validator_response(arguments: list[str]) -> str:
+    """Run the frozen validator once and return its selection response."""
+
+    # A NUL character cannot cross the process boundary, and no reviewed selection identity contains one.
+    if any("\0" in argument for argument in arguments):
+        raise ArtifactPolicyError(_SELECTION_REJECTED)
+    try:
+        proc = subprocess.run(
+            arguments,
+            cwd=REPO_ROOT,
+            env=_validator_environment(),
+            stdin=subprocess.DEVNULL,
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=_VALIDATOR_TIMEOUT_SECONDS,
+        )
+    except UnicodeEncodeError as exc:
+        # An argument without a file-system encoding cannot name a reviewed selection either.
+        raise ArtifactPolicyError(_SELECTION_REJECTED) from exc
+    except (OSError, UnicodeDecodeError, subprocess.SubprocessError) as exc:
+        # UnicodeDecodeError: the validator response is not text in the locale encoding.
+        raise ArtifactPolicyError(_VALIDATOR_INCOMPLETE) from exc
+    if proc.returncode != 0:
+        raise ArtifactPolicyError(_SELECTION_REJECTED)
+    return proc.stdout
+
+
 def _validator_stdout(
     validator_command: list[str],
     *,
@@ -195,64 +228,32 @@ def _validator_stdout(
     platform_id: str,
     profile_id: str,
 ) -> str:
-    try:
-        proc = subprocess.run(
-            [
-                *validator_command,
-                "--select-artifact",
-                artifact_id,
-                "--version",
-                version,
-                "--platform-id",
-                platform_id,
-                "--profile-id",
-                profile_id,
-            ],
-            cwd=REPO_ROOT,
-            env=_validator_environment(),
-            stdin=subprocess.DEVNULL,
-            text=True,
-            capture_output=True,
-            check=False,
-            timeout=_VALIDATOR_TIMEOUT_SECONDS,
-        )
-    except (OSError, subprocess.SubprocessError) as exc:
-        raise RuntimeError(
-            "development artifact policy failed before acquisition: the frozen project validator could not complete"
-        ) from exc
-    if proc.returncode != 0:
-        raise RuntimeError("development artifact policy failed before acquisition: selection rejected") from None
-    return proc.stdout
+    return _validator_response(
+        [
+            *validator_command,
+            "--select-artifact",
+            artifact_id,
+            "--version",
+            version,
+            "--platform-id",
+            platform_id,
+            "--profile-id",
+            profile_id,
+        ]
+    )
 
 
 def _validator_host_stdout(validator_command: list[str], *, host_profile_id: str) -> str:
-    try:
-        proc = subprocess.run(
-            [*validator_command, "--select-host-profile", host_profile_id],
-            cwd=REPO_ROOT,
-            env=_validator_environment(),
-            stdin=subprocess.DEVNULL,
-            text=True,
-            capture_output=True,
-            check=False,
-            timeout=_VALIDATOR_TIMEOUT_SECONDS,
-        )
-    except (OSError, subprocess.SubprocessError) as exc:
-        raise RuntimeError(
-            "development artifact policy failed before acquisition: the frozen project validator could not complete"
-        ) from exc
-    if proc.returncode != 0:
-        raise RuntimeError("development artifact policy failed before acquisition: selection rejected") from None
-    return proc.stdout
+    return _validator_response([*validator_command, "--select-host-profile", host_profile_id])
 
 
 def _selection_document(payload: str, invalid_response: str = _INVALID_SELECTION_RESPONSE) -> dict[str, object]:
     try:
         selection = json.loads(payload)
     except (json.JSONDecodeError, UnicodeError) as exc:
-        raise RuntimeError(invalid_response) from exc
+        raise ArtifactPolicyError(invalid_response) from exc
     if not isinstance(selection, dict):
-        raise RuntimeError(invalid_response)
+        raise ArtifactPolicyError(invalid_response)
     return selection
 
 
@@ -264,7 +265,7 @@ def _selection_from_document(  # NOSONAR -- closed-schema validation is intentio
         source = selection["source"]
         platform = selection["platform"]
         if not isinstance(source, dict) or not isinstance(platform, dict):
-            raise TypeError
+            raise ArtifactPolicyError(_INVALID_SELECTION_RESPONSE)
         raw_values = platform["raw_manifest"]
         source_urls = platform["source_urls"]
         locator_refs = source["locator_refs"]
@@ -282,7 +283,7 @@ def _selection_from_document(  # NOSONAR -- closed-schema validation is intentio
             or not isinstance(artifact_class, str)
             or not artifact_class
         ):
-            raise TypeError
+            raise ArtifactPolicyError(_INVALID_SELECTION_RESPONSE)
         raw_manifest = tuple(_locked_manifest_entry(item) for item in raw_values)
         # Only an OCI image is admitted by its immutable manifest digest and a
         # closed installed identity; every other class must keep an extracted
@@ -296,7 +297,7 @@ def _selection_from_document(  # NOSONAR -- closed-schema validation is intentio
             oci_graph = None
             installed_values = platform["installed_manifest"]
             if not isinstance(installed_values, list):
-                raise TypeError
+                raise ArtifactPolicyError(_INVALID_SELECTION_RESPONSE)
             installed_manifest = tuple(_locked_manifest_entry(item) for item in installed_values)
         result = LockedArtifactSelection(
             artifact_id=selection["artifact_id"],
@@ -317,8 +318,8 @@ def _selection_from_document(  # NOSONAR -- closed-schema validation is intentio
             asset=source["asset"],
         )
         selected_profile_ids = platform["profile_ids"]
-    except (KeyError, TypeError) as exc:
-        raise RuntimeError(_INVALID_SELECTION_RESPONSE) from exc
+    except KeyError as exc:
+        raise ArtifactPolicyError(_INVALID_SELECTION_RESPONSE) from exc
     return result, selected_profile_ids
 
 
@@ -392,7 +393,7 @@ def load_tooling_artifact_selection(
         platform_id=platform_id,
         profile_id=profile_id,
     ):
-        raise RuntimeError(_INVALID_SELECTION_RESPONSE)
+        raise ArtifactPolicyError(_INVALID_SELECTION_RESPONSE)
     return result
 
 
@@ -414,7 +415,7 @@ def _load_tooling_host_profile_selection(  # NOSONAR -- closed response validati
         or not isinstance(policy_sha256, str)
         or SHA256_PATTERN.fullmatch(policy_sha256) is None
     ):
-        raise RuntimeError(_INVALID_HOST_RESPONSE)
+        raise ArtifactPolicyError(_INVALID_HOST_RESPONSE)
     expected_ids = host.get("bootstrap_payload_ids")
     selected_ids = [item.get("artifact_id") for item in artifacts]
     if (
@@ -424,13 +425,13 @@ def _load_tooling_host_profile_selection(  # NOSONAR -- closed response validati
         or sorted(expected_ids) != sorted(selected_ids)
         or len(set(selected_ids)) != len(selected_ids)
     ):
-        raise RuntimeError(_INVALID_HOST_RESPONSE)
+        raise ArtifactPolicyError(_INVALID_HOST_RESPONSE)
     try:
         for artifact in artifacts:
             source = artifact["source"]
             platform_data = artifact["platform"]
             if not isinstance(source, dict) or not isinstance(platform_data, dict):
-                raise TypeError
+                raise ArtifactPolicyError(_INVALID_HOST_RESPONSE)
             raw_values = platform_data["raw_manifest"]
             installed_values = platform_data.get("installed_manifest", [])
             source_urls = platform_data["source_urls"]
@@ -448,7 +449,7 @@ def _load_tooling_host_profile_selection(  # NOSONAR -- closed response validati
                 or not policy_refs
                 or not all(isinstance(value, str) and value for value in policy_refs)
             ):
-                raise TypeError
+                raise ArtifactPolicyError(_INVALID_HOST_RESPONSE)
             raw_manifest = tuple(_locked_manifest_entry(item) for item in raw_values)
             installed_manifest = tuple(_locked_manifest_entry(item) for item in installed_values)
             installed_identity = platform_data.get("installed_identity")
@@ -473,9 +474,9 @@ def _load_tooling_host_profile_selection(  # NOSONAR -- closed response validati
                 )
                 or not all(isinstance(value, str) and value for value in scalar_values)
             ):
-                raise TypeError
-    except (KeyError, TypeError, RuntimeError):
-        raise RuntimeError(_INVALID_HOST_RESPONSE) from None
+                raise ArtifactPolicyError(_INVALID_HOST_RESPONSE)
+    except (KeyError, ArtifactPolicyError):
+        raise ArtifactPolicyError(_INVALID_HOST_RESPONSE) from None
     return selection
 
 

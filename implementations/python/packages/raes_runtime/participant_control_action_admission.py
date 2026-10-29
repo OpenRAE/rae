@@ -25,10 +25,13 @@ if TYPE_CHECKING:
 
 from raes_contracts.contracts.participant_control import ParticipantControlTargetKind
 from raes_contracts.contracts.participant_control_occurrence_v2 import parse_participant_control_occurrence
+from raes_contracts.errors import ConflictError
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 
-from .participant_control_runtime import admitted_policy, resolve_owner_cut
+from .participant_control_runtime import CONTROL_CUT_REFUSALS, admitted_policy, resolve_owner_cut
 from .participant_control_targets import archived_control_targets
+
+_ENDED_EPISODE = "linked control proposal belongs to an ended episode"
 
 
 def linked_action_refusal(plane: RuntimeControlPlane, request: object) -> ApplyResult | None:
@@ -39,7 +42,7 @@ def linked_action_refusal(plane: RuntimeControlPlane, request: object) -> ApplyR
 
     try:
         require_live_control_proposal(plane, request)
-    except ValueError, PermissionError, TimeoutError:
+    except CONTROL_CUT_REFUSALS:
         return ApplyResult(
             False,
             plane._snapshot,
@@ -76,7 +79,7 @@ def require_live_control_proposal(plane: RuntimeControlPlane, request: object) -
     )
     proposal_ref = request.validated_selection.proposal_ref
     if archive.proposal_episodes.get(proposal_ref, set()) - {episode}:
-        raise ValueError("linked control proposal belongs to an ended episode")
+        raise ConflictError(_ENDED_EPISODE)
     if archive.lineages.get(episode) != "2.0.0":
         return
     policy = admitted_policy(plane, participant, episode)
@@ -103,7 +106,7 @@ def _current_control_history(
         and record.episode_id != episode
         for record in archive
     ):
-        raise ValueError("linked control proposal belongs to an ended episode")
+        raise ConflictError(_ENDED_EPISODE)
     return [record for record in archive if record.episode_id == episode]
 
 
@@ -116,13 +119,13 @@ def _require_eligible_approval(
 ) -> ParticipantApprovalOccurrenceV2Model:
     lifecycle = folded.lifecycle(proposal.record_event_id)
     if state.get("status") != "running" or lifecycle.superseded or lifecycle.replaced:
-        raise ValueError("linked control proposal is no longer eligible")
+        raise ConflictError("linked control proposal is no longer eligible")
     decisions = _live_decisions(history, folded, proposal.target_ref)
     if len(decisions) != 1:
-        raise ValueError("linked proposal requires one live approval")
+        raise ConflictError("linked proposal requires one live approval")
     proposed = next(record.occurrence for record in history if record.event_id == proposal.record_event_id)
     if proposed.action_contract_ref != request.action_contract_address:
-        raise ValueError("linked proposal action contract changed")
+        raise ConflictError("linked proposal action contract changed")
     return decisions[0].occurrence
 
 
@@ -150,7 +153,7 @@ def _require_action_cut(
 ) -> None:
     method = getattr(plane._mixed_control.resolver, "resolve_action_cut", None)
     if not callable(method):
-        raise ValueError("linked proposal has no admitted action-cut owner")
+        raise ConflictError("linked proposal has no admitted action-cut owner")
     cut = resolve_owner_cut(plane, policy, request, method)
     current = policy.state(state_ref)
     if (
@@ -160,4 +163,4 @@ def _require_action_cut(
         or not approval.valid_from_order <= cut.effective_order <= approval.valid_until_order
         or not current.valid_from_order <= cut.effective_order <= current.valid_until_order
     ):
-        raise ValueError("linked approval is not valid at action admission")
+        raise ConflictError("linked approval is not valid at action admission")

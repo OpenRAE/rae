@@ -9,6 +9,7 @@ from threading import Thread
 from time import monotonic
 
 import pytest
+from raes_contracts.errors import ConflictError
 
 pytestmark = pytest.mark.integration
 
@@ -32,6 +33,7 @@ def _exercise_process_loss(phase, tmp_path, database):
     from raes_contracts.planning import ProvisioningPlan
     from raes_contracts.runtime_state import OperationState
     from raes_runtime.control_plane import RuntimeControlPlane
+    from raes_runtime.control_plane_store import IndeterminateClaimBlocked
     from raes_runtime.control_plane_store_postgresql import PostgreSQLControlPlaneStore
 
     config = ledger_configuration(database)
@@ -66,7 +68,7 @@ def _exercise_process_loss(phase, tmp_path, database):
         assert receipt == record.receipt
         if record.invocation.reserved:
             rejected_plan = ProvisioningPlan()
-            with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
+            with pytest.raises(IndeterminateClaimBlocked, match="indeterminate operation requires resolution"):
                 plane.submit_provisioning(rejected_plan)
         assert calls == []
         assert plane._store.load_records()[record.receipt.operation_id].invocation == record.invocation
@@ -238,7 +240,8 @@ async def _exercise(blocked, tmp_path, database):
             rejected_capabilities = provider.operation_capabilities()
             rejected_admission = provider.check_operation(retained.invocation.request)
             rejected_identity = worker()
-            with pytest.raises(ValueError):
+            # A reopened owner has a new generation, so the retained grant is stale (ConflictError).
+            with pytest.raises(ConflictError, match="owner generation is stale"):
                 reopened.claim_backend_invocation(
                     retained.invocation.request.binding,
                     rejected_capabilities,

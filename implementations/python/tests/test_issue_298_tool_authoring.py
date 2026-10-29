@@ -594,7 +594,8 @@ def test_importing_scenario_bindings_fail_closed(
             f"action_contract_address '{LOCAL_AFFORDANCE}' is not declared by compiled participant behavior "
             f"'{OPERATOR}'",
         ),
-        (OPERATOR, IMPORTED_SCAN, "'implementation_manifest' and 'implementation_selection'"),
+        # The refusal is fixed and does not repeat the constructor's exception text (ADR-116 rule E7).
+        (OPERATOR, IMPORTED_SCAN, "The admission fields do not satisfy the participant action admission contract."),
     ],
     ids=["shown-to-a-participant-without-the-action", "tool-address-as-action", "no-implementation-binding"],
 )

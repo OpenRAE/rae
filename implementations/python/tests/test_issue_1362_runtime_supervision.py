@@ -5,10 +5,12 @@ from threading import Event, Thread
 
 import pytest
 from raes_backend_stubs.stubs import StubProvisioner, create_stub_target
+from raes_contracts.errors import AuthorizationError
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import OperationState
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_security import ControlPlaneIdentity, ControlPlaneRole
+from raes_runtime.errors import RuntimeBudgetExhaustedError
 
 
 def supervisor(target="stub"):
@@ -36,7 +38,7 @@ def test_blocked_native_apply_allows_stop_and_cancel_then_fences_its_late_succes
     def submit():
         try:
             receipts.append(plane.submit_provisioning(ProvisioningPlan(), idempotency_key="blocked-1362"))
-        except BaseException as exc:
+        except BaseException as exc:  # noqa: BLE001 - the worker hands the exception to the test thread, which asserts it.
             failures.append(exc)
 
     worker = Thread(target=submit)
@@ -57,7 +59,7 @@ def test_blocked_native_apply_allows_stop_and_cancel_then_fences_its_late_succes
         assert plane.get_operation(parent_id).state is OperationState.INDETERMINATE
         assert plane._store.load_records()[parent_id].invocation.reserved
         assert plane.submit_provisioning(ProvisioningPlan(), idempotency_key="blocked-1362") == receipts[0]
-        with pytest.raises(TimeoutError):
+        with pytest.raises(RuntimeBudgetExhaustedError):
             plane.close()
         assert plane.get_operation(parent_id).state is OperationState.INDETERMINATE
     finally:
@@ -71,7 +73,7 @@ def test_stop_is_scoped_and_an_unauthorized_actor_cannot_close_admission():
     plane = RuntimeControlPlane(create_stub_target())
     try:
         rejected_identity = supervisor("another-target")
-        with pytest.raises(PermissionError):
+        with pytest.raises(AuthorizationError):
             plane.stop_admission(identity=rejected_identity)
         assert not plane._store.effect_admission_stopped()
         receipt = plane.submit_provisioning(ProvisioningPlan())

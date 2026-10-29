@@ -83,6 +83,14 @@ def test_malformed_verifier_output_is_refused() -> None:
     assert excinfo.value.code == "verifier-output-unparsable"
 
 
+def test_verifier_errors_form_one_family_under_the_root() -> None:
+    from raes_contracts.errors import RaesError
+
+    # Rejected evidence and a verifier that cannot run are different categories.
+    assert VerifierError.__bases__ == (RaesError,)
+    assert VerifierError("code", "message").code == "code"
+
+
 def test_oversized_verifier_output_is_refused() -> None:
     with pytest.raises(VerifierError) as excinfo:
         parse_verifier_output("[" + "0," * 5_000_000 + "0]")

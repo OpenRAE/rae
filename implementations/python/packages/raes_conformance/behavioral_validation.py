@@ -12,9 +12,12 @@ from typing import Protocol
 from raes_contracts.behavioral_relations import validate_behavioral_claim_binding
 from raes_contracts.contracts import BehavioralClaimBindingModel
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.errors import RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 
 from ._realization_models import ExecutionBasis
 
+_LOGGER = get_logger(__name__)
 _SHA256_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 
 
@@ -310,6 +313,9 @@ def run_behavioral_validation_probe(
     try:
         evidence = executor.execute(case)
     except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Isolation of the injected executor and the subject it drives: a refusal category needs no record.
+            _LOGGER.exception("behavioral probe executor failed", exc_info=foreign_failure_record(exc))
         return _result(
             case,
             outcome=BehavioralProbeOutcome.FAILED,

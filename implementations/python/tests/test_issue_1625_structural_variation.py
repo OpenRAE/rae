@@ -12,6 +12,7 @@ from raes import SDLValidationError, select_scenario_family
 from raes.canonical import canonical_instantiated_sdl_digest, canonical_sdl_bytes, canonical_sdl_digest
 from raes.parser import parse_sdl_file
 from raes.scenario import ExpandedScenario, InstantiatedScenario
+from raes.selected_scenario import SDLSelectionError
 from raes.validator import SemanticValidator
 from raes_contracts.contracts import ExperimentSelectionMemberOutcomeModel
 
@@ -144,7 +145,7 @@ def test_absence_does_not_remove_surviving_incoming_references() -> None:
     payload["content"] = {"file": {"type": "file", "target": "host", "path": "/opt/file"}}
     family = _family(payload)
     outcomes = {"host-state": _outcome("absent")}
-    with pytest.raises(ValueError, match="whole-scenario semantic admission"):
+    with pytest.raises(SDLSelectionError, match="whole-scenario semantic admission"):
         select_scenario_family(family, outcomes)
 
 
@@ -156,7 +157,7 @@ def test_absence_conflicts_with_descendant_writes_before_application(reverse: bo
         payload["variation_points"] = dict(reversed(payload["variation_points"].items()))
     family = _family(payload)
     outcomes = {"host-state": _outcome("absent"), "jobs": _outcome("chosen")}
-    with pytest.raises(ValueError, match="conflict"):
+    with pytest.raises(SDLSelectionError, match="conflict"):
         select_scenario_family(family, outcomes)
 
 
@@ -165,7 +166,7 @@ def test_coupled_and_separate_inventory_writes_must_agree() -> None:
     payload["variation_points"]["jobs"] = _inventory_point([])
     family = _family(payload)
     outcomes = {"host-state": _outcome("baseline"), "jobs": _outcome("chosen")}
-    with pytest.raises(ValueError, match="conflict"):
+    with pytest.raises(SDLSelectionError, match="conflict"):
         select_scenario_family(family, outcomes)
 
 
@@ -435,7 +436,7 @@ def test_dependent_reference_choice_can_make_node_absence_valid() -> None:
     assert selected.content["file"].target == "other"
     assert set(selected.nodes) == {"other"}
     invalid_outcomes = {"host-state": _outcome("absent"), "where": _outcome("original")}
-    with pytest.raises(ValueError, match="violates requires"):
+    with pytest.raises(SDLSelectionError, match="violates requires"):
         select_scenario_family(family, invalid_outcomes)
 
 

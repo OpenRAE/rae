@@ -9,6 +9,7 @@ from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_protocols.operation_supervision import BackendOperationProvider
 from raes_backend_protocols.protocols import Evaluator, Orchestrator, ParticipantRuntime, Provisioner, TimeRuntime
 from raes_backend_protocols.recovery_observation import RecoveryObserver
+from raes_contracts.errors import NotFoundError
 from raes_contracts.observation_demand import ObservationBasis, ObservationLifecycleStage
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.realization_preparation import BACKEND_PREPARATION_CONTRACT
@@ -450,7 +451,7 @@ class BackendRegistry:
     def describe(self, name: str) -> RuntimeTargetDescriptor:
         if name not in self._descriptors:
             registered = sorted(self._descriptors)
-            raise KeyError(f"Unknown backend '{name}'. Registered backends: {registered}")
+            raise NotFoundError(f"Unknown backend '{name}'. Registered backends: {registered}")
         return self._descriptors[name]
 
     def manifest(self, name: str, **config: Any) -> BackendManifest:

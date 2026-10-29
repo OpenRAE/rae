@@ -2,6 +2,7 @@
 
 import pytest
 from raes_contracts.contracts.participant_inject_application import ParticipantInjectApplicationModel
+from raes_contracts.errors import AuthorizationError, ConflictError, EvidenceIntegrityError
 
 
 def application(**changes):
@@ -39,7 +40,7 @@ def test_public_delivery_requires_an_installed_owner_and_does_not_refire_world(t
 
     delivery_request = application()
     configured_runtime = configured_plane(tmp_path)[0]
-    with configured_runtime as plane, pytest.raises(ValueError, match="delivery.*unavailable"):
+    with configured_runtime as plane, pytest.raises(ConflictError, match="delivery.*unavailable"):
         plane.deliver_participant_inject(delivery_request)
 
 
@@ -73,7 +74,7 @@ def test_exact_retry_and_new_key_cannot_repeat_logical_delivery(tmp_path):
             update={"request_key": "different-key", "expected_snapshot_revision": plane._snapshot_state.revision}
         )
         delivery_identity = caller()
-        with pytest.raises(ValueError, match="already claimed"):
+        with pytest.raises(ConflictError, match="already claimed"):
             plane.deliver_participant_inject(
                 conflicting_request,
                 identity=delivery_identity,
@@ -96,7 +97,7 @@ def test_invalid_or_unauthorized_join_discloses_nothing(tmp_path, change):
     request = type(request).model_validate({**request.model_dump(mode="json"), **changes.get(change, {})})
     with plane:
         delivery_identity = caller(audience=change != "audience")
-        with pytest.raises((ValueError, PermissionError)):
+        with pytest.raises((ConflictError, AuthorizationError)):
             plane.deliver_participant_inject(request, identity=delivery_identity)
         assert not any(record.inject_delivery for record in plane._store.load_records().values())
         assert backend.starts == 1
@@ -110,7 +111,7 @@ def test_delivery_failure_preserves_world_and_capture_outcomes(tmp_path):
     with plane:
         owner.fail = True
         delivery_identity = caller()
-        with pytest.raises(ValueError, match="projection"):
+        with pytest.raises(ConflictError, match="projection"):
             plane.deliver_participant_inject(request, identity=delivery_identity)
         assert plane.get_operation(request.world_operation_id).state is OperationState.SUCCEEDED
         assert plane.get_inject_correlation(request.world_operation_id, identity=caller())
@@ -184,7 +185,7 @@ def test_capture_failure_preserves_applied_world_but_withholds_delivery(tmp_path
         assert plane.get_operation(request.world_operation_id).state is OperationState.SUCCEEDED
         assert plane._store.load_records()[request.world_operation_id].result_payload["status"] == "failed"
         delivery_identity = caller()
-        with pytest.raises(ValueError, match="capture"):
+        with pytest.raises(ConflictError, match="capture"):
             plane.deliver_participant_inject(request, identity=delivery_identity)
         assert backend.starts == 1
 
@@ -259,7 +260,7 @@ def test_control_join_cannot_be_forged_or_revived(tmp_path, invalid):
             }
         )
         delivery_identity = caller(controller=invalid != "controller")
-        with pytest.raises((ValueError, PermissionError)):
+        with pytest.raises((ConflictError, AuthorizationError)):
             plane.deliver_participant_inject(selected, identity=delivery_identity)
         assert not any(record.inject_delivery for record in plane._store.load_records().values())
         assert backend.starts == 1
@@ -313,7 +314,7 @@ def test_lost_delivery_commit_ack_retains_claim_across_reopen(tmp_path, committe
             assert plane.deliver_participant_inject(request, identity=caller()).delivery.application == request
         else:
             delivery_identity = caller()
-            with pytest.raises(ValueError, match="withheld"):
+            with pytest.raises(ConflictError, match="withheld"):
                 plane.deliver_participant_inject(request, identity=delivery_identity)
         assert backend.starts == 0
 
@@ -363,7 +364,7 @@ def test_transformation_cannot_replace_the_authored_delivery_coordinates(tmp_pat
     plane, backend, _, request = configured_plane(tmp_path, resolver=ChangedCoordinateResolver())
     with plane:
         delivery_identity = caller()
-        with pytest.raises(ValueError, match="projection binding differs"):
+        with pytest.raises(EvidenceIntegrityError, match="projection binding differs"):
             plane.deliver_participant_inject(request, identity=delivery_identity)
         assert plane._crossing_policy_resolver.changed is not None
         assert not any(record.inject_delivery for record in plane._store.load_records().values())

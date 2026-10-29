@@ -10,9 +10,17 @@ import os
 import signal
 import stat
 import subprocess
+import sys
 from collections.abc import Sequence
 from contextlib import suppress
+from pathlib import Path
 from typing import BinaryIO
+
+RAES_PACKAGES_ROOT = Path(__file__).resolve().parents[1] / "implementations" / "python" / "packages"
+if str(RAES_PACKAGES_ROOT) not in sys.path:
+    sys.path.insert(0, str(RAES_PACKAGES_ROOT))
+
+from raes_contracts.errors import OperationalError  # noqa: E402
 
 
 def run_bounded(
@@ -53,9 +61,9 @@ def run_bounded(
         )
         code = child.wait(timeout=wall_seconds)
         if code != 0 or any(os.fstat(stream.fileno()).st_size >= file_bytes for stream in (stdout, stderr)):
-            raise RuntimeError("bounded-tool-failed")
+            raise OperationalError("bounded-tool-failed")
     except (OSError, subprocess.TimeoutExpired):
-        raise RuntimeError("bounded-tool-failed") from None
+        raise OperationalError("bounded-tool-failed") from None
     finally:
         if child is not None:
             with suppress(ProcessLookupError):

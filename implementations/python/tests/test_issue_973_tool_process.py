@@ -6,6 +6,7 @@ import sys
 import tempfile
 
 import pytest
+from raes_contracts.errors import OperationalError
 
 
 def test_process_environment_is_explicit(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -31,6 +32,6 @@ def test_failed_or_over_budget_process_is_not_a_result(program: str) -> None:
     with (
         tempfile.TemporaryFile() as output,
         tempfile.TemporaryFile() as errors,
-        pytest.raises(RuntimeError, match="bounded-tool-failed"),
+        pytest.raises(OperationalError, match="bounded-tool-failed"),
     ):
         run_bounded([sys.executable, "-c", program], stdout=output, stderr=errors, wall_seconds=0.1, file_bytes=1024)

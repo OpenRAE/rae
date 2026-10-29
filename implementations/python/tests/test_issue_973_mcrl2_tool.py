@@ -1,8 +1,38 @@
 """Closed decisions and sandboxed input/output for the admitted checker."""
 
+import importlib
+import sys
 from pathlib import Path
 
 import pytest
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError, OperationalError
+
+
+@pytest.mark.parametrize(
+    "module_name,operation,action",
+    [
+        ("tools.mcrl2_tool", "require_mcrl2", "check-installation"),
+        ("implementations.formal.participant_crossing.counterexample_corpus", "load_retained", "check"),
+    ],
+)
+def test_cli_handles_domain_failure_but_preserves_programming_defects(
+    monkeypatch: pytest.MonkeyPatch, module_name: str, operation: str, action: str
+) -> None:
+    module = importlib.import_module(module_name)
+    monkeypatch.setattr(sys, "argv", [module_name, action])
+
+    def unavailable(*_args):
+        raise OperationalError("dependency unavailable")
+
+    monkeypatch.setattr(module, operation, unavailable)
+    assert module.main() == 1
+
+    def defective(*_args):
+        raise ValueError("internal defect")
+
+    monkeypatch.setattr(module, operation, defective)
+    with pytest.raises(ValueError, match="internal defect"):
+        module.main()
 
 
 @pytest.mark.parametrize("payload,expected", [(b"true\n", True), (b"false\n", False)])
@@ -16,7 +46,7 @@ def test_boolean_protocol(payload: bytes, expected: bool) -> None:
 def test_invalid_output_is_no_decision(payload: bytes) -> None:
     from tools.mcrl2_tool import parse_decision
 
-    with pytest.raises(ValueError, match="invalid checker decision"):
+    with pytest.raises(EvidenceIntegrityError, match="invalid checker decision"):
         parse_decision(payload)
 
 
@@ -62,7 +92,7 @@ def test_compare_admits_only_successful_closed_output(
 
     def execute(command, *, stdout, stderr):
         if behavior == "failure":
-            raise RuntimeError("bounded-tool-failed")
+            raise OperationalError("bounded-tool-failed")
         stdout.write(b"false\n" if behavior != "garbage" else b"fatal: /private/path")
         stdout.flush()
         if behavior == "unsafe-witness":
@@ -74,5 +104,5 @@ def test_compare_admits_only_successful_closed_output(
     if behavior == "false":
         assert mcrl2_tool.compare(tmp_path, model, model, "dpbranching-bisim").equivalent is False
     else:
-        with pytest.raises((RuntimeError, ValueError)):
+        with pytest.raises((OperationalError, EvidenceIntegrityError, InvalidInputError)):
             mcrl2_tool.compare(tmp_path, model, model, "branching-bisim", formula=behavior == "unsafe-witness")

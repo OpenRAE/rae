@@ -4,6 +4,8 @@ import os
 import stat
 from pathlib import Path, PurePosixPath
 
+from raes_contracts.errors import InvalidInputError
+
 from tools.policy.common import safe_repo_path
 
 MAX_BYTES = 2 * 1024 * 1024
@@ -12,19 +14,20 @@ MAX_BYTES = 2 * 1024 * 1024
 def safe_path(root: Path, relative: str) -> Path:
     parts = PurePosixPath(relative).parts
     if not parts or len(relative) > 256 or "\\" in relative or any(part in {".", ".."} for part in parts):
-        raise ValueError("unsafe model artifact path")
+        raise InvalidInputError("unsafe model artifact path")
     target = safe_repo_path(root, relative)
     if target is None or target != root.resolve() / relative:
-        raise ValueError("unsafe model artifact path")
+        raise InvalidInputError("unsafe model artifact path")
     cursor = root.resolve()
     for part in parts:
         cursor /= part
         if cursor.is_symlink():
-            raise ValueError("unsafe model artifact path")
+            raise InvalidInputError("unsafe model artifact path")
     return target
 
 
 def read_bytes(root: Path, relative: str, *, max_bytes: int = MAX_BYTES) -> bytes:
+    # The byte limit is a caller argument, not repository input (rule E2).
     if type(max_bytes) is not int or not 0 < max_bytes <= 32 * 1024 * 1024:
         raise ValueError("invalid model artifact byte limit")
     safe_path(root, relative)
@@ -39,12 +42,13 @@ def read_bytes(root: Path, relative: str, *, max_bytes: int = MAX_BYTES) -> byte
         with os.fdopen(descriptor, "rb") as stream:
             info = os.fstat(stream.fileno())
             if not stat.S_ISREG(info.st_mode) or info.st_size > max_bytes:
-                raise ValueError("invalid model artifact file")
+                raise InvalidInputError("invalid model artifact file")
             content = stream.read(max_bytes + 1)
             if len(content) > max_bytes:
-                raise ValueError("model artifact exceeds byte limit")
+                raise InvalidInputError("model artifact exceeds byte limit")
             return content
     except OSError:
-        raise ValueError("model artifact is unavailable or unsafe") from None
+        # The path and OS detail stay out of the message; absence is an expected refusal.
+        raise InvalidInputError("model artifact is unavailable or unsafe") from None
     finally:
         os.close(directory)

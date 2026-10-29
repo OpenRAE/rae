@@ -7,7 +7,8 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import BinaryIO
 
-from tools.bounded_tool_process import run_bounded
+from tools.bounded_tool_process import OperationalError, run_bounded
+from tools.verified_tool_installation import ToolInstallationError
 
 
 @contextmanager
@@ -23,7 +24,7 @@ def decoded_debian_tree(stream: BinaryIO) -> Iterator[BinaryIO]:
                 stderr=errors,
                 file_bytes=256 * 1024 * 1024,
             )
-        except RuntimeError:
-            raise RuntimeError("tool-installation: archive-decoder-failed") from None
+        except OperationalError:
+            raise ToolInstallationError("tool-installation: archive-decoder-failed") from None
         decoded.seek(0)
         yield decoded

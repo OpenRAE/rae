@@ -10,6 +10,7 @@ from raes.semantics.domain_topology import (
     analyze_domain_topology,
 )
 from raes.value_parsing import is_variable_ref
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.realization_structure import validate_realization_value
 
@@ -82,7 +83,7 @@ def _admitted_profile_authority(profile_authority: PlanProfileAuthority | None) 
     if profile_authority is None:
         return None
     if not validate_realization_value(profile_authority, python_carriers=True).conformant:
-        raise ValueError("Plan profile carrier exceeds bounded public input limits")
+        raise InvalidInputError("Plan profile carrier exceeds bounded public input limits")
     return PlanProfileAuthority.model_validate(profile_authority.model_dump(mode="json"))
 
 

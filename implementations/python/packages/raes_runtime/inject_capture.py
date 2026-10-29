@@ -9,7 +9,9 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import model_validator
 from raes_contracts.contracts.backend_operation import OperationContractModel
+from raes_contracts.errors import ConflictError, RaesError
 from raes_contracts.observation_demand import EffectiveObservationDemand
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.planning import OrchestrationPlan
 from raes_contracts.realization_structure import validate_realization_value
 from raes_contracts.runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
@@ -20,6 +22,8 @@ from .observation_results import observation_execution_from_payload
 if TYPE_CHECKING:
     from .control_plane import RuntimeControlPlane
     from .control_plane_store import ControlPlaneOperationRecord
+
+_LOGGER = get_logger(__name__)
 
 
 @dataclass(frozen=True)
@@ -60,7 +64,7 @@ def require_capture_admission(plane: RuntimeControlPlane, plan: OrchestrationPla
         durable_lifecycle_available=True,
     )
     if diagnostic is not None:
-        raise ValueError("inject capture capability is unavailable")
+        raise ConflictError("inject capture capability is unavailable")
 
 
 def capture_inject(
@@ -88,7 +92,10 @@ def capture_inject(
             )
         if diagnostic is None and execution is not None:
             result = InjectCaptureResult(status="succeeded", observation=execution.result_payload)
-    except Exception:
+    except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Isolation of the observation runtime: the capture records a failure instead.
+            _LOGGER.exception("inject capture observation failed", exc_info=foreign_failure_record(exc))
         result = InjectCaptureResult(status="failed")
     return result
 

@@ -5,13 +5,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from typing import Any
 
     from .control_plane import RuntimeControlPlane
     from .control_plane_store import ControlPlaneOperationRecord
 
 
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, fields
 
 from pydantic import TypeAdapter
 from raes_contracts.contracts import (
@@ -34,6 +36,7 @@ from raes_contracts.contracts.participant_control_occurrence_v2 import (
     parse_participant_control_occurrence,
 )
 from raes_contracts.contracts.participant_control_occurrence_v2_policy import ParticipantControlOccurrenceTarget
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError, InvalidInputError
 from raes_contracts.runtime_state import OperationState, RuntimeSnapshot
 
 from .participant_control_intents import (
@@ -46,6 +49,10 @@ from .participant_control_intents import (
     ParticipantOverrideControlIntent,
     ParticipantProposalControlIntent,
 )
+
+_RETAINED_HISTORY_INVALID = "retained participant history does not validate"
+_UNBOUND_TARGET = "stored target visibility is not bound to its committed control cut"
+_TARGET_FIELDS = frozenset(item.name for item in fields(ParticipantControlOccurrenceTarget))
 
 
 @dataclass(frozen=True)
@@ -103,15 +110,28 @@ def participant_control_targets(
         for payload in events:
             _register_control_targets(
                 targets,
-                parse_participant_control_occurrence(payload),
+                _retained_record(parse_participant_control_occurrence, payload),
             )
     for events in snapshot.participant_behavior_history.values():
         for payload in events:
             _register_behavior_targets(
                 targets,
-                ParticipantBehaviorHistoryEventModel.model_validate(payload),
+                _retained_record(ParticipantBehaviorHistoryEventModel.model_validate, payload),
             )
     return tuple(targets.values())
+
+
+def _retained_record[RecordT](parse: Callable[[Any], RecordT], payload: object) -> RecordT:
+    """Read one retained record; the published readers refuse a record with ValueError."""
+
+    # The readers take a mapping. A restored store can retain any opaque JSON value.
+    if not isinstance(payload, Mapping):
+        raise EvidenceIntegrityError(_RETAINED_HISTORY_INVALID)
+    try:
+        return parse(payload)
+    # A restored store can retain a record that the history map keeps as opaque legacy data.
+    except ValueError as exc:
+        raise EvidenceIntegrityError(_RETAINED_HISTORY_INVALID) from exc
 
 
 def _register_control_targets(
@@ -230,7 +250,7 @@ def _register(
     candidate = ResolvedParticipantControlTarget(context=context, predecessor_ref=predecessor_ref)
     existing = targets.setdefault(key, candidate)
     if existing != candidate:
-        raise ValueError("runtime target identity is ambiguous")
+        raise ConflictError("runtime target identity is ambiguous")
 
 
 def _intent_target(
@@ -241,7 +261,8 @@ def _intent_target(
         if intent.source_proposal_ref is None:
             target = None
         else:
-            assert intent.source_proposal_revision is not None
+            if intent.source_proposal_revision is None:
+                raise InvalidInputError("proposal intent source reference requires its revision")
             target = (
                 ParticipantControlTargetKind.PROPOSAL,
                 intent.source_proposal_ref,
@@ -309,7 +330,7 @@ def archived_control_targets(
     for record in operation_index(plane).target_records.values():
         if record.status.state not in {OperationState.SUCCEEDED, OperationState.FAILED}:
             continue
-        for payload in (record.result_payload or {}).get("participant_control_available_targets", ()):
+        for payload in _retained_targets(record):
             if payload["participant_address"] == participant:
                 if isinstance(history, HistoryMap):
                     event_id = record.result_payload.get("participant_control_occurrence_ref")
@@ -318,23 +339,39 @@ def archived_control_targets(
     return tuple(targets)
 
 
+def _retained_targets(record: ControlPlaneOperationRecord) -> tuple[Mapping[str, Any], ...]:
+    """Refuse a malformed retained target list before a coordinate reader runs."""
+
+    payloads = (record.result_payload or {}).get("participant_control_available_targets", ())
+    if not isinstance(payloads, list | tuple) or not all(
+        isinstance(payload, Mapping) and payload.keys() == _TARGET_FIELDS for payload in payloads
+    ):
+        raise EvidenceIntegrityError(_UNBOUND_TARGET)
+    return tuple(payloads)
+
+
 def _archived_target(
-    record: ControlPlaneOperationRecord, payload: dict[str, Any], events: dict[str, dict[str, Any]]
+    record: ControlPlaneOperationRecord, payload: Mapping[str, Any], events: dict[str, dict[str, Any]]
 ) -> ParticipantControlOccurrenceTarget:
-    TypeAdapter(ControlPosition).validate_python(payload["target_revision"])
-    TypeAdapter(ControlCount).validate_python(payload["available_at"])
-    for field in ("target_ref", "participant_address", "episode_id"):
-        TypeAdapter(ControlRef).validate_python(payload[field])
+    try:
+        TypeAdapter(ControlPosition).validate_python(payload["target_revision"])
+        TypeAdapter(ControlCount).validate_python(payload["available_at"])
+        for field in ("target_ref", "participant_address", "episode_id"):
+            TypeAdapter(ControlRef).validate_python(payload[field])
+        target = ParticipantControlOccurrenceTarget(
+            **{**payload, "target_kind": ParticipantControlTargetKind(payload["target_kind"])}
+        )
+    # The retained target payload failed its contract coordinates.
+    except ValueError as exc:
+        raise EvidenceIntegrityError(_UNBOUND_TARGET) from exc
     event = events.get((record.result_payload or {}).get("participant_control_occurrence_ref"))
     if (
         event is None
         or payload["episode_id"] != event["episode_id"]
         or payload["available_at"] != event["occurrence"]["occurrence_revision"] - 1
     ):
-        raise ValueError("stored target visibility is not bound to its committed control cut")
-    return ParticipantControlOccurrenceTarget(
-        **{**payload, "target_kind": ParticipantControlTargetKind(payload["target_kind"])}
-    )
+        raise EvidenceIntegrityError(_UNBOUND_TARGET)
+    return target
 
 
 def control_target_identity(
@@ -393,7 +430,7 @@ def _scoped_target_operation(
         or context.operation_kind.value != "participant-action"
         or not any(scope.startswith(f"participant-control:{participant}:") for scope in context.authorization_scope)
     ):
-        raise ValueError("cancellation target has no exact participant execution owner")
+        raise ConflictError("cancellation target has no exact participant execution owner")
     return record
 
 

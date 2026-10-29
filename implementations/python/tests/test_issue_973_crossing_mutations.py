@@ -5,6 +5,7 @@ from dataclasses import replace
 import pytest
 from implementations.formal.participant_crossing import concrete
 from implementations.formal.participant_crossing.aut import parse_aut, render_aut
+from raes_contracts.errors import InvalidInputError
 
 
 def test_required_faults_have_exact_reversible_deltas() -> None:
@@ -82,5 +83,5 @@ def test_removed_delivery_is_structural_deadlock_and_observation_stays_visible()
 def test_error_and_native_tau_are_not_hidden_by_the_carrier() -> None:
     for label in ("tau", "crossing.error", "payload.secret"):
         payload = f'des (0, 1, 1)\n(0,"{label}",0)\n'.encode()
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidInputError):
             parse_aut(payload)

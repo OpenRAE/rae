@@ -24,8 +24,9 @@ from raes_contracts.contracts.trial_replacement_archive import (
     replacement_resources_reusable,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError
 
-from .compiler import _CaptureAdmissionFailure, _compile, _diagnostic
+from .compiler import _INPUT_REFUSALS, _CaptureAdmissionFailure, _compile, _diagnostic
 from .inputs import coordinates
 from .models import CompilationFailure, TrialCompilationRequest
 from .replacement_inputs import ReplacementCompilationContext
@@ -51,7 +52,11 @@ def _clean_parent(
     run: ExperimentRunModel,
     receipts: Sequence[TrialCleanupReceiptModel],
 ) -> TrialCleanupReceiptModel:
-    receipt = replacement_parent_cleanup(plan, run, receipts)
+    try:
+        receipt = replacement_parent_cleanup(plan, run, receipts)
+    except ValueError as exc:
+        # The contract owner reports unreconciled parent evidence with ValueError (E3); refuse here (E9).
+        raise InvalidInputError("replacement parent evidence does not reconcile with its admitted plan") from exc
     entry = plan.entries[run.trial_provenance.plan_entry_id]
     cleanup = plan.cleanup_plans[entry.execution_controls.cleanup_plan_ref]
     if not replacement_resources_reusable(cleanup, receipt):
@@ -241,7 +246,7 @@ def compile_replacement_trial(
         return TrialReplacementResult(None, None, exc.diagnostics)
     except CompilationFailure as exc:
         failure = exc
-    except (TypeError, ValueError, KeyError, AttributeError, StopIteration) as exc:
+    except _INPUT_REFUSALS as exc:
         failure = _refuse("input-invalid", "replacement input failed closed validation")
         failure.__cause__ = exc
     return TrialReplacementResult(None, None, (_diagnostic(failure),))

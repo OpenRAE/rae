@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from itertools import product
 
+from raes import SDLSelectionError
 from raes.scenario import ExpandedScenario
 from raes.selected_scenario import ExpandedScenarioBindingTargetResolver
 from raes_contracts.contracts import (
@@ -398,7 +399,7 @@ def _treatment_coordinate_selections(
         for treatment in assignment.required_selections:
             try:
                 resolver.validate_selection(treatment)
-            except ValueError as exc:
+            except SDLSelectionError as exc:
                 raise CompilationFailure(
                     "selection-treatment-rejected",
                     _FACTORIAL_DESIGN_ADDRESS,

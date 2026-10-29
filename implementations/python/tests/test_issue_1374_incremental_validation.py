@@ -173,11 +173,15 @@ def test_completion_reuses_passes_that_do_not_read_the_relationship(monkeypatch:
 
 
 def test_completion_rejects_a_structurally_invalid_edit_without_variation_points() -> None:
-    from raes._language_relationship_candidates import _RelationshipContext, _semantic_candidate_allowed
+    from raes._language_relationship_candidates import (
+        _RelationshipContext,
+        _semantic_candidate_allowed,
+        _semantic_errors,
+    )
 
     scenario = _fixture(_twin("mail_access")).model_copy(update={"variation_points": {}})
     session = ValidationSession()
-    baseline = set(_outcome(scenario, session)[0])
+    baseline = _semantic_errors(scenario, session)
     pointer = ["relationships", "probe", "mail_access", "protocol"]
     context = _RelationshipContext(pointer, "probe", {}, scenario, False, None, baseline, session)  # type: ignore[arg-type]
 

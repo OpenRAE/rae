@@ -2,15 +2,24 @@
 
 from __future__ import annotations
 
+import sys
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from implementations.tooling.action_policy_yaml import parse_yaml_mapping
-from tools.tooling_artifact_policy_common import as_list, as_mapping
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError  # noqa: E402
+
+from implementations.tooling.action_policy_yaml import parse_yaml_mapping  # noqa: E402
+from tools.tooling_artifact_policy_common import as_list, as_mapping  # noqa: E402
 
 
-class WorkflowInputError(ValueError):
+class WorkflowInputError(InvalidInputError):
     """A workflow cannot supply safely parsed, immutable action identities."""
 
 

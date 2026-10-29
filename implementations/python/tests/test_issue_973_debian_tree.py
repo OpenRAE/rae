@@ -12,8 +12,9 @@ from pathlib import Path
 import pytest
 from tools import verified_tree_archive as archive
 from tools import verified_tree_installation as installation
-from tools.tooling_installed_tree import LockedInstalledTree, locked_installed_tree
+from tools.tooling_installed_tree import ArtifactPolicyError, LockedInstalledTree, locked_installed_tree
 from tools.tooling_policy_gate import LockedManifestEntry
+from tools.verified_tool_installation import ToolInstallationError
 from tools.verified_tree_manifest import parse_manifest
 
 
@@ -84,7 +85,7 @@ def test_debian_format_binds_manifest_and_lock(tmp_path: Path) -> None:
     assert set(parse_manifest(payload, locked)) == {entry.path for entry in entries}
     default_payload = archive.manifest_bytes(entries)
     assert default_payload != payload
-    with pytest.raises(RuntimeError, match="tree-integrity-failure"):
+    with pytest.raises(ToolInstallationError, match="tree-integrity-failure"):
         parse_manifest(default_payload, locked)
 
 
@@ -99,12 +100,12 @@ def test_debian_format_binds_manifest_and_lock(tmp_path: Path) -> None:
 )
 def test_debian_members_still_cross_existing_admission(tmp_path: Path, name: str, kind: bytes) -> None:
     payload = deb_bytes(name, kind=kind)
-    with pytest.raises(RuntimeError, match="unsafe-archive-member"):
+    with pytest.raises(ToolInstallationError, match="unsafe-archive-member"):
         describe(tmp_path, payload)
 
 
 def test_bad_debian_decoder_input_has_no_manifest(tmp_path: Path) -> None:
-    with pytest.raises(RuntimeError, match="archive-decoder-failed"):
+    with pytest.raises(ToolInstallationError, match="archive-decoder-failed"):
         describe(tmp_path, b"invalid archive")
 
 
@@ -117,14 +118,14 @@ def test_unknown_archive_format_is_not_admitted(tmp_path: Path) -> None:
         "symlink_count": 0,
         "expanded_bytes": 1,
     }
-    with pytest.raises(RuntimeError, match="invalid installed tree"):
+    with pytest.raises(ArtifactPolicyError, match="invalid installed tree"):
         locked_installed_tree(descriptor)
-    with pytest.raises(RuntimeError, match="unsupported-archive-format"):
+    with pytest.raises(ToolInstallationError, match="unsupported-archive-format"):
         archive.manifest_bytes([], archive_format="zip")
 
 
 def test_untyped_manifest_format_has_a_closed_failure() -> None:
     descriptor = LockedInstalledTree("deb", "0" * 64, 1, 1, 0, 1)
     payload = json.dumps({"schema": archive.TREE_MANIFEST_SCHEMA, "format": [], "entries": []}).encode()
-    with pytest.raises(RuntimeError, match="tree-integrity-failure"):
+    with pytest.raises(ToolInstallationError, match="tree-integrity-failure"):
         parse_manifest(payload, descriptor)
