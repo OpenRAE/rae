@@ -101,6 +101,7 @@ def configured_plane(
     profile=None,
     world_identity=None,
     participants=True,
+    participant_control=None,
 ):
     from mixed_control_rev1_scenarios import rev1_delivery_scenario
 
@@ -197,6 +198,7 @@ def configured_plane(
         "participant_transformation",
         "participant_directed_inject_delivery",
         "participant_intervention",
+        *(("participant_modular_control",) if participant_control is not None else ()),
     )
     selected = replace(selected, manifest=replace(selected.manifest, capabilities=policy.manifest.capabilities))
     from raes_contracts.observation_demand import ObservationLifecycleStage
@@ -299,6 +301,7 @@ def configured_plane(
         inject_delivery=ParticipantInjectRuntimeBinding(model=model, resolver=owner),
         behavior_specifications=model.behavior_specifications,
         crossing_policy_resolver=resolver,
+        participant_control=participant_control,
         **options,
     )
     if controlled:

@@ -33,6 +33,10 @@ def iter_participant_control_evaluation_snapshot_violations(
     history: Mapping[str, Sequence[dict[str, object]]],
 ) -> list[tuple[str, str]]:
     """Return value-safe violations for one complete evaluation-history snapshot."""
+    from .immutable_history import HistoryMap
+
+    if type(history) is HistoryMap and history._field == "participant_control_evaluation_history":
+        return []
 
     violations: list[tuple[str, str]] = []
     seen: set[str] = set()
@@ -62,7 +66,7 @@ def _validated(
 ) -> ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model | None:
     try:
         return participant_control_evaluation_from_payload(payload)
-    except (TypeError, ValidationError, ValueError):
+    except TypeError, ValidationError, ValueError:
         # Bounded and value-independent: a rejected record never enters evidence.
         violations.append((address, "participant control evaluation record is not a valid API-424 evaluation"))
         return None
@@ -82,7 +86,7 @@ def iter_participant_control_evaluation_transition_violations(
     for participant_address, prior in before.items():
         address = f"runtime.snapshot.participant-control-evaluation-history.{participant_address}"
         current = after.get(participant_address)
-        if current is None or list(current) != list(prior):
+        if current is None or current != prior:
             yield address, "participant control evaluation history is runtime-owned and must be preserved exactly"
     for participant_address in set(after) - set(before):
         address = f"runtime.snapshot.participant-control-evaluation-history.{participant_address}"

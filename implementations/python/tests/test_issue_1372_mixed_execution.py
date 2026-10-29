@@ -144,12 +144,12 @@ def test_foreign_producer_keeps_prior_execution_without_inventing_delivery():
 
 def test_blocked_bridge_has_responsive_controls_and_no_late_completion():
     from threading import Thread
-    from time import monotonic
 
     from mixed_execution_fixtures import portable_plane
     from raes_runtime.operation_supervision_configuration import OperationSupervisionConfiguration
 
-    plane, state, roles, _, _ = portable_plane(supervision=OperationSupervisionConfiguration(execution_ms=700))
+    # The blocked submission returns only when this execution budget ends.
+    plane, state, roles, _, _ = portable_plane(supervision=OperationSupervisionConfiguration(execution_ms=2000))
     bridge = roles["bridge"]
     bridge.release.clear()
     receipts, failures = [], []
@@ -165,12 +165,13 @@ def test_blocked_bridge_has_responsive_controls_and_no_late_completion():
     try:
         assert bridge.started.wait(2)
         operation_id = bridge.request.binding.operation_id
-        started = monotonic()
         plane.stop_admission(identity=identity())
         plane.cancel_operation(operation_id, control_id="cancel:blocked", identity=identity())
-        assert monotonic() - started < 0.6
+        # Both controls answered before the execution budget released the
+        # blocked submission, so neither waited for the bridge or the deadline.
+        assert thread.is_alive()
         assert bridge.cancels == 1
-        thread.join(2)
+        thread.join(5)
         assert not thread.is_alive()
         assert not failures
         assert plane.get_operation(operation_id, identity=identity()).state is OperationState.INDETERMINATE

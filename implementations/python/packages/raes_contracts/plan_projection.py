@@ -109,6 +109,8 @@ def provisioning_plan_model(plan: ProvisioningPlan) -> ProvisioningPlanModel:
     """Project a provisioning plan into its published contract model."""
 
     return ProvisioningPlanModel(
+        inventory_attempt_id=plan.inventory_attempt_id,
+        inventory_refresh=plan.inventory_refresh,
         materialization_source=plan.materialization_source,
         augmentation_scope_required=plan.augmentation_scope_required,
         purpose=plan.purpose,

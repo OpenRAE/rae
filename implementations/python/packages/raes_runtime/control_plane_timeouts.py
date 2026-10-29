@@ -76,7 +76,7 @@ def _running_workflow_result(result_payload: object) -> WorkflowExecutionState |
         raise ValueError(INVALID_WORKFLOW_STATE)
     try:
         candidate = WorkflowExecutionState.from_payload(result_payload)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         raise ValueError(INVALID_WORKFLOW_STATE) from None
     return candidate if candidate.workflow_status == WorkflowStatus.RUNNING else None
 

@@ -14,7 +14,6 @@ from raes_backend_protocols.recovery_observation import (
     RecoveryObserver,
 )
 from raes_contracts.diagnostics import Diagnostic, Severity
-from raes_contracts.operation_lifecycle import OperationAdmissionContext
 from raes_contracts.runtime_state import (
     ApplyResult,
     OperationKind,
@@ -34,17 +33,20 @@ from .control_plane_operation_context import (
     operation_admission_context,
 )
 from .control_plane_resolution_records import IndeterminateResolutionDisposition, is_valid_resolution_child
+from .control_plane_resolution_records import authorize_resolution as _authorize_resolution
 from .control_plane_store import (
     ControlPlaneOperationRecord,
     NewClaimRejected,
     TerminalCommitMode,
 )
 from .mixed_runtime_recovery import require_resolvable_mixed_action_cut, requires_mixed_stage_reconciliation
+from .runtime_operation_routing import run_operation
 
 
 class RuntimeRecoveryMixin:
     """Runtime-owned administrative recovery entry points."""
 
+    @run_operation
     @runtime_owned
     @mutation_entry(OperationKind.INDETERMINATE_RESOLUTION)
     def resolve_indeterminate_operation(
@@ -328,12 +330,19 @@ def unresolved_indeterminate_operation_ids(
 ) -> tuple[str, ...]:
     """Return immutable indeterminate parents without a successful resolution child."""
 
-    records = control_plane._store.load_records()
-    return unresolved_indeterminate_operation_ids_from_records(
-        records,
-        target_scope=target_scope,
-        run_scope=run_scope,
-    )
+    from .participant_control_operation_index import operation_index
+
+    with control_plane._operation_lock:
+        control_plane._refresh_operation_records()
+        unresolved = operation_index(control_plane).unresolved
+        return tuple(
+            sorted(
+                identity
+                for identity, record in unresolved.items()
+                if (target_scope is None or record.status.context.target_scope == target_scope)
+                and (run_scope is None or record.status.context.run_scope == run_scope)
+            )
+        )
 
 
 def unresolved_indeterminate_operation_ids_from_records(
@@ -448,38 +457,6 @@ def resolve_indeterminate_operation(
             mode=TerminalCommitMode.OPERATION_ONLY,
         )
         return receipt
-
-
-def _authorize_resolution(
-    control_plane: object,
-    parent: ControlPlaneOperationRecord,
-    context: OperationAdmissionContext,
-    identity: object | None,
-) -> None:
-    roles = {getattr(role, "value", role) for role in getattr(identity, "roles", ())}
-    target_name = getattr(identity, "target_name", None)
-    required_subjects = {
-        scope for scope in parent.status.context.authorization_scope if scope.startswith("participant-control:")
-    }
-    supplied_scopes = set(context.authorization_scope)
-    allowed = (
-        "operator" in roles
-        and target_name == control_plane._target.name
-        and parent.status.context.target_scope == context.target_scope
-        and parent.status.context.run_scope == context.run_scope
-        and required_subjects.issubset(supplied_scopes)
-    )
-    if allowed:
-        return
-    control_plane.record_audit(
-        action="resolve_indeterminate_operation",
-        identity=getattr(identity, "identity", "unattributed"),
-        allowed=False,
-        target=parent.status.context.target_scope,
-        operation_id=parent.receipt.operation_id,
-        reason="resolution-forbidden",
-    )
-    raise PermissionError("indeterminate resolution is forbidden")
 
 
 __all__ = (

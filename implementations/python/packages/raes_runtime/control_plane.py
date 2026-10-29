@@ -1,499 +1,134 @@
-"""Reference async-style control plane over runtime targets."""
+"""Shared runtime engine with a compatible fixed default run context."""
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from copy import deepcopy
-from threading import RLock
-from typing import TypeVar, Unpack
+from dataclasses import replace
+from typing import Unpack
 
-from raes_contracts.planning import (
-    EvaluationPlan,
-    OrchestrationPlan,
-    ProvisioningPlan,
-    RuntimeDomain,
-)
-from raes_contracts.runtime_state import (
-    OperationKind,
-    OperationReceipt,
-    OperationStatus,
-    RuntimeSnapshot,
-    RuntimeSnapshotEnvelope,
-)
-
-from .control_plane_admission import RuntimeAdmissionMixin
-from .control_plane_composition import bind_execution_store, compose_operation_execution, compose_participant_boundary
 from .control_plane_configuration import ControlPlaneConfiguration, ControlPlaneOptions
-from .control_plane_durability import RuntimeDurabilityMixin
-from .control_plane_execution import (
-    OperationExecutionRequest,
-    execute_operation,
-    reject_new_operation_if_admission_fails,
+from .control_plane_lifecycle import runtime_owned
+from .control_plane_operation_context import operation_actor_scope
+from .control_plane_security import ControlPlaneIdentity as ControlPlaneIdentity
+from .control_plane_store import ControlPlaneOperationRecord
+from .control_plane_store import LocalControlPlaneStore as LocalControlPlaneStore
+from .participant_control_binding import (
+    ParticipantControlResolution,
+    ParticipantControlRuntimeBinding,
+    ParticipantControlRuntimeResolver,
 )
-from .control_plane_injects import RuntimeInjectMixin
-from .control_plane_lifecycle import RuntimeLifecycleMixin, runtime_owned, store_authoritative_state
-from .control_plane_mutation import (
-    RuntimeMutationAuthority,
-    SubordinateMutationGate,
-    control_plane_mutation,
-    mutation_entry,
+from .participant_control_effects import ParticipantControlEffectRealization
+from .registry import RuntimeTarget
+from .runtime_engine import RuntimeEngineResources
+from .runtime_run_context import RuntimeRunContext
+
+__all__ = (
+    "ControlPlaneIdentity",
+    "ControlPlaneOperationRecord",
+    "ControlPlaneOptions",
+    "LocalControlPlaneStore",
+    "ParticipantControlEffectRealization",
+    "ParticipantControlResolution",
+    "ParticipantControlRuntimeBinding",
+    "ParticipantControlRuntimeResolver",
+    "RuntimeControlPlane",
+    "operation_actor_scope",
 )
-from .control_plane_operation_context import (
-    legacy_operation_request_commitment,
-    operation_actor_scope,
-    operation_admission_context,
-    operation_idempotency_fingerprint,
-    operation_requires_ephemeral_retry_proof,
-    runtime_target_scope,
-)
-from .control_plane_plan_authorization import RuntimePlanAuthorizationMixin
-from .control_plane_profiles import (
-    CORE_CAPABILITIES,
-    ControlPlaneProfile,
-    ControlPlaneProfileDeclaration,
-    require_profile_capabilities,
-    select_profile,
-    store_capabilities,
-)
-from .control_plane_recovery import RuntimeRecoveryMixin, reconcile_startup_operations
-from .control_plane_store import (
-    AuditEvent,
-    ControlPlaneOperationRecord,
-    ControlPlaneStore,
-    IdempotencyClaimIdentity,
-    InMemoryControlPlaneStore,
-    RuntimeAdmittedControlPlaneStore,
-    SnapshotState,
-    require_operation_record_scopes,
-)
-from .control_plane_store_compatibility import adapt_control_plane_store
-from .control_plane_submission import control_plane_plan_diagnostics
-from .control_plane_submission import unavailable_backend_diagnostics as _unavailable_backend_diagnostics
-from .control_plane_supervision import RuntimeSupervisionMixin
-from .control_plane_workflow_control import WorkflowControlMixin
-from .mixed_runtime import MixedRuntimeMixin
-from .mixed_runtime_recovery import validate_restored_mixed_crossing_cut
-from .observation_execution import ObservationExecution
-from .observation_results import observation_execution_from_payload
-from .operation_reconciliation import RuntimeInvocationReconciliationMixin
-from .operation_worker_authority import RuntimeWorkerAuthorityMixin
-from .operational_apparatus import operational_apparatus_summary
-from .participant_control import ParticipantControlMixin
-from .participant_information_state_validation import require_participant_information_state_snapshot
-from .participant_retrieval import ParticipantRetrievalMixin
-from .registry import RuntimeTarget as _RuntimeTarget
-
-_ProjectionT = TypeVar("_ProjectionT")
-_P0_SCOPE_BOUND_ERROR = "control-plane profile P0 missing capabilities: store.scope-bound"
 
 
-def _unavailable_backend(*_args: object, **_kwargs: object) -> object:
-    raise AssertionError("an unavailable backend cannot be invoked")
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from raes_contracts.trial_unit import TrialUnitResult
+    from raes_processor.trial_realization import TrialRealizationInputs
+
+    from .control_plane_store import ControlPlaneStore
+    from .runtime_experiment import ExperimentProgress
+    from .runtime_experiment_replacement import ExperimentReplacementBinding
+    from .runtime_sequence_authority import RuntimeSequenceOptions
+    from .runtime_sequence_reference import RuntimeSequenceReference
+    from .runtime_trial_services import TrialRuntimeServices
 
 
-def _prepare_control_plane_store(
-    config: ControlPlaneConfiguration,
-) -> tuple[ControlPlaneProfileDeclaration | None, ControlPlaneStore]:
-    if config.store is not None and config.initial_snapshot is not None:
-        raise ValueError("initial_snapshot cannot be combined with an explicit store")
-    declaration = select_profile(config.profile) if config.profile is not None else None
-    if declaration is not None and declaration.profile is ControlPlaneProfile.P2:
-        raise ValueError("P2 is selected by the HTTP composition over a P1 core")
-    store = config.store if config.store is not None else InMemoryControlPlaneStore(config.initial_snapshot)
-    if declaration is not None:
-        _require_selected_store_capabilities(declaration, store)
-    return declaration, store
+class RuntimeControlPlane(RuntimeRunContext):
+    """One engine for all workloads; legacy calls use its fixed default run."""
 
-
-def _require_selected_store_capabilities(declaration: ControlPlaneProfileDeclaration, store: ControlPlaneStore) -> None:
-    require_profile_capabilities(declaration, CORE_CAPABILITIES | store_capabilities(store))
-    if declaration.profile is ControlPlaneProfile.P0 and not callable(getattr(store, "bind_scope", None)):
-        raise TypeError(_P0_SCOPE_BOUND_ERROR)
-    if declaration.profile is ControlPlaneProfile.P1 and not isinstance(store, RuntimeAdmittedControlPlaneStore):
-        raise TypeError("control-plane profile P1 missing capabilities: store.owner-lease")
-
-
-class RuntimeControlPlane(
-    RuntimeInjectMixin,
-    RuntimeLifecycleMixin,
-    RuntimeSupervisionMixin,
-    RuntimeWorkerAuthorityMixin,
-    RuntimeInvocationReconciliationMixin,
-    RuntimeRecoveryMixin,
-    RuntimePlanAuthorizationMixin,
-    RuntimeDurabilityMixin,
-    RuntimeAdmissionMixin,
-    WorkflowControlMixin,
-    ParticipantControlMixin,
-    ParticipantRetrievalMixin,
-    MixedRuntimeMixin,
-):
-    """Reference control plane for async runtime submission and observation."""
-
-    def __init__(
-        self,
-        target: _RuntimeTarget,
-        **options: Unpack[ControlPlaneOptions],
-    ) -> None:
+    def __init__(self, target: RuntimeTarget, **options: Unpack[ControlPlaneOptions]) -> None:
         config = ControlPlaneConfiguration(**options)
-        target_scope = runtime_target_scope(target.name)
-        declaration, selected_store = _prepare_control_plane_store(config)
-        self._profile_declaration = declaration
-        self._initialize_runtime_lifecycle()
-        self._flow_sink_resolver = compose_participant_boundary(target, config)
-        self._target = target
-        self._target_scope, self._run_scope = target_scope, config.run_scope
-        self._mixed_runtime = config.mixed_runtime
-        self._materialization_archive = config.materialization_archive
-        self._enforce_final_sink_flow_control = config.enforce_final_sink_flow_control
-        self._store = selected_store
-        compose_operation_execution(self, config)
-        try:
-            self._mutation_authority = RuntimeMutationAuthority(admission_ms=config.supervision.admission_ms)
-            self._operation_lock = RLock()
-            self._snapshot_projection_depth = 0
-            self._store_commits = adapt_control_plane_store(self._store)
-            self._admit_store_owner()
-            bind_execution_store(self, config)
-            self._restore_persisted_state(config)
-            reconcile_startup_operations(self)
-            self._runtime_ready = True
-        except BaseException:
-            self.close()
-            raise
+        engine = RuntimeEngineResources(self, target, config)
+        super().__init__(target, config=config, engine=engine)
+        self._experiments = {}
+        self._sequence_bindings = {}
 
-    def _admit_store_owner(self) -> None:
-        if self._profile_declaration is not None and self._profile_declaration.profile is ControlPlaneProfile.P0:
-            scope_binder = getattr(self._store, "bind_scope", None)
-            if not callable(scope_binder):
-                raise TypeError(_P0_SCOPE_BOUND_ERROR)
-            owner = scope_binder(target_scope=self._target_scope, run_scope=self._run_scope)
-            if not callable(getattr(owner, "assert_owner", None)) or not callable(getattr(owner, "close", None)):
-                close = getattr(owner, "close", None)
-                if callable(close):
-                    close()
-                raise TypeError(_P0_SCOPE_BOUND_ERROR)
-            self._runtime_lease = owner
-        if isinstance(self._store, RuntimeAdmittedControlPlaneStore):
-            self._runtime_lease = self._store.admit_runtime(
-                target_scope=self._target_scope,
-                run_scope=self._run_scope,
-            )
-
-    def _restore_persisted_state(self, config: ControlPlaneConfiguration) -> None:
-        self._participant_outcome_model = deepcopy(config.participant_outcome_model)
-        self._snapshot_state = self._store.load_snapshot_state()
-        self._operations: dict[str, ControlPlaneOperationRecord] = self._store.load_records()
-        require_operation_record_scopes(self._operations, target_scope=self._target_scope, run_scope=self._run_scope)
-        self._behavior_specifications = dict(config.behavior_specifications or {})
-        self._crossing_policy_resolver = config.crossing_policy_resolver
-        self._information_state_context_resolver = config.information_state_context_resolver
-        self._participant_control = config.participant_control
-        self._mixed_control = config.mixed_control
-        from .participant_control_replay import validate_restored_control_archive
-
-        validate_restored_control_archive(self)
-        self._ephemeral_idempotency_fingerprints: dict[IdempotencyClaimIdentity, str] = {}
-        self._participant_control_lock = SubordinateMutationGate(self._mutation_authority)
-        self._trusted_runtime_plan_lock = RLock()
-        self._trusted_runtime_plan_digests: set[str] = set()
-        self._trusted_orchestration_models: dict[str, object] = {}
-        require_participant_information_state_snapshot(self._snapshot, config.information_state_context_resolver)
-        if self._snapshot.participant_crossing_history:
-            if config.crossing_policy_resolver is None:
-                raise ValueError("persisted participant crossing history requires a policy resolver")
-            validate_restored_mixed_crossing_cut(self, config.crossing_policy_resolver)
-
-    @property
-    def _snapshot(self) -> RuntimeSnapshot:
-        return self._snapshot_state.snapshot
-
-    @property
     @runtime_owned
-    def profile_declaration(self) -> ControlPlaneProfileDeclaration | None:
-        """The selected core profile, or no claim for a legacy composition."""
-
+    def bind_workflow(self, **options: Unpack[RuntimeSequenceOptions]) -> RuntimeSequenceReference:
+        """Bind exact owned artifacts before submitting reference-only delivery."""
         self._assert_runtime_owner()
-        return self._profile_declaration
+        from .runtime_sequence_authority import bind_sequence
 
-    @_snapshot.setter
-    def _snapshot(self, snapshot: RuntimeSnapshot) -> None:
-        self._snapshot_state = SnapshotState(
-            snapshot=snapshot,
-            revision=self._snapshot_state.revision,
-        )
+        return bind_sequence(self, options)
 
     @runtime_owned
-    def _project_snapshot_read(
+    def advance_workflow(self, reference: RuntimeSequenceReference, *, identity: object | None) -> str:
+        self._assert_runtime_owner()
+        from .runtime_sequence_authority import advance_sequence
+
+        return advance_sequence(self, reference, identity)
+
+    @runtime_owned
+    def admit_experiment(
         self,
-        projector: Callable[[], _ProjectionT],
+        inputs: TrialRealizationInputs,
         *,
-        mutation_kind: OperationKind | None = None,
-    ) -> tuple[_ProjectionT, int]:
-        """Project one response from an authoritative, revision-bound state cut."""
-
-        self._assert_runtime_owner()
-        if mutation_kind is not None:
-            with control_plane_mutation(self, mutation_kind):
-                with self._operation_lock:
-                    self._reload_derived_state_if_unpinned()
-                    observed_state = self._snapshot_state
-                    self._snapshot_projection_depth += 1
-                try:
-                    projected = projector()
-                finally:
-                    with self._operation_lock:
-                        self._snapshot_projection_depth -= 1
-                return projected, observed_state.revision
-        with self._operation_lock:
-            self._reload_derived_state_if_unpinned()
-            observed_state = self._snapshot_state
-            self._snapshot_projection_depth += 1
-            try:
-                projected = projector()
-            finally:
-                self._snapshot_projection_depth -= 1
-            return projected, observed_state.revision
-
-    @property
-    @runtime_owned
-    def snapshot(self) -> RuntimeSnapshot:
-        self._assert_runtime_owner()
-        with self._operation_lock:
-            self._reload_derived_state_if_unpinned()
-            return self._snapshot
-
-    @property
-    @runtime_owned
-    def target_name(self) -> str:
-        self._assert_runtime_owner()
-        return self._target.name
-
-    @runtime_owned
-    def audit_log(self) -> list[AuditEvent]:
-        self._assert_runtime_owner()
-        return self._store.read_audit()
-
-    @runtime_owned
-    def operational_apparatus_summary(self) -> dict[str, object]:
-        """Return a compact operational view over existing control-plane carriers."""
-
-        self._assert_runtime_owner()
-        with self._operation_lock:
-            self._reload_derived_state_if_unpinned()
-            operation_records = list(self._operations.values())
-            snapshot = self._snapshot
-        audit_events = self._store.read_audit()
-        return operational_apparatus_summary(
-            target_name=self._target.name,
-            snapshot=snapshot,
-            operation_records=operation_records,
-            audit_events=audit_events,
-        )
-
-    @runtime_owned
-    @mutation_entry(OperationKind.PROVISIONING)
-    @store_authoritative_state
-    def submit_provisioning(
-        self,
-        plan: ProvisioningPlan,
-        *,
-        base_snapshot: RuntimeSnapshot | None = None,
-        idempotency_key: str = "",
-        request_fingerprint: str = "",
+        services: TrialRuntimeServices,
+        store_factory: Callable[[str], ControlPlaneStore] | None = None,
         identity: object | None = None,
-    ) -> OperationReceipt:
+        replacement: ExperimentReplacementBinding | None = None,
+    ) -> str:
         self._assert_runtime_owner()
-        context = operation_admission_context(
-            self,
-            kind=OperationKind.PROVISIONING,
-            request=plan,
-            base_snapshot=base_snapshot,
-            identity=identity,
+        from .runtime_experiment import RuntimeExperiment
+
+        experiment = RuntimeExperiment(
+            self, inputs, services=services, store_factory=store_factory, identity=identity, replacement=replacement
         )
-        exact_retry_fingerprint = (
-            operation_idempotency_fingerprint(
-                kind=OperationKind.PROVISIONING,
-                request=plan,
-                base_snapshot=base_snapshot,
-            )
-            if operation_requires_ephemeral_retry_proof(request=plan, base_snapshot=base_snapshot)
-            else None
-        )
-        request = OperationExecutionRequest(
-            domain=RuntimeDomain.PROVISIONING,
-            method=self._target.provisioner.apply,
-            plan=plan,
-            address="runtime.control-plane.provisioning",
-            diagnostics=[],
-            validation_method=(self._target.provisioner.validate if plan.preparation is None else None),
-            base_snapshot=base_snapshot,
-            idempotency_key=idempotency_key,
-            request_fingerprint=context.request_commitment,
-            context=context,
-            legacy_request_fingerprint=legacy_operation_request_commitment(
-                kind=OperationKind.PROVISIONING,
-                request=plan,
-                base_snapshot=base_snapshot,
-            ),
-            exact_retry_fingerprint=exact_retry_fingerprint,
-            admission_diagnostics=lambda: control_plane_plan_diagnostics(self, plan, RuntimeDomain.PROVISIONING),
-        )
-        denied_or_replay = reject_new_operation_if_admission_fails(self, request)
-        return denied_or_replay or execute_operation(self, request)
+        self._experiments.setdefault(experiment.experiment_id, experiment)
+        return experiment.experiment_id
 
     @runtime_owned
-    @mutation_entry(OperationKind.ORCHESTRATION)
-    @store_authoritative_state
-    def submit_orchestration(
-        self,
-        plan: OrchestrationPlan,
-        *,
-        base_snapshot: RuntimeSnapshot | None = None,
-        idempotency_key: str = "",
-        request_fingerprint: str = "",
-        identity: object | None = None,
-    ) -> OperationReceipt:
+    def advance_experiment(self, experiment_id: str, *, identity: object | None = None) -> ExperimentProgress:
         self._assert_runtime_owner()
-        context = operation_admission_context(
-            self,
-            kind=OperationKind.ORCHESTRATION,
-            request=plan,
-            base_snapshot=base_snapshot,
-            identity=identity,
-        )
-        exact_retry_fingerprint = (
-            operation_idempotency_fingerprint(
-                kind=OperationKind.ORCHESTRATION,
-                request=plan,
-                base_snapshot=base_snapshot,
-            )
-            if operation_requires_ephemeral_retry_proof(request=plan, base_snapshot=base_snapshot)
-            else None
-        )
-        orchestrator = self._target.orchestrator
-        request = OperationExecutionRequest(
-            domain=RuntimeDomain.ORCHESTRATION,
-            method=_unavailable_backend if orchestrator is None else orchestrator.start,
-            plan=plan,
-            address="runtime.control-plane.orchestration",
-            diagnostics=[],
-            base_snapshot=base_snapshot,
-            idempotency_key=idempotency_key,
-            request_fingerprint=context.request_commitment,
-            context=context,
-            legacy_request_fingerprint=legacy_operation_request_commitment(
-                kind=OperationKind.ORCHESTRATION,
-                request=plan,
-                base_snapshot=base_snapshot,
-            ),
-            exact_retry_fingerprint=exact_retry_fingerprint,
-            admission_diagnostics=(
-                (lambda: _unavailable_backend_diagnostics(RuntimeDomain.ORCHESTRATION, "an orchestrator"))
-                if orchestrator is None
-                else lambda: control_plane_plan_diagnostics(self, plan, RuntimeDomain.ORCHESTRATION)
-            ),
-        )
-        denied_or_replay = reject_new_operation_if_admission_fails(self, request)
-        return denied_or_replay or execute_operation(self, request)
+        return self._experiments[experiment_id].advance(identity)
 
     @runtime_owned
-    @mutation_entry(OperationKind.EVALUATION)
-    @store_authoritative_state
-    def submit_evaluation(
-        self,
-        plan: EvaluationPlan,
-        *,
-        base_snapshot: RuntimeSnapshot | None = None,
-        idempotency_key: str = "",
-        request_fingerprint: str = "",
-        identity: object | None = None,
-    ) -> OperationReceipt:
+    def cancel_experiment(self, experiment_id: str, *, identity: object | None = None) -> None:
         self._assert_runtime_owner()
-        context = operation_admission_context(
-            self,
-            kind=OperationKind.EVALUATION,
-            request=plan,
-            base_snapshot=base_snapshot,
-            identity=identity,
-        )
-        exact_retry_fingerprint = (
-            operation_idempotency_fingerprint(
-                kind=OperationKind.EVALUATION,
-                request=plan,
-                base_snapshot=base_snapshot,
-            )
-            if operation_requires_ephemeral_retry_proof(request=plan, base_snapshot=base_snapshot)
-            else None
-        )
-        evaluator = self._target.evaluator
-        request = OperationExecutionRequest(
-            domain=RuntimeDomain.EVALUATION,
-            method=_unavailable_backend if evaluator is None else evaluator.start,
-            plan=plan,
-            address="runtime.control-plane.evaluation",
-            diagnostics=[],
-            base_snapshot=base_snapshot,
-            idempotency_key=idempotency_key,
-            request_fingerprint=context.request_commitment,
-            context=context,
-            legacy_request_fingerprint=legacy_operation_request_commitment(
-                kind=OperationKind.EVALUATION,
-                request=plan,
-                base_snapshot=base_snapshot,
-            ),
-            exact_retry_fingerprint=exact_retry_fingerprint,
-            admission_diagnostics=(
-                (lambda: _unavailable_backend_diagnostics(RuntimeDomain.EVALUATION, "an evaluator"))
-                if evaluator is None
-                else lambda: control_plane_plan_diagnostics(self, plan, RuntimeDomain.EVALUATION)
-            ),
-        )
-        denied_or_replay = reject_new_operation_if_admission_fails(self, request)
-        return denied_or_replay or execute_operation(self, request)
+        self._experiments[experiment_id].cancel(identity)
 
     @runtime_owned
-    def get_operation(
-        self,
-        operation_id: str,
-        *,
-        identity: object | None = None,
-    ) -> OperationStatus | None:
+    def experiment_results(self, experiment_id: str, *, identity: object | None = None) -> tuple[TrialUnitResult, ...]:
         self._assert_runtime_owner()
-        with self._operation_lock:
-            self._operations = self._store.load_records()
-            record = self._operations.get(operation_id)
-        if record is None or not self._operation_read_allowed(record, identity):
-            return None
-        return record.status
-
-    def _operation_read_allowed(
-        self,
-        record: ControlPlaneOperationRecord,
-        identity: object | None,
-    ) -> bool:
-        if identity is None:
-            return True
-        target_name = getattr(identity, "target_name", None)
-        if target_name is not None and target_name != self._target.name:
-            return False
-        actor_id, authorization_scope = operation_actor_scope(identity)
-        context = record.status.context
-        return (actor_id, authorization_scope) == (context.actor_id, context.authorization_scope)
+        return self._experiments[experiment_id].results(identity)
 
     @runtime_owned
-    def observation_execution(self, operation_id: str) -> ObservationExecution | None:
-        """Return committed metadata and explicitly retained descriptions."""
-
+    def open_run(self, **options: Unpack[ControlPlaneOptions]) -> RuntimeRunContext:
+        """Open a fixed run scope without constructing another engine."""
         self._assert_runtime_owner()
-        with self._operation_lock:
-            self._operations = self._store.load_records()
-            record = self._operations.get(operation_id)
-        return observation_execution_from_payload(None if record is None else record.result_payload)
+        if "run_scope" not in options:
+            raise ValueError("a new run requires an explicit run scope")
+        for name in ("supervision", "distributed_execution", "profile"):
+            if name in options and options[name] != getattr(self._engine.configuration, name):
+                raise ValueError("a run cannot replace engine execution configuration")
+        config = replace(self._engine.configuration, **{"store": None, "initial_snapshot": None, **options})
+        return self._engine.open_run(config)
 
     @runtime_owned
-    def get_snapshot(self) -> RuntimeSnapshotEnvelope:
+    def get_run(self, run_scope: str) -> RuntimeRunContext:
+        """Select a retained context without changing the default run."""
+        return self._engine.get_run(run_scope)
+
+    @runtime_owned
+    def retire_run(self, run_scope: str) -> None:
+        """Retain completed run state and release its verified resource use."""
         self._assert_runtime_owner()
-        with self._operation_lock:
-            self._reload_derived_state_if_unpinned()
-            return RuntimeSnapshotEnvelope(snapshot=self._snapshot)
+        self._engine.retire(self._engine.get_run(run_scope))

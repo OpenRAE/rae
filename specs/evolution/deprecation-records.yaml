@@ -35,6 +35,17 @@ adr_refs:
 spec: specs/evolution/versioning-deprecation-and-migration.md
 
 records:
+  - id: independent-runtime-manager-owner
+    surface_class: python-distribution
+    identifier: "RuntimeManager's independent backend owner, implicit compensation after failed startup, and reuse of one owner across different plan run identities"
+    status: removed
+    first_notice: "Issue #1660 and ADR-104 section 11; raes 8.0.0 is the preceding independent-manager lineage"
+    replacement: "One RuntimeControlPlane lifetime owner; RuntimeManager remains its compatibility name, with explicit immutable run scope and existing execution/recovery semantics"
+    migration_reference: "docs/migration/runtime-lifetime.md; specs/sdl/execution-recovery.md; specs/formal/runtime-control-plane/supervision.md"
+    notice_window: "Removal eligibility is the issue #1660 single-owner implementation, retained public manager lifecycle methods, explicit run-scope migration, and behavioral tests for post-apply evaluation and uncertainty exclusion. The RuntimeManager public name remains supported indefinitely."
+    verification_evidence: "test_issue_1660_runtime_lifetime.py and test_runtime_manager.py verify single ownership, fresh evaluation, scoped retries, policy refusal before effects, failed-stop exclusion and retained committed state; existing reconciliation and participant tests verify their owning boundaries."
+    removal_record: "Issue #1660 replaces the independent implementation and its conflicting failure behavior under ADR-104 section 11. No public symbol or published schema is removed."
+
   - id: sdl-participant-identity-relations
     surface_class: sdl-scenario-module
     identifier: "Agent.entity; Objective.agent and Objective.entity; objectives.agent/entity variation slots"

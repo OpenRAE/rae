@@ -29,7 +29,6 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import TypeVar
 
 import pytest
 
@@ -58,7 +57,6 @@ ATTRIBUTION_SUPPORT = frozenset(
 )
 MAPPING_RELATIONS = frozenset({"exact", "narrower", "broader", "approximate", "lossy", "advisory"})
 PRESERVATION_STATES = frozenset({"preserved", "weakened", "simulated", "unavailable"})
-_T = TypeVar("_T")
 
 
 @dataclass(frozen=True)
@@ -232,7 +230,7 @@ class Invariant:
     mutate: Callable[[ParticipantProgression], ParticipantProgression]
 
 
-def _replace_tuple_item(items: tuple[_T, ...], index: int, value: _T) -> tuple[_T, ...]:
+def _replace_tuple_item[T](items: tuple[T, ...], index: int, value: T) -> tuple[T, ...]:
     return items[:index] + (value,) + items[index + 1 :]
 
 

@@ -310,17 +310,32 @@ def test_selected_p1_admits_one_postgresql_ledger_owner(monkeypatch: pytest.Monk
 
 
 def test_postgresql_ledger_claims_stay_with_the_submitting_actor() -> None:
+    import sqlite3
+
+    from raes_runtime.control_plane_store_local_codec import encode_payload
+    from raes_runtime.control_plane_store_records import _record_payload
+
     record = _running_record("ledger-actor")
     context = record.receipt.context
     other_actor = context.model_copy(update={"actor_id": f"{context.actor_id}-other"})
 
-    class Ledger:
-        def _load_records(self, connection):
-            return {record.receipt.operation_id: record}
+    with sqlite3.connect(":memory:") as connection:
+        connection.execute(
+            "CREATE TABLE raes_ledger_operations(actor_id, operation_kind, idempotency_key, payload, digest)"
+        )
+        content, digest = encode_payload(_record_payload(record))
+        connection.execute(
+            "INSERT INTO raes_ledger_operations VALUES (?, ?, ?, ?, ?)",
+            (context.actor_id, context.operation_kind.value, record.idempotency_key, content, digest),
+        )
 
-    key = record.idempotency_key
-    assert ledger_mutations.find_by_idempotency(Ledger(), None, key, context=context) == record
-    assert ledger_mutations.find_by_idempotency(Ledger(), None, key, context=other_actor) is None
+        class Parameters:
+            def execute(self, statement, parameters):
+                return connection.execute(statement.replace("%s", "?"), parameters)
+
+        key = record.idempotency_key
+        assert ledger_mutations.find_by_idempotency(None, Parameters(), key, context=context) == record
+        assert ledger_mutations.find_by_idempotency(None, Parameters(), key, context=other_actor) is None
 
 
 def _clause_section() -> str:

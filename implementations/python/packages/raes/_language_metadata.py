@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from ._reference_targetability import ReferencePurpose, reference_domain
 from .participant_relationships import PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS
-from .variation import COLLECTION_TARGET_SPECS, REFERENCE_TARGET_SPECS, TIMING_TARGET_SPECS
+from .variation import COLLECTION_TARGET_SPECS, REFERENCE_TARGET_SPECS, STRUCTURAL_TARGET_SPECS, TIMING_TARGET_SPECS
 
 _OBJECTIVE_SUBJECT = reference_domain(ReferencePurpose.OBJECTIVE_SUBJECT)
 _ACTION_TARGET = reference_domain(ReferencePurpose.ACTION_TARGET)
@@ -50,10 +50,12 @@ VARIATION_CANDIDATE_TARGETS = {
     for specs in (REFERENCE_TARGET_SPECS, COLLECTION_TARGET_SPECS)
     for slot, (_owner, target) in specs.items()
 }
+VARIATION_OWNER_TARGETS.update({slot: spec[0] for slot, spec in STRUCTURAL_TARGET_SPECS.items()})
 VARIATION_SLOT_TARGETS = {
     "owner": VARIATION_OWNER_TARGETS,
     "reference": VARIATION_CANDIDATE_TARGETS,
     "allowed_refs": VARIATION_CANDIDATE_TARGETS,
+    "references": {slot: spec[1] for slot, spec in STRUCTURAL_TARGET_SPECS.items()},
 }
 
 REFERENCE_COMPLETION_TARGETS = {
@@ -98,6 +100,8 @@ REFERENCE_COMPLETION_TARGETS = {
     ("relationships", "target"): RELATIONSHIP_ENDPOINT_DOMAIN,
     ("relationships", "controller_refs"): "nodes",
     ("relationships", "mutable_state_refs"): "persistent_volumes",
+    ("agents", "declaration_ref"): "control_context_assets",
+    ("behavior_specifications", "declaration_ref"): "control_context_assets",
     ("agents", "affiliations"): "entities",
     ("agents", "starting_accounts"): "accounts",
     ("agents", "starting_assertions"): "assertions",
@@ -230,7 +234,20 @@ SECTION_FIELD_COMPLETIONS = {
         "carrier_placement",
         "shared_service",
     ),
+    "control_context_assets": (
+        "asset_id",
+        "asset_version",
+        "kind",
+        "content",
+        "participant_addresses",
+        "role_refs",
+        "publication_authority_ref",
+        "retention_policy_ref",
+        "provenance_refs",
+        "schema_version",
+    ),
     "agents": (
+        "control_context",
         "affiliations",
         "role",
         "actions",
@@ -240,6 +257,7 @@ SECTION_FIELD_COMPLETIONS = {
         "interactive_access",
     ),
     "behavior_specifications": (
+        "control_context",
         "semantic_version",
         "lifecycle_state",
         "participant_refs",

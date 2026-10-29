@@ -46,6 +46,19 @@ nodes:
             - {address: 192.0.2.10}
       identity_authorities:
       - identity_authority_id: identity-authorities
+        resource_scopes:
+        - {scope_id: resource-scopes, provider: example, scope_kind: project}
+        identity_uses:
+        - use_id: identity-uses
+          workload_ref: nodes.app
+          principal_ref: nodes.app.runtime.identity_authorities.identity-authorities.subjects.subjects
+          mode: attached
+        access_observations:
+        - observation_id: access-observations
+          principal_ref: nodes.app.runtime.identity_authorities.identity-authorities.subjects.subjects
+          action: read
+          resource_ref: nodes.app
+          outcome: unknown
         services:
         - {service_id: services}
         subjects:
@@ -151,6 +164,16 @@ nodes:
         - {setting_id: settings}
       platform_applications:
       - platform_application_id: platform-applications
+        secrets:
+        - secret_id: secrets
+          versions:
+          - {version_id: versions}
+          consumers:
+          - selection_id: consumers
+            consumer_ref: nodes.app
+            version_ref: nodes.app.runtime.platform_applications.platform-applications.secrets.secrets.versions.versions
+        cloud_limits:
+        - {limit_id: cloud-limits, name: service-limit, maximum: 0, unit: requests}
         capabilities:
         - {capability_id: capabilities}
         organizations:
@@ -488,3 +511,31 @@ variation_points:
     alternatives:
       app-target: {reference: app}
       workstation-target: {reference: workstation}
+
+control_context_assets:
+  instruction:
+    asset_id: privacy-instruction
+    asset_version: one
+    content:
+      artifact_id: instruction-one
+      checksum:
+        algorithm: sha256
+        value: 8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce
+      created_at: '2026-10-26T00:00:00Z'
+      description: null
+      media_type: text/plain
+      role: documentation
+      satisfies_refs: []
+      sensitivity: restricted
+      size_bytes: 34
+      source: publisher-reference
+      uri: urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce
+    kind: instruction
+    participant_addresses: []
+    provenance_refs:
+    - provenance.authoring
+    publication_authority_ref: authorities.publisher
+    retention_policy_ref: retention.governed
+    role_refs:
+    - blue
+    schema_version: participant-control-context-asset/v1

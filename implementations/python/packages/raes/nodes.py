@@ -385,7 +385,7 @@ class Node(LegacyClassificationGuard):
         return parse_enum_or_var(v, EndpointPersona, field_name="endpoint_persona") if v is not None else v
 
     @model_validator(mode="after")
-    def validate_type_constraints(self) -> "Node":
+    def validate_type_constraints(self) -> Node:
         """Switch nodes cannot carry compute-only fields."""
         if self.type != NodeType.SWITCH:
             return self
@@ -415,7 +415,7 @@ class Node(LegacyClassificationGuard):
         return [field_name for field_name, is_populated in fields.items() if is_populated]
 
     @model_validator(mode="after")
-    def validate_unique_service_ports(self) -> "Node":
+    def validate_unique_service_ports(self) -> Node:
         """Concrete compute service bindings must stay uniquely addressable."""
         if self.type != NodeType.COMPUTE:
             return self

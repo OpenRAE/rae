@@ -27,6 +27,12 @@ if TYPE_CHECKING:
     from temporalio.client import Client
 
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .runtime_sequence_reference import RuntimeSequenceReference
+
+
 class EngineOperationReference(ContractModel):
     """Private, versioned adapter payload: no plan, credential or live resolver."""
 
@@ -144,6 +150,14 @@ class TemporalExecutionAdapter:
         delivery = self.binding(request)
         self._portal.call(self._start, delivery.reference, delivery.workflow_id)
         return delivery.workflow_id
+
+    def submit_runtime(self, reference: RuntimeSequenceReference) -> str:
+        """Deliver an already bound run or experiment; do not supply effect retries."""
+        from .runtime_temporal_delivery import start_runtime_workflow
+
+        if self._closed:
+            raise RuntimeError("Temporal execution adapter is closed")
+        return self._portal.call(start_runtime_workflow, self, reference)
 
     def binding(self, request: BackendOperationRequestModel) -> EngineDeliveryBinding:
         reference = self.reference(request)

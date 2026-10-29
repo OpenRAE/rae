@@ -12,6 +12,7 @@ from .contracts.experiment_bindings import (
     ConfigurationTargetDeclarationModel,
     ParticipantConfigurationModel,
     ParticipantConfigurationResultModel,
+    ParticipantControlContextConfigurationSelectionModel,
     RealizedConfigurationValueModel,
 )
 from .contracts.participant_manifests import (
@@ -80,6 +81,7 @@ def realize_participant_configuration(
                 value_type=declaration.value_type,
                 origin=origin,
                 value=value,
+                control_context_selection=_context_selection(participant_address, declaration, value, validator),
             )
         )
 
@@ -90,8 +92,9 @@ def realize_participant_configuration(
         values=realized_values,
     )
     if validator is not None:
+        original = configuration.model_copy(deep=True)
         normalized = validator.validate_and_normalize(configuration)
-        configuration = _validate_owner_normalization(configuration, normalized, registry.targets)
+        configuration = _validate_owner_normalization(original, normalized, registry.targets)
 
     digest = canonical_contract_digest(configuration)
     return ParticipantConfigurationResultModel(
@@ -101,6 +104,30 @@ def realize_participant_configuration(
         configuration=configuration,
         configuration_digest=digest,
     )
+
+
+def _context_selection(
+    participant_address: str,
+    declaration: ConfigurationTargetDeclarationModel,
+    value: BindingValue,
+    validator: ParticipantConfigurationValidator | None,
+) -> ParticipantControlContextConfigurationSelectionModel | None:
+    domain = declaration.control_context
+    if domain is None:
+        return None
+    contextual = getattr(validator, "validate_control_context_reference", None)
+    if not callable(contextual):
+        raise ValueError("control-context owner validation is required")
+    selection = ParticipantControlContextConfigurationSelectionModel(
+        slot_id=domain.slot_id,
+        declaration_ref=value.value,
+        asset_ref=domain.references[value.value].model_copy(deep=True),
+    )
+    original = selection.model_copy(deep=True)
+    contextual(participant_address, selection)
+    if selection != original:
+        raise ValueError("control-context owner must preserve the exact selection")
+    return selection
 
 
 def _validate_owner_normalization(
@@ -131,6 +158,10 @@ def _validate_normalized_entry(
     original_entry: RealizedConfigurationValueModel,
     declaration: ConfigurationTargetDeclarationModel,
 ) -> None:
+    if entry.control_context_selection != original_entry.control_context_selection or (
+        entry.control_context_selection is not None and entry.value != original_entry.value
+    ):
+        raise ValueError("participant configuration validator must preserve exact control-context selection")
     if entry.origin != original_entry.origin:
         raise ValueError("participant configuration validator must preserve default/override origin")
     if entry.value_type != declaration.value_type:

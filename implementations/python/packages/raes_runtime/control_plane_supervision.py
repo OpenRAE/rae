@@ -17,6 +17,7 @@ from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
 from .control_plane_store_bounded import bounded_store_commit
 from .operation_control_budget import admit_control_budget, forget_control_budget, remaining_control_budget
 from .operation_transcript_policy import append_control
+from .runtime_operation_routing import run_operation
 
 if TYPE_CHECKING:
     from raes_contracts.contracts import BackendOperationResponseModel
@@ -104,12 +105,14 @@ class RuntimeSupervisionMixin:
             )
             self._effect_admission_stopped = True
 
+    @run_operation
     @runtime_owned
     def cancel_operation(
         self, operation_id: str, *, control_id: str, identity: ControlPlaneIdentity | None = None
     ) -> BackendOperationControlModel:
         return self.supervise_operation(operation_id, action="cancel", control_id=control_id, identity=identity)
 
+    @run_operation
     @runtime_owned
     def supervise_operation(
         self,
@@ -221,6 +224,7 @@ class RuntimeSupervisionMixin:
                     )
         return control
 
+    @run_operation
     @runtime_owned
     def get_control_response(
         self, operation_id: str, control_id: str, *, identity: ControlPlaneIdentity | None = None

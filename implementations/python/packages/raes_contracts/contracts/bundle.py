@@ -13,6 +13,7 @@ from raes.scenario import InstantiatedScenario, Scenario
 from raes_contracts.artifact_requirements import ArtifactRequirementContractModel
 from raes_contracts.augmentation_preparation import AugmentationPreparation
 from raes_contracts.materialization import MaterializationSubmission
+from raes_contracts.materialization_inventory import RuntimeInventoryReport
 from raes_contracts.observation_demand import ObservationDemandDocument
 
 from . import semantic_profiles, semantic_projection
@@ -197,6 +198,7 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
         "instantiated-scenario-v1": InstantiatedScenario.model_json_schema(),
         "materialized-scenario-v1": MaterializedScenario.model_json_schema(),
         "backend-materialization-attestation-v1": MaterializationSubmission.model_json_schema(),
+        "backend-runtime-descendants-v1": RuntimeInventoryReport.model_json_schema(),
         "backend-augmentation-scope-v1": AugmentationPreparation.model_json_schema(),
         "materialization-archive-record-v1": MaterializationArchiveRecord.model_json_schema(),
         "instantiated-scenario-snapshot-v1": InstantiatedScenarioSnapshot.model_json_schema(),

@@ -50,7 +50,7 @@ def assess_temporal_guarantee(
 
 def _context_clock(
     context: ParticipantTemporalExecutionContextModel,
-    event: "ParticipantBehaviorHistoryEventModel",
+    event: ParticipantBehaviorHistoryEventModel,
     clocks: Mapping[str, RuntimeClockStateModel],
 ) -> RuntimeClockStateModel:
     binding = context.binding
@@ -74,7 +74,7 @@ def _context_clock(
 
 
 def _require_temporal_assessment(
-    event: "ParticipantBehaviorHistoryEventModel",
+    event: ParticipantBehaviorHistoryEventModel,
     context: ParticipantTemporalExecutionContextModel,
     assessment: ParticipantTemporalAssessmentModel,
     clock: RuntimeClockStateModel,
@@ -98,7 +98,7 @@ def _require_temporal_assessment(
 
 
 def _require_native_temporal_evidence(
-    event: "ParticipantBehaviorHistoryEventModel",
+    event: ParticipantBehaviorHistoryEventModel,
     context: ParticipantTemporalExecutionContextModel,
     assessment: ParticipantTemporalAssessmentModel,
 ) -> None:
@@ -139,8 +139,8 @@ def _assessment_clock(
 
 
 def _require_temporal_event(
-    event: "ParticipantBehaviorHistoryEventModel",
-    attempt: "ParticipantBehaviorHistoryEventModel | None",
+    event: ParticipantBehaviorHistoryEventModel,
+    attempt: ParticipantBehaviorHistoryEventModel | None,
     clocks: Mapping[str, RuntimeClockStateModel],
 ) -> None:
     if attempt is None or event.temporal_contexts != attempt.temporal_contexts:
@@ -156,8 +156,8 @@ def _require_temporal_event(
 
 
 def _require_terminal_assessments(
-    event: "ParticipantBehaviorHistoryEventModel",
-    attempt: "ParticipantBehaviorHistoryEventModel",
+    event: ParticipantBehaviorHistoryEventModel,
+    attempt: ParticipantBehaviorHistoryEventModel,
     contexts: Sequence[ParticipantTemporalExecutionContextModel],
     clocks: Mapping[str, RuntimeClockStateModel],
 ) -> None:
@@ -195,9 +195,9 @@ def _temporal_history_record(
 ) -> tuple[object, object] | None:
     record = raw.model_dump(mode="json") if isinstance(raw, model) else raw
     key = (record.get("episode_id"), record.get("action_instance_id"))
-    explicit = record.get("temporal_assessments") or any(
-        item.get("shared_time") for item in record.get("temporal_contexts", ())
-    )
+    from .participant_temporal_history_index import explicit_temporal_record
+
+    explicit = explicit_temporal_record(record)
     return (key, model.model_validate(record)) if key in attempts or explicit else None
 
 
@@ -227,4 +227,10 @@ def require_participant_temporal_history(snapshot: object) -> None:
 
     clocks = getattr(getattr(snapshot, "time_model_state", None), "clocks", {})
     for participant, history in getattr(snapshot, "participant_behavior_history", {}).items():
+        from .immutable_history import EventHistory
+
+        if type(history) is EventHistory and history._temporal_index is not None:
+            selected = history._temporal_index.records()
+            if selected is not None:
+                history = selected
         _require_temporal_history(participant, history, clocks)

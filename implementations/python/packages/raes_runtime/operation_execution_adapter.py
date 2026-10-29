@@ -7,7 +7,7 @@ from functools import partial
 from os import getpid
 from threading import BoundedSemaphore, Condition, Lock
 from time import monotonic
-from typing import Literal, NamedTuple, TypeVar, cast
+from typing import Literal, NamedTuple, cast
 
 import anyio
 from anyio.from_thread import start_blocking_portal
@@ -15,7 +15,6 @@ from anyio.from_thread import start_blocking_portal
 from .control_plane_mutation import detached_extension
 
 Lane = Literal["effect", "control", "store", "deadline", "resolution"]
-_T = TypeVar("_T")
 # Portable apparatus ceiling, below native wait overflow.
 _MAX_BUDGET = 2147483647
 
@@ -50,7 +49,7 @@ class _CallSlot:
         self._started = False
         self._cancelled = False
 
-    def invoke(self, method: Callable[[], _T], *, extension: bool) -> _CallbackOutcome | None:
+    def invoke[T](self, method: Callable[[], T], *, extension: bool) -> _CallbackOutcome | None:
         with self._lock:
             if self._cancelled:
                 return None
@@ -112,7 +111,7 @@ class LocalExecutionAdapter:
         if getpid() != self._owner_pid:
             raise RuntimeError("execution adapter cannot be used after fork; create a fresh runtime")
 
-    def call(self, lane: Lane, method: Callable[..., _T], *args: object, timeout_ms: int, **kwargs: object) -> _T:
+    def call[T](self, lane: Lane, method: Callable[..., T], *args: object, timeout_ms: int, **kwargs: object) -> T:
         self._require_owner_process()
         budget = require_budget_ms(timeout_ms)
         if lane not in self._slots:
@@ -135,11 +134,11 @@ class LocalExecutionAdapter:
             outcome = self._portal.call(self._invoke, lane, slot, partial(method, *args, **kwargs), budget)
             if outcome.error is not None:
                 raise outcome.error
-            return cast(_T, outcome.value)
+            return cast(T, outcome.value)
         finally:
             slot.abandon_unstarted()
 
-    async def _invoke(self, lane: Lane, slot: _CallSlot, method: Callable[[], _T], budget: int) -> _CallbackOutcome:
+    async def _invoke[T](self, lane: Lane, slot: _CallSlot, method: Callable[[], T], budget: int) -> _CallbackOutcome:
         with anyio.fail_after(budget / 1000):
             return await anyio.to_thread.run_sync(
                 partial(slot.invoke, method, extension=lane not in {"store", "deadline"}),

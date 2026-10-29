@@ -35,8 +35,11 @@ def _source_size(path: Path, total: int) -> int:
 
 
 def _source_bytes(path: Path, relative: str) -> bytes:
+    return release_managed_source_bytes(relative, path.read_bytes())
+
+
+def release_managed_source_bytes(relative: str, content: bytes) -> bytes:
     """Return the bytes a source pin binds; only the release version literal is abstracted."""
-    content = path.read_bytes()
     if relative != RELEASE_MANAGED_VERSION_SOURCE:
         return content
     text = content.decode("utf-8")
@@ -293,7 +296,7 @@ def source_state_failures(repo_root: Path, state: object, path: str, *, current:
     if valid and current:
         try:
             valid = state["implementation_digest"] == implementation_digest(repo_root)
-        except (OSError, ValueError):
+        except OSError, ValueError:
             valid = False
     return (
         []

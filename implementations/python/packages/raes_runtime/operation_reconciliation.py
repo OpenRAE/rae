@@ -14,6 +14,7 @@ from .control_plane_lifecycle import runtime_owned
 from .control_plane_operation_context import operation_actor_scope, operation_admission_context
 from .control_plane_supervision import authorize_supervisor
 from .operation_reconciliation_ledger import InvocationReconciliation
+from .runtime_operation_routing import run_operation
 
 if TYPE_CHECKING:
     from .control_plane import RuntimeControlPlane
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
 
 
 class RuntimeInvocationReconciliationMixin:
+    @run_operation
     @runtime_owned
     def resolve_backend_absence(
         self, operation_id: str, control_id: str, *, idempotency_key: str, identity: ControlPlaneIdentity | None

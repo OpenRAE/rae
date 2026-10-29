@@ -5,7 +5,7 @@ from __future__ import annotations
 from itertools import product
 from typing import Annotated, Literal
 
-from pydantic import Field, StrictInt, model_validator
+from pydantic import Field, StrictInt, TypeAdapter, model_validator
 from raes.identifiers import PortableIdentifier
 
 from .._canonical import canonical_json_digest
@@ -24,6 +24,7 @@ from .experiment_study import (
     ExperimentRunAllocationPlanModel,
     ExperimentStudyFactorModel,
 )
+from .experiment_treatments import ExperimentFactorLevelSelectionModel
 
 
 class ExperimentFactorLevelBindingModel(ContractModel):
@@ -79,8 +80,46 @@ class ExperimentFactorialDesignModel(ContractModel):
         return self
 
 
+class ExperimentFactorLevelEffectsModel(ContractModel):
+    """A bounded level contribution across existing owner planes."""
+
+    bindings: list[ExperimentFactorLevelBindingModel] = Field(default_factory=list, max_length=16)
+    selections: list[ExperimentFactorLevelSelectionModel] = Field(default_factory=list, max_length=16)
+
+    @model_validator(mode="after")
+    def _validate_effect_count(self) -> ExperimentFactorLevelEffectsModel:
+        if not 1 <= len(self.bindings) + len(self.selections) <= 16:
+            raise ValueError("a factorial level requires between one and sixteen combined effects")
+        return self
+
+
+class ExperimentFactorialTreatmentDesignModel(ContractModel):
+    """Typed treatments without changing the scalar factorial profile."""
+
+    profile: Literal["factorial-treatments-v1"]
+    factor_ids: list[PortableIdentifier] = Field(min_length=1, max_length=16, json_schema_extra={"uniqueItems": True})
+    level_effects: dict[
+        PortableIdentifier,
+        Annotated[dict[PortableIdentifier, ExperimentFactorLevelEffectsModel], Field(min_length=1, max_length=64)],
+    ] = Field(min_length=1, max_length=16)
+    target_runs_per_condition: Annotated[StrictInt, Field(ge=1, le=999999)]
+    condition_bound: Annotated[StrictInt, Field(ge=1, le=10000)]
+
+    @model_validator(mode="after")
+    def _validate_dimensions(self) -> ExperimentFactorialTreatmentDesignModel:
+        if len(set(self.factor_ids)) != len(self.factor_ids) or set(self.factor_ids) != set(self.level_effects):
+            raise ValueError("factorial factor ids must be unique and match level_effects")
+        self.factor_ids.sort()
+        return self
+
+
+FactorialDesign = Annotated[
+    ExperimentFactorialDesignModel | ExperimentFactorialTreatmentDesignModel, Field(discriminator="profile")
+]
+
+
 def _factorial_condition_count(
-    design: ExperimentFactorialDesignModel,
+    design: FactorialDesign,
     factors: dict[str, ExperimentStudyFactorModel],
 ) -> int:
     count = 1
@@ -88,7 +127,8 @@ def _factorial_condition_count(
         factor = factors.get(factor_id)
         if factor is None or not factor.levels or len(set(factor.levels)) != len(factor.levels):
             raise ValueError("factorial dimensions require declared nonempty unique factor levels")
-        if set(design.level_bindings[factor_id]) != set(factor.levels):
+        levels = design.level_bindings if isinstance(design, ExperimentFactorialDesignModel) else design.level_effects
+        if set(levels[factor_id]) != set(factor.levels):
             raise ValueError("factorial level bindings must cover exactly the declared levels")
         if len(factor.levels) > design.condition_bound // count:
             raise ValueError("factorial condition bound exceeded before expansion")
@@ -111,13 +151,18 @@ def _validate_factorial_bounds(
 
 
 def _condition_bindings(
-    design: ExperimentFactorialDesignModel,
+    design: FactorialDesign,
     factor_levels: dict[str, str],
     condition_id: str,
 ) -> list[ExperimentBindingDescriptorModel]:
     bindings = []
     for factor_id, level_id in factor_levels.items():
-        for template in design.level_bindings[factor_id][level_id]:
+        templates = (
+            design.level_bindings[factor_id][level_id]
+            if isinstance(design, ExperimentFactorialDesignModel)
+            else design.level_effects[factor_id][level_id].bindings
+        )
+        for template in templates:
             binding_id = (
                 "binding-"
                 + canonical_json_digest([condition_id, factor_id, template.target.canonical_key()]).split(":", 1)[1]
@@ -168,7 +213,11 @@ def expand_factorial_input(value: object) -> object:
     payload = dict(value)
     if not isinstance(payload.get("factors", {}), dict) or not isinstance(payload.get("run_plan"), dict):
         raise ValueError("factorial factors and run_plan must be mappings")
-    design = ExperimentFactorialDesignModel.model_validate(payload["factorial_design"])
+    design = TypeAdapter(FactorialDesign).validate_python(payload["factorial_design"])
+    if isinstance(design, ExperimentFactorialTreatmentDesignModel):
+        from .experiment_factorial_treatments import expand_treatment_input
+
+        return expand_treatment_input(payload, design)
     factors = {
         key: ExperimentStudyFactorModel.model_validate(factor) for key, factor in payload.get("factors", {}).items()
     }
@@ -195,15 +244,17 @@ def _validate_supplied_materializations(
     supplied_allocation: object,
     supplied_bindings: object,
     allocation: ExperimentRunAllocationPlanModel,
-    descriptors: ExperimentBindingDescriptorSetModel,
+    descriptors: ExperimentBindingDescriptorSetModel | None,
 ) -> None:
-    if (
-        supplied_allocation is not None
-        and ExperimentRunAllocationPlanModel.model_validate(supplied_allocation) != allocation
-    ):
+    if supplied_allocation is not None and canonical_json_digest(
+        ExperimentRunAllocationPlanModel.model_validate(supplied_allocation).model_dump(mode="json")
+    ) != canonical_json_digest(allocation.model_dump(mode="json")):
         raise ValueError("supplied allocation conflicts with generated factorial conditions")
-    if (
-        supplied_bindings is not None
-        and ExperimentBindingDescriptorSetModel.model_validate(supplied_bindings) != descriptors
+    if supplied_bindings is not None and (
+        descriptors is None
+        or canonical_json_digest(
+            ExperimentBindingDescriptorSetModel.model_validate(supplied_bindings).model_dump(mode="json")
+        )
+        != canonical_json_digest(descriptors.model_dump(mode="json"))
     ):
         raise ValueError("supplied bindings conflict with generated factorial bindings")

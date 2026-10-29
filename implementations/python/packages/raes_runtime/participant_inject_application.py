@@ -124,7 +124,7 @@ def require_projected_inject(
 ) -> ParticipantInjectContentModel:
     try:
         content = ParticipantInjectContentModel.model_validate(content.model_dump(mode="json"))
-    except (ValueError, AttributeError, TypeError):
+    except ValueError, AttributeError, TypeError:
         raise ValueError("inject delivery projection is invalid") from None
     if (
         content.application != application
@@ -308,7 +308,7 @@ def _resolve_delivery(
 def _projection_cut(resolution: ParticipantInjectResolution) -> ParticipantControlLiveCut:
     try:
         return ParticipantControlLiveCut.model_validate(resolution.cut.model_dump(mode="json"))
-    except (ValueError, AttributeError, TypeError):
+    except ValueError, AttributeError, TypeError:
         raise ValueError("inject delivery order cut is unavailable") from None
 
 
