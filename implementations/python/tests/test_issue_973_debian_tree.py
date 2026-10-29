@@ -9,7 +9,6 @@ import tarfile
 from pathlib import Path
 
 import pytest
-
 from tools import verified_tree_archive as archive
 from tools import verified_tree_installation as installation
 from tools.tooling_installed_tree import LockedInstalledTree, locked_installed_tree

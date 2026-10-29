@@ -3,7 +3,6 @@
 from dataclasses import replace
 
 import pytest
-
 from implementations.formal.participant_crossing import concrete
 from implementations.formal.participant_crossing.aut import parse_aut, render_aut
 
