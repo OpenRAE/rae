@@ -168,11 +168,21 @@ def _provenance_ledger(
         }
     )
     ledger.update({_provenance_key(entry): entry for entry in _descendant_provenance(report, materialized)})
-    unchanged = {operation.address for operation in request.operations if operation.action is ChangeAction.UNCHANGED}
-    for entry in previous.realization_provenance:
-        if entry.address in unchanged and entry.address in accepted.entries:
-            ledger[_provenance_key(entry)] = entry
+    ledger.update(_unchanged_provenance(previous, accepted, request))
     return ledger
+
+
+def _unchanged_provenance(
+    previous: RuntimeSnapshot, accepted: RuntimeSnapshot, request: ProvisioningPlan
+) -> dict[ProvenanceKey, RealizationProvenanceEntry]:
+    """Preserve original rows for live resources an operation leaves unchanged."""
+
+    unchanged = {operation.address for operation in request.operations if operation.action is ChangeAction.UNCHANGED}
+    return {
+        _provenance_key(entry): entry
+        for entry in previous.realization_provenance
+        if entry.address in unchanged and entry.address in accepted.entries
+    }
 
 
 def _admitted_choices(request: ProvisioningPlan) -> set[tuple[str, str, str]]:

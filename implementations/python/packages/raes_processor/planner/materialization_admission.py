@@ -245,12 +245,20 @@ def _materialized_entry_matches(
         if not materialization_node_payloads_match(
             resource.payload["name"], expected_spec.get("node"), observed_spec.get("node")
         ):
-            try:
-                return _entry_matches_resource(with_node_defaults(entry), with_node_defaults(resource), requirements)
-            except TypeError, ValueError:
-                return False
+            return _defaulted_node_entry_matches(entry, resource, requirements)
         entry = replace(entry, payload={**entry.payload, "spec": {**observed_spec, "node": expected_spec["node"]}})
     return _entry_matches_resource(entry, resource)
+
+
+def _defaulted_node_entry_matches(
+    entry: SnapshotEntry | PlannedResource,
+    resource: PlannedResource,
+    requirements: tuple[CompiledRealizationRequirement, ...],
+) -> bool:
+    try:
+        return _entry_matches_resource(with_node_defaults(entry), with_node_defaults(resource), requirements)
+    except TypeError, ValueError:
+        return False
 
 
 def validate_materialization_archive_record(

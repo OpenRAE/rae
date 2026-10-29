@@ -101,24 +101,37 @@ def _gated_backend_result(
         information_state_context_resolver=information_state_context_resolver,
     )
     if final_diagnostics:
-        return ApplyResult(False, baseline_snapshot, diagnostics=final_diagnostics)
-    if finalized.success:
-        affected = (
-            {
-                operation.address
-                for operation in (realization.completion_plan or realization.operation_plan).operations
-                if operation.action is not ChangeAction.UNCHANGED
-            }
-            if realization.operation_plan is not None
-            else set()
+        finalized = ApplyResult(False, baseline_snapshot, diagnostics=final_diagnostics)
+    elif finalized.success:
+        finalized = _with_retained_realization_provenance(
+            finalized, baseline_snapshot, realization, realization_provenance
         )
-        retained = tuple(
-            entry
-            for entry in baseline_snapshot.realization_provenance
-            if entry.address in finalized.snapshot.entries and entry.address not in affected
-        )
-        return _with_realization_provenance(finalized, (*retained, *realization_provenance))
     return finalized
+
+
+def _with_retained_realization_provenance(
+    result: ApplyResult,
+    baseline_snapshot: RuntimeSnapshot,
+    realization: _RealizationApplyContext,
+    provenance: tuple[RealizationProvenanceEntry, ...],
+) -> ApplyResult:
+    """Retain unaffected live-resource rows alongside newly disclosed rows."""
+
+    affected = (
+        {
+            operation.address
+            for operation in (realization.completion_plan or realization.operation_plan).operations
+            if operation.action is not ChangeAction.UNCHANGED
+        }
+        if realization.operation_plan is not None
+        else set()
+    )
+    retained = tuple(
+        entry
+        for entry in baseline_snapshot.realization_provenance
+        if entry.address in result.snapshot.entries and entry.address not in affected
+    )
+    return _with_realization_provenance(result, (*retained, *provenance))
 
 
 def _finalize_backend_apply(

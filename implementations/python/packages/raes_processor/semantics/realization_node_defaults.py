@@ -1,6 +1,7 @@
 """Typed node defaults for comparison without changing supplied concern values."""
 
 from dataclasses import replace
+from typing import cast
 
 from pydantic import TypeAdapter
 from raes.nodes import Node
@@ -33,7 +34,10 @@ def with_node_defaults(
     for descriptor in realization_concern_descriptors():
         if descriptor.section == "nodes":
             _restore_supplied_concern(spec["node"], node, descriptor.authored_path)
-    return replace(resource, payload={**resource.payload, "spec": {**spec, "node": node}})
+    return cast(
+        "SnapshotEntry | PlannedResource | ProvisionOp",
+        replace(resource, payload={**resource.payload, "spec": {**spec, "node": node}}),
+    )
 
 
 def _restore_supplied_concern(original: object, normalized: object, path: tuple[str, ...]) -> None:
