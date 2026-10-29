@@ -166,8 +166,10 @@ line-length = 120
 # checks that this list matches their import closure.
 [tool.ruff.per-file-target-version]
 "**/tools/bootstrap_profile.py" = "py312"
+"**/tools/bounded_tool_process.py" = "py312"
 "**/tools/check_tooling_artifact_policy.py" = "py312"
 "**/tools/devcontainer_setup.py" = "py312"
+"**/tools/debian_tree_decoder.py" = "py312"
 "**/tools/generate_python_closures.py" = "py312"
 "**/tools/generate_python_closures_locks.py" = "py312"
 "**/tools/gitleaks_tool.py" = "py312"

@@ -186,3 +186,13 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - TESTS → TEST `implementations/python/tests/test_mcp_server.py` (Reference, authoring, language, inspection, operations and server-construction regressions on the patched SDK)
 
 - IMPLEMENTS → CONFIG `implementations/tooling/python/smoke` (Regenerated hash-complete CPython 3.11–3.14 and Linux/macOS closures for patched MCP SDK 1.30.0)
+
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#973` (Admitted model checker and safe reusable evidence)
+- IMPLEMENTS → CODE_FILE `tools/bounded_tool_process.py` (Verified archive decoding and isolated bounded checker execution)
+- IMPLEMENTS → CODE_FILE `tools/debian_tree_decoder.py` (Verified archive decoding and isolated bounded checker execution)
+- IMPLEMENTS → CODE_FILE `tools/mcrl2_tool.py` (Verified archive decoding and isolated bounded checker execution)
+- TESTS → TEST `implementations/python/tests/test_issue_973_debian_tree.py` (Tooling admission and execution failure regressions)
+- TESTS → TEST `implementations/python/tests/test_issue_973_tool_process.py` (Tooling admission and execution failure regressions)
+- TESTS → TEST `implementations/python/tests/test_issue_973_mcrl2_admission.py` (Tooling admission and execution failure regressions)
+- TESTS → TEST `implementations/python/tests/test_issue_973_mcrl2_tool.py` (Tooling admission and execution failure regressions)
+- TESTS → TEST `implementations/python/tests/test_issue_973_model_check_workflow.py` (Tooling admission and execution failure regressions)

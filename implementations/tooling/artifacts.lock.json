@@ -853,6 +853,78 @@
           ]
         }
       ]
+    },
+    {
+      "artifact_id": "mcrl2",
+      "artifact_class": "native-tool",
+      "version": "202607.0",
+      "owner": "Proof",
+      "consumers": [
+        "participant-crossing-relation"
+      ],
+      "trust_root_refs": [
+        "adr-106-reviewed-upstream-release"
+      ],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {
+        "spdx": "BSL-1.0",
+        "redistribution": "allowed",
+        "review_ref": "ADR-100"
+      },
+      "authenticity": {
+        "status": "absent-reviewed",
+        "decision_ref": "ADR-106"
+      },
+      "policy_refs": [
+        "artifact-integrity-v1"
+      ],
+      "source": {
+        "repository": "https://github.com/mCRL2org/mCRL2",
+        "release": "mcrl2-202607.0",
+        "asset": "mcrl2-202607.0_x86_64.deb",
+        "locator_refs": [
+          "official-github-release"
+        ]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": [
+            "https://github.com/mCRL2org/mCRL2/releases/download/mcrl2-202607.0/mcrl2-202607.0_x86_64.deb"
+          ],
+          "raw_manifest": [
+            {
+              "path": "mcrl2-202607.0_x86_64.deb",
+              "sha256": "00cb4c347638b3a418fb67c9d67b8d2bf2245e10d4affa4cd993b1c357bde969",
+              "size": 27921814
+            }
+          ],
+          "installed_manifest": [
+            {
+              "path": "usr/bin/ltscompare",
+              "sha256": "b34a7ba73939222886fe6e35c2a1009fd78056369fa06d0b3c48ebfe87ec4d21",
+              "size": 1702080,
+              "executable": true
+            }
+          ],
+          "installed_tree": {
+            "format": "deb",
+            "manifest_sha256": "c0d7d21471aff63c991d53a8c9bea8a16218ecb5ab583271396e8587c2655590",
+            "file_count": 1793,
+            "directory_count": 269,
+            "symlink_count": 0,
+            "expanded_bytes": 83668114
+          },
+          "dependencies": [],
+          "profile_ids": [
+            "model-check-linux-x86_64"
+          ],
+          "host_profile_ids": [
+            "model-check-ubuntu-26.04-x86_64"
+          ]
+        }
+      ]
     }
   ]
 }

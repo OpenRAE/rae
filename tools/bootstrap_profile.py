@@ -208,6 +208,8 @@ def _native_client_results(  # NOSONAR -- audited capability map is intentionall
             "curl-unknown-length-max-filesize": _SYSTEM_CURL,
             "sha256": Path("/usr/bin/sha256sum"),
             "gh-cli": Path("/usr/bin/gh"),
+            "dpkg-deb": Path("/usr/bin/dpkg-deb"),
+            "prlimit": Path("/usr/bin/prlimit"),
         }
     else:
         brew_root = Path("/opt/homebrew")
@@ -222,6 +224,8 @@ def _native_client_results(  # NOSONAR -- audited capability map is intentionall
         "curl-unknown-length-max-filesize": ("--version",),
         "sha256": ("--version",),
         "gh-cli": ("--version",),
+        "dpkg-deb": ("--version",),
+        "prlimit": ("--version",),
     }
     required = set(host["required_capability_ids"])
     results = [

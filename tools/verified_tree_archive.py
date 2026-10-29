@@ -23,8 +23,11 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import BinaryIO, Protocol
 
+from tools.debian_tree_decoder import decoded_debian_tree
+
 TREE_MANIFEST_SCHEMA = "raes-installed-tree/v1"
 TREE_FORMAT = "tar.gz"
+TREE_FORMATS = frozenset({TREE_FORMAT, "deb"})
 MAX_TREE_MEMBERS = 262_144
 MAX_TREE_EXPANDED_BYTES = 16 * 1024 * 1024 * 1024
 MAX_TREE_PATH_BYTES = 1024
@@ -341,11 +344,22 @@ def _drain_compressed_trailer(decompressed: gzip.GzipFile) -> None:
             raise failure("archive-size-limit")
 
 
-def admit_archive_stream(stream: BinaryIO, limits: TreeLimits, sink: StageSink | None) -> list[TreeEntry]:
-    """Admit one tar.gz stream completely and return its canonical entries."""
+def admit_archive_stream(
+    stream: BinaryIO,
+    limits: TreeLimits,
+    sink: StageSink | None,
+    *,
+    archive_format: str = TREE_FORMAT,
+) -> list[TreeEntry]:
+    """Admit one supported stream completely and return its canonical entries."""
 
+    _require_format(archive_format)
     admission = TreeAdmission(limits, sink)
     try:
+        if archive_format == "deb":
+            with decoded_debian_tree(stream) as decoded:
+                _admit_debian_tar(decoded, admission)
+            return admission.finish()
         # tarfile's own streaming gzip reader stops at the tar end marker without
         # checking the gzip trailer, so decompression is delegated to GzipFile.
         with gzip.GzipFile(fileobj=stream, mode="rb") as decompressed:
@@ -362,33 +376,53 @@ def admit_archive_stream(stream: BinaryIO, limits: TreeLimits, sink: StageSink |
     return admission.finish()
 
 
-def manifest_bytes(entries: Iterable[TreeEntry]) -> bytes:
+def _admit_debian_tar(stream: BinaryIO, admission: TreeAdmission) -> None:
+    root_seen = False
+    with tarfile.open(fileobj=stream, mode="r|", encoding="utf-8", errors="strict") as archive:
+        for member in archive:
+            # dpkg's canonical filesystem archive includes the root and ./ prefix.
+            if member.name == "." and member.isdir() and not root_seen:
+                root_seen = True
+                continue
+            if member.name.startswith("./"):
+                member.name = member.name[2:]
+            admission.admit(member, archive)
+    _drain_compressed_trailer(stream)
+
+
+def _require_format(archive_format: str) -> None:
+    if not isinstance(archive_format, str) or archive_format not in TREE_FORMATS:
+        raise failure("unsupported-archive-format")
+
+
+def manifest_bytes(entries: Iterable[TreeEntry], *, archive_format: str = TREE_FORMAT) -> bytes:
     """Return the canonical installed-tree manifest encoding."""
 
+    _require_format(archive_format)
     document = {
         "entries": [entry.document() for entry in sorted(entries, key=lambda item: item.path)],
-        "format": TREE_FORMAT,
+        "format": archive_format,
         "schema": TREE_MANIFEST_SCHEMA,
     }
     return json.dumps(document, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("ascii")
 
 
-def bounded_manifest_bytes(entries: Iterable[TreeEntry]) -> bytes:
+def bounded_manifest_bytes(entries: Iterable[TreeEntry], *, archive_format: str = TREE_FORMAT) -> bytes:
     """Return the canonical manifest only when a validator can reopen it later."""
 
-    payload = manifest_bytes(entries)
+    payload = manifest_bytes(entries, archive_format=archive_format)
     if len(payload) > MAX_TREE_MANIFEST_BYTES:
         raise failure("archive-size-limit")
     return payload
 
 
-def tree_descriptor(entries: list[TreeEntry]) -> dict[str, object]:
+def tree_descriptor(entries: list[TreeEntry], *, archive_format: str = TREE_FORMAT) -> dict[str, object]:
     return {
         "directory_count": sum(entry.kind == "directory" for entry in entries),
         "expanded_bytes": sum(entry.size or 0 for entry in entries if entry.kind == "file"),
         "file_count": sum(entry.kind == "file" for entry in entries),
-        "format": TREE_FORMAT,
-        "manifest_sha256": hashlib.sha256(manifest_bytes(entries)).hexdigest(),
+        "format": archive_format,
+        "manifest_sha256": hashlib.sha256(manifest_bytes(entries, archive_format=archive_format)).hexdigest(),
         "symlink_count": sum(entry.kind == "symlink" for entry in entries),
     }
 

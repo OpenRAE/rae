@@ -8,7 +8,7 @@ from pathlib import PurePosixPath
 
 from tools.verified_tree_archive import (
     SHA256_RE,
-    TREE_FORMAT,
+    TREE_FORMATS,
     TREE_MANIFEST_SCHEMA,
     InstalledTree,
     TreeEntry,
@@ -81,7 +81,8 @@ def _manifest_entries(payload: bytes) -> list[TreeEntry]:
             isinstance(document, dict)
             and set(document) == {"entries", "format", "schema"}
             and document["schema"] == TREE_MANIFEST_SCHEMA
-            and document["format"] == TREE_FORMAT
+            and isinstance(document["format"], str)
+            and document["format"] in TREE_FORMATS
             and isinstance(document["entries"], list)
         )
         if not shape_valid:
@@ -117,8 +118,8 @@ def parse_manifest(payload: bytes, descriptor: InstalledTree) -> dict[str, TreeE
     kinds = {entry.path: entry.kind for entry in entries}
     consistent = (
         len(by_path) == len(entries)
-        and manifest_bytes(entries) == payload
-        and tree_descriptor(entries) == _descriptor_document(descriptor)
+        and manifest_bytes(entries, archive_format=descriptor.format) == payload
+        and tree_descriptor(entries, archive_format=descriptor.format) == _descriptor_document(descriptor)
         and all(_entry_structure_is_valid(entry, kinds) for entry in entries)
     )
     if not consistent:

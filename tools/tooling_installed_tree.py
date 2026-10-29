@@ -30,7 +30,7 @@ def _installed_tree_is_closed(value: dict[str, object]) -> bool:
     digest = value.get("manifest_sha256")
     return (
         set(value) == {"format", "manifest_sha256", *_COUNT_FLOORS}
-        and value.get("format") == "tar.gz"
+        and value.get("format") in ("tar.gz", "deb")
         and isinstance(digest, str)
         and SHA256_PATTERN.fullmatch(digest) is not None
         and all(_count_is_valid(value.get(name), floor) for name, floor in _COUNT_FLOORS.items())
