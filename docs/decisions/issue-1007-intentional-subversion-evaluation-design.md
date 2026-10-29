@@ -174,6 +174,12 @@ The test harness wiring is the architecture-as-code artifact.
 ADR-101 and ADR-108 already define the semantic and ownership boundaries.
 This design and the preflight document are the documentation changes.
 
+The repository runtime-mapping guard includes every Python test in its source identity.
+This issue therefore adds one immutable capture for the new source digest with the existing producer.
+The capture retains the unchanged 25-case witness set.
+Its equivalence, runtime-realization, and backend-conformance results remain `not-established`.
+It does not add an issue #1007 result or a backend claim.
+
 ## Reference evidence
 
 | Source | Version and section | Application |
