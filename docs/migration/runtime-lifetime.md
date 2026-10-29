@@ -141,6 +141,16 @@ Status results and history come from the committed snapshot.
 Use public processor planning when only a plan is needed.
 Planning alone does not require another runtime owner.
 
+The runtime records concern provenance for resources added through admitted backend preparation.
+These records use open explicitness and backend origin.
+Original author and processor origins remain intact.
+Retained resources keep their records across later operations and store reloads.
+Accepted updates replace affected records.
+Accepted deletion removes the resource's current records.
+Preparation refusal or failed native delivery creates no successful records.
+Materialization reporting preserves these first-party records without descendant ancestry.
+Provenance does not prove independent observation or complete capture.
+
 ## Compatibility evidence
 
 The public manager constructor and methods remain available.
