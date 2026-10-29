@@ -59,7 +59,7 @@ To set up natively instead:
 
 Prerequisites:
 
-- a standard CPython 3.11, 3.12, 3.13, or 3.14 payload admitted by the
+- a standard CPython 3.14 payload admitted by the
   [development profile](implementations/tooling/README.md); 3.14t is preview-only
 - the exact uv payload selected by the development artifact lock
 

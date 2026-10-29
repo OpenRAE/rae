@@ -2,8 +2,9 @@
 
 An experiment specification is the pre-run authoring/input counterpart to the
 archival experiment-core outputs (run/study/apparatus-context). Unlike SDL,
-the authoring input is a single nested contract document with no shorthand,
-key normalization, or cross-file resolution, so loading is a bounded,
+the authoring input is a single nested contract document. Its closed factorial
+intent materializes condition/binding children; there is no key normalization
+or cross-file resolution, so loading is a bounded,
 duplicate-key/alias-rejecting safe YAML parse followed by
 ``ExperimentSpecModel`` validation — mirroring how the JSON fixtures under
 ``contracts/fixtures/experiment-core`` are checked.
@@ -128,6 +129,8 @@ def parse_experiment_spec(
         code = "duplicate-key" if "duplicate mapping key" in str(exc) else "invalid-yaml"
         raise ExperimentSpecValidationError(code, "Experiment spec YAML is invalid.", path=path) from exc
     except (yaml.YAMLError, ValueError) as exc:
+        # PyYAML's timestamp constructor lets datetime's ValueError escape for
+        # impossible dates such as an unquoted 2026-02-30 (issue #1563).
         raise ExperimentSpecValidationError("invalid-yaml", "Experiment spec YAML is invalid.", path=path) from exc
 
     if not isinstance(payload, dict):

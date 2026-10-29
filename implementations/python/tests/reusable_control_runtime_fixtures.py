@@ -67,9 +67,17 @@ def identity():
 
 
 def handoff(plane, owner, edge, *, revision, head, order, key, episode="episode-1", step=None):
+    policy = plane._behavior_specifications[SPEC].mixed_control_policy
+    return control_intent(
+        policy, owner, edge, revision=revision, head=head, order=order, key=key, episode=episode, step=step
+    )
+
+
+def control_intent(policy, owner, edge, *, revision, head, order, key, episode="episode-1", step=None):
+    """Build one handoff intent for an admitted policy edge; the live-cut owner records its order."""
+
     from raes_runtime.participant_control_intents import ParticipantHandoffControlIntent
 
-    policy = plane._behavior_specifications[SPEC].mixed_control_policy
     transition = next(item for item in policy.permitted_transitions if item.transition_id == edge)
     owner.orders[key] = order
     return ParticipantHandoffControlIntent(

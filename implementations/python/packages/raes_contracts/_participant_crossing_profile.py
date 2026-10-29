@@ -120,7 +120,7 @@ class ParticipantCrossingParametersModel(ContractModel):
         return self
 
 
-def validate_crossing_profile_join(profile: "BehavioralRelationProfileModel") -> None:
+def validate_crossing_profile_join(profile: BehavioralRelationProfileModel) -> None:
     expected = {
         "profile_id": "participant-crossing-dpbb-finite-v1",
         "profile_revision": "rev2",

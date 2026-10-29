@@ -48,6 +48,7 @@ from .experiment_run_difficulty import (
 )
 from .experiment_run_stochastic import _validate_run_stochastic_draw_control_refs
 from .experiment_run_timing import validate_run_invalidation_status, validate_run_timing
+from .experiment_treatments import ExperimentScenarioSelectionDescriptorModel, validate_selection_descriptor_set
 from .materialization_attestation import MaterializationArchiveRecord, validate_run_materializations
 from .participant_manifests import ParticipantImplementationProvenanceModel
 from .random_stream import RandomStreamDrawRecordModel
@@ -132,6 +133,9 @@ class ExperimentRunModel(ContractModel):
     participant_implementation_provenance: ParticipantImplementationProvenanceModel | None = None
     parameter_set: list[ExperimentParameterModel] = Field(min_length=1)
     realized_bindings: list[RealizedBindingProvenanceModel] = Field(default_factory=list)
+    realized_selections: list[ExperimentScenarioSelectionDescriptorModel] = Field(
+        default_factory=list, max_length=256, exclude_if=lambda value: not value
+    )
     stochastic_controls: list[ExperimentStochasticControlModel] = Field(min_length=1)
     stochastic_draws: list[RandomStreamDrawRecordModel] = Field(default_factory=list)
     started_at: Rfc3339DateTimeString
@@ -167,6 +171,7 @@ class ExperimentRunModel(ContractModel):
         _validate_run_augmentation_disclosures(self)
         validate_run_materializations(self)
         _validate_realized_bindings(self.realized_bindings)
+        validate_selection_descriptor_set(self.realized_selections)
         validate_trial_run_provenance_binding(
             self.trial_provenance, run_id=self.run_id, scenario_digest=self.scenario_snapshot_ref.ref_digest
         )

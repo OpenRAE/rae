@@ -203,12 +203,12 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12.14"
+          python-version: "3.14.7"
 
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
         with:
           enable-cache: false
           version: "0.13.4"
@@ -218,7 +218,7 @@ jobs:
           DIST_DIR: ${{ runner.temp }}/raes-release-dist
         run: |
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
-            -m tools.python_closure build --profile public-linux-x86_64-cp312-all-extras \
+            -m tools.python_closure build --profile public-linux-x86_64-cp314-all-extras \
             --source implementations/python --out-dir "${DIST_DIR}"
 
       - name: Materialize the exact release smoke wheelhouse
@@ -226,7 +226,7 @@ jobs:
           WHEELHOUSE: ${{ runner.temp }}/raes-release-wheelhouse
         run: |
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
-            -m tools.python_closure materialize --profile public-linux-x86_64-cp312-all-extras \
+            -m tools.python_closure materialize --profile public-linux-x86_64-cp314-all-extras \
             --wheelhouse "${WHEELHOUSE}"
 
       - name: Verify the contract corpus is bundled in both distributions (#537)
@@ -312,7 +312,7 @@ jobs:
           fi
 
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
-            -m tools.python_closure smoke --profile public-linux-x86_64-cp312-all-extras \
+            -m tools.python_closure smoke --profile public-linux-x86_64-cp314-all-extras \
             --candidate "${wheels[0]}" --environment "${SMOKE_VENV}" \
             --wheelhouse "${WHEELHOUSE}" --offline
           smoke_home="$(mktemp -d "${RUNNER_TEMP}/raes-release-smoke-cwd.XXXXXX")"
@@ -359,7 +359,7 @@ jobs:
           fi
 
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
-            -m tools.python_closure smoke --profile public-linux-x86_64-cp312-all-extras \
+            -m tools.python_closure smoke --profile public-linux-x86_64-cp314-all-extras \
             --candidate "${sdist_wheels[0]}" --environment "${SMOKE_VENV}" \
             --wheelhouse "${WHEELHOUSE}" --offline
           smoke_home="$(mktemp -d "${RUNNER_TEMP}/raes-release-sdist-smoke-cwd.XXXXXX")"
@@ -407,7 +407,7 @@ jobs:
             --evidence-dir "${EVIDENCE_DIR}" \
             --environment "${SMOKE_VENV}" \
             --sdist-environment "${SDIST_SMOKE_VENV}" \
-            --profile public-linux-x86_64-cp312-all-extras \
+            --profile public-linux-x86_64-cp314-all-extras \
             --release-tag "${RELEASE_TAG}"
 
       - name: Upload the tested release distributions
@@ -530,12 +530,12 @@ jobs:
           name: release-evidence-${{ needs.resolve-release.outputs.release_sha }}
           path: evidence/
 
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12.14"
+          python-version: "3.14.7"
 
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
         with:
           enable-cache: false
           version: "0.13.4"
@@ -788,7 +788,7 @@ jobs:
 
       - name: Publish to PyPI (OIDC trusted publishing)
         if: steps.pypi-destination.outputs.pending == 'true'
-        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
         with:
           packages-dir: dist
           # Reconciliation above proved that any file already on PyPI is

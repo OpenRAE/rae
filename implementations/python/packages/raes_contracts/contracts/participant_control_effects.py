@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from typing import Annotated, Literal, Self
 
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import ConfigDict, Field, SerializerFunctionWrapHandler, model_serializer, model_validator
 
 from .base import ContractModel
+from .inject_occurrence import InjectTriggerRequestModel
 from .participant_control_coordinates import (
     ControlArtifactReferenceModel,
     ControlCount,
@@ -63,6 +64,17 @@ class ControlInjectEffectModel(ContractModel):
     participant_address: ControlRef
     episode_id: ControlRef
     disclosure_ref: ControlArtifactReferenceModel
+    world_request: InjectTriggerRequestModel | None = Field(
+        default=None,
+        description="Exact world-owner request required for fresh v2 execution; absent in legacy evidence.",
+    )
+
+    @model_serializer(mode="wrap")
+    def _serialize_world_request(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        payload = handler(self)
+        if self.world_request is None:
+            payload.pop("world_request", None)
+        return payload
 
     @model_validator(mode="after")
     def _inject(self) -> Self:

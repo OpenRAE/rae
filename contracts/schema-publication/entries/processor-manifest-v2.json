@@ -1,10 +1,10 @@
 {
+  "content_hash": "eb41344e4392d08e7c4a7e77c7170b863a48624d28a58fb9ea852a7c95d4ada3",
   "contract_id": "processor-manifest-v2",
-  "schema_path": "contracts/schemas/processor-manifest/processor-manifest-v2.json",
-  "stability": "draft",
-  "content_hash": "1a8d6709761778f672860d49c2d2fa53810e83e5a87998d05f6ceeae1c1379ec",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "1a8d6709761778f672860d49c2d2fa53810e83e5a87998d05f6ceeae1c1379ec"
-  }
+    "content_hash": "eb41344e4392d08e7c4a7e77c7170b863a48624d28a58fb9ea852a7c95d4ada3",
+    "summary": "Declare API-414 participant tool-profile semantics, typed capacities and evidence-backed tool features; preserve absent-block defaults."
+  },
+  "schema_path": "contracts/schemas/processor-manifest/processor-manifest-v2.json",
+  "stability": "draft"
 }

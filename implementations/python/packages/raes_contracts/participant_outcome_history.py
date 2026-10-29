@@ -35,7 +35,7 @@ def outcome_history_digest(history: Sequence[Mapping[str, Any]]) -> str:
         return canonical_json_digest(
             [ParticipantBehaviorHistoryEventModel.model_validate(event).model_dump(mode="json") for event in history]
         )
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         raise ValueError("outcome observation history contract is invalid") from None
 
 
@@ -77,7 +77,7 @@ def _bound_outcome_observation(
 ) -> ParticipantBehaviorHistoryEventModel:
     try:
         event = ParticipantBehaviorHistoryEventModel.model_validate(raw)
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         raise ValueError("outcome observation contract is invalid") from None
     action = event.action_result
     if action is not None and (
@@ -187,7 +187,7 @@ def require_outcome_history(history: OutcomeHistory, behavior_history: OutcomeHi
         for raw in reports:
             try:
                 report = ParticipantOutcomeReportV2Model.model_validate(raw)
-            except (TypeError, ValidationError):
+            except TypeError, ValidationError:
                 raise ValueError("outcome history report contract is invalid") from None
             if report.participant_address != participant or report.event_id in seen_ids:
                 raise ValueError("outcome history identity binding is invalid")
@@ -229,7 +229,7 @@ def iter_outcome_snapshot_violations(snapshot: RuntimeSnapshot) -> Iterator[tupl
     """Fixed-message adapter for runtime and conformance diagnostic owners."""
     try:
         require_outcome_history(snapshot.participant_outcome_history, snapshot.participant_behavior_history)
-    except (TypeError, ValueError, AttributeError, KeyError):
+    except TypeError, ValueError, AttributeError, KeyError:
         yield "runtime.snapshot.participant-outcome-history", "Participant outcome history failed replay validation."
 
 
@@ -238,7 +238,7 @@ def iter_outcome_transition_violations(
 ) -> Iterator[tuple[str, str]]:
     try:
         require_outcome_history_transition(previous, following)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         yield "runtime.snapshot.participant-outcome-history", "Participant outcome history must remain append-only."
 
 

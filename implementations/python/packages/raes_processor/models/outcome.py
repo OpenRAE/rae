@@ -41,7 +41,7 @@ class ParticipantOutcomeSourceRecord:
     diagnostics: tuple[str, ...] = ()
 
     @classmethod
-    def from_payload(cls, payload: Mapping[str, Any]) -> "ParticipantOutcomeSourceRecord":
+    def from_payload(cls, payload: Mapping[str, Any]) -> ParticipantOutcomeSourceRecord:
         if not isinstance(payload, Mapping):
             raise TypeError("participant outcome source record must be a mapping")
         missing = [key for key in ("source_id", "source_layer", "ref", "observed_value") if key not in payload]
@@ -99,7 +99,7 @@ class ParticipantOutcomeTargetRecord:
     diagnostics: tuple[str, ...] = ()
 
     @classmethod
-    def from_payload(cls, payload: Mapping[str, Any]) -> "ParticipantOutcomeTargetRecord":
+    def from_payload(cls, payload: Mapping[str, Any]) -> ParticipantOutcomeTargetRecord:
         if not isinstance(payload, Mapping):
             raise TypeError("participant outcome target record must be a mapping")
         missing = [
@@ -208,7 +208,7 @@ class ParticipantOutcomeInterpretationRecord:
     diagnostics: tuple[str, ...] = ()
 
     @classmethod
-    def from_payload(cls, payload: Mapping[str, Any]) -> "ParticipantOutcomeInterpretationRecord":
+    def from_payload(cls, payload: Mapping[str, Any]) -> ParticipantOutcomeInterpretationRecord:
         if not isinstance(payload, Mapping):
             raise TypeError("participant outcome interpretation record must be a mapping")
         missing = [

@@ -21,6 +21,17 @@ SEM-230 defines participant information-flow labels and projection, API-423 and 
 
 ## Traceability
 
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/runtime_mapping.py` (Issue #972 bounded public-execution mapping; no equivalence or complete runtime-realization result)
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/runtime_mapping_integrity.py` (Independent operation-record preservation, audit-prefix and authorized-outcome checks)
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/runtime_mapping_export.py` (Mapping source, profile, model and observed-case digests with drift rejection)
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-runtime-mapping.md` (State/transition mapping, data flows, security boundary and reproduction)
+- DOCUMENTS → DOCUMENTATION `specs/formal/participant-semantics/runtime-mapping/rev1/manifest.json` (Bounded mapping evidence; incompatible and incomplete observations remain explicit)
+- TESTS → TEST `implementations/python/tests/test_issue_972_runtime_mapping.py` (Public ingress, v2 context, effect dispatch, final egress, refusal, retry, corruption and projection checks)
+- TESTS → TEST `implementations/python/tests/test_issue_972_mapping_export.py` (Reproduction, source and artifact drift, retained model integrity and bounded publication)
+- TESTS → TEST `implementations/python/tests/test_issue_972_mapping_ownership.py` (Formal mapping ownership remains separate from runtime implementation ownership)
+- TESTS → TEST `implementations/python/tests/crossing_runtime_cases.py` (Synthetic policy inputs driving real public entry points)
+- TESTS → TEST `implementations/python/tests/crossing_runtime_observer.py` (Read-only phase and transaction witnesses from unmodified runtime orchestration)
+
 - DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/multi_export.py` (Issue #1395 complete two-operation construction and source drift evidence; equivalence and realization remain unestablished)
 - DOCUMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-multi-operation-models.md` (Separate finite profile, projection and failure boundary)
 - DOCUMENTS → DOCUMENTATION `docs/research/participant-bisimulation/multi-operation-construction.md` (Independent construction and historical-source preservation)

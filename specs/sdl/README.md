@@ -1,5 +1,10 @@
 # SDL Specification
 
+The [cloud resource and secret-service contract](cloud-resource-access.md)
+extends existing identity and application descriptions with resource scopes,
+identity use, policy attachment, secret versions and consumer selections.
+It does not provide cloud deployment or an IAM policy evaluator.
+
 Status: **normative**. This directory is the language-neutral authority for the
 RAES **Scenario Description Language (SDL)** authoring model and portable
 derived phase contracts. It is binding on
@@ -138,3 +143,5 @@ per-field semantics of each runtime family (owned by the family ADRs and indexed
 here). The normative error-vs-advisory classification criterion is stated in
 [`diagnostics.md` §5](diagnostics.md) (resolving review IMP-3); the
 classification of an individual condition follows from that criterion.
+
+[Participant control-context references](participant-control-context.md) define exact authored asset selections and ADR-094 participant factors.

@@ -37,7 +37,7 @@ def profile_resources(
     )
     try:
         authority = selected_profile_authority(authored_resource_profiles(resources.values()), context, authority)
-    except (AttributeError, TypeError, ValueError):
+    except AttributeError, TypeError, ValueError:
         return resources, [diagnostic], authority
     if authority is None:
         diagnostics = []
@@ -76,6 +76,6 @@ def _retained_profile_resources(
         for address, bindings in by_address.items():
             values = snapshot.get(address).profile_bindings if retain else tuple(bindings)
             resources[address] = replace(resources[address], profile_bindings=values)
-    except (AttributeError, TypeError, ValueError):
+    except AttributeError, TypeError, ValueError:
         return resources, [diagnostic]
     return resources, []

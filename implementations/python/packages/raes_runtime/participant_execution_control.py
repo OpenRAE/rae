@@ -3,16 +3,19 @@
 from __future__ import annotations
 
 import threading
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.participant_episode import ParticipantEpisodeResetRequest
-from raes_contracts.runtime_state import ApplyResult
+from raes_contracts.runtime_state import ApplyResult, OperationKind, RuntimeSnapshot
 
+from .backend_calls import _BackendCallContext, _RealizationApplyContext
+from .control_plane_lifecycle import runtime_owned
+from .control_plane_mutation import control_plane_mutation
 from .diagnostics import _has_error_diagnostic
 from .participant_clock_driver import ParticipantClockDriver
-from .participant_scheduler import ParticipantScheduler
 
 if TYPE_CHECKING:
     from raes_processor.models import ExecutionPlan
@@ -40,7 +43,6 @@ class RuntimeParticipantExecutionMixin:
         )
 
     def _finalize_participant_driver_apply(self, state: _RuntimeApplyState) -> None:
-        self._snapshot = state.working_snapshot
         driver_started = self._start_participant_clock_driver()
         if not driver_started:
             state.diagnostics.append(
@@ -77,17 +79,25 @@ class RuntimeParticipantExecutionMixin:
         if self._target.participant_runtime is None:
             self._fail_apply_state(state)
             return
-        result = self._participant_scheduler.initialize(
-            policies,
-            execution_plan.model.time_model,
-            self._target.participant_runtime,
+        from .participant_scheduler import ParticipantScheduler
+
+        if self._participant_scheduler is None:
+            self._participant_scheduler = ParticipantScheduler()
+        result = self._participant_scheduler_call(
+            "initialize",
             state.working_snapshot,
-            self._participant_activity_controls,
-            (
+            lambda predecessor: self._participant_scheduler.initialize(
+                policies,
+                execution_plan.model.time_model,
+                self._target.participant_runtime,
+                predecessor,
+                self._participant_activity_controls,
                 self._target.manifest.participant_runtime.resource_budgets
                 if self._target.manifest.participant_runtime is not None
-                else None
+                else None,
             ),
+            idempotency_key=state.phase_key,
+            identity=state.identity,
         )
         self._record_phase_result(state, result)
         if not result.success:
@@ -100,29 +110,59 @@ class RuntimeParticipantExecutionMixin:
     ) -> bool:
         if not self._participant_execution_policies:
             return True
-        due = self._participant_scheduler.run_due(
-            self._participant_execution_policies,
-            execution_plan.model.time_model,
-            self._target.participant_runtime,
+        due = self._participant_scheduler_call(
+            "start",
             state.working_snapshot,
-            self._participant_activity_controls,
+            lambda predecessor: self._participant_scheduler.run_due(
+                self._participant_execution_policies,
+                execution_plan.model.time_model,
+                self._target.participant_runtime,
+                predecessor,
+                self._participant_activity_controls,
+            ),
+            idempotency_key=state.phase_key,
+            identity=state.identity,
         )
         self._record_phase_result(state, due)
         return due.success
 
     def run_due_participant_actions(self) -> ApplyResult:
         with self._participant_execution_lock:
-            if self._target.participant_runtime is None:
+            if self._target.participant_runtime is None or self._participant_scheduler is None:
                 raise ValueError("runtime manager has no participant runtime")
-            result = self._participant_scheduler.run_due(
-                self._participant_execution_policies,
-                self._participant_execution_time_model,
-                self._target.participant_runtime,
+            result = self._participant_scheduler_call(
+                "due",
                 self._snapshot,
-                self._participant_activity_controls,
+                lambda predecessor: self._participant_scheduler.run_due(
+                    self._participant_execution_policies,
+                    self._participant_execution_time_model,
+                    self._target.participant_runtime,
+                    predecessor,
+                    self._participant_activity_controls,
+                ),
             )
-            self._snapshot = result.snapshot
             return result
+
+    def _participant_scheduler_call(
+        self,
+        phase: str,
+        predecessor: RuntimeSnapshot,
+        method: Callable[[RuntimeSnapshot], ApplyResult],
+        *,
+        idempotency_key: str = "",
+        identity: object | None = None,
+    ) -> ApplyResult:
+        return self._interaction_backend_call(
+            method,
+            predecessor,
+            address=f"runtime.participant.{phase}",
+            snapshot=predecessor,
+            realization=_RealizationApplyContext(effect_owners=frozenset({"participant"})),
+            call=_BackendCallContext(information_state_context_resolver=self._information_state_context_resolver),
+            runtime_composition=True,
+            idempotency_key=idempotency_key,
+            identity=identity,
+        )
 
     def _start_participant_clock_driver(self) -> bool:
         if not self._stop_participant_clock_driver():
@@ -137,6 +177,7 @@ class RuntimeParticipantExecutionMixin:
             service_due=self.run_due_participant_actions,
             lock=self._participant_execution_lock,
             publish_failure=self._publish_participant_clock_driver_failure,
+            mutation_scope=lambda: control_plane_mutation(self, OperationKind.COMPOSITION_PHASE),
         )
         self._participant_clock_driver.start()
         return True
@@ -145,7 +186,13 @@ class RuntimeParticipantExecutionMixin:
         self,
         result: ApplyResult,
     ) -> None:
-        self._snapshot = result.snapshot
+        from .participant_driver_failure import commit_driver_failure
+
+        with self._lifecycle_condition:
+            if self._closing or self._closed:
+                return
+            self._runtime_ready = False
+        commit_driver_failure(self, result)
 
     def _stop_participant_clock_driver(self) -> bool:
         if self._participant_clock_driver is not None:
@@ -154,6 +201,7 @@ class RuntimeParticipantExecutionMixin:
         self._participant_clock_driver = None
         return True
 
+    @runtime_owned
     def participant_clock_driver_status(self) -> dict[str, object]:
         driver = self._participant_clock_driver
         failure = driver.failure if driver is not None else None
@@ -165,58 +213,10 @@ class RuntimeParticipantExecutionMixin:
     def _sync_participant_execution_clock(
         self,
         method_name: str,
-        clock_address: str,
     ) -> ApplyResult | None:
-        if method_name == "reset":
-            return self._sync_participant_reset(clock_address)
-        lifecycle = {"pause": "paused", "resume": "running"}.get(method_name)
-        result = self._sync_participant_lifecycle(clock_address, lifecycle)
-        if method_name in {"advance", "jump", "resume"}:
-            due_result = self.run_due_participant_actions()
-            result = due_result if result is None else self._combined_clock_sync_result(result, due_result)
-        return result
-
-    @staticmethod
-    def _combined_clock_sync_result(
-        lifecycle_result: ApplyResult,
-        due_result: ApplyResult,
-    ) -> ApplyResult:
-        return ApplyResult(
-            success=due_result.success,
-            snapshot=due_result.snapshot,
-            diagnostics=[*lifecycle_result.diagnostics, *due_result.diagnostics],
-            changed_addresses=list(dict.fromkeys([*lifecycle_result.changed_addresses, *due_result.changed_addresses])),
-        )
-
-    def _sync_participant_reset(self, clock_address: str) -> ApplyResult | None:
-        if self._target.participant_runtime is None or self._participant_execution_time_model is None:
-            return None
-        result = self._participant_scheduler.reset_clock(
-            self._participant_execution_policies,
-            self._participant_execution_time_model,
-            self._target.participant_runtime,
-            self._snapshot,
-            clock_address,
-            reset_participants=False,
-            activity_controls=self._participant_activity_controls,
-        )
-        self._snapshot = result.snapshot
-        return result
-
-    def _sync_participant_lifecycle(
-        self,
-        clock_address: str,
-        lifecycle: str | None,
-    ) -> ApplyResult | None:
-        if lifecycle is None:
-            return None
-        result = self._participant_scheduler.set_clock_lifecycle(
-            self._snapshot,
-            clock_address,
-            lifecycle,
-        )
-        self._snapshot = result.snapshot
-        return result
+        if method_name in {"advance", "jump", "resume"} and self._participant_scheduler is not None:
+            return self.run_due_participant_actions()
+        return None
 
     def _participant_execution_clock_reset_requests(
         self,
@@ -313,7 +313,7 @@ class RuntimeParticipantExecutionMixin:
 
     def _initialize_participant_scheduler(self) -> None:
         self._participant_execution_lock = threading.RLock()
-        self._participant_scheduler = ParticipantScheduler()
+        self._participant_scheduler = None
         self._participant_execution_policies = ()
         self._participant_execution_time_model = None
         self._participant_clock_driver = None

@@ -372,7 +372,8 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
 
     # Deterministic concurrent shards of the default-marker suite.
     shard = workflow["jobs"]["test-shard"]
-    assert shard["strategy"]["matrix"]["shard"] == [0, 1, 2, 3]
+    assert shard["strategy"]["matrix"]["shard"] == list(range(int(workflow["env"]["RAES_CI_SHARD_COUNT"])))
+    assert workflow["env"]["RAES_CI_SHARD_COUNT"] == "8"
     assert shard["strategy"]["fail-fast"] is False
     shard_run = _named_step(shard, "Run deterministic test shard")
     assert "nox -f noxfile.py -s verify-shard" in shard_run["run"]
@@ -396,6 +397,8 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
     )
     assert "fetch-inputs" in carrier["run"]
     assert "proof-ubuntu-22.04-x86_64 .canonical-tool-inputs --artifact-id isabelle" in carrier["run"]
+    assert "--locator-ref official-isabelle-release" in carrier["run"]
+    assert "official-isabelle-cambridge-mirror" not in carrier["run"]
     acquire = _named_step(proof, "Admit the carried Isabelle archive with egress denied")["run"]
     assert acquire.startswith("bwrap --dev-bind / / --unshare-net --die-with-parent ")
     assert "implementations/tooling/python/.venv/bin/python -m tools.isabelle_tool acquire" in acquire
@@ -472,19 +475,19 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     assert "github.actor != 'dependabot[bot]'" in reusable_sonar["if"]
     assert reusable_sonar["needs"] == "coverage-reduce"
 
-    interpreters = workflow["jobs"]["interpreters"]
-    assert interpreters["strategy"]["matrix"]["python"] == [
-        {"feature": "3.11", "payload": "3.11.16", "closure": "public-linux-x86_64-cp311-all-extras"},
-        {"feature": "3.12", "payload": "3.12.14", "closure": "public-linux-x86_64-cp312-all-extras"},
-        {"feature": "3.13", "payload": "3.13.15", "closure": "public-linux-x86_64-cp313-all-extras"},
-        {"feature": "3.14", "payload": "3.14.7", "closure": "public-linux-x86_64-cp314-all-extras"},
-    ]
-    assert interpreters["env"] == {
-        "UV_PYTHON": "${{ matrix.python.payload }}",
-        "RAES_EXPECTED_PYTHON": "${{ matrix.python.feature }}",
-        "RAES_PYTHON_CLOSURE_PROFILE": "${{ matrix.python.closure }}",
+    # CPython 3.14 is the only supported interpreter. The canonical graph runs the
+    # full suite on it, so this job only checks the runtime and the clean
+    # distribution (#1672).
+    distribution = workflow["jobs"]["distribution"]
+    assert distribution["name"] == "CPython 3.14 compatibility"
+    assert "strategy" not in distribution
+    assert distribution["env"] == {
+        "UV_PYTHON": "3.14.7",
+        "RAES_EXPECTED_PYTHON": "3.14",
+        "RAES_PYTHON_CLOSURE_PROFILE": "public-linux-x86_64-cp314-all-extras",
+        "RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY": "1",
     }
-    compatibility = _named_step(interpreters, "Test exact interpreter and clean distribution")
+    compatibility = _named_step(distribution, "Test exact interpreter and clean distribution")
     assert "nox -f noxfile.py -s python-compatibility" in compatibility["run"]
 
 
@@ -644,7 +647,7 @@ def test_release_builds_and_smokes_the_verified_sha_before_publish() -> None:
 
     build_script = _named_step(build, "Build constrained release distributions")["run"]
     assert "tools.python_closure build" in build_script
-    assert "--profile public-linux-x86_64-cp312-all-extras" in build_script
+    assert "--profile public-linux-x86_64-cp314-all-extras" in build_script
     assert "uv build" not in build_script
 
     for smoke_index, distribution in ((wheel_smoke_index, "wheel"), (sdist_smoke_index, "sdist")):

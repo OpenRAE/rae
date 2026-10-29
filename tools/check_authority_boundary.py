@@ -1209,7 +1209,7 @@ def _check_publication_manifest_present(repo_root: Path) -> list[PolicyFailure]:
 def _read_text_or_none(path: Path) -> str | None:
     try:
         return path.read_text(encoding="utf-8")
-    except (OSError, UnicodeDecodeError):
+    except OSError, UnicodeDecodeError:
         return None
 
 
