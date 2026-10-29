@@ -6,7 +6,7 @@ import asyncio
 from collections.abc import Coroutine
 from pathlib import Path
 from threading import Event
-from typing import Any, TypeVar
+from typing import Any
 
 import httpx
 import pytest
@@ -30,10 +30,8 @@ from starlette.types import Message, Receive, Scope, Send
 
 pytestmark = pytest.mark.control_plane_conformance
 
-_T = TypeVar("_T")
 
-
-def _run(coroutine: Coroutine[Any, Any, _T]) -> _T:
+def _run[T](coroutine: Coroutine[Any, Any, T]) -> T:
     """Run one coroutine without replacing or closing pytest's default loop."""
 
     loop = asyncio.new_event_loop()

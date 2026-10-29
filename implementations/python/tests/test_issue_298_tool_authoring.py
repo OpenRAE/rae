@@ -119,7 +119,7 @@ def test_reusable_tool_bindings_resolve_inside_their_own_namespace(document: Pat
     assert affordance.action_contract_addresses == (f"participant.action-contract.{prefix}scan",)
     assert affordance.observation_boundary_addresses == (f"participant.observation-boundary.{prefix}red-view",)
     assert model.observation_boundaries[f"participant.observation-boundary.{prefix}red-view"].observable_refs == (
-        f"behavior_specifications.{prefix}{REUSABLE}.tool_affordances.network-scanner",
+        affordance.address,
     )
     participant = model.participant_behaviors[f"participant.behavior.{prefix}red-agent"]
     assert _access(participant) == [
@@ -604,7 +604,7 @@ def test_declared_and_displayed_tool_neither_admits_nor_records_an_invocation(
     model = compile_runtime_model(parse_sdl_file(ROOT))
     participant = model.participant_behaviors[participant_address]
     shown_refs = model.observation_boundaries["participant.observation-boundary.operator-view"].observable_refs
-    assert shown_refs == (f"behavior_specifications.{LOCAL}.tool_affordances.{SHARED}",)
+    assert shown_refs == (LOCAL_AFFORDANCE,)
     assert participant.observation_boundary_addresses == ("participant.observation-boundary.operator-view",)
     control_plane = RuntimeControlPlane(create_stub_target())
     control_plane.initialize_participant_episode(participant.address, episode_id="episode-1")

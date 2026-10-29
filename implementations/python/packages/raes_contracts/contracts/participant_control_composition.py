@@ -402,5 +402,5 @@ def parse_participant_control_evaluation(source: str | bytes) -> ParticipantCont
     try:
         payload = parse_bounded_json_object(source, max_bytes=1_048_576, max_depth=32)
         return ParticipantControlEvaluationModel.model_validate(payload)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         raise ValueError("invalid participant control evaluation") from None

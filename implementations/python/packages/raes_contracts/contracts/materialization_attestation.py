@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, Literal
 from pydantic import Field, model_validator
 
 from raes_contracts.materialization import MaterializationSource
+from raes_contracts.materialization_inventory import RuntimeInventoryReport
 
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
 from .experiment_artifacts import ExperimentArtifactRefModel
@@ -43,9 +44,12 @@ class MaterializationArchiveRecord(ContractModel):
     artifact: ExperimentArtifactRefModel
     run_id: NonEmptyString
     operation_id: NonEmptyString
+    inventory: RuntimeInventoryReport | None = Field(default=None, exclude_if=lambda value: value is None)
 
     @model_validator(mode="after")
     def _validate_archive_join(self) -> MaterializationArchiveRecord:
+        if self.inventory is not None and self.inventory.run_id != self.run_id:
+            raise ValueError("inventory report must belong to its archive run")
         if (
             self.artifact.role != "materialization-attestation"
             or self.reference.ref_id != self.artifact.artifact_id
@@ -90,6 +94,12 @@ def attach_materialization_invariants(contract_id: str, schema: dict[str, Any]) 
             "SDL bytes require bounded parsing and semantic, original-authority, complete inventory "
             "and execution-context validation after materialization hooks.",
             "raes_processor.planner.admit_materialization_submission",
+        ),
+        "backend-runtime-descendants-v1": (
+            "runtime-descendant-inventory-admission",
+            "Descendant identities, source and reporting attempts, causal receipts, complete coverage, "
+            "original structural authority and lifecycle transitions require the trusted runtime predecessor.",
+            "raes_processor.planner.materialization_inventory.admit_runtime_inventory",
         ),
         "materialization-archive-record-v1": (
             "materialization-archive-byte-and-lineage-binding",

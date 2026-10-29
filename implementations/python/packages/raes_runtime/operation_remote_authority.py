@@ -25,6 +25,12 @@ if TYPE_CHECKING:
     from .operation_temporal import EngineOperationReference
 
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .runtime_sequence_reference import RuntimeSequenceReference
+
+
 @dataclass(frozen=True, kw_only=True)
 class RemoteAuthorityConfiguration:
     base_url: str
@@ -108,6 +114,17 @@ class RemoteOperationAuthority:
             return self._executor.call("control", invoke, timeout_ms=self.configuration.rpc_budget_ms)
         except Exception:
             raise RuntimeError("worker authority response could not be established") from None
+
+    def advance_runtime(self, reference: RuntimeSequenceReference) -> str:
+        """Reconcile a durable state cut; no fresh attempt is implied by redelivery."""
+        from .runtime_sequence_reference import RuntimeSequenceReference
+
+        reference = RuntimeSequenceReference.model_validate(reference.model_dump(mode="json"))
+        if reference.worker_id != self.configuration.identity.identity:
+            raise PermissionError("runtime worker reference is forbidden")
+        if self.configuration.rpc_budget_ms >= reference.activity_budget_ms:
+            raise ValueError("runtime activity budget must exceed its bounded authority call")
+        return self._rpc("POST", "runtime/progress", reference.model_dump(mode="json"))
 
     def _path(self, reference: EngineOperationReference, suffix: str = "") -> str:
         if reference.worker_id != self.configuration.identity.identity:

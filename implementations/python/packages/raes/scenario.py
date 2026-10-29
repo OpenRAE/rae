@@ -13,8 +13,9 @@ Delivery-level concerns (Docker, Terraform, cloud APIs) are outside the SDL.
 from collections.abc import Mapping
 from typing import ClassVar, Literal
 
-from pydantic import ConfigDict, Field, PrivateAttr, model_validator
+from pydantic import ConfigDict, Field, PrivateAttr, field_validator, model_validator
 from raes_contracts.augmentation_scope import OptionalAugmentationScope
+from raes_contracts.contracts.participant_control_context import ParticipantControlContextAssetModel
 from raes_contracts.execution_policy import OptionalExecutionPolicy
 
 from ._classification_guard import LegacyClassificationGuard
@@ -243,6 +244,9 @@ class ScenarioContent(LegacyClassificationGuard):
     deployment_cells: dict[str, DeploymentCell] = Field(default_factory=dict)
     relationships: dict[str, Relationship] = Field(default_factory=dict)
     forwarding_agents: list[RuntimeForwardingAgent] = Field(default_factory=list)
+    control_context_assets: dict[str, ParticipantControlContextAssetModel] = Field(
+        default_factory=dict, exclude_if=lambda value: not value, max_length=256
+    )
     agents: dict[str, Agent] = Field(default_factory=dict)
     action_contracts: dict[str, ParticipantActionContract] = Field(default_factory=dict)
     observation_boundaries: dict[str, ParticipantObservationBoundary] = Field(default_factory=dict)
@@ -263,6 +267,15 @@ class ScenarioContent(LegacyClassificationGuard):
     _semantic_validated: bool = PrivateAttr(default=False)
     _explicitness: dict[str, ExplicitnessRecord] = PrivateAttr(default_factory=dict)
     _declaration_sources: dict[str, DeclarationSource] = PrivateAttr(default_factory=dict)
+
+    @field_validator("control_context_assets")
+    @classmethod
+    def _immutable_control_context_descriptors(
+        cls, assets: dict[str, ParticipantControlContextAssetModel]
+    ) -> dict[str, ParticipantControlContextAssetModel]:
+        if any(collect_variable_tokens(asset.model_dump(mode="json")) for asset in assets.values()):
+            raise ValueError("control-context.immutable-descriptor-token")
+        return assets
 
     @property
     def declaration_sources(self) -> dict[str, DeclarationSource]:
@@ -454,7 +467,7 @@ class InstantiatedScenario(ScenarioContent):
         }
 
     @model_validator(mode="after")
-    def _reject_unresolved_variable_references(self) -> "InstantiatedScenario":
+    def _reject_unresolved_variable_references(self) -> InstantiatedScenario:
         payload = self.model_dump(mode="json", by_alias=True)
         tokens = sorted(set(collect_variable_tokens(payload)))
         if tokens:

@@ -111,7 +111,7 @@ def _settle_concurrent_service_state(
         settled = run.working.participant_execution_services.get(policy_address)
         if settled != prior:
             raise ValueError("concurrent participant service settlement did not restore prior accounting")
-    except (Exception, CancelledError):  # NOSONAR - settlement must not leak a backend-facing exception
+    except Exception, CancelledError:  # NOSONAR - settlement must not leak a backend-facing exception
         services = dict(run.working.participant_execution_services)
         prior = pre_batch.participant_execution_services.get(policy_address)
         if prior is None:

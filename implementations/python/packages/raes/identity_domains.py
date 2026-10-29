@@ -53,7 +53,7 @@ class IdentityDomain(SDLModel):
         return parse_profile_or_enum(value, IdentityDomainProfile, field_name="profile")
 
     @model_validator(mode="after")
-    def _selected_domain_shape(self) -> "IdentityDomain":
+    def _selected_domain_shape(self) -> IdentityDomain:
         if not isinstance(self.profile, DomainProfileBindingModel) and (not self.dns_name or not self.netbios_name):
             raise ValueError("Active Directory requires dns_name and netbios_name")
         return self

@@ -14,11 +14,12 @@ from pydantic import SecretStr
 
 from .control_plane_profiles import ControlPlaneCapability, ControlPlaneStoreCapabilities
 from .control_plane_store import ControlPlaneOperationRecord
+from .control_plane_store_changes import OperationChanges
 from .control_plane_store_local_codec import decode_payload, encode_payload
 from .control_plane_store_records import _audit_event_from_payload, _record_from_payload, _record_payload
 from .control_plane_store_revision import SnapshotState
-from .control_plane_store_snapshots import _snapshot_from_payload
 from .operation_execution_adapter import require_budget_ms
+from .runtime_decision_store import SQLRuntimeDecisionStoreMixin
 
 if TYPE_CHECKING:
     from psycopg import Connection
@@ -92,7 +93,7 @@ class _PostgreSQLOwner:
             self._store._owner = None
 
 
-class PostgreSQLControlPlaneStore:
+class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
     """One database, one target/run, one admitted owner; no P3/HA claim.
 
     initialize_schema() is a separate explicit bootstrap operation. Runtime
@@ -100,6 +101,7 @@ class PostgreSQLControlPlaneStore:
     shares Temporal's history, or acquires credentials from a request.
     """
 
+    _decision_placeholder = "%s"
     control_plane_capabilities = ControlPlaneStoreCapabilities(
         frozenset(
             {
@@ -122,6 +124,8 @@ class PostgreSQLControlPlaneStore:
         self._owner_generation = None
         self._scope = None
         self._closed = False
+        self._snapshot_cache = None
+        self._pending_snapshots = {}
 
     @property
     def admitted(self) -> bool:
@@ -166,12 +170,7 @@ class PostgreSQLControlPlaneStore:
                 metadata = dict(ledger.execute("SELECT key, value FROM raes_ledger_metadata FOR UPDATE").fetchall())
                 from .control_plane_store_postgresql_schema import POSTGRES_LEDGER_SCHEMA_VERSION
 
-                # The sole owner upgrades the record interpretation before any
-                # newer fields can be written; older binaries refuse version 2.
-                if metadata.get("schema-version") == "1":
-                    ledger.execute("UPDATE raes_ledger_metadata SET value='2' WHERE key='schema-version'")
-                    metadata["schema-version"] = POSTGRES_LEDGER_SCHEMA_VERSION
-                if metadata.get("schema-version") != POSTGRES_LEDGER_SCHEMA_VERSION:
+                if metadata.get("schema-version") not in {"1", "2", "3", "4", POSTGRES_LEDGER_SCHEMA_VERSION}:
                     raise ValueError("PostgreSQL ledger schema is missing or unsupported")
                 prior = (metadata.get("target-scope"), metadata.get("run-scope"))
                 if prior == (None, None):
@@ -182,6 +181,14 @@ class PostgreSQLControlPlaneStore:
                         )
                 elif prior != self._scope:
                     raise RuntimeError("PostgreSQL ledger scope does not match runtime admission")
+                if metadata.get("schema-version") != POSTGRES_LEDGER_SCHEMA_VERSION:
+                    from .control_plane_store_postgresql_schema import initialize_projection_schema
+
+                    initialize_projection_schema(ledger)
+                    ledger.execute(
+                        "UPDATE raes_ledger_metadata SET value=%s WHERE key='schema-version'",
+                        (POSTGRES_LEDGER_SCHEMA_VERSION,),
+                    )
                 from .control_plane_store_local_invocations import LocalInvocationStoreMixin
 
                 previous = LocalInvocationStoreMixin._generation(metadata.get("owner-generation", "0"))
@@ -205,14 +212,25 @@ class PostgreSQLControlPlaneStore:
         if not self.admitted:
             raise RuntimeError("PostgreSQL ledger requires live runtime admission")
         self._owner.assert_owner()
-        with self._connect() as connection, connection.transaction():
-            if self._owner_generation is not None:
-                row = connection.execute(
-                    "SELECT value FROM raes_ledger_metadata WHERE key='owner-generation' FOR UPDATE"
-                ).fetchone()
-                if row != (str(self._owner_generation),):
-                    raise RuntimeError("PostgreSQL execution owner is stale")
-            yield connection
+        with self._connect() as connection:
+            try:
+                with connection.transaction():
+                    self._pending_snapshots[id(connection)] = None
+                    self._require_current_owner(connection)
+                    yield connection
+                pending = self._pending_snapshots.get(id(connection))
+                if pending is not None:
+                    self._snapshot_cache = pending
+            finally:
+                self._pending_snapshots.pop(id(connection), None)
+
+    def _require_current_owner(self, connection: Connection[tuple[object, ...]]) -> None:
+        if self._owner_generation is not None:
+            row = connection.execute(
+                "SELECT value FROM raes_ledger_metadata WHERE key='owner-generation' FOR UPDATE"
+            ).fetchone()
+            if row != (str(self._owner_generation),):
+                raise RuntimeError("PostgreSQL execution owner is stale")
 
     def close(self) -> None:
         # The lease closes separately, after confirmed drain.
@@ -221,21 +239,10 @@ class PostgreSQLControlPlaneStore:
     def load_snapshot(self) -> RuntimeSnapshot:
         return self.load_snapshot_state().snapshot
 
-    @staticmethod
-    def _load_snapshot_state(connection: Connection[tuple[object, ...]]) -> SnapshotState:
-        from raes_contracts.runtime_state import RuntimeSnapshot
+    def _load_snapshot_state(self, connection: Connection[tuple[object, ...]]) -> SnapshotState:
+        from .control_plane_store_postgresql_projection import load_snapshot
 
-        row = connection.execute(
-            "SELECT payload, digest, revision FROM raes_ledger_state WHERE key='runtime-snapshot'"
-        ).fetchone()
-        return (
-            SnapshotState(RuntimeSnapshot(), 0)
-            if row is None
-            else SnapshotState(
-                _snapshot_from_payload(decode_payload(row[0], row[1], kind="runtime snapshot")),
-                row[2],
-            )
-        )
+        return load_snapshot(self, connection)
 
     def load_snapshot_state(self) -> SnapshotState:
         with self._connection() as connection:
@@ -260,15 +267,26 @@ class PostgreSQLControlPlaneStore:
         with self._connection() as connection:
             return self._load_records(connection)
 
+    def load_operation_changes(self, cursor: int | None = None) -> OperationChanges:
+        from .control_plane_store_postgresql_projection import operation_changes
+
+        with self._connection() as connection:
+            return operation_changes(self, connection, cursor)
+
     @staticmethod
-    def _upsert_record(connection: Connection[tuple[object, ...]], record: ControlPlaneOperationRecord) -> None:
+    def _load_record(connection: Connection[tuple[object, ...]], identity: str) -> ControlPlaneOperationRecord | None:
+        from .control_plane_store_postgresql_projection import stored_record
+
+        return stored_record(connection, identity)
+
+    def _upsert_record(self, connection: Connection[tuple[object, ...]], record: ControlPlaneOperationRecord) -> None:
         from .inject_claims import require_inject_claim
 
         if record.inject_occurrence is not None:
             require_inject_claim(
                 record,
                 PostgreSQLControlPlaneStore._load_records(connection).values(),
-                revision=PostgreSQLControlPlaneStore._load_snapshot_state(connection).revision,
+                revision=self._load_snapshot_state(connection).revision,
             )
         payload, digest = encode_payload(_record_payload(record))
         context = record.receipt.context

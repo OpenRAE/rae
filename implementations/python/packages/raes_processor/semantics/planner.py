@@ -6,7 +6,7 @@ from collections import deque
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from enum import Enum
-from typing import Protocol, TypeVar
+from typing import Protocol
 
 from raes_contracts.addressing import require_compiled_address
 
@@ -278,21 +278,17 @@ def refresh_impacted_nodes(
     return tuple(address for address in refresh_order if address in impacted_set)
 
 
-_TResource = TypeVar("_TResource")
-_TSnapshot = TypeVar("_TSnapshot")
-
-
-def reconcile_resource_actions(
-    resources: Mapping[str, _TResource],
-    snapshot_entries: Mapping[str, _TSnapshot],
+def reconcile_resource_actions[TResource, TSnapshot](
+    resources: Mapping[str, TResource],
+    snapshot_entries: Mapping[str, TSnapshot],
     *,
-    resource_dependencies: Callable[[_TResource], SupportsDependencySemantics],
-    matches: Callable[[_TSnapshot, _TResource], bool],
-) -> tuple[dict[str, ReconciliationAction], dict[str, _TSnapshot]]:
+    resource_dependencies: Callable[[TResource], SupportsDependencySemantics],
+    matches: Callable[[TSnapshot, TResource], bool],
+) -> tuple[dict[str, ReconciliationAction], dict[str, TSnapshot]]:
     """Compute create/update/delete/unchanged actions from semantic dependencies."""
 
     actions: dict[str, ReconciliationAction] = {}
-    deleted_entries: dict[str, _TSnapshot] = {}
+    deleted_entries: dict[str, TSnapshot] = {}
 
     for address, resource in resources.items():
         existing = snapshot_entries.get(address)

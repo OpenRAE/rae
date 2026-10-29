@@ -319,7 +319,7 @@ def python_scan(text: str) -> PythonScan:
 
     try:
         nodes = tuple(ast.walk(ast.parse(text)))
-    except (SyntaxError, ValueError):
+    except SyntaxError, ValueError:
         return PythonScan(frozenset(), False, 0, False, 0)
     aliases = _aliases(nodes)
     artifact_ids, selection_valid = _selection_observation(nodes, aliases)
@@ -345,7 +345,7 @@ def structured_acquisition(text: str, path: str) -> tuple[int, bool, int]:
             yaml.safe_load(text)
         elif suffix == TOML_SUFFIX:
             tomllib.loads(text)
-    except (yaml.YAMLError, tomllib.TOMLDecodeError):
+    except yaml.YAMLError, tomllib.TOMLDecodeError:
         parsed = False
     return len(ACQUISITION_COMMAND_RE.findall(text)) if parsed else 0, parsed, 0
 

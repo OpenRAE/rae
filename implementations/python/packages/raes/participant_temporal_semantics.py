@@ -178,7 +178,7 @@ class ParticipantSharedTimeBinding(SDLModel):
     observation_boundary_ref: str | None = Field(default=None, min_length=1, exclude_if=lambda value: value is None)
 
     @model_validator(mode="after")
-    def _validate_evidence_requirements(self) -> "ParticipantSharedTimeBinding":
+    def _validate_evidence_requirements(self) -> ParticipantSharedTimeBinding:
         if self.evidence_mode == "continuous":
             if self.condition_precondition_id is None or self.observation_boundary_ref is None:
                 raise ValueError("continuous dwell requires a condition_precondition_id and observation_boundary_ref")
@@ -253,7 +253,7 @@ class ParticipantTemporalContract(SDLModel):
         return values
 
     @model_validator(mode="after")
-    def _validate_sem213_contract_shape(self) -> "ParticipantTemporalContract":
+    def _validate_sem213_contract_shape(self) -> ParticipantTemporalContract:
         event_points = set(self.event_points)
         if self.temporal_kind in _WINDOW_KINDS and self.window_ref is None:
             raise ValueError(f"{self.temporal_kind.value} temporal contracts require window_ref")
@@ -342,7 +342,7 @@ class ParticipantBackendTimingDisclosure(SDLModel):
         return values
 
     @model_validator(mode="after")
-    def _validate_limitations(self) -> "ParticipantBackendTimingDisclosure":
+    def _validate_limitations(self) -> ParticipantBackendTimingDisclosure:
         if (
             self.support_mode
             in {

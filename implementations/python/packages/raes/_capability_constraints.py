@@ -209,3 +209,22 @@ def capture_parameter_derivations(scenario: Scenario | ExpandedScenario) -> tupl
         )
         if isinstance(derivation, ParameterDerivation)
     )
+
+
+def capture_bound_parameter_provenance(
+    scenario: Scenario | ExpandedScenario, preserved: set[str]
+) -> tuple[tuple[CapabilityConstraint, ...], tuple[ParameterDerivation, ...]]:
+    """Retain constraints and derivations for parameters bound in this phase."""
+    constraints = tuple(
+        constraint
+        for constraint in capture_capability_constraints(scenario)
+        if not constraint.parameter or constraint.parameter[0] not in preserved
+    )
+    derivations = tuple(
+        derivation
+        for derivation in capture_parameter_derivations(scenario)
+        if not any(
+            segment.parameter[0] in preserved for segment in derivation.segments if hasattr(segment, "parameter")
+        )
+    )
+    return constraints, derivations

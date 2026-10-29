@@ -60,6 +60,10 @@ def test_authenticated_api_rejects_collection_tampering_before_any_backend_callb
         assert receipt["accepted"], receipt
         assert control_plane.get_operation(receipt["operation_id"]).state is OperationState.SUCCEEDED
         assert len(control_plane.snapshot.entries) == 6
+        assert any(
+            row.address == "provision.node.extra" and row.provenance.value == "backend-realized"
+            for row in control_plane.snapshot.realization_provenance
+        )
     assert calls == ["prepare"]
     assert backend.applies == 1
     control_plane.close()

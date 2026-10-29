@@ -336,6 +336,6 @@ def _validated_cache_root(
             expected_entries=expected_entries,
         )
         root_path = _validated_root_path(version, root_relative)
-    except (OSError, UnicodeError, json.JSONDecodeError, SDLParseError):
+    except OSError, UnicodeError, json.JSONDecodeError, SDLParseError:
         return None
     return root_path

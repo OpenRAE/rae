@@ -159,7 +159,7 @@ def _closures_normalize(state: EpisodeProgression) -> bool:
         for payload in records:
             try:
                 ParticipantEpisodeClosureRecord.from_payload(payload)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 return False
     return True
 
