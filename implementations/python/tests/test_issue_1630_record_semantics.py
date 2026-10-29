@@ -18,6 +18,32 @@ class ProviderFailure(Exception):
     pass
 
 
+def test_missing_metric_keys_do_not_overwrite_supplied_results():
+    from types import SimpleNamespace
+
+    from raes_contracts.contracts import ExperimentResultSummaryModel
+    from raes_runtime.runtime_experiment_records import _run_metadata
+
+    supplied = ExperimentResultSummaryModel(
+        metric_id="observed",
+        value=42,
+        value_status="reported",
+        evidence_refs=[{"ref_kind": "evidence", "ref_id": "observed-artifact"}],
+    )
+    metadata = ExperimentRunMetadata(result_summaries={"missing:absent": supplied, "missing:absent:1": supplied})
+    protocol = SimpleNamespace(
+        metric_definitions={name: SimpleNamespace(metric_id=name) for name in ("observed", "absent")}
+    )
+    experiment = SimpleNamespace(inputs=SimpleNamespace(task=SimpleNamespace(evaluation_protocol=protocol)))
+    result = _run_metadata(experiment, metadata)
+    for key, value in metadata.result_summaries.items():
+        assert result.result_summaries[key] == value
+    missing = [item for item in result.result_summaries.values() if item.metric_id == "absent"]
+    assert len(missing) == 1
+    assert missing[0].value_status == "missing"
+    assert result == _run_metadata(experiment, metadata)
+
+
 @pytest.mark.parametrize("error", [KeyError, ProviderFailure])
 @pytest.mark.parametrize("stage", ["run", "study"])
 def test_ordinary_provider_exceptions_preserve_records(completed_run, error, stage):

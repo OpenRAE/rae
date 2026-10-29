@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import replace
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
@@ -16,12 +16,13 @@ from raes_contracts.contracts import (
     validate_replacement_trial_study,
 )
 
+from .experiment_records import ExperimentRecordBundle
 from .runtime_record_decisions import ExperimentStudyDefinitionDecision
 from .runtime_record_validation import with_record_evidence
 from .runtime_trial_decisions import TrialArchiveCandidateDecision, TrialArchiveDecision, TrialReplacementDecision
 
 if TYPE_CHECKING:
-    from .experiment_records import ExperimentEvidenceReader, ExperimentRecordBundle, ExperimentRecordSource
+    from .experiment_records import ExperimentEvidenceReader, ExperimentRecordSource
     from .runtime_decisions import RuntimeDecision
     from .runtime_experiment import RuntimeExperiment
 
@@ -57,7 +58,9 @@ def assemble_study(
     except ValueError, OSError, RuntimeError, TypeError, AttributeError:
         status = "failed"
         failures["study"] = ("study-validation-failed",)
-    return replace(bundle, study=study, study_validation=status, validation_failures=failures)
+    return cast(
+        ExperimentRecordBundle, replace(bundle, study=study, study_validation=status, validation_failures=failures)
+    )
 
 
 def _authored_definition(experiment: RuntimeExperiment, definition: ExperimentStudyModel) -> ExperimentStudyModel:

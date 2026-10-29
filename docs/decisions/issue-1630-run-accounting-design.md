@@ -68,6 +68,7 @@ Accounting reports planned, started, unstarted, resolved, and unresolved runs.
 It separately reports attempt counts, retry attempts, replacement runs, capture outcomes, checks outcomes, and cleanup outcomes.
 It reports scientific outcome counts from explicit evaluation facts.
 Scientific summaries report available and missing measurements with their actual run sets.
+Missing measurements receive unused result keys in a stable order; supplied entries remain intact.
 Overlapping failure categories are not presented as disjoint run sets.
 Unstarted allocations are not failures.
 A later successful attempt does not erase earlier failures.

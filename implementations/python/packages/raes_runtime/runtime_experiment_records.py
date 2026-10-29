@@ -140,8 +140,13 @@ def _run_metadata(experiment: RuntimeExperiment, supplied: ExperimentRunMetadata
     if any(item.metric_id not in declared for item in summaries.values()):
         raise ValueError("record result metric is not declared by the admitted task")
     reported = {item.metric_id for item in summaries.values()}
-    for metric in declared - reported:
-        summaries["missing:" + metric] = ExperimentResultSummaryModel(
+    for metric in sorted(declared - reported):
+        key = base = "missing:" + metric
+        suffix = 1
+        while key in summaries:
+            key = f"{base}:{suffix}"
+            suffix += 1
+        summaries[key] = ExperimentResultSummaryModel(
             metric_id=metric, value_status="missing", notes="No measured result was supplied."
         )
     return supplied.model_copy(update={"result_summaries": summaries})

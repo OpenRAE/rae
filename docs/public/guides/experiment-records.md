@@ -45,6 +45,7 @@ Counts distinguish runs from attempts and retries.
 Scientific outcome counts remain separate from execution outcome counts.
 They show replacements, unresolved work, capture status, cleanup status, and evidence check results.
 Each metric states its started, reported, missing, withheld, and eligible run counts.
+Missing results receive unused keys; supplied result entries remain intact.
 The eligible population uses the same rules as study membership.
 Replaced parents remain reported but do not enter the eligible population.
 Large evidence histories remain in protected sources with exact versioned references.
