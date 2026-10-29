@@ -21,6 +21,7 @@ Shared action/observation interfaces and paired backend runs do not establish si
 
 ## Traceability
 
+- DOCUMENTS → DOCUMENTATION `docs/explain/reference/revised-control-semantics.md` (Current supported arrangements and bounded evidence; no requirement promotion)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1017` (Conform mixed-composition backend capabilities)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1018` (Demonstrate mixed cross-backend participant control)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1019` (Reconcile mixed participant-control claims)
@@ -28,3 +29,13 @@ Shared action/observation interfaces and paired backend runs do not establish si
 - DOCUMENTS → DOCUMENTATION `docs/research/cross-backend-participant-control/implementation-program.json` (Issue 813 machine-readable implementation program)
 - TESTS → TEST `implementations/python/tests/test_issue_813_cross_backend_participant_control_design.py` (Issue 813 structural acceptance gate)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#813` (Design cross-backend participant control against simulation and cyber-range precedents)
+
+## Current evidence boundary
+
+The #1018 demonstration executes RAE through controlled test providers.
+It includes simultaneous mixed execution, staged handoff, and separate reusable-control and governed-effect paths.
+Its retained record binds the apparatus, source, observations, and fresh-process comparison.
+The [demonstration guide](../../explain/reference/mixed-control-demonstration.md) states its limits.
+This evidence does not complete the broader realization and transfer protocol above.
+It establishes no native qualification, backend equivalence, independent-party reproduction, or simulation-to-operation transfer.
+The requirement remains DRAFT.
