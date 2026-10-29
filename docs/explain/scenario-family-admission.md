@@ -87,6 +87,19 @@ No new policy check or infrastructure definition is needed.
 ADR-078 and ADR-084 already define the phase and experiment boundaries.
 No new phase, exchange schema, or ADR is needed.
 
+## Source-bound evidence
+
+Research captures bind the implementation digest to fresh observations.
+The retained controls cover ten parse/compiler cases and four production analyses.
+They also cover fourteen participant tests and six specification artifacts.
+Six unsupported formal cases retain their original limits.
+These controls do not prove every property of the new admission function.
+Its dedicated regression tests cover the public transition.
+
+The existing capture recorder writes immutable content-addressed evidence.
+It retains published history and baseline pins.
+CI independently replays the selected current capture.
+
 ## References
 
 - [Pydantic models](https://docs.pydantic.dev/2.12/concepts/models/), version 2.12: validating data and model copies.
