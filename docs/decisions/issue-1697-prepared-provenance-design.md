@@ -18,6 +18,8 @@ Typed node admission still supplies defaults for validation.
 Later reporting compares sparse node payloads through the existing safe typed default projection.
 Value commitments remain intact during this comparison.
 Comparison restores each supplied concern after typed default expansion.
+Closed concern checks accept owner-defined default readback for absent fields.
+Other added values remain forbidden.
 Added concerns have open explicitness and backend origin.
 Dedicated substrate and artifact rules remain with their existing semantic owners.
 Substrate observation rules use the added node's semantic scope.
@@ -90,6 +92,8 @@ Other runtime files and backend implementations retain their existing owners.
 No schema, architecture configuration, store migration, or ADR change is required.
 Artifact carriers use the existing neutral contract base to prevent an import cycle.
 Existing module policy and targeted behavioral tests enforce these boundaries.
+Source changes require fresh formal, specification, and runtime mapping captures.
+Content-addressed captures preserve history and baseline pins.
 
 ## Reference and writing review
 

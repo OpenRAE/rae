@@ -238,16 +238,44 @@ def test_prepared_protected_values_are_sanitized_before_persistence():
 
 
 def test_safe_node_default_normalization_does_not_restore_committed_raw_values():
-    from raes_processor.planner.materialization_admission import _with_node_defaults
+    from raes_processor.semantics.realization_node_defaults import with_node_defaults
 
     target, backend = prepared_target("{type: compute, runtime: {environment: [{name: MODE, value: enabled}]}}")
     applied, _ = apply_prepared(target)
     assert applied.success, applied.diagnostics
     entry = applied.snapshot.entries[backend.extra.address]
     before = entry.payload["spec"]["node"]["runtime"]["environment"][0]
-    normalized = _with_node_defaults(entry).payload["spec"]["node"]["runtime"]["environment"][0]
+    normalized = with_node_defaults(entry).payload["spec"]["node"]["runtime"]["environment"][0]
     assert "value" not in normalized
     assert normalized["value_commitment"] == before["value_commitment"]
+
+
+@pytest.mark.parametrize("add_concern", [False, True])
+def test_closed_concern_readback_accepts_only_typed_defaults(add_concern):
+    from raes.nodes import Node
+
+    target, _ = prepared_target()
+
+    class DefaultReadback(AddingProvisioner):
+        def apply(self, request, previous):
+            result = super().apply(request, previous)
+            entry = result.snapshot.entries["provision.node.holder"]
+            payload = deepcopy(entry.payload)
+            node = Node.model_validate(payload["spec"]["node"]).model_dump(mode="json")
+            if add_concern:
+                node["runtime"]["container"] = {"command": ["unexpected"]}
+            payload["spec"]["node"] = node
+            result.snapshot.entries[entry.address] = replace(entry, payload=payload)
+            return result
+
+    backend = DefaultReadback(target.manifest, "{type: switch}")
+    target = replace(target, provisioner=backend)
+    source = _SOURCE.replace("holder: {type: switch}", "holder: {type: compute, runtime: {}}")
+    result, _ = apply_prepared(target, source)
+    assert result.success is not add_concern, result.diagnostics
+    if add_concern:
+        assert result.snapshot.entries == {}
+        assert result.snapshot.realization_provenance == ()
 
 
 def test_added_compute_does_not_turn_required_substrate_observation_into_selection():

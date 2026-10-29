@@ -24,6 +24,7 @@ Current state: identified gap. Honest portability requires normative semantics f
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/backend_node_provenance.py` (Shared backend-introduced node concern provenance)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/prepared_node_provenance.py` (Prepared membership concern and dedicated realization disclosure)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_apply_results.py` (Accepted runtime ledger assembly and provenance preservation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_node_defaults.py` (Typed default comparison preserves supplied concern values and closed authority)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/artifact_requirements.py` (Artifact satisfaction contracts use neutral base primitives)
 - TESTS → TEST `implementations/python/tests/test_issue_1697_preparation_provenance.py` (Prepared addition provenance, failure, lifecycle, persistence and native proposal integrity)
 - TESTS → TEST `implementations/python/tests/test_issue_1697_preparation_reporting.py` (First-party preparation with materialization, descendant reporting, refresh and deletion)
