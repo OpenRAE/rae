@@ -96,6 +96,9 @@
     "implementations/python/pyproject.toml": [
       "GOV-913"
     ],
+    "implementations/python/tests/test_issue_1217_bootstrap_profiles.py": [
+      "GOV-913"
+    ],
     "implementations/python/tests/test_issue_973_crossing_corpus.py": [
       "ASR-535"
     ],
@@ -118,6 +121,9 @@
       "GOV-913"
     ],
     "implementations/python/tests/test_issue_973_tool_process.py": [
+      "GOV-913"
+    ],
+    "implementations/python/tests/test_release_workflows.py": [
       "GOV-913"
     ],
     "implementations/tooling/README.md": [
@@ -307,6 +313,12 @@
       "SEM-232"
     ],
     "specs/formal/participant-semantics/participant-crossing-counterexamples.md": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/runtime-mapping/capture-5ff863ad33d4a761e63f606c896b5941f01405fedd9cce9b2b779068eb6744fe/cases.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/runtime-mapping/capture-5ff863ad33d4a761e63f606c896b5941f01405fedd9cce9b2b779068eb6744fe/manifest.json": [
       "SEM-232"
     ],
     "specs/formal/participant-semantics/runtime-mapping/capture-b362244b9d948253739bf87be9081c5e10de7fcf03948965c6ff3454c90d6fea/cases.json": [
