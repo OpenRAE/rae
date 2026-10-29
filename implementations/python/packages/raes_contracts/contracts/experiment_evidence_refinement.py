@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import TYPE_CHECKING, Literal, TypeAlias
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field, GetJsonSchemaHandler, field_validator, model_validator
 from pydantic.json_schema import JsonSchemaValue
@@ -23,7 +23,9 @@ if TYPE_CHECKING:
     from raes.evidence_requirements import EvidenceRequirement
     from raes.scenario import Scenario
 
-EvidenceRequirementRefinementDimension: TypeAlias = Literal[
+# A plain alias keeps the Literal inline in the published JSON schema. A `type`
+# statement would publish it as a separate named definition.
+EvidenceRequirementRefinementDimension = Literal[
     "field-selectors",
     "artifact-roles",
     "integrity-requirements",

@@ -310,7 +310,7 @@ def test_generate_loads_the_closure_profile_from_the_admitted_repository(tmp_pat
         environment_dir=tmp_path,
         sdist_environment_dir=tmp_path,
     )
-    profile_id = "public-linux-x86_64-cp312-all-extras"
+    profile_id = "public-linux-x86_64-cp314-all-extras"
 
     with pytest.raises(_StopAfterProfile):
         release_evidence.generate(paths=paths, profile_id=profile_id, release_tag="v0.0.0", environment=_ENVIRONMENT)

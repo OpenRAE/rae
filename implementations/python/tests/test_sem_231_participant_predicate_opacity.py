@@ -42,7 +42,7 @@ def test_catalog_defines_one_sided_participant_predicate_opacity() -> None:
     catalog = load_behavioral_relation_catalog()
     relation = catalog.relations["participant-predicate-opacity"]
 
-    assert catalog.taxonomy_revision == "rev12"
+    assert catalog.taxonomy_revision == "rev13"
     assert relation.relation_class == "epistemic"
     assert relation.direction == "unary"
     assert relation.relation_parameter_profile_required is True
@@ -57,9 +57,9 @@ def test_catalog_defines_one_sided_participant_predicate_opacity() -> None:
     assert relation.assurance.model_check_status == "model-checked"
     assert relation.assurance.proof_status == "proved"
     assert relation.assurance.runtime_enforcement_status == "partial"
-    assert relation.assurance.backend_declaration_status == "declared"
-    assert relation.assurance.backend_realization_status == "partial"
-    assert relation.assurance.backend_conformance_status == "bounded"
+    assert relation.assurance.backend_declaration_status == "not-declared"
+    assert relation.assurance.backend_realization_status == "not-realized"
+    assert relation.assurance.backend_conformance_status == "not-tested"
     assert {
         "contracts/profiles/behavioral-relation/history/participant-opacity-baseline-v1-sem-231-rev2.json",
         "contracts/profiles/behavioral-relation/participant-opacity-theorem-v1.json",

@@ -65,7 +65,7 @@ def validate_participant_flow_control_resolved_context(
         raise ValueError("participant flow-control context did not resolve")
     try:
         validate_participant_flow_control_context(document, context)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         raise
     except Exception:
         raise ValueError("participant flow-control context validation failed") from None
@@ -77,9 +77,14 @@ def validate_participant_flow_control_context(
 ) -> None:
     """Validate exact profile, incumbent carrier, authority, and sink joins."""
 
+    document = ParticipantFlowControlRelationModel.model_validate(document.model_dump(mode="python"))
     profile = _resolve_profile(document, context)
     validate_profile_tokens(document, profile)
     validate_trusted_flow_coordinates(document, context)
+    from .participant_owner_flow import ParticipantOwnerFlowPolicyProfileModel, validate_owner_flow_context
+
+    if isinstance(profile, ParticipantOwnerFlowPolicyProfileModel):
+        validate_owner_flow_context(document, profile, context)
     validate_safe_references(document, context)
     _validate_incumbent_context(context)
     _validate_bindings(document, context)

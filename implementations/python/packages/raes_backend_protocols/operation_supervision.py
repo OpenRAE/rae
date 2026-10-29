@@ -85,7 +85,7 @@ def require_operation_provider(provider: object, declared_contracts: Iterable[st
             raise ValueError("backend operation protocol is not installed")
         try:
             signature(method).bind(*(() if name == "operation_capabilities" else (object(),)))
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             raise ValueError("installed backend operation method has incompatible call shape") from None
     return cast(BackendOperationProvider, provider)
 

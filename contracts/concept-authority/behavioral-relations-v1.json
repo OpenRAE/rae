@@ -1,7 +1,7 @@
 {
   "schema_version": "behavioral-relations/v1",
   "taxonomy_id": "raes-behavioral-relations",
-  "taxonomy_revision": "rev12",
+  "taxonomy_revision": "rev13",
   "bibliography": [
     {
       "source_id": "park-1981",
@@ -2064,7 +2064,7 @@
         "implementations/python/tests/test_issue_962_participant_opacity_model_check.py covers pair-probe incompleteness, supervisor behavior, active strategies, coalition fusion, retained memory, release changes, order and probability non-promotion, exact bounds, replay, and agreement with the bounded lane.",
         "The Isabelle/HOL Participant_Opacity session kernel-checks the SEM-231 one-sided opacity definition, its information-cell knowledge characterization, and the conditional implication from a matching SEM-230 noninterference instance for an eligible predicate; checked countermodels preserve the invalid-promotion boundaries.",
         "The participant-opacity-runtime-reference-v1 profile and RUN-319 crossing boundary enforce one exact finite observation inventory with safe, atomic runtime-enforcement decision bindings."
-        ,"The reference backend declares bounded support for the exact runtime profile; generic target conformance separately observes backend-native realization across the protected and complement points and binds the manifest, profile, configuration, tool, environment, and probe-set digests."
+        ,"Generic target conformance derives the closed observation transcript from runtime execution and backend readback at the protected and complement points; under the runtime profile RUN-319 mediation shields backend mechanisms, so the runner derives no backend-native realization or conformance."
       ],
       "explicit_non_claims": [
         "Relation definition, catalog validation, claim-profile binding, and bounded finite analysis do not establish opacity of RAES, RUN-319, or any backend outside the exact admitted artifact.",
@@ -2074,6 +2074,7 @@
         "Taxonomy revision rev9 adds only the abstract conditional mathematical theorem bound to participant-opacity-theorem-v1; it does not prove opacity of RAES, a runtime, a deployment, a backend, or the finite fixture profile.",
         "Taxonomy revision rev10 adds partial runtime enforcement only for participant-opacity-runtime-reference-v1; it does not establish general opacity, live model checking or proof, supervisor synthesis, backend declaration, backend realization, or backend conformance.",
         "Taxonomy revision rev11 adds one bounded reference-backend declaration, realization, and conformance lane; it does not establish universal opacity, proof of a live execution, native realization for other backends, or cross-backend equivalence.",
+        "Taxonomy revision rev13 withdraws the rev11 reference-backend declaration, realization, and conformance lane: its only evidence was a fixed transcript from a backend that RAES no longer contains, and runtime-mediated evidence does not establish backend realization.",
         "Bounded evidence authenticates only the normalized-input digest; it does not authenticate a claimed source artifact or materializer.",
         "Opacity of one predicate does not imply SEM-230 policy noninterference, projected-history equivalence, epistemic indistinguishability of two selected worlds, trace inclusion or equivalence, simulation, refinement, or strong or weak bisimulation.",
         "The possibilistic baseline makes no posterior-risk, entropy, probabilistic, differential-privacy, timed, progress-sensitive, or universal partial-order claim."
@@ -2091,9 +2092,9 @@
         "checker_status": "implemented",
         "model_check_status": "model-checked",
         "runtime_enforcement_status": "partial",
-        "backend_declaration_status": "declared",
-        "backend_realization_status": "partial",
-        "backend_conformance_status": "bounded",
+        "backend_declaration_status": "not-declared",
+        "backend_realization_status": "not-realized",
+        "backend_conformance_status": "not-tested",
         "evidence_refs": [
           "docs/decisions/adrs/adr-099-participant-relative-predicate-opacity.md",
           "specs/formal/participant-semantics/participant-predicate-opacity.md",
@@ -2119,7 +2120,8 @@
           "implementations/python/tests/test_issue_964_participant_opacity_runtime.py",
           "docs/decisions/issue-965-participant-opacity-backend-realization-preflight.md",
           "implementations/python/packages/raes_conformance/conformance/participant_opacity_probes.py",
-          "implementations/python/tests/test_issue_965_participant_opacity_backend.py"
+          "implementations/python/tests/test_issue_965_participant_opacity_backend.py",
+          "docs/decisions/issue-1374-observed-opacity-evidence-design.md"
         ]
       },
       "source_refs": [

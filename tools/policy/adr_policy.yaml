@@ -94,6 +94,9 @@ module_boundaries:
           - raes_processor.compiler
           - raes_processor.models
           - raes_processor.planner
+          - raes_processor.trial_compiler
+          - raes_processor.trial_realization
+          - raes_processor.trial_scheduler
     - id: raes_backend_protocols
       root: implementations/python/packages/raes_backend_protocols
       allowed_top_level_imports:
@@ -107,74 +110,23 @@ module_boundaries:
       public_import_prefixes:
         raes_runtime:
           - raes_runtime.registry
-    - id: raes_reference_backend
-      root: implementations/python/packages/raes_reference_backend
-      allowed_top_level_imports:
-        - raes_backend_protocols
-        - raes_contracts
-        - raes_runtime
-      forbidden_import_prefixes:
-        - raes_backend_stubs
-        - raes_cli
-        - raes_conformance
-        - raes_mcp
-        - raes_processor
-        - raes
-      public_import_prefixes:
-        raes_runtime:
-          - raes_runtime.registry
-    - id: raes_backend_libvirt
-      root: implementations/python/packages/raes_backend_libvirt
-      allowed_top_level_imports:
-        - raes_backend_protocols
-        - raes_contracts
-        - raes_runtime
-      forbidden_import_prefixes:
-        - raes_backend_stubs
-        - raes_cli
-        - raes_conformance
-        - raes_mcp
-        - raes_processor
-        - raes_reference_backend
-        - raes
-      public_import_prefixes:
-        raes_runtime:
-          - raes_runtime.registry
     - id: raes_operations
       root: implementations/python/packages/raes_operations
       allowed_top_level_imports:
-        - raes_backend_libvirt
-        # Pure, side-effect-free manifest/capability renderers only (see
-        # public_import_prefixes below). raes_operations embeds the canonical
-        # BackendManifestV2 payload + capability-gap report in the libvirt
-        # scenario-evidence artifact instead of a hand-rolled summary, so the
-        # evidence carries the same backend contract the rest of the stack uses.
-        - raes_backend_protocols
         - raes_contracts
-        - raes_runtime
         - raes
       forbidden_import_prefixes:
+        - raes_backend_protocols
         - raes_backend_stubs
         - raes_cli
         - raes_conformance
         - raes_mcp
         - raes_processor
-        - raes_reference_backend
+        - raes_runtime
       public_import_prefixes:
-        raes_backend_libvirt:
-          - raes_backend_libvirt.target
-          - raes_backend_libvirt.techvault_native
-          - raes_backend_libvirt.guest_certified_driver
-        raes_backend_protocols:
-          - raes_backend_protocols.manifest
-          - raes_backend_protocols.capabilities
-        raes_runtime:
-          - raes_runtime.control_plane
-          - raes_runtime.manager
-          - raes_runtime.registry
         raes:
-          - raes.parser
           # Pure SDL admission, canonicalization and rendering for run archives.
+          - raes.parser
           - raes.materialization
           - raes.canonical
           - raes.formatting
@@ -184,10 +136,14 @@ module_boundaries:
         - raes_backend_protocols
         - raes_cli
         - raes_contracts
+        - raes_operations
         - raes_processor
         - raes_runtime
         - raes
       public_import_prefixes:
+        raes_operations:
+          # Issue #1667: the protected archive owner for target-probe materialization.
+          - raes_operations.run_artifacts
         raes_processor:
           - raes_processor.semantic_comparison
           - raes_processor.compiler
@@ -196,8 +152,11 @@ module_boundaries:
           - raes_processor.reference
         raes_runtime:
           - raes_runtime.control_plane
+          # Issue #1017: the claim refusal signal that identifies a moved-phase refusal.
+          - raes_runtime.control_plane_store
           - raes_runtime.registry
           - raes_runtime.result_contracts
+          - raes_runtime.snapshot_contract
     - id: raes_cli
       root: implementations/python/packages/raes_cli
       allowed_top_level_imports:
@@ -205,7 +164,6 @@ module_boundaries:
         - raes_backend_stubs
         - raes_contracts
         - raes_conformance
-        - raes_operations
         - raes_processor
         # ADR-104 operator-command exception: the closed offline maintenance API.
         - raes_runtime
@@ -220,10 +178,6 @@ module_boundaries:
           - raes_backend_protocols.manifest
         raes_backend_stubs:
           - raes_backend_stubs.manifest
-        raes_operations:
-          - raes_operations.libvirt_evidence_run
-          - raes_operations.cross_backend_corpus
-          - raes_operations.techvault_live
         raes_processor:
           - raes_processor.compiler
           - raes_processor.exploit_path

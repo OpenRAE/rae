@@ -46,6 +46,7 @@ from raes_runtime.observation_execution import (
     ObservationSelectorPattern,
 )
 from raes_runtime.registry import RuntimeTarget
+from runtime_plan_fixtures import plan_for_target
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 
@@ -1174,7 +1175,7 @@ def test_authored_demand_executes_protected_collection_and_retention_in_control_
         integrity_providers={"digest": lambda _key, _values: "sha256:protected"},
     )
     target = _runtime_target(create_stub_target(), runtime)
-    execution_plan = RuntimeManager(target).plan(scenario)
+    execution_plan = plan_for_target(target, scenario)
     provisioning = execution_plan.provisioning
     store = InMemoryControlPlaneStore()
     control_plane = RuntimeControlPlane(target, store=store)
@@ -1196,6 +1197,7 @@ def test_authored_demand_executes_protected_collection_and_retention_in_control_
     assert execution.lifecycle.collected[0].values == ()
     assert execution.lifecycle.collected[0].integrity_ref == "sha256:protected"
     assert "secret" not in repr(execution.lifecycle)
+    control_plane.close()
     recovered = RuntimeControlPlane(target, store=store)
     recovered_execution = recovered.observation_execution(receipt.operation_id)
     assert recovered_execution is not None
@@ -1260,7 +1262,7 @@ def test_required_observation_rejects_mutation_and_read_only_failure_is_terminal
     target = _runtime_target(create_stub_target(), runtime)
     control_plane = RuntimeControlPlane(target)
 
-    provisioning = RuntimeManager(target).plan(scenario).provisioning
+    provisioning = plan_for_target(target, scenario).provisioning
     receipt = control_plane.submit_provisioning(provisioning)
     assert not receipt.accepted
     assert receipt.diagnostics[0].code == "observation.required-execution-atomicity-unavailable"
@@ -1271,7 +1273,7 @@ def test_required_observation_rejects_mutation_and_read_only_failure_is_terminal
 
     assert receipt.accepted
     assert status is not None
-    assert status.state.value == "failed"
+    assert status.state.value == "indeterminate"
     assert any(diagnostic.code == "observation.runtime-adapter-failed" for diagnostic in status.diagnostics)
     assert control_plane.snapshot.entries == {}
     assert status.changed_addresses == []
@@ -1355,7 +1357,6 @@ def test_control_plane_persists_no_placeholder_for_an_unsupported_optional_selec
         target_scopes=("/nodes/kali",),
     ).effective
     target = create_stub_target()
-    manager = RuntimeManager(target)
     scenario = parse_sdl(
         """
         name: optional-manager-observation
@@ -1363,7 +1364,7 @@ def test_control_plane_persists_no_placeholder_for_an_unsupported_optional_selec
           kali: {type: compute, resources: {ram: 1 gib, cpu: 1}}
         """
     )
-    execution = manager.plan(scenario)
+    execution = plan_for_target(target, scenario)
     execution = replace(
         execution,
         provisioning=replace(execution.provisioning, observation_demands=demands),
@@ -1386,7 +1387,7 @@ def test_control_plane_persists_no_placeholder_for_an_unsupported_optional_selec
     assert payload["retained"] == []
 
 
-def test_direct_manager_rejects_executable_persistence_without_a_durable_owner() -> None:
+def test_manager_retains_observations_under_its_control_plane_owner() -> None:
     selector = _selector("/nodes/kali", "filesystem-trace")
     demands = normalize_observation_demands(
         _document(
@@ -1430,7 +1431,7 @@ def test_direct_manager_rejects_executable_persistence_without_a_durable_owner()
     manager = RuntimeManager(_runtime_target(create_stub_target(), runtime))
     scenario = parse_sdl(
         """
-        name: non-atomic-manager-observation
+        name: manager-owned-observation
         nodes:
           kali: {type: compute, resources: {ram: 1 gib, cpu: 1}}
         """
@@ -1443,9 +1444,16 @@ def test_direct_manager_rejects_executable_persistence_without_a_durable_owner()
 
     result = manager.apply(execution)
 
-    assert not result.success
-    assert result.diagnostics[0].code == "observation.durable-lifecycle-owner-unavailable"
-    assert collect_calls == []
+    assert result.success, result.diagnostics
+    assert collect_calls == ["collect"]
+    records = manager._store.load_records()
+    observed = [record for record in records.values() if record.result_payload is not None]
+    assert len(observed) == 1
+    record = observed[0]
+    assert record.status.state.value == "succeeded"
+    assert record.result_payload["retained"][0]["values"] == ["value"]
+    assert manager.observation_execution(record.receipt.operation_id) is not None
+    manager.close()
 
 
 def test_authored_realization_description_reports_only_achieved_basis() -> None:
@@ -1498,8 +1506,9 @@ def test_authored_realization_description_reports_only_achieved_basis() -> None:
     manager_result = manager.apply(manager.plan(scenario))
     assert manager_result.success
     assert manager_result.details["realized_form_disclosures"][0]["realized_value_summary"] == '"Kali"'
+    manager.close()
     control_plane = RuntimeControlPlane(target)
-    execution_plan = RuntimeManager(target).plan(scenario)
+    execution_plan = plan_for_target(target, scenario)
     control_plane.register_planner_produced_plan(execution_plan)
 
     receipt = control_plane.submit_provisioning(execution_plan.provisioning)
@@ -1605,18 +1614,12 @@ def test_backend_does_not_persist_unrequested_realization_observations() -> None
 @pytest.mark.parametrize(
     "backend,mechanism,expected",
     [
-        ("stub", "x-openrae:in-process-emulation", "failed"),
-        ("libvirt", "virtual-machine", "succeeded"),
+        ("stub", "x-openrae:in-process-emulation", "indeterminate"),
+        ("native-readback", "virtual-machine", "succeeded"),
     ],
 )
 def test_native_realization_readback_is_not_reused_as_unprotected_retention(backend, mechanism, expected) -> None:
-    from libvirt_conformance_fixtures import RecordingLibvirtDriver
-    from raes_backend_libvirt import create_libvirt_target
-
-    class DemandSelectedDriver(RecordingLibvirtDriver):
-        def realize(self, **kwargs):
-            # Collection is performed only by the explicitly selected observe call.
-            return replace(super().realize(**kwargs), observations=())
+    from t2_native_readback_double import create_native_readback_target
 
     scenario = parse_sdl(
         """
@@ -1651,12 +1654,10 @@ def test_native_realization_readback_is_not_reused_as_unprotected_retention(back
         ),
         target_scopes=("/nodes/kali",),
     ).effective
-    target = (
-        create_stub_target()
-        if backend == "stub"
-        else create_libvirt_target(driver=DemandSelectedDriver(), driver_mode="generic")
-    )
-    execution_plan = RuntimeManager(target).plan(scenario)
+    # The stub reports substrate facts during apply; the double collects them
+    # only through the explicitly selected native readback call.
+    target = create_stub_target() if backend == "stub" else create_native_readback_target()
+    execution_plan = plan_for_target(target, scenario)
     provisioning = execution_plan.provisioning
     provisioning = replace(provisioning, observation_demands=demands)
     control_plane = RuntimeControlPlane(target)

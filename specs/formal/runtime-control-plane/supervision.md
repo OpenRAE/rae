@@ -227,6 +227,34 @@ retry, substitute, replan or weaken requirements. Selectable future physical-OT
 protections follow these same admission rules; ordinary simulations and CTFs
 do not inherit them or gain a safety-certification claim.
 
+## S7 — Shared engine and run contexts
+
+Issue #1629 extends the owner lifetime without changing S1–S6.
+Let `E` be the shared engine, `C` a fixed run context, and `O` an admitted operation.
+The context binding `context(O) = C` is immutable.
+The store binding `scope(store(C)) = scope(C)` is also immutable.
+Settlement checks that binding before any snapshot or operation write.
+Opening another context cannot change a pending callback's destination.
+
+Each context belongs to one engine.
+Effect workers, control workers, dispatch adapters, and backend ownership belong to `E`.
+Context retirement cannot close those shared services.
+The legacy single-run entry point retains its initial context.
+No ambient context switch selects state for an in-flight operation.
+
+For a resource reservation `Q`, retain `owner(Q) = C` until verified release.
+If the effect is unknown or a callback remains active, another context cannot use `Q`.
+Changing run identity or opening another store cannot release it.
+Retirement requires resolved effects and the admitted cleanup or reuse evidence.
+Engine shutdown drains all owned contexts and retains unresolved reservations.
+
+Persist sequence decisions before their effects.
+Replayed delivery uses the same committed identity and current one-use grant.
+An authored retry requires the relevant scope's policy and remaining budget.
+A replacement trial requires fresh compiler allocation and retained prior attempts.
+Temporal progress and semantic state have separate commit boundaries.
+Neither replay nor successful workflow completion establishes a physical outcome.
+
 ## Bounded verification and implementation boundary
 
 `implementations/python/tests/operation_supervision_model.py` is a finite
@@ -239,3 +267,12 @@ The model covers one operation and one conflicting-effect scope. It is not a
 thread scheduler, storage implementation, wire codec, unbounded proof or runtime
 refinement. Existing lifecycle/profile and cleanup contract tests retain their
 separate claims. No new profile capability is claimable from these model tests.
+
+S7 has a separate finite two-context model in
+`implementations/python/tests/runtime_engine_model.py`.
+`test_issue_1629_engine_model.py` explores both context orders and all eight
+combinations of unknown effects, active callbacks, and verified cleanup.
+The runtime tests exercise delayed callbacks, scope-bound stores, retained
+reservations, authored retries, replacement, and authenticated progress.
+The model's evidence inputs remain assumptions; the installed evidence owners
+must establish them at runtime.
