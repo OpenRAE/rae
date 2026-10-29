@@ -11,7 +11,7 @@ from .._errors import SDLParseDiagnostic, SDLSourceRange, SDLValidationError
 from .._model_diagnostics import _model_parse_error
 from .._source_profile import SDLSourceParseOptions
 from ..module_registry import ResolvedModule
-from ..parser import _load_normalized_data
+from ..parser import _load_normalized_data, _reject_removed_scoring_sections
 from ..scenario import Scenario
 
 
@@ -32,6 +32,7 @@ def admit_import_source(
         source_ranges=ranges,
         source_key_ranges=key_ranges,
     )
+    _reject_removed_scoring_sections(raw, path=resolved.root_file)
     try:
         model = Scenario.model_validate(raw)
     except ValidationError as exc:

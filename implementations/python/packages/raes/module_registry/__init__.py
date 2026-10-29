@@ -86,6 +86,7 @@ from ._filesystem import (
     _write_version_pointer,
 )
 from ._verified_sources import _cache_source_result, _VerifiedSourceBundle
+from .lock_records import resolve_lock_records
 from .models import (
     Lockfile,
     LockRecord,
@@ -97,7 +98,7 @@ from .models import (
     write_lockfile,
 )
 from .publishing import publish_module_to_oci_layout
-from .resolution import resolve_import, resolve_lock_records
+from .resolution import resolve_import
 from .signing import _signable_payload, _verify_signatures
 
 _OCI_LIMITS = _OCIResourceLimits()

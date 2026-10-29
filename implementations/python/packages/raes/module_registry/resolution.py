@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, TypedDict, Unpack
+from typing import TYPE_CHECKING, Any, TypedDict, Unpack
 from urllib.parse import quote
 
 from pydantic import ValidationError
@@ -22,8 +22,10 @@ from .models import (
     ResolvedModule,
     TrustPolicy,
     _scenario_module_descriptor,
-    load_trust_policy,
 )
+
+if TYPE_CHECKING:
+    from ..parser import SDLSourceDocument
 
 _LOCKED_PREFIX = "locked:"
 
@@ -197,28 +199,35 @@ def _resolve_locked_import(
     return _resolve_import_with_context(import_decl, context)
 
 
+def _local_import_source(relative: str, context: _ResolutionContext) -> tuple[Path, SDLSourceDocument]:
+    from ..parser import read_sdl_source
+
+    if context.verified_sources is not None:
+        return context.verified_sources.resolve_local(base_dir=context.base_dir, relative=relative)
+    import_path = (context.base_dir / relative).resolve()
+    if not import_path.is_relative_to(context.base_dir.resolve()):
+        raise SDLParseError(f"Local import path escapes base directory: {relative!r}")
+    if not import_path.exists():
+        raise SDLParseError(f"Imported SDL file not found: {relative}")
+    if not import_path.is_file():
+        raise SDLParseError(f"Imported SDL source is not a regular file: {relative}")
+    try:
+        return import_path, read_sdl_source(import_path, limits=context.source_options.limits)
+    except OSError as exc:
+        raise SDLParseError(f"Imported SDL file could not be read: {relative}") from exc
+
+
 def _resolve_local_import(
     import_decl: ImportDecl,
     source: str,
     *,
     context: _ResolutionContext,
 ) -> ResolvedModule:
-    from ..parser import _load_normalized_data, read_sdl_source
+    from ..parser import _load_normalized_data, _reject_removed_scoring_sections
     from . import _sha256_digest
 
     relative = source.removeprefix("local:")
-    if context.verified_sources is None:
-        import_path = (context.base_dir / relative).resolve()
-        if not import_path.is_relative_to(context.base_dir.resolve()):
-            raise SDLParseError(f"Local import path escapes base directory: {relative!r}")
-        if not import_path.exists():
-            raise SDLParseError(f"Imported SDL file not found: {relative}")
-        imported_source = read_sdl_source(import_path, limits=context.source_options.limits)
-    else:
-        import_path, imported_source = context.verified_sources.resolve_local(
-            base_dir=context.base_dir,
-            relative=relative,
-        )
+    import_path, imported_source = _local_import_source(relative, context)
     source_ranges: dict[str, SDLSourceRange] = {}
     imported_raw = _load_normalized_data(
         imported_source.text,
@@ -227,6 +236,7 @@ def _resolve_local_import(
         source_diagnostics=context.source_diagnostics,
         source_ranges=source_ranges,
     )
+    _reject_removed_scoring_sections(imported_raw, path=import_path)
     try:
         imported_scenario = Scenario.model_validate(imported_raw)
     except ValidationError as exc:
@@ -446,37 +456,3 @@ def _resolve_oci_import(
         signer_id=signer_id,
         verified_sources=verified_sources,
     )
-
-
-def resolve_lock_records(
-    root_path: Path,
-    *,
-    trust_policy: TrustPolicy | None = None,
-) -> Lockfile:
-    from ..parser import _load_normalized_data, read_sdl_source
-
-    trust_policy = trust_policy or load_trust_policy(root_path.parent)
-    root_data = _load_normalized_data(read_sdl_source(root_path).text, path=root_path)
-    imports = [ImportDecl.model_validate(item) for item in root_data.get("imports", [])]
-    records: list[LockRecord] = []
-    for import_decl in imports:
-        resolved = resolve_import(
-            import_decl,
-            base_dir=root_path.parent,
-            trust_policy=trust_policy,
-        )
-        records.append(
-            LockRecord(
-                source=import_decl.normalized_source,
-                namespace=import_decl.namespace,
-                requested_version=import_decl.version or "*",
-                resolved_source=resolved.resolved_source,
-                module_id=resolved.module_descriptor.id,
-                module_version=resolved.module_descriptor.version,
-                manifest_digest=resolved.manifest_digest,
-                content_digest=resolved.content_digest,
-                export_hash=resolved.export_hash,
-                signer_id=resolved.signer_id,
-            )
-        )
-    return Lockfile(imports=records)

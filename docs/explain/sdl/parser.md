@@ -228,7 +228,16 @@ invalid, including when migration acceptance is enabled.
 Imported-unit typed-model failures use the same bounded `sdl.model.invalid`
 diagnostics as root declarations, with the imported source file and field
 pointer. Malformed import version constraints also raise `SDLParseError` with a
-field diagnostic. Authored behavior refs using the reserved `__private` segment
-fail before composition; generated private refs remain valid in expanded SDL.
+field diagnostic, through `parse_sdl_file()` and `resolve_lock_records()` alike.
+An invalid `raes.lock.json` record, or a `locked:` chain that revisits a record
+or exceeds the composition depth limit, raises `SDLParseError` with
+`raes.lock.json` as its path. An oversized, unreadable, malformed or invalid
+`raes.lock.json` or `raes-trust.yaml` raises `SDLParseError` with one
+`sdl.workspace-config.invalid` diagnostic naming the file. An import that names
+a directory raises `SDLParseError` naming the import. None of these errors
+render the file's values. An imported unit with a removed scoring section gets
+the same ADR-073 message as a root document. Authored behavior refs using the
+reserved `__private` segment fail before composition; generated private refs
+remain valid in expanded SDL.
 See [behavior composition](../../decisions/issue-297-behavior-authoring.md) for
 reference scope, compatibility, and the authoring/runtime boundary.
