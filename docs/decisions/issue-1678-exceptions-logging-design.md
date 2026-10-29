@@ -14,6 +14,11 @@ They keep Python 3.12 syntax for the development container bootstrap.
 `raes_contracts.errors` defines `RaesError` and six categories.
 Each category answers one question for a caller: what went wrong.
 Families keep their modules and derive from one category or from `RaesError`.
+`raes_runtime.errors` holds two runtime families that a caller must tell apart.
+`RuntimeBudgetExhaustedError` is an `OperationalError`, and `IdempotencyClaimConflictError` is a `ConflictError`.
+`SDLValidationError` carries one `SDLValidationFinding` for each error.
+A finding holds the message, the owner declaration and, when known, a JSON pointer.
+Thus no consumer reads data from message text.
 
 `raes_contracts.operational_logging` defines these functions and classes:
 
@@ -22,7 +27,7 @@ Families keep their modules and derive from one category or from `RaesError`.
 - `ValueFreeFormatter` formats any record without exception values.
 - `configure_application_logging(level=..., stream=...)` installs one marked standard error handler on the root logger. A second call changes only the level.
 - `set_application_log_level(level)` changes only the root level. A command option uses it, so a command that runs inside a host or a test adds no handler.
-- `foreign_failure_record(exc)` returns a `ForeignCodeFailure` record for a failure of untrusted code. The record keeps the RAES frames and omits the foreign type, message, chain and frames.
+- `foreign_failure_record(exc)` returns a `ForeignCodeFailure` record for a failure of code that RAES does not own. The record keeps the RAES frames and omits the foreign type, message, chain and frames.
 - `run_application(main, unexpected_status=...)` configures logging, runs `main` and logs an unexpected failure one time. The `raes` command uses status 70; the tools use status 1.
 
 The filter and the formatter share one renderer.
@@ -168,24 +173,24 @@ ADR-075 keeps its own scope; ADR-116 creates the Python exception hierarchy.
 ## Accounting
 
 The review covered every raise statement, handler, log call and assert in the scope of the policy.
-The table compares the base revision with this change.
+The table compares the merged `dev` revision with this change.
 
 | Area | Built-in raises | Handlers | Log calls |
 | --- | --- | --- | --- |
-| `raes` | 933 to 907 | 162 to 161 | 5 to 5 |
-| `raes_contracts` | 3,018 to 3,007 | 110 to 102 | 3 to 14 |
-| `raes_backend_protocols` | 188 to 169 | 17 to 20 | 0 to 1 |
-| `raes_processor` | 621 to 470 | 85 to 102 | 0 to 2 |
-| `raes_runtime` | 1,043 to 494 | 246 to 283 | 5 to 81 |
-| `raes_conformance` | 130 to 102 | 42 to 43 | 0 to 9 |
-| `raes_cli`, `raes_mcp`, `raes_operations` | 11 to 1 | 39 to 51 | 0 to 2 |
-| `tools/` | 391 to 30 | 248 to 294 | 1 to 1 |
-| Other source | 115 to 58 | 12 to 15 | 0 to 0 |
+| `raes` | 921 to 868 | 118 to 138 | 5 to 5 |
+| `raes_contracts` | 2,803 to 2,788 | 70 to 76 | 3 to 9 |
+| `raes_backend_protocols` | 177 to 159 | 12 to 14 | 0 to 1 |
+| `raes_processor` | 537 to 446 | 58 to 75 | 0 to 2 |
+| `raes_runtime` | 1,011 to 419 | 193 to 275 | 5 to 71 |
+| `raes_conformance` | 167 to 126 | 50 to 56 | 0 to 21 |
+| `raes_cli`, `raes_mcp`, `raes_operations` | 11 to 0 | 39 to 40 | 0 to 2 |
+| `tools/` | 328 to 31 | 165 to 284 | 1 to 1 |
+| Other source | 116 to 58 | 12 to 16 | 0 to 0 |
 
 Most remaining built-in raises validate value objects, which Pydantic requires (E3).
 The others report programming errors (E2) or follow a protocol (E4).
-Every exception class derives from `RaesError` through one base, except four test doubles.
-Ruff `BLE001` reported 112 silent broad handlers; it now reports none.
+Every exception class derives from `RaesError` through one base, except eight test doubles that simulate a foreign failure or an interruption.
+Ruff `BLE001` reports 110 silent broad handlers on the merged `dev` revision; it reports none on this change.
 Each `noqa: BLE001` that remains marks a verified false positive and states the reason.
 
 ## Source and document review
