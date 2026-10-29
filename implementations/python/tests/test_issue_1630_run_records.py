@@ -202,8 +202,9 @@ def test_record_source_pins_survive_restart_and_actor_scope_is_preserved(tmp_pat
         after = runtime.experiment_records(experiment)
         assert before.runs == after.runs
         assert after.sources[0].realization.snapshot_digest == before.sources[0].realization.snapshot_digest
+        other = ControlPlaneIdentity(identity="other")
         with pytest.raises(PermissionError):
-            runtime.experiment_records(experiment, identity=ControlPlaneIdentity(identity="other"))
+            runtime.experiment_records(experiment, identity=other)
 
 
 def test_actual_runtime_record_passes_content_validation_and_preserves_denominator():

@@ -3,18 +3,28 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from copy import deepcopy
+from typing import TYPE_CHECKING
 
 from raes_contracts.contracts import (
     ExperimentResultSummaryModel,
+    ExperimentRunModel,
+    ExperimentStudyModel,
     validate_admitted_trial_run,
 )
 
 from .control_plane_store_snapshots import _snapshot_from_payload
-from .experiment_records import ExperimentRecordBundle, ExperimentRecordSource, ExperimentRunMetadata
+from .experiment_records import (
+    ExperimentEvidenceReader,
+    ExperimentRecordArchive,
+    ExperimentRecordBundle,
+    ExperimentRecordSource,
+    ExperimentRunMetadata,
+)
 from .runtime_decisions import RunPhaseDecision
 from .runtime_record_assembly import assemble_run, eligible_run_ids, summarize_records
-from .runtime_record_lineage import accounting_validation_record, canonical_archival_runs
+from .runtime_record_lineage import CanonicalRuns, accounting_validation_record, canonical_archival_runs
 from .runtime_record_versions import require_compatible_record_versions, retained_record_versions
 from .runtime_trial_decisions import (
     TrialAttemptDecision,
@@ -22,27 +32,24 @@ from .runtime_trial_decisions import (
     TrialReplacementDecision,
 )
 
+if TYPE_CHECKING:
+    from .runtime_decisions import RuntimeDecision
+    from .runtime_experiment import RuntimeExperiment, TrialSlot
 
-def experiment_records(experiment, *, identity, metadata=None, study=None, evidence_reader=None, archive=None):
+
+def experiment_records(
+    experiment: RuntimeExperiment,
+    *,
+    identity: object | None,
+    metadata: Mapping[str, ExperimentRunMetadata] | None = None,
+    study: ExperimentStudyModel | None = None,
+    evidence_reader: ExperimentEvidenceReader | None = None,
+    archive: ExperimentRecordArchive | None = None,
+) -> ExperimentRecordBundle:
     experiment._authorize(identity)
     with experiment._advance_lease():
         records = experiment.engine._store.load_runtime_decisions()
-        sources = []
-        for slot in experiment._slots(records):
-            attempts = tuple(
-                sorted(
-                    (
-                        item
-                        for item in records
-                        if isinstance(item, TrialAttemptDecision)
-                        and item.experiment_id == experiment.experiment_id
-                        and item.plan_entry_id == slot.entry.plan_entry_id
-                    ),
-                    key=lambda item: item.attempt,
-                )
-            )
-            if attempts:
-                sources.append(_source(experiment, slot, attempts))
+        sources = _started_sources(experiment, records)
         selected = {} if metadata is None else dict(metadata)
         if set(selected) - {source.run_id for source in sources}:
             raise ValueError("record metadata does not resolve to started runs")
@@ -51,39 +58,8 @@ def experiment_records(experiment, *, identity, metadata=None, study=None, evide
         history = retained_record_versions(records, experiment.experiment_id)
         owned_versions = dict(history)
         for source in sources:
-            supplied = selected.get(source.run_id, ExperimentRunMetadata())
-            if not isinstance(supplied, ExperimentRunMetadata):
-                raise ValueError("record metadata requires its typed input model")
-            try:
-                supplied = ExperimentRunMetadata.model_validate(supplied.model_dump(mode="json", warnings=False))
-            except ValueError:
-                raise ValueError("record metadata failed validation") from None
-            summaries = dict(supplied.result_summaries)
-            declared = {
-                item.metric_id for item in experiment.inputs.task.evaluation_protocol.metric_definitions.values()
-            }
-            if any(item.metric_id not in declared for item in summaries.values()):
-                raise ValueError("record result metric is not declared by the admitted task")
-            for metric in experiment.inputs.task.evaluation_protocol.metric_definitions.values():
-                if not any(item.metric_id == metric.metric_id for item in summaries.values()):
-                    summaries["missing:" + metric.metric_id] = ExperimentResultSummaryModel(
-                        metric_id=metric.metric_id, value_status="missing", notes="No measured result was supplied."
-                    )
-            supplied = supplied.model_copy(update={"result_summaries": summaries})
-            from .runtime_record_validation import validate_observed_apparatus
-
-            validate_observed_apparatus(experiment, supplied)
-            try:
-                run = assemble_run(source, supplied)
-            except ValueError:
-                raise ValueError("record assembly rejected supplied facts") from None
-            receipts = [
-                attempt.cleanup_receipt
-                for attempt in run.execution_accounting.attempts
-                if attempt.cleanup_receipt is not None
-            ]
-            validate_admitted_trial_run(source.plan, run, receipts)
-            run, checked = accounting_validation_record(run, canonical.get(run.run_id))
+            supplied = _run_metadata(experiment, selected.get(source.run_id, ExperimentRunMetadata()))
+            run, checked = _checked_run(experiment, source, supplied, canonical.get(source.run_id))
             require_compatible_record_versions(records, experiment.experiment_id, (run,), known_versions=owned_versions)
             try:
                 from .runtime_record_validation import validate_run_evidence
@@ -97,9 +73,7 @@ def experiment_records(experiment, *, identity, metadata=None, study=None, evide
                 validation[run.run_id] = "passed"
             runs.append(run)
             validation_records.append(checked)
-        planned = sum(
-            len(slot.plan.entries) if slot.plan is not experiment.plan else 0 for slot in experiment._slots(records)
-        ) + len(experiment.plan.entries)
+        planned = _planned_run_count(experiment, records)
         # Each child plan contains one allocated replacement entry.
         replaced_ids = {
             item.parent_run.run_id
@@ -126,7 +100,76 @@ def experiment_records(experiment, *, identity, metadata=None, study=None, evide
         return bundle
 
 
-def _source(experiment, slot, attempts):
+def _planned_run_count(experiment: RuntimeExperiment, records: tuple[RuntimeDecision, ...]) -> int:
+    return sum(
+        len(slot.plan.entries) if slot.plan is not experiment.plan else 0 for slot in experiment._slots(records)
+    ) + len(experiment.plan.entries)
+
+
+def _started_sources(
+    experiment: RuntimeExperiment, records: tuple[RuntimeDecision, ...]
+) -> list[ExperimentRecordSource]:
+    sources = []
+    for slot in experiment._slots(records):
+        attempts = tuple(
+            sorted(
+                (
+                    item
+                    for item in records
+                    if isinstance(item, TrialAttemptDecision)
+                    and item.experiment_id == experiment.experiment_id
+                    and item.plan_entry_id == slot.entry.plan_entry_id
+                ),
+                key=lambda item: item.attempt,
+            )
+        )
+        if attempts:
+            sources.append(_source(experiment, slot, attempts))
+    return sources
+
+
+def _run_metadata(experiment: RuntimeExperiment, supplied: ExperimentRunMetadata) -> ExperimentRunMetadata:
+    if not isinstance(supplied, ExperimentRunMetadata):
+        raise ValueError("record metadata requires its typed input model")
+    try:
+        supplied = ExperimentRunMetadata.model_validate(supplied.model_dump(mode="json", warnings=False))
+    except ValueError:
+        raise ValueError("record metadata failed validation") from None
+    summaries = dict(supplied.result_summaries)
+    declared = {item.metric_id for item in experiment.inputs.task.evaluation_protocol.metric_definitions.values()}
+    if any(item.metric_id not in declared for item in summaries.values()):
+        raise ValueError("record result metric is not declared by the admitted task")
+    reported = {item.metric_id for item in summaries.values()}
+    for metric in declared - reported:
+        summaries["missing:" + metric] = ExperimentResultSummaryModel(
+            metric_id=metric, value_status="missing", notes="No measured result was supplied."
+        )
+    return supplied.model_copy(update={"result_summaries": summaries})
+
+
+def _checked_run(
+    experiment: RuntimeExperiment,
+    source: ExperimentRecordSource,
+    supplied: ExperimentRunMetadata,
+    canonical: CanonicalRuns | None,
+) -> tuple[ExperimentRunModel, ExperimentRunModel]:
+    from .runtime_record_validation import validate_observed_apparatus
+
+    validate_observed_apparatus(experiment, supplied)
+    try:
+        run = assemble_run(source, supplied)
+    except ValueError:
+        raise ValueError("record assembly rejected supplied facts") from None
+    receipts = [
+        attempt.cleanup_receipt for attempt in run.execution_accounting.attempts if attempt.cleanup_receipt is not None
+    ]
+    validate_admitted_trial_run(source.plan, run, receipts)
+    return accounting_validation_record(run, canonical)
+
+
+def _source(
+    experiment: RuntimeExperiment, slot: TrialSlot, attempts: tuple[TrialAttemptDecision, ...]
+) -> ExperimentRecordSource:
     run = experiment._run(slot.entry, slot.plan)
     decisions = run._store.load_runtime_decisions()
     ids = {item.execution_attempt_id for item in attempts}
@@ -177,7 +220,7 @@ def _source(experiment, slot, attempts):
     )
 
 
-def _publish(experiment, bundle, archive):
+def _publish(experiment: RuntimeExperiment, bundle: ExperimentRecordBundle, archive: ExperimentRecordArchive) -> None:
     from .runtime_record_publication import publish_records
 
     return publish_records(experiment, bundle, archive)

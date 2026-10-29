@@ -89,16 +89,7 @@ class ExperimentStudyModel(ContractModel):
     def _validate_claim_bearing_study(self) -> ExperimentStudyModel:
         from ..behavioral_relations import validate_behavioral_claim_binding
 
-        if self.definition_ref is not None:
-            ref = self.definition_ref
-            if (
-                ref.ref_kind != "study"
-                or ref.ref_id != self.study_id
-                or ref.ref_version is None
-                or ref.ref_digest is None
-                or ref.ref_path is not None
-            ):
-                raise ValueError("study definition_ref must pin the same authored study identity and digest")
+        self._validate_definition_reference()
         relation_ids = [claim.relation_id for claim in self.behavioral_claims]
         if len(relation_ids) != len(set(relation_ids)):
             raise ValueError("study behavioral claim relation ids must be unique")
@@ -119,6 +110,18 @@ class ExperimentStudyModel(ContractModel):
             authority_version=self.study_version if self.definition_ref is None else self.definition_ref.ref_version,
         )
         return self
+
+    def _validate_definition_reference(self) -> None:
+        if self.definition_ref is not None:
+            ref = self.definition_ref
+            if (
+                ref.ref_kind != "study"
+                or ref.ref_id != self.study_id
+                or ref.ref_version is None
+                or ref.ref_digest is None
+                or ref.ref_path is not None
+            ):
+                raise ValueError("study definition_ref must pin the same authored study identity and digest")
 
     def _validate_run_allocation_blocking_factors(self, run_allocation: ExperimentRunAllocationPlanModel) -> None:
         undeclared_blocking_factors = sorted(

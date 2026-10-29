@@ -2,10 +2,24 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any, TypedDict
+
 from ..canonical import canonical_json_digest
 
+if TYPE_CHECKING:
+    from .experiment_capture import ExperimentCaptureSpecModel
+    from .experiment_study_contract import ExperimentStudyModel
 
-def validate_study_definition(study, definition):
+
+class StudyRelationInputs(TypedDict, total=False):
+    """Resolved artifacts used to validate inherited study evidence relations."""
+
+    relation_scenarios: Mapping[str, Any] | None
+    relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None
+
+
+def validate_study_definition(study: ExperimentStudyModel, definition: ExperimentStudyModel | None) -> None:
     reference = study.definition_ref
     if reference is None:
         return

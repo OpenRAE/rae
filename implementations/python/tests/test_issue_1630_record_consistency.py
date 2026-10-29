@@ -96,12 +96,15 @@ def test_publication_path_resolves_the_exact_scientific_original(completed_run, 
         assert bundle.study_validation == "passed", bundle.validation_failures
         current = next(run for run in bundle.runs if run.run_id == first)
         checked = next(run for run in bundle.validation_records if run.run_id == first)
-        assert current.run_version == version and checked.run_version == "1"
+        assert current.run_version == version
+        assert checked.run_version == "1"
         assert first in bundle.eligible_run_ids
         assert any(
             ref.ref_kind == "run" and ref.ref_id == first and ref.ref_version == "1" and ref.ref_digest
             for ref in current.derived_from_refs
         )
         member = bundle.study.membership["runtime:" + first]
-        assert member.role == "evaluation-run" and member.target_ref.ref_version == "1"
-        assert (first, "1") in archive.runs and (first, version) in archive.runs
+        assert member.role == "evaluation-run"
+        assert member.target_ref.ref_version == "1"
+        assert (first, "1") in archive.runs
+        assert (first, version) in archive.runs

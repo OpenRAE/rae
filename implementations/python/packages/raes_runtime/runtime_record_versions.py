@@ -1,13 +1,24 @@
 """Share immutable artifact version ownership across all runtime archive paths."""
 
+from __future__ import annotations
+
+from collections.abc import Iterable
+from typing import TYPE_CHECKING
+
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts import ExperimentRunModel
+from raes_contracts.contracts import ExperimentRunModel, ExperimentStudyModel
 
 from .runtime_record_decisions import ExperimentRecordPublicationDecision
 from .runtime_trial_decisions import TrialArchiveCandidateDecision, TrialArchiveDecision, TrialReplacementDecision
 
+if TYPE_CHECKING:
+    from .runtime_decisions import RuntimeDecision
 
-def _retain(versions, artifact):
+RecordArtifact = ExperimentRunModel | ExperimentStudyModel
+RecordVersions = dict[tuple[str, str, str], RecordArtifact]
+
+
+def _retain(versions: RecordVersions, artifact: RecordArtifact) -> None:
     identity = (
         ("run", artifact.run_id, artifact.run_version)
         if isinstance(artifact, ExperimentRunModel)
@@ -20,7 +31,7 @@ def _retain(versions, artifact):
         raise ValueError("record version conflicts with retained archival content")
 
 
-def retained_record_versions(records, experiment_id):
+def retained_record_versions(records: Iterable[RuntimeDecision], experiment_id: str) -> RecordVersions:
     versions = {}
     for item in records:
         if getattr(item, "experiment_id", None) != experiment_id:
@@ -38,7 +49,13 @@ def retained_record_versions(records, experiment_id):
     return versions
 
 
-def require_compatible_record_versions(records, experiment_id, artifacts, *, known_versions=None):
+def require_compatible_record_versions(
+    records: Iterable[RuntimeDecision],
+    experiment_id: str,
+    artifacts: Iterable[RecordArtifact],
+    *,
+    known_versions: RecordVersions | None = None,
+) -> None:
     versions = retained_record_versions(records, experiment_id) if known_versions is None else known_versions
     for artifact in artifacts:
         _retain(versions, artifact)

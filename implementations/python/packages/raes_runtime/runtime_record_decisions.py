@@ -18,7 +18,7 @@ class ExperimentStudyDefinitionDecision(BaseModel):
     study: ExperimentStudyModel
 
     @property
-    def decision_id(self):
+    def decision_id(self) -> str:
         return canonical_json_digest((self.schema_version, self.experiment_id))
 
 
@@ -33,13 +33,13 @@ class ExperimentRecordPublicationDecision(BaseModel):
     failure_codes: tuple[Identity, ...] = Field(default=(), max_length=64)
 
     @model_validator(mode="after")
-    def _validate_record(self):
+    def _validate_record(self) -> ExperimentRecordPublicationDecision:
         if (self.run is None) == (self.study is None):
             raise ValueError("publication must identify exactly one run or study")
         return self
 
     @property
-    def decision_id(self):
+    def decision_id(self) -> str:
         # Version ownership is checked across both archive paths before persistence.
         identity = (
             ("run", self.run.run_id, self.run.run_version)

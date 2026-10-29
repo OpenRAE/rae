@@ -1,18 +1,31 @@
 """Bind trusted observation inputs to the retained plan and runtime facts."""
 
+from __future__ import annotations
+
+from collections.abc import Callable, Iterable, Iterator
 from contextlib import ExitStack, contextmanager
+from typing import TYPE_CHECKING
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
     BackendManifestV2Model,
     ExperimentRunEvidenceInputs,
+    ExperimentRunModel,
     ProcessorManifestV2Model,
     validate_experiment_apparatus_context_against_manifests,
     validate_experiment_run_against_task,
 )
 
+from .runtime_record_assembly import _observed_evidence
 
-def validate_observed_apparatus(experiment, metadata):
+if TYPE_CHECKING:
+    from raes_contracts.evidence_proof import ValidatedRunEvidence
+
+    from .experiment_records import ExperimentEvidenceReader, ExperimentRecordSource, ExperimentRunMetadata
+    from .runtime_experiment import RuntimeExperiment
+
+
+def validate_observed_apparatus(experiment: RuntimeExperiment, metadata: ExperimentRunMetadata) -> None:
     if metadata.apparatus_context is None:
         return
     manifests = experiment.inputs.apparatus_manifests.values()
@@ -33,7 +46,12 @@ def validate_observed_apparatus(experiment, metadata):
 
 
 @contextmanager
-def record_evidence(experiment, source, run, reader):
+def record_evidence(
+    experiment: RuntimeExperiment,
+    source: ExperimentRecordSource,
+    run: ExperimentRunModel,
+    reader: ExperimentEvidenceReader | None,
+) -> Iterator[ExperimentRunEvidenceInputs | None]:
     capture = next(
         (
             item.observation
@@ -57,26 +75,33 @@ def record_evidence(experiment, source, run, reader):
             if id(stream) not in seen:
                 cleanup.callback(stream.close)
                 seen.add(id(stream))
-        if evidence.capture_specs != experiment.inputs.capture_specs:
-            raise ValueError("record evidence capture specifications differ from admission")
-        retained = {}
-        for decision in source.observations:
-            for item in decision.observation.evidence:
-                key = (item.evidence_record_id, item.record_version)
-                if key in retained and retained[key] != item:
-                    raise ValueError("retained evidence identity has conflicting content")
-                retained[key] = item
-        if any(
-            key != item.evidence_record_id or retained.get((key, item.record_version)) != item
-            for key, item in evidence.evidence_records.items()
-        ):
-            raise ValueError("record evidence does not match retained runtime observations")
+        _validate_evidence_inputs(experiment, source, evidence)
         yield evidence
 
 
-def with_record_evidence(experiment, pairs, reader, check):
+def _validate_evidence_inputs(
+    experiment: RuntimeExperiment,
+    source: ExperimentRecordSource,
+    evidence: ExperimentRunEvidenceInputs,
+) -> None:
+    if evidence.capture_specs != experiment.inputs.capture_specs:
+        raise ValueError("record evidence capture specifications differ from admission")
+    retained = _observed_evidence(source.observations)
+    if any(
+        key != item.evidence_record_id or retained.get((key, item.record_version)) != item
+        for key, item in evidence.evidence_records.items()
+    ):
+        raise ValueError("record evidence does not match retained runtime observations")
+
+
+def with_record_evidence[T](
+    experiment: RuntimeExperiment,
+    pairs: Iterable[tuple[ExperimentRecordSource, ExperimentRunModel]],
+    reader: ExperimentEvidenceReader | None,
+    check: Callable[[dict[str, ExperimentRunEvidenceInputs | None]], T],
+) -> T:
     # The worker owns acquired streams through validation, even after a caller timeout.
-    def invoke():
+    def invoke() -> T:
         try:
             with ExitStack() as cleanup:
                 evidence = {
@@ -94,7 +119,12 @@ def with_record_evidence(experiment, pairs, reader, check):
     )
 
 
-def validate_run_evidence(experiment, source, run, reader):
+def validate_run_evidence(
+    experiment: RuntimeExperiment,
+    source: ExperimentRecordSource,
+    run: ExperimentRunModel,
+    reader: ExperimentEvidenceReader | None,
+) -> ValidatedRunEvidence:
     return with_record_evidence(
         experiment,
         ((source, run),),

@@ -24,7 +24,12 @@ from raes_contracts.contracts import (
 from raes_contracts.contracts.experiment_bindings import RealizedBindingProvenanceModel
 
 if TYPE_CHECKING:
-    from raes_contracts.contracts import AdmittedTrialPlanModel
+    from raes_contracts.contracts import (
+        AdmittedTrialPlanModel,
+        EvaluationPlanModel,
+        OrchestrationPlanModel,
+        ProvisioningPlanModel,
+    )
     from raes_contracts.runtime_state import OperationReceipt, RuntimeSnapshot
     from raes_processor.trial_realization import TrialRealization
 
@@ -64,11 +69,11 @@ class ExperimentRecordSource:
     operation_receipts: tuple[OperationReceipt, ...]
 
     @property
-    def instantiated_scenario(self):
+    def instantiated_scenario(self) -> BaseModel:
         return self.realization.instantiated
 
     @property
-    def processor_plans(self):
+    def processor_plans(self) -> tuple[ProvisioningPlanModel, OrchestrationPlanModel, EvaluationPlanModel]:
         return (
             self.realization.provisioning_plan,
             self.realization.orchestration_plan,

@@ -2,44 +2,25 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import ExperimentRunModel, ExperimentStudyModel
 
 from .runtime_record_decisions import ExperimentRecordPublicationDecision
 from .runtime_record_versions import require_compatible_record_versions
 
+if TYPE_CHECKING:
+    from .experiment_records import ExperimentRecordArchive, ExperimentRecordBundle
+    from .runtime_experiment import RuntimeExperiment
 
-def publish_records(experiment, bundle, archive):
-    required = ("write_sources", "write_run", "read_run", "write_study", "read_study")
-    if not all(callable(getattr(archive, name, None)) for name in required):
-        raise TypeError("record publication requires an installed immutable archive owner")
+
+def publish_records(
+    experiment: RuntimeExperiment, bundle: ExperimentRecordBundle, archive: ExperimentRecordArchive
+) -> None:
+    _require_archive_owner(archive)
     engine = experiment.engine
-    versions = {}
-    checked = {run.run_id: run for run in getattr(bundle, "validation_records", ())}
-
-    def retain(run, status, codes=()):
-        key = (run.run_id, run.run_version)
-        if key in versions and versions[key].run != run:
-            raise ValueError("record version conflicts with retained archival content")
-        versions[key] = ExperimentRecordPublicationDecision(
-            experiment_id=experiment.experiment_id,
-            run=run,
-            validation_status=status,
-            failure_codes=codes,
-        )
-
-    for run in getattr(bundle, "retained_history", ()):
-        retain(run, "not-performed")
-    for run in checked.values():
-        retain(run, bundle.validation_by_run[run.run_id], bundle.validation_failures.get(run.run_id, ()))
-    for run in bundle.runs:
-        is_checked = not checked or checked[run.run_id].run_version == run.run_version
-        retain(
-            run,
-            bundle.validation_by_run[run.run_id] if is_checked else "not-performed",
-            bundle.validation_failures.get(run.run_id, ()) if is_checked else (),
-        )
-    candidates = list(versions.values())
+    candidates = _run_candidates(experiment.experiment_id, bundle)
     if bundle.study is not None:
         candidates.append(
             ExperimentRecordPublicationDecision(
@@ -76,7 +57,52 @@ def publish_records(experiment, bundle, archive):
         engine._store.claim_runtime_decision(candidate.model_copy(update={"state": "published"}))
 
 
-def _write_and_read(archive, candidate):
+def _require_archive_owner(archive: ExperimentRecordArchive) -> None:
+    required = ("write_sources", "write_run", "read_run", "write_study", "read_study")
+    if not all(callable(getattr(archive, name, None)) for name in required):
+        raise TypeError("record publication requires an installed immutable archive owner")
+
+
+def _run_candidates(experiment_id: str, bundle: ExperimentRecordBundle) -> list[ExperimentRecordPublicationDecision]:
+    versions: dict[tuple[str, str], ExperimentRecordPublicationDecision] = {}
+    checked = {run.run_id: run for run in bundle.validation_records}
+    for run in bundle.retained_history:
+        _retain_candidate(
+            versions,
+            ExperimentRecordPublicationDecision(
+                experiment_id=experiment_id, run=run, validation_status="not-performed"
+            ),
+        )
+    for run in checked.values():
+        _retain_candidate(versions, _run_candidate(experiment_id, bundle, run, is_checked=True))
+    for run in bundle.runs:
+        is_checked = not checked or checked[run.run_id].run_version == run.run_version
+        _retain_candidate(versions, _run_candidate(experiment_id, bundle, run, is_checked=is_checked))
+    return list(versions.values())
+
+
+def _run_candidate(
+    experiment_id: str, bundle: ExperimentRecordBundle, run: ExperimentRunModel, *, is_checked: bool
+) -> ExperimentRecordPublicationDecision:
+    return ExperimentRecordPublicationDecision(
+        experiment_id=experiment_id,
+        run=run,
+        validation_status=bundle.validation_by_run[run.run_id] if is_checked else "not-performed",
+        failure_codes=bundle.validation_failures.get(run.run_id, ()) if is_checked else (),
+    )
+
+
+def _retain_candidate(
+    versions: dict[tuple[str, str], ExperimentRecordPublicationDecision],
+    candidate: ExperimentRecordPublicationDecision,
+) -> None:
+    key = (candidate.run.run_id, candidate.run.run_version)
+    if key in versions and versions[key].run != candidate.run:
+        raise ValueError("record version conflicts with retained archival content")
+    versions[key] = candidate
+
+
+def _write_and_read(archive: ExperimentRecordArchive, candidate: ExperimentRecordPublicationDecision) -> None:
     subject = candidate.run if candidate.run is not None else candidate.study
     expected = canonical_json_digest(subject.model_dump(mode="json"))
     if candidate.run is not None:

@@ -411,14 +411,9 @@ def _validate_experiment_study_against_tasks_and_runs(
     relation_scenarios: Mapping[str, Any] | None,
     relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None,
     structural_only: bool,
-    study_definition: ExperimentStudyModel | None = None,
 ) -> None:
     """Validate study-level analysis semantics against concrete task/run artifacts."""
 
-    if not structural_only:
-        from .experiment_study_definition import validate_study_definition
-
-        validate_study_definition(study, study_definition)
     runs = runs or []
     if not structural_only and study.evidence_requirement_relations:
         if relation_scenarios is None or relation_capture_specs is None:
@@ -473,6 +468,9 @@ def validate_experiment_study_against_tasks_and_runs(
 ) -> None:
     """Validate study semantics and content-backed evidence for every claimed run."""
 
+    from .experiment_study_definition import validate_study_definition
+
+    validate_study_definition(study, study_definition)
     _validate_experiment_study_against_tasks_and_runs(
         study,
         tasks,
@@ -481,5 +479,4 @@ def validate_experiment_study_against_tasks_and_runs(
         relation_scenarios=relation_scenarios,
         relation_capture_specs=relation_capture_specs,
         structural_only=False,
-        study_definition=study_definition,
     )

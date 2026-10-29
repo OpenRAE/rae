@@ -80,7 +80,8 @@ def test_read_failure_closes_transferred_readers_and_keeps_records(completed_run
 
     bundle = runtime.experiment_records(experiment, metadata={first: metadata}, evidence_reader=reader)
     assert bundle.validation_by_run[first] == "failed"
-    assert opened and all(item.closed for item in opened)
+    assert opened
+    assert all(item.closed for item in opened)
 
 
 def test_study_reader_outage_preserves_run_proof_and_study_record(completed_run):
@@ -187,14 +188,15 @@ def test_archive_callback_cannot_change_the_frozen_candidate(legacy):
         def read_run(self, run_id, version):
             return self.record
 
+    archive = MutatingArchive()
+    write = _write_archive if legacy else _write_and_read
+    record = (
+        run
+        if legacy
+        else ExperimentRecordPublicationDecision(experiment_id="experiment", run=run, validation_status="passed")
+    )
     with pytest.raises(ValueError, match="readback"):
-        if legacy:
-            _write_archive(MutatingArchive(), run)
-        else:
-            _write_and_read(
-                MutatingArchive(),
-                ExperimentRecordPublicationDecision(experiment_id="experiment", run=run, validation_status="passed"),
-            )
+        write(archive, record)
     assert run.model_dump(mode="json") == expected
 
 
@@ -241,8 +243,9 @@ def test_snapshot_input_cannot_poison_the_authored_definition_pin(completed_run)
             "ref_digest": canonical_json_digest(payload),
         },
     )
+    snapshot = ExperimentStudyModel.model_validate(payload)
     with pytest.raises(ValueError, match="generated snapshot"):
-        runtime.experiment_records(experiment, study=ExperimentStudyModel.model_validate(payload))
+        runtime.experiment_records(experiment, study=snapshot)
     assert not any(
         isinstance(item, ExperimentStudyDefinitionDecision) for item in runtime._store.load_runtime_decisions()
     )
@@ -269,7 +272,13 @@ def test_changed_validation_disposition_cannot_replace_frozen_bytes():
     )
     experiment = SimpleNamespace(engine=engine, experiment_id="experiment")
     bundle = SimpleNamespace(
-        runs=(run,), sources=(), study=None, validation_by_run={run.run_id: "failed"}, validation_failures={}
+        runs=(run,),
+        sources=(),
+        study=None,
+        validation_records=(),
+        retained_history=(),
+        validation_by_run={run.run_id: "failed"},
+        validation_failures={},
     )
     archive = MemoryArchive()
     publish_records(experiment, bundle, archive)
@@ -294,7 +303,8 @@ def test_pin_rejection_closes_all_transferred_readers(completed_run):
 
     bundle = runtime.experiment_records(experiment, metadata={first: metadata}, evidence_reader=reader)
     assert bundle.validation_by_run[first] == "failed"
-    assert opened and all(item.closed for item in opened)
+    assert opened
+    assert all(item.closed for item in opened)
 
 
 def test_timed_out_reader_closes_late_resources_while_archive_remains_available(completed_run):

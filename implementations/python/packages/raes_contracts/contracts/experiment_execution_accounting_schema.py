@@ -1,13 +1,17 @@
 """Portable shape constraints for explicit partial run records."""
 
+from typing import Any
 
-def add_record_shape_schema(schema):
+
+def add_record_shape_schema(schema: dict[str, Any]) -> None:
     from .schema_invariants import _add_raes_invariant
 
     _add_raes_invariant(
         schema,
         "run-execution-accounting-consistent",
-        "Execution accounting preserves unique ordered attempts, run-bound evidence and cleanup, exact start and bounded end times, and status consistent with the observed lifecycle. Archival accounting agrees with admitted trial provenance identities, attempts, operation references and cleanup membership.",
+        "Execution accounting preserves unique ordered attempts, run-bound evidence and cleanup, exact start and bounded "
+        "end times, and status consistent with the observed lifecycle. Archival accounting agrees with admitted trial "
+        "provenance identities, attempts, operation references and cleanup membership.",
         validator="raes_contracts.contracts.ExperimentRunModel._validate_archival_run",
         inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#"}],
     )

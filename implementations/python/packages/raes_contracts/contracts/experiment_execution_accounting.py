@@ -33,7 +33,7 @@ class ExperimentAttemptAccountingModel(ContractModel):
     evidence_records: list[ExperimentEvidenceRecordModel] = Field(default_factory=list, max_length=1024)
 
     @model_validator(mode="after")
-    def _validate_attempt(self):
+    def _validate_attempt(self) -> ExperimentAttemptAccountingModel:
         from .base import _parse_rfc3339_datetime
 
         start = _parse_rfc3339_datetime("started_at", self.started_at)
@@ -63,7 +63,7 @@ class ExperimentExecutionAccountingModel(ContractModel):
     participant_configurations: list[ParticipantConfigurationResultModel] = Field(default_factory=list, max_length=4096)
 
     @model_validator(mode="after")
-    def _validate_accounting(self):
+    def _validate_accounting(self) -> ExperimentExecutionAccountingModel:
         ids = [item.execution_attempt_id for item in self.attempts]
         if len(ids) != len(set(ids)) or [item.attempt for item in self.attempts] != list(range(1, len(ids) + 1)):
             raise ValueError("execution accounting must retain unique, contiguous ordered attempts")
@@ -72,34 +72,46 @@ class ExperimentExecutionAccountingModel(ContractModel):
 
 def validate_run_record_shape(run: ExperimentRunModel) -> None:
     if run.record_state == "partial":
-        if run.execution_accounting is None:
-            raise ValueError("partial records require execution accounting")
-        if run.outcome_status == "succeeded" or run.run_status == "sealed":
-            raise ValueError("partial records cannot claim scientific success or sealing")
+        _validate_partial_record_shape(run)
     else:
-        if run.run_status in {"in-progress", "indeterminate"}:
-            raise ValueError("archival records require a resolved execution status")
-        required = (run.ended_at, run.apparatus_context, run.traceability, run.evidence_artifacts, run.result_summaries)
-        if run.execution_accounting is None and (not run.parameter_set or not run.stochastic_controls):
-            raise ValueError("legacy archival records require parameters and stochastic controls")
-        if not all(required):
-            raise ValueError("archival records require end time, apparatus, traceability, evidence and results")
+        _validate_archival_record_shape(run)
     if run.run_status in {"in-progress", "indeterminate"} and run.ended_at is not None:
         raise ValueError("unresolved runs must not claim an end time")
     if run.ended_at is None and (run.difficulty_provenance is not None or run.realized_time_model is not None):
         raise ValueError("bounded time provenance requires an observed end time")
     if run.execution_accounting is not None:
         _validate_accounting_consistency(run)
-        for attempt in run.execution_accounting.attempts:
-            if attempt.cleanup_receipt is not None and attempt.cleanup_receipt.run_id != run.run_id:
-                raise ValueError("cleanup receipt must belong to its run")
-            if any(
-                item.run_ref.ref_id != run.run_id or item.run_ref.ref_kind != "run" for item in attempt.evidence_records
-            ):
-                raise ValueError("execution evidence must belong to its run")
+        _validate_attempt_membership(run)
 
 
-def _validate_accounting_consistency(run):
+def _validate_partial_record_shape(run: ExperimentRunModel) -> None:
+    if run.execution_accounting is None:
+        raise ValueError("partial records require execution accounting")
+    if run.outcome_status == "succeeded" or run.run_status == "sealed":
+        raise ValueError("partial records cannot claim scientific success or sealing")
+
+
+def _validate_archival_record_shape(run: ExperimentRunModel) -> None:
+    if run.run_status in {"in-progress", "indeterminate"}:
+        raise ValueError("archival records require a resolved execution status")
+    required = (run.ended_at, run.apparatus_context, run.traceability, run.evidence_artifacts, run.result_summaries)
+    if run.execution_accounting is None and (not run.parameter_set or not run.stochastic_controls):
+        raise ValueError("legacy archival records require parameters and stochastic controls")
+    if not all(required):
+        raise ValueError("archival records require end time, apparatus, traceability, evidence and results")
+
+
+def _validate_attempt_membership(run: ExperimentRunModel) -> None:
+    for attempt in run.execution_accounting.attempts:
+        if attempt.cleanup_receipt is not None and attempt.cleanup_receipt.run_id != run.run_id:
+            raise ValueError("cleanup receipt must belong to its run")
+        if any(
+            item.run_ref.ref_id != run.run_id or item.run_ref.ref_kind != "run" for item in attempt.evidence_records
+        ):
+            raise ValueError("execution evidence must belong to its run")
+
+
+def _validate_accounting_consistency(run: ExperimentRunModel) -> None:
     from .base import _parse_rfc3339_datetime
 
     attempts = run.execution_accounting.attempts
@@ -107,6 +119,21 @@ def _validate_accounting_consistency(run):
     starts = [_parse_rfc3339_datetime("attempt started_at", item.started_at) for item in attempts]
     if start != starts[0] or starts != sorted(starts):
         raise ValueError("run start must match its first ordered attempt start")
+    _validate_accounting_status(run)
+    if run.ended_at is not None:
+        end = _parse_rfc3339_datetime("ended_at", run.ended_at)
+        if any(
+            item.ended_at is not None and _parse_rfc3339_datetime("attempt ended_at", item.ended_at) > end
+            for item in attempts
+        ):
+            raise ValueError("run end must cover its retained attempt intervals")
+    if run.record_state == "archival":
+        if any(item.cleanup_receipt is None for item in attempts):
+            raise ValueError("complete accounting requires explicit cleanup receipts for every attempt")
+        _validate_archival_accounting_provenance(run)
+
+
+def _validate_accounting_status(run: ExperimentRunModel) -> None:
     expected = {
         "unknown": "indeterminate",
         "running": "in-progress",
@@ -116,7 +143,7 @@ def _validate_accounting_consistency(run):
         "cancelled": "aborted",
         "aborted": "aborted",
     }
-    latest = attempts[-1]
+    latest = run.execution_accounting.attempts[-1]
     permitted = {expected[latest.execution_status], "invalidated", "superseded"}
     if latest.execution_status == "succeeded":
         permitted.add("sealed")
@@ -124,20 +151,9 @@ def _validate_accounting_consistency(run):
         raise ValueError("run status contradicts its latest execution attempt")
     if latest.execution_status in {"unknown", "running"} and run.ended_at is not None:
         raise ValueError("unresolved attempt cannot establish a run end time")
-    if run.ended_at is not None:
-        end = _parse_rfc3339_datetime("ended_at", run.ended_at)
-        if any(
-            item.ended_at is not None and _parse_rfc3339_datetime("attempt ended_at", item.ended_at) > end
-            for item in attempts
-        ):
-            raise ValueError("run end must cover its retained attempt intervals")
-    if run.record_state == "archival" and any(item.cleanup_receipt is None for item in attempts):
-        raise ValueError("complete accounting requires explicit cleanup receipts for every attempt")
-    if run.record_state == "archival":
-        _validate_archival_accounting_provenance(run)
 
 
-def _validate_archival_accounting_provenance(run):
+def _validate_archival_accounting_provenance(run: ExperimentRunModel) -> None:
     accounting, linkage = run.execution_accounting, run.trial_provenance
     if linkage is None:
         raise ValueError("archival execution accounting requires admitted trial provenance")

@@ -158,7 +158,8 @@ def test_legacy_owned_version_conflict_does_not_poison_record_history(superseded
         archive = MemoryArchive()
         with pytest.raises(ValueError, match="version conflicts"):
             runtime.experiment_records(experiment, metadata={prior.run_id: metadata}, archive=archive)
-        assert not archive.runs and not archive.sources
+        assert not archive.runs
+        assert not archive.sources
         assert not any(
             isinstance(item, ExperimentRecordPublicationDecision) for item in runtime._store.load_runtime_decisions()
         )

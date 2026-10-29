@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Unpack
 
 from .._canonical import canonical_json_digest
 from .admitted_trial_plan import AdmittedTrialEntryModel, AdmittedTrialPlanModel
@@ -14,6 +14,7 @@ from .experiment_capture import ExperimentCaptureSpecModel
 from .experiment_run import ExperimentRunModel
 from .experiment_run_evidence_validation import ExperimentRunEvidenceInputs
 from .experiment_spec import ExperimentStudyModel
+from .experiment_study_definition import StudyRelationInputs
 from .trial_cleanup import TrialCleanupReceiptModel, validate_trial_cleanup_receipt
 from .trial_provenance import TrialRunProvenanceModel
 
@@ -292,8 +293,7 @@ def validate_admitted_trial_study(
     *,
     study_definition: ExperimentStudyModel | None = None,
     evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None = None,
-    relation_scenarios: Mapping[str, Any] | None = None,
-    relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None = None,
+    **relations: Unpack[StudyRelationInputs],
 ) -> None:
     """Join admitted coordinates and archival runs to the existing study authority."""
 
@@ -308,8 +308,7 @@ def validate_admitted_trial_study(
         runs,
         study_definition=study_definition,
         evidence_by_run=evidence_by_run,
-        relation_scenarios=relation_scenarios,
-        relation_capture_specs=relation_capture_specs,
+        **relations,
     )
 
 
@@ -321,8 +320,7 @@ def _validate_admitted_trial_study(
     *,
     study_definition: ExperimentStudyModel | None = None,
     evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None,
-    relation_scenarios: Mapping[str, Any] | None,
-    relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None,
+    **relations: Unpack[StudyRelationInputs],
 ) -> None:
     validate_experiment_study_against_tasks_and_runs(
         study,
@@ -330,8 +328,7 @@ def _validate_admitted_trial_study(
         runs,
         study_definition=study_definition,
         evidence_by_run=evidence_by_run,
-        relation_scenarios=relation_scenarios,
-        relation_capture_specs=relation_capture_specs,
+        **relations,
     )
     _validate_study_identity(plan, study)
     _validate_study_run_membership(study, runs)
@@ -374,7 +371,9 @@ def validate_replacement_trial_study(
     )
 
 
-def _validate_trial_accounting(plan, run, cleanup_receipts):
+def _validate_trial_accounting(
+    plan: AdmittedTrialPlanModel, run: ExperimentRunModel, cleanup_receipts: list[TrialCleanupReceiptModel]
+) -> None:
     accounting = run.execution_accounting
     if accounting is None or (accounting.plan_id, accounting.plan_digest) != (plan.plan_id, plan.plan_digest):
         raise ValueError("run accounting does not match the admitted plan")
@@ -388,6 +387,17 @@ def _validate_trial_accounting(plan, run, cleanup_receipts):
     cleanup_plan = plan.cleanup_plans[entry.execution_controls.cleanup_plan_ref]
     if len(accounting.attempts) > cleanup_plan.retry_policy.max_attempts:
         raise ValueError("run accounting attempts exceed the admitted retry policy")
+    _validate_accounting_cleanup(plan, entry, run, cleanup_receipts)
+
+
+def _validate_accounting_cleanup(
+    plan: AdmittedTrialPlanModel,
+    entry: AdmittedTrialEntryModel,
+    run: ExperimentRunModel,
+    cleanup_receipts: list[TrialCleanupReceiptModel],
+) -> None:
+    accounting = run.execution_accounting
+    cleanup_plan = plan.cleanup_plans[entry.execution_controls.cleanup_plan_ref]
     retained = [item.cleanup_receipt for item in accounting.attempts if item.cleanup_receipt is not None]
     expected = {item.receipt_id: item for item in retained}
     supplied = {item.receipt_id: item for item in cleanup_receipts}

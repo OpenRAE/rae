@@ -44,11 +44,11 @@ def test_lost_legacy_acknowledgement_reserves_the_version_before_export(tmp_path
         before = runtime.experiment_records(experiment)
         source = before.sources[0]
         destination = MemoryArchive()
+        metadata = metadata_for(runtime, experiment, source)
         with pytest.raises(ValueError, match="version conflicts"):
-            runtime.experiment_records(
-                experiment, metadata={source.run_id: metadata_for(runtime, experiment, source)}, archive=destination
-            )
-        assert not destination.runs and not destination.sources
+            runtime.experiment_records(experiment, metadata={source.run_id: metadata}, archive=destination)
+        assert not destination.runs
+        assert not destination.sources
         frozen = archive.runs[(source.run_id, "1")].model_copy(deep=True)
         runtime.advance_experiment(experiment)
         assert archive.calls == 1
