@@ -37,7 +37,7 @@ def _runtime_models(
     try:
         state = MixedCompositionRuntimeStateModel.model_validate(states[run_id])
         chain = [MixedCompositionRuntimeEventModel.model_validate(event) for event in events]
-    except (KeyError, TypeError, ValueError):
+    except KeyError, TypeError, ValueError:
         return None
     return state, chain
 

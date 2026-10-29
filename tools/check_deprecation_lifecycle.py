@@ -279,7 +279,7 @@ def _load_removed_schema_paths(repo_root: Path) -> set[str]:
     """Return the schema paths in normalized publication tombstone records."""
     try:
         manifest = load_schema_publication_catalog(repo_root)
-    except (OSError, ValueError):
+    except OSError, ValueError:
         return set()
     removed = manifest.get("removed_schemas")
     if not isinstance(removed, list):

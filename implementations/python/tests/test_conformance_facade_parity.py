@@ -12,6 +12,10 @@ from __future__ import annotations
 import raes_conformance.conformance as facade
 from raes_conformance.conformance import (
     fixture_suite,
+    mixed_backend_cases,
+    mixed_backend_probes,
+    mixed_backend_types,
+    modular_control,
     observability,
     profiles,
     report,
@@ -21,6 +25,16 @@ from raes_conformance.conformance import (
 )
 
 _PUBLIC_EXPORTS = {
+    "MIXED_BACKEND_CASES",
+    "MixedBackendCase",
+    "MixedBackendCaseBinding",
+    "MixedBackendCondition",
+    "MixedBackendProbeHarness",
+    "MixedBackendProbeRequest",
+    "MixedBackendSubject",
+    "MixedCompositionProbeConfiguration",
+    "MixedControlProbeConfiguration",
+    "run_mixed_backend_conformance",
     "BackendCapabilityProfile",
     "BackendConformanceReport",
     "BackendProfileSelector",
@@ -34,6 +48,8 @@ _PUBLIC_EXPORTS = {
     "profiles_root",
     "required_contracts",
     "run_fixture_suite",
+    "modular_control_obligations",
+    "run_modular_control_conformance",
     "run_target_conformance",
     "supported_contract_ids",
     "validate_contract_payload",
@@ -41,6 +57,16 @@ _PUBLIC_EXPORTS = {
 
 # Each re-exported public name mapped to the subdomain module that defines it.
 _PUBLIC_ORIGINS = {
+    "MIXED_BACKEND_CASES": mixed_backend_cases,
+    "MixedBackendCase": mixed_backend_cases,
+    "MixedBackendCaseBinding": mixed_backend_types,
+    "MixedBackendCondition": mixed_backend_types,
+    "MixedBackendProbeHarness": mixed_backend_types,
+    "MixedBackendProbeRequest": mixed_backend_types,
+    "MixedBackendSubject": mixed_backend_types,
+    "MixedCompositionProbeConfiguration": mixed_backend_types,
+    "MixedControlProbeConfiguration": mixed_backend_types,
+    "run_mixed_backend_conformance": mixed_backend_probes,
     "BackendCapabilityProfile": profiles,
     "BackendProfileSelector": profiles,
     "fixtures_root": profiles,
@@ -51,6 +77,8 @@ _PUBLIC_ORIGINS = {
     "backend_conformance_report_payload": report,
     "observability_evidence_conformance_diagnostics": observability,
     "run_fixture_suite": fixture_suite,
+    "modular_control_obligations": modular_control,
+    "run_modular_control_conformance": modular_control,
     "profile_for_manifest": target,
     "run_target_conformance": target,
     "contract_payload_root": validators,

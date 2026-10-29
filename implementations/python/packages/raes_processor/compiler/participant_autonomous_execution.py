@@ -2,6 +2,7 @@
 
 from typing import Any
 
+from raes import ReferencePurpose
 from raes.scenario import InstantiatedScenario
 
 from ..models import (
@@ -176,14 +177,18 @@ def _compiled_execution_bindings(
             scenario.action_contracts,
         )
         action = scenario.action_contracts[action_name]
-        target_refs = [
-            *(str(ref) for effect in action.effects for ref in effect.target_refs),
-            *(str(ref) for precondition in action.preconditions for ref in precondition.support_refs),
-        ]
+        effect_refs = [str(ref) for effect in action.effects for ref in effect.target_refs]
+        support_refs = [str(ref) for precondition in action.preconditions for ref in precondition.support_refs]
         action_contract_address = _action_contract_address(action_name)
-        target_addresses = _runtime_addresses_for_refs(
-            list(dict.fromkeys(target_refs)),
-            addressable_ref_index=addressable_ref_index,
+        target_addresses = tuple(
+            dict.fromkeys(
+                [
+                    *_runtime_addresses_for_refs(
+                        effect_refs, addressable_ref_index=addressable_ref_index, purpose=ReferencePurpose.ACTION_TARGET
+                    ),
+                    *_runtime_addresses_for_refs(support_refs, addressable_ref_index=addressable_ref_index),
+                ]
+            )
         )
         interactions = tuple(action.interactions)
         interaction_classes = tuple(dict.fromkeys(interaction.interaction_class.value for interaction in interactions))

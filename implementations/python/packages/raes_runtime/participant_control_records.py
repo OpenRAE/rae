@@ -27,10 +27,12 @@ from uuid import uuid4
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.participant_control_composition import ParticipantControlEvaluationModel
+from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
 from raes_contracts.contracts.participant_control_resolution import (
     validate_participant_control_resolved_context,
 )
 from raes_contracts.contracts.participant_control_results import ControlRealizationBindingModel
+from raes_contracts.immutable_history import append_history, seal_history
 from raes_contracts.operation_lifecycle import OperationAdmissionContext
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -87,17 +89,24 @@ def commit_participant_control_realization(
     participant_address = evaluation.request.context.participant_address
     snapshot = control_plane._snapshot
     history = snapshot.participant_control_evaluation_history
-    if any(record.get("evaluation_id") == transition.evaluation_id for record in history.get(participant_address, ())):
+    if (
+        seal_history("participant_control_evaluation_history", history).find(
+            participant_address, transition.evaluation_id
+        )
+        is not None
+    ):
         return
     closed: ControlPlaneOperationRecord = _closed_carrier(control_plane, claim, transition, state, participant_address)
     control_plane._commit_participant_transition(
         expected_history_heads=expected_participant_history_heads(snapshot, participant_address),
         snapshot=snapshot.with_entries(
             dict(snapshot.entries),
-            participant_control_evaluation_history={
-                **history,
-                participant_address: [*history.get(participant_address, ()), transition.model_dump(mode="json")],
-            },
+            participant_control_evaluation_history=append_history(
+                snapshot,
+                "participant_control_evaluation_history",
+                participant_address,
+                [transition.model_dump(mode="json")],
+            ),
         ),
         record=closed,
         audit_event=_realization_audit(closed, participant_address, transition),
@@ -107,7 +116,7 @@ def commit_participant_control_realization(
 def _closed_carrier(
     control_plane: object,
     claim: ControlPlaneOperationRecord,
-    transition: ParticipantControlEvaluationModel,
+    transition: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model,
     state: OperationState,
     participant_address: str,
 ) -> ControlPlaneOperationRecord:
@@ -139,7 +148,10 @@ def _closed_carrier(
 def _linked_carrier(
     control_plane: object,
     claim: ControlPlaneOperationRecord,
-    transition: ParticipantControlEvaluationModel,
+    transition: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model,
+    *,
+    idempotency_key: str = "",
+    result_payload: dict | None = None,
 ) -> ControlPlaneOperationRecord:
     """Claim the record that carries a terminal claim's proven outcome.
 
@@ -179,6 +191,8 @@ def _linked_carrier(
             context=context,
         ),
         request_fingerprint=context.request_commitment,
+        idempotency_key=idempotency_key,
+        result_payload=result_payload,
     )
     return control_plane._claim_record(running)
 
@@ -193,7 +207,7 @@ def _transition_id(evaluation: ParticipantControlEvaluationModel, realization: C
 def _realization_audit(
     record: ControlPlaneOperationRecord,
     participant_address: str,
-    transition: ParticipantControlEvaluationModel,
+    transition: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model,
 ) -> AuditEvent:
     """The operation's audit is bound to the operation's own actor: the origin."""
 

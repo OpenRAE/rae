@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, replace
 
 from raes_contracts.contracts import (
@@ -160,7 +160,7 @@ def _participant_execution_action_case(
                 _diagnostic(
                     "conformance.participant-execution-action-failed",
                     f"runtime.participant-execution.{scope}",
-                    (f"Bounded native action execution raised {type(exc).__name__}: {exc}"),
+                    f"Bounded native action execution raised {type(exc).__name__}: {exc}",
                 )
             )
         else:
@@ -316,7 +316,7 @@ def _drive_participant_execution_probe(
         cases.append(_participant_execution_operation_case(control_plane, scope=scope, action="start", generation=0))
     cases.append(_participant_execution_action_case(target, control_plane, scope=scope))
     if controls != {"start", "pause", "resume", "drain", "reset", "teardown"}:
-        cases.extend(_isolated_control_cases(target, control_plane.snapshot, scope, controls - {"start"}))
+        # The caller closes this owner before composing isolated control fixtures.
         return cases
     actions = ["pause", "resume", "drain", "reset"]
     if "reset" in controls:
@@ -345,11 +345,13 @@ def _isolated_control_cases(
     snapshot: RuntimeSnapshot,
     scope: str,
     controls: set[str],
+    open_runtime: Callable[..., RuntimeControlPlane] = RuntimeControlPlane,
 ) -> Iterator[ConformanceCaseResult]:
     """Supply each protocol probe's precondition without calling unclaimed controls.
 
     These are controlled protocol fixtures, not evidence of native lifecycle
     fidelity or a required backend control-plane architecture.
+    ``open_runtime`` supplies the probe's run scope and archive owner.
     """
 
     initial_states = {
@@ -376,7 +378,7 @@ def _isolated_control_cases(
         fixture = snapshot.with_entries(
             dict(snapshot.entries), participant_execution_services={scope: state.model_dump(mode="json")}
         )
-        isolated = RuntimeControlPlane(target, initial_snapshot=fixture)
+        isolated = open_runtime(target, initial_snapshot=fixture)
         try:
             yield _participant_execution_operation_case(
                 isolated,

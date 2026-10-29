@@ -91,7 +91,7 @@ class OutcomeInterpretationSourceBinding(SDLModel):
         return values
 
     @model_validator(mode="after")
-    def _validate_provenance_requirements(self) -> "OutcomeInterpretationSourceBinding":
+    def _validate_provenance_requirements(self) -> OutcomeInterpretationSourceBinding:
         if self.source_layer in PROVENANCE_REQUIRED_OUTCOME_SOURCE_LAYERS and not self.provenance_refs:
             raise ValueError(f"{self.source_layer.value} source bindings require provenance_refs")
         return self
@@ -134,7 +134,7 @@ class OutcomeInterpretationTargetBinding(SDLModel):
         return values
 
     @model_validator(mode="after")
-    def _validate_target_requirements(self) -> "OutcomeInterpretationTargetBinding":
+    def _validate_target_requirements(self) -> OutcomeInterpretationTargetBinding:
         if self.target_layer == OutcomeInterpretationTargetLayer.REWARD_SIGNAL and self.governance_ref is None:
             raise ValueError("reward_signal targets require governance_ref")
         return self
@@ -200,7 +200,7 @@ class OutcomeInterpretationRule(SDLModel):
         return values
 
     @model_validator(mode="after")
-    def _validate_unique_bindings(self) -> "OutcomeInterpretationRule":
+    def _validate_unique_bindings(self) -> OutcomeInterpretationRule:
         if self.local_outcome is None and not self.target_bindings:
             raise ValueError("legacy outcome rules require target_bindings")
         if self.local_outcome is not None:

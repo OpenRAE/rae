@@ -60,6 +60,10 @@ def test_authenticated_api_rejects_collection_tampering_before_any_backend_callb
         assert receipt["accepted"], receipt
         assert control_plane.get_operation(receipt["operation_id"]).state is OperationState.SUCCEEDED
         assert len(control_plane.snapshot.entries) == 6
+        assert any(
+            row.address == "provision.node.extra" and row.provenance.value == "backend-realized"
+            for row in control_plane.snapshot.realization_provenance
+        )
     assert calls == ["prepare"]
     assert backend.applies == 1
     control_plane.close()
@@ -103,14 +107,14 @@ def test_rejected_prepared_node_update_keeps_admitted_extra_across_durable_reloa
     backend.reject_delivery = True
     receipt = owner.submit_provisioning(second.provisioning)
     status = owner.get_operation(receipt.operation_id)
-    assert status.state is OperationState.FAILED
+    assert status.state is OperationState.INDETERMINATE
     assert status.diagnostics[0].message == "Backend did not deliver its admitted portable node completion."
     assert status.changed_addresses == []
     assert _snapshot_payload(owner.snapshot) == predecessor
     owner.close()
     recovered = RuntimeControlPlane(target, store=LocalControlPlaneStore(tmp_path / "prepared-state"))
     assert _snapshot_payload(recovered.snapshot) == predecessor
-    assert recovered.get_operation(receipt.operation_id).state is OperationState.FAILED
+    assert recovered.get_operation(receipt.operation_id).state is OperationState.INDETERMINATE
     recovered.close()
 
 

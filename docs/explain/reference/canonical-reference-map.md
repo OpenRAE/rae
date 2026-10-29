@@ -94,7 +94,7 @@ page is an index, not a replacement for the linked artifacts.
 ## Current Materialization Notes
 
 - SDL authoring, parsing, validation, instantiation, compilation, planning,
-  runtime manager/control-plane APIs, published JSON schemas, and a validated
+  runtime manager/control-plane APIs, published JSON schemas, and a
   non-normative template/pattern library are present in the repository.
 - Participant-implementation manifests, evidence-capture contracts, and
   provenance contract surfaces are described at the architecture level and are

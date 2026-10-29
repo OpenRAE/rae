@@ -51,7 +51,7 @@ class RuntimeApplicationExposedField(SDLModel):
         return parse_runtime_enum_or_var(v, RuntimeSensitivityClassification, field_name="sensitivity")
 
     @model_validator(mode="after")
-    def validate_redacted_value(self) -> "RuntimeApplicationExposedField":
+    def validate_redacted_value(self) -> RuntimeApplicationExposedField:
         enforce_observed_value_redaction(
             owner_label=f"exposed field '{self.name}'",
             value=self.value,

@@ -1,0 +1,24 @@
+{
+  "schema_version": "trial-cleanup-receipt/v1",
+  "receipt_id": "receipt-required-cleanup-failed",
+  "cleanup_plan_ref": "cleanup-plan-a",
+  "plan_entry_id": "trial-entry-a",
+  "run_id": "run-a",
+  "execution_attempt_id": "attempt-cleanup-failed",
+  "trial_outcome": "failed",
+  "cleanup_status": "failed",
+  "obligation_results": {
+    "destroy-range": {
+      "obligation_id": "destroy-range",
+      "status": "failed",
+      "evidence_refs": [
+        "evidence:destroy-failed"
+      ],
+      "residual_state_refs": [
+        "residual:node.vm-a",
+        "residual:network.lab-a"
+      ]
+    }
+  },
+  "clean_state_claim": null
+}

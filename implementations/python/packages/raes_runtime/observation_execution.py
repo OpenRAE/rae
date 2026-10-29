@@ -201,6 +201,7 @@ def execute_plan_observation_demand(
     *,
     durable_lifecycle_available: bool,
     operation_id: str | None,
+    optional_failure_is_loss: bool = False,
 ) -> tuple[PreparedObservationExecution | None, Diagnostic | None]:
     """Execute admitted demand after backend success and before snapshot commit."""
 
@@ -214,7 +215,9 @@ def execute_plan_observation_demand(
     )
     if diagnostic is not None or runtime is None:
         return None, diagnostic
-    return _execute_admitted_plan_observation(plan, snapshot, manifest, runtime, operation_id)
+    return _execute_admitted_plan_observation(
+        plan, snapshot, manifest, runtime, operation_id, optional_failure_is_loss=optional_failure_is_loss
+    )
 
 
 def _execute_admitted_plan_observation(
@@ -223,6 +226,8 @@ def _execute_admitted_plan_observation(
     manifest: BackendManifest | None,
     runtime: ObservationRuntime,
     operation_id: str | None,
+    *,
+    optional_failure_is_loss: bool = False,
 ) -> tuple[PreparedObservationExecution | None, Diagnostic | None]:
     resolution = _admitted_resolution(plan, manifest, runtime)
     selectors = {
@@ -241,6 +246,7 @@ def _execute_admitted_plan_observation(
             },
             supported=supported,
             protector=runtime.protect,
+            optional_failure_is_loss=optional_failure_is_loss,
         )
         description = _describe_admitted_plan(resolution, runtime, plan, snapshot)
         if manifest is None:
@@ -251,7 +257,7 @@ def _execute_admitted_plan_observation(
             manifest,
             operation_id=operation_id,
         )
-    except (KeyError, TypeError, ValueError):
+    except KeyError, TypeError, ValueError:
         return None, Diagnostic(
             code="observation.runtime-contract-invalid",
             domain="runtime",

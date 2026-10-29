@@ -187,12 +187,13 @@ def test_runtime_validates_the_prepared_completion_not_the_unselected_template(o
     _, manifest = _request()
     backend = ConcreteValidationBackend()
     target = RuntimeTarget(name="preparation-test", manifest=manifest, provisioner=backend)
-    manager = RuntimeManager(target)
     scenario = _scenario("realization:\n  default: open")
     scenario = scenario.model_copy(update={"nodes": {"web": scenario.nodes["web"]}})
-    execution = manager.plan(scenario)
+    from runtime_plan_fixtures import plan_for_target
+
+    execution = plan_for_target(target, scenario)
     if owner == "manager":
-        result = manager.apply(execution)
+        result = RuntimeManager(target).apply(execution)
         assert result.success, result.diagnostics
     else:
         from raes_contracts.runtime_state import OperationState

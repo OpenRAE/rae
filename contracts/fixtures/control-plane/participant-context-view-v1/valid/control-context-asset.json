@@ -1,0 +1,65 @@
+{
+  "audience_scope": "participant_visible",
+  "comparability": {
+    "backend_disclosure_refs": [
+      "backend-disclosures.packet-loss.v1"
+    ],
+    "comparability_class": "portable_with_disclosed_weakening",
+    "comparison_basis_ref": "comparability.network-posture.same-rule-and-projection.v1",
+    "limitations": [
+      "Comparable only for backends that use the same view rule, visibility projection, and disclosed packet-loss weakening"
+    ]
+  },
+  "derivation_basis_ref": "rules.context.network-posture.v1",
+  "derived_from_refs": [
+    "urn:sha256:d89efeab66a7e76a100a2ba95b93f735942aad5753b4440257275b2523bf91b4"
+  ],
+  "episode_id": "episode-1",
+  "evidence_refs": [
+    "obs-blue-43"
+  ],
+  "generated_at": "2026-05-26T10:21:00Z",
+  "marking_definition_refs": [
+    "markings.participant"
+  ],
+  "meaning_ref": "semantics.context.network-posture.v1",
+  "observation_point": "episode-step:tick42",
+  "participant_address": "participants.red",
+  "participant_scope": "participant_local",
+  "payload_ref": "context.network-segment",
+  "provenance_refs": [
+    "snapshots.run-778.tick42"
+  ],
+  "redaction_policy_ref": "redaction.participant",
+  "semantic_limitations": [
+    "The payload reference is derived context and does not expose backend-private global state"
+  ],
+  "source_layers": [
+    {
+      "evidence_refs": [
+        "evidence.asset"
+      ],
+      "freshness_basis_ref": null,
+      "observation_point": null,
+      "provenance_refs": [
+        "provenance.asset"
+      ],
+      "ref": "urn:sha256:d89efeab66a7e76a100a2ba95b93f735942aad5753b4440257275b2523bf91b4",
+      "source_id": "source.instruction",
+      "source_layer": "participant_control_context_asset",
+      "temporal_relation": "same_observation_point"
+    }
+  ],
+  "source_snapshot_ref": "snapshots.run-778.tick42",
+  "transformation": {
+    "description": "Derive a participant-visible network-posture view from the declared snapshot and terminal observation",
+    "input_source_ids": [
+      "source.instruction"
+    ],
+    "output_semantics_ref": "semantics.context.network-posture.v1",
+    "transformation_rule_ref": "transformations.redacted-instruction"
+  },
+  "view_id": "views.context.participants.blue.rl.network-posture.0001",
+  "view_ref": "context-views.red.episode-1.epoch-0",
+  "visibility_projection_ref": "visibility-projections.red.initial"
+}

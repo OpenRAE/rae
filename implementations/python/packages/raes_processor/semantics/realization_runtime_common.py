@@ -127,7 +127,7 @@ def observed_projection(
             observed=True,
             recursive=requirement.constraint_document is not None,
         )
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return invalid_observation_diagnostic(requirement), MISSING_CONCERN_VALUE
     return None, projection
 
@@ -136,13 +136,17 @@ def realization_provenance_entry(
     requirement: CompiledRealizationRequirement,
     honoured: bool,
 ) -> RealizationProvenanceEntry:
+    inherited = honoured and (
+        requirement.explicitness is ExplicitnessClass.EXACT
+        or requirement.provenance is ExplicitnessProvenance.PROCESSOR_DERIVED
+    )
     return RealizationProvenanceEntry(
         address=requirement.address,
         field_path=requirement.field_path,
         domain=requirement.domain,
         requirement_kind=requirement.requirement_kind,
         explicitness=requirement.explicitness,
-        provenance=(requirement.provenance if honoured else ExplicitnessProvenance.BACKEND_REALIZED),
+        provenance=(requirement.provenance if inherited else ExplicitnessProvenance.BACKEND_REALIZED),
         governing_scope=requirement.governing_scope,
     )
 
