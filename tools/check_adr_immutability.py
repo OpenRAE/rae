@@ -262,7 +262,7 @@ def _git_show(repo_root: Path, gitref: str) -> str | None:
     exact revision."""
     # Only a revision that starts with a letter, digit or underscore, an optional repository path, or an
     # index path can reach git; git would read a value that starts with "-" as an option.
-    if not re.match(r"^(?:[A-Za-z0-9_][A-Za-z0-9_./@^~{}-]*(?::[A-Za-z0-9_./-]+)?|:[A-Za-z0-9_./-]+)\Z", gitref):
+    if not re.match(r"^(?:\w[\w./@^~{}-]*(?::[\w./-]+)?|:[\w./-]+)\Z", gitref, re.ASCII):
         raise InvalidInputError("a git revision must not start with '-' or contain other characters")
     command = ["git", "show", "--end-of-options", gitref]
     try:
@@ -411,7 +411,7 @@ def evaluate_adr_immutability(
 
 def _git_revision(value: str) -> str:
     """Accept a revision argument that git cannot read as an option."""
-    if not re.match(r"^[A-Za-z0-9_][A-Za-z0-9_./@^~{}-]*\Z", value):
+    if not re.match(r"^\w[\w./@^~{}-]*\Z", value, re.ASCII):
         raise argparse.ArgumentTypeError("a git revision must not be empty, start with '-' or contain other characters")
     return value
 
