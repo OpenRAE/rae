@@ -44,6 +44,9 @@ phases:
   - id: observability-conformance
     requirements:
       - ASR-525
+  - id: participant-relation-assurance
+    requirements:
+      - ASR-535
   - id: realization-honesty-conformance
     requirements:
       - ASR-519
@@ -205,6 +208,13 @@ phases:
       - ASR-506
 
 ownership:
+  participant-relation-assurance:
+    # Issue #973 bounded negative evidence; no runtime or tooling ownership.
+    - implementations/formal/participant_crossing/counterexample_corpus.py
+    - implementations/formal/participant_crossing/counterexample_witnesses.py
+    - implementations/python/tests/test_issue_973_crossing_corpus.py
+    - implementations/python/tests/test_issue_973_crossing_witnesses.py
+    - docs/research/participant-bisimulation/worked-evidence.md
   authoring-adapter-conformance:
     - contracts/README.md
     - contracts/fixtures/authoring-adapters

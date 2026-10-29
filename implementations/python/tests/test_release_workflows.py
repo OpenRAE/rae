@@ -365,6 +365,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
         "integration",
         "checks",
         "proof",
+        "model-check",
         "coverage-reduce",
         "sonar",
         "gate",
@@ -435,7 +436,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
     # The full gate is an explicit fail-closed aggregate that distinguishes skips.
     gate = workflow["jobs"]["gate"]
     assert gate["if"] == "always()"
-    assert set(gate["needs"]) == {"test-shard", "integration", "checks", "proof", "coverage-reduce"}
+    assert set(gate["needs"]) == {"test-shard", "integration", "checks", "proof", "model-check", "coverage-reduce"}
 
 
 def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:

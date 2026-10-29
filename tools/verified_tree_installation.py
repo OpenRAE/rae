@@ -90,18 +90,23 @@ def tree_installation_path(installation_root: Path, selection: TreeSelection) ->
     )
 
 
-def describe_archive_tree(archive_path: Path, raw_entry: ManifestEntry) -> dict[str, object]:
+def describe_archive_tree(
+    archive_path: Path,
+    raw_entry: ManifestEntry,
+    *,
+    archive_format: str = archive.TREE_FORMAT,
+) -> dict[str, object]:
     """Return the reviewable installed-tree descriptor of one lock-verified archive."""
 
     try:
         with validation.opened_verified_raw(archive_path, raw_entry, mode="input") as stream:
-            entries = archive.admit_archive_stream(stream, archive.CEILING_LIMITS, None)
+            entries = archive.admit_archive_stream(stream, archive.CEILING_LIMITS, None, archive_format=archive_format)
     except ToolInstallationError:
         raise
     except OSError:
         raise _failure("raw-manifest-mismatch") from None
-    archive.bounded_manifest_bytes(entries)
-    return archive.tree_descriptor(entries)
+    archive.bounded_manifest_bytes(entries, archive_format=archive_format)
+    return archive.tree_descriptor(entries, archive_format=archive_format)
 
 
 def _fsync_file(path: Path) -> None:
@@ -173,8 +178,10 @@ def _install_from_raw(target: Path, raw_object: Path, selection: TreeSelection) 
         content = stage / TREE_CONTENT_NAME
         content.mkdir(mode=0o700)
         with validation.opened_verified_raw(raw_object, selection.raw_manifest[0], mode="installed") as stream:
-            entries = archive.admit_archive_stream(stream, limits, archive.StageSink(content))
-        payload = archive.bounded_manifest_bytes(entries)
+            entries = archive.admit_archive_stream(
+                stream, limits, archive.StageSink(content), archive_format=descriptor.format
+            )
+        payload = archive.bounded_manifest_bytes(entries, archive_format=descriptor.format)
         if hashlib.sha256(payload).hexdigest() != descriptor.manifest_sha256:
             raise _failure("installed-manifest-mismatch")
         validation.require_installed_manifest(selection, {entry.path: entry for entry in entries})

@@ -47,6 +47,8 @@ PROOF_TOOL_SOURCE_PATHS = (
     "tools/check_participant_opacity_proof.py",
     "tools/isabelle_sandbox.py",
     "tools/isabelle_tool.py",
+    "tools/bounded_tool_process.py",
+    "tools/debian_tree_decoder.py",
     "tools/maintained_client_acquisition.py",
     "tools/tooling_installed_tree.py",
     "tools/tooling_policy_gate.py",
