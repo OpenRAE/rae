@@ -24,7 +24,7 @@ class ParticipantAttributionCandidate:
     description: str
 
     @classmethod
-    def from_payload(cls, payload: Mapping[str, Any]) -> "ParticipantAttributionCandidate":
+    def from_payload(cls, payload: Mapping[str, Any]) -> ParticipantAttributionCandidate:
         if not isinstance(payload, Mapping):
             raise TypeError("participant attribution candidate must be a mapping")
         missing = [key for key in ("candidate_kind", "ref", "description") if key not in payload]
@@ -68,7 +68,7 @@ class ParticipantAttributionOrderingBasis:
     ordered_event_refs: tuple[str, ...] = ()
 
     @classmethod
-    def from_payload(cls, payload: Mapping[str, Any]) -> "ParticipantAttributionOrderingBasis":
+    def from_payload(cls, payload: Mapping[str, Any]) -> ParticipantAttributionOrderingBasis:
         if not isinstance(payload, Mapping):
             raise TypeError("participant attribution ordering_basis must be a mapping")
         missing = [key for key in ("basis_kind", "relation_ref", "description") if key not in payload]
@@ -116,7 +116,7 @@ class ParticipantAttributionEvidenceBasis:
     observer_effects: tuple[str, ...]
 
     @classmethod
-    def from_payload(cls, payload: Mapping[str, Any]) -> "ParticipantAttributionEvidenceBasis":
+    def from_payload(cls, payload: Mapping[str, Any]) -> ParticipantAttributionEvidenceBasis:
         if not isinstance(payload, Mapping):
             raise TypeError("participant attribution evidence_basis must be a mapping")
         missing = [
@@ -219,7 +219,7 @@ class ParticipantAttributionEdge:
     interpretation_rule_ref: str | None = None
 
     @classmethod
-    def from_payload(cls, payload: Mapping[str, Any]) -> "ParticipantAttributionEdge":
+    def from_payload(cls, payload: Mapping[str, Any]) -> ParticipantAttributionEdge:
         if not isinstance(payload, Mapping):
             raise TypeError("participant attribution edge must be a mapping")
         missing = [

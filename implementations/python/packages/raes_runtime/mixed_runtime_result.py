@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from raes_contracts.contracts.mixed_runtime import MixedCompositionRuntimeEventModel
 from raes_contracts.runtime_state import ApplyResult, OperationState, RuntimeSnapshot
@@ -11,6 +11,11 @@ from .mixed_runtime_dispatch import PreparedMixedActionDispatch, _runtime_event_
 from .mixed_runtime_edge import MixedBridgeExecutionEvidence, MixedEdgeExecutionCapture
 from .mixed_runtime_state import append_runtime_events, runtime_state
 from .participant_crossing_mediation import PreparedParticipantCrossing
+
+if TYPE_CHECKING:
+    from .control_plane import RuntimeControlPlane
+    from .control_plane_store import ControlPlaneOperationRecord
+    from .participant_crossing_action import _PreparedActionEffect
 
 _EventKind = Literal["result", "delivery", "observation", "weakening", "failure"]
 _Disposition = Literal["committed", "succeeded", "failed", "indeterminate"]
@@ -175,6 +180,40 @@ def mixed_action_terminal_state(
     else:
         state = _captured_action_terminal_state(dispatch.capture, result)
     return state
+
+
+def record_action_result(
+    plane: RuntimeControlPlane,
+    snapshot: RuntimeSnapshot,
+    prepared: _PreparedActionEffect,
+    result: ApplyResult,
+) -> tuple[RuntimeSnapshot, OperationState]:
+    """Keep each installed protocol's result validation with its owning contract."""
+
+    dispatch = prepared.mixed_dispatch
+    if dispatch is not None and dispatch.invocation is not None:
+        from .mixed_backend_action import record_mixed_backend_action
+
+        return record_mixed_backend_action(plane, snapshot, prepared), dispatch.invocation.state
+    return record_mixed_action_result(
+        plane,
+        snapshot,
+        prepared.crossing,
+        success=result.success,
+        capture=dispatch.capture if dispatch is not None else None,
+    ), mixed_action_terminal_state(dispatch, result)
+
+
+def retain_action_invocation(
+    plane: RuntimeControlPlane,
+    record: ControlPlaneOperationRecord,
+    dispatch: PreparedMixedActionDispatch | None,
+) -> ControlPlaneOperationRecord:
+    if dispatch is not None and dispatch.invocation is not None:
+        from .mixed_backend_action import retain_mixed_invocation
+
+        return retain_mixed_invocation(plane, record, dispatch.invocation)
+    return record
 
 
 def _captured_action_terminal_state(capture: MixedEdgeExecutionCapture, result: ApplyResult) -> OperationState:

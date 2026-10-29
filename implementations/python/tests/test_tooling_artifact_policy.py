@@ -312,8 +312,8 @@ def test_python_selection_needs_only_its_own_authorities(tmp_path: Path, monkeyp
     profiles = documents[PROFILES_PATH]
     profiles["qualification_records"] = []
     _write_json(tmp_path, PROFILES_PATH, profiles)
-    selected = load_python_closure_profile(tmp_path, "public-linux-x86_64-cp312-all-extras")
-    assert selected.python_version == "3.12"
+    selected = load_python_closure_profile(tmp_path, "public-linux-x86_64-cp314-all-extras")
+    assert selected.python_version == "3.14"
     manifest = json.loads(selected.wheelhouse_manifest.read_text())
     manifest["lock_sha256"] = "0" * 64
     _write_json(tmp_path, str(selected.wheelhouse_manifest.relative_to(tmp_path)), manifest)
@@ -404,19 +404,20 @@ def test_checked_in_tooling_policy_is_valid_and_deterministic() -> None:
 def test_checked_in_python_closure_profiles_are_closed_and_complete() -> None:
     from tools.python_closure import load_python_closure_profile
 
-    expected_project = {f"public-linux-x86_64-cp{minor}-all-extras" for minor in (311, 312, 313, 314)} | {
+    expected_project = {
+        "public-linux-x86_64-cp314-all-extras",
         "public-linux-arm64-cp314-all-extras",
         "public-macos-arm64-cp314-all-extras",
     }
     document = _load(REPO_ROOT, PROFILES_PATH)
     profiles = {profile["python_closure_profile_id"]: profile for profile in document["python_closure_profiles"]}
     assert set(profiles) == expected_project
-    assert all(profile["project_extras"] == ["dev", "docs"] for profile in profiles.values())
+    assert all(profile["project_extras"] == ["dev", "docs", "distributed"] for profile in profiles.values())
     assert all(profile["acquisition_context_ids"] == ["python-public"] for profile in profiles.values())
     # Runtime cryptography still needs patched binary wheels; moving the TLS
     # fixture does not qualify a previously unsupported Intel Mac target.
     assert all(profile["python"]["platform"] != "x86_64-apple-darwin" for profile in profiles.values())
-    loaded = load_python_closure_profile(REPO_ROOT, "public-linux-x86_64-cp312-all-extras")
+    loaded = load_python_closure_profile(REPO_ROOT, "public-linux-x86_64-cp314-all-extras")
     assert loaded.build_constraints.name == "build-constraints.txt"
     assert loaded.test_case_ids == ("T03", "T10", "T11", "T13", "T23")
 
@@ -424,7 +425,7 @@ def test_checked_in_python_closure_profiles_are_closed_and_complete() -> None:
 def test_python_closure_environment_discards_ambient_acquisition_state(tmp_path: Path) -> None:
     from tools.python_closure import closure_environment, load_python_closure_profile
 
-    profile = load_python_closure_profile(REPO_ROOT, "public-linux-x86_64-cp312-all-extras")
+    profile = load_python_closure_profile(REPO_ROOT, "public-linux-x86_64-cp314-all-extras")
     environment = closure_environment(
         profile,
         context_id="python-public",
@@ -577,7 +578,7 @@ def test_python_closure_policy_rejects_authority_and_projection_drift(tmp_path: 
 
     projection_root = tmp_path / "projection"
     projection_documents = _seed_python_closure_authorities(projection_root)
-    requirements = projection_root / "implementations" / "tooling" / "python" / "smoke" / "linux-x86_64-cp312.txt"
+    requirements = projection_root / "implementations" / "tooling" / "python" / "smoke" / "linux-x86_64-cp314.txt"
     requirements.write_text(requirements.read_text(encoding="utf-8") + "# drift\n", encoding="utf-8")
     projection_failures = _python_closure_rule_ids(projection_root, projection_documents)
     assert {"tooling-python-projection-drift", "tooling-python-projection-generation"} <= projection_failures

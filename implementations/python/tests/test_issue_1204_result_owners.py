@@ -187,12 +187,10 @@ def test_runtime_metadata_preserves_json_type_identity():
     assert result.diagnostics[0].message == "Backend changed runtime-owned snapshot metadata."
 
 
-@pytest.mark.parametrize("stub", [False, True])
-def test_reference_evaluator_partial_refresh_preserves_unchanged_results(stub):
+def test_evaluator_partial_refresh_preserves_unchanged_results():
     from raes_backend_stubs.stubs import StubEvaluator
-    from raes_reference_backend.evaluator import ReferenceEvaluator
 
-    evaluator = StubEvaluator() if stub else ReferenceEvaluator()
+    evaluator = StubEvaluator()
     addresses = ("evaluation.condition.web.first", "evaluation.condition.web.second")
     operations = [
         EvaluationOp(
@@ -234,12 +232,10 @@ def test_reference_evaluator_partial_refresh_preserves_unchanged_results(stub):
     assert second.snapshot.evaluation_history[addresses[0]] == first.snapshot.evaluation_history[addresses[0]]
 
 
-@pytest.mark.parametrize("stub", [False, True])
-def test_reference_orchestrator_partial_refresh_preserves_unchanged_results(stub):
+def test_orchestrator_partial_refresh_preserves_unchanged_results():
     from raes_backend_stubs.stubs import StubOrchestrator
-    from raes_reference_backend.orchestrator import ReferenceOrchestrator
 
-    orchestrator = StubOrchestrator() if stub else ReferenceOrchestrator()
+    orchestrator = StubOrchestrator()
     addresses = ("orchestration.workflow.first", "orchestration.workflow.second")
     operations = [
         OrchestrationOp(

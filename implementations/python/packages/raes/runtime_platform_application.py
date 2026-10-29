@@ -41,9 +41,21 @@ from .runtime_platform_application_vocab import (
     RuntimePlatformApplicationSettingProvenance,
     RuntimePlatformApplicationUpstreamBindingRole,
 )
+from .runtime_secret_service import (
+    RuntimeCloudServiceLimit,
+    RuntimeSecretConsumer,
+    RuntimeSecretSelector,
+    RuntimeSecretVersion,
+    RuntimeServiceSecret,
+)
 from .runtime_values import parse_optional_bool_or_var, parse_runtime_enum_or_var, require_symbol
 
 __all__ = [
+    "RuntimeCloudServiceLimit",
+    "RuntimeSecretConsumer",
+    "RuntimeSecretSelector",
+    "RuntimeSecretVersion",
+    "RuntimeServiceSecret",
     "RelationshipServiceIntegration",
     "RelationshipServiceIntegrationDirection",
     "RelationshipServiceIntegrationKind",
@@ -110,6 +122,9 @@ class RuntimePlatformApplication(SDLModel):
     execution_policy: RuntimePlatformApplicationExecutionPolicy | None = None
     settings: list[RuntimePlatformApplicationSetting] = Field(default_factory=list)
     authorization_ref: str = ""
+    resource_scope_ref: str = ""
+    secrets: list[RuntimeServiceSecret] = Field(default_factory=list)
+    cloud_limits: list[RuntimeCloudServiceLimit] = Field(default_factory=list)
     description: str = ""
 
     @field_validator("platform_application_id")
@@ -123,7 +138,7 @@ class RuntimePlatformApplication(SDLModel):
         return parse_runtime_enum_or_var(v, RuntimePlatformApplicationKind, field_name="platform_kind")
 
     @model_validator(mode="after")
-    def validate_platform_application(self) -> "RuntimePlatformApplication":
+    def validate_platform_application(self) -> RuntimePlatformApplication:
         self._reject_duplicate_local_ref_ids()
         return self
 
@@ -142,6 +157,8 @@ class RuntimePlatformApplication(SDLModel):
             ("binding_id", "upstream_bindings"),
             ("connector_id", "connectors"),
             ("setting_id", "settings"),
+            ("secret_id", "secrets"),
+            ("limit_id", "cloud_limits"),
         ):
             entries.extend((label, getattr(item, label)) for item in getattr(self, collection_name))
 

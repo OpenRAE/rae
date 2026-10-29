@@ -30,9 +30,12 @@ from ..vocabulary import (
     WorkflowStatePredicateFeature,
 )
 from ._backend_operation_exports import *
+from ._bundle_access import schema_bundle
 from ._candidate_synthesis_facade import *
 from ._evidence_requirement_exports import *
+from ._experiment_design_exports import *
 from ._exports import PUBLIC_EXPORTS as __all__
+from ._inject_occurrence_exports import *
 from ._mixed_backend_exports import *
 from ._participant_control_exports import *
 from ._version_exports import *
@@ -76,7 +79,6 @@ from .base import NonEmptyString as NonEmptyString
 from .batch_execution import BatchExecutionReceiptModel as BatchExecutionReceiptModel
 from .batch_execution import validate_batch_execution_receipt as validate_batch_execution_receipt
 from .batch_execution import validate_scheduler_isolation_proof as validate_scheduler_isolation_proof
-from .bundle import schema_bundle
 from .capabilities import (
     ApparatusIdentityModel,
     BackendCompatibilityModel,
@@ -130,6 +132,7 @@ from .experiment_apparatus import (
     ExperimentClockContextModel,
     ExperimentStochasticControlModel,
     ExperimentTaskModel,
+    processor_backend_manifests_are_mutually_compatible,
     validate_experiment_apparatus_context_against_manifests,
 )
 from .experiment_archival import (
@@ -233,6 +236,7 @@ from .mixed_composition import (
 from .mixed_runtime import MixedCompositionRuntimeEventModel, MixedCompositionRuntimeStateModel
 from .observation_capture import ObservationCaptureOfferModel
 from .participant_context import ParticipantContextViewModel
+from .participant_control_context import *
 from .participant_decision_surface import (
     ParticipantDecisionSurfaceActionEntryModel,
     ParticipantDecisionSurfaceCandidateSetFormModel,
@@ -325,6 +329,12 @@ from .participant_occurrences import (
     validate_participant_crossing_occurrence_context,
 )
 from .participant_outcomes import ParticipantOutcomeReportV2Model
+from .participant_owner_flow import (
+    ParticipantFlowObligationAuthorityCoordinate,
+    ParticipantOwnerFlowClauseModel,
+    ParticipantOwnerFlowPolicyProfileModel,
+    ParticipantOwnerFlowSinkResolution,
+)
 from .participant_runtime import (
     ParticipantActionEffectResultModel,
     ParticipantActionPreconditionResultModel,
@@ -441,9 +451,11 @@ from .semantic_profiles import (
 from .semantic_projection import *
 from .trial_analysis import (
     AdmittedTrialPlanReconciliation,
+    TrialReplacementStudyInputs,
     reconcile_admitted_trial_plan,
     validate_admitted_trial_run,
     validate_admitted_trial_study,
+    validate_replacement_trial_study,
 )
 from .trial_cleanup import CleanStateClaimModel as CleanStateClaimModel
 from .trial_cleanup import CleanStateRequirementModel as CleanStateRequirementModel
@@ -462,6 +474,7 @@ from .trial_compilation import TrialExecutionAuthorityModel as TrialExecutionAut
 from .trial_provenance import ProcessorPlanKind, TrialExecutionAttemptReferenceModel
 from .trial_provenance import TrialProcessorPlanReferenceModel as TrialProcessorPlanReferenceModel
 from .trial_provenance import TrialRunProvenanceModel as TrialRunProvenanceModel
+from .trial_replacement import TrialReplacementOriginModel, TrialReplacementPolicyModel
 from .validation_disclosure import ValidationBasisDisclosureDocumentModel
 from .validators import _collapse_nullable_optional_schema as _collapse_nullable_optional_schema
 from .validators import _resolve_instance_path_schema as _resolve_instance_path_schema

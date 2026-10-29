@@ -63,8 +63,12 @@ def test_factoring_preserves_instance_data_and_existing_definition_names():
 
 
 @pytest.mark.parametrize("keyword", ["$id", "$anchor", "$dynamicAnchor", "$dynamicRef"])
-def test_factoring_refuses_nested_reference_scopes(keyword):
+@pytest.mark.parametrize("subschema", [None, "propertyNames", "if", "then", "else", "not"])
+def test_factoring_refuses_nested_reference_scopes(keyword, subschema):
     from raes_contracts.contracts.schema_factoring import factor_shared_schema
 
+    nested = {keyword: "other", "type": "string"}
+    if subschema is not None:
+        nested = {subschema: nested}
     with pytest.raises(ValueError, match="anchor-free"):
-        factor_shared_schema({"$defs": {"nested": {keyword: "other", "type": "string"}}})
+        factor_shared_schema({"$defs": {"nested": nested}})

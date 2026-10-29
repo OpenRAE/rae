@@ -21,6 +21,7 @@ Requirement inventory expansion. Raw captured evidence must be modeled explicitl
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_issue_1547_capture_reference_version.py` (Optional capture-spec versions retain content proof and reject explicit mismatches)
 - TESTS → TEST `implementations/python/tests/test_exp_732_evidence_provenance.py` (Integrated apparatus provenance is retained in the context-bound content proof)
 
 - TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (Retained production replay verifies the evidence implementation's source state)

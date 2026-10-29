@@ -4,12 +4,28 @@ Hosted reader documentation lives only under [`docs/public/`](public/index.md).
 The rest of `docs/` contains developer, design, research, migration, audit, and
 working records that remain visible in the repository.
 
+## Find your way around the repository
+
+- [`docs/public/`](public/index.md) for hosted reader documentation;
+- this index for developer and working records;
+- [`specs/`](../specs/) for normative specifications;
+- [`contracts/`](../contracts/) for published schemas and fixtures;
+- [`examples/`](../examples/) for authored scenarios and reusable patterns;
+- [`implementations/python/`](../implementations/python/) for the reference
+  implementation.
+
+[CONTRIBUTING.md](../CONTRIBUTING.md) covers checkout setup, local checks, and
+pull requests.
+
 ## Work on the repository
 
 - [Development workflow](DEVELOPMENT_WORKFLOW.md)
 - [Development container](explain/development-container.md)
 - [Coding standards](explain/reference/coding-standards.md)
 - [Documentation style guide](explain/reference/documentation-style-guide.md)
+- [Current control semantics and support](explain/reference/revised-control-semantics.md)
+- [Executable control examples](examples/revised-control.md)
+- [Revised control migration](migration/revised-control.md)
 - [Release process](explain/releasing.md)
 - [Architecture decisions](decisions/adrs/README.md)
 - [Developer package and artifact architecture](decisions/package-artifacts/README.md)

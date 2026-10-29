@@ -27,7 +27,7 @@ from tools.nox_support.runner import (
 )
 
 _BUILD_CONSTRAINTS = "implementations/tooling/python/build-constraints.txt"
-_SUPPORTED_FEATURE_RELEASES = frozenset({"3.11", "3.12", "3.13", "3.14"})
+_SUPPORTED_FEATURE_RELEASES = frozenset({"3.14"})
 
 _RUNTIME_ASSERTION = """
 import sys
@@ -46,6 +46,7 @@ print(sys.version)
 
 _INSTALLED_ASSERTION = """
 import importlib
+import importlib.util
 import sys
 from importlib.metadata import metadata
 
@@ -56,7 +57,6 @@ expected = tuple(int(part) for part in sys.argv[1].split("."))
 assert sys.version_info[:2] == expected, (sys.version, expected)
 for module in (
     "raes",
-    "raes_backend_libvirt",
     "raes_backend_protocols",
     "raes_backend_stubs",
     "raes_cli",
@@ -65,13 +65,15 @@ for module in (
     "raes_mcp",
     "raes_operations",
     "raes_processor",
-    "raes_reference_backend",
     "raes_runtime",
 ):
     importlib.import_module(module)
+# Concrete backends ship in their own distributions (issue #967).
+for module in ("raes_backend_libvirt", "raes_reference_backend"):
+    assert importlib.util.find_spec(module) is None, module
 requires_python = metadata("raes")["Requires-Python"]
 support = SpecifierSet(requires_python)
-assert Version("3.11") in support
+assert Version("3.13") not in support
 assert Version("3.14") in support
 assert Version("3.15") not in support
 """
@@ -131,7 +133,7 @@ def _compatibility_runtime_stages(
     if not smoke_only:
         reporter.run(
             "python compatibility / hermetic tests",
-            lambda: _run_pytest(session, "-q", parallel=True),
+            lambda: _run_pytest(session, "-q", xdist="worksteal"),
             detail="xdist auto, max 8, worksteal",
         )
 

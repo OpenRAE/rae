@@ -14,6 +14,7 @@ from __future__ import annotations
 from typing import Final
 
 from .admitted_trial_plan import AdmittedTrialPlanModel
+from .experiment_allocation import RECORDED_ALLOCATION_POLICY_ID
 from .random_stream import TrialCoordinateModel
 
 #: Width of the zero-padded ordinal in a ``trial-coordinate-v1`` replicate id.
@@ -55,8 +56,14 @@ def canonical_coordinate_sort_key(coordinate: TrialCoordinateModel) -> tuple[str
 def canonical_entry_order(plan: AdmittedTrialPlanModel) -> tuple[str, ...]:
     """Return the plan's admitted entry ids in canonical dispatch order."""
 
+    if plan.allocation is not None:
+        return tuple(plan.allocation.entry_order)
     ordered = sorted(plan.entries.values(), key=lambda entry: canonical_coordinate_sort_key(entry.coordinate))
     return tuple(entry.plan_entry_id for entry in ordered)
+
+
+def scheduling_policy_id(plan: AdmittedTrialPlanModel) -> str:
+    return RECORDED_ALLOCATION_POLICY_ID if plan.allocation is not None else CANONICAL_ORDER_POLICY_ID
 
 
 __all__ = [

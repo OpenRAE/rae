@@ -643,3 +643,8 @@ shared-time readback isolation with `dev`. See
 [`analysis-v75.json`](analysis-v75.json). Retained outcomes and bounded
 claim limits remain unchanged; the readback mutation cases are covered by
 `test_issue_1421_time_readback_isolation.py`.
+
+[Original inject synchronization captures](../inject-readback-first-sync-evidence/README.md)
+retain the collided identities and dependent baseline pins. Current combined-source
+evidence uses the content-addressed capture workflow documented in
+[research captures](../../develop/research-captures.md).

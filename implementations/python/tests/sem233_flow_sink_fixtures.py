@@ -22,6 +22,10 @@ import json
 from dataclasses import dataclass
 
 import test_sem_233_flow_control_contracts as template
+from deterministic_participant_fixtures import (
+    build_implementation_manifest,
+    build_implementation_selection,
+)
 from participant_crossing_fixtures import AUDIENCE, PARTICIPANT, StaticCrossingResolver
 from raes_contracts.contracts import (
     ParticipantControlDeclarationModel,
@@ -42,10 +46,6 @@ from raes_contracts.contracts.participant_crossing import (
 )
 from raes_contracts.participant_action_arguments import ParticipantValidatedActionSelection
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
-from raes_operations.deterministic_participant_fixtures import (
-    build_implementation_manifest,
-    build_implementation_selection,
-)
 from raes_runtime.participant_flow_sink import ParticipantFlowSinkResolution
 
 _TEMPLATE_PARTICIPANT = "participants.red.operator"

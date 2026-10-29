@@ -18,6 +18,7 @@ except PackageNotFoundError:
 __all__ = [
     "admit_instantiated_scenario",
     "admit_materialized_scenario",
+    "admit_scenario_family",
     "MaterializedScenario",
     "MATERIALIZED_SDL_PROFILE",
     "canonical_materialized_sdl_bytes",
@@ -29,6 +30,8 @@ __all__ = [
     "canonical_sdl_digest",
     "ExpandedScenarioBindingTargetResolver",
     "build_declaration_index",
+    "ReferencePurpose",
+    "operating_scope_aliases",
     "INSTANTIATED_SNAPSHOT_PROFILE",
     "instantiate_scenario",
     "InstantiatedScenario",
@@ -71,8 +74,8 @@ __all__ = [
 ]
 
 
-def __getattr__(name: str):
-    if name in {
+_LAZY_EXPORTS = {
+    "raes._errors": (
         "SDLError",
         "SDLInstantiationError",
         "SDLParseDiagnostic",
@@ -80,64 +83,83 @@ def __getattr__(name: str):
         "SDLSourcePosition",
         "SDLSourceRange",
         "SDLValidationError",
-    }:
-        module = import_module("raes._errors")
-    elif name in {
-        "canonical_materialized_sdl_bytes",
-        "canonical_materialized_sdl_digest",
-        "MATERIALIZED_SDL_PROFILE",
-        "canonical_instantiated_sdl_bytes",
-        "canonical_instantiated_sdl_digest",
-        "canonical_sdl_bytes",
-        "canonical_sdl_digest",
+    ),
+    "raes.canonical": (
         "INSTANTIATED_SNAPSHOT_PROFILE",
         "InstantiatedScenarioSnapshot",
+        "MATERIALIZED_SDL_PROFILE",
         "SDLCanonicalDigest",
-    }:
-        module = import_module("raes.canonical")
-    elif name in {"format_sdl_source", "SDLFormatResult", "render_sdl_source", "SDLRenderResult"}:
-        module = import_module("raes.formatting")
-    elif name in {"SDLCandidateSynthesisResult", "synthesize_sdl_candidate"}:
-        module = import_module("raes.candidate_synthesis")
-    elif name in {
-        "SDL_CANONICAL_PROFILE",
+        "canonical_instantiated_sdl_bytes",
+        "canonical_instantiated_sdl_digest",
+        "canonical_materialized_sdl_bytes",
+        "canonical_materialized_sdl_digest",
+        "canonical_sdl_bytes",
+        "canonical_sdl_digest",
+    ),
+    "raes.formatting": (
+        "SDLFormatResult",
+        "SDLRenderResult",
+        "format_sdl_source",
+        "render_sdl_source",
+    ),
+    "raes.candidate_synthesis": (
+        "SDLCandidateSynthesisResult",
+        "synthesize_sdl_candidate",
+    ),
+    "raes._source_profile": (
         "SDLMigrationPolicy",
         "SDLParserLimits",
+        "SDL_CANONICAL_PROFILE",
         "SDL_SOURCE_FORMAT",
-    }:
-        module = import_module("raes._source_profile")
-    elif name == "VARIABLE_TOKEN_PATTERN":
-        module = import_module("raes._base")
-    elif name == "build_declaration_index":
-        module = import_module("raes._declarations")
-    elif name in {"admit_instantiated_scenario", "instantiate_scenario"}:
-        module = import_module("raes.instantiate")
-    elif name in {"admit_materialized_scenario", "MaterializedScenario"}:
-        module = import_module("raes.materialization")
-    elif name == "validate_experiment_selection_against_family":
-        module = import_module("raes.experiment_selection")
-    elif name in {"ExpandedScenarioBindingTargetResolver", "select_scenario_family"}:
-        module = import_module("raes.selected_scenario")
-    elif name in {"load_sdl_fragment", "parse_sdl", "parse_sdl_file"}:
-        module = import_module("raes.parser")
-    elif name in {
+    ),
+    "raes._base": ("VARIABLE_TOKEN_PATTERN",),
+    "raes._declarations": ("build_declaration_index",),
+    "raes._reference_targetability": ("ReferencePurpose",),
+    "raes._operating_scope_index": ("operating_scope_aliases",),
+    "raes.instantiate": (
+        "admit_instantiated_scenario",
+        "instantiate_scenario",
+    ),
+    "raes.materialization": (
+        "MaterializedScenario",
+        "admit_materialized_scenario",
+    ),
+    "raes.experiment_selection": ("validate_experiment_selection_against_family",),
+    "raes.family_admission": ("admit_scenario_family",),
+    "raes.selected_scenario": (
+        "ExpandedScenarioBindingTargetResolver",
+        "select_scenario_family",
+    ),
+    "raes.parser": (
+        "load_sdl_fragment",
+        "parse_sdl",
+        "parse_sdl_file",
+    ),
+    "raes.transformations": (
         "ArtifactTransformationPolicy",
         "CanonicalArtifactComparison",
         "PortableContractTransformationResult",
         "RemoveSDLDeclarationRequest",
         "RenameSDLDeclarationRequest",
+        "SDLTransformationResult",
         "canonicalize_portable_contract",
         "compare_canonical_artifacts",
         "remove_sdl_declaration",
         "rename_sdl_declaration",
-        "SDLTransformationResult",
-    }:
-        module = import_module("raes.transformations")
-    elif name in {"InstantiatedScenario", "Scenario"}:
-        module = import_module("raes.scenario")
-    else:
+    ),
+    "raes.scenario": (
+        "InstantiatedScenario",
+        "Scenario",
+    ),
+}
+_EXPORT_MODULES = {name: module for module, names in _LAZY_EXPORTS.items() for name in names}
+
+
+def __getattr__(name: str):
+    module_name = _EXPORT_MODULES.get(name)
+    if module_name is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-    return getattr(module, name)
+    return getattr(import_module(module_name), name)
 
 
 def __dir__() -> list[str]:

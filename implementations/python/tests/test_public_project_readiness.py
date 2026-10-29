@@ -43,7 +43,7 @@ def test_scorecard_workflow_is_pinned_least_privilege_and_publishes_sarif() -> N
     scorecard_step = next(
         step for step in analysis["steps"] if step.get("uses", "").startswith("ossf/scorecard-action@")
     )
-    assert scorecard_step["uses"] == ("ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc")
+    assert scorecard_step["uses"] == ("ossf/scorecard-action@fa7117db83c52d787ae5a89f350999701505d78e")
     assert scorecard_step["with"] == {
         "results_file": "results.sarif",
         "results_format": "sarif",
@@ -137,12 +137,13 @@ def test_publishers_build_only_the_curated_public_source() -> None:
     assert "BUILDDIR      = _build" in makefile
 
 
-def test_python_support_metadata_and_blocking_matrix_are_aligned() -> None:
+def test_python_support_metadata_and_blocking_job_are_aligned() -> None:
     pyproject = tomllib.loads((REPO_ROOT / "implementations" / "python" / "pyproject.toml").read_text(encoding="utf-8"))
     project = pyproject["project"]
-    supported = ["3.11", "3.12", "3.13", "3.14"]
+    supported = ["3.14"]
 
-    assert project["requires-python"] == ">=3.11,<3.15"
+    assert project["requires-python"] == ">=3.14,<3.15"
+    assert pyproject["tool"]["ruff"]["target-version"] == "py314"
     assert {
         classifier.removeprefix("Programming Language :: Python :: ")
         for classifier in project["classifiers"]
@@ -150,18 +151,13 @@ def test_python_support_metadata_and_blocking_matrix_are_aligned() -> None:
     } == set(supported)
 
     ci = yaml.safe_load((REPO_ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8"))
-    interpreter_job = ci["jobs"]["interpreters"]
-    assert interpreter_job["strategy"]["fail-fast"] is False
-    assert interpreter_job["strategy"]["matrix"]["python"] == [
-        {"feature": "3.11", "payload": "3.11.16", "closure": "public-linux-x86_64-cp311-all-extras"},
-        {"feature": "3.12", "payload": "3.12.14", "closure": "public-linux-x86_64-cp312-all-extras"},
-        {"feature": "3.13", "payload": "3.13.15", "closure": "public-linux-x86_64-cp313-all-extras"},
-        {"feature": "3.14", "payload": "3.14.7", "closure": "public-linux-x86_64-cp314-all-extras"},
-    ]
-    assert interpreter_job["env"] == {
-        "UV_PYTHON": "${{ matrix.python.payload }}",
-        "RAES_EXPECTED_PYTHON": "${{ matrix.python.feature }}",
-        "RAES_PYTHON_CLOSURE_PROFILE": "${{ matrix.python.closure }}",
+    distribution_job = ci["jobs"]["distribution"]
+    assert distribution_job["name"] == "CPython 3.14 compatibility"
+    assert distribution_job["env"] == {
+        "UV_PYTHON": "3.14.7",
+        "RAES_EXPECTED_PYTHON": "3.14",
+        "RAES_PYTHON_CLOSURE_PROFILE": "public-linux-x86_64-cp314-all-extras",
+        "RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY": "1",
     }
 
     preview = yaml.safe_load(

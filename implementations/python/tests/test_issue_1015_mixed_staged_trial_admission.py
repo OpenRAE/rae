@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 
 import pytest
-import raes_processor.trial_compiler.compiler as trial_compiler_module
+import raes_processor.trial_compiler.bindings as trial_bindings_module
 from paths import REPO_ROOT
 from raes import canonical_instantiated_sdl_digest, select_scenario_family
 from raes_contracts.canonical import canonical_json_digest
@@ -632,13 +632,13 @@ def test_mixed_binding_targets_receive_only_the_coordinate_profile_authority(mon
     )
     request = _mixed_request(_alternative_profile, base_request=base)
     observed: list[frozenset[tuple[str, str, str, str]]] = []
-    incumbent = trial_compiler_module.validate_experiment_binding_targets
+    incumbent = trial_bindings_module.validate_experiment_binding_targets
 
     def capture_authority(descriptors, **kwargs):
         observed.append(frozenset(kwargs["apparatus_manifests"]))
         return incumbent(descriptors, **kwargs)
 
-    monkeypatch.setattr(trial_compiler_module, "validate_experiment_binding_targets", capture_authority)
+    monkeypatch.setattr(trial_bindings_module, "validate_experiment_binding_targets", capture_authority)
     result = compile_admitted_trial_plan(request)
 
     expected = [

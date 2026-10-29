@@ -1158,6 +1158,14 @@
         "temporal_contracts": {
           "title": "Temporal Contracts",
           "description": "Backend supports participant temporal contracts and timing disclosures."
+        },
+        "tool_affordances": {
+          "title": "Tool Affordances",
+          "description": "Preserves ACT-619 tool-profile binding relations without granting visibility, invocation authority, or native execution."
+        },
+        "scoped_tool_affordances": {
+          "title": "Scoped Tool Affordances",
+          "description": "Honors ACT-619 absolute participant and role selectors on individual tool-affordance bindings."
         }
       }
     },

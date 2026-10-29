@@ -213,7 +213,6 @@ def test_noxfile_registers_the_exact_public_session_inventory() -> None:
         "hook-pre-push",
         "hygiene",
         "integration",
-        "integration_docker",
         "lint",
         "local-installation-qualification",
         "osv_scan",
@@ -277,7 +276,7 @@ def test_parallel_coverage_command_is_capped_and_worker_safe(
         session,
         "-q",
         coverage_file=coverage_file,
-        parallel=True,
+        xdist="worksteal",
     )
 
     pytest_command, kwargs = next(
@@ -321,6 +320,37 @@ def test_parallel_coverage_command_is_capped_and_worker_safe(
     assert [command[4] for command, _options in coverage_commands] == ["xml", "json", "report"]
     assert coverage_commands[-1][0][-1:] == ("--format=total",)
     assert all(options["env"] == {"COVERAGE_FILE": str(coverage_file)} for _, options in coverage_commands)
+
+
+def test_parallel_command_uses_the_requested_xdist_distribution(monkeypatch: pytest.MonkeyPatch) -> None:
+    commands: list[tuple[str, ...]] = []
+
+    class FakeSession:
+        def run(self, *args: str, **_kwargs: Any) -> None:
+            commands.append(args)
+
+        def chdir(self, _path: Path):
+            return nullcontext()
+
+    monkeypatch.setattr(nox_runner, "_sync_project", lambda _session: None)
+    nox_runner._run_pytest(FakeSession(), "-m", "integration", xdist="loadfile")
+
+    assert commands == [
+        (
+            "uv",
+            "run",
+            "--frozen",
+            "python",
+            "-m",
+            "pytest",
+            "-n",
+            "auto",
+            "--maxprocesses=8",
+            "--dist=loadfile",
+            "-m",
+            "integration",
+        )
+    ]
 
 
 def test_verification_lanes_run_concurrently_and_preserve_declared_order(
@@ -894,6 +924,7 @@ def test_python_compatibility_distribution_requires_reviewed_closure_profile(
 @pytest.mark.parametrize(
     ("expected", "selector", "message"),
     [
+        ("3.13", "cpython-3.13", "must select a supported feature release"),
         ("3.15", "cpython-3.15", "must select a supported feature release"),
         ("3.14", "", "UV_PYTHON must select the interpreter under test"),
     ],
@@ -1165,9 +1196,7 @@ def setup_policy_repo(tmp_path: Path) -> Path:
         "raes_runtime",
         "raes_backend_protocols",
         "raes_backend_stubs",
-        "raes_backend_libvirt",
         "raes_operations",
-        "raes_reference_backend",
         "raes_conformance",
         "raes_cli",
         "raes_mcp",

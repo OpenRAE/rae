@@ -58,7 +58,7 @@ class Variable(SDLModel):
         return normalize_enum_value(v)
 
     @model_validator(mode="after")
-    def validate_typed_values(self) -> "Variable":
+    def validate_typed_values(self) -> Variable:
         """Defaults and allowed values must match the declared type."""
         if self.default is not None and not _matches_variable_type(self.default, self.type):
             raise ValueError(f"default must match variable type '{self.type.value}'")
