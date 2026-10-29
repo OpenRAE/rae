@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from uuid import uuid4
 
 from raes_contracts.contracts import ParticipantControlOccurrenceModel
+from raes_contracts.contracts.participant_control_occurrence_v2 import ParticipantControlOccurrenceV2Model
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -34,7 +35,7 @@ def participant_control_operation_artifacts(
     *,
     participant_address: str,
     intent: ParticipantControlIntent,
-    occurrence: ParticipantControlOccurrenceModel,
+    occurrence: ParticipantControlOccurrenceModel | ParticipantControlOccurrenceV2Model,
     accepted: bool,
     rejection_reason: str | None,
     authority: ParticipantControlOperationAuthority,

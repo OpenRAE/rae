@@ -21,6 +21,11 @@ Existing participant action, observation, visibility, runtime, and behavioral-re
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1395` (Independently derived bounded multi-operation crossing semantics)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/multi_abstract.py` (Two-operation SEM-230 authority with exact cached-result observations)
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-multi-operation-models.md` (Revisioned projection, policy/history separation and explicit assurance limits)
+- TESTS → TEST `implementations/python/tests/test_issue_1395_crossing_models.py` (Interleaved retries, conflicts, closure and bounded response loss)
+
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#971` (Independent single-operation formal model construction)
 
 - DOCUMENTS → DOCUMENTATION `docs/research/participant-bisimulation/model-construction.md` (Construction boundary and source derivation)

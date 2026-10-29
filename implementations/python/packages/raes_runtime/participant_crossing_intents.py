@@ -112,7 +112,9 @@ def control_subject(
 
     return ParticipantCrossingSubjectReferenceModel(
         subject_kind=ParticipantCrossingSubjectKind.PARTICIPANT_CONTROL_OCCURRENCE,
-        contract_id="participant-control-intent-v1",
+        contract_id="participant-control-intent-v2"
+        if intent.application is not None
+        else "participant-control-intent-v1",
         subject_ref=f"participant-control-intent:{participant_address}:{intent.client_correlation_id}",
         subject_digest=_digest(intent.model_dump(mode="json")),
         participant_address=participant_address,

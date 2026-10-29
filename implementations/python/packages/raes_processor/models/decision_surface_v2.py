@@ -27,6 +27,7 @@ from .decision_surface import (
     ParticipantDecisionSurfaceActionAssessment,
     _action_affordance_addresses,
     _surface_action_assessments,
+    _validate_participant_projection_scope,
 )
 from .decision_surface_anchor_v2 import (
     ParticipantBehaviorProjectionAnchorRequestV2,
@@ -89,6 +90,11 @@ def _resolve_projection_scope(
         raise ValueError("participant_address is outside the compiled behavior specification")
     if projection.observation_boundary_address not in behavior.observation_boundary_addresses:
         raise ValueError("observation_boundary_address is outside the compiled behavior specification")
+    _validate_participant_projection_scope(
+        runtime_model,
+        participant_address=projection.participant_address,
+        boundary_address=projection.observation_boundary_address,
+    )
     boundary = runtime_model.observation_boundaries.get(projection.observation_boundary_address)
     if boundary is None:
         raise ValueError("observation_boundary_address does not resolve in the compiled runtime model")
@@ -233,10 +239,15 @@ def _project_action(
     assessment: ParticipantDecisionSurfaceActionAssessment,
     *,
     state_cut_ref: str,
+    participant_address: str,
+    observation_boundary_address: str,
 ) -> tuple[dict[str, object], tuple[str, ...]]:
     action_address = assessment.action_contract_address
     if action_address not in behavior.action_contract_addresses:
         raise ValueError(f"action {action_address!r} is outside the compiled behavior specification")
+    _validate_participant_projection_scope(
+        runtime_model, participant_address=participant_address, action_address=action_address
+    )
     action_contract = runtime_model.action_contracts.get(action_address)
     if action_contract is None:
         raise ValueError(f"action {action_address!r} does not resolve in the compiled runtime model")
@@ -246,6 +257,8 @@ def _project_action(
         runtime_model,
         behavior_affordance_addresses=behavior.tool_affordance_addresses,
         action_address=action_address,
+        participant_address=participant_address,
+        observation_boundary_address=observation_boundary_address,
     )
     _validate_visible_refs(relation, (action_address, *affordances), state_cut_ref=state_cut_ref)
     dispositions = {relation[ref] for ref in (action_address, *affordances)}
@@ -308,6 +321,8 @@ def project_participant_decision_surface_v2(
             relation,
             assessment,
             state_cut_ref=projection.decision_cut_ref,
+            participant_address=projection.participant_address,
+            observation_boundary_address=projection.observation_boundary_address,
         )
         entries.append(entry)
         affordances.extend(entry_affordances)

@@ -1,9 +1,9 @@
 {
-  "content_hash": "6dc63ad6f10055bee937f2b13cef3e17804a123a5d7fd07881fb502a2f516a88",
+  "content_hash": "784091c242a813913ebfcb13dadad076d5f2b4fc241a0b83763b73b04eebfc6e",
   "contract_id": "evaluation-plan-v1",
   "last_change": {
-    "content_hash": "6dc63ad6f10055bee937f2b13cef3e17804a123a5d7fd07881fb502a2f516a88",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "784091c242a813913ebfcb13dadad076d5f2b4fc241a0b83763b73b04eebfc6e",
+    "summary": "Publish negotiated runtime descendant lineage, target and attempt binding, lifecycle and concern selection with committed refresh and durable archive joins; issue #1649."
   },
   "schema_path": "contracts/schemas/plans/evaluation-plan-v1.json",
   "stability": "draft"

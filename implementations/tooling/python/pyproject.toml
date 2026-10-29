@@ -2,10 +2,10 @@
 name = "raes-development-tools"
 version = "0"
 description = "Reviewed Python verification and isolated-build dependency closure for RAES."
-requires-python = ">=3.11,<3.15"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "check-jsonschema==0.37.1",
-    "filelock==3.32.6",
+    "filelock==4.2.4",
     "nox[uv]==2026.4.10",
     "pip==26.2.1",
     "pre-commit==4.3.0",
@@ -13,7 +13,7 @@ dependencies = [
     "pytest==9.0.3",
     "pytest-timeout==2.4.0",
     "ruff==0.15.9",
-    "uv==0.12.4",
+    "uv==0.13.4",
 ]
 
 [dependency-groups]

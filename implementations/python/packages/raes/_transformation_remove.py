@@ -153,7 +153,7 @@ def remove_sdl_declaration(
         else:
             try:
                 target = _removed_candidate(source, section=section, local_key=local_key)
-            except (SDLValidationError, ValidationError, TypeError, ValueError):
+            except SDLValidationError, ValidationError, TypeError, ValueError:
                 result = refused_removal(
                     source_digest=source_digest,
                     request=request,

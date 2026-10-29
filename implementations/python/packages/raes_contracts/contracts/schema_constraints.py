@@ -413,7 +413,7 @@ def _resolve_semantic_validator(validator: str) -> object:
         module_name = ".".join(parts[:index])
         try:
             module_spec = importlib.util.find_spec(module_name)
-        except (ModuleNotFoundError, ValueError):
+        except ModuleNotFoundError, ValueError:
             continue
         if module_spec is None:
             continue

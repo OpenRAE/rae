@@ -168,7 +168,7 @@ class RuntimeNetworkEndpoint(SDLModel):
         return coerce_string_list(v)
 
     @model_validator(mode="after")
-    def validate_unique_names(self) -> "RuntimeNetworkEndpoint":
+    def validate_unique_names(self) -> RuntimeNetworkEndpoint:
         for field_name in ("aliases", "dns_names"):
             values = getattr(self, field_name)
             if len(values) != len(set(values)):
@@ -190,7 +190,7 @@ class RuntimeNetworkRealization(SDLModel):
     description: str = ""
 
     @model_validator(mode="after")
-    def validate_unique_network_records(self) -> "RuntimeNetworkRealization":
+    def validate_unique_network_records(self) -> RuntimeNetworkRealization:
         seen_networks: set[str] = set()
         for endpoint in self.endpoints:
             if endpoint.network in seen_networks:

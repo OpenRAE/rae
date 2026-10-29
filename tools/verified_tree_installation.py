@@ -214,7 +214,7 @@ def _admit_raw_object(
             installation._quarantine(carrier, quarantine_root, prefix="legacy")
         try:
             validation.verify_raw_file(raw_object, entry, mode="installed")
-        except (OSError, RuntimeError):
+        except OSError, RuntimeError:
             installation._quarantine(raw_object, quarantine_root, prefix="raw")
             raise _failure("raw-integrity-failure") from None
         return raw_object
@@ -223,7 +223,7 @@ def _admit_raw_object(
             installation._quarantine(extra, quarantine_root, prefix="legacy")
         try:
             validation.verify_raw_file(carriers[0], entry, mode="carrier")
-        except (OSError, RuntimeError):
+        except OSError, RuntimeError:
             installation._quarantine(carriers[0], quarantine_root, prefix="legacy")
             raise _failure("legacy-integrity-failure") from None
         _publish_raw(carriers[0], raw_object)
@@ -235,7 +235,7 @@ def _admit_raw_object(
         acquire_raw(staged)
         try:
             validation.verify_raw_file(staged, entry, mode="staged")
-        except (OSError, RuntimeError):
+        except OSError, RuntimeError:
             raise _failure("raw-manifest-mismatch") from None
         _publish_raw(staged, raw_object)
     finally:
@@ -264,7 +264,7 @@ def _validated_or_quarantined(target: Path, selection: TreeSelection, quarantine
     try:
         installation._complete_interrupted_seal(target)
         return validation.validated_installation(target, selection)
-    except (OSError, RuntimeError):
+    except OSError, RuntimeError:
         installation._quarantine(target, quarantine_root, prefix="cache")
         raise _failure("cache-integrity-failure") from None
 
@@ -281,7 +281,7 @@ def _validated_or_repaired_existing(
         return None
     try:
         return validation.validated_installation(target, selection)
-    except (OSError, RuntimeError):
+    except OSError, RuntimeError:
         with installation._portable_lock(identity_lock, timeout=TREE_LOCK_TIMEOUT_SECONDS):
             if installation._tree_present(target):  # NOSONAR -- recheck under the lock closes the race.
                 return _validated_or_quarantined(target, selection, quarantine_root)
@@ -364,7 +364,7 @@ def require_verified_tree_installation(
                 raise _failure("installation-missing")
             try:
                 return validation.validated_installation(target, selection)
-            except (OSError, RuntimeError):
+            except OSError, RuntimeError:
                 raise _failure("cache-integrity-failure") from None
     except RuntimeError:
         raise

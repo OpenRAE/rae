@@ -1,9 +1,9 @@
 {
-  "content_hash": "b51c39ee482a49608a96ce3bdc66f587a2cdff9daf5b8c872a079dd920d88f56",
+  "content_hash": "75008a7d0bdaaa44a8a005eb26f01d06a101eaa492ea00fb237170be5394f264",
   "contract_id": "backend-profile-v1",
   "last_change": {
-    "summary": "Allow exact declarations of participant-control v2 selection and evaluation contracts (#1365).",
-    "content_hash": "b51c39ee482a49608a96ce3bdc66f587a2cdff9daf5b8c872a079dd920d88f56"
+    "content_hash": "75008a7d0bdaaa44a8a005eb26f01d06a101eaa492ea00fb237170be5394f264",
+    "summary": "Publish negotiated runtime descendant lineage, target and attempt binding, lifecycle and concern selection with committed refresh and durable archive joins; issue #1649."
   },
   "schema_path": "contracts/schemas/profiles/backend-profile-v1.json",
   "stability": "draft"

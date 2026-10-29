@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from ..control_plane import RuntimeControlPlane
 from ..control_plane_health import control_plane_liveness, control_plane_readiness
 from ._auth import _PublicProbe
+from ._offload import _control_plane_calls
 
 
 def _register_health_routes(app: FastAPI, control_plane: RuntimeControlPlane) -> None:
@@ -16,8 +17,8 @@ def _register_health_routes(app: FastAPI, control_plane: RuntimeControlPlane) ->
         return JSONResponse(content=control_plane_liveness().to_payload())
 
     @app.get("/health/ready", dependencies=[_PublicProbe])
-    async def readiness() -> JSONResponse:
-        health = control_plane_readiness(control_plane)
+    async def readiness(request: Request) -> JSONResponse:
+        health = await _control_plane_calls(request).run(control_plane_readiness, control_plane)
         return JSONResponse(
             status_code=200 if health.status.value == "ready" else 503,
             content=health.to_payload(),

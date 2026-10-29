@@ -65,7 +65,7 @@ def _read_text(repo_root: Path, relative_path: str) -> tuple[str | None, PolicyF
                 relative_path,
             )
         return path.read_text(encoding="utf-8"), None
-    except (OSError, UnicodeDecodeError):
+    except OSError, UnicodeDecodeError:
         return None, PolicyFailure(
             RULE_SURFACE,
             "positioning surface is not readable UTF-8 text",
@@ -166,7 +166,7 @@ def _validate_structured_metadata(repo_root: Path, failures: list[PolicyFailure]
         try:
             project = tomllib.loads(pyproject_text).get("project", {})
             description = project.get("description", "") if isinstance(project, dict) else ""
-        except (tomllib.TOMLDecodeError, TypeError):
+        except tomllib.TOMLDecodeError, TypeError:
             description = ""
         if not isinstance(description, str) or "reproducible agentic environments" not in description.casefold():
             failures.append(

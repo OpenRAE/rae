@@ -29,6 +29,7 @@ from raes_processor.models import (
     ParticipantActionContractRuntime,
     ParticipantBehaviorHistoryEvent,
     ParticipantBehaviorHistoryEventType,
+    ParticipantBehaviorRuntime,
     ParticipantBehaviorSpecificationRuntime,
     ParticipantDecisionSurfaceActionAssessment,
     ParticipantDecisionSurfaceProjectionInput,
@@ -241,6 +242,16 @@ def _runtime_model(*, omitted_visibility_ref: str | None = None) -> RuntimeModel
     )
     return RuntimeModel(
         scenario_name="sem-220",
+        participant_behaviors={
+            PARTICIPANT: ParticipantBehaviorRuntime(
+                address=PARTICIPANT,
+                name="red-agent",
+                spec={},
+                participant_name="red-agent",
+                action_contract_addresses=(SCAN, EXFILTRATE),
+                observation_boundary_addresses=(BOUNDARY,),
+            )
+        },
         action_contracts={
             SCAN: ParticipantActionContractRuntime(
                 address=SCAN,

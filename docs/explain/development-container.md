@@ -106,7 +106,7 @@ are not a support matrix, and they do not qualify another client or platform.
 Inside the container the checkout was writable and owned by `raes` at uid 1000.
 `uv`, `python`, `nox`, `pre-commit`, `ruff`, `git`, `gh`, `ssh`, `gpg`, `make`,
 `jq`, `less` and `nano` were all on the path. The run recorded Python 3.14.7,
-uv 0.12.4, ruff 0.15.9, nox 2026.4.10, git 2.43.0 and gh 2.45.0. It also
+uv 0.13.4, ruff 0.15.9, nox 2026.4.10, git 2.43.0 and gh 2.45.0. It also
 recorded Conftest 0.68.0, Gitleaks 8.30.1, OSV-Scanner 2.4.0 and Vale 3.15.2.
 The interpreter and formatter paths that `devcontainer.json` gives an editor
 all resolved.
@@ -201,8 +201,8 @@ while working and let continuous integration, or a native Linux x86_64 proof
 host, run the full gate.
 
 **No container daemon.** The image supplies development tools, not a Docker or
-Podman daemon, and mounts no daemon socket. The optional
-`nox -s integration_docker` lane remains a host-capability test.
+Podman daemon, and mounts no daemon socket. No repository lane needs a
+container daemon.
 
 **Not a production runtime.** The image exists to develop and verify the
 repository.

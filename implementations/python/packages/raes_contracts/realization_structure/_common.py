@@ -193,6 +193,8 @@ def _bounded_scalar_failure(
     current_pointer: str,
     budget: RelationBudget,
 ) -> RealizationRelationResult | None:
+    from raes_contracts.immutable_history import EventHistory, HistoryMap
+
     failure = None
     if exhausted := budget.spend_scalar(value):
         failure = relation_result(
@@ -215,7 +217,7 @@ def _bounded_scalar_failure(
             "Realization value validation exceeded the integer-size limit.",
         )
     elif type(value) not in (str, int, float, bool, type(None), dict, list) and not (
-        budget.python_carriers and isinstance(value, tuple)
+        budget.python_carriers and (isinstance(value, tuple) or type(value) in {EventHistory, HistoryMap})
     ):
         failure = relation_result(
             RealizationRelationStatus.INVALID,
@@ -236,7 +238,7 @@ def _bounded_member_failure(
     """Validate one container member, including a record key's own scalar cost."""
 
     current_pointer = pointer(path)
-    if isinstance(value, dict):
+    if isinstance(value, Mapping):
         if not isinstance(key, str):
             return relation_result(
                 RealizationRelationStatus.INVALID,
@@ -261,7 +263,7 @@ def _bounded_container_failure(
             pointer(path),
             "Realization value validation exceeded max_members.",
         )
-    children = value.items() if isinstance(value, dict) else enumerate(value)
+    children = value.items() if isinstance(value, Mapping) else enumerate(value)
     for key, child in children:
         failure = _bounded_member_failure(value, key, child, path, depth, budget)
         if failure is not None:
@@ -288,7 +290,11 @@ def validate_bounded_value(
     depth: int,
     budget: RelationBudget,
 ) -> RealizationRelationResult | None:
+    from raes_contracts.immutable_history_stats import charge_immutable_history
+
     current_pointer = pointer(path)
+    if budget.python_carriers and charge_immutable_history(value, depth, budget):
+        return None
     if budget.python_carriers and isinstance(value, Enum):
         value = value.value
     failure = _node_budget_failure(depth, current_pointer, budget)
@@ -296,10 +302,16 @@ def validate_bounded_value(
         value, failure = _python_record_values(value, current_pointer, budget)
     if failure is None:
         failure = _bounded_scalar_failure(value, current_pointer, budget)
-    container = isinstance(value, (dict, list)) or (budget.python_carriers and isinstance(value, tuple))
+    container = _is_bounded_container(value, python_carriers=budget.python_carriers)
     if failure is None and container:
         failure = _bounded_container_failure(value, path, depth, budget)
     return failure
+
+
+def _is_bounded_container(value: object, *, python_carriers: bool) -> bool:
+    from raes_contracts.immutable_history import EventHistory, HistoryMap
+
+    return isinstance(value, (dict, list)) or (python_carriers and isinstance(value, (tuple, EventHistory, HistoryMap)))
 
 
 def _python_record_values(

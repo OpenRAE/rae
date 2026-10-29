@@ -224,7 +224,7 @@ class RuntimeResourceLimits(SDLModel):
         return parse_int_or_var(v, minimum=1, field_name=info.field_name) if v is not None else v
 
     @model_validator(mode="after")
-    def validate_process_limits(self) -> "RuntimeResourceLimits":
+    def validate_process_limits(self) -> RuntimeResourceLimits:
         reject_duplicate_process_resource_limits(self.process_limits)
         return self
 
@@ -358,7 +358,7 @@ class RuntimeConfiguration(SDLModel):
         return matches[0]
 
     @model_validator(mode="after")
-    def validate_unique_runtime_entries(self) -> "RuntimeConfiguration":
+    def validate_unique_runtime_entries(self) -> RuntimeConfiguration:
         _reject_duplicate_keys(self.environment, attr="name", label="environment variable")
         _reject_duplicate_keys(self.environment_files, attr="name", label="environment file")
         _reject_duplicate_keys(self.mounts, attr="target", label="mount target")

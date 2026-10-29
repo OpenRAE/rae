@@ -43,7 +43,7 @@ def _try_bound_action_request(
 ) -> ParticipantActionAdmissionRequest | None:
     try:
         return _bound_action_request(context, run.working, state)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         run.diagnostics.append(
             Diagnostic(
                 code="runtime.participant-autonomous-binding-invalid",

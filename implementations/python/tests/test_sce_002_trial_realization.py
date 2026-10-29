@@ -395,10 +395,22 @@ def test_cleanup_failure_does_not_rewrite_successful_primary_outcome() -> None:
         }
     )
 
-    with pytest.raises(ValueError, match="required cleanup obligation"):
-        validate_admitted_trial_run(plan, run, [failed_cleanup])
+    validate_admitted_trial_run(plan, run, [failed_cleanup])
+    reconciliation = reconcile_admitted_trial_plan(plan, [run], [failed_cleanup])
+
+    assert reconciliation.archived_entry_ids == (run.trial_provenance.plan_entry_id,)
     assert run.run_status == "completed"
     assert run.outcome_status == "succeeded"
+
+
+def test_archival_run_rejects_suppressed_required_cleanup_result() -> None:
+    plan, _, run, receipt = _archival_run_and_receipt()
+    suppressed = receipt.model_copy(
+        update={"cleanup_status": "failed", "clean_state_claim": None, "obligation_results": {}}
+    )
+
+    with pytest.raises(ValueError, match="required cleanup obligation .* is owed for trigger 'success'"):
+        validate_admitted_trial_run(plan, run, [suppressed])
 
 
 def test_attempt_identity_cannot_collapse_into_run_identity_or_duplicate_on_retry() -> None:

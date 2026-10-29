@@ -1,5 +1,10 @@
 # Contracts
 
+The [participant control-context asset contracts](../specs/supply-chain/participant-control-context-assets.md)
+define immutable instruction and policy versions, authorized lifecycle changes,
+and selection evidence separate from disclosure and delivery. Private contents
+stay outside these portable records.
+
 The optional [execution and recovery requirements](../specs/sdl/execution-recovery.md)
 profile carries complete authored policies and evidence definitions in native
 phase plans. [Migration guidance](../docs/explain/reference/execution-recovery-migration.md)
@@ -10,6 +15,12 @@ publishes bounded requests, capability/willingness checks, correlated progress,
 cancellation dispositions and effect evidence. The
 [backend integration and migration guide](../docs/explain/reference/backend-operation-supervision.md)
 explains the `operation-supervision` profile and its evidence limits.
+
+The draft [inject trigger and occurrence contracts](../docs/explain/reference/inject-occurrence-contracts.md)
+carry an external inject request, its claimed occurrence, per-binding readback
+and participant correlation under
+[ADR-112](../docs/decisions/adrs/adr-112-external-inject-triggering-and-execution.md).
+They grant no trigger authority and execute nothing.
 
 `contracts/` contains the machine-readable contract side of the repository.
 

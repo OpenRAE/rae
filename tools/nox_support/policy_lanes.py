@@ -39,6 +39,7 @@ _WORKING_TREE_POLICY_STAGES: tuple[tuple[str, str], ...] = (
     ("policy / agent guidance profile", "tools/check_agent_guidance.py"),
     ("policy / example library catalog", "tools/check_example_library.py"),
     ("policy / published schema coverage", "tools/check_schema_coverage.py"),
+    ("policy / published contract requirement tracing", "tools/check_contract_requirement_tracing.py"),
     ("policy / project positioning", "tools/check_project_positioning.py"),
     ("policy / identity cutover", "tools/check_identity_cutover.py"),
 )

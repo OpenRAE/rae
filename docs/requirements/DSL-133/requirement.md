@@ -21,6 +21,8 @@ The original SCN-010 design generalized directly from MISP, TheHive, Cortex, Shu
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/runtime_secret_service.py` (Application-owned secret metadata and version state)
+
 - TESTS → TEST `implementations/python/tests/test_runtime_platform_application.py` (test_runtime_platform_application.py)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/runtime_platform_application.py` (Runtime platform application model)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/runtime_platform_application_content.py` (Runtime platform application capability model)

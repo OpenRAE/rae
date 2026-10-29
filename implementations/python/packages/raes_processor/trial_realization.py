@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 
 from raes import canonical_instantiated_sdl_digest, select_scenario_family
 from raes.canonical import canonical_sdl_digest
@@ -14,6 +14,7 @@ from raes.phase_contracts import (
     TrialInstantiationProvenance,
 )
 from raes.scenario import ExpandedScenario, InstantiatedScenario
+from raes.selected_scenario import ExpandedScenarioBindingTargetResolver
 from raes_backend_protocols.backend_manifest import BackendManifest
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope
 from raes_contracts.admitted_trial_plan_ingress import (
@@ -32,11 +33,14 @@ from raes_contracts.contracts import (
     ExperimentSpecModel,
     ExperimentTaskModel,
     OrchestrationPlanModel,
+    ParticipantConfigurationResultModel,
+    ParticipantImplementationManifestModel,
     ProcessorManifestV2Model,
     ProvisioningPlanModel,
     TrialProcessorPlanReferenceModel,
+    processor_backend_manifests_are_mutually_compatible,
 )
-from raes_contracts.experiment_bindings import ApparatusManifest, ApparatusManifestKey
+from raes_contracts.experiment_bindings import ApparatusManifest, ApparatusManifestKey, ParticipantManifestKey
 from raes_contracts.plan_projection import (
     evaluation_plan_model,
     orchestration_plan_model,
@@ -51,6 +55,7 @@ from .models import ExecutionPlan
 from .planner import plan as build_execution_plan
 from .trial_compiler.apparatus import validate_admitted_apparatus
 from .trial_compiler.models import CompilationFailure
+from .trial_compiler.sources import validate_authoring_selections
 
 _PLAN_CONTRACT_IDS = {
     "provisioning": "provisioning-plan-v1",
@@ -70,6 +75,7 @@ class TrialRealization:
     orchestration_plan: OrchestrationPlanModel
     evaluation_plan: EvaluationPlanModel
     processor_plan_refs: tuple[TrialProcessorPlanReferenceModel, ...]
+    participant_configurations: tuple[ParticipantConfigurationResultModel, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -84,6 +90,9 @@ class TrialRealizationInputs:
     apparatus_manifests: Mapping[ApparatusManifestKey, ApparatusManifest]
     realization_envelope: BackendRealizationEnvelopeModel
     backend_key: ApparatusManifestKey
+    participant_manifests: Mapping[ParticipantManifestKey, ParticipantImplementationManifestModel] = field(
+        default_factory=dict
+    )
 
 
 def instantiate_admitted_trial_entry(
@@ -134,6 +143,10 @@ def instantiate_admitted_trial_entry(
         ),
     )
     outcomes = {selection.variation_point_id: selection.outcome for selection in entry.selections}
+    resolver = ExpandedScenarioBindingTargetResolver(family)
+    for selection in entry.selections:
+        if selection.treatment is not None:
+            resolver.validate_selection(selection.treatment)
     return select_scenario_family(
         family,
         outcomes,
@@ -221,10 +234,7 @@ def _runtime_backend(
     if len(processors) != 1:
         raise ValueError("trial realization requires exactly one admitted processor manifest")
     processor = processors[0]
-    if (
-        backend.identity.name not in processor.compatibility.backends
-        or processor.identity.name not in backend.compatibility.processors
-    ):
+    if not processor_backend_manifests_are_mutually_compatible(processor, backend):
         raise ValueError("processor and backend manifests are not mutually compatible")
     return backend_manifest_from_v2_model_with_envelope(backend, realization_envelope)
 
@@ -263,6 +273,13 @@ def realize_admitted_trial_entry(
     if isinstance(entry.apparatus, AdmittedMixedCompositionBindingModel):
         raise ValueError("mixed-composition runtime coordination is not implemented")
     _validate_experiment_and_task(admitted_plan, inputs.experiment, inputs.task)
+    validate_authoring_selections(
+        admitted_plan,
+        inputs.family,
+        inputs.experiment,
+        inputs.apparatus_manifests,
+        inputs.participant_manifests,
+    )
     _validate_capture_specs(
         admitted_plan,
         inputs.experiment,
@@ -301,6 +318,9 @@ def realize_admitted_trial_entry(
     execution_plan = build_execution_plan(
         runtime_model,
         runtime_backend,
+        processor_manifest=next(
+            manifest for manifest in selected.values() if isinstance(manifest, ProcessorManifestV2Model)
+        ),
         # Bind the target plus the admitted entry's authoritative run identity and
         # its unique instantiation coordinate so per-run/per-instantiation generated
         # values reconcile against the correct scope (issue #1276).
@@ -337,6 +357,7 @@ def realize_admitted_trial_entry(
         orchestration_plan=orchestration,
         evaluation_plan=evaluation,
         processor_plan_refs=references,
+        participant_configurations=tuple(entry.participant_configurations),
     )
 
 
