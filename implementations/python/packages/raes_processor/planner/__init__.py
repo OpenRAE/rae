@@ -9,6 +9,7 @@ from .materialization_admission import admit_materialization_submission, validat
 from .ordering import snapshot_delete_order
 from .prepared_node_admission import prepared_node_capability_violation
 from .prepared_node_projection import sanitize_prepared_node_snapshot
+from .prepared_node_provenance import prepared_node_disclosure
 from .realization_authority import (
     plan_realization_requirements,
     realization_authority_diagnostics,
@@ -42,4 +43,5 @@ __all__ = [
     "prepared_node_collection_binding_violation",
     "prepared_node_capability_violation",
     "sanitize_prepared_node_snapshot",
+    "prepared_node_disclosure",
 ]

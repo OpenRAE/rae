@@ -32,6 +32,7 @@ from ..semantics.realization_concerns import (
     project_realization_concern,
     realization_concern_descriptors,
 )
+from ..semantics.realization_node_defaults import defaulted_node_payload
 from ..semantics.realization_runtime_evaluation import evaluate_registered_realization
 from .realization_authority_materialization import materialize_realization_authority
 from .realization_constraint_views import planned_constraint_admission, planned_constraint_disclosure
@@ -319,6 +320,7 @@ def _closed_materialization_diagnostic(
     authority: ResolvedRealizationAuthority,
     declared_ops: dict[str, object],
     returned_snapshot: RuntimeSnapshot,
+    defaulted_payloads: dict[str, object],
 ) -> Diagnostic | None:
     declared_op = declared_ops.get(authority.address)
     snapshot_entry = returned_snapshot.entries.get(authority.address)
@@ -326,6 +328,8 @@ def _closed_materialization_diagnostic(
         return None
     declared = _pointer_value(getattr(declared_op, "payload", None), authority.payload_pointer)
     realized = _pointer_value(snapshot_entry.payload, authority.payload_pointer)
+    if declared is _MISSING and realized is not _MISSING:
+        declared = _pointer_value(defaulted_node_payload(declared_op, defaulted_payloads), authority.payload_pointer)
     if realized is _MISSING or (declared is not _MISSING and realized == declared):
         return None
     return Diagnostic(
@@ -409,10 +413,11 @@ def _evaluate_authority_disclosure(
     declared_ops: dict[str, object],
     returned_snapshot: RuntimeSnapshot,
     manifest: BackendManifest | None,
+    defaulted_payloads: dict[str, object],
 ) -> tuple[Diagnostic | None, RealizationProvenanceEntry | None]:
     entry = None
     if authority.mode is RealizationAuthorityMode.CLOSED:
-        diagnostic = _closed_materialization_diagnostic(authority, declared_ops, returned_snapshot)
+        diagnostic = _closed_materialization_diagnostic(authority, declared_ops, returned_snapshot, defaulted_payloads)
     else:
         requirement = runtime_views[(authority.address, authority.requirement_kind)]
         diagnostic, entry = evaluate_registered_realization(
@@ -449,6 +454,7 @@ def realization_authority_disclosure(
         return [_invalid_runtime_view_diagnostic(declared_plan)], ()
     diagnostics: list[Diagnostic] = []
     provenance: list[RealizationProvenanceEntry] = []
+    defaulted_payloads: dict[str, object] = {}
     for authority in declared_plan.realization_authority:
         diagnostic, entry = _evaluate_authority_disclosure(
             authority,
@@ -457,6 +463,7 @@ def realization_authority_disclosure(
             declared_ops,
             returned_snapshot,
             manifest,
+            defaulted_payloads,
         )
         if diagnostic is not None:
             diagnostics.append(diagnostic)
