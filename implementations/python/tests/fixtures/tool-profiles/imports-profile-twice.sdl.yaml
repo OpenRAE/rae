@@ -1,0 +1,9 @@
+# One tool-profile module imported under two namespaces (issue #301, ACT-619).
+name: imports-profile-twice
+imports:
+  - source: local:profile-module.sdl.yaml
+    namespace: alpha
+    version: 1.0.0
+  - source: local:profile-module.sdl.yaml
+    namespace: bravo
+    version: 1.0.0

@@ -22,6 +22,7 @@ from .experiment_study import (
     ExperimentRunAllocationPlanModel,
     ExperimentStudyFactorModel,
     ExperimentStudyMembershipModel,
+    _validate_condition_factor_levels,
 )
 from .schema_invariants import _add_carrier_validation_basis_disclosure_invariant, _add_raes_invariant
 from .validation_disclosure import ValidationBasisDisclosureModel, validate_carrier_validation_basis_disclosures
@@ -133,19 +134,7 @@ class ExperimentStudyModel(ContractModel):
             )
 
     def _validate_run_allocation_condition_assignments(self, run_allocation: ExperimentRunAllocationPlanModel) -> None:
-        for assignment_key, assignment in run_allocation.condition_assignments.items():
-            for factor_id, level in assignment.factor_levels.items():
-                factor = self.factors.get(factor_id)
-                if factor is None:
-                    raise ValueError(
-                        "run_allocation condition_assignments factor_levels must reference declared factors: "
-                        f"{assignment_key}:{factor_id}"
-                    )
-                if level not in factor.levels:
-                    raise ValueError(
-                        "run_allocation condition_assignments factor_levels must reference declared factor levels: "
-                        f"{assignment_key}:{factor_id}:{level}"
-                    )
+        _validate_condition_factor_levels(self.factors, run_allocation.condition_assignments, scope="run_allocation")
 
     def _validate_claim_bearing_study_requirements(self) -> None:
         if not self.research_questions:

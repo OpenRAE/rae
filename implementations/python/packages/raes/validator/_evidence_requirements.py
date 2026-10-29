@@ -4,9 +4,13 @@ from __future__ import annotations
 
 from raes_contracts.augmentation_scope import AugmentationScopeRule
 
+from raes._reference_targetability import ReferencePurpose
 from raes.observation_scope import resolve_observation_scope, semantic_scope_namespace
 from raes.runtime_forwarding_agent import RuntimeForwardingAgentOwnershipRole
 from raes.scenario import ExpandedScenario, InstantiatedScenario, Scenario
+
+# Evidence sources, scopes, and demand components name what is observed.
+_SUBJECT = ReferencePurpose.OBSERVATION_SUBJECT
 
 
 class _EvidenceRequirementsMixin:
@@ -36,8 +40,8 @@ class _EvidenceRequirementsMixin:
     def _verify_evidence_requirements(self) -> None:
         for name, requirement in self._s.evidence_requirements.items():
             owner_label = f"Evidence requirement '{name}'"
-            self._verify_evidence_requirement_refs(requirement.source_refs, owner_label, "source_ref")
-            self._verify_evidence_requirement_refs(requirement.scope_refs, owner_label, "scope_ref")
+            self._verify_evidence_requirement_refs(requirement.source_refs, owner_label, "source_ref", _SUBJECT)
+            self._verify_evidence_requirement_refs(requirement.scope_refs, owner_label, "scope_ref", _SUBJECT)
             self._verify_evidence_requirement_refs(requirement.channel_refs, owner_label, "channel_ref")
             self._verify_evidence_requirement_ref(requirement.trigger_ref, owner_label, "trigger_ref")
             self._verify_evidence_requirement_ref(requirement.boundary_ref, owner_label, "boundary_ref")
@@ -53,7 +57,10 @@ class _EvidenceRequirementsMixin:
                         "observation_demand.selector.semantic_scope",
                     )
                     self._verify_evidence_requirement_refs(
-                        list(demand.selector.component_refs), owner_label, "observation_demand.selector.component_ref"
+                        list(demand.selector.component_refs),
+                        owner_label,
+                        "observation_demand.selector.component_ref",
+                        _SUBJECT,
                     )
         self._verify_forwarding_agent_evidence_roles()
 
@@ -104,16 +111,18 @@ class _EvidenceRequirementsMixin:
         refs: list[str],
         owner_label: str,
         ref_label: str,
+        purpose: ReferencePurpose = ReferencePurpose.TARGETABLE,
     ) -> None:
         for ref in refs:
-            self._verify_evidence_requirement_ref(ref, owner_label, ref_label)
+            self._verify_evidence_requirement_ref(ref, owner_label, ref_label, purpose)
 
     def _verify_evidence_requirement_ref(
         self,
         ref: str,
         owner_label: str,
         ref_label: str,
+        purpose: ReferencePurpose = ReferencePurpose.TARGETABLE,
     ) -> None:
         if not ref or self._is_unresolved_var(ref):
             return
-        self._validate_named_ref(ref, owner_label=owner_label, ref_label=ref_label, targetable=True)
+        self._validate_named_ref(ref, owner_label=owner_label, ref_label=ref_label, purpose=purpose)

@@ -27,7 +27,7 @@ def validated_member_presences(
 ) -> tuple[dict[str, RealizationPresence], RealizationConstraintBuildResult | None]:
     try:
         return {path: RealizationPresence(value) for path, value in values.items()}, None
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return {}, build_failure(RealizationRelationStatus.INVALID, "", "Normalization presence is invalid.")
 
 
@@ -58,6 +58,6 @@ def validated_leaf_override(
         value = override.model_dump(mode="python", warnings="none")
         value["origin"] = origin
         selected = _LEAF_ADAPTER.validate_python(value)
-    except (AttributeError, TypeError, ValueError):
+    except AttributeError, TypeError, ValueError:
         return None, build_failure(RealizationRelationStatus.INVALID, "", "Leaf metadata is not a valid constraint.")
     return selected, None

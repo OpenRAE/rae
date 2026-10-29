@@ -157,7 +157,7 @@ class SshForcedCommand(SDLModel):
         return parse_bool_or_var(v, field_name="command_redacted")
 
     @model_validator(mode="after")
-    def validate_command_shape(self) -> "SshForcedCommand":
+    def validate_command_shape(self) -> SshForcedCommand:
         # Enforce every invariant that is knowable from the literal fields
         # BEFORE deferring variable-dependent checks. Otherwise a variable
         # ``command_kind`` or ``command_redacted`` can be used to smuggle
@@ -297,7 +297,7 @@ class SshMatchRule(_SshDirectiveBundle):
         return _validate_stable_identifier(v, field_name="match_id")
 
     @model_validator(mode="after")
-    def validate_criteria(self) -> "SshMatchRule":
+    def validate_criteria(self) -> SshMatchRule:
         if not self.criteria:
             raise ValueError("match rule criteria must include at least one criterion")
         seen: set[tuple[object, str]] = set()
@@ -347,7 +347,7 @@ class RuntimeSshServer(_SshDirectiveBundle):
         return v
 
     @model_validator(mode="after")
-    def validate_match_rules_unique(self) -> "RuntimeSshServer":
+    def validate_match_rules_unique(self) -> RuntimeSshServer:
         seen_ids: set[str] = set()
         seen_fingerprints: set[tuple[tuple[object, str], ...]] = set()
         for rule in self.match_rules:

@@ -51,7 +51,9 @@ def test_default_test_lane_runs_the_parallel_quiet_suite_with_coverage(
 
     test_lanes._run_tests(object(), reporter, Path("coverage-file"), finalize_coverage=False)
 
-    assert calls == [(("-q",), {"coverage_file": Path("coverage-file"), "finalize_coverage": False, "parallel": True})]
+    assert calls == [
+        (("-q",), {"coverage_file": Path("coverage-file"), "finalize_coverage": False, "xdist": "worksteal"})
+    ]
     assert reporter.stages == [("tests / pytest", "-q :: xdist auto, max 8, worksteal")]
 
 
@@ -67,7 +69,7 @@ def test_explicit_test_selection_runs_serially_with_the_selected_arguments(
     assert calls == [
         (
             ("tests/test_a.py", "-k", "case"),
-            {"coverage_file": Path("coverage-file"), "finalize_coverage": True, "parallel": False},
+            {"coverage_file": Path("coverage-file"), "finalize_coverage": True, "xdist": None},
         )
     ]
     assert reporter.stages == [("tests / pytest", "tests/test_a.py -k case :: explicit selection, serial")]
@@ -88,20 +90,22 @@ def test_fuzz_and_integration_lanes_select_their_markers_and_coverage(
         append_coverage=True,
         finalize_coverage=True,
     )
-    test_lanes._run_docker_integration_tests(SimpleNamespace(posargs=["--junitxml", "docker.xml"]), reporter)
 
     assert calls == [
         (("-m", "fuzz", "-v"), {}),
         (
             ("-m", "integration", "-v"),
-            {"coverage_file": Path("integration-coverage"), "append_coverage": True, "finalize_coverage": True},
+            {
+                "coverage_file": Path("integration-coverage"),
+                "append_coverage": True,
+                "finalize_coverage": True,
+                "xdist": "loadfile",
+            },
         ),
-        (("-m", "docker", "-v", "--junitxml", "docker.xml"), {}),
     ]
-    assert [name for name, _detail in reporter.stages] == [
-        "tests / pytest fuzz",
-        "tests / pytest integration",
-        "tests / pytest docker integration",
+    assert reporter.stages == [
+        ("tests / pytest fuzz", ""),
+        ("tests / pytest integration", "xdist auto, max 8, loadfile"),
     ]
 
 
@@ -234,11 +238,11 @@ def test_shard_lane_constructs_the_deterministic_partition_invocation(
         "--shard-source-sha",
         "deadbeef",
         "--shard-suite-expression",
-        "not fuzz and not integration and not docker",
+        "not fuzz and not integration",
     )
     assert kwargs["coverage_file"] == Path("cov/.coverage.shard-1")
     assert kwargs["finalize_coverage"] is False
-    assert kwargs["parallel"] is True
+    assert kwargs["xdist"] == "worksteal"
     assert kwargs["extra_env"] == {"PYTHONPATH": str(test_lanes.REPO_ROOT)}
 
 

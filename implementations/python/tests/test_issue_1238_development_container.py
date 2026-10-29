@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import ast
 import hashlib
 import json
 import os
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -865,3 +867,53 @@ def test_setup_installs_hooks_through_the_locked_tool_environment(
 
 def test_native_host_sizing_is_not_a_second_policy_schema(tmp_path: Path) -> None:
     assert not _config_refusals(tmp_path, "hostRequirements", {"gpu": True, "memory": "16gb"})
+
+
+# The image runs `tools.devcontainer_setup` with the Ubuntu 24.04 python3
+# (CPython 3.12) before the locked CPython 3.14 exists. The setup also runs the
+# tooling policy validator script with that interpreter.
+_BASE_IMAGE_RELEASE = "24.04"
+_BASE_IMAGE_PYTHON = (3, 12)
+_BASE_IMAGE_ENTRY_MODULES = ("tools.devcontainer_setup", "tools.check_tooling_artifact_policy")
+
+
+def _setup_import_closure() -> set[str]:
+    """Return the repository modules that the base-image interpreter can import."""
+
+    seen: dict[str, Path] = {}
+    pending = list(_BASE_IMAGE_ENTRY_MODULES)
+    while pending:
+        module = pending.pop()
+        relative = module.replace(".", "/")
+        candidates = (REPO_ROOT / f"{relative}.py", REPO_ROOT / relative / "__init__.py")
+        path = next((candidate for candidate in candidates if candidate.is_file()), None)
+        if module in seen or path is None:
+            continue
+        seen[module] = path
+        parts = module.split(".")
+        pending.extend(".".join(parts[:index]) for index in range(1, len(parts)))
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+            if isinstance(node, ast.ImportFrom) and node.level == 0 and (node.module or "").split(".")[0] == "tools":
+                pending.append(node.module)
+                pending.extend(f"{node.module}.{alias.name}" for alias in node.names)
+            elif isinstance(node, ast.Import):
+                pending.extend(alias.name for alias in node.names if alias.name.split(".")[0] == "tools")
+    return {path.relative_to(REPO_ROOT).as_posix() for path in seen.values()}
+
+
+def test_container_setup_modules_parse_on_the_base_image_interpreter() -> None:
+    lock = _load(ARTIFACT_LOCK_PATH)
+    (base_image,) = [item for item in lock["artifacts"] if item["artifact_id"] == BASE_IMAGE_ARTIFACT_ID]
+    assert base_image["version"] == _BASE_IMAGE_RELEASE
+    closure = _setup_import_closure()
+    assert {"tools/bootstrap_profile.py", "tools/check_tooling_artifact_policy.py"} <= closure
+    for relative in sorted(closure):
+        ast.parse((REPO_ROOT / relative).read_text(encoding="utf-8"), relative, feature_version=_BASE_IMAGE_PYTHON)
+
+
+def test_lint_keeps_the_container_setup_modules_on_base_image_syntax() -> None:
+    pyproject = tomllib.loads((REPO_ROOT / "implementations/python/pyproject.toml").read_text(encoding="utf-8"))
+    target = "py{}{}".format(*_BASE_IMAGE_PYTHON)
+    assert pyproject["tool"]["ruff"]["per-file-target-version"] == {
+        f"**/{relative}": target for relative in sorted(_setup_import_closure())
+    }

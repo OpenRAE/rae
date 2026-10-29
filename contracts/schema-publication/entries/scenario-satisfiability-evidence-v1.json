@@ -1,9 +1,9 @@
 {
-  "content_hash": "51868a580a364c222ce4480bb4d8aea7a02bfa34dcf6814b64286df0d69d5790",
+  "content_hash": "402cffd49c71a6ec234b9d4f62d15f550f35d03c1a2d7758cf887a87fcdb8f0a",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "51868a580a364c222ce4480bb4d8aea7a02bfa34dcf6814b64286df0d69d5790",
-    "summary": "Retain typed public runtime parameter derivations and selected-binding or finite-image authority across serialized SDL phases (#1481)."
+    "content_hash": "402cffd49c71a6ec234b9d4f62d15f550f35d03c1a2d7758cf887a87fcdb8f0a",
+    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301). Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

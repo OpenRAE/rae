@@ -37,7 +37,7 @@ def canonical_json_digest(payload: JsonValue) -> str:
 UNSERIALIZABLE_CARRIER_PREFIX = "urn:openrae:unserializable-carrier:"
 
 
-def jsonable_fallback(value: object) -> str:
+def jsonable_fallback(value: object) -> JsonValue:
     """Render an unmodelled carrier as a stable, type-qualified marker.
 
     ``pydantic_core.to_jsonable_python`` raises on any carrier it has no schema
@@ -49,5 +49,9 @@ def jsonable_fallback(value: object) -> str:
     keeps it distinguishable from any modelled string value.
     """
 
+    from .immutable_history import EventHistory, HistoryMap, mutable_history_value
+
+    if type(value) in {HistoryMap, EventHistory}:
+        return mutable_history_value(value)
     carrier = type(value)
     return f"{UNSERIALIZABLE_CARRIER_PREFIX}{carrier.__module__}.{carrier.__qualname__}"

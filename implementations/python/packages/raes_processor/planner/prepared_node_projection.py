@@ -37,7 +37,7 @@ def prepared_node_payload_projection(payload: Mapping[str, Any]) -> dict[str, An
         for token in descriptor.payload_path[:-1]:
             current = current.get(token) if isinstance(current, dict) else None
         leaf = descriptor.payload_path[-1]
-        if isinstance(current, dict) and leaf in current:
+        if isinstance(current, dict) and leaf in current and current[leaf] is not None:
             current[leaf] = descriptor.sanitize_observation(current[leaf], recursive=True)
     return to_jsonable_python(projected, fallback=jsonable_fallback)
 

@@ -7,7 +7,7 @@ from typing import Annotated, Literal
 from pydantic import Field, GetJsonSchemaHandler, field_validator, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
-from raes.participant_behavior_specification import MixedControlTransitionKind
+from raes.participant_mixed_control_vocabulary import MixedControlTransitionKind
 
 from ..versions import PARTICIPANT_FLOW_CONTROL_RELATION_V1_SCHEMA_VERSION
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
@@ -140,7 +140,7 @@ class ParticipantCrossingOccurrenceFlowBindingModel(ParticipantFlowCarrierBindin
     subject_kind: ParticipantCrossingSubjectKind
     subject_contract_id: NonEmptyString
     subject_ref: NonEmptyString
-    subject_revision: NonEmptyString
+    subject_revision: NonEmptyString | None = None
     subject_digest: PrefixedDigestString | None = None
     crossing_policy_id: NonEmptyString
     crossing_policy_revision: NonEmptyString
@@ -148,6 +148,21 @@ class ParticipantCrossingOccurrenceFlowBindingModel(ParticipantFlowCarrierBindin
     crossing_policy_decision_ref: NonEmptyString
     crossing_decision_cut_ref: NonEmptyString
     predecessor_event_refs: tuple[NonEmptyString, ...]
+
+    @model_validator(mode="after")
+    def _subject_identity(self) -> ParticipantCrossingOccurrenceFlowBindingModel:
+        if self.subject_revision is None and self.subject_digest is None:
+            raise ValueError("flow crossing subject requires a revision or digest")
+        return self
+
+    @classmethod
+    def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
+        schema = handler.resolve_ref_schema(handler(core_schema))
+        schema["anyOf"] = [
+            {"required": [name], "properties": {name: {"type": "string"}}}
+            for name in ("subject_revision", "subject_digest")
+        ]
+        return schema
 
     @field_validator("related_stage_refs", "predecessor_event_refs")
     @classmethod
@@ -174,11 +189,11 @@ class ParticipantFlowControlRelationModel(ContractModel):
     document_id: NonEmptyString
     document_revision: NonEmptyString
     profile: ParticipantFlowProfileReferenceModel
-    labels: tuple[ParticipantEffectiveFlowLabelModel, ...] = Field(min_length=1)
-    derivations: tuple[ParticipantFlowDerivationModel, ...] = Field(min_length=1)
-    releases: tuple[ParticipantFlowRelease, ...] = Field(min_length=1)
-    sink_decisions: tuple[ParticipantFlowSinkDecisionModel, ...] = Field(min_length=1)
-    bindings: tuple[ParticipantFlowCarrierBinding, ...] = Field(min_length=1)
+    labels: tuple[ParticipantEffectiveFlowLabelModel, ...] = Field(min_length=1, max_length=256)
+    derivations: tuple[ParticipantFlowDerivationModel, ...] = Field(min_length=1, max_length=256)
+    releases: tuple[ParticipantFlowRelease, ...] = Field(min_length=1, max_length=256)
+    sink_decisions: tuple[ParticipantFlowSinkDecisionModel, ...] = Field(min_length=1, max_length=256)
+    bindings: tuple[ParticipantFlowCarrierBinding, ...] = Field(min_length=1, max_length=256)
 
     @model_validator(mode="after")
     def _validate_relation_graph(self) -> ParticipantFlowControlRelationModel:

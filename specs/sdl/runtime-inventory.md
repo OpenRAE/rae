@@ -44,7 +44,7 @@ fields, enums, and profiles; this index does not restate them.
 | `applications` | `applications` | `application_id` | none | [ADR-026](../../docs/decisions/adrs/adr-026-application-http-surface-inventory.md) |
 | `database-services` | `database_services` | `database_service_id` | `databases:database_id` | [ADR-029](../../docs/decisions/adrs/adr-029-database-logical-state-runtime-surface.md) |
 | `dns-services` | `dns_services` | `dns_service_id` | `zones:zone_id, zones:zone_id/rrsets:rrset_id` | [ADR-039](../../docs/decisions/adrs/adr-039-dns-service-runtime-inventory.md) |
-| `identity-authorities` | `identity_authorities` | `identity_authority_id` | `services:service_id, subjects:subject_id, policies:policy_id, relationships:relationship_id` | [ADR-032](../../docs/decisions/adrs/adr-032-directory-domain-identity-runtime-surface.md) |
+| `identity-authorities` | `identity_authorities` | `identity_authority_id` | `services:service_id, subjects:subject_id, policies:policy_id, relationships:relationship_id, resource_scopes:scope_id, identity_uses:use_id, access_observations:observation_id` | [ADR-032](../../docs/decisions/adrs/adr-032-directory-domain-identity-runtime-surface.md), [cloud resource access](cloud-resource-access.md) |
 | `file-services` | `file_services` | `file_service_id` | `shares:share_id, principals:principal_id, access_rules:rule_id, access_observations:observation_id` | [ADR-037](../../docs/decisions/adrs/adr-037-runtime-file-service-and-filesystem-presence-semantics.md) |
 | `mail-services` | `mail_services` | `mail_service_id` | `components:component_id, listeners:listener_id, domains:domain_id, mailbox_stores:store_id, mailboxes:mailbox_id, aliases:alias_id, routing_rules:rule_id, queues:queue_id, settings:setting_id` | [ADR-038](../../docs/decisions/adrs/adr-038-runtime-mail-service-logical-state.md) |
 | `network-sensors` | `network_sensors` | `network_sensor_id` | none | [ADR-042](../../docs/decisions/adrs/adr-042-network-sensor-runtime-monitoring.md) |
@@ -54,7 +54,7 @@ fields, enums, and profiles; this index does not restate them.
 | `app-authorizations` | `app_authorizations` | `app_authorization_id` | `principals:principal_id, roles:role_id, permission_grants:grant_id, role_mappings:mapping_id, tenants:tenant_id` | [ADR-046](../../docs/decisions/adrs/adr-046-app-authorization-runtime-inventory.md) |
 | `scheduled-jobs` | `scheduled_jobs` | `scheduled_job_id` | none | [ADR-047](../../docs/decisions/adrs/adr-047-scheduled-job-runtime-inventory.md) |
 | `datastore-services` | `datastore_services` | `datastore_service_id` | `nodes:node_id, nodes:node_id/plugins:plugin_id, nodes:node_id/endpoints:endpoint_id, partitions:partition_id, templates:template_id, mappings:mapping_id, settings:setting_id` | [ADR-048](../../docs/decisions/adrs/adr-048-datastore-service-runtime-inventory.md), [ADR-058](../../docs/decisions/adrs/adr-058-datastore-node-engine-provenance-and-endpoints.md) |
-| `platform-applications` | `platform_applications` | `platform_application_id` | `capabilities:capability_id, organizations:organization_id, tenants:tenant_id, content_objects:content_object_id, markings:marking_id, upstream_bindings:binding_id, connectors:connector_id, settings:setting_id` | [ADR-049](../../docs/decisions/adrs/adr-049-platform-application-runtime-inventory.md) |
+| `platform-applications` | `platform_applications` | `platform_application_id` | `secrets:secret_id, secrets:secret_id/versions:version_id, secrets:secret_id/consumers:selection_id, cloud_limits:limit_id, capabilities:capability_id, organizations:organization_id, tenants:tenant_id, content_objects:content_object_id, markings:marking_id, upstream_bindings:binding_id, connectors:connector_id, settings:setting_id` | [ADR-049](../../docs/decisions/adrs/adr-049-platform-application-runtime-inventory.md), [cloud resource access](cloud-resource-access.md) |
 | `forwarding-agents` | `forwarding_agents` | `forwarding_agent_id` | `sources:source_id, transforms:transform_id, ship_targets:target_id, reload_channels:reload_channel_id, settings:setting_id` | [ADR-050](../../docs/decisions/adrs/adr-050-forwarding-agent-runtime-inventory.md) |
 | `orchestration-authorities` | `orchestration_authorities` | `orchestration_authority_id` | `spawn_templates:template_id, realized_children:workload_id` | [ADR-051](../../docs/decisions/adrs/adr-051-orchestration-authority-runtime-inventory.md) |
 
@@ -167,8 +167,8 @@ not contradict these.
 
 ### Identity support and domain ownership
 
-RAE owns language semantics, portable contracts and conformance. Scenario packs
-own concrete scenario content, and backends own concrete realization and
+RAE owns language semantics, portable contracts and conformance. Environment
+packs own concrete scenario content, and backends own concrete realization and
 operations, as specified by [OpenRAE/hub#3](https://github.com/OpenRAE/hub/issues/3).
 A motivating product or backend does not define the language's universe.
 

@@ -7,9 +7,9 @@ or make an untrusted applicability proof authoritative.
 from __future__ import annotations
 
 from graphlib import TopologicalSorter
-from typing import Annotated, Literal, Self
+from typing import Annotated, Any, Literal, Self
 
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import ConfigDict, Field, SerializerFunctionWrapHandler, model_serializer, model_validator
 
 from .base import ContractModel, PrefixedDigestString
 from .participant_control_composition import control_digest
@@ -24,6 +24,7 @@ from .participant_control_coordinates import (
     require_kind,
     require_unique,
 )
+from .participant_control_results import ControlEffectiveSupportModel
 from .participant_control_selection import (
     ControlMechanismBindingModel,
     ControlResultSlotModel,
@@ -69,6 +70,14 @@ class ControlProfileObligationV2Model(ContractModel):
     required_kind: ResultKind
     required_strength: Literal["exact", "bounded", "disclosed_weak"]
     constraints: Artifacts
+    admitted_support: Annotated[tuple[ControlEffectiveSupportModel, ...], Field(max_length=64)] = ()
+
+    @model_serializer(mode="wrap")
+    def _preserve_original_interpretation(self, handler: SerializerFunctionWrapHandler) -> dict[str, Any]:
+        payload = handler(self)
+        if not self.admitted_support:
+            payload.pop("admitted_support", None)
+        return payload
 
     @model_validator(mode="after")
     def _owner(self) -> Self:
@@ -77,6 +86,9 @@ class ControlProfileObligationV2Model(ContractModel):
             require_kind(constraint, "constraint")
         if self.required_strength == "bounded" and not self.constraints:
             raise ValueError("bounded obligation requires admitted constraints")
+        require_unique(tuple(item.instance_id for item in self.admitted_support))
+        if any(item.status != "resolved" or item.effective_level == "unsupported" for item in self.admitted_support):
+            raise ValueError("admitted support promise requires resolved installed support")
         return self
 
 
@@ -113,6 +125,9 @@ class ParticipantControlSelectionV2Model(ParticipantControlSelectionModel):
             raise ValueError("required participant control profile has no obligations")
         if any(item.profile not in selected for item in self.obligations):
             raise ValueError("participant control obligation profile is not admitted")
+        from .participant_owner_flow_admission import validate_owner_flow_selection
+
+        validate_owner_flow_selection(self)
         return self
 
 
@@ -196,6 +211,10 @@ def _validate_applied_coverage(
             raise ValueError("participant control coverage does not map to an applicable typed slot")
         if obligation.profile not in bindings[slots[identity].instance_id].profiles:
             raise ValueError("participant control coverage slot does not select its owning profile")
+        if obligation.admitted_support and slots[identity].instance_id not in {
+            p.instance_id for p in obligation.admitted_support
+        }:
+            raise ValueError("participant control coverage lacks the instance's admitted support promise")
 
 
 def _coverage_roots(request: ParticipantControlRequestV2Model) -> set[str]:

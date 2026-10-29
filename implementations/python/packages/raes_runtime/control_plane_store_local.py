@@ -30,6 +30,7 @@ from .control_plane_store import (
     terminal_operation_audit,
 )
 from .control_plane_store_lease import RuntimeOwnerLease, require_single_worker_configuration
+from .control_plane_store_local_cache import SnapshotCache, SnapshotConnection
 from .control_plane_store_local_codec import (
     decode_payload as _decode_payload,
 )
@@ -39,6 +40,7 @@ from .control_plane_store_local_codec import (
 from .control_plane_store_local_codec import (
     transaction as _transaction,
 )
+from .control_plane_store_local_invocations import LocalInvocationStoreMixin
 from .control_plane_store_local_records import LocalOperationRecordStoreMixin
 from .control_plane_store_local_scope import LocalStoreScopeMigrationMixin
 from .control_plane_store_local_snapshot import LocalSnapshotRevisionStoreMixin
@@ -54,7 +56,8 @@ from .control_plane_store_paths import (
 )
 from .control_plane_store_record_migration import LOCAL_OPERATION_SCHEMA_VERSION, migrate_sqlite_schema
 from .control_plane_store_records import _audit_event_from_payload
-from .control_plane_store_snapshots import _snapshot_from_payload, _snapshot_payload
+from .control_plane_store_snapshots import _canonical_snapshot
+from .runtime_decision_store import SQLRuntimeDecisionStoreMixin, initialize_runtime_decisions
 
 _DATABASE_NAME = "control-plane.sqlite3"
 _SCHEMA_VERSION = LOCAL_OPERATION_SCHEMA_VERSION
@@ -70,6 +73,8 @@ def _participant_transition_count(snapshot: RuntimeSnapshot) -> int:
 
 
 class LocalControlPlaneStore(
+    SQLRuntimeDecisionStoreMixin,
+    LocalInvocationStoreMixin,
     LocalOperationRecordStoreMixin,
     LocalStoreScopeMigrationMixin,
     LocalSnapshotRevisionStoreMixin,
@@ -107,6 +112,7 @@ class LocalControlPlaneStore(
         self._database_identity: os.stat_result | None = None
         self._provider_closed = False
         self._admitted_scope: tuple[str, str] | None = None
+        self._snapshot_cache = SnapshotCache()
 
     def admit_runtime(self, *, target_scope: str, run_scope: str) -> RuntimeOwnerLease:
         """Acquire sole ownership, bind scope, and only then inspect SQLite."""
@@ -170,6 +176,7 @@ class LocalControlPlaneStore(
             self._database_identity = database_identity
             return lease
         except BaseException:
+            self._snapshot_cache.close()
             self._active_runtime_lease = None
             self._admitted_scope = None
             lease.close()
@@ -189,6 +196,7 @@ class LocalControlPlaneStore(
     def close(self) -> None:
         """Close provider resources without releasing the runtime-owner lease."""
 
+        self._snapshot_cache.close()
         self._provider_closed = True
 
     def commit_terminal_operation(
@@ -210,7 +218,7 @@ class LocalControlPlaneStore(
             existing = self._load_record(connection, record.receipt.operation_id)
             changed = _require_terminal_operation_transition(existing, record)
             if not changed:
-                canonical_snapshot = _snapshot_from_payload(_snapshot_payload(snapshot))
+                canonical_snapshot = _canonical_snapshot(snapshot)
                 current = self._load_snapshot_state(connection)
                 _require_terminal_retry_mode(
                     current_revision=current.revision,
@@ -229,7 +237,7 @@ class LocalControlPlaneStore(
                 return current
             current = self._require_expected_revision(connection, expected_revision)
             if mode is TerminalCommitMode.OPERATION_ONLY:
-                canonical_snapshot = _snapshot_from_payload(_snapshot_payload(snapshot))
+                canonical_snapshot = _canonical_snapshot(snapshot)
                 if current.snapshot != canonical_snapshot:
                     raise ValueError("operation-only terminal commit cannot change the durable snapshot")
                 committed = current
@@ -283,7 +291,7 @@ class LocalControlPlaneStore(
             existing = self._load_record(connection, record.receipt.operation_id)
             if existing == record:
                 _require_operation_audit_binding(record, audit_event)
-                canonical_snapshot = _snapshot_from_payload(_snapshot_payload(snapshot))
+                canonical_snapshot = _canonical_snapshot(snapshot)
                 current = self._load_snapshot_state(connection)
                 _require_terminal_retry_mode(
                     current_revision=current.revision,
@@ -338,6 +346,8 @@ class LocalControlPlaneStore(
             timeout=_BUSY_TIMEOUT_MILLISECONDS / 1000,
             isolation_level=None,
             uri=True,
+            factory=SnapshotConnection,
+            check_same_thread=False,
         )
         try:
             after = _secure_database_file(self._database_path, allow_missing=False)
@@ -357,6 +367,7 @@ class LocalControlPlaneStore(
     @contextmanager
     def _connection(self, *, allow_create: bool = False) -> Iterator[sqlite3.Connection]:
         connection, connected_metadata = self._connect(allow_create=allow_create)
+        connection.snapshot_cache = self._snapshot_cache
         try:
             yield connection
         finally:
@@ -414,6 +425,12 @@ class LocalControlPlaneStore(
             )
             with _transaction(connection):
                 self._bind_runtime_scope(connection, target_scope=target_scope, run_scope=run_scope)
+                initialize_runtime_decisions(connection)
+                from .control_plane_store_history_rows import initialize_history_rows
+                from .control_plane_store_sql_changes import initialize_operation_changes
+
+                initialize_operation_changes(connection)
+                initialize_history_rows(connection)
                 connection.execute(
                     "INSERT OR IGNORE INTO metadata(key, value) VALUES ('schema-version', ?)",
                     (_SCHEMA_VERSION,),

@@ -14,9 +14,6 @@ from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingOccurrenceModel,
     ParticipantCrossingOperation,
 )
-from raes_contracts.contracts.participant_crossing_validation import (
-    validate_participant_crossing_occurrence_context,
-)
 from raes_contracts.runtime_state import (
     OperationAdmissionContext,
     RuntimeSnapshot,
@@ -63,30 +60,27 @@ def _next_crossing_snapshot(
     intent: ParticipantCrossingIntent,
     records: list[ParticipantCrossingOccurrenceModel],
 ) -> RuntimeSnapshot:
-    history = list(control_plane._snapshot.participant_crossing_history.get(intent.participant_address, ()))
-    candidate_history = [
-        *history,
-        *(record.model_dump(mode="json", exclude_none=True) for record in records),
-    ]
+    from raes_contracts.contracts.participant_crossing_prefix import CrossingPrefix
+    from raes_contracts.immutable_history import seal_history
+
+    history = seal_history("participant_crossing_history", control_plane._snapshot.participant_crossing_history)
+    prefixes = getattr(control_plane, "_crossing_prefixes", None)
+    if prefixes is None:
+        prefixes = control_plane._crossing_prefixes = {}
+    prefix = prefixes.setdefault(intent.participant_address, CrossingPrefix())
+    prefix.refresh(history.get(intent.participant_address, prefix.history.__class__()))
     next_snapshot = control_plane._snapshot.with_entries(
         dict(control_plane._snapshot.entries),
-        participant_crossing_history={
-            **control_plane._snapshot.participant_crossing_history,
-            intent.participant_address: candidate_history,
-        },
+        participant_crossing_history=history.append(
+            intent.participant_address, (record.model_dump(mode="json", exclude_none=True) for record in records)
+        ),
     )
     with external_control_plane_call(control_plane):
         context = control_plane._crossing_policy_resolver.validation_context(
             control_plane._snapshot,
             intent.participant_address,
         )
-    validate_participant_crossing_occurrence_context(
-        [ParticipantCrossingOccurrenceModel.model_validate(item) for item in candidate_history],
-        known_subjects=context.known_subjects,
-        policies=context.policies,
-        known_evidence_refs=context.known_evidence_refs,
-        known_authority_basis_refs=context.known_authority_basis_refs,
-    )
+    prefix.validate_extension(records, context)
     return next_snapshot
 
 

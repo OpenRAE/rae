@@ -192,7 +192,7 @@ class RuntimeSudoRule(SDLModel):
         return parse_bool_or_var(v, field_name=info.field_name)
 
     @model_validator(mode="after")
-    def validate_redacted_commands(self) -> "RuntimeSudoRule":
+    def validate_redacted_commands(self) -> RuntimeSudoRule:
         if self.command_redacted is True and self.commands:
             raise ValueError("redacted sudo rules must omit commands")
         return self
@@ -207,7 +207,7 @@ class RuntimeLocalIdentityInventory(SDLModel):
     description: str = ""
 
     @model_validator(mode="after")
-    def validate_unique_identity_records(self) -> "RuntimeLocalIdentityInventory":
+    def validate_unique_identity_records(self) -> RuntimeLocalIdentityInventory:
         seen_usernames: set[str] = set()
         for user in self.users:
             if user.username in seen_usernames:

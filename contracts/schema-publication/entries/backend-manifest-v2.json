@@ -1,9 +1,9 @@
 {
-  "content_hash": "be543802e6518ee04254963a97bba5b33c9cf06715cff0a4cd107ffb6ab0316b",
+  "content_hash": "c55208e6cfd04f215f65142398091e0cc0e33284bf0534724f9845b4f5ec4757",
   "contract_id": "backend-manifest-v2",
   "last_change": {
-    "content_hash": "be543802e6518ee04254963a97bba5b33c9cf06715cff0a4cd107ffb6ab0316b",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "c55208e6cfd04f215f65142398091e0cc0e33284bf0534724f9845b4f5ec4757",
+    "summary": "Declare API-414 participant tool-profile semantics, typed capacities and evidence-backed tool features; preserve absent-block defaults."
   },
   "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
   "stability": "draft"

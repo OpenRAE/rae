@@ -70,9 +70,10 @@ class RelationshipType(str, Enum):
 class Relationship(SDLModel):
     """A typed directed edge between two named scenario elements.
 
-    Source and target can reference any named element in the scenario:
-    nodes, features, accounts, entities, or infrastructure entries.
-    The validator checks that both endpoints resolve.
+    ``source`` and ``target`` must each resolve to exactly one declaration
+    eligible as a relationship endpoint (SDL references §7). Typed relationship
+    types and typed details narrow the eligible declaration kinds (§5 and §7);
+    where several apply, an endpoint must satisfy all of them.
 
     The ``properties`` dict carries type-specific metadata (e.g.,
     ``trust_type: parent-child`` for AD trusts, ``protocol: SAML``
@@ -116,7 +117,7 @@ class Relationship(SDLModel):
         return normalize_enum_value(v)
 
     @model_validator(mode="after")
-    def validate_participant_detail(self) -> "Relationship":
+    def validate_participant_detail(self) -> Relationship:
         if (self.type == RelationshipType.PARTICIPANT) != (self.participant is not None):
             raise ValueError("participant relationship type and participant detail must be declared together")
         if self.participant is not None and (

@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Unpack
 
 import yaml
 from pydantic import ValidationError
 
+from ._composition_budget import ParsePrivateOptions
 from ._errors import SDLParseDiagnostic, SDLParseError
 from ._source_profile import DEFAULT_PARSER_LIMITS, SDLMigrationPolicy, SDLParserLimits, SDLSourceParseOptions
 from .materialization import MaterializedScenario
@@ -55,8 +57,13 @@ def format_sdl_source(
     *,
     path: Path | None = None,
     limits: SDLParserLimits = DEFAULT_PARSER_LIMITS,
+    **private_options: Unpack[ParsePrivateOptions],
 ) -> SDLFormatResult:
-    """Rewrite recognized migration syntax as strict ``sdl-yaml/v1`` YAML."""
+    """Rewrite recognized migration syntax as strict ``sdl-yaml/v1`` YAML.
+
+    The formatted output is parsed again; with *path*, its imports compose as in
+    ``parse_sdl()``, starting from the private ``_traversal`` when one is given.
+    """
     diagnostics: list[SDLParseDiagnostic] = []
     data = _load_normalized_data(
         content,
@@ -81,5 +88,6 @@ def format_sdl_source(
         path=path,
         skip_semantic_validation=True,
         limits=limits,
+        **private_options,
     )
     return SDLFormatResult(content=formatted, diagnostics=tuple(diagnostics))

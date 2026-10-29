@@ -561,7 +561,7 @@ variation_points:
             source,
             cursor_path="/variation_points/host-choice/target/owner",
         )["items"]
-    } >= {"payload", "primary"}
+    } == {"payload"}
     assert {
         item["label"]
         for item in language_completions(
@@ -600,3 +600,39 @@ def test_variation_fixture_corpus_covers_valid_invalid_composed_and_canonical_fo
     absent = parse_sdl_file(FIXTURE_DIR / "canonical" / "absent.yaml")
     empty = parse_sdl_file(FIXTURE_DIR / "canonical" / "empty.yaml")
     assert canonical_sdl_bytes(absent) == canonical_sdl_bytes(empty)
+
+
+def _count_member_admissions(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    admitted: list[str] = []
+    original = SemanticValidator._candidate_is_valid_for_slot
+
+    def counting(self, **slot: object) -> bool:
+        admitted.append(str(slot["candidate"]))
+        return original(self, **slot)
+
+    monkeypatch.setattr(SemanticValidator, "_candidate_is_valid_for_slot", counting)
+    return admitted
+
+
+def test_member_admission_does_not_blame_members_for_an_unrelated_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    payload = deepcopy(_family_payload())
+    payload["nodes"]["primary"]["features"]["undeclared-feature"] = ""
+    admitted = _count_member_admissions(monkeypatch)
+    validator = SemanticValidator(Scenario.model_validate(payload))
+
+    with pytest.raises(SDLValidationError) as caught:
+        validator.validate()
+
+    assert caught.value.errors
+    assert not any("candidate is invalid for target slot" in error for error in caught.value.errors)
+    assert admitted == []
+
+
+def test_member_admission_still_runs_on_a_clean_base(monkeypatch: pytest.MonkeyPatch) -> None:
+    admitted = _count_member_admissions(monkeypatch)
+
+    SemanticValidator(Scenario.model_validate(deepcopy(_family_payload()))).validate()
+
+    assert admitted

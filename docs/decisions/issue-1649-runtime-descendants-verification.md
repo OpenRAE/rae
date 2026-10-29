@@ -1,0 +1,31 @@
+# Runtime descendant checks for issue 1649
+
+The three requirements are already ACTIVE. This change adds their runtime descendant path.
+It leaves their statements and status intact.
+Each item below maps a clause or issue acceptance test to its owner.
+
+- [x] SEM-225: define rules for added effects that meet evidence, evaluation or operational needs. The rules cover effects visible in the environment or to a participant, and effects on comparability. Owner: `specs/sdl/materialization-attestation.md`, “Runtime descendant inventory”; code: `implementations/python/packages/raes_processor/planner/materialization_inventory.py:264`. Test: `implementations/python/tests/test_issue_1649_inventory_admission.py:143` checks open and closed augmentation permission before effects.
+- [x] SEM-218: distinguish binding author concerns from those left open to a processor or backend. Owner: `implementations/python/packages/raes_processor/planner/materialization_inventory.py:51`. Tests: `implementations/python/tests/test_issue_1649_inventory_provenance.py:24` and `:51` preserve author and processor origins and record a constrained backend choice.
+- [x] SEM-218: define when realization is allowed, honor explicit declarations and reject unsupported exact needs. Owner: `implementations/python/packages/raes_processor/planner/materialization_inventory.py:51`, which calls the original collection and native concern validators. Test: `implementations/python/tests/test_issue_1649_runtime_descendants.py:10` rejects a closed containing collection. Existing prepared-node and runtime-result tests retain exact-value checks.
+- [x] ASR-532: check results at the execution boundary against portable contracts, plan authority, domain ownership and state transition rules. Owners: `implementations/python/packages/raes_runtime/backend_inventory.py:28` and `:32`. Tests: `implementations/python/tests/test_issue_1649_inventory_admission.py:32` and `implementations/python/tests/test_issue_1649_supervised_inventory.py:15` cover invalid reports and the native proposal digest.
+- [x] ASR-532: keep the trusted predecessor and give structured diagnostics for a refusal. Owner: `implementations/python/packages/raes_runtime/backend_inventory.py:43`. Tests: `implementations/python/tests/test_issue_1649_inventory_admission.py:32` and `implementations/python/tests/test_issue_1649_inventory_durability.py:39` check the result, durable reload and saved retry.
+- [x] Issue acceptance: admit a child absent from the plan, a grandchild and a child created after apply, with stable addresses and lineage. Owner: `implementations/python/packages/raes_processor/planner/materialization_lineage.py:46`. Test: `implementations/python/tests/test_issue_1649_runtime_descendants.py:24` uses public manager calls.
+- [x] Issue acceptance: refresh and reload keep inventory and concern origins without changing authored SDL or manager internals. Owner: `implementations/python/packages/raes_runtime/manager_inventory.py:24`. Tests: `implementations/python/tests/test_issue_1649_runtime_descendants.py:24` and `implementations/python/tests/test_issue_1649_inventory_durability.py:10`. The HTTP test uses the existing authenticated mutation route.
+- [x] Issue acceptance: test author, processor and backend origins, including a constrained backend choice. Owner: `implementations/python/packages/raes_processor/planner/materialization_inventory.py:299`. Tests: `implementations/python/tests/test_issue_1649_inventory_provenance.py:24`, `:51` and `:71`.
+- [x] Issue acceptance: reject forbidden members, foreign or stale attempts, replay, duplicate identities, replacement, missing evidence, excess bounds and partial scans. Owner: `implementations/python/packages/raes_processor/planner/materialization_lineage.py:46`. Tests: `implementations/python/tests/test_issue_1649_inventory_admission.py:32` and `implementations/python/tests/test_issue_1649_inventory_bounds.py:11`. Rejected claims keep the trusted predecessor.
+- [x] Issue acceptance: retain direct snapshot-write refusal and publish the public backend route. Owner: `implementations/python/packages/raes_runtime/backend_calls.py`; tests retain the existing backend-result guards. Guide: `docs/explain/reference/runtime-descendant-inventory.md`. It explains negotiation, read-only refresh, receipts, lifecycle, archive delivery and the dependency change from 7.0.0.
+
+The retained research captures replay their bounded corpora against the changed source.
+They do not claim to prove the new native receipt semantics.
+The issue tests supply that evidence within the limits of a controlled backend.
+Native creator attribution and receipt authenticity remain producer responsibilities.
+
+The public refresh facade uses the same lifecycle guard as other control-plane calls.
+The existing all-public-method guard test and the closed-plane refresh test check this boundary.
+
+The SonarCloud repair separates typed checks for binding, membership, lifecycle and concern origin.
+The 260 targeted checks include legacy materialization, observation and credential rules.
+
+Orchestration and evaluation reports cannot seed unchecked inventory metadata.
+Both negative cases first reproduced acceptance of an incomplete report.
+The shared binding check now rejects them and retains the trusted predecessor.

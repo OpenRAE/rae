@@ -1,5 +1,12 @@
 # SDL Sections Reference
 
+Cloud projects and accounts use resource scopes within `runtime.identity_authorities`.
+The same owner describes workload identity use and resource-policy attachment.
+`runtime.platform_applications` can describe service-owned secrets, versions and consumer selections.
+These optional descriptions do not imply deployment, effective access or secret disclosure.
+See [cloud resource access](../../../specs/sdl/cloud-resource-access.md)
+and the [cross-project example](../../../examples/scenarios/cloud-secret-cross-project.sdl.yaml).
+
 A scenario is a YAML document with a required top-level `name`, optional
 top-level metadata and composition fields, and the authoring sections catalogued
 below. Aside from `name`, every top-level field is optional. The normative,
@@ -2142,7 +2149,10 @@ Refs fail closed: participants must resolve to declared `agents`, roles must
 match roles of agent-bound entities, action contracts and observation
 boundaries must resolve to their registries, outcome rules must resolve to
 `outcome_interpretation_rules`, and `authority_scope_refs` must resolve to
-targetable named scenario elements. `behavior_mode` is validated against the
+eligible authority scopes: participants, organizations, resources,
+relationships, or behavior surfaces such as action contracts and observation
+boundaries, never propositions, assertions, conditions, narrative entries, or
+variation points. `behavior_mode` is validated against the
 governed `participant-decision-surface-modes` vocabulary.
 External behavior classifications use standalone concept binding documents.
 ATT&CK, ATLAS and NIST CSF remain optional pinned source catalogs, not governed
@@ -2152,19 +2162,107 @@ realization or conformance.
 `tool_affordances` is a closed, participant-local mapping. Its keys identify
 authored affordance bindings; each value may name one governed scenario
 `content` identity and must name non-empty action-contract and observation-
-boundary sets. The binding reference
-`behavior_specifications.<spec>.tool_affordances.<id>` must be explicitly
-classified by each referenced observation boundary. Presence means authored
-availability only: visibility, apparatus support, eligibility, admission,
-realization, effects, constraints, and evidence remain on their existing
-contracts and do not follow from the binding.
+boundary sets.
+
+Behavior specifications may be declared locally or exported by a reusable
+module. References to the unit's declarations are rewritten into each import's
+namespace. Other references resolve against the complete composed scenario;
+missing or ambiguous targets fail validation. `participant_role_refs` selects
+all matching participants across that scenario, including unexported ones.
+Use explicit `participant_refs` when a reusable tool binding must select only
+the unit's own participants. Namespacing does not silently narrow a role.
+Authored refs must use exported names; `__private` is reserved for composition.
+Behavior `semantic_version` labels must be nonblank. See the
+[composition decision and migration guidance](../../decisions/issue-297-behavior-authoring.md).
+Reusing or importing a behavior specification reuses its mixed-control
+permissions. It creates, copies, or replays no control occurrence. Each
+application of a permission is its own occurrence, and no declaration grants
+live runtime authorization.
+
+The binding reference `behavior_specifications.<spec>.tool_affordances.<id>`
+must be explicitly classified by each referenced observation boundary.
+Presence means authored availability only: visibility, apparatus support,
+eligibility, admission, realization, effects, constraints, and evidence remain
+on their existing contracts and do not follow from the binding.
+
+An imported unit's `tool_ref` binds the unit's own content, bare or as
+`content.<name>`. A bare name given to two declarations fails composition,
+as it does in the unit alone. See the
+[tool authoring decision](../../decisions/issue-298-tool-authoring.md).
+
+A participant tool profile is the `tool_affordances` of one behavior
+specification together with that specification's participant and role
+selection. There is no separate profile section. The specification address
+identifies the profile, and each binding keeps its own address. A binding may
+add `participant_refs` and `participant_role_refs`. These selectors only
+narrow the specification's selection:
+
+```yaml
+behavior_specifications:
+  toolkit:
+    semantic_version: "1.0.0"
+    participant_role_refs: [blue, white]
+    action_contract_refs: [scan-active, scan-passive]
+    observation_boundary_refs: [blue-view, white-view]
+    tool_affordances:
+      scanner-blue: {tool_ref: nmap, participant_role_refs: [blue],
+                     action_contract_refs: [scan-active], observation_boundary_refs: [blue-view]}
+      scanner-white: {tool_ref: nmap, participant_role_refs: [white],
+                      action_contract_refs: [scan-passive], observation_boundary_refs: [white-view]}
+```
+
+- A binding is scoped when either selector list is non-empty and unscoped when
+  both are empty. An unscoped binding applies to every participant the
+  specification selects. A scoped binding that resolves to no participant is
+  offered to none.
+- Binding selectors use the specification's participant and role resolution
+  over the whole composed scenario. A binding role selector therefore reaches
+  every participant with that role. If one of them is outside the
+  specification's selection, the binding fails validation, even when that
+  participant was added elsewhere in the scenario. Use binding role selectors
+  under a role-selected specification and explicit `participant_refs`
+  otherwise. Roles stay global across imports, so in a module imported more
+  than once a role-scoped binding over module-local actions fails; use
+  explicit `participant_refs` there.
+- Every participant a binding selects must declare the binding's actions and
+  observation boundaries. Explicit selector refs must use exported names.
+- Bindings add up. A participant receives every binding that selects it, each
+  under its own address, with no order, precedence, merge, or override. Two
+  bindings with the same tool, actions, and boundaries are duplicates even
+  when their selectors differ; write one binding with the combined selector.
+- Roles receive different invocation constraints by binding different action
+  contracts, and different visibility through different observation
+  boundaries. A binding carries no constraint body. Every binding that selects
+  a participant and names an action must share that action's disposition in
+  the participant's projection.
+- Nothing else makes a binding available: not `tool_ref`, installed content,
+  manifest tool expectations, interactive access, visibility, an exposure
+  policy, or an affiliation.
+- A profile does not gate admission. A participant may invoke any action it
+  declares and its specification admits, with or without a binding.
+- A decision surface projected for one participant and one specification
+  carries only that specification's bindings.
+- `participant-decision-surface-v1` refuses a specification that contains a
+  scoped binding; project it with `participant-decision-surface-v2`.
+- `semantic_version` is an authored label. Nothing checks it against the
+  module version or the profile content. Evidence identifies the profile by
+  its address and pins its content through the instantiated-snapshot digest.
+- One profile cannot span participants that need different `behavior_mode`,
+  `autonomous_execution`, `mixed_control`, or `realization_profile_ref`
+  values; declare one specification for each.
+
+See the [tool-profile decision](../../decisions/issue-301-participant-tool-profiles.md)
+and the [migration notes](../../migration/participant-tool-profiles.md).
 
 Compiled behavior specifications use stable
 `participant.behavior-specification.<name>` addresses and preserve dependency
 links to the participant behavior, action contract, observation boundary, and
 outcome-rule runtime addresses. Each nested affordance compiles independently
 at `participant.behavior-specification.<name>.tool-affordance.<id>` with raw
-refs and resolved content/action/observation addresses.
+refs and resolved content/action/observation addresses. A scoped binding also
+records its raw selector refs and resolved participant addresses; an unscoped
+binding records empty selector fields and reaches its specification's scope
+through the specification address.
 
 `participant_inject_deliveries` is a closed, keyed mapping for explicit
 participant-directed delivery. Each binding has exactly one `participant_ref`
@@ -2184,8 +2282,33 @@ controller state. The effective order must also fall inside the delivery's
 bounded temporal constraints, and its control evidence must be covered by the
 named evidence requirements.
 
+When the owning policy uses the reusable form described below, a directed
+delivery instead carries one closed nested `control` block. The block names
+`semantics`, the control `policy_revision`, one `permitted_transition_ref`, a
+`controller_ref`, `authority_scope_refs`, and `evidence_refs`. It excludes the
+flat `control_*` fields, and a disclosure must not carry it. The controller is
+the permitted transition's source-state controller. The scope may narrow that
+state's scope but never widen it. The evidence must lie within the transition
+and source-state evidence, and the named requirements must cover it. The block
+pins the control policy; `delivery_policy.policy_revision` pins the delivery
+policy. The two revisions are never compared. The block names a permission,
+not an occurrence, and it compares no order with a tick. Each realized delivery
+must join one exact accepted control occurrence of that permission
+([MC-09](../../../specs/formal/participant-semantics/reusable-mixed-control.md#mc-09--participant-directed-injects)).
+
 The result item must be explicitly observable or disclosed by the named
-boundary, and its visibility/disclosure bases must match the delivery policy.
+boundary. The same admitted view rule must supply the matching visibility and
+disclosure bases; a hidden rule cannot supply the basis for another rule.
+Every control scope and evidence reference must resolve individually before
+the canonical scope and evidence comparisons. Semantic-only authority and
+evidence anchors retain their authored references without gaining runtime
+addresses. Required source and result items must each project to exactly one
+runtime address; otherwise compilation reports a diagnostic and withholds the
+delivery record.
+The trusted occurrence-policy projection uses the compilation declaration index
+to resolve each authority and scope reference individually. It retains canonical
+semantic-only anchors alongside runtime addresses, including when both occur in
+one field; authored aliases do not become distinct authority identities.
 The temporal and evidence declarations must bind the delivery declaration
 itself. Environment-only injects remain orchestration input and do not create a
 delivery implicitly. Compilation retains canonical participant, inject,
@@ -2256,6 +2379,112 @@ and cancellation remain distinct control facts. Admission, execution,
 observation, wire contracts, and live histories belong to downstream runtime
 surfaces.
 
+### Reusable mixed-control policies and occurrences
+
+The form above is the legacy fixed-coordinate form. A `mixed_control` without
+`semantics` keeps that meaning. The reusable form is selected only by
+`semantics: mixed-control-policy-occurrence/rev1` and a required `form`.
+Missing fields and graph shape never select it.
+[ADR-110](../../decisions/adrs/adr-110-reusable-mixed-control-policies-and-occurrences.md)
+and [MC-01 to MC-09](../../../specs/formal/participant-semantics/reusable-mixed-control.md)
+define the meaning.
+
+```yaml
+mixed_control:
+  semantics: mixed-control-policy-occurrence/rev1
+  form: reusable-policy
+  participant_ref: red-agent
+  policy_revision: 1.0.0
+  order_strategy: total-effective-order
+  initial_state_ref: autonomous
+  dispositions:
+    duplicate: idempotent-if-equivalent
+    stale: reject-no-state-change
+    revoked: reject-no-state-change
+    late: reject-no-state-change
+    concurrent: order-then-revalidate
+    conflict: reject-no-state-change
+  controller_states:
+    autonomous:
+      controller_ref: self
+      authority_basis_refs: [entities.red-team]
+      scope_refs: [nodes.web]
+      policy_revision: 1.0.0
+      valid_from_order: 0
+      valid_until_order: 1000
+      authority_status: active
+      evidence_refs: [entities.red-team]
+    supervised:
+      controller_ref: supervisor-agent
+      authority_basis_refs: [entities.blue-team]
+      scope_refs: [nodes.web]
+      policy_revision: 1.0.0
+      valid_from_order: 0
+      valid_until_order: 1000
+      authority_status: active
+      evidence_refs: [entities.blue-team]
+  permitted_transitions:
+    take:
+      transition_kind: handoff
+      from_state_ref: autonomous
+      to_state_ref: supervised
+      valid_from_order: 0
+      valid_until_order: 1000
+      evidence_refs: [entities.red-team]
+      completion_evidence_refs: [entities.blue-team]
+    return:
+      transition_kind: handoff
+      from_state_ref: supervised
+      to_state_ref: autonomous
+      valid_from_order: 0
+      valid_until_order: 1000
+      evidence_refs: [entities.blue-team]
+      completion_evidence_refs: [entities.red-team]
+```
+
+A permitted transition is a reusable permission (MC-01). It names a kind,
+source and destination states, an order window, and evidence. It has no fixed
+state revision, effective order, or proposal identity. Each permission compiles
+to one child, not one child per visit. Only an `external-direction` edge lists
+`target_kinds`; every other kind uses its fixed MC-05 target set. Only a
+`handoff` edge requires `completion_evidence_refs`, and only a handoff may
+change the resolved controller. Every state an edge enters must hold active
+authority whose window meets the edge window. Order windows and step
+revisions are exact integers from 0 to 1,000,000.
+
+A `reusable-policy` permits any finite trace that its edges and the ordinary
+gates admit. An edge never schedules itself, and a cycle authorizes no
+automatic firing (MC-02). A `finite-script` adds an ordered list of
+`script_steps`. Each step names one edge and may narrow its exact revision,
+window, `target_kind`, or `target_step_ref`. A step never widens its edge. An
+application must match the current step, only acceptance advances the cursor,
+and an exhausted script admits nothing.
+
+Each application of a permission is one API-409
+`participant-control-occurrence-v2` occurrence
+([schema](../../../contracts/schemas/participant-runtime/participant-control-occurrence-v2.json)).
+It has a fresh event identity and its exact edge ref, plus exact prior and
+resulting states. Every accepted kind advances the state revision by exactly
+one, same-state kinds included (MC-03). Its `occurrence_revision` is a
+participant-wide position, not a state revision. It carries the acting source
+controller, authority basis, and scope (MC-04), and an `accepted` or
+`rejected` disposition. An accepted occurrence also carries its admitted
+`effective_order` and its evaluated bounds, `valid_from_order` and
+`valid_until_order`. The bounds are the inclusive intersection of the edge,
+step, source-state, and destination-state order windows, and they contain the
+order (MC-01, MC-06). These are control-order positions, not clock time. Only
+`accepted` advances state. A rejected occurrence keeps the attempted and
+observed values apart and asserts no validity bounds.
+
+The rev1 form validates and compiles. Planning refuses it for every backend
+with `participant.mixed-control-semantics-unsupported`. The reference runtime
+refuses execution admission with `runtime.mixed-control-semantics-unsupported`,
+and the control plane refuses rev1 specifications at construction. No runtime
+executes the form. The
+[finite-script conversion record](../../migration/mixed-control-finite-script-conversion.md)
+explains when a legacy declaration converts and when conversion needs an
+author decision.
+
 ---
 
 ## Evidence Requirements
@@ -2301,7 +2530,7 @@ objectives:
     owner: red-team                    # organizational responsibility
     assigned_participant: red-agent    # explicit pursuit assignment
     actions: [Scan, Exploit]           # global contracts, also available to assignee
-    targets:                           # any named scenario elements except variables/objectives/workflows
+    targets:                           # participants, organizations, resources, relationships, propositions, or assertions
       - web-server
       - app-to-db
       - nodes.web-server.services.https
@@ -2330,10 +2559,17 @@ declared action contract, including on unassigned objectives. When assigned,
 the actions must also be available to that participant. Shared affiliation never
 assigns an objective; unassigned organizational intent creates no runtime work.
 `success` is required and must reference at least one declared invariant or
-postcondition assertion. `targets` are optional, but when present they must
-resolve to named scenario elements. Bare target refs work when unambiguous;
+postcondition assertion. `targets` are optional, but when present each must
+resolve to an eligible objective subject: a participant, organization,
+resource, relationship, proposition, or assertion
+([reference purposes and eligibility](../../../specs/sdl/references.md#7-reference-purposes-and-eligibility)).
+Conditions, narrative entries, behavior surfaces such as action contracts,
+variation points, and support declarations such as variables, objectives, and
+workflows are refused. Bare target refs work when unambiguous;
 otherwise use a qualified ref such as `nodes.web-server`, `features.app-to-db`,
-or `content.mailbox.items.invoice.eml`. `window` is optional; when supplied,
+or `content.mailbox.items.invoice.eml`. A bare name that a refused declaration
+shares, such as a node and a condition both named `web`, stays ambiguous.
+`window` is optional; when supplied,
 referenced stories/scripts/events/workflows must exist and remain internally
 consistent. Workflow steps use qualified refs of the form `<workflow>.<step>`.
 
@@ -2528,3 +2764,13 @@ contracts. They may reference SDL scenarios or scenario snapshots, but they are
 not SDL sections.
 
 Backend-specific auto-validation mechanics still live outside the SDL. The runtime may use Wazuh queries, command probes, file checks, or other adapters to determine whether an SDL-declared objective or observable condition has been satisfied, but those probe details are not the language itself.
+
+## Participant control context
+
+`control_context_assets` names immutable ACT-620 descriptors.
+Agents and reusable behavior specifications select them through `control_context` slots.
+Each selection states a declaration reference, exact asset reference triple, and selected or withheld intent.
+Declaration and selection grant no visibility, delivery, or permission.
+See the [normative contract](../../../specs/sdl/participant-control-context.md),
+[examples](../../../examples/scenarios/participant-control-context/README.md), and
+[migration guidance](control-context-migration.md).

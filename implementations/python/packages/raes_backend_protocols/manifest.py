@@ -129,6 +129,7 @@ def backend_manifest_v2_model(manifest: BackendManifest) -> BackendManifestV2Mod
         ],
         constraints=dict(manifest.constraints),
         capabilities={
+            "operation_supervision": manifest.operation_supervision,
             "provisioner": provisioner_capability_payload(manifest.provisioner),
             "orchestrator": (
                 {
@@ -168,6 +169,7 @@ def backend_manifest_v2_model(manifest: BackendManifest) -> BackendManifestV2Mod
                         )
                         for entry in manifest.participant_runtime.feature_support
                     ],
+                    "tool_profiles": manifest.participant_runtime.tool_profiles,
                     "supports_autonomous_execution": manifest.participant_runtime.supports_autonomous_execution,
                     "supported_autonomous_selection_strategies": sorted(
                         manifest.participant_runtime.supported_autonomous_selection_strategies
@@ -346,6 +348,7 @@ def _participant_runtime_from_model(
         supported_behavior_features=frozenset(model.supported_behavior_features),
         supported_interaction_features=frozenset(model.supported_interaction_features),
         feature_support=tuple(_participant_feature_support_from_model(entry) for entry in model.feature_support),
+        tool_profiles=model.tool_profiles,
         supports_autonomous_execution=model.supports_autonomous_execution,
         supported_autonomous_selection_strategies=frozenset(model.supported_autonomous_selection_strategies),
         supported_autonomous_action_contracts=frozenset(model.supported_autonomous_action_contracts),
@@ -423,6 +426,7 @@ def _capability_set_from_model(model: BackendCapabilitiesV2Model) -> BackendCapa
         participant_runtime=_participant_runtime_from_model(model.participant_runtime),
         observation=observation_from_model(model.observation),
         cleanup=_cleanup_from_model(model.cleanup),
+        operation_supervision=model.operation_supervision,
         time=_time_from_model(model.time),
         recovery_observation=_recovery_observation_from_model(model.recovery_observation),
     )

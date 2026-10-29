@@ -1,10 +1,15 @@
 """Participant-runtime capability declarations and evidence requirements."""
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 
 from pydantic import TypeAdapter
 from raes_contracts.addressing import require_compiled_address
+from raes_contracts.contracts.feature_support import ParticipantFeatureSupportModel
 from raes_contracts.contracts.participant_execution import ParticipantExecutionBindingModel
+from raes_contracts.contracts.participant_tool_support import (
+    ParticipantToolProfilesModel,
+    validate_tool_feature_support,
+)
 from raes_contracts.controlled_vocabularies import validate_controlled_vocabulary_scope_values
 from raes_contracts.manifest_authority import (
     PARTICIPANT_RUNTIME_BEHAVIOR_FEATURE_SCOPE,
@@ -185,6 +190,7 @@ class ParticipantRuntimeCapabilities:
     supported_behavior_features: frozenset[str] = frozenset()
     supported_interaction_features: frozenset[str] = frozenset()
     feature_support: tuple[ParticipantFeatureSupport, ...] = ()
+    tool_profiles: ParticipantToolProfilesModel | None = None
     supports_autonomous_execution: bool = False
     supported_autonomous_selection_strategies: frozenset[str] = frozenset()
     supported_autonomous_action_contracts: frozenset[str] = frozenset()
@@ -214,6 +220,17 @@ class ParticipantRuntimeCapabilities:
         self._validate_required_vocabularies()
         feature_support = self._normalize_feature_support()
         self._validate_feature_support(feature_support)
+        profiles = (
+            ParticipantToolProfilesModel.model_validate(self.tool_profiles.model_dump(mode="json"))
+            if self.tool_profiles is not None
+            else None
+        )
+        validate_tool_feature_support(
+            profiles,
+            (ParticipantFeatureSupportModel.model_validate(asdict(entry)) for entry in feature_support),
+            self.supported_behavior_features,
+        )
+        object.__setattr__(self, "tool_profiles", profiles)
         execution_bindings = tuple(
             binding if isinstance(binding, ParticipantExecutionBinding) else ParticipantExecutionBinding(**binding)
             for binding in self.execution_bindings

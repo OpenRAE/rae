@@ -6,7 +6,7 @@ type: NON_FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-05-18T04:25:47.598518Z
-updated_at: 2026-08-19T00:00:00Z
+updated_at: 2026-10-21T00:00:00Z
 ---
 
 # ASR-532 — Runtime Backend Result Integrity
@@ -30,6 +30,33 @@ requirement.
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_scheduler_initialization.py` (Autonomous initialization uses participant-scoped result admission)
+- TESTS → TEST `implementations/python/tests/test_issue_1439_participant_initialization.py` (Reject initialization metadata mutation and accepted resource deletion)
+
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_admission.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_bounds.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_durability.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_http.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_supervised_inventory.py`
+
+- IMPLEMENTS → GITHUB_ISSUE `1649` (Runtime descendant reports and refresh)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/inventory.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_inventory.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_materialization.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_observation_calls.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_inventory.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_submission.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_supervised_execution.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager_inventory.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager_plan_admission.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_inventory_binding.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_provider_execution.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_result_finalization.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/registry_target_validation.py`
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_account_credentials.py` (Credential closure with admitted safe observation fragments)
+- TESTS → TEST `implementations/python/tests/test_issue_1638_credential_realization_observations.py` (Credential and observation admission composition)
+
 - TESTS → TEST `implementations/python/tests/test_issue_1481_parameter_authority.py` (Runtime rejection of changed selected parameter outputs)
 
 - TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (Completion regression: replay compiled carriers and participant admission at the current source identity)
@@ -38,8 +65,6 @@ requirement.
 - TESTS → TEST `implementations/python/tests/test_act_604_dynamic_information_state.py`
 - TESTS → TEST `implementations/python/tests/test_backend_manifest.py`
 - TESTS → TEST `implementations/python/tests/test_initial_service_state.py`
-- TESTS → TEST `implementations/python/tests/test_libvirt_backend_techvault_honesty.py`
-- TESTS → TEST `implementations/python/tests/test_libvirt_backend_techvault_native.py`
 - TESTS → TEST `implementations/python/tests/test_realization_honesty_conformance.py`
 - TESTS → TEST `implementations/python/tests/test_run_305_participant_runtime_state_history.py`
 - TESTS → TEST `implementations/python/tests/test_run_307_shared_operational_state.py`
@@ -128,12 +153,6 @@ requirement.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_specialized_projection.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_support.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_typed_runtime_projection.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/evaluator.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/manifest.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/orchestrator.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/profile_preparation.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/provisioner.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/target.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/apply_failure.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_call_contracts.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_calls.py`
@@ -149,7 +168,7 @@ requirement.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_execution.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_plan_authorization.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_snapshots.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/interaction.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/observation_admission.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_effect_authority.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_execution_control_boundary.py`
@@ -184,6 +203,7 @@ requirement.
 - TESTS → TEST `implementations/python/tests/test_issue_1204_specialized_constraints.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1204_substrate_handoff.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1204_targeted_effects.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1421_time_readback_isolation.py` (A time runtime that rewrites its readback snapshot argument changes neither the authoritative snapshot nor the agreement check)
 - TESTS → TEST `implementations/python/tests/test_issue_158_runtime_result_integrity.py`
 - TESTS → TEST `implementations/python/tests/test_issue_898_participant_execution_control.py`
 - TESTS → TEST `implementations/python/tests/test_issue_899_participant_resource_budgets.py`
@@ -192,3 +212,6 @@ requirement.
 - TESTS → TEST `implementations/python/tests/test_runtime_manager.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/profile_selections.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1208_profile_boundaries.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/interaction_results.py` (Validation of runtime-composed snapshots)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/interaction_dispatch.py` (One admitted backend and terminal-result boundary)
+- TESTS → TEST `implementations/python/tests/test_issue_1660_runtime_lifetime.py` (Single-owner refresh, run identity, result integrity and retained exclusion)

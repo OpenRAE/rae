@@ -18,7 +18,7 @@ class Inject(SDLModel):
     environment: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def validate_entity_pairing(self) -> "Inject":
+    def validate_entity_pairing(self) -> Inject:
         has_from = bool(self.from_entity)
         has_to = bool(self.to_entities)
         if has_from != has_to:
@@ -74,7 +74,7 @@ class Script(SDLModel):
         return v
 
     @model_validator(mode="after")
-    def validate_time_bounds(self) -> "Script":
+    def validate_time_bounds(self) -> Script:
         if isinstance(self.start_time, int) and isinstance(self.end_time, int) and self.end_time < self.start_time:
             raise ValueError(f"Script end_time ({self.end_time}s) must be >= start_time ({self.start_time}s)")
         for event_name, event_time in self.events.items():

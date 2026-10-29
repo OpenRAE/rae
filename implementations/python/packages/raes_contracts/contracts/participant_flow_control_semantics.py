@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Annotated, Literal
+from typing import Annotated, ClassVar, Literal
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import ConfigDict, Field, field_validator, model_validator
 
 from ..canonical import canonical_json_digest
 from ..versions import PARTICIPANT_BOUNDARY_FLOW_POLICY_V1_SCHEMA_VERSION
@@ -38,12 +38,17 @@ def _require_canonical_refs(values: tuple[str, ...], label: str) -> None:
 class ParticipantFlowRuleReferenceModel(ContractModel):
     """Exact identity of one declarative rule used by the flow profile."""
 
+    model_config = ConfigDict(frozen=True)
+
     rule_ref: NonEmptyString
     rule_revision: NonEmptyString
 
 
 class ParticipantBoundaryFlowPolicyProfileModel(ContractModel):
     """Immutable, non-executable two-coordinate SEM-233 flow algebra profile."""
+
+    model_config = ConfigDict(frozen=True)
+    _published_digest: ClassVar[str] = PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_REV1_DIGEST
 
     schema_version: Literal[PARTICIPANT_BOUNDARY_FLOW_POLICY_V1_SCHEMA_VERSION] = (
         PARTICIPANT_BOUNDARY_FLOW_POLICY_V1_SCHEMA_VERSION
@@ -88,7 +93,7 @@ class ParticipantBoundaryFlowPolicyProfileModel(ContractModel):
             raise ValueError("unknown integrity obligation must belong to its declared universe")
         if self.nonclaims != _PROFILE_NONCLAIMS:
             raise ValueError("nonclaims must exactly match the canonical SEM-233 contract boundary")
-        if self.canonical_digest != PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_REV1_DIGEST:
+        if self.canonical_digest != self._published_digest:
             raise ValueError("participant boundary flow profile must match the exact published rev1 artifact")
         return self
 
@@ -165,7 +170,7 @@ class ParticipantFlowRelationTargetKind(str, Enum):
 
 
 class ParticipantFlowProfileReferenceModel(ContractModel):
-    profile_id: Literal["participant-boundary-flow-policy-v1"]
+    profile_id: Literal["participant-boundary-flow-policy-v1", "participant-owner-flow-policy-v1"]
     profile_revision: FlowProfileRevision
     profile_digest: PrefixedDigestString
     authority_revision: FlowAuthorityRevision

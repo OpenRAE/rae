@@ -34,3 +34,6 @@ Current state: implemented. Planning needs normative semantics so lifecycle deci
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1103-bounded-dependency-cycle-detection-preflight.md` (Iterative graph-traversal decision and compatibility boundary)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/planner.py` (Iterative strongly-connected dependency analysis)
 - TESTS → TEST `implementations/python/tests/test_semantics_planner.py` (Cycle-oracle, long-chain, and deterministic-order regressions)
+- IMPLEMENTS → SPEC `contracts/schemas/plans/evaluation-plan-v1.json` (evaluation-plan-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/plans/orchestration-plan-v1.json` (orchestration-plan-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/plans/provisioning-plan-v1.json` (provisioning-plan-v1 published schema)
