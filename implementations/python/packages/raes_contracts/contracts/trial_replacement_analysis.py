@@ -271,12 +271,9 @@ def _leaf_run(
 
 
 def _eligible(run: ExperimentRunModel | None, policy: TrialReplacementPolicyModel | None) -> bool:
-    return (
-        run is not None
-        and run.run_status not in {"invalidated", "superseded"}
-        and run.outcome_status != "not-evaluated"
-        and not (policy and policy.max_replacements and run.run_status in policy.replace_on)
-    )
+    from .experiment_analysis_eligibility import experiment_run_is_analysis_eligible
+
+    return experiment_run_is_analysis_eligible(run, policy)
 
 
 def _exhausted(

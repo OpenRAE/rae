@@ -181,6 +181,7 @@ class RuntimeTrialUnit:
                 TrialObservationDecision(
                     execution_attempt_id=request.execution_attempt_id,
                     observation=observation,
+                    observed_at=datetime.now(UTC).isoformat(),
                     snapshot_json=(
                         json.dumps(_snapshot_payload(result.snapshot), sort_keys=True, separators=(",", ":"))
                         if observation.kind == "configuration"
@@ -318,6 +319,7 @@ class RuntimeTrialUnit:
             TrialObservationDecision(
                 execution_attempt_id=request.execution_attempt_id,
                 observation=observation,
+                observed_at=datetime.now(UTC).isoformat(),
                 snapshot_json=json.dumps(_snapshot_payload(run.snapshot), sort_keys=True, separators=(",", ":")),
             )
         )

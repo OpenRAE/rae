@@ -14,6 +14,8 @@ def validate_run_timing(run: ExperimentRunModel) -> None:
     """Require a non-negative archival run interval."""
 
     started_at = _parse_rfc3339_datetime("started_at", run.started_at)
+    if run.ended_at is None:
+        return
     ended_at = _parse_rfc3339_datetime("ended_at", run.ended_at)
     if ended_at < started_at:
         raise ValueError("ended_at must be greater than or equal to started_at")

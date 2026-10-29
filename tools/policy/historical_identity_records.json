@@ -339,9 +339,9 @@
     {
       "path": "docs/decisions/adrs/adr-065-experiment-run-provenance-contract-boundary.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves pre-cutover identity occurrences in the accepted decision, including the authorized issue-1630 complete experiment accounting amendment.",
       "occurrences": 1,
-      "content_sha256": "c1367c7aaa834b73fcd5d992d0ed8a406af24196d11321e8f8ccb4912e7f2683"
+      "content_sha256": "b579182ce8c13098a282cf996ffce3015fda76c679e81fd0e8e2a09fca4a0c86"
     },
     {
       "path": "docs/decisions/adrs/adr-066-observability-evidence-plane-separation.md",
@@ -353,9 +353,9 @@
     {
       "path": "docs/decisions/adrs/adr-068-experiment-trials-replication-and-replay-claims.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves pre-cutover identity occurrences in the accepted decision, including the authorized issue-1630 complete experiment accounting amendment.",
       "occurrences": 2,
-      "content_sha256": "82bedbc4d5ab7652f35a1458f34a8052133fdb93258a8e0b26ce9e144672db0f"
+      "content_sha256": "3c29e3670e884622c4061bf61be802a8efe78c3f0633ba1ee48715a42d19ff6b"
     },
     {
       "path": "docs/decisions/adrs/adr-069-cage-2-replication-architecture.md",
@@ -493,9 +493,9 @@
     {
       "path": "docs/decisions/adrs/adr-index.yaml",
       "record_class": "historical-index",
-      "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
+      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630 amendments and their pins.",
       "occurrences": 4,
-      "content_sha256": "f8cf54a866d759df5ec63c0f10eaa027ec4e8fe1958dc179eecfb9835d0b13ff"
+      "content_sha256": "4dfe73966a9bf6ebc4a6975686003f6d8cb09f43e7a200d73df664e0a889d5d8"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",

@@ -54,7 +54,9 @@ def _plan(run: object, run_id: str) -> object:
     )
 
 
-@pytest.mark.parametrize("method", ["advance_experiment", "cancel_experiment", "experiment_results"])
+@pytest.mark.parametrize(
+    "method", ["advance_experiment", "cancel_experiment", "experiment_results", "experiment_records"]
+)
 def test_unknown_experiment_is_not_found_rather_than_a_key_error(method: str) -> None:
     with RuntimeControlPlane(create_stub_target()) as engine:
         operation = getattr(engine, method)

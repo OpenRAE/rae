@@ -37,12 +37,19 @@ __all__ = (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Mapping
 
+    from raes_contracts.contracts import ExperimentStudyModel
     from raes_contracts.trial_unit import TrialUnitResult
     from raes_processor.trial_realization import TrialRealizationInputs
 
     from .control_plane_store import ControlPlaneStore
+    from .experiment_records import (
+        ExperimentEvidenceReader,
+        ExperimentRecordArchive,
+        ExperimentRecordBundle,
+        ExperimentRunMetadata,
+    )
     from .runtime_experiment import ExperimentProgress, RuntimeExperiment
     from .runtime_experiment_replacement import ExperimentReplacementBinding
     from .runtime_sequence_authority import RuntimeSequenceOptions
@@ -114,6 +121,30 @@ class RuntimeControlPlane(RuntimeRunContext):
     def experiment_results(self, experiment_id: str, *, identity: object | None = None) -> tuple[TrialUnitResult, ...]:
         self._assert_runtime_owner()
         return self._admitted_experiment(experiment_id).results(identity)
+
+    @runtime_owned
+    def experiment_records(
+        self,
+        experiment_id: str,
+        *,
+        identity: object | None = None,
+        metadata: Mapping[str, ExperimentRunMetadata] | None = None,
+        study: ExperimentStudyModel | None = None,
+        evidence_reader: ExperimentEvidenceReader | None = None,
+        archive: ExperimentRecordArchive | None = None,
+    ) -> ExperimentRecordBundle:
+        """Build records for every started run, including unresolved and failed work."""
+        self._assert_runtime_owner()
+        from .runtime_experiment_records import experiment_records
+
+        return experiment_records(
+            self._admitted_experiment(experiment_id),
+            identity=identity,
+            metadata=metadata,
+            study=study,
+            evidence_reader=evidence_reader,
+            archive=archive,
+        )
 
     @runtime_owned
     def open_run(self, **options: Unpack[ControlPlaneOptions]) -> RuntimeRunContext:

@@ -5,12 +5,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol
 
+from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import ExperimentRunModel, validate_admitted_trial_run
 from raes_contracts.errors import ConflictError, EvidenceIntegrityError, OperationalError
 from raes_processor.trial_compiler import TrialCompilationRequest, compile_admitted_trial_plan
 from raes_processor.trial_compiler.replacement import TrialReplacementResult, compile_replacement_trial
 
-from .runtime_trial_decisions import TrialArchiveDecision, TrialReplacementDecision
+from .runtime_record_versions import require_compatible_record_versions
+from .runtime_trial_decisions import TrialArchiveCandidateDecision, TrialArchiveDecision, TrialReplacementDecision
 from .runtime_trial_services import call_installed_owner
 
 _READBACK_DIFFERS = "archive readback differs from the committed trial run"
@@ -50,7 +52,8 @@ class ExperimentReplacementBinding:
 
 
 def _write_archive(owner: TrialArchiveOwner, run: ExperimentRunModel) -> None:
-    owner.write_run(run)
+    expected = canonical_json_digest(run.model_dump(mode="json"))
+    owner.write_run(run.model_copy(deep=True))
     observed = owner.read_run(run.run_id, run.run_version)
     if not isinstance(observed, ExperimentRunModel):
         raise EvidenceIntegrityError(_READBACK_DIFFERS)
@@ -59,7 +62,7 @@ def _write_archive(owner: TrialArchiveOwner, run: ExperimentRunModel) -> None:
         retained = ExperimentRunModel.model_validate(observed.model_dump(mode="json"))
     except ValueError as exc:
         raise EvidenceIntegrityError(_READBACK_DIFFERS) from exc
-    if retained != run:
+    if canonical_json_digest(retained.model_dump(mode="json")) != expected:
         raise EvidenceIntegrityError(_READBACK_DIFFERS)
 
 
@@ -119,16 +122,7 @@ def _archive_attempts(
 ) -> TrialArchiveDecision:
     engine, archive = experiment.engine, experiment.replacement.archive
     results = tuple(item.result() for item in attempts)
-    run = call_installed_owner(
-        engine._execution_adapter,
-        archive.build_run,
-        unit.request,
-        unit.realization,
-        results,
-        timeout_ms=engine._supervision.observation_ms,
-        failure=OperationalError,
-        message="installed archive owner could not build the trial run",
-    )
+    run = _archive_candidate_run(experiment, unit, results)
     if not isinstance(run, ExperimentRunModel):
         raise EvidenceIntegrityError("archive built an invalid trial run")
     # The run contracts refuse with ValueError; the archive boundary owns the refusal (E9).
@@ -138,14 +132,44 @@ def _archive_attempts(
     except ValueError as exc:
         raise EvidenceIntegrityError("archive built an invalid trial run") from exc
     _validate_archive_attempts(run, results)
-    if results[-1].cleanup_receipt.trial_outcome != "succeeded" and run.outcome_status == "succeeded":
-        raise EvidenceIntegrityError("archive changed the runtime execution outcome")
     if not unit.capture_succeeded() and run.run_status == "completed":
         raise EvidenceIntegrityError("archive hides a failed capture")
+    require_compatible_record_versions(engine._store.load_runtime_decisions(), experiment.experiment_id, (run,))
+    engine._store.claim_runtime_decision(TrialArchiveCandidateDecision(experiment_id=experiment.experiment_id, run=run))
     _publish_archive(engine, archive, run)
     prior = TrialArchiveDecision(experiment_id=experiment.experiment_id, run=run)
     engine._store.claim_runtime_decision(prior)
     return prior
+
+
+def _archive_candidate_run(
+    experiment: RuntimeExperiment, unit: RuntimeTrialUnit, results: tuple[TrialUnitResult, ...]
+) -> ExperimentRunModel:
+    engine, archive = experiment.engine, experiment.replacement.archive
+    frozen = next(
+        (
+            item
+            for item in engine._store.load_runtime_decisions()
+            if isinstance(item, TrialArchiveCandidateDecision)
+            and item.experiment_id == experiment.experiment_id
+            and item.run.run_id == unit.request.run_id
+        ),
+        None,
+    )
+    return (
+        frozen.run
+        if frozen is not None
+        else call_installed_owner(
+            engine._execution_adapter,
+            archive.build_run,
+            unit.request,
+            unit.realization,
+            results,
+            timeout_ms=engine._supervision.observation_ms,
+            failure=OperationalError,
+            message="installed archive owner could not build the trial run",
+        )
+    )
 
 
 def _validate_archive_attempts(run: ExperimentRunModel, results: tuple[TrialUnitResult, ...]) -> None:
@@ -224,6 +248,9 @@ def _compile_replacement(
     )
     if result.plan is None:
         raise ConflictError("replacement compiler refused the recorded runtime outcome")
+    require_compatible_record_versions(
+        experiment.engine._store.load_runtime_decisions(), experiment.experiment_id, (run, result.superseded_run)
+    )
     return TrialReplacementDecision(
         experiment_id=experiment.experiment_id,
         root_entry_id=slot.root_entry_id,

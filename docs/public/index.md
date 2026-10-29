@@ -190,6 +190,7 @@ participant-control
 guides/python
 guides/cli
 guides/control-plane
+guides/experiment-records
 guides/supervised-execution
 guides/external-injects
 backends

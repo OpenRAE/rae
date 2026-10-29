@@ -382,7 +382,11 @@ adrs:
     pin: 8bd179ba5c14c82b5998f9269d96a0c981cccb870c5b42bd27eb4b636b9c908b
   - id: ADR-065
     path: docs/decisions/adrs/adr-065-experiment-run-provenance-contract-boundary.md
-    pin: 69f90581b2bcedc12bfb7ed8aa688787d7a0d9aa4cc49a90f8c631ecbae8a356
+    pin: b3dec3a9d16706d0f722ff6713bc1645b3ce3b11966a3883fed1b0ee2d6cbad8
+    amendments:
+      - date: 2026-10-29
+        ref: "#1630"
+        summary: "Record all started work, missing evidence, distinct attempt history, and unchanged retry and safe-reuse authority (#1630)."
   - id: ADR-066
     path: docs/decisions/adrs/adr-066-observability-evidence-plane-separation.md
     pin: 98945754dae6d7df7eb21dd2a8d9dc938838d514e79fc42af7874dea8b63d764
@@ -398,11 +402,14 @@ adrs:
         summary: "Added binding open-by-default augmentation scope, explicit author restrictions, pre-materialization refusal, and the author-burden rationale."
   - id: ADR-068
     path: docs/decisions/adrs/adr-068-experiment-trials-replication-and-replay-claims.md
-    pin: 12e6d644f7a90d50956964d8f0608737f9b4d8c7627819419a69974184c2781f
+    pin: 631dfc59bf7f221786a147cfe7c56dadabf5e95548c7fea8798f7fa95cda79ab
     amendments:
       - date: 2026-07-15
         ref: "#652"
         summary: "Clarified that an admitted plan entry preallocates the existing archival run identity and preserves experiment-owned selection without becoming a second trial/run record."
+      - date: 2026-10-29
+        ref: "#1630"
+        summary: "Record all started work, missing evidence, distinct attempt history, and unchanged retry and safe-reuse authority (#1630)."
   - id: ADR-069
     path: docs/decisions/adrs/adr-069-cage-2-replication-architecture.md
     pin: 305334e5558fb88d1f84317209f0e64d182714ba8e99cdeb5f6781bf3ee384f5

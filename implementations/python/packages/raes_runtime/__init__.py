@@ -20,6 +20,14 @@ _EXPORT_MODULES = {
         "RecoveryObservationRequirement",
         "profile_declaration",
     ),
+    "experiment_records": (
+        "ExperimentRunMetadata",
+        "ExperimentRecordBundle",
+        "ExperimentRecordSource",
+        "ExperimentAccounting",
+        "ExperimentRecordArchive",
+        "ExperimentEvidenceReader",
+    ),
     "manager": ("RuntimeManager",),
     "mixed_runtime": ("MixedPhaseTransitionEvaluation", "MixedRuntimeBinding", "MixedRuntimeComponent"),
     "mixed_backend_installation": ("MixedBackendInstallation", "MixedBackendService"),
@@ -48,6 +56,12 @@ def __dir__() -> list[str]:
 
 
 __all__ = [
+    "ExperimentRunMetadata",
+    "ExperimentRecordBundle",
+    "ExperimentRecordSource",
+    "ExperimentAccounting",
+    "ExperimentRecordArchive",
+    "ExperimentEvidenceReader",
     "BackendRegistry",
     "ControlPlaneActorBoundary",
     "ControlPlaneCapability",
