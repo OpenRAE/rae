@@ -812,7 +812,7 @@
         "ASR-536",
         "ASR-535"
       ],
-      "bounded_outcome": "Publish only the exact evidenced runtime, backend, evaluation, limitation, and nonclaim status.",
+      "bounded_outcome": "Publish exact evidenced RAE runtime and harness evaluation results, limitations and nonclaims without a concrete backend prerequisite.",
       "negative_cases": [
         "premature enforcement or realization claim",
         "benchmark result promoted to universal robustness",
@@ -820,7 +820,7 @@
         "missing profile and uncertainty coordinates"
       ],
       "evidence_required": [
-        "reconciled runtime, backend, and evaluation artifacts",
+        "reconciled RAE runtime, fixture apparatus, and harness evaluation artifacts",
         "scientific-completeness and assurance updates",
         "public documentation and lineage",
         "documentation drift checks"
@@ -829,7 +829,7 @@
         "no claim beyond the exact implemented and evaluated profiles",
         "no automatic trust, private-reasoning, or covert-channel claim"
       ],
-      "completion_gate": "runtime enforcement, apparatus/backend realization, and adversarial-evaluation evidence reconciled",
+      "completion_gate": "completed source-bound RAE harness evaluation, runtime conformance and appropriately disclosed publication; concrete backend evidence only for a separate concrete backend claim",
       "dependencies": [
         "runtime-enforcement",
         "apparatus-and-backend-support",
@@ -848,5 +848,10 @@
     "monitor_trust": "profile-scoped-assumption-not-proof",
     "covert_channels": "undeclared-channels-not-controlled",
     "ordinary_negative_tests": "bounded-falsification-only"
+  },
+  "scope_amendment": {
+    "issue": 1008,
+    "date": "2026-10-29",
+    "decision": "RAE evaluation and publication use RAE-owned backend-neutral harnesses. Concrete backend realization is a separate conditional claim obligation; historical design observations remain unchanged."
   }
 }
