@@ -16,14 +16,7 @@ from ..scenario import ImportDecl, ModuleDescriptor, Scenario
 from ._constants import LOCKFILE_NAME, OCI_BUNDLE_MEDIA_TYPE, OCI_LAYOUT_MEDIA_TYPE
 from ._digests import _SHA256_PREFIX, _descriptor_digest, _satisfies_version, _select_tag
 from ._verified_sources import _local_resolved_source, _VerifiedSourceBundle
-from .models import (
-    Lockfile,
-    LockRecord,
-    ResolvedModule,
-    TrustPolicy,
-    _scenario_module_descriptor,
-    load_trust_policy,
-)
+from .models import Lockfile, LockRecord, ResolvedModule, TrustPolicy, _scenario_module_descriptor, load_trust_policy
 
 if TYPE_CHECKING:
     from ..parser import SDLSourceDocument
@@ -235,8 +228,7 @@ def _resolve_local_import(
         import_path, imported_source = _read_unverified_local_import(relative, context)
     else:
         import_path, imported_source = context.verified_sources.resolve_local(
-            base_dir=context.base_dir,
-            relative=relative,
+            base_dir=context.base_dir, relative=relative
         )
     source_ranges: dict[str, SDLSourceRange] = {}
     imported_raw = _load_normalized_data(

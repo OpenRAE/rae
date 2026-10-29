@@ -14,7 +14,6 @@ from raes_contracts.contracts import BackendOperationRequestModel, inject_occurr
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import ConflictError, OperationalError, RaesError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
-from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import (
     OperationReceipt,
     OperationState,
@@ -22,10 +21,9 @@ from raes_contracts.runtime_state import (
     operation_terminal_diagnostics,
 )
 
-from .backend_calls import _call_backend_diagnostics, _RealizationApplyContext
-from .backend_observation_calls import _call_backend_apply_with_observation, _ObservationApplyRequest
+from .backend_calls import _call_backend_diagnostics
 from .control_plane_execution import _utc_now
-from .control_plane_local_execution import run_local_executor
+from .control_plane_local_execution import invoke_plan_phase, run_local_executor
 from .control_plane_store import ControlPlaneOperationRecord, NewClaimRejected, TerminalCommitMode
 from .control_plane_store_snapshots import _snapshot_payload
 from .control_plane_supervision import required_guarantees
@@ -44,7 +42,6 @@ if TYPE_CHECKING:
 
     from .control_plane import RuntimeControlPlane
     from .control_plane_execution import OperationExecutionRequest
-    from .observation_results import PreparedObservationExecution
 
 
 def invocation_request(
@@ -424,7 +421,7 @@ def _complete_native_invocation(
     if request.local_executor is not None:
         result, observation = run_local_executor(plane, request, record, snapshot, diagnostics, remaining)
     else:
-        result, observation = _invoke_plan_phase(plane, request, record, snapshot, remaining)
+        result, observation = invoke_plan_phase(plane, request, record, snapshot, remaining)
     if record.invocation.request.command.digest != native_command_commitment(plane, request.plan):
         raise ValueError("admitted native command changed before finalization")
     if result.success:
@@ -448,64 +445,6 @@ def _complete_native_invocation(
         )
     if request.result_sink is not None:
         request.result_sink(result)
-
-
-def _invoke_plan_phase(
-    plane: RuntimeControlPlane,
-    request: OperationExecutionRequest,
-    record: ControlPlaneOperationRecord,
-    snapshot: RuntimeSnapshot,
-    remaining: Callable[[], int],
-) -> tuple[ApplyResult, PreparedObservationExecution | None]:
-    from .backend_calls import _BackendCallContext, _call_backend_apply
-
-    realization = request.realization or (
-        _RealizationApplyContext(plan=request.plan, manifest=plane._target.manifest)
-        if isinstance(request.plan, ProvisioningPlan)
-        else None
-    )
-    with plane._mutation_authority.external_call():
-        if not request.execute_observation:
-            result = plane._execution_adapter.call(
-                "effect",
-                _call_backend_apply,
-                request.method,
-                request.plan,
-                snapshot,
-                timeout_ms=remaining(),
-                address=request.address,
-                snapshot=snapshot,
-                realization=realization,
-                call=_BackendCallContext(
-                    materialization_archive=plane._materialization_archive,
-                    operation_id=record.receipt.operation_id,
-                    attempt_id=record.invocation.request.binding.attempt_id,
-                    information_state_context_resolver=plane._information_state_context_resolver,
-                ),
-            )
-            return result, None
-        result, observation = plane._execution_adapter.call(
-            "effect",
-            _call_backend_apply_with_observation,
-            request.method,
-            request.plan,
-            snapshot,
-            timeout_ms=remaining(),
-            request=_ObservationApplyRequest(
-                materialization_archive=plane._materialization_archive,
-                address=request.address,
-                snapshot=snapshot,
-                plan=request.plan,
-                manifest=plane._target.manifest,
-                runtime=plane._target.observation_runtime,
-                durable_lifecycle_available=plane._store_commits.crash_atomic,
-                operation_id=record.receipt.operation_id,
-                attempt_id=record.invocation.request.binding.attempt_id,
-            ),
-            realization=realization,
-            information_state_context_resolver=plane._information_state_context_resolver,
-        )
-    return result, observation
 
 
 __all__ = ("execute_supervised_operation", "invocation_request", "settle")

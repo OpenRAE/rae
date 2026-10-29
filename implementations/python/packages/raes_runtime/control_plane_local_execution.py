@@ -1,4 +1,4 @@
-"""Run the local executor of one admitted native invocation."""
+"""Run one admitted native invocation through its local executor or its backend plan phase."""
 
 from __future__ import annotations
 
@@ -75,4 +75,65 @@ def _settle_cancelled_invocation(
     )
 
 
-__all__ = ("run_local_executor",)
+def invoke_plan_phase(
+    plane: RuntimeControlPlane,
+    request: OperationExecutionRequest,
+    record: ControlPlaneOperationRecord,
+    snapshot: RuntimeSnapshot,
+    remaining: Callable[[], int],
+) -> tuple[ApplyResult, PreparedObservationExecution | None]:
+    from raes_contracts.planning import ProvisioningPlan
+
+    from .backend_calls import _BackendCallContext, _call_backend_apply, _RealizationApplyContext
+    from .backend_observation_calls import _call_backend_apply_with_observation, _ObservationApplyRequest
+
+    realization = request.realization or (
+        _RealizationApplyContext(plan=request.plan, manifest=plane._target.manifest)
+        if isinstance(request.plan, ProvisioningPlan)
+        else None
+    )
+    with plane._mutation_authority.external_call():
+        if not request.execute_observation:
+            result = plane._execution_adapter.call(
+                "effect",
+                _call_backend_apply,
+                request.method,
+                request.plan,
+                snapshot,
+                timeout_ms=remaining(),
+                address=request.address,
+                snapshot=snapshot,
+                realization=realization,
+                call=_BackendCallContext(
+                    materialization_archive=plane._materialization_archive,
+                    operation_id=record.receipt.operation_id,
+                    attempt_id=record.invocation.request.binding.attempt_id,
+                    information_state_context_resolver=plane._information_state_context_resolver,
+                ),
+            )
+            return result, None
+        result, observation = plane._execution_adapter.call(
+            "effect",
+            _call_backend_apply_with_observation,
+            request.method,
+            request.plan,
+            snapshot,
+            timeout_ms=remaining(),
+            request=_ObservationApplyRequest(
+                materialization_archive=plane._materialization_archive,
+                address=request.address,
+                snapshot=snapshot,
+                plan=request.plan,
+                manifest=plane._target.manifest,
+                runtime=plane._target.observation_runtime,
+                durable_lifecycle_available=plane._store_commits.crash_atomic,
+                operation_id=record.receipt.operation_id,
+                attempt_id=record.invocation.request.binding.attempt_id,
+            ),
+            realization=realization,
+            information_state_context_resolver=plane._information_state_context_resolver,
+        )
+    return result, observation
+
+
+__all__ = ("invoke_plan_phase", "run_local_executor")

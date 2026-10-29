@@ -64,7 +64,6 @@ from .participant_crossing_state_cut import control_history_head_refs
 
 if TYPE_CHECKING:
     from .control_plane import RuntimeControlPlane
-    from .participant_control_effect_evidence import ControlCommittedEffectIntentV2
     from .participant_control_orchestration import ParticipantControlOutcome
 
 _StageResults = tuple[
@@ -128,19 +127,42 @@ def resolve_v2_outcome(
     sink_kind: object,
 ) -> ParticipantControlOutcome:
     """Resolve total coverage, evaluate stages and validate at the original cut."""
-    from .participant_control_effect_evidence import with_retained_effect_evidence
-    from .participant_control_orchestration import ParticipantControlOutcome
+    from .participant_control_orchestration import ParticipantControlOutcome, _request_refusal
 
     unresolved = ParticipantControlOutcome("unresolved", "control-context-invalid")
     cut = _EvaluationCut.capture(plane, origin=crossing.record)
     heads = control_history_head_refs(plane._snapshot, crossing.intent.participant_address)
     resolution = resolve_v2_request(plane, cut, binding, crossing, sink_kind, heads)
-    evaluated = (
-        unresolved if resolution is None else _evaluate_v2(plane, cut, binding, crossing, resolution, sink_kind, heads)
-    )
-    if isinstance(evaluated, ParticipantControlOutcome):
-        return evaluated
-    evaluation, retained = evaluated
+    if resolution is None:
+        return unresolved
+    from .participant_control_effect_evidence import retained_effect_intents, with_retained_effect_evidence
+    from .participant_control_projection import control_projection
+
+    try:
+        request = resolution.request
+        refusal = _request_refusal(plane, binding, crossing, request, sink_kind, heads)
+        if refusal is None:
+            require_retained_provider_state(plane._snapshot, request, projection=control_projection(plane))
+            validate_control_support_v2(request, resolution.support)
+            stages = _evaluate_slots(cut, binding, request, resolution.support)
+            effects = tuple(
+                item.payload for item in stages[1] if item.payload is not None and item.payload.kind == "effect-request"
+            )
+            if any(item.originating_principal_ref != crossing.record.receipt.context.actor_id for item in effects):
+                raise EvidenceIntegrityError("effect principal differs from its originating operation")
+            retained = retained_effect_intents(plane, effects)
+            outcomes = tuple(item.outcome for item in retained.values() if item.outcome.disposition == "applied")
+            evaluation = _compose(binding, crossing, request, resolution, stages, outcomes=outcomes)
+            require_provider_state_extension(plane._snapshot, evaluation, projection=control_projection(plane))
+    except SnapshotRevisionConflict:
+        raise
+    # RAES code refused the resolved request, a stage result or the composed evaluation; installed code
+    # runs only behind the stage isolation boundaries, so the record keeps its normal traceback.
+    except ValueError, RaesError:
+        _LOGGER.exception("participant control v2 evaluation did not resolve at the admitted cut")
+        refusal = unresolved
+    if refusal is not None:
+        return refusal
     context = resolve_control_context(
         lambda: with_retained_effect_evidence(cut.call(binding.resolver.validation_context, evaluation), retained)
     )
@@ -151,52 +173,9 @@ def resolve_v2_outcome(
         cut.call(lambda: validate_participant_control_resolved_context_v2(evaluation, lambda _: context))
         cut.require_current()
 
-    if context is None or not control_context_admits(validate):
-        return unresolved
-    return ParticipantControlOutcome(
-        evaluation.composition.disposition, "control-" + evaluation.composition.disposition, evaluation
-    )
-
-
-def _evaluate_v2(
-    plane: RuntimeControlPlane,
-    cut: _EvaluationCut,
-    binding: ParticipantControlRuntimeBinding,
-    crossing: PreparedParticipantCrossing,
-    resolution: ParticipantControlResolution,
-    sink_kind: object,
-    heads: tuple[str, ...],
-) -> ParticipantControlOutcome | tuple[ParticipantControlEvaluationV2Model, dict[str, ControlCommittedEffectIntentV2]]:
-    """Evaluate the resolved request at the cut, or return its refusal or unresolved outcome."""
-    from .participant_control_effect_evidence import retained_effect_intents
-    from .participant_control_orchestration import ParticipantControlOutcome, _request_refusal
-    from .participant_control_projection import control_projection
-
-    try:
-        request = resolution.request
-        refusal = _request_refusal(plane, binding, crossing, request, sink_kind, heads)
-        if refusal is not None:
-            return refusal
-        require_retained_provider_state(plane._snapshot, request, projection=control_projection(plane))
-        validate_control_support_v2(request, resolution.support)
-        stages = _evaluate_slots(cut, binding, request, resolution.support)
-        effects = tuple(
-            item.payload for item in stages[1] if item.payload is not None and item.payload.kind == "effect-request"
-        )
-        if any(item.originating_principal_ref != crossing.record.receipt.context.actor_id for item in effects):
-            raise EvidenceIntegrityError("effect principal differs from its originating operation")
-        retained = retained_effect_intents(plane, effects)
-        outcomes = tuple(item.outcome for item in retained.values() if item.outcome.disposition == "applied")
-        evaluation = _compose(binding, crossing, request, resolution, stages, outcomes=outcomes)
-        require_provider_state_extension(plane._snapshot, evaluation, projection=control_projection(plane))
-    except SnapshotRevisionConflict:
-        raise
-    # RAES code refused the resolved request, a stage result or the composed evaluation; installed code
-    # runs only behind the stage isolation boundaries, so the record keeps its normal traceback.
-    except ValueError, RaesError:
-        _LOGGER.exception("participant control v2 evaluation did not resolve at the admitted cut")
-        return ParticipantControlOutcome("unresolved", "control-context-invalid")
-    return evaluation, retained
+    admitted = context is not None and control_context_admits(validate)
+    disposition = evaluation.composition.disposition
+    return ParticipantControlOutcome(disposition, "control-" + disposition, evaluation) if admitted else unresolved
 
 
 def _evaluate_slots(

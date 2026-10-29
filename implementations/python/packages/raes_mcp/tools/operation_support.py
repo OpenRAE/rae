@@ -193,17 +193,9 @@ def stage_ok(stage: str, *, detail: str = "ok") -> dict[str, str]:
 def stage_error(stage: str, error: object) -> dict[str, Any]:
     structured = getattr(error, "diagnostics", ())
     if structured:
-        return {
-            "status": "invalid",
-            "stage": stage,
-            "diagnostics": [item.as_dict() for item in structured],
-        }
+        return {"status": "invalid", "stage": stage, "diagnostics": [item.as_dict() for item in structured]}
     message = getattr(error, "details", f"The scenario was rejected at the {stage} stage.")
-    return {
-        "status": "invalid",
-        "stage": stage,
-        "diagnostics": text_diagnostics(stage, [message]),
-    }
+    return {"status": "invalid", "stage": stage, "diagnostics": text_diagnostics(stage, [message])}
 
 
 def text_diagnostics(stage: str, messages: list[str], *, severity: str = "error") -> list[dict[str, str]]:
