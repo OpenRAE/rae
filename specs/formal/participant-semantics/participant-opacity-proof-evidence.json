@@ -289,7 +289,7 @@
     "tool_sources": [
       {
         "path": "tools/check_participant_opacity_proof.py",
-        "digest": "sha256:f0120269f98f89de5a4263c3d3c779762a0cbac490a4003356359596372966af"
+        "digest": "sha256:a9f1217793a76363d3a44079c0d2a30ae43be4b4bf3d21a61d7458b359bb71f3"
       },
       {
         "path": "tools/isabelle_sandbox.py",
@@ -300,12 +300,20 @@
         "digest": "sha256:be01495f6e58e325045c2a8cda358cf9b48d1f48f3bf708726c4e5e5a2bb2268"
       },
       {
+        "path": "tools/bounded_tool_process.py",
+        "digest": "sha256:7f36b79076587be12a96a9f6db15d8640769369d67642cdfb523e8bd52316dab"
+      },
+      {
+        "path": "tools/debian_tree_decoder.py",
+        "digest": "sha256:a577bd0dbdddf07254698ffbeaecc904120922cd053b62c77d53cbd066dffbcb"
+      },
+      {
         "path": "tools/maintained_client_acquisition.py",
         "digest": "sha256:0529ca32a87d33aeca570d659dec8d12d7f3227d38726077a39f344f7cbf2dc0"
       },
       {
         "path": "tools/tooling_installed_tree.py",
-        "digest": "sha256:84d272f07e970184ba65db7c4ffc2ebbdc4b381cb4a9ee5a1be373a40748a846"
+        "digest": "sha256:1bae970aa7bb989612816bbee7860d959c545a957379f8e8f499268c9d41cf7c"
       },
       {
         "path": "tools/tooling_policy_gate.py",
@@ -317,19 +325,19 @@
       },
       {
         "path": "tools/verified_tree_archive.py",
-        "digest": "sha256:f806d12fb0053ee99c5f1fb86397c25a6eeca4b0d8492b1568f3949ad623acc2"
+        "digest": "sha256:a0d2a572277cd1d9361ab046acc4a053b3851df7c742f5db9428d17582361bb1"
       },
       {
         "path": "tools/verified_tree_installation.py",
-        "digest": "sha256:6b0b98830f65a7bdce132f1b3e920941950bbbcc44b25c876f6218fd4ac2484c"
+        "digest": "sha256:067a7102c8da3cb2dceb8f4190e840836e780a606187641de4db9253ae350c58"
       },
       {
         "path": "tools/verified_tree_manifest.py",
-        "digest": "sha256:a2b512cceddfa9f2c3c3c70511a4f29cd709d8728bfbf13f207aa79b577b96d2"
+        "digest": "sha256:77d698ed535b5bd239bc490ab262504e80c671635c422ca8ef78330c6c95c4f5"
       },
       {
         "path": "tools/verified_tree_validation.py",
-        "digest": "sha256:19bacd3659ca0d1b709cf7c1f11510b6048f7116958670a2ec4e9715666bbdcb"
+        "digest": "sha256:166e054b69c0a814762d9b707b4f189607870715c85485d2ae3dce2f3bc0ae83"
       }
     ]
   },

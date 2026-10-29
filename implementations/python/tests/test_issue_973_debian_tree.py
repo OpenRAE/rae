@@ -6,6 +6,7 @@ import hashlib
 import io
 import json
 import tarfile
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -14,6 +15,25 @@ from tools import verified_tree_installation as installation
 from tools.tooling_installed_tree import LockedInstalledTree, locked_installed_tree
 from tools.tooling_policy_gate import LockedManifestEntry
 from tools.verified_tree_manifest import parse_manifest
+
+
+@pytest.mark.parametrize("source", ["tools/debian_tree_decoder.py", "tools/bounded_tool_process.py"])
+def test_proof_pins_include_decoder_import_dependencies(source: str) -> None:
+    from tools.check_participant_opacity_proof import (
+        PROOF_TOOL_SOURCE_PATHS,
+        ProofEvidenceError,
+        _validate_tool_sources,
+        load_proof_manifest,
+    )
+
+    root = Path(__file__).resolve().parents[3]
+    assert source in PROOF_TOOL_SOURCE_PATHS
+    toolchain = deepcopy(load_proof_manifest()["toolchain"])
+    _validate_tool_sources(toolchain, root)
+    selected = next(item for item in toolchain["tool_sources"] if item["path"] == source)
+    selected["digest"] = "sha256:" + "0" * 64
+    with pytest.raises(ProofEvidenceError, match="source digest"):
+        _validate_tool_sources(toolchain, root)
 
 
 def deb_bytes(name: str = "./usr/bin/checker", *, kind: bytes = tarfile.REGTYPE) -> bytes:

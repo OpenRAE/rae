@@ -191,6 +191,7 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - IMPLEMENTS → CODE_FILE `tools/bounded_tool_process.py` (Verified archive decoding and isolated bounded checker execution)
 - IMPLEMENTS → CODE_FILE `tools/debian_tree_decoder.py` (Verified archive decoding and isolated bounded checker execution)
 - IMPLEMENTS → CODE_FILE `tools/mcrl2_tool.py` (Verified archive decoding and isolated bounded checker execution)
+- IMPLEMENTS → CODE_FILE `tools/check_participant_opacity_proof.py` (Proof-tool import closure and source digest admission)
 - TESTS → TEST `implementations/python/tests/test_issue_973_debian_tree.py` (Tooling admission and execution failure regressions)
 - TESTS → TEST `implementations/python/tests/test_issue_973_tool_process.py` (Tooling admission and execution failure regressions)
 - TESTS → TEST `implementations/python/tests/test_issue_973_mcrl2_admission.py` (Tooling admission and execution failure regressions)
