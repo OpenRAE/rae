@@ -464,12 +464,13 @@ def _run(args: argparse.Namespace) -> int:
     pull_request = event.get("pull_request")
     if not isinstance(pull_request, dict):
         raise ValueError("event has no pull_request object")
-    body = pull_request.get("body")
-    if not isinstance(body, str):
-        raise ValueError("event pull_request.body must be a string")
     if not args.report_open_closing_issues and is_exempt_automation(event):
         print("pr-body-guard: exempt trusted automation")
         return 0
+    # GitHub sends an empty description as null (#1525); an absent body field stays an error.
+    body = "" if "body" in pull_request and pull_request["body"] is None else pull_request.get("body")
+    if not isinstance(body, str):
+        raise ValueError("event pull_request.body must be a string or null")
     repository = str(event.get("repository", {}).get("full_name") or os.getenv("GITHUB_REPOSITORY", ""))
     lookup = (
         _fixture_lookup(args.issues_file)
