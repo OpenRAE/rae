@@ -33,6 +33,35 @@ ROOT = Path(__file__).resolve().parents[3]
 # Python refuses to convert an integer literal with more digits than its default limit (4300).
 _BEYOND_DIGIT_LIMIT = "1" * 5000
 _SECRET = "SECRET-DEFECT-DETAIL"
+# The C JSON decoder and the Python compiler stop deep input at a depth that depends on the stack
+# size of the host, so a fixed fixture depth does not fail on every host. These markers identify
+# the deep fixtures below, which the stack-limited decoders refuse on every host.
+_DEEP_JSON_MARKER = "[" * 50_000
+_DEEP_PYTHON_MARKER = "+1" * 50_000
+
+
+@pytest.fixture(autouse=True)
+def _stack_limited_decoders(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Make the decoder and the parser refuse the deep fixtures as a host with a small stack does."""
+
+    import json.decoder
+
+    raw_decode = json.decoder.JSONDecoder.raw_decode
+    parse = ast.parse
+
+    def limited_raw_decode(self: json.decoder.JSONDecoder, text: str, idx: int = 0) -> tuple[object, int]:
+        if _DEEP_JSON_MARKER in text:
+            raise RecursionError("maximum recursion depth exceeded while decoding a JSON array")
+        return raw_decode(self, text, idx)
+
+    def limited_parse(source: str | bytes, *args: object, **kwargs: object) -> ast.AST:
+        text = source.decode("utf-8", "replace") if isinstance(source, bytes) else source
+        if isinstance(text, str) and _DEEP_PYTHON_MARKER in text:
+            raise RecursionError("maximum recursion depth exceeded during compilation")
+        return parse(source, *args, **kwargs)
+
+    monkeypatch.setattr(json.decoder.JSONDecoder, "raw_decode", limited_raw_decode)
+    monkeypatch.setattr(ast, "parse", limited_parse)
 
 
 def _crossing_workspace(tmp_path: Path, producer) -> Path:

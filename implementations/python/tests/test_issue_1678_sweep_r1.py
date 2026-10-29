@@ -220,7 +220,8 @@ def test_maintenance_refuses_same_file_backup_and_restore_as_invalid_input(tmp_p
     ("payload", "digest", "message"),
     [
         ("{}", "0" * 64, "audit event failed its durable integrity check"),
-        ('{"a":' + "[" * 100_000 + "]" * 100_000 + "}", None, "audit event failed its durable integrity check"),
+        # Deeper than the durable limit, yet decodable on every host: the explicit limit refuses it.
+        ('{"a":' + "[" * 200 + "]" * 200 + "}", None, "audit event exceeds the durable nesting limit"),
         ('{"a":' + "7" * 5000 + "}", None, "audit event failed its durable integrity check"),
         ("not json", None, "audit event failed its durable integrity check"),
         (b"\x00\x01", "0" * 64, "audit event failed its durable integrity check"),

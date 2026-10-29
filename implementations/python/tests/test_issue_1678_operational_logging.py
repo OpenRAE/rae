@@ -217,6 +217,38 @@ def test_application_configuration_writes_to_standard_error(root_logging, capsys
     assert "to standard error" in captured.err
 
 
+def test_application_handler_writes_to_the_current_standard_error(root_logging, monkeypatch):
+    configure_application_logging()
+    replaced = io.StringIO()
+    monkeypatch.setattr(sys, "stderr", replaced)
+
+    get_logger(_LOGGER_NAME).warning("after the host replaced standard error")
+
+    assert "after the host replaced standard error" in replaced.getvalue()
+
+
+def test_application_handler_reports_a_failed_write_without_values(root_logging, monkeypatch):
+    class ClosedStream(io.StringIO):
+        def write(self, text):
+            raise ValueError("I/O operation on closed file.")
+
+    report = io.StringIO()
+    configure_application_logging(stream=ClosedStream())
+    monkeypatch.setattr(logging, "raiseExceptions", True)
+    monkeypatch.setattr(sys, "stderr", report)
+
+    try:
+        raise RuntimeError(SENTINEL)
+    except RuntimeError:
+        get_logger(_LOGGER_NAME).exception("operation stopped")
+
+    output = report.getvalue()
+    assert output.startswith("--- Logging error ---\n")
+    assert SENTINEL not in output
+    assert "RuntimeError" in output
+    assert "I/O operation" not in output
+
+
 def test_level_change_installs_no_handler(root_logging):
     handlers = list(root_logging.handlers)
 

@@ -457,7 +457,8 @@ def _runtime_owner_result(store_path: str, queue: Any) -> None:
             create_stub_target(),
             store=LocalControlPlaneStore(Path(store_path)),
         )
-    except RuntimeError as exc:
+    # Another process owns the store, which conflicts with this admission (ADR-116).
+    except ConflictError as exc:
         queue.put(str(exc))
         return
     control_plane.close()

@@ -143,8 +143,13 @@ def test_dsl_124_damaged_published_schema_stays_a_model_validation_failure(monke
         raise StrictJsonIngressError("json.invalid", "SECRET-SCHEMA-DETAIL")
 
     monkeypatch.setattr(evidence_output_validation, "parse_bounded_json_object", damaged_schema)
-    with pytest.raises(SDLParseError) as excinfo:
-        parse_sdl(_scenario_yaml())
+    # The checked-schema cache keeps a validator from an earlier test; clear it so the damaged read runs.
+    evidence_output_validation._checked_schema_validator.cache_clear()
+    try:
+        with pytest.raises(SDLParseError) as excinfo:
+            parse_sdl(_scenario_yaml())
+    finally:
+        evidence_output_validation._checked_schema_validator.cache_clear()
 
     assert "SECRET-SCHEMA-DETAIL" not in str(excinfo.value)
 

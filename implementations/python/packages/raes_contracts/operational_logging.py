@@ -272,6 +272,39 @@ class ValueFreeFormatter(logging.Formatter):
         return ""
 
 
+class _ApplicationHandler(logging.StreamHandler):
+    """Write records to a given stream, or else to the current standard error.
+
+    Without a given stream the handler resolves ``sys.stderr`` at each write,
+    so a host or a test that replaces or closes standard error gets no stale
+    stream. A failed write produces a value-free report instead of the
+    standard report, which prints the messages of the handled exception.
+    """
+
+    def __init__(self, stream: TextIO | None = None) -> None:
+        super().__init__(stream)
+        self._given_stream = stream
+
+    @property
+    def stream(self) -> TextIO:
+        return sys.stderr if self._given_stream is None else self._given_stream
+
+    @stream.setter
+    def stream(self, value: TextIO | None) -> None:
+        self._given_stream = value
+
+    def handleError(self, record: logging.LogRecord) -> None:
+        if not logging.raiseExceptions or sys.stderr is None:
+            return
+        failure = sys.exception()
+        lines = ["--- Logging error ---", *(_render_chain(failure) if failure is not None else ())]
+        try:
+            sys.stderr.write("\n".join(lines) + "\n")
+        except (OSError, ValueError):
+            # Standard error is gone or closed, so no channel remains for the report.
+            return
+
+
 def _level(level: int | str) -> int:
     if isinstance(level, str) and level.upper() in _LEVELS:
         return _LEVELS[level.upper()]
@@ -295,7 +328,7 @@ def configure_application_logging(
     root = logging.getLogger()
     handler = next((item for item in root.handlers if getattr(item, _APPLICATION_HANDLER_ATTRIBUTE, False)), None)
     if handler is None:
-        handler = logging.StreamHandler(sys.stderr if stream is None else stream)
+        handler = _ApplicationHandler(stream)
         setattr(handler, _APPLICATION_HANDLER_ATTRIBUTE, True)
         handler.setFormatter(ValueFreeFormatter())
         root.addHandler(handler)

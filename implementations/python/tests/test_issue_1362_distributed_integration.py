@@ -9,6 +9,7 @@ from threading import Thread
 from time import monotonic
 
 import pytest
+from raes_contracts.errors import ConflictError
 
 pytestmark = pytest.mark.integration
 
@@ -239,7 +240,8 @@ async def _exercise(blocked, tmp_path, database):
             rejected_capabilities = provider.operation_capabilities()
             rejected_admission = provider.check_operation(retained.invocation.request)
             rejected_identity = worker()
-            with pytest.raises(ValueError):
+            # A reopened owner has a new generation, so the retained grant is stale (ConflictError).
+            with pytest.raises(ConflictError, match="owner generation is stale"):
                 reopened.claim_backend_invocation(
                     retained.invocation.request.binding,
                     rejected_capabilities,

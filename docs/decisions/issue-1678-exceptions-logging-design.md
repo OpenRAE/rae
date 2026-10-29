@@ -25,7 +25,7 @@ Thus no consumer reads data from message text.
 - `get_logger(name)` returns the standard logger and attaches one value-free filter.
 - `describe_exception(exc)` returns the exception types and frame locations on one line.
 - `ValueFreeFormatter` formats any record without exception values.
-- `configure_application_logging(level=..., stream=...)` installs one marked standard error handler on the root logger. A second call changes only the level.
+- `configure_application_logging(level=..., stream=...)` installs one marked standard error handler on the root logger. A second call changes only the level. Without a stream argument, the handler writes to the current standard error.
 - `set_application_log_level(level)` changes only the root level. A command option uses it, so a command that runs inside a host or a test adds no handler.
 - `foreign_failure_record(exc)` returns a `ForeignCodeFailure` record for a failure of code that RAES does not own. The record keeps the RAES frames and omits the foreign type, message, chain and frames.
 - `run_application(main, unexpected_status=...)` configures logging, runs `main` and logs an unexpected failure one time. The `raes` command uses status 70; the tools use status 1.
@@ -71,6 +71,7 @@ flowchart TB
 
 A logging failure does not change a selected response.
 It does not hide a failed mutation.
+The application handler reports its own failed write with exception types and frame locations only.
 
 ## Data flows and trust boundaries
 
@@ -119,6 +120,7 @@ Operators need a diagnosable record of each unexpected failure.
 | A failure is suppressed without a record | `BLE001`, `S110` and `S112` reject silent broad handlers | Ruff in CI |
 | A provider controls text in a log record through its exception type or frames | Isolation handlers for untrusted code log `foreign_failure_record()` | Provider secret-type tests in the control-plane security conformance suite and the shared logging tests |
 | A log call fails and breaks the caller | The filter tolerates bad arguments | Bad argument tests |
+| The report of a failed log write discloses the values of the handled exception | The application handler writes to the current standard error and reports a failed write with types and frame locations only | Replaced and closed stream tests |
 | Logging configuration runs untrusted code | Only fixed code configures logging; no configuration file or listener is accepted | `TID251` and review |
 | Hidden causes prevent diagnosis | The handler logs the cause before `from None` | Activity and isolation tests |
 | A host formats server records with values | The host uses `ValueFreeFormatter` | Residual risk, documented in ADR-116 |

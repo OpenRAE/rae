@@ -34,13 +34,13 @@ def isolated_host_call(refusal: str, *, keep_cause: bool = True) -> Iterator[Non
     except OperationalError as exc:
         # Isolation: a failed host dependency is reported here; the refusal replaces it.
         record = foreign_failure_record(exc)
-        _LOGGER.warning("host callback dependency failed: %s", refusal, exc_info=record)
+        _LOGGER.warning("host callback dependency failed", exc_info=record)
     except (ValueError, RaesError) as exc:
         raise ValueError(refusal) from (exc if keep_cause else None)
     except Exception as exc:
         # Isolation: host code failed outside its refusal contract.
         record = foreign_failure_record(exc)
-        _LOGGER.exception("host callback failed outside its refusal contract: %s", refusal, exc_info=record)
+        _LOGGER.exception("host callback failed outside its refusal contract", exc_info=record)
     if record is not None:
         # The context manager runs while the caller handles the host exception, so Python sets
         # that exception as the context. The explicit cause hides it from every chain renderer.

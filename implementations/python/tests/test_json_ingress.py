@@ -38,7 +38,6 @@ def test_finite_exponent_remains_a_number() -> None:
         ("[" + "7" * 5000 + "]", "integer-too-long"),
         (b"[-" + b"7" * 5000 + b"]", "integer-too-long"),
         ('["\ud800"]', "invalid-json"),
-        ("[" * 100_000 + "]" * 100_000, "input-too-deep"),
     ],
 )
 def test_parse_bounded_json_refuses_input_that_the_decoder_cannot_convert(source: str | bytes, code: str) -> None:
@@ -55,3 +54,22 @@ def test_integer_at_the_digit_limit_remains_a_number() -> None:
     assert parse_bounded_json(("[" + "7" * digits + "]").encode(), max_bytes=10_000, root="array") == [
         int("7" * digits)
     ]
+
+
+def test_parse_bounded_json_refuses_nesting_that_the_decoder_cannot_build(monkeypatch: pytest.MonkeyPatch) -> None:
+    import json.decoder
+
+    # The C decoder stops deep input at a depth that depends on the stack size of the host.
+    # This test simulates a host whose decoder stops at the fixture depth.
+    raw_decode = json.decoder.JSONDecoder.raw_decode
+
+    def limited_raw_decode(self: json.decoder.JSONDecoder, text: str, idx: int = 0) -> tuple[object, int]:
+        if "[" * 50_000 in text:
+            raise RecursionError("maximum recursion depth exceeded while decoding a JSON array")
+        return raw_decode(self, text, idx)
+
+    monkeypatch.setattr(json.decoder.JSONDecoder, "raw_decode", limited_raw_decode)
+    with pytest.raises(StrictJsonIngressError) as caught:
+        parse_bounded_json("[" * 100_000 + "]" * 100_000, max_bytes=1_000_000, root="array")
+
+    assert caught.value.code == "input-too-deep"
