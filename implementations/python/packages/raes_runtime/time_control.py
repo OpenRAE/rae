@@ -50,6 +50,8 @@ class RuntimeTimeControlMixin:
             state.working_snapshot,
             address=_APPLY_TIME_ADDRESS,
             snapshot=state.working_snapshot,
+            idempotency_key=state.phase_key,
+            identity=state.identity,
             realization=_RealizationApplyContext(
                 effect_owners=frozenset({"time"}), effect_targets=frozenset(declaration.clocks)
             ),

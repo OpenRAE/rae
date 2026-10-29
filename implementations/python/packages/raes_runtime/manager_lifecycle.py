@@ -46,8 +46,9 @@ def manager_owned[T](method: Callable[..., T]) -> Callable[..., T]:
             )
             if refusal is not None:
                 return refusal
+        manager._engine.reserve(manager)
         with (
-            manager._resource_claim.runtime_call(manager),
+            manager._resource_claim.runtime_call(manager._engine.owner),
             control_plane_mutation(manager, OperationKind.COMPOSITION_PHASE),
         ):
             manager._reload_derived_state_if_unpinned()

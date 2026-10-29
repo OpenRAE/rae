@@ -485,6 +485,10 @@ ownership and `observed-execution` evidence. Report-level meaning remains
 
 ## Mixed-backend capability probes
 
+The [mixed-control test demonstration](mixed-control-demonstration.md) runs
+these probes with controlled test providers. It includes local evidence
+collection, a fresh process recollection, and an explicit capability matrix.
+
 `run_mixed_backend_conformance()` probes executable mixed-backend capability
 (issue #1017). The probe family drives the installed bridge, coordinator and
 readers of an admitted edge or native handoff through the shared runtime. It

@@ -96,6 +96,8 @@ class RuntimeParticipantExecutionMixin:
                 if self._target.manifest.participant_runtime is not None
                 else None,
             ),
+            idempotency_key=state.phase_key,
+            identity=state.identity,
         )
         self._record_phase_result(state, result)
         if not result.success:
@@ -118,6 +120,8 @@ class RuntimeParticipantExecutionMixin:
                 predecessor,
                 self._participant_activity_controls,
             ),
+            idempotency_key=state.phase_key,
+            identity=state.identity,
         )
         self._record_phase_result(state, due)
         return due.success
@@ -140,7 +144,13 @@ class RuntimeParticipantExecutionMixin:
             return result
 
     def _participant_scheduler_call(
-        self, phase: str, predecessor: RuntimeSnapshot, method: Callable[[RuntimeSnapshot], ApplyResult]
+        self,
+        phase: str,
+        predecessor: RuntimeSnapshot,
+        method: Callable[[RuntimeSnapshot], ApplyResult],
+        *,
+        idempotency_key: str = "",
+        identity: object | None = None,
     ) -> ApplyResult:
         return self._interaction_backend_call(
             method,
@@ -150,6 +160,8 @@ class RuntimeParticipantExecutionMixin:
             realization=_RealizationApplyContext(effect_owners=frozenset({"participant"})),
             call=_BackendCallContext(information_state_context_resolver=self._information_state_context_resolver),
             runtime_composition=True,
+            idempotency_key=idempotency_key,
+            identity=identity,
         )
 
     def _start_participant_clock_driver(self) -> bool:

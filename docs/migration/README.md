@@ -1,5 +1,8 @@
 # Migration Notes
 
+The [revised control migration checklist](revised-control.md) connects SDL conversion,
+contract and profile negotiation, installed interfaces, and historical readers.
+
 This note records the major documentation and repository-structure moves that
 established the current layout. The paths below describe historical moves, not
 current uncertainty about where authoritative material lives.

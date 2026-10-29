@@ -51,5 +51,11 @@ evidence. The interface does not install a trial executor.
 Mixed-backend bridges, time services and readers can describe one admitted edge
 or handoff with the execution binding and stage report contracts. Read the
 [mixed-backend migration note](https://github.com/OpenRAE/rae/blob/main/docs/migration/mixed-backend-execution.md).
-These reports keep execution, delivery and observation apart. Declaring the
-contracts does not prove support, and the runtime does not read them.
+These reports keep execution, delivery and observation apart.
+The runtime consumes them through explicitly installed portable services.
+It checks the binding, committed clocks, independent readback, and native results.
+Declaring the contracts alone does not establish installed support.
+The [current support table](https://github.com/OpenRAE/rae/blob/dev/docs/explain/reference/revised-control-semantics.md)
+names demonstrated arrangements and refused combinations.
+The [executable examples](https://github.com/OpenRAE/rae/blob/dev/docs/examples/revised-control.md)
+use controlled test providers; they do not certify a native backend.

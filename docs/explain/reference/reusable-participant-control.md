@@ -131,9 +131,13 @@ preserves both occurrence versions; full reconstruction still requires each
 episode's original context. Explicit legacy declarations can be supplied as
 `MixedControlRuntimeBinding.legacy_declarations` for a mixed archive.
 
-Construction refuses a selected reusable directed-delivery binding or a combined
-mixed-runtime provider/phase binding, rather than initializing an episode whose
-selected downstream owner cannot consume its control facts.
+Construction admits reusable directed delivery only with a matching compiled
+`ParticipantInjectRuntimeBinding`, crossing-policy owner, and `resolve_delivery_cut`.
+The [inject guide](../../public/guides/external-injects.md#compose-an-explicit-participant-delivery)
+describes the exact control/result join and its local delivery boundary.
+Missing bindings or resolvers still refuse construction.
+A combined reusable-control and mixed-runtime binding remains unsupported.
+The [support table](revised-control-semantics.md#supported-arrangements) keeps these arrangements separate.
 
 The implementation claims bounded, tested control/cancellation behavior. It
 does not imply universal rollback, remote cessation from local fencing, or

@@ -59,6 +59,7 @@ from ._participant_routes import (
     _register_participant_execution_routes,
 )
 from ._responses import _receipt_response
+from ._runtime_routes import register_runtime_routes
 from ._supervision_routes import register_supervision_routes
 from ._workflow_routes import _register_workflow_routes
 
@@ -153,6 +154,7 @@ def create_control_plane_app(
     _register_operation_routes(app, control_plane)
     register_inject_routes(app, control_plane)
     register_supervision_routes(app, control_plane)
+    register_runtime_routes(app, control_plane)
     _register_workflow_routes(app, control_plane)
     _register_participant_episode_routes(app, control_plane)
     _register_participant_control_routes(app, control_plane)
