@@ -144,6 +144,9 @@ ADR-068 governs run, attempt, and replacement ID and complete run sets.
 The runtime architecture describes the live-state and archival distinction.
 The schema archive write ledger records every changed published schema hash.
 The reference schema generator must match that authority.
+Fresh offline research captures replay the fixed reference controls for this source.
+Their claim limits remain explicit.
+Targeted run-record tests check the new accounting behavior.
 Existing package-boundary policy remains unchanged because runtime continues to consume public processor and contract owners.
 No new policy engine or architecture framework is needed.
 Typed models, closed decision unions, and existing checks express the architecture in code.

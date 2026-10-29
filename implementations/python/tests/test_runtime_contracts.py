@@ -284,7 +284,10 @@ def test_experiment_core_schemas_publish_closed_world_contracts():
         "direction",
         "evidence_requirements",
     ]
-    assert run_schema["properties"]["apparatus_context"]["$ref"] == "#/$defs/ExperimentApparatusContextModel"
+    assert (
+        run_schema["properties"]["apparatus_context"]["anyOf"][0]["$ref"] == "#/$defs/ExperimentApparatusContextModel"
+    )
+    assert run_schema["properties"]["apparatus_context"]["anyOf"][1]["type"] == "null"
     assert (
         run_schema["properties"]["participant_implementation_provenance"]["anyOf"][0]["$ref"]
         == "#/$defs/ParticipantImplementationProvenanceModel"
@@ -324,12 +327,20 @@ def test_experiment_core_schemas_publish_closed_world_contracts():
     assert (
         run_schema["properties"]["scenario_snapshot_ref"]["$ref"] == "#/$defs/ExperimentScenarioSnapshotReferenceModel"
     )
-    assert "ended_at" in run_schema["required"]
+    archival = next(
+        rule["else"]
+        for rule in run_schema["allOf"]
+        if rule.get("if", {}).get("properties", {}).get("record_state", {}).get("const") == "partial"
+    )
+    assert "ended_at" in archival["required"]
     assert "clock_context" in run_schema["required"]
-    assert "evidence_artifacts" in run_schema["required"]
-    assert "result_summaries" in run_schema["required"]
+    assert "evidence_artifacts" in archival["required"]
+    assert "result_summaries" in archival["required"]
+    assert archival["properties"]["evidence_artifacts"]["minItems"] == 1
+    assert archival["properties"]["result_summaries"]["minProperties"] == 1
     assert run_schema["properties"]["started_at"]["format"] == "date-time"
-    assert run_schema["properties"]["ended_at"]["format"] == "date-time"
+    assert run_schema["properties"]["ended_at"]["anyOf"][0]["format"] == "date-time"
+    assert run_schema["properties"]["ended_at"]["anyOf"][1]["type"] == "null"
     assert "run-archival-times-rfc3339-valid" in _invariant_ids(run_schema)
     assert "ended-at-not-before-started-at" in _invariant_ids(run_schema)
     assert "result-evidence-ref-resolves" in _invariant_ids(run_schema)
@@ -361,7 +372,14 @@ def test_experiment_core_schemas_publish_closed_world_contracts():
     assert "cost-resource-trace" in artifact_schema["properties"]["role"]["enum"]
     assert "scaffold" in artifact_schema["properties"]["role"]["enum"]
     result_schema = run_schema["$defs"]["ExperimentResultSummaryModel"]
-    assert result_schema["required"] == ["metric_id", "value_status", "evidence_refs"]
+    assert result_schema["required"] == ["metric_id", "value_status"]
+    reported = next(
+        rule["then"]
+        for rule in result_schema["allOf"]
+        if rule.get("if", {}).get("properties", {}).get("value_status", {}).get("const") == "reported"
+    )
+    assert reported["required"] == ["evidence_refs"]
+    assert reported["properties"]["evidence_refs"]["minItems"] == 1
     assert result_schema["properties"]["evidence_refs"]["items"]["$ref"] == (
         "#/$defs/ExperimentRunEvidenceArtifactReferenceModel"
     )
