@@ -4,6 +4,12 @@ Issue #1019 documents existing behavior and its evidence limits.
 The [preflight](issue-1019-control-documentation-preflight.md) supplies the binding boundaries.
 This design changes no runtime, contract, profile, or requirement status.
 
+CI also requires a runtime-mapping capture for the current source identity.
+The retained capture predates changes to the Python project and lock files.
+The existing exporter derives a new capture path from those source bytes.
+Fresh public crossing observations supply its cases.
+The capture adds current evidence without changing historical reports or their claims.
+
 ## Architecture and document ownership
 
 The current reference connects four existing paths: reusable control, modular evaluation, world injects, and mixed execution.
