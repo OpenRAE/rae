@@ -104,6 +104,11 @@ A separate runtime-mapping capture records twenty-five bounded public calls with
 The existing [mapping boundary](../../specs/formal/participant-semantics/participant-crossing-runtime-mapping.md) governs these observations.
 This capture establishes no equivalence or backend conformance.
 
+The runtime ownership regression checks close and reuse from a worker thread.
+The physical callback waits for those checks before it returns.
+This removes a startup-speed assumption and retains the ownership assertions.
+The standard `Future` result carries worker failures back to the test.
+
 ## References
 
 - [Pydantic models](https://docs.pydantic.dev/2.12/concepts/models/), version 2.12: validating data and model copies.
@@ -112,3 +117,5 @@ This capture establishes no equivalence or backend conformance.
   The boundary checks both shape and meaning before use.
 - [ASD-STE100](https://www.asd-ste100.org/), Issue 9: writing rules, sections 1, 5, and 6.
   The document uses consistent technical nouns and short sentences.
+- [Python futures](https://docs.python.org/3.14/library/concurrent.futures.html), Python 3.14: executor objects and future results.
+  The ownership regression waits for completion instead of assuming a startup speed.
