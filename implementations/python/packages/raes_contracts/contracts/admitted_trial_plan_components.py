@@ -10,20 +10,22 @@ entry and plan models, the acyclic digest chain, and the seal helpers live in
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field, SerializerFunctionWrapHandler, model_serializer, model_validator
 from raes.identifiers import PortableIdentifier
 
+from .._canonical import canonical_json_digest
 from ..diagnostics import DiagnosticModel
 from .base import ContractModel, NonEmptyString, PositiveInteger, PrefixedDigestString
-from .experiment_bindings import ExperimentBindingDescriptorModel
+from .experiment_bindings import ExperimentBindingDescriptorModel, ParticipantConfigurationResultModel
 from .experiment_manifest_references import ExperimentManifestReferenceModel
 from .experiment_references import (
     ExperimentReferenceModel,
     ExperimentTaskReferenceModel,
 )
 from .experiment_selection import ExperimentSelectionOutcomeModel
+from .experiment_treatments import ExperimentScenarioSelectionDescriptorModel
 from .realization_plans import RealizationEnvelopeIdentityModel
 
 SelectionPolicyKind = Literal["fixed", "enumerate", "product", "stratified", "sample"]
@@ -62,12 +64,29 @@ class AdmittedTrialPlanProfilesModel(ContractModel):
     compiler_profile: Literal[
         "trial-compiler-v1",
         "trial-compiler-mixed-composition-v1",
+        "trial-compiler-replacement-v1",
+        "trial-compiler-replacement-mixed-composition-v1",
+        "trial-compiler-designed-v1",
+        "trial-compiler-designed-mixed-composition-v1",
+        "trial-compiler-replacement-designed-v1",
+        "trial-compiler-replacement-designed-mixed-composition-v1",
     ]
     selection_policy_profile: Literal["experiment-selection-v1"]
     random_stream_profile: Literal["blake3-xof-v1"]
     execution_control_profile: Literal["attempt-control-v1"]
     cleanup_profile: Literal["trial-cleanup-v1"]
     isolation_profile: Literal["scheduler-isolation-v1"]
+    allocation_profile: Literal["none", "fisher-yates-allocation-v1"] = "none"
+    treatment_profile: Literal["factorial-treatments-v1"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+
+    @model_serializer(mode="wrap")
+    def _serialize_allocation_profile(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        payload = handler(self)
+        if self.allocation_profile == "none":
+            payload.pop("allocation_profile", None)
+        return payload
 
 
 class ExperimentScenarioFamilyReferenceModel(ContractModel):
@@ -148,6 +167,19 @@ class AdmittedSelectionRecordModel(ContractModel):
     origin_policy_id: PortableIdentifier
     origin_policy_kind: SelectionPolicyKind
     outcome: ExperimentSelectionOutcomeModel
+    treatment: ExperimentScenarioSelectionDescriptorModel | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+
+    @model_validator(mode="after")
+    def _validate_treatment(self) -> AdmittedSelectionRecordModel:
+        if self.treatment is not None and (
+            self.treatment.target.variation_point_id != self.variation_point_id
+            or canonical_json_digest(self.treatment.outcome.model_dump(mode="json"))
+            != canonical_json_digest(self.outcome.model_dump(mode="json"))
+        ):
+            raise ValueError("admitted treatment must match its selected point and typed outcome")
+        return self
 
 
 class AdmittedBindingModel(ContractModel):
@@ -320,3 +352,68 @@ __all__ = [
     "ExperimentScenarioFamilyReferenceModel",
     "SelectionPolicyKind",
 ]
+
+
+if TYPE_CHECKING:
+    from .admitted_trial_plan import AdmittedTrialEntryModel
+
+
+def validate_entry_participant_configurations(entry: AdmittedTrialEntryModel) -> None:
+    configurations = {result.participant_address: result for result in entry.participant_configurations}
+    if len(configurations) != len(entry.participant_configurations):
+        raise ValueError("entry participant configurations must have unique addresses")
+    participant_bindings = [
+        binding.descriptor
+        for binding in entry.bindings
+        if binding.descriptor.target.plane == "participant-implementation"
+    ]
+    if not {binding.target.participant_address for binding in participant_bindings}.issubset(configurations):
+        raise ValueError("participant configurations must cover every bound participant")
+    authorities = {
+        (
+            ref.participant_address,
+            ref.implementation_name,
+            ref.implementation_version,
+            ref.manifest_version,
+            ref.manifest_digest,
+        )
+        for ref in entry.apparatus.participant_manifest_refs
+    }
+    for result in configurations.values():
+        embedded = result.configuration
+        if (
+            result.participant_address,
+            embedded.implementation_identity.name,
+            embedded.implementation_identity.version,
+            embedded.manifest_version,
+            result.manifest_digest,
+        ) not in authorities:
+            raise ValueError("participant configuration identity must match its admitted manifest authority")
+    for descriptor in participant_bindings:
+        _validate_configuration_binding(descriptor, configurations[descriptor.target.participant_address], authorities)
+
+
+def _validate_configuration_binding(
+    descriptor: ExperimentBindingDescriptorModel,
+    result: ParticipantConfigurationResultModel,
+    authorities: set[tuple[str, str, str, str, str]],
+) -> None:
+    target = descriptor.target
+    values = {value.target_id: value for value in result.configuration.values}
+    value = values.get(target.target_id)
+    if (
+        value is None
+        or value.value != descriptor.value
+        or value.value_type != descriptor.value_type
+        or result.configuration.owner != descriptor.owner
+    ):
+        raise ValueError("participant configuration must realize its admitted binding")
+    authority = (
+        target.participant_address,
+        target.implementation_name,
+        target.implementation_version,
+        target.manifest_version,
+        result.manifest_digest,
+    )
+    if authority not in authorities:
+        raise ValueError("participant configuration must match its admitted manifest authority")

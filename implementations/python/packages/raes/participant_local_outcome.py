@@ -32,7 +32,7 @@ class LocalOutcomeDefinition(SDLModel):
     episode_policy: Literal["reset_without_transfer"]
 
     @model_validator(mode="after")
-    def _unique_criteria(self) -> "LocalOutcomeDefinition":
+    def _unique_criteria(self) -> LocalOutcomeDefinition:
         identities = [criterion.criterion_id for criterion in self.criteria]
         bindings = [(criterion.source_id, criterion.effect_id) for criterion in self.criteria]
         if len(set(identities)) != len(identities) or len(set(bindings)) != len(bindings):

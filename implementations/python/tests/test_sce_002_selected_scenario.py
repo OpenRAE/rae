@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import json
+
 import pytest
 from raes import (
     ExpandedScenarioBindingTargetResolver,
+    admit_scenario_family,
+    parse_sdl,
     select_scenario_family,
 )
 from raes.scenario import ExpandedScenario, Scenario
@@ -63,11 +67,7 @@ def _family() -> ExpandedScenario:
             },
         },
     }
-    authored = Scenario.model_validate(payload)
-    SemanticValidator(authored).validate()
-    expanded = ExpandedScenario.model_validate(payload)
-    expanded._set_semantic_validated(True)
-    return expanded
+    return admit_scenario_family(parse_sdl(json.dumps(payload)))
 
 
 def _all_kinds_family() -> ExpandedScenario:

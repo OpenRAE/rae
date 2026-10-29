@@ -6,6 +6,9 @@ Part of the SemanticValidator mixin composition; see __init__.py.
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 
+from .._reference_targetability import ReferencePurpose
+from ._core import runtime_reference_eligible
+
 
 @dataclass(frozen=True)
 class _MailServiceLocalIds:
@@ -105,7 +108,7 @@ class _RuntimeMailMixin:
         label: str,
         service: object,
         service_names: set[str],
-        local_ids: "_MailServiceLocalIds",
+        local_ids: _MailServiceLocalIds,
     ) -> None:
         for listener in service.listeners:
             listener_label = f"{label} listener '{listener.listener_id}'"
@@ -127,7 +130,7 @@ class _RuntimeMailMixin:
         label: str,
         service: object,
         local_user_names: set[str],
-        local_ids: "_MailServiceLocalIds",
+        local_ids: _MailServiceLocalIds,
     ) -> None:
         for mailbox in service.mailboxes:
             mailbox_label = f"{label} mailbox '{mailbox.mailbox_id}'"
@@ -140,7 +143,7 @@ class _RuntimeMailMixin:
         self,
         label: str,
         service: object,
-        local_ids: "_MailServiceLocalIds",
+        local_ids: _MailServiceLocalIds,
     ) -> None:
         for alias in service.aliases:
             alias_label = f"{label} alias '{alias.alias_id}'"
@@ -157,7 +160,7 @@ class _RuntimeMailMixin:
         self,
         label: str,
         service: object,
-        local_ids: "_MailServiceLocalIds",
+        local_ids: _MailServiceLocalIds,
     ) -> None:
         for rule in service.routing_rules:
             rule_label = f"{label} routing rule '{rule.rule_id}'"
@@ -169,7 +172,7 @@ class _RuntimeMailMixin:
         label: str,
         service: object,
         observed_paths: set[str],
-        local_ids: "_MailServiceLocalIds",
+        local_ids: _MailServiceLocalIds,
     ) -> None:
         for setting in service.settings:
             setting_label = f"{label} setting '{setting.setting_id}'"
@@ -254,6 +257,8 @@ class _RuntimeMailMixin:
     def _resolve_mail_service_ref(self, ref: object) -> object | None:
         """Resolve a qualified runtime mail-service or child ref to the service."""
         reference = self._runtime_reference(ref)
-        if reference is None or reference.family.collection_name != "mail_services":
-            return None
-        return reference.owning_item
+        return (
+            reference.owning_item
+            if runtime_reference_eligible(reference, ReferencePurpose.MAIL_SERVICE_ENDPOINT)
+            else None
+        )

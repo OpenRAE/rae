@@ -1,0 +1,225 @@
+"""Bounded local execution using AnyIO, with physical effect/control separation."""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from functools import partial
+from os import getpid
+from threading import BoundedSemaphore, Condition, Lock
+from time import monotonic
+from typing import Literal, NamedTuple, cast
+
+import anyio
+from anyio.from_thread import start_blocking_portal
+
+from .control_plane_mutation import detached_extension
+
+Lane = Literal["effect", "control", "store", "deadline", "resolution"]
+# Portable apparatus ceiling, below native wait overflow.
+_MAX_BUDGET = 2147483647
+
+
+class _CallbackOutcome(NamedTuple):
+    value: object
+    error: BaseException | None
+
+
+def _capture_callback(method: Callable[[], object]) -> _CallbackOutcome:
+    # Fatal exception types must reach the synchronous caller without being
+    # raised inside the shared asyncio portal and stopping unrelated lanes.
+    try:
+        return _CallbackOutcome(method(), None)
+    except BaseException as error:
+        if isinstance(error, Exception):
+            # Ordinary failures use AnyIO's existing exception propagation.
+            raise
+        return _CallbackOutcome(None, error)
+
+
+def require_budget_ms(value: object) -> int:
+    if type(value) is not int or not 1 <= value <= _MAX_BUDGET:
+        raise ValueError("apparatus budget must be a strict positive bounded integer")
+    return value
+
+
+class _CallSlot:
+    def __init__(self, release: Callable[[], None]) -> None:
+        self._lock = Lock()
+        self._release = release
+        self._started = False
+        self._cancelled = False
+
+    def invoke[T](self, method: Callable[[], T], *, extension: bool) -> _CallbackOutcome | None:
+        with self._lock:
+            if self._cancelled:
+                return None
+            self._started = True
+        try:
+            with detached_extension(extension=extension):
+                return _capture_callback(method)
+        finally:
+            self._release()
+
+    def abandon_unstarted(self) -> None:
+        with self._lock:
+            if self._started or self._cancelled:
+                return
+            self._cancelled = True
+        self._release()
+
+
+class LocalExecutionAdapter:
+    """A local adapter, not a scheduler or a claim of backend interruption.
+
+    AnyIO cancellation bounds the caller. Physical slots remain occupied until
+    abandoned synchronous calls actually exit; repeated timeouts cannot create
+    an unbounded worker population. Control and store use independent limiters.
+    """
+
+    def __init__(self, *, effect_capacity: int = 1, control_capacity: int = 2, store_capacity: int = 1) -> None:
+        capacities = {
+            "effect": effect_capacity,
+            "control": control_capacity,
+            "store": store_capacity,
+            "deadline": 1,
+            "resolution": 1,
+        }
+        if any(type(value) is not int or not 1 <= value <= 64 for value in capacities.values()):
+            raise ValueError("execution capacity must be a strict integer between 1 and 64")
+        self._owner_pid = getpid()
+        self._condition = Condition()
+        self._pending = 0
+        self._closed = False
+        self._draining = False
+        self._timers = {}
+        self._slots = {lane: BoundedSemaphore(value) for lane, value in capacities.items()}
+        self._portal_context = start_blocking_portal(name="runtime-execution")
+        self._portal = self._portal_context.__enter__()
+        self._limiters = self._portal.call(self._create_limiters, capacities)
+
+    @staticmethod
+    async def _create_limiters(capacities: dict[str, int]) -> dict[str, anyio.CapacityLimiter]:
+        return {lane: anyio.CapacityLimiter(value) for lane, value in capacities.items()}
+
+    @property
+    def pending_calls(self) -> int:
+        self._require_owner_process()
+        with self._condition:
+            return self._pending
+
+    def _require_owner_process(self) -> None:
+        if getpid() != self._owner_pid:
+            raise RuntimeError("execution adapter cannot be used after fork; create a fresh runtime")
+
+    def call[T](self, lane: Lane, method: Callable[..., T], *args: object, timeout_ms: int, **kwargs: object) -> T:
+        self._require_owner_process()
+        budget = require_budget_ms(timeout_ms)
+        if lane not in self._slots:
+            raise ValueError("unknown execution lane")
+        with self._condition:
+            if self._closed or (self._draining and lane in {"effect", "resolution"}):
+                raise RuntimeError("execution adapter is closed to effect admission")
+            if not self._slots[lane].acquire(blocking=False):
+                raise RuntimeError("execution capacity unavailable")
+            self._pending += 1
+
+        def release() -> None:
+            self._slots[lane].release()
+            with self._condition:
+                self._pending -= 1
+                self._condition.notify_all()
+
+        slot = _CallSlot(release)
+        try:
+            outcome = self._portal.call(self._invoke, lane, slot, partial(method, *args, **kwargs), budget)
+            if outcome.error is not None:
+                raise outcome.error
+            return cast(T, outcome.value)
+        finally:
+            slot.abandon_unstarted()
+
+    async def _invoke[T](self, lane: Lane, slot: _CallSlot, method: Callable[[], T], budget: int) -> _CallbackOutcome:
+        with anyio.fail_after(budget / 1000):
+            return await anyio.to_thread.run_sync(
+                partial(slot.invoke, method, extension=lane not in {"store", "deadline"}),
+                abandon_on_cancel=True,
+                limiter=self._limiters[lane],
+            )
+
+    def drain(self, *, timeout_ms: int) -> bool:
+        self._require_owner_process()
+        budget = require_budget_ms(timeout_ms)
+        with self._condition:
+            if self._closed:
+                return True
+            self._draining = True
+            for future in self._timers.values():
+                future.cancel()
+            self._timers.clear()
+            return self._condition.wait_for(lambda: self._pending == 0, timeout=budget / 1000)
+
+    def arm_deadline(
+        self,
+        key: str,
+        deadline: float,
+        callback: Callable[..., object],
+        *args: object,
+        failure_handler: Callable[[], None] | None = None,
+    ) -> None:
+        self._require_owner_process()
+        with self._condition:
+            if self._closed or self._draining or key in self._timers:
+                raise RuntimeError("invocation deadline is unavailable")
+            self._timers[key] = self._portal.start_task_soon(self._deadline, deadline, callback, args, failure_handler)
+
+    async def _deadline(
+        self,
+        deadline: float,
+        callback: Callable[..., object],
+        args: tuple[object, ...],
+        failure_handler: Callable[[], None] | None,
+    ) -> None:
+        await anyio.sleep(max(0, deadline - monotonic()))
+        # This is an apparatus timer for one admitted invocation, not a queue.
+        # The state owner classifies expiry; cancellation never implies cessation.
+        try:
+            outcome = await anyio.to_thread.run_sync(
+                partial(_capture_callback, partial(self.call, "deadline", callback, *args, timeout_ms=5000)),
+                abandon_on_cancel=True,
+            )
+            if outcome.error is not None:
+                if isinstance(outcome.error, Exception):
+                    raise outcome.error
+                raise RuntimeError("invocation deadline callback interrupted") from None
+        except Exception:
+            if failure_handler is not None:
+                failure_handler()
+            raise
+
+    def cancel_deadline(self, key: str) -> None:
+        self._require_owner_process()
+        with self._condition:
+            future = self._timers.pop(key, None)
+            if future is not None:
+                future.cancel()
+
+    def pause(self, duration_ms: int) -> None:
+        self._require_owner_process()
+        self._portal.call(anyio.sleep, require_budget_ms(duration_ms) / 1000)
+
+    def close(self, *, timeout_ms: int) -> bool:
+        self._require_owner_process()
+        if not self.drain(timeout_ms=timeout_ms):
+            return False
+        with self._condition:
+            close_portal = not self._closed
+            if close_portal:
+                if self._pending:
+                    return False
+                self._closed = True
+        if close_portal:
+            self._portal_context.__exit__(None, None, None)
+        return True
+
+
+__all__ = ("LocalExecutionAdapter", "require_budget_ms")

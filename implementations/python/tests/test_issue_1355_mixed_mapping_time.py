@@ -758,7 +758,11 @@ def test_interrupted_mixed_edge_cannot_recover_from_provider_observation_alone(m
             idempotency_key="accept-partial-cut",
             identity=actor,
         )
-    plane._store.load_snapshot().participant_crossing_history["participant.behavior.unrelated"] = [{}]
+    stored = plane._store.load_snapshot()
+    stored.participant_crossing_history = {
+        **stored.participant_crossing_history,
+        "participant.behavior.unrelated": [{}],
+    }
     target = create_stub_target(with_participant_runtime=False)
     resolver = permit_resolver()
     with pytest.raises(ValueError):
@@ -814,8 +818,12 @@ def test_valid_mixed_crossing_cannot_clear_missing_stages_by_generic_resolution(
     assert receipt.operation_id in unresolved_indeterminate_operation_ids_from_records(
         {receipt.operation_id: parent, "historical-resolution": child}
     )
-    history = plane._store.load_snapshot().participant_crossing_history[PARTICIPANT]
-    history.append({**history[-1], "event_id": "crossing-occurrence.decided.unrelated"})
+    stored = plane._store.load_snapshot()
+    history = stored.participant_crossing_history[PARTICIPANT]
+    stored.participant_crossing_history = {
+        **stored.participant_crossing_history,
+        PARTICIPANT: [*history, {**history[-1], "event_id": "crossing-occurrence.decided.unrelated"}],
+    }
     target = create_stub_target(with_participant_runtime=False)
     resolver = permit_resolver()
     with pytest.raises(ValueError, match="crossing result head differs"):

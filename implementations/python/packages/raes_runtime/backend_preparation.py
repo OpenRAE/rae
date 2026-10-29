@@ -279,7 +279,7 @@ def _unprepared_execution_refusal(plan: ProvisioningPlan) -> Diagnostic | None:
 
     try:
         authored = authored_resource_profiles(op for op in plan.operations if op.action is not ChangeAction.DELETE)
-    except (AttributeError, TypeError, ValueError):
+    except AttributeError, TypeError, ValueError:
         return _preparation_failure("Authored profile selection is invalid.")
     message = None
     if authored:

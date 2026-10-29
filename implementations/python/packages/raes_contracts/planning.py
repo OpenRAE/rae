@@ -13,11 +13,12 @@ from raes.explicitness import ExplicitnessProvenance
 from raes_contracts import _planning_validation as _validation
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.bounded_domains import DomainDescriptor
-from raes_contracts.compute_substrate import validate_compute_substrate_constraint, validate_planned_substrate_targets
+from raes_contracts.compute_substrate import validate_planned_substrate_targets
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.execution_policy import EffectiveExecutionPolicy
 from raes_contracts.materialization import MaterializationSource
 from raes_contracts.observation_demand import EffectiveObservationDemand
+from raes_contracts.planned_realization_constraint import PlannedRealizationConstraint as PlannedRealizationConstraint
 from raes_contracts.realization_preparation import RealizationPreparationAuthority
 from raes_contracts.realization_structure import RealizationConstraintDocument, RealizationStructure
 from raes_contracts.run_scope import PlanScope, _validate_optional_run_id
@@ -329,27 +330,6 @@ class ProvisionOp(PlanOperation):
     profile_bindings: tuple[DomainProfileBindingModel, ...] = ()
 
 
-@dataclass(frozen=True)
-class PlannedRealizationConstraint:
-    """Value-bearing author demand carried separately from apparatus choice."""
-
-    address: str
-    field_path: str
-    concern: str
-    posture: str
-    value_domain: DomainDescriptor | None
-    governing_scope: str
-    provenance: str
-
-    def __post_init__(self) -> None:
-        require_compiled_address(self.address)
-        if self.concern != "compute-substrate":
-            raise ValueError("planned realization constraint concern is unsupported")
-        if self.posture not in {"open", "constrained", "exact"}:
-            raise ValueError("planned realization constraint posture is invalid")
-        validate_compute_substrate_constraint(self.posture, self.value_domain)
-
-
 class OrchestrationOp(PlanOperation):
     """Orchestration reconciliation operation."""
 
@@ -380,9 +360,15 @@ class ProvisioningPlan:
     materialization_source: MaterializationSource | None = None
     augmentation_scope_required: bool = False
 
+    # Runtime-bound reporting nonce; refresh is a distinct committed operation.
+    inventory_attempt_id: str | None = None
+    inventory_refresh: bool = False
+
     def __post_init__(self) -> None:
         if self.purpose not in {"execution", "inspection"}:
             raise ValueError(_INVALID_PLAN_PURPOSE)
+        if type(self.inventory_refresh) is not bool:
+            raise ValueError("inventory_refresh must be a strict boolean")
         if self.operation_id is not None and not self.operation_id.strip():
             raise ValueError("ProvisioningPlan operation_id must be non-empty when present")
         _validate_optional_run_id(self.run_id, owner="ProvisioningPlan run_id")

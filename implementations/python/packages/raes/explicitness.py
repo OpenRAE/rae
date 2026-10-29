@@ -6,6 +6,7 @@ import re
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
+from typing import Protocol, cast
 
 from pydantic import BaseModel
 
@@ -72,10 +73,67 @@ class ExplicitnessResult:
     errors: tuple[str, ...] = ()
 
 
-def classify_scenario_explicitness(scenario: BaseModel) -> ExplicitnessResult:
-    """Classify authored SDL declarations on ``scenario``."""
+class FieldResultCache(Protocol):
+    """Identity-keyed reuse of per-field results within one validation session."""
 
-    return classify_model_explicitness(scenario)
+    def walker_result(self, key: tuple[object, ...], value: object) -> object | None: ...
+
+    def store_walker_result(self, key: tuple[object, ...], value: object, result: object) -> None: ...
+
+
+def classify_scenario_explicitness(
+    scenario: BaseModel,
+    *,
+    session: FieldResultCache | None = None,
+) -> ExplicitnessResult:
+    """Classify authored SDL declarations on ``scenario``.
+
+    With a ``session``, each top-level field reuses its records and errors when
+    the field holds the identical object under the identical variables. The
+    result equals :func:`classify_model_explicitness` field for field.
+    """
+
+    if session is None:
+        return classify_model_explicitness(scenario)
+    variables = getattr(scenario, "variables", {})
+    fields_set = set(scenario.model_fields_set)
+    exact_fields_hook = getattr(scenario, "explicitness_exact_fields", None)
+    exact_fields = exact_fields_hook() if callable(exact_fields_hook) else frozenset()
+    records: dict[str, ExplicitnessRecord] = {}
+    errors: list[str] = []
+    for field_name in scenario.__class__.model_fields:
+        if field_name not in fields_set:
+            continue
+        value = getattr(scenario, field_name)
+        key = ("explicitness", field_name, id(variables), field_name in exact_fields)
+        cached = session.walker_result(key, value)
+        if cached is None:
+            cached = _classify_field(value, field_name, variables, exact=field_name in exact_fields)
+            session.store_walker_result(key, value, cached)
+        field_records, field_errors = cast("tuple[dict[str, ExplicitnessRecord], tuple[str, ...]]", cached)
+        records.update(field_records)
+        errors.extend(field_errors)
+    return ExplicitnessResult(records=records, errors=tuple(errors))
+
+
+def _classify_field(
+    value: object,
+    path: str,
+    variables: dict[str, Variable],
+    *,
+    exact: bool,
+) -> tuple[dict[str, ExplicitnessRecord], tuple[str, ...]]:
+    """Classify one top-level field exactly as the whole-model visitor does."""
+
+    classifier = _ExplicitnessClassifier(variables)
+    record = classifier.visit(value, path)
+    if exact and record is not None and not record.variables:
+        classifier.records[path] = ExplicitnessRecord(
+            path=path,
+            classification=ExplicitnessClass.EXACT,
+            reason="owning model supplies exact extension identity",
+        )
+    return dict(classifier.records), tuple(classifier.errors)
 
 
 def classify_model_explicitness(

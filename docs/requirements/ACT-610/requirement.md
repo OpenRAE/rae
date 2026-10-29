@@ -23,7 +23,7 @@ Requirement inventory expansion. Defensive behavior needs its own expressible vo
 
 - IMPLEMENTS → GITHUB_ISSUE `210` (Defensive Behavior Vocabularies (ACT-610))
 - IMPLEMENTS → CONFIG `contracts/concept-authority/controlled-vocabularies-v1.json` (Governed participant defensive behavior vocabulary)
-- IMPLEMENTS → CONFIG `contracts/schemas/concept-authority/nist-csf-defensive-categories-source-v1.json` (NIST CSF defensive category source schema)
+- IMPLEMENTS → SPEC `contracts/schemas/concept-authority/nist-csf-defensive-categories-source-v1.json` (NIST CSF defensive category source schema)
 - IMPLEMENTS → CONFIG `contracts/concept-authority/nist-csf-defensive-categories-source-v1.json` (Pinned NIST CSF 2.0 defensive category source)
 - IMPLEMENTS → SPEC `contracts/schemas/concept-authority/external-concept-bindings-v1.json` (Generic authored defensive behavior classification contract)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/external_concept_bindings.py` (Neutral NIST CSF source snapshot adapter)

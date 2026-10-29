@@ -153,7 +153,7 @@ class RuntimeDatastoreService(SDLModel):
         return _coerce_manifest_entries(v, id_field="mapping_id")
 
     @model_validator(mode="after")
-    def validate_datastore_service(self) -> "RuntimeDatastoreService":
+    def validate_datastore_service(self) -> RuntimeDatastoreService:
         self._reject_duplicate_string_lists()
         _reject_duplicate_local_ref_ids(self)
         self._reject_incompatible_partition_kinds()

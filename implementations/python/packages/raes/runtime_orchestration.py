@@ -155,7 +155,7 @@ class RuntimeOrchestrationAuthority(SDLModel):
         return parse_runtime_enum_or_var(v, RuntimeOrchestrationPrivilegeClass, field_name="privilege_class")
 
     @model_validator(mode="after")
-    def validate_orchestration_authority(self) -> "RuntimeOrchestrationAuthority":
+    def validate_orchestration_authority(self) -> RuntimeOrchestrationAuthority:
         self._reject_duplicate_local_ref_ids()
         return self
 

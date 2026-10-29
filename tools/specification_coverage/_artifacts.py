@@ -65,7 +65,7 @@ def _surface_entry_failures(
     if replay_current:
         try:
             current_valid = recorded_path == expected_path and expected_sha == surface_digest(repo_root, expected_path)
-        except (OSError, ValueError):
+        except OSError, ValueError:
             current_valid = False
     if not isinstance(expected_sha, str) or not _SHA256_RE.fullmatch(expected_sha) or not current_valid:
         failures.append(
@@ -323,7 +323,7 @@ def _historical_artifact_failures(repo_root: Path, artifact: dict[str, object], 
         content = base64.b64decode(archive["content_base64"], validate=True)
         if hashlib.sha256(content).hexdigest() != digest:
             raise ValueError("archive bytes differ from the frozen source pin")
-    except (OSError, ValueError):
+    except OSError, ValueError:
         failures.append(
             _failure(
                 "specification-coverage-artifact-digest",
