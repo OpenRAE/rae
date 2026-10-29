@@ -524,6 +524,9 @@ ownership:
     # Retain SEM-218's exact shared description-evidence owners from issue #1209.
     - implementations/python/packages/raes_runtime/observation_execution.py
     - implementations/python/packages/raes_runtime/observation_results.py
+    # Prepared-resource provenance remains runtime-owned (issue #1697).
+    - implementations/python/packages/raes_runtime/backend_apply_results.py
+    - docs/migration/runtime-lifetime.md
     - contracts/fixtures/experiment-core/experiment-evidence-record-v1
     - implementations/python/tests
     - implementations/python/pyproject.toml
