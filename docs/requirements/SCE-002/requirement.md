@@ -30,6 +30,10 @@ These show that the use of parameters is standard practice.
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/family_admission.py` (Admit import-free scenario families for experiment selection and trial compilation.)
+- TESTS → TEST `implementations/python/tests/test_scenario_family_admission.py` (Test public admission, phase checks, nested validation, provenance, and typed selection.)
+- DOCUMENTS → DOCUMENTATION `docs/explain/scenario-family-admission.md` (Describe the pure family admission boundary and its security controls.)
+
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/control_admission.py` (Reject a complete trial plan when a selected backend cannot support entry controls.)
 - TESTS → TEST `implementations/python/tests/test_issue_1628_trial_control_admission.py` (Test selected-backend isolation and deterministic whole-plan refusal.)
 
