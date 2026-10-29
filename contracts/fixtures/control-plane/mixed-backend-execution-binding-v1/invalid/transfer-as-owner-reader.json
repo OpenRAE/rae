@@ -1,0 +1,43 @@
+{
+  "schema_version": "mixed-backend-execution-binding/v1",
+  "binding_id": "binding:transition.sim-to-emu",
+  "profile_id": "profile:mixed",
+  "profile_revision": "mixed-cross-backend-participant-control-v1@rev1",
+  "profile_digest": "sha256:83d1c9715656e4f1cbaf93083934fc941cccdae51718c36c75f6a77813f3371b",
+  "subject": {
+    "kind": "handoff",
+    "transition_id": "transition.sim-to-emu",
+    "operation_kind": "composition-phase",
+    "source_component_id": "sim",
+    "destination_component_id": "emu",
+    "source_owner_ref": "native-ownership:sim",
+    "destination_owner_ref": "native-ownership:emu",
+    "transfer": {
+      "service_ref": "transfer:native-ownership",
+      "version": "1",
+      "digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+    },
+    "time": {
+      "time_model_ref": "time-model:composition",
+      "time_model_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "source_clock_address": "time.clocks.sim",
+      "destination_clock_address": "time.clocks.emu",
+      "mapping_ref": "time.mappings.sim-to-emu",
+      "ordering_basis": "control_plane_order",
+      "required_comparison": "ordered",
+      "coordinator": {
+        "service_ref": "coordinator:reference-time",
+        "version": "1",
+        "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      }
+    },
+    "owner_reader": {
+      "service_ref": "transfer:native-ownership",
+      "version": "1",
+      "digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+    },
+    "required_evidence_refs": [
+      "evidence:phase-realization"
+    ]
+  }
+}

@@ -64,6 +64,7 @@ class _MappingAnalyzer:
         migration_policy: SDLMigrationPolicy,
         path: Path | None,
         source_ranges: dict[str, SDLSourceRange] | None = None,
+        source_key_ranges: dict[str, SDLSourceRange] | None = None,
         materialized: bool = False,
     ) -> None:
         self.diagnostics: list[SDLParseDiagnostic] = []
@@ -73,6 +74,7 @@ class _MappingAnalyzer:
         self._diagnostic_keys: set[tuple[Any, ...]] = set()
         self._walked: set[tuple[int, MappingScope]] = set()
         self._source_ranges = source_ranges
+        self._source_key_ranges = source_key_ranges
         self._materialized = materialized
 
     def analyze(
@@ -110,7 +112,9 @@ class _MappingAnalyzer:
             self._add_alias_cycle(node, tokens)
         else:
             walk_key = (identity, scope)
-            if walk_key not in self._walked and isinstance(node, (MappingNode, SequenceNode)):
+            if (walk_key not in self._walked or self._source_key_ranges is not None) and isinstance(
+                node, (MappingNode, SequenceNode)
+            ):
                 self._walked.add(walk_key)
                 active.add(identity)
                 try:
@@ -213,6 +217,8 @@ class _MappingAnalyzer:
                 authored_keys=(authored, canonical),
             )
         child_tokens = [*tokens, canonical]
+        if self._source_key_ranges is not None:
+            self._source_key_ranges[_encode_pointer(child_tokens)] = _range_from_node(key_node)
         self._validate_entry_identifiers(
             key_node,
             value_node,

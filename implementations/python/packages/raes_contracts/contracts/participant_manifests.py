@@ -21,6 +21,7 @@ from ..manifest_authority import (
 )
 from ..versions import (
     BACKEND_MANIFEST_V2_SCHEMA_VERSION,
+    BACKEND_OPERATION_CONTRACT_IDS,
     PARTICIPANT_IMPLEMENTATION_MANIFEST_V1_SCHEMA_VERSION,
     PARTICIPANT_IMPLEMENTATION_PROVENANCE_V1_SCHEMA_VERSION,
 )
@@ -29,6 +30,7 @@ from .base import (
     _PARTICIPANT_IMPLEMENTATION_CONCEPT_BINDING_SCOPES,
     ContractModel,
     NonEmptyString,
+    Sha256DigestString,
 )
 from .capabilities import (
     ApparatusIdentityModel,
@@ -71,6 +73,10 @@ class BackendManifestV2Model(ContractModel):
             raise ValueError("configuration_registry requires experiment-binding-descriptors-v1 support")
         self._validate_realization_envelope_contract()
         self._validate_cleanup_contracts()
+        if self.capabilities.operation_supervision is not None and not set(BACKEND_OPERATION_CONTRACT_IDS).issubset(
+            self.supported_contract_versions
+        ):
+            raise ValueError("operation supervision requires backend operation contracts")
         self._validate_time_contracts()
         self._validate_observation_capture_offers()
         self._validate_participant_policy_contracts()
@@ -174,6 +180,25 @@ class BackendManifestV2Model(ContractModel):
         json_schema["properties"]["supported_contract_versions"]["items"]["enum"] = list(BACKEND_SUPPORTED_CONTRACT_IDS)
         json_schema.setdefault("allOf", []).extend(
             [
+                {
+                    "if": {
+                        "properties": {
+                            "capabilities": {
+                                "properties": {"operation_supervision": {"type": "object"}},
+                                "required": ["operation_supervision"],
+                            }
+                        },
+                        "required": ["capabilities"],
+                    },
+                    "then": {
+                        "properties": {
+                            "supported_contract_versions": {
+                                "allOf": [{"contains": {"const": term}} for term in BACKEND_OPERATION_CONTRACT_IDS]
+                            }
+                        },
+                        "required": ["supported_contract_versions"],
+                    },
+                },
                 {
                     "if": {
                         "properties": {"realization_envelope": {"not": {"type": "null"}}},
@@ -345,7 +370,7 @@ class ParticipantImplementationManifestModel(ContractModel):
         return json_schema
 
 
-DigestString = Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")]
+DigestString = Sha256DigestString
 
 
 class ParticipantExposurePolicyModel(ContractModel):

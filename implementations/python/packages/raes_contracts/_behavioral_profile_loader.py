@@ -22,6 +22,7 @@ SUPPORTED_BEHAVIORAL_RELATION_PROFILE_IDS = frozenset(
         "participant-opacity-runtime-reference-v1",
         "participant-opacity-theorem-v1",
         "participant-crossing-dpbb-finite-v1",
+        "participant-crossing-multi-operation-dpbb-finite-v1",
     }
 )
 
@@ -62,7 +63,7 @@ def load_behavioral_relation_profile_from_path(
             max_bytes=_MAX_PROFILE_BYTES,
         )
         profile = BehavioralRelationProfileModel.model_validate(payload)
-    except (OSError, ValueError):
+    except OSError, ValueError:
         raise ValueError("behavioral relation profile JSON or contract is invalid") from None
     if profile.profile_id != profile_id:
         raise ValueError("behavioral relation profile artifact identity does not match the requested profile")

@@ -453,13 +453,13 @@ def test_legacy_generic_operations_do_not_require_profile_fields():
     from dataclasses import asdict
 
     from raes import parse_sdl
+    from raes_backend_stubs.stubs import create_stub_target
     from raes_contracts.planning import PlanOperation
     from raes_contracts.runtime_state import RuntimeSnapshot
-    from raes_reference_backend import create_reference_backend_target
     from raes_runtime.backend_calls import _call_backend_apply, _RealizationApplyContext
     from raes_runtime.manager import RuntimeManager
 
-    target = create_reference_backend_target()
+    target = create_stub_target()
     request = RuntimeManager(target).plan(parse_sdl("name: legacy\nnodes:\n  host: {type: compute}\n")).provisioning
     operations = []
     for operation in request.operations:

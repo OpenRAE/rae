@@ -4,6 +4,7 @@ from collections.abc import Mapping
 
 from pydantic import TypeAdapter
 from raes import SDLValidationError
+from raes.content import Content
 from raes.nodes import Node
 from raes.scenario import ExpandedScenario
 from raes.stateful_resources import PersistentVolume
@@ -18,7 +19,14 @@ from .stateful_admission import _canonical_consumers, _validated_generated_artif
 def validate_prepared_node_semantics(live: Mapping[str, object]) -> None:
     """Check references and unresolved inputs without reconstructing author provenance."""
 
-    context = {"nodes": {}, "infrastructure": {}, "generated_artifacts": {}, "persistent_volumes": {}, "accounts": {}}
+    context = {
+        "nodes": {},
+        "infrastructure": {},
+        "generated_artifacts": {},
+        "persistent_volumes": {},
+        "accounts": {},
+        "content": {},
+    }
     node_specs = {
         entry.address: entry.payload["spec"] for entry in live.values() if entry.resource_type in {"node", "network"}
     }
@@ -37,6 +45,8 @@ def validate_prepared_node_semantics(live: Mapping[str, object]) -> None:
             )
         elif entry.resource_type == "account-placement":
             context["accounts"][name] = spec
+        elif entry.resource_type == "content-placement":
+            context["content"][name] = Content.model_validate(spec)
     scenario = ExpandedScenario(name="prepared-node-context", **context)
     try:
         SemanticValidator(scenario).validate_node_realization()

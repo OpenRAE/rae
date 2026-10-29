@@ -121,7 +121,7 @@ def _private_service_selection(
             or private.coordinate not in capabilities.supported_service_materialization_profiles
         ):
             raise ValueError("Unadvertised private service profile")
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return True, _diagnostic(
             "provisioner.unsupported-service-materialization-profile",
             operation.address,

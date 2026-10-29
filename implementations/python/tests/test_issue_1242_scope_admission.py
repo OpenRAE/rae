@@ -233,7 +233,5 @@ def test_preparation_bounds_aggregate_scope_resolution_work():
 
 def test_publishing_a_contract_does_not_claim_unimplemented_backend_support():
     from raes_backend_stubs.stubs import create_stub_manifest
-    from raes_reference_backend.manifest import create_reference_backend_manifest
 
-    for manifest in (create_stub_manifest(), create_reference_backend_manifest()):
-        assert "backend-augmentation-scope-v1" not in manifest.supported_contract_versions
+    assert "backend-augmentation-scope-v1" not in create_stub_manifest().supported_contract_versions

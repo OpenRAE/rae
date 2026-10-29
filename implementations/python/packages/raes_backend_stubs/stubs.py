@@ -374,11 +374,13 @@ def create_stub_components(
     del config
     return RuntimeTargetComponents(
         provisioner=StubProvisioner(manifest.realization_envelope),
-        orchestrator=StubOrchestrator(),
-        evaluator=StubEvaluator(),
+        orchestrator=StubOrchestrator() if manifest.orchestrator is not None else None,
+        evaluator=StubEvaluator() if manifest.evaluator is not None else None,
         participant_runtime=StubParticipantRuntime() if manifest.has_participant_runtime else None,
         time_runtime=ReferenceTimeRuntime() if manifest.has_time else None,
-        observation_runtime=backend_selection_observation_runtime(manifest),
+        observation_runtime=backend_selection_observation_runtime(manifest)
+        if manifest.observation is not None
+        else None,
     )
 
 

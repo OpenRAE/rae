@@ -89,7 +89,8 @@ scenario, an SDL document phase or model, or a realized environment.
 The intended split is therefore: packs are environment packs; the SDL content
 they carry remains scenarios. A pack repository owns its layout and release
 mechanics, while this repository remains authoritative for SDL, concept, and
-reusable-asset trust-policy meanings.
+reusable-asset trust-policy meanings. The env-packs repository adopted the same
+split in [OpenRAE/env-packs#139](https://github.com/OpenRAE/env-packs/issues/139).
 
 ## Legacy PyPI Distribution Retirement
 

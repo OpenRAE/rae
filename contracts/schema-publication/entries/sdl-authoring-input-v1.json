@@ -1,9 +1,9 @@
 {
-  "content_hash": "6db2c5bb46445d0ed8eb140e1f7f8cacb562edfe8b44f139bb0b10c86f89a596",
+  "content_hash": "37338a06d86968b9ea60b734c4b2d1a660b812630a44e995bc4fc38b2c892844",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "6db2c5bb46445d0ed8eb140e1f7f8cacb562edfe8b44f139bb0b10c86f89a596",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "37338a06d86968b9ea60b734c4b2d1a660b812630a44e995bc4fc38b2c892844",
+    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301). Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

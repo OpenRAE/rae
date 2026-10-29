@@ -31,6 +31,23 @@ from raes_runtime.manager import RuntimeManager
 from raes_runtime.registry import RuntimeTarget
 
 
+@pytest.fixture(autouse=True)
+def close_runtime_owners(monkeypatch, request):
+    """Each test owns the execution resources created by its runtime."""
+    factory = request.module.RuntimeManager
+    owners = []
+
+    def create(*args, **kwargs):
+        owner = factory(*args, **kwargs)
+        owners.append(owner)
+        return owner
+
+    monkeypatch.setattr(request.module, "RuntimeManager", create)
+    yield
+    for owner in reversed(owners):
+        owner.close()
+
+
 def create_stub_manifest(**kwargs):
     """Return the evidence-bearing stub manifest used by runtime lifecycle tests."""
 
@@ -878,7 +895,7 @@ class TestRuntimeManager:
         assert "orchestrator" in manager.status()
         assert "evaluator" in manager.status()
 
-    def test_apply_rolls_back_started_services_on_orchestrator_failure(self):
+    def test_apply_retains_services_until_uncertain_orchestrator_is_reconciled(self):
         calls: list[str] = []
         target = RuntimeTarget(
             name="recording",
@@ -896,14 +913,12 @@ class TestRuntimeManager:
             "provision-apply",
             "evaluator-start",
             "orchestrator-start",
-            "orchestrator-stop",
-            "evaluator-stop",
         ]
-        assert manager.snapshot.for_domain(RuntimeDomain.ORCHESTRATION) == {}
-        assert manager.snapshot.for_domain(RuntimeDomain.EVALUATION) == {}
+        assert manager.snapshot.for_domain(RuntimeDomain.ORCHESTRATION)
+        assert manager.snapshot.for_domain(RuntimeDomain.EVALUATION)
         assert manager.snapshot.for_domain(RuntimeDomain.PROVISIONING)
 
-    def test_evaluator_start_failure_rolls_back_evaluation_state(self):
+    def test_evaluator_start_failure_does_not_authorize_implicit_compensation(self):
         calls: list[str] = []
         target = RuntimeTarget(
             name="recording",
@@ -917,7 +932,7 @@ class TestRuntimeManager:
         result = manager.apply(manager.plan(_full_scenario()))
 
         assert not result.success
-        assert calls == ["provision-apply", "evaluator-start", "evaluator-stop"]
+        assert calls == ["provision-apply", "evaluator-start"]
         assert manager.snapshot.for_domain(RuntimeDomain.EVALUATION) == {}
         assert manager.snapshot.for_domain(RuntimeDomain.PROVISIONING)
 
@@ -958,8 +973,10 @@ class TestRuntimeManager:
         result = manager.destroy()
 
         assert not result.success
-        assert "runtime.destroy-phase-failed" in {diag.code for diag in result.diagnostics}
-        assert calls == ["orchestrator-stop", "evaluator-stop", "provision-delete"]
+        assert "runtime.control-plane.operation-indeterminate" in {diag.code for diag in result.diagnostics}
+        assert calls == ["orchestrator-stop"]
+        assert manager.snapshot.for_domain(RuntimeDomain.PROVISIONING)
+        assert manager.snapshot.for_domain(RuntimeDomain.EVALUATION)
 
     def test_provisioning_failure_preserves_provisioner_snapshot_and_skips_runtime_start(self):
         calls: list[str] = []
@@ -1064,12 +1081,10 @@ class TestRuntimeManager:
             "provision-apply",
             "evaluator-start",
             "orchestrator-start",
-            "orchestrator-stop",
-            "evaluator-stop",
         ]
         assert "runtime.backend-call-failed" in {diag.code for diag in result.diagnostics}
         assert manager.snapshot.for_domain(RuntimeDomain.ORCHESTRATION) == {}
-        assert manager.snapshot.for_domain(RuntimeDomain.EVALUATION) == {}
+        assert manager.snapshot.for_domain(RuntimeDomain.EVALUATION)
         assert manager.snapshot.for_domain(RuntimeDomain.PROVISIONING)
 
     def test_apply_fails_on_invalid_workflow_result_contract(self):
@@ -1090,8 +1105,6 @@ class TestRuntimeManager:
             "provision-apply",
             "evaluator-start",
             "orchestrator-start",
-            "orchestrator-stop",
-            "evaluator-stop",
         ]
         assert "runtime.backend-contract-invalid" in {diag.code for diag in result.diagnostics}
 
@@ -1257,6 +1270,8 @@ class TestRuntimeManager:
         assert isinstance(workflow_payload["steps"], dict)
         assert workflow_payload["steps"]["run"]["lifecycle"] == "pending"
         json.dumps(workflow_results)
+        assert isinstance(status["orchestration_history"], dict)
+        json.dumps(status["orchestration_history"])
 
     def test_status_exposes_plain_data_evaluation_results_and_history(self):
         target = RuntimeTarget(
@@ -1284,6 +1299,14 @@ class TestRuntimeManager:
         assert evaluation_history["evaluation.condition.vm.health"][-1]["event_type"] == "evaluation_ready"
         json.dumps(evaluation_results)
         json.dumps(evaluation_history)
+        retained = manager.snapshot.evaluation_history["evaluation.condition.vm.health"]
+        count = len(retained)
+        evaluation_history["evaluation.condition.vm.health"][-1]["event_type"] = "caller-mutation"
+        evaluation_history["evaluation.condition.vm.health"].append({"event_type": "caller-mutation"})
+        fresh = manager.status()["evaluation_history"]["evaluation.condition.vm.health"]
+        assert len(fresh) == count
+        assert fresh[-1]["event_type"] == "evaluation_ready"
+        assert retained[-1]["event_type"] == "evaluation_ready"
 
     def test_stub_runtime_emits_plain_data_workflow_results(self):
         manager = RuntimeManager(create_stub_target())
@@ -1453,7 +1476,9 @@ class TestRuntimeManager:
             orchestrator=RecordingOrchestrator([]),
             evaluator=RecordingEvaluator([], "evaluator"),
         )
-        execution_plan = RuntimeManager(target).plan(_provisioning_only_scenario())
+        from runtime_plan_fixtures import plan_for_target
+
+        execution_plan = plan_for_target(target, _provisioning_only_scenario())
 
         manager = RuntimeManager(
             target,
@@ -1473,8 +1498,9 @@ class TestRuntimeManager:
             orchestrator=RecordingOrchestrator(calls),
             evaluator=RecordingEvaluator(calls, "evaluator"),
         )
-        initial_manager = RuntimeManager(target)
-        initial_plan = initial_manager.plan(_provisioning_only_scenario())
+        from runtime_plan_fixtures import plan_for_target
+
+        initial_plan = plan_for_target(target, _provisioning_only_scenario())
         initial_snapshot = _apply_ops(
             RuntimeSnapshot(),
             RuntimeDomain.PROVISIONING,
@@ -1571,7 +1597,7 @@ nodes:
 
         result = manager.apply(manager.plan(_provisioning_only_scenario()))
 
-        assert result.success
+        assert result.success, result.diagnostics
         assert calls == ["provision-apply", "evaluator-start", "orchestrator-start"]
         assert manager.snapshot.for_domain(RuntimeDomain.ORCHESTRATION) == {}
         assert manager.snapshot.for_domain(RuntimeDomain.EVALUATION) == {}

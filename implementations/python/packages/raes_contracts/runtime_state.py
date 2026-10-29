@@ -118,18 +118,14 @@ class RuntimeSnapshot:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        from .immutable_history import seal_history
         from .mixed_runtime_history import iter_mixed_runtime_snapshot_violations
-        from .participant_control_evaluation_history import (
-            iter_participant_control_evaluation_snapshot_violations,
-        )
         from .participant_outcome_history import require_outcome_history
 
         require_outcome_history(self.participant_outcome_history, self.participant_behavior_history)
-        evaluation_violations = iter_participant_control_evaluation_snapshot_violations(
-            self.participant_control_evaluation_history
+        self.participant_control_evaluation_history = seal_history(
+            "participant_control_evaluation_history", self.participant_control_evaluation_history
         )
-        if evaluation_violations:
-            raise ValueError(evaluation_violations[0][1])
 
         violations = list(
             iter_mixed_runtime_snapshot_violations(self.mixed_composition_states, self.mixed_composition_history)

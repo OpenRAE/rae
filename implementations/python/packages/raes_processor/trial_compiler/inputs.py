@@ -24,6 +24,22 @@ def _fail(code: str, address: str, message: str) -> CompilationFailure:
     return CompilationFailure(code, address, message)
 
 
+def validate_treatment_profile(request: TrialCompilationRequest) -> None:
+    """Require the typed design whenever condition criteria contain selections."""
+    design = request.experiment.factorial_design
+    allocation = request.experiment.run_plan.allocation
+    typed_design = design is not None and design.profile == "factorial-treatments-v1"
+    typed_criteria = allocation is not None and any(
+        assignment.required_selections for assignment in allocation.condition_assignments.values()
+    )
+    if typed_criteria and not typed_design:
+        raise _fail(
+            "factorial-profile-unsupported",
+            "/run_plan/allocation/condition_assignments",
+            "typed factorial treatments require a supporting compiler profile",
+        )
+
+
 def _validate_primary_input_refs(request: TrialCompilationRequest) -> None:
     refs = request.input_refs
     family_digest = canonical_sdl_digest(request.family).value
@@ -262,7 +278,19 @@ def entry_descriptor_ids(
     if descriptors is None:
         return set()
     declared = {descriptor.binding_id: descriptor for descriptor in descriptors.descriptors}
-    return {
+    if request.experiment.factorial_design is not None:
+        return {
+            descriptor.binding_id
+            for descriptor in declared.values()
+            if descriptor.source_condition_id == coordinate.condition_id
+        }
+    participant_ids = {
+        descriptor.binding_id
+        for descriptor in declared.values()
+        if descriptor.source_condition_id == coordinate.condition_id
+        and descriptor.target.plane == "participant-implementation"
+    }
+    return participant_ids | {
         descriptor_id
         for selection in row.selections
         for descriptor_id in getattr(
@@ -277,21 +305,12 @@ def coordinates(request: TrialCompilationRequest) -> list[TrialCoordinateModel]:
 
     run_plan = request.experiment.run_plan
     if run_plan.allocation is None:
-        count = run_plan.target_run_count or 0
-        if count == 0:
-            raise _fail(
-                "coordinate-set-empty", _RUN_PLAN_ADDRESS, "run allocation produced no logical trial coordinates"
-            )
-        if count > request.limits.max_coordinates:
-            raise _fail(
-                "coordinate-limit-exceeded",
-                _RUN_PLAN_ADDRESS,
-                "logical trial coordinates exceed the compilation limit",
-            )
-        return [TrialCoordinateModel(replicate_id=replicate_id(ordinal)) for ordinal in range(1, count + 1)]
+        return _unconditioned_coordinates(request)
 
     per_condition = run_plan.allocation.target_runs_per_condition
     condition_count = len(run_plan.allocation.compared_conditions)
+    if request.experiment.factorial_design is not None and condition_count > request.limits.max_product_outputs:
+        raise _fail("product-limit-exceeded", "/factorial_design", "factorial conditions exceed the compilation limit")
     if condition_count == 0 or per_condition == 0:
         raise _fail("coordinate-set-empty", _RUN_PLAN_ADDRESS, "run allocation produced no logical trial coordinates")
     if condition_count > request.limits.max_coordinates // per_condition:
@@ -309,13 +328,33 @@ def coordinates(request: TrialCompilationRequest) -> list[TrialCoordinateModel]:
     return output
 
 
+def _unconditioned_coordinates(request: TrialCompilationRequest) -> list[TrialCoordinateModel]:
+    count = request.experiment.run_plan.target_run_count or 0
+    if count == 0:
+        raise _fail("coordinate-set-empty", _RUN_PLAN_ADDRESS, "run allocation produced no logical trial coordinates")
+    if count > request.limits.max_coordinates:
+        raise _fail(
+            "coordinate-limit-exceeded",
+            _RUN_PLAN_ADDRESS,
+            "logical trial coordinates exceed the compilation limit",
+        )
+    return [TrialCoordinateModel(replicate_id=replicate_id(ordinal)) for ordinal in range(1, count + 1)]
+
+
 def plan_intent(request: TrialCompilationRequest, planned_coordinates: list[TrialCoordinateModel]) -> dict[str, object]:
     """Return the complete plan-identity projection."""
 
     mixed = bool(request.realization_assignments)
     input_refs = canonical_input_refs(request)
     intent = {
-        "profiles": admitted_profiles(mixed_composition=mixed).model_dump(mode="json"),
+        "profiles": admitted_profiles(
+            mixed_composition=mixed,
+            designed=request.experiment.factorial_design is not None
+            or request.experiment.run_plan.allocation_policy is not None,
+            allocation=request.experiment.run_plan.allocation_policy is not None,
+            treatments=request.experiment.factorial_design is not None
+            and request.experiment.factorial_design.profile == "factorial-treatments-v1",
+        ).model_dump(mode="json"),
         "input_refs": input_refs.model_dump(mode="json"),
         "execution_authority": request.execution_authority.model_dump(mode="json"),
         "coordinates": [coordinate_projection(coordinate) for coordinate in planned_coordinates],

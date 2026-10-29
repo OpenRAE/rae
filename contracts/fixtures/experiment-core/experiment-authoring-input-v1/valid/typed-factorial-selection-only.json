@@ -1,0 +1,138 @@
+{
+  "apparatus_intent": {
+    "allowed_backend_refs": [],
+    "allowed_processor_refs": [],
+    "notes": [
+      "Any backend that realizes evaluation-results may execute this design."
+    ],
+    "required_capabilities": [
+      "workflow-results",
+      "evaluation-results"
+    ],
+    "required_manifest_refs": []
+  },
+  "artifact_refs": [],
+  "binding_descriptors": null,
+  "binding_semantics": "descriptive",
+  "capture_spec_refs": [
+    {
+      "ref_id": "capture-techvault-evidence-v1",
+      "ref_kind": "capture-spec",
+      "ref_version": "1.0.0"
+    }
+  ],
+  "description": "Pre-run design comparing aggressive vs stealthy red tactics over the fixed TechVault task, with seeded replication.",
+  "factorial_design": {
+    "condition_bound": 4,
+    "factor_ids": [
+      "path"
+    ],
+    "level_effects": {
+      "path": {
+        "a": {
+          "selections": [
+            {
+              "outcome": {
+                "kind": "member",
+                "member_id": "absent"
+              },
+              "owner": {
+                "contract_id": "sdl-authoring-input-v1",
+                "contract_version": "1",
+                "validator_id": "raes-selected-scenario",
+                "validator_version": "1"
+              },
+              "scenario_family_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "target": {
+                "plane": "scenario",
+                "scenario_family_id": "compiler-family",
+                "target_id": "nodes.worker.presence",
+                "variation_point_id": "worker-presence"
+              }
+            }
+          ]
+        },
+        "b": {
+          "selections": [
+            {
+              "outcome": {
+                "kind": "member",
+                "member_id": "with-jobs"
+              },
+              "owner": {
+                "contract_id": "sdl-authoring-input-v1",
+                "contract_version": "1",
+                "validator_id": "raes-selected-scenario",
+                "validator_version": "1"
+              },
+              "scenario_family_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "target": {
+                "plane": "scenario",
+                "scenario_family_id": "compiler-family",
+                "target_id": "nodes.worker.presence",
+                "variation_point_id": "worker-presence"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "profile": "factorial-treatments-v1",
+    "target_runs_per_condition": 2
+  },
+  "factors": {
+    "path": {
+      "factor_kind": "treatment",
+      "levels": [
+        "a",
+        "b"
+      ],
+      "name": "Payload path"
+    }
+  },
+  "intended_scenario_ref": {
+    "ref_digest": null,
+    "ref_id": "compiler-family",
+    "ref_kind": "scenario",
+    "ref_path": null,
+    "ref_version": null
+  },
+  "run_plan": {
+    "allocation": null,
+    "clock_intent": {
+      "authority": "reference-backend",
+      "clock_id": "sim-clock",
+      "synchronization": null,
+      "time_domain": "simulated"
+    },
+    "difficulty_policy_registry": null,
+    "episode_control": {
+      "description": "Fixed-horizon episode with sequential turns.",
+      "max_steps": 100,
+      "termination_condition_refs": [],
+      "termination_rule": "Terminate each episode after 100 logical steps (fixed horizon).",
+      "turn_order": "sequential"
+    },
+    "evidence_requirement_relations": [],
+    "observation_demands": null,
+    "red_variant_selections": {},
+    "selection_policies": {},
+    "stochastic_controls": []
+  },
+  "schema_version": "experiment-authoring-input/v1",
+  "spec_id": "spec-techvault-red-tactic-sweep-v1",
+  "spec_version": "1.0.0",
+  "task_ref": {
+    "ref_id": "task-techvault-red-team-v1",
+    "ref_kind": "task",
+    "ref_version": "1.0.0"
+  },
+  "title": "TechVault red-tactic sweep",
+  "validity_notes": [
+    {
+      "category": "internal",
+      "mitigation": "Record derived seeds in each run's stochastic controls.",
+      "note": "Per-run seeds derive deterministically from the base seed."
+    }
+  ]
+}

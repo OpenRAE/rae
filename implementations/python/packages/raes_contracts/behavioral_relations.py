@@ -316,6 +316,7 @@ _HISTORICAL_CATALOG_PATHS = {
     "rev9": corpus_family_root(CONCEPT_AUTHORITY) / "history" / "behavioral-relations-v1-rev9.json",
     "rev10": corpus_family_root(CONCEPT_AUTHORITY) / "history" / "behavioral-relations-v1-rev10.json",
     "rev11": corpus_family_root(CONCEPT_AUTHORITY) / "history" / "behavioral-relations-v1-rev11.json",
+    "rev12": corpus_family_root(CONCEPT_AUTHORITY) / "history" / "behavioral-relations-v1-rev12.json",
 }
 
 
@@ -336,7 +337,7 @@ def load_behavioral_relation_catalog_revision(
     if path is not None:
         try:
             catalog = BehavioralRelationCatalogModel.model_validate_json(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
+        except OSError, ValueError:
             raise ValueError("historical behavioral relation catalog is invalid") from None
         if catalog.taxonomy_revision != taxonomy_revision:
             raise ValueError("historical behavioral relation catalog revision does not match its registry entry")
@@ -394,9 +395,12 @@ def _validate_binding_profile(
 ) -> None:
     """Join a required profile to the exact catalog and claim coordinates."""
 
-    from .behavioral_relation_profiles import ParticipantCrossingParametersModel
+    from .behavioral_relation_profiles import (
+        MultiParticipantCrossingParametersModel,
+        ParticipantCrossingParametersModel,
+    )
 
-    if isinstance(profile.parameters, ParticipantCrossingParametersModel):
+    if isinstance(profile.parameters, (ParticipantCrossingParametersModel, MultiParticipantCrossingParametersModel)):
         if binding.right_carrier_ref != profile.parameters.right.model_id:
             raise ValueError("behavioral claim binding right carrier does not match the resolved profile")
 

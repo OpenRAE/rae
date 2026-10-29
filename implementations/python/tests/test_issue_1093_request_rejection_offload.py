@@ -6,7 +6,7 @@ import asyncio
 from collections.abc import Coroutine
 from pathlib import Path
 from threading import Event
-from typing import Any, TypeVar
+from typing import Any
 
 import httpx
 import pytest
@@ -30,10 +30,8 @@ from starlette.types import Message, Receive, Scope, Send
 
 pytestmark = pytest.mark.control_plane_conformance
 
-_T = TypeVar("_T")
 
-
-def _run(coroutine: Coroutine[Any, Any, _T]) -> _T:
+def _run[T](coroutine: Coroutine[Any, Any, T]) -> T:
     """Run one coroutine without replacing or closing pytest's default loop."""
 
     loop = asyncio.new_event_loop()
@@ -165,7 +163,7 @@ def test_request_size_middleware_does_not_retain_empty_transport_messages() -> N
     assert source_messages == []
 
 
-def test_request_size_middleware_accepts_disconnect_before_body() -> None:
+def test_request_size_middleware_abandons_disconnect_before_body() -> None:
     control_plane = RuntimeControlPlane(create_stub_target())
     calls: list[str] = []
 
@@ -183,8 +181,9 @@ def test_request_size_middleware_accepts_disconnect_before_body() -> None:
     scope = _http_scope()
     _run(middleware(scope, receive, send))
 
-    assert calls == ["/accepted"]
-    assert scope["state"]["raw_body"] == b""
+    # The client left before submitting a body, so no route runs (#1091).
+    assert calls == []
+    assert "raw_body" not in scope["state"]
 
 
 def test_request_size_middleware_rejects_stream_that_exceeds_limit_without_header() -> None:

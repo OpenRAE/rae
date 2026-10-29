@@ -1,5 +1,6 @@
 """Provisioning-domain compilation: templates, nodes, networks, feature bindings."""
 
+from collections.abc import Collection
 from dataclasses import dataclass
 from typing import Any
 
@@ -21,6 +22,7 @@ from ..models import (
     NodeRuntime,
     RuntimeTemplate,
 )
+from ..semantics.realization_concerns import realization_concern_descriptors
 from .addresses import (
     _compiled_domain_binding,
     _domain_controller_address,
@@ -103,8 +105,13 @@ def _compile_node_runtimes(
     networks: dict[str, NetworkRuntime] = {}
     node_deployments: dict[str, NodeRuntime] = {}
     targets = _NodeRuntimeTargets(networks=networks, node_deployments=node_deployments)
+    supplied_paths = (
+        frozenset(record.model_path for record in scenario.instantiation_provenance.explicitness)
+        if isinstance(scenario, InstantiatedScenario)
+        else scenario.explicitness.keys()
+    )
     for node_name, node in scenario.nodes.items():
-        node_spec = _dump(node)
+        node_spec = _node_spec_with_supplied_concerns(node_name, node, supplied_paths)
         infra = scenario.infrastructure.get(node_name)
         infra_spec = _dump(infra) if infra is not None else {}
         dependency_addresses: list[str] = []
@@ -151,6 +158,21 @@ def _compile_node_runtimes(
             targets=targets,
         )
     return networks, node_deployments
+
+
+def _node_spec_with_supplied_concerns(node_name: str, node: Node, supplied_paths: Collection[str]) -> dict[str, Any]:
+    """Keep concern presence from the classifier across the instantiation round trip."""
+
+    spec = _dump(node)
+    for descriptor in realization_concern_descriptors():
+        if descriptor.section != "nodes" or f"nodes.{node_name}.{descriptor.authored_suffix}" in supplied_paths:
+            continue
+        current = spec
+        for token in descriptor.authored_path[:-1]:
+            current = current.get(token) if isinstance(current, dict) else None
+        if isinstance(current, dict):
+            current.pop(descriptor.authored_path[-1], None)
+    return spec
 
 
 def _record_node_runtime(
