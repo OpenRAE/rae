@@ -70,17 +70,21 @@ Changing a concern's claimed source requires a *new* configuration and envelope
 — you cannot relabel one provenance as another. Published envelopes live under
 `contracts/realization-envelopes/` and are validated on load.
 
-## The libvirt backend's configurations
+## The published libvirt-qemu configurations
 
-The libvirt backend (`raes_backend_libvirt.envelopes.LibvirtDriverMode`) ships
-three material configurations:
+The `contracts/realization-envelopes/libvirt-qemu/` envelopes describe three
+material configurations. RAES 7.0.0 was the last release to bundle the libvirt
+backend that produced them. Issue #967 removed that backend
+([ADR-115](../../decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md)).
+The envelopes stay as published contract data. A backend that claims one of
+them must supply its own realization and evidence.
 
-- **`generic`** — qcow2/cloud-init driver; concerns are `driver-reported`.
-- **`techvault-appliance`** — boots a generated BusyBox initramfs appliance and
-  reads topology/architecture/image/resource/network back at
-  `daemon-observed` provenance; guest concerns are `unsupported`.
-- **`guest-certified-appliance`** — boots a guest-observing appliance through the
-  production apply path and certifies concerns from **inside** the guest.
+- **`generic`**: a qcow2/cloud-init driver. Its concerns are `driver-reported`.
+- **`techvault-appliance`**: a generated BusyBox initramfs appliance. It reads
+  topology, architecture, image, resources, and network back at
+  `daemon-observed` provenance. Guest concerns are `unsupported`.
+- **`guest-certified-appliance`**: a guest-observing appliance that certifies
+  concerns from **inside** the guest.
 
 The guest-certified envelope discloses (verified against
 `contracts/realization-envelopes/libvirt-qemu/guest-certified-appliance-v1.json`):
@@ -103,87 +107,36 @@ service are certified from inside the guest, while `feature-binding` and `acl`
 are disclosed `unsupported` rather than faked. One canonical guest is not claimed
 to prove every image, OS, or ACL mechanism.
 
-## How guest-certified realization works
-
-For the guest-certified configuration, realization enters through the same
-production path a real deployment uses
-(`RuntimeManager.plan` → `RuntimeControlPlane.submit_provisioning` →
-`LibvirtProvisioner.apply` → the native driver). A direct driver call, hand-built
-spec, or fake connection can exercise a leaf but cannot satisfy the native-proof
-gate. Then:
-
-1. **Boot.** A guest-observing BusyBox appliance
-   (`raes_backend_libvirt.guest_appliance`) is booted on real QEMU. It realizes
-   the bounded seeded content, account, and service placements from the plan.
-2. **Read back from inside.** The appliance reads its *own* realized state —
-   `nproc`/`/proc/meminfo`, `ip addr`/`/sys/class/net`, in-guest file
-   `sha256`/mode, `/etc/passwd` posture (no credential material), and service
-   process + bound port — and reports bounded, line-oriented facts over a
-   credential-free file-backed serial channel
-   (`raes_backend_libvirt.guest_transport`). No SSH, no password, no general
-   command runner.
-3. **Freshness.** A fresh per-run challenge is injected via the kernel command
-   line and must be echoed back; a cached or prior-boot report cannot pass.
-4. **Stage and compare.** The observer
-   (`raes_backend_libvirt.guest_observation`) runs ordered stages (daemon →
-   transport → initialization → concern probes → cleanup); a later stage never
-   repairs an earlier one. Each concern becomes a `RealizationObservation` at
-   `guest-observed` provenance, compared to the requested realization. Failures are
-   distinct, stable, redacted `Diagnostic` codes naming the safe RAES address and
-   observation level — never raw XML, UUIDs, host paths, URIs, or credentials.
-5. **Commit eligibility.** The provisioner cannot return success, changed
-   addresses, or a committed snapshot until all required daemon **and** guest
-   observations pass. Every failure preserves the baseline snapshot.
-6. **Teardown.** Cleanup runs after every attempt (including failures) and
-   verifies domains, networks, filters, disks, seed media, and probe artifacts
-   are gone; residual state fails the run.
-
 ## Keeping claims honest
 
 The envelope, the observer, the falsification tests, and the evidence artifact
 move together, so an envelope cannot drift into overclaiming:
 
-- The evidence producer (`raes_operations.libvirt_evidence_run`) binds each guest
-  observation to the control-plane operation, the fresh challenge, the selected
-  envelope/configuration and appliance digests, and a `sha256:` correlation from
-  the ownership-verified native identity, then runs the shared redaction and
-  binding validators (`raes_operations._evidence_run_validation`) *before* the
-  artifact is written.
-- **Native-proof boundary.** A guest-certified artifact is `certifying` only when
-  the production driver/transport produced it. An injected fake driver may
-  exercise orchestration but is marked non-certifying, so a simulation can never
-  be published as a real proof.
+- A guest-certified claim must come from the production apply path
+  (`RuntimeManager.plan`, then `RuntimeControlPlane.submit_provisioning`, then
+  the backend's provisioner). A direct driver call, a hand-built spec, or a fake
+  connection can exercise a leaf. It cannot certify a concern.
+- Each guest observation becomes a `RealizationObservation` at
+  `guest-observed` provenance. The backend compares it to the requested
+  realization. A later stage never repairs an earlier one.
+- **Native-proof boundary.** An artifact is certifying only when the production
+  driver and transport produced it. An injected fake driver is
+  non-certifying, so a simulation can never be published as a real proof.
 - **Falsification-first** ([ADR-021](../../decisions/adrs/adr-021-falsification-first-claim-evidence-gate.md)):
-  the hermetic test suite feeds wrong addresses, tampered digests, dead services,
-  clamped memory, stale/duplicate facts, and incomplete cleanup, and asserts each
-  is detected and fails the run.
-- Guest facts are captured evidence, kept in the validated artifact rather than
-  the runtime snapshot, per the observability/evidence-plane separation
+  tests feed wrong addresses, tampered digests, dead services, stale or
+  duplicate facts, and incomplete cleanup, and assert that each one fails.
+- Guest facts are captured evidence. They stay in the validated artifact, not
+  in the runtime snapshot, per the observability/evidence-plane separation
   ([ADR-066](../../decisions/adrs/adr-066-observability-evidence-plane-separation.md)).
 
-## Reproducing the proof
-
-The hermetic tests run in the default `nox verify` graph and never require
-libvirt, KVM, privileges, or network. The native-proof gate is a separate,
-opt-in run:
-
-```sh
-# Operator/self-hosted command: boots the guest-observing appliance against a
-# real libvirt/QEMU daemon and emits a validated evidence artifact.
-raes libvirt techvault guest-certify \
-  --scenario examples/scenarios/techvault-guest-certified.sdl.yaml \
-  --project-dir . --run-id guest-proof-1 --yes
-```
-
-The equivalent opt-in pytest is gated on `RAES_REAL_LIBVIRT_URI`, and
-`tools/real-daemon/run_aws_guest_certify.sh` runs the whole thing on an
-ephemeral, self-cleaning host. A committed real-daemon evidence report lives
-under `tools/real-daemon/evidence/`.
+The backend distribution owns the producer, the native proof run, and its
+evidence. Historical libvirt proof records stay in the issue preflights and
+research captures. They are not current installation instructions.
 
 ## Limits
 
 One canonical guest-certified appliance proves a bounded concern set on a single
 appliance. It does not prove all images, operating systems, service kinds, or
 ACL mechanisms; those are disclosed `unsupported` rather than approximated.
-Broadening coverage is downstream work (issues #716 conformance and #717 final
-scenario certification), which consume these guest observations.
+Broadening coverage belongs to the backend distribution that claims the
+envelope.

@@ -24,7 +24,7 @@
       "binding_class": "external-service-project-key",
       "rationale": "Retains the existing service-owned SonarCloud project designation without treating it as current RAES product identity.",
       "occurrences": 2,
-      "content_sha256": "e89fe507a6b8ccef0b262b74b1f6ca7752a10bd4e41e66c778696fe6632fdf83"
+      "content_sha256": "9dbf27a844b5ab0b14aec987d707c4ed5f9e46c0881b0714f239b5bed5a5079f"
     }
   ],
   "records": [
@@ -47,7 +47,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "93cd469a00c37e24ae0b0dca489a841876897e672aa82f130e1b2b156b47261e"
+      "content_sha256": "ee05e4673c9322d82a6abccd9289566c00de36a117e02882a3313e11ea4b06f1"
     },
     {
       "path": "docs/decisions/adrs/adr-000-use-adrs.md",
@@ -331,10 +331,10 @@
     },
     {
       "path": "docs/decisions/adrs/adr-063-reference-emulation-backend.md",
-      "record_class": "accepted-adr",
+      "record_class": "dated-design-record",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
       "occurrences": 13,
-      "content_sha256": "7c82b434119b802f8acc7c23148811316b21754fac39798b5790ff5e65bb2415"
+      "content_sha256": "620a55b1f25b0b16cc61d97b3f82bf61ede68788ec8addf42f56093776c194ae"
     },
     {
       "path": "docs/decisions/adrs/adr-065-experiment-run-provenance-contract-boundary.md",
@@ -495,7 +495,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "c011f5bc7551b23b950a3561460074c48f92934790cc5f059149b74d698bb93c"
+      "content_sha256": "0717af096226f8482abd5ce9db23f51b79f7a360270cb9351017b0137d8ddc42"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",
@@ -1783,7 +1783,7 @@
       "record_class": "lifecycle-record",
       "rationale": "Preserves the exact retired distribution identifier in its governed deprecation and removal record.",
       "occurrences": 2,
-      "content_sha256": "7c9e576186229320cd5b96f463adfffb6a7b6958bc75d69f5c50e362ce6c09fc"
+      "content_sha256": "22dc2951e78fc684eade138f41892e43e67729c5fe6d6c19cd3bba97a939b9ff"
     }
   ]
 }

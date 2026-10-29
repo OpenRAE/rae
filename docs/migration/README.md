@@ -1,5 +1,8 @@
 # Migration Notes
 
+The [revised control migration checklist](revised-control.md) connects SDL conversion,
+contract and profile negotiation, installed interfaces, and historical readers.
+
 This note records the major documentation and repository-structure moves that
 established the current layout. The paths below describe historical moves, not
 current uncertainty about where authoritative material lives.
@@ -33,6 +36,24 @@ Producer and reader obligations for the published mixed-backend execution
 binding and stage-report contracts are documented in
 [Mixed-Backend Execution Contracts Migration](mixed-backend-execution.md).
 
+Participant-scoped tool-affordance bindings, which let one behavior
+specification serve as a reusable tool profile, are documented in
+[Participant tool profiles migration](participant-tool-profiles.md).
+
+The explicit conversion of a legacy fixed-coordinate `mixed_control`
+declaration to a rev1 finite script is documented in
+[Mixed-Control Finite-Script Conversion](mixed-control-finite-script-conversion.md).
+The [reusable mixed-control adoption contract](reusable-mixed-control.md)
+remains the producer and reader boundary.
+
+The removal of the bundled reference and libvirt backends, and the move of
+concrete realization to backend distributions such as LilRAE, is documented in
+[Concrete Backends Migration](concrete-backends.md).
+
+Backend-owned participant-opacity harnesses supply reported transcripts and
+backend readback as described in
+[Participant-Opacity Observed Evidence Migration](participant-opacity-observed-evidence.md).
+
 The reorganization moved existing material into the current long-term buckets:
 
 - root `schemas/` -> `contracts/schemas/`
@@ -51,3 +72,9 @@ captured in [ADR-010](../decisions/adrs/adr-010-repository-realignment-order-and
 
 [Progressive SDL semantics migration](progressive-semantics.md) covers the breaking
 cutover, source-bound adoption and classification binding coordination.
+
+[Reference eligibility migration](reference-eligibility.md) lists the reference
+fields whose eligible declaration kinds narrowed and how to rewrite them.
+
+[Participant tool support migration](participant-tool-support.md) covers processor
+and backend declarations, profile semantic revisions, capacity, and admission.

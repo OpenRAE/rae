@@ -10,7 +10,6 @@ from enum import Enum
 from math import isfinite
 
 from pydantic import Field, field_validator, model_validator
-from typing_extensions import TypeAliasType
 
 from .._base import SDLModel
 from .._classification_guard import LegacyClassificationGuard
@@ -76,14 +75,8 @@ class ParticipantActionArgumentOmission(str, Enum):
     OMIT = "omit"
 
 
-ParticipantActionArgumentScalar = TypeAliasType(
-    "ParticipantActionArgumentScalar",
-    str | int | float | bool,
-)
-ParticipantActionArgumentAuthoredValue = TypeAliasType(
-    "ParticipantActionArgumentAuthoredValue",
-    ParticipantActionArgumentScalar | list[ParticipantActionArgumentScalar],
-)
+type ParticipantActionArgumentScalar = str | int | float | bool
+type ParticipantActionArgumentAuthoredValue = ParticipantActionArgumentScalar | list[ParticipantActionArgumentScalar]
 
 
 def _participant_argument_scalar_matches(
@@ -145,7 +138,7 @@ class ParticipantActionArgumentDefinition(SDLModel):
         return value
 
     @model_validator(mode="after")
-    def _validate_argument_domain(self) -> "ParticipantActionArgumentDefinition":
+    def _validate_argument_domain(self) -> ParticipantActionArgumentDefinition:
         self._normalize_domain_literals()
         self._validate_cardinality()
         self._validate_type_specific_constraints()
@@ -347,7 +340,7 @@ class ParticipantInteractionDeclaration(SDLModel):
         return values
 
     @model_validator(mode="after")
-    def _validate_sem209_class_payload(self) -> "ParticipantInteractionDeclaration":
+    def _validate_sem209_class_payload(self) -> ParticipantInteractionDeclaration:
         if self.commutative and self.merge_rule_ref is not None:
             raise ValueError("participant interaction must declare commutativity or a merge rule, not both")
         if (
@@ -421,7 +414,7 @@ class ParticipantActionContract(LegacyClassificationGuard):
         return values
 
     @model_validator(mode="after")
-    def _validate_sem211_payload(self) -> "ParticipantActionContract":
+    def _validate_sem211_payload(self) -> ParticipantActionContract:
         if not self.preconditions:
             raise ValueError("participant action contracts require typed preconditions")
         if not self.effects:

@@ -4,7 +4,7 @@ RAE owns validation of portable results admitted into its runtime state. Backend
 implementation correctness, capability certification, and infrastructure
 realization remain outside this test's scope.
 
-Each case uses the real ``ReferenceProvisioner`` and perturbs only its returned
+Each case uses the stub ``StubProvisioner`` and perturbs only its returned
 ``ApplyResult``. The unmodified control proves that the shared target, scenario,
 and realization context are accepted before a result perturbation is evaluated.
 
@@ -17,10 +17,9 @@ from __future__ import annotations
 import dataclasses
 
 from raes import parse_sdl
+from raes_backend_stubs.stubs import StubProvisioner, create_stub_target
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
-from raes_reference_backend import create_reference_backend_target
-from raes_reference_backend.provisioner import ReferenceProvisioner
 from raes_runtime.manager import RuntimeManager
 
 _SCENARIO = """
@@ -40,7 +39,7 @@ def _predecessor():
     return RuntimeSnapshot(metadata={"trusted": {"run": "predecessor"}})
 
 
-class _ReturnsPredecessorSnapshot(ReferenceProvisioner):
+class _ReturnsPredecessorSnapshot(StubProvisioner):
     """Returns the predecessor snapshot while reporting successful changes."""
 
     def apply(self, plan, snapshot):
@@ -52,7 +51,7 @@ class _ReturnsPredecessorSnapshot(ReferenceProvisioner):
         )
 
 
-class _AddsUnplannedPortableResource(ReferenceProvisioner):
+class _AddsUnplannedPortableResource(StubProvisioner):
     """Adds a portable snapshot entry with no corresponding plan address."""
 
     def apply(self, plan, snapshot):
@@ -71,7 +70,7 @@ class _AddsUnplannedPortableResource(ReferenceProvisioner):
         )
 
 
-class _RewritesResourceType(ReferenceProvisioner):
+class _RewritesResourceType(StubProvisioner):
     """Rewrites the plan-owned type of one returned resource."""
 
     def apply(self, plan, snapshot):
@@ -86,7 +85,7 @@ class _RewritesResourceType(ReferenceProvisioner):
         return dataclasses.replace(result, snapshot=result.snapshot.with_entries(entries))
 
 
-class _OmitsChangedAddressAccounting(ReferenceProvisioner):
+class _OmitsChangedAddressAccounting(StubProvisioner):
     """Returns a snapshot transition without changed-address accounting."""
 
     def apply(self, plan, snapshot):
@@ -96,7 +95,7 @@ class _OmitsChangedAddressAccounting(ReferenceProvisioner):
         return dataclasses.replace(result, changed_addresses=[])
 
 
-class _RewritesRuntimeDomain(ReferenceProvisioner):
+class _RewritesRuntimeDomain(StubProvisioner):
     """Rewrites provisioning entries to the evaluation runtime domain."""
 
     def apply(self, plan, snapshot):
@@ -111,21 +110,17 @@ class _RewritesRuntimeDomain(ReferenceProvisioner):
 
 
 def _apply_with(provisioner_class=None):
-    """Apply the scenario through the reference target, optionally perturbed.
+    """Apply the scenario through the stub target, optionally perturbed.
 
-    The perturbed provisioner is built from the reference provisioner's driver and
-    realization envelope, so the returned result is the only changed surface.
+    The perturbed provisioner keeps the stub provisioner's realization envelope,
+    so the returned result is the only changed surface.
     """
 
-    target = create_reference_backend_target()
+    target = create_stub_target()
     if provisioner_class is not None:
-        reference = target.provisioner
         target = dataclasses.replace(
             target,
-            provisioner=provisioner_class(
-                reference._driver,  # noqa: SLF001 - perturbing the real provisioner is the method
-                realization_envelope=reference._realization_envelope,  # noqa: SLF001
-            ),
+            provisioner=provisioner_class(realization_envelope=target.manifest.realization_envelope),
         )
     manager = RuntimeManager(target, initial_snapshot=_predecessor())
     return manager.apply(manager.plan(parse_sdl(_SCENARIO)))
@@ -137,11 +132,16 @@ def _assert_rejected(result, address, message):
     assert result.changed_addresses == []
     assert result.details == {}
     assert [(item.code, item.address, item.message) for item in result.diagnostics] == [
-        ("runtime.backend-contract-invalid", address, message)
+        ("runtime.backend-contract-invalid", f"/{address}", message),
+        (
+            "runtime.control-plane.operation-indeterminate",
+            "/state",
+            "Operation outcome could not be established; explicit resolution is required.",
+        ),
     ]
 
 
-def test_unmodified_reference_result_is_accepted():
+def test_unmodified_stub_result_is_accepted():
     """Control for the shared target, scenario, and realization context."""
 
     result = _apply_with()
@@ -161,9 +161,14 @@ def test_success_with_predecessor_snapshot_is_rejected_with_transition_diagnosti
     assert [(diagnostic.code, diagnostic.address, diagnostic.message) for diagnostic in result.diagnostics] == [
         (
             "runtime.backend-contract-invalid",
-            "runtime.changed-addresses",
+            "/runtime.changed-addresses",
             "Backend reported a changed address outside the snapshot transition.",
-        )
+        ),
+        (
+            "runtime.control-plane.operation-indeterminate",
+            "/state",
+            "Operation outcome could not be established; explicit resolution is required.",
+        ),
     ]
 
 

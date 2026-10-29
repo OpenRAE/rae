@@ -40,7 +40,7 @@ def _pinned_document(repo_root: Path, relative: str, digest: str) -> Mapping[str
         return None
     try:
         return load_bounded_json_object(repo_root, relative, max_bytes=_MAX_FILE_BYTES)
-    except (OSError, ValueError):
+    except OSError, ValueError:
         return None
 
 

@@ -16,6 +16,15 @@ from raes.runtime_vocabulary import GovernedVocabulary
 
 from ._base import SDLModel, parse_int_or_var
 from .runtime_filesystem import RuntimeSensitivityClassification
+from .runtime_identity_resources import (
+    RuntimeIdentityAccessObservation,
+    RuntimeIdentityPermissionBinding,
+    RuntimeIdentityPolicyCondition,
+    RuntimeIdentityResourceAccess,
+    RuntimeIdentityResourceScope,
+    RuntimeIdentityUse,
+    reject_identity_resource_duplicates,
+)
 from .runtime_values import (
     coerce_string_list,
     enforce_observed_value_redaction,
@@ -27,6 +36,12 @@ from .runtime_values import (
 )
 
 __all__ = [
+    "RuntimeIdentityAccessObservation",
+    "RuntimeIdentityPermissionBinding",
+    "RuntimeIdentityPolicyCondition",
+    "RuntimeIdentityResourceAccess",
+    "RuntimeIdentityResourceScope",
+    "RuntimeIdentityUse",
     "RuntimeIdentityAttribute",
     "RuntimeIdentityAuthority",
     "RuntimeIdentityAuthorityKind",
@@ -138,24 +153,6 @@ class RuntimeIdentityRecordOrigin(str, Enum):
     OTHER = "other"
 
 
-def _reject_duplicate_local_ref_ids(authority: "RuntimeIdentityAuthority") -> None:
-    seen: dict[str, str] = {}
-    entries: list[tuple[str, str]] = [("identity_authority_id", authority.identity_authority_id)]
-    entries.extend(("service_id", service.service_id) for service in authority.services)
-    entries.extend(("subject_id", subject.subject_id) for subject in authority.subjects)
-    entries.extend(("policy_id", policy.policy_id) for policy in authority.policies)
-    entries.extend(("relationship_id", relationship.relationship_id) for relationship in authority.relationships)
-
-    for label, value in entries:
-        prior = seen.get(value)
-        if prior is not None:
-            raise ValueError(
-                f"Duplicate runtime identity stable id '{value}' in identity authority "
-                f"'{authority.identity_authority_id}' across {prior} and {label}"
-            )
-        seen[value] = label
-
-
 class RuntimeIdentityAttribute(SDLModel):
     """Observed identity attribute or bounded setting.
 
@@ -220,7 +217,7 @@ class RuntimeIdentityAttribute(SDLModel):
         return parse_runtime_enum_or_var(v, RuntimeIdentityRecordOrigin, field_name="provenance")
 
     @model_validator(mode="after")
-    def align_origin_and_provenance(self) -> "RuntimeIdentityAttribute":
+    def align_origin_and_provenance(self) -> RuntimeIdentityAttribute:
         if (
             self.origin == RuntimeIdentityRecordOrigin.UNKNOWN
             and self.provenance != RuntimeIdentityRecordOrigin.UNKNOWN
@@ -235,7 +232,7 @@ class RuntimeIdentityAttribute(SDLModel):
         return self
 
     @model_validator(mode="after")
-    def validate_redacted_values(self) -> "RuntimeIdentityAttribute":
+    def validate_redacted_values(self) -> RuntimeIdentityAttribute:
         enforce_observed_value_redaction(
             owner_label=f"identity attribute '{self.name}'",
             value=self.values,
@@ -288,6 +285,7 @@ class RuntimeIdentitySubject(SDLModel):
     enabled: bool | str | None = None
     origin: GovernedVocabulary[RuntimeIdentityRecordOrigin] = RuntimeIdentityRecordOrigin.UNKNOWN
     service_principal_names: list[str] = Field(default_factory=list)
+    resource_scope_ref: str = ""
     attributes: list[RuntimeIdentityAttribute] = Field(default_factory=list)
     description: str = ""
 
@@ -322,7 +320,7 @@ class RuntimeIdentitySubject(SDLModel):
         return coerce_string_list(v)
 
     @model_validator(mode="after")
-    def validate_subject(self) -> "RuntimeIdentitySubject":
+    def validate_subject(self) -> RuntimeIdentitySubject:
         reject_duplicates(
             self.service_principal_names,
             label="service_principal_name",
@@ -346,6 +344,7 @@ class RuntimeIdentityPolicy(SDLModel):
     name: str = ""
     applies_to_refs: list[str] = Field(default_factory=list)
     settings: list[RuntimeIdentityAttribute] = Field(default_factory=list)
+    resource_access: RuntimeIdentityResourceAccess | None = None
     description: str = ""
 
     @field_validator("policy_id")
@@ -364,7 +363,7 @@ class RuntimeIdentityPolicy(SDLModel):
         return coerce_string_list(v)
 
     @model_validator(mode="after")
-    def validate_policy(self) -> "RuntimeIdentityPolicy":
+    def validate_policy(self) -> RuntimeIdentityPolicy:
         reject_duplicates(
             self.applies_to_refs,
             label="policy applies_to_ref",
@@ -414,7 +413,7 @@ class RuntimeIdentityRelationship(SDLModel):
         return require_non_empty(v, field_name=info.field_name) if v else v
 
     @model_validator(mode="after")
-    def validate_relationship_target(self) -> "RuntimeIdentityRelationship":
+    def validate_relationship_target(self) -> RuntimeIdentityRelationship:
         if bool(self.target_ref) == bool(self.external_target):
             raise ValueError("identity relationships require exactly one of target_ref or external_target")
         return self
@@ -437,6 +436,9 @@ class RuntimeIdentityAuthority(SDLModel):
     subjects: list[RuntimeIdentitySubject] = Field(default_factory=list)
     policies: list[RuntimeIdentityPolicy] = Field(default_factory=list)
     relationships: list[RuntimeIdentityRelationship] = Field(default_factory=list)
+    resource_scopes: list[RuntimeIdentityResourceScope] = Field(default_factory=list)
+    identity_uses: list[RuntimeIdentityUse] = Field(default_factory=list)
+    access_observations: list[RuntimeIdentityAccessObservation] = Field(default_factory=list)
 
     @field_validator("identity_authority_id")
     @classmethod
@@ -449,7 +451,7 @@ class RuntimeIdentityAuthority(SDLModel):
         return parse_runtime_enum_or_var(v, RuntimeIdentityAuthorityKind, field_name="kind")
 
     @model_validator(mode="after")
-    def validate_authority(self) -> "RuntimeIdentityAuthority":
+    def validate_authority(self) -> RuntimeIdentityAuthority:
         container = f"identity authority '{self.identity_authority_id}'"
         reject_duplicates(
             (service.service_id for service in self.services),
@@ -475,5 +477,5 @@ class RuntimeIdentityAuthority(SDLModel):
             container_label=container,
             duplicate_template=_DUPLICATE_IDENTITY_TEMPLATE,
         )
-        _reject_duplicate_local_ref_ids(self)
+        reject_identity_resource_duplicates(self)
         return self

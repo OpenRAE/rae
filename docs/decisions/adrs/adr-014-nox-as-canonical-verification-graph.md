@@ -77,9 +77,9 @@ explicit affected test modules or cases only. Missing targeted selection means
 recording that limitation and deferring full testing to CI/CD, never launching
 the full suite locally. This applies to implementation, review repair,
 synchronization, and completion. CI additionally invokes
-`python-compatibility` once for every supported CPython feature release because
-a single local interpreter cannot establish the distribution's cross-version
-support claim. All invocations resolve through the same per-gate helpers (`_run_hygiene`,
+`python-compatibility` for CPython 3.14, the only supported CPython feature
+release, to check the exact runtime and the clean installed distribution. All
+invocations resolve through the same per-gate helpers (`_run_hygiene`,
 `_run_policy`, `_run_lint`, `_run_contracts`, `_run_tests`,
 `_run_fuzz`, `_run_docs`).
 
@@ -107,9 +107,10 @@ when pre-commit and CI maintained their own command lists.
 -s verify` for the canonical single-interpreter gate, plus `nox -s fuzz` as a
 separate job (fuzz is excluded from `verify` because it is property-based and
 slow, not because it is optional). It also runs `nox -s python-compatibility`
-as a required-check matrix over every standard CPython feature release named
-by package metadata. Those jobs assert the selected runtime, use the frozen
-dependency graph, run the hermetic suite, and verify a clean installed
+as a required check for CPython 3.14, the only standard feature release named
+by package metadata. The canonical graph already runs the hermetic suite on
+that interpreter, so this job runs in smoke-only mode. It asserts the selected
+runtime, uses the frozen dependency graph, and verifies a clean installed
 distribution. SonarCloud consumes the coverage XML that the `tests` substage
 produces; it is not a parallel test-runner.
 
@@ -243,3 +244,4 @@ remain historical records, not current instructions to run full suites locally.
 | 2026-08-14 | #1134 | Added a required CI matrix that runs the canonical `python-compatibility` session for each supported CPython feature release while retaining `verify` as the reproducible single-interpreter local gate. |
 | 2026-09-03 | #1164 | Split private nox configuration, runner, lane, and graph helpers into the acyclic `tools/nox_support/` package while retaining root `noxfile.py` as the sole public session registry, preserving one canonical graph, and keeping both surfaces in coverage and static analysis. |
 | 2026-09-22 | #1348 | Restricted local defaults, pre-push, changed verification, and completion to targeted feedback; reserved full test suites for CI/CD, superseding earlier local full-regression obligations while preserving required CI and Sonar gates. |
+| 2026-10-28 | #1672 | Narrowed standard interpreter support to CPython 3.14. The required `python-compatibility` check now runs one time in smoke-only mode, because the canonical graph runs the hermetic suite on the same interpreter. |

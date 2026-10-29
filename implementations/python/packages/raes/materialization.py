@@ -38,7 +38,7 @@ class MaterializedScenario(ScenarioContent):
                 continue
             try:
                 resolve_json_pointer(content, origin.field_pointer)
-            except (KeyError, IndexError, TypeError, ValueError):
+            except KeyError, IndexError, TypeError, ValueError:
                 raise ValueError("materialization origin must resolve to supplied SDL content") from None
         if any(binding.node_name not in self.nodes for binding in self.materialization_provenance.resource_bindings):
             raise ValueError("materialization resource binding must resolve to a node")
@@ -54,6 +54,7 @@ def admit_materialized_scenario(scenario: MaterializedScenario) -> MaterializedS
     if not validate_realization_value(content, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS, python_carriers=True).conformant:
         raise ValueError("materialized SDL exceeds portable bounds")
     admitted = MaterializedScenario.model_validate(scenario.model_dump(mode="json", exclude_unset=True))
+    admitted._set_declaration_sources(scenario.declaration_sources)
     validator = SemanticValidator(admitted)
     validator.validate()
     admitted._set_advisories(validator.warnings)

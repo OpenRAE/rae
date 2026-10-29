@@ -229,6 +229,11 @@ def _typed_edge_issues(
     return issues
 
 
+def distinct_forest_endpoints(source: str, target: str) -> bool:
+    """Forest trust never permits the same canonical forest at both endpoints."""
+    return source != target
+
+
 def _forest_trust_issue(
     relationship_name: str,
     source: object,
@@ -244,7 +249,7 @@ def _forest_trust_issue(
             "enterprise-identity.forest-trust.endpoint-invalid",
             f"Relationship '{relationship_name}' forest trust endpoints must resolve to identity forests",
         )
-    elif source_name == target_name:
+    elif not distinct_forest_endpoints(source_name, target_name):
         issue = _issue(
             "enterprise-identity.forest-trust.self",
             f"Relationship '{relationship_name}' cannot trust a forest with itself",

@@ -78,6 +78,11 @@ authoring time rather than surfacing during trial allocation.
 The reference validator bounds its satisfiability search to 100,000 states and
 fails closed when that resource budget is exhausted.
 
+Member admission checks that each member yields an admissible scenario. It runs
+only when the earlier semantic checks pass. A scenario with earlier errors
+reports those errors first. Its members are checked after the author fixes
+them.
+
 ## Phase behavior
 
 `variation_points` exists only in authored and expanded SDL. Module composition

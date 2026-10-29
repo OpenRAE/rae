@@ -18,7 +18,7 @@ def test_vocabulary_ownership_includes_its_authoring_and_publication_surfaces():
     ]
     assert not _check_path_ownership(policy, phase, paths)
     for path in (
-        "implementations/python/packages/raes_reference_backend/provisioner.py",
+        "implementations/python/packages/raes_runtime/registry.py",
         "implementations/python/packages/raes_runtime/control_plane.py",
     ):
         assert _check_path_ownership(policy, phase, [path])

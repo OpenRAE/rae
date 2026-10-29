@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import replace
-from typing import TypeAlias
 
 from raes import (
     MaterializedScenario,
@@ -36,7 +35,7 @@ from ..models import RuntimeModel
 from .ordering import _entry_matches_resource
 from .resources import _collect_resources
 
-MaterializationPlan: TypeAlias = ProvisioningPlan | OrchestrationPlan | EvaluationPlan
+type MaterializationPlan = ProvisioningPlan | OrchestrationPlan | EvaluationPlan
 
 
 def admit_materialization_submission(
@@ -70,6 +69,11 @@ def _validate_binding(
     previous: RuntimeSnapshot,
 ) -> None:
     provenance = materialized.materialization_provenance
+    if provenance.inventory is not None and (
+        "backend-runtime-descendants-v1" not in manifest.supported_contract_versions
+        or not isinstance(request, ProvisioningPlan)
+    ):
+        raise ValueError("runtime descendant reporting requires negotiated provisioning admission")
     envelope = manifest.realization_envelope
     if envelope is None:
         raise ValueError("materialization does not bind this source and execution")
@@ -249,6 +253,7 @@ def validate_materialization_archive_record(
     provenance = scenario.materialization_provenance
     data = submission.sdl.encode("utf-8")
     recorded = (
+        record.inventory,
         record.run_id,
         record.operation_id,
         record.reference.ref_id,
@@ -260,6 +265,7 @@ def validate_materialization_archive_record(
         record.artifact.created_at,
     )
     expected = (
+        provenance.inventory,
         provenance.run_id,
         provenance.operation_id,
         provenance.attestation_id,

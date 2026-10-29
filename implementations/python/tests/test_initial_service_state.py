@@ -563,9 +563,8 @@ def test_direct_plan_submission_repeats_profile_and_readback_admission() -> None
         },
     )
     base_target = create_stub_target()
-    unsupported = RuntimeControlPlane(base_target).submit_provisioning(
-        _direct_provisioning_plan(model, base_target.manifest, operation)
-    )
+    with RuntimeControlPlane(base_target) as owner:
+        unsupported = owner.submit_provisioning(_direct_provisioning_plan(model, base_target.manifest, operation))
     assert [diagnostic.code for diagnostic in unsupported.diagnostics] == [
         "provisioner.unsupported-service-materialization-profile"
     ]
@@ -579,9 +578,8 @@ def test_direct_plan_submission_repeats_profile_and_readback_admission() -> None
         evaluator=base_target.evaluator,
         participant_runtime=base_target.participant_runtime,
     )
-    missing_readback = RuntimeControlPlane(target).submit_provisioning(
-        _direct_provisioning_plan(model, manifest, operation)
-    )
+    with RuntimeControlPlane(target) as owner:
+        missing_readback = owner.submit_provisioning(_direct_provisioning_plan(model, manifest, operation))
     assert [diagnostic.code for diagnostic in missing_readback.diagnostics] == [
         "provisioner.service-materialization-readback-unsupported"
     ]

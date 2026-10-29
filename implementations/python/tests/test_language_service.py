@@ -107,7 +107,7 @@ workflows:
 
     result = language_completions(sdl, cursor_path="/objectives/inspect/targets")
 
-    assert result["context"] == "reference:targetable"
+    assert result["context"] == "reference:eligible:objective_subject"
     details = {item["detail"] for item in result["items"]}
     assert "nodes.web" in details
     assert not details & {
@@ -142,7 +142,7 @@ relationships:
     result = language_completions(sdl, cursor_path="/relationships/serves/target")
     by_detail = {item["detail"]: item for item in result["items"]}
 
-    assert result["context"] == "reference:targetable"
+    assert result["context"] == "reference:eligible:relationship_endpoint"
     assert by_detail["content.fixtures.items.seed-file"]["label"] == "seed-file"
     assert by_detail["nodes.web.services.http"]["label"] == "nodes.web.services.http"
     assert by_detail["nodes.api.services.http"]["label"] == "nodes.api.services.http"

@@ -186,7 +186,7 @@ class RuntimeFileServiceAccessOutcome(str, Enum):
     OTHER = "other"
 
 
-def _reject_duplicate_local_ref_ids(service: "RuntimeFileService") -> None:
+def _reject_duplicate_local_ref_ids(service: RuntimeFileService) -> None:
     seen: dict[str, str] = {}
     entries: list[tuple[str, str]] = [("file_service_id", service.file_service_id)]
     entries.extend(("share_id", share.share_id) for share in service.shares)
@@ -455,7 +455,7 @@ class RuntimeFileService(SDLModel):
         return parse_runtime_enum_or_var(v, RuntimeFileServiceProtocol, field_name="protocol")
 
     @model_validator(mode="after")
-    def validate_service(self) -> "RuntimeFileService":
+    def validate_service(self) -> RuntimeFileService:
         for label, attr in (
             ("share_id", "shares"),
             ("principal_id", "principals"),
