@@ -47,6 +47,11 @@ phases:
   - id: participant-relation-assurance
     requirements:
       - ASR-535
+  - id: intentional-subversion-evaluation
+    requirements:
+      - ASR-536
+    blocked_until:
+      - modular-control-assurance
   - id: realization-honesty-conformance
     requirements:
       - ASR-519
@@ -208,6 +213,30 @@ phases:
       - ASR-506
 
 ownership:
+  intentional-subversion-evaluation:
+    - specs/formal/participant-semantics/semantic-coverage.md
+    - specs/formal/participant-semantics/semantic-coverage/family-rows.md
+    - docs/decisions/issue-1008-evaluation-backed-claims-preflight.md
+    - docs/decisions/issue-1008-harness-publication-design.md
+    - docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md
+    - docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md
+    - docs/decisions/adrs/adr-index.yaml
+    - docs/explain/reference/adversarial-control-evaluation.md
+    - docs/explain/sdl/lineage.md
+    - docs/explain/sdl/scientific-scenario-completeness.md
+    - docs/public/participant-control.md
+    - docs/requirements/SEM-233/requirement.md
+    - docs/research/adversarial-participant-control
+    - docs/research/modular-participant-control
+    - implementations/python/tests/issue_1007_intentional_subversion_harness.py
+    - implementations/python/tests/issue_1008_harness_publication.py
+    - implementations/python/tests/test_issue_1008_evaluation_backed_claims.py
+    # Preserve the harness's value-free diagnostic boundary in CI.
+    - implementations/python/tests/test_issue_1678_operational_logging.py
+    - specs/formal/assurance-fulfillment.yaml
+    - specs/formal/participant-semantics/README.md
+    - specs/formal/participant-semantics/adversarial-flow-control.md
+    - specs/formal/participant-semantics/runtime-mapping
   participant-relation-assurance:
     # Issue #973 bounded negative evidence; no runtime or tooling ownership.
     - implementations/formal/participant_crossing/counterexample_corpus.py

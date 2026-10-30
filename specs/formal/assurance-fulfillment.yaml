@@ -357,6 +357,8 @@ entries:
     # contract coverage remains incomplete for the observation capture
     # apparatus (waiver below). ASR-535 makes no model-check or proof claim.
     delivered_artifacts:
+      - kind: unit_tests
+        path: implementations/python/tests/test_issue_1008_evaluation_backed_claims.py
       - kind: invariant_list
         path: specs/formal/participant-semantics/modular-participant-control.md
       - kind: abstract_state_machine_model

@@ -170,7 +170,7 @@ Author-facing identity and migration guidance remains #1342's responsibility; th
 
 ## Open rows
 
-Of the 90 rows, 65 are `covered` and 25 are `partial`; none is `uncovered`.
+Of the 90 rows, 66 are `covered` and 24 are `partial`; none is `uncovered`.
 This table lists the owners of the 25 open rows. Each part records evidence and a concrete acceptance test.
 
 | Clause | Part | Owner(s) |
@@ -188,7 +188,6 @@ This table lists the owners of the 25 open rows. Each part records evidence and 
 | `SEM-219-220-226.F` | family-rows.md | #1570, #1571, #1572 |
 | `SEM-231.F` | family-rows.md | #222 |
 | `SEM-232.F` | family-rows.md | #974, #973, #975, #976 |
-| `SEM-233-ASR-536.F` | family-rows.md | #1008 |
 | `SEM-234.F` | family-rows.md | #608, #222 |
 | `ACT-617.F` | family-rows.md | #1583 |
 | `I1` | invariants-i1-to-i18.md | #257 |
