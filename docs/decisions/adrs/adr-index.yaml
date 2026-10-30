@@ -583,8 +583,11 @@ adrs:
         summary: "Add the separate two-operation construction profile and projection, history-sensitive retries and bounded completed-result response loss; preserve single-operation evidence and separate equivalence and realization."
   - id: ADR-101
     path: docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md
-    pin: 7a579c1f66ee66285465e261f5e740414986c393fd57fbde3c490be3653711b9
+    pin: 52e6089fddc86a2f3361d678687db4823f5c06cdad74a97d99cd7c97a9b94acc
     amendments:
+      - date: 2026-10-29
+        ref: "#1008"
+        summary: Separate backend-neutral RAE harness evaluation from concrete backend realization claims.
       - date: 2026-09-06
         ref: "#1068"
         summary: "Clarify modular composition, governed effects and the declared-world boundary under ADR-108 while preserving the security profile and runtime interpreter non-goal."
@@ -661,8 +664,11 @@ adrs:
         summary: "Narrowed the scope to connected single-maintainer OSS development and ordinary release recovery; retained the original design as history."
   - id: ADR-108
     path: docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md
-    pin: a104a1150d612fa04c10847d36390d54fd99ce821d96c044b88c32404f7471f5
+    pin: 5484ae5d8d76613c975c2efb8295ae2c45ac9e7889c26c255ae82b09206b3f4f
     amendments:
+      - date: 2026-10-29
+        ref: "#1008"
+        summary: Separate backend-neutral RAE harness evaluation from concrete backend realization claims.
       - date: 2026-09-22
         ref: "#1352"
         summary: "Clarify applicability, dependency invocation, support and phase-independent parent decisions through ADR-111."

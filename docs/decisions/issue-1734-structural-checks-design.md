@@ -140,7 +140,7 @@ ADR-036 allows `raes_conformance` → `raes_cli`, but `raes_cli` imports `raes_c
 
 ## External setting
 
-SonarCloud project `Brad-Edwards_aces` uses a new Python profile.
+The SonarCloud project of this repository (`sonar.projectKey` in `sonar-project.properties`) uses a new Python profile, `Python-Strict RAES`.
 The profile inherits the organization profile `Python-Strict` and overrides S104 with maximum 1001.
 The other organization projects keep their profile.
 The S104 exemptions `e11`–`e13` in `sonar-project.properties` cover files of 742 to 912 lines, so they are removed.
