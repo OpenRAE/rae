@@ -2,7 +2,8 @@
 
 Each current finding must be in its baseline (I1), each baseline entry must be a
 current finding (I2), and each baseline must be a subset of the baseline at the
-base revision (I5). Structural failures cannot be waived (I9).
+base revision (I5). When the base revision has no baselines, the adoption
+commit bounds them (I6). Structural failures cannot be waived (I9).
 """
 
 from __future__ import annotations
@@ -395,13 +396,16 @@ def _base_failures(
     baseline: StructuralBaseline,
     coverage_roots: Sequence[str],
 ) -> list[PolicyFailure]:
-    base_contracts_text = base.read(IMPORT_CONTRACTS_PATH)
-    base_baseline_text = base.read(STRUCTURAL_BASELINE_PATH)
-    if base_contracts_text is None or base_baseline_text is None:
-        return _adoption_failures(base, coverage_roots)
+    bound, texts = base, _baseline_texts(base)
+    if texts is None:
+        adoption = base.adoption(coverage_roots)
+        if adoption is None or (texts := _baseline_texts(adoption)) is None:
+            return _adoption_failures(base, coverage_roots)
+        bound = adoption
+    base_contracts_text, base_baseline_text = texts
     try:
-        base_contracts = parse_import_contracts(base_contracts_text, f"{IMPORT_CONTRACTS_PATH} at {base.revision}")
-        base_baseline = parse_structural_baseline(base_baseline_text, f"{STRUCTURAL_BASELINE_PATH} at {base.revision}")
+        base_contracts = parse_import_contracts(base_contracts_text, f"{IMPORT_CONTRACTS_PATH} at {bound.revision}")
+        base_baseline = parse_structural_baseline(base_baseline_text, f"{STRUCTURAL_BASELINE_PATH} at {bound.revision}")
     except InvalidInputError as exc:
         return [_failure(RULE_CONFIG, f"the base revision baselines cannot be read: {exc}")]
     return [
@@ -410,8 +414,14 @@ def _base_failures(
     ]
 
 
+def _baseline_texts(revision: BaseRevision) -> tuple[str, str] | None:
+    contracts_text = revision.read(IMPORT_CONTRACTS_PATH)
+    baseline_text = revision.read(STRUCTURAL_BASELINE_PATH)
+    return None if contracts_text is None or baseline_text is None else (contracts_text, baseline_text)
+
+
 def _adoption_failures(base: BaseRevision, coverage_roots: Sequence[str]) -> list[PolicyFailure]:
-    """Adoption (I6): a baseline new at the base revision needs the base revision's own package source.
+    """Adoption (I6): without an adoption commit, a baseline new at the base revision needs its package source.
 
     Then I1 and I2 make the new baseline equal to the findings of the base revision.
     """
