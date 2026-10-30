@@ -479,9 +479,9 @@
     {
       "path": "docs/decisions/adrs/adr-092-autonomous-benign-participants-under-shared-time.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves pre-cutover identity occurrences in the accepted decision, including the authorized issue-1740 invocation tool-action amendment.",
       "occurrences": 1,
-      "content_sha256": "f7837743e16cd93631f44df5992e90daf6a5e48c270683504ea518ab21c291fc"
+      "content_sha256": "c0b2643a15581d527918a4f83a96e4e8b08a8bf34ccbfcc350c445aac5ebda4f"
     },
     {
       "path": "docs/decisions/adrs/adr-093-raes-rename-and-compatibility-boundaries.md",
@@ -493,9 +493,9 @@
     {
       "path": "docs/decisions/adrs/adr-index.yaml",
       "record_class": "historical-index",
-      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630 and issue-1008 amendments and their pins.",
+      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630, issue-1008 and issue-1740 amendments and their pins.",
       "occurrences": 4,
-      "content_sha256": "00cb3afe19e0fb0de817675be04d2130a3463a8a1e60e46eb7ff223b948029e3"
+      "content_sha256": "97661dae9def093e6584ec2bf755a7de2b2c596c57b435f767174781142d9dbc"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",

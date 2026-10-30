@@ -2,9 +2,9 @@
   "contract_id": "participant-history-view-v1",
   "schema_path": "contracts/schemas/control-plane/participant-history-view-v1.json",
   "stability": "draft",
-  "content_hash": "dddcf90e771ac49af5a9c0f6c95e19e4436c9250c21149d48ec1b14c0b093f35",
+  "content_hash": "4223340724a762c31bb66de98ed2fb853d2b75e4169ec7e48faaa47ab95deed7",
   "last_change": {
-    "summary": "Add opt-in bounded shared-time guarantees and typed numeric authoring; keep backend execution capabilities conditional (#216).",
-    "content_hash": "dddcf90e771ac49af5a9c0f6c95e19e4436c9250c21149d48ec1b14c0b093f35"
+    "summary": "Project the optional invocation_tool_context of hosted tool actions into participant history views; issue #1740.",
+    "content_hash": "4223340724a762c31bb66de98ed2fb853d2b75e4169ec7e48faaa47ab95deed7"
   }
 }

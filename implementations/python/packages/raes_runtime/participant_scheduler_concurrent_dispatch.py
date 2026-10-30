@@ -11,12 +11,19 @@ from typing import TYPE_CHECKING, cast
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
 from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.errors import ConflictError, RaesError
+from raes_contracts.errors import ConflictError, OperationalError, RaesError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.models import CompiledTimeModel, ParticipantAutonomousExecutionRuntime
 
+from .participant_invocation_tool_actions import ParticipantInvocationToolActions
+from .participant_invocation_tool_settlement import (
+    activate_invocation_tool_sessions,
+    close_invocation_tool_sessions,
+    invocation_effects_fenced,
+    open_invocation_tool_session,
+)
 from .participant_scheduler_concurrent_commit import (
     _commit_concurrent_result,
     _concurrent_result_protocol_invalid,
@@ -262,7 +269,65 @@ def _settle_failed_concurrent_dispatch(prepared: _PreparedConcurrentBatch) -> No
     )
 
 
+def _open_concurrent_tool_sessions(
+    prepared: _PreparedConcurrentBatch,
+) -> tuple[ParticipantInvocationToolActions, ...] | None:
+    """Attach one tool-action port per peer before dispatch; a failed attachment dispatches nothing."""
+
+    settlement = prepared.settlement
+    if invocation_effects_fenced(settlement.run):
+        _fail_concurrent_batch_before_dispatch(
+            settlement.run,
+            settlement.pre_batch,
+            policy_address=settlement.policy_address,
+            code="runtime.participant-invocation-tool-effects-fenced",
+            message="A hosted tool action has unknown native effects; no further invocation is dispatched.",
+        )
+        return None
+    sessions: list[ParticipantInvocationToolActions] = []
+    try:
+        for context, state, request in zip(settlement.contexts, settlement.states, settlement.requests, strict=True):
+            session = open_invocation_tool_session(
+                context,
+                request,
+                episode_id=state.episode_id,
+                predecessor=prepared.dispatch_snapshot,
+                run=settlement.run,
+            )
+            if session is not None:
+                sessions.append(session)
+    except (OperationalError, CancelledError) as exc:
+        # No outer action was dispatched, so the pre-dispatch batch is restored exactly.
+        close_invocation_tool_sessions(tuple(sessions))
+        _fail_concurrent_batch_before_dispatch(
+            settlement.run,
+            settlement.pre_batch,
+            policy_address=settlement.policy_address,
+            code="runtime.participant-invocation-tool-attach-failed",
+            message="Backend invocation tool-action attachment did not complete before dispatch.",
+        )
+        if isinstance(exc, CancelledError):
+            # Cleanup: the reservation is released; propagate the cancellation (ADR-116 H4).
+            raise
+        return None
+    return tuple(sessions)
+
+
 def _dispatch_concurrent_results(
+    prepared: _PreparedConcurrentBatch,
+) -> tuple[object, ...] | None:
+    sessions = _open_concurrent_tool_sessions(prepared)
+    if sessions is None:
+        return None
+    activate_invocation_tool_sessions(sessions)
+    try:
+        return _dispatch_attached_concurrent_results(prepared)
+    finally:
+        # Close every port before any outer result is validated; closure settles open tool actions.
+        close_invocation_tool_sessions(sessions)
+
+
+def _dispatch_attached_concurrent_results(
     prepared: _PreparedConcurrentBatch,
 ) -> tuple[object, ...] | None:
     requests = prepared.settlement.requests

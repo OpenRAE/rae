@@ -134,6 +134,8 @@ It scaffolds a first pack and validates it.
 - **Backend and adapter implementers:** Read the
   [backend and conformance guide](backends.md)
   and see [OpenRAE/adapters](https://github.com/OpenRAE/adapters).
+  To admit tool calls inside an autonomous invocation, read
+  [admit tool actions inside an autonomous invocation](guides/invocation-tool-actions.md).
 - **Shifter and LilRAE users:** Install and run each backend from its own
   documentation: [Shifter](https://github.com/Brad-Edwards/shifter) and
   [LilRAE](https://openrae.github.io/lilrae/).
@@ -193,6 +195,7 @@ guides/control-plane
 guides/experiment-records
 guides/supervised-execution
 guides/external-injects
+guides/invocation-tool-actions
 backends
 research
 limitations

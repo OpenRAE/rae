@@ -18,6 +18,10 @@ from .participant_execution_scheduler_state import (
     execution_service_state,
     set_execution_clock_lifecycle,
 )
+from .participant_invocation_tool_settlement import (
+    InvocationToolActionConfiguration,
+    settle_invocation_tool_sessions,
+)
 from .participant_resource_budgets import initialize_participant_resource_budgets
 from .participant_scheduler_initialization import (
     clock_tick as _clock_tick,
@@ -300,26 +304,32 @@ class ParticipantScheduler:
         activity_controls: dict[str, ParticipantActivityRandomControl] | None = None,
         *,
         cancellation_sink: Callable[[ApplyResult], None] | None = None,
+        invocation_tools: InvocationToolActionConfiguration | None = None,
     ) -> ApplyResult:
         """Run each due action; on cancellation, give the settled state to ``cancellation_sink``.
 
         A cancelled concurrent batch has fenced its indeterminate native work in the
         scheduler state. The commit owner must commit that state before the
-        cancellation leaves it, or the same action ids become due again.
+        cancellation leaves it, or the same action ids become due again. Tool
+        actions hosted by any dispatched invocation commit on both paths.
         """
 
-        run = SchedulerRunState(working=snapshot, diagnostics=[], changed=[])
+        run = SchedulerRunState(working=snapshot, diagnostics=[], changed=[], invocation_tools=invocation_tools)
         resolved_activity_controls = activity_controls or {}
         try:
             for policy in policies:
                 _run_due_policy(policy, time_model, participant_runtime, resolved_activity_controls, run)
-                if run.failure is not None:
+                if run.failure is not None or run.deferred_cancellation is not None:
                     break
+            if run.deferred_cancellation is not None:
+                raise run.deferred_cancellation
         except CancelledError:
             # Cleanup: hand the settled scheduler state to its commit owner, then propagate (ADR-116 H4).
+            settle_invocation_tool_sessions(run)
             if cancellation_sink is not None:
                 cancellation_sink(run.result())
             raise
+        settle_invocation_tool_sessions(run)
         return run.result()
 
     @staticmethod
