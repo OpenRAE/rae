@@ -708,4 +708,8 @@ adrs:
     pin: a4e20904762d23ff25162b910ab91032fdaac84b38ef727401c7fe501dde6ffa
   - id: ADR-117
     path: docs/decisions/adrs/adr-117-ratcheted-structural-checks.md
-    pin: bda16233042852ec05f3e4dad1c3d968951f9b977151f6154165f7dbfec63e60
+    pin: 557d925c2ba6466947af0cc41e788c6cd0ed04b2256c761da27606313c863ca6
+    amendments:
+      - date: 2026-10-30
+        ref: "#1752"
+        summary: "I6: the adoption commit bounds a baseline that is absent at the base revision. Thus a dev to main promotion can pass."
