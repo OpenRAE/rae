@@ -24,7 +24,7 @@
       "binding_class": "external-service-project-key",
       "rationale": "Retains the existing service-owned SonarCloud project designation without treating it as current RAES product identity.",
       "occurrences": 2,
-      "content_sha256": "9dbf27a844b5ab0b14aec987d707c4ed5f9e46c0881b0714f239b5bed5a5079f"
+      "content_sha256": "b24f6e298fc3c37f9a74d09adf0a413115d2701c9992707fc594856fc42f628a"
     }
   ],
   "records": [
@@ -47,7 +47,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "5ae51983dcf1a91d03a2d5618ee02b1efc2a272c14dcb41dec665ab13abfec60"
+      "content_sha256": "5086e178184731ba1c18be02d28a753f2db107d2deb865c3d1e67bb3d214ac91"
     },
     {
       "path": "docs/decisions/adrs/adr-000-use-adrs.md",
@@ -96,7 +96,7 @@
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
       "occurrences": 27,
-      "content_sha256": "4f638d54b3fb6d3a7ce7689088e6b474114265784b9554e3bc92622703778401"
+      "content_sha256": "9e35bef2cfcd6171f52713ad745fdc64e8ba80b4b8d6ae2f3596f5789d2581f4"
     },
     {
       "path": "docs/decisions/adrs/adr-016-semantic-layer-scope-and-coverage-model.md",
@@ -495,7 +495,7 @@
       "record_class": "historical-index",
       "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630 amendments and their pins.",
       "occurrences": 4,
-      "content_sha256": "4dfe73966a9bf6ebc4a6975686003f6d8cb09f43e7a200d73df664e0a889d5d8"
+      "content_sha256": "59deea5e839dfa3251a1c70d53fbf04b886a604f956efc5f84fff72ec0c44727"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",

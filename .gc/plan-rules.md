@@ -14,6 +14,9 @@ These encode the hard rules previously in `AGENTS.md` prose.
   already contain a UID such as `GOV-918`.
 - Plans MUST NOT add new authority-bearing artifacts outside `specs/`,
   `contracts/`, `docs/`, and `implementations/`.
+- Plans MUST name the module that owns each piece of new code. Plans MUST also
+  name the public interface that other modules use to reach that code
+  (ADR-117).
 - Plans that change a published schema under `contracts/schemas/` (the
   hand-governed normative authority per ADR-009 §7) MUST record a
   contract-facing change-ledger entry (`last_change`: summary + content hash)

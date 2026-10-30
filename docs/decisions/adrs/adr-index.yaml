@@ -92,11 +92,14 @@ adrs:
         summary: Narrowed standard interpreter support to CPython 3.14; the required python-compatibility check runs one time in smoke-only mode because the canonical graph runs the hermetic suite on the same interpreter.
   - id: ADR-015
     path: docs/decisions/adrs/adr-015-sdl-processor-layering-and-source-file-size-cap.md
-    pin: bc5038164e535c4d506962e27cee07e720f5c8a77cb17d018dedb3dba927936f
+    pin: 01086226bb28500056f45629a35875c8516c65f1f84cbaf77356990c9beae3a3
     amendments:
       - date: 2026-07-12
         ref: "#561"
         summary: "Lowered the non-test source-file cap from 600 to 500 lines to align with SonarCloud S104; re-baselined _ADR015_INITIAL_OVERSIZED_FILES and the oversized allowlist to the files over 500 lines at amendment time."
+      - date: 2026-10-30
+        ref: "#1734"
+        summary: "Raised the cap from 500 to 1,000 lines as a backstop to the ADR-117 structural checks; set the SonarCloud S104 maximum to 1001 in a project profile; re-baselined _ADR015_INITIAL_OVERSIZED_FILES to the files over 1,000 lines: none."
   - id: ADR-016
     path: docs/decisions/adrs/adr-016-semantic-layer-scope-and-coverage-model.md
     pin: ff9a71be7f6d427b88ff26317da36e14b6cc5943418cd941df88dca29033449b
@@ -697,3 +700,6 @@ adrs:
   - id: ADR-116
     path: docs/decisions/adrs/adr-116-shared-exceptions-and-operational-logging.md
     pin: a4e20904762d23ff25162b910ab91032fdaac84b38ef727401c7fe501dde6ffa
+  - id: ADR-117
+    path: docs/decisions/adrs/adr-117-ratcheted-structural-checks.md
+    pin: bda16233042852ec05f3e4dad1c3d968951f9b977151f6154165f7dbfec63e60

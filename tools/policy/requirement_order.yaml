@@ -1342,6 +1342,13 @@ ownership:
     - docs/explain/sdl
     - docs/index.md
     - CHANGELOG.md
+    # Issue #1734 (ADR-117): the structural checks need import-linter in the
+    # locked tooling environment, and their design and workflow notes.
+    - implementations/tooling/python/pyproject.toml
+    - implementations/tooling/python/uv.lock
+    - docs/decisions/issue-1734-structural-policy-preflight.md
+    - docs/decisions/issue-1734-structural-checks-design.md
+    - docs/DEVELOPMENT_WORKFLOW.md
   decision-record-governance:
     - docs/decisions/adrs
     - docs/index.md

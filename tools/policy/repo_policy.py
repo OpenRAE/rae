@@ -7,7 +7,7 @@ from collections.abc import Callable, Iterator
 from pathlib import Path
 
 import yaml
-from raes_contracts.errors import InvalidInputError, OperationalError
+from raes_contracts.errors import InvalidInputError
 
 from .adr import (
     normalize_adr_status as _normalize_adr_status,
@@ -15,11 +15,14 @@ from .adr import (
 from .adr import (
     parse_adr_file as _parse_adr_file,
 )
-from .common import PolicyFailure, load_yaml, path_matches_prefix
+from .common import PolicyFailure, load_yaml, parse_python_source, path_matches_prefix, read_repository_text
 from .common import safe_repo_path as _safe_repo_path
 from .conftest_tool import run_conftest_policy
+from .structural_ratchet import evaluate_structural_ratchet
 
 StructuralPolicyRunner = Callable[[dict], list[PolicyFailure]]
+# Runs the ADR-117 structural checks on the loaded policy.
+RatchetRunner = Callable[[dict], list[PolicyFailure]]
 # What load_yaml raises for a missing, unreadable, non-UTF-8, malformed or
 # excessively nested policy file, and InvalidInputError for a scalar that the
 # safe constructor cannot build. The message never echoes the file content.
@@ -67,6 +70,8 @@ def evaluate_repo_policy(
     *,
     check_set: str = "full",
     structural_runner: StructuralPolicyRunner | None = None,
+    base_rev: str | None = None,
+    ratchet_runner: RatchetRunner | None = None,
 ) -> list[PolicyFailure]:
     policy, policy_load_errs = _load_policy_guarded(repo_root)
     if policy_load_errs:
@@ -74,6 +79,15 @@ def evaluate_repo_policy(
     assert policy is not None
 
     failures: list[PolicyFailure] = []
+    if check_set == "full":
+        # The structural ratchets are global (ADR-117): they run for every full check, also
+        # when the change list is empty or holds only deletions.
+        if ratchet_runner is None:
+
+            def ratchet_runner(loaded_policy: dict) -> list[PolicyFailure]:
+                return evaluate_structural_ratchet(repo_root, loaded_policy, base_rev=base_rev)
+
+        failures.extend(ratchet_runner(policy))
 
     # Drop any changed path that escapes the repository root (absolute,
     # parent-traversal, or a planted symlink that resolves outside the
@@ -135,57 +149,30 @@ def evaluate_repo_policy(
 
 
 # ──────────────────────────────────────────────────────────────────────────
-# ADR-015: SDL→processor layering rule + 500-line source-file cap.
+# ADR-015: SDL→processor layering rule + 1,000-line source-file cap.
 #
 # These two gates catch unintentional regressions in normal contributions:
 # a developer who accidentally writes `import raes_processor` in `raes/`,
-# or one who pushes a >500-line file, or a split PR that forgets to drain
-# its allowlist entry. The policy and its YAML config are PR-mutable; PR
+# or one who pushes a >1,000-line file, or a split PR that forgets to drain
+# its allowlist entry. The cap is a backstop; ADR-117 checks the module
+# structure directly. The policy and its YAML config are PR-mutable; PR
 # review (not this code) defends against deliberate weakening. See ADR-015.
 # ──────────────────────────────────────────────────────────────────────────
 
 _POLICY_CONFIG_PATH = "tools/policy/adr_policy.yaml"
 
 # The set of source files that were over the source-file cap when the current
-# cap was adopted. The cap was originally 600 lines (ADR-015 landing); it was
-# lowered to 500 on 2026-07-12 (#561, ADR-015 Amendments), and this reference
-# set was re-baselined to the files over 500 lines at that time. The size-cap
-# allowlist (tools/policy/oversized_allowlist.yaml) may only ever be a SUBSET
-# of this set: entries are removed as split PRs shrink their file, and no new
-# entry may be added. This is a code constant — not config in adr_policy.yaml —
+# cap was adopted. The cap was 600 lines at the ADR-015 landing, 500 from
+# 2026-07-12 (#561) and 1,000 from 2026-10-30 (#1734, ADR-015 Amendments). Each
+# cap change re-baselined this set to the files over the new cap; no file was
+# over 1,000 lines, so the set is empty. The size-cap allowlist
+# (tools/policy/oversized_allowlist.yaml) may only ever be a SUBSET of this set,
+# so it stays empty. This is a code constant — not config in adr_policy.yaml —
 # so that "the allowlist only shrinks" is enforced against a fixed reference
 # rather than against an input the same PR can edit. Adding an oversized file
 # therefore requires a diff to this module, which PR review scrutinises as
 # policy, not as data noise.
-_ADR015_INITIAL_OVERSIZED_FILES: frozenset[str] = frozenset(
-    {
-        "implementations/python/packages/raes_backend_libvirt/drivers/libvirt.py",
-        "implementations/python/packages/raes_backend_libvirt/realization.py",
-        "implementations/python/packages/raes_backend_libvirt/techvault_native.py",
-        "implementations/python/packages/raes_backend_stubs/stubs.py",
-        "implementations/python/packages/raes_conformance/conformance.py",
-        "implementations/python/packages/raes_contracts/contracts.py",
-        "implementations/python/packages/raes_contracts/workflow.py",
-        "implementations/python/packages/raes_mcp/tools/authoring.py",
-        "implementations/python/packages/raes_mcp/tools/inspection.py",
-        "implementations/python/packages/raes_mcp/tools/reference.py",
-        "implementations/python/packages/raes_operations/_evidence_run_artifact.py",
-        "implementations/python/packages/raes_processor/compiler.py",
-        "implementations/python/packages/raes_processor/models.py",
-        "implementations/python/packages/raes_processor/planner.py",
-        "implementations/python/packages/raes_runtime/control_plane.py",
-        "implementations/python/packages/raes_runtime/control_plane_api.py",
-        "implementations/python/packages/raes_runtime/workflow_result_contract_checks.py",
-        "implementations/python/packages/raes/composition.py",
-        "implementations/python/packages/raes/module_registry.py",
-        "implementations/python/packages/raes/orchestration.py",
-        "implementations/python/packages/raes/participant_behavior.py",
-        "implementations/python/packages/raes/runtime_mail_service.py",
-        "implementations/python/packages/raes/runtime_security_monitoring.py",
-        "implementations/python/packages/raes/semantics/objective_semantics.py",
-        "implementations/python/packages/raes/semantics/participant_behavior.py",
-    }
-)
+_ADR015_INITIAL_OVERSIZED_FILES: frozenset[str] = frozenset()
 
 
 def _is_str(value: object) -> bool:
@@ -455,29 +442,6 @@ def _file_line_count(path: Path) -> int | None:
     return len(content.splitlines())
 
 
-def _read_repository_text(path: Path, rel_path: str) -> str:
-    """Read one repository text file; refuse text that is not UTF-8 or a file the host cannot read."""
-
-    try:
-        return path.read_text(encoding="utf-8")
-    except UnicodeDecodeError as exc:
-        raise InvalidInputError(f"{rel_path} is not UTF-8 text") from exc
-    except OSError as exc:
-        raise OperationalError(f"{rel_path} could not be read") from exc
-
-
-def _parse_python_source(path: Path, rel_path: str) -> ast.Module:
-    """Parse one Python file for an import check; refuse source that is not UTF-8 Python."""
-
-    source = _read_repository_text(path, rel_path)
-    try:
-        return ast.parse(source, filename=rel_path)
-    except (SyntaxError, RecursionError, MemoryError) as exc:
-        # The parser reports invalid source with SyntaxError. Source that nests too deeply stops the
-        # AST conversion at the recursion limit or the parser at its fixed stack limit (MemoryError).
-        raise InvalidInputError(f"{rel_path} is not valid Python source") from exc
-
-
 def _check_layering(repo_root: Path, layering_rules: list[dict], changed: list[str]) -> list[PolicyFailure]:
     """For each layering rule, walk the AST of every changed ``.py`` file
     under ``scope_root`` and reject any ``import <forbidden>[…]`` or
@@ -495,7 +459,7 @@ def _check_layering(repo_root: Path, layering_rules: list[dict], changed: list[s
             path = repo_root / rel_path
             if not path.is_file():
                 continue
-            tree = _parse_python_source(path, rel_path)
+            tree = parse_python_source(path, rel_path)
             for node in ast.walk(tree):
                 if isinstance(node, ast.Import):
                     for alias in node.names:
@@ -726,7 +690,7 @@ def _check_module_boundaries(
             path = repo_root / rel_path
             if not path.is_file():
                 continue
-            tree = _parse_python_source(path, rel_path)
+            tree = parse_python_source(path, rel_path)
             failures.extend(_check_module_imports(rel_path, rule, known_modules, tree))
             if rule["id"] == "raes_backend_protocols":
                 failures.extend(_check_backend_protocol_contract_annotations(rel_path, tree))
@@ -900,7 +864,7 @@ def _check_changelog_versioned(repo_root: Path) -> list[PolicyFailure]:
     changelog = repo_root / "CHANGELOG.md"
     if not changelog.exists():
         return []
-    text = _read_repository_text(changelog, "CHANGELOG.md")
+    text = read_repository_text(changelog, "CHANGELOG.md")
     for match in CHANGELOG_HEADING_RE.finditer(text):
         label = match.group(1)
         if label.lower() == "unreleased":
@@ -952,7 +916,7 @@ def _check_adr_template(repo_root: Path, changed: list[str]) -> list[PolicyFailu
             )
         ]
 
-    text = _read_repository_text(template, ADR_TEMPLATE_PATH)
+    text = read_repository_text(template, ADR_TEMPLATE_PATH)
     headings = {match.group(1).strip() for match in ADR_TEMPLATE_HEADING_RE.finditer(text)}
     missing = [section for section in ADR_TEMPLATE_REQUIRED_SECTIONS if section not in headings]
     if missing:
@@ -978,7 +942,7 @@ def _check_adr_index(repo_root: Path, policy: dict, changed: list[str]) -> list[
         number, title, status, date_value = _parse_adr_file(adr_file)
         expected[number] = (adr_file.name, title, status, date_value)
 
-    readme_text = _read_repository_text(repo_root / index_path, index_path)
+    readme_text = read_repository_text(repo_root / index_path, index_path)
     actual = {
         number: (
             Path(link).name,
