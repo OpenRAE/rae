@@ -46,8 +46,10 @@ _TERMINAL_STATUSES = frozenset({"succeeded", "failed", "partial_success", "rejec
 _UNKNOWN_EFFECT_CLASSES = frozenset({"timeout", "interrupted", "backend_error", "unknown"})
 _INTERRUPTED = "interrupted"
 _LOGGER = get_logger(__name__)
+_AUTHORITY_CHECK_FAILED = "authority-check-failed"
 _AUTHORITY_REFUSALS = {
     TOOL_ADMISSION_UNRESOLVED: ParticipantToolActionRefusal.UNRESOLVED_EFFECTS,
+    _AUTHORITY_CHECK_FAILED: ParticipantToolActionRefusal.LEDGER_UNAVAILABLE,
 }
 _ADMITTED = "admitted"
 _DISPATCHED = "dispatched"
@@ -156,6 +158,18 @@ class _ToolEntry:
     settlement: ParticipantToolActionSettlement | None = None
     action_result: ParticipantActionResultModel | None = None
     settled_at: str | None = None
+
+
+def _detached_outcome(outcome: object) -> ParticipantActionResultModel | None:
+    """Revalidate a consumer outcome as a detached copy; ``None`` when it is not a valid result."""
+
+    if not isinstance(outcome, ParticipantActionResultModel):
+        return None
+    try:
+        return ParticipantActionResultModel.model_validate(outcome.model_dump(mode="json"))
+    # The refusal is a fixed code; the validation text can repeat consumer-supplied values.
+    except ValueError:
+        return None
 
 
 def _refused(tool_call_id: str, refusal: ParticipantToolActionRefusal) -> ParticipantToolActionDecision:
@@ -275,47 +289,13 @@ class ParticipantInvocationToolActions:
         if not isinstance(request, ParticipantToolActionRequest):
             raise TypeError("request must be a ParticipantToolActionRequest")
         with self._lock:
-            lifecycle_refusal = self._lifecycle_refusal()
-            if lifecycle_refusal is not None:
-                return _refused(request.tool_call_id, lifecycle_refusal)
-            existing = self._entries.get(request.tool_call_id)
-            if existing is not None:
-                if existing.request != request:
-                    return _refused(request.tool_call_id, ParticipantToolActionRefusal.REQUEST_CONFLICT)
-                return self._admitted(existing)
-            refusal, binding = self._admission_refusal(request)
-            if refusal is None and len(self._entries) >= self._configuration.max_tool_actions:
-                refusal = ParticipantToolActionRefusal.ADMISSION_LIMIT_EXHAUSTED
-            if refusal is None:
-                refusal = self._effect_authority_refusal()
-            if refusal is not None:
-                return _refused(request.tool_call_id, refusal)
-            action_instance_id = tool_action_instance_id(
-                self._outer.action_instance_id,
-                episode_id=self._episode_id,
-                execution_generation=self.execution_generation,
-                tool_call_id=request.tool_call_id,
-            )
-            admitted_at = _now_iso()
-            record = self._write(
-                lambda: self._configuration.ledger.record_admission(action_instance_id, request, admitted_at)
-            )
-            if record is None:
-                return _refused(request.tool_call_id, ParticipantToolActionRefusal.LEDGER_UNAVAILABLE)
-            entry = _ToolEntry(
-                request=request,
-                action_instance_id=action_instance_id,
-                ordinal=len(self._entries),
-                admitted_at=admitted_at,
-                record=record,
-                boundary_evidence_refs=dict(binding.observation_boundary_evidence_refs).get(
-                    request.observation_boundary_address, ()
-                ),
-                interaction=binding.interaction,
-            )
-            self._entries[request.tool_call_id] = entry
-            self._entries_by_action[entry.action_instance_id] = entry
-            return self._admitted(entry)
+            refusal = self._lifecycle_refusal()
+            entry = self._entries.get(request.tool_call_id) if refusal is None else None
+            if entry is not None and entry.request != request:
+                refusal = ParticipantToolActionRefusal.REQUEST_CONFLICT
+            elif refusal is None and entry is None:
+                entry, refusal = self._admit_new(request)
+            return _refused(request.tool_call_id, refusal) if refusal is not None else self._admitted(entry)
 
     def dispatch(self, action_instance_id: str) -> ParticipantToolActionReceipt:
         with self._lock:
@@ -344,56 +324,22 @@ class ParticipantInvocationToolActions:
     def complete(self, action_instance_id: str, outcome: ParticipantActionResultModel) -> ParticipantToolActionReceipt:
         with self._lock:
             entry, refusal = self._open_entry(action_instance_id)
-            if refusal is None and entry.state == _SETTLED:
-                replay = (
-                    entry.settlement is ParticipantToolActionSettlement.COMPLETED and entry.action_result == outcome
-                )
-                refusal = None if replay else ParticipantToolActionRefusal.OUTCOME_CONFLICT
-                return _accepted(entry) if replay else _rejected(action_instance_id, refusal)
-            if refusal is None and entry.state != _DISPATCHED:
-                refusal = ParticipantToolActionRefusal.STATE_CONFLICT
-            detached = None
             if refusal is None:
-                detached = self._valid_outcome(entry, outcome)
-                refusal = ParticipantToolActionRefusal.OUTCOME_INVALID if detached is None else None
-            if refusal is None and not self._settle(entry, ParticipantToolActionSettlement.COMPLETED, detached):
-                refusal = ParticipantToolActionRefusal.LEDGER_UNAVAILABLE
+                refusal = self._completion_refusal(entry, outcome)
             return _rejected(action_instance_id, refusal) if refusal is not None else _accepted(entry)
 
     def cancel(self, action_instance_id: str) -> ParticipantToolActionReceipt:
         with self._lock:
             entry, refusal = self._open_entry(action_instance_id)
-            if refusal is None and entry.state == _ADMITTED:
-                settled = self._settle_synthesized(entry, ParticipantToolActionSettlement.WITHHELD, _INTERRUPTED)
-                return (
-                    _accepted(entry)
-                    if settled
-                    else _rejected(action_instance_id, ParticipantToolActionRefusal.LEDGER_UNAVAILABLE)
-                )
-            if refusal is None and entry.settlement is not ParticipantToolActionSettlement.WITHHELD:
-                refusal = ParticipantToolActionRefusal.STATE_CONFLICT
+            if refusal is None:
+                refusal = self._cancel_refusal(entry)
             return _rejected(action_instance_id, refusal) if refusal is not None else _accepted(entry)
 
     def report_unknown(self, action_instance_id: str, failure_class: str) -> ParticipantToolActionReceipt:
-        effect_class = failure_class if failure_class in _UNKNOWN_EFFECT_CLASSES else None
         with self._lock:
             entry, refusal = self._open_entry(action_instance_id)
-            if refusal is None and effect_class not in _UNKNOWN_EFFECT_CLASSES:
-                refusal = ParticipantToolActionRefusal.OUTCOME_INVALID
-            if refusal is None and entry.state == _DISPATCHED:
-                settled = self._settle_synthesized(entry, ParticipantToolActionSettlement.INDETERMINATE, effect_class)
-                return (
-                    _accepted(entry)
-                    if settled
-                    else _rejected(action_instance_id, ParticipantToolActionRefusal.LEDGER_UNAVAILABLE)
-                )
-            if refusal is None and entry.state == _ADMITTED:
-                refusal = ParticipantToolActionRefusal.STATE_CONFLICT
-            if refusal is None and (
-                entry.settlement is not ParticipantToolActionSettlement.INDETERMINATE
-                or entry.action_result.failure_class != effect_class
-            ):
-                refusal = ParticipantToolActionRefusal.OUTCOME_CONFLICT
+            if refusal is None:
+                refusal = self._unknown_effect_refusal(entry, failure_class)
             return _rejected(action_instance_id, refusal) if refusal is not None else _accepted(entry)
 
     def close(self) -> tuple[ParticipantToolActionRecord, ...]:
@@ -426,12 +372,101 @@ class ParticipantInvocationToolActions:
                 )
             return self._records
 
-    def _admitted(self, entry: _ToolEntry) -> ParticipantToolActionDecision:
+    @staticmethod
+    def _admitted(entry: _ToolEntry) -> ParticipantToolActionDecision:
         return ParticipantToolActionDecision(
             tool_call_id=entry.request.tool_call_id,
             admitted=True,
             action_instance_id=entry.action_instance_id,
         )
+
+    def _admit_new(
+        self, request: ParticipantToolActionRequest
+    ) -> tuple[_ToolEntry | None, ParticipantToolActionRefusal | None]:
+        refusal, binding = self._admission_refusal(request)
+        if refusal is None and len(self._entries) >= self._configuration.max_tool_actions:
+            refusal = ParticipantToolActionRefusal.ADMISSION_LIMIT_EXHAUSTED
+        if refusal is None:
+            refusal = self._effect_authority_refusal()
+        entry = None
+        if refusal is None:
+            entry = self._recorded_entry(request, binding)
+            refusal = None if entry is not None else ParticipantToolActionRefusal.LEDGER_UNAVAILABLE
+        return entry, refusal
+
+    def _recorded_entry(
+        self, request: ParticipantToolActionRequest, binding: ParticipantInvocationToolBindingRuntime
+    ) -> _ToolEntry | None:
+        """Claim the child record, then register the entry; ``None`` when the store refused."""
+
+        action_instance_id = tool_action_instance_id(
+            self._outer.action_instance_id,
+            episode_id=self._episode_id,
+            execution_generation=self.execution_generation,
+            tool_call_id=request.tool_call_id,
+        )
+        admitted_at = _now_iso()
+        record = self._write(
+            lambda: self._configuration.ledger.record_admission(action_instance_id, request, admitted_at)
+        )
+        if record is None:
+            return None
+        entry = _ToolEntry(
+            request=request,
+            action_instance_id=action_instance_id,
+            ordinal=len(self._entries),
+            admitted_at=admitted_at,
+            record=record,
+            boundary_evidence_refs=dict(binding.observation_boundary_evidence_refs).get(
+                request.observation_boundary_address, ()
+            ),
+            interaction=binding.interaction,
+        )
+        self._entries[request.tool_call_id] = entry
+        self._entries_by_action[action_instance_id] = entry
+        return entry
+
+    def _completion_refusal(
+        self, entry: _ToolEntry, outcome: ParticipantActionResultModel
+    ) -> ParticipantToolActionRefusal | None:
+        refusal = None
+        if entry.state == _SETTLED:
+            replay = entry.settlement is ParticipantToolActionSettlement.COMPLETED and entry.action_result == outcome
+            refusal = None if replay else ParticipantToolActionRefusal.OUTCOME_CONFLICT
+        elif entry.state != _DISPATCHED:
+            refusal = ParticipantToolActionRefusal.STATE_CONFLICT
+        else:
+            detached = self._valid_outcome(entry, outcome)
+            if detached is None:
+                refusal = ParticipantToolActionRefusal.OUTCOME_INVALID
+            elif not self._settle(entry, ParticipantToolActionSettlement.COMPLETED, detached):
+                refusal = ParticipantToolActionRefusal.LEDGER_UNAVAILABLE
+        return refusal
+
+    def _cancel_refusal(self, entry: _ToolEntry) -> ParticipantToolActionRefusal | None:
+        refusal = None
+        if entry.state == _ADMITTED:
+            if not self._settle_synthesized(entry, ParticipantToolActionSettlement.WITHHELD, _INTERRUPTED):
+                refusal = ParticipantToolActionRefusal.LEDGER_UNAVAILABLE
+        elif entry.settlement is not ParticipantToolActionSettlement.WITHHELD:
+            refusal = ParticipantToolActionRefusal.STATE_CONFLICT
+        return refusal
+
+    def _unknown_effect_refusal(self, entry: _ToolEntry, failure_class: str) -> ParticipantToolActionRefusal | None:
+        refusal = None
+        if not isinstance(failure_class, str) or failure_class not in _UNKNOWN_EFFECT_CLASSES:
+            refusal = ParticipantToolActionRefusal.OUTCOME_INVALID
+        elif entry.state == _DISPATCHED:
+            if not self._settle_synthesized(entry, ParticipantToolActionSettlement.INDETERMINATE, failure_class):
+                refusal = ParticipantToolActionRefusal.LEDGER_UNAVAILABLE
+        elif entry.state == _ADMITTED:
+            refusal = ParticipantToolActionRefusal.STATE_CONFLICT
+        elif (
+            entry.settlement is not ParticipantToolActionSettlement.INDETERMINATE
+            or entry.action_result.failure_class != failure_class
+        ):
+            refusal = ParticipantToolActionRefusal.OUTCOME_CONFLICT
+        return refusal
 
     def _lifecycle_refusal(self) -> ParticipantToolActionRefusal | None:
         if self._closed:
@@ -504,12 +539,6 @@ class ParticipantInvocationToolActions:
         binding: ParticipantInvocationToolBindingRuntime,
     ) -> ParticipantToolActionRefusal | None:
         targets = set(request.target_addresses)
-        if request.observation_boundary_address not in binding.observation_boundary_addresses:
-            return ParticipantToolActionRefusal.OBSERVATION_BOUNDARY_UNBOUND
-        if not targets.issubset(binding.target_addresses):
-            return ParticipantToolActionRefusal.TARGET_UNBOUND
-        if binding.shared_time_bound:
-            return ParticipantToolActionRefusal.TEMPORAL_BINDING_UNSUPPORTED
         offers = [
             offer
             for offer in self._configuration.execution_offers
@@ -517,22 +546,26 @@ class ParticipantInvocationToolActions:
             and offer.participant_implementation_ref == self.participant_implementation_ref
             and targets.issubset(offer.target_addresses)
         ]
-        if len(offers) != 1:
-            return (
-                ParticipantToolActionRefusal.EXECUTION_OFFER_MISSING
-                if not offers
-                else ParticipantToolActionRefusal.EXECUTION_OFFER_AMBIGUOUS
-            )
-        return None
+        checks = (
+            (
+                request.observation_boundary_address not in binding.observation_boundary_addresses,
+                ParticipantToolActionRefusal.OBSERVATION_BOUNDARY_UNBOUND,
+            ),
+            (not targets.issubset(binding.target_addresses), ParticipantToolActionRefusal.TARGET_UNBOUND),
+            (binding.shared_time_bound, ParticipantToolActionRefusal.TEMPORAL_BINDING_UNSUPPORTED),
+            (not offers, ParticipantToolActionRefusal.EXECUTION_OFFER_MISSING),
+            (len(offers) > 1, ParticipantToolActionRefusal.EXECUTION_OFFER_AMBIGUOUS),
+        )
+        return next((refusal for refused, refusal in checks if refused), None)
 
     def _valid_outcome(self, entry: _ToolEntry, outcome: object) -> ParticipantActionResultModel | None:
-        if not isinstance(outcome, ParticipantActionResultModel):
-            return None
-        try:
-            detached = ParticipantActionResultModel.model_validate(outcome.model_dump(mode="json"))
-        # The refusal is a fixed code; the validation text can repeat consumer-supplied values.
-        except ValueError:
-            return None
+        detached = _detached_outcome(outcome)
+        valid = (
+            detached is not None and self._outcome_matches(entry, detached) and self._binds_exposure(entry, detached)
+        )
+        return detached if valid else None
+
+    def _outcome_matches(self, entry: _ToolEntry, outcome: ParticipantActionResultModel) -> bool:
         expected = (
             entry.request.participant_address,
             self._episode_id,
@@ -540,19 +573,17 @@ class ParticipantInvocationToolActions:
             entry.request.action_contract_address,
         )
         actual = (
-            detached.participant_address,
-            detached.episode_id,
-            detached.action_instance_id,
-            detached.action_contract_address,
+            outcome.participant_address,
+            outcome.episode_id,
+            outcome.action_instance_id,
+            outcome.action_contract_address,
         )
-        if (
-            actual != expected
-            or detached.status not in _TERMINAL_STATUSES
-            or detached.temporal_evidence
-            or detached.resource_measurements
-        ):
-            return None
-        return detached if self._binds_exposure(entry, detached) else None
+        return (
+            actual == expected
+            and outcome.status in _TERMINAL_STATUSES
+            and not outcome.temporal_evidence
+            and not outcome.resource_measurements
+        )
 
     def _binds_exposure(self, entry: _ToolEntry, outcome: ParticipantActionResultModel) -> bool:
         """Run the canonical binding and exposure validation for one tool outcome."""
@@ -659,10 +690,12 @@ class ParticipantInvocationToolActions:
         # Any store or driver failure refuses with a fixed code; the check never fails open.
         except Exception:  # NOSONAR - a store read failure of any driver must refuse the grant
             _LOGGER.exception("invocation tool-action authority check failed")
-            return ParticipantToolActionRefusal.LEDGER_UNAVAILABLE
-        if reason is None:
-            return None
-        return _AUTHORITY_REFUSALS.get(reason, ParticipantToolActionRefusal.EFFECT_ADMISSION_CLOSED)
+            reason = _AUTHORITY_CHECK_FAILED
+        return (
+            None
+            if reason is None
+            else _AUTHORITY_REFUSALS.get(reason, ParticipantToolActionRefusal.EFFECT_ADMISSION_CLOSED)
+        )
 
     @staticmethod
     def _write(write: Callable[[], ControlPlaneOperationRecord]) -> ControlPlaneOperationRecord | None:

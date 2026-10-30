@@ -90,29 +90,42 @@ class ParticipantToolActionRequest:
     execution_generation: int
 
     def __post_init__(self) -> None:
-        if not isinstance(self.tool_call_id, str) or _TOOL_CALL_ID.fullmatch(self.tool_call_id) is None:
-            raise ValueError("tool_call_id must be 1-128 characters of [A-Za-z0-9._:-] starting alphanumeric")
-        for field_name in (
-            "invocation_action_instance_id",
-            "participant_address",
-            "episode_id",
-            "participant_implementation_ref",
-            "tool_affordance_address",
-            "action_contract_address",
-            "observation_boundary_address",
-            "execution_scope_ref",
-        ):
+        _require_tool_call_id(self.tool_call_id)
+        for field_name in _REQUEST_TEXT_FIELDS:
             _binding_validation.require_non_empty(getattr(self, field_name), field_name)
-        targets = self.target_addresses
-        if not isinstance(targets, tuple) or any(not isinstance(target, str) or not target for target in targets):
-            raise TypeError("target_addresses must be a tuple of non-empty strings")
-        if not targets or len(targets) != len(set(targets)):
-            raise ValueError("target_addresses must be non-empty and unique")
-        generation = self.execution_generation
-        if type(generation) is not int:
-            raise TypeError("execution_generation must be an int")
-        if generation < 0:
-            raise ValueError("execution_generation must be non-negative")
+        _require_targets(self.target_addresses)
+        _require_generation(self.execution_generation)
+
+
+_REQUEST_TEXT_FIELDS = (
+    "invocation_action_instance_id",
+    "participant_address",
+    "episode_id",
+    "participant_implementation_ref",
+    "tool_affordance_address",
+    "action_contract_address",
+    "observation_boundary_address",
+    "execution_scope_ref",
+)
+
+
+def _require_tool_call_id(tool_call_id: object) -> None:
+    if not isinstance(tool_call_id, str) or _TOOL_CALL_ID.fullmatch(tool_call_id) is None:
+        raise ValueError("tool_call_id must be 1-128 characters of [A-Za-z0-9._:-] starting alphanumeric")
+
+
+def _require_targets(targets: object) -> None:
+    if not isinstance(targets, tuple) or any(not isinstance(target, str) or not target for target in targets):
+        raise TypeError("target_addresses must be a tuple of non-empty strings")
+    if not targets or len(targets) != len(set(targets)):
+        raise ValueError("target_addresses must be non-empty and unique")
+
+
+def _require_generation(generation: object) -> None:
+    if type(generation) is not int:
+        raise TypeError("execution_generation must be an int")
+    if generation < 0:
+        raise ValueError("execution_generation must be non-negative")
 
 
 @dataclass(frozen=True)

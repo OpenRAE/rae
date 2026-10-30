@@ -9,6 +9,7 @@ tool history survives an invalid, raised or cancelled outer invocation.
 from __future__ import annotations
 
 from asyncio import CancelledError
+from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import replace
 from typing import TYPE_CHECKING, Protocol
@@ -313,7 +314,7 @@ def _with_failed_scheduler(snapshot: RuntimeSnapshot, state_key: str) -> Runtime
     return snapshot.with_entries(dict(snapshot.entries), participant_autonomous_execution_states=states)
 
 
-def _apply_to_run(run: SchedulerRunState, change: object) -> None:
+def _apply_to_run(run: SchedulerRunState, change: Callable[[RuntimeSnapshot], RuntimeSnapshot]) -> None:
     failure = run.failure
     working = change(run.working)
     if failure is not None:
@@ -322,7 +323,9 @@ def _apply_to_run(run: SchedulerRunState, change: object) -> None:
     run.working = working
 
 
-def _record_failure(run: SchedulerRunState, diagnostic: Diagnostic, change: object) -> None:
+def _record_failure(
+    run: SchedulerRunState, diagnostic: Diagnostic, change: Callable[[RuntimeSnapshot], RuntimeSnapshot]
+) -> None:
     _apply_to_run(run, change)
     run.diagnostics.append(diagnostic)
     failure = run.failure

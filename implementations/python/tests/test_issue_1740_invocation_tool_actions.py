@@ -353,12 +353,11 @@ def test_capability_limits_are_finite_and_versioned(update: dict[str, object], m
 
 def test_registration_refuses_claim_without_attach_method() -> None:
     runtime_model = compile_runtime_model(parse_sdl(_tool_scenario_yaml()))
+    target = create_stub_target()
+    manifest = _tool_manifest(runtime_model)
+    runtime = _NativeParticipantRuntime()
     with pytest.raises(ValueError, match="attach_invocation_tool_actions"):
-        replace(
-            create_stub_target(),
-            manifest=_tool_manifest(runtime_model),
-            participant_runtime=_NativeParticipantRuntime(),
-        )
+        replace(target, manifest=manifest, participant_runtime=runtime)
 
 
 @pytest.mark.parametrize(
@@ -1044,9 +1043,10 @@ def test_cancelled_attachment_leaves_a_registered_closed_port() -> None:
 
     run = SchedulerRunState(working=snapshot, diagnostics=[], changed=[], invocation_tools=configuration)
 
+    context = _Context()
     with pytest.raises(CancelledError):
         open_invocation_tool_session(
-            _Context(), closed_port.outer, episode_id=closed_port.episode_id, predecessor=snapshot, run=run
+            context, closed_port.outer, episode_id=closed_port.episode_id, predecessor=snapshot, run=run
         )
 
     (registered,) = run.tool_sessions

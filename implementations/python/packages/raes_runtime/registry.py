@@ -346,6 +346,20 @@ def _validate_participant_runtime_methods(
                 sample_snapshot,
             ),
         )
+    _validate_participant_execution_capability_methods(
+        participant_runtime, sample_admission_request, sample_snapshot, requirements=requirements
+    )
+
+
+def _validate_participant_execution_capability_methods(
+    participant_runtime: ParticipantRuntime | None,
+    sample_admission_request: object,
+    sample_snapshot: object,
+    *,
+    requirements: _ParticipantRuntimeMethodRequirements,
+) -> None:
+    """Require the executable methods behind the claimed overlap and tool-action capabilities."""
+
     if requirements.bounded_concurrency:
         _require_invokable_method(
             participant_runtime,

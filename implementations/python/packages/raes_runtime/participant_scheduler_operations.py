@@ -262,9 +262,7 @@ def _admit_activity_action(
     if result is not None:
         return result, False, predecessor
     opened, session = open_serial_invocation_tool_session(context, request, episode_id=episode_id, run=run)
-    if not opened:
-        return None
-    if not reserve_activity_resources(context, request, run):
+    if not (opened and reserve_activity_resources(context, request, run)):
         if session is not None:
             session.close()
         return None

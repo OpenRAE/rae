@@ -6,7 +6,7 @@ import threading
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import ParticipantActionResultModel, ParticipantAutonomousExecutionStateModel
@@ -94,33 +94,48 @@ class InvocationToolActionLedger:
     engine_admission: Callable[[], None] | None = None
 
     def effect_admission_refusal(self) -> str | None:
-        """Return why the store refuses new tool effects now, or ``None``.
+        """Return why new tool effects are refused now, or ``None``.
 
-        The enclosing operation must still be live, effect admission must be
-        open, and the run must hold no unresolved indeterminate operation. The
+        The engine and run must admit effects, the enclosing operation must still
+        be live, and the run must hold no unresolved indeterminate operation. The
         check reads the store, not a cached record cut.
         """
 
         from .control_plane_recovery import unresolved_indeterminate_operation_ids_from_records
 
-        if self.engine_admission is not None:
-            try:
-                self.engine_admission()
-            # The engine refuses a stopped, closing or retired owner exactly as for ordinary claims.
-            except ConflictError, OperationalError:
-                return TOOL_ADMISSION_STOPPED
+        engine_refused = self._engine_refuses()
         records = self.store.load_records()
         parent = records.get(self.parent_operation_id)
         stopped = getattr(self.store, "effect_admission_stopped", None)
-        if parent is None or parent.status.state not in {OperationState.ACCEPTED, OperationState.RUNNING}:
-            return TOOL_ADMISSION_PARENT_NOT_LIVE
-        if callable(stopped) and stopped():
-            return TOOL_ADMISSION_STOPPED
-        if unresolved_indeterminate_operation_ids_from_records(
-            records, target_scope=self.parent_context.target_scope, run_scope=self.parent_context.run_scope
-        ):
-            return TOOL_ADMISSION_UNRESOLVED
-        return None
+        checks = (
+            (engine_refused, TOOL_ADMISSION_STOPPED),
+            (
+                parent is None or parent.status.state not in {OperationState.ACCEPTED, OperationState.RUNNING},
+                TOOL_ADMISSION_PARENT_NOT_LIVE,
+            ),
+            (callable(stopped) and stopped(), TOOL_ADMISSION_STOPPED),
+            (
+                bool(
+                    unresolved_indeterminate_operation_ids_from_records(
+                        records,
+                        target_scope=self.parent_context.target_scope,
+                        run_scope=self.parent_context.run_scope,
+                    )
+                ),
+                TOOL_ADMISSION_UNRESOLVED,
+            ),
+        )
+        return next((reason for refused, reason in checks if refused), None)
+
+    def _engine_refuses(self) -> bool:
+        if self.engine_admission is None:
+            return False
+        try:
+            self.engine_admission()
+        # The engine refuses a stopped, closing or retired owner exactly as for ordinary claims.
+        except ConflictError, OperationalError:
+            return True
+        return False
 
     def record_admission(
         self,
@@ -165,9 +180,9 @@ class InvocationToolActionLedger:
     def record_dispatch(self, record: ControlPlaneOperationRecord) -> ControlPlaneOperationRecord:
         """Persist the consumed one-use grant before the port returns it."""
 
-        running = replace(
-            record,
-            status=replace(record.status, state=OperationState.RUNNING, updated_at=_now_iso()),
+        running = cast(
+            ControlPlaneOperationRecord,
+            replace(record, status=replace(record.status, state=OperationState.RUNNING, updated_at=_now_iso())),
         )
         self.store.save_record(running)
         return running
@@ -180,14 +195,17 @@ class InvocationToolActionLedger:
     ) -> ControlPlaneOperationRecord:
         """Commit the terminal child record and its actor audit; the snapshot does not change."""
 
-        terminal = replace(
-            record,
-            status=replace(record.status, state=_TERMINAL_STATES[settlement], updated_at=_now_iso()),
-            result_payload={
-                **(record.result_payload or {}),
-                "settlement": settlement.value,
-                "action_result": action_result.model_dump(mode="json", exclude_none=True),
-            },
+        terminal = cast(
+            ControlPlaneOperationRecord,
+            replace(
+                record,
+                status=replace(record.status, state=_TERMINAL_STATES[settlement], updated_at=_now_iso()),
+                result_payload={
+                    **(record.result_payload or {}),
+                    "settlement": settlement.value,
+                    "action_result": action_result.model_dump(mode="json", exclude_none=True),
+                },
+            ),
         )
         retries = _REVISION_RETRIES
         while True:
