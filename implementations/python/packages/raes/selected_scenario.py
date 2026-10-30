@@ -25,7 +25,7 @@ from .experiment_selection import validate_selection_outcome
 from .instantiate import instantiate_scenario
 from .phase_contracts import TrialInstantiationProvenance
 from .scenario import ExpandedScenario, InstantiatedScenario
-from .selected_structure import apply_structural_writes, structural_target_owner, structural_writes
+from .selected_structure import apply_structural_writes, structural_target_path, structural_writes
 from .variation import (
     COLLECTION_TARGET_SPECS,
     REFERENCE_TARGET_SPECS,
@@ -72,8 +72,7 @@ def _canonical_target_id(family: ExpandedScenario, point: VariationPoint) -> str
     if isinstance(target, VariableTarget):
         target_id = f"variables.{target.variable}"
     elif isinstance(target, StructuralTarget):
-        section, owner = structural_target_owner(family, target)
-        target_id = f"{section}.{owner}.{str(target.slot).split('.', 1)[1]}"
+        target_id = ".".join(structural_target_path(family, target))
     elif isinstance(target, ReferenceTarget):
         owner_section, _ = REFERENCE_TARGET_SPECS[target.slot]
         owner = _canonical_owner_address(family, target.owner, owner_section)
@@ -397,6 +396,8 @@ def _validate_target_writes(
                 absent.add(path[:2])
     if any(path[:2] in absent and path[2:] != ("presence",) for path in writes):
         raise SDLSelectionError("declaration absence conflicts with a descendant variation write")
+    if any(path[:length] in writes for path in writes for length in range(3, len(path))):
+        raise SDLSelectionError("a collection variation write conflicts with a descendant variation write")
 
 
 def select_scenario_family(

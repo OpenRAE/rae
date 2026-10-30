@@ -1,9 +1,9 @@
 {
-  "content_hash": "2b0fcdfb460773d66c3424312e645276a887cbd09cf15a8a6664095e9c404e18",
+  "content_hash": "b415f87c7cd9489c3fb247e0baa03760680f696c12cf0ab90fd522e22a0039bc",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "2b0fcdfb460773d66c3424312e645276a887cbd09cf15a8a6664095e9c404e18",
-    "summary": "Add closed structural alternatives for whole-declaration presence of accounts, content, persistent volumes, generated artifacts, relationships, propositions, assertions and evidence requirements, and for consumer-row membership of persistent volumes and generated artifacts; bind each structural slot group to its member kind (issue #1733)."
+    "content_hash": "b415f87c7cd9489c3fb247e0baa03760680f696c12cf0ab90fd522e22a0039bc",
+    "summary": "Add the closed structural slot nodes.runtime.network_detection_engines.rule_sources; its owner is one network detection engine and its runtime-inventory member selects that engine's rule sources (issue #1747)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

@@ -47,6 +47,7 @@ VALIDATION_PASSES = (
     "_verify_nodes",
     "_verify_infrastructure",
     "_verify_runtime_configuration",
+    "_verify_rule_source_generators",
     "_verify_features",
     "_verify_conditions",
     "_verify_entities",

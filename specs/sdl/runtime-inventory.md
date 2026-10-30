@@ -62,6 +62,11 @@ The node-scoped `forwarding_agents` family is distinct from the scenario-level
 `forwarding_agents` authoring section ([sections.md](sections.md)); they share
 identity and invariants but occupy different document positions.
 
+A network detection rule source can name the forwarding agent that writes it.
+Its `generated_by` value MUST resolve to exactly one declared forwarding agent.
+The agent can be node-scoped or scenario-level.
+A tool name or other text that names no declared agent fails semantic validation.
+
 Forwarding-agent entries also carry a closed ownership role:
 `system_under_test` (the default) or `measurement_apparatus`. This role
 classifies ownership relative to the experiment; it does not assert execution,
