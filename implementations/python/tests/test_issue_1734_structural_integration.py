@@ -158,5 +158,6 @@ def test_the_git_base_reader_reads_the_base_revision_and_detects_package_changes
     (tmp_path / "pkgs" / "alpha" / "__init__.py").write_text("x = 1\n", encoding="utf-8")
     assert base.sources_changed(["pkgs"])
 
+    missing_revision = GitBaseRevision(tmp_path, "no-such-revision")
     with pytest.raises(OperationalError, match="not a commit"):
-        GitBaseRevision(tmp_path, "no-such-revision").read("tools/policy/structural_baseline.json")
+        missing_revision.read("tools/policy/structural_baseline.json")

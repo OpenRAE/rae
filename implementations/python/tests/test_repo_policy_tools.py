@@ -2131,7 +2131,8 @@ def test_premature_drain_is_rejected(tmp_path: Path) -> None:
     )
 
     assert [f.rule_id for f in failures] == ["oversized-source-file"], [f.message for f in failures]
-    assert "removed from" in failures[0].message and "1100" in failures[0].message
+    assert "removed from" in failures[0].message
+    assert "1100" in failures[0].message
 
 
 @pytest.mark.usefixtures("adr015_reference_set")

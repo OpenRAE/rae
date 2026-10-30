@@ -9,7 +9,7 @@ between the two children of the deepest package that holds both modules.
 from __future__ import annotations
 
 from collections import defaultdict
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass
 
 from raes_contracts.errors import InvalidInputError
@@ -107,82 +107,114 @@ def layer_disagreements(layers: Sequence[Layer], allowed: Mapping[str, frozenset
     then requires one direction.
     """
 
+    positions, messages = _layer_positions(layers, allowed)
+    if messages:
+        return messages
+    return [
+        message
+        for importer in sorted(allowed)
+        for imported in sorted(allowed[importer])
+        if imported in positions and (message := _allowance_disagreement(importer, imported, positions, allowed))
+    ]
+
+
+def _layer_positions(
+    layers: Sequence[Layer], allowed: Mapping[str, frozenset[str]]
+) -> tuple[dict[str, tuple[int, Layer]], list[str]]:
+    """Map each package to its layer position and report packages that are repeated, unknown or absent."""
+
+    positions: dict[str, tuple[int, Layer]] = {}
     messages: list[str] = []
-    level: dict[str, int] = {}
-    layer_of: dict[str, Layer] = {}
     for position, layer in enumerate(layers):
         for package in layer.packages:
-            if package in level:
+            if package in positions:
                 messages.append(f"layers name {package!r} more than once")
                 continue
             if package not in allowed:
                 messages.append(f"layers name {package!r}, which is not a package")
-            level[package] = position
-            layer_of[package] = layer
-    messages.extend(f"layers do not name package {package!r}" for package in sorted(allowed) if package not in level)
-    if messages:
-        return messages
-    for importer in sorted(allowed):
-        for imported in sorted(allowed[importer]):
-            if imported not in level:
-                continue
-            if level[imported] == level[importer] and layer_of[importer].independent:
-                messages.append(
-                    f"layers make {importer!r} and {imported!r} independent, "
-                    f"but ADR-036 allows {importer!r} to import {imported!r}"
-                )
-            elif level[imported] < level[importer] and importer not in allowed.get(imported, frozenset()):
-                messages.append(
-                    f"layers place {imported!r} above {importer!r}, but ADR-036 allows "
-                    f"{importer!r} to import {imported!r} and not the reverse"
-                )
-    return messages
+            positions[package] = (position, layer)
+    messages.extend(
+        f"layers do not name package {package!r}" for package in sorted(allowed) if package not in positions
+    )
+    return positions, messages
+
+
+def _allowance_disagreement(
+    importer: str, imported: str, positions: Mapping[str, tuple[int, Layer]], allowed: Mapping[str, frozenset[str]]
+) -> str | None:
+    importer_level, importer_layer = positions[importer]
+    imported_level = positions[imported][0]
+    message = None
+    if imported_level == importer_level and importer_layer.independent:
+        message = (
+            f"layers make {importer!r} and {imported!r} independent, "
+            f"but ADR-036 allows {importer!r} to import {imported!r}"
+        )
+    elif imported_level < importer_level and importer not in allowed.get(imported, frozenset()):
+        message = (
+            f"layers place {imported!r} above {importer!r}, but ADR-036 allows "
+            f"{importer!r} to import {imported!r} and not the reverse"
+        )
+    return message
 
 
 def _strong_components(graph: Mapping[str, set[str]]) -> list[set[str]]:
     """Tarjan's algorithm with an explicit stack, so long chains need no recursion."""
 
-    index: dict[str, int] = {}
-    lowlink: dict[str, int] = {}
-    on_stack: set[str] = set()
-    stack: list[str] = []
-    components: list[set[str]] = []
-    counter = 0
+    search = _ComponentSearch(graph)
     for root in sorted(graph):
-        if root in index:
-            continue
-        work = [(root, iter(sorted(graph[root])))]
-        index[root] = lowlink[root] = counter
-        counter += 1
-        stack.append(root)
-        on_stack.add(root)
+        if root not in search.index:
+            search.run(root)
+    return search.components
+
+
+class _ComponentSearch:
+    """State of one iterative Tarjan search over a sibling graph."""
+
+    def __init__(self, graph: Mapping[str, set[str]]) -> None:
+        self._graph = graph
+        self.index: dict[str, int] = {}
+        self._lowlink: dict[str, int] = {}
+        self._stack: list[str] = []
+        self._on_stack: set[str] = set()
+        self.components: list[set[str]] = []
+
+    def run(self, root: str) -> None:
+        work = [self._enter(root)]
         while work:
             node, successors = work[-1]
-            advanced = False
-            for successor in successors:
-                if successor not in index:
-                    index[successor] = lowlink[successor] = counter
-                    counter += 1
-                    stack.append(successor)
-                    on_stack.add(successor)
-                    work.append((successor, iter(sorted(graph.get(successor, ())))))
-                    advanced = True
-                    break
-                if successor in on_stack:
-                    lowlink[node] = min(lowlink[node], index[successor])
-            if advanced:
+            successor = self._next_unvisited(node, successors)
+            if successor is not None:
+                work.append(self._enter(successor))
                 continue
             work.pop()
             if work:
                 parent = work[-1][0]
-                lowlink[parent] = min(lowlink[parent], lowlink[node])
-            if lowlink[node] == index[node]:
-                component: set[str] = set()
-                while True:
-                    member = stack.pop()
-                    on_stack.discard(member)
-                    component.add(member)
-                    if member == node:
-                        break
-                components.append(component)
-    return components
+                self._lowlink[parent] = min(self._lowlink[parent], self._lowlink[node])
+            if self._lowlink[node] == self.index[node]:
+                self.components.append(self._pop_component(node))
+
+    def _enter(self, node: str) -> tuple[str, Iterator[str]]:
+        self.index[node] = self._lowlink[node] = len(self.index)
+        self._stack.append(node)
+        self._on_stack.add(node)
+        return node, iter(sorted(self._graph.get(node, ())))
+
+    def _next_unvisited(self, node: str, successors: Iterator[str]) -> str | None:
+        """Return the next successor to visit, updating the low link for visited ones on the stack."""
+
+        for successor in successors:
+            if successor not in self.index:
+                return successor
+            if successor in self._on_stack:
+                self._lowlink[node] = min(self._lowlink[node], self.index[successor])
+        return None
+
+    def _pop_component(self, node: str) -> set[str]:
+        component: set[str] = set()
+        member = None
+        while member != node:
+            member = self._stack.pop()
+            self._on_stack.discard(member)
+            component.add(member)
+        return component

@@ -59,9 +59,19 @@ class _Settings:
     allowed_imports: Mapping[str, frozenset[str]]
 
 
+@dataclass(frozen=True)
+class _Inputs:
+    settings: _Settings
+    contracts: ImportContracts
+    baseline: StructuralBaseline
+    index: SourceIndex
+    private_imports: Counter[PrivateImport]
+    ancestry: AncestryResult
+
+
 def evaluate_structural_ratchet(
     repo_root: Path,
-    policy: dict,
+    policy: dict[str, object],
     *,
     base_rev: str | None = None,
     import_analyzer: ImportAnalyzer = analyze_imports,
@@ -75,6 +85,19 @@ def evaluate_structural_ratchet(
     ``OperationalError``.
     """
 
+    inputs = _read_inputs(repo_root, policy)
+    if isinstance(inputs, list):
+        return inputs
+    analysis = _analyze_imports(repo_root, inputs, import_analyzer)
+    if isinstance(analysis, list):
+        return analysis
+    base = base_revision or GitBaseRevision(repo_root, base_rev or "HEAD")
+    return _bounded(_comparison_failures(inputs, analysis, base))
+
+
+def _read_inputs(repo_root: Path, policy: dict[str, object]) -> _Inputs | list[PolicyFailure]:
+    """Read the configuration and baselines and analyze the source; return failures that stop the checks."""
+
     try:
         settings = _settings(policy)
         contracts = parse_import_contracts(read_artifact(repo_root, IMPORT_CONTRACTS_PATH), IMPORT_CONTRACTS_PATH)
@@ -85,43 +108,53 @@ def evaluate_structural_ratchet(
         return [_failure(RULE_CONFIG, str(exc))]
     try:
         index = build_source_index(repo_root, settings.coverage_roots)
-        private_imports = collect_private_imports(index)
-        ancestry = analyze_class_ancestry(index)
-    except InvalidInputError as exc:
-        return [_failure(RULE_ANALYSIS_FAILED, str(exc))]
-    scope_failures = _scope_failures(index, contracts)
-    if scope_failures:
-        return scope_failures
-    try:
-        analysis = import_analyzer(
-            [repo_root / root for root in settings.coverage_roots],
-            repo_root / IMPORT_CONTRACTS_PATH,
-            root_packages=contracts.root_packages,
-            exclude_type_checking_imports=contracts.exclude_type_checking_imports,
+        inputs = _Inputs(
+            settings, contracts, baseline, index, collect_private_imports(index), analyze_class_ancestry(index)
         )
     except InvalidInputError as exc:
         return [_failure(RULE_ANALYSIS_FAILED, str(exc))]
+    return _scope_failures(index, contracts) or inputs
+
+
+def _analyze_imports(
+    repo_root: Path, inputs: _Inputs, import_analyzer: ImportAnalyzer
+) -> ImportAnalysis | list[PolicyFailure]:
+    try:
+        return import_analyzer(
+            [repo_root / root for root in inputs.settings.coverage_roots],
+            repo_root / IMPORT_CONTRACTS_PATH,
+            root_packages=inputs.contracts.root_packages,
+            exclude_type_checking_imports=inputs.contracts.exclude_type_checking_imports,
+        )
+    except InvalidInputError as exc:
+        return [_failure(RULE_ANALYSIS_FAILED, str(exc))]
+
+
+def _comparison_failures(inputs: _Inputs, analysis: ImportAnalysis, base: BaseRevision) -> list[PolicyFailure]:
+    contracts, baseline, settings = inputs.contracts, inputs.baseline, inputs.settings
     components = cyclic_components(analysis.imports, depth=contracts.cycles_depth)
-    failures = [
+    return [
         *_layer_failures(contracts, settings),
-        *_module_set_failures(index, analysis),
+        *_module_set_failures(inputs.index, analysis),
         *_analysis_record_failures(baseline, analysis, contracts, settings),
         *_contract_failures(analysis),
         *_cycle_failures(contracts, analysis, components, baseline),
-        *_private_import_failures(index, private_imports, baseline),
-        *_ancestry_failures(index, ancestry, baseline, settings.max_ancestors),
-        *_base_failures(
-            base_revision or GitBaseRevision(repo_root, base_rev or "HEAD"),
-            contracts,
-            baseline,
-            settings.coverage_roots,
-        ),
+        *_private_import_failures(inputs.index, inputs.private_imports, baseline),
+        *_ancestry_failures(inputs.index, inputs.ancestry, baseline, settings.max_ancestors),
+        *_base_failures(base, contracts, baseline, settings.coverage_roots),
     ]
-    return _bounded(failures)
 
 
-def _settings(policy: dict) -> _Settings:
-    block = policy.get("structural_checks")
+def _settings(policy: dict[str, object]) -> _Settings:
+    roots, allowed = _module_boundaries(policy.get("module_boundaries"))
+    return _Settings(
+        max_ancestors=_ancestor_limit(policy.get("structural_checks")),
+        coverage_roots=roots,
+        allowed_imports=allowed,
+    )
+
+
+def _ancestor_limit(block: object) -> int:
     if not isinstance(block, dict) or set(block) != {"adr", "max_repository_ancestors"}:
         raise InvalidInputError(
             "structural_checks block (ADR-117) is required with exactly the keys adr and max_repository_ancestors"
@@ -131,7 +164,12 @@ def _settings(policy: dict) -> _Settings:
         raise InvalidInputError("structural_checks.adr must be a non-empty string")
     if not isinstance(limit, int) or isinstance(limit, bool) or limit <= 0:
         raise InvalidInputError("structural_checks.max_repository_ancestors must be a positive integer")
-    boundaries = policy.get("module_boundaries")
+    return limit
+
+
+def _module_boundaries(boundaries: object) -> tuple[tuple[str, ...], dict[str, frozenset[str]]]:
+    """Return the package coverage roots and the allowed top-level imports of each module (ADR-036)."""
+
     roots = boundaries.get("package_coverage_roots") if isinstance(boundaries, dict) else None
     modules = boundaries.get("modules") if isinstance(boundaries, dict) else None
     if not isinstance(roots, list) or not roots or not all(isinstance(root, str) for root in roots):
@@ -142,7 +180,7 @@ def _settings(policy: dict) -> _Settings:
         str(module.get("id")): frozenset(str(name) for name in module.get("allowed_top_level_imports") or ())
         for module in modules
     }
-    return _Settings(max_ancestors=limit, coverage_roots=tuple(roots), allowed_imports=allowed)
+    return tuple(roots), allowed
 
 
 def _scope_failures(index: SourceIndex, contracts: ImportContracts) -> list[PolicyFailure]:
@@ -189,7 +227,8 @@ def _module_set_failures(index: SourceIndex, analysis: ImportAnalysis) -> list[P
         _failure(
             RULE_SCOPE,
             "the import graph and the source index disagree on the modules: "
-            f"only in the graph {sorted(analysis.modules - indexed)[:5]}, only in the index {sorted(indexed - analysis.modules)[:5]}",
+            f"only in the graph {sorted(analysis.modules - indexed)[:5]}, "
+            f"only in the index {sorted(indexed - analysis.modules)[:5]}",
         )
     ]
 
@@ -356,58 +395,68 @@ def _base_failures(
     baseline: StructuralBaseline,
     coverage_roots: Sequence[str],
 ) -> list[PolicyFailure]:
-    base_rev = base.revision
     base_contracts_text = base.read(IMPORT_CONTRACTS_PATH)
     base_baseline_text = base.read(STRUCTURAL_BASELINE_PATH)
     if base_contracts_text is None or base_baseline_text is None:
-        # Adoption (I6): without a baseline at the base revision, the package source must be the base
-        # revision's own source, so I1 and I2 make the new baseline equal to the base findings.
-        if base.sources_changed(coverage_roots):
-            return [
-                _failure(
-                    RULE_BOOTSTRAP,
-                    "the structural baselines are new at the base revision, so this change must not change "
-                    "package source; adopt the baselines in a change of their own",
-                    STRUCTURAL_BASELINE_PATH,
-                )
-            ]
-        return []
+        return _adoption_failures(base, coverage_roots)
     try:
-        base_contracts = parse_import_contracts(base_contracts_text, f"{IMPORT_CONTRACTS_PATH} at {base_rev}")
-        base_baseline = parse_structural_baseline(base_baseline_text, f"{STRUCTURAL_BASELINE_PATH} at {base_rev}")
+        base_contracts = parse_import_contracts(base_contracts_text, f"{IMPORT_CONTRACTS_PATH} at {base.revision}")
+        base_baseline = parse_structural_baseline(base_baseline_text, f"{STRUCTURAL_BASELINE_PATH} at {base.revision}")
     except InvalidInputError as exc:
         return [_failure(RULE_CONFIG, f"the base revision baselines cannot be read: {exc}")]
-    failures: list[PolicyFailure] = []
-    for contract_id in (LAYERS_CONTRACT_ID, CYCLES_CONTRACT_ID):
-        failures.extend(
-            _failure(
-                RULE_GROWN,
-                f"{contract_id} ignore_imports gained '{importer} -> {imported}'; import debt can only shrink",
-                IMPORT_CONTRACTS_PATH,
-            )
-            for importer, imported in sorted(contracts.ignores[contract_id] - base_contracts.ignores[contract_id])
+    return [
+        *_grown_ignore_failures(contracts, base_contracts),
+        *_grown_baseline_failures(baseline, base_baseline),
+    ]
+
+
+def _adoption_failures(base: BaseRevision, coverage_roots: Sequence[str]) -> list[PolicyFailure]:
+    """Adoption (I6): a baseline new at the base revision needs the base revision's own package source.
+
+    Then I1 and I2 make the new baseline equal to the findings of the base revision.
+    """
+
+    changed = base.sources_changed(coverage_roots)
+    message = (
+        "the structural baselines are new at the base revision, so this change must not change package "
+        "source; adopt the baselines in a change of their own"
+    )
+    return [_failure(RULE_BOOTSTRAP, message, STRUCTURAL_BASELINE_PATH)] if changed else []
+
+
+def _grown_ignore_failures(contracts: ImportContracts, base_contracts: ImportContracts) -> list[PolicyFailure]:
+    return [
+        _failure(
+            RULE_GROWN,
+            f"{contract_id} ignore_imports gained '{importer} -> {imported}'; import debt can only shrink",
+            IMPORT_CONTRACTS_PATH,
         )
-    failures.extend(
+        for contract_id in (LAYERS_CONTRACT_ID, CYCLES_CONTRACT_ID)
+        for importer, imported in sorted(contracts.ignores[contract_id] - base_contracts.ignores[contract_id])
+    ]
+
+
+def _grown_baseline_failures(baseline: StructuralBaseline, base_baseline: StructuralBaseline) -> list[PolicyFailure]:
+    failures = [
         _failure(RULE_GROWN, f"private_imports[{importer!r}][{target!r}] grew to {count}", STRUCTURAL_BASELINE_PATH)
         for (importer, target), count in sorted(baseline.private_imports.items())
         if count > base_baseline.private_imports.get((importer, target), 0)
-    )
+    ]
     failures.extend(
         _failure(RULE_GROWN, f"deep_classes[{class_id!r}] grew to {count}", STRUCTURAL_BASELINE_PATH)
         for class_id, count in sorted(baseline.deep_classes.items())
         if count > base_baseline.deep_classes.get(class_id, 0)
     )
-    for package, components in sorted(baseline.cycle_components.items()):
-        recorded = base_baseline.cycle_components.get(package, ())
-        failures.extend(
-            _failure(
-                RULE_GROWN,
-                f"cycle_components[{package!r}] gained {list(component)}; cycles can only become smaller",
-                STRUCTURAL_BASELINE_PATH,
-            )
-            for component in components
-            if not _within_any(component, recorded)
+    failures.extend(
+        _failure(
+            RULE_GROWN,
+            f"cycle_components[{package!r}] gained {list(component)}; cycles can only become smaller",
+            STRUCTURAL_BASELINE_PATH,
         )
+        for package, components in sorted(baseline.cycle_components.items())
+        for component in components
+        if not _within_any(component, base_baseline.cycle_components.get(package, ()))
+    )
     return failures
 
 

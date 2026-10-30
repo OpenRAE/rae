@@ -150,6 +150,35 @@ def _git(repo_root: Path, args: list[str]) -> str:
 
 
 def parse_import_contracts(text: str, source: str) -> ImportContracts:
+    session = _importlinter_session(text, source)
+    exclude_type_checking = session["exclude_type_checking_imports"]
+    if session["include_external_packages"] is not False:
+        raise InvalidInputError(f"{source}: include_external_packages must be false")
+    if not isinstance(exclude_type_checking, bool):
+        raise InvalidInputError(f"{source}: exclude_type_checking_imports must be a boolean")
+    by_id = _contracts_by_id(session["contracts"], source)
+    layers = by_id[LAYERS_CONTRACT_ID]["layers"]
+    if not isinstance(layers, list) or not layers or not all(isinstance(item, str) for item in layers):
+        raise InvalidInputError(f"{source}: layers must be a non-empty list of strings")
+    depth = by_id[CYCLES_CONTRACT_ID]["depth"]
+    if not isinstance(depth, int) or isinstance(depth, bool) or depth < 0:
+        raise InvalidInputError(f"{source}: depth must be a non-negative integer")
+    return ImportContracts(
+        root_packages=_name_list(session["root_packages"], f"{source}: root_packages"),
+        exclude_type_checking_imports=exclude_type_checking,
+        layers=tuple(layers),
+        cycles_ancestors=_name_list(by_id[CYCLES_CONTRACT_ID]["ancestors"], f"{source}: ancestors"),
+        cycles_depth=depth,
+        ignores={
+            contract_id: _import_pairs(contract["ignore_imports"], f"{source}: contract {contract_id}")
+            for contract_id, contract in by_id.items()
+        },
+    )
+
+
+def _importlinter_session(text: str, source: str) -> dict[str, object]:
+    """Return the ``[tool.importlinter]`` table, which must be the only content and hold the known keys."""
+
     try:
         document = tomllib.loads(text)
     except tomllib.TOMLDecodeError as exc:
@@ -160,19 +189,17 @@ def parse_import_contracts(text: str, source: str) -> ImportContracts:
         raise InvalidInputError(f"{source} must hold only a [tool.importlinter] table")
     if set(session) != _SESSION_KEYS:
         raise InvalidInputError(f"{source}: [tool.importlinter] keys must be {sorted(_SESSION_KEYS)}")
-    root_packages = _name_list(session["root_packages"], f"{source}: root_packages")
-    if session["include_external_packages"] is not False:
-        raise InvalidInputError(f"{source}: include_external_packages must be false")
-    exclude_type_checking = session["exclude_type_checking_imports"]
-    if not isinstance(exclude_type_checking, bool):
-        raise InvalidInputError(f"{source}: exclude_type_checking_imports must be a boolean")
-    contracts = session["contracts"]
+    return session
+
+
+def _contracts_by_id(contracts: object, source: str) -> dict[str, dict[str, object]]:
+    """Return the two ADR-117 contracts by id after checking their type, keys and unmatched-ignore alerting."""
+
     if not isinstance(contracts, list) or not all(isinstance(item, dict) for item in contracts):
         raise InvalidInputError(f"{source}: contracts must be a list of tables")
     by_id = {contract.get("id"): contract for contract in contracts}
     if len(contracts) != len(_CONTRACT_KEYS) or set(by_id) != set(_CONTRACT_KEYS):
         raise InvalidInputError(f"{source}: contracts must be exactly {sorted(_CONTRACT_KEYS)}")
-    ignores: dict[str, frozenset[ImportPair]] = {}
     for contract_id, (contract_type, keys) in _CONTRACT_KEYS.items():
         contract = by_id[contract_id]
         label = f"{source}: contract {contract_id}"
@@ -180,21 +207,7 @@ def parse_import_contracts(text: str, source: str) -> ImportContracts:
             raise InvalidInputError(f"{label} must have type {contract_type!r} and keys {sorted(keys)}")
         if contract["unmatched_ignore_imports_alerting"] != "error":
             raise InvalidInputError(f"{label}: unmatched_ignore_imports_alerting must be 'error'")
-        ignores[contract_id] = _import_pairs(contract["ignore_imports"], label)
-    layers = by_id[LAYERS_CONTRACT_ID]["layers"]
-    if not isinstance(layers, list) or not layers or not all(isinstance(item, str) for item in layers):
-        raise InvalidInputError(f"{source}: layers must be a non-empty list of strings")
-    depth = by_id[CYCLES_CONTRACT_ID]["depth"]
-    if not isinstance(depth, int) or isinstance(depth, bool) or depth < 0:
-        raise InvalidInputError(f"{source}: depth must be a non-negative integer")
-    return ImportContracts(
-        root_packages=root_packages,
-        exclude_type_checking_imports=exclude_type_checking,
-        layers=tuple(layers),
-        cycles_ancestors=_name_list(by_id[CYCLES_CONTRACT_ID]["ancestors"], f"{source}: ancestors"),
-        cycles_depth=depth,
-        ignores=ignores,
-    )
+    return by_id
 
 
 def parse_structural_baseline(text: str, source: str) -> StructuralBaseline:
@@ -250,24 +263,25 @@ def _components(value: object, source: str) -> dict[str, tuple[tuple[str, ...], 
     for package, components in value.items():
         if not _DOTTED_NAME.match(package) or not isinstance(components, list) or not components:
             raise InvalidInputError(f"{source}: cycle_components[{package!r}] must be a non-empty list")
-        seen: set[str] = set()
-        parsed: list[tuple[str, ...]] = []
-        for component in components:
-            if (
-                not isinstance(component, list)
-                or len(component) < 2
-                or component != sorted(set(component))
-                or not all(isinstance(member, str) and _is_child(package, member) for member in component)
-                or seen.intersection(component)
-            ):
-                raise InvalidInputError(
-                    f"{source}: each component of {package!r} must be a sorted list of two or more distinct "
-                    "children of the package, in no other component"
-                )
-            seen.update(component)
-            parsed.append(tuple(component))
-        result[package] = tuple(sorted(parsed))
+        if not all(_is_component(package, component) for component in components):
+            raise InvalidInputError(
+                f"{source}: each component of {package!r} must be a sorted list of two or more distinct "
+                "children of the package, in no other component"
+            )
+        members = [member for component in components for member in component]
+        if len(members) != len(set(members)):
+            raise InvalidInputError(f"{source}: the components of {package!r} must not share a member")
+        result[package] = tuple(sorted(tuple(component) for component in components))
     return result
+
+
+def _is_component(package: str, component: object) -> bool:
+    return (
+        isinstance(component, list)
+        and len(component) >= 2
+        and all(isinstance(member, str) and _is_child(package, member) for member in component)
+        and component == sorted(set(component))
+    )
 
 
 def _private_imports(value: object, source: str) -> dict[ImportPair, int]:

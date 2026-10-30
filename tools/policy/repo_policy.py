@@ -22,7 +22,7 @@ from .structural_ratchet import evaluate_structural_ratchet
 
 StructuralPolicyRunner = Callable[[dict], list[PolicyFailure]]
 # Runs the ADR-117 structural checks on the loaded policy.
-RatchetRunner = Callable[[dict], list[PolicyFailure]]
+RatchetRunner = Callable[[dict[str, object]], list[PolicyFailure]]
 # What load_yaml raises for a missing, unreadable, non-UTF-8, malformed or
 # excessively nested policy file, and InvalidInputError for a scalar that the
 # safe constructor cannot build. The message never echoes the file content.
@@ -84,7 +84,7 @@ def evaluate_repo_policy(
         # when the change list is empty or holds only deletions.
         if ratchet_runner is None:
 
-            def ratchet_runner(loaded_policy: dict) -> list[PolicyFailure]:
+            def ratchet_runner(loaded_policy: dict[str, object]) -> list[PolicyFailure]:
                 return evaluate_structural_ratchet(repo_root, loaded_policy, base_rev=base_rev)
 
         failures.extend(ratchet_runner(policy))

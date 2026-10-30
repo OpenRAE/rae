@@ -31,17 +31,21 @@ def is_private_name(name: str) -> bool:
 def collect_private_imports(index: SourceIndex) -> Counter[PrivateImport]:
     """Count each private import of each module, including imports in functions and type-checking blocks."""
 
-    findings: Counter[PrivateImport] = Counter()
-    for module in index.modules.values():
-        for node in ast.walk(module.tree):
-            if isinstance(node, ast.Import):
-                for alias in node.names:
-                    if _private_module_path(module.name, alias.name):
-                        findings[PrivateImport(module.name, alias.name)] += 1
-            elif isinstance(node, ast.ImportFrom):
-                source = resolve_import_source(module, node.level, node.module)
-                for target in _from_import_findings(index, module, source, node):
-                    findings[PrivateImport(module.name, target)] += 1
+    return Counter(
+        PrivateImport(module.name, target)
+        for module in index.modules.values()
+        for node in ast.walk(module.tree)
+        for target in _import_findings(index, module, node)
+    )
+
+
+def _import_findings(index: SourceIndex, module: SourceModule, node: ast.AST) -> list[str]:
+    findings: list[str] = []
+    if isinstance(node, ast.Import):
+        findings = [alias.name for alias in node.names if _private_module_path(module.name, alias.name)]
+    elif isinstance(node, ast.ImportFrom):
+        source = resolve_import_source(module, node.level, node.module)
+        findings = _from_import_findings(index, module, source, node)
     return findings
 
 
@@ -124,39 +128,62 @@ def _updated_all(
 ) -> tuple[list[str] | None, frozenset[str]]:
     """Apply one module-level statement that uses ``__all__`` or a name bound to the same list."""
 
-    def mentions(node: ast.AST) -> bool:
-        return any(isinstance(item, ast.Name) and item.id in aliases for item in ast.walk(node))
-
     if isinstance(statement, (ast.Assign, ast.AnnAssign)):
-        targets = statement.targets if isinstance(statement, ast.Assign) else [statement.target]
-        target = targets[0].id if len(targets) == 1 and isinstance(targets[0], ast.Name) else None
-        value = statement.value
-        if target is not None and value is not None:
-            if isinstance(value, ast.Name) and value.id in aliases:
-                # Another name for the same list; the list itself does not change.
-                return names, aliases | {target}
-            if not mentions(value):
-                if target == "__all__":
-                    return _literal_names(value, context), aliases
-                if target in aliases:
-                    # The name now refers to another object, so it no longer aliases the list.
-                    return names, aliases - {target}
-    elif isinstance(statement, ast.AugAssign):
-        target = statement.target
-        if names is not None and isinstance(target, ast.Name) and target.id in aliases:
-            if isinstance(statement.op, ast.Add) and not mentions(statement.value):
-                return [*names, *_literal_names(statement.value, context)], aliases
-    elif isinstance(statement, ast.Expr) and isinstance(statement.value, ast.Call):
-        call = statement.value
-        receiver = call.func.value if isinstance(call.func, ast.Attribute) else None
-        method = call.func.attr if isinstance(receiver, ast.Name) and receiver.id in aliases else None
-        if names is not None and method in {"extend", "append"} and len(call.args) == 1 and not call.keywords:
-            argument = call.args[0]
-            if method == "append":
-                argument = ast.List(elts=[argument], ctx=ast.Load())
-            if not mentions(argument):
-                return [*names, *_literal_names(argument, context)], aliases
-    raise InvalidInputError(f"{context}, whose __all__ changes in a way the check cannot read statically")
+        result = _assigned_all(statement, names, aliases, context)
+    elif names is not None and isinstance(statement, ast.AugAssign):
+        result = _extended_all(statement, names, aliases, context)
+    elif names is not None and isinstance(statement, ast.Expr) and isinstance(statement.value, ast.Call):
+        result = _called_all(statement.value, names, aliases, context)
+    else:
+        result = None
+    if result is None:
+        raise InvalidInputError(f"{context}, whose __all__ changes in a way the check cannot read statically")
+    return result
+
+
+def _mentions(node: ast.AST, aliases: frozenset[str]) -> bool:
+    return any(isinstance(item, ast.Name) and item.id in aliases for item in ast.walk(node))
+
+
+def _assigned_all(
+    statement: ast.Assign | ast.AnnAssign, names: list[str] | None, aliases: frozenset[str], context: str
+) -> tuple[list[str] | None, frozenset[str]] | None:
+    targets = statement.targets if isinstance(statement, ast.Assign) else [statement.target]
+    target = targets[0].id if len(targets) == 1 and isinstance(targets[0], ast.Name) else None
+    value = statement.value
+    result = None
+    if target is not None and value is not None:
+        if isinstance(value, ast.Name) and value.id in aliases:
+            # Another name for the same list; the list itself does not change.
+            result = (names, aliases | {target})
+        elif not _mentions(value, aliases) and target == "__all__":
+            result = (_literal_names(value, context), aliases)
+        elif not _mentions(value, aliases) and target in aliases:
+            # The name now refers to another object, so it no longer aliases the list.
+            result = (names, aliases - {target})
+    return result
+
+
+def _extended_all(
+    statement: ast.AugAssign, names: list[str], aliases: frozenset[str], context: str
+) -> tuple[list[str], frozenset[str]] | None:
+    target = statement.target
+    if not isinstance(target, ast.Name) or target.id not in aliases or not isinstance(statement.op, ast.Add):
+        return None
+    if _mentions(statement.value, aliases):
+        return None
+    return [*names, *_literal_names(statement.value, context)], aliases
+
+
+def _called_all(
+    call: ast.Call, names: list[str], aliases: frozenset[str], context: str
+) -> tuple[list[str], frozenset[str]] | None:
+    receiver = call.func.value if isinstance(call.func, ast.Attribute) else None
+    method = call.func.attr if isinstance(receiver, ast.Name) and receiver.id in aliases else None
+    if method not in {"extend", "append"} or len(call.args) != 1 or call.keywords or _mentions(call.args[0], aliases):
+        return None
+    argument = ast.List(elts=[call.args[0]], ctx=ast.Load()) if method == "append" else call.args[0]
+    return [*names, *_literal_names(argument, context)], aliases
 
 
 def _literal_names(value: ast.expr, context: str) -> list[str]:

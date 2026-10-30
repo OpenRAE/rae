@@ -421,6 +421,12 @@ def test_the_analysis_record_must_match_the_analyzers_and_options(tmp_path: Path
         (None, _baseline().replace('"cycle_components": {}', '"cycle_components": []'), {}, "must be an object"),
         (None, _baseline(components={"alpha": []}), {}, "non-empty list"),
         (None, _baseline(components={"alpha": [["alpha.a", "beta.b"]]}), {}, "children of the package"),
+        (
+            None,
+            _baseline(components={"alpha": [["alpha.a", "alpha.b"], ["alpha.a", "alpha.c"]]}),
+            {},
+            "must not share a member",
+        ),
         (None, _baseline(private={"alpha.a": {}}), {}, "non-empty object"),
         (None, _baseline().replace('"private_imports": {}', '"private_imports": []'), {}, "must be an object"),
         (None, _baseline().replace('"deep_classes": {}', '"deep_classes": []'), {}, "must be an object"),

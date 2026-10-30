@@ -160,59 +160,60 @@ class _Resolver:
                 self._bind_simple(module, statement, local, scopes)
 
     def _bind_simple(self, module: SourceModule, statement: ast.stmt, local: _Table, scopes: _Scopes) -> None:
-        lineno = statement.lineno
         if isinstance(statement, ast.Import):
             for alias in statement.names:
-                if alias.asname:
-                    local.bind(alias.asname, lineno, _ModuleRef(alias.name))
-                else:
-                    top = alias.name.split(".", 1)[0]
-                    local.bind(top, lineno, _ModuleRef(top))
+                name = alias.asname or alias.name.split(".", 1)[0]
+                local.bind(name, statement.lineno, _ModuleRef(alias.name if alias.asname else name))
         elif isinstance(statement, ast.ImportFrom):
-            source = resolve_import_source(module, statement.level, statement.module)
-            for alias in statement.names:
-                if alias.name == "*":
-                    self._stars[module.name].append(source)
-                else:
-                    local.bind(alias.asname or alias.name, lineno, _FromBinding(source, alias.name))
-        elif isinstance(statement, ast.Assign):
-            for target in statement.targets:
-                if isinstance(target, ast.Name):
-                    local.bind(target.id, lineno, _AliasBinding(statement.value, scopes, lineno))
-        elif isinstance(statement, ast.AnnAssign):
-            if isinstance(statement.target, ast.Name) and statement.value is not None:
-                local.bind(statement.target.id, lineno, _AliasBinding(statement.value, scopes, lineno))
-        elif isinstance(statement, ast.TypeAlias):
-            local.bind(statement.name.id, lineno, _AliasBinding(statement.value, scopes, lineno))
+            self._bind_from_import(module, statement, local)
+        else:
+            for name, value in _assigned_names(statement):
+                local.bind(name, statement.lineno, _AliasBinding(value, scopes, statement.lineno))
+
+    def _bind_from_import(self, module: SourceModule, statement: ast.ImportFrom, local: _Table) -> None:
+        source = resolve_import_source(module, statement.level, statement.module)
+        for alias in statement.names:
+            if alias.name == "*":
+                self._stars[module.name].append(source)
+            else:
+                local.bind(alias.asname or alias.name, statement.lineno, _FromBinding(source, alias.name))
 
     # Resolution ---------------------------------------------------------
 
     def ancestors(self, ref: _ClassRef, stack: tuple[_ClassRef, ...] = ()) -> frozenset[_ClassRef]:
         if ref in self._memo:
             return self._memo[ref]
-        info = self.classes[ref]
         result: set[_ClassRef] = set()
-        for base in info.node.bases:
-            try:
-                value = self._resolve(ref.module, base, info.scopes, info.node.lineno, frozenset())
-            except _Unresolved as exc:
-                self._record(info, base, str(exc))
-                continue
-            if value is _EXTERNAL:
-                continue
-            if not isinstance(value, _ClassRef):
-                self._record(info, base, "the base is not a class")
-                continue
-            if value == ref or value in stack:
-                cycle = (*stack[stack.index(value) :], ref) if value in stack else (ref,)
-                for member in cycle:
-                    self._record(self.classes[member], base, "the inheritance is cyclic")
-                continue
-            result.add(value)
-            result.update(self.ancestors(value, (*stack, ref)))
+        for base in self.classes[ref].node.bases:
+            parent = self._base_class(ref, base, stack)
+            if parent is not None:
+                result.add(parent)
+                result.update(self.ancestors(parent, (*stack, ref)))
         frozen = frozenset(result)
         self._memo[ref] = frozen
         return frozen
+
+    def _base_class(self, ref: _ClassRef, base: ast.expr, stack: tuple[_ClassRef, ...]) -> _ClassRef | None:
+        """Resolve one base to a package class, or record why it cannot count."""
+
+        info = self.classes[ref]
+        parent: _ClassRef | None = None
+        reason: str | None = None
+        try:
+            value = self._resolve(ref.module, base, info.scopes, info.node.lineno, frozenset())
+        except _Unresolved as exc:
+            value, reason = _EXTERNAL, str(exc)
+        if isinstance(value, _ClassRef) and (value == ref or value in stack):
+            cycle = (*stack[stack.index(value) :], ref) if value in stack else (ref,)
+            for member in cycle:
+                self._record(self.classes[member], base, "the inheritance is cyclic")
+        elif isinstance(value, _ClassRef):
+            parent = value
+        elif value is not _EXTERNAL:
+            reason = "the base is not a class"
+        if reason is not None:
+            self._record(info, base, reason)
+        return parent
 
     def unresolved_bases(self) -> tuple[UnresolvedBase, ...]:
         return tuple(sorted(self._unresolved.values(), key=lambda item: (item.class_id, item.base)))
@@ -231,17 +232,19 @@ class _Resolver:
         seen: frozenset[object],
     ) -> object:
         if isinstance(expression, ast.Name):
-            return self._lookup_name(module, scopes, expression.id, before, seen)
-        if isinstance(expression, ast.Attribute):
+            value = self._lookup_name(module, scopes, expression.id, before, seen)
+        elif isinstance(expression, ast.Attribute):
             owner = self._resolve(module, expression.value, scopes, before, seen)
-            return self._attribute(owner, expression.attr, seen)
-        if isinstance(expression, ast.Subscript):
-            return self._resolve(module, expression.value, scopes, before, seen)
-        if isinstance(expression, ast.Call):
-            if self._resolve(module, expression.func, scopes, before, seen) is _EXTERNAL:
-                return _EXTERNAL
-            raise _Unresolved("the base is the result of a package call")
-        raise _Unresolved("the base expression is not supported")
+            value = self._attribute(owner, expression.attr, seen)
+        elif isinstance(expression, ast.Subscript):
+            value = self._resolve(module, expression.value, scopes, before, seen)
+        elif isinstance(expression, ast.Call):
+            if self._resolve(module, expression.func, scopes, before, seen) is not _EXTERNAL:
+                raise _Unresolved("the base is the result of a package call")
+            value = _EXTERNAL
+        else:
+            raise _Unresolved("the base expression is not supported")
+        return value
 
     def _lookup_name(
         self, module: str, scopes: _Scopes, name: str, before: int | None, seen: frozenset[object]
@@ -271,21 +274,28 @@ class _Resolver:
 
     def _binding_value(self, module: str, binding: object, seen: frozenset[object]) -> object:
         if isinstance(binding, (_ClassRef, _ValueRef)):
-            return binding
-        if isinstance(binding, _ModuleRef):
-            return binding if self._index.is_first_party(binding.name) else _EXTERNAL
-        if isinstance(binding, _FromBinding):
-            if not self._index.is_first_party(binding.source):
-                return _EXTERNAL
-            submodule = f"{binding.source}.{binding.name}"
-            if submodule in self._index.modules:
-                return _ModuleRef(submodule)
-            return self._module_attribute(binding.source, binding.name, seen)
-        if isinstance(binding, _AliasBinding):
+            value = binding
+        elif isinstance(binding, _ModuleRef):
+            value = binding if self._index.is_first_party(binding.name) else _EXTERNAL
+        elif isinstance(binding, _FromBinding):
+            value = self._imported_value(binding, seen)
+        elif isinstance(binding, _AliasBinding):
             if binding in seen:
                 raise _Unresolved("the alias is cyclic")
-            return self._resolve(module, binding.expression, binding.scopes, binding.lineno, seen | {binding})
-        raise _Unresolved("the binding is not supported")
+            value = self._resolve(module, binding.expression, binding.scopes, binding.lineno, seen | {binding})
+        else:
+            raise _Unresolved("the binding is not supported")
+        return value
+
+    def _imported_value(self, binding: _FromBinding, seen: frozenset[object]) -> object:
+        submodule = f"{binding.source}.{binding.name}"
+        if not self._index.is_first_party(binding.source):
+            value: object = _EXTERNAL
+        elif submodule in self._index.modules:
+            value = _ModuleRef(submodule)
+        else:
+            value = self._module_attribute(binding.source, binding.name, seen)
+        return value
 
     def _module_attribute(self, module: str, name: str, seen: frozenset[object]) -> object:
         key = (module, name)
@@ -332,6 +342,19 @@ def _scopes(local: _Table, functions: tuple[_Table, ...], module_table: _Table) 
         ordered.setdefault(function, depth == 0)
     ordered.setdefault(module_table, not functions)
     return tuple(ordered.items())
+
+
+def _assigned_names(statement: ast.stmt) -> list[tuple[str, ast.expr]]:
+    """Return the simple names that an assignment or a type alias binds, with the bound expression."""
+
+    pairs: list[tuple[str, ast.expr]] = []
+    if isinstance(statement, ast.Assign):
+        pairs = [(target.id, statement.value) for target in statement.targets if isinstance(target, ast.Name)]
+    elif isinstance(statement, ast.AnnAssign) and isinstance(statement.target, ast.Name) and statement.value:
+        pairs = [(statement.target.id, statement.value)]
+    elif isinstance(statement, ast.TypeAlias):
+        pairs = [(statement.name.id, statement.value)]
+    return pairs
 
 
 def _nested_bodies(statement: ast.stmt) -> list[list[ast.stmt]]:
