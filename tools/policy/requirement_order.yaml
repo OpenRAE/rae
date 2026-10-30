@@ -1378,6 +1378,10 @@ ownership:
     - docs/decisions/issue-1734-structural-policy-preflight.md
     - docs/decisions/issue-1734-structural-checks-design.md
     - docs/DEVELOPMENT_WORKFLOW.md
+    # The tooling lock is tool provenance in the counterexample corpus, and the
+    # runtime-mapping capture pins the changed tools and tests.
+    - specs/formal/participant-semantics/counterexamples
+    - specs/formal/participant-semantics/runtime-mapping
   decision-record-governance:
     - docs/decisions/adrs
     - docs/index.md

@@ -13,6 +13,8 @@ import builtins
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 
+from raes_contracts.errors import InvalidInputError
+
 from .private_imports import resolve_import_source
 from .source_index import SourceIndex, SourceModule
 
@@ -97,7 +99,7 @@ class _ClassInfo:
     rel_path: str
 
 
-class _Unresolved(Exception):
+class _Unresolved(InvalidInputError):
     """A base expression that does not resolve to a class or an external name."""
 
 
