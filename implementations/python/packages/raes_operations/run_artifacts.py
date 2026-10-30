@@ -32,6 +32,7 @@ if TYPE_CHECKING:
 
 RUN_ID_LABEL_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
 _PUBLICATION_REFUSED = "materialization archive requires valid bounded SDL and safe identities"
+_PUBLICATION_TOO_LARGE = "materialization archive content exceeds the materialization document limit"
 # A missing file, a changed permission, or a symbolic link: an open with O_NOFOLLOW reports a link
 # with ELOOP, or with ENOTDIR under O_DIRECTORY.
 _RETAINED_ARTIFACT_ERRNOS = frozenset({errno.ENOENT, errno.ENOTDIR, errno.ELOOP, errno.EACCES, errno.EPERM})
@@ -137,6 +138,8 @@ class RunMaterializationArchive:
         from raes.parser import parse_sdl
         from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
 
+        # Bound the incoming text before parsing and the rendered bytes before writing; rendering can expand input.
+        _require_document_bytes(content)
         # SDL failures are InvalidInputError; ``from None`` keeps authored values out of the refusal.
         try:
             scenario = parse_sdl(content)
@@ -151,6 +154,7 @@ class RunMaterializationArchive:
             data = render_sdl_source(scenario).content.encode("utf-8")
         except InvalidInputError:
             raise InvalidInputError(_PUBLICATION_REFUSED) from None
+        _require_document_bytes(data)
         relative = Path("runs") / provenance.run_id / "attestations" / f"{provenance.attestation_id}.sdl"
         record = MaterializationArchiveRecord.model_validate(
             {
@@ -191,6 +195,24 @@ class RunMaterializationArchive:
         finally:
             os.close(directory)
         return record
+
+
+def _require_document_bytes(content: str | bytes) -> None:
+    """Refuse text or bytes beyond the shared materialization document ceiling."""
+    from raes_contracts.materialization import MATERIALIZATION_MAX_BYTES
+
+    if not isinstance(content, (str, bytes)):
+        raise InvalidInputError(_PUBLICATION_REFUSED)
+    # A character count above the ceiling already implies too many UTF-8 bytes, so skip the copy.
+    if len(content) > MATERIALIZATION_MAX_BYTES:
+        raise InvalidInputError(_PUBLICATION_TOO_LARGE)
+    if isinstance(content, str):
+        try:
+            content = content.encode("utf-8")
+        except UnicodeEncodeError:
+            raise InvalidInputError(_PUBLICATION_REFUSED) from None
+    if len(content) > MATERIALIZATION_MAX_BYTES:
+        raise InvalidInputError(_PUBLICATION_TOO_LARGE)
 
 
 def _verify_immutable_bytes(directory: int, name: str, data: bytes) -> None:

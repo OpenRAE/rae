@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import Field, model_validator
 
-from raes_contracts.materialization import MaterializationSource
+from raes_contracts.materialization import MATERIALIZATION_MAX_BYTES, MaterializationSource
 from raes_contracts.materialization_inventory import RuntimeInventoryReport
 
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
@@ -59,6 +59,8 @@ class MaterializationArchiveRecord(ContractModel):
             or self.artifact.sensitivity not in {"restricted", "redacted"}
         ):
             raise ValueError("materialization artifact reference does not bind the protected SDL artifact")
+        if self.artifact.size_bytes > MATERIALIZATION_MAX_BYTES:
+            raise ValueError("materialization artifact exceeds the materialization document limit")
         return self
 
 
