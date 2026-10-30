@@ -25,6 +25,19 @@ def backend_input_violation(
 
     # Compiled realization authority comes from the runtime context, never from backend-supplied arguments.
     plan_scale = {id(authority.requirements)} if authority is not None else set()
+    for value in _portable_inputs(arguments, authority, service_dependencies):
+        invalid = _input_value_violation(value, plan_scale)
+        if invalid:
+            return invalid
+    return None
+
+
+def _portable_inputs(
+    arguments: tuple[object, ...],
+    authority: _RealizationApplyContext | None,
+    service_dependencies: tuple[object, ...],
+) -> tuple[object, ...]:
+    """Return each distinct portable carrier once, without injected service dependencies."""
     if authority is not None:
         arguments = (
             *arguments,
@@ -39,19 +52,16 @@ def backend_input_violation(
         if (isinstance(value, _PORTABLE_INPUT_TYPES) or is_dataclass(value))
         and not any(value is service for service in service_dependencies)
     }
-    for value in values.values():
-        is_plan = isinstance(value, (ProvisioningPlan, OrchestrationPlan, EvaluationPlan))
-        if not validate_realization_value(
-            value,
-            limits=PLAN_VALUE_LIMITS if is_plan or id(value) in plan_scale else RUNTIME_SNAPSHOT_VALUE_LIMITS,
-            python_carriers=True,
-        ).conformant:
-            return "Backend call input exceeds the admitted portable value bounds."
-        if is_plan:
-            invalid = _operation_plan_violation(value)
-            if invalid:
-                return invalid
-    return None
+    return tuple(values.values())
+
+
+def _input_value_violation(value: object, plan_scale: set[int]) -> str | None:
+    """Planner plans and compiled authority use the plan budget; other carriers keep the runtime budget."""
+    is_plan = isinstance(value, (ProvisioningPlan, OrchestrationPlan, EvaluationPlan))
+    limits = PLAN_VALUE_LIMITS if is_plan or id(value) in plan_scale else RUNTIME_SNAPSHOT_VALUE_LIMITS
+    if not validate_realization_value(value, limits=limits, python_carriers=True).conformant:
+        return "Backend call input exceeds the admitted portable value bounds."
+    return _operation_plan_violation(value) if is_plan else None
 
 
 def _operation_plan_violation(value: ProvisioningPlan | OrchestrationPlan | EvaluationPlan) -> str | None:

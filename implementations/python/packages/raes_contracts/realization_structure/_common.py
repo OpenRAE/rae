@@ -56,18 +56,21 @@ class RelationBudget:
     scalar_bytes: int = 0
 
     def spend_scalar(self, value: object) -> str | None:
-        ceiling, limit_name = self.limits.max_scalar_bytes, "max_scalar_bytes"
-        if type(value) is _DeclaredDocumentScalar and self.limits.max_document_scalar_bytes is not None:
-            ceiling, limit_name = self.limits.max_document_scalar_bytes, "max_document_scalar_bytes"
+        ceiling, limit_name = self._scalar_ceiling(value)
+        # A character count above the ceiling already implies too many UTF-8 bytes, so skip encoding.
         if isinstance(value, str) and len(value) > ceiling:
             return limit_name
         try:
             size = _scalar_size(value)
         except UnicodeError:
             return "invalid_utf8"
-        if size > ceiling:
-            return limit_name
-        return self._spend_scalar_size(size)
+        return limit_name if size > ceiling else self._spend_scalar_size(size)
+
+    def _scalar_ceiling(self, value: object) -> tuple[int, str]:
+        """Return the per-value ceiling: a declared document field may use the document ceiling."""
+        if type(value) is _DeclaredDocumentScalar and self.limits.max_document_scalar_bytes is not None:
+            return self.limits.max_document_scalar_bytes, "max_document_scalar_bytes"
+        return self.limits.max_scalar_bytes, "max_scalar_bytes"
 
     def _spend_scalar_size(self, size: int) -> str | None:
         """Charge one measured scalar against the total budget."""

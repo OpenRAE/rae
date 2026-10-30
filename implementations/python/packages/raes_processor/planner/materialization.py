@@ -77,28 +77,24 @@ def planned_materialization_source(
     return source, diagnostics
 
 
+def _source_refusal_diagnostic(code: str, message: str) -> Diagnostic:
+    return Diagnostic(code=code, domain="materialization", address="materialization.source", message=message)
+
+
 # Each refusal is value-free: it names the failed condition, never the rejected source or identity.
 _SOURCE_REFUSALS = {
-    "context": Diagnostic(
-        code="materialization.source-context-required",
-        domain="materialization",
-        address="materialization.source",
-        message="Materialization reporting requires the admitted full source and a safe run identity.",
+    "context": _source_refusal_diagnostic(
+        "materialization.source-context-required",
+        "Materialization reporting requires the admitted full source and a safe run identity.",
     ),
-    "limit": Diagnostic(
-        code="materialization.source-limit-exceeded",
-        domain="materialization",
-        address="materialization.source",
-        message=(
-            "The admitted full source exceeds the materialization document limit of "
-            f"{MATERIALIZATION_MAX_BYTES} bytes or its portable value bounds."
-        ),
+    "limit": _source_refusal_diagnostic(
+        "materialization.source-limit-exceeded",
+        "The admitted full source exceeds the materialization document limit of "
+        f"{MATERIALIZATION_MAX_BYTES} bytes or its portable value bounds.",
     ),
-    "invalid": Diagnostic(
-        code="materialization.source-invalid",
-        domain="materialization",
-        address="materialization.source",
-        message="The admitted full source does not satisfy the materialization source contract.",
+    "invalid": _source_refusal_diagnostic(
+        "materialization.source-invalid",
+        "The admitted full source does not satisfy the materialization source contract.",
     ),
 }
 _CONTEXT_FIELDS = frozenset({"run_id", "target_scope"})
@@ -116,13 +112,17 @@ def _build_materialization_source(
     snapshot = canonical_instantiated_sdl_bytes(instance)
     if len(snapshot) > MATERIALIZATION_MAX_BYTES:
         return None, "limit"
-    authored_digest = instance.instantiation_provenance.authored_digest.value
-    instantiated_digest = canonical_instantiated_sdl_digest(instance).value
+    return _seal_materialization_source(instance, scope, descendants, snapshot)
+
+
+def _seal_materialization_source(
+    instance: InstantiatedScenario, scope: PlanScope, descendants: bool, snapshot: bytes
+) -> tuple[MaterializationSource | None, str | None]:
     try:
         source = MaterializationSource(
             snapshot=snapshot.decode("utf-8"),
-            authored_digest=authored_digest,
-            instantiated_digest=instantiated_digest,
+            authored_digest=instance.instantiation_provenance.authored_digest.value,
+            instantiated_digest=canonical_instantiated_sdl_digest(instance).value,
             run_id=scope.run_id,
             target_scope=f"target:{scope.target_name}" if descendants else None,
         )

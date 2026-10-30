@@ -234,8 +234,9 @@ def test_archive_refuses_rendered_bytes_that_expand_beyond_the_bound(tmp_path, m
 
     monkeypatch.setattr(raes.formatting, "render_sdl_source", lambda scenario: Expanded())
     archive = RunMaterializationArchive(tmp_path / "archive")
+    content = json.dumps(materialized_payload())
     with pytest.raises(InvalidInputError, match="materialization document limit"):
-        archive.publish(json.dumps(materialized_payload()))
+        archive.publish(content)
     assert not (tmp_path / "archive").exists()
 
 
