@@ -1744,3 +1744,28 @@ product nor claim that every mechanism is IFC. The
 [finite witnesses](../../research/modular-participant-control/semantic-verification.md)
 are bounded semantic falsification, not an installed provider, runtime,
 conformance result, universal noninterference theorem or backend-integrity proof.
+
+## Backend-neutral intentional-subversion evaluation
+
+Issue #1007 adapts the AI Control and ControlArena evaluation discipline through
+RAE's existing modular-control runner and deterministic provider fixtures.
+Issue #1008 publishes the exact finite harness results and reproduction guidance
+in the [evaluation evidence guide](../reference/adversarial-control-evaluation.md).
+The protocol keeps honest and attack populations, main and side objectives,
+knowledge, feedback, collusion, monitor correlation, audit, intervention, memory,
+and replay coordinates explicit.
+The result distinguishes these declarations from exercised behavior.
+
+The harness executes permitted injection, an unrelated-admission negative control,
+exfiltration denial, adaptive denial with ledger replay, handoff denial, and
+apparatus invalidation alongside an honest baseline.
+Permitted injection can achieve its side objective without violating the selected policy.
+A malformed provider invalidates evidence rather than demonstrating control robustness.
+Safety, usefulness, audit cost, intervention cost, and uncertainty remain separate.
+Usefulness and costs are bounded proxies.
+
+These results concern RAE contract and runtime behavior only.
+They do not depend on a concrete backend implementation.
+They establish no native realization, universal robustness, monitor honesty,
+opacity, bisimulation, mechanism parity, or backend equivalence.
+The publication does not promote the separate ASR-535 mathematical assurance axes.

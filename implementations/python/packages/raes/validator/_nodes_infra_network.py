@@ -385,6 +385,31 @@ class _NodesInfraNetworkMixin:
                         sensor_ids=sensor_ids,
                     )
 
+    def _verify_rule_source_generators(self) -> None:
+        """Resolve each rule source ``generated_by`` to exactly one declared forwarding agent.
+
+        Full scenario admission runs this pass. A bounded node context can omit
+        the node of the generating agent.
+        """
+        agents = self._forwarding_agents_by_address().keys()
+        sources = [
+            (node_name, engine, source)
+            for node_name, node in self._s.nodes.items()
+            if node.runtime is not None
+            for engine in node.runtime.network_detection_engines
+            for source in engine.rule_sources
+            if source.generated_by and not self._is_unresolved_var(source.generated_by)
+        ]
+        for node_name, engine, source in sources:
+            if len(self._declaration_index.resolve(source.generated_by) & agents) == 1:
+                continue
+            with self._owner(("nodes", node_name)):
+                self._err(
+                    f"Node '{node_name}' runtime network detection engine '{engine.network_detection_engine_id}' "
+                    f"rule_source '{source.source_id}' generated_by '{source.generated_by}' does not resolve to "
+                    "a declared forwarding agent"
+                )
+
     def _verify_network_detection_engine(
         self,
         *,

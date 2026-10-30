@@ -358,6 +358,12 @@ EXPECTATIONS_PART_1: dict[str, tuple[str, str, str, str]] = {
         "fatal dangling or ambiguous across scenario and node scopes",
         _RELATIONSHIP_VALIDATOR,
     ),
+    "nodes.*.runtime.network_detection_engines[].rule_sources[].generated_by": (
+        "runtime:forwarding_agents",
+        _SEMANTIC,
+        "fatal dangling or ambiguous across scenario and node scopes",
+        _NODE_VALIDATOR,
+    ),
     "relationships.*.service_integration.consumer_ref": (
         "runtime:platform_applications",
         _SEMANTIC,

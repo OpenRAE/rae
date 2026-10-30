@@ -130,6 +130,7 @@ def _rewrite_node(payload: dict[str, Any], symbols: dict[str, dict[str, str] | s
         _rewrite_generated_environment_sources(runtime, symbols)
         _rewrite_runtime_account_refs(runtime, symbols)
         _rewrite_detection_artifact_refs(runtime, symbols)
+        _rewrite_rule_source_generators(runtime, symbols)
 
 
 def _rewrite_runtime_account_refs(runtime: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
@@ -144,6 +145,13 @@ def _rewrite_detection_artifact_refs(runtime: dict[str, Any], symbols: dict[str,
         for definition in manager.get("detection_definitions", []):
             if definition.get("source_artifact_ref"):
                 definition["source_artifact_ref"] = _maybe_rename(definition["source_artifact_ref"], symbols["named"])
+
+
+def _rewrite_rule_source_generators(runtime: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
+    for engine in runtime.get("network_detection_engines", []):
+        for source in engine.get("rule_sources", []):
+            if source.get("generated_by"):
+                source["generated_by"] = _maybe_rename(source["generated_by"], symbols["named"])
 
 
 def _rewrite_infrastructure(payload: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:

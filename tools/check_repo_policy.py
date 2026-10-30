@@ -24,6 +24,18 @@ from tools.policy.common import (
     load_exceptions,
 )
 from tools.policy.repo_policy import evaluate_repo_policy
+from tools.policy.structural_baseline import validate_git_revision
+
+# The policy gate needs these modules from the locked tooling environment: filelock for the
+# Conftest lock, and import-linter with grimp for the ADR-117 structural checks.
+_TOOLING_MODULES = ("filelock", "importlinter", "grimp")
+
+
+def _git_revision(value: str) -> str:
+    try:
+        return validate_git_revision(value)
+    except InvalidInputError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from exc
 
 
 def parse_args() -> argparse.Namespace:
@@ -33,7 +45,7 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Check staged changes instead of working tree changes.",
     )
-    parser.add_argument("--base-rev", help="Compare against a specific git revision.")
+    parser.add_argument("--base-rev", type=_git_revision, help="Compare against a specific git revision.")
     parser.add_argument("--json", action="store_true", help="Emit JSON failures.")
     parser.add_argument(
         "--check-set",
@@ -53,7 +65,7 @@ def main() -> int:
         else changed_paths(REPO_ROOT, staged=args.staged, base_rev=args.base_rev)
     )
     try:
-        failures = evaluate_repo_policy(REPO_ROOT, paths, check_set=args.check_set)
+        failures = evaluate_repo_policy(REPO_ROOT, paths, check_set=args.check_set, base_rev=args.base_rev)
         failures = apply_exceptions(failures, load_exceptions(REPO_ROOT))
     except (InvalidInputError, OperationalError) as exc:
         # An unparseable ADR, a malformed policy exception, or a conftest or tool
@@ -71,7 +83,7 @@ def main() -> int:
 
 
 def _run_from_frozen_tooling_environment() -> int | None:
-    if importlib.util.find_spec("filelock") is not None:
+    if all(importlib.util.find_spec(name) is not None for name in _TOOLING_MODULES):
         return None
     tooling_python = REPO_ROOT / "implementations" / "tooling" / "python" / ".venv" / "bin" / "python"
     if not tooling_python.is_file():

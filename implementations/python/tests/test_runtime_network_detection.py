@@ -65,7 +65,6 @@ def _suricata_engine(**overrides) -> dict:
                 "name": "suricata.rules",
                 "rule_count": 65814,
                 "file_refs": ["/var/lib/suricata/rules/suricata.rules"],
-                "generated_by": "suricata-update",
                 "loaded": True,
             },
             {
@@ -84,7 +83,7 @@ def _suricata_engine(**overrides) -> dict:
                 "name": "misp/misp-iocs.rules",
                 "rule_count": 6,
                 "file_refs": ["/etc/suricata/rules/misp/misp-iocs.rules"],
-                "generated_by": "misp-suricata-sync",
+                "generated_by": "nodes.suricata.runtime.forwarding_agents.misp-suricata-sync",
                 "loaded": True,
             },
         ],
@@ -148,6 +147,7 @@ def _detection_node(engine: dict | None = None) -> dict:
             ],
             "network_sensors": [_suricata_sensor()],
             "network_detection_engines": [engine or _suricata_engine()],
+            "forwarding_agents": [{"forwarding_agent_id": "misp-suricata-sync", "agent_kind": "content_sync"}],
         },
     }
 

@@ -4,6 +4,7 @@ import importlib.util
 import io
 import logging
 import sys
+from contextlib import contextmanager
 
 import pytest
 from raes_contracts.errors import ConflictError
@@ -22,18 +23,30 @@ SENTINEL = "sentinel-7f3a-value"
 _LOGGER_NAME = "raes_tests.issue_1678"
 
 
-@pytest.fixture
-def root_logging():
-    """Restore the root logger handlers and level after a test changes them."""
+@contextmanager
+def _isolated_root_logging():
+    """Isolate application handlers, then restore the host handlers and level."""
 
     root = logging.getLogger()
     handlers = list(root.handlers)
     level = root.level
-    yield root
-    for handler in list(root.handlers):
-        if handler not in handlers:
+    for handler in handlers:
+        if getattr(handler, "_raes_application_handler", False):
             root.removeHandler(handler)
-    root.setLevel(level)
+    try:
+        yield root
+    finally:
+        for handler in list(root.handlers):
+            root.removeHandler(handler)
+        for handler in handlers:
+            root.addHandler(handler)
+        root.setLevel(level)
+
+
+@pytest.fixture
+def root_logging():
+    with _isolated_root_logging() as root:
+        yield root
 
 
 @pytest.fixture
@@ -205,6 +218,31 @@ def test_application_configuration_is_repeatable_and_keeps_host_handlers(root_lo
     assert sum(1 for handler in root_logging.handlers if handler is first) == 1
     assert isinstance(first.formatter, ValueFreeFormatter)
     assert root_logging.level == logging.ERROR
+
+
+def test_diagnostic_capture_isolates_host_sink_and_preserves_value_free_records(root_logging, capsys):
+    host_sink = io.StringIO()
+    configure_application_logging(level="ERROR", stream=host_sink)
+    host_handlers = list(root_logging.handlers)
+    host_level = root_logging.level
+
+    with _isolated_root_logging():
+        configure_application_logging()
+        try:
+            _raise_chained_error()
+        except ValueError:
+            get_logger(_LOGGER_NAME).exception("isolated failure")
+
+        captured = capsys.readouterr()
+        assert "isolated failure" in captured.err
+        assert "ValueError" in captured.err
+        assert SENTINEL not in captured.err
+        assert host_sink.getvalue() == ""
+
+    assert root_logging.handlers == host_handlers
+    assert root_logging.level == host_level
+    get_logger(_LOGGER_NAME).error("host sink restored")
+    assert "host sink restored" in host_sink.getvalue()
 
 
 def test_application_configuration_writes_to_standard_error(root_logging, capsys):

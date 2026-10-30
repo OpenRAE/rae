@@ -17,6 +17,8 @@ from tools.nox_support.config import (
     INSTALLATION_QUALIFICATION_HARNESSES,
     OSV_LOCKFILE_PATH,
     OSV_REPORT_PATH,
+    OSV_TOOLING_LOCKFILE_PATH,
+    OSV_TOOLING_REPORT_PATH,
     PROJECT_ROOT,
     PUBLIC_DOCS_ENTRYPOINTS,
     PUBLIC_DOCS_EXAMPLE_TESTS,
@@ -233,13 +235,12 @@ def _finalize_parallel_coverage(session: nox.Session, coverage_dir: Path) -> Non
 
 
 def _run_osv_scan(_session: nox.Session, reporter: SessionReporter) -> None:
-    def _scan() -> None:
-        lockfile = OSV_LOCKFILE_PATH
+    def _scan(lockfile: Path, report: Path) -> None:
         if not lockfile.exists():
             raise InvalidInputError(f"osv-scan: tracked lockfile not found: {lockfile.relative_to(REPO_ROOT)}")
         binary = ensure_osv_scanner(REPO_ROOT)
-        exit_code = run_osv_scanner(lockfile, OSV_REPORT_PATH, binary=binary)
-        report_rel = OSV_REPORT_PATH.relative_to(REPO_ROOT)
+        exit_code = run_osv_scanner(lockfile, report, binary=binary)
+        report_rel = report.relative_to(REPO_ROOT)
         outcome = classify_osv_exit_code(exit_code)
         if outcome is OSVScanOutcome.FINDINGS:
             # The scanned lock does not satisfy the vulnerability gate; the caller must correct it.
@@ -249,11 +250,15 @@ def _run_osv_scan(_session: nox.Session, reporter: SessionReporter) -> None:
                 f"osv-scanner failed with scanner/setup error exit code {exit_code}; report at {report_rel}"
             )
 
-    reporter.run(
-        "osv-scan / uv.lock",
-        _scan,
-        detail=str(OSV_LOCKFILE_PATH.relative_to(REPO_ROOT)),
-    )
+    for label, lockfile, report in (
+        ("uv.lock", OSV_LOCKFILE_PATH, OSV_REPORT_PATH),
+        ("tooling uv.lock", OSV_TOOLING_LOCKFILE_PATH, OSV_TOOLING_REPORT_PATH),
+    ):
+        reporter.run(
+            f"osv-scan / {label}",
+            lambda lockfile=lockfile, report=report: _scan(lockfile, report),
+            detail=str(lockfile.relative_to(REPO_ROOT)),
+        )
 
 
 def _run_docs(

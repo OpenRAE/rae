@@ -118,7 +118,8 @@ intentional-subversion evaluation design. Issue #1001 publishes the exact
 `sem-233/rev1` two-coordinate obligation algebra, carrier mapping, and bounded
 falsification evidence. Issue #1002 publishes the immutable flow profile and
 portable relation contract. Issue #1007 adds bounded executed evaluation with
-controlled providers. ASR-536 retains its native-realization evidence boundary.
+controlled providers. Issue #1008 publishes source-bound RAE harness results.
+ASR-536 separates RAE harness evaluation from concrete backend qualification.
 Their normative profiles are in
 [`adversarial-flow-control.md`](adversarial-flow-control.md). The design
 extends the existing participant, control, crossing, runtime, backend, and

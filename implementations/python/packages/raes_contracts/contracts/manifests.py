@@ -30,6 +30,10 @@ from .experiment_bindings import ConfigurationTargetRegistryModel
 from .feature_support import ParticipantFeatureSupportModel
 from .observation_capture import ObservationCaptureOfferModel
 from .participant_execution import ParticipantExecutionBindingModel
+from .participant_invocation_tools import (
+    ParticipantInvocationToolActionCapabilitiesModel,
+    validate_invocation_tool_action_claim,
+)
 from .participant_resource_budgets import ParticipantResourceBudgetCapabilitiesModel
 from .participant_tool_support import (
     ParticipantToolProfilesModel,
@@ -135,6 +139,9 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
     max_execution_services: int | None = Field(default=None, ge=1)
     max_concurrent_actions: int | None = Field(default=None, ge=1)
     resource_budgets: ParticipantResourceBudgetCapabilitiesModel | None = None
+    invocation_tool_actions: ParticipantInvocationToolActionCapabilitiesModel | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     constraints: dict[str, str] = Field(default_factory=dict)
 
     @model_validator(mode="after")
@@ -164,6 +171,11 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
         self._validate_autonomous_configuration()
         self._validate_autonomous_addresses()
         self._validate_execution_control()
+        validate_invocation_tool_action_claim(
+            self.invocation_tool_actions,
+            supports_autonomous_execution=self.supports_autonomous_execution,
+            supports_tool_affordances=self.tool_profiles is not None,
+        )
         return self
 
     def _validate_supported_feature_levels(self) -> None:

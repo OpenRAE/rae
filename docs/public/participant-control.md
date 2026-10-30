@@ -447,15 +447,23 @@ serialized or delivered. A monitor score is evidence or advice, never
 authorization. Missing labels, provenance, profile support, or a stable state
 cut fail closed.
 
-The companion DRAFT evaluation profile distinguishes honest and attack modes
+The companion evaluation profile distinguishes honest and attack modes
 and makes objectives, policy/monitor knowledge, adaptation, collusion, audit
 budgets, monitor correlation, interventions, memory, safety, usefulness, cost,
 uncertainty, and limitations explicit.
 
-This is design authority, not a delivered robustness claim. Runtime and
-backend enforcement, attack evaluations, monitor honesty, model alignment,
-private reasoning, and undeclared covert channels remain unclaimed. See the
-[issue #812 design record](https://github.com/OpenRAE/rae/issues/812).
+RAE now has a backend-neutral harness for seven finite cases.
+It exercises an honest baseline, permitted injection, a correlation negative control,
+exfiltration denial, adaptive denial with replay, handoff denial, and apparatus invalidation.
+A permitted attack can succeed without violating the selected policy.
+Apparatus invalidation is not a successful safety observation.
+
+The [evaluation evidence guide](https://github.com/OpenRAE/rae/blob/dev/docs/explain/reference/adversarial-control-evaluation.md)
+records exact source and configuration bindings, separate measures, reproduction, and unsupported conditions.
+RAE evaluation does not require a concrete backend implementation.
+Concrete backend claims still require their own exact realization evidence.
+These finite results establish no universal robustness, monitor honesty, model alignment,
+private-reasoning safety, opacity, bisimulation, or undeclared-channel control.
 
 ## Finite owner-qualified information flow profiles
 

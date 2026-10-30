@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import fnmatch
 import json
 import subprocess
@@ -9,7 +10,7 @@ from datetime import date
 from pathlib import Path
 
 import yaml
-from raes_contracts.errors import InvalidInputError
+from raes_contracts.errors import InvalidInputError, OperationalError
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -29,6 +30,8 @@ class PolicyFailure:
     rule_id: str
     message: str
     path: str | None = None
+    # tools/policy/exceptions.yaml cannot waive a failure with waivable=False (ADR-117 I9).
+    waivable: bool = True
 
     def render(self) -> str:
         if self.path:
@@ -55,6 +58,29 @@ def load_yaml(path: Path) -> dict:
             # Without a depth limit, the recursive composer stops at the interpreter recursion limit.
             raise InvalidInputError(f"{path.name} nests beyond the YAML parser depth") from exc
     return data or {}
+
+
+def read_repository_text(path: Path, rel_path: str) -> str:
+    """Read one repository text file; refuse text that is not UTF-8 or a file the host cannot read."""
+
+    try:
+        return path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise InvalidInputError(f"{rel_path} is not UTF-8 text") from exc
+    except OSError as exc:
+        raise OperationalError(f"{rel_path} could not be read") from exc
+
+
+def parse_python_source(path: Path, rel_path: str) -> ast.Module:
+    """Parse one Python file for a static check; refuse source that is not UTF-8 Python."""
+
+    source = read_repository_text(path, rel_path)
+    try:
+        return ast.parse(source, filename=rel_path)
+    except (SyntaxError, RecursionError, MemoryError) as exc:
+        # The parser reports invalid source with SyntaxError. Source that nests too deeply stops the
+        # AST conversion at the recursion limit or the parser at its fixed stack limit (MemoryError).
+        raise InvalidInputError(f"{rel_path} is not valid Python source") from exc
 
 
 def repo_path(value: str | Path) -> str:
@@ -97,6 +123,20 @@ def load_bounded_json_object(
         raise InvalidInputError(f"missing or unsafe repository artifact {rel_path!r}")
     if path.stat().st_size > max_bytes:
         raise InvalidInputError(f"{rel_path!r} exceeds the {max_bytes}-byte limit")
+    try:
+        text = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise InvalidInputError(f"{rel_path!r} is not valid UTF-8") from exc
+    return parse_bounded_json_object(text, rel_path)
+
+
+def parse_bounded_json_object(text: str, rel_path: str) -> dict[str, object]:
+    """Parse one JSON object with duplicate-key and integer-digit checks.
+
+    Raise ``InvalidInputError`` when the text is not JSON, has a duplicate key,
+    has an integer beyond the interpreter digit limit, nests beyond the decoder
+    depth or is not an object. ``rel_path`` names the source in messages.
+    """
 
     def object_without_duplicates(pairs: list[tuple[str, object]]) -> dict[str, object]:
         result: dict[str, object] = {}
@@ -114,13 +154,7 @@ def load_bounded_json_object(
             raise InvalidInputError(f"{rel_path!r} contains an integer beyond the digit limit") from exc
 
     try:
-        payload = json.loads(
-            path.read_text(encoding="utf-8"),
-            object_pairs_hook=object_without_duplicates,
-            parse_int=bounded_integer,
-        )
-    except UnicodeDecodeError as exc:
-        raise InvalidInputError(f"{rel_path!r} is not valid UTF-8") from exc
+        payload = json.loads(text, object_pairs_hook=object_without_duplicates, parse_int=bounded_integer)
     except json.JSONDecodeError as exc:
         raise InvalidInputError(
             f"{rel_path!r} is not valid JSON ({exc.msg} at line {exc.lineno} column {exc.colno})"
@@ -222,6 +256,9 @@ def apply_exceptions(
 
     remaining: list[PolicyFailure] = []
     for failure in failures:
+        if not failure.waivable:
+            remaining.append(failure)
+            continue
         waived = False
         for entry in exceptions:
             # An entry or field that this matching cannot read is malformed input, not a defect.
