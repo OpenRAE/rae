@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from functools import wraps
@@ -88,6 +89,10 @@ class RuntimeLifecycleMixin:
         self.close()
 
     def __del__(self) -> None:
+        if sys.is_finalizing():
+            # The execution adapter portal stops at exit, before finalization, so a close has no portal to run on.
+            # The runtime lease finalizer still releases the owner lock.
+            return
         engine = getattr(self, "_engine", None)
         if engine is not None and engine._owner() is None:
             # Cyclic garbage collection clears the weak owner reference of the engine before a finalizer runs.
