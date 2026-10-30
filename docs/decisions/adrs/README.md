@@ -280,3 +280,4 @@ adr-116-shared-exceptions-and-operational-logging
 | [114](adr-114-ifc-profile-variability-and-publication.md) | IFC Profile Variability and Publication | accepted | 2026-09-23 |
 | [115](adr-115-concrete-backends-owned-outside-raes.md) | Concrete Backends Are Owned Outside RAES | accepted | 2026-10-21 |
 | [116](adr-116-shared-exceptions-and-operational-logging.md) | Shared Exceptions and Operational Logging | accepted | 2026-10-28 |
+| [117](adr-117-ratcheted-structural-checks.md) | Ratcheted Structural Checks for Package Modules | accepted | 2026-10-30 |
