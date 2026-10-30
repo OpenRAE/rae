@@ -503,7 +503,8 @@
                             "nodes.runtime.datastore_services",
                             "nodes.runtime.platform_applications",
                             "nodes.runtime.forwarding_agents",
-                            "nodes.runtime.orchestration_authorities"
+                            "nodes.runtime.orchestration_authorities",
+                            "nodes.runtime.network_detection_engines.rule_sources"
                           ]
                         }
                       }
@@ -14904,6 +14905,14 @@
       "title": "RuntimeCapabilityPolicy",
       "type": "object"
     },
+    "RuntimeChildInventorySlot": {
+      "description": "Reviewed child-record membership; the owner is one top-level runtime record.",
+      "enum": [
+        "nodes.runtime.network_detection_engines.rule_sources"
+      ],
+      "title": "RuntimeChildInventorySlot",
+      "type": "string"
+    },
     "RuntimeCloudServiceLimit": {
       "additionalProperties": false,
       "description": "An optional native service limit, with explicit quantity and scope.",
@@ -28452,6 +28461,9 @@
             },
             {
               "$ref": "#/$defs/RuntimeInventorySlot"
+            },
+            {
+              "$ref": "#/$defs/RuntimeChildInventorySlot"
             },
             {
               "$ref": "#/$defs/DeclarationPresenceSlot"

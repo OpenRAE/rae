@@ -72,6 +72,12 @@ class RuntimeInventorySlot(StrEnum):
     ORCHESTRATION_AUTHORITIES = "nodes.runtime.orchestration_authorities"
 
 
+class RuntimeChildInventorySlot(StrEnum):
+    """Reviewed child-record membership; the owner is one top-level runtime record."""
+
+    NETWORK_DETECTION_RULE_SOURCES = "nodes.runtime.network_detection_engines.rule_sources"
+
+
 class DeclarationPresenceSlot(StrEnum):
     """Reviewed whole-declaration presence; the slot prefix names the owner section."""
 
@@ -98,7 +104,13 @@ NODE_PRESENCE_SLOT = "nodes.presence"
 class StructuralTarget(SDLModel):
     kind: Literal["structural"]
     owner: QualifiedReference
-    slot: Literal["nodes.presence"] | RuntimeInventorySlot | DeclarationPresenceSlot | ResourceConsumerSlot
+    slot: (
+        Literal["nodes.presence"]
+        | RuntimeInventorySlot
+        | RuntimeChildInventorySlot
+        | DeclarationPresenceSlot
+        | ResourceConsumerSlot
+    )
 
 
 class RuntimeInventoryAlternative(_SelectionMember):
@@ -179,16 +191,18 @@ AlternativeMember = (
 
 # Owner section, then candidate domain. Candidate domains are for navigation; semantic
 # admission further restricts inventory and consumer rows to the exact owner and family.
+# A child-inventory owner is a runtime record, so it resolves as a targetable reference.
 STRUCTURAL_TARGET_SPECS: dict[str, tuple[str, str]] = {
     NODE_PRESENCE_SLOT: ("nodes", "nodes"),
     **{slot.value: ("nodes", "targetable") for slot in RuntimeInventorySlot},
+    **{slot.value: ("targetable", "targetable") for slot in RuntimeChildInventorySlot},
     **{slot.value: (slot.value.split(".", 1)[0],) * 2 for slot in DeclarationPresenceSlot},
     **{slot.value: (slot.value.split(".", 1)[0], "nodes") for slot in ResourceConsumerSlot},
 }
 
 STRUCTURAL_MEMBER_KINDS: dict[str, tuple[str, ...]] = {
     "node-presence": (NODE_PRESENCE_SLOT,),
-    "runtime-inventory": tuple(slot.value for slot in RuntimeInventorySlot),
+    "runtime-inventory": tuple(slot.value for slot in (*RuntimeInventorySlot, *RuntimeChildInventorySlot)),
     "declaration-presence": tuple(slot.value for slot in DeclarationPresenceSlot),
     "resource-consumers": tuple(slot.value for slot in ResourceConsumerSlot),
 }
@@ -253,3 +267,29 @@ def selected_inventory_rows(
         for item in getattr(node.runtime, collection)
         if f"nodes.{owner}.runtime.{collection}.{getattr(item, spec.id_field)}" in selected
     ]
+
+
+def runtime_child_slot_collections(slot: RuntimeChildInventorySlot) -> tuple[str, str]:
+    """Return the top-level runtime collection and the child collection that *slot* names."""
+
+    collection, child = slot.value.removeprefix("nodes.runtime.").split(".")
+    return collection, child
+
+
+def selected_child_rows(
+    family: object, node: str, record_id: str, slot: RuntimeChildInventorySlot, references: list[str]
+) -> list[dict[str, Any]]:
+    """Resolve existing child records of one runtime record; preserve their authored order and content."""
+
+    collection, child = runtime_child_slot_collections(slot)
+    spec = next(item for item in RUNTIME_SERVICE_FAMILIES if item.collection_name == collection)
+    child_spec = next(item for item in spec.child_refs if item.collection_name == child)
+    record = next(
+        item for item in getattr(family.nodes[node].runtime, collection) if getattr(item, spec.id_field) == record_id
+    )
+    base = f"nodes.{node}.runtime.{collection}.{record_id}.{child}"
+    rows = {f"{base}.{getattr(item, child_spec.id_field)}": item for item in getattr(record, child)}
+    if not set(references).issubset(rows):
+        raise ValueError("inventory candidate is undefined or outside the target owner collection")
+    selected = set(references)
+    return [item.model_dump(mode="python", by_alias=True) for address, item in rows.items() if address in selected]

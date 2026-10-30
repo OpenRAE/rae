@@ -140,6 +140,7 @@ Existing reference alternatives retain their `reference` member form.
 | `nodes.runtime.platform_applications` | Runtime inventory member |
 | `nodes.runtime.forwarding_agents` | Runtime inventory member |
 | `nodes.runtime.orchestration_authorities` | Runtime inventory member |
+| `nodes.runtime.network_detection_engines.rule_sources` | Runtime inventory member |
 
 `present` MUST be a Boolean, without string or numeric coercion.
 An absent node alternative MUST NOT contain inventory selections.
@@ -160,10 +161,15 @@ An empty reference list selects no records in the collection.
 Omission does not assert forbidden presence, closed inventory, or runtime discovery.
 Unselected node fields and inventory collections remain unchanged.
 
+The `nodes.runtime.network_detection_engines.rule_sources` slot selects child records.
+Its owner MUST resolve to exactly one network detection engine, by its qualified runtime reference.
+Its references MUST identify rule sources of that engine.
+The selection replaces only the `rule_sources` list of that engine.
+
 The runtime family registry supplies stable collection identities.
 Only the explicit slot table grants variation write permission.
 Registration alone does not grant that permission.
-Packages, environment entries, filesystem entries, and nested collections are outside these slots.
+Packages, environment entries, filesystem entries, and other nested collections are outside these slots.
 
 A declaration presence member selects the whole owner declaration.
 An absent member removes that declaration only.
@@ -182,9 +188,11 @@ The owning resource validator decides if the selected rows are valid.
 All writes resolve against the unchanged family.
 Different values for the same canonical target MUST fail admission.
 The canonical target is `<owner section>.<owner name>.<slot field>`.
+The rule source target is the qualified engine reference, followed by `.rule_sources`.
 Node absence conflicts with other writes to that node or its descendants.
 Declaration absence conflicts with other writes to that declaration or its descendants.
 Coupled and separate inventory writes MUST agree when they address the same collection.
+A rule source write conflicts with an inventory write to the engine collection of the same node.
 Conflict detection MUST NOT depend on point identifiers or traversal order.
 Owned provenance follows retained records by stable identity after selection.
 Removed records carry their owned provenance out of the selected scenario.

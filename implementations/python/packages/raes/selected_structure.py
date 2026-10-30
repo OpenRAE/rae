@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from ._declarations import build_declaration_index
+from ._runtime_service_families import RUNTIME_SERVICE_FAMILIES
 from ._stateful_resource_references import consumer_node_name
 from .scenario import ExpandedScenario
 from .variation_structure import (
@@ -14,9 +15,12 @@ from .variation_structure import (
     DeclarationPresenceAlternative,
     NodePresenceAlternative,
     ResourceConsumersAlternative,
+    RuntimeChildInventorySlot,
     RuntimeInventoryAlternative,
     RuntimeInventorySlot,
     StructuralTarget,
+    runtime_child_slot_collections,
+    selected_child_rows,
     selected_inventory_rows,
 )
 
@@ -42,6 +46,37 @@ def structural_owner(family: object, reference: str, section: str = "nodes") -> 
     if len(owners) != 1:
         raise ValueError("structural target owner must resolve to exactly one declaration in the slot owner section")
     return owners[0]
+
+
+def runtime_record_owner(family: object, reference: str, slot: RuntimeChildInventorySlot) -> tuple[str, str]:
+    """Return the node and record id of the one top-level runtime record that *reference* names."""
+
+    collection, _child = runtime_child_slot_collections(slot)
+    index = build_declaration_index(family)
+    matches = [index.declaration_for(address) for address in index.resolve(reference)]
+    owners = [
+        item.model_tokens
+        for item in matches
+        if item is not None
+        and len(item.model_tokens) == 6
+        and item.model_tokens[0] == "nodes"
+        and item.model_tokens[2:4] == ("runtime", collection)
+    ]
+    if len(owners) != 1:
+        raise ValueError("structural target owner must resolve to exactly one runtime record in the slot collection")
+    _nodes, node, _runtime, _collection, position, id_field = owners[0]
+    return node, getattr(getattr(family.nodes[node].runtime, collection)[int(position)], id_field)
+
+
+def structural_target_path(family: object, target: StructuralTarget) -> WritePath:
+    """Return the canonical target path: the owner tokens, then the slot field."""
+
+    if isinstance(target.slot, RuntimeChildInventorySlot):
+        collection, child = runtime_child_slot_collections(target.slot)
+        node, record_id = runtime_record_owner(family, target.owner, target.slot)
+        return ("nodes", node, "runtime", collection, record_id, child)
+    section = STRUCTURAL_TARGET_SPECS[str(target.slot)][0]
+    return (section, structural_owner(family, target.owner, section), *str(target.slot).split(".")[1:])
 
 
 def structural_target_owner(family: object, target: StructuralTarget) -> tuple[str, str]:
@@ -71,16 +106,28 @@ def selected_consumer_rows(
     ]
 
 
+def _declaration_writes(
+    family: ExpandedScenario,
+    section: str,
+    owner: str,
+    member: DeclarationPresenceAlternative | ResourceConsumersAlternative,
+) -> dict[WritePath, object]:
+    if isinstance(member, DeclarationPresenceAlternative):
+        return {(section, owner, "presence"): member.present}
+    return {(section, owner, "consumers"): selected_consumer_rows(family, section, owner, member.consumers)}
+
+
 def structural_writes(
     family: ExpandedScenario,
     target: StructuralTarget,
     member: StructuralMember,
 ) -> dict[WritePath, object]:
+    if isinstance(target.slot, RuntimeChildInventorySlot):
+        path = structural_target_path(family, target)
+        return {path: selected_child_rows(family, path[1], path[4], target.slot, member.references)}
     section, owner = structural_target_owner(family, target)
-    if isinstance(member, DeclarationPresenceAlternative):
-        return {(section, owner, "presence"): member.present}
-    if isinstance(member, ResourceConsumersAlternative):
-        return {(section, owner, "consumers"): selected_consumer_rows(family, section, owner, member.consumers)}
+    if isinstance(member, (DeclarationPresenceAlternative, ResourceConsumersAlternative)):
+        return _declaration_writes(family, section, owner, member)
     writes: dict[WritePath, object] = {}
     if isinstance(member, NodePresenceAlternative):
         writes[("nodes", owner, "presence")] = member.present
@@ -103,5 +150,12 @@ def apply_structural_writes(payload: dict[str, Any], writes: dict[WritePath, obj
                     payload.get("infrastructure", {}).pop(owner, None)
         elif field == "consumers":
             payload[section][owner]["consumers"] = value
+        elif len(rest) == 3:
+            collection, record_id, child = rest
+            spec = next(item for item in RUNTIME_SERVICE_FAMILIES if item.collection_name == collection)
+            record = next(
+                item for item in payload["nodes"][owner][field][collection] if item[spec.id_field] == record_id
+            )
+            record[child] = value
         else:
             payload["nodes"][owner][field][rest[0]] = value
