@@ -43,6 +43,7 @@ class _ParticipantRuntimeMethodRequirements:
     coordinated_reset: bool
     execution_control: bool
     bounded_concurrency: bool
+    invocation_tool_actions: bool = False
 
 
 @dataclass(frozen=True)
@@ -66,6 +67,7 @@ def _participant_runtime_method_requirements(manifest: BackendManifest) -> _Part
         coordinated_reset=bool(manifest.time and manifest.time.supports_coordinated_participant_reset),
         execution_control=bool(capability and capability.supports_execution_control),
         bounded_concurrency=bool(capability and capability.supports_bounded_concurrency),
+        invocation_tool_actions=bool(capability and capability.invocation_tool_actions is not None),
     )
 
 
@@ -354,6 +356,13 @@ def _validate_participant_runtime_methods(
                 sample_snapshot,
                 2,
             ),
+        )
+    if requirements.invocation_tool_actions:
+        _require_invokable_method(
+            participant_runtime,
+            label="participant_runtime",
+            method_name="attach_invocation_tool_actions",
+            invocation_args=(object(),),
         )
 
 

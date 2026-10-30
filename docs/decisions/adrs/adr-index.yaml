@@ -522,8 +522,11 @@ adrs:
     pin: c2a0e6ac9fb87aa10fbb571b0f70efe0b99520b806f6ffe706f1556b0ec7e84b
   - id: ADR-092
     path: docs/decisions/adrs/adr-092-autonomous-benign-participants-under-shared-time.md
-    pin: 53c3e77d830859eaf873454da7177cdcc94d302a9456d8a5568eebc33dc6329e
+    pin: 581f482d75d74f40f5cc1e395c0015d61d1dc4f11ede86b0555b80e8fc33626b
     amendments:
+      - date: 2026-10-30
+        ref: "#1740"
+        summary: "Added versioned participant tool actions hosted inside an active autonomous invocation."
       - date: 2026-09-21
         ref: "#216"
         summary: "Made backend features conditional and added explicit bounded deadline/dwell admission, evidence, and lifecycle rules."

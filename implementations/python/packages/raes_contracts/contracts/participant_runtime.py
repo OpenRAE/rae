@@ -234,6 +234,20 @@ class ParticipantActivityOccurrenceProvenanceModel(ContractModel):
     terminal_outcome: NonEmptyString
 
 
+class ParticipantInvocationToolContextModel(ContractModel):
+    """Issue #1740 correlation of one tool action with its enclosing autonomous invocation."""
+
+    semantics: Literal["participant-invocation-tool-actions/v1"]
+    invocation_action_instance_id: NonEmptyString
+    invocation_action_contract_address: NonEmptyString
+    tool_affordance_address: NonEmptyString
+    tool_call_id: str = Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
+    admission_ordinal: StrictInt = Field(ge=0)
+    settlement: Literal["completed", "withheld", "indeterminate"]
+    execution_scope_ref: NonEmptyString
+    execution_generation: StrictInt = Field(ge=0)
+
+
 class ParticipantBehaviorHistoryEventModel(ContractModel):
     event_type: ParticipantBehaviorHistoryEventType
     timestamp: NonEmptyString
@@ -264,6 +278,9 @@ class ParticipantBehaviorHistoryEventModel(ContractModel):
         default_factory=list, exclude_if=lambda value: not value
     )
     activity_provenance: ParticipantActivityOccurrenceProvenanceModel | None = None
+    invocation_tool_context: ParticipantInvocationToolContextModel | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     details: ParticipantObservationDetailsModel = Field(default_factory=ParticipantObservationDetailsModel)
 
     @model_validator(mode="after")
@@ -278,6 +295,9 @@ class ParticipantBehaviorHistoryEventModel(ContractModel):
         )
         if messages:
             raise ValueError(messages[0])
+        context = self.invocation_tool_context
+        if context is not None and context.invocation_action_instance_id == self.action_instance_id:
+            raise ValueError("a tool action cannot share its enclosing invocation's action instance id")
         return self
 
 

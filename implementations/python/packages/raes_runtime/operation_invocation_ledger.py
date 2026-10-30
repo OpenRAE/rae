@@ -26,6 +26,7 @@ from raes_contracts.runtime_state import OperationState
 
 from .operation_temporal import EngineDeliveryBinding
 from .operation_transcript_policy import AUTOMATIC_CONTROL_LIMIT, require_transcript_capacity
+from .participant_invocation_tool_claims import invocation_tool_child_of
 from .record_immutability import immutable_value_error
 
 if TYPE_CHECKING:
@@ -179,6 +180,7 @@ def supervised_claim_conflicts(new: ControlPlaneOperationRecord, records: object
         and record.invocation.reserved
         and record.receipt.operation_id != new.receipt.operation_id
         and not any(valid_reconciliation_child(record, child) for child in records)
+        and not invocation_tool_child_of(record, new)
         and (record.status.context.target_scope, record.status.context.run_scope)
         == (context.target_scope, context.run_scope)
         for record in records

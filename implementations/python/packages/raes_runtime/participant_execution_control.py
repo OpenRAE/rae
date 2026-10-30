@@ -4,24 +4,208 @@ from __future__ import annotations
 
 import threading
 from collections.abc import Callable
+from dataclasses import dataclass, replace
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
+from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.contracts import ParticipantActionResultModel, ParticipantAutonomousExecutionStateModel
 from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.errors import ConflictError
+from raes_contracts.errors import ConflictError, OperationalError
 from raes_contracts.participant_episode import ParticipantEpisodeResetRequest
-from raes_contracts.runtime_state import ApplyResult, OperationKind, RuntimeSnapshot
+from raes_contracts.participant_tool_actions import ParticipantToolActionRequest, ParticipantToolActionSettlement
+from raes_contracts.planning import RuntimeDomain
+from raes_contracts.runtime_state import (
+    ApplyResult,
+    OperationAdmissionContext,
+    OperationKind,
+    OperationReceipt,
+    OperationState,
+    OperationStatus,
+    RuntimeSnapshot,
+)
 
 from .backend_calls import _BackendCallContext, _RealizationApplyContext
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_mutation import control_plane_mutation
+from .control_plane_store import ControlPlaneOperationRecord, NewClaimRejected, TerminalCommitMode
+from .control_plane_store_revision import SnapshotRevisionConflict
 from .diagnostics import _has_error_diagnostic
+from .interaction_dispatch import ComposedOperation
 from .participant_clock_driver import ParticipantClockDriver
+from .participant_invocation_tool_actions import InvocationToolActionConfiguration
+from .participant_invocation_tool_claims import (
+    TOOL_ACTION_IDEMPOTENCY_PREFIX,
+    TOOL_ACTION_RECORD_KIND,
+    TOOL_ADMISSION_PARENT_NOT_LIVE,
+    TOOL_ADMISSION_STOPPED,
+    TOOL_ADMISSION_UNRESOLVED,
+)
 
 if TYPE_CHECKING:
     from raes_processor.models import ExecutionPlan
 
     from .manager import _RuntimeApplyState
+
+
+# Issue #1740: each tool action of an autonomous invocation is one child
+# control-plane operation record of the enclosing due operation. Admission
+# claims an accepted record, the one-use dispatch grant moves it to running, and
+# settlement commits a terminal record with an actor audit. Every write completes
+# before the port answers, so the selected store retains claims, consumed grants
+# and uncertainty across restart. Startup reconciliation classifies a
+# non-terminal record; RAES never repeats the tool effect.
+_TERMINAL_STATES = {
+    ParticipantToolActionSettlement.COMPLETED: OperationState.SUCCEEDED,
+    ParticipantToolActionSettlement.WITHHELD: OperationState.CANCELLED,
+    ParticipantToolActionSettlement.INDETERMINATE: OperationState.INDETERMINATE,
+}
+_REVISION_RETRIES = 3
+
+
+def _now_iso() -> str:
+    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
+
+
+def _request_payload(request: ParticipantToolActionRequest) -> dict[str, object]:
+    return {
+        "kind": TOOL_ACTION_RECORD_KIND,
+        "tool_call_id": request.tool_call_id,
+        "invocation_action_instance_id": request.invocation_action_instance_id,
+        "participant_address": request.participant_address,
+        "episode_id": request.episode_id,
+        "participant_implementation_ref": request.participant_implementation_ref,
+        "tool_affordance_address": request.tool_affordance_address,
+        "action_contract_address": request.action_contract_address,
+        "observation_boundary_address": request.observation_boundary_address,
+        "target_addresses": list(request.target_addresses),
+        "execution_scope_ref": request.execution_scope_ref,
+        "execution_generation": request.execution_generation,
+    }
+
+
+@dataclass(frozen=True)
+class InvocationToolActionLedger:
+    """Write child operation records for one enclosing due operation."""
+
+    store: object
+    parent_operation_id: str
+    parent_context: OperationAdmissionContext
+    engine_admission: Callable[[], None] | None = None
+
+    def effect_admission_refusal(self) -> str | None:
+        """Return why the store refuses new tool effects now, or ``None``.
+
+        The enclosing operation must still be live, effect admission must be
+        open, and the run must hold no unresolved indeterminate operation. The
+        check reads the store, not a cached record cut.
+        """
+
+        from .control_plane_recovery import unresolved_indeterminate_operation_ids_from_records
+
+        if self.engine_admission is not None:
+            try:
+                self.engine_admission()
+            # The engine refuses a stopped, closing or retired owner exactly as for ordinary claims.
+            except ConflictError, OperationalError:
+                return TOOL_ADMISSION_STOPPED
+        records = self.store.load_records()
+        parent = records.get(self.parent_operation_id)
+        stopped = getattr(self.store, "effect_admission_stopped", None)
+        if parent is None or parent.status.state not in {OperationState.ACCEPTED, OperationState.RUNNING}:
+            return TOOL_ADMISSION_PARENT_NOT_LIVE
+        if callable(stopped) and stopped():
+            return TOOL_ADMISSION_STOPPED
+        if unresolved_indeterminate_operation_ids_from_records(
+            records, target_scope=self.parent_context.target_scope, run_scope=self.parent_context.run_scope
+        ):
+            return TOOL_ADMISSION_UNRESOLVED
+        return None
+
+    def record_admission(
+        self,
+        action_instance_id: str,
+        request: ParticipantToolActionRequest,
+        admitted_at: str,
+    ) -> ControlPlaneOperationRecord:
+        """Claim the accepted child record before the port returns its decision."""
+
+        payload = _request_payload(request)
+        context = OperationAdmissionContext(
+            actor_id=self.parent_context.actor_id,
+            authorization_scope=self.parent_context.authorization_scope,
+            target_scope=self.parent_context.target_scope,
+            run_scope=self.parent_context.run_scope,
+            operation_kind=OperationKind.PARTICIPANT_ACTION,
+            request_commitment=canonical_json_digest(payload),
+            parent_operation_id=self.parent_operation_id,
+        )
+        record = ControlPlaneOperationRecord(
+            receipt=OperationReceipt(
+                operation_id=action_instance_id,
+                domain=RuntimeDomain.PARTICIPANT,
+                submitted_at=admitted_at,
+                accepted=True,
+                context=context,
+            ),
+            status=OperationStatus(
+                operation_id=action_instance_id,
+                domain=RuntimeDomain.PARTICIPANT,
+                state=OperationState.ACCEPTED,
+                submitted_at=admitted_at,
+                updated_at=admitted_at,
+                context=context,
+            ),
+            request_fingerprint=context.request_commitment,
+            idempotency_key=TOOL_ACTION_IDEMPOTENCY_PREFIX + action_instance_id,
+            result_payload=payload,
+        )
+        return self.store.claim_record(record)
+
+    def record_dispatch(self, record: ControlPlaneOperationRecord) -> ControlPlaneOperationRecord:
+        """Persist the consumed one-use grant before the port returns it."""
+
+        running = replace(
+            record,
+            status=replace(record.status, state=OperationState.RUNNING, updated_at=_now_iso()),
+        )
+        self.store.save_record(running)
+        return running
+
+    def record_settlement(
+        self,
+        record: ControlPlaneOperationRecord,
+        settlement: ParticipantToolActionSettlement,
+        action_result: ParticipantActionResultModel,
+    ) -> ControlPlaneOperationRecord:
+        """Commit the terminal child record and its actor audit; the snapshot does not change."""
+
+        terminal = replace(
+            record,
+            status=replace(record.status, state=_TERMINAL_STATES[settlement], updated_at=_now_iso()),
+            result_payload={
+                **(record.result_payload or {}),
+                "settlement": settlement.value,
+                "action_result": action_result.model_dump(mode="json", exclude_none=True),
+            },
+        )
+        retries = _REVISION_RETRIES
+        while True:
+            state = self.store.load_snapshot_state()
+            try:
+                self.store.commit_terminal_operation(
+                    state.snapshot,
+                    terminal,
+                    mode=TerminalCommitMode.OPERATION_ONLY,
+                    expected_revision=state.revision,
+                )
+            except SnapshotRevisionConflict:
+                # A concurrent supervisory cut advanced the revision; this commit changes no snapshot.
+                retries -= 1
+                if retries == 0:
+                    raise
+            else:
+                return terminal
 
 
 class RuntimeParticipantExecutionMixin:
@@ -87,7 +271,7 @@ class RuntimeParticipantExecutionMixin:
         result = self._participant_scheduler_call(
             "initialize",
             state.working_snapshot,
-            lambda predecessor, _cancellation_sink: self._participant_scheduler.initialize(
+            lambda predecessor, _cancellation_sink, _operation: self._participant_scheduler.initialize(
                 policies,
                 execution_plan.model.time_model,
                 self._target.participant_runtime,
@@ -114,13 +298,14 @@ class RuntimeParticipantExecutionMixin:
         due = self._participant_scheduler_call(
             "start",
             state.working_snapshot,
-            lambda predecessor, cancellation_sink: self._participant_scheduler.run_due(
+            lambda predecessor, cancellation_sink, operation: self._participant_scheduler.run_due(
                 self._participant_execution_policies,
                 execution_plan.model.time_model,
                 self._target.participant_runtime,
                 predecessor,
                 self._participant_activity_controls,
                 cancellation_sink=cancellation_sink,
+                invocation_tools=self._invocation_tool_configuration(operation),
             ),
             idempotency_key=state.phase_key,
             identity=state.identity,
@@ -135,31 +320,63 @@ class RuntimeParticipantExecutionMixin:
             result = self._participant_scheduler_call(
                 "due",
                 self._snapshot,
-                lambda predecessor, cancellation_sink: self._participant_scheduler.run_due(
+                lambda predecessor, cancellation_sink, operation: self._participant_scheduler.run_due(
                     self._participant_execution_policies,
                     self._participant_execution_time_model,
                     self._target.participant_runtime,
                     predecessor,
                     self._participant_activity_controls,
                     cancellation_sink=cancellation_sink,
+                    invocation_tools=self._invocation_tool_configuration(operation),
                 ),
             )
             return result
+
+    def _invocation_tool_configuration(self, operation: ComposedOperation) -> InvocationToolActionConfiguration | None:
+        """Return the claimed tool-action composition for one enclosing due operation.
+
+        Tool actions persist as child records of ``operation`` in the selected store.
+        An installed crossing policy refuses the composition.
+        """
+
+        return InvocationToolActionConfiguration.from_manifest(
+            self._target.manifest.participant_runtime,
+            ledger=InvocationToolActionLedger(
+                store=self._store,
+                parent_operation_id=operation.operation_id,
+                parent_context=operation.context,
+                engine_admission=self._tool_engine_admission,
+            ),
+            crossing_installed=getattr(self, "_crossing_policy_resolver", None) is not None,
+        )
+
+    def _tool_engine_admission(self) -> None:
+        """Apply the owner's effect-admission checks to a hosted tool claim or grant.
+
+        The engine reservation is idempotent for the run that already holds it and
+        refuses a stopped, closing or retired owner. The run's own stop flag also refuses.
+        """
+
+        if getattr(self, "_effect_admission_stopped", False):
+            raise NewClaimRejected("runtime effect admission is closed")
+        engine = getattr(self, "_engine", None)
+        if engine is not None:
+            engine.reserve(self)
 
     def _participant_scheduler_call(
         self,
         phase: str,
         predecessor: RuntimeSnapshot,
-        method: Callable[[RuntimeSnapshot, Callable[[ApplyResult], None]], ApplyResult],
+        method: Callable[[RuntimeSnapshot, Callable[[ApplyResult], None], ComposedOperation], ApplyResult],
         *,
         idempotency_key: str = "",
         identity: object | None = None,
     ) -> ApplyResult:
         """Run one scheduler phase as a composition operation.
 
-        The method receives the predecessor and a sink for the state it settled
-        before a cancellation; the operation commits that state, then the
-        cancellation propagates.
+        The method receives the predecessor, a sink for the state it settled
+        before a cancellation, and the enclosing operation. The operation commits
+        the sunk state, then the cancellation propagates.
         """
 
         return self._interaction_backend_call(
@@ -170,6 +387,7 @@ class RuntimeParticipantExecutionMixin:
             realization=_RealizationApplyContext(effect_owners=frozenset({"participant"})),
             call=_BackendCallContext(information_state_context_resolver=self._information_state_context_resolver),
             runtime_composition=True,
+            operation_aware=True,
             idempotency_key=idempotency_key,
             identity=identity,
         )
@@ -329,4 +547,4 @@ class RuntimeParticipantExecutionMixin:
         self._participant_clock_driver = None
 
 
-__all__ = ["RuntimeParticipantExecutionMixin"]
+__all__ = ["InvocationToolActionLedger", "RuntimeParticipantExecutionMixin"]
