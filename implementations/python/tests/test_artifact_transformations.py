@@ -463,6 +463,7 @@ def test_artifact_transformation_conformance_corpus() -> None:
         "refuse-collision",
         "remove-with-explicit-loss",
         "rename-composed-reference",
+        "rename-nested-references",
         "rename-references",
     }
 
