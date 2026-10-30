@@ -76,6 +76,8 @@ class BaseRevision(Protocol):
 
     def sources_changed(self, roots: Sequence[str]) -> bool: ...
 
+    def adoption(self, roots: Sequence[str]) -> BaseRevision | None: ...
+
 
 class GitBaseRevision:
     """Read the base revision from the Git object store of the checkout."""
@@ -89,6 +91,10 @@ class GitBaseRevision:
 
     def sources_changed(self, roots: Sequence[str]) -> bool:
         return package_sources_changed(self._repo_root, self.revision, roots)
+
+    def adoption(self, roots: Sequence[str]) -> GitBaseRevision | None:
+        commit = adoption_commit(self._repo_root, roots)
+        return None if commit is None else GitBaseRevision(self._repo_root, commit)
 
 
 def validate_git_revision(value: str) -> str:
@@ -140,6 +146,20 @@ def package_sources_changed(repo_root: Path, base_rev: str, roots: Sequence[str]
     changed = _git(repo_root, ["diff", "--name-only", "--end-of-options", revision, "--", *roots])
     untracked = _git(repo_root, ["ls-files", "--others", "--exclude-standard", "--", *roots])
     return bool(changed.strip() or untracked.strip())
+
+
+def adoption_commit(repo_root: Path, roots: Sequence[str]) -> str | None:
+    """Return the newest commit in the history of ``HEAD`` that adds the baseline (ADR-117 I6).
+
+    Return None when no commit adds it or when that commit also changes a file under ``roots``.
+    """
+
+    added = _git(repo_root, ["log", "-1", "--format=%H", "--diff-filter=A", "HEAD", "--", STRUCTURAL_BASELINE_PATH])
+    commit = added.strip()
+    if not commit:
+        return None
+    changed = _git(repo_root, ["diff-tree", "-r", "--root", "--no-commit-id", "--name-only", commit, "--", *roots])
+    return None if changed.strip() else commit
 
 
 def _git(repo_root: Path, args: list[str]) -> str:

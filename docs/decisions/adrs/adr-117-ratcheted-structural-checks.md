@@ -81,7 +81,8 @@ Each check records the current findings as exact identities:
 - **I3** Each ignored `raes-sibling-cycles` import is on a cycle in the graph without ignored imports.
 - **I4** Each cyclic component of each package equals one baseline component. Thus a new cycle through an ignored import fails.
 - **I5** Under `--base-rev`, each baseline is a subset of the baseline at the base revision, and no count increases. Without it, the comparison uses `HEAD`. CI supplies the base revision.
-- **I6** When a baseline is absent at the base revision, the gate accepts it only if no file under the package roots changed. Then I1 and I2 make it equal to the findings of the base revision.
+- **I6** When a baseline is absent at the base revision, the adoption commit bounds it as in I5. The adoption commit is the newest commit in the history of `HEAD` that adds the baseline and changes no file under the package roots.
+  Without an adoption commit, the gate accepts the baseline only if no file under the package roots changed. Then I1 and I2 make it equal to the findings of the base revision.
 - **I7** The analysis record in the baseline equals the installed analyzer versions and the configured options.
 - **I8** A missing analyzer, unreadable or unsafe source, or an unresolved package base class fails the gate. It never gives an empty set of findings.
 - **I9** `tools/policy/exceptions.yaml` cannot waive a structural finding.
@@ -130,3 +131,9 @@ Pull request review defends against a deliberate change to them.
 
 - The checks do not see dynamic imports, such as `importlib.import_module`, or attribute access.
 - grimp can nominate an import that is not on a cycle. I3 keeps such imports out of the baseline.
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+| --- | --- | --- |
+| 2026-10-30 | #1752 | I6: the adoption commit bounds a baseline that is absent at the base revision. Thus a dev to main promotion can pass. |

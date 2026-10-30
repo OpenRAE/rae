@@ -59,7 +59,8 @@ flowchart TB
 | New finding, or a count above the baseline | Failure with the identity, the file and the fix |
 | Baseline entry without a current finding | `structural-baseline-stale`, which names the entry to remove |
 | Baseline larger than at the base revision | `structural-baseline-grown` |
-| Baseline absent at the base, and package files changed | `structural-baseline-bootstrap` |
+| Baseline absent at the base, and no adoption commit in the history | `structural-baseline-bootstrap` when package files changed |
+| Baseline absent at the base, and larger than at the adoption commit | `structural-baseline-grown` |
 | Analysis record differs from the analyzers and options | `structural-baseline-analysis` |
 | Malformed configuration or baseline | `policy-config-malformed` |
 | Missing analyzer, unsafe path, unreadable source, unresolved base | Failure or `OperationalError`/`InvalidInputError`; exit status 1 |
