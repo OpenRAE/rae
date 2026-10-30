@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
 from raes_contracts.realization_structure import validate_realization_value
-from raes_contracts.runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
+from raes_contracts.runtime_value_limits import PLAN_VALUE_LIMITS, RUNTIME_SNAPSHOT_VALUE_LIMITS
 
 from .backend_realization_authority import _RealizationApplyContext
 
@@ -23,6 +23,8 @@ def backend_input_violation(
 ) -> str | None:
     """Bound value carriers without traversing injected service dependencies."""
 
+    # Compiled realization authority comes from the runtime context, never from backend-supplied arguments.
+    plan_scale = {id(authority.requirements)} if authority is not None else set()
     if authority is not None:
         arguments = (
             *arguments,
@@ -38,13 +40,14 @@ def backend_input_violation(
         and not any(value is service for service in service_dependencies)
     }
     for value in values.values():
+        is_plan = isinstance(value, (ProvisioningPlan, OrchestrationPlan, EvaluationPlan))
         if not validate_realization_value(
             value,
-            limits=RUNTIME_SNAPSHOT_VALUE_LIMITS,
+            limits=PLAN_VALUE_LIMITS if is_plan or id(value) in plan_scale else RUNTIME_SNAPSHOT_VALUE_LIMITS,
             python_carriers=True,
         ).conformant:
             return "Backend call input exceeds the admitted portable value bounds."
-        if isinstance(value, (ProvisioningPlan, OrchestrationPlan, EvaluationPlan)):
+        if is_plan:
             invalid = _operation_plan_violation(value)
             if invalid:
                 return invalid
