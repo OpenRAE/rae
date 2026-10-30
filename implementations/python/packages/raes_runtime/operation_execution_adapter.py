@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from contextlib import AbstractContextManager
 from functools import partial
 from os import getpid
 from threading import BoundedSemaphore, Condition, Lock
 from time import monotonic
 from typing import Literal, NamedTuple, cast
+from weakref import finalize
 
 import anyio
-from anyio.from_thread import start_blocking_portal
+from anyio.from_thread import BlockingPortal, start_blocking_portal
 from raes_contracts.errors import OperationalError
 from raes_contracts.operational_logging import get_logger
 
@@ -37,6 +39,12 @@ def _capture_callback(method: Callable[[], object]) -> _CallbackOutcome:
             # Ordinary failures use AnyIO's existing exception propagation.
             raise
         return _CallbackOutcome(None, error)
+
+
+def _stop_portal(portal: BlockingPortal, portal_context: AbstractContextManager[BlockingPortal]) -> None:
+    portal.call(portal.stop, True)
+    # The stopped portal refuses the stop of the context exit, and the exit then joins the portal thread.
+    portal_context.__exit__(None, None, None)
 
 
 def require_budget_ms(value: object) -> int:
@@ -98,6 +106,9 @@ class LocalExecutionAdapter:
         self._slots = {lane: BoundedSemaphore(value) for lane, value in capacities.items()}
         self._portal_context = start_blocking_portal(name="runtime-execution")
         self._portal = self._portal_context.__enter__()
+        # The portal thread is a daemon, and interpreter finalization stops it. An adapter that its owner does not close
+        # stops the portal at collection or at exit, before finalization, so that no portal stop waits on that thread.
+        self._portal_stop = finalize(self, _stop_portal, self._portal, self._portal_context)
         self._limiters = self._portal.call(self._create_limiters, capacities)
 
     @staticmethod
@@ -222,7 +233,7 @@ class LocalExecutionAdapter:
                     return False
                 self._closed = True
         if close_portal:
-            self._portal_context.__exit__(None, None, None)
+            self._portal_stop()
         return True
 
 
