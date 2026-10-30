@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 from raes_contracts.backend_profiles import (
+    BackendProfileIdentityError,
     BackendProfileModel,
     backend_profile_path,
     backend_profiles_root,
@@ -132,7 +133,7 @@ def test_load_backend_profile_from_path_rejects_identity_mismatch(tmp_path: Path
         encoding="utf-8",
     )
 
-    with pytest.raises(ValueError, match="full-remote-control-plane"):
+    with pytest.raises(BackendProfileIdentityError, match="full-remote-control-plane"):
         load_backend_profile_from_path("provisioning-only", path)
 
 

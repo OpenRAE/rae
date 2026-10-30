@@ -20,6 +20,7 @@ from raes_contracts.domain_profiles import (
     DomainProfileBindingUse,
     DomainProfileCoordinateModel,
 )
+from raes_contracts.errors import InvalidInputError, OperationalError
 from raes_contracts.planning import ChangeAction, RuntimeDomain
 from raes_processor.reconciliation_demonstration import (
     PLANNED_STATE_PROJECTION,
@@ -480,6 +481,31 @@ def test_reconcile_invalid_candidate_sdl_is_reported_against_its_own_path(tmp_pa
     assert result.exit_code == 1
     assert result.stdout.strip() == ""
     assert "broken-candidate.sdl.yaml" in result.stderr
+
+
+@pytest.mark.parametrize(
+    ("error", "expected"),
+    [
+        (InvalidInputError, "SDL compilation failed (InvalidInputError)"),
+        (OperationalError, "an SDL module import could not be fetched or cached (OperationalError)"),
+    ],
+)
+def test_reconcile_reports_an_unattributed_refusal_without_values(
+    monkeypatch: pytest.MonkeyPatch, error: type[Exception], expected: str
+) -> None:
+    import raes_cli.processor as processor_commands
+
+    def _refuse(*_args: object, **_kwargs: object) -> None:
+        raise error("observation scope does not resolve: SECRETMARKER")
+
+    monkeypatch.setattr(processor_commands, "reconcile_scenario_versions", _refuse)
+    result = _invoke(str(_BASELINE), str(_CANDIDATE), "--format", "json")
+
+    assert result.exit_code == 1
+    assert result.stdout.strip() == ""
+    assert "could not reconcile" in result.stderr
+    assert expected in result.stderr
+    assert "SECRETMARKER" not in result.output
 
 
 def test_reconcile_requires_explicit_format() -> None:

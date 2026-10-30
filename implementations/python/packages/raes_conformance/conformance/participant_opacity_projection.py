@@ -12,6 +12,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import cast
 
+from pydantic import ValidationError
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.participant_crossing import ParticipantOpacityRuntimeEnforcementBindingModel
 from raes_contracts.runtime_state import OperationState
@@ -257,7 +258,7 @@ def _case_profile_binding(
     if isinstance(payload, Mapping):
         try:
             binding = ParticipantOpacityRuntimeEnforcementBindingModel.model_validate(payload)
-        except ValueError:
+        except ValidationError:
             binding = None
     expected = (case.profile_id, case.profile_revision, case.profile_digest)
     if (

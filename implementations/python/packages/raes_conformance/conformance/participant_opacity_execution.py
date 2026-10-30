@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as distribution_version
 
+from pydantic import ValidationError
 from pydantic_core import to_jsonable_python
 from raes_contracts.canonical import canonical_json_digest, jsonable_fallback
 from raes_contracts.contracts.participant_crossing import (
@@ -25,6 +26,8 @@ from raes_contracts.contracts.participant_crossing import (
     ParticipantOpacityRuntimeSupportModel,
 )
 from raes_contracts.contracts.participant_crossing_validation import validate_participant_crossing_occurrence_context
+from raes_contracts.errors import AuthorizationError, EvidenceIntegrityError, InvalidInputError, RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.participant_opacity_runtime import validate_participant_opacity_runtime_enforcement
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.registry import RuntimeTarget
@@ -39,6 +42,7 @@ from raes_conformance.conformance.participant_opacity_types import (
 )
 from raes_conformance.conformance.participant_policy_execution import _CallCounter, _instrumented_target
 
+_LOGGER = get_logger(__name__)
 _TOOL_REVISION = "participant-opacity-observed/rev2"
 
 
@@ -108,6 +112,9 @@ class _Governed:
         try:
             observed = call()
         except Exception as exc:
+            if not isinstance(exc, RaesError):
+                # Isolation of the backend runtime: a refusal category of the runtime needs no record.
+                _LOGGER.exception("participant opacity governed operation failed", exc_info=foreign_failure_record(exc))
             self._failures.append(f"{label}: {sanitized_failure_message(exc)}")
             return None
         calls = tuple(self._counter.called_methods[calls_before:]) if self._counter is not None else ()
@@ -132,7 +139,7 @@ def _admit(plane: RuntimeControlPlane, case: ParticipantOpacityProbeCase) -> dic
 def _egress(plane: RuntimeControlPlane, case: ParticipantOpacityProbeCase) -> dict[str, object]:
     """Request the participant view at a governed delivery opportunity.
 
-    ``PermissionError`` is the runtime's refusal signal for this route. It is
+    ``AuthorizationError`` is the runtime's refusal signal for this route. It is
     recorded only as a refusal here; the judging half accepts it as withholding
     only when the runtime also committed the withheld delivery attempt.
     """
@@ -144,7 +151,7 @@ def _egress(plane: RuntimeControlPlane, case: ParticipantOpacityProbeCase) -> di
             crossing_evidence=case.crossing_evidence,  # type: ignore[arg-type]
             idempotency_key=f"{case.idempotency_key}-egress",
         )
-    except PermissionError:
+    except AuthorizationError:
         return {"result": "refused"}
     return {"result": "view"}
 
@@ -168,10 +175,13 @@ def _readback(
     try:
         readback = harness.backend_readback(target, case, request)
         if not isinstance(readback, ParticipantOpacityBackendReadback):
-            raise TypeError("backend readback must be a ParticipantOpacityBackendReadback")
+            raise InvalidInputError("backend readback must be a ParticipantOpacityBackendReadback")
         if readback.request != request:
-            raise ValueError("backend readback does not answer this collection request")
+            raise InvalidInputError("backend readback does not answer this collection request")
     except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Isolation of the harness: a refusal category needs no record.
+            _LOGGER.exception("participant opacity backend readback failed", exc_info=foreign_failure_record(exc))
         failures.append(f"backend readback: {sanitized_failure_message(exc)}")
         return None
     return readback
@@ -204,7 +214,7 @@ def _rejoin_opacity_bindings(
             continue
         support = next((item for item in supports if item.binding == binding), None)
         if support is None:
-            raise ValueError("committed opacity binding has no trusted runtime support")
+            raise EvidenceIntegrityError("committed opacity binding has no trusted runtime support")
         validate_participant_opacity_runtime_enforcement(
             binding,
             support=support,
@@ -227,10 +237,18 @@ def _validated_history(
     """
 
     try:
+        context = point.resolver.validation_context(plane.snapshot, participant_address)  # type: ignore[attr-defined]
+    except Exception as exc:
+        if not isinstance(exc, TypeError | ValueError | RaesError):
+            # Isolation of the host-installed crossing resolver. The resolver protocol refuses with
+            # TypeError or ValueError (rule E4), and a refusal needs no record.
+            _LOGGER.exception("participant opacity validation context failed", exc_info=foreign_failure_record(exc))
+        failures.append(f"committed history: {sanitized_failure_message(exc)}")
+        return False, ()
+    try:
         records = [
             ParticipantCrossingOccurrenceModel.model_validate(entry) for entry in _history(plane, participant_address)
         ]
-        context = point.resolver.validation_context(plane.snapshot, participant_address)  # type: ignore[attr-defined]
         validate_participant_crossing_occurrence_context(
             records,
             known_subjects=context.known_subjects,
@@ -240,7 +258,9 @@ def _validated_history(
         )
         supports = tuple(context.opacity_enforcement_supports)
         _rejoin_opacity_bindings(records, supports)
-    except Exception as exc:
+    except (ValidationError, ValueError, RaesError) as exc:
+        # The published contract validators refuse with ValueError (rule E3), and a damaged
+        # packaged authority or an unsupported binding raises a RaesError category.
         failures.append(f"committed history: {sanitized_failure_message(exc)}")
         return False, ()
     return True, supports

@@ -11,6 +11,7 @@ from raes_contracts.contracts.participant_crossing import (
 from raes_contracts.contracts.participant_crossing_validation import (
     validate_participant_crossing_occurrence_context,
 )
+from raes_contracts.errors import ConflictError
 from raes_contracts.participant_control_evaluation_history import (
     iter_participant_control_evaluation_snapshot_violations,
 )
@@ -61,6 +62,8 @@ def integrity(observed: Observation) -> list[str]:
     history = observed.after.participant_crossing_history.get(binding.participant, [])
     if history[: len(old)] != old:
         issues.append("history-prefix-changed")
+    # Model validation (ValidationError) and the context validator report invalid
+    # evidence with ValueError (rule E3); a TypeError is a defect and propagates.
     try:
         records = [
             ParticipantCrossingOccurrenceModel.model_validate(item) for item in history
@@ -73,7 +76,7 @@ def integrity(observed: Observation) -> list[str]:
             known_evidence_refs=context.known_evidence_refs,
             known_authority_basis_refs=context.known_authority_basis_refs,
         )
-    except (TypeError, ValueError):
+    except ValueError:
         issues.append("invalid-occurrence-context")
     for intent in observed.intents:
         if (
@@ -174,7 +177,9 @@ def integrity(observed: Observation) -> list[str]:
             previous = observed.records_before.get(record.receipt.operation_id)
             if previous is not None:
                 _require_operation_record_transition(previous, record)
-        except (TypeError, ValueError):
+        # A refused record or transition is invalid evidence: value-object checks
+        # raise ValueError (rule E3) and governed-state refusals raise ConflictError.
+        except (ValueError, ConflictError):
             issues.append("operation-record-invalid")
     if len(history) > len(old) and not changed:
         issues.append("partial-publication")
@@ -269,7 +274,7 @@ def _has_audit(
     for event in events:
         try:
             _require_operation_audit_binding(record, event)
-        except ValueError:
+        except (ValueError, ConflictError):
             continue
         return True
     return False

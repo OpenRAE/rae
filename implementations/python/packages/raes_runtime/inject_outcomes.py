@@ -13,9 +13,11 @@ from raes_contracts.contracts import (
     inject_occurrence_outcome_digest,
     validate_inject_occurrence_outcome,
 )
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError, InvalidInputError
 from raes_contracts.runtime_state import OperationState
 
 from .control_plane_store import ControlPlaneOperationRecord
+from .errors import RuntimeBudgetExhaustedError
 
 if TYPE_CHECKING:
     from .control_plane import RuntimeControlPlane
@@ -37,7 +39,7 @@ def settle_inject_outcome(
     def remaining() -> int:
         budget = min(execution_remaining(), int((observation_deadline - monotonic()) * 1000))
         if budget <= 0:
-            raise TimeoutError("inject evidence observation budget exhausted")
+            raise RuntimeBudgetExhaustedError("inject evidence observation budget exhausted")
         return budget
 
     message = response.message
@@ -46,9 +48,9 @@ def settle_inject_outcome(
     ):
         # This artifact-only adoption cannot bypass native snapshot admission.
         # A later native-result realization must use finalize_protocol_result.
-        raise ValueError("inject native result contract is unsupported by artifact-only resolution")
+        raise InvalidInputError("inject native result contract is unsupported by artifact-only resolution")
     if resolver is None or plane._inject_execution is None:
-        raise ValueError("inject evidence authority is unavailable")
+        raise ConflictError("inject evidence authority is unavailable")
     with plane._mutation_authority.external_call():
         if (
             plane._execution_adapter.call(
@@ -56,7 +58,7 @@ def settle_inject_outcome(
             )
             is not True
         ):
-            raise ValueError("inject world-effect evidence could not be established")
+            raise EvidenceIntegrityError("inject world-effect evidence could not be established")
         resolved = plane._execution_adapter.call(
             "effect",
             plane._inject_execution.resolve_outcome,
@@ -66,13 +68,13 @@ def settle_inject_outcome(
             timeout_ms=remaining(),
         )
     if not isinstance(resolved, ResolvedInjectOutcome):
-        raise ValueError("inject resolution requires its typed outcome")
+        raise InvalidInputError("inject resolution requires its typed outcome")
     outcome = resolved.outcome
     evidence = InjectExecutionEvidence.model_validate(resolved.evidence.model_dump(mode="json"))
     outcome = InjectOccurrenceOutcomeModel.model_validate(outcome.model_dump(mode="json"))
     validate_inject_occurrence_outcome(record.inject_occurrence, record.invocation.request, outcome)
     if outcome.response != response:
-        raise ValueError("inject readback changed the observed response")
+        raise EvidenceIntegrityError("inject readback changed the observed response")
     release = (
         None
         if response.message.proposed_state is OperationState.INDETERMINATE

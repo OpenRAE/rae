@@ -8,18 +8,27 @@ import os
 import subprocess
 import sys
 import tempfile
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Iterator, Mapping, Sequence
+from contextlib import contextmanager
 from pathlib import Path
 
-from tools.python_closure_profiles import (
-    REPO_ROOT,
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError, OperationalError  # noqa: E402
+from raes_contracts.operational_logging import run_application  # noqa: E402
+
+from tools.python_closure_profiles import (  # noqa: E402
     PythonClosureProfile,
     assert_runtime_matches_profile,
     closure_environment,
     load_python_closure_profile,
     load_wheelhouse_manifest,
 )
-from tools.python_closure_wheelhouse import (
+from tools.python_closure_wheelhouse import (  # noqa: E402
     candidate_digest,
     operator_path,
     require_empty_destination,
@@ -40,6 +49,23 @@ def _client_failure_category(diagnostic: str) -> str:
     return "client execution"
 
 
+@contextmanager
+def _private_workspace(prefix: str) -> Iterator[Path]:
+    """Hold one private temporary workspace; a host failure refuses as operational."""
+
+    try:
+        workspace = tempfile.TemporaryDirectory(prefix=prefix)
+    except OSError as exc:
+        raise OperationalError("Python closure private workspace could not be created") from exc
+    try:
+        yield Path(workspace.name)
+    finally:
+        try:
+            workspace.cleanup()
+        except OSError as exc:
+            raise OperationalError("Python closure private workspace could not be removed") from exc
+
+
 def _run(command: Sequence[str], *, cwd: Path, environment: Mapping[str, str]) -> None:
     try:
         completed = subprocess.run(
@@ -52,10 +78,13 @@ def _run(command: Sequence[str], *, cwd: Path, environment: Mapping[str, str]) -
             check=False,
         )
     except (OSError, subprocess.TimeoutExpired) as exc:
-        raise RuntimeError("Python closure client could not execute") from exc
+        raise OperationalError("Python closure client could not execute") from exc
+    except UnicodeDecodeError as exc:
+        # Text mode decodes the client output strictly, so output that is not text cannot be classified.
+        raise OperationalError("Python closure client output is not text") from exc
     if completed.returncode:
         category = _client_failure_category((completed.stderr or completed.stdout).lower())
-        raise RuntimeError(f"Python closure {category} failure (client exit code {completed.returncode})")
+        raise OperationalError(f"Python closure {category} failure (client exit code {completed.returncode})")
 
 
 def _build(profile: PythonClosureProfile, source: Path, out_dir: Path, *, context_id: str) -> None:
@@ -65,13 +94,15 @@ def _build(profile: PythonClosureProfile, source: Path, out_dir: Path, *, contex
     out_dir = operator_path(out_dir, purpose="candidate build output")
     project_source = repo_root / "implementations" / "python"
     if source != project_source.resolve():
-        raise ValueError("candidate build source must be the reviewed Python project")
+        raise InvalidInputError("candidate build source must be the reviewed Python project")
     if out_dir.is_relative_to(repo_root):
-        raise ValueError("candidate build output must be outside the checkout")
+        raise InvalidInputError("candidate build output must be outside the checkout")
     require_empty_destination(out_dir, "candidate build output")
-    out_dir.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="raes-python-build-") as temporary:
-        root = Path(temporary)
+    try:
+        out_dir.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise OperationalError("candidate build output could not be created") from exc
+    with _private_workspace("raes-python-build-") as root:
         environment = closure_environment(
             profile,
             context_id=context_id,
@@ -99,7 +130,7 @@ def _build(profile: PythonClosureProfile, source: Path, out_dir: Path, *, contex
         )
         sdists = sorted(out_dir.glob("raes-*.tar.gz"))
         if len(sdists) != 1:
-            raise RuntimeError("constrained build did not produce exactly one source distribution")
+            raise OperationalError("constrained build did not produce exactly one source distribution")
         _run(
             [
                 *base,
@@ -125,9 +156,9 @@ def _admitted_smoke_paths(
     environment_dir = operator_path(environment_dir, purpose="smoke environment")
     wheelhouse = None if wheelhouse is None else operator_path(wheelhouse, purpose="smoke wheelhouse")
     if candidate.is_relative_to(repo_root):
-        raise ValueError("smoke candidate must be outside the checkout")
+        raise InvalidInputError("smoke candidate must be outside the checkout")
     if environment_dir.is_relative_to(repo_root):
-        raise ValueError("smoke environment must be outside the checkout")
+        raise InvalidInputError("smoke environment must be outside the checkout")
     candidate_digest(candidate)
     require_empty_destination(environment_dir, "smoke environment")
     return candidate, environment_dir, wheelhouse
@@ -152,10 +183,9 @@ def _smoke(
     context_id = "python-public"
     if offline:
         if wheelhouse is None:
-            raise ValueError("offline smoke requires a verified wheelhouse")
+            raise InvalidInputError("offline smoke requires a verified wheelhouse")
         verify_wheelhouse(wheelhouse, load_wheelhouse_manifest(profile))
-    with tempfile.TemporaryDirectory(prefix="raes-python-smoke-") as temporary:
-        root = Path(temporary)
+    with _private_workspace("raes-python-smoke-") as root:
         environment = closure_environment(
             profile,
             context_id=context_id,
@@ -215,7 +245,10 @@ def _materialize(profile: PythonClosureProfile, wheelhouse: Path) -> None:
 
     wheelhouse = operator_path(wheelhouse, purpose="wheelhouse destination")
     require_empty_destination(wheelhouse, "wheelhouse destination")
-    wheelhouse.mkdir(parents=True, exist_ok=True)
+    try:
+        wheelhouse.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise OperationalError("wheelhouse destination could not be created") from exc
     command = [
         sys.executable,
         "-m",
@@ -239,8 +272,7 @@ def _materialize(profile: PythonClosureProfile, wheelhouse: Path) -> None:
     ]
     for platform_tag in _platform_tags(profile.platform):
         command.extend(["--platform", platform_tag])
-    with tempfile.TemporaryDirectory(prefix="raes-python-materialize-") as temporary:
-        root = Path(temporary)
+    with _private_workspace("raes-python-materialize-") as root:
         environment = closure_environment(
             profile,
             context_id="python-public",
@@ -301,16 +333,25 @@ def _dispatch(args: argparse.Namespace) -> None:
     elif args.operation == "materialize":
         _materialize(profile, args.wheelhouse)
     elif args.operation == "manifest-show":
-        sys.stdout.buffer.write(profile.wheelhouse_manifest.read_bytes())
+        try:
+            manifest = profile.wheelhouse_manifest.read_bytes()
+        except OSError as exc:
+            raise OperationalError("the reviewed wheelhouse manifest could not be read") from exc
+        sys.stdout.buffer.write(manifest)
     else:
         admitted = operator_path(args.wheelhouse, purpose="wheelhouse")
         verify_wheelhouse(admitted, load_wheelhouse_manifest(profile))
 
 
 def main(argv: Iterable[str] | None = None) -> int:
-    _dispatch(parse_args(argv))
+    args = parse_args(argv)
+    try:
+        _dispatch(args)
+    except (InvalidInputError, OperationalError) as exc:
+        print(f"python-closure: {exc}", file=sys.stderr)
+        return 1
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

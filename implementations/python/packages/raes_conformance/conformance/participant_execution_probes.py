@@ -7,6 +7,7 @@ import json
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, replace
 
+from pydantic import ValidationError
 from raes_contracts.contracts import (
     ParticipantTemporalRuntimeContextModel,
 )
@@ -15,12 +16,16 @@ from raes_contracts.contracts.participant_execution import (
     ParticipantExecutionServiceStateModel,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.registry import RuntimeTarget
 
-from raes_conformance.conformance.diagnostics import _diagnostic
+from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_failure_message
 from raes_conformance.conformance.report import ConformanceCaseResult
+
+_LOGGER = get_logger(__name__)
 
 
 def _probe_digest(payload: object) -> str:
@@ -101,12 +106,16 @@ def _participant_execution_operation_case(
     else:
         try:
             state = control_plane.participant_execution_state(scope)
-        except (TypeError, ValueError) as exc:
+        except Exception as exc:
+            # Isolation of the participant runtime readback. The backend refuses an unknown scope with
+            # NotFoundError or returns a state that fails its contract model; those need no record.
+            if not isinstance(exc, RaesError | ValidationError):
+                _LOGGER.exception("participant execution readback failed", exc_info=foreign_failure_record(exc))
             diagnostics.append(
                 _diagnostic(
                     "conformance.participant-execution-readback-missing",
                     f"runtime.snapshot.participant-execution-services.{scope}",
-                    f"Participant execution readback failed: {exc}",
+                    f"Participant execution readback failed: {sanitized_failure_message(exc)}",
                 )
             )
         else:
@@ -156,11 +165,14 @@ def _participant_execution_action_case(
             requests = _participant_execution_requests(setup, control_plane, scope)
             results = _admit_participant_execution_requests(setup, requests, control_plane)
         except Exception as exc:
+            if not isinstance(exc, RaesError):
+                # Isolation of the participant runtime: a refusal category needs no record.
+                _LOGGER.exception("participant execution probe action failed", exc_info=foreign_failure_record(exc))
             diagnostics.append(
                 _diagnostic(
                     "conformance.participant-execution-action-failed",
                     f"runtime.participant-execution.{scope}",
-                    f"Bounded native action execution raised {type(exc).__name__}: {exc}",
+                    f"Bounded native action execution failed: {sanitized_failure_message(exc)}",
                 )
             )
         else:

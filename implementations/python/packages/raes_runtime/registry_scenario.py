@@ -5,12 +5,13 @@ from __future__ import annotations
 
 def scenario_component_options(scenario: object) -> dict[str, bool]:
     """Select services for the whole declared interaction, including evaluation."""
+    from raes_contracts.errors import InvalidInputError
     from raes_processor.compiler import compile_scenario_runtime_model
     from raes_processor.models import RuntimeModel
 
     model = scenario if isinstance(scenario, RuntimeModel) else compile_scenario_runtime_model(scenario)
     if any(item.is_error for item in model.diagnostics):
-        raise ValueError("component selection requires a valid compiled scenario")
+        raise InvalidInputError("component selection requires a valid compiled scenario")
     return {
         "with_orchestrator": any(
             (model.injects, model.inject_bindings, model.events, model.scripts, model.stories, model.workflows)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import replace
 from pathlib import Path
 
@@ -101,17 +102,24 @@ def test_run_manifest_retains_selections_and_delivery_as_distinct_artifacts():
     assert delivered.delivery_ref is not None
 
 
-def test_public_diagnostics_omit_private_resolver_exceptions():
+def test_public_diagnostics_omit_private_resolver_exceptions(caplog: pytest.LogCaptureFixture):
     def fail(_request):
         raise RuntimeError("private instruction and credentials must not escape")
 
-    diagnostics = validate_contract_payload(
-        "participant-control-context-record-v1",
-        _record().model_dump(),
-        control_context_asset_context=replace(_context(), authorize=fail),
-    )
+    with caplog.at_level(logging.ERROR, logger="raes_conformance"):
+        diagnostics = validate_contract_payload(
+            "participant-control-context-record-v1",
+            _record().model_dump(),
+            control_context_asset_context=replace(_context(), authorize=fail),
+        )
     assert diagnostics[0].code == "conformance.context-resolution-failed"
     assert "private instruction" not in str(diagnostics)
+    # The host failure is not suppressed silently: one value-free record keeps only the RAES frames.
+    records = [record for record in caplog.records if record.name.endswith("control_context_assets")]
+    assert len(records) == 1
+    assert "private instruction" not in records[0].getMessage()
+    assert "private instruction" not in (records[0].exc_text or "")
+    assert "ForeignCodeFailure" in (records[0].exc_text or "")
 
 
 @pytest.mark.parametrize(

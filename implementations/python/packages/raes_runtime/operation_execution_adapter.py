@@ -11,12 +11,15 @@ from typing import Literal, NamedTuple, cast
 
 import anyio
 from anyio.from_thread import start_blocking_portal
+from raes_contracts.errors import OperationalError
+from raes_contracts.operational_logging import get_logger
 
 from .control_plane_mutation import detached_extension
 
 Lane = Literal["effect", "control", "store", "deadline", "resolution"]
 # Portable apparatus ceiling, below native wait overflow.
 _MAX_BUDGET = 2147483647
+_LOGGER = get_logger(__name__)
 
 
 class _CallbackOutcome(NamedTuple):
@@ -118,9 +121,9 @@ class LocalExecutionAdapter:
             raise ValueError("unknown execution lane")
         with self._condition:
             if self._closed or (self._draining and lane in {"effect", "resolution"}):
-                raise RuntimeError("execution adapter is closed to effect admission")
+                raise OperationalError("execution adapter is closed to effect admission")
             if not self._slots[lane].acquire(blocking=False):
-                raise RuntimeError("execution capacity unavailable")
+                raise OperationalError("execution capacity unavailable")
             self._pending += 1
 
         def release() -> None:
@@ -190,11 +193,12 @@ class LocalExecutionAdapter:
             if outcome.error is not None:
                 if isinstance(outcome.error, Exception):
                     raise outcome.error
-                raise RuntimeError("invocation deadline callback interrupted") from None
+                raise RuntimeError("invocation deadline callback interrupted") from outcome.error
         except Exception:
+            # Boundary of the timer task: nothing awaits its result, so record the failure once.
+            _LOGGER.exception("invocation deadline callback failed")
             if failure_handler is not None:
                 failure_handler()
-            raise
 
     def cancel_deadline(self, key: str) -> None:
         self._require_owner_process()

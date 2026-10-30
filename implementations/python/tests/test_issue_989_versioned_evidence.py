@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 from evidence_test_fixtures import copy_bundle
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -31,7 +32,7 @@ def test_historical_evidence_rejects_malformed_shapes_even_with_rebound_digest(c
         payload["normalized_graph"]["state_facts"][0]["invented_constraint"] = True
     observation = {"evidence_digest": canonical_json_digest(payload)}
     mode = "satisfiability" if case_name.startswith("finite") else "exploit-path"
-    with pytest.raises(ValueError, match="archival shape"):
+    with pytest.raises(EvidenceIntegrityError, match="archival shape"):
         _historical_production_replay(payload, observation, mode)
 
 
@@ -50,7 +51,7 @@ def test_historical_shape_contract_cannot_be_replaced_with_an_open_schema(tmp_pa
             ROOT / f"docs/research/formal-semantic-validation/evidence/finite-domain-satisfiable-v{version + 2}.json"
         ).read_text()
     )
-    with pytest.raises(ValueError, match="archival shape digest mismatch"):
+    with pytest.raises(EvidenceIntegrityError, match="archival shape digest mismatch"):
         validate_archival_evidence_shape(tmp_path, payload, "satisfiability")
 
 
@@ -70,7 +71,7 @@ def test_historical_shape_manifest_cannot_authorize_a_replacement_schema(tmp_pat
     manifest = json.loads(manifest_path.read_text())
     manifest["contracts"][0]["sha256"] = hashlib.sha256(schema_path.read_bytes()).hexdigest()
     manifest_path.write_text(json.dumps(manifest))
-    with pytest.raises(ValueError, match="archival manifest"):
+    with pytest.raises(EvidenceIntegrityError, match="archival manifest"):
         validate_archival_evidence_shape(tmp_path, {}, "satisfiability")
 
 
@@ -112,7 +113,7 @@ def test_historical_computed_joins_reject_rebound_evidence(family, field):
         "witness.steps.0.state_after_digest": "state after join",
     }.get(field, field.split(".")[-1].removesuffix("_digest") + " digest join")
     mode = "satisfiability" if family.startswith("finite") else "exploit-path"
-    with pytest.raises(ValueError, match=expected_join):
+    with pytest.raises(EvidenceIntegrityError, match=expected_join):
         _historical_production_replay(payload, observation, mode)
 
 
@@ -150,7 +151,7 @@ def test_historical_integrity_checks_reject_shape_valid_substitutions(version, m
         "goal": "goal facts join",
         "non-retained": "not in the retained production evidence corpus",
     }
-    with pytest.raises(ValueError, match=expected[mutation]):
+    with pytest.raises(EvidenceIntegrityError, match=expected[mutation]):
         _historical_production_replay(payload, observation, "satisfiability" if satisfiability else "exploit-path")
 
 
@@ -243,7 +244,7 @@ def test_current_formal_capture_requires_the_retest_protocol(monkeypatch, protoc
     current = _stub_release("77.0.0", protocol_revision=protocol_revision)
     monkeypatch.setattr(_loading, "load_release_bundles", lambda _root: [current])
     monkeypatch.setattr(_loading, "current_release_path", lambda *_args: current.manifest_path)
-    with pytest.raises(ValueError, match="must bind retest protocol 2.0.0"):
+    with pytest.raises(InvalidInputError, match="must bind retest protocol 2.0.0"):
         _loading.load_retest_bundle(ROOT)
 
 
@@ -297,7 +298,7 @@ def test_current_production_evidence_replay_failure_is_not_hidden(monkeypatch):
     from tools.formal_semantic_validation._releases import validate_retest_bundle
 
     def fail(*args, **kwargs):
-        raise ValueError("seeded production replay failure")
+        raise satisfiability.SatisfiabilityEvidenceError("seeded production replay failure")
 
     monkeypatch.setattr(satisfiability, "replay_satisfiability_evidence", fail)
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, ROOT)
@@ -352,7 +353,7 @@ def test_historical_specification_archive_pin_tampering_fails(value):
 def test_current_release_selection_rejects_empty_or_ambiguous_sets(records):
     from tools.research_evidence import current_release_path
 
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidInputError):
         current_release_path(records)
 
 
@@ -370,7 +371,7 @@ def test_future_evidence_versions_fail_closed(monkeypatch, family):
     module = _loading if family == "formal" else check_specification_coverage
     monkeypatch.setattr(module, "load_index_records", lambda *args, **kwargs: [("future.json", {"revision": "99.0.0"})])
     loader = _loading.load_release_bundles if family == "formal" else check_specification_coverage.load_bundles
-    with pytest.raises(ValueError, match="supported|current"):
+    with pytest.raises(InvalidInputError, match="supported|current"):
         loader(ROOT)
 
 
@@ -501,7 +502,7 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
     records = [(path, manifest) for path, manifest in records if path != removed_path]
     monkeypatch.setattr(module, "load_index_records", lambda *args, **kwargs: records)
     loader = _loading.load_release_bundles if family == "formal" else check_specification_coverage.load_bundles
-    with pytest.raises(ValueError, match="supported|current"):
+    with pytest.raises(InvalidInputError, match="supported|current"):
         loader(ROOT)
 
 
@@ -629,9 +630,9 @@ def test_malformed_release_managed_source_fails_closed(tmp_path, version_source)
     from tools.research_evidence import implementation_digest, source_state_failures, surface_digest
 
     root = _release_managed_source_tree(tmp_path, version_source)
-    with pytest.raises(ValueError, match="release-managed version source"):
+    with pytest.raises(InvalidInputError, match="release-managed version source"):
         implementation_digest(root)
-    with pytest.raises(ValueError, match="release-managed version source"):
+    with pytest.raises(InvalidInputError, match="release-managed version source"):
         surface_digest(root, "implementations/python/packages/raes")
     state = {
         "profile": "python-reference-source/v2",

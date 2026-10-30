@@ -18,6 +18,7 @@ from raes_contracts.domain_profiles import (
     DomainProfileBindingProvenanceModel,
     DomainProfileDefinitionProvenanceModel,
 )
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.realization_profiles import PLAN_PROFILE_CONTRACT, PlanProfileAuthority, ProfileBindingConstraint
 from raes_contracts.realization_structure import (
     RealizationClosure,
@@ -86,7 +87,7 @@ def _value_metadata(scenario: InstantiatedScenario, attachment: _Attachment) -> 
             scenario, field_pointer=attachment.pointer + pointer, declaration_name=attachment.node
         )
         if posture.delegated:
-            raise ValueError("Software profile values require a resolved enclosing realization posture")
+            raise InvalidInputError("Software profile values require a resolved enclosing realization posture")
         scopes.append(
             RealizationScope(
                 field_pointer=pointer,
@@ -155,7 +156,7 @@ def compile_software_profiles(
             metadata=_value_metadata(scenario, attachment),
         )
         if built.status.value != "conformant":
-            raise ValueError("Software profile constraint exceeds the supported recursive fragment")
+            raise InvalidInputError("Software profile constraint exceeds the supported recursive fragment")
         bindings.append(binding)
         constraints.append(
             ProfileBindingConstraint(
@@ -167,7 +168,7 @@ def compile_software_profiles(
     if not bindings:
         return None
     if len({binding.binding_id for binding in bindings}) != len(bindings):
-        raise ValueError("Software profile binding identities conflict")
+        raise InvalidInputError("Software profile binding identities conflict")
     return PlanProfileAuthority(
         definitions=tuple(definitions.values()), bindings=tuple(bindings), constraints=tuple(constraints)
     )

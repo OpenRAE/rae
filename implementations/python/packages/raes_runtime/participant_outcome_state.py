@@ -6,6 +6,7 @@ from pydantic import Field, StrictInt
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.base import ContractModel, NonEmptyString
 from raes_contracts.contracts.participant_outcomes import ParticipantOutcomeReportV2Model
+from raes_contracts.errors import ConflictError
 from raes_contracts.participant_outcome_history import (
     outcome_history_digest,
     outcome_observations,
@@ -47,7 +48,7 @@ def produce_participant_outcome(
     if type(request.expected_revision) is not int or request.expected_revision != (
         previous.revision if previous else 0
     ):
-        raise ValueError("outcome predecessor revision is stale")
+        raise ConflictError("outcome predecessor revision is stale")
     history = snapshot.participant_behavior_history.get(request.participant_address, [])
     observations = outcome_observations(history, request.participant_address, request.episode_id)
     attainment, knowledge, evidence = outcome_projection(spec, observations, set(request.excluded_observation_refs))
@@ -111,9 +112,9 @@ def current_participant_outcome(
 def _require_live_episode(snapshot: RuntimeSnapshot, request: ParticipantOutcomeUpdateRequest) -> None:
     state = snapshot.participant_episode_results.get(request.participant_address, {})
     if state.get("participant_address") != request.participant_address:
-        raise ValueError("outcome live participant binding is invalid")
+        raise ConflictError("outcome live participant binding is invalid")
     if state.get("episode_id") != request.episode_id or state.get("status") != "running":
-        raise ValueError("outcome update requires the exact live episode")
+        raise ConflictError("outcome update requires the exact live episode")
 
 
 def _outcome_head(

@@ -191,7 +191,8 @@ class WorkflowStep(SDLModel):
     @classmethod
     def normalize_type(cls, v: str) -> str:
         normalized = normalize_enum_value(v)
-        if normalized in {"if", "while"}:
+        # Tuple membership compares by equality, so an unhashable authored value reaches type validation.
+        if normalized in ("if", "while"):
             raise ValueError(
                 f"workflow step type '{normalized}' is no longer supported; "
                 "use 'decision' or 'retry' with explicit success/failure "

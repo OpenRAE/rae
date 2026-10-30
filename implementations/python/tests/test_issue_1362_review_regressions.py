@@ -4,11 +4,13 @@ import asyncio
 from threading import Event, Thread
 
 import pytest
+from raes_contracts.errors import OperationalError
 from raes_contracts.operation_lifecycle import OperationKind
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import OperationState
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_mutation import RuntimeMutationAuthority
+from raes_runtime.errors import RuntimeBudgetExhaustedError
 from raes_runtime.operation_supervision_configuration import OperationSupervisionConfiguration
 from test_issue_1362_distributed_authority import Dispatcher, worker
 from test_issue_1362_provider_execution import Evidence, Provider, target
@@ -47,7 +49,7 @@ def test_failed_reacquisition_does_not_grant_a_second_writer(asynchronous):
             else:
                 with authority.mutation(OperationKind.PROVISIONING):
                     outside()
-        except TimeoutError:
+        except RuntimeBudgetExhaustedError:
             effect_unwound.set()
 
     def supervise():
@@ -145,7 +147,7 @@ def test_failed_deadline_classification_closes_runtime_authority():
         assert poisoned.wait(1)
         assert plane._durability_poisoned
         rejected_plan = ProvisioningPlan()
-        with pytest.raises(RuntimeError):
+        with pytest.raises(OperationalError):
             plane.submit_provisioning(rejected_plan)
     finally:
         plane.close()

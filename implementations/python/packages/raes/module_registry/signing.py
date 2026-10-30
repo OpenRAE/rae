@@ -17,7 +17,7 @@ def _public_key_bytes(encoded_key: str) -> bytes:
     try:
         return base64.b64decode(encoded_key.encode("utf-8"))
     except (ValueError, TypeError) as exc:
-        raise SDLParseError(f"Invalid trusted signer public key: {exc}") from exc
+        raise SDLParseError("Invalid trusted signer public key") from exc
 
 
 def _signable_payload(
@@ -65,7 +65,8 @@ def _verify_signatures(
         try:
             key = Ed25519PublicKey.from_public_bytes(_public_key_bytes(public_key))
             key.verify(base64.b64decode(signature_b64.encode("utf-8")), payload)
-            return signer_id
         except InvalidSignature, ValueError:
             continue
+        else:
+            return signer_id
     raise SDLParseError("No valid trusted signer signature found for OCI module")

@@ -194,7 +194,12 @@ def _temporal_history_record(
     raw: object, attempts: Mapping[object, object], model: object
 ) -> tuple[object, object] | None:
     record = raw.model_dump(mode="json") if isinstance(raw, model) else raw
+    # Stored history is input to this validator, so a malformed record is a refusal (ADR-116 rule E3).
+    if not isinstance(record, Mapping):
+        raise ValueError("temporal history record must be an object")
     key = (record.get("episode_id"), record.get("action_instance_id"))
+    if not all(item is None or isinstance(item, str) for item in key):
+        raise ValueError("temporal history record identities must be strings")
     from .participant_temporal_history_index import explicit_temporal_record
 
     explicit = explicit_temporal_record(record)

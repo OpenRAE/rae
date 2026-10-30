@@ -30,6 +30,7 @@ _RAM_PATTERN = re.compile(
     re.IGNORECASE,
 )
 _RAM_MIN_BYTES_ERROR = "RAM must be >= 1 byte"
+_RAM_SIZE_ERROR = "RAM value exceeds the supported size"
 _WINDOWS_NAMED_PIPE_PREFIXES = ("\\\\.\\pipe\\", "\\\\?\\pipe\\")
 
 # Identifier-shape tokens used to identify names that may benefit from advisory
@@ -325,17 +326,27 @@ def parse_ram(value: str | int) -> int | str:
             raise ValueError(_RAM_MIN_BYTES_ERROR)
         return value
     value_str = str(value).strip()
-    if value_str.isdigit():
-        parsed = int(value_str)
+    # int() accepts exactly the decimal digit strings; isdigit() also admits digits such as "²".
+    if value_str.isdecimal():
+        try:
+            parsed = int(value_str)
+        except ValueError as exc:
+            # int() refuses a decimal digit string only beyond the interpreter digit limit.
+            raise ValueError(_RAM_SIZE_ERROR) from exc
         if parsed < 1:
             raise ValueError(_RAM_MIN_BYTES_ERROR)
         return parsed
     match = _RAM_PATTERN.match(value_str)
     if not match:
-        raise ValueError(f"Invalid RAM value: {value_str!r}. Use a number with a unit (e.g., '4 GiB', '2048 MiB').")
+        # The message omits the authored value (ADR-116 rule E7).
+        raise ValueError("Invalid RAM value. Use a number with a unit (e.g., '4 GiB', '2048 MiB').")
     amount = float(match.group(1))
     unit = match.group(2).lower()
-    parsed = int(amount * _BYTE_UNITS[unit])
+    try:
+        parsed = int(amount * _BYTE_UNITS[unit])
+    except OverflowError as exc:
+        # float() turns an amount beyond the float range into infinity, which has no integer value.
+        raise ValueError(_RAM_SIZE_ERROR) from exc
     if parsed < 1:
         raise ValueError(_RAM_MIN_BYTES_ERROR)
     return parsed

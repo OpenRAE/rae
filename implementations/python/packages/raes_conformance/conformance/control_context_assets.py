@@ -6,6 +6,7 @@ from raes_contracts.contracts.participant_control_context import (
     ParticipantControlContextRecordModel,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.participant_control_context import (
     ParticipantControlContextValidationContext,
     validate_control_context_asset,
@@ -14,6 +15,8 @@ from raes_contracts.participant_control_context import (
 )
 
 from .diagnostics import _diagnostic
+
+_LOGGER = get_logger(__name__)
 
 
 def _control_context_asset_diagnostics(
@@ -47,7 +50,13 @@ def _control_context_asset_diagnostics(
                 limits=binding.limits,
             )
         return list(diagnostics)
-    except Exception:  # noqa: BLE001 -- public diagnostics must not expose resolver or private-content exceptions.
+    except Exception as exc:
+        # Isolation of the host resolvers and artifact readers. The validators return refusals as
+        # diagnostics, so an exception is a host failure. Log only its RAES frames; the public diagnostic stays fixed.
+        _LOGGER.exception(
+            "participant control-context validation failed in a host resolver or reader",
+            exc_info=foreign_failure_record(exc),
+        )
         return [
             _diagnostic("conformance.context-resolution-failed", contract_name, "Control-context validation failed")
         ]

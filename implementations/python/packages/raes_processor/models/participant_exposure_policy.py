@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
 from raes_contracts.contracts import ParticipantExposurePolicyModel
+from raes_contracts.errors import OperationalError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 
 from .participant_exposure_authority import (
     ParticipantExposureApparatusResolver,
@@ -15,21 +17,39 @@ from .participant_exposure_authority import (
     ParticipantExposureProjectionPolicyResolver,
 )
 
+_LOGGER = get_logger(__name__)
+
+
+def resolve_from_host[T](resolver: str, message: str, call: Callable[[], T]) -> T:
+    """Call a host resolver and return its value (H2 isolation).
+
+    A resolver failure is logged one time with only the RAES frames. Then this
+    function raises the value-free ``OperationalError(message)`` after the
+    handler, so the error carries no host exception as its context.
+    """
+
+    try:
+        return call()
+    except Exception as exc:
+        _LOGGER.exception("participant exposure %s resolver failed", resolver, exc_info=foreign_failure_record(exc))
+    raise OperationalError(message)
+
 
 def _resolved_projection_policy_revisions(
     projection: ParticipantExposureProjection,
     resolver: ParticipantExposureProjectionPolicyResolver,
 ) -> tuple[ParticipantExposurePolicyRevision, ...]:
-    try:
-        revisions = tuple(
+    revisions = resolve_from_host(
+        "projection-policy",
+        "participant exposure projection-policy resolution failed",
+        lambda: tuple(
             resolver(
                 projection_policy_ref=projection.projection_policy_ref,
                 participant_address=projection.participant_address,
                 audience_scope_ref=projection.audience_scope_ref,
             )
-        )
-    except Exception as exc:
-        raise ValueError("participant exposure projection-policy resolution failed") from exc
+        ),
+    )
     if not revisions:
         raise ValueError("participant exposure requires an authoritative projection policy sequence")
     if any(revision.policy_ref != projection.projection_policy_ref for revision in revisions):
@@ -61,14 +81,15 @@ def _selected_exposure_policy(
     *,
     observation_order: int,
 ) -> ParticipantExposurePolicyModel:
-    try:
-        selection = resolver(
+    selection = resolve_from_host(
+        "apparatus",
+        "participant exposure apparatus resolution failed",
+        lambda: resolver(
             implementation_selection_ref=projection.implementation_selection_ref,
             exposure_policy_ref=projection.exposure_policy_ref,
             observation_order=observation_order,
-        )
-    except Exception as exc:
-        raise ValueError("participant exposure apparatus resolution failed") from exc
+        ),
+    )
     if selection is None:
         raise ValueError("participant exposure apparatus refs did not resolve")
     if selection.participant_address != projection.participant_address:
@@ -91,13 +112,11 @@ def _resolve_authorization(
 ) -> ParticipantExposureAuthorizationRecord:
     if not item_ref or not authorization_record_ref:
         raise ValueError("participant exposure assessment requires item and authorization record refs")
-    try:
-        authorization = resolver(
-            authorization_record_ref=authorization_record_ref,
-            item_ref=item_ref,
-        )
-    except Exception as exc:
-        raise ValueError("participant exposure authorization resolution failed") from exc
+    authorization = resolve_from_host(
+        "authorization",
+        "participant exposure authorization resolution failed",
+        lambda: resolver(authorization_record_ref=authorization_record_ref, item_ref=item_ref),
+    )
     if authorization is None:
         raise ValueError(f"exposure item {item_ref!r} has no authoritative authorization")
     if authorization.authorization_record_ref != authorization_record_ref:

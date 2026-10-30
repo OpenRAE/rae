@@ -8,6 +8,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 from raes_contracts.backend_profiles import (
+    BackendProfileIdentityError,
     BackendProfileModel,
     backend_profile_path,
     backend_profiles_root,
@@ -165,7 +166,9 @@ def _resolve_required_contracts(
     profile_id = _to_profile_id(profile)
     try:
         return required_contracts(profile, profiles_root=profiles_root), ()
-    except (FileNotFoundError, ValueError) as exc:
+    # The loader reads and decodes one JSON file: OSError when it cannot be read, ValueError when it does not
+    # decode or validate, RecursionError beyond the decoder nesting depth, and its own identity refusal.
+    except (OSError, ValueError, RecursionError, BackendProfileIdentityError) as exc:
         return frozenset(), (
             _diagnostic(
                 "conformance.profile-load-failed",
@@ -199,8 +202,7 @@ def _sanitize_load_error(exc: Exception) -> str:
     for kind, description in _PROFILE_LOAD_DESCRIPTIONS:
         if isinstance(exc, kind):
             return description
-    # An exact ValueError is the profile loader's own identity-mismatch error,
-    # whose text is built only from grammar-validated profile ids. Any other
-    # exception type may carry payloads, host paths, or object representations,
-    # so it is described by the shared sanitizer instead of quoted.
-    return str(exc) if type(exc) is ValueError else sanitized_failure_message(exc)
+    # The identity refusal builds its text only from grammar-validated profile ids.
+    # Any other exception may carry payloads, host paths, interpreter text or object
+    # representations, so the shared sanitizer describes it instead of quoting it.
+    return str(exc) if isinstance(exc, BackendProfileIdentityError) else sanitized_failure_message(exc)

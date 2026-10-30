@@ -28,6 +28,7 @@ from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingGateDisposition,
     ParticipantCrossingSubjectKind,
 )
+from raes_contracts.errors import AuthorizationError, ConflictError
 from raes_contracts.runtime_state import OperationState, RuntimeSnapshot, RuntimeSnapshotEnvelope
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 from raes_runtime.control_plane import RuntimeControlPlane
@@ -145,7 +146,7 @@ def test_configured_action_ingress_cannot_bypass_crossing_mediation() -> None:
     request = admission_request()
     caller = identity()
 
-    with pytest.raises(ValueError, match="requires crossing evidence"):
+    with pytest.raises(ConflictError, match="requires crossing evidence"):
         plane.admit_participant_action(
             participant_behavior,
             request,
@@ -197,7 +198,7 @@ def test_identity_denials_are_security_audited_without_participant_facts() -> No
     plane = action_plane(StaticCrossingResolver())
     unbound = identity(bound=False)
 
-    with pytest.raises(PermissionError, match="subject"):
+    with pytest.raises(AuthorizationError, match="subject"):
         admit(plane, control_identity=unbound)
 
     assert plane.snapshot.participant_crossing_history == {}
@@ -217,7 +218,7 @@ def test_operation_bound_idempotency_replays_neither_decision_nor_action() -> No
     behavior_count = len(plane.snapshot.participant_behavior_history[PARTICIPANT])
     assert behavior_count >= 2
     different_request = admission_request(action_instance_id="different")
-    with pytest.raises(ValueError, match="idempotency claim conflicts with the original request"):
+    with pytest.raises(ConflictError, match="idempotency claim conflicts with the original request"):
         admit(
             plane,
             request=different_request,
@@ -236,7 +237,7 @@ def test_operation_bound_idempotency_rejects_replay_after_state_cut_advances() -
         idempotency_key="later-operation",
     )
 
-    with pytest.raises(ValueError, match="idempotency claim conflicts with the original request"):
+    with pytest.raises(ConflictError, match="idempotency claim conflicts with the original request"):
         admit(plane, idempotency_key="state-cut-bound")
 
 
@@ -312,7 +313,7 @@ def test_egress_requires_separate_audience_authority_and_commits_before_return()
     )
     unbound_identity = identity()
 
-    with pytest.raises(PermissionError, match="audience"):
+    with pytest.raises(AuthorizationError, match="audience"):
         _status_evidence_call(plane, identity=unbound_identity, idempotency_key="egress-unbound")
     assert plane.snapshot.participant_crossing_history == {}
 
@@ -409,7 +410,7 @@ def test_missing_visibility_gate_fails_closed_without_serializing_output() -> No
     )
     audience_identity = identity(audience_bound=True)
 
-    with pytest.raises(PermissionError, match="not permitted"):
+    with pytest.raises(AuthorizationError, match="not permitted"):
         _status_evidence_call(
             plane,
             identity=audience_identity,

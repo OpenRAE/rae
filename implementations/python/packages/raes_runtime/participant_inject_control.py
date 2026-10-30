@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import rfc8785
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.participant_control_occurrence_v2 import (
     ParticipantControlOccurrenceV2Model,
@@ -13,14 +14,25 @@ from raes_contracts.contracts.participant_control_occurrence_v2_policy import Pa
 from raes_contracts.contracts.participant_control_occurrence_v2_state import ParticipantControlEpisodeFoldV2
 from raes_contracts.contracts.participant_control_occurrence_v2_validation import fold_participant_control_episode_v2
 from raes_contracts.contracts.participant_inject_application import ParticipantInjectApplicationModel
+from raes_contracts.errors import AuthorizationError, ConflictError, EvidenceIntegrityError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_processor.models import ParticipantInjectDeliveryRuntime
 
 from .control_plane_security import ControlPlaneIdentity
-from .participant_control_runtime import ParticipantControlLiveCut, admitted_policy, resolve_owner_cut
+from .participant_control_runtime import (
+    CONTROL_CUT_REFUSALS,
+    ParticipantControlLiveCut,
+    admitted_policy,
+    resolve_owner_cut,
+)
 from .participant_control_targets import archived_control_targets
 
 if TYPE_CHECKING:
     from .control_plane import RuntimeControlPlane
+
+_LOGGER = get_logger(__name__)
+_CUT_UNAVAILABLE = "inject delivery live control cut is unavailable"
+_RETAINED_BINDING_DIFFERS = "retained inject delivery binding differs"
 
 
 def require_retained_delivery_control(
@@ -53,11 +65,18 @@ def validate_restored_inject_deliveries(plane: RuntimeControlPlane) -> None:
         if content is None:
             continue
         if plane._inject_delivery is None:
-            raise ValueError("retained inject delivery requires its original compiler context")
+            raise ConflictError("retained inject delivery requires its original compiler context")
         application = content.application
         binding = plane._inject_delivery.model.participant_inject_deliveries.get(application.delivery_address)
-        if binding is None or canonical_json_digest(binding.spec) != application.delivery_digest:
-            raise ValueError("retained inject delivery binding differs")
+        if binding is None:
+            raise EvidenceIntegrityError(_RETAINED_BINDING_DIFFERS)
+        try:
+            spec_digest = canonical_json_digest(binding.spec)
+        # An installed spec can hold a value outside the canonical JSON domain, such as an integer of 2**53 or more.
+        except rfc8785.CanonicalizationError as exc:
+            raise EvidenceIntegrityError(_RETAINED_BINDING_DIFFERS) from exc
+        if spec_digest != application.delivery_digest:
+            raise EvidenceIntegrityError(_RETAINED_BINDING_DIFFERS)
         if application.control is not None:
             _require_archived_control(plane, application)
 
@@ -71,10 +90,10 @@ def require_delivery_control(
 ) -> None:
     if delivery.delivery_kind == "disclosure":
         if application.control is not None:
-            raise ValueError("disclosure carries no control authority")
+            raise ConflictError("disclosure carries no control authority")
         return
     if delivery.control is None or plane._mixed_control is None or application.control is None:
-        raise ValueError("inject delivery exact reusable control binding is unavailable")
+        raise ConflictError("inject delivery exact reusable control binding is unavailable")
     records = [
         parse_participant_control_occurrence(item)
         for item in plane._snapshot.participant_control_history.get(application.participant_address, ())
@@ -106,7 +125,7 @@ def _selected_event(
         or event.episode_id != application.episode_id
         or canonical_json_digest(event.model_dump(mode="json")) != reference.digest
     ):
-        raise ValueError("inject delivery control occurrence differs")
+        raise ConflictError("inject delivery control occurrence differs")
     return event
 
 
@@ -123,7 +142,7 @@ def _require_accepted_event(
         or detail.kind != delivery.delivery_kind
         or detail.occurrence_revision != application.control.occurrence_revision
     ):
-        raise ValueError("inject delivery control is not accepted for this kind")
+        raise ConflictError("inject delivery control is not accepted for this kind")
 
 
 def _require_policy_binding(
@@ -134,13 +153,13 @@ def _require_policy_binding(
     detail, binding = event.occurrence, delivery.control
     lifecycle = folded.state.lifecycle(event.event_id)
     if lifecycle.superseded or lifecycle.replaced or detail.resulting_state_revision != folded.state.state_revision:
-        raise ValueError("inject delivery control application is stale")
+        raise ConflictError("inject delivery control application is stale")
     if (
         detail.permitted_transition_ref != binding.permitted_transition_address
         or detail.controller_ref != binding.controller_address
         or event.policy.policy_revision != binding.policy_revision
     ):
-        raise ValueError("inject delivery control policy or edge differs")
+        raise ConflictError("inject delivery control policy or edge differs")
 
 
 def _require_controller_evidence(
@@ -155,12 +174,12 @@ def _require_controller_evidence(
         and subject.controller_ref == detail.controller_ref
         for subject in identity.participant_control_subjects
     ):
-        raise PermissionError("inject delivery source controller is unavailable")
+        raise AuthorizationError("inject delivery source controller is unavailable")
     required = set(binding.evidence_addresses or binding.evidence_refs)
     if not set(binding.authority_scope_addresses) <= set(detail.controlled_scope_refs) or not required <= set(
         event.evidence_refs
     ):
-        raise ValueError("inject delivery control scope or evidence differs")
+        raise ConflictError("inject delivery control scope or evidence differs")
     return required
 
 
@@ -171,11 +190,17 @@ def _resolve_live_cut(
 ) -> ParticipantControlLiveCut:
     method = getattr(plane._mixed_control.resolver, "resolve_delivery_cut", None)
     if not callable(method):
-        raise ValueError("inject delivery live control-cut owner is unavailable")
+        raise ConflictError("inject delivery live control-cut owner is unavailable")
     try:
         return resolve_owner_cut(plane, policy, application, method)
-    except Exception:
-        raise ValueError("inject delivery live control cut is unavailable") from None
+    except CONTROL_CUT_REFUSALS:
+        # The owner refused the live cut or ran out of budget: a refusal, not a failure to report.
+        pass
+    # Isolation: the installed live-cut owner failed outside its refusal contract.
+    except Exception as exc:
+        _LOGGER.exception("inject delivery live control-cut owner failed", exc_info=foreign_failure_record(exc))
+    # Raised after the handler, so the refusal carries no owner exception as its context.
+    raise ConflictError(_CUT_UNAVAILABLE)
 
 
 def _require_current_validity(
@@ -193,7 +218,7 @@ def _require_current_validity(
         or not detail.valid_from_order <= cut.effective_order <= detail.valid_until_order
         or not current.valid_from_order <= cut.effective_order <= current.valid_until_order
     ):
-        raise ValueError("inject delivery control validity is stale")
+        raise ConflictError("inject delivery control validity is stale")
 
 
 def _require_active_grants(
@@ -208,7 +233,7 @@ def _require_active_grants(
         or not set(detail.controlled_scope_refs) <= set(cut.authorized_scope_refs)
         or not required_evidence <= set(cut.evidence_refs)
     ):
-        raise ValueError("inject delivery authority has been revoked")
+        raise ConflictError("inject delivery authority has been revoked")
 
 
 def _require_archived_control(plane: RuntimeControlPlane, application: ParticipantInjectApplicationModel) -> None:
@@ -221,4 +246,4 @@ def _require_archived_control(plane: RuntimeControlPlane, application: Participa
         None,
     )
     if actual is None or canonical_json_digest(actual) != application.control.digest:
-        raise ValueError("retained inject delivery control history differs")
+        raise EvidenceIntegrityError("retained inject delivery control history differs")

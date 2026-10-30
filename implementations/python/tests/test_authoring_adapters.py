@@ -17,6 +17,7 @@ from raes_contracts.authoring_adapters import AuthoringAdapterComparisonModel, p
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import schema_bundle
 from raes_contracts.diagnostics import DiagnosticModel, Severity
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.json_ingress import StrictJsonIngressError
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -67,7 +68,7 @@ def test_semantic_change_is_typed_and_two_identical_wrong_paths_do_not_pass() ->
 
 
 def test_empty_corpus_is_not_success(tmp_path) -> None:
-    with pytest.raises(ValueError, match="empty"):
+    with pytest.raises(InvalidInputError, match="empty"):
         load_authoring_vectors(root=tmp_path)
 
 
@@ -218,6 +219,27 @@ def test_missing_provenance_and_refusal_without_diagnostics_fail_closed() -> Non
     )
 
 
+def test_untyped_provenance_and_diagnostic_carriers_fail_closed() -> None:
+    vector, output = _case("rename-node")
+    untyped_report = replace(output, transformation_report={"status": "success"})
+    assert "right-invalid" in compare_authoring_paths(vector, output, untyped_report).report.reason_codes
+    vector, output = _case("duplicate-key")
+    untyped_diagnostic = replace(output, diagnostics=({"code": "sdl.parse"},))
+    assert "right-invalid" in compare_authoring_paths(vector, output, untyped_diagnostic).report.reason_codes
+
+
+def test_observation_defect_is_not_reported_as_invalid_output(monkeypatch) -> None:
+    from raes_conformance import _authoring_observations
+
+    def _defect(_artifact):
+        raise TypeError("observation defect")
+
+    vector, output = _case()
+    monkeypatch.setattr(_authoring_observations, "coordinate_for_artifact", _defect)
+    with pytest.raises(TypeError, match="observation defect"):
+        compare_authoring_paths(vector, output, output)
+
+
 def test_rename_source_admission_refusal_needs_no_transformation_report() -> None:
     vector, output = _case("rename-invalid-source")
     assert output.output_source is None
@@ -306,12 +328,12 @@ def test_strict_json_ingress_and_utf8_byte_limits() -> None:
 def test_vector_profile_is_pinned_and_case_paths_cannot_escape(tmp_path) -> None:
     vector, output = _case()
     forged = vector.model_copy(update={"profile_digest": "sha256:" + "0" * 64})
-    with pytest.raises(ValueError, match="profile digest"):
+    with pytest.raises(InvalidInputError, match="profile digest"):
         compare_authoring_paths(forged, output, output)
     (tmp_path / "strict-source.json").symlink_to(
         ROOT / "contracts/fixtures/authoring-adapters-v1/cases/strict-source.json"
     )
-    with pytest.raises(ValueError, match="outside"):
+    with pytest.raises(InvalidInputError, match="outside"):
         load_authoring_vectors(root=tmp_path)
 
 
@@ -379,11 +401,11 @@ def test_report_cannot_claim_missing_or_inapplicable_success_evidence(alter) -> 
 def test_corpus_bound_and_identifier_are_enforced(tmp_path) -> None:
     vector, _ = _case()
     (tmp_path / "wrong.json").write_text(vector.model_dump_json())
-    with pytest.raises(ValueError, match="filename"):
+    with pytest.raises(InvalidInputError, match="filename"):
         load_authoring_vectors(root=tmp_path)
     for index in range(32):
         (tmp_path / f"extra-{index}.json").write_text("{}")
-    with pytest.raises(ValueError, match="count"):
+    with pytest.raises(InvalidInputError, match="count"):
         load_authoring_vectors(root=tmp_path)
 
 

@@ -8,6 +8,10 @@ from tools.formal_semantic_validation._replay import _validate_test_ref
 from tools.formal_semantic_validation._shape import (
     _closed_object,
     _failure,
+    _hashable,
+    _lookup,
+    _member,
+    _members,
     _stable_ids,
     _string_list,
 )
@@ -40,7 +44,7 @@ def _validate_protocol(repo_root: Path, protocol: _JsonObject, failures: list[Po
 
 
 def _protocol_scope_failures(protocol: _JsonObject, failures: list[PolicyFailure], path: str) -> None:
-    expected_issue = {"1.0.0": 168, "2.0.0": 828}.get(protocol.get("revision"))
+    expected_issue = _lookup({"1.0.0": 168, "2.0.0": 828}, protocol.get("revision"))
     if (
         expected_issue is None
         or protocol.get("issue_number") != expected_issue
@@ -53,7 +57,8 @@ def _protocol_scope_failures(protocol: _JsonObject, failures: list[PolicyFailure
                 path,
             )
         )
-    if set(protocol.get("evidence_status_values", [])) != EVIDENCE_STATUSES:
+    status_values = list(_members(protocol.get("evidence_status_values", [])))
+    if not all(_hashable(item) for item in status_values) or set(status_values) != EVIDENCE_STATUSES:
         failures.append(
             _failure(
                 "formal-validation-evidence-status",
@@ -81,7 +86,7 @@ def _claim_class_failures(protocol: _JsonObject, failures: list[PolicyFailure], 
                 path,
             )
         )
-    for item in protocol.get("claim_classes", []):
+    for item in _members(protocol.get("claim_classes", [])):
         if not _closed_object(
             item,
             _CLAIM_CLASS_KEYS,
@@ -91,7 +96,7 @@ def _claim_class_failures(protocol: _JsonObject, failures: list[PolicyFailure], 
             path=path,
         ):
             continue
-        if item.get("expected_evidence_status") not in EVIDENCE_STATUSES:
+        if not _member(item.get("expected_evidence_status"), EVIDENCE_STATUSES):
             failures.append(
                 _failure(
                     "formal-validation-evidence-status",
@@ -125,7 +130,7 @@ def _participant_obligation_failures(
                 path,
             )
         )
-    for item in protocol.get("participant_obligations", []):
+    for item in _members(protocol.get("participant_obligations", [])):
         if not _closed_object(
             item,
             _PARTICIPANT_KEYS,

@@ -7,6 +7,7 @@ from dataclasses import replace
 from threading import RLock
 
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
 from raes_contracts.plan_effects import plan_can_mutate
 from raes_contracts.plan_projection import runtime_plan_digest
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
@@ -45,7 +46,7 @@ class RuntimePlanAuthorizationMixin:
             if plan.model.events and plan.model.scripts:
                 previous = self._trusted_orchestration_models.get(digests[1])
                 if previous is not None and _schedule_context(previous) != _schedule_context(plan.model):
-                    raise ValueError("orchestration plan has ambiguous compiler context")
+                    raise ConflictError("orchestration plan has ambiguous compiler context")
                 self._trusted_orchestration_models[digests[1]] = deepcopy(plan.model)
             self._trusted_runtime_plan_digests.update(digests)
         return digests[0]
@@ -57,14 +58,14 @@ class RuntimePlanAuthorizationMixin:
             or self._mixed_control.model != model
             or (controlled_deliveries and (self._inject_delivery is None or self._inject_delivery.model != model))
         ):
-            raise ValueError("reusable-control plan requires its exact installed consumer context")
+            raise ConflictError("reusable-control plan requires its exact installed consumer context")
 
     @runtime_owned
     def mixed_control_planning_admission(self) -> MixedControlPlanningAdmission:
         from raes_processor.planner.mixed_control_admission import MixedControlPlanningAdmission
 
         if self._mixed_control is None:
-            raise ValueError("reusable-control planning context is unavailable")
+            raise ConflictError("reusable-control planning context is unavailable")
         self._require_mixed_control_planning_model(self._mixed_control.model)
         return MixedControlPlanningAdmission(self._mixed_control.model)
 
@@ -118,7 +119,7 @@ class RuntimePlanAuthorizationMixin:
 
     def _require_observed_base_snapshot(self, base_snapshot: RuntimeSnapshot | None) -> None:
         if base_snapshot is not None and base_snapshot != self._snapshot:
-            raise ValueError("explicit base snapshot does not match the authoritative runtime snapshot")
+            raise ConflictError("explicit base snapshot does not match the authoritative runtime snapshot")
 
     def _assert_runtime_owner(self) -> None:
         """Provided by RuntimeLifecycleMixin on the concrete control plane."""

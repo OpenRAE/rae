@@ -39,6 +39,7 @@ from raes_contracts.contracts.trial_coordinate_order import (
     canonical_entry_order,
     scheduling_policy_id,
 )
+from raes_contracts.errors import InvalidInputError, NotFoundError
 
 
 @dataclass(frozen=True)
@@ -165,9 +166,9 @@ def build_batch_execution_receipt(
     grant = grant if grant is not None else AllocatorGrant()
     scheduled = next((entry for entry in schedule.entries if entry.plan_entry_id == plan_entry_id), None)
     if scheduled is None:
-        raise ValueError("plan_entry_id is not part of the batch schedule")
+        raise NotFoundError("plan_entry_id is not part of the batch schedule")
     if grant.effective_parallelism > schedule.admitted_parallelism_ceiling:
-        raise ValueError("effective_parallelism cannot exceed the schedule's admitted parallelism ceiling")
+        raise InvalidInputError("effective_parallelism cannot exceed the schedule's admitted parallelism ceiling")
     parallel = grant.effective_parallelism > 1
     proof_ref = grant.isolation_proof_ref
     if parallel and proof_ref is None:

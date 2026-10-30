@@ -11,7 +11,10 @@ from dataclasses import dataclass
 from threading import Condition, Lock, get_ident, local
 from typing import Concatenate
 
+from raes_contracts.errors import OperationalError, RaesError
 from raes_contracts.runtime_state import OperationKind
+
+from .errors import RuntimeBudgetExhaustedError
 
 _BACKEND_REENTRY_ERROR = "backend callback cannot start a control-plane mutation"
 
@@ -56,7 +59,7 @@ def detached_extension(*, extension: bool = True) -> Iterator[None]:
         _ACTIVE_RESERVATION.reset(reservation)
 
 
-class MutationReservationRequired(RuntimeError):
+class MutationReservationRequired(RaesError):
     """Signal that an HTTP admission probe reached its accepted mutation phase."""
 
     def __init__(self, authority: RuntimeMutationAuthority, kind: OperationKind) -> None:
@@ -126,7 +129,7 @@ class RuntimeMutationAuthority:
             timeout=self._admission_seconds,
         )
         if not admitted:
-            raise TimeoutError("state admission budget exhausted")
+            raise RuntimeBudgetExhaustedError("state admission budget exhausted")
         self._owner_thread = thread_id
         self._depth = 1
         if not _SUPERVISORY_CUT.get():
@@ -225,7 +228,7 @@ class RuntimeMutationAuthority:
                 if not self._condition.wait_for(self._permit_is_free, timeout=self._admission_seconds):
                     if reservation is None:
                         self._local.abandoned_depth = state_depth
-                    raise TimeoutError("state reacquisition budget exhausted")
+                    raise RuntimeBudgetExhaustedError("state reacquisition budget exhausted")
                 self._owner_thread, self._reservation, self._depth = owner, reservation, state_depth
 
     @contextmanager
@@ -332,7 +335,9 @@ def control_plane_mutation(control_plane: object, kind: OperationKind) -> Iterat
         if callable(mutation):
             assert_owner = getattr(control_plane, "_assert_runtime_owner", None)
             if getattr(control_plane, "_durability_poisoned", False):
-                raise RuntimeError("runtime control plane requires restart after a durability reconciliation failure")
+                raise OperationalError(
+                    "runtime control plane requires restart after a durability reconciliation failure"
+                )
             if callable(assert_owner):
                 assert_owner()
         yield

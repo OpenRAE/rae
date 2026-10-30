@@ -7,7 +7,10 @@ from dataclasses import dataclass
 from typing import Annotated, Any
 
 from pydantic import AfterValidator, WithJsonSchema
+from pydantic_core import PydanticCustomError
 
+# Model diagnostics take their code from this error type, never from the message text (E7).
+IDENTIFIER_INVALID_CODE = "sdl.identifier.invalid"
 PORTABLE_IDENTIFIER_PATTERN = r"[a-z0-9][a-z0-9_-]{0,63}"
 PORTABLE_IDENTIFIER_RE = re.compile(PORTABLE_IDENTIFIER_PATTERN, re.ASCII)
 PORTABLE_IDENTIFIER_MAX_LENGTH = 64
@@ -39,11 +42,17 @@ def is_portable_identifier(value: object) -> bool:
     return isinstance(value, str) and PORTABLE_IDENTIFIER_RE.fullmatch(value) is not None
 
 
+def identifier_refusal(message: str) -> PydanticCustomError:
+    """Return the ``ValueError`` of an identifier refusal; model validation reports its error type."""
+
+    return PydanticCustomError(IDENTIFIER_INVALID_CODE, message)
+
+
 def require_portable_identifier(value: object, *, field_name: str) -> str:
     """Return a valid portable identifier or raise a value-only-safe error."""
 
     if not is_portable_identifier(value):
-        raise ValueError(
+        raise identifier_refusal(
             f"{field_name} must be a portable SDL identifier: 1-64 lowercase "
             "ASCII letters, digits, hyphens, or underscores, starting with a letter or digit"
         )
@@ -128,10 +137,11 @@ def require_qualified_identifier(value: object, *, field_name: str) -> str:
     try:
         return QualifiedName.parse(value).render()
     except ValueError as exc:
-        raise ValueError(f"{field_name} must be a qualified SDL identifier") from exc
+        raise identifier_refusal(f"{field_name} must be a qualified SDL identifier") from exc
 
 
 __all__ = [
+    "IDENTIFIER_INVALID_CODE",
     "OptionalPortableIdentifier",
     "portable_identifier_map_schema",
     "PORTABLE_IDENTIFIER_JSON_SCHEMA",
@@ -141,6 +151,7 @@ __all__ = [
     "QUALIFIED_IDENTIFIER_MAX_LENGTH",
     "PortableIdentifier",
     "QualifiedName",
+    "identifier_refusal",
     "is_portable_identifier",
     "require_module_identifier",
     "require_portable_identifier",

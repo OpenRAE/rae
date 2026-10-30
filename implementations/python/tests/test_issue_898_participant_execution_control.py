@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import threading
 from dataclasses import replace
 
@@ -905,3 +906,32 @@ def test_live_conformance_rejects_autonomous_claim_without_executable_behavior()
 
     assert action_case.passed is False
     assert action_case.diagnostics[0].code == ("conformance.participant-execution-action-inert")
+
+
+def test_live_conformance_sanitizes_and_logs_a_failing_native_action(caplog: pytest.LogCaptureFixture) -> None:
+    secret = "native-action-secret-1678"
+
+    class _FailingParticipantRuntime(_NativeParticipantRuntime):
+        def bind_autonomous_action(self, *args, **kwargs):
+            raise RuntimeError(f"backend detail {secret}")
+
+    runtime_model = compile_runtime_model(_two_green_participant_scenario())
+    target = replace(
+        create_stub_target(),
+        manifest=_autonomous_manifest(runtime_model),
+        participant_runtime=_FailingParticipantRuntime(),
+    )
+
+    with caplog.at_level(logging.ERROR, logger="raes_conformance"):
+        cases = _target_adapter_cases(target, BackendCapabilityProfile.FULL_REMOTE_CONTROL_PLANE)
+    action_case = next(case for case in cases if case.name == "participant-execution-bounded-native-actions")
+
+    assert action_case.passed is False
+    assert action_case.diagnostics[0].code == "conformance.participant-execution-action-failed"
+    assert secret not in action_case.diagnostics[0].message
+    records = [record for record in caplog.records if record.name.endswith("participant_execution_probes")]
+    assert records
+    for record in records:
+        assert secret not in record.getMessage()
+        assert secret not in (record.exc_text or "")
+        assert "ForeignCodeFailure" in (record.exc_text or "")

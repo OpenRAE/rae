@@ -106,6 +106,13 @@ def test_sbom_refuses_a_malformed_subject_digest() -> None:
     assert excinfo.value.code == "evidence-subject-digest-invalid"
 
 
+def test_evidence_document_errors_are_input_refusals() -> None:
+    from raes_contracts.errors import InvalidInputError
+
+    assert issubclass(EvidenceDocumentError, InvalidInputError)
+    assert EvidenceDocumentError("code", "message").code == "code"
+
+
 def _inventory(**overrides: object) -> dict:
     kwargs: dict = {
         "subjects": [

@@ -7,6 +7,7 @@ from collections.abc import Mapping, Sequence
 
 from pydantic import BaseModel
 
+from ..json_pointer import array_index
 from ._common import actual_identity, pointer, pointer_tokens
 from ._models import (
     DEFAULT_REALIZATION_CONSTRAINT_LIMITS,
@@ -115,9 +116,10 @@ def _require_sequence_size(values: Sequence[object], limits: RealizationConstrai
 
 
 def _resolve_positional_token(values: Sequence[object], token: str) -> tuple[int, str, int]:
-    if not token.isdigit() or int(token) >= len(values):
+    index = array_index(token, len(values))
+    if index is None:
         raise ValueError("semantic sequence address does not resolve")
-    return int(token), token, 0
+    return index, token, 0
 
 
 def _keyed_sequence_matches(

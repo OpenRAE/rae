@@ -6,6 +6,7 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
+import rfc8785
 from pydantic import Field, field_validator
 from raes_contracts.contracts.participant_control_context import ParticipantControlContextAssetReferenceModel
 
@@ -19,6 +20,9 @@ if TYPE_CHECKING:
 
     from ._declarations import Declaration, DeclarationIndex
     from .scenario import ScenarioContent
+
+# An authored integer outside the I-JSON range gives an asset descriptor no canonical digest.
+_DESCRIPTOR_NOT_CANONICAL = "control-context.descriptor-not-canonical"
 
 
 class ParticipantControlContextReference(SDLModel):
@@ -80,7 +84,11 @@ def resolve_control_context_reference(
 
     declaration = _control_context_declaration(index, reference)
     asset = scenario.control_context_assets[declaration.model_tokens[1]]
-    if control_context_asset_reference(asset) != expected:
+    try:
+        pin = control_context_asset_reference(asset)
+    except rfc8785.CanonicalizationError as exc:
+        raise ValueError(_DESCRIPTOR_NOT_CANONICAL) from exc
+    if pin != expected:
         raise ValueError("control-context.reference-stale")
     agent = scenario.agents.get(participant_name)
     if agent is None:
@@ -123,7 +131,11 @@ def resolve_authored_control_context(
     versions: dict[tuple[str, str], ParticipantControlContextAssetReferenceModel] = {}
     for asset in scenario.control_context_assets.values():
         key = asset.asset_id, asset.asset_version
-        pin = control_context_asset_reference(asset)
+        try:
+            pin = control_context_asset_reference(asset)
+        except rfc8785.CanonicalizationError:
+            errors.append(_DESCRIPTOR_NOT_CANONICAL)
+            continue
         if key in versions and versions[key] != pin:
             errors.append("control-context.descriptor-conflict")
         versions[key] = pin

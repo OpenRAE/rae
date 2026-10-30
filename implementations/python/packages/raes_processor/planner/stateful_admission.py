@@ -388,7 +388,8 @@ def generated_artifact_payload_diagnostic(
             node_specs=node_specs,
             content_specs=content_specs,
         )
-    except TypeError, ValueError:
+    except ValueError:
+        # The payload value validation refuses with ValueError or ValidationError (E3); report it (E9).
         return Diagnostic(
             code="provisioner.generated-artifact-invalid",
             domain="provisioning",

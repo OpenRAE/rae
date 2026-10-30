@@ -27,6 +27,7 @@ from raes_contracts.contracts.runtime_facts import (
     RuntimeFactVersionModel,
     RuntimeFactVisibilityModel,
 )
+from raes_contracts.errors import ConflictError
 from raes_runtime.runtime_fact_bindings import (
     RuntimeFactActionDisposition,
     RuntimeFactBindingAdmission,
@@ -170,10 +171,10 @@ def test_fact_history_is_append_only_and_monotonic() -> None:
     first = _host_version()
     plane.append(first)
 
-    with pytest.raises(ValueError, match="version_id"):
+    with pytest.raises(ConflictError, match="version_id"):
         plane.append(first)
     invalid_sequence = _host_version(version_id="fact-version.host.3", sequence=3)
-    with pytest.raises(ValueError, match="sequence"):
+    with pytest.raises(ConflictError, match="sequence"):
         plane.append(invalid_sequence)
 
     second = _host_version(version_id="fact-version.host.2", sequence=2)
@@ -524,7 +525,7 @@ def test_binding_history_is_append_only_and_action_instance_cannot_be_rebound() 
     result = plane.bind_action_inputs(request)
 
     assert plane.binding_history() == result.events
-    with pytest.raises(ValueError, match="action_instance_id"):
+    with pytest.raises(ConflictError, match="action_instance_id"):
         plane.bind_action_inputs(request)
 
 

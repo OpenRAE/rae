@@ -43,12 +43,21 @@ from raes_contracts.contracts.participant_control_invocation import (
 from raes_contracts.contracts.participant_control_resolution import validate_participant_control_resolved_context_v2
 from raes_contracts.contracts.participant_control_results import ControlRealizationBindingModel
 from raes_contracts.contracts.participant_control_support_v2 import ControlSupportAssessmentV2Model
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError, InvalidInputError, RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.realization_structure import validate_realization_value
 from raes_contracts.runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
 
 from .control_plane_mutation import external_control_plane_call
 from .control_plane_store_revision import SnapshotRevisionConflict
-from .participant_control_binding import ParticipantControlResolution, ParticipantControlRuntimeBinding
+from .errors import RuntimeBudgetExhaustedError
+from .participant_control_binding import (
+    ParticipantControlResolution,
+    ParticipantControlRuntimeBinding,
+    control_context_admits,
+    resolve_control_context,
+    resolve_v2_request,
+)
 from .participant_control_provider_state import require_provider_state_extension, require_retained_provider_state
 from .participant_crossing_mediation import PreparedParticipantCrossing
 from .participant_crossing_state_cut import control_history_head_refs
@@ -62,6 +71,7 @@ _StageResults = tuple[
     tuple[ControlMechanismResultV2Model, ...],
     tuple[ControlLostAdviceV2Model, ...],
 ]
+_LOGGER = get_logger(__name__)
 
 
 @dataclass
@@ -100,7 +110,7 @@ class _EvaluationCut:
         self.require_current()
         remaining = min(self.plane._supervision.admission_ms, int((self.deadline - monotonic()) * 1000))
         if remaining <= 0:
-            raise TimeoutError("participant control evaluation budget exhausted")
+            raise RuntimeBudgetExhaustedError("participant control evaluation budget exhausted")
         try:
             with external_control_plane_call(self.plane):
                 return self.plane._execution_adapter.call(
@@ -119,66 +129,53 @@ def resolve_v2_outcome(
     """Resolve total coverage, evaluate stages and validate at the original cut."""
     from .participant_control_orchestration import ParticipantControlOutcome, _request_refusal
 
+    unresolved = ParticipantControlOutcome("unresolved", "control-context-invalid")
     cut = _EvaluationCut.capture(plane, origin=crossing.record)
     heads = control_history_head_refs(plane._snapshot, crossing.intent.participant_address)
+    resolution = resolve_v2_request(plane, cut, binding, crossing, sink_kind, heads)
+    if resolution is None:
+        return unresolved
+    from .participant_control_effect_evidence import retained_effect_intents, with_retained_effect_evidence
+    from .participant_control_projection import control_projection
+
     try:
-
-        def resolve() -> ParticipantControlResolution:
-            resolution = binding.resolver.resolve(
-                snapshot=deepcopy(plane._snapshot),
-                intent=deepcopy(crossing.intent),
-                crossing=deepcopy(crossing),
-                sink_kind=sink_kind,
-                expected_history_head_refs=heads,
-            )
-            if not isinstance(resolution, ParticipantControlResolution):
-                raise ValueError("missing admitted evaluation")
-            request = ParticipantControlRequestV2Model.model_validate(resolution.request.model_dump(mode="json"))
-            if type(resolution.support) is not tuple or len(resolution.support) > 256:
-                raise ValueError("invalid participant control support material")
-            support = tuple(
-                ControlSupportAssessmentV2Model.model_validate(item.model_dump(mode="json"))
-                for item in resolution.support
-            )
-            return ParticipantControlResolution(
-                request, support, resolution.incumbent_gate_disposition, resolution.incumbent_gate_evidence
-            )
-
-        resolution = cut.call(resolve)
         request = resolution.request
         refusal = _request_refusal(plane, binding, crossing, request, sink_kind, heads)
-        if refusal is not None:
-            return refusal
-        from .participant_control_projection import control_projection
+        if refusal is None:
+            require_retained_provider_state(plane._snapshot, request, projection=control_projection(plane))
+            validate_control_support_v2(request, resolution.support)
+            stages = _evaluate_slots(cut, binding, request, resolution.support)
+            effects = tuple(
+                item.payload for item in stages[1] if item.payload is not None and item.payload.kind == "effect-request"
+            )
+            if any(item.originating_principal_ref != crossing.record.receipt.context.actor_id for item in effects):
+                raise EvidenceIntegrityError("effect principal differs from its originating operation")
+            retained = retained_effect_intents(plane, effects)
+            outcomes = tuple(item.outcome for item in retained.values() if item.outcome.disposition == "applied")
+            evaluation = _compose(binding, crossing, request, resolution, stages, outcomes=outcomes)
+            require_provider_state_extension(plane._snapshot, evaluation, projection=control_projection(plane))
+    except SnapshotRevisionConflict:
+        raise
+    # RAES code refused the resolved request, a stage result or the composed evaluation; installed code
+    # runs only behind the stage isolation boundaries, so the record keeps its normal traceback.
+    except ValueError, RaesError:
+        _LOGGER.exception("participant control v2 evaluation did not resolve at the admitted cut")
+        refusal = unresolved
+    if refusal is not None:
+        return refusal
+    context = resolve_control_context(
+        lambda: with_retained_effect_evidence(cut.call(binding.resolver.validation_context, evaluation), retained)
+    )
 
-        require_retained_provider_state(plane._snapshot, request, projection=control_projection(plane))
-        validate_control_support_v2(request, resolution.support)
-        stages = _evaluate_slots(cut, binding, request, resolution.support)
-        _, results, _ = stages
-        from .participant_control_effect_evidence import retained_effect_intents, with_retained_effect_evidence
-
-        effects = tuple(
-            item.payload for item in results if item.payload is not None and item.payload.kind == "effect-request"
-        )
-        if any(item.originating_principal_ref != crossing.record.receipt.context.actor_id for item in effects):
-            raise ValueError("effect principal differs from its originating operation")
-        retained = retained_effect_intents(plane, effects)
-        outcomes = tuple(item.outcome for item in retained.values() if item.outcome.disposition == "applied")
-        evaluation = _compose(binding, crossing, request, resolution, stages, outcomes=outcomes)
-        require_provider_state_extension(plane._snapshot, evaluation, projection=control_projection(plane))
-        context = cut.call(binding.resolver.validation_context, evaluation)
-        context = with_retained_effect_evidence(context, retained)
+    def validate() -> None:
         # Context validation invokes independently supplied support/owner callbacks.
         # Those callbacks retain neither a state-writer permit nor an unbounded wait.
         cut.call(lambda: validate_participant_control_resolved_context_v2(evaluation, lambda _: context))
         cut.require_current()
-        return ParticipantControlOutcome(
-            evaluation.composition.disposition, "control-" + evaluation.composition.disposition, evaluation
-        )
-    except SnapshotRevisionConflict:
-        raise
-    except Exception:
-        return ParticipantControlOutcome("unresolved", "control-context-invalid")
+
+    admitted = context is not None and control_context_admits(validate)
+    disposition = evaluation.composition.disposition
+    return ParticipantControlOutcome(disposition, "control-" + disposition, evaluation) if admitted else unresolved
 
 
 def _evaluate_slots(
@@ -245,15 +242,19 @@ def _stage_invocation(
             value = binding.resolver.projection(detached_request, identity, inputs)
             value = ControlArtifactReferenceModel.model_validate(value.model_dump(mode="json"))
             if value.kind != "projection":
-                raise ValueError("invalid authorized projection")
+                raise InvalidInputError("invalid authorized projection")
             return value
 
         projection = cut.call(resolve_projection, request, slot_id, predecessors)
     except SnapshotRevisionConflict:
         raise
-    except Exception:
-        # An admitted unavailable projection describes a blocked stage; it
-        # is never passed to provider code and conveys no disclosure grant.
+    except Exception as exc:
+        # Isolation of the projection resolver. An admitted unavailable projection describes a
+        # blocked stage; it is never passed to provider code and conveys no disclosure grant.
+        _LOGGER.exception(
+            "participant control v2 projection is unavailable; the stage is blocked",
+            exc_info=foreign_failure_record(exc),
+        )
         projection, available = stage.unavailable_projection, False
     invocation = ControlInvocationV2Model(
         invocation_id=_stage_id(request, slot_id),
@@ -348,13 +349,13 @@ def _stage_result(
             )
             # The finite protocol returns a tuple. Never consume arbitrary provider iterators.
             if type(returned) is not tuple or len(returned) > 1:
-                raise ValueError("provider returned an unbounded or duplicate stage response")
+                raise InvalidInputError("provider returned an unbounded or duplicate stage response")
             if not returned:
                 return _failure(invocation, admitted.evidence, "missing")
             result = ControlMechanismResultV2Model.model_validate(returned[0].model_dump(mode="json"))
             portable = result.model_dump(mode="json")
             if not validate_realization_value(portable, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS).conformant:
-                raise ValueError("provider result exceeds portable material bounds")
+                raise InvalidInputError("provider result exceeds portable material bounds")
             validate_control_stage_result_v2(request, invocation, result, predecessors)
             _require_provider_state_write(binding, result)
             return result
@@ -367,18 +368,20 @@ def _stage_result(
             operation = cut.call(binding.resolver.effect_operation, effect, request.context)
             if not supports_effect_operation(cut.plane, effect, operation, request.context, cut.origin):
                 return _failure(invocation, admitted.evidence, "unsupported")
-        return result
     except SnapshotRevisionConflict:
         raise
-    except Exception:
+    except Exception as exc:
+        # Isolation of the stage provider (foreign code) and the effect-operation resolver.
+        _LOGGER.exception("participant control v2 stage provider failed", exc_info=foreign_failure_record(exc))
         return _failure(invocation, admitted.evidence, "failed")
+    return result
 
 
 def _require_provider_state_write(
     binding: ParticipantControlRuntimeBinding, result: ControlMechanismResultV2Model
 ) -> None:
     if result.next_provider_state is not None and binding.stages[result.slot_id].commit_on is None:
-        raise ValueError("provider has no admitted state write")
+        raise ConflictError("provider has no admitted state write")
 
 
 def _failure(

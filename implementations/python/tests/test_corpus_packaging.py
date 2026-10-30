@@ -437,6 +437,10 @@ def test_installed_cli_offers_no_backend_lifecycle_commands(installed_python: Pa
         "import importlib.util\n"
         f"missing = [name for name in {_REMOVED_BACKEND_PACKAGES!r} if importlib.util.find_spec(name) is not None]\n"
         "assert not missing, missing\n"
+        "from raes_runtime import ExperimentRunMetadata, RuntimeControlPlane\n"
+        "from raes_runtime.runtime_experiment_records import experiment_records\n"
+        "assert ExperimentRunMetadata().result_summaries == {}\n"
+        "assert callable(experiment_records) and callable(RuntimeControlPlane.experiment_records)\n"
         "from raes_operations.run_artifacts import RunMaterializationArchive\n"
         "assert RunMaterializationArchive\n"
     )

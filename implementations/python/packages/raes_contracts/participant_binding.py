@@ -7,6 +7,7 @@ from dataclasses import dataclass, replace
 from typing import Protocol, cast
 
 from . import participant_binding_validation as _binding_validation
+from ._host_isolation import isolated_host_call
 from .contracts import (
     ParticipantActionResultModel,
     ParticipantDecisionSurfaceActionEntryModel,
@@ -300,13 +301,11 @@ def _validate_surface_apparatus(
     admission_request: ParticipantActionAdmissionRequest,
     apparatus_resolver: ParticipantDecisionSurfaceApparatusResolver,
 ) -> None:
-    try:
+    with isolated_host_call("participant decision surface apparatus resolution failed"):
         surface_implementation_selection = apparatus_resolver(
             implementation_selection_ref=surface.implementation_selection_ref,
             exposure_policy_ref=surface.exposure_policy_ref,
         )
-    except Exception as exc:
-        raise ValueError("participant decision surface apparatus resolution failed") from exc
     if surface_implementation_selection is None:
         raise ValueError("participant decision surface apparatus refs did not resolve")
     if surface_implementation_selection.model_dump(
@@ -319,15 +318,13 @@ def _validate_proposal_arguments(
     selection: ParticipantDecisionSurfaceSelectionModel,
     argument_shape_resolver: ParticipantDecisionSurfaceArgumentShapeResolver,
 ) -> ParticipantValidatedActionSelection:
-    try:
+    with isolated_host_call("participant decision surface argument-shape resolution failed"):
         validated_selection = argument_shape_resolver(
             action_contract_address=selection.action_contract_address,
             argument_shape_ref=selection.argument_shape_ref,
             proposal_ref=selection.proposal_ref,
             proposed_arguments=selection.arguments,
         )
-    except Exception as exc:
-        raise ValueError("participant decision surface argument-shape resolution failed") from exc
     if not isinstance(validated_selection, ParticipantValidatedActionSelection):
         raise ValueError("participant decision surface proposal failed governed argument-shape validation")
     expected = (

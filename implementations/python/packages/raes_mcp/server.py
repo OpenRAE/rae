@@ -8,7 +8,8 @@ Launch via:
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+import functools
+from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
@@ -16,6 +17,7 @@ from mcp.server.fastmcp.exceptions import ToolError
 from mcp.server.fastmcp.tools import Tool
 from mcp.types import ContentBlock
 from pydantic import ValidationError
+from raes_contracts.operational_logging import get_logger, run_application
 
 from raes_mcp.tools.authoring import register as register_authoring_tools
 from raes_mcp.tools.completeness import register as register_completeness_tools
@@ -59,6 +61,8 @@ to check it.\
 
 _UNTYPED_EXPECTATION = "a value matching the tool input schema"
 _UNMATCHED_ARGUMENTS = "arguments do not match the tool input schema"
+_LOGGER = get_logger(__name__)
+_INTERNAL_TOOL_ERROR = "the tool failed with an internal error; the server log records the failure"
 
 
 def _expected_type(schema: Mapping[str, Any]) -> str:
@@ -88,8 +92,33 @@ def _argument_error_message(tool: Tool, error: ValidationError) -> str:
     return f"Invalid arguments for tool {tool.name}: " + ("; ".join(lines) or _UNMATCHED_ARGUMENTS)
 
 
+def _tool_boundary[**P, R](function: Callable[P, R]) -> Callable[P, R]:
+    """Keep the text of an unexpected exception out of the tool result (ADR-116).
+
+    FastMCP puts the text of any exception that a tool raises in the tool
+    result. Tools render their expected failures themselves; this boundary
+    logs each other failure one time, value-free, and gives the client a
+    fixed message.
+    """
+
+    @functools.wraps(function)
+    def boundary(*args: P.args, **kwargs: P.kwargs) -> R:
+        try:
+            return function(*args, **kwargs)
+        except ToolError:
+            raise
+        except Exception:
+            _LOGGER.exception("MCP tool %s stopped after an unexpected error", function.__name__)
+            raise ToolError(_INTERNAL_TOOL_ERROR) from None
+
+    return boundary
+
+
 class _RaesFastMCP(FastMCP):
-    """FastMCP server whose argument validation errors never echo argument values."""
+    """Keep argument values and unexpected exception details out of tool results."""
+
+    def add_tool(self, fn: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
+        super().add_tool(_tool_boundary(fn), *args, **kwargs)
 
     async def call_tool(self, name: str, arguments: dict[str, Any]) -> Sequence[ContentBlock] | dict[str, Any]:
         try:
@@ -120,6 +149,11 @@ def create_server() -> FastMCP:
     return mcp
 
 
-def main() -> None:
-    """Console-script entry point for the `raes-mcp` command."""
-    create_server().run()
+def main() -> int:
+    """Console-script entry point for the `raes-mcp` command.
+
+    Logging is configured before FastMCP is constructed, so log records go to
+    standard error with the value-free formatter and stdout carries only the
+    MCP protocol.
+    """
+    return run_application(lambda: create_server().run())

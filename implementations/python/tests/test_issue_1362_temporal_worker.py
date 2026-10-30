@@ -4,6 +4,7 @@ import asyncio
 
 import pytest
 from raes_contracts.contracts import backend_operation_request_digest
+from raes_contracts.errors import InvalidInputError, OperationalError
 from test_issue_1360_backend_operations import capabilities, control, request, response
 from test_issue_1362_provider_execution import Provider
 
@@ -80,7 +81,7 @@ def test_foreign_engine_reference_cannot_select_a_different_worker_or_obtain_a_g
     )
     try:
         rejected_invocation = activities.invoke({"worker_id": "another-worker"})
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidInputError):
             asyncio.run(rejected_invocation)
     finally:
         assert activities.close()
@@ -127,10 +128,11 @@ def test_native_control_exception_is_not_serialized_into_engine_history():
     try:
         rejected_payload = reference.model_dump(mode="json")
         rejected_control = activities.control({"reference": rejected_payload, "control_id": "control-1"})
-        with pytest.raises(RuntimeError) as rejected:
+        with pytest.raises(OperationalError) as rejected:
             asyncio.run(rejected_control)
         assert "sensitive-provider-value" not in str(rejected.value)
-        assert rejected.value.__suppress_context__
+        # No provider exception in the chain, not even as a suppressed context.
+        assert (rejected.value.__cause__, rejected.value.__context__) == (None, None)
     finally:
         assert activities.close()
 
@@ -208,10 +210,10 @@ def test_timed_out_activity_keeps_its_slot_until_the_callback_settles():
     async def exercise():
         first = asyncio.create_task(activities._job(activities._effect_jobs, "effect", blocked, budget_ms=50))
         assert await asyncio.to_thread(held.wait, 1)
-        with pytest.raises(RuntimeError):
+        with pytest.raises(OperationalError):
             await first
         assert activities._effect_jobs.pending_calls == 1
-        with pytest.raises(RuntimeError):
+        with pytest.raises(OperationalError):
             await activities._job(activities._effect_jobs, "effect", lambda: calls.append("premature"), budget_ms=100)
         assert calls == []
         release.set()

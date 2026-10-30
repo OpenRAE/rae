@@ -26,6 +26,7 @@ from raes_contracts.contracts import (
     schema_bundle,
 )
 from raes_contracts.experiment_bindings import (
+    ExperimentBindingTargetError,
     ScenarioBindingResolution,
     validate_experiment_binding_targets,
 )
@@ -997,7 +998,7 @@ def test_scenario_binding_admission_rejects_resolver_contract_mismatch(
 ) -> None:
     descriptors = ExperimentBindingDescriptorSetModel.model_validate(_scenario_binding_payload())
 
-    with pytest.raises(ValueError, match=message):
+    with pytest.raises(ExperimentBindingTargetError, match=message):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=resolver,
@@ -1010,7 +1011,7 @@ def test_scenario_binding_admission_rejects_literal_for_secret_target() -> None:
     descriptors = ExperimentBindingDescriptorSetModel.model_validate(_scenario_binding_payload())
     scenario_resolver = _SecretLiteralScenarioResolver()
 
-    with pytest.raises(ValueError, match="secret scenario targets"):
+    with pytest.raises(ExperimentBindingTargetError, match="secret scenario targets"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1027,7 +1028,7 @@ def test_binding_admission_rejects_miskeyed_participant_manifest_identity() -> N
     scenario_resolver = _ScenarioResolver()
     participant_manifests = _participant_manifest_map(manifest)
 
-    with pytest.raises(ValueError, match="identity must match"):
+    with pytest.raises(ExperimentBindingTargetError, match="identity must match"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1044,7 +1045,7 @@ def test_binding_admission_rejects_participant_manifest_without_registry() -> No
     scenario_resolver = _ScenarioResolver()
     participant_manifests = _participant_manifest_map(manifest)
 
-    with pytest.raises(ValueError, match="no configuration target registry"):
+    with pytest.raises(ExperimentBindingTargetError, match="no configuration target registry"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1061,7 +1062,7 @@ def test_binding_admission_rejects_participant_target_owner_mismatch() -> None:
     scenario_resolver = _ScenarioResolver()
     participant_manifests = _participant_manifest_map(manifest)
 
-    with pytest.raises(ValueError, match="owner"):
+    with pytest.raises(ExperimentBindingTargetError, match="owner"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1079,7 +1080,7 @@ def test_binding_admission_rejects_participant_target_value_type_mismatch() -> N
     scenario_resolver = _ScenarioResolver()
     participant_manifests = _participant_manifest_map(manifest)
 
-    with pytest.raises(ValueError, match="value_type"):
+    with pytest.raises(ExperimentBindingTargetError, match="value_type"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1096,7 +1097,7 @@ def test_binding_admission_rejects_miskeyed_apparatus_manifest_identity() -> Non
     scenario_resolver = _ScenarioResolver()
     apparatus_manifests = _apparatus_manifest_map(manifest)
 
-    with pytest.raises(ValueError, match="identity and kind must match"):
+    with pytest.raises(ExperimentBindingTargetError, match="identity and kind must match"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1120,7 +1121,7 @@ def test_binding_admission_rejects_apparatus_manifest_without_registry() -> None
     scenario_resolver = _ScenarioResolver()
     apparatus_manifests = _apparatus_manifest_map(manifest)
 
-    with pytest.raises(ValueError, match="no configuration target registry"):
+    with pytest.raises(ExperimentBindingTargetError, match="no configuration target registry"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1137,7 +1138,7 @@ def test_binding_admission_rejects_apparatus_kind_mismatch() -> None:
     scenario_resolver = _ScenarioResolver()
     apparatus_manifests = _apparatus_manifest_map(manifest, component_kind="backend")
 
-    with pytest.raises(ValueError, match="identity and kind must match"):
+    with pytest.raises(ExperimentBindingTargetError, match="identity and kind must match"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1154,7 +1155,7 @@ def test_binding_admission_rejects_unknown_participant_target_without_cross_plan
     scenario_resolver = _ScenarioResolver()
     participant_manifests = _participant_manifest_map(manifest)
 
-    with pytest.raises(ValueError, match="unknown configuration target"):
+    with pytest.raises(ExperimentBindingTargetError, match="unknown configuration target"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1174,7 +1175,7 @@ def test_binding_admission_rejects_alias_and_canonical_duplicate_after_resolutio
     scenario_resolver = _ScenarioResolver()
     participant_manifests = _participant_manifest_map(manifest)
 
-    with pytest.raises(ValidationError, match="duplicate canonical target"):
+    with pytest.raises(ExperimentBindingTargetError, match="duplicate canonical target"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1193,7 +1194,7 @@ def test_scenario_binding_admission_enforces_owner_declared_value_disposition() 
     descriptors = ExperimentBindingDescriptorSetModel.model_validate(payload)
     scenario_resolver = _ScenarioResolver()
 
-    with pytest.raises(ValueError, match="value kind"):
+    with pytest.raises(ExperimentBindingTargetError, match="value kind"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
