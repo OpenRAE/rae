@@ -253,6 +253,37 @@ readback. Failed due work does not rewind a successful clock transition or erase
 consumed attempts. No second clock, continuous-monitoring service, or general
 long-running action engine is introduced.
 
+### 10. Host participant tool actions inside an autonomous invocation
+
+`participant-invocation-tool-actions/v1` lets an active autonomous invocation
+host participant tool actions. The outer invocation keeps its exact ordered
+three-event history. Each tool action is a separate action of the same
+participant, with its own admission, identity, typed outcome and three-event
+history. The outer invocation is the enclosing execution, not an authority
+grant.
+
+Authority comes from authored tool affordances under the policy's behavior
+specification. The compiler joins each affordance with the policy participants
+and the targets that the action contract authors. The runtime admits a tool
+request only against that relation, the runtime-issued invocation coordinates,
+one exact manifest execution-binding offer and declared finite limits. Missing,
+foreign, stale, ambiguous or unsupported bindings refuse before effects.
+
+The scheduler gives the participant runtime a session port for each outer
+invocation. The port uses no runtime-manager call, so tool admission makes
+progress while the invocation waits. The port is inactive until the outer
+dispatch begins. Dispatch is a one-use grant. Closure at
+outer settlement withholds undispatched actions and marks dispatched actions
+without an outcome as indeterminate. The scheduler commits tool history on
+every outer terminal path, before the outer triple. Unknown effects are never
+replayed. Each tool action is also a child operation record of the enclosing
+due operation. The store retains its claim, consumed grant and settlement
+before the port answers, and startup recovery classifies it after a restart.
+
+The backend claims the composition with an explicit capability block and the
+`attach_invocation_tool_actions` protocol method. Without that claim, the
+scheduler behaves as before.
+
 ## Consequences
 
 - Human, AI, scripted, and benign simulated participants share one semantic and
@@ -292,3 +323,4 @@ long-running action engine is introduced.
 | 2026-07-26 | #898 | Added exact native action-to-target bindings, bounded concurrent execution, generation-fenced lifecycle control, typed service readback, and conditional live conformance. |
 | 2026-08-01 | #213 | Identified the existing autonomous-participant policy and execution path as the implementation of ACT-605 baseline behavior profiles. |
 | 2026-09-21 | #216 | Made backend features conditional and added explicit bounded deadline/dwell admission, evidence, and lifecycle rules. |
+| 2026-10-30 | #1740 | Added versioned participant tool actions hosted inside an active autonomous invocation. |

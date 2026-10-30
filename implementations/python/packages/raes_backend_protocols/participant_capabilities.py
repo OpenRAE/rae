@@ -6,6 +6,10 @@ from pydantic import TypeAdapter
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.contracts.feature_support import ParticipantFeatureSupportModel
 from raes_contracts.contracts.participant_execution import ParticipantExecutionBindingModel
+from raes_contracts.contracts.participant_invocation_tools import (
+    ParticipantInvocationToolActionCapabilitiesModel,
+    validate_invocation_tool_action_claim,
+)
 from raes_contracts.contracts.participant_tool_support import (
     ParticipantToolProfilesModel,
     validate_tool_feature_support,
@@ -209,6 +213,7 @@ class ParticipantRuntimeCapabilities:
     max_execution_services: int | None = None
     max_concurrent_actions: int | None = None
     resource_budgets: ParticipantResourceBudgetCapabilities | None = None
+    invocation_tool_actions: ParticipantInvocationToolActionCapabilitiesModel | None = None
     constraints: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -234,7 +239,23 @@ class ParticipantRuntimeCapabilities:
         )
         object.__setattr__(self, "execution_bindings", execution_bindings)
         self._validate_autonomous_execution()
+        self._validate_invocation_tool_actions(profiles)
         object.__setattr__(self, "feature_support", feature_support)
+
+    def _validate_invocation_tool_actions(self, profiles: ParticipantToolProfilesModel | None) -> None:
+        claim = (
+            ParticipantInvocationToolActionCapabilitiesModel.model_validate(
+                self.invocation_tool_actions.model_dump(mode="json")
+            )
+            if self.invocation_tool_actions is not None
+            else None
+        )
+        validate_invocation_tool_action_claim(
+            claim,
+            supports_autonomous_execution=self.supports_autonomous_execution,
+            supports_tool_affordances=profiles is not None,
+        )
+        object.__setattr__(self, "invocation_tool_actions", claim)
 
     def _validate_required_vocabularies(self) -> None:
         for field_name, values in (
