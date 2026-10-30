@@ -56,3 +56,4 @@ ASR-535 provides bounded participant-flow assurance discipline, but ordinary neg
 - TESTS → TEST `implementations/python/tests/test_issue_1008_evaluation_backed_claims.py` (Retained report joins, tamper rejection and fresh recollection)
 - TESTS → TEST `docs/research/modular-participant-control/check_design.py` (RAE evaluation and publication have no concrete backend prerequisites)
 - TESTS → TEST `implementations/python/tests/issue_1008_harness_publication.py` (Local source-bound publication, verification and recollection)
+- TESTS → TEST `implementations/python/tests/test_issue_1678_operational_logging.py` (Shared value-free diagnostic boundary, with isolated capture and preserved host logging state)

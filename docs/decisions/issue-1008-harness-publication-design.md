@@ -99,6 +99,10 @@ The harness collector, verifier, and dependency checker provide architecture-as-
 Existing runtime policies remain policy-as-code; their authority and behavior do not change.
 The requirement-order policy maps ASR-536 to harness publication paths and the RAE conformance predecessor.
 Its ownership check rejects production runtime edits.
+Logging tests isolate application handlers and restore the original host handlers and level.
+This keeps explicit test sinks from changing another test's diagnostic capture.
+The value-free diagnostic boundary supports the harness publication's disclosure limits.
+Runtime logging keeps its existing stream-retention contract.
 No published schema, package version, or changelog change is required.
 
 ## Reference and document review

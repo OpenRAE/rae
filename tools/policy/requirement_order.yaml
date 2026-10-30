@@ -231,6 +231,8 @@ ownership:
     - implementations/python/tests/issue_1007_intentional_subversion_harness.py
     - implementations/python/tests/issue_1008_harness_publication.py
     - implementations/python/tests/test_issue_1008_evaluation_backed_claims.py
+    # Preserve the harness's value-free diagnostic boundary in CI.
+    - implementations/python/tests/test_issue_1678_operational_logging.py
     - specs/formal/assurance-fulfillment.yaml
     - specs/formal/participant-semantics/README.md
     - specs/formal/participant-semantics/adversarial-flow-control.md

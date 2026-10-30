@@ -50,9 +50,9 @@ The publication has no combined score, confidence interval, or population robust
 
 ## Reproduction and retained evidence
 
-The [retained collection](../../research/adversarial-participant-control/evaluations/sha256-20fce4e8c88a8b324d62ea65d699f898cc27e733ccc066c6861017e924a2a741.json)
+The [retained collection](../../research/adversarial-participant-control/evaluations/sha256-bdd6f06782b169c8e0d853b2e1a936f22eb670601e07e3dce00f1de3420fb401.json)
 contains the seven executed results and safe conformance reports.
-Its [shared source inventory](../../../specs/formal/participant-semantics/runtime-mapping/capture-73613cec378f3e5645d00e183c86990b32051b3ae813dcac7f75d9e09c818bac/manifest.json)
+Its [shared source inventory](../../../specs/formal/participant-semantics/runtime-mapping/capture-c2e5461790d60587b41ec2be5a8872c167d79bb12c2c444c3848f23c7e1e3e59/manifest.json)
 pins the exact source content.
 Earlier committed captures retain their original source identities.
 
