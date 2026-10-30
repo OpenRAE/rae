@@ -37,6 +37,10 @@ _FOREIGN_TEST_DOUBLES = frozenset(
         ("implementations/python/tests/test_issue_1678_sweep_t.py", "_GuardWarning"),
         # Simulates a host-installed evidence reader's foreign exception type.
         ("implementations/python/tests/test_issue_1630_record_semantics.py", "ProviderFailure"),
+        # Simulate the grimp and import-linter exception types that the ADR-117 bridge translates.
+        ("implementations/python/tests/test_issue_1734_import_graph.py", "_GrimpError"),
+        ("implementations/python/tests/test_issue_1734_import_graph.py", "_MissingImport"),
+        ("implementations/python/tests/test_issue_1734_import_graph.py", "_InvalidOptions"),
     }
 )
 _CATEGORIES = (

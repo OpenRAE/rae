@@ -209,17 +209,18 @@ module_boundaries:
       allowed_top_level_imports:
         - raes
 
-# ADR-015: non-test source files under packages/ cap at 500 lines (aligned
-# with SonarCloud S104; lowered from 600 per the 2026-07-12 amendment / #561).
-# The allowlist (oversized_allowlist.yaml) lists the files that were over the
-# cap when the current cap was adopted; each split PR removes its entry. The
-# allowlist must stay a subset of the *code* constant
-# _ADR015_INITIAL_OVERSIZED_FILES in tools/policy/repo_policy.py (the fixed
-# reference set) — entries can be drained but not added. The locked set is
-# intentionally NOT mirrored here: keeping it as config the same PR can edit
-# would make the "shrink only" rule self-satisfiable.
+# ADR-015: non-test source files under packages/ cap at 1,000 lines (a
+# backstop to the ADR-117 structural checks; SonarCloud S104 allows the same
+# files through the project quality profile). The allowlist
+# (oversized_allowlist.yaml) lists the files that were over the cap when the
+# current cap was adopted; each split PR removes its entry. The allowlist must
+# stay a subset of the *code* constant _ADR015_INITIAL_OVERSIZED_FILES in
+# tools/policy/repo_policy.py (the fixed reference set) — entries can be drained
+# but not added. The locked set is intentionally NOT mirrored here: keeping it
+# as config the same PR can edit would make the "shrink only" rule
+# self-satisfiable.
 oversized_source_files:
-  line_cap: 500
+  line_cap: 1000
   allowlist_path: tools/policy/oversized_allowlist.yaml
   scope_roots:
     - implementations/python/packages
@@ -227,3 +228,10 @@ oversized_source_files:
     - implementations/python/tests
   file_extensions:
     - .py
+
+# ADR-117 / MOD-001: ratcheted structural checks on the module_boundaries
+# package coverage. The import contracts live in tools/policy/import_contracts.toml
+# and the exact findings in tools/policy/structural_baseline.json.
+structural_checks:
+  adr: ADR-117
+  max_repository_ancestors: 7

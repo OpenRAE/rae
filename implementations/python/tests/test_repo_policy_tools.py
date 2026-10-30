@@ -53,6 +53,7 @@ import tools.nox_support.runner as nox_runner
 import tools.nox_support.test_lanes as nox_test_lanes
 import tools.osv_scanner_tool as osv_scanner_tool
 import tools.policy.conftest_tool as conftest_tool
+import tools.policy.repo_policy as repo_policy_module
 import tools.verified_tool_installation as verified_tool_installation
 import yaml
 from packaging.requirements import Requirement
@@ -1150,6 +1151,12 @@ def test_local_docs_graph_excludes_external_link_check(
     assert "html" in sphinx_commands[0]
 
 
+@pytest.fixture(autouse=True)
+def _without_structural_ratchet(monkeypatch: pytest.MonkeyPatch) -> None:
+    """These fixture repositories hold no ADR-117 baselines; test_issue_1734_* tests the ratchet."""
+    monkeypatch.setattr(repo_policy_module, "evaluate_structural_ratchet", lambda *_args, **_kwargs: [])
+
+
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
@@ -1738,28 +1745,34 @@ def test_module_boundaries_reject_runtime_importing_sdl_semantics(tmp_path: Path
     assert [f.rule_id for f in failures] == ["module-boundary-import"]
 
 
-# ── ADR-015: 500-line source-file cap ───────────────────────────────────
+# ── ADR-015: 1,000-line source-file cap ───────────────────────────────────
 
-# A path that is in _ADR015_INITIAL_OVERSIZED_FILES (the code constant in
-# tools/policy/repo_policy.py), so the allowlist-subset (drain) check passes
-# when we put it in the allowlist.
+# The ADR-015 reference set is empty since the 1,000-line cap (#1734). Tests of the
+# drain mechanism put this path in the reference set with the fixture below, so the
+# allowlist-subset (drain) check passes when we put it in the allowlist.
 _LOCKED_PATH = "implementations/python/packages/raes_processor/models.py"
+
+
+@pytest.fixture
+def adr015_reference_set(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(repo_policy_module, "_ADR015_INITIAL_OVERSIZED_FILES", frozenset({_LOCKED_PATH}))
 
 
 def test_oversized_source_file_over_cap_is_rejected(tmp_path: Path) -> None:
     repo_root = setup_policy_repo(tmp_path)
     rel = "implementations/python/packages/raes_processor/big_new_file.py"
-    write_text(repo_root / rel, "x = 1\n" * 700)
+    write_text(repo_root / rel, "x = 1\n" * 1100)
 
     failures = evaluate_repo_policy(repo_root, [rel], check_set="file-local", structural_runner=structural_runner_stub)
 
     assert [f.rule_id for f in failures] == ["oversized-source-file"]
 
 
+@pytest.mark.usefixtures("adr015_reference_set")
 def test_oversized_source_file_in_allowlist_passes(tmp_path: Path) -> None:
     repo_root = setup_policy_repo(tmp_path)
     write_text(repo_root / "tools" / "policy" / "oversized_allowlist.yaml", f"files:\n  - {_LOCKED_PATH}\n")
-    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 700)
+    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 1100)
 
     failures = evaluate_repo_policy(
         repo_root, [_LOCKED_PATH], check_set="file-local", structural_runner=structural_runner_stub
@@ -1781,7 +1794,7 @@ def test_oversized_source_file_under_cap_passes(tmp_path: Path) -> None:
 def test_oversized_cap_excludes_test_files(tmp_path: Path) -> None:
     repo_root = setup_policy_repo(tmp_path)
     rel = "implementations/python/tests/test_huge.py"
-    write_text(repo_root / rel, "x = 1\n" * 700)
+    write_text(repo_root / rel, "x = 1\n" * 1100)
 
     failures = evaluate_repo_policy(repo_root, [rel], check_set="file-local", structural_runner=structural_runner_stub)
 
@@ -1791,7 +1804,7 @@ def test_oversized_cap_excludes_test_files(tmp_path: Path) -> None:
 def test_oversized_cap_only_checks_python_files(tmp_path: Path) -> None:
     repo_root = setup_policy_repo(tmp_path)
     rel = "implementations/python/packages/raes_processor/data.txt"
-    write_text(repo_root / rel, "line\n" * 700)
+    write_text(repo_root / rel, "line\n" * 1100)
 
     failures = evaluate_repo_policy(repo_root, [rel], check_set="file-local", structural_runner=structural_runner_stub)
 
@@ -1816,11 +1829,12 @@ def test_allowlist_entry_not_in_locked_set_is_rejected(tmp_path: Path) -> None:
     assert [f.rule_id for f in failures] == ["oversized-allowlist-locked"]
 
 
+@pytest.mark.usefixtures("adr015_reference_set")
 def test_allowlist_subset_of_locked_set_passes(tmp_path: Path) -> None:
     repo_root = setup_policy_repo(tmp_path)
     # A strict subset of the initial oversized entries — the drained state.
     write_text(repo_root / "tools" / "policy" / "oversized_allowlist.yaml", f"files:\n  - {_LOCKED_PATH}\n")
-    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 700)
+    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 1100)
 
     failures = evaluate_repo_policy(
         repo_root,
@@ -1840,7 +1854,7 @@ def test_growing_locked_set_via_config_does_not_relax_drain_check(tmp_path: Path
     repo_root = setup_policy_repo(tmp_path)
     sneaky = "implementations/python/packages/raes_processor/sneaky_new_big_file.py"
     write_text(repo_root / "tools" / "policy" / "oversized_allowlist.yaml", f"files:\n  - {sneaky}\n")
-    write_text(repo_root / sneaky, "x = 1\n" * 700)
+    write_text(repo_root / sneaky, "x = 1\n" * 1100)
     # Re-add a config-level locked_initial_files block listing the sneaky file.
     config = (repo_root / "tools" / "policy" / "adr_policy.yaml").read_text()
     config += f"  locked_initial_files:\n    - {sneaky}\n"
@@ -1856,6 +1870,7 @@ def test_growing_locked_set_via_config_does_not_relax_drain_check(tmp_path: Path
     assert "oversized-allowlist-locked" in [f.rule_id for f in failures], [f.message for f in failures]
 
 
+@pytest.mark.usefixtures("adr015_reference_set")
 def test_unsafe_locked_allowlist_entry_is_rejected(tmp_path: Path) -> None:
     """An allowlisted (and locked) path that has been replaced by a symlink
     pointing out of the tree is reported as policy-path-unsafe rather than
@@ -1863,7 +1878,7 @@ def test_unsafe_locked_allowlist_entry_is_rejected(tmp_path: Path) -> None:
     repo_root = setup_policy_repo(tmp_path)
     write_text(repo_root / "tools" / "policy" / "oversized_allowlist.yaml", f"files:\n  - {_LOCKED_PATH}\n")
     outside = tmp_path.parent / "outside_big.py"
-    write_text(outside, "x = 1\n" * 700)
+    write_text(outside, "x = 1\n" * 1100)
     target = repo_root / _LOCKED_PATH
     target.parent.mkdir(parents=True, exist_ok=True)
     target.symlink_to(outside)
@@ -1935,13 +1950,14 @@ def test_missing_allowlist_file_produces_structured_failure(tmp_path: Path) -> N
 # ── ADR-015: stale allowlist entry (file no longer over the cap) ─────────
 
 
+@pytest.mark.usefixtures("adr015_reference_set")
 def test_stale_allowlist_entry_below_cap_is_rejected(tmp_path: Path) -> None:
     """An allowlist entry that was split (so the file is now small) but
     whose entry the split PR forgot to drain is flagged on the next run,
     even though the file's deletion/shrink isn't in the changed set."""
     repo_root = setup_policy_repo(tmp_path)
     write_text(repo_root / "tools" / "policy" / "oversized_allowlist.yaml", f"files:\n  - {_LOCKED_PATH}\n")
-    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 100)  # well under the 500-line cap
+    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 100)  # well under the 1,000-line cap
 
     failures = evaluate_repo_policy(
         repo_root,
@@ -1954,6 +1970,7 @@ def test_stale_allowlist_entry_below_cap_is_rejected(tmp_path: Path) -> None:
     assert "100 lines" in failures[0].message
 
 
+@pytest.mark.usefixtures("adr015_reference_set")
 def test_stale_allowlist_entry_missing_file_is_rejected(tmp_path: Path) -> None:
     repo_root = setup_policy_repo(tmp_path)
     write_text(repo_root / "tools" / "policy" / "oversized_allowlist.yaml", f"files:\n  - {_LOCKED_PATH}\n")
@@ -1970,10 +1987,11 @@ def test_stale_allowlist_entry_missing_file_is_rejected(tmp_path: Path) -> None:
     assert "no regular file exists" in failures[0].message
 
 
+@pytest.mark.usefixtures("adr015_reference_set")
 def test_allowlist_entry_still_over_cap_passes(tmp_path: Path) -> None:
     repo_root = setup_policy_repo(tmp_path)
     write_text(repo_root / "tools" / "policy" / "oversized_allowlist.yaml", f"files:\n  - {_LOCKED_PATH}\n")
-    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 700)  # still over the cap → legitimate debt
+    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 1100)  # still over the cap → legitimate debt
 
     failures = evaluate_repo_policy(
         repo_root,
@@ -2095,6 +2113,7 @@ def test_unsafe_changed_path_is_rejected(tmp_path: Path) -> None:
 # ── ADR-015: drain requires the file to actually have been split ────────
 
 
+@pytest.mark.usefixtures("adr015_reference_set")
 def test_premature_drain_is_rejected(tmp_path: Path) -> None:
     """Removing an initial oversized file from the allowlist while the file
     itself is unchanged (still over the cap) is a premature drain — the
@@ -2102,7 +2121,7 @@ def test_premature_drain_is_rejected(tmp_path: Path) -> None:
     though the (unchanged, undeleted) file is not in the changed set."""
     repo_root = setup_policy_repo(tmp_path)
     # Default allowlist is empty -> _LOCKED_PATH is "claimed drained".
-    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 700)  # but the file is still over cap
+    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 1100)  # but the file is still over cap
 
     failures = evaluate_repo_policy(
         repo_root,
@@ -2112,9 +2131,11 @@ def test_premature_drain_is_rejected(tmp_path: Path) -> None:
     )
 
     assert [f.rule_id for f in failures] == ["oversized-source-file"], [f.message for f in failures]
-    assert "removed from" in failures[0].message and "700" in failures[0].message
+    assert "removed from" in failures[0].message
+    assert "1100" in failures[0].message
 
 
+@pytest.mark.usefixtures("adr015_reference_set")
 def test_legitimate_drain_passes(tmp_path: Path) -> None:
     """An initial oversized file that has been removed from the allowlist
     AND actually split below the cap passes."""
@@ -2134,6 +2155,7 @@ def test_legitimate_drain_passes(tmp_path: Path) -> None:
 # ── ADR-015: config-wide checks run even when nothing changed ────────────
 
 
+@pytest.mark.usefixtures("adr015_reference_set")
 def test_empty_changed_still_runs_config_wide_adr015_checks(tmp_path: Path) -> None:
     """A deletion-only PR (the repo's changed-paths helper excludes
     deletions) can hand an empty changed list to the policy. The ADR-015
@@ -3314,15 +3336,20 @@ def _run_nox_osv_scan(
     lockfile.parent.mkdir(parents=True)
     lockfile.write_text("", encoding="utf-8")
     report = lockfile.with_name("osv-scanner-report.json")
+    tooling_lockfile = tmp_path / "implementations" / "tooling" / "python" / "uv.lock"
+    tooling_lockfile.parent.mkdir(parents=True)
+    tooling_lockfile.write_text("", encoding="utf-8")
+    tooling_report = lockfile.with_name("osv-scanner-tooling-report.json")
     scanner_binary = tmp_path / "osv-scanner"
     monkeypatch.setattr(nox_test_lanes, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(nox_test_lanes, "OSV_LOCKFILE_PATH", lockfile)
     monkeypatch.setattr(nox_test_lanes, "OSV_REPORT_PATH", report)
+    monkeypatch.setattr(nox_test_lanes, "OSV_TOOLING_LOCKFILE_PATH", tooling_lockfile)
+    monkeypatch.setattr(nox_test_lanes, "OSV_TOOLING_REPORT_PATH", tooling_report)
     monkeypatch.setattr(nox_test_lanes, "ensure_osv_scanner", lambda _repo_root: scanner_binary)
 
     def fake_run_osv_scanner(actual_lockfile: Path, actual_report: Path, *, binary: Path) -> int:
-        assert actual_lockfile == lockfile
-        assert actual_report == report
+        assert (actual_lockfile, actual_report) in {(lockfile, report), (tooling_lockfile, tooling_report)}
         assert binary == scanner_binary
         return exit_code
 
@@ -3339,7 +3366,7 @@ def test_nox_osv_scan_accepts_only_a_clean_result(
 ) -> None:
     reporter = _run_nox_osv_scan(monkeypatch, tmp_path, exit_code=0)
 
-    assert [result.name for result in reporter.results] == ["osv-scan / uv.lock"]
+    assert [result.name for result in reporter.results] == ["osv-scan / uv.lock", "osv-scan / tooling uv.lock"]
 
 
 def test_nox_osv_scan_gates_vulnerability_findings(
