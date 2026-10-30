@@ -137,7 +137,7 @@ def test_verify_remote_threads_selection_and_local_input_to_acquire(
 
     def _capture(**kwargs: object) -> bytes:
         captured.update(kwargs)
-        raise RuntimeError("acquired bytes differ from the reviewed lock")
+        raise acquisition.ArtifactAcquisitionError("acquired bytes differ from the reviewed lock")
 
     monkeypatch.setattr(tooling_policy_gate, "load_tooling_artifact_selection", lambda **_kwargs: selection)
     monkeypatch.setattr(acquisition, "acquire_locked_bytes", _capture)
@@ -212,7 +212,7 @@ def test_autonomous_fipa_threads_selection_and_local_input_to_acquire(monkeypatc
 
     def _capture(**kwargs: object) -> bytes:
         captured.update(kwargs)
-        raise RuntimeError("acquired bytes differ from the reviewed lock")
+        raise acquisition.ArtifactAcquisitionError("acquired bytes differ from the reviewed lock")
 
     monkeypatch.setattr(acquisition, "acquire_locked_bytes", _capture)
 
@@ -241,7 +241,7 @@ def test_autonomous_check_remote_selects_both_locked_snapshots(monkeypatch, tmp_
 
     def _capture(**kwargs: object) -> bytes:
         captured.update(kwargs)
-        raise RuntimeError("acquired bytes differ from the reviewed lock")
+        raise acquisition.ArtifactAcquisitionError("acquired bytes differ from the reviewed lock")
 
     monkeypatch.setattr(tooling_policy_gate, "load_tooling_artifact_selection", _selection_for)
     monkeypatch.setattr(acquisition, "acquire_locked_bytes", _capture)

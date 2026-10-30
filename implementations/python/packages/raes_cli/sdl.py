@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import NoReturn
 
 import typer
-from raes import SDLParseError, format_sdl_source
+from pydantic import ValidationError
+from raes import SDLError, SDLParseError, format_sdl_source
 from raes.module_registry import (
     LOCKFILE_NAME,
     load_lockfile,
@@ -14,8 +16,27 @@ from raes.module_registry import (
     resolve_lock_records,
 )
 from raes.parser import parse_sdl_file
+from raes_contracts.errors import ConflictError, OperationalError
 
 app = typer.Typer(help="SDL composition and packaging.")
+
+
+def _refuse(action: str, path: Path, error: Exception) -> NoReturn:
+    """Write one value-free failure line to stderr and exit with status 1 (ADR-116).
+
+    The line names the failure kind and its public exception class, never the
+    exception text, which can carry registry URLs, host paths or authored content.
+    """
+
+    if isinstance(error, SDLError | ValidationError):
+        kind = "the input was rejected"
+    elif isinstance(error, ConflictError):
+        kind = "the request conflicts with the existing layout"
+    else:
+        kind = "a module registry, cache or layout operation failed"
+    name = next(item.__name__ for item in type(error).__mro__ if not item.__name__.startswith("_"))
+    typer.echo(f"error: could not {action} {path}: {kind} ({name})", err=True)
+    raise typer.Exit(code=1) from error
 
 
 @app.command("format")
@@ -35,6 +56,9 @@ def format_source(
         result = format_sdl_source(original, path=path)
     except SDLParseError as exc:
         raise typer.BadParameter(exc.details) from exc
+    # Composition of imports can refuse the source or fail to fetch an OCI module.
+    except (SDLError, OperationalError) as exc:
+        _refuse("format", path, exc)
 
     for diagnostic in result.diagnostics:
         start = diagnostic.primary_range.start
@@ -64,7 +88,10 @@ def resolve(
     ),
 ) -> None:
     """Resolve SDL imports and write/update the lockfile."""
-    resolved = resolve_lock_records(path)
+    try:
+        resolved = resolve_lock_records(path)
+    except (SDLError, ValidationError, OperationalError) as exc:
+        _refuse("resolve the imports of", path, exc)
     output_path = lockfile or (path.parent / LOCKFILE_NAME)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(
@@ -79,13 +106,16 @@ def verify_imports(
     path: Path = typer.Argument(..., exists=True, readable=True),
 ) -> None:
     """Verify lockfile, trust policy, and import expansion."""
-    existing = load_lockfile(path.parent)
-    if existing is None:
-        raise typer.BadParameter(f"No {LOCKFILE_NAME} found next to {path}; run `raes sdl resolve` first.")
-    expected = resolve_lock_records(path)
-    if expected.model_dump(mode="python") != existing.model_dump(mode="python"):
-        raise typer.BadParameter("Import lockfile is stale or does not match current resolution.")
-    parse_sdl_file(path)
+    try:
+        existing = load_lockfile(path.parent)
+        if existing is None:
+            raise typer.BadParameter(f"No {LOCKFILE_NAME} found next to {path}; run `raes sdl resolve` first.")
+        expected = resolve_lock_records(path)
+        if expected.model_dump(mode="python") != existing.model_dump(mode="python"):
+            raise typer.BadParameter("Import lockfile is stale or does not match current resolution.")
+        parse_sdl_file(path)
+    except (SDLError, ValidationError, OperationalError) as exc:
+        _refuse("verify the imports of", path, exc)
     typer.echo("imports verified")
 
 
@@ -107,10 +137,13 @@ def publish(
     ),
 ) -> None:
     """Package an SDL module and report its usable immutable OCI layout."""
-    result = publish_module_to_oci_layout(
-        path,
-        output_dir=output_dir,
-        signer_id=signer_id,
-        private_key_path=private_key,
-    )
+    try:
+        result = publish_module_to_oci_layout(
+            path,
+            output_dir=output_dir,
+            signer_id=signer_id,
+            private_key_path=private_key,
+        )
+    except (SDLError, ConflictError, OperationalError) as exc:
+        _refuse("publish", path, exc)
     typer.echo(json.dumps(result, indent=2, sort_keys=True))

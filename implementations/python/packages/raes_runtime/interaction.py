@@ -11,6 +11,7 @@ from raes_contracts.contracts import (
     ArtifactAvailabilityContext,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
 from raes_contracts.immutable_history import mutable_history_value
 from raes_contracts.materialization import MaterializationSubmission
 from raes_contracts.planning import PlanScope, RuntimeDomain
@@ -299,6 +300,7 @@ class RuntimeInteractionMixin(
         from raes_contracts.runtime_state import OperationKind
 
         from .control_plane_operation_context import operation_admission_context
+        from .errors import RuntimeBudgetExhaustedError
         from .operation_policy_admission import execution_budget_ms
 
         for domain in (RuntimeDomain.PROVISIONING, RuntimeDomain.EVALUATION, RuntimeDomain.ORCHESTRATION):
@@ -306,7 +308,8 @@ class RuntimeInteractionMixin(
             operation_admission_context(self, kind=OperationKind(domain.value), request=phase)
             try:
                 execution_budget_ms(phase, self._supervision)
-            except ValueError:
+            except ConflictError, RuntimeBudgetExhaustedError:
+                # An unsupported policy and an exhausted authored attempt budget both refuse the apply.
                 diagnostics.append(
                     _failure_diagnostic(
                         "runtime.control-plane.execution-policy-unsupported",

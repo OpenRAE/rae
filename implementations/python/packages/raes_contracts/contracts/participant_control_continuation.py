@@ -1,5 +1,6 @@
 """Validate continuation of an immutable admitted effect graph at its own cut."""
 
+from .._host_isolation import isolated_host_call
 from .participant_control_coordinates import ParticipantControlContextModel
 from .participant_control_decisions_v2 import ControlEffectRequestV2Model
 from .participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
@@ -38,7 +39,7 @@ def validate_participant_control_effect_dispatch_v2(
     from .participant_control_applicability import control_digest
     from .participant_control_effects import ControlInjectEffectModel
 
-    try:
+    with isolated_host_call("participant control current effect authority validation failed", keep_cause=False):
         record = ParticipantControlEvaluationV2Model.model_validate(record.model_dump(mode="python"))
         if (
             record.commit.status != "committed"
@@ -52,8 +53,6 @@ def validate_participant_control_effect_dispatch_v2(
             raise ValueError("effect authority is no longer resolved")
         if isinstance(effect.target, ControlInjectEffectModel):
             _validate_inject(effect.target, record.request.context, context)
-    except Exception:
-        raise ValueError("participant control current effect authority validation failed") from None
 
 
 def _validate_continuation_identity(
@@ -90,7 +89,7 @@ def validate_participant_control_continuation_v2(
     The caller independently resolves every credited committed intent/outcome.
     Fresh evaluations retain their stricter monotonic consumption validation.
     """
-    try:
+    with isolated_host_call("participant control trusted continuation validation failed", keep_cause=False):
         source = ParticipantControlEvaluationV2Model.model_validate(source.model_dump(mode="python"))
         record = ParticipantControlEvaluationV2Model.model_validate(record.model_dump(mode="python"))
         if not isinstance(context, ParticipantControlValidationContextV2) or source.commit.status != "committed":
@@ -106,5 +105,3 @@ def validate_participant_control_continuation_v2(
         _validate_v2_results_and_support(record, context)
         _validate_v2_effect_authority(record, context, same_cut=True)
         _validate_v2_receipts(record, context)
-    except Exception:
-        raise ValueError("participant control trusted continuation validation failed") from None

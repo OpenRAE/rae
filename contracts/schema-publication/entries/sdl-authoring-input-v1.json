@@ -1,9 +1,9 @@
 {
-  "content_hash": "37338a06d86968b9ea60b734c4b2d1a660b812630a44e995bc4fc38b2c892844",
+  "content_hash": "b415f87c7cd9489c3fb247e0baa03760680f696c12cf0ab90fd522e22a0039bc",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "37338a06d86968b9ea60b734c4b2d1a660b812630a44e995bc4fc38b2c892844",
-    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301). Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
+    "content_hash": "b415f87c7cd9489c3fb247e0baa03760680f696c12cf0ab90fd522e22a0039bc",
+    "summary": "Add the closed structural slot nodes.runtime.network_detection_engines.rule_sources; its owner is one network detection engine and its runtime-inventory member selects that engine's rule sources (issue #1747)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

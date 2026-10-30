@@ -10,6 +10,7 @@ authority, nor realization — API-407 support records own that question.
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
+from copy import deepcopy
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Literal, Protocol
@@ -31,8 +32,14 @@ from raes_contracts.contracts.participant_control_resolution import (
 from raes_contracts.contracts.participant_control_results import ControlEffectiveSupportModel
 from raes_contracts.contracts.participant_control_selection import ParticipantControlSelectionModel
 from raes_contracts.contracts.participant_control_support_v2 import ControlSupportAssessmentV2Model
+from raes_contracts.errors import InvalidInputError, RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 
 from .control_plane_mutation import external_control_plane_call
+from .control_plane_store_revision import SnapshotRevisionConflict
+
+_LOGGER = get_logger(__name__)
+_CONTEXT_FAILED = "participant control resolver validation context failed"
 
 PARTICIPANT_CONTROL_PROTOCOL_REVISION = "participant-control-provider/v1"
 
@@ -200,9 +207,90 @@ def fenced_validation_context(
     with external_control_plane_call(control_plane):
         try:
             context = binding.resolver.validation_context(record)
-        except Exception:
+        # Isolation: the operator-supplied resolver failed; the context is missing.
+        except Exception as exc:
+            _LOGGER.exception(_CONTEXT_FAILED, exc_info=foreign_failure_record(exc))
             context = None
     return lambda _record: context
+
+
+def resolve_v2_request(
+    plane: object,
+    cut: object,
+    binding: ParticipantControlRuntimeBinding,
+    crossing: object,
+    sink_kind: object,
+    heads: tuple[str, ...],
+) -> ParticipantControlResolution | None:
+    """Resolve and revalidate the admitted v2 request at the cut, or ``None`` after one failure record."""
+
+    def resolve() -> ParticipantControlResolution:
+        resolution = binding.resolver.resolve(
+            snapshot=deepcopy(plane._snapshot),
+            intent=deepcopy(crossing.intent),
+            crossing=deepcopy(crossing),
+            sink_kind=sink_kind,
+            expected_history_head_refs=heads,
+        )
+        if not isinstance(resolution, ParticipantControlResolution):
+            raise InvalidInputError("missing admitted evaluation")
+        request = ParticipantControlRequestV2Model.model_validate(resolution.request.model_dump(mode="json"))
+        if type(resolution.support) is not tuple or len(resolution.support) > 256:
+            raise InvalidInputError("invalid participant control support material")
+        support = tuple(
+            ControlSupportAssessmentV2Model.model_validate(item.model_dump(mode="json")) for item in resolution.support
+        )
+        return ParticipantControlResolution(
+            request, support, resolution.incumbent_gate_disposition, resolution.incumbent_gate_evidence
+        )
+
+    try:
+        return cut.call(resolve)
+    except SnapshotRevisionConflict:
+        raise
+    # Isolation: the operator-supplied resolver failed or returned a request that does not revalidate.
+    except Exception as exc:
+        _LOGGER.exception(
+            "participant control v2 resolver failed; control is unresolved", exc_info=foreign_failure_record(exc)
+        )
+        return None
+
+
+def resolve_control_context[T](resolve: Callable[[], T]) -> T | None:
+    """Return the trusted context that ``resolve`` builds, or ``None`` after one failure record.
+
+    ``resolve`` calls the operator-supplied ``validation_context`` and reads the
+    context it returns. A stale cut is not a resolver failure, so it propagates.
+    """
+
+    try:
+        return resolve()
+    except SnapshotRevisionConflict:
+        raise
+    # Isolation: the operator-supplied resolver or the context that it returned failed.
+    except Exception as exc:
+        _LOGGER.exception(_CONTEXT_FAILED, exc_info=foreign_failure_record(exc))
+        return None
+
+
+def control_context_admits(validate: Callable[[], None]) -> bool:
+    """Run the published validation of a resolved context; ``False`` when it does not admit.
+
+    The published validation isolates the host callbacks in the context and logs
+    their failures, so its ``ValueError`` refusal needs no second record here.
+    """
+
+    try:
+        validate()
+    except SnapshotRevisionConflict:
+        raise
+    except ValueError:
+        return False
+    # The cut, the budget or the runtime owner check failed in RAES code; it keeps its normal traceback.
+    except RaesError:
+        _LOGGER.exception("participant control context validation did not complete")
+        return False
+    return True
 
 
 __all__ = (
@@ -212,5 +300,8 @@ __all__ = (
     "ParticipantControlRuntimeResolver",
     "ParticipantControlRuntimeResolverV2",
     "ParticipantControlStageBinding",
+    "control_context_admits",
     "fenced_validation_context",
+    "resolve_control_context",
+    "resolve_v2_request",
 )

@@ -19,10 +19,14 @@ nox.options.reuse_existing_virtualenvs = True
 nox.options.sessions = ["verify-fast-feedback"]
 
 REPO_ROOT = Path(__file__).resolve().parent
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
 import sys
 
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError
 
 from tools.nox_support.compatibility_lanes import _run_python_compatibility
 from tools.nox_support.config import (
@@ -316,14 +320,14 @@ def verify_changed(session: nox.Session) -> None:
 def _required_coverage_file() -> Path:
     value = os.environ.get(VERIFY_COVERAGE_FILE_ENV)
     if not value:
-        raise RuntimeError(f"{VERIFY_COVERAGE_FILE_ENV} is required for an orchestrated coverage lane")
+        raise InvalidInputError(f"{VERIFY_COVERAGE_FILE_ENV} is required for an orchestrated coverage lane")
     return Path(value)
 
 
 def _required_env(name: str) -> str:
     value = os.environ.get(name)
     if not value:
-        raise RuntimeError(f"{name} is required for this shard-orchestrated session")
+        raise InvalidInputError(f"{name} is required for this shard-orchestrated session")
     return value
 
 
@@ -332,7 +336,8 @@ def _required_env_int(name: str) -> int:
     try:
         return int(value)
     except ValueError as exc:
-        raise RuntimeError(f"{name} must be an integer, got {value!r}") from exc
+        # The environment value stays out of the message (rule E7).
+        raise InvalidInputError(f"{name} must be an integer") from exc
 
 
 @nox.session(name="verify-static-lane")

@@ -1,6 +1,7 @@
 """Actual runtime applications reuse policy edges without reusing coordinates."""
 
 import pytest
+from raes_contracts.errors import AuthorizationError, InvalidInputError
 from raes_contracts.runtime_state import OperationState
 from raes_runtime.control_plane_store import LocalControlPlaneStore
 from reusable_control_runtime_fixtures import PARTICIPANT, configured_plane, handoff, identity
@@ -109,7 +110,7 @@ def test_ambiguous_group_has_no_winner():
         intents = [handoff(plane, owner, "take", revision=0, head=0, order=1, key=key) for key in ("one", "two")]
         applications = [(intent, intent.client_correlation_id) for intent in intents]
         caller = identity()
-        with pytest.raises(ValueError, match="ambiguous"):
+        with pytest.raises(InvalidInputError, match="ambiguous"):
             plane.record_participant_controls(PARTICIPANT, applications, identity=caller)
 
         assert plane.snapshot.participant_control_history.get(PARTICIPANT, []) == []
@@ -204,7 +205,7 @@ def test_read_only_principal_is_refused_before_live_owner_evaluation_without_a_r
 
         owner.resolve_cut = spy
         reader = replace(identity(), roles=frozenset({ControlPlaneRole.AUDITOR}))
-        with pytest.raises(PermissionError):
+        with pytest.raises(AuthorizationError):
             plane.record_participant_control(PARTICIPANT, intent, identity=reader)
         assert called == []
 

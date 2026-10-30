@@ -14,6 +14,7 @@ from raes_contracts.contracts import (
     validate_evidence_requirement_relations,
 )
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.errors import InvalidInputError
 
 _CHANNEL_CAPTURE_KIND = {
     "packet_capture": "packet-capture",
@@ -171,11 +172,15 @@ def compile_scoped_evidence_requirement_demands(
     """
 
     supplied_specs = {f"{index}:{spec.capture_spec_id}": spec for index, spec in enumerate(capture_specs)}
-    validate_evidence_requirement_relations(
-        relations,
-        scenario=relation_scenario or scenario,
-        capture_specs=supplied_specs,
-    )
+    try:
+        validate_evidence_requirement_relations(
+            relations,
+            scenario=relation_scenario or scenario,
+            capture_specs=supplied_specs,
+        )
+    except ValueError as exc:
+        # The contract owner refuses an invalid relation with ValueError (E3); refuse here (E9).
+        raise InvalidInputError("scoped evidence requirement relations failed closed validation") from exc
     return (*compile_scenario_capture_demands(scenario), *compile_capture_spec_demands(capture_specs))
 
 

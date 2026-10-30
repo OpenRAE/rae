@@ -37,6 +37,7 @@ from raes_contracts.participant_opacity import (
 from raes_contracts.satisfiability import SourceArtifactIdentityModel
 from raes_processor.participant_opacity import (
     ParticipantOpacityEvidenceError,
+    ParticipantOpacityInputError,
     ParticipantOpacityOperationalError,
     analyze_participant_opacity_input,
     model_check_participant_opacity_file,
@@ -769,7 +770,7 @@ def test_model_check_file_ingress_rejects_duplicate_and_open_json_without_leaks(
         encoding="utf-8",
     )
     with pytest.raises(
-        ParticipantOpacityOperationalError,
+        ParticipantOpacityInputError,
         match="bounded closed-world admission",
     ) as duplicate_error:
         model_check_participant_opacity_file(duplicate)
@@ -781,7 +782,7 @@ def test_model_check_file_ingress_rejects_duplicate_and_open_json_without_leaks(
     open_input = tmp_path / "open.json"
     open_input.write_text(json.dumps(open_payload), encoding="utf-8")
     with pytest.raises(
-        ParticipantOpacityOperationalError,
+        ParticipantOpacityInputError,
         match="bounded closed-world admission",
     ) as open_error:
         model_check_participant_opacity_file(open_input)

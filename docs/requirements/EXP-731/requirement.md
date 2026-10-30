@@ -52,3 +52,8 @@ Different experiments may need to add or tighten evidence requirements without c
 - TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (Current and historical research evidence release integrity coverage)
 - TESTS → TEST `implementations/python/tests/test_issue_1210_semantic_comparison.py` (Owner-projection revision compatibility coverage)
 - TESTS → TEST `implementations/python/tests/test_specification_coverage.py` (Integrated specification-coverage release selection and immutable bundle coverage)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/runtime_study_records.py` (Keep the authored study definition and its scoped evidence rules.)
+- TESTS → TEST `implementations/python/tests/test_issue_1630_run_records.py` (Check that a study snapshot keeps its definition identity.)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_study_definition.py` (Resolve exact authored policy before accepting inherited evidence scope.)
+- TESTS → TEST `implementations/python/tests/test_issue_1630_record_failures.py` (Reject altered inherited policy and invalid definition pins.)

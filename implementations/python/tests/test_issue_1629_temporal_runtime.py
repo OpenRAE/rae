@@ -2,6 +2,7 @@
 
 import pytest
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.errors import AuthorizationError
 from raes_runtime import RuntimeControlPlane
 from raes_runtime.control_plane_security import ControlPlaneIdentity, ControlPlaneRole
 from test_runtime_manager import _full_scenario
@@ -35,7 +36,7 @@ def test_state_worker_is_scoped_and_repeated_delivery_does_not_repeat_effects():
         assert "provisioning" not in payload
         assert "participant_configurations" not in payload
         foreign_worker = worker(target.name, "foreign")
-        with pytest.raises(PermissionError):
+        with pytest.raises(AuthorizationError):
             engine.advance_workflow(reference, identity=foreign_worker)
         assert not calls
         for _ in range(10):
@@ -47,7 +48,7 @@ def test_state_worker_is_scoped_and_repeated_delivery_does_not_repeat_effects():
         assert len(calls) == 1
         foreign_reference = reference.model_copy(update={"scope_id": "run:foreign"})
         admitted_worker = worker(target.name)
-        with pytest.raises(PermissionError):
+        with pytest.raises(AuthorizationError):
             engine.advance_workflow(foreign_reference, identity=admitted_worker)
 
 

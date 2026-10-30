@@ -262,8 +262,9 @@ relation's resolved point.
 | Source | Field | Target |
 |--------|-------|--------|
 | `variation_points` | parameter target variable | `variables` |
-| `variation_points` | reference/collection/timing target owner | slot-declared owner section |
+| `variation_points` | reference/collection/timing/structural target owner | slot-declared owner section |
 | `variation_points` | governed allowed refs and alternative/subset/order member refs | slot-declared candidate section |
+| `variation_points` | resource consumer selector node | `nodes` |
 | `variation_points` | requires/excludes point | `variation_points` |
 | `variation_points` | requires/excludes members | members of the resolved point |
 | `variation_points` | precedence/fixed-position members | members of the owning order point |
@@ -519,6 +520,7 @@ the source of the row's normative meaning.
 | `workflows.*.steps.*.join` | `workflow_steps` | semantic validation | fatal dangling, non-join, multiply owned, or outside branch closure | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
 | `workflows.*.steps.*.workflow` | `workflows` | semantic validation | fatal dangling or cyclic | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
 | `workflows.*.steps.*.compensate_with` | `workflows` | semantic validation | fatal dangling, cyclic, or invalid as a compensation target | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
+| `nodes.*.runtime.network_detection_engines[].rule_sources[].generated_by` | `runtime:forwarding_agents` | semantic validation | fatal dangling or ambiguous across scenario and node scopes | [runtime inventory](runtime-inventory.md#2-family-index) | [node validator](../../implementations/python/packages/raes/validator/_nodes_infra_network.py) |
 | `nodes.*.runtime.identity_authorities[].resource_scopes[].parent_ref` | `runtime:resource_scopes` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) | [cloud resource validator](../../implementations/python/packages/raes/validator/_cloud_resources.py) |
 | `nodes.*.runtime.identity_authorities[].subjects[].resource_scope_ref` | `runtime:resource_scopes` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) | [cloud resource validator](../../implementations/python/packages/raes/validator/_cloud_resources.py) |
 | `nodes.*.runtime.identity_authorities[].identity_uses[].workload_ref` | `derived:cloud-workload` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) | [cloud resource validator](../../implementations/python/packages/raes/validator/_cloud_resources.py) |

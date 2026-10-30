@@ -6,10 +6,11 @@ from collections.abc import Sequence
 from graphlib import TopologicalSorter
 from typing import Annotated, Literal, Self
 
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import ConfigDict, Field, ValidationError, model_validator
 
 from .._canonical import canonical_json_digest
-from ..json_ingress import parse_bounded_json_object
+from ..errors import InvalidInputError
+from ..json_ingress import StrictJsonIngressError, parse_bounded_json_object
 from .base import ContractModel
 from .participant_control_coordinates import (
     ControlArtifactReferenceModel,
@@ -401,6 +402,7 @@ def parse_participant_control_evaluation(source: str | bytes) -> ParticipantCont
     """Bound ingress and expose no rejected value in public parse failures."""
     try:
         payload = parse_bounded_json_object(source, max_bytes=1_048_576, max_depth=32)
-        return ParticipantControlEvaluationModel.model_validate(payload)
-    except TypeError, ValueError:
-        raise ValueError("invalid participant control evaluation") from None
+        evaluation = ParticipantControlEvaluationModel.model_validate(payload)
+    except StrictJsonIngressError, ValidationError:
+        raise InvalidInputError("invalid participant control evaluation") from None
+    return evaluation

@@ -16,6 +16,7 @@ from dataclasses import replace
 from uuid import uuid4
 
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
 from raes_contracts.participant_episode import (
     ParticipantEpisodeInitializeRequest,
     ParticipantEpisodeResetRequest,
@@ -25,6 +26,7 @@ from raes_contracts.runtime_state import ApplyResult, OperationState
 
 from .backend_calls import _BackendCallContext, _call_backend_apply
 from .participant_control_runtime import (
+    CONTROL_CUT_REFUSALS,
     archived_policies,
     episode_policy_admissions,
     participant_policy_specifications,
@@ -50,11 +52,11 @@ def _prepare_bound_episode_request(
     if not specifications:
         return request
     if len(specifications) != 1:
-        raise ValueError("episode must resolve exactly one mixed-control policy")
+        raise ConflictError("episode must resolve exactly one mixed-control policy")
     request = replace(request, episode_id=request.episode_id or f"episode.{uuid4()}")
     policy = plane._mixed_control.policy(specifications[0].address, request.episode_id)
     if any(item.episode_id == request.episode_id for item in archived_policies(plane, request.participant_address)):
-        raise ValueError("mixed-control episode identity cannot be reused")
+        raise ConflictError("mixed-control episode identity cannot be reused")
     cut = resolve_live_cut(plane, policy, None)
     require_initial_authority(policy, cut, "initial mixed-control authority is invalid")
     return request
@@ -70,7 +72,7 @@ def execute_participant_policy_call(
 
         require_live_control_proposal(plane, request)
         request = _prepare_episode_request(plane, request)
-    except ValueError, PermissionError, TimeoutError:
+    except CONTROL_CUT_REFUSALS:
         return _unverified(plane, address), OperationState.FAILED, None
     return _execute_prepared_policy_call(plane, method, request, address)
 
@@ -103,7 +105,7 @@ def _retain_episode_admissions(
 ) -> tuple[ApplyResult, OperationState, dict[str, object] | None]:
     try:
         admissions = episode_policy_admissions(plane, predecessor, result.snapshot)
-    except ValueError, PermissionError, TimeoutError:
+    except CONTROL_CUT_REFUSALS:
         # The callback ran. Preserve the current committed cut, record uncertainty
         # and retain exclusion; neither rollback nor initial authority is proved.
         return _unverified(plane, address), OperationState.INDETERMINATE, None

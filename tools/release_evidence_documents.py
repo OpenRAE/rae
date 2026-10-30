@@ -27,11 +27,21 @@ same bytes and the evidence digest is stable across retries.
 from __future__ import annotations
 
 import re
+import sys
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
-from tools.release_evidence_sbom import ReconciledClosure
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError  # noqa: E402
+
+from tools.release_evidence_sbom import ReconciledClosure  # noqa: E402
 
 CYCLONEDX_SPEC_VERSION = "1.6"
 BUILD_INVENTORY_SCHEMA_VERSION = "raes-build-inventory/v1"
@@ -55,7 +65,7 @@ class BuildInputs:
     runner: Mapping[str, Any]
 
 
-class EvidenceDocumentError(Exception):
+class EvidenceDocumentError(InvalidInputError):
     """An evidence rendering failure carrying a stable, publishable code."""
 
     def __init__(self, code: str, message: str) -> None:

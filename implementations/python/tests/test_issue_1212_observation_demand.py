@@ -14,6 +14,7 @@ from raes.parser import parse_sdl
 from raes_backend_stubs.manifest import create_stub_manifest
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.contracts import ExperimentCaptureSpecModel, ExperimentSpecModel, ExperimentTaskModel, schema_bundle
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.observation_demand import (
     AchievedObservationValue,
     EffectiveObservationDemand,
@@ -747,7 +748,7 @@ def test_compiler_rejects_invalid_observation_resolution_instead_of_carrying_a_w
         """
     )
 
-    with pytest.raises(ValueError, match="observation demand normalization failed"):
+    with pytest.raises(InvalidInputError, match="observation demand normalization failed"):
         compile_scenario_runtime_model(scenario)
 
 
@@ -782,7 +783,7 @@ def test_sdl_cannot_impersonate_an_independent_observation_policy_authority() ->
         """
     )
 
-    with pytest.raises(ValueError, match="cannot assert a non-author policy authority"):
+    with pytest.raises(InvalidInputError, match="cannot assert a non-author policy authority"):
         compile_scenario_runtime_model(scenario)
 
 

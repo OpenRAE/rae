@@ -24,13 +24,14 @@ reconcile its actual code/test links and fulfillment status in its delivery PR.
 
 ## Amended authority
 
-[ASR-536](../../requirements/ASR-536/requirement.md) remains DRAFT. Its original
-intentional-subversion protocol, adaptive knowledge, monitor topology, memory,
-audit and intervention cost, safety/usefulness, and nonclaim requirements are
-retained. The added paragraph requires exact modular composition and backend
-realization evidence, allows policy-admitted adversarial inputs, and separates
-out-of-world integrity failure from an in-world attack. #1007 owns this scope.
-This does not make adversarial evaluation the definition of participant control.
+At the 2026-09-06 design cut, [ASR-536](../../requirements/ASR-536/requirement.md) was DRAFT.
+Issue #1008 amends its current evaluation ownership on 2026-10-29.
+RAE-owned harnesses bind exact compositions and executed runtime evidence.
+A concrete backend is not a prerequisite for RAE evaluation or publication.
+Concrete backend claims retain their separate realization evidence requirement.
+The original adversarial protocol coordinates and separate measures remain required.
+Policy-admitted influence remains distinct from prohibited effects and apparatus integrity failure.
+The requirement file and its merged traceability determine current fulfillment.
 
 ADR-101 receives a recorded, hash-pinned amendment under ADR-059. Its
 general-purpose taint-engine/policy-language non-goal continues to exclude an
@@ -73,8 +74,9 @@ Backend design may proceed after the architecture gate, independently in each
 repository. Backend implementation requires its own accepted selection and
 requirement mapping plus released RAES semantics/contracts/runtime/conformance.
 Backend proof then supplies real installed artifact/readback evidence. #1007
-and #1008 select only completed exact backend branches. Hub records status and
-publication pointers without duplicating semantic authority.
+and #1008 use backend-neutral RAE harnesses and do not wait for backend implementation.
+Concrete backend claims still require exact owner-supplied realization evidence.
+Hub records status and publication pointers without duplicating semantic authority.
 
 The issue bodies link the proposed design branch until merge. Those links are
 preparation, not removal of the design block. At merge the authoritative base

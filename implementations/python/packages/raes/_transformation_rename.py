@@ -18,9 +18,9 @@ from raes_contracts.contracts import (
 )
 
 from ._declarations import Declaration, DeclarationIndex, build_declaration_index
-from ._errors import SDLParseError, SDLValidationError
+from ._errors import SDLError, SDLParseError
 from ._identifiers import QualifiedName
-from ._module_symbols import FORWARDING_AGENTS_SECTION, symbol_index
+from ._module_symbols import FORWARDING_AGENTS_SECTION, nested_declaration_aliases, symbol_index
 from ._transformation_bindings import _retarget_binding_documents
 from ._transformation_support import (
     IDENTITY_TRANSPORT_PROFILE,
@@ -36,6 +36,7 @@ from ._transformation_types import (
     RenameSDLDeclarationRequest,
     SDLAuthoringArtifact,
     SDLTransformationResult,
+    _TransformationRefusal,
 )
 from .canonical import SDLCanonicalDigest, canonical_sdl_bytes, canonical_sdl_digest
 from .composition import _rewrite_payload_with_symbols
@@ -93,6 +94,7 @@ def _rename_symbols(
             rewritten_named[alias] = target
     rewritten_named[old_key] = new_key
     rewritten_named[old_address] = new_address
+    rewritten_named.update(nested_declaration_aliases(scenario, {section: {old_key: new_key}}))
     symbols["named"] = rewritten_named
     return symbols
 
@@ -130,7 +132,7 @@ def _preserve_explicit_mapping_shape(
     template_only = [key for key in template if key not in matched_template]
     rewritten_only = [key for key in rewritten if key not in matched_rewritten]
     if len(template_only) > len(rewritten_only):
-        raise ValueError("reference rewrite changed the explicit payload shape")
+        raise _TransformationRefusal("reference rewrite changed the explicit payload shape")
     for template_key, rewritten_key in zip(template_only, rewritten_only, strict=False):
         result[rewritten_key] = _preserve_explicit_shape(template[template_key], rewritten[rewritten_key])
     return result
@@ -141,7 +143,7 @@ def _preserve_explicit_sequence_shape(
     rewritten: list[object] | tuple[object, ...],
 ) -> list[object] | tuple[object, ...]:
     if len(template) != len(rewritten):
-        raise ValueError("reference rewrite changed an explicit sequence shape")
+        raise _TransformationRefusal("reference rewrite changed an explicit sequence shape")
     items = [
         _preserve_explicit_shape(template_item, rewritten_item)
         for template_item, rewritten_item in zip(template, rewritten, strict=True)
@@ -275,7 +277,7 @@ def _build_renamed_artifacts(
             old_key=selection.old_key,
             new_key=selection.new_key,
         )
-    except SDLValidationError, ValidationError, TypeError, ValueError:
+    except SDLError, ValidationError, _TransformationRefusal:
         result = refused_rename(
             source_digest=source_digest,
             request=request,
@@ -296,7 +298,7 @@ def _build_renamed_artifacts(
                 before=request.target_address,
                 after=selection.new_address,
             )
-        except ValidationError, ValueError:
+        except ValidationError, _TransformationRefusal:
             result = refused_rename(
                 source_digest=source_digest,
                 request=request,
@@ -329,7 +331,7 @@ def _rename_preservation_verified(
             new_key=selection.old_key,
         )
         round_trip_digest = canonical_sdl_digest(round_trip)
-    except SDLValidationError, ValidationError, TypeError, ValueError:
+    except SDLError, ValidationError, _TransformationRefusal:
         return False
     target_index = build_declaration_index(target)
     target_declaration = target_index.declaration_for(selection.new_address)

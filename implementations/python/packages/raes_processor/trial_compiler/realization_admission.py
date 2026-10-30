@@ -6,11 +6,12 @@ from dataclasses import dataclass
 
 from raes import (
     InstantiatedScenario,
+    SDLError,
     canonical_instantiated_sdl_digest,
     select_scenario_family,
 )
 from raes.realization_envelope import member
-from raes_contracts.admitted_trial_plan_ingress import revalidate_admitted_trial_plan
+from raes_contracts.admitted_trial_plan_ingress import AdmittedTrialPlanIngressError, revalidate_admitted_trial_plan
 from raes_contracts.contracts import (
     AdmittedMixedCompositionBindingModel,
     AdmittedTrialEntryModel,
@@ -67,7 +68,7 @@ def validate_selected_scenario(
     outcomes = {selection.point_id: selection.outcome for selection in row.selections}
     try:
         selected = select_scenario_family(request.family, outcomes)
-    except (TypeError, ValueError) as exc:
+    except SDLError as exc:
         raise _fail(
             "selected-scenario-rejected",
             _ENTRIES_ADDRESS + (coordinate.replicate_id or "coordinate"),
@@ -274,7 +275,7 @@ def _revalidate_source_plan(
         )
     try:
         admitted = revalidate_admitted_trial_plan(source)
-    except ValueError as exc:
+    except AdmittedTrialPlanIngressError as exc:
         raise _fail(
             "composition-source-plan-invalid",
             _REALIZATION_ASSIGNMENTS_ADDRESS,
@@ -321,7 +322,7 @@ def _source_scenario(request: TrialCompilationRequest, entry: AdmittedTrialEntry
     source_outcomes = {selection.variation_point_id: selection.outcome for selection in entry.selections}
     try:
         source_selected = select_scenario_family(request.family, source_outcomes)
-    except (TypeError, ValueError) as exc:
+    except SDLError as exc:
         raise _fail(
             "composition-source-selection-invalid",
             _REALIZATION_ASSIGNMENTS_ADDRESS,

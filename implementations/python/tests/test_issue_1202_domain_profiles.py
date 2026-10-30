@@ -38,6 +38,7 @@ from raes_contracts.domain_profiles import (
     resolve_domain_profile_definition,
     seal_domain_profile_definition,
 )
+from raes_contracts.json_ingress import StrictJsonIngressError
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 _PUBLISHED_DOMAIN_PROFILE_FIXTURES = (
@@ -726,7 +727,7 @@ def test_duplicate_json_members_and_executable_handler_fields_are_rejected() -> 
         '"value": {"name": "one", "name": "two"}',
     )
 
-    with pytest.raises(ValueError, match="duplicate JSON member"):
+    with pytest.raises(StrictJsonIngressError, match="duplicate JSON member"):
         parse_domain_profile_binding(encoded)
     support_payload = {
         **_support(definition, DomainProfileOperation.EXECUTION).model_dump(mode="json"),

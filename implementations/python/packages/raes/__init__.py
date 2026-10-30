@@ -66,9 +66,11 @@ __all__ = [
     "SDL_SOURCE_FORMAT",
     "SDLParseDiagnostic",
     "SDLParseError",
+    "SDLSelectionError",
     "SDLSourcePosition",
     "SDLSourceRange",
     "SDLValidationError",
+    "SDLValidationFinding",
     "validate_experiment_selection_against_family",
     "VARIABLE_TOKEN_PATTERN",
 ]
@@ -80,9 +82,11 @@ _LAZY_EXPORTS = {
         "SDLInstantiationError",
         "SDLParseDiagnostic",
         "SDLParseError",
+        "SDLSelectionError",
         "SDLSourcePosition",
         "SDLSourceRange",
         "SDLValidationError",
+        "SDLValidationFinding",
     ),
     "raes.canonical": (
         "INSTANTIATED_SNAPSHOT_PROFILE",

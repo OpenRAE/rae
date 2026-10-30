@@ -11,12 +11,23 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
+from raes_contracts.errors import ConflictError, InvalidInputError, OperationalError
+from raes_contracts.operational_logging import get_logger
+
 from .control_plane_configuration import ControlPlaneConfiguration
 from .control_plane_execution import _utc_now
 from .control_plane_operation_context import runtime_target_scope
 from .control_plane_store_lease import RuntimeOwnerLease, require_single_worker_configuration
 from .control_plane_store_local import LocalControlPlaneStore
-from .control_plane_store_local_codec import decode_payload, encode_payload, transaction
+from .control_plane_store_local_codec import (
+    CORE_LOCAL_TABLES,
+    decode_payload,
+    durable_text,
+    encode_payload,
+    refuse_invalid_database,
+    require_local_tables,
+    transaction,
+)
 from .control_plane_store_paths import (
     _fsync_directory,
     _fsync_regular_file,
@@ -31,6 +42,7 @@ _DATABASE_NAME = "control-plane.sqlite3"
 _OWNER_NAME = "runtime-owner.lock"
 _SIDECAR_SUFFIXES = ("-wal", "-shm", "-journal")
 _UNCERTAIN_RESTORE_LEASES: list[RuntimeOwnerLease] = []
+_LOGGER = get_logger(__name__)
 
 
 class LocalStoreMaintenanceOperation(str, Enum):
@@ -75,34 +87,57 @@ def maintain_local_control_plane_store(
         raise TypeError("conflict_policy must be a DestinationConflictPolicy")
     target_scope, normalized_run_scope = _normalized_scopes(target_name, run_scope)
     if operation is LocalStoreMaintenanceOperation.CHECK:
-        _check_store(store_path, target_scope=target_scope, run_scope=normalized_run_scope)
+        with _maintenance_storage_refusals():
+            _check_store(store_path, target_scope=target_scope, run_scope=normalized_run_scope)
     elif operation is LocalStoreMaintenanceOperation.BACKUP:
         if backup_path is None:
             raise ValueError("backup operation requires a backup path")
-        _backup_store(
-            store_path,
-            backup_path,
-            target_scope=target_scope,
-            run_scope=normalized_run_scope,
-            conflict_policy=conflict_policy,
-        )
+        with _maintenance_storage_refusals():
+            _backup_store(
+                store_path,
+                backup_path,
+                target_scope=target_scope,
+                run_scope=normalized_run_scope,
+                conflict_policy=conflict_policy,
+            )
     else:
         if backup_path is None:
             raise ValueError("restore operation requires a backup path")
-        _restore_store(
-            store_path,
-            backup_path,
-            target_scope=target_scope,
-            run_scope=normalized_run_scope,
-            conflict_policy=conflict_policy,
-        )
+        with _maintenance_storage_refusals():
+            _restore_store(
+                store_path,
+                backup_path,
+                target_scope=target_scope,
+                run_scope=normalized_run_scope,
+                conflict_policy=conflict_policy,
+            )
     return LocalStoreMaintenanceResult(operation)
 
 
 def _normalized_scopes(target_name: str, run_scope: str) -> tuple[str, str]:
-    target_scope = runtime_target_scope(target_name)
-    config = ControlPlaneConfiguration(run_scope=run_scope)
+    # The operator supplies both values; their validators refuse an invalid value with ValueError (E3).
+    try:
+        target_scope = runtime_target_scope(target_name)
+    except ValueError as exc:
+        raise InvalidInputError("local control-plane maintenance target is invalid") from exc
+    try:
+        config = ControlPlaneConfiguration(run_scope=run_scope)
+    except ValueError as exc:
+        raise InvalidInputError("local control-plane maintenance run scope is invalid") from exc
     return target_scope, config.run_scope
+
+
+@contextmanager
+def _maintenance_storage_refusals() -> Iterator[None]:
+    """Refuse an operator path or a file that the host or SQLite cannot use as a store (E9)."""
+
+    try:
+        with refuse_invalid_database():
+            yield
+    except OSError as exc:
+        # An operator path can name a missing, unreadable or non-directory location, or exceed a name
+        # limit; the host can also refuse a write, a rename or a synchronization.
+        raise OperationalError("local control-plane maintenance filesystem operation failed") from exc
 
 
 @contextmanager
@@ -140,7 +175,7 @@ def _backup_store(
         _prepare_destination(backup_path, conflict_policy=conflict_policy)
         existing = _secure_database_file(backup_path, allow_missing=True)
         if existing is not None and os.path.samestat(existing, store._database_path.lstat()):
-            raise ValueError("backup destination must differ from the admitted store")
+            raise InvalidInputError("backup destination must differ from the admitted store")
         with store._connection() as source:
             _publish_backup(
                 source,
@@ -149,6 +184,39 @@ def _backup_store(
                 run_scope=run_scope,
                 conflict_policy=conflict_policy,
             )
+
+
+def _restore_destination(
+    database_path: Path, backup_path: Path, conflict_policy: DestinationConflictPolicy
+) -> os.stat_result | None:
+    """Return the metadata of an existing destination that the restore may replace, or None."""
+
+    existing = _secure_database_file(database_path, allow_missing=True)
+    if existing is not None and conflict_policy is DestinationConflictPolicy.REFUSE:
+        raise ConflictError("restore destination already exists")
+    backup_metadata = _secure_database_file(backup_path, allow_missing=False)
+    assert backup_metadata is not None
+    if existing is not None and os.path.samestat(existing, backup_metadata):
+        raise InvalidInputError("restore source must differ from the destination store")
+    return existing
+
+
+def _rolled_back(database_path: Path, previous_copy: Path | None, working_path: Path, lease: RuntimeOwnerLease) -> bool:
+    """Roll back a published restore, or retain its lease as uncertain and log the cause once."""
+
+    try:
+        _rollback_restored_destination(
+            database_path,
+            previous_copy=previous_copy,
+            working_path=working_path,
+            directory=database_path.parent,
+        )
+    except Exception:
+        _UNCERTAIN_RESTORE_LEASES.append(lease)
+        # The failed rollback leaves the destination uncertain; record its cause once (L3).
+        _LOGGER.exception("local control-plane restore rollback could not be confirmed")
+        return False
+    return True
 
 
 def _restore_store(
@@ -165,13 +233,7 @@ def _restore_store(
     release_lease = True
     try:
         database_path = store_path / _DATABASE_NAME
-        existing = _secure_database_file(database_path, allow_missing=True)
-        if existing is not None and conflict_policy is DestinationConflictPolicy.REFUSE:
-            raise FileExistsError("restore destination already exists")
-        backup_metadata = _secure_database_file(backup_path, allow_missing=False)
-        assert backup_metadata is not None
-        if existing is not None and os.path.samestat(existing, backup_metadata):
-            raise ValueError("restore source must differ from the destination store")
+        existing = _restore_destination(database_path, backup_path, conflict_policy)
         working_path = _working_path(store_path, prefix=".restore-")
         previous_copy: Path | None = None
         published = False
@@ -202,19 +264,13 @@ def _restore_store(
             published = True
             _fsync_regular_file(database_path)
             _fsync_directory(store_path)
-        except BaseException:
-            if published:
-                try:
-                    _rollback_restored_destination(
-                        database_path,
-                        previous_copy=previous_copy,
-                        working_path=working_path,
-                        directory=store_path,
-                    )
-                except Exception:
-                    release_lease = False
-                    _UNCERTAIN_RESTORE_LEASES.append(lease)
-                    raise RuntimeError("local control-plane restore rollback could not be confirmed") from None
+        except BaseException as error:
+            if published and not _rolled_back(database_path, previous_copy, working_path, lease):
+                release_lease = False
+                if not isinstance(error, Exception):
+                    # An interruption stays an interruption (H4).
+                    raise error from None
+                raise OperationalError("local control-plane restore rollback could not be confirmed") from None
             raise
         finally:
             working_path.unlink(missing_ok=True)
@@ -243,7 +299,7 @@ def _prepare_destination(path: Path, *, conflict_policy: DestinationConflictPoli
     _secure_store_directory(path.parent, reject_insecure_existing=True)
     existing = _secure_database_file(path, allow_missing=True)
     if existing is not None and conflict_policy is DestinationConflictPolicy.REFUSE:
-        raise FileExistsError("backup destination already exists")
+        raise ConflictError("backup destination already exists")
     _require_no_sidecars(path)
 
 
@@ -314,7 +370,7 @@ def _retain_pre_restore_copy(
         )
     with _database_connection(destination, mode="rw", standalone=True) as retained:
         if retained.execute("PRAGMA journal_mode=WAL").fetchone() != ("wal",):
-            raise RuntimeError("pre-restore copy could not retain WAL mode")
+            raise OperationalError("pre-restore copy could not retain WAL mode")
     _fsync_regular_file(destination)
     _fsync_directory(store_path)
     return destination
@@ -330,8 +386,10 @@ def _validate_working_database(
     with _database_connection(path, mode="rw", standalone=True) as connection:
         stored_target, stored_run = LocalControlPlaneStore._scope_metadata(connection)
         if (stored_target, stored_run) != (target_scope, run_scope):
-            raise RuntimeError("local control-plane store scope does not match runtime admission")
+            raise ConflictError("local control-plane store scope does not match runtime admission")
         if migrate:
+            # The migration of an older backup reads the tables that every supported schema has.
+            require_local_tables(connection, CORE_LOCAL_TABLES)
             with transaction(connection):
                 migrate_sqlite_schema(connection, decode_payload, encode_payload)
         LocalControlPlaneStore._validate_persisted_state(
@@ -341,7 +399,7 @@ def _validate_working_database(
         )
         journal_mode = connection.execute("PRAGMA journal_mode=DELETE").fetchone()
         if journal_mode != ("delete",):
-            raise RuntimeError("maintenance copy could not enter standalone journal mode")
+            raise OperationalError("maintenance copy could not enter standalone journal mode")
     _secure_database_file(path, allow_missing=False)
     _fsync_regular_file(path)
 
@@ -372,6 +430,7 @@ def _database_connection(
     sidecar_identities = _sidecar_identities(path)
     uri = f"{path.absolute().as_uri()}?mode={mode}"
     connection = sqlite3.connect(uri, isolation_level=None, uri=True)
+    connection.text_factory = durable_text
     try:
         opened = _secure_database_file(path, allow_missing=False)
         assert opened is not None
@@ -386,7 +445,7 @@ def _database_connection(
         assert after is not None
         _require_same_file(before, after, path, "SQLite was connected")
         if not os.path.samestat(directory_identity, path.parent.lstat()):
-            raise RuntimeError("local control-plane maintenance directory changed during SQLite access")
+            raise OperationalError("local control-plane maintenance directory changed during SQLite access")
         _validate_sqlite_sidecars(path)
         for suffix, original in sidecar_identities.items():
             current = Path(f"{path}{suffix}")
@@ -395,7 +454,7 @@ def _database_connection(
         if not standalone:
             for suffix in _SIDECAR_SUFFIXES:
                 if suffix not in sidecar_identities and Path(f"{path}{suffix}").exists():
-                    raise RuntimeError("local control-plane maintenance sidecar appeared during SQLite access")
+                    raise OperationalError("local control-plane maintenance sidecar appeared during SQLite access")
         if standalone:
             _require_no_sidecars(path)
 
@@ -412,7 +471,7 @@ def _working_path(directory: Path, *, prefix: str) -> Path:
 def _require_no_sidecars(database_path: Path) -> None:
     _validate_sqlite_sidecars(database_path)
     if any(Path(f"{database_path}{suffix}").exists() for suffix in _SIDECAR_SUFFIXES):
-        raise RuntimeError("stale SQLite sidecar prevents restore publication")
+        raise OperationalError("stale SQLite sidecar prevents restore publication")
 
 
 def _sidecar_identities(database_path: Path) -> dict[str, os.stat_result]:

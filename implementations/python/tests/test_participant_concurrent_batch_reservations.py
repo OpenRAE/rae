@@ -21,6 +21,7 @@ from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_backend_protocols.participant_execution_runtime import ParticipantExecutionRuntimeMixin
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
 from raes_contracts.contracts.participant_execution import ParticipantExecutionServiceStateModel
+from raes_contracts.errors import ConflictError, InvalidInputError
 from raes_contracts.participant_binding import ParticipantActionApplyResult
 from raes_contracts.runtime_state import RealizationProvenanceEntry, RuntimeSnapshot
 from raes_processor.models import ParticipantExecutionBindingRuntime
@@ -313,7 +314,9 @@ def test_cancelled_backend_batch_settles_every_submitted_action():
     batch = _batch(SimpleNamespace(admit_actions_concurrently=_cancel))
     before = deepcopy(batch.run.working)
 
-    _execute_concurrent_batch(batch)
+    # ADR-116 H4: the batch settles, then the cancellation propagates.
+    with pytest.raises(CancelledError):
+        _execute_concurrent_batch(batch)
 
     assert batch.run.failure is not None
     assert batch.run.failure.diagnostics[0].code == "runtime.participant-concurrent-batch-failed"
@@ -480,7 +483,9 @@ def test_cancelled_result_freeze_settles_every_submitted_action():
     )
     before = deepcopy(batch.run.working)
 
-    _execute_concurrent_batch(batch)
+    # ADR-116 H4: the batch settles, then the cancellation propagates.
+    with pytest.raises(CancelledError):
+        _execute_concurrent_batch(batch)
 
     assert batch.run.failure is not None
     assert batch.run.failure.diagnostics[0].code == "runtime.participant-concurrent-batch-cancelled"
@@ -728,7 +733,7 @@ def test_concurrent_service_helpers_handle_absent_service_and_reject_overcomplet
     assert (state.attempted_actions, state.in_flight) == (1, 1)
 
     with_service = _batch(SimpleNamespace())
-    with pytest.raises(ValueError, match="completion exceeds execution-service in-flight work"):
+    with pytest.raises(ConflictError, match="completion exceeds execution-service in-flight work"):
         _finish_concurrent_service_state(with_service.run, _POLICY_ADDRESS, 1)
 
 
@@ -1092,7 +1097,7 @@ def test_value_three_way_merge_preserves_prior_commit_and_rejects_conflict():
         )
         == "incoming"
     )
-    with pytest.raises(ValueError, match="time_model_state"):
+    with pytest.raises(ConflictError, match="time_model_state"):
         _merge_value_revision_checked(
             base="base",
             current="first",
@@ -1100,7 +1105,7 @@ def test_value_three_way_merge_preserves_prior_commit_and_rejects_conflict():
             field_name="time_model_state",
         )
 
-    with pytest.raises(ValueError, match="time_model_state"):
+    with pytest.raises(ConflictError, match="time_model_state"):
         _merge_value_revision_checked(
             base="base",
             current="same-write",
@@ -1134,7 +1139,7 @@ def test_metadata_conflict_diagnostic_does_not_include_backend_key():
     )
     conflicting = base.with_entries({}, metadata={secret_key: "second"})
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(ConflictError) as exc_info:
         _merge_concurrent_action_snapshot(base, current, conflicting)
 
     assert secret_key not in str(exc_info.value)
@@ -1143,7 +1148,7 @@ def test_metadata_conflict_diagnostic_does_not_include_backend_key():
 def test_identical_concurrent_mapping_writes_require_declared_merge_semantics():
     base = {"shared": "base"}
 
-    with pytest.raises(ValueError, match="metadata"):
+    with pytest.raises(ConflictError, match="metadata"):
         _merge_mapping_revision_checked(
             base=base,
             current={"shared": "same-write"},
@@ -1320,7 +1325,7 @@ def test_backend_cannot_change_scheduler_owned_snapshot_fields(field_name: str):
         **{field_name: protected},
     )
 
-    with pytest.raises(ValueError, match="protected field"):
+    with pytest.raises(InvalidInputError, match="protected field"):
         _merge_concurrent_action_snapshot(base, base, incoming)
 
 

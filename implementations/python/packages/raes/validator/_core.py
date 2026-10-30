@@ -3,12 +3,13 @@
 Part of the SemanticValidator mixin composition; see __init__.py.
 """
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
+from contextlib import contextmanager
 from typing import cast
 
 from .._base import is_variable_ref
 from .._declarations import DeclarationIndex, Purposes, build_declaration_index
-from .._errors import SDLValidationError
+from .._errors import SDLValidationError, SDLValidationFinding
 from .._incremental_reuse import (
     DECLARATION_INDEX,
     MISSING,
@@ -46,6 +47,7 @@ VALIDATION_PASSES = (
     "_verify_nodes",
     "_verify_infrastructure",
     "_verify_runtime_configuration",
+    "_verify_rule_source_generators",
     "_verify_features",
     "_verify_conditions",
     "_verify_entities",
@@ -119,14 +121,29 @@ class _ValidatorCore:
         self._caller_session = session
         self._session = session if session is not None else ValidationSession()
         self._read_sink = ReadSink()
-        self._errors: list[str] = []
+        self._errors: list[SDLValidationFinding] = []
+        self._finding_owner: tuple[str, str] | None = None
         self._warnings: list[str] = []
         self._declaration_index: DeclarationIndex | None = None
         self._runtime_references: dict[str, RuntimeFamilyReference] | None = None
         self._runtime_references_reads: frozenset[str] = frozenset()
 
-    def _err(self, msg: str) -> None:
-        self._errors.append(msg)
+    def _err(self, msg: str, *, pointer: str | None = None) -> None:
+        """Record one error. The innermost ``_owner`` block gives its owner."""
+        self._errors.append(SDLValidationFinding(msg, self._finding_owner, pointer))
+
+    def _err_for(self, owner: tuple[str, str] | None, msg: str) -> None:
+        """Record one error with the given owner, inside or outside an ``_owner`` block."""
+        self._errors.append(SDLValidationFinding(msg, owner, None))
+
+    @contextmanager
+    def _owner(self, owner: tuple[str, str] | None) -> Iterator[None]:
+        """Set the owner of each error that the block records: a ``(section, name)`` pair, or None."""
+        outer, self._finding_owner = self._finding_owner, owner
+        try:
+            yield
+        finally:
+            self._finding_owner = outer
 
     def _warn(self, msg: str) -> None:
         self._warnings.append(msg)
@@ -235,6 +252,7 @@ class _ValidatorCore:
         owner_label: str,
         ref_label: str,
         purpose: Purposes = ReferencePurpose.DECLARED,
+        pointer: str | None = None,
     ) -> None:
         """Validate a reference against the declarations eligible for *purpose* (every member of a tuple)."""
         purposes = canonical_purposes(purpose)
@@ -242,13 +260,14 @@ class _ValidatorCore:
         if not candidates:
             self._err(
                 f"{owner_label} {ref_label} '{ref}' does not reference any defined "
-                f"{eligible_element(self._failed_purposes(ref, purposes))}{self._ineligible_detail(ref)}"
+                f"{eligible_element(self._failed_purposes(ref, purposes))}{self._ineligible_detail(ref)}",
+                pointer=pointer,
             )
             return
 
         if len(candidates) > 1:
             choices = self._ambiguity_choices(candidates, purpose)
-            self._err(f"{owner_label} {ref_label} '{ref}' is ambiguous; use one of: {choices}")
+            self._err(f"{owner_label} {ref_label} '{ref}' is ambiguous; use one of: {choices}", pointer=pointer)
 
     def validate(self) -> None:
         """Run all validation passes and raise on errors.
@@ -262,7 +281,7 @@ class _ValidatorCore:
         self._runtime_references_reads = frozenset()
         self._session = self._caller_session if self._caller_session is not None else ValidationSession()
         index = build_declaration_index(self._scenario, raise_on_collision=False, session=self._session)
-        self._errors.extend(index.collision_errors)
+        self._errors.extend(SDLValidationFinding(message) for message in index.collision_errors)
         index_token = self._session.index_token(tuple(index.declarations), tuple(index.collision_errors))
         self._declaration_index = tracking_index(index, self._read_sink)  # type: ignore[assignment]
         self._s = tracking_view(self._scenario, self._read_sink)
@@ -318,8 +337,9 @@ class _ValidatorCore:
         self._runtime_references = None
         self._declaration_index = None
         for name, node in self._s.nodes.items():
-            self._verify_node_operating_system(name, node)
-            self._verify_node_architecture(name, node)
+            with self._owner(("nodes", name)):
+                self._verify_node_operating_system(name, node)
+                self._verify_node_architecture(name, node)
         self._verify_infrastructure()
         self._verify_runtime_configuration()
         self._verify_stateful_resources()

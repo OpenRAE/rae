@@ -5,6 +5,7 @@ from __future__ import annotations
 from functools import cache
 from pathlib import Path
 
+from pydantic import ValidationError
 from raes.identifiers import is_portable_identifier
 
 from .contracts.participant_flow_control import (
@@ -17,8 +18,10 @@ from .contracts.participant_owner_flow import (
     ParticipantOwnerFlowPolicyProfileModel,
 )
 from .corpus import PROFILES, corpus_family_root
-from .json_ingress import parse_bounded_json_object
+from .json_ingress import StrictJsonIngressError, parse_bounded_json_object
+from .operational_logging import get_logger
 
+_LOGGER = get_logger(__name__)
 PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_ID = "participant-boundary-flow-policy-v1"
 SUPPORTED_PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_IDS = frozenset(
     {PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_ID, OWNER_FLOW_PROFILE_ID}
@@ -67,7 +70,9 @@ def load_participant_boundary_flow_policy_profile_from_path(
             else ParticipantBoundaryFlowPolicyProfileModel
         )
         profile = model.model_validate(payload)
-    except OSError, ValueError:
+    except OSError, StrictJsonIngressError, ValidationError:
+        # A trusted artifact path fails here only when the artifact or installation is damaged.
+        _LOGGER.exception("participant boundary flow profile %s failed bounded ingress", profile_id)
         raise ValueError("participant boundary flow profile JSON or contract is invalid") from None
     if profile.profile_id != profile_id:
         raise ValueError("participant boundary flow profile artifact identity does not match the request")

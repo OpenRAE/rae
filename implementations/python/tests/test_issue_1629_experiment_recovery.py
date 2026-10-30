@@ -9,6 +9,7 @@ from raes_contracts.contracts import BackendManifestV2Model, TrialExecutionAutho
 from raes_contracts.versions import BACKEND_OPERATION_CONTRACT_IDS
 from raes_runtime import RuntimeControlPlane
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
+from raes_runtime.errors import RuntimeBudgetExhaustedError
 from raes_runtime.runtime_trial_decisions import TrialAttemptDecision, TrialTerminalDecision
 
 
@@ -142,6 +143,6 @@ def test_authored_attempt_allowance_caps_operation_budget_without_limiting_clean
         assert policy.execution_budget_ms(ProvisioningPlan(), configuration) == 2000
         now[0] = 103.0
         expired_plan = ProvisioningPlan()
-        with pytest.raises(ValueError, match="exhausted"):
+        with pytest.raises(RuntimeBudgetExhaustedError, match="exhausted"):
             policy.execution_budget_ms(expired_plan, configuration)
     assert policy.execution_budget_ms(ProvisioningPlan(), configuration) == 10000

@@ -13,10 +13,12 @@ from raes_contracts.contracts.participant_control_coordinates import (
     ParticipantControlContextModel,
 )
 from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
+from raes_contracts.errors import ConflictError
 from raes_contracts.participant_control_evaluation_history import participant_control_evaluation_from_payload
 from raes_contracts.runtime_state import RuntimeSnapshot
 
 _StateKey = tuple[str, ControlStateScopeV2Model, str | None, str | None]
+_CONFLICTING_WRITERS = "retained provider state has conflicting writers"
 
 
 def _scope_key(context: ParticipantControlContextModel, scope: ControlStateScopeV2Model) -> _StateKey:
@@ -42,7 +44,7 @@ def _state_chains(
             chain = chains.setdefault(key, {})
             previous = chain.setdefault(proposal.before, proposal.after)
             if previous != proposal.after:
-                raise ValueError("retained provider state has conflicting writers")
+                raise ConflictError(_CONFLICTING_WRITERS)
     for chain in chains.values():
         _require_serial_state_chain(chain)
     return chains
@@ -50,19 +52,19 @@ def _state_chains(
 
 def _require_serial_state_chain(chain: dict[ControlArtifactReferenceModel, ControlArtifactReferenceModel]) -> None:
     if len(set(chain.values())) != len(chain) or len(set(chain.values()) - chain.keys()) != 1:
-        raise ValueError("retained provider state has a fork or cycle")
+        raise ConflictError("retained provider state has a fork or cycle")
     root = set(chain) - set(chain.values())
     if len(root) != 1:
-        raise ValueError("retained provider state has no unique predecessor")
+        raise ConflictError("retained provider state has no unique predecessor")
     state = next(iter(root))
     seen = set()
     while state in chain:
         if state in seen:
-            raise ValueError("retained provider state has a cycle")
+            raise ConflictError("retained provider state has a cycle")
         seen.add(state)
         state = chain[state]
     if len(seen) != len(chain):
-        raise ValueError("retained provider state has disconnected versions")
+        raise ConflictError("retained provider state has disconnected versions")
 
 
 def require_provider_state_extension(
@@ -78,7 +80,7 @@ def require_provider_state_extension(
         chain = proposed.setdefault(key, dict(projection.provider_chains.get(key, {})))
         previous = chain.setdefault(proposal.before, proposal.after)
         if previous != proposal.after:
-            raise ValueError("retained provider state has conflicting writers")
+            raise ConflictError(_CONFLICTING_WRITERS)
     for chain in proposed.values():
         _require_serial_state_chain(chain)
 
@@ -102,4 +104,4 @@ def require_retained_provider_state(
         if chain:
             tips = set(chain.values()) - chain.keys()
             if len(tips) != 1 or state not in tips:
-                raise ValueError("participant control provider state is stale or conflicting")
+                raise ConflictError("participant control provider state is stale or conflicting")

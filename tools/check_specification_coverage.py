@@ -16,8 +16,13 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
 
 from tools.evidence_bundle_index import load_index_records
 from tools.policy.common import (
@@ -112,7 +117,7 @@ def _load_bundle_record(
     manifest: dict[str, object],
 ) -> tuple[dict[str, object], dict[str, object], dict[str, object], dict[str, object]]:
     if set(manifest) != _MANIFEST_KEYS:
-        raise ValueError(
+        raise InvalidInputError(
             f"{manifest_path!r} fields must exactly match {sorted(_MANIFEST_KEYS)}; got {sorted(manifest)}"
         )
     evidence_key(manifest.get("revision"))
@@ -122,11 +127,11 @@ def _load_bundle_record(
         sha_value = manifest[f"{label}_sha256"]
         resolved = safe_repo_path(repo_root, path_value) if isinstance(path_value, str) else None
         if resolved is None or not resolved.is_file():
-            raise ValueError(f"{manifest_path!r} contains unsafe or missing {label}_path")
+            raise InvalidInputError(f"{manifest_path!r} contains unsafe or missing {label}_path")
         if not isinstance(sha_value, str) or not _SHA256_RE.fullmatch(sha_value):
-            raise ValueError(f"{manifest_path!r} contains invalid {label}_sha256")
+            raise InvalidInputError(f"{manifest_path!r} contains invalid {label}_sha256")
         if _sha256(resolved) != sha_value:
-            raise ValueError(f"{manifest_path!r} contains stale {label}_sha256")
+            raise InvalidInputError(f"{manifest_path!r} contains stale {label}_sha256")
         loaded.append(load_bounded_json_object(repo_root, path_value, max_bytes=_MAX_FILE_BYTES))
     return manifest, loaded[0], loaded[1], loaded[2]
 
@@ -139,7 +144,7 @@ def evaluate(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
             (manifest_path, _load_bundle_record(repo_root, manifest_path, manifest))
             for manifest_path, manifest in records
         ]
-    except (OSError, ValueError) as exc:
+    except (OSError, InvalidInputError) as exc:
         return [_failure("specification-coverage-bundle-invalid", str(exc), MANIFEST_PATH)]
     failures: list[PolicyFailure] = []
     for manifest_path, (manifest, protocol, snapshot, analysis) in bundles:
@@ -177,7 +182,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true", help="Emit failures as JSON")
     args = parser.parse_args()
-    failures = evaluate(REPO_ROOT)
+    try:
+        failures = evaluate(REPO_ROOT)
+    except (OSError, InvalidInputError) as exc:
+        print(f"specification-coverage: {exc}", file=sys.stderr)
+        return 1
     if args.json:
         print(
             json.dumps(
@@ -200,4 +209,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

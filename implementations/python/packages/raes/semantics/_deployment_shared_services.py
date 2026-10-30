@@ -37,6 +37,11 @@ class _SharedServiceContext:
     reset_owner: str
     state_refs: tuple[object, ...]
 
+    @property
+    def issue_owner(self) -> tuple[str, str]:
+        """The relationship declaration that the issues of this context name first."""
+        return "relationships", self.relationship_name
+
 
 def _shared_service_context(
     relationship_name: str,
@@ -59,6 +64,7 @@ def _shared_service_context(
             issue_record = issue(
                 "deployment-tenancy.shared-service.endpoint-invalid",
                 f"Relationship '{relationship_name}' must connect a deployment tenant to a named compute service",
+                ("relationships", relationship_name),
             )
         elif tenant_name is not None and service_node is not None:
             service_cell = cell_index.node_cell.get(service_node)
@@ -87,6 +93,7 @@ def _cross_tenant_policy_issue(context: _SharedServiceContext) -> DeploymentTena
             "deployment-tenancy.shared-service.cross-tenant-unsafe",
             f"Relationship '{context.relationship_name}' {context.isolation or 'cross-tenant'} isolation "
             "requires tenant-scoped workload authentication",
+            context.issue_owner,
         )
     return None
 
@@ -100,6 +107,7 @@ def _stateless_policy_issue(context: _SharedServiceContext) -> DeploymentTenancy
             "deployment-tenancy.shared-service.stateless-service-state",
             f"Relationship '{context.relationship_name}' stateless isolation forbids "
             "shared-service-owned mutable state",
+            context.issue_owner,
         )
     return None
 
@@ -115,6 +123,7 @@ def _partitioned_policy_issue(context: _SharedServiceContext) -> DeploymentTenan
             "deployment-tenancy.shared-service.partitioned-state-required",
             f"Relationship '{context.relationship_name}' tenant_partitioned isolation requires "
             "shared-service-owned state and reset generation",
+            context.issue_owner,
         )
     return None
 
@@ -124,6 +133,7 @@ def _state_owner_policy_issue(context: _SharedServiceContext) -> DeploymentTenan
         return issue(
             "deployment-tenancy.shared-service.state-owner-missing",
             f"Relationship '{context.relationship_name}' mutable_state_refs require a non-none owner",
+            context.issue_owner,
         )
     return None
 
@@ -133,6 +143,7 @@ def _state_refs_policy_issue(context: _SharedServiceContext) -> DeploymentTenanc
         return issue(
             "deployment-tenancy.shared-service.state-refs-missing",
             f"Relationship '{context.relationship_name}' mutable state owner requires mutable_state_refs",
+            context.issue_owner,
         )
     return None
 
@@ -142,6 +153,7 @@ def _reset_owner_policy_issue(context: _SharedServiceContext) -> DeploymentTenan
         return issue(
             "deployment-tenancy.shared-service.reset-owner-mismatch",
             f"Relationship '{context.relationship_name}' reset_generation_owner must equal mutable state owner",
+            context.issue_owner,
         )
     return None
 
@@ -151,6 +163,7 @@ def _reset_without_state_policy_issue(context: _SharedServiceContext) -> Deploym
         return issue(
             "deployment-tenancy.shared-service.reset-owner-without-state",
             f"Relationship '{context.relationship_name}' reset_generation_owner must be none without mutable state",
+            context.issue_owner,
         )
     return None
 
@@ -185,6 +198,7 @@ def _shared_state_ref_issues(
                 "deployment-tenancy.shared-service.state-unbound",
                 f"Relationship '{context.relationship_name}' mutable_state_ref '{state_ref}' does not resolve "
                 "to a persistent volume",
+                context.issue_owner,
             )
         ]
     issues: list[DeploymentTenancyIssue] = []
@@ -195,6 +209,7 @@ def _shared_state_ref_issues(
             issue(
                 "deployment-tenancy.shared-service.state-owner-conflict",
                 f"Persistent volume '{state_name}' has conflicting shared-service owners",
+                ("persistent_volumes", state_name),
             )
         )
     consumers = _state_consumer_nodes(persistent_volumes[state_name])
@@ -206,6 +221,7 @@ def _shared_state_ref_issues(
                     "deployment-tenancy.shared-service.consumer-state-mismatch",
                     f"Relationship '{context.relationship_name}' consumer-owned state must be consumed "
                     "only by its tenant",
+                    context.issue_owner,
                 )
             )
     elif context.state_owner == StateOwner.SHARED_SERVICE.value and context.service_node not in consumers:
@@ -214,6 +230,7 @@ def _shared_state_ref_issues(
                 "deployment-tenancy.shared-service.service-state-mismatch",
                 f"Relationship '{context.relationship_name}' shared-service-owned state must be consumed "
                 "by the service node",
+                context.issue_owner,
             )
         )
     return issues
@@ -301,6 +318,7 @@ def _cross_cell_consumption_issue(
             "deployment-tenancy.shared-service.binding-required",
             f"Relationship '{relationship_name}' cross-cell service consumption requires an explicit "
             "shared-service binding for the consumer tenant and target service",
+            ("relationships", relationship_name),
         )
     return issue_record
 

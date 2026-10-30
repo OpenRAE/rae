@@ -14,6 +14,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
+from tools.tooling_installed_tree import ArtifactPolicyError
+
 OCI_DIGEST_PATTERN = re.compile(r"sha256:[0-9a-f]{64}")
 
 INVALID_SELECTION_RESPONSE = "development artifact policy failed before acquisition: invalid selection response"
@@ -39,8 +41,8 @@ class LockedOciGraph:
     variant: str | None = None
 
 
-def _refuse() -> RuntimeError:
-    return RuntimeError(INVALID_SELECTION_RESPONSE)
+def _refuse() -> ArtifactPolicyError:
+    return ArtifactPolicyError(INVALID_SELECTION_RESPONSE)
 
 
 def _is_digest(value: object) -> bool:

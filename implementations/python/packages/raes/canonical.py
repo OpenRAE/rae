@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any, Literal
@@ -12,8 +12,8 @@ import rfc8785
 from pydantic import ConfigDict, model_validator
 
 from ._base import SDLModel
-from ._errors import SDLParseError
-from ._source_profile import SDL_CANONICAL_PROFILE
+from ._errors import SDLError, SDLParseError
+from ._source_profile import DEFAULT_PARSER_LIMITS, SDL_CANONICAL_PROFILE
 from .materialization import MaterializedScenario, admit_materialized_scenario
 from .scenario import ExpandedScenario, InstantiatedScenario, Scenario
 
@@ -21,6 +21,9 @@ INSTANTIATED_SNAPSHOT_PROFILE = "raes-sdl-instantiated-snapshot/v2"
 MATERIALIZED_SDL_PROFILE = "raes-sdl-materialized/v1"
 _SHA256_PREFIX = "sha256:"
 _LEGACY_SNAPSHOT_PROJECTION_REVISION = "instantiated-snapshot-v1/node-architecture-default"
+# Twice the authoring depth limit leaves room for the snapshot envelope and provenance, and it
+# keeps the recursive copy and canonicalization far below the interpreter recursion limit.
+_SNAPSHOT_MAX_DEPTH = 2 * DEFAULT_PARSER_LIMITS.max_depth
 
 
 @dataclass(frozen=True)
@@ -59,7 +62,7 @@ def canonical_sdl_bytes(scenario: Scenario | ExpandedScenario) -> bytes:
     try:
         return rfc8785.dumps(payload)
     except rfc8785.CanonicalizationError as exc:
-        raise SDLParseError(f"SDL canonicalization failed: {exc}") from exc
+        raise SDLParseError("SDL canonicalization failed") from exc
 
 
 def canonical_sdl_digest(scenario: Scenario | ExpandedScenario) -> SDLCanonicalDigest:
@@ -134,6 +137,7 @@ def migrate_legacy_instantiated_snapshot_payload(value: object) -> tuple[object,
     ):
         return value, False
 
+    _require_bounded_snapshot_depth(value)
     legacy_names = _legacy_snapshot_vm_names(value)
     migrated: dict[str, Any] = deepcopy(dict(value))
     if legacy_names:
@@ -144,6 +148,25 @@ def migrate_legacy_instantiated_snapshot_payload(value: object) -> tuple[object,
 
     changed = remove_empty_legacy_snapshot_classifications(migrated["scenario"])
     return (migrated, True) if legacy_names or changed else (value, False)
+
+
+def _require_bounded_snapshot_depth(value: object) -> None:
+    """Refuse nesting that the recursive copy and walks below cannot process.
+
+    Model validators call this migration, so the refusal is a ValueError (ADR-116 rule E3).
+    """
+    pending: list[tuple[object, int]] = [(value, 1)]
+    while pending:
+        item, depth = pending.pop()
+        if isinstance(item, Mapping):
+            children: Iterable[object] = item.values()
+        elif isinstance(item, (list, tuple)):
+            children = item
+        else:
+            continue
+        if depth > _SNAPSHOT_MAX_DEPTH:
+            raise ValueError("instantiated snapshot nesting exceeds the depth limit")
+        pending.extend((child, depth + 1) for child in children)
 
 
 def _legacy_snapshot_vm_names(value: object) -> list[str]:
@@ -216,14 +239,18 @@ def migrate_legacy_instantiated_snapshot_join(
     try:
         raw_digest = _SHA256_PREFIX + hashlib.sha256(rfc8785.dumps(value)).hexdigest()
     except rfc8785.CanonicalizationError as exc:
-        raise ValueError(f"legacy instantiated snapshot canonicalization failed: {exc}") from exc
+        raise ValueError("legacy instantiated snapshot canonicalization failed") from exc
     if not isinstance(value, Mapping):
-        raise TypeError("legacy snapshot migration requires a mapping")
+        raise ValueError("legacy snapshot migration requires a mapping")
     historical_digest = _legacy_instantiated_snapshot_projection_digest(value)
     if submitted_digest not in {raw_digest, historical_digest}:
         raise ValueError("legacy snapshot_digest must bind the submitted immutable snapshot")
     snapshot = InstantiatedScenarioSnapshot.model_validate(migrated)
-    current_digest = canonical_instantiated_sdl_digest(snapshot.scenario).value
+    # Model validators call this function, so an SDL refusal becomes a ValueError (ADR-116 rule E3).
+    try:
+        current_digest = canonical_instantiated_sdl_digest(snapshot.scenario).value
+    except SDLError as exc:
+        raise ValueError("migrated legacy snapshot failed instantiated SDL admission") from exc
     return migrated, current_digest, True
 
 
@@ -240,7 +267,7 @@ def _legacy_instantiated_snapshot_projection_digest(value: Mapping[str, object])
     try:
         payload = rfc8785.dumps(projected)
     except rfc8785.CanonicalizationError as exc:
-        raise ValueError(f"legacy snapshot projection {_LEGACY_SNAPSHOT_PROJECTION_REVISION} failed: {exc}") from exc
+        raise ValueError(f"legacy snapshot projection {_LEGACY_SNAPSHOT_PROJECTION_REVISION} failed") from exc
     return _SHA256_PREFIX + hashlib.sha256(payload).hexdigest()
 
 
@@ -266,7 +293,7 @@ def canonical_instantiated_sdl_bytes(scenario: InstantiatedScenario) -> bytes:
     try:
         return rfc8785.dumps(snapshot.model_dump(mode="json"))
     except rfc8785.CanonicalizationError as exc:
-        raise SDLParseError(f"Instantiated SDL canonicalization failed: {exc}") from exc
+        raise SDLParseError("Instantiated SDL canonicalization failed") from exc
 
 
 def canonical_instantiated_sdl_digest(scenario: InstantiatedScenario) -> SDLCanonicalDigest:

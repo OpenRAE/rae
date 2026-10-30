@@ -14,6 +14,7 @@ from dataclasses import replace
 import pytest
 from raes import parse_sdl
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.errors import ConflictError
 from raes_contracts.planning import PlanScope, RuntimeDomain
 from raes_contracts.runtime_state import OperationState
 from raes_processor.compiler import compile_scenario_runtime_model
@@ -88,7 +89,7 @@ def test_manager_refuses_a_successful_result_with_a_string_domain():
 
     # A rejected result says nothing about external effects. Retain exclusion.
     retry = manager.plan(parse_sdl(_WITH_WEB))
-    with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
+    with pytest.raises(ConflictError, match="indeterminate operation requires resolution"):
         manager.apply(retry)
     assert manager.snapshot.entries == {}
     manager.close()
@@ -117,7 +118,7 @@ def test_string_domain_refusal_preserves_typed_snapshot_and_effect_uncertainty(s
             control.register_planner_produced_plan(execution)
             if string_domains and outcomes:
                 # An unverifiable backend result cannot release the effect claim.
-                with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
+                with pytest.raises(ConflictError, match="indeterminate operation requires resolution"):
                     control.submit_provisioning(execution.provisioning)
                 break
             receipt = control.submit_provisioning(execution.provisioning)

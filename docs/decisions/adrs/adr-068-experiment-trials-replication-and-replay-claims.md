@@ -257,3 +257,43 @@ recalculation require separate producer and control-plane work.
 | Date | Commit/PR | Summary |
 |------|-----------|---------|
 | 2026-07-15 | #652 | Clarified that an admitted plan entry preallocates the existing archival run identity and preserves experiment-owned selection without becoming a second trial/run record. |
+| 2026-10-29 | #1630 | Record all started work, missing evidence, distinct attempt history, and unchanged retry and safe-reuse authority (#1630). |
+
+## Amendment: complete run sets and attempt history (#1630, 2026-10-29)
+
+Every started admitted entry retains its allocated run ID through failure and recovery.
+Authored retries keep distinct attempt IDs within that run.
+Transport redelivery creates no new attempt or replicate.
+A fresh replacement has its own run ID and keeps its prior versions.
+Run accounting includes unresolved work and attempts without cleanup receipts.
+Scientific analysis uses its declared eligibility and missing-data rules.
+It reports its actual denominator and keeps excluded runs and reasons.
+Missing measurements are not implicitly zero.
+Successful retries do not erase failed attempts.
+Recording failure changes no retry, replacement, cessation, or safe-reuse permission.
+See the [complete accounting design](../issue-1630-run-accounting-design.md) for architecture and reference patterns.
+
+For example, one run fails, then an allowed retry succeeds.
+Count one run and two attempts. Keep the first failure.
+A second run starts but no score is measured. Keep that run too.
+The study must show why the score is missing.
+Do not call it zero or drop the run from the count.
+If an allowed replacement starts, count it as a new run.
+Keep the failed run and the link to its replacement.
+A lost reply must not create a third run or a third attempt.
+Read back the stored state before new work starts.
+
+A run can produce a score even when cleanup fails.
+Keep the score and its source evidence. Keep the cleanup failure too.
+These facts answer different questions. The score describes what was measured.
+Cleanup shows whether the target is safe to reuse.
+The study's rules decide whether that score can be used.
+The archive does not make that choice on its own.
+
+Count starts from stored start events. Count runs by run key.
+Count attempts by attempt key. Replayed reads add no counts.
+State which run set each rate uses.
+A rate based on scores must show how many scores were missing.
+A run's task can fail without a fault in the engine.
+An engine fault can also leave the task's result unknown.
+Keep those facts distinct.

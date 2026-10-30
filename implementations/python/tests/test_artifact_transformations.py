@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import textwrap
 from copy import deepcopy
 from pathlib import Path
@@ -462,8 +463,48 @@ def test_artifact_transformation_conformance_corpus() -> None:
         "refuse-collision",
         "remove-with-explicit-loss",
         "rename-composed-reference",
+        "rename-nested-references",
         "rename-references",
     }
+
+
+def test_conformance_case_outside_the_corpus_fails_without_a_log_record(tmp_path: Path, caplog) -> None:
+    cases = tmp_path / "artifact-transformations-v1" / "cases"
+    cases.mkdir(parents=True)
+    case = {
+        "case_id": "escape",
+        "operation": "remove-sdl-declaration/v1",
+        "source_contract": "sdl-authoring-input/v1",
+        "source_path": "../outside.sdl.yaml",
+        "request": {"target_address": "nodes.peer"},
+        "policy": {},
+        "expected": {"status": "success"},
+    }
+    (cases / "escape.json").write_text(json.dumps(case), encoding="utf-8")
+
+    with caplog.at_level(logging.ERROR, logger="raes_conformance"):
+        report = run_artifact_transformation_fixture_suite(root=tmp_path)
+
+    assert not report.passed
+    assert [item.diagnostic for item in report.cases] == ["rejected by InvalidInputError"]
+    assert not [record for record in caplog.records if record.name.startswith("raes_conformance")]
+
+
+def test_conformance_case_defect_fails_the_case_and_is_logged(monkeypatch, caplog) -> None:
+    from raes_conformance import artifact_transformations
+
+    def _defect(case, *, fixtures):
+        raise RuntimeError("transformation defect SECRET-1678")
+
+    monkeypatch.setattr(artifact_transformations, "_execute_case", _defect)
+    with caplog.at_level(logging.ERROR, logger="raes_conformance"):
+        report = run_artifact_transformation_fixture_suite()
+
+    assert not report.passed
+    assert {item.diagnostic for item in report.cases} == {"rejected by RuntimeError"}
+    records = [record for record in caplog.records if record.name == "raes_conformance.artifact_transformations"]
+    assert len(records) == len(report.cases)
+    assert all("SECRET-1678" not in (record.getMessage() + (record.exc_text or "")) for record in records)
 
 
 def test_transformation_report_positive_and_negative_fixtures() -> None:

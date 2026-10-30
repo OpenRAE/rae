@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from raes import parse_sdl
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.errors import EvidenceIntegrityError, RaesError
 from raes_contracts.execution_policy import EffectiveExecutionPolicy
+from raes_contracts.operational_logging import get_logger
 from raes_contracts.plan_projection import provisioning_plan_model
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
@@ -14,6 +16,7 @@ from .diagnostics import _diagnostic, sanitized_failure_message
 from .modular_control_types import ModularControlEvidence
 from .report import ConformanceCaseResult
 
+_LOGGER = get_logger(__name__)
 _SDL = """
 name: conformance-recovery
 nodes: {host: {type: compute, os: linux}}
@@ -40,11 +43,12 @@ def _planned_policies(target: RuntimeTarget, response: str) -> list[dict[str, ob
     scenario = parse_sdl(_SDL.replace("RESPONSE", response))
     execution = plan(compile_runtime_model(scenario), target.manifest)
     public = provisioning_plan_model(execution.provisioning)
+    # Each finding below means that the plan for the target does not match its authored input.
     if not public.operations:
-        raise ValueError("authored recovery probe produced no operation")
+        raise EvidenceIntegrityError("authored recovery probe produced no operation")
     policies = [_policy_payload(operation.execution_policy, response) for operation in public.operations]
     if response == "resume" and not any(item.code.startswith("execution-policy.") for item in execution.diagnostics):
-        raise ValueError("unsupported general resume was admitted")
+        raise EvidenceIntegrityError("unsupported general resume was admitted")
     return policies
 
 
@@ -54,9 +58,9 @@ def _policy_payload(effective: EffectiveExecutionPolicy | None, response: str) -
         or effective.policy.response != response
         or effective.policy.policy_id != "authored-conformance-policy"
     ):
-        raise ValueError("authored recovery policy was lost in planning")
+        raise EvidenceIntegrityError("authored recovery policy was lost in planning")
     if effective.governing_scope != "#/":
-        raise ValueError("authored recovery scope was changed")
+        raise EvidenceIntegrityError("authored recovery scope was changed")
     return effective.model_dump(mode="json")
 
 
@@ -71,6 +75,9 @@ def authored_recovery_case(
         for response in ("terminate", "resume"):
             policies.extend(_planned_policies(target, response))
     except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Boundary of the recovery check: an unexpected failure is logged once, then reported.
+            _LOGGER.exception("authored recovery probe failed")
         diagnostics.append(
             _diagnostic("conformance.modular-recovery-policy", "authored-recovery", sanitized_failure_message(exc))
         )

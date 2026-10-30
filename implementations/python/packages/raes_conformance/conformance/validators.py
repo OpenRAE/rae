@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pydantic import ValidationError
 from raes.materialization import MaterializedScenario
 from raes_contracts.augmentation_preparation import AugmentationPreparation
 from raes_contracts.authoring_adapters import (
@@ -274,7 +275,7 @@ def _validate_event_stream(
     for index, event in enumerate(payload):
         try:
             model_cls.model_validate(event)
-        except Exception as exc:
+        except ValidationError as exc:
             diagnostics.append(
                 _diagnostic(
                     _SCHEMA_INVALID_DIAGNOSTIC_CODE,
@@ -291,7 +292,7 @@ def _validate_payload(contract_name: str, payload: object) -> list[Diagnostic]:
     if validator is not None:
         try:
             validator(payload)
-        except Exception as exc:
+        except ValidationError as exc:
             diagnostics.append(
                 _diagnostic(
                     _SCHEMA_INVALID_DIAGNOSTIC_CODE,

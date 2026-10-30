@@ -26,7 +26,12 @@ from tools import verified_tree_archive as tree_archive
 from tools import verified_tree_installation as tree_installation
 from tools import verified_tree_manifest as tree_manifest
 from tools import verified_tree_validation as tree_validation
-from tools.tooling_policy_gate import LockedArtifactSelection, LockedInstalledTree, LockedManifestEntry
+from tools.tooling_policy_gate import (
+    ArtifactPolicyError,
+    LockedArtifactSelection,
+    LockedInstalledTree,
+    LockedManifestEntry,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 ROOT = f"Isabelle{isabelle_tool.ISABELLE_VERSION}"
@@ -409,6 +414,34 @@ def test_tampered_retained_raw_object_is_quarantined_without_reacquisition(
     assert len(lock.transfers) == 1
 
 
+def test_an_installation_defect_is_not_reported_as_an_invalid_installation(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    _Lock(monkeypatch, tmp_path)
+
+    def defective(*_args: object, **_kwargs: object) -> Path:
+        raise RuntimeError("tree verifier defect")
+
+    monkeypatch.setattr(tree_installation, "require_verified_tree_installation", defective)
+    with pytest.raises(RuntimeError, match="tree verifier defect") as raised:
+        isabelle_tool.require_isabelle(tmp_path)
+    assert not isinstance(raised.value, isabelle_tool.IsabelleToolError)
+
+
+def test_the_cli_does_not_report_a_defect_as_a_tool_failure(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    def defective(**_kwargs: object) -> Path:
+        raise RuntimeError("acquisition defect")
+
+    monkeypatch.setattr(isabelle_tool, "acquire_isabelle", defective)
+    monkeypatch.setattr(sys, "argv", ["isabelle_tool", "acquire"])
+
+    with pytest.raises(RuntimeError, match="acquisition defect"):
+        isabelle_tool.main()
+    assert "isabelle-tool:" not in capsys.readouterr().err
+
+
 def test_missing_installation_is_reported_without_acquisition(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     lock = _Lock(monkeypatch, tmp_path)
 
@@ -495,7 +528,7 @@ def test_archive_admission_rejects_unsafe_tree_shapes(
     carrier.write_bytes(archive_bytes)
 
     raw_entry = _raw_entry(archive_bytes)
-    with pytest.raises(RuntimeError, match=reason):
+    with pytest.raises(installation.ToolInstallationError, match=reason):
         tree_installation.describe_archive_tree(carrier, raw_entry)
 
 
@@ -509,7 +542,7 @@ def test_archive_admission_rejects_hardlinks_and_special_members(tmp_path: Path,
     carrier.write_bytes(archive_bytes)
 
     raw_entry = _raw_entry(archive_bytes)
-    with pytest.raises(RuntimeError, match="unsafe-archive-member"):
+    with pytest.raises(installation.ToolInstallationError, match="unsafe-archive-member"):
         tree_installation.describe_archive_tree(carrier, raw_entry)
 
 
@@ -519,7 +552,7 @@ def test_describe_rejects_an_archive_that_is_not_the_locked_raw_object(tmp_path:
     carrier.write_bytes(archive_bytes + b"x")
 
     raw_entry = _raw_entry(archive_bytes)
-    with pytest.raises(RuntimeError, match="raw-manifest-mismatch"):
+    with pytest.raises(installation.ToolInstallationError, match="raw-manifest-mismatch"):
         tree_installation.describe_archive_tree(carrier, raw_entry)
 
 
@@ -1051,7 +1084,7 @@ def test_selection_projection_rejects_invalid_tree_and_locator_shapes(
         },
     }
 
-    with pytest.raises(RuntimeError, match=message):
+    with pytest.raises(ArtifactPolicyError, match=message):
         _selection_from_document(document, "proof-linux-x86_64")
 
 
@@ -1140,7 +1173,7 @@ def test_archive_member_may_precede_its_explicit_directory_but_a_directory_canno
     repeated = _archive([_directory(ROOT), _directory(ROOT)])
     carrier.write_bytes(repeated)
     raw_entry = _raw_entry(repeated)
-    with pytest.raises(RuntimeError, match="duplicate-archive-member"):
+    with pytest.raises(installation.ToolInstallationError, match="duplicate-archive-member"):
         tree_installation.describe_archive_tree(carrier, raw_entry)
 
 
@@ -1158,7 +1191,7 @@ def test_gzip_trailer_and_trailing_bytes_are_validated(tmp_path: Path, damage) -
     carrier.write_bytes(damaged)
 
     raw_entry = _raw_entry(damaged)
-    with pytest.raises(RuntimeError, match="unsafe-archive"):
+    with pytest.raises(installation.ToolInstallationError, match="unsafe-archive"):
         tree_installation.describe_archive_tree(carrier, raw_entry)
 
 
@@ -1173,7 +1206,7 @@ def test_decompressed_padding_after_the_tar_end_is_bounded(monkeypatch: pytest.M
     monkeypatch.setattr(tree_archive, "MAX_TREE_TRAILER_BYTES", 16)
 
     raw_entry = _raw_entry(archive_bytes)
-    with pytest.raises(RuntimeError, match="archive-size-limit"):
+    with pytest.raises(installation.ToolInstallationError, match="archive-size-limit"):
         tree_installation.describe_archive_tree(carrier, raw_entry)
 
 
@@ -1202,7 +1235,7 @@ def test_retained_manifest_parsing_is_closed_and_canonical(mutation) -> None:
     assert set(tree_manifest.parse_manifest(payload, descriptor)) == {ROOT, f"{ROOT}/tool"}
 
     mutated = mutation(payload)
-    with pytest.raises(RuntimeError, match="tree-integrity-failure"):
+    with pytest.raises(installation.ToolInstallationError, match="tree-integrity-failure"):
         tree_manifest.parse_manifest(mutated, descriptor)
 
 
@@ -1220,7 +1253,7 @@ def test_retained_manifest_requires_real_parents_and_confined_links(entries: lis
     payload = tree_archive.manifest_bytes(entries)
     descriptor = _manifest_descriptor(entries)
 
-    with pytest.raises(RuntimeError, match="tree-integrity-failure"):
+    with pytest.raises(installation.ToolInstallationError, match="tree-integrity-failure"):
         tree_manifest.parse_manifest(payload, descriptor)
 
 
@@ -1259,7 +1292,7 @@ def test_tree_selection_must_be_closed_and_bounded(tmp_path: Path, change: dict[
             selection, installed_manifest=(replace(selection.installed_manifest[0], path=change["installed_path"]),)
         )
 
-    with pytest.raises(RuntimeError, match="invalid-selection|unsafe-archive-member"):
+    with pytest.raises(installation.ToolInstallationError, match="invalid-selection|unsafe-archive-member"):
         tree_installation.tree_installation_path(tmp_path, selection)
 
 
@@ -1402,7 +1435,7 @@ def test_cli_dispatches_each_operation_with_bounded_diagnostics(
     def acquire(**kwargs: object) -> Path:
         observed.update(kwargs)
         if patched == "policy-failure":
-            raise RuntimeError("development artifact policy failed before acquisition")
+            raise ArtifactPolicyError("development artifact policy failed before acquisition")
         return Path("unused")
 
     monkeypatch.setattr(isabelle_tool, "acquire_isabelle", acquire)
@@ -1624,7 +1657,7 @@ def test_manifest_bound_is_enforced_when_describing_and_before_publication(
     )
     monkeypatch.setattr(tree_archive, "MAX_TREE_MANIFEST_BYTES", len(payload) - 1)
 
-    with pytest.raises(RuntimeError, match="archive-size-limit"):
+    with pytest.raises(installation.ToolInstallationError, match="archive-size-limit"):
         tree_installation.describe_archive_tree(carrier, lock.selection.raw_manifest[0])
     with pytest.raises(isabelle_tool.IsabelleToolError, match="archive-size-limit"):
         isabelle_tool.acquire_isabelle(tmp_path)

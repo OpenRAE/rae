@@ -1,6 +1,7 @@
 """Existing worker authority routes immutable operations to their run context."""
 
 import pytest
+from raes_contracts.errors import AuthorizationError, ConflictError
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import OperationState
 from raes_runtime import RuntimeControlPlane
@@ -18,7 +19,7 @@ def test_engine_routes_child_worker_grants_without_retargeting_default_state():
         request = dispatcher.commands[0]
         assert engine.get_backend_invocation(receipt.operation_id, identity=worker()) == request
         foreign_worker = worker("foreign")
-        with pytest.raises(PermissionError):
+        with pytest.raises(AuthorizationError):
             engine.get_backend_invocation(receipt.operation_id, identity=foreign_worker)
         grant = engine.claim_backend_invocation(
             request.binding, provider.operation_capabilities(), provider.check_operation(request), identity=worker()
@@ -34,7 +35,7 @@ def test_engine_routes_child_worker_grants_without_retargeting_default_state():
             provider.check_operation(request),
             worker(),
         )
-        with pytest.raises((ValueError, PermissionError)):
+        with pytest.raises((ConflictError, AuthorizationError)):
             engine.claim_backend_invocation(changed, capabilities, admission, identity=identity)
         assert not engine.snapshot.entries
 

@@ -26,6 +26,7 @@ from raes_contracts.contracts.experiment_selection import (
     ExperimentStratifiedSelectionPolicyModel,
 )
 
+from ._errors import SDLSelectionError
 from .scenario import ExpandedScenario
 from .variation import (
     AlternativeVariationPoint,
@@ -48,6 +49,7 @@ def validate_experiment_selection_against_family(
     This gate intentionally does not compile coordinates or selected scenarios.
     It verifies only point resolution, domain membership, supported policy
     semantics, and the experiment/family identity join owned by issue #787.
+    A refused intent raises ``SDLSelectionError`` (ADR-116).
     """
 
     family_id = _admitted_family_id(family)
@@ -57,7 +59,7 @@ def validate_experiment_selection_against_family(
         return spec
     intended = spec.intended_scenario_ref
     if intended is None or intended.ref_kind != "scenario" or intended.ref_id != family_id:
-        raise ValueError("experiment selection family identity must match intended_scenario_ref")
+        raise SDLSelectionError("experiment selection family identity must match intended_scenario_ref")
     _validate_binding_family_identity(spec, family_id)
     for policy in policies.values():
         _validate_policy_against_family(policy, family)
@@ -66,7 +68,7 @@ def validate_experiment_selection_against_family(
 
 def _admitted_family_id(family: ExpandedScenario) -> str:
     if not isinstance(family, ExpandedScenario) or not family.semantic_validated:
-        raise ValueError("experiment selection requires a semantically admitted ExpandedScenario")
+        raise SDLSelectionError("experiment selection requires a semantically admitted ExpandedScenario")
     return family.name
 
 
@@ -87,7 +89,7 @@ def _validate_policy_against_family(policy: object, family: ExpandedScenario) ->
 
 def _validate_enumeration_bound(point: VariationPoint, output_bound: int) -> None:
     if _finite_policy_population(point) != output_bound:
-        raise ValueError("enumerate policy output_bound must equal the finite point domain cardinality")
+        raise SDLSelectionError("enumerate policy output_bound must equal the finite point domain cardinality")
 
 
 def _validate_binding_family_identity(spec: ExperimentSpecModel, family_id: str) -> None:
@@ -97,13 +99,13 @@ def _validate_binding_family_identity(spec: ExperimentSpecModel, family_id: str)
     for descriptor in descriptors.descriptors:
         target_family = getattr(descriptor.target, "scenario_family_id", family_id)
         if target_family != family_id:
-            raise ValueError("scenario binding target family identity does not match selection family")
+            raise SDLSelectionError("scenario binding target family identity does not match selection family")
 
 
 def _resolve_point(family: ExpandedScenario, point_ref: str) -> VariationPoint:
     point = family.variation_points.get(point_ref)
     if point is None:
-        raise ValueError(f"selection policy variation point {point_ref!r} is not declared")
+        raise SDLSelectionError(f"selection policy variation point {point_ref!r} is not declared")
     return point
 
 
@@ -115,9 +117,9 @@ def _finite_policy_population(point: VariationPoint) -> int:
     elif isinstance(point, AlternativeVariationPoint):
         cardinality = len(point.alternatives)
     else:
-        raise ValueError("selection policy kind is unsupported for subset or order variation points")
+        raise SDLSelectionError("selection policy kind is unsupported for subset or order variation points")
     if cardinality > MAX_SELECTION_OUTPUT_BOUND:
-        raise ValueError("selection policy finite population exceeds the admission bound")
+        raise SDLSelectionError("selection policy finite population exceeds the admission bound")
     return cardinality
 
 
@@ -135,7 +137,7 @@ def _scalar_domain_cardinality(domain: object) -> int:
 
 def _integer_interval_cardinality(domain: object) -> int:
     if not isinstance(domain, NumericIntervalDomain) or domain.numeric_type is not NumericType.INTEGER:
-        raise ValueError("continuous or unsupported domains cannot be enumerated or sampled")
+        raise SDLSelectionError("continuous or unsupported domains cannot be enumerated or sampled")
     lower = math.ceil(domain.lower)
     upper = math.floor(domain.upper)
     if not domain.lower_closed and lower == domain.lower:
@@ -144,7 +146,7 @@ def _integer_interval_cardinality(domain: object) -> int:
         upper -= 1
     cardinality = upper - lower + 1
     if cardinality < 1:
-        raise ValueError("selection policy domain is empty")
+        raise SDLSelectionError("selection policy domain is empty")
     return cardinality
 
 
@@ -170,7 +172,7 @@ def _validate_literal_outcome(
     outcome: object,
 ) -> None:
     if not isinstance(outcome, LiteralBindingValueModel) or not scalar_in_domain(outcome.value, point.domain):
-        raise ValueError("fixed selection literal is outside the declared point domain")
+        raise SDLSelectionError("fixed selection literal is outside the declared point domain")
 
 
 def _validate_reference_outcome(point: GovernedReferenceVariationPoint, outcome: object) -> None:
@@ -178,35 +180,35 @@ def _validate_reference_outcome(point: GovernedReferenceVariationPoint, outcome:
         not isinstance(outcome, ExperimentSelectionReferenceOutcomeModel)
         or outcome.reference_id not in point.domain.allowed_refs
     ):
-        raise ValueError("fixed selection reference is outside the declared point domain")
+        raise SDLSelectionError("fixed selection reference is outside the declared point domain")
 
 
 def _validate_member_outcome(point: AlternativeVariationPoint, outcome: object) -> None:
     if not isinstance(outcome, ExperimentSelectionMemberOutcomeModel) or outcome.member_id not in point.alternatives:
-        raise ValueError("fixed selection member is outside the declared point domain")
+        raise SDLSelectionError("fixed selection member is outside the declared point domain")
 
 
 def _validate_subset_outcome(point: SubsetVariationPoint, outcome: object) -> None:
     if not isinstance(outcome, ExperimentSelectionSubsetOutcomeModel):
-        raise ValueError("subset variation point requires a subset selection outcome")
+        raise SDLSelectionError("subset variation point requires a subset selection outcome")
     selected = set(outcome.member_ids)
     if not selected.issubset(point.members):
-        raise ValueError("subset selection includes an undeclared member")
+        raise SDLSelectionError("subset selection includes an undeclared member")
     maximum = len(point.members) if point.maximum is None else point.maximum
     if not point.minimum <= len(selected) <= maximum:
-        raise ValueError("subset selection violates declared cardinality")
+        raise SDLSelectionError("subset selection violates declared cardinality")
 
 
 def _validate_order_outcome(point: OrderVariationPoint, outcome: object) -> None:
     if not isinstance(outcome, ExperimentSelectionOrderOutcomeModel):
-        raise ValueError("order variation point requires an order selection outcome")
+        raise SDLSelectionError("order variation point requires an order selection outcome")
     if set(outcome.member_ids) != set(point.members):
-        raise ValueError("order selection must contain every declared member exactly once")
+        raise SDLSelectionError("order selection must contain every declared member exactly once")
     positions = {member: index for index, member in enumerate(outcome.member_ids)}
     if any(positions[edge.before] >= positions[edge.after] for edge in point.precedence):
-        raise ValueError("order selection violates declared precedence")
+        raise SDLSelectionError("order selection violates declared precedence")
     if any(positions[member] != position for member, position in point.fixed_positions.items()):
-        raise ValueError("order selection violates declared fixed positions")
+        raise SDLSelectionError("order selection violates declared fixed positions")
 
 
 __all__ = ["validate_experiment_selection_against_family", "validate_selection_outcome"]

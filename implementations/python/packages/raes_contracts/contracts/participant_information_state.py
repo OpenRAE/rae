@@ -10,6 +10,8 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from .._host_isolation import isolated_host_call
+from ..operational_logging import foreign_failure_record, get_logger
 from ..versions import PARTICIPANT_INFORMATION_RECONSTRUCTION_PROFILE_V1_SCHEMA_VERSION
 from .base import ContractModel, NonEmptyString, PrefixedDigestString, SemanticProfileId
 from .participant_decision_state_cut import (
@@ -25,6 +27,8 @@ from .schema_invariants import _add_raes_invariant
 if TYPE_CHECKING:
     from .participant_decision_surface_v2 import ParticipantDecisionSurfaceV2Model
 
+_LOGGER = get_logger(__name__)
+_MALFORMED_CONTEXT = "participant information-state resolved context is malformed"
 ParticipantInformationSourceContract = Literal[
     "participant-observation-envelope-v1",
     "participant-context-view-v1",
@@ -448,18 +452,13 @@ def validate_participant_information_state_resolved_context(
 
     if resolver is None:
         raise ValueError("participant information-state context resolver is required")
-    try:
+    with isolated_host_call("participant information-state context resolution failed"):
         context = resolver(record, scope)
-    except Exception as exc:
-        raise ValueError("participant information-state context resolution failed") from exc
     if not isinstance(context, ParticipantInformationStateValidationContext):
         raise ValueError("participant information-state context did not resolve")
-    if any(
-        not isinstance(coordinate, ParticipantInformationStateSourceCoordinate)
-        for coordinate in context.source_coordinates.values()
-    ):
+    coordinates = context.source_coordinates.values()
+    if not all(isinstance(coordinate, ParticipantInformationStateSourceCoordinate) for coordinate in coordinates):
         raise ValueError("participant information-state source coordinate resolution is invalid")
-
     reconstruction_profiles: dict[str, ParticipantInformationReconstructionProfileModel] = {}
     if record.reconstruction_profile_ref is not None:
         from ..participant_information_reconstruction_profiles import (
@@ -479,8 +478,12 @@ def validate_participant_information_state_resolved_context(
             proof_digests=context.proof_digests,
             decision_surfaces=context.decision_surfaces,
         )
+    # Isolation: the host-resolved context holds the indexes and histories that the validation reads.
     except (AttributeError, KeyError, TypeError) as exc:
-        raise ValueError("participant information-state resolved context is malformed") from exc
+        _LOGGER.exception(_MALFORMED_CONTEXT, exc_info=foreign_failure_record(exc))
+    else:
+        return
+    raise ValueError(_MALFORMED_CONTEXT)
 
 
 __all__ = (

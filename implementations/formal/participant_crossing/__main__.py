@@ -4,6 +4,9 @@ import argparse
 import sys
 from pathlib import Path
 
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError, OperationalError
+from raes_contracts.operational_logging import run_application
+
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Construct or check the complete crossing model bundle.")
@@ -27,7 +30,8 @@ def main(argv=None) -> int:
             from .export import check, publish
 
         (publish if args.write else check)(root)
-    except (OSError, ValueError):
+    except OSError, OperationalError, InvalidInputError, EvidenceIntegrityError:
+        # Host and authority failures, invalid inputs and drift get one fixed message; a defect reaches run_application.
         print("participant-crossing model export failed validation", file=sys.stderr)
         return 1
     print("participant-crossing model bundle verified; no equivalence result claimed")
@@ -35,4 +39,4 @@ def main(argv=None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

@@ -42,12 +42,13 @@ def test_profile_loader_rejects_symlink(tmp_path):
     import json
 
     from raes_contracts.behavioral_relation_profiles import load_behavioral_relation_profile_from_path
+    from raes_contracts.errors import OperationalError
 
     target = tmp_path / "profile.json"
     target.write_text(json.dumps(profile_payload()))
     link = tmp_path / "link.json"
     link.symlink_to(target)
-    with pytest.raises(ValueError, match="invalid"):
+    with pytest.raises(OperationalError, match="invalid"):
         load_behavioral_relation_profile_from_path("participant-crossing-dpbb-finite-v1", link)
 
 

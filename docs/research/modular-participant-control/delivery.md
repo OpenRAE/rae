@@ -1,11 +1,12 @@
 # Dependency-ordered delivery
 
 This is the architecture handoff for [#1068](https://github.com/OpenRAE/rae/issues/1068),
-revision 1. [delivery.json](delivery.json) records the same node identities,
+revision 2. [delivery.json](delivery.json) records the same node identities,
 requirements, AND/OR dependencies and conditional claim gates for mechanical
 checking. Hub [#36](https://github.com/OpenRAE/hub/issues/36) owns ongoing
 cross-repository coordination; this design snapshot does not replace it.
-All 14 child/consumer issues were inspected and open on 2026-09-06.
+The original design snapshot inspected 14 child/consumer issues on 2026-09-06.
+Issue #1008 corrects RAE evaluation ownership on 2026-10-29.
 
 ```mermaid
 flowchart TD
@@ -21,22 +22,21 @@ flowchart TD
     Q --> HI
     LI --> LP[LilRAE 22: real-boundary proof]
     HI --> HP[Shifter 1969: real-boundary proof]
-    LP --> E[1007: evaluation of selected evidenced branches]
-    HP --> E
+    Q --> E[1007: RAE-owned harness evaluation]
+    LP --> G
+    HP --> G
     E --> D[1008: bounded claims]
     D --> G[Hub 37: evidenced guidance]
     A --> K[Hub 36: ongoing coordination]
     K --> G
 ```
 
-The two incoming backend edges to evaluation mean **one or more selected,
-completed branches**, not a requirement that both backends ship or match.
-Every additional backend claim requires its own exact evidence. The machine
-record's `requires_any` is a list of alternative groups: satisfy at least one
-member of each group, as well as every `requires_all` dependency. Conditional
-adversarial guidance requires #1007/#1008; general executable guidance requires
-only the relevant released semantics/runtime and backend proof. Hub #36 is a
-coordination snapshot, not a barrier that waits for #1008 before updating it.
+RAE #1007 and #1008 depend only on RAE contracts, runtime, conformance, and harness evidence.
+They do not require a concrete backend.
+Concrete executable backend guidance retains its own realization prerequisites.
+Each additional backend claim needs separate exact evidence.
+The machine record's `requires_any` identifies alternatives for those consumer claims.
+Hub #36 coordinates status throughout delivery.
 
 ## Work packages and completion evidence
 
@@ -52,8 +52,8 @@ coordination snapshot, not a barrier that waits for #1008 before updating it.
 | [Shifter #1968](https://github.com/Brad-Edwards/shifter/issues/1968) | API-424/RUN-320/ASR-538 and accepted local mapping | #1967 and the same RAES release prerequisites. Realize selected mechanisms through existing authenticated, authorized, generation-fenced service paths with readback. |
 | [LilRAE #22](https://github.com/OpenRAE/lilrae/issues/22) | ASR-538 and local realization authority | #21, #6, #1071. Installed-artifact real-boundary proof, selected permissive/strict/trigger cases, native readback, restart/memory/failure and released conformance evidence. |
 | [Shifter #1969](https://github.com/Brad-Edwards/shifter/issues/1969) | ASR-538 and local realization authority | #1968, #1967, #1071. Installed service/participant/world proof, isolation/generation/recovery and exact conformance/native evidence agreement. |
-| [RAES #1007](https://github.com/OpenRAE/rae/issues/1007) | Amended ASR-536; SEM-233/235, ASR-535/538 | Completed core plus at least one selected proof branch. Revisioned honest/attack experiments, knowledge/collusion/budget variables, real supported effects, safety/usefulness/cost/uncertainty and replayable evidence. |
-| [RAES #1008](https://github.com/OpenRAE/rae/issues/1008) | ASR-536/535/538, SEM-233/235 | #1007 and every proof branch used by its claims. Publish exact scientific-completeness, assurance, lineage and public-doc claims, limitations and nonclaims; keep Hub #36 current. |
+| [RAES #1007](https://github.com/OpenRAE/rae/issues/1007) | Amended ASR-536; SEM-233/235, ASR-535/538 | Completed core plus a conformant RAE-owned harness. Revisioned honest/attack experiments, knowledge/collusion/budget variables, supported harness effects, safety/usefulness/cost/uncertainty and replayable evidence. |
+| [RAES #1008](https://github.com/OpenRAE/rae/issues/1008) | ASR-536/535/538, SEM-233/235 | #1007 and its exact RAE harness evidence. Publish exact scientific-completeness, assurance, lineage and public-doc claims, limitations and nonclaims; keep Hub #36 current. |
 | [Hub #36](https://github.com/OpenRAE/hub/issues/36) | Coordination only; reference RAES UIDs | Begin from #1068 and track each release and selected backend independently. Reflect the actual dependency/evidence state; no copied runtime or semantic authority. |
 | [Hub #37](https://github.com/OpenRAE/hub/issues/37) | Documentation consumer of exact RAES/backend authority | Current #36, released core and at least one proof branch before executable guidance. #1007/#1008 additionally gate adversarial claims. Provide reusable guidance for Hub #15's wider research walkthrough. |
 

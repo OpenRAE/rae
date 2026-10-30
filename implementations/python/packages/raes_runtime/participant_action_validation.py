@@ -74,8 +74,9 @@ def _bound_request_result(
             ParticipantActionAdmissionRequest,
             replace(request, action_result=action_result),
         )
-    except (TypeError, ValueError) as exc:
-        return None, f"participant runtime action outcome contradicts its binding: {exc}"
+    # The diagnostic omits the validator text, which can carry runtime-supplied values.
+    except TypeError, ValueError:
+        return None, "participant runtime action outcome contradicts its binding"
     violations = participant_action_admission_request_violations(bound_request)
     violation = f"participant runtime action outcome contradicts its binding: {violations[0]}" if violations else None
     return bound_request, violation
@@ -116,8 +117,9 @@ def _history_structure_violation(
         for event in history[len(prior_history) :]:
             try:
                 appended.append(ParticipantBehaviorHistoryEventModel.model_validate(event))
-            except (TypeError, ValueError) as exc:
-                violation = f"participant runtime appended an invalid behavior history event: {exc}"
+            # The diagnostic omits the validation text, which carries the rejected event values.
+            except TypeError, ValueError:
+                violation = "participant runtime appended an invalid behavior history event"
                 appended = []
                 break
     expected_types = ("action_attempted", "state_transition_recorded", "observation_emitted")

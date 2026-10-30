@@ -4,10 +4,12 @@ from threading import Event
 
 import pytest
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.errors import OperationalError
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import OperationState
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_store import InMemoryControlPlaneStore
+from raes_runtime.errors import RuntimeBudgetExhaustedError
 from raes_runtime.operation_supervision_configuration import OperationSupervisionConfiguration
 
 
@@ -25,7 +27,8 @@ def test_lost_consumed_write_reply_never_reaches_the_backend():
     plane = RuntimeControlPlane(target, store=store)
     try:
         rejected_plan = ProvisioningPlan()
-        with pytest.raises(TimeoutError):
+        # The poisoned runtime refuses the work with its restart category instead of the store failure.
+        with pytest.raises(OperationalError, match="requires restart"):
             plane.submit_provisioning(rejected_plan)
         assert not called.is_set()
         retained = next(iter(store.load_records().values()))
@@ -51,10 +54,10 @@ def test_commit_timeout_does_not_award_readback_a_fresh_budget():
     )
     try:
         rejected_plan_1 = ProvisioningPlan()
-        with pytest.raises(TimeoutError):
+        with pytest.raises(OperationalError, match="requires restart"):
             plane.submit_provisioning(rejected_plan_1)
         assert plane._durability_poisoned
-        with pytest.raises(TimeoutError):
+        with pytest.raises(RuntimeBudgetExhaustedError):
             plane.close()
         assert not plane._closed
     finally:

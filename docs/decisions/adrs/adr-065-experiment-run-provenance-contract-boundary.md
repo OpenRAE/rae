@@ -127,3 +127,23 @@ models.
 
 | Date | Commit/PR | Summary |
 |------|-----------|---------|
+| 2026-10-29 | #1630 | Record all started work, missing evidence, distinct attempt history, and unchanged retry and safe-reuse authority (#1630). |
+
+## Amendment: complete failure accounting (#1630, 2026-10-29)
+
+Every started run must remain represented, including failure before scientific capture.
+Run existence does not depend on available metrics, evidence artifacts, or successful checks.
+The run contract can carry an explicit partial record with known work facts and missing observed facts.
+Existing complete archival records keep their checks requirements.
+Unknown end times, apparatus observed facts, and cleanup receipts must not be invented.
+A stored failure record does not establish task evidence satisfaction.
+Runtime lifecycle facts remain in the existing durable decision and operation stores.
+Fixed archival versions keep the facts available at each recorded cut.
+The [complete accounting design](../issue-1630-run-accounting-design.md) defines the boundaries and authoritative reference patterns.
+
+For example, a node fails to start before a model is called.
+Keep a record of that failed run. State that no score was measured.
+Keep any cleanup facts. Do not invent output to fill a required field.
+A later retry keeps the first attempt in the run's history.
+A new trial has a new run ID and a link to the old run.
+The old record must still be read in its original form.

@@ -11,6 +11,14 @@ from unittest.mock import patch
 
 from implementations.formal.participant_crossing.runtime_mapping import Binding, Commit, Event, Observation
 from participant_crossing_fixtures import AUDIENCE, CONTROLLER, PARTICIPANT, crossing_request
+from raes_contracts.errors import (
+    AuthorizationError,
+    ConflictError,
+    EvidenceIntegrityError,
+    InvalidInputError,
+    NotFoundError,
+    OperationalError,
+)
 from raes_runtime import participant_crossing_mediation as mediation
 from raes_runtime import participant_crossing_policy as policy
 from raes_runtime import participant_crossing_records as records
@@ -192,6 +200,19 @@ def capture_call(
 
         stack.enter_context(patch.object(module, name, wrapped))
 
+    refusals = (
+        AuthorizationError,
+        ConflictError,
+        EvidenceIntegrityError,
+        InvalidInputError,
+        NotFoundError,
+        OperationalError,
+        PermissionError,
+        ValueError,
+        TypeError,
+        OSError,
+        RuntimeError,
+    )
     result, error_type = None, None
     with ExitStack() as stack:
         install(stack, policy, "_require_crossing_identity", identity)
@@ -209,12 +230,8 @@ def capture_call(
             install(stack, runtime, "admit_action", backend)
         try:
             result = call()
-        except (PermissionError, ValueError, TypeError, OSError, RuntimeError) as exc:
-            error_type = next(
-                kind.__name__
-                for kind in (PermissionError, ValueError, TypeError, OSError, RuntimeError)
-                if isinstance(exc, kind)
-            )
+        except refusals as exc:
+            error_type = next(kind.__name__ for kind in refusals if isinstance(exc, kind))
     after = deepcopy(store.load_snapshot())
     context = plane._crossing_policy_resolver.validation_context(after, binding.participant)
     return Observation(

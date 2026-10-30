@@ -149,6 +149,29 @@ def test_invalid_manifest_top_level_fields_fail(tmp_path: Path, field: str, inva
     assert "identity-cutover-manifest" in _manifest_rule_ids(tmp_path)
 
 
+@pytest.mark.parametrize("content", ["{", '{"records": [], "records": []}', b"\xff\xfe"])
+def test_undecodable_or_duplicate_key_manifest_is_a_manifest_failure(tmp_path: Path, content: str | bytes) -> None:
+    _seed_manifest_fixture(tmp_path)
+    _write(tmp_path / MANIFEST_PATH, content)
+
+    assert "identity-cutover-manifest" in _manifest_rule_ids(tmp_path)
+
+
+def test_a_defect_while_loading_the_manifest_is_not_reported_as_a_manifest_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import tools.check_identity_cutover as gate
+
+    _seed_manifest_fixture(tmp_path)
+
+    def defective(*_args, **_kwargs):
+        raise ValueError("loader defect")
+
+    monkeypatch.setattr(gate, "load_bounded_json_object", defective)
+    with pytest.raises(ValueError, match="loader defect"):
+        gate.evaluate_identity_cutover(tmp_path)
+
+
 @pytest.mark.parametrize("collection", ["records", "operational_bindings"])
 @pytest.mark.parametrize(
     "mutation",

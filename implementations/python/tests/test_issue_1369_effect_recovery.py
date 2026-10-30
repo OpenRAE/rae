@@ -3,6 +3,7 @@
 import pytest
 from governed_effect_runtime_fixtures import effect_plane
 from participant_crossing_fixtures import PARTICIPANT, admit, identity
+from raes_contracts.errors import AuthorizationError, ConflictError
 from raes_contracts.runtime_state import OperationState
 from raes_runtime.control_plane_store import LocalControlPlaneStore
 
@@ -88,7 +89,7 @@ def test_unattributed_drain_cannot_read_or_dispatch_effects():
     with plane:
         admit(plane, control_identity=identity(audience_bound=True))
         unbound = identity(bound=False)
-        with pytest.raises(PermissionError):
+        with pytest.raises(AuthorizationError):
             plane.dispatch_participant_control_effects(PARTICIPANT, identity=unbound)
         assert not plane.snapshot.participant_control_history.get(PARTICIPANT)
 
@@ -160,7 +161,7 @@ def test_reopened_unsettled_claim_keeps_the_recovery_barrier_and_does_not_repeat
         crossing_resolver=plane._crossing_policy_resolver,
     )
     with reopened:
-        with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
+        with pytest.raises(ConflictError, match="indeterminate operation requires resolution"):
             reopened.dispatch_participant_control_effects(PARTICIPANT, identity=caller)
         assert len(reopened.snapshot.participant_control_history[PARTICIPANT]) == 1
         reopened.resolve_indeterminate_operation(

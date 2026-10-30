@@ -13,6 +13,7 @@ from collections.abc import Mapping
 from pydantic_core import to_jsonable_python
 from raes_backend_protocols.manifest import backend_manifest_payload
 from raes_contracts.canonical import canonical_json_digest, jsonable_fallback
+from raes_contracts.errors import RaesError
 from raes_runtime.control_plane import RuntimeControlPlane
 
 from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_failure_message
@@ -291,7 +292,9 @@ def _combination_inputs(harness: object, case: MixedBackendCase) -> tuple[object
 def _attempt_combination(case: MixedBackendCase, target: object, options: dict[str, object]) -> Verdict:
     try:
         plane = RuntimeControlPlane(target, **options)
-    except Exception as exc:
+    except (ValueError, RaesError) as exc:
+        # The runtime configuration validator refuses an unsupported combination with ValueError (rule E3).
+        # Any other failure reaches the isolation handler of the case runner.
         message = f"The runtime refused the combination ({sanitized_failure_message(exc)})."
         return unsupported(_COMBINATION, case.case_id, message)
     failures: list[str] = []

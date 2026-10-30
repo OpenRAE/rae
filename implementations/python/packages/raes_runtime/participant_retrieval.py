@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from datetime import UTC, datetime
 
+from pydantic import ValidationError
 from raes_contracts.contracts import (
     ParticipantContextViewModel,
     ParticipantHistoryViewModel,
@@ -14,6 +15,7 @@ from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingInteractionKind,
     ParticipantCrossingSubjectKind,
 )
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError, InvalidInputError
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import OperationState, RuntimeSnapshot
 
@@ -33,6 +35,12 @@ from .participant_retrieval_context import (
 _SNAPSHOT_REVISION_REF_PREFIX = "runtime.snapshot.revision."
 _CROSSING_RESOLVER_REQUIRED = "participant crossing policy resolver is required"
 _VIEW_AUDIENCE_BINDING_UNAVAILABLE = "participant view audience binding is unavailable"
+_VIEW_EVIDENCE_UNAVAILABLE = "participant view crossing evidence is unavailable"
+_RETAINED_STATE_INVALID = "retained participant state does not validate"
+
+
+class ParticipantViewEvidenceUnavailable(ConflictError):
+    """No trusted crossing evidence is available for a governed participant view."""
 
 
 class ParticipantRetrievalMixin:
@@ -64,7 +72,7 @@ class ParticipantRetrievalMixin:
         """
 
         if getattr(self, "_crossing_policy_resolver", None) is None:
-            raise ValueError(_CROSSING_RESOLVER_REQUIRED)
+            raise ConflictError(_CROSSING_RESOLVER_REQUIRED)
         episode_state = self._snapshot.participant_episode_results.get(participant_address)
         episode_id = _string_value(episode_state, "episode_id") if episode_state is not None else None
         return serialize_participant_view(
@@ -98,23 +106,26 @@ class ParticipantRetrievalMixin:
             return None
         episode_state = self._snapshot.participant_episode_results.get(participant_address)
         episode_id = _string_value(episode_state, "episode_id") if episode_state is not None else None
-        view = ParticipantStatusViewModel.model_validate(
-            {
-                "view_id": _view_id("status", participant_address, episode_id),
-                "participant_address": participant_address,
-                "episode_id": episode_id,
-                "generated_at": _utc_now(),
-                "source_snapshot_ref": snapshot_ref,
-                "episode_state": _project_scope(episode_state) if episode_state is not None else None,
-                "open_operation_refs": _open_participant_operation_refs(self._operations, participant_address),
-                "visibility_projection_ref": _visibility_projection_ref(participant_address, "status"),
-                "marking_definition_refs": [],
-                "redaction_policy_ref": None,
-            }
-        )
+        payload = {
+            "view_id": _view_id("status", participant_address, episode_id),
+            "participant_address": participant_address,
+            "episode_id": episode_id,
+            "generated_at": _utc_now(),
+            "source_snapshot_ref": snapshot_ref,
+            "episode_state": _project_scope(episode_state) if episode_state is not None else None,
+            "open_operation_refs": _open_participant_operation_refs(self._operations, participant_address),
+            "visibility_projection_ref": _visibility_projection_ref(participant_address, "status"),
+            "marking_definition_refs": [],
+            "redaction_policy_ref": None,
+        }
+        try:
+            view = ParticipantStatusViewModel.model_validate(payload)
+        # The view projects retained episode state, which a restored store can hold as opaque legacy data.
+        except ValidationError as exc:
+            raise EvidenceIntegrityError(_RETAINED_STATE_INVALID) from exc
         if getattr(self, "_crossing_policy_resolver", None) is None:
             if crossing_evidence is not None:
-                raise ValueError(_CROSSING_RESOLVER_REQUIRED)
+                raise ConflictError(_CROSSING_RESOLVER_REQUIRED)
             return view
         serialization = ParticipantViewSerialization(
             participant_address=participant_address,
@@ -162,25 +173,28 @@ class ParticipantRetrievalMixin:
             for event in self._snapshot.participant_behavior_history.get(participant_address, [])
             if event.get("episode_id") == episode_id
         ]
-        view = ParticipantHistoryViewModel.model_validate(
-            {
-                "view_id": _view_id("history", participant_address, episode_id),
-                "participant_address": participant_address,
-                "episode_id": episode_id,
-                "generated_at": _utc_now(),
-                "source_snapshot_ref": snapshot_ref,
-                "episode_history": episode_history,
-                "behavior_history": behavior_history,
-                "visibility_projection_ref": _visibility_projection_ref(participant_address, "history"),
-                "redaction_policy_ref": None,
-                "completeness": "complete",
-                "completeness_basis": None,
-                "marking_definition_refs": [],
-            }
-        )
+        payload = {
+            "view_id": _view_id("history", participant_address, episode_id),
+            "participant_address": participant_address,
+            "episode_id": episode_id,
+            "generated_at": _utc_now(),
+            "source_snapshot_ref": snapshot_ref,
+            "episode_history": episode_history,
+            "behavior_history": behavior_history,
+            "visibility_projection_ref": _visibility_projection_ref(participant_address, "history"),
+            "redaction_policy_ref": None,
+            "completeness": "complete",
+            "completeness_basis": None,
+            "marking_definition_refs": [],
+        }
+        try:
+            view = ParticipantHistoryViewModel.model_validate(payload)
+        # The view projects retained history, which a restored store can hold as opaque legacy data.
+        except ValidationError as exc:
+            raise EvidenceIntegrityError(_RETAINED_STATE_INVALID) from exc
         if getattr(self, "_crossing_policy_resolver", None) is None:
             if crossing_evidence is not None:
-                raise ValueError(_CROSSING_RESOLVER_REQUIRED)
+                raise ConflictError(_CROSSING_RESOLVER_REQUIRED)
             return view
         serialization = ParticipantViewSerialization(
             participant_address=participant_address,
@@ -221,59 +235,62 @@ class ParticipantRetrievalMixin:
         source_id = "source-snapshot"
         resolved_observation_point = options.episode_id or snapshot_ref
         resolved_derivation_basis_ref = options.derivation_basis_ref or view_ref
-        view = ParticipantContextViewModel.model_validate(
-            {
-                "view_id": _view_id("context", participant_address, options.episode_id or view_ref),
-                "participant_address": participant_address,
-                "episode_id": options.episode_id,
-                "generated_at": _utc_now(),
-                "source_snapshot_ref": snapshot_ref,
-                "view_ref": view_ref,
-                "meaning_ref": view_ref,
-                "participant_scope": "participant_local",
-                "audience_scope": "participant_visible",
-                "observation_point": resolved_observation_point,
-                "derived_from_refs": list(source_refs),
-                "source_layers": [
-                    {
-                        "source_id": source_id,
-                        "source_layer": "source_snapshot",
-                        "ref": source_ref,
-                        "temporal_relation": "same_observation_point",
-                        "observation_point": resolved_observation_point,
-                        "evidence_refs": list(source_refs),
-                        "provenance_refs": list(source_refs),
-                    }
+        payload = {
+            "view_id": _view_id("context", participant_address, options.episode_id or view_ref),
+            "participant_address": participant_address,
+            "episode_id": options.episode_id,
+            "generated_at": _utc_now(),
+            "source_snapshot_ref": snapshot_ref,
+            "view_ref": view_ref,
+            "meaning_ref": view_ref,
+            "participant_scope": "participant_local",
+            "audience_scope": "participant_visible",
+            "observation_point": resolved_observation_point,
+            "derived_from_refs": list(source_refs),
+            "source_layers": [
+                {
+                    "source_id": source_id,
+                    "source_layer": "source_snapshot",
+                    "ref": source_ref,
+                    "temporal_relation": "same_observation_point",
+                    "observation_point": resolved_observation_point,
+                    "evidence_refs": list(source_refs),
+                    "provenance_refs": list(source_refs),
+                }
+            ],
+            "transformation": {
+                "transformation_rule_ref": resolved_derivation_basis_ref,
+                "description": "API-408 derived context view relation declared by the governed view reference",
+                "input_source_ids": [source_id],
+                "output_semantics_ref": view_ref,
+            },
+            "comparability": {
+                "comparability_class": "portable_equivalent",
+                "comparison_basis_ref": f"comparability.{view_ref}",
+                "backend_disclosure_refs": [],
+                "limitations": [
+                    "Comparable only under the declared view, transformation, visibility, and evidence basis"
                 ],
-                "transformation": {
-                    "transformation_rule_ref": resolved_derivation_basis_ref,
-                    "description": "API-408 derived context view relation declared by the governed view reference",
-                    "input_source_ids": [source_id],
-                    "output_semantics_ref": view_ref,
-                },
-                "comparability": {
-                    "comparability_class": "portable_equivalent",
-                    "comparison_basis_ref": f"comparability.{view_ref}",
-                    "backend_disclosure_refs": [],
-                    "limitations": [
-                        "Comparable only under the declared view, transformation, visibility, and evidence basis"
-                    ],
-                },
-                "evidence_refs": list(source_refs),
-                "provenance_refs": list(source_refs),
-                "semantic_limitations": [
-                    "Context-view payload remains a referenced derived view, not backend-private state"
-                ],
-                "derivation_basis_ref": options.derivation_basis_ref,
-                "payload_ref": options.payload_ref,
-                "visibility_projection_ref": _visibility_projection_ref(participant_address, "context"),
-                "marking_definition_refs": [],
-                "redaction_policy_ref": None,
-            }
-        )
+            },
+            "evidence_refs": list(source_refs),
+            "provenance_refs": list(source_refs),
+            "semantic_limitations": [
+                "Context-view payload remains a referenced derived view, not backend-private state"
+            ],
+            "derivation_basis_ref": options.derivation_basis_ref,
+            "payload_ref": options.payload_ref,
+            "visibility_projection_ref": _visibility_projection_ref(participant_address, "context"),
+            "marking_definition_refs": [],
+            "redaction_policy_ref": None,
+        }
+        try:
+            view = ParticipantContextViewModel.model_validate(payload)
+        # The view reference and the optional context references come from the request.
+        except ValidationError as exc:
+            raise InvalidInputError("participant context view request is invalid") from exc
         if getattr(self, "_crossing_policy_resolver", None) is None:
             if options.crossing_evidence is not None:
-                raise ValueError(_CROSSING_RESOLVER_REQUIRED)
+                raise ConflictError(_CROSSING_RESOLVER_REQUIRED)
             result = view
         else:
             resolved_episode_id = options.episode_id or _string_value(
@@ -323,7 +340,7 @@ def _resolve_trusted_view_evidence(
     resolver = getattr(control_plane, "_crossing_policy_resolver", None)
     provider = getattr(resolver, "resolve_participant_view_evidence", None)
     if not callable(provider):
-        raise ValueError("participant view crossing evidence is unavailable")
+        raise ParticipantViewEvidenceUnavailable(_VIEW_EVIDENCE_UNAVAILABLE)
     binding = _trusted_audience_binding(
         serialization.identity,
         participant_address=serialization.participant_address,
@@ -339,7 +356,7 @@ def _resolve_trusted_view_evidence(
             audience_binding=binding,
         )
     if not isinstance(resolved, ParticipantCrossingEvidence):
-        raise ValueError("participant view crossing evidence is unavailable")
+        raise ParticipantViewEvidenceUnavailable(_VIEW_EVIDENCE_UNAVAILABLE)
     return resolved
 
 
@@ -350,7 +367,7 @@ def _trusted_audience_binding(
     supplied: ParticipantAudienceSubjectBinding | None,
 ) -> ParticipantAudienceSubjectBinding:
     if not isinstance(identity, ControlPlaneIdentity):
-        raise ValueError(_VIEW_AUDIENCE_BINDING_UNAVAILABLE)
+        raise ConflictError(_VIEW_AUDIENCE_BINDING_UNAVAILABLE)
     matches = tuple(
         binding
         for binding in identity.participant_audience_subjects
@@ -358,10 +375,10 @@ def _trusted_audience_binding(
     )
     if supplied is not None:
         if supplied not in matches:
-            raise ValueError(_VIEW_AUDIENCE_BINDING_UNAVAILABLE)
+            raise ConflictError(_VIEW_AUDIENCE_BINDING_UNAVAILABLE)
         return supplied
     if len(matches) != 1:
-        raise ValueError(_VIEW_AUDIENCE_BINDING_UNAVAILABLE)
+        raise ConflictError(_VIEW_AUDIENCE_BINDING_UNAVAILABLE)
     return matches[0]
 
 
@@ -384,7 +401,7 @@ def _context_participant_exists(
 
 def _required_episode_id(value: str | None) -> str:
     if value is None:
-        raise ValueError("participant projection requires an exact episode identity")
+        raise ConflictError("participant projection requires an exact episode identity")
     return value
 
 

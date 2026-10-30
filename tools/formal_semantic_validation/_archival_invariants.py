@@ -10,18 +10,28 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
+import rfc8785
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.errors import EvidenceIntegrityError
 
 from ._types import _RETAINED_PRODUCTION_EVIDENCE_DIGESTS
 
 
 def _require(condition: bool, name: str) -> None:
     if not condition:
-        raise ValueError(f"historical evidence invariant failed: {name}")
+        raise EvidenceIntegrityError(f"historical evidence invariant failed: {name}")
+
+
+def _canonical_digest(value: object) -> str:
+    # The frozen JSON shapes admit some values without an RFC 8785 form, such as an unpaired surrogate.
+    try:
+        return canonical_json_digest(value)
+    except rfc8785.CanonicalizationError as exc:
+        raise EvidenceIntegrityError("historical evidence has no canonical JSON form") from exc
 
 
 def _digest_join(payload: Mapping[str, Any], key: str) -> None:
-    _require(payload[f"{key}_digest"] == canonical_json_digest(payload[key]), f"{key} digest join")
+    _require(payload[f"{key}_digest"] == _canonical_digest(payload[key]), f"{key} digest join")
 
 
 def _satisfiability(payload: Mapping[str, Any]) -> None:
@@ -58,14 +68,14 @@ def _exploit_path(payload: Mapping[str, Any]) -> None:
         _require(step["step_index"] == index, "step index")
         transition = transitions.get(step["transition_id"])
         _require(transition is not None, "transition join")
-        _require(step["state_before_digest"] == canonical_json_digest(sorted(state)), "state before join")
+        _require(step["state_before_digest"] == _canonical_digest(sorted(state)), "state before join")
         _require(set(transition["prerequisites"]) <= state, "transition prerequisites")
         _require(step["satisfied_prerequisites"] == transition["prerequisites"], "prerequisite join")
         _require(step["applied_effects"] == transition["effects"], "effects join")
         observations = sorted(item["observation_id"] for item in transition["observations"])
         _require(step["emitted_observations"] == observations, "observations join")
         state.update(transition["effects"])
-        _require(step["state_after_digest"] == canonical_json_digest(sorted(state)), "state after join")
+        _require(step["state_after_digest"] == _canonical_digest(sorted(state)), "state after join")
     _require(witness["final_state"] == sorted(state), "final state join")
     _require(set(query["goal_facts"]) <= state, "goal satisfaction")
 
@@ -77,6 +87,6 @@ def validate_archival_evidence_invariants(payload: Mapping[str, Any], replay_mod
     else:
         _exploit_path(payload)
     _require(
-        canonical_json_digest(payload) in _RETAINED_PRODUCTION_EVIDENCE_DIGESTS,
+        _canonical_digest(payload) in _RETAINED_PRODUCTION_EVIDENCE_DIGESTS,
         "record is not in the retained production evidence corpus",
     )

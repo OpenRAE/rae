@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import nox
+from raes_contracts.errors import InvalidInputError, OperationalError
 
 from tools.nox_support.config import (
     EXPECT_FREE_THREADED_ENV,
@@ -91,7 +92,7 @@ def _compatibility_runtime_stages(
     restored_wheelhouse = os.environ.get(PYTHON_CLOSURE_WHEELHOUSE_ENV, "")
     if restored_wheelhouse:
         if not smoke_only:
-            raise RuntimeError("a restored offline closure is valid only for compatibility smoke execution")
+            raise InvalidInputError("a restored offline closure is valid only for compatibility smoke execution")
         reporter.skip(
             "python compatibility / frozen sync",
             "the verified restored wheelhouse is exercised by both installed-distribution smokes",
@@ -183,7 +184,7 @@ def _build_compatibility_distributions(
     wheels = sorted(dist_dir.glob("raes-*.whl"))
     source_distributions = sorted(dist_dir.glob("raes-*.tar.gz"))
     if len(wheels) != 1 or len(source_distributions) != 1:
-        raise RuntimeError("compatibility build must produce exactly one wheel and one source distribution")
+        raise OperationalError("compatibility build must produce exactly one wheel and one source distribution")
     reporter.run(
         "python compatibility / build wheel from sdist",
         lambda: _uv_build(
@@ -196,7 +197,7 @@ def _build_compatibility_distributions(
     )
     sdist_wheels = sorted((dist_dir / "from-sdist").glob("raes-*.whl"))
     if len(sdist_wheels) != 1:
-        raise RuntimeError("compatibility sdist build must produce exactly one wheel")
+        raise OperationalError("compatibility sdist build must produce exactly one wheel")
     return wheels[0], sdist_wheels[0]
 
 
@@ -269,7 +270,7 @@ def _compatibility_distribution_stages(
 ) -> None:
     profile_id = os.environ.get(PYTHON_CLOSURE_PROFILE_ENV, "")
     if not profile_id:
-        raise RuntimeError(f"{PYTHON_CLOSURE_PROFILE_ENV} must select a reviewed closure profile")
+        raise InvalidInputError(f"{PYTHON_CLOSURE_PROFILE_ENV} must select a reviewed closure profile")
     with tempfile.TemporaryDirectory(prefix="raes-python-compatibility-") as temporary_dir:
         root = Path(temporary_dir)
         dist_dir = root / "dist"
@@ -314,16 +315,16 @@ def _run_python_compatibility(session: nox.Session, reporter: SessionReporter) -
     expected = os.environ.get(EXPECTED_PYTHON_ENV, "")
     selector = os.environ.get("UV_PYTHON", "")
     if expected not in _SUPPORTED_FEATURE_RELEASES:
-        raise RuntimeError(f"{EXPECTED_PYTHON_ENV} must select a supported feature release")
+        raise InvalidInputError(f"{EXPECTED_PYTHON_ENV} must select a supported feature release")
     if not selector:
-        raise RuntimeError("UV_PYTHON must select the interpreter under test")
+        raise InvalidInputError("UV_PYTHON must select the interpreter under test")
     expect_free_threaded = os.environ.get(EXPECT_FREE_THREADED_ENV) == "1"
     profile_id = os.environ.get(PYTHON_CLOSURE_PROFILE_ENV, "")
     if not expect_free_threaded and f"cp{expected.replace('.', '')}" not in profile_id:
-        raise RuntimeError(f"{PYTHON_CLOSURE_PROFILE_ENV} must match the selected interpreter")
+        raise InvalidInputError(f"{PYTHON_CLOSURE_PROFILE_ENV} must match the selected interpreter")
     smoke_only_value = os.environ.get(PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV, "0")
     if smoke_only_value not in {"0", "1"}:
-        raise RuntimeError(f"{PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV} must be 0 or 1")
+        raise InvalidInputError(f"{PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV} must be 0 or 1")
     # Nox removes UV_PYTHON inherited from the parent process. Put the
     # matrix selector back into the per-session command environment so every
     # nested uv invocation uses the interpreter that the lane names.
