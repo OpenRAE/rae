@@ -26,8 +26,7 @@ SDL = parse_sdl("name: exit\\nnodes:\\n  server:\\n    type: compute\\n")
     [
         pytest.param("adapter = LocalExecutionAdapter()\n", id="adapter"),
         pytest.param(
-            "manager = RuntimeManager(create_stub_target())\n"
-            "manager.plan(SDL, run_scope=PlanScope(run_id='exit'))\n",
+            "manager = RuntimeManager(create_stub_target())\nmanager.plan(SDL, run_scope=PlanScope(run_id='exit'))\n",
             id="manager",
         ),
         pytest.param(
