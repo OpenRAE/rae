@@ -7,6 +7,7 @@ from raes_contracts.contracts import (
     ParticipantAutonomousExecutionStateModel,
     ParticipantBehaviorHistoryEventModel,
 )
+from raes_contracts.errors import ConflictError
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.models import ParticipantAutonomousExecutionRuntime
@@ -79,7 +80,7 @@ def _activity_provenance(
 ) -> ParticipantActivityOccurrenceProvenanceModel:
     control = context.activity_control
     if control is None:
-        raise ValueError("participant activity provenance requires a random control")
+        raise ConflictError("participant activity provenance requires a random control")
     candidate_id = context.policy.action_candidate_ids[state.next_action_index]
     occurrence_id = (
         f"{context.policy.address}:{context.participant_address}:"

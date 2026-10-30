@@ -6,6 +6,7 @@ import shutil
 from pathlib import Path
 
 import pytest
+from raes_contracts.errors import ConflictError, InvalidInputError
 from tools.evidence_bundle_index import load_index_records
 from tools.research_capture import FAMILIES, publish_capture, record_capture
 from tools.research_evidence import capture_identity, current_release_path, is_capture, validate_inventory
@@ -84,7 +85,7 @@ def test_inventory_rejects_dropped_or_rebound_captures(capture_repo, mutation):
     else:
         path, manifest = next(row for row in indexed if is_capture(row[1]["revision"]))
         manifest["revision"] = "capture-" + "0" * 64
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidInputError):
         validate_inventory(capture_repo, FAMILY, indexed)
 
 
@@ -104,7 +105,7 @@ def test_latest_number_does_not_select_stale_source(tmp_path, monkeypatch):
         (tmp_path / f"{name}.json").write_text(json.dumps(snapshot))
         indexed.append((name, {"revision": revision, "snapshot_path": f"{name}.json"}))
     assert current_release_path(indexed, tmp_path) == "current"
-    with pytest.raises(ValueError, match="no current"):
+    with pytest.raises(InvalidInputError, match="no current"):
         current_release_path(indexed[:1], tmp_path)
 
 
@@ -130,7 +131,7 @@ def test_equal_dates_with_different_pins_are_ambiguous(tmp_path, monkeypatch):
                 },
             )
         )
-    with pytest.raises(ValueError, match="ambiguous"):
+    with pytest.raises(InvalidInputError, match="ambiguous"):
         current_release_path(indexed, tmp_path)
 
 
@@ -139,7 +140,7 @@ def test_feature_branches_cannot_allocate_publication_numbers(tmp_path, monkeypa
     from tools import research_capture
 
     monkeypatch.setattr(research_capture.subprocess, "check_output", lambda *args, **kwargs: branch)
-    with pytest.raises(ValueError, match="only on the dev"):
+    with pytest.raises(ConflictError, match="only on the dev"):
         publish_capture(tmp_path, FAMILY)
     assert list(tmp_path.iterdir()) == []
 
@@ -274,3 +275,79 @@ def test_inventory_selection_is_scoped_and_still_replays_only_current(monkeypatc
     with pytest.raises(ValueError, match="seeded validation failure"):
         _releases.validate_release_bundles(tmp_path, releases)
     assert _releases._SELECTED_RELEASE.get() is None
+
+
+def test_unloadable_evidence_record_message_omits_the_inner_failure_text(tmp_path):
+    sentinel = "RECORD-KEY-SENTINEL"
+    bundles = tmp_path / "docs/research/family/bundles"
+    bundles.mkdir(parents=True)
+    (tmp_path / "docs/research/family/index.json").write_text(
+        json.dumps({"schema_version": "family/v1", "bundles_directory": "docs/research/family/bundles"})
+    )
+    (bundles / "record.json").write_text(f'{{"{sentinel}": 1, "{sentinel}": 2}}\n')
+
+    with pytest.raises(InvalidInputError) as raised:
+        load_index_records(
+            tmp_path,
+            index_path="docs/research/family/index.json",
+            schema_version="family/v1",
+            directory_key="bundles_directory",
+            max_bytes=4096,
+        )
+
+    assert str(raised.value) == "cannot load evidence record 'docs/research/family/bundles/record.json'"
+    assert sentinel not in str(raised.value)
+    assert isinstance(raised.value.__cause__, InvalidInputError)
+
+
+@pytest.mark.parametrize("captured_at", ["not-a-timestamp", "2026-13-40T00:00:00+00:00"])
+def test_malformed_capture_date_is_invalid_input(tmp_path, monkeypatch, captured_at):
+    from tools import research_evidence
+
+    monkeypatch.setattr(research_evidence, "implementation_digest", lambda _: "live")
+    snapshot = {
+        "source_state": {"profile": research_evidence.SOURCE_PROFILE, "implementation_digest": "live"},
+        "captured_at": captured_at,
+    }
+    (tmp_path / "current.json").write_text(json.dumps(snapshot))
+
+    with pytest.raises(InvalidInputError, match="offset-aware timestamp"):
+        current_release_path(
+            [("current", {"revision": "capture-" + "a" * 64, "snapshot_path": "current.json"})], tmp_path
+        )
+
+
+def test_release_managed_version_source_must_be_utf8_text(tmp_path):
+    from tools import research_evidence
+
+    version_source = tmp_path / "_version.py"
+    version_source.write_bytes(b"\xff\xfe__version__")
+
+    with pytest.raises(InvalidInputError, match="UTF-8 text"):
+        research_evidence._source_bytes(version_source, research_evidence.RELEASE_MANAGED_VERSION_SOURCE)
+
+
+def test_publication_refusal_is_a_message_and_status_one(monkeypatch, capsys):
+    from tools import research_capture
+
+    monkeypatch.setattr(research_capture.subprocess, "check_output", lambda *args, **kwargs: "feature")
+    monkeypatch.setattr("sys.argv", ["research_capture.py", "publish", FAMILY])
+
+    with pytest.raises(SystemExit) as raised:
+        research_capture.main()
+
+    assert raised.value.code == 1
+    assert "only on the dev integration branch" in capsys.readouterr().err
+
+
+def test_capture_defects_are_not_reported_as_refusals(monkeypatch):
+    from tools import research_capture
+
+    def defect(*_args, **_kwargs):
+        raise RuntimeError("seeded defect")
+
+    monkeypatch.setattr(research_capture, "publish_capture", defect)
+    monkeypatch.setattr("sys.argv", ["research_capture.py", "publish", FAMILY])
+
+    with pytest.raises(RuntimeError, match="seeded defect"):
+        research_capture.main()

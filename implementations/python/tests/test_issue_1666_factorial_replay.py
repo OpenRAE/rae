@@ -8,6 +8,7 @@ from raes import canonical_instantiated_sdl_digest
 from raes_contracts.canonical import canonical_json_bytes
 from raes_contracts.contracts import ExperimentRunModel, validate_admitted_trial_run
 from raes_contracts.contracts.experiment_conditions import _run_satisfies_condition_assignment
+from raes_contracts.errors import InvalidInputError
 from raes_processor.trial_compiler import compile_admitted_trial_plan
 from raes_processor.trial_realization import instantiate_admitted_trial_entry, realize_admitted_trial_entry
 from test_exp_719_factorial_allocation import _randomized_spec
@@ -73,7 +74,7 @@ def test_source_aware_one_entry_realization_rejects_resealed_treatment_changes(c
         )
     altered = _reseal(plan, entry, selections=selections)
     inputs = _realization_inputs(request, altered, request.task)
-    with pytest.raises(ValueError, match="authoring.*selection|selection.*authoring"):
+    with pytest.raises(InvalidInputError, match="authoring.*selection|selection.*authoring"):
         realize_admitted_trial_entry(inputs=inputs, plan_entry_id=entry.plan_entry_id)
 
 
@@ -220,7 +221,7 @@ def test_source_realization_rechecks_supplied_participant_manifest_pins():
     payload["configuration_registry"]["targets"]["policy.model"]["aliases"] = ["new-alias"]
     substituted = ParticipantImplementationManifestModel.model_validate(payload)
     inputs = replace(_realization_inputs(request, plan, request.task), participant_manifests={key: substituted})
-    with pytest.raises(ValueError, match="participant.*manifest"):
+    with pytest.raises(InvalidInputError, match="participant.*manifest"):
         realize_admitted_trial_entry(inputs=inputs, plan_entry_id=entry.plan_entry_id)
 
 

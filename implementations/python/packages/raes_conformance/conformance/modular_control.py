@@ -11,6 +11,8 @@ from raes_backend_protocols.manifest import backend_manifest_payload
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import schema_bundle
 from raes_contracts.contracts.participant_control_decisions_v2 import ControlExecutableEffectTargetV2
+from raes_contracts.errors import InvalidInputError, RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_runtime.registry import RuntimeTarget
 
 from .diagnostics import _diagnostic, sanitized_failure_message
@@ -26,6 +28,7 @@ from .modular_control_types import (
 )
 from .report import BackendConformanceReport, ConformanceCaseResult, _bounded_conformance_claim
 
+_LOGGER = get_logger(__name__)
 _PROFILE = "modular-control-runtime/v2"
 _LIMITATIONS = (
     "Finite cases cover only the selected obligation/effect subset and exact installed bindings.",
@@ -126,6 +129,9 @@ def _run_case(
                 )
             )
     except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Isolation of the harness inputs and installed operator code: a refusal category needs no record.
+            _LOGGER.exception("modular-control probe failed", exc_info=foreign_failure_record(exc))
         diagnostics.append(
             _diagnostic("conformance.modular-probe-failed", case.obligation, sanitized_failure_message(exc))
         )
@@ -167,36 +173,36 @@ def _run_case(
 
 def _validate_cases(cases: tuple[ModularControlCase, ...], required: tuple[str, ...]) -> None:
     if any(type(case) is not ModularControlCase for case in cases):
-        raise TypeError("modular harness requires typed cases")
+        raise InvalidInputError("modular harness requires typed cases")
     if any(case.obligation not in required for case in cases):
-        raise ValueError("modular harness contains an unselected case")
+        raise InvalidInputError("modular harness contains an unselected case")
     if len({case.name for case in cases}) != len(cases):
-        raise ValueError("modular case identities must be unique")
+        raise InvalidInputError("modular case identities must be unique")
     for case in cases:
         _validate_case(case)
 
 
 def _validate_case(case: ModularControlCase) -> None:
     if not re.fullmatch(r"[a-z0-9][a-z0-9_.:-]{0,95}", case.name):
-        raise ValueError("modular case identity must be a bounded safe identifier")
+        raise InvalidInputError("modular case identity must be a bounded safe identifier")
     if not isinstance(case.steps, tuple) or not 1 <= len(case.steps) <= 256:
-        raise ValueError("modular steps require a bounded nonempty tuple")
+        raise InvalidInputError("modular steps require a bounded nonempty tuple")
     if any(
         type(step) is not ModularControlStep or not isinstance(step.operation, ModularControlOperation)
         for step in case.steps
     ):
-        raise TypeError("modular steps require typed operation inputs")
+        raise InvalidInputError("modular steps require typed operation inputs")
     if not isinstance(case.options, Mapping) or not isinstance(case.expected_calls, Mapping):
-        raise TypeError("modular case configuration and counts require mappings")
+        raise InvalidInputError("modular case configuration and counts require mappings")
     if any(type(value) is not int or value < 0 for value in case.expected_calls.values()):
-        raise ValueError("modular expected counts require nonnegative integers")
+        raise InvalidInputError("modular expected counts require nonnegative integers")
 
 
 def _validate_subset(selected: tuple[str, ...], effects: tuple[str, ...], required: tuple[str, ...]) -> None:
     if not required or len(set(required)) != len(required):
-        raise ValueError("modular subset must be nonempty and unique")
+        raise InvalidInputError("modular subset must be nonempty and unique")
     if set(selected) - set(modular_control_obligations()) or set(effects) - set(_effect_kinds()):
-        raise ValueError("modular subset contains an unknown obligation or effect")
+        raise InvalidInputError("modular subset contains an unknown obligation or effect")
 
 
 def _obligation_cases(
@@ -222,7 +228,7 @@ def _supplied_cases(
 ) -> tuple[ModularControlCase, ...]:
     supplied = harness.cases(target) if harness is not None else ()
     if not isinstance(supplied, tuple) or len(supplied) > 256:
-        raise ValueError("modular harness requires a bounded case tuple")
+        raise InvalidInputError("modular harness requires a bounded case tuple")
     _validate_cases(supplied, required)
     return supplied
 
@@ -254,6 +260,9 @@ def run_modular_control_conformance(
         for obligation in required:
             cases.extend(_obligation_cases(target, obligation, supplied, selected, effects, store_root))
     except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Isolation of the harness case supply: a refusal category needs no record.
+            _LOGGER.exception("modular-control harness failed", exc_info=foreign_failure_record(exc))
         diagnostics.append(_diagnostic("conformance.modular-harness-invalid", _PROFILE, sanitized_failure_message(exc)))
         covered = {case.modular_control.obligation for case in cases}
         if subset_valid:

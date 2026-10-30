@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 from raes import parse_sdl
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.semantic_comparison import (
     ArtifactKind,
     ImpactClosureStatus,
@@ -54,7 +55,7 @@ def test_presence_preserving_projection_distinguishes_omitted_and_empty():
     by_id = {change.identity: change for change in result.changes}
     assert by_id["scenario:sample"].semantic_relation.value == "changed"
     assert by_id["scenario:sample/nodes:host"].semantic_relation.value == "changed"
-    with pytest.raises(ValueError, match="projection"):
+    with pytest.raises(InvalidInputError, match="projection"):
         compare(before, after, "1")
 
 
@@ -98,7 +99,7 @@ def test_unsupported_owner_projection_cannot_claim_compatibility():
 @pytest.mark.parametrize("revision", ["", "semantic_revision: raes-progressive-semantics/v1\n"])
 def test_progressive_source_requires_current_owner_projection(revision):
     scenario = parse_sdl("name: current\n" + revision)
-    with pytest.raises(ValueError, match="projection"):
+    with pytest.raises(InvalidInputError, match="projection"):
         compare(scenario, scenario, "1")
     assert compare(scenario, scenario).changes[0].semantic_relation.value == "unchanged"
 
@@ -117,7 +118,7 @@ def test_task_comparison_preserves_independent_observation_demand():
     ).model_dump(mode="json")
     after = ExperimentTaskModel.model_validate(data)
     assert compare(before, after).changes[0].semantic_relation.value == "changed"
-    with pytest.raises(ValueError, match="projection"):
+    with pytest.raises(InvalidInputError, match="projection"):
         compare(before, after, "1")
 
 

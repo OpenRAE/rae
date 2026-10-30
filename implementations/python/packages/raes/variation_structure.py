@@ -5,12 +5,13 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Annotated, Any, Literal
 
-from pydantic import AfterValidator, ConfigDict, Field, StrictBool, WithJsonSchema, model_validator
+from pydantic import AfterValidator, ConfigDict, Field, StrictBool, WithJsonSchema, field_validator, model_validator
 from raes_contracts.canonical import canonical_json_bytes
 
 from ._base import SDLModel
 from ._identifiers import PortableIdentifier, require_qualified_identifier
 from ._runtime_service_families import RUNTIME_SERVICE_FAMILIES, iter_runtime_family_references
+from .stateful_resources import validate_mount_destination
 
 
 def _qualified_reference(value: str) -> str:
@@ -71,10 +72,33 @@ class RuntimeInventorySlot(StrEnum):
     ORCHESTRATION_AUTHORITIES = "nodes.runtime.orchestration_authorities"
 
 
+class DeclarationPresenceSlot(StrEnum):
+    """Reviewed whole-declaration presence; the slot prefix names the owner section."""
+
+    ACCOUNTS = "accounts.presence"
+    CONTENT = "content.presence"
+    PERSISTENT_VOLUMES = "persistent_volumes.presence"
+    GENERATED_ARTIFACTS = "generated_artifacts.presence"
+    RELATIONSHIPS = "relationships.presence"
+    PROPOSITIONS = "propositions.presence"
+    ASSERTIONS = "assertions.presence"
+    EVIDENCE_REQUIREMENTS = "evidence_requirements.presence"
+
+
+class ResourceConsumerSlot(StrEnum):
+    """Reviewed consumer-row membership of one stateful resource."""
+
+    PERSISTENT_VOLUMES = "persistent_volumes.consumers"
+    GENERATED_ARTIFACTS = "generated_artifacts.consumers"
+
+
+NODE_PRESENCE_SLOT = "nodes.presence"
+
+
 class StructuralTarget(SDLModel):
     kind: Literal["structural"]
     owner: QualifiedReference
-    slot: Literal["nodes.presence"] | RuntimeInventorySlot
+    slot: Literal["nodes.presence"] | RuntimeInventorySlot | DeclarationPresenceSlot | ResourceConsumerSlot
 
 
 class RuntimeInventoryAlternative(_SelectionMember):
@@ -115,13 +139,65 @@ class NodePresenceAlternative(_SelectionMember):
         return self
 
 
-AlternativeMember = VariationMember | NodePresenceAlternative | RuntimeInventoryAlternative
+class DeclarationPresenceAlternative(_SelectionMember):
+    """Whole-declaration presence; absence never removes incoming references."""
 
-# Candidate domains are for navigation; semantic admission further restricts inventory
-# to the exact owner and family, through the canonical runtime reference traversal.
+    kind: Literal["declaration-presence"]
+    present: StrictBool
+
+
+class ConsumerSelector(SDLModel):
+    """One existing consumer row, identified by its node and mount destination."""
+
+    node: QualifiedReference
+    mount_destination: str
+
+    _contained_mount_destination = field_validator("mount_destination")(validate_mount_destination)
+
+
+class ResourceConsumersAlternative(_SelectionMember):
+    """The consumer rows that the owner resource keeps, in source order."""
+
+    kind: Literal["resource-consumers"]
+    consumers: list[ConsumerSelector] = Field(json_schema_extra={"uniqueItems": True})
+
+    @model_validator(mode="after")
+    def _unique_consumers(self) -> ResourceConsumersAlternative:
+        selectors = [(selector.node, selector.mount_destination) for selector in self.consumers]
+        if len(selectors) != len(set(selectors)):
+            raise ValueError("consumer selectors must be unique")
+        return self
+
+
+AlternativeMember = (
+    VariationMember
+    | NodePresenceAlternative
+    | RuntimeInventoryAlternative
+    | DeclarationPresenceAlternative
+    | ResourceConsumersAlternative
+)
+
+# Owner section, then candidate domain. Candidate domains are for navigation; semantic
+# admission further restricts inventory and consumer rows to the exact owner and family.
 STRUCTURAL_TARGET_SPECS: dict[str, tuple[str, str]] = {
-    "nodes.presence": ("nodes", "nodes"),
+    NODE_PRESENCE_SLOT: ("nodes", "nodes"),
     **{slot.value: ("nodes", "targetable") for slot in RuntimeInventorySlot},
+    **{slot.value: (slot.value.split(".", 1)[0],) * 2 for slot in DeclarationPresenceSlot},
+    **{slot.value: (slot.value.split(".", 1)[0], "nodes") for slot in ResourceConsumerSlot},
+}
+
+STRUCTURAL_MEMBER_KINDS: dict[str, tuple[str, ...]] = {
+    "node-presence": (NODE_PRESENCE_SLOT,),
+    "runtime-inventory": tuple(slot.value for slot in RuntimeInventorySlot),
+    "declaration-presence": tuple(slot.value for slot in DeclarationPresenceSlot),
+    "resource-consumers": tuple(slot.value for slot in ResourceConsumerSlot),
+}
+
+_STRUCTURAL_MEMBER_TYPES: dict[str, type[_SelectionMember]] = {
+    NODE_PRESENCE_SLOT: NodePresenceAlternative,
+    **dict.fromkeys(STRUCTURAL_MEMBER_KINDS["runtime-inventory"], RuntimeInventoryAlternative),
+    **dict.fromkeys(STRUCTURAL_MEMBER_KINDS["declaration-presence"], DeclarationPresenceAlternative),
+    **dict.fromkeys(STRUCTURAL_MEMBER_KINDS["resource-consumers"], ResourceConsumersAlternative),
 }
 
 
@@ -129,10 +205,7 @@ def validate_alternative_members(
     target: object,
     alternatives: dict[str, AlternativeMember],
 ) -> None:
-    if isinstance(target, StructuralTarget):
-        expected = NodePresenceAlternative if target.slot == "nodes.presence" else RuntimeInventoryAlternative
-    else:
-        expected = VariationMember
+    expected = _STRUCTURAL_MEMBER_TYPES[str(target.slot)] if isinstance(target, StructuralTarget) else VariationMember
     if any(not isinstance(member, expected) for member in alternatives.values()):
         raise ValueError("alternative member type must match its target slot")
     values = [alternative_value(member) for member in alternatives.values()]
@@ -145,6 +218,10 @@ def alternative_value(member: AlternativeMember) -> bytes:
         value: object = member.reference
     elif isinstance(member, RuntimeInventoryAlternative):
         value = sorted(member.references)
+    elif isinstance(member, DeclarationPresenceAlternative):
+        value = {"present": member.present}
+    elif isinstance(member, ResourceConsumersAlternative):
+        value = sorted([selector.node, selector.mount_destination] for selector in member.consumers)
     else:
         value = {
             "present": member.present,

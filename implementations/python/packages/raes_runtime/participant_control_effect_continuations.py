@@ -18,7 +18,7 @@ from raes_contracts.runtime_state import OperationState
 
 from .control_plane_execution import _utc_now
 from .control_plane_store import ControlPlaneOperationRecord
-from .control_plane_store_revision import SnapshotRevisionConflict
+from .participant_control_binding import control_context_admits, resolve_control_context
 from .participant_control_causal_state import validate_incremental_effect_admission
 from .participant_control_effect_evidence import (
     committed_evaluation,
@@ -130,20 +130,7 @@ def _publish_continuation(
     )
     transition = ParticipantControlEvaluationV2Model.model_validate(payload)
     cut = _EvaluationCut.capture(plane, origin=origin)
-    try:
-        validate_incremental_effect_admission(plane, transition)
-        context = cut.call(binding.resolver.validation_context, transition)
-        context = with_retained_effect_evidence(context, retained)
-        context = replace(
-            context,
-            parent_admission_receipt=plan.parent_admission_receipt,
-            parent_application_receipt=plan.parent_application_receipt,
-            commit_receipt=source.commit.receipt,
-        )
-        cut.call(lambda: validate_participant_control_continuation_v2(transition, source, context))
-    except SnapshotRevisionConflict:
-        raise
-    except Exception:
+    if not _continuation_admitted(plane, binding, cut, transition, source, plan, retained):
         # No new permission is published when the independent owner refuses it.
         return source
     carrier = _linked_carrier(
@@ -191,6 +178,35 @@ def _publish_continuation(
         audit_event=_realization_audit(closed, participant, transition),
     )
     return transition
+
+
+def _continuation_admitted(
+    plane: RuntimeControlPlane,
+    binding: ParticipantControlRuntimeBinding,
+    cut: _EvaluationCut,
+    transition: ParticipantControlEvaluationV2Model,
+    source: ParticipantControlEvaluationV2Model,
+    plan: ControlEffectPlanV2Model,
+    retained: Mapping[str, ControlCommittedEffectIntentV2],
+) -> bool:
+    """Return whether current claims and the independent owner admit the continuation.
+
+    The resolver context carries installed owner and support callbacks. The
+    context resolution and the published validation each log their own failure.
+    """
+    if not control_context_admits(lambda: validate_incremental_effect_admission(plane, transition)):
+        return False
+    context = resolve_control_context(
+        lambda: replace(
+            with_retained_effect_evidence(cut.call(binding.resolver.validation_context, transition), retained),
+            parent_admission_receipt=plan.parent_admission_receipt,
+            parent_application_receipt=plan.parent_application_receipt,
+            commit_receipt=source.commit.receipt,
+        )
+    )
+    return context is not None and control_context_admits(
+        lambda: cut.call(lambda: validate_participant_control_continuation_v2(transition, source, context))
+    )
 
 
 def continuation_key(evaluation: ParticipantControlEvaluationV2Model) -> str:

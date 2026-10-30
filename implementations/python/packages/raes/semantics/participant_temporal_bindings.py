@@ -3,19 +3,24 @@
 from collections.abc import Iterable, Iterator, Mapping, Sequence
 
 from .._base import is_variable_ref
+from .._errors import SDLValidationFinding
 from ..participant_temporal_semantics import ParticipantSharedTimeBinding
 from ..scenario import ScenarioContent
 from .participant_behavior._references import _resolve_section_ref
 
 
-def participant_temporal_binding_errors(scenario: ScenarioContent) -> Iterator[str]:
-    """Check declaration ownership, not backend support or implementation style."""
+def participant_temporal_binding_errors(scenario: ScenarioContent) -> Iterator[SDLValidationFinding]:
+    """Check declaration ownership, not backend support or implementation style.
+
+    The action contract that holds a temporal binding owns each error of that binding.
+    """
 
     for action_name, action in scenario.action_contracts.items():
         for temporal in action.temporal_contracts:
             binding = temporal.shared_time_binding
             if binding is not None:
-                yield from _binding_errors(scenario, action_name, temporal, binding)
+                for message in _binding_errors(scenario, action_name, temporal, binding):
+                    yield SDLValidationFinding(message, ("action_contracts", action_name))
 
 
 def _binding_errors(

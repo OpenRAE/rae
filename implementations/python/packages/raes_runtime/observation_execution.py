@@ -6,6 +6,7 @@ from collections.abc import Callable, Mapping
 from typing import Protocol
 
 from raes_backend_protocols.capabilities import BackendManifest
+from raes_contracts.description_coverage import DescriptionCoverageUnsatisfied
 from raes_contracts.description_reporting import DescriptionProfileAdmission
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.observation_demand import (
@@ -22,6 +23,7 @@ from raes_contracts.observation_demand import (
     realization_description_report,
 )
 from raes_contracts.observation_reporting import RealizationDescriptionItem
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import RuntimeSnapshot
 
 from .observation_admission import (
@@ -51,6 +53,7 @@ Redactor = Callable[[tuple[object, ...]], tuple[object, ...]]
 IntegrityProvider = Callable[[str, tuple[object, ...]], str]
 EvidenceVerifier = Callable[[ObservationSelector, AchievedObservationValue, Plan, RuntimeSnapshot], bool]
 _OBSERVATION_ADDRESS = "runtime.observation-demand"
+_LOGGER = get_logger(__name__)
 
 
 class ObservationRuntime(Protocol):
@@ -257,14 +260,16 @@ def _execute_admitted_plan_observation(
             manifest,
             operation_id=operation_id,
         )
-    except KeyError, TypeError, ValueError:
+    except KeyError, TypeError, ValueError, DescriptionCoverageUnsatisfied:
         return None, Diagnostic(
             code="observation.runtime-contract-invalid",
             domain="runtime",
             address=_OBSERVATION_ADDRESS,
             message="Observation runtime did not satisfy the admitted selector contract.",
         )
-    except Exception:
+    except Exception as exc:
+        # Isolation of the observation runtime adapter: record its failure once, without its type, then refuse.
+        _LOGGER.exception("observation runtime adapter failed", exc_info=foreign_failure_record(exc))
         return None, Diagnostic(
             code="observation.runtime-adapter-failed",
             domain="runtime",

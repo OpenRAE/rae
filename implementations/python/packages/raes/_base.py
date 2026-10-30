@@ -153,7 +153,11 @@ def parse_float_or_var(
     if isinstance(value, bool):
         raise ValueError(f"{field_name} must be a number")
     if isinstance(value, (int, float)):
-        parsed = float(value)
+        try:
+            parsed = float(value)
+        except OverflowError as e:
+            # Pydantic changes only ValueError into a validation error (ADR-116 rule E3).
+            raise ValueError(f"{field_name} must be a number") from e
     elif isinstance(value, str):
         try:
             parsed = float(value.strip())

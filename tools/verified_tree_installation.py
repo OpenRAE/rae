@@ -33,6 +33,7 @@ from pathlib import Path, PurePosixPath
 from tools import verified_tool_installation as installation
 from tools import verified_tree_archive as archive
 from tools import verified_tree_validation as validation
+from tools.verified_tool_installation import ToolInstallationError
 from tools.verified_tree_archive import TreeEntry, manifest_bytes
 from tools.verified_tree_validation import (
     TREE_CONTENT_NAME,
@@ -89,18 +90,23 @@ def tree_installation_path(installation_root: Path, selection: TreeSelection) ->
     )
 
 
-def describe_archive_tree(archive_path: Path, raw_entry: ManifestEntry) -> dict[str, object]:
+def describe_archive_tree(
+    archive_path: Path,
+    raw_entry: ManifestEntry,
+    *,
+    archive_format: str = archive.TREE_FORMAT,
+) -> dict[str, object]:
     """Return the reviewable installed-tree descriptor of one lock-verified archive."""
 
     try:
         with validation.opened_verified_raw(archive_path, raw_entry, mode="input") as stream:
-            entries = archive.admit_archive_stream(stream, archive.CEILING_LIMITS, None)
-    except RuntimeError:
+            entries = archive.admit_archive_stream(stream, archive.CEILING_LIMITS, None, archive_format=archive_format)
+    except ToolInstallationError:
         raise
     except OSError:
         raise _failure("raw-manifest-mismatch") from None
-    archive.bounded_manifest_bytes(entries)
-    return archive.tree_descriptor(entries)
+    archive.bounded_manifest_bytes(entries, archive_format=archive_format)
+    return archive.tree_descriptor(entries, archive_format=archive_format)
 
 
 def _fsync_file(path: Path) -> None:
@@ -172,8 +178,10 @@ def _install_from_raw(target: Path, raw_object: Path, selection: TreeSelection) 
         content = stage / TREE_CONTENT_NAME
         content.mkdir(mode=0o700)
         with validation.opened_verified_raw(raw_object, selection.raw_manifest[0], mode="installed") as stream:
-            entries = archive.admit_archive_stream(stream, limits, archive.StageSink(content))
-        payload = archive.bounded_manifest_bytes(entries)
+            entries = archive.admit_archive_stream(
+                stream, limits, archive.StageSink(content), archive_format=descriptor.format
+            )
+        payload = archive.bounded_manifest_bytes(entries, archive_format=descriptor.format)
         if hashlib.sha256(payload).hexdigest() != descriptor.manifest_sha256:
             raise _failure("installed-manifest-mismatch")
         validation.require_installed_manifest(selection, {entry.path: entry for entry in entries})
@@ -214,7 +222,7 @@ def _admit_raw_object(
             installation._quarantine(carrier, quarantine_root, prefix="legacy")
         try:
             validation.verify_raw_file(raw_object, entry, mode="installed")
-        except OSError, RuntimeError:
+        except OSError, ToolInstallationError:
             installation._quarantine(raw_object, quarantine_root, prefix="raw")
             raise _failure("raw-integrity-failure") from None
         return raw_object
@@ -223,7 +231,7 @@ def _admit_raw_object(
             installation._quarantine(extra, quarantine_root, prefix="legacy")
         try:
             validation.verify_raw_file(carriers[0], entry, mode="carrier")
-        except OSError, RuntimeError:
+        except OSError, ToolInstallationError:
             installation._quarantine(carriers[0], quarantine_root, prefix="legacy")
             raise _failure("legacy-integrity-failure") from None
         _publish_raw(carriers[0], raw_object)
@@ -235,7 +243,7 @@ def _admit_raw_object(
         acquire_raw(staged)
         try:
             validation.verify_raw_file(staged, entry, mode="staged")
-        except OSError, RuntimeError:
+        except OSError, ToolInstallationError:
             raise _failure("raw-manifest-mismatch") from None
         _publish_raw(staged, raw_object)
     finally:
@@ -264,7 +272,7 @@ def _validated_or_quarantined(target: Path, selection: TreeSelection, quarantine
     try:
         installation._complete_interrupted_seal(target)
         return validation.validated_installation(target, selection)
-    except OSError, RuntimeError:
+    except OSError, ToolInstallationError:
         installation._quarantine(target, quarantine_root, prefix="cache")
         raise _failure("cache-integrity-failure") from None
 
@@ -281,7 +289,7 @@ def _validated_or_repaired_existing(
         return None
     try:
         return validation.validated_installation(target, selection)
-    except OSError, RuntimeError:
+    except OSError, ToolInstallationError:
         with installation._portable_lock(identity_lock, timeout=TREE_LOCK_TIMEOUT_SECONDS):
             if installation._tree_present(target):  # NOSONAR -- recheck under the lock closes the race.
                 return _validated_or_quarantined(target, selection, quarantine_root)
@@ -323,7 +331,7 @@ def _ensure_tree(
         return _install_from_raw(target, raw_object, selection)
 
 
-def _storage_failure(exc: OSError) -> RuntimeError:
+def _storage_failure(exc: OSError) -> ToolInstallationError:
     reason = "storage-exhausted" if exc.errno in {errno.ENOSPC, getattr(errno, "EDQUOT", -1)} else "filesystem-failure"
     return _failure(reason)
 
@@ -342,7 +350,7 @@ def ensure_verified_tree_installation(
         install_root = installation_root or installation.default_installation_root(repo_root)
         with installation._private_root_guard(repo_root, install_root):
             return _ensure_tree(install_root, selection, acquire_raw=acquire_raw, legacy=legacy)
-    except RuntimeError:
+    except ToolInstallationError:
         raise
     except OSError as exc:
         raise _storage_failure(exc) from None
@@ -364,9 +372,9 @@ def require_verified_tree_installation(
                 raise _failure("installation-missing")
             try:
                 return validation.validated_installation(target, selection)
-            except OSError, RuntimeError:
+            except OSError, ToolInstallationError:
                 raise _failure("cache-integrity-failure") from None
-    except RuntimeError:
+    except ToolInstallationError:
         raise
     except OSError as exc:
         raise _storage_failure(exc) from None

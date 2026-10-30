@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections import Counter
 from collections.abc import Sequence
-from copy import deepcopy
 
 from tools.policy.common import PolicyFailure
 from tools.specification_coverage._keys import (
@@ -16,7 +15,9 @@ from tools.specification_coverage._keys import (
 from tools.specification_coverage._primitives import (
     _exact_keys,
     _failure,
+    _hashable,
     _json_sha256,
+    _members,
 )
 
 _FAILING_STAGE_OUTCOMES = {"failed", "not_run", "tool_failed"}
@@ -25,14 +26,16 @@ _FAILING_STAGE_OUTCOMES = {"failed", "not_run", "tool_failed"}
 def _records_by_concept_id(records: Sequence[object]) -> dict[str, dict[str, object]]:
     return {
         item["concept_id"]: item
-        for item in records
+        for item in _members(records)
         if isinstance(item, dict) and isinstance(item.get("concept_id"), str)
     }
 
 
 def _classification_counts(snapshot: dict[str, object]) -> dict[str, int]:
     counts = Counter(
-        item.get("classification") for item in snapshot.get("concept_results", []) if isinstance(item, dict)
+        item.get("classification")
+        for item in _members(snapshot.get("concept_results", []))
+        if isinstance(item, dict) and _hashable(item.get("classification"))
     )
     return {
         classification: counts[classification]
@@ -47,7 +50,9 @@ def _classification_counts(snapshot: dict[str, object]) -> dict[str, int]:
 
 def _has_non_passing_stage(observed: dict[str, object]) -> bool:
     return any(
-        stage.get("outcome") != "passed" for stage in observed.get("stage_results", []) if isinstance(stage, dict)
+        stage.get("outcome") != "passed"
+        for stage in _members(observed.get("stage_results", []))
+        if isinstance(stage, dict)
     )
 
 
@@ -96,12 +101,15 @@ def _request_result_entry(
     concept_by_id: dict[str, dict[str, object]],
     result_by_id: dict[str, dict[str, object]],
 ) -> tuple[dict[str, object], bool]:
-    observed = [result_by_id.get(concept_id, {}) for concept_id in request.get("concept_ids", [])]
+    observed = [
+        result_by_id.get(concept_id, {}) if _hashable(concept_id) else {}
+        for concept_id in _members(request.get("concept_ids", []))
+    ]
     missing_count = sum(item.get("classification") == "missing" for item in observed)
     failed_stage_count = sum(
-        stage.get("outcome") in _FAILING_STAGE_OUTCOMES
+        _hashable(stage.get("outcome")) and stage.get("outcome") in _FAILING_STAGE_OUTCOMES
         for item in observed
-        for stage in item.get("stage_results", [])
+        for stage in _members(item.get("stage_results", []))
         if isinstance(stage, dict)
     )
     critical_bad = any(_load_bearing_result_bad(item, concept_by_id) for item in observed)
@@ -123,10 +131,10 @@ def _request_result_entry(
 
 def _backend_leakage(snapshot: dict[str, object]) -> list[dict[str, object]]:
     leakage: list[dict[str, object]] = []
-    for concept_result in snapshot.get("concept_results", []):
+    for concept_result in _members(snapshot.get("concept_results", [])):
         if not isinstance(concept_result, dict):
             continue
-        for occurrence in concept_result.get("backend_vocabulary_occurrences", []):
+        for occurrence in _members(concept_result.get("backend_vocabulary_occurrences", [])):
             if isinstance(occurrence, dict) and occurrence.get("allowed") is not True:
                 leakage.append({"concept_id": concept_result.get("concept_id"), **occurrence})
     return leakage
@@ -139,7 +147,9 @@ def recompute_analysis(
 ) -> dict[str, object]:
     """Return the analysis with every outcome-bearing field recomputed."""
 
-    result = deepcopy(analysis)
+    # Only top-level fields are replaced, so a shallow copy is enough. A recursive copy
+    # would stop at the interpreter recursion limit on a deeply nested authored value.
+    result = dict(analysis)
     result["snapshot_sha256"] = _json_sha256(snapshot)
     concept_by_id = _records_by_concept_id(protocol.get("concepts", []))
     result_by_id = _records_by_concept_id(snapshot.get("concept_results", []))
@@ -149,7 +159,7 @@ def recompute_analysis(
 
     request_results: list[dict[str, object]] = []
     any_noncritical_failure = False
-    for request in protocol.get("requests", []):
+    for request in _members(protocol.get("requests", [])):
         if not isinstance(request, dict):
             continue
         entry, noncritical_failure = _request_result_entry(request, concept_by_id, result_by_id)
@@ -244,7 +254,8 @@ def _validate_analysis(
         "snapshot_id"
     ):
         failures.append(_failure("specification-coverage-analysis-join", "analysis joins are stale", path))
-    if analysis.get("snapshot_sha256") != _json_sha256(snapshot):
+    snapshot_digest = _json_sha256(snapshot)
+    if snapshot_digest is None or analysis.get("snapshot_sha256") != snapshot_digest:
         failures.append(
             _failure(
                 "specification-coverage-analysis-join",

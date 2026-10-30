@@ -217,6 +217,21 @@
           "template": "archives/temporal-cli-runtime-test/temporal_cli_{selector}_linux_amd64.tar.gz"
         }
       ]
+    },
+    {
+      "binding_id": "mcrl2-tool-version",
+      "artifact_id": "mcrl2",
+      "authority_field": "version",
+      "consumers": [
+        {
+          "path": "tools/tool_versions.py",
+          "template": "MCRL2_VERSION = \"{selector}\""
+        },
+        {
+          "path": ".github/workflows/canonical-verification.yml",
+          "template": "archives/mcrl2/mcrl2-{selector}_x86_64.deb"
+        }
+      ]
     }
   ]
 }

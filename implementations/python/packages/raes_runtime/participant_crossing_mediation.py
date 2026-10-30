@@ -26,6 +26,7 @@ from raes_contracts.contracts.participant_crossing_validation import (
 )
 from raes_contracts.contracts.participant_runtime import ParticipantRuntimeOrderingBasis
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
 from raes_contracts.participant_opacity_runtime import validate_participant_opacity_runtime_enforcement
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -47,6 +48,9 @@ from .participant_opacity_enforcement import (
     normalize_participant_opacity_resolution,
     validate_persisted_participant_opacity,
 )
+
+_POLICY_UNRESOLVED = "participant crossing policy could not be resolved"
+_OPACITY_BINDING_NOT_ADMITTED = "participant opacity runtime binding is not admitted by the resolver context"
 
 
 def _utc_now() -> str:
@@ -192,16 +196,20 @@ def _resolve_crossing_policy(
     incumbent_carrier: object | None,
 ) -> ParticipantCrossingPolicyResolution:
     operation_resolver = getattr(resolver, "resolve_operation", None)
-    with external_control_plane_call(control_plane):
-        resolution = (
-            operation_resolver(intent, control_plane._snapshot, incumbent_carrier)
-            if callable(operation_resolver)
-            else resolver.resolve(intent, control_plane._snapshot)
-        )
-        context = resolver.validation_context(
-            control_plane._snapshot,
-            intent.participant_address,
-        )
+    try:
+        with external_control_plane_call(control_plane):
+            resolution = (
+                operation_resolver(intent, control_plane._snapshot, incumbent_carrier)
+                if callable(operation_resolver)
+                else resolver.resolve(intent, control_plane._snapshot)
+            )
+            context = resolver.validation_context(
+                control_plane._snapshot,
+                intent.participant_address,
+            )
+    # A resolver refuses a policy that it cannot resolve with TypeError or ValueError.
+    except (TypeError, ValueError) as exc:
+        raise ConflictError(_POLICY_UNRESOLVED) from exc
     resolution = bind_active_participant_opacity_support(
         resolution,
         context.opacity_enforcement_supports,
@@ -217,13 +225,16 @@ def _resolve_crossing_policy(
         None,
     )
     if support is None:
-        raise ValueError("participant opacity runtime binding is not admitted by the resolver context")
-    validate_participant_opacity_runtime_enforcement(
-        resolution.opacity_enforcement,
-        support=support,
-        participant_address=intent.participant_address,
-        audience_scope_ref=intent.audience_scope_ref,
-    )
+        raise ConflictError(_OPACITY_BINDING_NOT_ADMITTED)
+    try:
+        validate_participant_opacity_runtime_enforcement(
+            resolution.opacity_enforcement,
+            support=support,
+            participant_address=intent.participant_address,
+            audience_scope_ref=intent.audience_scope_ref,
+        )
+    except ValueError as exc:
+        raise ConflictError(_OPACITY_BINDING_NOT_ADMITTED) from exc
     return normalize_participant_opacity_resolution(resolution)
 
 
@@ -263,7 +274,7 @@ def prepare_participant_crossing(
             resolver,
             incumbent_carrier,
         )
-    except TypeError, ValueError:
+    except ConflictError:
         return _prepare_policy_unresolved(
             control_plane,
             intent,

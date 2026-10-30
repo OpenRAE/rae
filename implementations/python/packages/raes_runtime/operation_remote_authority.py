@@ -12,6 +12,8 @@ from uuid import uuid4
 import httpx
 from pydantic import JsonValue, SecretStr
 from raes_contracts.contracts import BackendOperationControlModel, BackendOperationRequestModel, OperationStatusModel
+from raes_contracts.errors import AuthorizationError, InvalidInputError, OperationalError, RaesError
+from raes_contracts.operational_logging import get_logger
 
 from .control_plane_operation_context import operation_actor_scope
 from .control_plane_security import ControlPlaneIdentity, ControlPlaneRole, _require_principal_shape
@@ -23,12 +25,9 @@ if TYPE_CHECKING:
     from raes_contracts.contracts import BackendOperationCapabilitiesModel, BackendOperationResponseModel
 
     from .operation_temporal import EngineOperationReference
-
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
     from .runtime_sequence_reference import RuntimeSequenceReference
+
+_LOGGER = get_logger(__name__)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -98,13 +97,13 @@ class RemoteOperationAuthority:
                 },
             ) as response:
                 if response.status_code != 200:
-                    raise RuntimeError("worker authority request was refused or unavailable")
+                    raise OperationalError("worker authority request was refused or unavailable")
                 if response.headers.get("content-encoding", "identity") != "identity":
-                    raise ValueError("worker authority content encoding is unsupported")
+                    raise InvalidInputError("worker authority content encoding is unsupported")
                 content = bytearray()
                 for chunk in response.iter_raw():
                     if len(content) + len(chunk) > self.configuration.max_response_bytes:
-                        raise ValueError("worker authority response exceeds its bound")
+                        raise InvalidInputError("worker authority response exceeds its bound")
                     content.extend(chunk)
                 import json
 
@@ -112,8 +111,11 @@ class RemoteOperationAuthority:
 
         try:
             return self._executor.call("control", invoke, timeout_ms=self.configuration.rpc_budget_ms)
-        except Exception:
-            raise RuntimeError("worker authority response could not be established") from None
+        except Exception as exc:
+            # The transport detail can carry endpoint values; keep an unexpected cause in one value-free record.
+            if not isinstance(exc, RaesError):
+                _LOGGER.exception("worker authority request failed")
+            raise OperationalError("worker authority response could not be established") from None
 
     def advance_runtime(self, reference: RuntimeSequenceReference) -> str:
         """Reconcile a durable state cut; no fresh attempt is implied by redelivery."""
@@ -121,14 +123,15 @@ class RemoteOperationAuthority:
 
         reference = RuntimeSequenceReference.model_validate(reference.model_dump(mode="json"))
         if reference.worker_id != self.configuration.identity.identity:
-            raise PermissionError("runtime worker reference is forbidden")
+            raise AuthorizationError("runtime worker reference is forbidden")
         if self.configuration.rpc_budget_ms >= reference.activity_budget_ms:
-            raise ValueError("runtime activity budget must exceed its bounded authority call")
+            # The delivered reference does not give this worker enough budget for one bounded call.
+            raise InvalidInputError("runtime activity budget must exceed its bounded authority call")
         return self._rpc("POST", "runtime/progress", reference.model_dump(mode="json"))
 
     def _path(self, reference: EngineOperationReference, suffix: str = "") -> str:
         if reference.worker_id != self.configuration.identity.identity:
-            raise PermissionError("worker reference is forbidden")
+            raise AuthorizationError("worker reference is forbidden")
         return f"operations/{quote(reference.operation_id, safe='')}/invocation{suffix}"
 
     def get_request(self, reference: EngineOperationReference) -> BackendOperationRequestModel:

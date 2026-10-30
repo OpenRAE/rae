@@ -267,7 +267,11 @@ class ControlledAutonomousParticipantRuntime(AutonomousParticipantRuntime, Proto
         execution_scope_ref: str,
         snapshot: RuntimeSnapshot,
     ) -> ParticipantExecutionServiceStateModel:
-        """Return typed execution-service health and readiness."""
+        """Return typed execution-service health and readiness.
+
+        Raise ``raes_contracts.errors.NotFoundError`` when the scope is not configured.
+        Raise ``raes_contracts.errors.EvidenceIntegrityError`` when the stored state does not satisfy its contract.
+        """
         ...
 
     def admit_actions_concurrently(

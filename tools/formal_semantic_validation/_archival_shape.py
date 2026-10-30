@@ -9,6 +9,7 @@ from typing import Literal
 
 from jsonschema import Draft202012Validator
 from pydantic import BaseModel, ConfigDict, Field
+from raes_contracts.errors import EvidenceIntegrityError
 from referencing import Registry
 
 from tools.policy.common import safe_repo_path
@@ -46,22 +47,22 @@ def validate_archival_evidence_shape(repo_root: Path, payload: object, replay_mo
         schema = _archival_schema(repo_root, replay_mode, version, pin)
         if Draft202012Validator(schema, registry=Registry()).is_valid(payload):
             return
-    raise ValueError("historical production evidence violates its frozen archival shape")
+    raise EvidenceIntegrityError("historical production evidence violates its frozen archival shape")
 
 
 def _archival_schema(repo_root: Path, replay_mode: object, version: int, pin: str) -> object:
     manifest_bytes = (repo_root / _ARCHIVE_ROOT / f"manifest-v{version}.json").read_bytes()
     if hashlib.sha256(manifest_bytes).hexdigest() != pin:
-        raise ValueError("historical production evidence archival manifest digest mismatch")
+        raise EvidenceIntegrityError("historical production evidence archival manifest digest mismatch")
     manifest = _ArchiveManifest.model_validate_json(manifest_bytes)
     records = [record for record in manifest.contracts if record.mode == replay_mode]
     if len(records) != 1:
-        raise ValueError("historical production evidence has no archival shape contract")
+        raise EvidenceIntegrityError("historical production evidence has no archival shape contract")
     record = records[0]
     path = safe_repo_path(repo_root, record.path)
     if path is None or not path.is_file():
-        raise ValueError("historical production evidence archival shape is missing")
+        raise EvidenceIntegrityError("historical production evidence archival shape is missing")
     content = path.read_bytes()
     if hashlib.sha256(content).hexdigest() != record.sha256:
-        raise ValueError("historical production evidence archival shape digest mismatch")
+        raise EvidenceIntegrityError("historical production evidence archival shape digest mismatch")
     return json.loads(content)

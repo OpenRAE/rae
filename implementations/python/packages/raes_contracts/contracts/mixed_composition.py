@@ -18,6 +18,7 @@ from pydantic_core import CoreSchema
 
 from .._canonical import canonical_json_digest
 from ..addressing import CompiledAddress
+from ..errors import InvalidInputError
 from ..json_ingress import JSONValue, parse_bounded_json_object
 from ..versions import MIXED_PARTICIPANT_COMPOSITION_PROFILE_SCHEMA_VERSION
 from ..vocabulary import ParticipantFeatureSupportLevel
@@ -384,19 +385,19 @@ def _validate_json_shape(payload: JSONValue, limits: MixedCompositionValidationL
         value, depth = stack.pop()
         nodes += 1
         if nodes > limits.max_json_nodes:
-            raise ValueError("mixed composition JSON exceeds the configured node limit")
+            raise InvalidInputError("mixed composition JSON exceeds the configured node limit")
         if depth > limits.max_json_depth:
-            raise ValueError("mixed composition JSON exceeds the configured depth limit")
+            raise InvalidInputError("mixed composition JSON exceeds the configured depth limit")
         if isinstance(value, dict):
             stack.extend((child, depth + 1) for child in value.values())
         elif isinstance(value, list):
             stack.extend((child, depth + 1) for child in value)
 
 
-def _validate_profile_limits(
+def _profile_limit_violation(
     profile: MixedParticipantCompositionProfileModel,
     limits: MixedCompositionValidationLimits,
-) -> None:
+) -> str | None:
     counts = (
         (len(profile.components), limits.max_components, "component"),
         (len(profile.allocations), limits.max_allocations, "allocation"),
@@ -407,7 +408,17 @@ def _validate_profile_limits(
     )
     for actual, maximum, label in counts:
         if actual > maximum:
-            raise ValueError(f"mixed composition exceeds the configured {label} limit")
+            return f"mixed composition exceeds the configured {label} limit"
+    return None
+
+
+def _validate_profile_limits(
+    profile: MixedParticipantCompositionProfileModel,
+    limits: MixedCompositionValidationLimits,
+) -> None:
+    violation = _profile_limit_violation(profile, limits)
+    if violation is not None:
+        raise ValueError(violation)
 
 
 def parse_mixed_composition_profile(
@@ -415,7 +426,11 @@ def parse_mixed_composition_profile(
     *,
     limits: MixedCompositionValidationLimits | None = None,
 ) -> MixedParticipantCompositionProfileModel:
-    """Parse one bounded, duplicate-rejecting mixed-composition JSON object."""
+    """Parse one bounded, duplicate-rejecting mixed-composition JSON object.
+
+    A document over a configured limit raises ``InvalidInputError``; a contract
+    violation raises Pydantic's ``ValidationError``.
+    """
 
     selected = limits or MixedCompositionValidationLimits()
     payload = parse_bounded_json_object(
@@ -425,5 +440,7 @@ def parse_mixed_composition_profile(
     )
     _validate_json_shape(payload, selected)
     profile = MixedParticipantCompositionProfileModel.model_validate(payload)
-    _validate_profile_limits(profile, selected)
+    violation = _profile_limit_violation(profile, selected)
+    if violation is not None:
+        raise InvalidInputError(violation)
     return profile

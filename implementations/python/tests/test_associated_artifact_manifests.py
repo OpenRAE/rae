@@ -29,6 +29,7 @@ from raes_contracts.contracts import (
     ExperimentTaskModel,
     schema_bundle,
 )
+from raes_contracts.json_ingress import StrictJsonIngressError
 from raes_contracts.versions import ASSOCIATED_ARTIFACT_MANIFEST_SCHEMA_VERSION
 
 PAYLOAD = b"operator guide\n"
@@ -184,7 +185,7 @@ def test_scope_key_and_collision_rules_are_closed() -> None:
 
 def test_json_ingress_rejects_duplicate_members_and_secret_bearing_locators() -> None:
     duplicate = '{"schema_version":"associated-artifact-manifest/v1","manifest_id":"a","manifest_id":"b"}'
-    with pytest.raises(ValueError, match="duplicate JSON member"):
+    with pytest.raises(StrictJsonIngressError, match="duplicate JSON member"):
         load_associated_artifact_manifest_json(duplicate)
 
     secret_uri = _manifest_payload()

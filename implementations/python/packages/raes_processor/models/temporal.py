@@ -215,8 +215,9 @@ def _try_parse_temporal_transition(
     """Parse one raw transition, returning either the transition or an error message."""
     try:
         return _participant_temporal_state_transition_from_payload(raw_transition), None
-    except (TypeError, ValueError) as exc:
-        return None, f"participant temporal state transition is invalid: {exc}"
+    except TypeError, ValueError:
+        # The value object refuses a malformed payload with TypeError or ValueError (E3).
+        return None, "participant temporal state transition is invalid"
 
 
 def _iter_domain_authority_violations(

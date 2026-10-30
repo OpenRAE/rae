@@ -5,6 +5,7 @@ import sqlite3
 
 import pytest
 from participant_control_contract_fixtures import evaluation_payload
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError
 from raes_contracts.immutable_history import EventHistory, append_history
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_runtime.control_plane_store import LocalControlPlaneStore
@@ -103,7 +104,7 @@ def test_external_history_change_invalidates_the_sqlite_snapshot_cache(tmp_path)
         store.load_snapshot_state()
         with sqlite3.connect(directory / "control-plane.sqlite3") as connection:
             connection.execute("UPDATE snapshot_history SET payload='{}'")
-        with pytest.raises(ValueError, match="integrity"):
+        with pytest.raises(EvidenceIntegrityError, match="integrity"):
             store.load_snapshot_state()
     finally:
         store.close()
@@ -126,7 +127,7 @@ def test_rejected_scope_does_not_create_projection_schema(tmp_path):
         connection.execute("UPDATE metadata SET value='10' WHERE key='schema-version'")
         before = connection.execute("SELECT type,name,sql FROM sqlite_master ORDER BY type,name").fetchall()
     refused = LocalControlPlaneStore(directory)
-    with pytest.raises(RuntimeError, match="scope"):
+    with pytest.raises(ConflictError, match="scope"):
         refused.admit_runtime(target_scope="target:other", run_scope="run:other")
     with sqlite3.connect(directory / "control-plane.sqlite3") as connection:
         assert connection.execute("SELECT type,name,sql FROM sqlite_master ORDER BY type,name").fetchall() == before

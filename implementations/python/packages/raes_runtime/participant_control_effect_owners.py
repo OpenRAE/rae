@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from raes_contracts.contracts import InjectTriggerRequestModel
 from raes_contracts.contracts.participant_control_decisions_v2 import ControlEffectRequestV2Model
 from raes_contracts.contracts.participant_control_effects import ControlInjectEffectModel
+from raes_contracts.errors import ConflictError
 from raes_contracts.runtime_state import OperationState
 
 from .participant_control_intents import ParticipantCancellationControlIntent
@@ -38,7 +39,7 @@ def prepare_v2_effect_dispatch(
         validate_participant_control_effect_dispatch_v2,
     )
 
-    from .control_plane_store_revision import SnapshotRevisionConflict
+    from .participant_control_binding import control_context_admits, resolve_control_context
     from .participant_control_evaluation_v2 import _EvaluationCut
     from .participant_control_receipts import claim_outcome, realization, retained_effect_claim
 
@@ -48,12 +49,11 @@ def prepare_v2_effect_dispatch(
         if disposition in {"applied", "failed"}:
             return realization(request, disposition, claim.receipt.operation_id), claim
     cut = _EvaluationCut.capture(plane, origin=origin)
-    try:
-        context = cut.call(binding.resolver.validation_context, evaluation)
-        cut.call(lambda: validate_participant_control_effect_dispatch_v2(evaluation, request, context))
-    except SnapshotRevisionConflict:
-        raise
-    except Exception:
+    # The resolver context carries installed owner and support callbacks. Each boundary logs its own failure.
+    context = resolve_control_context(lambda: cut.call(binding.resolver.validation_context, evaluation))
+    if context is None or not control_context_admits(
+        lambda: cut.call(lambda: validate_participant_control_effect_dispatch_v2(evaluation, request, context))
+    ):
         return realization(request, "withheld", "authority-unresolved." + request.effect_id), None
     return None
 
@@ -154,7 +154,7 @@ def submit_owned_effect(
         world = InjectTriggerRequestModel.model_validate(request.target.world_request.model_dump(mode="json"))
         receipt = plane.submit_inject(world, identity=principal)
         if not receipt.accepted or receipt.context.parent_operation_id != claim.receipt.operation_id:
-            raise ValueError("inject effect owner refused admission")
+            raise ConflictError("inject effect owner refused admission")
         # World and participant delivery have distinct owners and outcomes.
         # A disclosure retry never resubmits a world occurrence.
         if (
@@ -267,7 +267,7 @@ def _supports_control_operation(
     try:
         specification = _specification_for_participant(plane, context.participant_address, principal)
         transition = _transition_for_intent(specification, operation.intent, principal)
-    except ValueError, PermissionError:
+    except ConflictError:
         return False
     if request.target.kind == "interrupt":
         supported = plane._mixed_control is not None

@@ -178,6 +178,33 @@
         "nist-csf-defensive-categories-snapshot",
         "w3c-activitystreams-activity-types-snapshot"
       ]
+    },
+    {
+      "profile_id": "model-check-linux-x86_64",
+      "contexts": [
+        "public-contributor",
+        "maintainer",
+        "release"
+      ],
+      "platform": {
+        "canonical_id": "linux-x86_64",
+        "aliases": [
+          "Linux-amd64",
+          "Linux-x86_64",
+          "linux-amd64",
+          "linux-x86_64"
+        ]
+      },
+      "locator_classes": [
+        {
+          "locator_id": "official-github-release",
+          "kind": "official-https",
+          "trust_root_ref": "system-ca"
+        }
+      ],
+      "supported_artifact_ids": [
+        "mcrl2"
+      ]
     }
   ],
   "python_package_contexts": [
@@ -585,6 +612,53 @@
         "python3-jsonschema",
         "python3-packaging",
         "python3-yaml"
+      ]
+    },
+    {
+      "host_profile_id": "model-check-ubuntu-26.04-x86_64",
+      "platform_id": "linux-x86_64",
+      "contexts": [
+        "public-contributor",
+        "maintainer",
+        "release"
+      ],
+      "native_family": "ubuntu-apt",
+      "base_image_identity": "github-hosted-runner:ubuntu26:X64",
+      "native_repository_identity": "github-hosted-runner-package-set:ubuntu26:X64",
+      "trust_root_refs": [
+        "ubuntu-archive-keyring",
+        "github-runner-image-release"
+      ],
+      "credential_refs": [],
+      "bootstrap_payload_ids": [
+        "mcrl2"
+      ],
+      "required_capability_ids": [
+        "base-image",
+        "native-repository",
+        "ca-roots",
+        "sha256",
+        "curl-unknown-length-max-filesize",
+        "bubblewrap",
+        "dpkg-deb",
+        "prlimit"
+      ],
+      "optional_capability_ids": [
+        "container-cli",
+        "container-daemon"
+      ],
+      "proof_support": "unsupported",
+      "host_security_control_changes": "prohibited",
+      "host_prerequisite_package_ids": [
+        "ca-certificates",
+        "coreutils",
+        "curl",
+        "bubblewrap",
+        "dpkg",
+        "util-linux",
+        "libc6",
+        "libstdc++6",
+        "libgcc-s1"
       ]
     }
   ]

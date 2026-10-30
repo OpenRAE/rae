@@ -116,18 +116,22 @@ def _private_service_selection(
     selected = spec.get("service_materialization") if isinstance(spec, Mapping) else None
     try:
         private = profile_selection_binding(selected)
-        if private is not None and (
-            operation.payload.get("service_materialization") is not None
-            or private.coordinate not in capabilities.supported_service_materialization_profiles
-        ):
-            raise ValueError("Unadvertised private service profile")
-    except TypeError, ValueError:
-        return True, _diagnostic(
-            "provisioner.unsupported-service-materialization-profile",
-            operation.address,
-            "Provisioner does not support the selected service materialization profile.",
-        )
+    except ValueError:
+        return True, _unsupported_private_profile(operation.address)
+    if private is not None and (
+        operation.payload.get("service_materialization") is not None
+        or private.coordinate not in capabilities.supported_service_materialization_profiles
+    ):
+        return True, _unsupported_private_profile(operation.address)
     return private is not None, None
+
+
+def _unsupported_private_profile(address: str) -> Diagnostic:
+    return _diagnostic(
+        "provisioner.unsupported-service-materialization-profile",
+        address,
+        "Provisioner does not support the selected service materialization profile.",
+    )
 
 
 def _legacy_service_diagnostic(

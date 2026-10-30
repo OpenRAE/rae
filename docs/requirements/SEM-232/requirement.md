@@ -64,3 +64,12 @@ SEM-230 defines participant information-flow labels and projection, API-423 and 
 - DOCUMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-bisimulation.md` (Participant-Crossing Bisimulation)
 - DOCUMENTS → DOCUMENTATION `docs/research/participant-bisimulation/implementation-program.md` (Participant-Crossing Bisimulation Implementation Program)
 - DOCUMENTS → CONFIG `contracts/concept-authority/behavioral-relations-v1.json` (Behavioral relation catalog revision rev6)
+
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/counterexample_corpus.py` (Bounded negative evidence; no positive relation or runtime realization)
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/counterexample_mutations.py` (Bounded negative evidence; no positive relation or runtime realization)
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/counterexample_witnesses.py` (Bounded negative evidence; no positive relation or runtime realization)
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-counterexamples.md` (Exact carrier, relation and trust boundaries)
+- DOCUMENTS → DOCUMENTATION `specs/formal/participant-semantics/counterexamples/pin.json` (Separately retained corpus and mutation review subject pins)
+- TESTS → TEST `implementations/python/tests/test_issue_973_crossing_corpus.py` (Safe mutation and checked evidence regressions)
+- TESTS → TEST `implementations/python/tests/test_issue_973_crossing_mutations.py` (Safe mutation and checked evidence regressions)
+- TESTS → TEST `implementations/python/tests/test_issue_973_crossing_witnesses.py` (Safe mutation and checked evidence regressions)

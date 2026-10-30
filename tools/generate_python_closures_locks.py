@@ -3,11 +3,25 @@
 
 from __future__ import annotations
 
+import sys
 from collections import defaultdict, deque
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 from typing import Any
 
-from packaging.markers import Marker
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from packaging.markers import (  # noqa: E402
+    InvalidMarker,
+    Marker,
+    UndefinedComparison,
+    UndefinedEnvironmentName,
+)
+from raes_contracts.errors import InvalidInputError  # noqa: E402
 
 # Reviewed target platforms and the operating-system marker fields each implies.
 # `platform_machine` matches the wheel-tag architecture `_platform_tags` selects,
@@ -66,7 +80,14 @@ def target_environment(python_version: str, platform: str, *, full_version: str)
 
 
 def _matches(marker: object, environment: Mapping[str, str]) -> bool:
-    return not marker or isinstance(marker, str) and Marker(marker).evaluate(environment=dict(environment))
+    if not marker:
+        return True
+    if not isinstance(marker, str):
+        return False
+    try:
+        return Marker(marker).evaluate(environment=dict(environment))
+    except (InvalidMarker, UndefinedComparison, UndefinedEnvironmentName) as exc:
+        raise InvalidInputError("lock dependency marker cannot be evaluated for the reviewed target") from exc
 
 
 def _package_applies(package: Mapping[str, Any], environment: Mapping[str, str]) -> bool:
@@ -86,7 +107,7 @@ def _selected_package(
         and (not dependency.get("version") or package.get("version") == dependency.get("version"))
     ]
     if len(candidates) != 1:
-        raise ValueError(f"dependency {dependency.get('name')!r} did not select exactly one locked package")
+        raise InvalidInputError(f"dependency {dependency.get('name')!r} did not select exactly one locked package")
     return candidates[0]
 
 
@@ -96,11 +117,27 @@ def lock_mappings(values: object) -> list[Mapping[str, Any]]:
     return [value for value in values if isinstance(value, Mapping)] if isinstance(values, list) else []
 
 
+def lock_list(value: object, label: str) -> list[Any]:
+    """Return one lock array; any other value is invalid lock input."""
+
+    if not isinstance(value, list):
+        raise InvalidInputError(f"lock {label} must be an array")
+    return value
+
+
+def lock_table(value: object, label: str) -> Mapping[str, Any]:
+    """Return one lock table; any other value is invalid lock input."""
+
+    if not isinstance(value, Mapping):
+        raise InvalidInputError(f"lock {label} must be a table")
+    return value
+
+
 def _lock_packages(lock: Mapping[str, Any]) -> dict[str, list[Mapping[str, Any]]]:
     """Index every locked package by name."""
 
     packages: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
-    for package in lock.get("package", []):
+    for package in lock_list(lock.get("package", []), "packages"):
         if isinstance(package, Mapping) and isinstance(package.get("name"), str):
             packages[package["name"]].append(package)
     return packages
@@ -114,14 +151,17 @@ def _root_dependencies(
 ) -> list[Any]:
     """Collect the declared root dependencies one closure walk starts from."""
 
-    dependencies = list(root.get("dependencies", []))
+    dependencies = list(lock_list(root.get("dependencies", []), "root dependencies"))
     if include_root_optional:
-        dependencies.extend(item for group in root.get("optional-dependencies", {}).values() for item in group)
+        optional = lock_table(root.get("optional-dependencies", {}), "root optional dependencies")
+        dependencies.extend(
+            item for group in optional.values() for item in lock_list(group, "root optional dependency group")
+        )
     development_groups = root.get("dev-dependencies", {})
     for group in root_groups:
         group_dependencies = development_groups.get(group, []) if isinstance(development_groups, Mapping) else []
         if not isinstance(group_dependencies, list):
-            raise ValueError(f"tool lock dependency group {group!r} is invalid")
+            raise InvalidInputError(f"tool lock dependency group {group!r} is invalid")
         dependencies.extend(group_dependencies)
     return dependencies
 
@@ -132,7 +172,7 @@ def _record_selection(selected: dict[str, Mapping[str, Any]], package: Mapping[s
     name = str(package["name"])
     previous = selected.setdefault(name, package)
     if previous is not package and previous.get("version") != package.get("version"):
-        raise ValueError(f"target closure selected multiple versions of {name}")
+        raise InvalidInputError(f"target closure selected multiple versions of {name}")
     return name
 
 
@@ -144,9 +184,11 @@ def _queue_requested_extras(
 ) -> None:
     """Queue the optional dependencies of extras this dependency newly requests."""
 
-    requested = {item for item in dependency.get("extra", []) if isinstance(item, str)} - processed_extras
+    extras = lock_list(dependency.get("extra", []), "dependency extras")
+    requested = {item for item in extras if isinstance(item, str)} - processed_extras
     for extra in sorted(requested):
-        pending.extend(lock_mappings(package.get("optional-dependencies", {}).get(extra, [])))
+        optional = lock_table(package.get("optional-dependencies", {}), "package optional dependencies")
+        pending.extend(lock_mappings(optional.get(extra, [])))
     processed_extras.update(requested)
 
 
@@ -186,7 +228,7 @@ def locked_closure(
     packages = _lock_packages(lock)
     roots = packages.get(root_name, [])
     if len(roots) != 1:
-        raise ValueError(f"lock must contain exactly one {root_name} package")
+        raise InvalidInputError(f"lock must contain exactly one {root_name} package")
     root_dependencies = (
         _root_dependencies(
             roots[0],
@@ -199,4 +241,4 @@ def locked_closure(
     return _resolve_closure(packages, root_dependencies, environment)
 
 
-__all__ = ("lock_mappings", "locked_closure", "target_environment")
+__all__ = ("lock_list", "lock_mappings", "lock_table", "locked_closure", "target_environment")

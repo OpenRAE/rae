@@ -34,27 +34,24 @@ def _validate_unique_non_empty_strings(field_name: str, values: tuple[str, ...])
 
 
 def _validate_participant_feature_support_term(feature: str) -> None:
-    errors: list[str] = []
     for scope in (PARTICIPANT_RUNTIME_BEHAVIOR_FEATURE_SCOPE, PARTICIPANT_RUNTIME_INTERACTION_FEATURE_SCOPE):
         try:
             validate_controlled_vocabulary_scope_values(scope, (feature,))
-        except ValueError as exc:
-            errors.append(str(exc))
+        except ValueError:
             continue
         return
     raise ValueError(
         "ParticipantFeatureSupport.feature must be a governed participant behavior or interaction feature "
-        f"term, or match the governed extension pattern; got {feature!r}; "
-        f"validation details: {'; '.join(errors)}"
+        f"term, or match the governed extension pattern; got {feature!r}"
     )
 
 
 def _participant_feature_support_level(
     value: ParticipantFeatureSupportLevel | str,
 ) -> ParticipantFeatureSupportLevel:
+    if isinstance(value, ParticipantFeatureSupportLevel):
+        return value
     try:
-        if isinstance(value, ParticipantFeatureSupportLevel):
-            return value
         return ParticipantFeatureSupportLevel(str(value))
     except ValueError as exc:
         raise ValueError("ParticipantFeatureSupport.support_level must be a valid support level") from exc

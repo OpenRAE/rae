@@ -14,6 +14,7 @@ from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingOccurrenceModel,
     ParticipantCrossingOperation,
 )
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError
 from raes_contracts.runtime_state import (
     OperationAdmissionContext,
     RuntimeSnapshot,
@@ -37,6 +38,8 @@ from .participant_crossing_policy import (
     _resolve_backend_support,
 )
 from .participant_crossing_state_cut import expected_participant_history_heads as _expected_history_heads
+
+_RETAINED_HISTORY_INVALID = "retained participant crossing history does not validate"
 
 
 def _utc_now() -> str:
@@ -68,19 +71,30 @@ def _next_crossing_snapshot(
     if prefixes is None:
         prefixes = control_plane._crossing_prefixes = {}
     prefix = prefixes.setdefault(intent.participant_address, CrossingPrefix())
-    prefix.refresh(history.get(intent.participant_address, prefix.history.__class__()))
-    next_snapshot = control_plane._snapshot.with_entries(
-        dict(control_plane._snapshot.entries),
-        participant_crossing_history=history.append(
+    # The published crossing validators refuse records with ValueError.
+    try:
+        prefix.refresh(history.get(intent.participant_address, prefix.history.__class__()))
+    except ValueError as exc:
+        raise EvidenceIntegrityError(_RETAINED_HISTORY_INVALID) from exc
+    try:
+        appended = history.append(
             intent.participant_address, (record.model_dump(mode="json", exclude_none=True) for record in records)
-        ),
+        )
+    # The history map refuses to extend history that retains opaque legacy records of any participant.
+    except ValueError as exc:
+        raise EvidenceIntegrityError(_RETAINED_HISTORY_INVALID) from exc
+    next_snapshot = control_plane._snapshot.with_entries(
+        dict(control_plane._snapshot.entries), participant_crossing_history=appended
     )
     with external_control_plane_call(control_plane):
         context = control_plane._crossing_policy_resolver.validation_context(
             control_plane._snapshot,
             intent.participant_address,
         )
-    prefix.validate_extension(records, context)
+    try:
+        prefix.validate_extension(records, context)
+    except ValueError as exc:
+        raise ConflictError("participant crossing conflicts with its retained history or context") from exc
     return next_snapshot
 
 

@@ -426,6 +426,7 @@ def test_delivery_rechecks_exact_scope_authority_lifecycle_and_occurrence(defect
 
 
 def test_bounded_ingress_rejects_ambiguous_and_oversized_inputs():
+    from raes_contracts.json_ingress import StrictJsonIngressError
     from raes_contracts.participant_control_context import load_control_context_json
 
     model = type(_asset())
@@ -435,7 +436,7 @@ def test_bounded_ingress_rejects_ambiguous_and_oversized_inputs():
         "[" * 40 + "0" + "]" * 40,
         " " * (1024 * 1024 + 1),
     ):
-        with pytest.raises(ValueError):
+        with pytest.raises(StrictJsonIngressError):
             load_control_context_json(source, model)
 
 

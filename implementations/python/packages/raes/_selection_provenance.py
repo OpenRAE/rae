@@ -8,8 +8,13 @@ from typing import Any
 from ._runtime_service_families import RUNTIME_SERVICE_FAMILIES
 from .nodes import RuntimeConfiguration
 from .scenario import ExpandedScenario
+from .stateful_resources import StatefulResourceConsumer
+from .variation_structure import STRUCTURAL_TARGET_SPECS, ResourceConsumerSlot
 
 PathChanges = list[tuple[str, str | None]]
+
+_DECLARATION_SECTIONS = tuple(sorted({spec[0] for spec in STRUCTURAL_TARGET_SPECS.values()} - {"nodes"}))
+_CONSUMER_SECTIONS = frozenset(slot.value.split(".", 1)[0] for slot in ResourceConsumerSlot)
 
 
 def _segment(value: str) -> str:
@@ -40,6 +45,40 @@ def _inventory_path_changes(
     return pointer_changes, model_changes
 
 
+def _consumer_path_changes(
+    section: str, name: str, original: list[StatefulResourceConsumer], selected: list[dict[str, Any]]
+) -> tuple[PathChanges, PathChanges]:
+    positions = {(row["node"], row["mount_destination"]): position for position, row in enumerate(selected)}
+    pointer = f"/{section}/{_segment(name)}/consumers/"
+    model = f"{section}.{name}.consumers"
+    pointer_changes: PathChanges = []
+    model_changes: PathChanges = []
+    for before, row in enumerate(original):
+        after = positions.get((row.node, row.mount_destination))
+        pointer_changes.append((pointer + str(before), None if after is None else pointer + str(after)))
+        model_changes.append((f"{model}[{before}]", None if after is None else f"{model}[{after}]"))
+    return pointer_changes, model_changes
+
+
+def _declaration_path_changes(family: ExpandedScenario, payload: dict[str, Any]) -> tuple[PathChanges, PathChanges]:
+    pointer_changes: PathChanges = []
+    model_changes: PathChanges = []
+    for section in _DECLARATION_SECTIONS:
+        for name, original in getattr(family, section).items():
+            retained = payload[section].get(name)
+            if retained is None:
+                pointer_changes.append((f"/{section}/{_segment(name)}", None))
+                model_changes.append((f"{section}.{name}", None))
+                continue
+            # Protect declarations with qualified names from a removed shorter name's model-path prefix.
+            model_changes.append((f"{section}.{name}", f"{section}.{name}"))
+            if section in _CONSUMER_SECTIONS:
+                pointers, models = _consumer_path_changes(section, name, original.consumers, retained["consumers"])
+                pointer_changes.extend(pointers)
+                model_changes.extend(models)
+    return pointer_changes, model_changes
+
+
 def _selection_path_changes(family: ExpandedScenario, payload: dict[str, Any]) -> tuple[PathChanges, PathChanges]:
     pointer_changes: PathChanges = []
     model_changes: PathChanges = []
@@ -57,7 +96,8 @@ def _selection_path_changes(family: ExpandedScenario, payload: dict[str, Any]) -
             pointers, models = _inventory_path_changes(name, original.runtime, node["runtime"])
             pointer_changes.extend(pointers)
             model_changes.extend(models)
-    return pointer_changes, model_changes
+    pointers, models = _declaration_path_changes(family, payload)
+    return [*pointer_changes, *pointers], [*model_changes, *models]
 
 
 def _remap_records(

@@ -20,8 +20,10 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
 
 from pydantic import ValidationError  # noqa: E402
 from raes_contracts.behavioral_relations import (
@@ -29,6 +31,8 @@ from raes_contracts.behavioral_relations import (
     validate_behavioral_claim_binding,
 )  # noqa: E402
 from raes_contracts.contracts import BehavioralClaimBindingModel  # noqa: E402
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
 
 from tools.policy.common import (
     PolicyFailure,
@@ -200,13 +204,20 @@ _BOUNDARY_RE = re.compile(
 
 
 def _iter_objects(value: Any) -> Iterator[dict[str, Any]]:
-    if isinstance(value, dict):
-        yield value
-        for child in value.values():
-            yield from _iter_objects(child)
-    elif isinstance(value, list):
-        for child in value:
-            yield from _iter_objects(child)
+    """Yield every object in document order (depth first, parents first).
+
+    The walk keeps its own stack, so a document that the JSON decoder accepts
+    cannot exceed the interpreter recursion limit here.
+    """
+
+    pending = [value]
+    while pending:
+        current = pending.pop()
+        if isinstance(current, dict):
+            yield current
+            pending.extend(reversed(list(current.values())))
+        elif isinstance(current, list):
+            pending.extend(reversed(current))
 
 
 def _validate_structured_bindings(
@@ -315,7 +326,7 @@ def evaluate(repo_root: Path) -> list[PolicyFailure]:
     catalog_path = repo_root / CATALOG_RELATIVE_PATH
     try:
         catalog = BehavioralRelationCatalogModel.model_validate_json(catalog_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, ValidationError, ValueError) as exc:
+    except (OSError, UnicodeDecodeError, ValidationError) as exc:
         return [
             PolicyFailure(
                 RULE_CATALOG_INVALID,
@@ -335,7 +346,9 @@ def evaluate(repo_root: Path) -> list[PolicyFailure]:
         if path.suffix.lower() == ".json":
             try:
                 payload = json.loads(text)
-            except json.JSONDecodeError:
+            # json.loads reports invalid syntax and an integer beyond the interpreter digit limit with
+            # ValueError, and nesting beyond the decoder with RecursionError; all three are not JSON here.
+            except ValueError, RecursionError:
                 payload = None
             if payload is not None and _should_validate_structured_bindings(relative):
                 failures.extend(_validate_structured_bindings(payload, catalog, relative))
@@ -348,7 +361,11 @@ def main() -> int:
     parser.add_argument("--json", action="store_true", help="Emit failures as JSON.")
     args = parser.parse_args()
 
-    failures = apply_exceptions(evaluate(REPO_ROOT), load_exceptions(REPO_ROOT))
+    try:
+        failures = apply_exceptions(evaluate(REPO_ROOT), load_exceptions(REPO_ROOT))
+    except InvalidInputError as exc:
+        print(f"behavioral-relation-claims: {exc}", file=sys.stderr)
+        return 1
     if args.json:
         print(failures_to_json(failures))
     else:
@@ -358,4 +375,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

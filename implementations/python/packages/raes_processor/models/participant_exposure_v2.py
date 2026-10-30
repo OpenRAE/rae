@@ -13,7 +13,7 @@ from .participant_exposure_authority_v2 import (
     ParticipantExposureProjectionV2,
     ParticipantExposureResolversV2,
 )
-from .participant_exposure_policy import _policy_permits_item
+from .participant_exposure_policy import _policy_permits_item, resolve_from_host
 
 
 def _serialized_surface_refs(
@@ -32,15 +32,16 @@ def _resolve_policy_decision(
     projection: ParticipantExposureProjectionV2,
     resolvers: ParticipantExposureResolversV2,
 ) -> ParticipantExposurePolicyDecisionV2:
-    try:
-        decision = resolvers.projection_policy(
+    decision = resolve_from_host(
+        "projection-policy",
+        "participant exposure exact-cut projection-policy resolution failed",
+        lambda: resolvers.projection_policy(
             projection_policy_ref=projection.projection_policy_ref,
             participant_address=projection.participant_address,
             audience_scope_ref=projection.audience_scope_ref,
             decision_cut_ref=projection.decision_cut_ref,
-        )
-    except Exception as exc:
-        raise ValueError("participant exposure exact-cut projection-policy resolution failed") from exc
+        ),
+    )
     if decision is None:
         raise ValueError("participant exposure requires an authoritative policy decision at the exact state cut")
     expected = {
@@ -67,14 +68,15 @@ def _selected_exposure_policy(
     projection: ParticipantExposureProjectionV2,
     resolvers: ParticipantExposureResolversV2,
 ) -> ParticipantExposurePolicyModel:
-    try:
-        selection = resolvers.apparatus(
+    selection = resolve_from_host(
+        "apparatus",
+        "participant exposure exact-cut apparatus resolution failed",
+        lambda: resolvers.apparatus(
             implementation_selection_ref=projection.implementation_selection_ref,
             exposure_policy_ref=projection.exposure_policy_ref,
             decision_cut_ref=projection.decision_cut_ref,
-        )
-    except Exception as exc:
-        raise ValueError("participant exposure exact-cut apparatus resolution failed") from exc
+        ),
+    )
     if selection is None:
         raise ValueError("participant exposure apparatus refs did not resolve at the exact state cut")
     if selection.participant_address != projection.participant_address:
@@ -96,14 +98,15 @@ def _resolve_authorization(
     authorization_record_ref: str,
     resolvers: ParticipantExposureResolversV2,
 ) -> ParticipantExposureAuthorizationRecordV2:
-    try:
-        authorization = resolvers.authorization(
+    authorization = resolve_from_host(
+        "authorization",
+        "participant exposure exact-cut authorization resolution failed",
+        lambda: resolvers.authorization(
             authorization_record_ref=authorization_record_ref,
             item_ref=item_ref,
             decision_cut_ref=projection.decision_cut_ref,
-        )
-    except Exception as exc:
-        raise ValueError("participant exposure exact-cut authorization resolution failed") from exc
+        ),
+    )
     if authorization is None:
         raise ValueError(f"exposure item {item_ref!r} has no authorization at the exact state cut")
     if authorization.authorization_record_ref != authorization_record_ref or authorization.item_ref != item_ref:

@@ -262,8 +262,9 @@ relation's resolved point.
 | Source | Field | Target |
 |--------|-------|--------|
 | `variation_points` | parameter target variable | `variables` |
-| `variation_points` | reference/collection/timing target owner | slot-declared owner section |
+| `variation_points` | reference/collection/timing/structural target owner | slot-declared owner section |
 | `variation_points` | governed allowed refs and alternative/subset/order member refs | slot-declared candidate section |
+| `variation_points` | resource consumer selector node | `nodes` |
 | `variation_points` | requires/excludes point | `variation_points` |
 | `variation_points` | requires/excludes members | members of the resolved point |
 | `variation_points` | precedence/fixed-position members | members of the owning order point |

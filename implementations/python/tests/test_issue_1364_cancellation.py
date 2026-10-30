@@ -1,5 +1,6 @@
 """Cancellation acceptance and evidenced work outcomes are separate facts."""
 
+from raes_contracts.errors import EvidenceIntegrityError
 from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import OperationKind, OperationState
 from raes_runtime.control_plane_execution import OperationExecutionRequest
@@ -157,7 +158,7 @@ def test_stored_target_attestations_reject_boolean_coordinates():
         payload = deepcopy(record.result_payload)
         payload["participant_control_available_targets"][0]["available_at"] = False
         operation_index(plane).apply(replace(record, result_payload=payload))
-        with pytest.raises(ValueError):
+        with pytest.raises(EvidenceIntegrityError):
             archived_control_targets(plane, PARTICIPANT)
 
 

@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from raes.explicitness import ExplicitnessRecord
 from raes.runtime_resource_limits import RuntimeProcessResourceLimit, process_resource_limit_identity_digest
 from raes.scenario import InstantiatedScenario
+from raes_contracts.json_pointer import array_index
 
 from ..semantics.realization_concerns import RegisteredRealizationConcern
 from ..semantics.realization_process_limits import (
@@ -60,10 +61,11 @@ def _compiled_process_resource_limits(
         if not constraint.field_pointer.startswith(prefix):
             continue
         suffix = constraint.field_pointer.removeprefix(prefix).split("/")
-        if len(suffix) != 2 or not suffix[0].isdigit() or suffix[1] not in {"soft", "hard"}:
+        if len(suffix) != 2 or suffix[1] not in {"soft", "hard"}:
             continue
-        index = int(suffix[0])
-        if index >= len(typed_limits):
+        # A token that does not name a declared limit is a non-matching pointer, like any other.
+        index = array_index(suffix[0], len(typed_limits))
+        if index is None:
             continue
         constraints.append(
             RealizationValueConstraint(

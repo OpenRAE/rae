@@ -28,6 +28,7 @@ from raes_contracts.contracts.mixed_composition import (
 )
 from raes_contracts.contracts.mixed_composition_resolution import MixedCompositionResolutionContext
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.experiment_bindings import (
     ApparatusManifest,
     ApparatusManifestKey,
@@ -150,7 +151,7 @@ class TrialCompilationResult:
             raise ValueError("trial compilation result must contain exactly one plan or diagnostics")
 
 
-class CompilationFailure(Exception):
+class CompilationFailure(InvalidInputError):
     """Expected, secret-safe compiler rejection."""
 
     def __init__(self, code: str, address: str, message: str) -> None:

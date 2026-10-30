@@ -20,6 +20,7 @@ from raes_contracts.behavioral_relations import (
     validate_behavioral_claim_binding,
 )
 from raes_contracts.contracts import BehavioralClaimBindingModel, schema_bundle
+from raes_contracts.errors import InvalidInputError, OperationalError
 from raes_contracts.participant_opacity import (
     NORMALIZED_INPUT_PROVENANCE_NONCLAIM,
     OpacityPossiblePointModel,
@@ -31,6 +32,7 @@ from raes_contracts.participant_opacity import (
 from raes_contracts.satisfiability import SourceArtifactIdentityModel
 from raes_processor.participant_opacity import (
     ParticipantOpacityEvidenceError,
+    ParticipantOpacityInputError,
     ParticipantOpacityOperationalError,
     analyze_participant_opacity_file,
     analyze_participant_opacity_input,
@@ -154,7 +156,7 @@ def test_profile_loader_rejects_request_identity_mismatch_and_ambiguous_json(
     payload = PROFILE_PATH.read_text(encoding="utf-8")
     other = tmp_path / "other.json"
     other.write_text(payload, encoding="utf-8")
-    with pytest.raises(ValueError, match="requested"):
+    with pytest.raises(InvalidInputError, match="requested"):
         load_behavioral_relation_profile_from_path("other-profile-v1", other)
 
     duplicate = tmp_path / "duplicate.json"
@@ -166,7 +168,7 @@ def test_profile_loader_rejects_request_identity_mismatch_and_ambiguous_json(
         ),
         encoding="utf-8",
     )
-    with pytest.raises(ValueError, match="JSON|duplicate") as duplicate_error:
+    with pytest.raises(OperationalError, match="JSON|duplicate") as duplicate_error:
         load_behavioral_relation_profile_from_path(PROFILE_ID, duplicate)
     assert duplicate_error.value.__suppress_context__ is True
 
@@ -640,7 +642,7 @@ def test_file_analyzer_rejects_duplicate_or_open_json_without_echoing_input(
         encoding="utf-8",
     )
     with pytest.raises(
-        ParticipantOpacityOperationalError,
+        ParticipantOpacityInputError,
         match="bounded closed-world admission",
     ) as duplicate_error:
         analyze_participant_opacity_file(duplicate)
@@ -652,7 +654,7 @@ def test_file_analyzer_rejects_duplicate_or_open_json_without_echoing_input(
     open_input = tmp_path / "open.json"
     open_input.write_text(json.dumps(open_payload), encoding="utf-8")
     with pytest.raises(
-        ParticipantOpacityOperationalError,
+        ParticipantOpacityInputError,
         match="bounded closed-world admission",
     ) as open_error:
         analyze_participant_opacity_file(open_input)

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from raes_contracts.errors import ConflictError
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import OperationReceipt
@@ -16,7 +17,7 @@ from .participant_crossing_mediation import ParticipantCrossingEvidence
 
 
 def _mixed_dispatch_only(*_args: object, **_kwargs: object) -> object:
-    raise AssertionError("mixed action dispatch must resolve an admitted provider before effect")
+    raise RuntimeError("mixed action dispatch must resolve an admitted provider before effect")
 
 
 @dataclass(frozen=True)
@@ -87,7 +88,7 @@ def submit_bound_participant_action(
             ),
         )
     if options.crossing_evidence is not None:
-        raise ValueError("participant crossing policy resolver is required")
+        raise ConflictError("participant crossing policy resolver is required")
     return execute_participant_action(
         control_plane,
         method=control_plane._target.participant_runtime.admit_action,

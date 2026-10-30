@@ -24,11 +24,13 @@ from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from uuid import uuid4
 
+from pydantic import ValidationError
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.participant_control_occurrence_v2 import (
     ParticipantControlOccurrenceV2Model,
 )
 from raes_contracts.contracts.participant_control_occurrence_v2_policy import participant_control_validity_bounds
+from raes_contracts.errors import AuthorizationError, ConflictError, EvidenceIntegrityError, InvalidInputError
 
 from .participant_control_operation import ParticipantControlOperationAuthority, participant_control_operation_artifacts
 from .participant_control_runtime import admitted_policy, archived_policies, resolve_live_cut
@@ -71,7 +73,7 @@ def prepare_control_application(
     application = intent.application
     transition = policy.transition(intent.declaration_ref)
     if transition is None:
-        raise ValueError("control application names no transition in its admitted episode policy")
+        raise ConflictError("control application names no transition in its admitted episode policy")
     source = policy.state(transition.from_state_ref)
     destination = policy.state(transition.to_state_ref)
     _require_source_controller(identity, participant, source, plane.target_name)
@@ -88,15 +90,17 @@ def prepare_control_application(
     candidate, reason = _control_candidate(plane, participant, intent, source, context, bounds, reason)
     trial = context.archive.trial(candidate, policy=policy, available_targets=available_targets)
     if trial.violation is not None:
-        raise ValueError(trial.violation)
+        raise ConflictError(trial.violation)
     from raes_contracts.immutable_history import append_history
 
-    next_snapshot = plane._snapshot.with_entries(
-        dict(plane._snapshot.entries),
-        participant_control_history=append_history(
+    try:
+        appended = append_history(
             plane._snapshot, "participant_control_history", participant, [candidate.model_dump(mode="json")]
-        ),
-    )
+        )
+    # The history map refuses to extend history that retains opaque legacy records of any participant.
+    except ValueError as exc:
+        raise EvidenceIntegrityError("retained participant control history does not validate") from exc
+    next_snapshot = plane._snapshot.with_entries(dict(plane._snapshot.entries), participant_control_history=appended)
     record, audit = participant_control_operation_artifacts(
         participant_address=participant,
         intent=intent,
@@ -135,7 +139,7 @@ def _application_history(
 
     history = plane._snapshot.participant_control_history.get(participant, ())
     if len(history) >= 1_000_000:
-        raise ValueError("participant control history capacity is exhausted")
+        raise ConflictError("participant control history capacity is exhausted")
     policies = archived_policies(plane, participant)
     historical_targets = archived_control_targets(plane, participant)
     known_identities = {control_target_identity(target) for target in historical_targets}
@@ -167,7 +171,7 @@ def _require_source_controller(
             for subject in identity.participant_control_subjects
         )
     ):
-        raise PermissionError("participant source controller is not authorized")
+        raise AuthorizationError("participant source controller is not authorized")
 
 
 def _coordinate_reasons(
@@ -246,7 +250,7 @@ def _control_candidate(
 ) -> tuple[ParticipantControlOccurrenceV2Model, str | None]:
     envelope = _envelope(plane, participant, intent, context.policy, source)
     if reason is None:
-        candidate = ParticipantControlOccurrenceV2Model.model_validate(
+        candidate = _occurrence(
             {
                 **envelope,
                 "occurrence": _accepted_detail(intent, context.policy, source, bounds, len(context.history) + 1),
@@ -257,10 +261,18 @@ def _control_candidate(
             return candidate, None
         reason = trial.rejection_code
         if reason is None:
-            raise ValueError("mixed-control candidate does not satisfy its pinned policy")
-    return ParticipantControlOccurrenceV2Model.model_validate(
+            raise ConflictError("mixed-control candidate does not satisfy its pinned policy")
+    return _occurrence(
         {**envelope, "occurrence": _rejected_detail(intent, source, context.live, len(context.history), reason)}
     ), reason
+
+
+def _occurrence(payload: dict[str, object]) -> ParticipantControlOccurrenceV2Model:
+    try:
+        return ParticipantControlOccurrenceV2Model.model_validate(payload)
+    # The intent model admits values, such as an empty reference, that the occurrence contract refuses.
+    except ValidationError as exc:
+        raise InvalidInputError("participant control intent does not form a valid control occurrence") from exc
 
 
 def _envelope(

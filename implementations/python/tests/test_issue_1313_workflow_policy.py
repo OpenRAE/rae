@@ -269,7 +269,7 @@ def test_selection_launcher_sanitizes_environment_and_failure(monkeypatch: pytes
         if host
         else {"artifact_id": "tool", "version": "1", "platform_id": "linux-x86_64", "profile_id": "public-linux-x86_64"}
     )
-    with pytest.raises(RuntimeError) as caught:
+    with pytest.raises(tooling_policy_gate.ArtifactPolicyError) as caught:
         validator(["python", "validator"], **selection)
     assert "fixture-credential" not in str(caught.value)
     assert "candidate-url" not in str(caught.value)

@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError, InvalidInputError, RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_processor.models import CompiledTimeModel, ParticipantAutonomousExecutionRuntime
 
@@ -28,6 +30,8 @@ if TYPE_CHECKING:
     from raes_processor.models import ParticipantExecutionBindingRuntime
 
     from .participant_scheduler_types import SchedulerRunState, _DueActionContext
+
+_LOGGER = get_logger(__name__)
 
 
 def _due_contexts(
@@ -80,7 +84,10 @@ def _isolate_concurrent_policy_snapshot(
     isolated = True
     try:
         run.working = deepcopy(run.working)
-    except Exception, CancelledError:  # NOSONAR - no native action has been submitted
+    except (Exception, CancelledError) as exc:  # NOSONAR - no native action has been submitted
+        cancelled = isinstance(exc, CancelledError)
+        if not cancelled:
+            _LOGGER.exception("concurrent participant snapshot isolation failed before dispatch")
         _set_concurrent_failure(
             run,
             Diagnostic(
@@ -90,6 +97,9 @@ def _isolate_concurrent_policy_snapshot(
                 message="Concurrent participant snapshot isolation did not complete before dispatch.",
             ),
         )
+        if cancelled:
+            # Cleanup: the predecessor is unchanged; propagate the cancellation (ADR-116 H4).
+            raise
         isolated = False
     return isolated
 
@@ -110,7 +120,7 @@ def _execution_binding_for_state(
         # existed represent an action with no declared interaction footprint.
         return None
     if len(bindings) != 1:
-        raise ValueError("concurrent participant action must resolve exactly one execution binding")
+        raise ConflictError("concurrent participant action must resolve exactly one execution binding")
     return bindings[0]
 
 
@@ -201,9 +211,16 @@ def _bind_concurrent_policy_requests(
             for context, state in zip(contexts, states, strict=True)
         ]
         if binding_snapshot != pre_policy:
-            raise ValueError("participant request binding mutated its predecessor")
-        return requests
-    except Exception, CancelledError:  # NOSONAR - no native action has been submitted
+            raise InvalidInputError("participant request binding mutated its predecessor")
+    except (Exception, CancelledError) as exc:  # NOSONAR - no native action has been submitted
+        cancelled = isinstance(exc, CancelledError)
+        # The binding boundary already logged a backend failure (OperationalError), and a binding
+        # refusal is an expected outcome; neither gets a second record.
+        if not cancelled and not isinstance(exc, RaesError):
+            # Isolation: request binding reads backend-built objects; log only RAES frames.
+            _LOGGER.exception(
+                "backend concurrent participant request binding failed", exc_info=foreign_failure_record(exc)
+            )
         run.working = pre_policy
         _set_concurrent_failure(
             run,
@@ -214,7 +231,11 @@ def _bind_concurrent_policy_requests(
                 message="Backend concurrent participant request binding did not complete.",
             ),
         )
+        if cancelled:
+            # Cleanup: the predecessor is restored; propagate the cancellation (ADR-116 H4).
+            raise
         return None
+    return requests
 
 
 def _bound_concurrent_policy_batch(
@@ -311,26 +332,37 @@ def _execute_concurrent_due_contexts(batch: _ConcurrentBatch) -> None:
     bound_batch = _bound_concurrent_policy_batch(batch, requests)
     offset = _execute_capacity_bounded_batches(bound_batch)
 
-    if batch.run.failure is None:
-        try:
-            batch.run.working = _materialize_concurrent_snapshot(batch.run.working)
-        except Exception, CancelledError:  # NOSONAR - normalize the deferred batch boundary
-            _set_concurrent_failure(
-                batch.run,
-                Diagnostic(
-                    code="runtime.participant-concurrent-commit-invalid",
-                    domain="participant",
-                    address=batch.policy.address,
-                    message="Concurrent participant batch state failed final invariant validation.",
-                ),
-            )
-            return
+    if batch.run.failure is None and _materialized_concurrent_snapshot(batch):
         from .participant_scheduler_operations import run_participant_due
 
         for context in batch.contexts[offset:]:
             run_participant_due(context, batch.run)
             if batch.run.failure is not None:
                 break
+
+
+def _materialized_concurrent_snapshot(batch: _ConcurrentBatch) -> bool:
+    """Materialize the batch state, or record the commit failure; a cancellation propagates."""
+    try:
+        batch.run.working = _materialize_concurrent_snapshot(batch.run.working)
+    except (Exception, CancelledError) as exc:  # NOSONAR - normalize the deferred batch boundary
+        cancelled = isinstance(exc, CancelledError)
+        if not cancelled:
+            _LOGGER.exception("concurrent participant batch state failed final invariant validation")
+        _set_concurrent_failure(
+            batch.run,
+            Diagnostic(
+                code="runtime.participant-concurrent-commit-invalid",
+                domain="participant",
+                address=batch.policy.address,
+                message="Concurrent participant batch state failed final invariant validation.",
+            ),
+        )
+        if cancelled:
+            # Cleanup: the dispatched batches are settled; propagate the cancellation (ADR-116 H4).
+            raise
+        return False
+    return True
 
 
 def run_policy_due_concurrently(

@@ -10,6 +10,7 @@ from participant_control_contract_fixtures import (
     ref,
     selection_payload,
 )
+from raes_contracts.errors import InvalidInputError
 
 
 def _selection_v2():
@@ -1032,7 +1033,7 @@ def test_v2_bounded_json_ingress_preserves_abstention_and_rejects_duplicate_memb
     parsed = parse_participant_control_evaluation_v2(json.dumps(payload))
     assert parsed.results[-1].payload.disposition == "abstain"
     assert parsed.composition.disposition == "failed"
-    with pytest.raises(ValueError, match="invalid participant control evaluation"):
+    with pytest.raises(InvalidInputError, match="invalid participant control evaluation"):
         parse_participant_control_evaluation_v2('{"schema_version":"one","schema_version":"two"}')
 
 

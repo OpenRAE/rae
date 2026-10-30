@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
+from ._host_isolation import isolated_host_call
 from .contracts import (
     ParticipantDecisionSurfaceDeliveryV2Model,
     ParticipantDecisionSurfaceV2Model,
@@ -30,10 +31,8 @@ def deliver_participant_decision_surface_v2(
 
     if surface.surface_state != "projected" or surface.delivery is not None:
         raise ValueError("only a projected decision surface can transition to delivered")
-    try:
+    with isolated_host_call("participant decision-surface delivery resolution failed"):
         delivery = resolver(delivery_ref=delivery_ref)
-    except Exception as exc:
-        raise ValueError("participant decision-surface delivery resolution failed") from exc
     if delivery is None or delivery.delivery_ref != delivery_ref:
         raise ValueError("participant decision-surface delivery_ref did not resolve")
     payload = surface.model_dump(mode="json")
@@ -50,10 +49,8 @@ def validate_participant_decision_surface_v2_delivery(
 
     if surface.surface_state != "delivered" or surface.delivery is None:
         raise ValueError("participant decision-surface selection requires delivered state")
-    try:
+    with isolated_host_call("participant decision-surface delivery resolution failed"):
         resolved = resolver(delivery_ref=surface.delivery.delivery_ref)
-    except Exception as exc:
-        raise ValueError("participant decision-surface delivery resolution failed") from exc
     if resolved is None:
         raise ValueError("participant decision-surface delivery_ref did not resolve")
     if resolved != surface.delivery:

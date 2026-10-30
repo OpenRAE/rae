@@ -34,7 +34,7 @@ def initialize_operation_changes(connection: sqlite3.Connection) -> None:
 
 
 def load_claim_guard_records(connection: sqlite3.Connection) -> tuple[ControlPlaneOperationRecord, ...]:
-    from .control_plane_store_local_codec import decode_payload
+    from .control_plane_store_local_codec import decode_contract
     from .control_plane_store_records import _record_from_payload
 
     rows = connection.execute(
@@ -47,7 +47,8 @@ def load_claim_guard_records(connection: sqlite3.Connection) -> tuple[ControlPla
         "WHERE json_type(child.payload, '$.reconciliation')='object'"
     ).fetchall()
     return tuple(
-        _record_from_payload(decode_payload(content, digest, kind="operation record")) for content, digest in rows
+        decode_contract(content, digest, kind="operation record", rebuild=_record_from_payload)
+        for content, digest in rows
     )
 
 

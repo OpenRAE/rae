@@ -17,6 +17,7 @@ from raes_mcp.tools.operation_support import (
     has_errors,
     json_response,
     manifest_summary,
+    reference_plan,
     runtime_model_summary,
     section_counts,
     size_error_payload,
@@ -266,11 +267,9 @@ def register(mcp: FastMCP) -> None:
         if pipeline["error"] is not None:
             return json_response(pipeline["error"])
 
-        from raes_backend_stubs.stubs import create_stub_manifest
-        from raes_processor.planner import plan
-
-        manifest = create_stub_manifest()
-        execution_plan = plan(pipeline["model"], manifest)
+        manifest, execution_plan, plan_error = reference_plan(pipeline["model"])
+        if plan_error is not None:
+            return json_response(plan_error)
         return json_response(
             {
                 "status": "planned" if execution_plan.is_valid else "planned_with_errors",
@@ -321,12 +320,11 @@ def register(mcp: FastMCP) -> None:
         if pipeline["error"] is not None:
             return json_response(pipeline["error"])
 
-        from raes_backend_stubs.stubs import create_stub_manifest
-        from raes_processor.planner import plan
-
         scenario = pipeline["scenario"]
         model = pipeline["model"]
-        execution_plan = plan(model, create_stub_manifest())
+        _manifest, execution_plan, plan_error = reference_plan(model)
+        if plan_error is not None:
+            return json_response(plan_error)
         plan_diagnostics = execution_plan.diagnostics
         return json_response(
             {
@@ -361,12 +359,11 @@ def register(mcp: FastMCP) -> None:
         if pipeline["error"] is not None:
             return json_response(pipeline["error"])
 
-        from raes_backend_stubs.stubs import create_stub_manifest
-        from raes_processor.planner import plan
-
         scenario = pipeline["scenario"]
         model = pipeline["model"]
-        execution_plan = plan(model, create_stub_manifest())
+        _manifest, execution_plan, plan_error = reference_plan(model)
+        if plan_error is not None:
+            return json_response(plan_error)
         return json_response(
             {
                 "status": "assessed",

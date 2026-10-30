@@ -63,7 +63,9 @@ def _validate_relative_path(value: str) -> str:
     return value
 
 
-def _validate_mount_destination(value: str) -> str:
+def validate_mount_destination(value: str) -> str:
+    """Admit a canonical contained POSIX absolute mount path below root."""
+
     path = PurePosixPath(value)
     if (
         not value
@@ -97,7 +99,7 @@ class StatefulResourceConsumer(SDLModel):
     mount_destination: str
     access_mode: ConsumerAccessMode
 
-    _contained_mount_destination = field_validator("mount_destination")(_validate_mount_destination)
+    _contained_mount_destination = field_validator("mount_destination")(validate_mount_destination)
 
 
 class GeneratedArtifactConsumer(StatefulResourceConsumer):
@@ -262,4 +264,5 @@ __all__ = (
     "StatefulResourceConsumer",
     "VolumeAccessMode",
     "VolumeLifecycle",
+    "validate_mount_destination",
 )
