@@ -44,3 +44,13 @@ Conformance Commands
 
 .. automodule:: raes_cli.conformance
    :members:
+
+Runtime Commands
+----------------
+
+``raes runtime store`` checks, backs up, and restores an offline local
+control-plane store.
+
+.. automodule:: raes_cli.runtime
+   :members:
+   :ignore-module-all:
